@@ -11,7 +11,10 @@ import {
   DEFAULT_SW_SCOPE,
   DEFAULT_VAPID_KEY
 } from '../util/constants';
-import { InternalMessage, MessageType } from '../interfaces/internal-message';
+import {
+  MessagePayloadInternal,
+  MessageType
+} from '../interfaces/message-payload';
 import { SinonFakeTimers, SinonSpy, spy, stub, useFakeTimers } from 'sinon';
 import { Spy, Stub } from '../testing/sinon-types';
 /**
@@ -37,6 +40,7 @@ import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
 import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { WindowController } from './window-controller';
+import { externalizePayload } from '../helpers/externalizePayload';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
 
 type MessageEventListener = (event: Event) => Promise<void>;
@@ -128,7 +132,7 @@ describe('WindowController', () => {
       );
     });
 
-    it('uses previsouly stored sw if non is provided in the option parameter', async () => {
+    it('uses previously stored sw if non is provided in the option parameter', async () => {
       windowController.useServiceWorker(swRegistration);
       assert.strictEqual(
         JSON.stringify(windowController.getSwReg()),
@@ -375,15 +379,14 @@ describe('WindowController', () => {
       const onMessageCallback = spy();
       windowController.onMessage(onMessageCallback);
 
-      const message: InternalMessage = {
-        firebaseMessaging: {
-          type: MessageType.PUSH_RECEIVED,
-          payload: { notification: { title: 'hello', body: 'world' } }
-        }
+      const internalPayload: MessagePayloadInternal = {
+        notification: { title: 'hello', body: 'world' },
+        messageType: MessageType.PUSH_RECEIVED,
+        isFirebaseMessaging: true
       };
 
       await messageEventListener(
-        new MessageEvent('message', { data: message })
+        new MessageEvent('message', { data: internalPayload })
       );
 
       expect(onMessageCallback).to.have.been.called;
@@ -397,34 +400,32 @@ describe('WindowController', () => {
         complete: () => {}
       });
 
-      const message: InternalMessage = {
-        firebaseMessaging: {
-          type: MessageType.PUSH_RECEIVED,
-          payload: { notification: { title: 'hello', body: 'world' } }
-        }
+      const internalPayload: MessagePayloadInternal = {
+        notification: { title: 'hello', body: 'world' },
+        messageType: MessageType.PUSH_RECEIVED,
+        isFirebaseMessaging: true
       };
 
       await messageEventListener(
-        new MessageEvent('message', { data: message })
+        new MessageEvent('message', { data: internalPayload })
       );
 
       expect(onMessageCallback).to.have.been.called;
     });
 
-    it('returns a function that unsets the onMessage callback', async () => {
+    it('returns a function that clears the onMessage callback', async () => {
       const onMessageCallback = spy();
       const unsubscribe = windowController.onMessage(onMessageCallback);
       unsubscribe();
 
-      const message: InternalMessage = {
-        firebaseMessaging: {
-          type: MessageType.PUSH_RECEIVED,
-          payload: { notification: { title: 'hello', body: 'world' } }
-        }
+      const internalPayload: MessagePayloadInternal = {
+        notification: { title: 'hello', body: 'world' },
+        messageType: MessageType.PUSH_RECEIVED,
+        isFirebaseMessaging: true
       };
 
       await messageEventListener(
-        new MessageEvent('message', { data: message })
+        new MessageEvent('message', { data: internalPayload })
       );
 
       expect(onMessageCallback).not.to.have.been.called;
@@ -508,33 +509,31 @@ describe('WindowController', () => {
     });
 
     it('calls onMessage callback when it receives a PUSH_RECEIVED message', async () => {
-      const message: InternalMessage = {
-        firebaseMessaging: {
-          type: MessageType.PUSH_RECEIVED,
-          payload: { notification: { title: 'hello', body: 'world' } }
-        }
+      const internalPayload: MessagePayloadInternal = {
+        notification: { title: 'hello', body: 'world' },
+        messageType: MessageType.PUSH_RECEIVED,
+        isFirebaseMessaging: true
       };
 
       await messageEventListener(
-        new MessageEvent('message', { data: message })
+        new MessageEvent('message', { data: internalPayload })
       );
 
       expect(onMessageSpy).to.have.been.calledOnceWith(
-        message.firebaseMessaging.payload
+        externalizePayload(internalPayload)
       );
       expect(logEventSpy).not.to.have.been.called;
     });
 
     it('does not call onMessage callback when it receives a NOTIFICATION_CLICKED message', async () => {
-      const message: InternalMessage = {
-        firebaseMessaging: {
-          type: MessageType.NOTIFICATION_CLICKED,
-          payload: { notification: { title: 'hello', body: 'world' } }
-        }
+      const internalPayload: MessagePayloadInternal = {
+        notification: { title: 'hello', body: 'world' },
+        messageType: MessageType.NOTIFICATION_CLICKED,
+        isFirebaseMessaging: true
       };
 
       await messageEventListener(
-        new MessageEvent('message', { data: message })
+        new MessageEvent('message', { data: internalPayload })
       );
 
       expect(onMessageSpy).not.to.have.been.called;
@@ -542,36 +541,32 @@ describe('WindowController', () => {
     });
 
     it('calls analytics.logEvent if the message has analytics enabled for PUSH_RECEIVED', async () => {
-      const data = {
-        [CONSOLE_CAMPAIGN_ID]: '123456',
-        [CONSOLE_CAMPAIGN_NAME]: 'Campaign Name',
-        [CONSOLE_CAMPAIGN_TIME]: '1234567890',
-        [CONSOLE_CAMPAIGN_ANALYTICS_ENABLED]: '1'
-      };
-      const message: InternalMessage = {
-        firebaseMessaging: {
-          type: MessageType.PUSH_RECEIVED,
-          payload: {
-            notification: { title: 'hello', body: 'world' },
-            data
-          }
-        }
+      const internalPayload: MessagePayloadInternal = {
+        notification: { title: 'hello', body: 'world' },
+        data: {
+          [CONSOLE_CAMPAIGN_ID]: '123456',
+          [CONSOLE_CAMPAIGN_NAME]: 'Campaign Name',
+          [CONSOLE_CAMPAIGN_TIME]: '1234567890',
+          [CONSOLE_CAMPAIGN_ANALYTICS_ENABLED]: '1'
+        },
+        messageType: MessageType.PUSH_RECEIVED,
+        isFirebaseMessaging: true
       };
 
       await messageEventListener(
-        new MessageEvent('message', { data: message })
+        new MessageEvent('message', { data: internalPayload })
       );
 
       expect(onMessageSpy).to.have.been.calledOnceWith(
-        message.firebaseMessaging.payload
+        externalizePayload(internalPayload)
       );
       expect(logEventSpy).to.have.been.calledOnceWith(
         'notification_foreground',
         {
           /* eslint-disable camelcase */
-          message_id: data[CONSOLE_CAMPAIGN_ID],
-          message_name: data[CONSOLE_CAMPAIGN_NAME],
-          message_time: data[CONSOLE_CAMPAIGN_TIME],
+          message_id: '123456',
+          message_name: 'Campaign Name',
+          message_time: '1234567890',
           message_device_time: clock.now
           /* eslint-enable camelcase */
         }
@@ -579,32 +574,28 @@ describe('WindowController', () => {
     });
 
     it('calls analytics.logEvent if the message has analytics enabled for NOTIFICATION_CLICKED', async () => {
-      const data = {
-        [CONSOLE_CAMPAIGN_ID]: '123456',
-        [CONSOLE_CAMPAIGN_NAME]: 'Campaign Name',
-        [CONSOLE_CAMPAIGN_TIME]: '1234567890',
-        [CONSOLE_CAMPAIGN_ANALYTICS_ENABLED]: '1'
-      };
-      const message: InternalMessage = {
-        firebaseMessaging: {
-          type: MessageType.NOTIFICATION_CLICKED,
-          payload: {
-            notification: { title: 'hello', body: 'world' },
-            data
-          }
-        }
+      const internalPayload: MessagePayloadInternal = {
+        notification: { title: 'hello', body: 'world' },
+        data: {
+          [CONSOLE_CAMPAIGN_ID]: '123456',
+          [CONSOLE_CAMPAIGN_NAME]: 'Campaign Name',
+          [CONSOLE_CAMPAIGN_TIME]: '1234567890',
+          [CONSOLE_CAMPAIGN_ANALYTICS_ENABLED]: '1'
+        },
+        messageType: MessageType.NOTIFICATION_CLICKED,
+        isFirebaseMessaging: true
       };
 
       await messageEventListener(
-        new MessageEvent('message', { data: message })
+        new MessageEvent('message', { data: internalPayload })
       );
 
       expect(onMessageSpy).not.to.have.been.called;
       expect(logEventSpy).to.have.been.calledOnceWith('notification_open', {
         /* eslint-disable camelcase */
-        message_id: data[CONSOLE_CAMPAIGN_ID],
-        message_name: data[CONSOLE_CAMPAIGN_NAME],
-        message_time: data[CONSOLE_CAMPAIGN_TIME],
+        message_id: '123456',
+        message_name: 'Campaign Name',
+        message_time: '1234567890',
         message_device_time: clock.now
         /* eslint-enable camelcase */
       });

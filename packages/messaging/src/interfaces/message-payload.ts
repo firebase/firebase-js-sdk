@@ -22,24 +22,52 @@ import {
   CONSOLE_CAMPAIGN_TIME
 } from '../util/constants';
 
-export interface NotificationPayload extends NotificationOptions {
+export interface NotificationPayloadInternal extends NotificationOptions {
   title: string;
 
+  // Supported in the Legacy Send API. See:https://firebase.google.com/docs/cloud-messaging/xmpp-server-ref.
   // eslint-disable-next-line camelcase
   click_action?: string;
 }
 
-export interface FcmOptions {
+// Defined in https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions. Note that the keys are sent to the clients in snake cases which we need to convert to camel so it can be exposed as a type to match the Firebase API convention.
+export interface FcmOptionsInternal {
   link?: string;
 
   // eslint-disable-next-line camelcase
   analytics_label?: string;
 }
 
-export interface MessagePayload {
-  fcmOptions?: FcmOptions;
-  notification?: NotificationPayload;
+// Represents a raw message payload from a push event
+export interface MessagePayloadInternal {
+  notification?: NotificationPayloadInternal;
   data?: unknown;
+  fcmOptions?: FcmOptionsInternal;
+  messageType?: MessageType;
+  isFirebaseMessaging?: boolean;
+}
+
+export enum MessageType {
+  PUSH_RECEIVED = 'push-received',
+  NOTIFICATION_CLICKED = 'notification-clicked'
+}
+
+// Currently supported fcm notification display parameters. Note that {@link https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/notifications/NotificationOptions} defines a full list of display notification parameters. This interface we only include what the SEND API support for clarity.
+export interface NotificationPayload {
+  title: string;
+  body: string;
+  image: string;
+}
+
+export interface FcmOptions {
+  link?: string;
+  analyticsLabel?: string;
+}
+
+export interface MessagePayload {
+  notification?: NotificationPayload;
+  data?: { [key: string]: string };
+  fcmOptions?: FcmOptions;
 }
 
 /** Additional data of a message sent from the FN Console. */

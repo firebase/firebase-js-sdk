@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * @license
@@ -35,16 +36,18 @@ import {
 } from '@firebase/util';
 import {
   ConsoleMessageData,
-  MessagePayload
+  MessagePayload,
+  MessagePayloadInternal,
+  MessageType
 } from '../interfaces/message-payload';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
-import { InternalMessage, MessageType } from '../interfaces/internal-message';
 import { deleteToken, getToken } from '../core/token-management';
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { FirebaseMessaging } from '@firebase/messaging-types';
 import { FirebaseService } from '@firebase/app-types/private';
+import { externalizePayload } from '../helpers/externalizePayload';
 import { isConsoleMessage } from '../helpers/is-console-message';
 
 export class WindowController implements FirebaseMessaging, FirebaseService {
@@ -65,24 +68,25 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
   }
 
   private async messageEventListener(event: MessageEvent): Promise<void> {
-    if (!event.data?.firebaseMessaging) {
-      // Not a message from FCM
+    const internalPayload = event.data as MessagePayloadInternal;
+
+    if (!internalPayload.isFirebaseMessaging) {
       return;
     }
 
-    const { type, payload } = (event.data as InternalMessage).firebaseMessaging;
-
-    if (this.onMessageCallback && type === MessageType.PUSH_RECEIVED) {
-      this.onMessageCallback(payload);
+    if (
+      this.onMessageCallback &&
+      internalPayload.messageType === MessageType.PUSH_RECEIVED
+    ) {
+      this.onMessageCallback(externalizePayload(internalPayload));
     }
 
-    const { data } = payload;
+    const dataPayload = internalPayload.data;
     if (
-      isConsoleMessage(data) &&
-      data[CONSOLE_CAMPAIGN_ANALYTICS_ENABLED] === '1'
+      isConsoleMessage(dataPayload) &&
+      dataPayload[CONSOLE_CAMPAIGN_ANALYTICS_ENABLED] === '1'
     ) {
-      // Analytics is enabled on this message, so we should log it.
-      await this.logEvent(type, data);
+      await this.logEvent(internalPayload.messageType!, dataPayload);
     }
   }
 
