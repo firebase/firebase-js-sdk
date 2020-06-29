@@ -24,9 +24,9 @@
 
 import { AsyncStorage } from 'react-native';
 
-import { ReactNativePersistence } from '@firebase/auth-exp/src/core/persistence/react_native';
+import { makeReactNativePersistence } from '@firebase/auth-exp/src/core/persistence/react_native';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const reactNativeLocalPersistence = ReactNativePersistence.createFromUnderlyingStorage(
+const reactNativeLocalPersistence = makeReactNativePersistence(
   AsyncStorage
 );
