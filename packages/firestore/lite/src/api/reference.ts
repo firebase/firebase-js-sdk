@@ -454,18 +454,15 @@ export function setDoc<T>(
   data: T,
   options?: firestore.SetOptions
 ): Promise<void> {
-  const ref = cast(reference, DocumentReference);
+  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
 
-  const [convertedValue] = applyFirestoreDataConverter(
-    ref._converter,
-    data,
-    'setDoc'
-  );
+  const convertedValue = applyFirestoreDataConverter(ref._converter, data);
   const dataReader = newUserDataReader(ref.firestore);
   const parsed = dataReader.parseSetData(
     'setDoc',
     ref._key,
     convertedValue,
+    ref._converter !== null,
     options
   );
 
@@ -495,7 +492,7 @@ export function updateDoc(
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
-  const ref = cast(reference, DocumentReference);
+  const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
   const dataReader = newUserDataReader(ref.firestore);
 
   let parsed: ParsedUpdateData;
@@ -531,7 +528,7 @@ export function updateDoc(
 export function deleteDoc(
   reference: firestore.DocumentReference
 ): Promise<void> {
-  const ref = cast(reference, DocumentReference);
+  const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
   return ref.firestore
     ._getDatastore()
     .then(datastore =>
@@ -545,17 +542,19 @@ export function addDoc<T>(
   reference: firestore.CollectionReference<T>,
   data: T
 ): Promise<firestore.DocumentReference<T>> {
-  const collRef = cast(reference, CollectionReference);
+  const collRef = cast<CollectionReference<T>>(reference, CollectionReference);
   const docRef = doc(collRef);
 
-  const [convertedValue] = applyFirestoreDataConverter(
-    collRef._converter,
-    data,
-    'addDoc'
-  );
+  const convertedValue = applyFirestoreDataConverter(collRef._converter, data);
 
   const dataReader = newUserDataReader(collRef.firestore);
-  const parsed = dataReader.parseSetData('addDoc', docRef._key, convertedValue);
+  const parsed = dataReader.parseSetData(
+    'addDoc',
+    docRef._key,
+    convertedValue,
+    docRef._converter !== null,
+    {}
+  );
 
   return collRef.firestore
     ._getDatastore()

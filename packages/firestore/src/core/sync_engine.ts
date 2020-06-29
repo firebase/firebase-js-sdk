@@ -254,6 +254,7 @@ class SyncEngineImpl implements SyncEngine {
   protected activeLimboTargetsByKey = new SortedMap<DocumentKey, TargetId>(
     DocumentKey.comparator
   );
+
   /**
    * Keeps track of the information about an active limbo resolution for each
    * active target ID that was started for the purpose of limbo resolution.

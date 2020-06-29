@@ -57,7 +57,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 21741
+        "sizeInBytes": 21896
     },
     "CollectionReference": {
         "dependencies": {
@@ -235,7 +235,6 @@
                 "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
-                "Target",
                 "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
@@ -246,7 +245,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97400
+        "sizeInBytes": 97605
     },
     "DocumentReference": {
         "dependencies": {
@@ -292,7 +291,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17417
+        "sizeInBytes": 17572
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -381,7 +380,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 38458
+        "sizeInBytes": 38715
     },
     "FieldPath": {
         "dependencies": {
@@ -437,7 +436,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23374
+        "sizeInBytes": 23529
     },
     "FieldValue": {
         "dependencies": {
@@ -483,7 +482,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17009
+        "sizeInBytes": 17164
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -527,7 +526,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16916
+        "sizeInBytes": 17071
     },
     "GeoPoint": {
         "dependencies": {
@@ -580,7 +579,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19805
+        "sizeInBytes": 19960
     },
     "Query": {
         "dependencies": {
@@ -727,7 +726,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 78317
+        "sizeInBytes": 78685
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -816,7 +815,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 38463
+        "sizeInBytes": 38720
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -861,7 +860,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17150
+        "sizeInBytes": 17305
     },
     "Timestamp": {
         "dependencies": {
@@ -906,7 +905,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18452
+        "sizeInBytes": 18607
     },
     "Transaction": {
         "dependencies": {
@@ -1047,7 +1046,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 69166
+        "sizeInBytes": 69580
     },
     "WriteBatch": {
         "dependencies": {
@@ -1202,7 +1201,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 72089
+        "sizeInBytes": 72504
     },
     "addDoc": {
         "dependencies": {
@@ -1406,7 +1405,6 @@
                 "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
-                "Target",
                 "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
@@ -1418,7 +1416,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 107690
+        "sizeInBytes": 107956
     },
     "arrayRemove": {
         "dependencies": {
@@ -1529,7 +1527,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 42098
+        "sizeInBytes": 42383
     },
     "arrayUnion": {
         "dependencies": {
@@ -1640,7 +1638,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 42106
+        "sizeInBytes": 42391
     },
     "collection": {
         "dependencies": {
@@ -1820,7 +1818,6 @@
                 "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
-                "Target",
                 "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
@@ -1831,7 +1828,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98028
+        "sizeInBytes": 98233
     },
     "collectionGroup": {
         "dependencies": {
@@ -2009,7 +2006,6 @@
                 "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
-                "Target",
                 "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
@@ -2020,7 +2016,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97460
+        "sizeInBytes": 97665
     },
     "deleteDoc": {
         "dependencies": {
@@ -2130,7 +2126,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 50083
+        "sizeInBytes": 50238
     },
     "deleteField": {
         "dependencies": {
@@ -2179,7 +2175,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18083
+        "sizeInBytes": 18238
     },
     "doc": {
         "dependencies": {
@@ -2361,7 +2357,6 @@
                 "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
-                "Target",
                 "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
@@ -2372,7 +2367,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98849
+        "sizeInBytes": 99054
     },
     "documentId": {
         "dependencies": {
@@ -2429,7 +2424,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23424
+        "sizeInBytes": 23579
     },
     "getDoc": {
         "dependencies": {
@@ -2549,7 +2544,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 47691
+        "sizeInBytes": 47948
     },
     "getFirestore": {
         "dependencies": {
@@ -2594,7 +2589,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16995
+        "sizeInBytes": 17150
     },
     "getQuery": {
         "dependencies": {
@@ -2763,7 +2758,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 84076
+        "sizeInBytes": 84444
     },
     "increment": {
         "dependencies": {
@@ -2874,7 +2869,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 42056
+        "sizeInBytes": 42341
     },
     "initializeFirestore": {
         "dependencies": {
@@ -2919,7 +2914,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17081
+        "sizeInBytes": 17236
     },
     "parent": {
         "dependencies": {
@@ -3098,7 +3093,6 @@
                 "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
-                "Target",
                 "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
@@ -3109,7 +3103,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97743
+        "sizeInBytes": 97948
     },
     "queryEqual": {
         "dependencies": {
@@ -3257,7 +3251,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 78521
+        "sizeInBytes": 78889
     },
     "refEqual": {
         "dependencies": {
@@ -3436,7 +3430,6 @@
                 "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
-                "Target",
                 "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
@@ -3447,7 +3440,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97685
+        "sizeInBytes": 97890
     },
     "runTransaction": {
         "dependencies": {
@@ -3630,7 +3623,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 91541
+        "sizeInBytes": 91955
     },
     "serverTimestamp": {
         "dependencies": {
@@ -3682,7 +3675,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18869
+        "sizeInBytes": 19024
     },
     "setDoc": {
         "dependencies": {
@@ -3835,7 +3828,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 70370
+        "sizeInBytes": 70793
     },
     "setLogLevel": {
         "dependencies": {
@@ -3880,7 +3873,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16960
+        "sizeInBytes": 17115
     },
     "snapshotEqual": {
         "dependencies": {
@@ -4030,7 +4023,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 79254
+        "sizeInBytes": 79622
     },
     "terminate": {
         "dependencies": {
@@ -4074,7 +4067,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16895
+        "sizeInBytes": 17050
     },
     "updateDoc": {
         "dependencies": {
@@ -4227,7 +4220,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 70470
+        "sizeInBytes": 70838
     },
     "writeBatch": {
         "dependencies": {
@@ -4383,6 +4376,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 72169
+        "sizeInBytes": 72584
     }
 }
