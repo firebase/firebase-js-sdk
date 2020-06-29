@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
+import * as stringify from 'json-stable-stringify';
 import { ExclusiveTestFunction, PendingTestFunction } from 'mocha';
 
+import { targetEquals, TargetImpl } from '../../../src/core/target';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { debugAssert } from '../../../src/util/assert';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -24,9 +26,6 @@ import { addEqualityMatcher } from '../../util/equality_matcher';
 
 import { SpecBuilder } from './spec_builder';
 import { SpecStep } from './spec_test_runner';
-
-import * as stringify from 'json-stable-stringify';
-import { targetEquals, TargetImpl } from '../../../src/core/target';
 
 // Disables all other tests; useful for debugging. Multiple tests can have
 // this tag and they'll all be run (but all others won't).

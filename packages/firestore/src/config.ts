@@ -16,9 +16,11 @@
  */
 
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Component, ComponentType, Provider } from '@firebase/component';
+
+import { Blob } from './api/blob';
 import {
   CACHE_SIZE_UNLIMITED,
   CollectionReference,
@@ -31,11 +33,10 @@ import {
   Transaction,
   WriteBatch
 } from './api/database';
-import { Blob } from './api/blob';
 import { FieldPath } from './api/field_path';
+import { FieldValue } from './api/field_value';
 import { GeoPoint } from './api/geo_point';
 import { Timestamp } from './api/timestamp';
-import { FieldValue } from './api/field_value';
 
 const firestoreNamespace = {
   Firestore,

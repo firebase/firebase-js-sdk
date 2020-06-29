@@ -15,27 +15,27 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
-
-import { DocumentKey } from '../../../src/model/document_key';
-import { Document } from '../../../src/model/document';
-import {
-  ServerTimestampBehavior,
-  UserDataWriter
-} from '../../../src/api/user_data_writer';
+import { DocumentReference, Query } from '../../../lite/src/api/reference';
 import {
   fieldPathFromArgument,
   DocumentSnapshot as LiteDocumentSnapshot
 } from '../../../lite/src/api/snapshot';
-import { Firestore } from './database';
 import { cast } from '../../../lite/src/api/util';
-import { DocumentReference, Query } from '../../../lite/src/api/reference';
 import {
   changesFromSnapshot,
   SnapshotMetadata
 } from '../../../src/api/database';
-import { Code, FirestoreError } from '../../../src/util/error';
+import {
+  ServerTimestampBehavior,
+  UserDataWriter
+} from '../../../src/api/user_data_writer';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
+import { Document } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
+import { Code, FirestoreError } from '../../../src/util/error';
+import * as firestore from '../../index';
+
+import { Firestore } from './database';
 
 const DEFAULT_SERVER_TIMESTAMP_BEHAVIOR: ServerTimestampBehavior = 'none';
 

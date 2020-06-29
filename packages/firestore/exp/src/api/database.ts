@@ -15,21 +15,19 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
-
 import { _getProvider } from '@firebase/app-exp';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { FirestoreClient } from '../../../src/core/firestore_client';
-import { AsyncQueue } from '../../../src/util/async_queue';
+import { Firestore as LiteFirestore } from '../../../lite/src/api/database';
 import {
   ComponentProvider,
   MemoryComponentProvider
 } from '../../../src/core/component_provider';
-
-import { Firestore as LiteFirestore } from '../../../lite/src/api/database';
+import { FirestoreClient } from '../../../src/core/firestore_client';
+import { AsyncQueue } from '../../../src/util/async_queue';
+import * as firestore from '../../index';
 
 /**
  * The root reference to the Firestore database and the entry point for the

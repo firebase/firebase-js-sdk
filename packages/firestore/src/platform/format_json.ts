@@ -16,9 +16,10 @@
  */
 
 import { isNode, isReactNative } from '@firebase/util';
+
+import * as browser from './browser/format_json';
 import * as node from './node/format_json';
 import * as rn from './rn/format_json';
-import * as browser from './browser/format_json';
 
 /** Formats an object as a JSON string, suitable for logging. */
 export function formatJSON(value: unknown): string {

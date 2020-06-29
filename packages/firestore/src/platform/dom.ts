@@ -16,9 +16,10 @@
  */
 
 import { isNode, isReactNative } from '@firebase/util';
+
+import * as browser from './browser/dom';
 import * as node from './node/dom';
 import * as rn from './rn/dom';
-import * as browser from './browser/dom';
 
 /** The Platform's 'window' implementation or null if not available. */
 export function getWindow(): Window | null {

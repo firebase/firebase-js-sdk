@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import { loadProtos } from './load_protos';
-import { GrpcConnection } from './grpc_connection';
 import { DatabaseInfo } from '../../core/database_info';
-import { ConnectivityMonitor } from '../../remote/connectivity_monitor';
 import { Connection } from '../../remote/connection';
+import { ConnectivityMonitor } from '../../remote/connectivity_monitor';
 import { NoopConnectivityMonitor } from '../../remote/connectivity_monitor_noop';
+
+import { GrpcConnection } from './grpc_connection';
+import { loadProtos } from './load_protos';
 
 /** Loads the GRPC stack */
 export function newConnection(databaseInfo: DatabaseInfo): Promise<Connection> {

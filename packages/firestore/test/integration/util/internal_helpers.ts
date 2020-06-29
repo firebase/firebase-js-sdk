@@ -17,21 +17,21 @@
 
 import * as firestore from '@firebase/firestore-types';
 
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import { newDatastore, Datastore } from '../../../src/remote/datastore';
-
 import {
   CredentialChangeListener,
   CredentialsProvider,
   EmptyCredentialsProvider
 } from '../../../src/api/credentials';
 import { Firestore } from '../../../src/api/database';
-import { AsyncQueue } from '../../../src/util/async_queue';
-import { withTestDbsSettings } from './helpers';
 import { User } from '../../../src/auth/user';
-import { DEFAULT_PROJECT_ID, DEFAULT_SETTINGS } from './settings';
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { newConnection } from '../../../src/platform/connection';
 import { newSerializer } from '../../../src/platform/serializer';
+import { newDatastore, Datastore } from '../../../src/remote/datastore';
+import { AsyncQueue } from '../../../src/util/async_queue';
+
+import { withTestDbsSettings } from './helpers';
+import { DEFAULT_PROJECT_ID, DEFAULT_SETTINGS } from './settings';
 
 /** Helper to retrieve the AsyncQueue for a give FirebaseFirestore instance. */
 export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueue {

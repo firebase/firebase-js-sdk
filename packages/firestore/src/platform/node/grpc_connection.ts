@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import firebase from '@firebase/app';
 import {
   Metadata,
   GrpcObject,
@@ -23,7 +24,6 @@ import {
 } from '@grpc/grpc-js';
 import * as grpcPkgJson from '@grpc/grpc-js/package.json';
 
-import firebase from '@firebase/app';
 const SDK_VERSION = firebase.SDK_VERSION;
 
 const grpcVersion = grpcPkgJson.version;

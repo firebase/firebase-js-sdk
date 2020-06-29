@@ -20,6 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { canonifyTarget } from '../../../src/core/target';
 import {
   decodeResourcePath,
   encodeResourcePath
@@ -55,16 +56,24 @@ import {
   V6_STORES,
   V8_STORES
 } from '../../../src/local/indexeddb_schema';
+import {
+  fromDbTarget,
+  toDbRemoteDocument,
+  toDbTarget,
+  toDbTimestampKey
+} from '../../../src/local/local_serializer';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
+import { getWindow } from '../../../src/platform/dom';
 import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { doc, filter, path, version } from '../../util/helpers';
+import { FakeDocument, testDocument } from '../../util/test_platform';
 import { MockIndexedDbPersistence } from '../specs/spec_test_components';
 
 import {
@@ -74,15 +83,6 @@ import {
   TEST_PERSISTENCE_PREFIX,
   TEST_SERIALIZER
 } from './persistence_test_helpers';
-import {
-  fromDbTarget,
-  toDbRemoteDocument,
-  toDbTarget,
-  toDbTimestampKey
-} from '../../../src/local/local_serializer';
-import { canonifyTarget } from '../../../src/core/target';
-import { FakeDocument, testDocument } from '../../util/test_platform';
-import { getWindow } from '../../../src/platform/dom';
 
 use(chaiAsPromised);
 

@@ -15,28 +15,28 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../';
-
 import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
-import { Code, FirestoreError } from '../../../src/util/error';
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import * as firestore from '../../';
+import { Settings } from '../../';
 import {
   CredentialsProvider,
   FirebaseCredentialsProvider
 } from '../../../src/api/credentials';
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
+import { newConnection } from '../../../src/platform/connection';
+import { newSerializer } from '../../../src/platform/serializer';
 import {
   Datastore,
   newDatastore,
   terminateDatastore
 } from '../../../src/remote/datastore';
-import { newConnection } from '../../../src/platform/connection';
-import { newSerializer } from '../../../src/platform/serializer';
+import { Code, FirestoreError } from '../../../src/util/error';
+
 import { cast } from './util';
-import { Settings } from '../../';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';

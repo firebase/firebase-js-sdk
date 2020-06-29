@@ -19,36 +19,36 @@ import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
 import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
+import { SharedClientState } from '../local/shared_client_state';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
+import { newConnection } from '../platform/connection';
+import { newSerializer } from '../platform/serializer';
 import { newDatastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
+import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
+
+import {
+  ComponentProvider,
+  MemoryComponentProvider
+} from './component_provider';
+import { DatabaseId, DatabaseInfo } from './database_info';
 import {
   EventManager,
   ListenOptions,
   Observer,
   QueryListener
 } from './event_manager';
-import { SyncEngine } from './sync_engine';
-import { View } from './view';
-
-import { SharedClientState } from '../local/shared_client_state';
-import { AutoId } from '../util/misc';
-import { DatabaseId, DatabaseInfo } from './database_info';
 import { Query } from './query';
+import { SyncEngine } from './sync_engine';
 import { Transaction } from './transaction';
+import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import {
-  ComponentProvider,
-  MemoryComponentProvider
-} from './component_provider';
-import { newConnection } from '../platform/connection';
-import { newSerializer } from '../platform/serializer';
 
 const LOG_TAG = 'FirestoreClient';
 const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;

@@ -15,29 +15,32 @@
  * limitations under the License.
  */
 
-import * as firestore from '../index';
-
 import { initializeApp } from '@firebase/app-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
+import { Timestamp } from '../../src/api/timestamp';
+import {
+  DEFAULT_PROJECT_ID,
+  DEFAULT_SETTINGS
+} from '../../test/integration/util/settings';
+import { expectEqual, expectNotEqual } from '../../test/util/helpers';
+import * as firestore from '../index';
 import {
   Firestore,
   getFirestore,
   initializeFirestore,
   terminate
 } from '../src/api/database';
+import { FieldPath } from '../src/api/field_path';
 import {
-  Post,
-  postConverter,
-  postConverterMerge,
-  withTestCollection,
-  withTestCollectionAndInitialData,
-  withTestDb,
-  withTestDbSettings,
-  withTestDoc,
-  withTestDocAndInitialData
-} from './helpers';
+  FieldValue,
+  deleteField,
+  increment,
+  serverTimestamp,
+  arrayUnion,
+  arrayRemove
+} from '../src/api/field_value';
 import {
   parent,
   collection,
@@ -54,24 +57,21 @@ import {
   collectionGroup,
   getQuery
 } from '../src/api/reference';
-import { FieldPath } from '../src/api/field_path';
-import {
-  DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS
-} from '../../test/integration/util/settings';
-import { writeBatch } from '../src/api/write_batch';
-import { runTransaction } from '../src/api/transaction';
-import { expectEqual, expectNotEqual } from '../../test/util/helpers';
 import { snapshotEqual } from '../src/api/snapshot';
+import { runTransaction } from '../src/api/transaction';
+import { writeBatch } from '../src/api/write_batch';
+
 import {
-  FieldValue,
-  deleteField,
-  increment,
-  serverTimestamp,
-  arrayUnion,
-  arrayRemove
-} from '../src/api/field_value';
-import { Timestamp } from '../../src/api/timestamp';
+  Post,
+  postConverter,
+  postConverterMerge,
+  withTestCollection,
+  withTestCollectionAndInitialData,
+  withTestDb,
+  withTestDbSettings,
+  withTestDoc,
+  withTestDocAndInitialData
+} from './helpers';
 
 use(chaiAsPromised);
 
