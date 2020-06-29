@@ -278,7 +278,7 @@ export function addDoc<T>(
     .then(() => docRef);
 }
 
-// TODO(firestorexp): Make sure these overloads are testing via the Firestore
+// TODO(firestorexp): Make sure these overloads are tested via the Firestore
 // integration tests
 export function onSnapshot<T>(
   reference: firestore.DocumentReference<T>,
