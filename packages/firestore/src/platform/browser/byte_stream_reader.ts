@@ -23,7 +23,7 @@ import { toByteStreamReaderHelper } from '../../util/byte_stream';
  */
 export function toByteStreamReader(
   source: BundleSource,
-  bytesPerRead: number
+  bytesPerRead: number = 10240
 ): ReadableStreamReader<Uint8Array> {
   if (source instanceof Uint8Array) {
     return toByteStreamReaderHelper(source, bytesPerRead);
