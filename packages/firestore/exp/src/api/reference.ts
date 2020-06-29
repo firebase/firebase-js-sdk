@@ -361,9 +361,9 @@ export function onSnapshot<T>(
     const userObserver = args[currArg] as PartialObserver<
       firestore.QuerySnapshot<T>
     >;
-    args[currArg] = userObserver.next;
-    args[currArg + 1] = userObserver.error;
-    args[currArg + 2] = userObserver.complete;
+    args[currArg] = userObserver.next?.bind(userObserver);
+    args[currArg + 1] = userObserver.error?.bind(userObserver);
+    args[currArg + 2] = userObserver.complete?.bind(userObserver);
   }
 
   let asyncObserver: Promise<Unsubscribe>;
