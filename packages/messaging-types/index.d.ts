@@ -53,6 +53,11 @@ export interface FirebaseMessaging {
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
+  /**
+   * @deprecated Use Notification.requestPermission() instead.
+   * https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission
+   */
+  requestPermission(): Promise<void>;
   setBackgroundMessageHandler(
     callback: (payload: any) => Promise<any> | void
   ): void;
