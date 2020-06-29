@@ -21,7 +21,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "prettier": "prettier --write '*.ts' '*.js' 'lite/**/*.ts' 'exp/**/*.ts' 'src/**/*.js' 'test/**/*.js' 'src/**/*.ts' 'test/**/*.ts'",
     "pregendeps:exp": "yarn build:exp",
-    "gendeps:exp": "../../scripts/exp/extract-deps.sh --types ./exp/index.d.ts --bundle ./dist/exp/index.js --output ./exp/test/deps/dependencies.json",
+    "gendeps:exp": "../../scripts/exp/extract-deps.sh --types ./exp/index.d.ts --bundle ./dist/exp/index.node.esm2017.js --output ./exp/test/deps/dependencies.json",
     "pretest:exp": "yarn build:exp",
     "pregendeps:lite": "yarn build:lite",
     "gendeps:lite": "../../scripts/exp/extract-deps.sh --types ./lite/index.d.ts --bundle ./dist/lite/index.node.esm2017.js --output ./lite/test/dependencies.json",
