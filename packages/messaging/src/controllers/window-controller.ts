@@ -248,7 +248,7 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
    *
    * @return The unsubscribe function for the observer.
    */
-  onMessage(nextOrObserver: NextFn<object> | Observer<object>): Unsubscribe {
+  onMessage(nextOrObserver: NextFn<object> | Observer<object>, ): Unsubscribe {
     this.onMessageCallback =
       typeof nextOrObserver === 'function'
         ? nextOrObserver

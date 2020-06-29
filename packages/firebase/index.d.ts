@@ -7014,9 +7014,6 @@ declare namespace firebase.messaging {
      * for your origin, the message is passed to the page and an `onMessage()`
      * event is dispatched with the payload of the push message.
      *
-     * NOTE: These events are dispatched when you have called
-     * `setBackgroundMessageHandler()` in your service worker.
-     *
      * @param
      *     nextOrObserver This function, or observer object with `next` defined,
      *     is called when a message is received and the user is currently viewing your page.
@@ -7030,8 +7027,7 @@ declare namespace firebase.messaging {
     ): firebase.Unsubscribe;
 
     /**
-     * Called when a message is received while the app is in the background. An app is considered
-     * as a background app if no active window is displayed.
+     * Called when a message is received while the app is in the background. An app is considered as a background app if no active window is displayed.
      *
      * @param
      *     nextOrObserver This function, or observer object with `next` defined,
@@ -7041,7 +7037,9 @@ declare namespace firebase.messaging {
      *    execute this returned function
      */
     onBackgroundMessage(
-      nextOrObserver: firebase.NextFn<any> | firebase.Observer<any>,
+      nextOrObserver:
+        | firebase.NextFn<MessagePayload>
+        | firebase.Observer<MessagePayload>,
       error?: firebase.ErrorFn,
       completed?: firebase.CompleteFn
     ): firebase.Unsubscribe;
@@ -7120,20 +7118,50 @@ declare namespace firebase.messaging {
    * Message payload that contains the notification payload that is represented with {@link firebase.Messaging.NotificationPayload} and the data payload that contains an arbitrary number of key-value pairs sent by developers through the {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification Send API}
    */
   export interface MessagePayload {
+    /**
+     * See {@link firebase.Messaging.NotificationPayload}.
+     */
     notification?: NotificationPayload;
+
+    /**
+     * Arbitrary key/value payload
+     */
+
     data?: { [key: string]: string };
+
+    /**
+     * See {@link firebase.Messaging.FcmOptions}.
+     */
+
+    fcmOptions?: FcmOptions;
   }
 
   /**
-   * Notification parameters that define the display and behavior properties of a push notification.
+   * Options for features provided by the FCM SDK for Web. See more {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions}.
    */
-  export interface NotificationPayload {
-    title?: string;
-    body?: string;
-    image?: string;
-    clickAction?: string;
+  export interface FcmOptions {
     link?: string;
     analyticsLabel?: string;
+  }
+
+  /**
+   * Parameters that define how a push notification is displayed to users.
+   */
+  export interface NotificationPayload {
+    /**
+     * The title of a notification.
+     */
+    title?: string;
+
+    /**
+     * The body of a notification.
+     */
+    body?: string;
+
+    /**
+     * The URL of the image that is shown with the notification. See {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification} for supported image format.
+     */
+    image?: string;
   }
 
   function isSupported(): boolean;
