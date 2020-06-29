@@ -73,7 +73,7 @@
                 "canonifyArray",
                 "canonifyBound",
                 "canonifyByteString",
-                "canonifyFieldFilter",
+                "canonifyFilter",
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyOrderBy",
@@ -99,12 +99,11 @@
                 "encodeBase64",
                 "errorMessage",
                 "fail",
-                "fieldFilterEquals",
-                "fieldFilterMatches",
                 "fieldMaskContains",
                 "fieldPathFromArgument",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
+                "filterEquals",
                 "forEach",
                 "formatJSON",
                 "formatPlural",
@@ -118,7 +117,6 @@
                 "isArray",
                 "isDocumentTarget",
                 "isEmpty",
-                "isInequalityFilter",
                 "isMapValue",
                 "isNanValue",
                 "isNegativeZero",
@@ -136,7 +134,6 @@
                 "logWarn",
                 "looksLikeJsonObject",
                 "mapCodeFromRpcCode",
-                "matchesComparison",
                 "newConnection",
                 "newDatastore",
                 "newSerializer",
@@ -160,7 +157,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
-                "stringifyFieldFilter",
+                "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
@@ -187,6 +184,8 @@
                 "valueEquals"
             ],
             "classes": [
+                "ArrayContainsAnyFilter",
+                "ArrayContainsFilter",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -210,12 +209,16 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
+                "InFilter",
                 "JsonProtoSerializer",
+                "KeyFieldFilter",
+                "KeyFieldInFilter",
                 "MaybeDocument",
                 "Mutation",
                 "OAuthToken",
@@ -245,7 +248,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97605
+        "sizeInBytes": 99162
     },
     "DocumentReference": {
         "dependencies": {
@@ -586,10 +589,18 @@
             "functions": [
                 "argToString",
                 "arrayEquals",
+                "arrayValueContains",
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
+                "compareArrays",
+                "compareBlobs",
+                "compareGeoPoints",
+                "compareMaps",
+                "compareNumbers",
+                "compareReferences",
+                "compareTimestamps",
                 "createError",
                 "createMetadata",
                 "debugAssert",
@@ -612,13 +623,14 @@
                 "getPreviousValue",
                 "hardAssert",
                 "invalidClassError",
+                "isArray",
                 "isEmpty",
-                "isInequalityFilter",
                 "isMapValue",
                 "isNanValue",
                 "isNegativeZero",
                 "isNullValue",
                 "isPlainObject",
+                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -667,10 +679,13 @@
                 "validatePlainObject",
                 "validatePositiveNumber",
                 "validateType",
+                "valueCompare",
                 "valueDescription",
                 "valueEquals"
             ],
             "classes": [
+                "ArrayContainsAnyFilter",
+                "ArrayContainsFilter",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -693,12 +708,16 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
+                "InFilter",
                 "JsonProtoSerializer",
+                "KeyFieldFilter",
+                "KeyFieldInFilter",
                 "MaybeDocument",
                 "Mutation",
                 "OAuthToken",
@@ -726,7 +745,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 78685
+        "sizeInBytes": 85476
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -1046,7 +1065,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 69580
+        "sizeInBytes": 69588
     },
     "WriteBatch": {
         "dependencies": {
@@ -1201,7 +1220,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 72504
+        "sizeInBytes": 72512
     },
     "addDoc": {
         "dependencies": {
@@ -1219,7 +1238,7 @@
                 "canonifyArray",
                 "canonifyBound",
                 "canonifyByteString",
-                "canonifyFieldFilter",
+                "canonifyFilter",
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyOrderBy",
@@ -1247,12 +1266,11 @@
                 "encodeBase64",
                 "errorMessage",
                 "fail",
-                "fieldFilterEquals",
-                "fieldFilterMatches",
                 "fieldMaskContains",
                 "fieldPathFromArgument",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
+                "filterEquals",
                 "forEach",
                 "formatJSON",
                 "formatPlural",
@@ -1269,7 +1287,6 @@
                 "isDocumentTarget",
                 "isDouble",
                 "isEmpty",
-                "isInequalityFilter",
                 "isInteger",
                 "isMapValue",
                 "isNanValue",
@@ -1289,7 +1306,6 @@
                 "logWarn",
                 "looksLikeJsonObject",
                 "mapCodeFromRpcCode",
-                "matchesComparison",
                 "newConnection",
                 "newDatastore",
                 "newSerializer",
@@ -1315,7 +1331,7 @@
                 "registerFirestore",
                 "serverTimestamp",
                 "sortsBeforeDocument",
-                "stringifyFieldFilter",
+                "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
@@ -1350,6 +1366,8 @@
                 "valueEquals"
             ],
             "classes": [
+                "ArrayContainsAnyFilter",
+                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AutoId",
@@ -1377,12 +1395,16 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
+                "InFilter",
                 "JsonProtoSerializer",
+                "KeyFieldFilter",
+                "KeyFieldInFilter",
                 "MaybeDocument",
                 "Mutation",
                 "NoDocument",
@@ -1416,7 +1438,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 107956
+        "sizeInBytes": 109513
     },
     "arrayRemove": {
         "dependencies": {
@@ -1654,7 +1676,7 @@
                 "canonifyArray",
                 "canonifyBound",
                 "canonifyByteString",
-                "canonifyFieldFilter",
+                "canonifyFilter",
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyOrderBy",
@@ -1681,12 +1703,11 @@
                 "encodeBase64",
                 "errorMessage",
                 "fail",
-                "fieldFilterEquals",
-                "fieldFilterMatches",
                 "fieldMaskContains",
                 "fieldPathFromArgument",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
+                "filterEquals",
                 "forEach",
                 "formatJSON",
                 "formatPlural",
@@ -1700,7 +1721,6 @@
                 "isArray",
                 "isDocumentTarget",
                 "isEmpty",
-                "isInequalityFilter",
                 "isMapValue",
                 "isNanValue",
                 "isNegativeZero",
@@ -1718,7 +1738,6 @@
                 "logWarn",
                 "looksLikeJsonObject",
                 "mapCodeFromRpcCode",
-                "matchesComparison",
                 "newConnection",
                 "newDatastore",
                 "newSerializer",
@@ -1742,7 +1761,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
-                "stringifyFieldFilter",
+                "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
@@ -1770,6 +1789,8 @@
                 "valueEquals"
             ],
             "classes": [
+                "ArrayContainsAnyFilter",
+                "ArrayContainsFilter",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -1793,12 +1814,16 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
+                "InFilter",
                 "JsonProtoSerializer",
+                "KeyFieldFilter",
+                "KeyFieldInFilter",
                 "MaybeDocument",
                 "Mutation",
                 "OAuthToken",
@@ -1828,7 +1853,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 98233
+        "sizeInBytes": 99790
     },
     "collectionGroup": {
         "dependencies": {
@@ -1844,7 +1869,7 @@
                 "canonifyArray",
                 "canonifyBound",
                 "canonifyByteString",
-                "canonifyFieldFilter",
+                "canonifyFilter",
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyOrderBy",
@@ -1871,12 +1896,11 @@
                 "encodeBase64",
                 "errorMessage",
                 "fail",
-                "fieldFilterEquals",
-                "fieldFilterMatches",
                 "fieldMaskContains",
                 "fieldPathFromArgument",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
+                "filterEquals",
                 "forEach",
                 "formatJSON",
                 "formatPlural",
@@ -1890,7 +1914,6 @@
                 "isArray",
                 "isDocumentTarget",
                 "isEmpty",
-                "isInequalityFilter",
                 "isMapValue",
                 "isNanValue",
                 "isNegativeZero",
@@ -1908,7 +1931,6 @@
                 "logWarn",
                 "looksLikeJsonObject",
                 "mapCodeFromRpcCode",
-                "matchesComparison",
                 "newConnection",
                 "newDatastore",
                 "newSerializer",
@@ -1932,7 +1954,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
-                "stringifyFieldFilter",
+                "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
@@ -1959,6 +1981,8 @@
                 "valueEquals"
             ],
             "classes": [
+                "ArrayContainsAnyFilter",
+                "ArrayContainsFilter",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -1981,12 +2005,16 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
+                "InFilter",
                 "JsonProtoSerializer",
+                "KeyFieldFilter",
+                "KeyFieldInFilter",
                 "MaybeDocument",
                 "Mutation",
                 "OAuthToken",
@@ -2016,7 +2044,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97665
+        "sizeInBytes": 99222
     },
     "deleteDoc": {
         "dependencies": {
@@ -2191,7 +2219,7 @@
                 "canonifyArray",
                 "canonifyBound",
                 "canonifyByteString",
-                "canonifyFieldFilter",
+                "canonifyFilter",
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyOrderBy",
@@ -2218,12 +2246,11 @@
                 "encodeBase64",
                 "errorMessage",
                 "fail",
-                "fieldFilterEquals",
-                "fieldFilterMatches",
                 "fieldMaskContains",
                 "fieldPathFromArgument",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
+                "filterEquals",
                 "forEach",
                 "formatJSON",
                 "formatPlural",
@@ -2237,7 +2264,6 @@
                 "isArray",
                 "isDocumentTarget",
                 "isEmpty",
-                "isInequalityFilter",
                 "isMapValue",
                 "isNanValue",
                 "isNegativeZero",
@@ -2255,7 +2281,6 @@
                 "logWarn",
                 "looksLikeJsonObject",
                 "mapCodeFromRpcCode",
-                "matchesComparison",
                 "newConnection",
                 "newDatastore",
                 "newSerializer",
@@ -2280,7 +2305,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
-                "stringifyFieldFilter",
+                "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
@@ -2308,6 +2333,8 @@
                 "valueEquals"
             ],
             "classes": [
+                "ArrayContainsAnyFilter",
+                "ArrayContainsFilter",
                 "AutoId",
                 "BaseFieldPath",
                 "BasePath",
@@ -2332,12 +2359,16 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
+                "InFilter",
                 "JsonProtoSerializer",
+                "KeyFieldFilter",
+                "KeyFieldInFilter",
                 "MaybeDocument",
                 "Mutation",
                 "OAuthToken",
@@ -2367,7 +2398,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 99054
+        "sizeInBytes": 100611
     },
     "documentId": {
         "dependencies": {
@@ -2596,10 +2627,18 @@
             "functions": [
                 "argToString",
                 "arrayEquals",
+                "arrayValueContains",
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
+                "compareArrays",
+                "compareBlobs",
+                "compareGeoPoints",
+                "compareMaps",
+                "compareNumbers",
+                "compareReferences",
+                "compareTimestamps",
                 "createError",
                 "createMetadata",
                 "debugAssert",
@@ -2631,14 +2670,15 @@
                 "hardAssert",
                 "invalidClassError",
                 "invokeRunQueryRpc",
+                "isArray",
                 "isEmpty",
-                "isInequalityFilter",
                 "isMapValue",
                 "isNanValue",
                 "isNegativeZero",
                 "isNullOrUndefined",
                 "isNullValue",
                 "isPlainObject",
+                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -2698,10 +2738,13 @@
                 "validatePlainObject",
                 "validatePositiveNumber",
                 "validateType",
+                "valueCompare",
                 "valueDescription",
                 "valueEquals"
             ],
             "classes": [
+                "ArrayContainsAnyFilter",
+                "ArrayContainsFilter",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -2724,12 +2767,16 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
+                "InFilter",
                 "JsonProtoSerializer",
+                "KeyFieldFilter",
+                "KeyFieldInFilter",
                 "MaybeDocument",
                 "Mutation",
                 "OAuthToken",
@@ -2758,7 +2805,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 84444
+        "sizeInBytes": 91235
     },
     "increment": {
         "dependencies": {
@@ -2930,7 +2977,7 @@
                 "canonifyArray",
                 "canonifyBound",
                 "canonifyByteString",
-                "canonifyFieldFilter",
+                "canonifyFilter",
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyOrderBy",
@@ -2956,12 +3003,11 @@
                 "encodeBase64",
                 "errorMessage",
                 "fail",
-                "fieldFilterEquals",
-                "fieldFilterMatches",
                 "fieldMaskContains",
                 "fieldPathFromArgument",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
+                "filterEquals",
                 "forEach",
                 "formatJSON",
                 "formatPlural",
@@ -2975,7 +3021,6 @@
                 "isArray",
                 "isDocumentTarget",
                 "isEmpty",
-                "isInequalityFilter",
                 "isMapValue",
                 "isNanValue",
                 "isNegativeZero",
@@ -2993,7 +3038,6 @@
                 "logWarn",
                 "looksLikeJsonObject",
                 "mapCodeFromRpcCode",
-                "matchesComparison",
                 "newConnection",
                 "newDatastore",
                 "newSerializer",
@@ -3018,7 +3062,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
-                "stringifyFieldFilter",
+                "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
@@ -3045,6 +3089,8 @@
                 "valueEquals"
             ],
             "classes": [
+                "ArrayContainsAnyFilter",
+                "ArrayContainsFilter",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -3068,12 +3114,16 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
+                "InFilter",
                 "JsonProtoSerializer",
+                "KeyFieldFilter",
+                "KeyFieldInFilter",
                 "MaybeDocument",
                 "Mutation",
                 "OAuthToken",
@@ -3103,17 +3153,25 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97948
+        "sizeInBytes": 99505
     },
     "queryEqual": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "arrayEquals",
+                "arrayValueContains",
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
+                "compareArrays",
+                "compareBlobs",
+                "compareGeoPoints",
+                "compareMaps",
+                "compareNumbers",
+                "compareReferences",
+                "compareTimestamps",
                 "createError",
                 "createMetadata",
                 "debugAssert",
@@ -3136,13 +3194,14 @@
                 "getPreviousValue",
                 "hardAssert",
                 "invalidClassError",
+                "isArray",
                 "isEmpty",
-                "isInequalityFilter",
                 "isMapValue",
                 "isNanValue",
                 "isNegativeZero",
                 "isNullValue",
                 "isPlainObject",
+                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -3192,10 +3251,13 @@
                 "validatePlainObject",
                 "validatePositiveNumber",
                 "validateType",
+                "valueCompare",
                 "valueDescription",
                 "valueEquals"
             ],
             "classes": [
+                "ArrayContainsAnyFilter",
+                "ArrayContainsFilter",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -3218,12 +3280,16 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
+                "InFilter",
                 "JsonProtoSerializer",
+                "KeyFieldFilter",
+                "KeyFieldInFilter",
                 "MaybeDocument",
                 "Mutation",
                 "OAuthToken",
@@ -3251,7 +3317,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 78889
+        "sizeInBytes": 85680
     },
     "refEqual": {
         "dependencies": {
@@ -3267,7 +3333,7 @@
                 "canonifyArray",
                 "canonifyBound",
                 "canonifyByteString",
-                "canonifyFieldFilter",
+                "canonifyFilter",
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyOrderBy",
@@ -3293,12 +3359,11 @@
                 "encodeBase64",
                 "errorMessage",
                 "fail",
-                "fieldFilterEquals",
-                "fieldFilterMatches",
                 "fieldMaskContains",
                 "fieldPathFromArgument",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
+                "filterEquals",
                 "forEach",
                 "formatJSON",
                 "formatPlural",
@@ -3312,7 +3377,6 @@
                 "isArray",
                 "isDocumentTarget",
                 "isEmpty",
-                "isInequalityFilter",
                 "isMapValue",
                 "isNanValue",
                 "isNegativeZero",
@@ -3330,7 +3394,6 @@
                 "logWarn",
                 "looksLikeJsonObject",
                 "mapCodeFromRpcCode",
-                "matchesComparison",
                 "newConnection",
                 "newDatastore",
                 "newSerializer",
@@ -3355,7 +3418,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
-                "stringifyFieldFilter",
+                "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
@@ -3382,6 +3445,8 @@
                 "valueEquals"
             ],
             "classes": [
+                "ArrayContainsAnyFilter",
+                "ArrayContainsFilter",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -3405,12 +3470,16 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
+                "InFilter",
                 "JsonProtoSerializer",
+                "KeyFieldFilter",
+                "KeyFieldInFilter",
                 "MaybeDocument",
                 "Mutation",
                 "OAuthToken",
@@ -3440,7 +3509,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 97890
+        "sizeInBytes": 99447
     },
     "runTransaction": {
         "dependencies": {
@@ -3623,7 +3692,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 91955
+        "sizeInBytes": 91963
     },
     "serverTimestamp": {
         "dependencies": {
@@ -3828,7 +3897,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 70793
+        "sizeInBytes": 70801
     },
     "setLogLevel": {
         "dependencies": {
@@ -3880,10 +3949,18 @@
             "functions": [
                 "argToString",
                 "arrayEquals",
+                "arrayValueContains",
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
+                "compareArrays",
+                "compareBlobs",
+                "compareGeoPoints",
+                "compareMaps",
+                "compareNumbers",
+                "compareReferences",
+                "compareTimestamps",
                 "createError",
                 "createMetadata",
                 "debugAssert",
@@ -3906,13 +3983,14 @@
                 "getPreviousValue",
                 "hardAssert",
                 "invalidClassError",
+                "isArray",
                 "isEmpty",
-                "isInequalityFilter",
                 "isMapValue",
                 "isNanValue",
                 "isNegativeZero",
                 "isNullValue",
                 "isPlainObject",
+                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -3963,10 +4041,13 @@
                 "validatePlainObject",
                 "validatePositiveNumber",
                 "validateType",
+                "valueCompare",
                 "valueDescription",
                 "valueEquals"
             ],
             "classes": [
+                "ArrayContainsAnyFilter",
+                "ArrayContainsFilter",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -3989,12 +4070,16 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
+                "InFilter",
                 "JsonProtoSerializer",
+                "KeyFieldFilter",
+                "KeyFieldInFilter",
                 "MaybeDocument",
                 "Mutation",
                 "OAuthToken",
@@ -4023,7 +4108,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 79622
+        "sizeInBytes": 86413
     },
     "terminate": {
         "dependencies": {
@@ -4376,6 +4461,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 72584
+        "sizeInBytes": 72592
     }
 }
