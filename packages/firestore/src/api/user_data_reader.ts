@@ -58,6 +58,10 @@ const RESERVED_FIELD_REGEX = /^__.*__$/;
  */
 export interface UntypedFirestoreDataConverter<T> {
   toFirestore(modelObject: T): firestore.DocumentData;
+  toFirestore(
+    modelObject: Partial<T>,
+    options: firestore.SetOptions
+  ): firestore.DocumentData;
   fromFirestore(snapshot: unknown, options?: unknown): T;
 }
 
@@ -173,6 +177,11 @@ interface ContextSettings {
    * If not set, elements are treated as if they were outside of arrays.
    */
   readonly arrayElement?: boolean;
+  /**
+   * Whether or not a converter was specified in this context. If true, error
+   * messages will reference the converter when invalid data is provided.
+   */
+  readonly hasConverter?: boolean;
 }
 
 /** A "context" object passed around while parsing user data. */
@@ -258,6 +267,7 @@ export class ParseContext {
     return createError(
       reason,
       this.settings.methodName,
+      this.settings.hasConverter || false,
       this.path,
       this.settings.targetDoc
     );
@@ -314,6 +324,7 @@ export class UserDataReader {
     methodName: string,
     targetDoc: DocumentKey,
     input: unknown,
+    hasConverter: boolean,
     options: firestore.SetOptions = {}
   ): ParsedSetData {
     const context = this.createContext(
@@ -321,7 +332,8 @@ export class UserDataReader {
         ? UserDataSource.MergeSet
         : UserDataSource.Set,
       methodName,
-      targetDoc
+      targetDoc,
+      hasConverter
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
     const updateData = parseObject(input, context)!;
@@ -494,7 +506,8 @@ export class UserDataReader {
   private createContext(
     dataSource: UserDataSource,
     methodName: string,
-    targetDoc?: DocumentKey
+    targetDoc?: DocumentKey,
+    hasConverter = false
   ): ParseContext {
     return new ParseContext(
       {
@@ -502,7 +515,8 @@ export class UserDataReader {
         methodName,
         targetDoc,
         path: FieldPath.emptyPath(),
-        arrayElement: false
+        arrayElement: false,
+        hasConverter
       },
       this.databaseId,
       this.serializer,
@@ -774,7 +788,13 @@ export function fieldPathFromArgument(
     return fieldPathFromDotSeparatedString(methodName, path);
   } else {
     const message = 'Field path arguments must be of type string or FieldPath.';
-    throw createError(message, methodName, undefined, targetDoc);
+    throw createError(
+      message,
+      methodName,
+      /* hasConverter= */ false,
+      /* path= */ undefined,
+      targetDoc
+    );
   }
 }
 
@@ -795,18 +815,30 @@ export function fieldPathFromDotSeparatedString(
     return fromDotSeparatedString(path)._internalPath;
   } catch (e) {
     const message = errorMessage(e);
-    throw createError(message, methodName, undefined, targetDoc);
+    throw createError(
+      message,
+      methodName,
+      /* hasConverter= */ false,
+      /* path= */ undefined,
+      targetDoc
+    );
   }
 }
 
 function createError(
   reason: string,
   methodName: string,
+  hasConverter: boolean,
   path?: FieldPath,
   targetDoc?: DocumentKey
 ): Error {
   const hasPath = path && !path.isEmpty();
   const hasDocument = targetDoc !== undefined;
+  let message = `Function ${methodName}() called with invalid data`;
+  if (hasConverter) {
+    message += ' (via `toFirestore()`)';
+  }
+  message += '. ';
 
   let description = '';
   if (hasPath || hasDocument) {
@@ -823,7 +855,7 @@ function createError(
 
   return new FirestoreError(
     Code.INVALID_ARGUMENT,
-    `Function ${methodName}() called with invalid data. ` + reason + description
+    message + reason + description
   );
 }
 
