@@ -1169,9 +1169,9 @@ export class DocumentReference<T = firestore.DocumentData>
       const userObserver = args[currArg] as PartialObserver<
         firestore.DocumentSnapshot<T>
       >;
-      args[currArg] = userObserver.next;
-      args[currArg + 1] = userObserver.error;
-      args[currArg + 2] = userObserver.complete;
+      args[currArg] = userObserver.next?.bind(userObserver);
+      args[currArg + 1] = userObserver.error?.bind(userObserver);
+      args[currArg + 2] = userObserver.complete?.bind(userObserver);
     } else {
       validateArgType(
         'DocumentReference.onSnapshot',
@@ -2122,9 +2122,9 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
       const userObserver = args[currArg] as PartialObserver<
         firestore.QuerySnapshot<T>
       >;
-      args[currArg] = userObserver.next;
-      args[currArg + 1] = userObserver.error;
-      args[currArg + 2] = userObserver.complete;
+      args[currArg] = userObserver.next?.bind(userObserver);
+      args[currArg + 1] = userObserver.error?.bind(userObserver);
+      args[currArg + 2] = userObserver.complete?.bind(userObserver);
     } else {
       validateArgType('Query.onSnapshot', 'function', currArg, args[currArg]);
       validateOptionalArgType(
