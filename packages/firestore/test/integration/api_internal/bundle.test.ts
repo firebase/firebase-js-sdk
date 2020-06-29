@@ -23,10 +23,10 @@ import {
   withAlternateTestDb,
   withTestDb
 } from '../util/helpers';
-import { TestBundleBuilder } from '../../util/bundle_data';
 import { DatabaseId } from '../../../src/core/database_info';
 import { key } from '../../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
+import { TestBundleBuilder } from '../../unit/util/bundle_data';
 
 function verifySuccessProgress(p: firestore.LoadBundleTaskProgress): void {
   expect(p.taskState).to.equal('Success');

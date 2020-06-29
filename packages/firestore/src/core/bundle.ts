@@ -245,8 +245,11 @@ export class BundleLoader {
   /**
    * The threshold multiplier used to determine whether enough elements are
    * batched to be loaded, and a progress update is needed.
+   *
+   * Applies to either number of documents or bytes, triggers storage update
+   * when either of them cross the threshold.
    */
-  private step = 0.01;
+  private thresholdMultiplier = 0.01;
   /** Batched queries to be saved into storage */
   private queries: bundleProto.NamedQuery[] = [];
   /** Batched documents to be saved into storage */
@@ -314,8 +317,10 @@ export class BundleLoader {
   private async saveAndReportProgress(): Promise<LoadResult | null> {
     if (
       this.unpairedDocumentMetadata ||
-      (this.documentsIncrement < this.progress.totalDocuments * this.step &&
-        this.bytesIncrement < this.progress.totalBytes * this.step)
+      (this.documentsIncrement <
+        this.progress.totalDocuments * this.thresholdMultiplier &&
+        this.bytesIncrement <
+          this.progress.totalBytes * this.thresholdMultiplier)
     ) {
       return null;
     }

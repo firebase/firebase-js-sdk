@@ -20,7 +20,7 @@ import { doc, path, TestSnapshotVersion, version } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
-import { TestBundleBuilder } from '../../util/bundle_data';
+import { TestBundleBuilder } from '../util/bundle_data';
 import {
   JSON_SERIALIZER,
   TEST_DATABASE_ID

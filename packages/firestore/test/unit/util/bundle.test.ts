@@ -38,7 +38,7 @@ import {
   doc2String,
   doc1,
   doc2
-} from '../../util/bundle_data';
+} from './bundle_data';
 
 use(chaiAsPromised);
 

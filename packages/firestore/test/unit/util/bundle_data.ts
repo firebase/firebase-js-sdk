@@ -17,13 +17,13 @@
 import {
   BundledQuery,
   BundleElement
-} from '../../src/protos/firestore_bundle_proto';
-import { DatabaseId } from '../../src/core/database_info';
-import * as api from '../../src/protos/firestore_proto_api';
-import { Value } from '../../src/protos/firestore_proto_api';
-import { JsonProtoSerializer, toName } from '../../src/remote/serializer';
-import { DocumentKey } from '../../src/model/document_key';
-import { newSerializer } from '../../src/platform/serializer';
+} from '../../../src/protos/firestore_bundle_proto';
+import { DatabaseId } from '../../../src/core/database_info';
+import * as api from '../../../src/protos/firestore_proto_api';
+import { Value } from '../../../src/protos/firestore_proto_api';
+import { JsonProtoSerializer, toName } from '../../../src/remote/serializer';
+import { DocumentKey } from '../../../src/model/document_key';
+import { newSerializer } from '../../../src/platform/serializer';
 
 function lengthPrefixedString(o: {}): string {
   const str = JSON.stringify(o);

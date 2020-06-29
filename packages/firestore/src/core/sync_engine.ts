@@ -1381,6 +1381,13 @@ export function newMultiTabSyncEngine(
   );
 }
 
+/**
+ * Loads a Firestore bundle into the SDK, the returned promise resolves when
+ * the bundle finished loading.
+ *
+ * @param bundleReader Bundle to load into the SDK.
+ * @param task LoadBundleTask used to update the loading progress to public API.
+ */
 export function loadBundle(
   syncEngine: SyncEngine,
   bundleReader: BundleReader,
