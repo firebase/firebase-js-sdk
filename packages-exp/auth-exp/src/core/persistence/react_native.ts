@@ -17,76 +17,51 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import {
-  Persistence,
-  PersistenceType,
-  PersistenceValue,
-  STORAGE_AVAILABLE_KEY
-} from './';
+import { Persistence, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY } from './';
 
 /**
- * Persistence class that wraps AsyncStorage imported from `react-native` or `@react-native-community/async-storage`.
+ * Returns a persistence class that wraps AsyncStorage imported from
+ * `react-native` or `@react-native-community/async-storage`.
+ * 
+ * Creates a "new"-able subclass on the fly that has an empty constructor.
+ * 
+ * In the _getInstance() implementation (see src/core/persistence/index.ts),
+ * we expect each "externs.Persistence" object passed to us by the user to
+ * be able to be instantiated (as a class) using "new". That function also
+ * expects the constructor to be empty. Since ReactNativeStorage requires the
+ * underlying storage layer, we need to be able to create subclasses 
+ * (closures, esentially) that have the storage layer but empty constructor.
  */
-export class ReactNativePersistence implements Persistence {
-  static type: 'LOCAL' = 'LOCAL';
-  readonly type: PersistenceType = PersistenceType.LOCAL;
-  private storage!: externs.ReactNativeAsyncStorage;
 
-  private constructor() {}
-
-  async isAvailable(): Promise<boolean> {
-    try {
-      if (!this.storage) {
+export function makeReactNativePersistence(storage: externs.ReactNativeAsyncStorage): externs.Persistence {
+  return class implements Persistence {
+    static type: 'LOCAL' = 'LOCAL';
+    readonly type: PersistenceType = PersistenceType.LOCAL;
+  
+    async isAvailable(): Promise<boolean> {
+      try {
+        if (!storage) {
+          return false;
+        }
+        await storage.setItem(STORAGE_AVAILABLE_KEY, '1');
+        await storage.removeItem(STORAGE_AVAILABLE_KEY);
+        return true;
+      } catch {
         return false;
       }
-      await this.storage.setItem(STORAGE_AVAILABLE_KEY, '1');
-      await this.storage.removeItem(STORAGE_AVAILABLE_KEY);
-      return true;
-    } catch {
-      return false;
     }
-  }
-
-  async set(key: string, value: PersistenceValue): Promise<void> {
-    await this.storage.setItem(key, JSON.stringify(value));
-  }
-
-  async get<T extends PersistenceValue>(key: string): Promise<T | null> {
-    const json = await this.storage.getItem(key);
-    return json ? JSON.parse(json) : null;
-  }
-
-  async remove(key: string): Promise<void> {
-    await this.storage.removeItem(key);
-  }
-
-  /**
-   * Creates a "new"-able subclass on the fly that has an empty constructor.
-   *
-   * In the _getInstance() implementation (see src/core/persistence/index.ts),
-   * we expect each "externs.Persistence" object passed to us by the user to
-   * be able to be instantiated (as a class) using "new". That function also
-   * expects the constructor to be empty. Since ReactNativeStorage requires the
-   * underlying storage layer, we need to be able to create subclasses
-   * (closures, esentially) that have the storage layer but empty constructor.
-   *
-   * Modern JavaScript does allow anonymous classes to be created as
-   * first-class objects. This would be much cleaner, but unfortunately that
-   * syntax prevents rollup from tree-shaking. For that reason, we need to fall
-   * back to the old-school prototype-based classing (using functions); this
-   * implementation will be tree-shaken by rollup.
-   */
-  static createFromUnderlyingStorage(
-    storage: externs.ReactNativeAsyncStorage
-  ): externs.Persistence {
-    function instantiator(this: ReactNativePersistence): void {
-      this.storage = storage;
+  
+    set(key: string, value: PersistenceValue): Promise<void> {
+      return storage.setItem(key, JSON.stringify(value));
     }
-
-    instantiator.prototype = ReactNativePersistence.prototype;
-    const afterCast = (instantiator as unknown) as { type: 'LOCAL' };
-    afterCast.type = 'LOCAL';
-
-    return afterCast;
-  }
+  
+    async get<T extends PersistenceValue>(key: string): Promise<T | null> {
+      const json = await storage.getItem(key);
+      return json ? JSON.parse(json) : null;
+    }
+  
+    remove(key: string): Promise<void> {
+      return storage.removeItem(key);
+    }
+  };
 }
