@@ -130,7 +130,7 @@ export class Firestore extends LiteFirestore
     return terminate(this);
   }
 
-  _clearPersistence() {
+  _clearPersistence(): Promise<void> {
     if (this._firestoreClientPromise !== undefined && !this._terminated) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
