@@ -40,7 +40,6 @@ import {
 } from '../../../src/api/database';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
-import { arrayEquals } from '../../../src/util/misc';
 
 const DEFAULT_SERVER_TIMESTAMP_BEHAVIOR: ServerTimestampBehavior = 'none';
 
