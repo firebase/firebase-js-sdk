@@ -54,6 +54,7 @@ export {
   getDocFromCache,
   getDocFromServer,
   onSnapshot,
+  onSnapshotsInSync,
   setDoc,
   updateDoc,
   deleteDoc,
