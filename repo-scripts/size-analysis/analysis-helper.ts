@@ -25,14 +25,14 @@ import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 
 /** Contains a list of members by type. */
-export type MemberList = {
+export interface MemberList {
   classes: string[];
   functions: string[];
   variables: string[];
   enums: string[];
 };
 /** Contains the dependencies and the size of their code for a single export. */
-export type ExportData = { dependencies: MemberList; sizeInBytes: number };
+export interface ExportData { dependencies: MemberList; sizeInBytes: number };
 
 /**
  * This functions builds a simple JS app that only depends on the provided
@@ -107,6 +107,24 @@ export async function extractDependenciesAndSize(
 /**
  * Extracts all function, class and variable declarations using the TypeScript
  * compiler API.
+ * @param map maps every symbol listed in dts file to its type. eg: aVariable -> variable.  
+ * map is null when jsFile is a bundle generated from source dts file. 
+ * map is populated when jsFile is a bundle that contains a single export from the source dts file.
+ * 
+ * Examples of Various Type of Exports
+ * FunctionDeclaration: export function aFunc(): string {...};
+ * ClassDeclaration: export class aClass {};
+ * EnumDeclaration: export enum aEnum {};
+ * VariableDeclaration: export let aVariable: string;
+ * VariableStatement: export const aVarStatement: string = "string";
+ * ExportDeclaration:
+ *      named exports: export {foo, bar} from '...'; export {foo as foo1, bar} from '...';
+ *      export everything: export * from '...';
+ * 
+ * 
+ * 
+ * 
+ *  
  */
 export function extractDeclarations(
   jsFile: string,
@@ -128,6 +146,7 @@ export function extractDeclarations(
   };
 
   ts.forEachChild(sourceFile, node => {
+
     if (ts.isFunctionDeclaration(node)) {
       declarations.functions.push(node.name!.text);
     } else if (ts.isClassDeclaration(node)) {
@@ -141,7 +160,7 @@ export function extractDeclarations(
       variableDeclarations.forEach(variableDeclaration => {
         if (ts.isIdentifier(variableDeclaration.name)) {
           declarations.variables.push(
-            (variableDeclaration.name as ts.Identifier).getText(sourceFile)
+            (variableDeclaration.name).getText(sourceFile)
           );
         }
         // TODO: variableDeclaration.name is an union type (Identifier | BindingPattern)
@@ -152,23 +171,35 @@ export function extractDeclarations(
           );
         }
       });
-    } else if (ts.isExportDeclaration(node)) {
+    }
+    // re-exports handler: handles cases like :
+    // export * from '..';
+    // export {foo, bar} from '..';
+    // export {foo as foo1, bar} from '...';
+    else if (ts.isExportDeclaration(node)) {
       if (node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
         const symbol = checker.getSymbolAtLocation(node.moduleSpecifier);
         const reExportFullPath = symbol.valueDeclaration.getSourceFile()
           .fileName;
+        // first step: always retrieve all exported symbols from the source location of the re-export.
         const reExportsMember = extractDeclarations(reExportFullPath);
 
-        // named exports
+        // named exports: eg: export {foo, bar} from '...'; and export {foo as foo1, bar} from '...';
         if (node.exportClause && ts.isNamedExports(node.exportClause)) {
           const actualExports: string[] = [];
           node.exportClause.elements.forEach(exportSpecifier => {
-            const reExportedSymbol: string = extractRealSymbolName(
+            const reExportedSymbol: string = extractOriginalSymbolName(
               exportSpecifier
             );
+            // eg: export {foo as foo1 } from '...';
             // if export is renamed, replace with new name
+            // reExportedSymbol: stores the original symbol name 
+            // exportSpecifier.name: stores the renamed symbol name 
             if (isExportRenamed(exportSpecifier)) {
               actualExports.push(exportSpecifier.name.escapedText.toString());
+              // reExportsMember stores all re-exported symbols in its orignal name. However, these re-exported symbols
+              // could be renamed by the re-export. We want to show the renamed name of the symbols in the final analysis report. 
+              // Therefore, replaceAll simply replaces the original name of the symbol with the new name defined in re-export. 
               replaceAll(
                 reExportsMember,
                 reExportedSymbol,
@@ -178,6 +209,7 @@ export function extractDeclarations(
               actualExports.push(reExportedSymbol);
             }
           });
+          // for named exports: requires a filter step which keeps only the symbols listed in the export statement. 
           filterAllBy(reExportsMember, actualExports);
         }
         // concatenate re-exported MemberList with MemberList of the dts file
@@ -206,17 +238,10 @@ export function extractDeclarations(
  * To Make sure symbols of every category are unique.
  */
 function dedup(memberList: MemberList): MemberList {
-  const classesSet: Set<string> = new Set(memberList.classes);
-  memberList.classes = Array.from(classesSet);
-
-  const functionsSet: Set<string> = new Set(memberList.functions);
-  memberList.functions = Array.from(functionsSet);
-
-  const enumsSet: Set<string> = new Set(memberList.enums);
-  memberList.enums = Array.from(enumsSet);
-
-  const variablesSet: Set<string> = new Set(memberList.variables);
-  memberList.variables = Array.from(variablesSet);
+  Object.keys(memberList).map(each => {
+    const set: Set<string> = new Set(memberList[each]);
+    memberList[each] = Array.from(set);
+  });
 
   return memberList;
 }
@@ -266,8 +291,10 @@ function isReExported(symbol: string, reExportedSymbols: string[]): boolean {
   return reExportedSymbols.includes(symbol);
 }
 
-function extractRealSymbolName(exportSpecifier: ts.ExportSpecifier): string {
-  // if property name is not null -> export is renamed
+
+function extractOriginalSymbolName(exportSpecifier: ts.ExportSpecifier): string {
+  // if symbol is renamed, then exportSpecifier.propertyName is not null and stores the orignal name, exportSpecifier.name stores the renamed name.
+  // if symbol is not renamed, then exportSpecifier.propertyName is null, exportSpecifier.name stores the orignal name.
   if (exportSpecifier.propertyName) {
     return exportSpecifier.propertyName.escapedText.toString();
   }
@@ -275,7 +302,7 @@ function extractRealSymbolName(exportSpecifier: ts.ExportSpecifier): string {
   return exportSpecifier.name.escapedText.toString();
 }
 
-function filterAllBy(memberList: MemberList, keep: string[]) {
+function filterAllBy(memberList: MemberList, keep: string[]): void {
   memberList.functions = memberList.functions.filter(each =>
     isReExported(each, keep)
   );
@@ -288,7 +315,7 @@ function filterAllBy(memberList: MemberList, keep: string[]) {
   memberList.enums = memberList.enums.filter(each => isReExported(each, keep));
 }
 
-function replaceAll(memberList: MemberList, original: string, current: string) {
+function replaceAll(memberList: MemberList, original: string, current: string): void {
   memberList.classes = replaceWith(memberList.classes, original, current);
   memberList.variables = replaceWith(memberList.variables, original, current);
   memberList.functions = replaceWith(memberList.functions, original, current);
@@ -301,8 +328,8 @@ function replaceWith(
   current: string
 ): string[] {
   const rv: string[] = [];
-  for (let each of arr) {
-    if (each.localeCompare(original) == 0) {
+  for (const each of arr) {
+    if (each.localeCompare(original) === 0) {
       rv.push(current);
     } else {
       rv.push(each);
