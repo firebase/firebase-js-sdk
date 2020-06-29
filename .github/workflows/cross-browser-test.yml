@@ -2,8 +2,8 @@ name: Cross-Browser Test Flow
 
 on:
   push:
-    branches:
-      - master
+    # branches:
+    #   - master
 
 jobs:
   cross-browser-test:

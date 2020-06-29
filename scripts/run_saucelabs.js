@@ -74,16 +74,16 @@ async function runTest(testFile) {
     }
   }
   if (testFile.includes('integration/firestore')) {
-    // console.log(
-    //   chalk`{blue Generating memory-only build for integration/firestore.}`
-    // );
-    // await spawn('yarn', ['--cwd', 'integration/firestore', 'build:memory'], {
-    //   stdio: 'inherit'
-    // });
-    // console.log(
-    //   chalk`{blue Running tests on memory-only build for integration/firestore.}`
-    // );
-    // const exitCode1 = await runKarma(testFile, 'memory');
+    console.log(
+      chalk`{blue Generating memory-only build for integration/firestore.}`
+    );
+    await spawn('yarn', ['--cwd', 'integration/firestore', 'build:memory'], {
+      stdio: 'inherit'
+    });
+    console.log(
+      chalk`{blue Running tests on memory-only build for integration/firestore.}`
+    );
+    const exitCode1 = await runKarma(testFile, 'memory');
     console.log(
       chalk`{blue Generating persistence build for integration/firestore.}`
     );
@@ -96,8 +96,7 @@ async function runTest(testFile) {
       chalk`{blue Running tests on persistence build for integration/firestore.}`
     );
     const exitCode2 = await runKarma(testFile, 'persistence');
-    // return Math.max(exitCode1, exitCode2);
-    return exitCode2;
+    return Math.max(exitCode1, exitCode2);
   } else {
     return runKarma(testFile);
   }

@@ -31,10 +31,10 @@ if (!testConfigFile) {
  */
 const browserMap = {
   // Desktop
-  // Chrome_Windows: seleniumLauncher('chrome', 'Windows 10', 'latest'),
-  // Firefox_Windows: seleniumLauncher('firefox', 'Windows 10', 'latest'),
-  // Safari_macOS: seleniumLauncher('safari', 'macOS 10.13', 'latest'),
-  // Edge_Windows: seleniumLauncher('MicrosoftEdge', 'Windows 10', 'latest'),
+  Chrome_Windows: seleniumLauncher('chrome', 'Windows 10', 'latest'),
+  Firefox_Windows: seleniumLauncher('firefox', 'Windows 10', 'latest'),
+  Safari_macOS: seleniumLauncher('safari', 'macOS 10.13', 'latest'),
+  Edge_Windows: seleniumLauncher('MicrosoftEdge', 'Windows 10', 'latest'),
   IE_Windows: seleniumLauncher('internet explorer', 'Windows 10', 'latest')
 
   // Mobile
@@ -50,15 +50,16 @@ const packageConfigs = {
     // Messaging currently only supports these browsers.
     browsers: ['Chrome_Windows', 'Firefox_Windows', 'Edge_Windows']
   },
-  // Firestore has large number of IE test failures, need to spend time to fix.
-  // firestore: {
-  //   browsers: [
-  //     'Chrome_Windows',
-  //     'Firefox_Windows',
-  //     'Edge_Windows',
-  //     'Safari_macOS'
-  //   ]
-  // },
+  // Firestore unit tests have OOM problems compiling with Babel for IE.
+  // Firestore integration/firestore tests do run on all browsers.
+  'packages/firestore': {
+    browsers: [
+      'Chrome_Windows',
+      'Firefox_Windows',
+      'Edge_Windows',
+      'Safari_macOS'
+    ]
+  },
   // Installations has IE errors related to `idb` library that need to be figured out.
   installations: {
     browsers: [
@@ -75,11 +76,14 @@ const packageConfigs = {
  *
  * @param {string} packageName Name of package being tested (e.g., "firestore")
  */
-function getSauceLabsBrowsers(packageName) {
-  if (packageConfigs[packageName]) {
+function getSauceLabsBrowsers(packageName, packageType) {
+  const packageConfig =
+    packageConfigs[packageName] ||
+    packageConfigs[`${packageType}/${packageName}`];
+  if (packageConfig) {
     const filteredBrowserMap = {};
     for (const browserKey in browserMap) {
-      if (packageConfigs[packageName].browsers.includes(browserKey)) {
+      if (packageConfig.browsers.includes(browserKey)) {
         filteredBrowserMap[browserKey] = browserMap[browserKey];
       }
     }
@@ -109,10 +113,14 @@ function getPackageLabels() {
  */
 function getTestFiles() {
   let root = path.resolve(__dirname, '..');
-  const { name: packageName } = getPackageLabels();
+  const { name: packageName, type: packageType } = getPackageLabels();
   let patterns = require(path.join(root, testConfigFile)).files;
   let dirname = path.dirname(testConfigFile);
-  return { packageName, files: patterns.map(p => path.join(dirname, p)) };
+  return {
+    packageName,
+    packageType,
+    files: patterns.map(p => path.join(dirname, p))
+  };
 }
 
 function seleniumLauncher(browserName, platform, version) {
@@ -156,8 +164,8 @@ function appiumLauncher(
 }
 
 module.exports = function(config) {
-  const { packageName, files: testFiles } = getTestFiles();
-  const sauceLabsBrowsers = getSauceLabsBrowsers(packageName);
+  const { packageName, packageType, files: testFiles } = getTestFiles();
+  const sauceLabsBrowsers = getSauceLabsBrowsers(packageName, packageType);
 
   const sauceLabsConfig = {
     tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER + '-' + packageName,
