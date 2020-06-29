@@ -22,14 +22,14 @@ import {
   Bound,
   boundEquals,
   canonifyBound,
-  canonifyFieldFilter,
-  FieldFilter,
-  fieldFilterEquals,
-  stringifyFieldFilter,
+  canonifyFilter,
+  filterEquals,
+  stringifyFilter,
   OrderBy,
   orderByEquals,
   stringifyOrderBy,
-  canonifyOrderBy
+  canonifyOrderBy,
+  Filter
 } from './query';
 import { debugCast } from '../util/assert';
 
@@ -44,7 +44,7 @@ export interface Target {
   readonly path: ResourcePath;
   readonly collectionGroup: string | null;
   readonly orderBy: OrderBy[];
-  readonly filters: FieldFilter[];
+  readonly filters: Filter[];
   readonly limit: number | null;
   readonly startAt: Bound | null;
   readonly endAt: Bound | null;
@@ -57,7 +57,7 @@ export class TargetImpl implements Target {
     readonly path: ResourcePath,
     readonly collectionGroup: string | null = null,
     readonly orderBy: OrderBy[] = [],
-    readonly filters: FieldFilter[] = [],
+    readonly filters: Filter[] = [],
     readonly limit: number | null = null,
     readonly startAt: Bound | null = null,
     readonly endAt: Bound | null = null
@@ -76,7 +76,7 @@ export function newTarget(
   path: ResourcePath,
   collectionGroup: string | null = null,
   orderBy: OrderBy[] = [],
-  filters: FieldFilter[] = [],
+  filters: Filter[] = [],
   limit: number | null = null,
   startAt: Bound | null = null,
   endAt: Bound | null = null
@@ -101,9 +101,7 @@ export function canonifyTarget(target: Target): string {
       canonicalId += '|cg:' + targetImpl.collectionGroup;
     }
     canonicalId += '|f:';
-    canonicalId += targetImpl.filters
-      .map(f => canonifyFieldFilter(f))
-      .join(',');
+    canonicalId += targetImpl.filters.map(f => canonifyFilter(f)).join(',');
     canonicalId += '|ob:';
     canonicalId += targetImpl.orderBy.map(o => canonifyOrderBy(o)).join(',');
 
@@ -131,7 +129,7 @@ export function stringifyTarget(target: Target): string {
   }
   if (target.filters.length > 0) {
     str += `, filters: [${target.filters
-      .map(f => stringifyFieldFilter(f))
+      .map(f => stringifyFilter(f))
       .join(', ')}]`;
   }
   if (!isNullOrUndefined(target.limit)) {
@@ -171,7 +169,7 @@ export function targetEquals(left: Target, right: Target): boolean {
   }
 
   for (let i = 0; i < left.filters.length; i++) {
-    if (!fieldFilterEquals(left.filters[i], right.filters[i])) {
+    if (!filterEquals(left.filters[i], right.filters[i])) {
       return false;
     }
   }

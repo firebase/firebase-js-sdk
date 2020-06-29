@@ -208,7 +208,7 @@ export function blob(...bytes: number[]): Blob {
 export function filter(path: string, op: string, value: unknown): FieldFilter {
   const dataValue = wrap(value);
   const operator = op as Operator;
-  return new FieldFilter(field(path), operator, dataValue);
+  return FieldFilter.create(field(path), operator, dataValue);
 }
 
 export function setMutation(

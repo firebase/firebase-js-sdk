@@ -25,11 +25,14 @@ import {
   arrayValueContains,
   valueEquals,
   isArray,
+  isNanValue,
+  isNullValue,
   isReferenceValue,
   typeOrder
 } from '../model/values';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, fail } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
 import {
   canonifyTarget,
@@ -71,7 +74,7 @@ export class Query {
     readonly path: ResourcePath,
     readonly collectionGroup: string | null = null,
     readonly explicitOrderBy: OrderBy[] = [],
-    readonly filters: FieldFilter[] = [],
+    readonly filters: Filter[] = [],
     readonly limit: number | null = null,
     readonly limitType: LimitType = LimitType.First,
     readonly startAt: Bound | null = null,
@@ -131,10 +134,11 @@ export class Query {
     return this.memoizedOrderBy;
   }
 
-  addFilter(filter: FieldFilter): Query {
+  addFilter(filter: Filter): Query {
     debugAssert(
       this.getInequalityFilterField() == null ||
-        !isInequalityFilter(filter) ||
+        !(filter instanceof FieldFilter) ||
+        !filter.isInequality() ||
         filter.field.isEqual(this.getInequalityFilterField()!),
       'Query must only have one inequality field.'
     );
@@ -325,7 +329,7 @@ export class Query {
 
   getInequalityFilterField(): FieldPath | null {
     for (const filter of this.filters) {
-      if (isInequalityFilter(filter)) {
+      if (filter instanceof FieldFilter && filter.isInequality()) {
         return filter.field;
       }
     }
@@ -336,8 +340,10 @@ export class Query {
   // returns the first one that is, or null if none are.
   findFilterOperator(operators: Operator[]): Operator | null {
     for (const filter of this.filters) {
-      if (operators.indexOf(filter.op) >= 0) {
-        return filter.op;
+      if (filter instanceof FieldFilter) {
+        if (operators.indexOf(filter.op) >= 0) {
+          return filter.op;
+        }
       }
     }
     return null;
@@ -435,7 +441,7 @@ export class Query {
 
   private matchesFilters(doc: Document): boolean {
     for (const filter of this.filters) {
-      if (!fieldFilterMatches(filter, doc)) {
+      if (!filter.matches(doc)) {
         return false;
       }
     }
@@ -463,6 +469,10 @@ export class Query {
   }
 }
 
+export abstract class Filter {
+  abstract matches(doc: Document): boolean;
+}
+
 export const enum Operator {
   LESS_THAN = '<',
   LESS_THAN_OR_EQUAL = '<=',
@@ -474,136 +484,235 @@ export const enum Operator {
   ARRAY_CONTAINS_ANY = 'array-contains-any'
 }
 
-export class FieldFilter {
-  constructor(
+export class FieldFilter extends Filter {
+  protected constructor(
     public field: FieldPath,
     public op: Operator,
     public value: api.Value
-  ) {}
+  ) {
+    super();
+  }
+
+  /**
+   * Creates a filter based on the provided arguments.
+   */
+  static create(field: FieldPath, op: Operator, value: api.Value): FieldFilter {
+    if (field.isKeyField()) {
+      if (op === Operator.IN) {
+        debugAssert(
+          isArray(value),
+          'Comparing on key with IN, but filter value not an ArrayValue'
+        );
+        debugAssert(
+          (value.arrayValue.values || []).every(elem => isReferenceValue(elem)),
+          'Comparing on key with IN, but an array value was not a RefValue'
+        );
+        return new KeyFieldInFilter(field, value);
+      } else {
+        debugAssert(
+          isReferenceValue(value),
+          'Comparing on key, but filter value not a RefValue'
+        );
+        debugAssert(
+          op !== Operator.ARRAY_CONTAINS && op !== Operator.ARRAY_CONTAINS_ANY,
+          `'${op.toString()}' queries don't make sense on document keys.`
+        );
+        return new KeyFieldFilter(field, op, value);
+      }
+    } else if (isNullValue(value)) {
+      if (op !== Operator.EQUAL) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          'Invalid query. Null supports only equality comparisons.'
+        );
+      }
+      return new FieldFilter(field, op, value);
+    } else if (isNanValue(value)) {
+      if (op !== Operator.EQUAL) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          'Invalid query. NaN supports only equality comparisons.'
+        );
+      }
+      return new FieldFilter(field, op, value);
+    } else if (op === Operator.ARRAY_CONTAINS) {
+      return new ArrayContainsFilter(field, value);
+    } else if (op === Operator.IN) {
+      debugAssert(
+        isArray(value),
+        'IN filter has invalid value: ' + value.toString()
+      );
+      return new InFilter(field, value);
+    } else if (op === Operator.ARRAY_CONTAINS_ANY) {
+      debugAssert(
+        isArray(value),
+        'ARRAY_CONTAINS_ANY filter has invalid value: ' + value.toString()
+      );
+      return new ArrayContainsAnyFilter(field, value);
+    } else {
+      return new FieldFilter(field, op, value);
+    }
+  }
+
+  matches(doc: Document): boolean {
+    const other = doc.field(this.field);
+
+    // Only compare types with matching backend order (such as double and int).
+    return (
+      other !== null &&
+      typeOrder(this.value) === typeOrder(other) &&
+      this.matchesComparison(valueCompare(other, this.value))
+    );
+  }
+
+  protected matchesComparison(comparison: number): boolean {
+    switch (this.op) {
+      case Operator.LESS_THAN:
+        return comparison < 0;
+      case Operator.LESS_THAN_OR_EQUAL:
+        return comparison <= 0;
+      case Operator.EQUAL:
+        return comparison === 0;
+      case Operator.GREATER_THAN:
+        return comparison > 0;
+      case Operator.GREATER_THAN_OR_EQUAL:
+        return comparison >= 0;
+      default:
+        return fail('Unknown FieldFilter operator: ' + this.op);
+    }
+  }
+
+  isInequality(): boolean {
+    return (
+      [
+        Operator.LESS_THAN,
+        Operator.LESS_THAN_OR_EQUAL,
+        Operator.GREATER_THAN,
+        Operator.GREATER_THAN_OR_EQUAL
+      ].indexOf(this.op) >= 0
+    );
+  }
 }
 
-/** Returns a debug description for `fieldFilter`. */
-export function stringifyFieldFilter(fieldFilter: FieldFilter): string {
-  return `${fieldFilter.field.canonicalString()} ${
-    fieldFilter.op
-  } ${canonicalId(fieldFilter.value)}`;
-}
-
-export function canonifyFieldFilter(fieldFilter: FieldFilter): string {
+export function canonifyFilter(filter: Filter): string {
+  debugAssert(
+    filter instanceof FieldFilter,
+    'canonifyFilter() only supports FieldFilters'
+  );
   // TODO(b/29183165): Technically, this won't be unique if two values have
   // the same description, such as the int 3 and the string "3". So we should
   // add the types in here somehow, too.
   return (
-    fieldFilter.field.canonicalString() +
-    fieldFilter.op.toString() +
-    canonicalId(fieldFilter.value)
+    filter.field.canonicalString() +
+    filter.op.toString() +
+    canonicalId(filter.value)
   );
 }
 
-/** Returns whether this filter filters by <, <=, => or >. */
-export function isInequalityFilter(filter: FieldFilter): boolean {
+export function filterEquals(f1: Filter, f2: Filter): boolean {
   return (
-    [
-      Operator.LESS_THAN,
-      Operator.LESS_THAN_OR_EQUAL,
-      Operator.GREATER_THAN,
-      Operator.GREATER_THAN_OR_EQUAL
-    ].indexOf(filter.op) >= 0
-  );
-}
-
-function fieldFilterMatches(filter: FieldFilter, doc: Document): boolean {
-  const op = filter.op;
-  const filterValue = filter.value;
-
-  if (filter.field.isKeyField()) {
-    if (op === Operator.IN) {
-      // Filter that matches on key fields within an array.
-      debugAssert(
-        isArray(filterValue),
-        'Comparing on key with IN, but filter value not an ArrayValue'
-      );
-      const keys = (filterValue.arrayValue.values || []).map(v => {
-        debugAssert(
-          isReferenceValue(v),
-          'Comparing on key with IN, but an array value was not a ReferenceValue'
-        );
-        return DocumentKey.fromName(v.referenceValue);
-      });
-      return keys.some(key => key.isEqual(doc.key));
-    } else {
-      // Filter that matches on a single key field (i.e. '__name__').
-      debugAssert(
-        isReferenceValue(filterValue),
-        'Comparing on key, but filter value not a RefValue'
-      );
-      debugAssert(
-        op !== Operator.ARRAY_CONTAINS && op !== Operator.ARRAY_CONTAINS_ANY,
-        `'${op}' queries don't make sense on document keys.`
-      );
-      const key = DocumentKey.fromName(filterValue.referenceValue);
-      const comparison = DocumentKey.comparator(doc.key, key);
-      return matchesComparison(filter, comparison);
-    }
-  }
-
-  const fieldValue = doc.field(filter.field);
-  if (op === Operator.ARRAY_CONTAINS) {
-    return (
-      isArray(fieldValue) &&
-      arrayValueContains(fieldValue.arrayValue, filter.value)
-    );
-  } else if (op === Operator.ARRAY_CONTAINS_ANY) {
-    debugAssert(
-      isArray(filterValue),
-      'ArrayContainsAnyFilter expects an ArrayValue'
-    );
-    if (!isArray(fieldValue) || !fieldValue.arrayValue.values) {
-      return false;
-    }
-    return fieldValue.arrayValue.values.some(val =>
-      arrayValueContains(filter.value.arrayValue!, val)
-    );
-  } else if (op === Operator.IN) {
-    debugAssert(isArray(filterValue), 'InFilter expects an ArrayValue');
-    return (
-      fieldValue !== null &&
-      arrayValueContains(filter.value.arrayValue!, fieldValue)
-    );
-  } else {
-    // Only compare types with matching backend order (such as double and int).
-    return (
-      fieldValue !== null &&
-      typeOrder(filter.value) === typeOrder(fieldValue) &&
-      matchesComparison(filter, valueCompare(fieldValue, filter.value))
-    );
-  }
-}
-
-function matchesComparison(filter: FieldFilter, comparison: number): boolean {
-  switch (filter.op) {
-    case Operator.LESS_THAN:
-      return comparison < 0;
-    case Operator.LESS_THAN_OR_EQUAL:
-      return comparison <= 0;
-    case Operator.EQUAL:
-      return comparison === 0;
-    case Operator.GREATER_THAN:
-      return comparison > 0;
-    case Operator.GREATER_THAN_OR_EQUAL:
-      return comparison >= 0;
-    default:
-      return fail('Unknown FieldFilter operator: ' + filter.op);
-  }
-}
-
-export function fieldFilterEquals(f1: FieldFilter, f2: FieldFilter): boolean {
-  return (
+    f1 instanceof FieldFilter &&
+    f2 instanceof FieldFilter &&
     f1.op === f2.op &&
     f1.field.isEqual(f2.field) &&
     valueEquals(f1.value, f2.value)
   );
 }
+
+/** Returns a debug description for `filter`. */
+export function stringifyFilter(filter: Filter): string {
+  debugAssert(
+    filter instanceof FieldFilter,
+    'stringifyFilter() only supports FieldFilters'
+  );
+  return `${filter.field.canonicalString()} ${filter.op} ${canonicalId(
+    filter.value
+  )}`;
+}
+
+/** Filter that matches on key fields (i.e. '__name__'). */
+export class KeyFieldFilter extends FieldFilter {
+  private readonly key: DocumentKey;
+
+  constructor(field: FieldPath, op: Operator, value: api.Value) {
+    super(field, op, value);
+    debugAssert(
+      isReferenceValue(value),
+      'KeyFieldFilter expects a ReferenceValue'
+    );
+    this.key = DocumentKey.fromName(value.referenceValue);
+  }
+
+  matches(doc: Document): boolean {
+    const comparison = DocumentKey.comparator(doc.key, this.key);
+    return this.matchesComparison(comparison);
+  }
+}
+
+/** Filter that matches on key fields within an array. */
+export class KeyFieldInFilter extends FieldFilter {
+  private readonly keys: DocumentKey[];
+
+  constructor(field: FieldPath, value: api.Value) {
+    super(field, Operator.IN, value);
+    debugAssert(isArray(value), 'KeyFieldInFilter expects an ArrayValue');
+    this.keys = (value.arrayValue.values || []).map(v => {
+      debugAssert(
+        isReferenceValue(v),
+        'Comparing on key with IN, but an array value was not a ReferenceValue'
+      );
+      return DocumentKey.fromName(v.referenceValue);
+    });
+  }
+
+  matches(doc: Document): boolean {
+    return this.keys.some(key => key.isEqual(doc.key));
+  }
+}
+
+/** A Filter that implements the array-contains operator. */
+export class ArrayContainsFilter extends FieldFilter {
+  constructor(field: FieldPath, value: api.Value) {
+    super(field, Operator.ARRAY_CONTAINS, value);
+  }
+
+  matches(doc: Document): boolean {
+    const other = doc.field(this.field);
+    return isArray(other) && arrayValueContains(other.arrayValue, this.value);
+  }
+}
+
+/** A Filter that implements the IN operator. */
+export class InFilter extends FieldFilter {
+  constructor(field: FieldPath, value: api.Value) {
+    super(field, Operator.IN, value);
+    debugAssert(isArray(value), 'InFilter expects an ArrayValue');
+  }
+
+  matches(doc: Document): boolean {
+    const other = doc.field(this.field);
+    return other !== null && arrayValueContains(this.value.arrayValue!, other);
+  }
+}
+
+/** A Filter that implements the array-contains-any operator. */
+export class ArrayContainsAnyFilter extends FieldFilter {
+  constructor(field: FieldPath, value: api.Value) {
+    super(field, Operator.ARRAY_CONTAINS_ANY, value);
+    debugAssert(isArray(value), 'ArrayContainsAnyFilter expects an ArrayValue');
+  }
+
+  matches(doc: Document): boolean {
+    const other = doc.field(this.field);
+    if (!isArray(other) || !other.arrayValue.values) {
+      return false;
+    }
+    return other.arrayValue.values.some(val =>
+      arrayValueContains(this.value.arrayValue!, val)
+    );
+  }
+}
+
 /**
  * The direction of sorting in an order by.
  */
