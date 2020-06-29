@@ -456,7 +456,11 @@ export function setDoc<T>(
 ): Promise<void> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
 
-  const convertedValue = applyFirestoreDataConverter(ref._converter, data);
+  const convertedValue = applyFirestoreDataConverter(
+    ref._converter,
+    data,
+    options
+  );
   const dataReader = newUserDataReader(ref.firestore);
   const parsed = dataReader.parseSetData(
     'setDoc',
