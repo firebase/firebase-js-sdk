@@ -31,7 +31,6 @@ import {
 
 import { Firestore as LiteFirestore } from '../../../lite/src/api/database';
 import { cast } from '../../../lite/src/api/util';
-import { terminateDatastore } from '../../../src/remote/datastore';
 
 /**
  * The root reference to the Firestore database and the entry point for the
