@@ -17,7 +17,7 @@
 
 $firebase-js-sdk/repo-scripts/size-analysis  `ts-node-script analysis.ts --if <path to dts file> --ib <path to bundle file> -o <path to output FILE>`
 
-### To Do Analysis On Some Firebase Modules 
+### To Do Analysis On One to Many Firebase Modules
 
 firebase-js-sdk/repo-scripts/size-analysis  `ts-node-script analysis.ts --im "@firebase/module1-exp" "@firebase/module2-exp" -o <path to output DIRECTORY>`
 
