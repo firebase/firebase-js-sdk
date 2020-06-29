@@ -46,7 +46,6 @@ import {
 } from '../../../src/remote/datastore';
 import { hardAssert } from '../../../src/util/assert';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
-import { PlatformSupport } from '../../../src/platform/platform';
 import {
   applyFirestoreDataConverter,
   BaseQuery
@@ -60,6 +59,7 @@ import {
   validateExactNumberOfArgs,
   validatePositiveNumber
 } from '../../../src/util/input_validation';
+import { newSerializer } from '../../../src/platform/serializer';
 import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
 import { Code, FirestoreError } from '../../../src/util/error';
 
@@ -322,7 +322,7 @@ export function collectionGroup(
 
   return new Query(
     firestoreClient,
-    new InternalQuery(ResourcePath.EMPTY_PATH, collectionId),
+    new InternalQuery(ResourcePath.emptyPath(), collectionId),
     /* converter= */ null
   );
 }
@@ -454,15 +454,21 @@ export function setDoc<T>(
   data: T,
   options?: firestore.SetOptions
 ): Promise<void> {
-  const ref = cast(reference, DocumentReference);
+  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
 
-  const [convertedValue] = applyFirestoreDataConverter(
+  const convertedValue = applyFirestoreDataConverter(
     ref._converter,
     data,
-    'setDoc'
+    options
   );
   const dataReader = newUserDataReader(ref.firestore);
-  const parsed = dataReader.parseSetData('setDoc', convertedValue, options);
+  const parsed = dataReader.parseSetData(
+    'setDoc',
+    ref._key,
+    convertedValue,
+    ref._converter !== null,
+    options
+  );
 
   return ref.firestore
     ._getDatastore()
@@ -490,7 +496,7 @@ export function updateDoc(
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
-  const ref = cast(reference, DocumentReference);
+  const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
   const dataReader = newUserDataReader(ref.firestore);
 
   let parsed: ParsedUpdateData;
@@ -500,12 +506,17 @@ export function updateDoc(
   ) {
     parsed = dataReader.parseUpdateVarargs(
       'updateDoc',
+      ref._key,
       fieldOrUpdateData,
       value,
       moreFieldsAndValues
     );
   } else {
-    parsed = dataReader.parseUpdateData('updateDoc', fieldOrUpdateData);
+    parsed = dataReader.parseUpdateData(
+      'updateDoc',
+      ref._key,
+      fieldOrUpdateData
+    );
   }
 
   return ref.firestore
@@ -521,7 +532,7 @@ export function updateDoc(
 export function deleteDoc(
   reference: firestore.DocumentReference
 ): Promise<void> {
-  const ref = cast(reference, DocumentReference);
+  const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
   return ref.firestore
     ._getDatastore()
     .then(datastore =>
@@ -535,17 +546,19 @@ export function addDoc<T>(
   reference: firestore.CollectionReference<T>,
   data: T
 ): Promise<firestore.DocumentReference<T>> {
-  const collRef = cast(reference, CollectionReference);
+  const collRef = cast<CollectionReference<T>>(reference, CollectionReference);
   const docRef = doc(collRef);
 
-  const [convertedValue] = applyFirestoreDataConverter(
-    collRef._converter,
-    data,
-    'addDoc'
-  );
+  const convertedValue = applyFirestoreDataConverter(collRef._converter, data);
 
   const dataReader = newUserDataReader(collRef.firestore);
-  const parsed = dataReader.parseSetData('addDoc', convertedValue);
+  const parsed = dataReader.parseSetData(
+    'addDoc',
+    docRef._key,
+    convertedValue,
+    docRef._converter !== null,
+    {}
+  );
 
   return collRef.firestore
     ._getDatastore()
@@ -592,9 +605,7 @@ export function queryEqual<T>(
 
 export function newUserDataReader(firestore: Firestore): UserDataReader {
   const settings = firestore._getSettings();
-  const serializer = PlatformSupport.getPlatform().newSerializer(
-    firestore._databaseId
-  );
+  const serializer = newSerializer(firestore._databaseId);
   return new UserDataReader(
     firestore._databaseId,
     !!settings.ignoreUndefinedProperties,

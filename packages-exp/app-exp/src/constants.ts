@@ -19,14 +19,14 @@ import { name as appName } from '../package.json';
 import { name as analyticsName } from '../../../packages/analytics/package.json';
 import { name as authName } from '../../../packages/auth/package.json';
 import { name as databaseName } from '../../../packages/database/package.json';
-import { name as functionsName } from '../../../packages/functions/package.json';
+import { name as functionsName } from '../../../packages-exp/functions-exp/package.json';
 import { name as installationsName } from '../../../packages/installations/package.json';
 import { name as messagingName } from '../../../packages/messaging/package.json';
 import { name as performanceName } from '../../../packages/performance/package.json';
 import { name as remoteConfigName } from '../../../packages/remote-config/package.json';
 import { name as storageName } from '../../../packages/storage/package.json';
 import { name as firestoreName } from '../../../packages/firestore/package.json';
-import { name as packageName } from '../../../packages/firebase/package.json';
+import { name as packageName } from '../../../packages-exp/firebase-exp/package.json';
 
 export const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 

@@ -1,14 +1,9 @@
 # @firebase/testing
 
-This is the testing component for the Firebase JS SDK.
+A set of utilities useful for testing Security Rules with the Realtime Database or Cloud Firestore
+emulators.
 
+See:
 
-## Protocol buffers
-
-There are some protocol buffers (the `.proto` files in `src/protos/`) that
-are included in this package but should not be modified. They're copied from
-Google production and emulator APIs, and are immutable specifically to maintain
-compatibility with those services.
-
-When those services update their APIs, the new versions should be mirrored into
-this package.
+  * [Test your Cloud Firestore Security Rules](https://firebase.google.com/docs/firestore/security/test-rules-emulator)
+  * [Testing Security Rules with the Realtime Database Emulator](https://firebase.google.com/docs/database/security/test-rules-emulator)
