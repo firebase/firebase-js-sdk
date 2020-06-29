@@ -210,6 +210,10 @@ export class NumericIncrementFieldValueImpl extends SerializableFieldValue {
 /** The public FieldValue class of the lite API. */
 export abstract class FieldValue extends SerializableFieldValue
   implements firestore.FieldValue {
+  protected constructor() {
+    super();
+  }
+
   static delete(): firestore.FieldValue {
     validateNoArgs('FieldValue.delete', arguments);
     return new FieldValueDelegate(
