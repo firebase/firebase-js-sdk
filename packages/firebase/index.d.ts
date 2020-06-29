@@ -7124,7 +7124,7 @@ declare namespace firebase.messaging {
     notification?: NotificationPayload;
 
     /**
-     * Arbitrary key/value payload
+     * Arbitrary key/value pairs.
      */
 
     data?: { [key: string]: string };
