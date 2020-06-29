@@ -911,7 +911,7 @@ class LocalStoreImpl implements LocalStore {
     }
   }
 
-  releaseTarget(
+  async releaseTarget(
     targetId: number,
     keepPersistedTargetData: boolean
   ): Promise<void> {
@@ -922,21 +922,33 @@ class LocalStoreImpl implements LocalStore {
     );
 
     const mode = keepPersistedTargetData ? 'readwrite' : 'readwrite-primary';
-    return this.persistence
-      .runTransaction('Release target', mode, txn => {
-        if (!keepPersistedTargetData) {
+
+    try {
+      if (!keepPersistedTargetData) {
+        await this.persistence.runTransaction('Release target', mode, txn => {
           return this.persistence.referenceDelegate.removeTarget(
             txn,
             targetData!
           );
-        } else {
-          return PersistencePromise.resolve();
-        }
-      })
-      .then(() => {
-        this.targetDataByTarget = this.targetDataByTarget.remove(targetId);
-        this.targetIdByTarget.delete(targetData!.target);
-      });
+        });
+      }
+    } catch (e) {
+      if (isIndexedDbTransactionError(e)) {
+        // If `releaseTarget` fails, we did not advance the sequence
+        // number for the target. This target might be deleted earlier than
+        // it otherwise would have, but it should not invalidate the integrity
+        // of the data.
+        logDebug(
+          LOG_TAG,
+          `Failed to update sequence numbers for target ${targetId}: ${e}`
+        );
+      } else {
+        throw e;
+      }
+    }
+
+    this.targetDataByTarget = this.targetDataByTarget.remove(targetId);
+    this.targetIdByTarget.delete(targetData!.target);
   }
 
   executeQuery(

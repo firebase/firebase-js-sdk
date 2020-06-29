@@ -569,7 +569,10 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     );
   });
 
-  specTest('Recovers when watch rejection cannot be persisted', [], () => {
+  specTest('Handles rejections that cannot be persisted', ['exclusive'], () => {
+    // This test verifies that the client ignores failures during the
+    // 'Release target' transaction.
+
     const doc1Query = Query.atPath(path('collection/key1'));
     const doc2Query = Query.atPath(path('collection/key2'));
     const doc1a = doc('collection/key1', 1000, { foo: 'a' });
@@ -593,25 +596,22 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           doc1Query,
           new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
         )
-        // `failDatabaseTransactions()` causes us to go offline.
-        .expectActiveTargets()
-        .expectEvents(doc1Query, { fromCache: true })
-        .expectEvents(doc2Query, { fromCache: true })
+        .expectEvents(doc1Query, { errorCode: Code.PERMISSION_DENIED })
         .recoverDatabase()
-        .runTimer(TimerId.AsyncQueueRetry)
-        .expectActiveTargets(
-          { query: doc1Query, resumeToken: 'resume-token-1000' },
-          { query: doc2Query, resumeToken: 'resume-token-2000' }
-        )
-        .watchAcksFull(doc1Query, 3000)
-        .expectEvents(doc1Query, {})
         .watchRemoves(
           doc2Query,
           new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
         )
         .expectEvents(doc2Query, { errorCode: Code.PERMISSION_DENIED })
-        .watchSends({ affects: [doc1Query] }, doc1b)
-        .watchSnapshots(4000)
+        // Verify that `doc1Query` can be listened to again. Note that the
+        // resume token is slightly outdated since we failed the final
+        // target update during the release.
+        .userListens(doc1Query, 'resume-token-1000')
+        .expectEvents(doc1Query, {
+          added: [doc1a],
+          fromCache: true
+        })
+        .watchAcksFull(doc1Query, 4000, doc1b)
         .expectEvents(doc1Query, {
           modified: [doc1b]
         })
