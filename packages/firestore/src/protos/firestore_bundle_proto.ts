@@ -26,13 +26,11 @@ export interface BundledQuery {
   structuredQuery?: api.StructuredQuery | null;
 
   /** BundledQuery limitType */
-  limitType?: BundledQuery.LimitType | null;
+  limitType?: LimitType | null;
 }
 
-export namespace BundledQuery {
-  /** LimitType enum. */
-  type LimitType = 'FIRST' | 'LAST';
-}
+/** LimitType enum. */
+type LimitType = 'FIRST' | 'LAST';
 
 /** Properties of a NamedQuery. */
 export interface NamedQuery {
@@ -59,7 +57,7 @@ export interface BundledDocumentMetadata {
 }
 
 /** Properties of a BundleMetadata. */
-interface BundleMetadata {
+export interface BundleMetadata {
   /** BundleMetadata id */
   id?: string | null;
 
@@ -77,7 +75,7 @@ interface BundleMetadata {
 }
 
 /** Properties of a BundleElement. */
-interface BundleElement {
+export interface BundleElement {
   /** BundleElement metadata */
   metadata?: BundleMetadata | null;
 
