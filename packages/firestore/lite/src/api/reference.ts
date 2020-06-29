@@ -48,7 +48,8 @@ import { hardAssert } from '../../../src/util/assert';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
 import {
   applyFirestoreDataConverter,
-  BaseQuery
+  BaseQuery,
+  validateHasExplicitOrderByForLimitToLast
 } from '../../../src/api/database';
 import { FieldPath } from './field_path';
 import { cast } from './util';
@@ -417,6 +418,7 @@ export function getQuery<T>(
   query: firestore.Query<T>
 ): Promise<firestore.QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
+  validateHasExplicitOrderByForLimitToLast(internalQuery._query);
   return internalQuery.firestore._getDatastore().then(async datastore => {
     const result = await invokeRunQueryRpc(datastore, internalQuery._query);
     const docs = result.map(

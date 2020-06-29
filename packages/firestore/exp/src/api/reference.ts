@@ -28,10 +28,13 @@ import { debugAssert } from '../../../src/util/assert';
 import { cast } from '../../../lite/src/api/util';
 import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import {
+  addDocSnapshotListener,
+  addQuerySnapshotListener,
   applyFirestoreDataConverter,
   getDocsViaSnapshotListener,
   getDocViaSnapshotListener,
-  SnapshotMetadata
+  SnapshotMetadata,
+  validateHasExplicitOrderByForLimitToLast
 } from '../../../src/api/database';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
 import {
@@ -44,6 +47,14 @@ import {
 import { Document } from '../../../src/model/document';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
 import { FieldPath } from '../../../src/api/field_path';
+import {
+  CompleteFn,
+  ErrorFn,
+  isPartialObserver,
+  NextFn,
+  PartialObserver,
+  Unsubscribe
+} from '../../../src/api/observer';
 
 export function getDoc<T>(
   reference: firestore.DocumentReference<T>
@@ -101,17 +112,14 @@ export function getQuery<T>(
 ): Promise<QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
   const firestore = cast<Firestore>(query.firestore, Firestore);
+
+  validateHasExplicitOrderByForLimitToLast(internalQuery._query);
   return firestore._getFirestoreClient().then(async firestoreClient => {
     const snapshot = await getDocsViaSnapshotListener(
       firestoreClient,
       internalQuery._query
     );
-    return new QuerySnapshot(
-      firestore,
-      internalQuery,
-      snapshot,
-      new SnapshotMetadata(snapshot.hasPendingWrites, snapshot.fromCache)
-    );
+    return new QuerySnapshot(firestore, internalQuery, snapshot);
   });
 }
 
@@ -124,12 +132,7 @@ export function getQueryFromCache<T>(
     const snapshot = await firestoreClient.getDocumentsFromLocalCache(
       internalQuery._query
     );
-    return new QuerySnapshot(
-      firestore,
-      internalQuery,
-      snapshot,
-      new SnapshotMetadata(snapshot.hasPendingWrites, /* fromCache= */ true)
-    );
+    return new QuerySnapshot(firestore, internalQuery, snapshot);
   });
 }
 
@@ -144,12 +147,7 @@ export function getQueryFromServer<T>(
       internalQuery._query,
       { source: 'server' }
     );
-    return new QuerySnapshot(
-      firestore,
-      internalQuery,
-      snapshot,
-      new SnapshotMetadata(snapshot.hasPendingWrites, snapshot.fromCache)
-    );
+    return new QuerySnapshot(firestore, internalQuery, snapshot);
   });
 }
 
@@ -278,6 +276,159 @@ export function addDoc<T>(
       )
     )
     .then(() => docRef);
+}
+
+// TODO(firestorexp): Make sure these overloads are testing via the Firestore
+// integration tests
+export function onSnapshot<T>(
+  reference: firestore.DocumentReference<T>,
+  observer: {
+    next?: (snapshot: firestore.DocumentSnapshot<T>) => void;
+    error?: (error: firestore.FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
+export function onSnapshot<T>(
+  reference: firestore.DocumentReference<T>,
+  options: firestore.SnapshotListenOptions,
+  observer: {
+    next?: (snapshot: firestore.DocumentSnapshot<T>) => void;
+    error?: (error: firestore.FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
+export function onSnapshot<T>(
+  reference: firestore.DocumentReference<T>,
+  onNext: (snapshot: firestore.DocumentSnapshot<T>) => void,
+  onError?: (error: firestore.FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
+export function onSnapshot<T>(
+  reference: firestore.DocumentReference<T>,
+  options: firestore.SnapshotListenOptions,
+  onNext: (snapshot: firestore.DocumentSnapshot<T>) => void,
+  onError?: (error: firestore.FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
+export function onSnapshot<T>(
+  query: firestore.Query<T>,
+  observer: {
+    next?: (snapshot: firestore.QuerySnapshot<T>) => void;
+    error?: (error: firestore.FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
+export function onSnapshot<T>(
+  query: firestore.Query<T>,
+  options: firestore.SnapshotListenOptions,
+  observer: {
+    next?: (snapshot: firestore.QuerySnapshot<T>) => void;
+    error?: (error: firestore.FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
+export function onSnapshot<T>(
+  query: firestore.Query<T>,
+  onNext: (snapshot: firestore.QuerySnapshot<T>) => void,
+  onError?: (error: firestore.FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
+export function onSnapshot<T>(
+  query: firestore.Query<T>,
+  options: firestore.SnapshotListenOptions,
+  onNext: (snapshot: firestore.QuerySnapshot<T>) => void,
+  onError?: (error: firestore.FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
+export function onSnapshot<T>(
+  ref: firestore.Query<T> | firestore.DocumentReference<T>,
+  ...args: unknown[]
+): Unsubscribe {
+  let options: firestore.SnapshotListenOptions = {
+    includeMetadataChanges: false
+  };
+  let currArg = 0;
+  if (typeof args[currArg] === 'object' && !isPartialObserver(args[currArg])) {
+    options = args[currArg] as firestore.SnapshotListenOptions;
+    currArg++;
+  }
+
+  const internalOptions = {
+    includeMetadataChanges: options.includeMetadataChanges
+  };
+
+  if (isPartialObserver(args[currArg])) {
+    const userObserver = args[currArg] as PartialObserver<
+      firestore.QuerySnapshot<T>
+    >;
+    args[currArg] = userObserver.next;
+    args[currArg + 1] = userObserver.error;
+    args[currArg + 2] = userObserver.complete;
+  }
+
+  let asyncObserver: Promise<Unsubscribe>;
+
+  if (ref instanceof DocumentReference) {
+    const firestore = cast(ref.firestore, Firestore);
+
+    const observer: PartialObserver<ViewSnapshot> = {
+      next: snapshot => {
+        if (args[currArg]) {
+          (args[currArg] as NextFn<firestore.DocumentSnapshot<T>>)(
+            convertToDocSnapshot(firestore, ref, snapshot)
+          );
+        }
+      },
+      error: args[currArg + 1] as ErrorFn,
+      complete: args[currArg + 2] as CompleteFn
+    };
+
+    asyncObserver = firestore
+      ._getFirestoreClient()
+      .then(firestoreClient =>
+        addDocSnapshotListener(
+          firestoreClient,
+          ref._key,
+          internalOptions,
+          observer
+        )
+      );
+  } else {
+    const query = cast<Query<T>>(ref, Query);
+    const firestore = cast(query, Firestore);
+
+    const observer: PartialObserver<ViewSnapshot> = {
+      next: snapshot => {
+        if (args[currArg]) {
+          (args[currArg] as NextFn<firestore.QuerySnapshot<T>>)(
+            new QuerySnapshot(firestore, query, snapshot)
+          );
+        }
+      },
+      error: args[currArg + 1] as ErrorFn,
+      complete: args[currArg + 2] as CompleteFn
+    };
+
+    validateHasExplicitOrderByForLimitToLast(query._query);
+
+    asyncObserver = firestore
+      ._getFirestoreClient()
+      .then(firestoreClient =>
+        addQuerySnapshotListener(
+          firestoreClient,
+          query._query,
+          internalOptions,
+          observer
+        )
+      );
+  }
+
+  // TODO(firestorexp): Add test that verifies that we don't raise a snapshot if
+  // unsubscribe is called before `asyncObserver` resolves.
+  return () => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    asyncObserver.then(unsubscribe => unsubscribe());
+  };
 }
 
 /**
