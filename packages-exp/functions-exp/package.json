@@ -24,7 +24,7 @@
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
     "test:emulator": "env FIREBASE_FUNCTIONS_EMULATOR_ORIGIN=http://localhost:5005 run-p test:node",
-    "prepare": "yarn build",
+    "prepare": "rollup -c rollup.config.release.js && yarn api-report",
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",

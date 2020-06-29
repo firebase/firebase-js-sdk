@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-import json from 'rollup-plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
+import json from 'rollup-plugin-json';
 import pkg from './package.json';
+import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
@@ -29,7 +30,10 @@ const deps = Object.keys(
  */
 const es5BuildPlugins = [
   typescriptPlugin({
-    typescript
+    typescript,
+    clean: true,
+    abortOnError: false,
+    transformers: [importPathTransformer]
   }),
   json()
 ];
@@ -40,21 +44,30 @@ const es5Builds = [
    */
   {
     input: 'src/index.ts',
-    output: [{ file: pkg.module, format: 'es', sourcemap: true }],
+    output: [{ file: pkg.browser, format: 'es', sourcemap: true }],
     plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
+    }
   },
   /**
    * Node.js Build
    */
   {
-    input: 'src/index.node.ts',
+    input: 'src/index.ts',
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
 
+/**
+ * ES2017 Builds
+ */
 const es2017BuildPlugins = [
   typescriptPlugin({
     typescript,
@@ -62,19 +75,21 @@ const es2017BuildPlugins = [
       compilerOptions: {
         target: 'es2017'
       }
-    }
+    },
+    abortOnError: false,
+    clean: true,
+    transformers: [importPathTransformer]
   }),
-  json({ preferConst: true })
+  json({
+    preferConst: true
+  })
 ];
 
-/**
- * ES2017 Builds
- */
 const es2017Builds = [
+  /**
+   *  Browser Builds
+   */
   {
-    /**
-     * Browser Build
-     */
     input: 'src/index.ts',
     output: {
       file: pkg.esm2017,
@@ -82,7 +97,10 @@ const es2017Builds = [
       sourcemap: true
     },
     plugins: es2017BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
 
