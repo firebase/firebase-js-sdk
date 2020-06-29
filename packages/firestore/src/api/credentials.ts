@@ -20,6 +20,7 @@ import {
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { logDebug } from '../util/log';
 
 import { User } from '../auth/user';
 import { debugAssert, hardAssert } from '../util/assert';
@@ -215,10 +216,11 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
       // outstanding so the response is potentially for a previous user (which
       // user, we can't be sure).
       if (this.tokenCounter !== initialTokenCounter) {
-        throw new FirestoreError(
-          Code.ABORTED,
+        logDebug(
+          'FirebaseCredentialsProvider',
           'getToken aborted due to token change.'
         );
+        return this.getToken();
       } else {
         if (tokenData) {
           hardAssert(

@@ -21,6 +21,7 @@ import { MutationBatchResult } from '../model/mutation_batch';
 import { FirestoreError } from '../util/error';
 
 import { RemoteEvent } from './remote_event';
+import { User } from '../auth/user';
 
 /**
  * An interface that describes the actions the RemoteStore needs to perform on
@@ -66,4 +67,10 @@ export interface RemoteSyncer {
    * the last snapshot.
    */
   getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet;
+
+  /**
+   * Updates all local state to match the pending mutations for the given user.
+   * May be called repeatedly for the same user.
+   */
+  handleCredentialChange(user: User): Promise<void>;
 }

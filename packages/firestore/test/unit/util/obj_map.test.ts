@@ -33,7 +33,10 @@ class TestKey {
 
 describe('ObjectMap', () => {
   it('can get/put/delete values', () => {
-    const map = new ObjectMap<TestKey, string>(o => o.mapKey);
+    const map = new ObjectMap<TestKey, string>(
+      o => o.mapKey,
+      (l, r) => l.isEqual(r)
+    );
     const k1 = new TestKey(4, 4);
     const k2 = new TestKey(5, 5);
     const k3 = new TestKey(6, 6);
@@ -71,7 +74,10 @@ describe('ObjectMap', () => {
   });
 
   it('can handle collisions', () => {
-    const map = new ObjectMap<TestKey, string>(o => o.mapKey);
+    const map = new ObjectMap<TestKey, string>(
+      o => o.mapKey,
+      (l, r) => l.isEqual(r)
+    );
     // These all have the same ids, but are different entities.
     const k1 = new TestKey(4, 4);
     const k2 = new TestKey(4, 5);

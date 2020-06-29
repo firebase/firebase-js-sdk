@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import { WebChannelConnection } from '../../../src/platform_browser/webchannel_connection';
+import { WebChannelConnection } from '../../../src/platform/browser/webchannel_connection';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { getDefaultDatabaseInfo } from '../util/internal_helpers';
 import { DEFAULT_PROJECT_ID } from '../util/settings';

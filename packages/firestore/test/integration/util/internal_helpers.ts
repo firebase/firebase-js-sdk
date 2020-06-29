@@ -17,20 +17,21 @@
 
 import * as firestore from '@firebase/firestore-types';
 
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
+import { newDatastore, Datastore } from '../../../src/remote/datastore';
+
 import {
   CredentialChangeListener,
   CredentialsProvider,
   EmptyCredentialsProvider
 } from '../../../src/api/credentials';
 import { Firestore } from '../../../src/api/database';
-import { User } from '../../../src/auth/user';
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import { PlatformSupport } from '../../../src/platform/platform';
-import { newDatastore, Datastore } from '../../../src/remote/datastore';
 import { AsyncQueue } from '../../../src/util/async_queue';
-
 import { withTestDbsSettings } from './helpers';
+import { User } from '../../../src/auth/user';
 import { DEFAULT_PROJECT_ID, DEFAULT_SETTINGS } from './settings';
+import { newConnection } from '../../../src/platform/connection';
+import { newSerializer } from '../../../src/platform/serializer';
 
 /** Helper to retrieve the AsyncQueue for a give FirebaseFirestore instance. */
 export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueue {
@@ -52,15 +53,11 @@ export function withTestDatastore(
   credentialsProvider: CredentialsProvider = new EmptyCredentialsProvider()
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
-  return PlatformSupport.getPlatform()
-    .loadConnection(databaseInfo)
-    .then(conn => {
-      const serializer = PlatformSupport.getPlatform().newSerializer(
-        databaseInfo.databaseId
-      );
-      const datastore = newDatastore(conn, credentialsProvider, serializer);
-      return fn(datastore);
-    });
+  return newConnection(databaseInfo).then(conn => {
+    const serializer = newSerializer(databaseInfo.databaseId);
+    const datastore = newDatastore(conn, credentialsProvider, serializer);
+    return fn(datastore);
+  });
 }
 
 export class MockCredentialsProvider extends EmptyCredentialsProvider {

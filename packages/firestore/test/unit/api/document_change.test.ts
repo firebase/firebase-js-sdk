@@ -20,7 +20,7 @@ import { expect } from 'chai';
 import {
   changesFromSnapshot,
   DocumentSnapshot,
-  Firestore
+  QueryDocumentSnapshot
 } from '../../../src/api/database';
 import { Query } from '../../../src/core/query';
 import { View } from '../../../src/core/view';
@@ -35,6 +35,7 @@ import {
   orderBy,
   path
 } from '../../util/helpers';
+import { firestore } from '../../util/api_helpers';
 
 describe('DocumentChange:', () => {
   function expectPositions(
@@ -54,7 +55,19 @@ describe('DocumentChange:', () => {
     const expected = documentSetAsArray(updatedSnapshot.docs);
     const actual = documentSetAsArray(initialSnapshot.docs);
 
-    const changes = changesFromSnapshot({} as Firestore, true, updatedSnapshot);
+    const changes = changesFromSnapshot(
+      updatedSnapshot,
+      true,
+      (doc, fromCache, hasPendingWrite) =>
+        new QueryDocumentSnapshot(
+          firestore(),
+          doc.key,
+          doc,
+          fromCache,
+          hasPendingWrite,
+          /* converter= */ null
+        )
+    );
 
     for (const change of changes) {
       if (change.type !== 'added') {

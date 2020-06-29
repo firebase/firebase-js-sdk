@@ -16,15 +16,15 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
+
+import * as api from '../../src/protos/firestore_proto_api';
+
 import { expect } from 'chai';
 
 import { Blob } from '../../src/api/blob';
-import { DocumentReference, Firestore } from '../../src/api/database';
 import { fromDotSeparatedString } from '../../src/api/field_path';
-import { DeleteFieldValueImpl } from '../../src/api/field_value';
-import { Timestamp } from '../../src/api/timestamp';
-import { UserDataReader } from '../../src/api/user_data_reader';
 import { UserDataWriter } from '../../src/api/user_data_writer';
+import { UserDataReader } from '../../src/api/user_data_reader';
 import { DatabaseId } from '../../src/core/database_info';
 import {
   Bound,
@@ -61,6 +61,7 @@ import {
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
 import { DocumentSet } from '../../src/model/document_set';
+import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import {
   DeleteMutation,
   FieldMask,
@@ -70,12 +71,8 @@ import {
   SetMutation,
   TransformMutation
 } from '../../src/model/mutation';
-import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import { FieldPath, ResourcePath } from '../../src/model/path';
-import { PlatformSupport } from '../../src/platform/platform';
-import * as api from '../../src/protos/firestore_proto_api';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
-import { JsonProtoSerializer } from '../../src/remote/serializer';
 import {
   DocumentWatchChange,
   WatchChangeAggregator,
@@ -83,23 +80,20 @@ import {
   WatchTargetChangeState
 } from '../../src/remote/watch_change';
 import { debugAssert, fail } from '../../src/util/assert';
-import { ByteString } from '../../src/util/byte_string';
-import { Code, FirestoreError } from '../../src/util/error';
 import { primitiveComparator } from '../../src/util/misc';
 import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
-
-import { query } from './api_helpers';
+import { FIRESTORE, query } from './api_helpers';
+import { ByteString } from '../../src/util/byte_string';
+import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
+import { JsonProtoSerializer } from '../../src/remote/serializer';
+import { Timestamp } from '../../src/api/timestamp';
+import { DocumentReference } from '../../src/api/database';
+import { DeleteFieldValueImpl } from '../../src/api/field_value';
+import { Code, FirestoreError } from '../../src/util/error';
 
 /* eslint-disable no-restricted-globals */
-
-// A Firestore that can be used in DocumentReferences and UserDataWriter.
-const fakeFirestore: Firestore = {
-  ensureClientConfigured: () => {},
-  _databaseId: new DatabaseId('test-project')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as any;
 
 export type TestSnapshotVersion = number;
 
@@ -108,7 +102,7 @@ export function testUserDataWriter(): UserDataWriter {
     new DatabaseId('test-project'),
     /* timestampsInSnapshots= */ false,
     'none',
-    key => new DocumentReference(key, fakeFirestore)
+    key => new DocumentReference(key, FIRESTORE, /* converter= */ null)
   );
 }
 
@@ -118,7 +112,7 @@ export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
     databaseId,
     /* ignoreUndefinedProperties= */ false,
     useProto3Json !== undefined
-      ? new JsonProtoSerializer(databaseId, { useProto3Json })
+      ? new JsonProtoSerializer(databaseId, useProto3Json)
       : undefined
   );
 }
@@ -132,7 +126,8 @@ export function version(v: TestSnapshotVersion): SnapshotVersion {
 export function ref(key: string, offset?: number): DocumentReference {
   return new DocumentReference(
     new DocumentKey(path(key, offset)),
-    fakeFirestore
+    FIRESTORE,
+    /* converter= */ null
   );
 }
 
@@ -243,9 +238,14 @@ export function patchMutation(
       json[k] = new DeleteFieldValueImpl('FieldValue.delete');
     }
   });
-  const parsed = testUserDataReader().parseUpdateData('patchMutation', json);
+  const patchKey = key(keyStr);
+  const parsed = testUserDataReader().parseUpdateData(
+    'patchMutation',
+    patchKey,
+    json
+  );
   return new PatchMutation(
-    key(keyStr),
+    patchKey,
     parsed.data,
     parsed.fieldMask,
     precondition
@@ -266,11 +266,13 @@ export function transformMutation(
   keyStr: string,
   data: Dict<unknown>
 ): TransformMutation {
+  const transformKey = key(keyStr);
   const result = testUserDataReader().parseUpdateData(
     'transformMutation()',
+    transformKey,
     data
   );
-  return new TransformMutation(key(keyStr), result.fieldTransforms);
+  return new TransformMutation(transformKey, result.fieldTransforms);
 }
 
 export function mutationResult(
@@ -506,7 +508,7 @@ export function localViewChanges(
  * Returns a ByteString representation for the platform from the given string.
  */
 export function byteStringFromString(value: string): ByteString {
-  const base64 = PlatformSupport.getPlatform().btoa(value);
+  const base64 = encodeBase64(value);
   return ByteString.fromBase64String(base64);
 }
 
@@ -522,7 +524,7 @@ export function stringFromBase64String(value?: string | Uint8Array): string {
     value === undefined || typeof value === 'string',
     'Can only decode base64 encoded strings'
   );
-  return PlatformSupport.getPlatform().atob(value ?? '');
+  return decodeBase64(value ?? '');
 }
 
 /** Creates a resume token to match the given snapshot version. */

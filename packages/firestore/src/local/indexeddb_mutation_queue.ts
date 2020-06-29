@@ -43,7 +43,11 @@ import {
   DbMutationQueue,
   DbMutationQueueKey
 } from './indexeddb_schema';
-import { LocalSerializer } from './local_serializer';
+import {
+  fromDbMutationBatch,
+  LocalSerializer,
+  toDbMutationBatch
+} from './local_serializer';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -149,7 +153,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
         baseMutations,
         mutations
       );
-      const dbBatch = this.serializer.toDbMutationBatch(this.userId, batch);
+      const dbBatch = toDbMutationBatch(this.serializer, this.userId, batch);
 
       const promises: Array<PersistencePromise<void>> = [];
       let collectionParents = new SortedSet<ResourcePath>((l, r) =>
@@ -194,7 +198,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
             dbBatch.userId === this.userId,
             `Unexpected user '${dbBatch.userId}' for mutation batch ${batchId}`
           );
-          return this.serializer.fromDbMutationBatch(dbBatch);
+          return fromDbMutationBatch(this.serializer, dbBatch);
         }
         return null;
       });
@@ -245,7 +249,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
               dbBatch.batchId >= nextBatchId,
               'Should have found mutation after ' + nextBatchId
             );
-            foundBatch = this.serializer.fromDbMutationBatch(dbBatch);
+            foundBatch = fromDbMutationBatch(this.serializer, dbBatch);
           }
           control.done();
         }
@@ -283,7 +287,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     return mutationsStore(transaction)
       .loadAll(DbMutationBatch.userMutationsIndex, range)
       .next(dbBatches =>
-        dbBatches.map(dbBatch => this.serializer.fromDbMutationBatch(dbBatch))
+        dbBatches.map(dbBatch => fromDbMutationBatch(this.serializer, dbBatch))
       );
   }
 
@@ -332,7 +336,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
               mutation.userId === this.userId,
               `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
             );
-            results.push(this.serializer.fromDbMutationBatch(mutation));
+            results.push(fromDbMutationBatch(this.serializer, mutation));
           });
       })
       .next(() => results);
@@ -463,7 +467,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
               mutation.userId === this.userId,
               `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
             );
-            results.push(this.serializer.fromDbMutationBatch(mutation));
+            results.push(fromDbMutationBatch(this.serializer, mutation));
           })
       );
     });

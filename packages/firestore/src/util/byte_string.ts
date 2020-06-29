@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { PlatformSupport } from '../platform/platform';
-
+import { decodeBase64, encodeBase64 } from '../platform/base64';
 import { primitiveComparator } from './misc';
 
 /**
@@ -33,7 +32,7 @@ export class ByteString {
   private constructor(private readonly binaryString: string) {}
 
   static fromBase64String(base64: string): ByteString {
-    const binaryString = PlatformSupport.getPlatform().atob(base64);
+    const binaryString = decodeBase64(base64);
     return new ByteString(binaryString);
   }
 
@@ -43,7 +42,7 @@ export class ByteString {
   }
 
   toBase64(): string {
-    return PlatformSupport.getPlatform().btoa(this.binaryString);
+    return encodeBase64(this.binaryString);
   }
 
   toUint8Array(): Uint8Array {

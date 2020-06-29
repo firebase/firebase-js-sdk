@@ -49,7 +49,7 @@ export const enum TypeOrder {
  * ability to add and remove fields (via the ObjectValueBuilder).
  */
 export class ObjectValue {
-  constructor(public readonly proto: { mapValue: api.MapValue }) {
+  constructor(readonly proto: { mapValue: api.MapValue }) {
     debugAssert(
       !isServerTimestamp(proto),
       'ServerTimestamps should be converted to ServerTimestampValue'
@@ -181,7 +181,7 @@ export class ObjectValueBuilder {
   /** Returns an ObjectValue with all mutations applied. */
   build(): ObjectValue {
     const mergedResult = this.applyOverlay(
-      FieldPath.EMPTY_PATH,
+      FieldPath.emptyPath(),
       this.overlayMap
     );
     if (mergedResult != null) {
@@ -197,7 +197,7 @@ export class ObjectValueBuilder {
    * changes).
    *
    * @param currentPath The path at the current nesting level. Can be set to
-   * FieldValue.EMPTY_PATH to represent the root.
+   * FieldValue.emptyPath() to represent the root.
    * @param currentOverlays The overlays at the current nesting level in the
    * same format as `overlayMap`.
    * @return The merged data at `currentPath` or null if no modifications

@@ -17,14 +17,12 @@
 
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Target } from '../core/target';
-import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { hardAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
-
+import { TargetIdGenerator } from '../core/target_id_generator';
 import {
   decodeResourcePath,
   encodeResourcePath
@@ -41,13 +39,14 @@ import {
   DbTargetGlobalKey,
   DbTargetKey
 } from './indexeddb_schema';
-import { LocalSerializer } from './local_serializer';
+import { fromDbTarget, LocalSerializer, toDbTarget } from './local_serializer';
 import { ActiveTargets } from './lru_garbage_collector';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDbStore } from './simple_db';
 import { TargetCache } from './target_cache';
 import { TargetData } from './target_data';
+import { SimpleDbStore } from './simple_db';
+import { canonifyTarget, Target, targetEquals } from '../core/target';
 
 export class IndexedDbTargetCache implements TargetCache {
   constructor(
@@ -163,7 +162,7 @@ export class IndexedDbTargetCache implements TargetCache {
     const promises: Array<PersistencePromise<void>> = [];
     return targetsStore(txn)
       .iterate((key, value) => {
-        const targetData = this.serializer.fromDbTarget(value);
+        const targetData = fromDbTarget(value);
         if (
           targetData.sequenceNumber <= upperBound &&
           activeTargetIds.get(targetData.targetId) === null
@@ -184,7 +183,7 @@ export class IndexedDbTargetCache implements TargetCache {
     f: (q: TargetData) => void
   ): PersistencePromise<void> {
     return targetsStore(txn).iterate((key, value) => {
-      const targetData = this.serializer.fromDbTarget(value);
+      const targetData = fromDbTarget(value);
       f(targetData);
     });
   }
@@ -212,7 +211,7 @@ export class IndexedDbTargetCache implements TargetCache {
     targetData: TargetData
   ): PersistencePromise<void> {
     return targetsStore(transaction).put(
-      this.serializer.toDbTarget(targetData)
+      toDbTarget(this.serializer, targetData)
     );
   }
 
@@ -253,7 +252,7 @@ export class IndexedDbTargetCache implements TargetCache {
     // Iterating by the canonicalId may yield more than one result because
     // canonicalId values are not required to be unique per target. This query
     // depends on the queryTargets index to be efficient.
-    const canonicalId = target.canonicalId();
+    const canonicalId = canonifyTarget(target);
     const range = IDBKeyRange.bound(
       [canonicalId, Number.NEGATIVE_INFINITY],
       [canonicalId, Number.POSITIVE_INFINITY]
@@ -263,10 +262,10 @@ export class IndexedDbTargetCache implements TargetCache {
       .iterate(
         { range, index: DbTarget.queryTargetsIndexName },
         (key, value, control) => {
-          const found = this.serializer.fromDbTarget(value);
+          const found = fromDbTarget(value);
           // After finding a potential match, check that the target is
           // actually equal to the requested target.
-          if (target.isEqual(found.target)) {
+          if (targetEquals(target, found.target)) {
             result = found;
             control.done();
           }
@@ -393,7 +392,7 @@ export class IndexedDbTargetCache implements TargetCache {
       .get(targetId)
       .next(found => {
         if (found) {
-          return this.serializer.fromDbTarget(found);
+          return fromDbTarget(found);
         } else {
           return null;
         }

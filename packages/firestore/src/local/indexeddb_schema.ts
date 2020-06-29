@@ -29,7 +29,12 @@ import {
 } from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
 import { dbDocumentSize } from './indexeddb_remote_document_cache';
-import { LocalSerializer } from './local_serializer';
+import {
+  fromDbMutationBatch,
+  fromDbTarget,
+  LocalSerializer,
+  toDbTarget
+} from './local_serializer';
 import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
@@ -202,7 +207,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
                   dbBatch.userId === queue.userId,
                   `Cannot process batch ${dbBatch.batchId} from unexpected user`
                 );
-                const batch = this.serializer.fromDbMutationBatch(dbBatch);
+                const batch = fromDbMutationBatch(this.serializer, dbBatch);
 
                 return removeMutationBatch(
                   txn,
@@ -324,8 +329,8 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
   ): PersistencePromise<void> {
     const targetStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
     return targetStore.iterate((key, originalDbTarget) => {
-      const originalTargetData = this.serializer.fromDbTarget(originalDbTarget);
-      const updatedDbTarget = this.serializer.toDbTarget(originalTargetData);
+      const originalTargetData = fromDbTarget(originalDbTarget);
+      const updatedDbTarget = toDbTarget(this.serializer, originalTargetData);
       return targetStore.put(updatedDbTarget);
     });
   }
@@ -483,7 +488,7 @@ export class DbMutationBatch {
     /**
      * A list of mutations to apply. All mutations will be applied atomically.
      *
-     * Mutations are serialized via JsonProtoSerializer.toMutation().
+     * Mutations are serialized via toMutation().
      */
     public mutations: api.Write[]
   ) {}

@@ -64,11 +64,13 @@ export function setLogLevel(logLevel: LogLevel): void;
 
 export interface FirestoreDataConverter<T> {
   toFirestore(modelObject: T): DocumentData;
-  fromFirestore(snapshot: QueryDocumentSnapshot): T;
+  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+  fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
 }
 
 export class FirebaseFirestore {
   private constructor();
+  readonly app: FirebaseApp;
 }
 
 export function initializeFirestore(
@@ -216,9 +218,10 @@ export class WriteBatch {
   commit(): Promise<void>;
 }
 
-export type SetOptions =
-  | { merge: true }
-  | { mergeFields: Array<string | FieldPath> };
+export interface SetOptions {
+  readonly merge?: boolean;
+  readonly mergeFields?: Array<string | FieldPath>;
+}
 
 export class DocumentReference<T = DocumentData> {
   private constructor();
@@ -286,6 +289,7 @@ export class Query<T = DocumentData> {
 }
 
 export class QuerySnapshot<T = DocumentData> {
+  private constructor();
   readonly query: Query<T>;
   readonly docs: Array<QueryDocumentSnapshot<T>>;
   readonly metadata: SnapshotMetadata;
@@ -308,6 +312,7 @@ export interface DocumentChange<T = DocumentData> {
 }
 
 export class CollectionReference<T = DocumentData> extends Query<T> {
+  private constructor();
   readonly id: string;
   readonly path: string;
   withConverter<U>(
@@ -448,14 +453,14 @@ export class FieldPath {
 
 export function documentId(): FieldPath;
 
-export function refEqual(
-  l: DocumentReference | CollectionReference,
-  r: DocumentReference | CollectionReference
+export function refEqual<T>(
+  left: DocumentReference<T> | CollectionReference<T>,
+  right: DocumentReference<T> | CollectionReference<T>
 ): boolean;
-export function queryEqual(l: Query, r: Query): boolean;
-export function snapshotEqual(
-  l: DocumentSnapshot | QuerySnapshot,
-  r: DocumentSnapshot | QuerySnapshot
+export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
+export function snapshotEqual<T>(
+  left: DocumentSnapshot<T> | QuerySnapshot<T>,
+  right: DocumentSnapshot<T> | QuerySnapshot<T>
 ): boolean;
 
 export type FirestoreErrorCode =
@@ -485,6 +490,6 @@ export interface FirestoreError {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'firestore/lite': FirebaseFirestore;
+    'firestore-exp': FirebaseFirestore;
   }
 }

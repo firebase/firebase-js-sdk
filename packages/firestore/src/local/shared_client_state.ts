@@ -25,34 +25,32 @@ import {
   TargetId
 } from '../core/types';
 import { TargetIdSet, targetIdSet } from '../model/collections';
-import { Platform } from '../platform/platform';
-import { debugAssert, hardAssert } from '../util/assert';
+import { hardAssert, debugAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug, logError } from '../util/log';
-import { primitiveComparator } from '../util/misc';
-import { SortedMap } from '../util/sorted_map';
+import { logError, logDebug } from '../util/log';
 import { SortedSet } from '../util/sorted_set';
-import { isSafeInteger } from '../util/types';
-
+import { SortedMap } from '../util/sorted_map';
+import { primitiveComparator } from '../util/misc';
+import { isSafeInteger, WindowLike } from '../util/types';
 import {
-  ClientStateSchema,
+  QueryTargetState,
+  SharedClientStateSyncer
+} from './shared_client_state_syncer';
+import {
   CLIENT_STATE_KEY_PREFIX,
+  ClientStateSchema,
   createWebStorageClientStateKey,
   createWebStorageMutationBatchKey,
   createWebStorageOnlineStateKey,
   createWebStorageQueryTargetMetadataKey,
   createWebStorageSequenceNumberKey,
-  MutationMetadataSchema,
   MUTATION_BATCH_KEY_PREFIX,
-  QueryTargetStateSchema,
+  MutationMetadataSchema,
   QUERY_TARGET_KEY_PREFIX,
+  QueryTargetStateSchema,
   SharedOnlineStateSchema
 } from './shared_client_state_schema';
-import {
-  QueryTargetState,
-  SharedClientStateSyncer
-} from './shared_client_state_syncer';
 
 const LOG_TAG = 'SharedClientState';
 
@@ -495,18 +493,12 @@ export class WebStorageSharedClientState implements SharedClientState {
   private earlyEvents: StorageEvent[] = [];
 
   constructor(
+    private readonly window: WindowLike,
     private readonly queue: AsyncQueue,
-    private readonly platform: Platform,
     private readonly persistenceKey: string,
     private readonly localClientId: ClientId,
     initialUser: User
   ) {
-    if (!WebStorageSharedClientState.isAvailable(this.platform)) {
-      throw new FirestoreError(
-        Code.UNIMPLEMENTED,
-        'LocalStorage is not available on this platform.'
-      );
-    }
     // Escape the special characters mentioned here:
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
     const escapedPersistenceKey = persistenceKey.replace(
@@ -514,7 +506,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       '\\$&'
     );
 
-    this.storage = this.platform.window!.localStorage;
+    this.storage = this.window.localStorage;
     this.currentUser = initialUser;
     this.localClientStorageKey = createWebStorageClientStateKey(
       this.persistenceKey,
@@ -546,12 +538,12 @@ export class WebStorageSharedClientState implements SharedClientState {
     // respective start() calls). Otherwise, we might for example miss a
     // mutation that is added after LocalStore's start() processed the existing
     // mutations but before we observe WebStorage events.
-    this.platform.window!.addEventListener('storage', this.storageListener);
+    this.window.addEventListener('storage', this.storageListener);
   }
 
   /** Returns 'true' if WebStorage is available in the current environment. */
-  static isAvailable(platform: Platform): boolean {
-    return !!(platform.window && platform.window.localStorage != null);
+  static isAvailable(window: WindowLike | null): window is WindowLike {
+    return !!(window && window.localStorage);
   }
 
   async start(): Promise<void> {
@@ -611,7 +603,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
     // Register a window unload hook to remove the client metadata entry from
     // WebStorage even if `shutdown()` was not called.
-    this.platform.window!.addEventListener('unload', () => this.shutdown());
+    this.window.addEventListener('unload', () => this.shutdown());
 
     this.started = true;
   }
@@ -721,10 +713,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   shutdown(): void {
     if (this.started) {
-      this.platform.window!.removeEventListener(
-        'storage',
-        this.storageListener
-      );
+      this.window.removeEventListener('storage', this.storageListener);
       this.removeItem(this.localClientStorageKey);
       this.started = false;
     }
@@ -746,11 +735,14 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.storage.removeItem(key);
   }
 
-  private handleWebStorageEvent(event: StorageEvent): void {
-    if (event.storageArea === this.storage) {
-      logDebug(LOG_TAG, 'EVENT', event.key, event.newValue);
+  private handleWebStorageEvent(event: Event): void {
+    // Note: The function is typed to take Event to be interface-compatible with
+    // `Window.addEventListener`.
+    const storageEvent = event as StorageEvent;
+    if (storageEvent.storageArea === this.storage) {
+      logDebug(LOG_TAG, 'EVENT', storageEvent.key, storageEvent.newValue);
 
-      if (event.key === this.localClientStorageKey) {
+      if (storageEvent.key === this.localClientStorageKey) {
         logError(
           'Received WebStorage notification for local change. Another client might have ' +
             'garbage-collected our state'
@@ -760,19 +752,19 @@ export class WebStorageSharedClientState implements SharedClientState {
 
       this.queue.enqueueRetryable(async () => {
         if (!this.started) {
-          this.earlyEvents.push(event);
+          this.earlyEvents.push(storageEvent);
           return;
         }
 
-        if (event.key === null) {
+        if (storageEvent.key === null) {
           return;
         }
 
-        if (this.clientStateKeyRe.test(event.key)) {
-          if (event.newValue != null) {
+        if (this.clientStateKeyRe.test(storageEvent.key)) {
+          if (storageEvent.newValue != null) {
             const clientState = this.fromWebStorageClientState(
-              event.key,
-              event.newValue
+              storageEvent.key,
+              storageEvent.newValue
             );
             if (clientState) {
               return this.handleClientStateEvent(
@@ -781,42 +773,48 @@ export class WebStorageSharedClientState implements SharedClientState {
               );
             }
           } else {
-            const clientId = this.fromWebStorageClientStateKey(event.key)!;
+            const clientId = this.fromWebStorageClientStateKey(
+              storageEvent.key
+            )!;
             return this.handleClientStateEvent(clientId, null);
           }
-        } else if (this.mutationBatchKeyRe.test(event.key)) {
-          if (event.newValue !== null) {
+        } else if (this.mutationBatchKeyRe.test(storageEvent.key)) {
+          if (storageEvent.newValue !== null) {
             const mutationMetadata = this.fromWebStorageMutationMetadata(
-              event.key,
-              event.newValue
+              storageEvent.key,
+              storageEvent.newValue
             );
             if (mutationMetadata) {
               return this.handleMutationBatchEvent(mutationMetadata);
             }
           }
-        } else if (this.queryTargetKeyRe.test(event.key)) {
-          if (event.newValue !== null) {
+        } else if (this.queryTargetKeyRe.test(storageEvent.key)) {
+          if (storageEvent.newValue !== null) {
             const queryTargetMetadata = this.fromWebStorageQueryTargetMetadata(
-              event.key,
-              event.newValue
+              storageEvent.key,
+              storageEvent.newValue
             );
             if (queryTargetMetadata) {
               return this.handleQueryTargetEvent(queryTargetMetadata);
             }
           }
-        } else if (event.key === this.onlineStateKey) {
-          if (event.newValue !== null) {
-            const onlineState = this.fromWebStorageOnlineState(event.newValue);
+        } else if (storageEvent.key === this.onlineStateKey) {
+          if (storageEvent.newValue !== null) {
+            const onlineState = this.fromWebStorageOnlineState(
+              storageEvent.newValue
+            );
             if (onlineState) {
               return this.handleOnlineStateEvent(onlineState);
             }
           }
-        } else if (event.key === this.sequenceNumberKey) {
+        } else if (storageEvent.key === this.sequenceNumberKey) {
           debugAssert(
             !!this.sequenceNumberHandler,
             'Missing sequenceNumberHandler'
           );
-          const sequenceNumber = fromWebStorageSequenceNumber(event.newValue);
+          const sequenceNumber = fromWebStorageSequenceNumber(
+            storageEvent.newValue
+          );
           if (sequenceNumber !== ListenSequence.INVALID) {
             this.sequenceNumberHandler!(sequenceNumber);
           }

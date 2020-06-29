@@ -18,17 +18,17 @@
 import { expect } from 'chai';
 
 import { extractDependencies } from '../../../../../scripts/exp/extract-deps.helpers';
-import * as pkg from '../../../package.json';
-import { forEach } from '../../../src/util/obj';
 
 import * as dependencies from './dependencies.json';
+import * as pkg from '../../package.json';
+import { forEach } from '../../../src/util/obj';
 
 // TODO(firestorexp): Enable test
 // eslint-disable-next-line no-restricted-properties
 describe.skip('Dependencies', () => {
   forEach(dependencies, (api, { dependencies }) => {
     it(api, () => {
-      return extractDependencies(api, pkg.exp).then(extractedDependencies => {
+      return extractDependencies(api, pkg.main).then(extractedDependencies => {
         expect(extractedDependencies.classes).to.have.members(
           dependencies.classes,
           'for classes'

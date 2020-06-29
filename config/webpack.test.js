@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,12 @@
 
 const path = require('path');
 const webpack = require('webpack');
+
+/**
+ * A regular expression used to replace Firestore's platform specific modules,
+ * which are located under 'packages/firestore/src/platform/'.
+ */
+const FIRESTORE_PLATFORM_RE = /^(.*)\/platform\/([^.\/]*)(\.ts)?$/;
 
 module.exports = {
   mode: 'development',
@@ -77,6 +83,15 @@ module.exports = {
     extensions: ['.js', '.ts']
   },
   plugins: [
+    new webpack.NormalModuleReplacementPlugin(
+      FIRESTORE_PLATFORM_RE,
+      resource => {
+        resource.request = resource.request.replace(
+          FIRESTORE_PLATFORM_RE,
+          '$1/platform/browser/$2.ts'
+        );
+      }
+    ),
     new webpack.EnvironmentPlugin([
       'RTDB_EMULATOR_PORT',
       'RTDB_EMULATOR_NAMESPACE'

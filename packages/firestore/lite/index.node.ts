@@ -16,16 +16,12 @@
  */
 
 import { registerVersion, _registerComponent } from '@firebase/app-exp';
+import { Firestore } from './src/api/database';
+import { version } from '../package.json';
 import { Component, ComponentType } from '@firebase/component';
 
-import { version } from '../package.json';
-
-import { Firestore } from './src/api/database';
-
-import '../src/platform_node/node_init';
-
 export {
-  Firestore,
+  Firestore as FirebaseFirestore,
   initializeFirestore,
   getFirestore,
   terminate
@@ -36,13 +32,17 @@ export {
   Query,
   CollectionReference,
   collection,
+  collectionGroup,
   doc,
   parent,
   getDoc,
+  getQuery,
   deleteDoc,
   setDoc,
   updateDoc,
-  addDoc
+  addDoc,
+  refEqual,
+  queryEqual
 } from './src/api/reference';
 
 // TOOD(firestorelite): Add tests when Queries are usable
@@ -58,9 +58,24 @@ export {
   serverTimestamp
 } from './src/api/field_value';
 
-export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
+export {
+  DocumentSnapshot,
+  QueryDocumentSnapshot,
+  QuerySnapshot,
+  snapshotEqual
+} from './src/api/snapshot';
+
+export { WriteBatch, writeBatch } from './src/api/write_batch';
+
+export { Transaction, runTransaction } from './src/api/transaction';
 
 export { setLogLevel } from '../src/util/log';
+
+export { Blob } from '../src/api/blob';
+
+export { GeoPoint } from '../src/api/geo_point';
+
+export { Timestamp } from '../src/api/timestamp';
 
 export function registerFirestore(): void {
   _registerComponent(

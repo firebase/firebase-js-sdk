@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import { PlatformSupport } from '../platform/platform';
-
 import { debugAssert } from './assert';
+import { randomBytes } from '../platform/random_bytes';
 
 export type EventHandler<E> = (value: E) => void;
 export interface Indexable {
@@ -39,7 +38,7 @@ export class AutoId {
     let autoId = '';
     const targetLength = 20;
     while (autoId.length < targetLength) {
-      const bytes = PlatformSupport.getPlatform().randomBytes(40);
+      const bytes = randomBytes(40);
       for (let i = 0; i < bytes.length; ++i) {
         // Only accept values that are [0, maxMultiple), this ensures they can
         // be evenly mapped to indices of `chars` via a modulo operation.

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 import { isSafari } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
@@ -298,8 +297,7 @@ describe('AsyncQueue', () => {
 
     queue.enqueueRetryable(async () => {
       doStep(1);
-      if (completedSteps.length > 1) {
-      } else {
+      if (completedSteps.length === 1) {
         throw new IndexedDbTransactionError(
           new Error('Simulated retryable error')
         );
@@ -312,6 +310,65 @@ describe('AsyncQueue', () => {
 
     await blockingPromise.promise;
     expect(completedSteps).to.deep.equal([1, 1, 2]);
+  });
+
+  it('Does not delay retryable operations that succeed', async () => {
+    const queue = new AsyncQueue();
+    const completedSteps: number[] = [];
+    const doStep = (n: number): void => {
+      completedSteps.push(n);
+    };
+
+    queue.enqueueRetryable(async () => {
+      doStep(1);
+    });
+    queue.enqueueAndForget(async () => {
+      doStep(2);
+    });
+    await queue.enqueue(async () => {
+      doStep(3);
+    });
+
+    expect(completedSteps).to.deep.equal([1, 2, 3]);
+  });
+
+  it('Catches up when retryable operation fails', async () => {
+    const queue = new AsyncQueue();
+    const completedSteps: number[] = [];
+    const doStep = (n: number): void => {
+      completedSteps.push(n);
+    };
+
+    const blockingPromise = new Deferred<void>();
+
+    queue.enqueueRetryable(async () => {
+      doStep(1);
+      if (completedSteps.length === 1) {
+        throw new IndexedDbTransactionError(
+          new Error('Simulated retryable error')
+        );
+      }
+    });
+    queue.enqueueAndForget(async () => {
+      doStep(2);
+    });
+    queue.enqueueRetryable(async () => {
+      doStep(3);
+      blockingPromise.resolve();
+    });
+    await blockingPromise.promise;
+
+    // Once all existing retryable operations succeeded, they are scheduled
+    // in the order they are enqueued.
+    queue.enqueueAndForget(async () => {
+      doStep(4);
+    });
+    await queue.enqueue(async () => {
+      doStep(5);
+    });
+
+    await blockingPromise.promise;
+    expect(completedSteps).to.deep.equal([1, 2, 1, 3, 4, 5]);
   });
 
   it('Can drain (non-delayed) operations', async () => {

@@ -75,7 +75,7 @@ describe('EncodedResourcePath', () => {
   after(() => SimpleDb.delete(dbName));
 
   it('encodes resource paths', async () => {
-    await assertEncoded(sep, ResourcePath.EMPTY_PATH);
+    await assertEncoded(sep, ResourcePath.emptyPath());
     await assertEncoded('\u0001\u0010' + sep, path('\0'));
     await assertEncoded('\u0002' + sep, path('\u0002'));
 
@@ -103,7 +103,7 @@ describe('EncodedResourcePath', () => {
 
   it('orders resource paths', async () => {
     await assertOrdered([
-      ResourcePath.EMPTY_PATH,
+      ResourcePath.emptyPath(),
       path('\0'),
       path('\u0001'),
       path('\u0002'),
@@ -118,7 +118,7 @@ describe('EncodedResourcePath', () => {
     ]);
 
     await assertOrdered([
-      ResourcePath.EMPTY_PATH,
+      ResourcePath.emptyPath(),
       path('foo'),
       new ResourcePath(['foo', '']),
       new ResourcePath(['foo', 'bar']),

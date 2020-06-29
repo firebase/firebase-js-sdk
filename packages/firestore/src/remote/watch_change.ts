@@ -27,15 +27,15 @@ import {
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { debugAssert, fail, hardAssert } from '../util/assert';
-import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
-
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
+import { ByteString } from '../util/byte_string';
+import { isDocumentTarget } from '../core/target';
 
 /**
  * Internal representation of the watcher API protocol buffers.
@@ -388,7 +388,7 @@ export class WatchChangeAggregator {
     const targetData = this.targetDataForActiveTarget(targetId);
     if (targetData) {
       const target = targetData.target;
-      if (target.isDocumentQuery()) {
+      if (isDocumentTarget(target)) {
         if (expectedCount === 0) {
           // The existence filter told us the document does not exist. We deduce
           // that this document does not exist and apply a deleted document to
@@ -430,7 +430,7 @@ export class WatchChangeAggregator {
     this.targetStates.forEach((targetState, targetId) => {
       const targetData = this.targetDataForActiveTarget(targetId);
       if (targetData) {
-        if (targetState.current && targetData.target.isDocumentQuery()) {
+        if (targetState.current && isDocumentTarget(targetData.target)) {
           // Document queries for document that don't exist can produce an empty
           // result set. To update our local cache, we synthesize a document
           // delete if we have not previously received the document. This

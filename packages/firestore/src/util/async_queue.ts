@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-import { isIndexedDbTransactionError } from '../local/simple_db';
-import { PlatformSupport } from '../platform/platform';
-import { ExponentialBackoff } from '../remote/backoff';
-
 import { debugAssert, fail } from './assert';
 import { Code, FirestoreError } from './error';
 import { logDebug, logError } from './log';
 import { Deferred } from './promise';
+import { ExponentialBackoff } from '../remote/backoff';
+import { isIndexedDbTransactionError } from '../local/simple_db';
+import { getWindow } from '../platform/dom';
 
 const LOG_TAG = 'AsyncQueue';
 
@@ -208,9 +207,9 @@ export class AsyncQueue {
   // The last promise in the queue.
   private tail: Promise<unknown> = Promise.resolve();
 
-  // The last retryable operation. Retryable operation are run in order and
+  // A list of retryable operations. Retryable operations are run in order and
   // retried with backoff.
-  private retryableTail: Promise<void> = Promise.resolve();
+  private retryableOps: Array<() => Promise<void>> = [];
 
   // Is this AsyncQueue being shut down? Once it is set to true, it will not
   // be changed again.
@@ -239,7 +238,7 @@ export class AsyncQueue {
   private visibilityHandler = (): void => this.backoff.skipBackoff();
 
   constructor() {
-    const window = PlatformSupport.getPlatform().window;
+    const window = getWindow();
     if (window && typeof window.addEventListener === 'function') {
       window.addEventListener('visibilitychange', this.visibilityHandler);
     }
@@ -294,7 +293,7 @@ export class AsyncQueue {
     this.verifyNotFailed();
     if (!this._isShuttingDown) {
       this._isShuttingDown = true;
-      const window = PlatformSupport.getPlatform().window;
+      const window = getWindow();
       if (window) {
         window.removeEventListener('visibilitychange', this.visibilityHandler);
       }
@@ -324,32 +323,44 @@ export class AsyncQueue {
    * operations were retried successfully.
    */
   enqueueRetryable(op: () => Promise<void>): void {
-    this.verifyNotFailed();
+    this.retryableOps.push(op);
+    this.enqueueAndForget(() => this.retryNextOp());
+  }
 
-    if (this._isShuttingDown) {
+  /**
+   * Runs the next operation from the retryable queue. If the operation fails,
+   * reschedules with backoff.
+   */
+  private async retryNextOp(): Promise<void> {
+    if (this.retryableOps.length === 0) {
       return;
     }
 
-    this.retryableTail = this.retryableTail.then(() => {
-      const deferred = new Deferred<void>();
-      const retryingOp = async (): Promise<void> => {
-        try {
-          await op();
-          deferred.resolve();
-          this.backoff.reset();
-        } catch (e) {
-          if (isIndexedDbTransactionError(e)) {
-            logDebug(LOG_TAG, 'Operation failed with retryable error: ' + e);
-            this.backoff.backoffAndRun(retryingOp);
-          } else {
-            deferred.resolve();
-            throw e; // Failure will be handled by AsyncQueue
-          }
-        }
-      };
-      this.enqueueAndForget(retryingOp);
-      return deferred.promise;
-    });
+    try {
+      await this.retryableOps[0]();
+      this.retryableOps.shift();
+      this.backoff.reset();
+    } catch (e) {
+      if (isIndexedDbTransactionError(e)) {
+        logDebug(LOG_TAG, 'Operation failed with retryable error: ' + e);
+      } else {
+        throw e; // Failure will be handled by AsyncQueue
+      }
+    }
+
+    if (this.retryableOps.length > 0) {
+      // If there are additional operations, we re-schedule `retryNextOp()`.
+      // This is necessary to run retryable operations that failed during
+      // their initial attempt since we don't know whether they are already
+      // enqueued. If, for example, `op1`, `op2`, `op3` are enqueued and `op1`
+      // needs to  be re-run, we will run `op1`, `op1`, `op2` using the
+      // already enqueued calls to `retryNextOp()`. `op3()` will then run in the
+      // call scheduled here.
+      // Since `backoffAndRun()` cancels an existing backoff and schedules a
+      // new backoff on every call, there is only ever a single additional
+      // operation in the queue.
+      this.backoff.backoffAndRun(() => this.retryNextOp());
+    }
   }
 
   private enqueueInternal<T extends unknown>(op: () => Promise<T>): Promise<T> {

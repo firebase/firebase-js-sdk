@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import { PlatformSupport } from '../platform/platform';
-import { ByteString } from '../util/byte_string';
+import { isBase64Available } from '../platform/base64';
 import { Code, FirestoreError } from '../util/error';
 import {
   invalidClassError,
   validateArgType,
   validateExactNumberOfArgs
 } from '../util/input_validation';
+import { ByteString } from '../util/byte_string';
 
 /** Helper function to assert Uint8Array is available at runtime. */
 function assertUint8ArrayAvailable(): void {
@@ -36,7 +36,7 @@ function assertUint8ArrayAvailable(): void {
 
 /** Helper function to assert Base64 functions are available at runtime. */
 function assertBase64Available(): void {
-  if (!PlatformSupport.getPlatform().base64Available) {
+  if (!isBase64Available()) {
     throw new FirestoreError(
       Code.UNIMPLEMENTED,
       'Blobs are unavailable in Firestore in this environment.'

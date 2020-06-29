@@ -42,16 +42,14 @@ import {
   SharedClientStateSyncer
 } from '../../../src/local/shared_client_state_syncer';
 import { SimpleDb } from '../../../src/local/simple_db';
-import { PlatformSupport } from '../../../src/platform/platform';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
+import { WindowLike } from '../../../src/util/types';
+import { getDocument, getWindow } from '../../../src/platform/dom';
 
 /* eslint-disable no-restricted-globals */
-
-/** The prefix used by the keys that Firestore writes to Local Storage. */
-const LOCAL_STORAGE_PREFIX = 'firestore_';
 
 export const MOCK_SEQUENCE_NUMBER_SYNCER: SequenceNumberSyncer = {
   sequenceNumberHandler: null,
@@ -85,9 +83,10 @@ export const INDEXEDDB_TEST_DATABASE_NAME =
   IndexedDbPersistence.buildStoragePrefix(TEST_DATABASE_INFO) +
   IndexedDbPersistence.MAIN_DATABASE;
 
-const JSON_SERIALIZER = new JsonProtoSerializer(TEST_DATABASE_ID, {
-  useProto3Json: true
-});
+const JSON_SERIALIZER = new JsonProtoSerializer(
+  TEST_DATABASE_ID,
+  /* useProto3Json= */ true
+);
 
 /**
  * IndexedDb serializer that uses `TEST_DATABASE_ID` as its database
@@ -113,14 +112,14 @@ export async function testIndexedDbPersistence(
   if (!options.dontPurgeData) {
     await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
   }
-  const platform = PlatformSupport.getPlatform();
   const persistence = new IndexedDbPersistence(
     !!options.synchronizeTabs,
     TEST_PERSISTENCE_PREFIX,
     clientId,
-    platform,
     lruParams,
     queue,
+    getWindow(),
+    getDocument(),
     JSON_SERIALIZER,
     MOCK_SEQUENCE_NUMBER_SYNCER,
     /** forceOwningTab= */ false
@@ -176,6 +175,7 @@ class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
  */
 export async function populateWebStorage(
   user: User,
+  window: WindowLike,
   existingClientId: ClientId,
   existingMutationBatchIds: BatchId[],
   existingQueryTargetIds: TargetId[]
@@ -183,8 +183,8 @@ export async function populateWebStorage(
   // HACK: Create a secondary client state to seed data into LocalStorage.
   // NOTE: We don't call shutdown() on it because that would delete the data.
   const secondaryClientState = new WebStorageSharedClientState(
+    window,
     new AsyncQueue(),
-    PlatformSupport.getPlatform(),
     TEST_PERSISTENCE_PREFIX,
     existingClientId,
     user
@@ -202,19 +202,5 @@ export async function populateWebStorage(
 
   for (const targetId of existingQueryTargetIds) {
     secondaryClientState.addLocalQueryTarget(targetId);
-  }
-}
-
-/**
- * Removes Firestore data (by prefix match) from Local Storage.
- */
-export function clearWebStorage(): void {
-  for (let i = 0; ; ++i) {
-    const key = window.localStorage.key(i);
-    if (key === null) {
-      break;
-    } else if (key.startsWith(LOCAL_STORAGE_PREFIX)) {
-      window.localStorage.removeItem(key);
-    }
   }
 }
