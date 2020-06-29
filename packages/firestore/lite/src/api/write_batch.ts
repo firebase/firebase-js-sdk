@@ -42,7 +42,10 @@ export class WriteBatch implements firestore.WriteBatch {
   private _mutations = [] as Mutation[];
   private _committed = false;
 
-  constructor(private readonly _firestore: Firestore) {
+  constructor(
+    private readonly _firestore: Firestore,
+    private readonly _commitHandler: (m: Mutation[]) => Promise<void>
+  ) {
     this._dataReader = newUserDataReader(_firestore);
   }
 
@@ -137,9 +140,7 @@ export class WriteBatch implements firestore.WriteBatch {
     this.verifyNotCommitted();
     this._committed = true;
     if (this._mutations.length > 0) {
-      return this._firestore
-        ._getDatastore()
-        .then(datastore => invokeCommitRpc(datastore, this._mutations));
+      return this._commitHandler(this._mutations);
     }
 
     return Promise.resolve();
@@ -173,5 +174,10 @@ export function validateReference<T>(
 export function writeBatch(
   firestore: firestore.FirebaseFirestore
 ): firestore.WriteBatch {
-  return new WriteBatch(cast(firestore, Firestore));
+  const firestoreImpl = cast(firestore, Firestore);
+  return new WriteBatch(firestoreImpl, writes =>
+    firestoreImpl
+      ._getDatastore()
+      .then(datastore => invokeCommitRpc(datastore, writes))
+  );
 }

@@ -39,7 +39,7 @@ module.exports = {
           'index'
         ],
         'newlines-between': 'always',
-        'alphabetize': { 'order': 'asc', 'caseInsensitive': false }
+        'alphabetize': { 'order': 'asc', 'caseInsensitive': true }
       }
     ],
     '@typescript-eslint/no-unused-vars': [

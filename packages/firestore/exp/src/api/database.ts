@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import { _getProvider } from '@firebase/app-exp';
+import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
 import { Firestore as LiteFirestore } from '../../../lite/src/api/database';
+import { cast } from '../../../lite/src/api/util';
 import {
   ComponentProvider,
   MemoryComponentProvider
@@ -84,8 +85,8 @@ export class Firestore extends LiteFirestore
     return this._firestoreClientPromise;
   }
 
-  async delete(): Promise<void> {
-    // TODO(firestoreexp): Call terminate() once implemented
+  delete(): Promise<void> {
+    return terminate(this);
   }
 }
 
@@ -103,4 +104,14 @@ export function initializeFirestore(
 
 export function getFirestore(app: FirebaseApp): Firestore {
   return _getProvider(app, 'firestore-exp').getImmediate() as Firestore;
+}
+
+export function terminate(
+  firestore: firestore.FirebaseFirestore
+): Promise<void> {
+  _removeServiceInstance(firestore.app, 'firestore/lite');
+  const firestoreImpl = cast(firestore, Firestore);
+  return firestoreImpl
+    ._getFirestoreClient()
+    .then(firestoreClient => firestoreClient.terminate());
 }

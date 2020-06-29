@@ -47,6 +47,7 @@ import {
   getQueryFromServer
 } from '../src/api/reference';
 import { QuerySnapshot } from '../src/api/snapshot';
+import { writeBatch } from '../src/api/write_batch';
 
 import {
   withTestDoc,
@@ -171,6 +172,69 @@ genericMutationTests({
   set: setDoc,
   update: updateDoc,
   delete: deleteDoc
+});
+
+describe('WriteBatch', () => {
+  class WriteBatchTester implements MutationTester {
+    delete(ref: firestore.DocumentReference<unknown>): Promise<void> {
+      const batch = writeBatch(ref.firestore);
+      batch.delete(ref);
+      return batch.commit();
+    }
+
+    set<T>(
+      ref: firestore.DocumentReference<T>,
+      data: T | Partial<T>,
+      options?: firestore.SetOptions
+    ): Promise<void> {
+      const batch = writeBatch(ref.firestore);
+      // TODO(mrschmidt): Find a way to remove the `any` cast here
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (batch.set as any).apply(batch, Array.from(arguments));
+      return batch.commit();
+    }
+
+    update(
+      ref: firestore.DocumentReference<unknown>,
+      dataOrField: firestore.UpdateData | string | firestore.FieldPath,
+      value?: unknown,
+      ...moreFieldsAndValues: unknown[]
+    ): Promise<void> {
+      const batch = writeBatch(ref.firestore);
+      // TODO(mrschmidt): Find a way to remove the `any` cast here
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (batch.update as any).apply(batch, Array.from(arguments));
+      return batch.commit();
+    }
+  }
+
+  genericMutationTests(new WriteBatchTester());
+
+  it('can add multiple operations', () => {
+    return withTestCollection(async coll => {
+      const batch = writeBatch(coll.firestore);
+      batch.set(doc(coll), { doc: 1 });
+      batch.set(doc(coll), { doc: 2 });
+      await batch.commit();
+
+      // TODO(firestorelite): Verify collection contents once getQuery is added
+    });
+  });
+
+  it('cannot add write after commit', () => {
+    return withTestDoc(async doc => {
+      const batch = writeBatch(doc.firestore);
+      batch.set(doc, { doc: 1 });
+      const op = batch.commit();
+      expect(() => batch.delete(doc)).to.throw(
+        'A write batch can no longer be used after commit() has been called.'
+      );
+      await op;
+      expect(() => batch.delete(doc)).to.throw(
+        'A write batch can no longer be used after commit() has been called.'
+      );
+    });
+  });
 });
 
 function genericMutationTests(
