@@ -26,7 +26,7 @@
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-sourcemaps": "0.6.1",
     "rollup-plugin-typescript2": "0.27.0",
-    "typescript": "3.8.3"
+    "typescript": "3.9.5"
   },
   "repository": {
     "directory": "packages/webchannel-wrapper",
