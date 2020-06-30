@@ -134,7 +134,8 @@ export class Firestore extends LiteFirestore
     if (this._firestoreClientPromise !== undefined && !this._terminated) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
-        'Persistence cannot be cleared after this Firestore instance is initialized.'
+        'Persistence can only be cleared before the Firestore instance is ' +
+          'initialized or after it is terminated.'
       );
     }
 
