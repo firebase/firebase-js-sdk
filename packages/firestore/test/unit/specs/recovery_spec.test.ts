@@ -809,7 +809,6 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       })
       .failDatabaseTransactions('Release target')
       .userUnlistens(query)
-      .watchRemoves(query)
       .expectActiveTargets();
   });
 
