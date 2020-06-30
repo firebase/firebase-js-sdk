@@ -83,6 +83,40 @@ export class DeleteFieldValueImpl extends SerializableFieldValue {
   }
 }
 
+/**
+ * Creates a child context for parsing SerializableFieldValues.
+ *
+ * This is different than calling `ParseContext.contextWith` because it keeps
+ * the fieldTransforms and fieldMask separate.
+ *
+ * The created context has its `dataSource` set to `UserDataSource.Argument`.
+ * Although these values are used with writes, any elements in these FieldValues
+ * are not considered writes since they cannot contain any FieldValue sentinels,
+ * etc.
+ *
+ * @param fieldValue The sentinel FieldValue for which to create a child
+ *     context.
+ * @param context The parent context.
+ * @param arrayElement Whether or not the FieldValue has an array.
+ */
+function createSentinelChildContext(
+  fieldValue: SerializableFieldValue,
+  context: ParseContext,
+  arrayElement: boolean
+): ParseContext {
+  return new ParseContext(
+    {
+      dataSource: UserDataSource.Argument,
+      targetDoc: context.settings.targetDoc,
+      methodName: fieldValue._methodName,
+      arrayElement
+    },
+    context.databaseId,
+    context.serializer,
+    context.ignoreUndefinedProperties
+  );
+}
+
 export class ServerTimestampFieldValueImpl extends SerializableFieldValue {
   constructor(readonly _methodName: string) {
     super();
@@ -106,18 +140,10 @@ export class ArrayUnionFieldValueImpl extends SerializableFieldValue {
   }
 
   _toFieldTransform(context: ParseContext): FieldTransform {
-    // Although array transforms are used with writes, the actual elements
-    // being uniomed or removed are not considered writes since they cannot
-    // contain any FieldValue sentinels, etc.
-    const parseContext = new ParseContext(
-      {
-        dataSource: UserDataSource.Argument,
-        methodName: this._methodName,
-        arrayElement: true
-      },
-      context.databaseId,
-      context.serializer,
-      context.ignoreUndefinedProperties
+    const parseContext = createSentinelChildContext(
+      this,
+      context,
+      /*array=*/ true
     );
     const parsedElements = this._elements.map(
       element => parseData(element, parseContext)!
@@ -138,18 +164,10 @@ export class ArrayRemoveFieldValueImpl extends SerializableFieldValue {
   }
 
   _toFieldTransform(context: ParseContext): FieldTransform {
-    // Although array transforms are used with writes, the actual elements
-    // being unioned or removed are not considered writes since they cannot
-    // contain any FieldValue sentinels, etc.
-    const parseContext = new ParseContext(
-      {
-        dataSource: UserDataSource.Argument,
-        methodName: this._methodName,
-        arrayElement: true
-      },
-      context.databaseId,
-      context.serializer,
-      context.ignoreUndefinedProperties
+    const parseContext = createSentinelChildContext(
+      this,
+      context,
+      /*array=*/ true
     );
     const parsedElements = this._elements.map(
       element => parseData(element, parseContext)!
@@ -170,14 +188,10 @@ export class NumericIncrementFieldValueImpl extends SerializableFieldValue {
   }
 
   _toFieldTransform(context: ParseContext): FieldTransform {
-    const parseContext = new ParseContext(
-      {
-        dataSource: UserDataSource.Argument,
-        methodName: this._methodName
-      },
-      context.databaseId,
-      context.serializer,
-      context.ignoreUndefinedProperties
+    const parseContext = createSentinelChildContext(
+      this,
+      context,
+      /*array=*/ false
     );
     const operand = parseData(this._operand, parseContext)!;
     const numericIncrement = new NumericIncrementTransformOperation(
@@ -196,6 +210,10 @@ export class NumericIncrementFieldValueImpl extends SerializableFieldValue {
 /** The public FieldValue class of the lite API. */
 export abstract class FieldValue extends SerializableFieldValue
   implements firestore.FieldValue {
+  protected constructor() {
+    super();
+  }
+
   static delete(): firestore.FieldValue {
     validateNoArgs('FieldValue.delete', arguments);
     return new FieldValueDelegate(

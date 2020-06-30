@@ -37,7 +37,7 @@ import {
   MutationBatchResult
 } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
-import { hardAssert, debugAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
@@ -139,7 +139,145 @@ export interface QueryResult {
  * (unexpected) failure (e.g. failed assert) and always represent an
  * unrecoverable error (should be caught / reported by the async_queue).
  */
-export class LocalStore {
+export interface LocalStore {
+  /** Starts the LocalStore. */
+  start(): Promise<void>;
+
+  /**
+   * Tells the LocalStore that the currently authenticated user has changed.
+   *
+   * In response the local store switches the mutation queue to the new user and
+   * returns any resulting document changes.
+   */
+  // PORTING NOTE: Android and iOS only return the documents affected by the
+  // change.
+  handleUserChange(user: User): Promise<UserChangeResult>;
+
+  /* Accept locally generated Mutations and commit them to storage. */
+  localWrite(mutations: Mutation[]): Promise<LocalWriteResult>;
+
+  /**
+   * Acknowledge the given batch.
+   *
+   * On the happy path when a batch is acknowledged, the local store will
+   *
+   *  + remove the batch from the mutation queue;
+   *  + apply the changes to the remote document cache;
+   *  + recalculate the latency compensated view implied by those changes (there
+   *    may be mutations in the queue that affect the documents but haven't been
+   *    acknowledged yet); and
+   *  + give the changed documents back the sync engine
+   *
+   * @returns The resulting (modified) documents.
+   */
+  acknowledgeBatch(batchResult: MutationBatchResult): Promise<MaybeDocumentMap>;
+
+  /**
+   * Remove mutations from the MutationQueue for the specified batch;
+   * LocalDocuments will be recalculated.
+   *
+   * @returns The resulting modified documents.
+   */
+  rejectBatch(batchId: BatchId): Promise<MaybeDocumentMap>;
+
+  /**
+   * Returns the largest (latest) batch id in mutation queue that is pending
+   * server response.
+   *
+   * Returns `BATCHID_UNKNOWN` if the queue is empty.
+   */
+  getHighestUnacknowledgedBatchId(): Promise<BatchId>;
+
+  /**
+   * Returns the last consistent snapshot processed (used by the RemoteStore to
+   * determine whether to buffer incoming snapshots from the backend).
+   */
+  getLastRemoteSnapshotVersion(): Promise<SnapshotVersion>;
+
+  /**
+   * Update the "ground-state" (remote) documents. We assume that the remote
+   * event reflects any write batches that have been acknowledged or rejected
+   * (i.e. we do not re-apply local mutations to updates from this event).
+   *
+   * LocalDocuments are re-calculated if there are remaining mutations in the
+   * queue.
+   */
+  applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap>;
+
+  /**
+   * Notify local store of the changed views to locally pin documents.
+   */
+  notifyLocalViewChanges(viewChanges: LocalViewChanges[]): Promise<void>;
+
+  /**
+   * Gets the mutation batch after the passed in batchId in the mutation queue
+   * or null if empty.
+   * @param afterBatchId If provided, the batch to search after.
+   * @returns The next mutation or null if there wasn't one.
+   */
+  nextMutationBatch(afterBatchId?: BatchId): Promise<MutationBatch | null>;
+
+  /**
+   * Read the current value of a Document with a given key or null if not
+   * found - used for testing.
+   */
+  readDocument(key: DocumentKey): Promise<MaybeDocument | null>;
+
+  /**
+   * Assigns the given target an internal ID so that its results can be pinned so
+   * they don't get GC'd. A target must be allocated in the local store before
+   * the store can be used to manage its view.
+   *
+   * Allocating an already allocated `Target` will return the existing `TargetData`
+   * for that `Target`.
+   */
+  allocateTarget(target: Target): Promise<TargetData>;
+
+  /**
+   * Returns the TargetData as seen by the LocalStore, including updates that may
+   * have not yet been persisted to the TargetCache.
+   */
+  // Visible for testing.
+  getTargetData(
+    transaction: PersistenceTransaction,
+    target: Target
+  ): PersistencePromise<TargetData | null>;
+
+  /**
+   * Unpin all the documents associated with the given target. If
+   * `keepPersistedTargetData` is set to false and Eager GC enabled, the method
+   * directly removes the associated target data from the target cache.
+   *
+   * Releasing a non-existing `Target` is a no-op.
+   */
+  // PORTING NOTE: `keepPersistedTargetData` is multi-tab only.
+  releaseTarget(
+    targetId: number,
+    keepPersistedTargetData: boolean
+  ): Promise<void>;
+
+  /**
+   * Runs the specified query against the local store and returns the results,
+   * potentially taking advantage of query data from previous executions (such
+   * as the set of remote keys).
+   *
+   * @param usePreviousResults Whether results from previous executions can
+   * be used to optimize this query execution.
+   */
+  executeQuery(query: Query, usePreviousResults: boolean): Promise<QueryResult>;
+
+  collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults>;
+}
+
+/**
+ * Implements `LocalStore` interface.
+ *
+ * Note: some field defined in this class might have public access level, but
+ * the class is not exported so they are only accessible from this module.
+ * This is useful to implement optional features (like bundles) in free
+ * functions, such that they are tree-shakeable.
+ */
+class LocalStoreImpl implements LocalStore {
   /**
    * The maximum time to leave a resume token buffered without writing it out.
    * This value is arbitrary: it's long enough to avoid several writes
@@ -212,19 +350,10 @@ export class LocalStore {
     this.queryEngine.setLocalDocumentsView(this.localDocuments);
   }
 
-  /** Starts the LocalStore. */
   start(): Promise<void> {
     return Promise.resolve();
   }
 
-  /**
-   * Tells the LocalStore that the currently authenticated user has changed.
-   *
-   * In response the local store switches the mutation queue to the new user and
-   * returns any resulting document changes.
-   */
-  // PORTING NOTE: Android and iOS only return the documents affected by the
-  // change.
   async handleUserChange(user: User): Promise<UserChangeResult> {
     let newMutationQueue = this.mutationQueue;
     let newLocalDocuments = this.localDocuments;
@@ -295,7 +424,6 @@ export class LocalStore {
     return result;
   }
 
-  /* Accept locally generated Mutations and commit them to storage. */
   localWrite(mutations: Mutation[]): Promise<LocalWriteResult> {
     const localWriteTime = Timestamp.now();
     const keys = mutations.reduce(
@@ -353,20 +481,6 @@ export class LocalStore {
       });
   }
 
-  /**
-   * Acknowledge the given batch.
-   *
-   * On the happy path when a batch is acknowledged, the local store will
-   *
-   *  + remove the batch from the mutation queue;
-   *  + apply the changes to the remote document cache;
-   *  + recalculate the latency compensated view implied by those changes (there
-   *    may be mutations in the queue that affect the documents but haven't been
-   *    acknowledged yet); and
-   *  + give the changed documents back the sync engine
-   *
-   * @returns The resulting (modified) documents.
-   */
   acknowledgeBatch(
     batchResult: MutationBatchResult
   ): Promise<MaybeDocumentMap> {
@@ -390,12 +504,6 @@ export class LocalStore {
     );
   }
 
-  /**
-   * Remove mutations from the MutationQueue for the specified batch;
-   * LocalDocuments will be recalculated.
-   *
-   * @returns The resulting modified documents.
-   */
   rejectBatch(batchId: BatchId): Promise<MaybeDocumentMap> {
     return this.persistence.runTransaction(
       'Reject batch',
@@ -419,10 +527,6 @@ export class LocalStore {
     );
   }
 
-  /**
-   * Returns the largest (latest) batch id in mutation queue that is pending server response.
-   * Returns `BATCHID_UNKNOWN` if the queue is empty.
-   */
   getHighestUnacknowledgedBatchId(): Promise<BatchId> {
     return this.persistence.runTransaction(
       'Get highest unacknowledged batch id',
@@ -433,10 +537,6 @@ export class LocalStore {
     );
   }
 
-  /**
-   * Returns the last consistent snapshot processed (used by the RemoteStore to
-   * determine whether to buffer incoming snapshots from the backend).
-   */
   getLastRemoteSnapshotVersion(): Promise<SnapshotVersion> {
     return this.persistence.runTransaction(
       'Get last remote snapshot version',
@@ -445,14 +545,6 @@ export class LocalStore {
     );
   }
 
-  /**
-   * Update the "ground-state" (remote) documents. We assume that the remote
-   * event reflects any write batches that have been acknowledged or rejected
-   * (i.e. we do not re-apply local mutations to updates from this event).
-   *
-   * LocalDocuments are re-calculated if there are remaining mutations in the
-   * queue.
-   */
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
     const remoteVersion = remoteEvent.snapshotVersion;
     let newTargetDataByTargetMap = this.targetDataByTarget;
@@ -502,7 +594,7 @@ export class LocalStore {
             // Update the target data if there are target changes (or if
             // sufficient time has passed since the last update).
             if (
-              LocalStore.shouldPersistTargetData(
+              LocalStoreImpl.shouldPersistTargetData(
                 oldTargetData,
                 newTargetData,
                 change
@@ -666,9 +758,6 @@ export class LocalStore {
     return changes > 0;
   }
 
-  /**
-   * Notify local store of the changed views to locally pin documents.
-   */
   async notifyLocalViewChanges(viewChanges: LocalViewChanges[]): Promise<void> {
     try {
       await this.persistence.runTransaction(
@@ -736,12 +825,6 @@ export class LocalStore {
     }
   }
 
-  /**
-   * Gets the mutation batch after the passed in batchId in the mutation queue
-   * or null if empty.
-   * @param afterBatchId If provided, the batch to search after.
-   * @returns The next mutation or null if there wasn't one.
-   */
   nextMutationBatch(afterBatchId?: BatchId): Promise<MutationBatch | null> {
     return this.persistence.runTransaction(
       'Get next mutation batch',
@@ -758,24 +841,12 @@ export class LocalStore {
     );
   }
 
-  /**
-   * Read the current value of a Document with a given key or null if not
-   * found - used for testing.
-   */
   readDocument(key: DocumentKey): Promise<MaybeDocument | null> {
     return this.persistence.runTransaction('read document', 'readonly', txn => {
       return this.localDocuments.getDocument(txn, key);
     });
   }
 
-  /**
-   * Assigns the given target an internal ID so that its results can be pinned so
-   * they don't get GC'd. A target must be allocated in the local store before
-   * the store can be used to manage its view.
-   *
-   * Allocating an already allocated `Target` will return the existing `TargetData`
-   * for that `Target`.
-   */
   allocateTarget(target: Target): Promise<TargetData> {
     return this.persistence
       .runTransaction('Allocate target', 'readwrite', txn => {
@@ -826,11 +897,6 @@ export class LocalStore {
       });
   }
 
-  /**
-   * Returns the TargetData as seen by the LocalStore, including updates that may
-   * have not yet been persisted to the TargetCache.
-   */
-  // Visible for testing.
   getTargetData(
     transaction: PersistenceTransaction,
     target: Target
@@ -845,14 +911,6 @@ export class LocalStore {
     }
   }
 
-  /**
-   * Unpin all the documents associated with the given target. If
-   * `keepPersistedTargetData` is set to false and Eager GC enabled, the method
-   * directly removes the associated target data from the target cache.
-   *
-   * Releasing a non-existing `Target` is a no-op.
-   */
-  // PORTING NOTE: `keepPersistedTargetData` is multi-tab only.
   releaseTarget(
     targetId: number,
     keepPersistedTargetData: boolean
@@ -881,14 +939,6 @@ export class LocalStore {
       });
   }
 
-  /**
-   * Runs the specified query against the local store and returns the results,
-   * potentially taking advantage of query data from previous executions (such
-   * as the set of remote keys).
-   *
-   * @param usePreviousResults Whether results from previous executions can
-   * be used to optimize this query execution.
-   */
   executeQuery(
     query: Query,
     usePreviousResults: boolean
@@ -979,12 +1029,59 @@ export class LocalStore {
   }
 }
 
+export function newLocalStore(
+  /** Manages our in-memory or durable persistence. */
+  persistence: Persistence,
+  queryEngine: QueryEngine,
+  initialUser: User
+): LocalStore {
+  return new LocalStoreImpl(persistence, queryEngine, initialUser);
+}
+
+/**
+ * An interface on top of LocalStore that provides additional functionality
+ * for MultiTabSyncEngine.
+ */
+export interface MultiTabLocalStore extends LocalStore {
+  /** Returns the local view of the documents affected by a mutation batch. */
+  lookupMutationDocuments(batchId: BatchId): Promise<MaybeDocumentMap | null>;
+
+  removeCachedMutationBatchMetadata(batchId: BatchId): void;
+
+  setNetworkEnabled(networkEnabled: boolean): void;
+
+  getActiveClients(): Promise<ClientId[]>;
+
+  getTarget(targetId: TargetId): Promise<Target | null>;
+
+  /**
+   * Returns the set of documents that have been updated since the last call.
+   * If this is the first call, returns the set of changes since client
+   * initialization. Further invocations will return document changes since
+   * the point of rejection.
+   */
+  getNewDocumentChanges(): Promise<MaybeDocumentMap>;
+
+  /**
+   * Reads the newest document change from persistence and forwards the internal
+   * synchronization marker so that calls to `getNewDocumentChanges()`
+   * only return changes that happened after client initialization.
+   */
+  synchronizeLastDocumentChangeReadTime(): Promise<void>;
+}
+
 /**
  * An implementation of LocalStore that provides additional functionality
  * for MultiTabSyncEngine.
+ *
+ * Note: some field defined in this class might have public access level, but
+ * the class is not exported so they are only accessible from this module.
+ * This is useful to implement optional features (like bundles) in free
+ * functions, such that they are tree-shakeable.
  */
 // PORTING NOTE: Web only.
-export class MultiTabLocalStore extends LocalStore {
+class MultiTabLocalStoreImpl extends LocalStoreImpl
+  implements MultiTabLocalStore {
   protected mutationQueue: IndexedDbMutationQueue;
   protected remoteDocuments: IndexedDbRemoteDocumentCache;
   protected targetCache: IndexedDbTargetCache;
@@ -1006,7 +1103,6 @@ export class MultiTabLocalStore extends LocalStore {
     return this.synchronizeLastDocumentChangeReadTime();
   }
 
-  /** Returns the local view of the documents affected by a mutation batch. */
   lookupMutationDocuments(batchId: BatchId): Promise<MaybeDocumentMap | null> {
     return this.persistence.runTransaction(
       'Lookup mutation documents',
@@ -1058,12 +1154,6 @@ export class MultiTabLocalStore extends LocalStore {
     }
   }
 
-  /**
-   * Returns the set of documents that have been updated since the last call.
-   * If this is the first call, returns the set of changes since client
-   * initialization. Further invocations will return document changes since
-   * the point of rejection.
-   */
   getNewDocumentChanges(): Promise<MaybeDocumentMap> {
     return this.persistence
       .runTransaction('Get new document changes', 'readonly', txn =>
@@ -1078,11 +1168,6 @@ export class MultiTabLocalStore extends LocalStore {
       });
   }
 
-  /**
-   * Reads the newest document change from persistence and forwards the internal
-   * synchronization marker so that calls to `getNewDocumentChanges()`
-   * only return changes that happened after client initialization.
-   */
   async synchronizeLastDocumentChangeReadTime(): Promise<void> {
     this.lastDocumentChangeReadTime = await this.persistence.runTransaction(
       'Synchronize last document change read time',
@@ -1090,6 +1175,15 @@ export class MultiTabLocalStore extends LocalStore {
       txn => this.remoteDocuments.getLastReadTime(txn)
     );
   }
+}
+
+export function newMultiTabLocalStore(
+  /** Manages our in-memory or durable persistence. */
+  persistence: IndexedDbPersistence,
+  queryEngine: QueryEngine,
+  initialUser: User
+): MultiTabLocalStore {
+  return new MultiTabLocalStoreImpl(persistence, queryEngine, initialUser);
 }
 
 /**

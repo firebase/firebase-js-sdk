@@ -2,11 +2,13 @@
   "name": "@firebase/functions-types-exp",
   "version": "0.0.800",
   "description": "@firebase/functions Types",
+  "private": true,
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "scripts": {
     "test": "tsc",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js"
+    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "prepare": "node ../../scripts/exp/remove-exp.js ./index.d.ts"
   },
   "files": [
     "index.d.ts"

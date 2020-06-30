@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,26 @@
  * limitations under the License.
  */
 
-// TODO(firestorexp): Replace with actual implementation
+import { spawn } from 'child-process-promise';
+const { projectRoot: root } = require('../../utils');
+const ora = require('ora');
 
-export function foo(): string {
-  return bar();
+export async function reinstallDeps() {
+  const spinner = ora(' Reinstalling Dependencies').start();
+  await spawn('yarn', null, {
+    cwd: root
+  });
+  spinner.stopAndPersist({
+    symbol: '✅'
+  });
 }
 
-export function bar(): string {
-  return 'bar';
+export async function buildPackages() {
+  const spinner = ora(' Building Packages').start();
+  await spawn('yarn', ['build:release'], {
+    cwd: root
+  });
+  spinner.stopAndPersist({
+    symbol: '✅'
+  });
 }

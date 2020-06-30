@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.15.4",
+  "version": "1.15.5",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -9,7 +9,7 @@
   "scripts": {
     "prebuild": "tsc -m es2015 --moduleResolution node scripts/*.ts ",
     "prebuild:release": "yarn prebuild",
-    "build": "rollup -c rollup.config.es2017.js && rollup -c rollup.config.es5.js && yarn build:lite",
+    "build": "rollup -c rollup.config.es2017.js && rollup -c rollup.config.es5.js && yarn build:lite && yarn build:exp",
     "build:release": "rollup -c rollup.config.es2017.js && rollup -c rollup.config.es5.js",
     "build:deps": "lerna run --scope @firebase/'{app,firestore}' --include-dependencies build",
     "build:console": "node tools/console.build.js",
@@ -19,7 +19,7 @@
     "dev": "rollup -c -w",
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "prettier": "prettier --write '*.ts' '*.js' 'exp/**/*.ts' 'src/**/*.js' 'test/**/*.js' 'src/**/*.ts' 'test/**/*.ts'",
+    "prettier": "prettier --write '*.ts' '*.js' 'lite/**/*.ts' 'exp/**/*.ts' 'src/**/*.js' 'test/**/*.js' 'src/**/*.ts' 'test/**/*.ts'",
     "pregendeps:exp": "yarn build:exp",
     "gendeps:exp": "../../scripts/exp/extract-deps.sh --types ./exp/index.d.ts --bundle ./dist/exp/index.js --output ./exp/test/deps/dependencies.json",
     "pretest:exp": "yarn build:exp",
@@ -47,17 +47,16 @@
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "exp": "dist/exp/index.js",
   "license": "Apache-2.0",
   "files": [
     "dist",
     "memory/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.1.14",
+    "@firebase/component": "0.1.15",
     "@firebase/firestore-types": "1.11.0",
     "@firebase/logger": "0.2.5",
-    "@firebase/util": "0.2.49",
+    "@firebase/util": "0.2.50",
     "@firebase/webchannel-wrapper": "0.2.41",
     "@grpc/grpc-js": "^1.0.0",
     "@grpc/proto-loader": "^0.5.0",
