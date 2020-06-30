@@ -25,10 +25,15 @@ export { FieldPath, documentId } from '../lite/src/api/field_path';
 export {
   Firestore,
   initializeFirestore,
-  getFirestore
+  getFirestore,
+  terminate
 } from './src/api/database';
 
-export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
+export {
+  DocumentSnapshot,
+  QueryDocumentSnapshot,
+  snapshotEqual
+} from './src/api/snapshot';
 
 export { SnapshotMetadata } from '../src/api/database';
 
@@ -44,7 +49,16 @@ export {
 
 export { runTransaction, Transaction } from '../lite/src/api/transaction';
 
-export { getDoc, getDocFromCache, getDocFromServer } from './src/api/reference';
+export {
+  getDoc,
+  getDocFromCache,
+  getDocFromServer,
+  onSnapshot,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  addDoc
+} from './src/api/reference';
 
 export {
   FieldValue,
@@ -58,6 +72,10 @@ export {
 export { setLogLevel } from '../src/util/log';
 
 export { Blob } from '../src/api/blob';
+
+export { writeBatch } from './src/api/write_batch';
+
+export { WriteBatch } from '../lite/src/api/write_batch';
 
 export { GeoPoint } from '../src/api/geo_point';
 
