@@ -34,7 +34,7 @@ let extractedDeclarations: MemberList;
 
 describe('extractDeclarations', () => {
   before(function () {
-    this.timeout(30000);
+    this.timeout(300000);
     testModuleDtsFile = retrieveTestModuleDtsFile();
     extractedDeclarations = extractDeclarations(testModuleDtsFile);
   });
