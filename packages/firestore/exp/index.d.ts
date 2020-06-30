@@ -91,6 +91,7 @@ export function waitForPendingWrites(
 export function enableNetwork(firestore: FirebaseFirestore): Promise<void>;
 export function disableNetwork(firestore: FirebaseFirestore): Promise<void>;
 
+// TODO(firestoreexp): Add experimentalForceOwningTab support
 export function enableIndexedDbPersistence(
   firestore: FirebaseFirestore
 ): Promise<void>;

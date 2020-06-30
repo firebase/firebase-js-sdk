@@ -23,15 +23,22 @@ import { Firestore } from './src/api/database';
 export { FieldPath, documentId } from '../lite/src/api/field_path';
 
 export {
-  Firestore,
+  Firestore as FirebaseFirestore,
   initializeFirestore,
   getFirestore,
+  enableIndexedDbPersistence,
+  enableMultiTabIndexedDbPersistence,
+  clearIndexedDbPersistence,
+  waitForPendingWrites,
+  disableNetwork,
+  enableNetwork,
   terminate
 } from './src/api/database';
 
 export {
   DocumentSnapshot,
   QueryDocumentSnapshot,
+  QuerySnapshot,
   snapshotEqual
 } from './src/api/snapshot';
 
@@ -53,6 +60,9 @@ export {
   getDoc,
   getDocFromCache,
   getDocFromServer,
+  getQuery,
+  getQueryFromCache,
+  getQueryFromServer,
   onSnapshot,
   onSnapshotsInSync,
   setDoc,
