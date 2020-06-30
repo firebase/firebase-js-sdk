@@ -147,10 +147,17 @@ async function runKarma(testFile, testDescription) {
  * of all child processes.  This allows any failing test to result in a CI
  * build failure for the whole Saucelabs run.
  */
-async function runNextTest(maxExitCode = 0) {
+async function runNextTest(maxExitCode = 0, results = {}) {
   // When test queue is empty, exit with code 0 if no tests failed or
   // 1 if any tests failed.
-  if (!testFiles.length) process.exit(maxExitCode);
+  if (!testFiles.length) {
+    for (const fileName in results) {
+      if (results[fileName] > 0) {
+        console.log(`FAILED: ${fileName}`);
+      }
+    }
+    process.exit(maxExitCode);
+  }
   const nextFile = testFiles.shift();
   let exitCode;
   try {
@@ -159,7 +166,10 @@ async function runNextTest(maxExitCode = 0) {
     console.error(chalk`{red [${nextFile}] ERROR: ${e.message}}`);
     exitCode = 1;
   }
-  runNextTest(Math.max(exitCode, maxExitCode));
+  runNextTest(Math.max(exitCode, maxExitCode), {
+    ...results,
+    [nextFile]: exitCode
+  });
 }
 
 runNextTest();
