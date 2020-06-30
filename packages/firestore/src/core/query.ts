@@ -471,8 +471,6 @@ export class Query {
 
 export abstract class Filter {
   abstract matches(doc: Document): boolean;
-  abstract canonicalId(): string;
-  abstract isEqual(filter: Filter): boolean;
 }
 
 export const enum Operator {
@@ -594,35 +592,42 @@ export class FieldFilter extends Filter {
       ].indexOf(this.op) >= 0
     );
   }
+}
 
-  canonicalId(): string {
-    // TODO(b/29183165): Technically, this won't be unique if two values have
-    // the same description, such as the int 3 and the string "3". So we should
-    // add the types in here somehow, too.
-    return (
-      this.field.canonicalString() +
-      this.op.toString() +
-      canonicalId(this.value)
-    );
-  }
+export function canonifyFilter(filter: Filter): string {
+  debugAssert(
+    filter instanceof FieldFilter,
+    'canonifyFilter() only supports FieldFilters'
+  );
+  // TODO(b/29183165): Technically, this won't be unique if two values have
+  // the same description, such as the int 3 and the string "3". So we should
+  // add the types in here somehow, too.
+  return (
+    filter.field.canonicalString() +
+    filter.op.toString() +
+    canonicalId(filter.value)
+  );
+}
 
-  isEqual(other: Filter): boolean {
-    if (other instanceof FieldFilter) {
-      return (
-        this.op === other.op &&
-        this.field.isEqual(other.field) &&
-        valueEquals(this.value, other.value)
-      );
-    } else {
-      return false;
-    }
-  }
+export function filterEquals(f1: Filter, f2: Filter): boolean {
+  return (
+    f1 instanceof FieldFilter &&
+    f2 instanceof FieldFilter &&
+    f1.op === f2.op &&
+    f1.field.isEqual(f2.field) &&
+    valueEquals(f1.value, f2.value)
+  );
+}
 
-  toString(): string {
-    return `${this.field.canonicalString()} ${this.op} ${canonicalId(
-      this.value
-    )}`;
-  }
+/** Returns a debug description for `filter`. */
+export function stringifyFilter(filter: Filter): string {
+  debugAssert(
+    filter instanceof FieldFilter,
+    'stringifyFilter() only supports FieldFilters'
+  );
+  return `${filter.field.canonicalString()} ${filter.op} ${canonicalId(
+    filter.value
+  )}`;
 }
 
 /** Filter that matches on key fields (i.e. '__name__'). */

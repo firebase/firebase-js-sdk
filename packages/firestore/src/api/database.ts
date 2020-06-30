@@ -657,7 +657,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 }
 
-/** Register the listener for onSnapshotsInSync() */
+/** Registers the listener for onSnapshotsInSync() */
 export function addSnapshotsInSyncListener(
   firestoreClient: FirestoreClient,
   observer: PartialObserver<void>
@@ -1174,9 +1174,9 @@ export class DocumentReference<T = firestore.DocumentData>
       const userObserver = args[currArg] as PartialObserver<
         firestore.DocumentSnapshot<T>
       >;
-      args[currArg] = userObserver.next;
-      args[currArg + 1] = userObserver.error;
-      args[currArg + 2] = userObserver.complete;
+      args[currArg] = userObserver.next?.bind(userObserver);
+      args[currArg + 1] = userObserver.error?.bind(userObserver);
+      args[currArg + 2] = userObserver.complete?.bind(userObserver);
     } else {
       validateArgType(
         'DocumentReference.onSnapshot',
@@ -1826,7 +1826,7 @@ export class BaseQuery {
         if (conflictingOp === null && isArrayOp) {
           conflictingOp = this._query.findFilterOperator(arrayOps);
         }
-        if (conflictingOp != null) {
+        if (conflictingOp !== null) {
           // We special case when it's a duplicate op to give a slightly clearer error message.
           if (conflictingOp === filter.op) {
             throw new FirestoreError(
@@ -2127,9 +2127,9 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
       const userObserver = args[currArg] as PartialObserver<
         firestore.QuerySnapshot<T>
       >;
-      args[currArg] = userObserver.next;
-      args[currArg + 1] = userObserver.error;
-      args[currArg + 2] = userObserver.complete;
+      args[currArg] = userObserver.next?.bind(userObserver);
+      args[currArg + 1] = userObserver.error?.bind(userObserver);
+      args[currArg + 2] = userObserver.complete?.bind(userObserver);
     } else {
       validateArgType('Query.onSnapshot', 'function', currArg, args[currArg]);
       validateOptionalArgType(
