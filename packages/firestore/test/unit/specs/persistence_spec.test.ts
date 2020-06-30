@@ -16,9 +16,9 @@
  */
 
 import { Query } from '../../../src/core/query';
+import { TimerId } from '../../../src/util/async_queue';
 import { doc, path } from '../../util/helpers';
 
-import { TimerId } from '../../../src/util/async_queue';
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 

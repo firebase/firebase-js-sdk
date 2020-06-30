@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { ReferenceSet } from '../../../src/local/reference_set';
 import { key } from '../../util/helpers';
 

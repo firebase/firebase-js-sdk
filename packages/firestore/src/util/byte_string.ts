@@ -16,6 +16,7 @@
  */
 
 import { decodeBase64, encodeBase64 } from '../platform/base64';
+
 import { primitiveComparator } from './misc';
 
 /**

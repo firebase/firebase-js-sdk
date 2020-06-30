@@ -17,23 +17,6 @@
 
 // See https://github.com/typescript-eslint/typescript-eslint/issues/363
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import * as firestore from '../../index';
-
-import { Firestore } from './database';
-import {
-  DocumentKeyReference,
-  ParsedUpdateData
-} from '../../../src/api/user_data_reader';
-import { debugAssert } from '../../../src/util/assert';
-import { cast } from '../../../lite/src/api/util';
-import { DocumentSnapshot, QuerySnapshot } from './snapshot';
-import {
-  applyFirestoreDataConverter,
-  getDocsViaSnapshotListener,
-  getDocViaSnapshotListener,
-  SnapshotMetadata
-} from '../../../src/api/database';
-import { ViewSnapshot } from '../../../src/core/view_snapshot';
 import {
   CollectionReference,
   doc,
@@ -41,9 +24,26 @@ import {
   newUserDataReader,
   Query
 } from '../../../lite/src/api/reference';
+import { cast } from '../../../lite/src/api/util';
+import {
+  applyFirestoreDataConverter,
+  getDocsViaSnapshotListener,
+  getDocViaSnapshotListener,
+  SnapshotMetadata
+} from '../../../src/api/database';
+import { FieldPath } from '../../../src/api/field_path';
+import {
+  DocumentKeyReference,
+  ParsedUpdateData
+} from '../../../src/api/user_data_reader';
+import { ViewSnapshot } from '../../../src/core/view_snapshot';
 import { Document } from '../../../src/model/document';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
-import { FieldPath } from '../../../src/api/field_path';
+import { debugAssert } from '../../../src/util/assert';
+import * as firestore from '../../index';
+
+import { Firestore } from './database';
+import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 
 export function getDoc<T>(
   reference: firestore.DocumentReference<T>

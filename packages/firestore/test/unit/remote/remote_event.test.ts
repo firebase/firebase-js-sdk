@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
@@ -29,19 +30,19 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
+import { ByteString } from '../../../src/util/byte_string';
 import {
   deletedDoc,
   doc,
   expectEqual,
-  keys,
-  targetData,
-  resumeTokenForSnapshot,
-  updateMapping,
-  version,
+  forEachNumber,
   key,
-  forEachNumber
+  keys,
+  resumeTokenForSnapshot,
+  targetData,
+  updateMapping,
+  version
 } from '../../util/helpers';
-import { ByteString } from '../../../src/util/byte_string';
 
 interface TargetMap {
   [targetId: string]: TargetData;

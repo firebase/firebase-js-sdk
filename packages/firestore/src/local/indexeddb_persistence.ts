@@ -25,6 +25,8 @@ import { debugAssert, fail } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
+import { DocumentLike, WindowLike } from '../util/types';
+
 import {
   decodeResourcePath,
   EncodedResourcePath,
@@ -67,14 +69,13 @@ import {
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { ClientId } from './shared_client_state';
-import { TargetData } from './target_data';
 import {
   isIndexedDbTransactionError,
   SimpleDb,
   SimpleDbStore,
   SimpleDbTransaction
 } from './simple_db';
-import { DocumentLike, WindowLike } from '../util/types';
+import { TargetData } from './target_data';
 
 const LOG_TAG = 'IndexedDbPersistence';
 

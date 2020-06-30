@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
-
-import * as api from '../protos/firestore_proto_api';
-
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
-import { DatabaseId, DatabaseInfo } from '../core/database_info';
-import { ListenOptions } from '../core/event_manager';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { Provider } from '@firebase/component';
+import * as firestore from '@firebase/firestore-types';
+
 import {
   ComponentProvider,
   MemoryComponentProvider
 } from '../core/component_provider';
+import { DatabaseId, DatabaseInfo } from '../core/database_info';
+import { ListenOptions } from '../core/event_manager';
 import { FirestoreClient, PersistenceSettings } from '../core/firestore_client';
 import {
   Bound,
@@ -46,6 +46,7 @@ import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
 import { isServerTimestamp } from '../model/server_timestamps';
 import { refValue } from '../model/values';
+import * as api from '../protos/firestore_proto_api';
 import { debugAssert, fail } from '../util/assert';
 import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue } from '../util/async_queue';
@@ -70,7 +71,6 @@ import {
 import { getLogLevel, logError, LogLevel, setLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
-import { FieldPath as ExternalFieldPath } from './field_path';
 
 import {
   CredentialsProvider,
@@ -79,6 +79,7 @@ import {
   FirebaseCredentialsProvider,
   makeCredentialsProvider
 } from './credentials';
+import { FieldPath as ExternalFieldPath } from './field_path';
 import {
   CompleteFn,
   ErrorFn,
@@ -94,8 +95,6 @@ import {
   UserDataReader
 } from './user_data_reader';
 import { UserDataWriter } from './user_data_writer';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { Provider } from '@firebase/component';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';

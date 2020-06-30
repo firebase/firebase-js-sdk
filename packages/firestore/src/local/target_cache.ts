@@ -16,6 +16,7 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
+import { Target } from '../core/target';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
@@ -23,7 +24,6 @@ import { DocumentKey } from '../model/document_key';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { TargetData } from './target_data';
-import { Target } from '../core/target';
 
 /**
  * Represents cached targets received from the remote backend.

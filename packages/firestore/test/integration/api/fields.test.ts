@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,

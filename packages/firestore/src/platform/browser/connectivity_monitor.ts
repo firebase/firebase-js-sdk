@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import { logDebug } from '../../util/log';
 import {
   ConnectivityMonitor,
   ConnectivityMonitorCallback,
   NetworkStatus
 } from '../../remote/connectivity_monitor';
+import { logDebug } from '../../util/log';
 
 // References to `window` are guarded by BrowserConnectivityMonitor.isAvailable()
 /* eslint-disable no-restricted-globals */

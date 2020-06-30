@@ -17,6 +17,7 @@
 
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { canonifyTarget, isDocumentTarget, Target } from '../core/target';
 import {
   Document,
   MaybeDocument,
@@ -39,7 +40,7 @@ import {
 } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import { ByteString } from '../util/byte_string';
-import { canonifyTarget, isDocumentTarget, Target } from '../core/target';
+
 import {
   DbMutationBatch,
   DbNoDocument,

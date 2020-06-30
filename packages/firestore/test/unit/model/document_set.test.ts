@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { Document } from '../../../src/model/document';
 import { DocumentSet } from '../../../src/model/document_set';
 import {

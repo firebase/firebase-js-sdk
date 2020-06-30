@@ -34,7 +34,6 @@ import { TargetId } from '../core/types';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { ObjectValue } from '../model/object_value';
 import {
   DeleteMutation,
   FieldMask,
@@ -47,16 +46,8 @@ import {
   TransformMutation,
   VerifyMutation
 } from '../model/mutation';
+import { ObjectValue } from '../model/object_value';
 import { FieldPath, ResourcePath } from '../model/path';
-import * as api from '../protos/firestore_proto_api';
-import { debugAssert, fail, hardAssert } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
-import { ByteString } from '../util/byte_string';
-import {
-  isNegativeZero,
-  isNullOrUndefined,
-  isSafeInteger
-} from '../util/types';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
@@ -64,6 +55,21 @@ import {
   ServerTimestampTransform,
   TransformOperation
 } from '../model/transform_operation';
+import { isNanValue, isNullValue, normalizeTimestamp } from '../model/values';
+import * as api from '../protos/firestore_proto_api';
+import {
+  TargetChangeTargetChangeType,
+  WriteResult
+} from '../protos/firestore_proto_api';
+import { debugAssert, fail, hardAssert } from '../util/assert';
+import { ByteString } from '../util/byte_string';
+import { Code, FirestoreError } from '../util/error';
+import {
+  isNegativeZero,
+  isNullOrUndefined,
+  isSafeInteger
+} from '../util/types';
+
 import { ExistenceFilter } from './existence_filter';
 import { mapCodeFromRpcCode } from './rpc_error';
 import {
@@ -73,11 +79,6 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { isNanValue, isNullValue, normalizeTimestamp } from '../model/values';
-import {
-  TargetChangeTargetChangeType,
-  WriteResult
-} from '../protos/firestore_proto_api';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: api.OrderDirection } = {};

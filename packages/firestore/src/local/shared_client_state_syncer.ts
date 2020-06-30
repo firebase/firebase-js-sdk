@@ -17,6 +17,7 @@
 
 import { BatchId, MutationBatchState, TargetId } from '../core/types';
 import { FirestoreError } from '../util/error';
+
 import { ClientId } from './shared_client_state';
 
 /** The different states of a watch target. */
