@@ -41,7 +41,10 @@ export class WriteBatch implements firestore.WriteBatch {
   private _mutations = [] as Mutation[];
   private _committed = false;
 
-  constructor(private readonly _firestore: Firestore) {
+  constructor(
+    private readonly _firestore: Firestore,
+    private readonly _commitHandler: (m: Mutation[]) => Promise<void>
+  ) {
     this._dataReader = newUserDataReader(_firestore);
   }
 
@@ -59,16 +62,16 @@ export class WriteBatch implements firestore.WriteBatch {
     this.verifyNotCommitted();
     const ref = validateReference(documentRef, this._firestore);
 
-    const [convertedValue] = applyFirestoreDataConverter(
+    const convertedValue = applyFirestoreDataConverter(
       ref._converter,
       value,
-      'WriteBatch.set'
+      options
     );
-
     const parsed = this._dataReader.parseSetData(
       'WriteBatch.set',
       ref._key,
       convertedValue,
+      ref._converter !== null,
       options
     );
     this._mutations = this._mutations.concat(
@@ -136,9 +139,7 @@ export class WriteBatch implements firestore.WriteBatch {
     this.verifyNotCommitted();
     this._committed = true;
     if (this._mutations.length > 0) {
-      return this._firestore
-        ._getDatastore()
-        .then(datastore => invokeCommitRpc(datastore, this._mutations));
+      return this._commitHandler(this._mutations);
     }
 
     return Promise.resolve();
@@ -172,5 +173,10 @@ export function validateReference<T>(
 export function writeBatch(
   firestore: firestore.FirebaseFirestore
 ): firestore.WriteBatch {
-  return new WriteBatch(cast(firestore, Firestore));
+  const firestoreImpl = cast(firestore, Firestore);
+  return new WriteBatch(firestoreImpl, writes =>
+    firestoreImpl
+      ._getDatastore()
+      .then(datastore => invokeCommitRpc(datastore, writes))
+  );
 }

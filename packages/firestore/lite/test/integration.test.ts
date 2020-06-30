@@ -28,6 +28,9 @@ import {
   terminate
 } from '../src/api/database';
 import {
+  Post,
+  postConverter,
+  postConverterMerge,
   withTestCollection,
   withTestCollectionAndInitialData,
   withTestDb,
@@ -480,17 +483,41 @@ function genericMutationTests(
       });
     });
 
+    it('supports partials with merge', async () => {
+      return withTestDb(async db => {
+        const coll = collection(db, 'posts');
+        const ref = doc(coll, 'post').withConverter(postConverterMerge);
+        await setDoc(ref, new Post('walnut', 'author'));
+        await setDoc(ref, { title: 'olive' }, { merge: true });
+        const postDoc = await getDoc(ref);
+        expect(postDoc.get('title')).to.equal('olive');
+        expect(postDoc.get('author')).to.equal('author');
+      });
+    });
+
+    it('supports partials with mergeFields', async () => {
+      return withTestDb(async db => {
+        const coll = collection(db, 'posts');
+        const ref = doc(coll, 'post').withConverter(postConverterMerge);
+        await setDoc(ref, new Post('walnut', 'author'));
+        await setDoc(ref, { title: 'olive' }, { mergeFields: ['title'] });
+        const postDoc = await getDoc(ref);
+        expect(postDoc.get('title')).to.equal('olive');
+        expect(postDoc.get('author')).to.equal('author');
+      });
+    });
+
     it('throws when user input fails validation', () => {
       return withTestDoc(async docRef => {
         if (validationUsesPromises) {
           return expect(
             setDoc(docRef, { val: undefined })
           ).to.eventually.be.rejectedWith(
-            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         } else {
           expect(() => setDoc(docRef, { val: undefined })).to.throw(
-            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         }
       });
@@ -540,11 +567,11 @@ function genericMutationTests(
           return expect(
             updateDoc(docRef, { val: undefined })
           ).to.eventually.be.rejectedWith(
-            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         } else {
           expect(() => updateDoc(docRef, { val: undefined })).to.throw(
-            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         }
       });
@@ -564,7 +591,7 @@ describe('addDoc()', () => {
   it('throws when user input fails validation', () => {
     return withTestCollection(async collRef => {
       expect(() => addDoc(collRef, { val: undefined })).to.throw(
-        'Function addDoc() called with invalid data. Unsupported field value: undefined (found in field val)'
+        /Function addDoc\(\) called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
       );
     });
   });
@@ -881,7 +908,8 @@ describe('equality', () => {
       expect(refEqual(coll1a, coll2)).to.be.false;
 
       const coll1c = collection(firestore, 'a').withConverter({
-        toFirestore: data => data as firestore.DocumentData,
+        toFirestore: (data: firestore.DocumentData) =>
+          data as firestore.DocumentData,
         fromFirestore: snap => snap.data()
       });
       expect(refEqual(coll1a, coll1c)).to.be.false;
@@ -900,7 +928,8 @@ describe('equality', () => {
       expect(refEqual(doc1a, doc2)).to.be.false;
 
       const doc1c = collection(firestore, 'a').withConverter({
-        toFirestore: data => data as firestore.DocumentData,
+        toFirestore: (data: firestore.DocumentData) =>
+          data as firestore.DocumentData,
         fromFirestore: snap => snap.data()
       });
       expect(refEqual(doc1a, doc1c)).to.be.false;
@@ -968,23 +997,6 @@ describe('equality', () => {
 });
 
 describe('withConverter() support', () => {
-  class Post {
-    constructor(readonly title: string, readonly author: string) {}
-    byline(): string {
-      return this.title + ', by ' + this.author;
-    }
-  }
-
-  const postConverter = {
-    toFirestore(post: Post): firestore.DocumentData {
-      return { title: post.title, author: post.author };
-    },
-    fromFirestore(snapshot: firestore.QueryDocumentSnapshot): Post {
-      const data = snapshot.data();
-      return new Post(data.title, data.author);
-    }
-  };
-
   it('for DocumentReference.withConverter()', () => {
     return withTestDoc(async docRef => {
       docRef = docRef.withConverter(postConverter);
@@ -1043,6 +1055,21 @@ describe('withConverter() support', () => {
       const docRef = doc(db, 'some/doc').withConverter(postConverter);
       const docRef2 = doc(db, 'some/doc').withConverter(postConverter2);
       expect(refEqual(docRef, docRef2)).to.be.false;
+    });
+  });
+
+  it('requires the correct converter for Partial usage', async () => {
+    return withTestDb(async db => {
+      const coll = collection(db, 'posts');
+      const ref = doc(coll, 'post').withConverter(postConverter);
+      const batch = writeBatch(db);
+      expect(() =>
+        batch.set(ref, { title: 'olive' }, { merge: true })
+      ).to.throw(
+        'Function WriteBatch.set() called with invalid data ' +
+          '(via `toFirestore()`). Unsupported field value: undefined ' +
+          '(found in field author in document posts/post)'
+      );
     });
   });
 });

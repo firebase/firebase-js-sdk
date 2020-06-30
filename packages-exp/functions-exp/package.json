@@ -24,7 +24,7 @@
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
     "test:emulator": "env FIREBASE_FUNCTIONS_EMULATOR_ORIGIN=http://localhost:5005 run-p test:node",
-    "prepare": "yarn build",
+    "prepare": "rollup -c rollup.config.release.js && yarn api-report",
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
@@ -49,13 +49,12 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/index.d.ts",
+  "typings": "dist/functions-exp-public.d.ts",
   "dependencies": {
-    "@firebase/component": "0.1.14",
+    "@firebase/component": "0.1.15",
     "@firebase/functions-types-exp": "0.0.800",
-    "@firebase/messaging": "0.6.18",
     "@firebase/messaging-types": "0.4.5",
-    "@firebase/util": "0.2.49",
+    "@firebase/util": "0.2.50",
     "isomorphic-fetch": "2.2.1",
     "tslib": "1.11.1"
   },

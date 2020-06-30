@@ -64,11 +64,13 @@ export function setLogLevel(logLevel: LogLevel): void;
 
 export interface FirestoreDataConverter<T> {
   toFirestore(modelObject: T): DocumentData;
-  fromFirestore(snapshot: QueryDocumentSnapshot): T;
+  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+  fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
 }
 
 export class FirebaseFirestore {
   private constructor();
+  readonly app: FirebaseApp;
 }
 
 export function initializeFirestore(
@@ -216,9 +218,10 @@ export class WriteBatch {
   commit(): Promise<void>;
 }
 
-export type SetOptions =
-  | { merge: true }
-  | { mergeFields: Array<string | FieldPath> };
+export interface SetOptions {
+  readonly merge?: boolean;
+  readonly mergeFields?: Array<string | FieldPath>;
+}
 
 export class DocumentReference<T = DocumentData> {
   private constructor();
@@ -359,6 +362,8 @@ export function updateDoc(
 ): Promise<void>;
 export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
 
+// TODO(firestoreexp): Update API Proposal to use FirestoreError in these
+// callbacks
 export function onSnapshot<T>(
   reference: DocumentReference<T>,
   observer: {
@@ -372,28 +377,28 @@ export function onSnapshot<T>(
   options: SnapshotListenOptions,
   observer: {
     next?: (snapshot: DocumentSnapshot<T>) => void;
-    error?: (error: Error) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): () => void;
 export function onSnapshot<T>(
   reference: DocumentReference<T>,
   onNext: (snapshot: DocumentSnapshot<T>) => void,
-  onError?: (error: Error) => void,
+  onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): () => void;
 export function onSnapshot<T>(
   reference: DocumentReference<T>,
   options: SnapshotListenOptions,
   onNext: (snapshot: DocumentSnapshot<T>) => void,
-  onError?: (error: Error) => void,
+  onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): () => void;
 export function onSnapshot<T>(
   query: Query<T>,
   observer: {
     next?: (snapshot: QuerySnapshot<T>) => void;
-    error?: (error: Error) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): () => void;
@@ -402,28 +407,28 @@ export function onSnapshot<T>(
   options: SnapshotListenOptions,
   observer: {
     next?: (snapshot: QuerySnapshot<T>) => void;
-    error?: (error: Error) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): () => void;
 export function onSnapshot<T>(
   query: Query<T>,
   onNext: (snapshot: QuerySnapshot<T>) => void,
-  onError?: (error: Error) => void,
+  onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): () => void;
 export function onSnapshot<T>(
   query: Query<T>,
   options: SnapshotListenOptions,
   onNext: (snapshot: QuerySnapshot<T>) => void,
-  onError?: (error: Error) => void,
+  onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): () => void;
 export function onSnapshotsInSync(
   firestore: FirebaseFirestore,
   observer: {
     next?: (value: void) => void;
-    error?: (error: Error) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): () => void;
@@ -487,6 +492,6 @@ export interface FirestoreError {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'firestore/lite': FirebaseFirestore;
+    'firestore-exp': FirebaseFirestore;
   }
 }

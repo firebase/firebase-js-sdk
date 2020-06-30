@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.15.4",
+  "version": "1.15.5",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -19,7 +19,7 @@
     "dev": "rollup -c -w",
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "prettier": "prettier --write '*.ts' '*.js' 'exp/**/*.ts' 'src/**/*.js' 'test/**/*.js' 'src/**/*.ts' 'test/**/*.ts'",
+    "prettier": "prettier --write '*.ts' '*.js' 'lite/**/*.ts' 'exp/**/*.ts' 'src/**/*.js' 'test/**/*.js' 'src/**/*.ts' 'test/**/*.ts'",
     "pregendeps:exp": "yarn build:exp",
     "gendeps:exp": "../../scripts/exp/extract-deps.sh --types ./exp/index.d.ts --bundle ./dist/exp/index.js --output ./exp/test/deps/dependencies.json",
     "pretest:exp": "yarn build:exp",
@@ -52,10 +52,10 @@
     "memory/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.1.14",
+    "@firebase/component": "0.1.15",
     "@firebase/firestore-types": "1.11.0",
     "@firebase/logger": "0.2.5",
-    "@firebase/util": "0.2.49",
+    "@firebase/util": "0.2.50",
     "@firebase/webchannel-wrapper": "0.2.41",
     "@grpc/grpc-js": "^1.0.0",
     "@grpc/proto-loader": "^0.5.0",

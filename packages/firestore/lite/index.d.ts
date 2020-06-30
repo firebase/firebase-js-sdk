@@ -45,11 +45,13 @@ export function setLogLevel(logLevel: LogLevel): void;
 
 export interface FirestoreDataConverter<T> {
   toFirestore(modelObject: T): DocumentData;
-  fromFirestore(snapshot: QueryDocumentSnapshot): T;
+  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+  fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
 }
 
 export class FirebaseFirestore {
   private constructor();
+  readonly app: FirebaseApp;
 }
 
 export function initializeFirestore(
@@ -181,9 +183,10 @@ export class WriteBatch {
   commit(): Promise<void>;
 }
 
-export type SetOptions =
-  | { merge: true }
-  | { mergeFields: Array<string | FieldPath> };
+export interface SetOptions {
+  readonly merge?: boolean;
+  readonly mergeFields?: Array<string | FieldPath>;
+}
 
 export class DocumentReference<T = DocumentData> {
   private constructor();
