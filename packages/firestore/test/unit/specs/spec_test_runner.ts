@@ -409,23 +409,8 @@ abstract class TestRunner {
     const query = parseQuery(querySpec);
     const eventEmitter = this.queryListeners.get(query);
     debugAssert(!!eventEmitter, 'There must be a query to unlisten too!');
-
     this.queryListeners.delete(query);
-
-    const deferred = new Deferred<void>();
-    await this.queue.enqueueRetryable(async () => {
-      try {
-        await this.eventManager.unlisten(eventEmitter!);
-      } catch (e) {
-        expect(this.persistence.injectFailures).contains('Release target');
-        throw e;
-      } finally {
-        // Resolve the deferred Promise even if the operation failed. This allows
-        // the spec tests to manually retry the failed user change.
-        deferred.resolve();
-      }
-    });
-    return deferred.promise;
+    await this.queue.enqueue(() => this.eventManager.unlisten(eventEmitter!));
   }
 
   private doSet(setSpec: SpecUserSet): Promise<void> {

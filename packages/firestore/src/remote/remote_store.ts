@@ -408,7 +408,18 @@ export class RemoteStore implements TargetMetadataProvider {
     ) {
       // There was an error on a target, don't wait for a consistent snapshot
       // to raise events
-      return this.handleTargetError(watchChange);
+      try {
+        await this.handleTargetError(watchChange);
+      } catch (e) {
+        logDebug(
+          LOG_TAG,
+          'Failed to remove targets %s: %s ',
+          watchChange.targetIds.join(','),
+          e
+        );
+        await this.disableNetworkUntilRecovery(e);
+      }
+      return;
     }
 
     if (watchChange instanceof DocumentWatchChange) {

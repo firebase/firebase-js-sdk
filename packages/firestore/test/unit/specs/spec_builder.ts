@@ -302,11 +302,7 @@ export class SpecBuilder {
     const targetId = this.queryMapping.get(target)!;
     this.removeQueryFromActiveTargets(query, targetId);
 
-    if (
-      this.config.useGarbageCollection &&
-      !this.injectFailures &&
-      !this.activeTargets[targetId]
-    ) {
+    if (this.config.useGarbageCollection && !this.activeTargets[targetId]) {
       this.queryMapping.delete(target);
       this.queryIdGenerator.purge(target);
     }

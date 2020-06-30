@@ -394,7 +394,9 @@ export class FirestoreClient {
     if (this.clientTerminated) {
       return;
     }
-    this.asyncQueue.enqueueAndForget(() => this.eventMgr.unlisten(listener));
+    this.asyncQueue.enqueueAndForget(() => {
+      return this.eventMgr.unlisten(listener);
+    });
   }
 
   async getDocumentFromLocalCache(

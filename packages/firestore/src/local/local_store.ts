@@ -934,10 +934,10 @@ class LocalStoreImpl implements LocalStore {
       }
     } catch (e) {
       if (isIndexedDbTransactionError(e)) {
-        // If `releaseTarget` fails, we did not advance the sequence
-        // number for the target. This target might be deleted earlier than
-        // it otherwise would have, but it should not invalidate the integrity
-        // of the data.
+        // If `releaseTarget` fails, we did not advance the sequence number of
+        // the target. While the target might be deleted earlier than it
+        // otherwise would have, it should not invalidate the integrity of its
+        // data.
         logDebug(
           LOG_TAG,
           `Failed to update sequence numbers for target ${targetId}: ${e}`

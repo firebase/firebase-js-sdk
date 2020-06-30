@@ -103,18 +103,20 @@ export class EventManager implements SyncEngineListener {
 
   async unlisten(listener: QueryListener): Promise<void> {
     const query = listener.query;
+    let lastListen = false;
 
     const queryInfo = this.queries.get(query);
     if (queryInfo) {
       const i = queryInfo.listeners.indexOf(listener);
       if (i >= 0) {
-        if (queryInfo.listeners.length > 1) {
-          queryInfo.listeners.splice(i, 1);
-        } else {
-          await this.syncEngine.unlisten(query);
-          this.queries.delete(query);
-        }
+        queryInfo.listeners.splice(i, 1);
+        lastListen = queryInfo.listeners.length === 0;
       }
+    }
+
+    if (lastListen) {
+      this.queries.delete(query);
+      return this.syncEngine.unlisten(query);
     }
   }
 
