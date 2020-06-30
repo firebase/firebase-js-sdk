@@ -657,7 +657,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 }
 
-/** Register the listener for onSnapshotsInSync() */
+/** Registers the listener for onSnapshotsInSync() */
 export function addSnapshotsInSyncListener(
   firestoreClient: FirestoreClient,
   observer: PartialObserver<void>
