@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
+import { Query, queryMatches } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
@@ -276,7 +276,7 @@ export class LocalDocumentsView {
         // Finally, filter out any documents that don't actually match
         // the query.
         results.forEach((key, doc) => {
-          if (!query.matches(doc)) {
+          if (!queryMatches(query, doc)) {
             results = results.remove(key);
           }
         });
