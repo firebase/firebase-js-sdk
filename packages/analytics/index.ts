@@ -128,14 +128,14 @@ function validateIndexedDBSupport(): void {
   if ('indexedDB' in window && indexedDB !== null) {
     try {
       let preExist: boolean = true;
-      const DUMMYDBNAME =
+      const DB_CHECK_NAME =
         'validate-browser-context-for-indexeddb-analytics-module';
-      const request = window.indexedDB.open(DUMMYDBNAME);
+      const request = window.indexedDB.open(DB_CHECK_NAME);
       request.onsuccess = () => {
         request.result.close();
         // delete database only when it doesn't pre-exist
         if (!preExist) {
-          window.indexedDB.deleteDatabase(DUMMYDBNAME);
+          window.indexedDB.deleteDatabase(DB_CHECK_NAME);
         }
       };
       request.onupgradeneeded = () => {
