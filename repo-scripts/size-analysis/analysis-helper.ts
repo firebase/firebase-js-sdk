@@ -158,6 +158,7 @@ export function extractDeclarations(
     } else if (ts.isVariableStatement(node)) {
       const variableDeclarations = node.declarationList.declarations;
       variableDeclarations.forEach(variableDeclaration => {
+
         if (ts.isIdentifier(variableDeclaration.name)) {
           declarations.variables.push(
             (variableDeclaration.name).getText(sourceFile)
@@ -166,6 +167,9 @@ export function extractDeclarations(
         // TODO: variableDeclaration.name is an union type (Identifier | BindingPattern)
         // need Identifier type, not sure in what case BindingPattern type is for.
         else {
+          variableDeclaration.name.elements.forEach(node => {
+            console.log(node);
+          });
           console.log(
             'this VariableDeclaration.name object is of BindingPattern type !'
           );

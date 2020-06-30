@@ -88,7 +88,7 @@ const enum ErrorCode {
  * This functions takes in a module location, retrieve path to dts file of the module,
  * extract exported symbols, and generate a json report accordingly.
  */
-async function generateReportForModule(path: string, outputDirectory: string) {
+async function generateReportForModule(path: string, outputDirectory: string): Promise<void> {
 
   const packageJsonPath = `${path}/package.json`;
   if (!fs.existsSync(packageJsonPath)) {
@@ -140,7 +140,7 @@ function traverseDirs(
   executor,
   level: number,
   levelLimit: number
-) {
+): void {
   if (level > levelLimit) {
     return;
   }
@@ -242,7 +242,7 @@ function generateReportForModules(moduleLocations: string[], outputDirectory: st
  * The function then checks whether --module flag is specified; Run analysis on all modules if not, run analysis on selected modules if enabled.  
  * Throw INVALID_FLAG_COMBINATION error if neither case fulfill. 
  */
-async function main() {
+async function main(): Promise<void> {
   // check if it's an adhoc run
   if (argv.inputDtsFile && argv.inputBundleFile) {
     const jsonReport = await generateReport(argv.inputDtsFile, argv.inputBundleFile);

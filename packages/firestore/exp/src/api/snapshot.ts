@@ -121,15 +121,21 @@ export class QueryDocumentSnapshot<T = firestore.DocumentData>
 
 export class QuerySnapshot<T = firestore.DocumentData>
   implements firestore.QuerySnapshot<T> {
+  readonly metadata: SnapshotMetadata;
+
   private _cachedChanges?: Array<firestore.DocumentChange<T>>;
   private _cachedChangesIncludeMetadataChanges?: boolean;
 
   constructor(
     readonly _firestore: Firestore,
     readonly query: Query<T>,
-    readonly _snapshot: ViewSnapshot,
-    readonly metadata: SnapshotMetadata
-  ) {}
+    readonly _snapshot: ViewSnapshot
+  ) {
+    this.metadata = new SnapshotMetadata(
+      _snapshot.hasPendingWrites,
+      _snapshot.fromCache
+    );
+  }
 
   get docs(): Array<firestore.QueryDocumentSnapshot<T>> {
     const result: Array<firestore.QueryDocumentSnapshot<T>> = [];
@@ -154,7 +160,7 @@ export class QuerySnapshot<T = firestore.DocumentData>
         thisArg,
         this._convertToDocumentSnapshot(
           doc,
-          this.metadata.fromCache,
+          this._snapshot.fromCache,
           this._snapshot.mutatedKeys.has(doc.key)
         )
       );

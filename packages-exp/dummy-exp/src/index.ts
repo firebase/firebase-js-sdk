@@ -23,7 +23,7 @@ export { far1, far, far3 } from './far';
 export const VAR = 'variable';
 export let var2: string;
 export let var3 = 'var3';
-export class Student {}
+export class Student { }
 import { LogLevel } from '@firebase/logger';
 var3 = 'var3Changed';
 
@@ -55,4 +55,5 @@ export type LogLevel2 =
   | 'info'
   | 'verbose';
 
+export const { a, b } = { a: "a", b: "b" };
 export { LogLevel } from '@firebase/logger';
