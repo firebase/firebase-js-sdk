@@ -33,10 +33,11 @@ let testModuleDtsFile: string;
 let extractedDeclarations: MemberList;
 
 describe('extractDeclarations', () => {
-  before(() => {
+  before(function () {
+    this.timeout(10000);
     testModuleDtsFile = retrieveTestModuleDtsFile();
-
     extractedDeclarations = extractDeclarations(testModuleDtsFile);
+
   });
   it('test basic variable extractions', () => {
     expect(extractedDeclarations.variables).to.include.members([
