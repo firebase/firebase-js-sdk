@@ -1821,7 +1821,7 @@ export class BaseQuery {
         if (conflictingOp === null && isArrayOp) {
           conflictingOp = this._query.findFilterOperator(arrayOps);
         }
-        if (conflictingOp != null) {
+        if (conflictingOp !== null) {
           // We special case when it's a duplicate op to give a slightly clearer error message.
           if (conflictingOp === filter.op) {
             throw new FirestoreError(
