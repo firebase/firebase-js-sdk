@@ -28,6 +28,7 @@ export type AuthWindow = {
 } & {
   // Any known / named properties we want to add
   grecaptcha?: Recaptcha;
+  ___jsl?: Record<string, any>;
 } & {
   // A final catch-all for callbacks (which will have random names) that
   // we will stick on the window.
