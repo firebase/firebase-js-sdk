@@ -15,20 +15,22 @@
  * limitations under the License.
  */
 
-import { OperationType } from '@firebase/auth-types-exp';
+import * as externs from '@firebase/auth-types-exp';
 
 import {
   signInWithIdp,
-  SignInWithIdpRequest,
-  SignInWithIdpResponse
+  SignInWithIdpRequest
 } from '../../api/authentication/idp';
 import { Auth } from '../../model/auth';
 import { User, UserCredential } from '../../model/user';
 import { _authCredentialFromTokenResponse } from '../credentials/from_token_response';
 import { _link as _linkUser } from '../user/link_unlink';
 import { _reauthenticate } from '../user/reauthenticate';
-import { UserCredentialImpl } from '../user/user_credential_impl';
-import { assert } from '../util/assert';
+import { assert, debugFail } from '../util/assert';
+import { signInWithCredential } from './credential';
+import { AuthCredential } from '../credentials';
+import { IdTokenResponse } from '../../model/id_token';
+import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 
 export interface IdpTaskParams {
   auth: Auth;
@@ -42,60 +44,68 @@ export interface IdpTaskParams {
 
 export type IdpTask = (params: IdpTaskParams) => Promise<UserCredential>;
 
-function callIdpSignIn(
-  {
-    auth,
-    requestUri,
-    sessionId,
-    tenantId,
-    pendingToken,
-    postBody
-  }: IdpTaskParams,
-  idToken?: string
-): Promise<SignInWithIdpResponse> {
-  const request: SignInWithIdpRequest = {
-    requestUri,
-    sessionId,
-    postBody: postBody || null,
-    tenantId,
-    pendingToken,
-    returnSecureToken: true
-  };
+class IdpCredential implements AuthCredential {
+  providerId = externs.ProviderId.CUSTOM;
+  signInMethod = externs.SignInMethod.ANONYMOUS; // Unused, should we have an IDP one here?
 
-  if (idToken) {
-    request.idToken = idToken;
+  constructor(readonly params: IdpTaskParams) {}
+
+  _getIdTokenResponse(auth: Auth): Promise<PhoneOrOauthTokenResponse> {
+    return signInWithIdp(auth, this._buildIdpRequest());
   }
 
-  return signInWithIdp(auth, request);
+  _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
+    return signInWithIdp(auth, this._buildIdpRequest(idToken));
+  }
+
+  _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
+    return signInWithIdp(auth, this._buildIdpRequest());
+  }
+
+  private _buildIdpRequest(idToken?: string): SignInWithIdpRequest {
+    const request: SignInWithIdpRequest = {
+      requestUri: this.params.requestUri,
+      sessionId: this.params.sessionId,
+      postBody: this.params.postBody || null,
+      tenantId: this.params.tenantId,
+      pendingToken: this.params.pendingToken,
+      returnSecureToken: true
+    };
+
+    if (idToken) {
+      request.idToken = idToken;
+    }
+
+    return request;
+  }
+
+  toJSON(): object {
+    debugFail('Method not implemented.');
+  }
+
+  static fromJSON(_json: object | string): AuthCredential | null {
+    return debugFail('not implemented');
+  }
 }
 
-export async function _signIn(params: IdpTaskParams): Promise<UserCredential> {
-  const auth = params.auth;
-
-  const response = await callIdpSignIn(params);
-
-  const credential = _authCredentialFromTokenResponse(response);
-  const userCredential = await UserCredentialImpl._fromIdTokenResponse(
-    auth,
-    credential,
-    OperationType.SIGN_IN,
-    response
-  );
-
-  return userCredential;
+export function _signIn(
+  params: IdpTaskParams
+): Promise<externs.UserCredential> {
+  return signInWithCredential(params.auth, new IdpCredential(params));
 }
 
-export async function _reauth(params: IdpTaskParams): Promise<UserCredential> {
+export function _reauth(
+  params: IdpTaskParams
+): Promise<externs.UserCredential> {
   const { auth, user } = params;
   assert(user, auth.name);
-  const requestPromise = callIdpSignIn(params);
-  return _reauthenticate(user, requestPromise);
+  return _reauthenticate(user, new IdpCredential(params));
 }
 
-export async function _link(params: IdpTaskParams): Promise<UserCredential> {
+export async function _link(
+  params: IdpTaskParams
+): Promise<externs.UserCredential> {
   const { auth, user } = params;
   assert(user, auth.name);
-  const idToken = await user.getIdToken();
-
-  return _linkUser(user, callIdpSignIn(params, idToken));
+  return _linkUser(user, new IdpCredential(params));
 }

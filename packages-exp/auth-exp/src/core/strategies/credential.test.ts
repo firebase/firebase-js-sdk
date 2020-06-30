@@ -161,7 +161,7 @@ describe('core/strategies/credential', () => {
       );
     });
 
-    it('sould return the expected user credential', async () => {
+    it('should return the expected user credential', async () => {
       stub(authCredential, '_getReauthenticationResolver').returns(
         Promise.resolve({
           ...idTokenResponse,

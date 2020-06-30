@@ -51,13 +51,17 @@ export class MultiFactorError extends FirebaseError
   }
 }
 
-export async function _handleMfaErrors(
+export function _handleMfaErrors(
   auth: Auth,
   operationType: externs.OperationType,
-  idTokenProvider: Promise<IdTokenResponse>,
-  credential?: AuthCredential,
+  credential: AuthCredential,
   user?: User
 ): Promise<IdTokenResponse> {
+  const idTokenProvider =
+    operationType === externs.OperationType.REAUTHENTICATE
+      ? credential._getReauthenticationResolver(auth)
+      : credential._getIdTokenResponse(auth);
+
   return idTokenProvider.catch(error => {
     if (error.code === `auth/${AuthErrorCode.MFA_REQUIRED}`) {
       throw new MultiFactorError(auth, error, operationType, credential, user);

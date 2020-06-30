@@ -18,7 +18,11 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { OperationType } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/api/helper';
@@ -31,14 +35,22 @@ import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { _reauthenticate } from './reauthenticate';
+import { AuthCredential } from '../credentials';
+import { MockAuthCredential } from '../../../test/mock_auth_credential';
+import { stub } from 'sinon';
 
 use(chaiAsPromised);
 
 describe('src/core/user/reauthenticate', () => {
+  let credential: AuthCredential;
   let user: User;
 
   beforeEach(async () => {
     fetch.setUp();
+    credential = new MockAuthCredential(
+      ProviderId.FIREBASE,
+      SignInMethod.EMAIL_LINK
+    );
     user = testUser(await testAuth(), 'uid', 'test@test.com', true);
   });
 
@@ -47,88 +59,90 @@ describe('src/core/user/reauthenticate', () => {
   });
 
   it('should error if the idToken is missing', async () => {
-    await expect(
-      _reauthenticate(
-        user,
-        Promise.resolve(({
-          ...TEST_ID_TOKEN_RESPONSE,
-          idToken: undefined
-        } as unknown) as IdTokenResponse)
-      )
-    ).to.be.rejectedWith(
+    stub(credential, '_getReauthenticationResolver').returns(
+      Promise.resolve(({
+        ...TEST_ID_TOKEN_RESPONSE,
+        idToken: undefined
+      } as unknown) as IdTokenResponse)
+    );
+
+    await expect(_reauthenticate(user, credential)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
   });
 
   it('should error if the token can not be parsed', async () => {
-    await expect(
-      _reauthenticate(
-        user,
-        Promise.resolve({
-          ...TEST_ID_TOKEN_RESPONSE,
-          idToken: 'definitely-not-base-64'
-        })
-      )
-    ).to.be.rejectedWith(
+    stub(credential, '_getReauthenticationResolver').returns(
+      Promise.resolve({
+        ...TEST_ID_TOKEN_RESPONSE,
+        idToken: 'definitely-not-base-64'
+      })
+    );
+
+    await expect(_reauthenticate(user, credential)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
   });
 
   it('should throw a user mismatch error if uid is different', async () => {
-    await expect(
-      _reauthenticate(
-        user,
-        Promise.resolve({
-          ...TEST_ID_TOKEN_RESPONSE,
-          idToken: makeJWT({ sub: 'not-the-uid' })
-        })
-      )
-    ).to.be.rejectedWith(
+    stub(credential, '_getReauthenticationResolver').returns(
+      Promise.resolve({
+        ...TEST_ID_TOKEN_RESPONSE,
+        idToken: makeJWT({ sub: 'not-the-uid' })
+      })
+    );
+
+    await expect(_reauthenticate(user, credential)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch).'
     );
   });
 
   it('should switch a user deleted error to a mismatch error', async () => {
-    const rejection = Promise.reject(
-      AUTH_ERROR_FACTORY.create(AuthErrorCode.USER_DELETED, {
-        appName: ''
-      })
+    stub(credential, '_getReauthenticationResolver').returns(
+      Promise.reject(
+        AUTH_ERROR_FACTORY.create(AuthErrorCode.USER_DELETED, {
+          appName: ''
+        })
+      )
     );
 
-    await expect(_reauthenticate(user, rejection)).to.be.rejectedWith(
+    await expect(_reauthenticate(user, credential)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The supplied credentials do not correspond to the previously signed in user. (auth/user-mismatch).'
     );
   });
 
   it('should not switch other errors to a mismatch error', async () => {
-    const rejection = Promise.reject(
-      AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
-        appName: ''
-      })
+    stub(credential, '_getReauthenticationResolver').returns(
+      Promise.reject(
+        AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
+          appName: ''
+        })
+      )
     );
 
-    await expect(_reauthenticate(user, rejection)).to.be.rejectedWith(
+    await expect(_reauthenticate(user, credential)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: A network AuthError (such as timeout, interrupted connection or unreachable host) has occurred. (auth/network-request-failed).'
     );
   });
 
   it('should return a valid user credential', async () => {
-    mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
-      users: [{ localId: 'uid' }]
-    });
-
-    const cred = await _reauthenticate(
-      user,
+    stub(credential, '_getReauthenticationResolver').returns(
       Promise.resolve({
         ...TEST_ID_TOKEN_RESPONSE,
         idToken: makeJWT({ sub: 'uid' })
       })
     );
+
+    mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+      users: [{ localId: 'uid' }]
+    });
+
+    const cred = await _reauthenticate(user, credential);
 
     expect(cred.operationType).to.eq(OperationType.REAUTHENTICATE);
     expect(cred.credential).to.eq(null);

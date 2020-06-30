@@ -33,12 +33,7 @@ export async function signInWithCredential(
   const auth = authExtern as Auth;
   const credential = credentialExtern as AuthCredential;
   const operationType = OperationType.SIGN_IN;
-  const response = await _handleMfaErrors(
-    auth,
-    operationType,
-    credential._getIdTokenResponse(auth),
-    credential
-  );
+  const response = await _handleMfaErrors(auth, operationType, credential);
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
     auth,
     credential,
@@ -58,11 +53,7 @@ export async function linkWithCredential(
 
   await _assertLinkedStatus(false, user, credential.providerId);
 
-  return _link(
-    user,
-    credential._linkToIdToken(user.auth, await user.getIdToken()),
-    credential
-  );
+  return _link(user, credential);
 }
 
 export async function reauthenticateWithCredential(
@@ -72,9 +63,5 @@ export async function reauthenticateWithCredential(
   const credential = credentialExtern as AuthCredential;
   const user = userExtern as User;
 
-  return _reauthenticate(
-    user,
-    credential._getReauthenticationResolver(user.auth),
-    credential
-  );
+  return _reauthenticate(user, credential);
 }

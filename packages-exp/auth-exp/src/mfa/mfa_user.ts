@@ -61,7 +61,7 @@ export class MultiFactorUser implements externs.MultiFactorUser {
     });
     // Remove the second factor from the user's list.
     this.enrolledFactors = this.enrolledFactors.filter(
-      info => info.uid !== mfaEnrollmentId
+      ({ uid }) => uid !== mfaEnrollmentId
     );
     // Depending on whether the backend decided to revoke the user's session,
     // the tokenResponse may be empty. If the tokens were not updated (and they
