@@ -664,12 +664,13 @@ export function fromMutation(
   }
 }
 
-function toPrecondition(
+export function toPrecondition(
   serializer: JsonProtoSerializer,
   precondition: Precondition
-): api.Precondition {
-  debugAssert(!precondition.isNone, "Can't serialize an empty precondition");
-  if (precondition.updateTime !== undefined) {
+): api.Precondition | undefined {
+  if (precondition.isNone) {
+    return undefined;
+  } else if (precondition.updateTime !== undefined) {
     return {
       updateTime: toVersion(serializer, precondition.updateTime)
     };
@@ -730,7 +731,9 @@ export function fromWriteResults(
   }
 }
 
-function toFieldTransform(
+// TODO(firestorelite): Make this tree-shakeable so that we don't include
+// all transforms
+export function toFieldTransform(
   serializer: JsonProtoSerializer,
   fieldTransform: FieldTransform
 ): api.FieldTransform {

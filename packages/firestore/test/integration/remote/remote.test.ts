@@ -25,6 +25,7 @@ import {
   invokeBatchGetDocumentsRpc,
   invokeCommitRpc
 } from '../../../src/remote/datastore';
+import { toMutation } from '../../../src/remote/serializer';
 
 describe('Remote Storage', () => {
   addEqualityMatcher();
@@ -32,7 +33,7 @@ describe('Remote Storage', () => {
   it('can write', () => {
     return withTestDatastore(ds => {
       const mutation = setMutation('docs/1', { sort: 1 });
-      return invokeCommitRpc(ds, [mutation]);
+      return invokeCommitRpc(ds, [toMutation(ds.serializer, mutation)]);
     });
   });
 
@@ -41,7 +42,7 @@ describe('Remote Storage', () => {
       const k = key('docs/1');
       const mutation = setMutation('docs/1', { sort: 10 });
 
-      await invokeCommitRpc(ds, [mutation]);
+      await invokeCommitRpc(ds, [toMutation(ds.serializer, mutation)]);
       const docs = await invokeBatchGetDocumentsRpc(ds, [k]);
       expect(docs.length).to.equal(1);
 

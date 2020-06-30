@@ -40,9 +40,14 @@ import { ObjectValue, ObjectValueBuilder } from '../model/object_value';
 import {
   JsonProtoSerializer,
   toBytes,
+  toDocumentMask,
+  toFieldTransform,
+  toMutationDocument,
+  toName,
   toNumber,
   toResourceName,
-  toTimestamp
+  toTimestamp,
+  toPrecondition
 } from '../remote/serializer';
 import { Blob } from './blob';
 import { BaseFieldPath, fromDotSeparatedString } from './field_path';
@@ -82,25 +87,63 @@ export class DocumentKeyReference<T> {
 /** The result of parsing document data (e.g. for a setData call). */
 export class ParsedSetData {
   constructor(
+    readonly serializer: JsonProtoSerializer,
     readonly data: ObjectValue,
     readonly fieldMask: FieldMask | null,
     readonly fieldTransforms: FieldTransform[]
   ) {}
+}
 
-  toMutations(key: DocumentKey, precondition: Precondition): Mutation[] {
-    const mutations = [] as Mutation[];
-    if (this.fieldMask !== null) {
-      mutations.push(
-        new PatchMutation(key, this.data, this.fieldMask, precondition)
-      );
-    } else {
-      mutations.push(new SetMutation(key, this.data, precondition));
-    }
-    if (this.fieldTransforms.length > 0) {
-      mutations.push(new TransformMutation(key, this.fieldTransforms));
-    }
-    return mutations;
+export function convertSetToMutations(
+  parseSetData: ParsedSetData,
+  key: DocumentKey,
+  precondition: Precondition
+): Mutation[] {
+  const mutations = [] as Mutation[];
+  if (parseSetData.fieldMask !== null) {
+    mutations.push(
+      new PatchMutation(
+        key,
+        parseSetData.data,
+        parseSetData.fieldMask,
+        precondition
+      )
+    );
+  } else {
+    mutations.push(new SetMutation(key, parseSetData.data, precondition));
   }
+  if (parseSetData.fieldTransforms.length > 0) {
+    mutations.push(new TransformMutation(key, parseSetData.fieldTransforms));
+  }
+  return mutations;
+}
+
+export function convertSetToWrites(
+  parseSetData: ParsedSetData,
+  serializer: JsonProtoSerializer,
+  key: DocumentKey,
+  precondition: Precondition
+): api.Write[] {
+  const writes: api.Write[] = [];
+  writes.push({
+    update: toMutationDocument(serializer, key, parseSetData.data),
+    updateMask: parseSetData.fieldMask
+      ? toDocumentMask(parseSetData.fieldMask)
+      : undefined,
+    currentDocument: toPrecondition(parseSetData.serializer, precondition)
+  });
+
+  if (parseSetData.fieldTransforms.length > 0) {
+    writes.push({
+      transform: {
+        document: toName(serializer, key),
+        fieldTransforms: parseSetData.fieldTransforms.map(transform =>
+          toFieldTransform(parseSetData.serializer, transform)
+        )
+      }
+    });
+  }
+  return writes;
 }
 
 /** The result of parsing "update" data (i.e. for an updateData call). */
@@ -110,16 +153,76 @@ export class ParsedUpdateData {
     readonly fieldMask: FieldMask,
     readonly fieldTransforms: FieldTransform[]
   ) {}
+}
 
-  toMutations(key: DocumentKey, precondition: Precondition): Mutation[] {
-    const mutations = [
-      new PatchMutation(key, this.data, this.fieldMask, precondition)
-    ] as Mutation[];
-    if (this.fieldTransforms.length > 0) {
-      mutations.push(new TransformMutation(key, this.fieldTransforms));
-    }
-    return mutations;
+export function convertUpdateToMutations(
+  parseUpdateData: ParsedUpdateData,
+  key: DocumentKey,
+  precondition: Precondition
+): Mutation[] {
+  const mutations = [
+    new PatchMutation(
+      key,
+      parseUpdateData.data,
+      parseUpdateData.fieldMask,
+      precondition
+    )
+  ] as Mutation[];
+  if (parseUpdateData.fieldTransforms.length > 0) {
+    mutations.push(new TransformMutation(key, parseUpdateData.fieldTransforms));
   }
+  return mutations;
+}
+
+export function convertUpdateToWrites(
+  parseUpdateData: ParsedUpdateData,
+  serializer: JsonProtoSerializer,
+  key: DocumentKey,
+  precondition: Precondition
+): api.Write[] {
+  const writes: api.Write[] = [];
+  writes.push({
+    update: toMutationDocument(serializer, key, parseUpdateData.data),
+    updateMask: toDocumentMask(parseUpdateData.fieldMask),
+    currentDocument: toPrecondition(serializer, precondition)
+  });
+
+  if (parseUpdateData.fieldTransforms.length > 0) {
+    writes.push({
+      transform: {
+        document: toName(serializer, key),
+        fieldTransforms: parseUpdateData.fieldTransforms.map(transform =>
+          toFieldTransform(serializer, transform)
+        )
+      }
+    });
+  }
+
+  return writes;
+}
+
+/** Creates a Write Protobuf for a document delete. */
+export function convertDeleteToWrite(
+  serializer: JsonProtoSerializer,
+  key: DocumentKey,
+  precondition: Precondition
+): api.Write {
+  return {
+    delete: toName(serializer, key),
+    currentDocument: toPrecondition(serializer, precondition)
+  };
+}
+
+/** Creates a Write Protobuf for a document verify. */
+export function convertVerifyToWrite(
+  serializer: JsonProtoSerializer,
+  key: DocumentKey,
+  precondition: Precondition
+): api.Write {
+  return {
+    verify: toName(serializer, key),
+    currentDocument: toPrecondition(serializer, precondition)
+  };
 }
 
 /*
@@ -386,6 +489,7 @@ export class UserDataReader {
     }
 
     return new ParsedSetData(
+      this.serializer,
       new ObjectValue(updateData),
       fieldMask,
       fieldTransforms

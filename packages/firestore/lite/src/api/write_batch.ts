@@ -14,17 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as api from '../../../src/protos/firestore_proto_api';
 
 import * as firestore from '../../index';
-import {
-  DeleteMutation,
-  Mutation,
-  Precondition
-} from '../../../src/model/mutation';
+import { Precondition } from '../../../src/model/mutation';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { applyFirestoreDataConverter } from '../../../src/api/database';
 import {
   DocumentKeyReference,
+  convertDeleteToWrite,
+  convertSetToWrites,
+  convertUpdateToWrites,
   UserDataReader
 } from '../../../src/api/user_data_reader';
 import { cast } from './util';
@@ -32,20 +32,21 @@ import { DocumentReference, newUserDataReader } from './reference';
 import { Firestore } from './database';
 import { invokeCommitRpc } from '../../../src/remote/datastore';
 import { FieldPath } from './field_path';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import { newSerializer } from '../../../src/platform/serializer';
 
 export class WriteBatch implements firestore.WriteBatch {
   // This is the lite version of the WriteBatch API used in the legacy SDK. The
   // class is a close copy but takes different input types.
 
   private readonly _dataReader: UserDataReader;
-  private _mutations = [] as Mutation[];
+  private readonly _serializer: JsonProtoSerializer;
+  private _writes = [] as api.Write[];
   private _committed = false;
 
-  constructor(
-    private readonly _firestore: Firestore,
-    private readonly _commitHandler: (m: Mutation[]) => Promise<void>
-  ) {
+  constructor(private readonly _firestore: Firestore) {
     this._dataReader = newUserDataReader(_firestore);
+    this._serializer = newSerializer(_firestore._databaseId);
   }
 
   set<T>(documentRef: firestore.DocumentReference<T>, value: T): WriteBatch;
@@ -74,8 +75,13 @@ export class WriteBatch implements firestore.WriteBatch {
       ref._converter !== null,
       options
     );
-    this._mutations = this._mutations.concat(
-      parsed.toMutations(ref._key, Precondition.none())
+    this._writes = this._writes.concat(
+      convertSetToWrites(
+        parsed,
+        this._serializer,
+        ref._key,
+        Precondition.none()
+      )
     );
     return this;
   }
@@ -120,8 +126,13 @@ export class WriteBatch implements firestore.WriteBatch {
       );
     }
 
-    this._mutations = this._mutations.concat(
-      parsed.toMutations(ref._key, Precondition.exists(true))
+    this._writes = this._writes.concat(
+      convertUpdateToWrites(
+        parsed,
+        this._serializer,
+        ref._key,
+        Precondition.exists(true)
+      )
     );
     return this;
   }
@@ -129,8 +140,8 @@ export class WriteBatch implements firestore.WriteBatch {
   delete(documentRef: firestore.DocumentReference<unknown>): WriteBatch {
     this.verifyNotCommitted();
     const ref = validateReference(documentRef, this._firestore);
-    this._mutations = this._mutations.concat(
-      new DeleteMutation(ref._key, Precondition.none())
+    this._writes = this._writes.concat(
+      convertDeleteToWrite(this._serializer, ref._key, Precondition.none())
     );
     return this;
   }
@@ -138,8 +149,10 @@ export class WriteBatch implements firestore.WriteBatch {
   commit(): Promise<void> {
     this.verifyNotCommitted();
     this._committed = true;
-    if (this._mutations.length > 0) {
-      return this._commitHandler(this._mutations);
+    if (this._writes.length > 0) {
+      return this._firestore
+        ._getDatastore()
+        .then(datastore => invokeCommitRpc(datastore, this._writes));
     }
 
     return Promise.resolve();
@@ -174,9 +187,5 @@ export function writeBatch(
   firestore: firestore.FirebaseFirestore
 ): firestore.WriteBatch {
   const firestoreImpl = cast(firestore, Firestore);
-  return new WriteBatch(firestoreImpl, writes =>
-    firestoreImpl
-      ._getDatastore()
-      .then(datastore => invokeCommitRpc(datastore, writes))
-  );
+  return new WriteBatch(firestoreImpl);
 }

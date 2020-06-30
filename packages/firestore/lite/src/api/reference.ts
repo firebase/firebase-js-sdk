@@ -23,7 +23,10 @@ import { Firestore } from './database';
 import {
   DocumentKeyReference,
   ParsedUpdateData,
-  UserDataReader
+  convertSetToWrites,
+  convertUpdateToWrites,
+  UserDataReader,
+  convertDeleteToWrite
 } from '../../../src/api/user_data_reader';
 import {
   Bound,
@@ -35,9 +38,9 @@ import { ResourcePath } from '../../../src/model/path';
 import { AutoId } from '../../../src/util/misc';
 import {
   DocumentSnapshot,
+  fieldPathFromArgument,
   QueryDocumentSnapshot,
-  QuerySnapshot,
-  fieldPathFromArgument
+  QuerySnapshot
 } from './snapshot';
 import {
   invokeBatchGetDocumentsRpc,
@@ -45,7 +48,7 @@ import {
   invokeRunQueryRpc
 } from '../../../src/remote/datastore';
 import { hardAssert } from '../../../src/util/assert';
-import { DeleteMutation, Precondition } from '../../../src/model/mutation';
+import { Precondition } from '../../../src/model/mutation';
 import {
   applyFirestoreDataConverter,
   BaseQuery,
@@ -477,7 +480,12 @@ export function setDoc<T>(
     .then(datastore =>
       invokeCommitRpc(
         datastore,
-        parsed.toMutations(ref._key, Precondition.none())
+        convertSetToWrites(
+          parsed,
+          datastore.serializer,
+          ref._key,
+          Precondition.none()
+        )
       )
     );
 }
@@ -526,7 +534,12 @@ export function updateDoc(
     .then(datastore =>
       invokeCommitRpc(
         datastore,
-        parsed.toMutations(ref._key, Precondition.exists(true))
+        convertUpdateToWrites(
+          parsed,
+          datastore.serializer,
+          ref._key,
+          Precondition.exists(true)
+        )
       )
     );
 }
@@ -539,7 +552,11 @@ export function deleteDoc(
     ._getDatastore()
     .then(datastore =>
       invokeCommitRpc(datastore, [
-        new DeleteMutation(ref._key, Precondition.none())
+        convertDeleteToWrite(
+          datastore.serializer,
+          ref._key,
+          Precondition.none()
+        )
       ])
     );
 }
@@ -567,7 +584,12 @@ export function addDoc<T>(
     .then(datastore =>
       invokeCommitRpc(
         datastore,
-        parsed.toMutations(docRef._key, Precondition.exists(false))
+        convertSetToWrites(
+          parsed,
+          datastore.serializer,
+          docRef._key,
+          Precondition.exists(false)
+        )
       )
     )
     .then(() => docRef);

@@ -90,6 +90,8 @@ import {
 import {
   DocumentKeyReference,
   fieldPathFromArgument,
+  convertSetToMutations,
+  convertUpdateToMutations,
   UntypedFirestoreDataConverter,
   UserDataReader
 } from './user_data_reader';
@@ -864,7 +866,7 @@ export class WriteBatch implements firestore.WriteBatch {
       options
     );
     this._mutations = this._mutations.concat(
-      parsed.toMutations(ref._key, Precondition.none())
+      convertSetToMutations(parsed, ref._key, Precondition.none())
     );
     return this;
   }
@@ -922,7 +924,7 @@ export class WriteBatch implements firestore.WriteBatch {
     }
 
     this._mutations = this._mutations.concat(
-      parsed.toMutations(ref._key, Precondition.exists(true))
+      convertUpdateToMutations(parsed, ref._key, Precondition.exists(true))
     );
     return this;
   }
@@ -1064,7 +1066,7 @@ export class DocumentReference<T = firestore.DocumentData>
       options
     );
     return this._firestoreClient.write(
-      parsed.toMutations(this._key, Precondition.none())
+      convertSetToMutations(parsed, this._key, Precondition.none())
     );
   }
 
@@ -1103,7 +1105,7 @@ export class DocumentReference<T = firestore.DocumentData>
     }
 
     return this._firestoreClient.write(
-      parsed.toMutations(this._key, Precondition.exists(true))
+      convertUpdateToMutations(parsed, this._key, Precondition.exists(true))
     );
   }
 

@@ -57,7 +57,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 21896
+        "sizeInBytes": 21899
     },
     "CollectionReference": {
         "dependencies": {
@@ -199,7 +199,6 @@
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteFieldValueImpl",
-                "Document",
                 "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
@@ -219,8 +218,6 @@
                 "JsonProtoSerializer",
                 "KeyFieldFilter",
                 "KeyFieldInFilter",
-                "MaybeDocument",
-                "Mutation",
                 "OAuthToken",
                 "ObjectValue",
                 "ObjectValueBuilder",
@@ -228,27 +225,21 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
-                "Precondition",
                 "Query",
                 "Query$1",
                 "QueryDocumentSnapshot",
                 "ResourcePath",
                 "SerializableFieldValue",
-                "SetMutation",
-                "SnapshotVersion",
                 "StreamBridge",
                 "TargetImpl",
                 "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
                 "UserDataReader",
                 "UserDataWriter"
             ],
             "variables": []
         },
-        "sizeInBytes": 99162
+        "sizeInBytes": 89385
     },
     "DocumentReference": {
         "dependencies": {
@@ -294,7 +285,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17572
+        "sizeInBytes": 17575
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -383,7 +374,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 38715
+        "sizeInBytes": 38718
     },
     "FieldPath": {
         "dependencies": {
@@ -439,7 +430,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23529
+        "sizeInBytes": 23532
     },
     "FieldValue": {
         "dependencies": {
@@ -485,7 +476,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17164
+        "sizeInBytes": 17167
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -529,7 +520,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17071
+        "sizeInBytes": 17074
     },
     "GeoPoint": {
         "dependencies": {
@@ -582,7 +573,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19960
+        "sizeInBytes": 19963
     },
     "Query": {
         "dependencies": {
@@ -698,7 +689,6 @@
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteFieldValueImpl",
-                "Document",
                 "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
@@ -718,8 +708,6 @@
                 "JsonProtoSerializer",
                 "KeyFieldFilter",
                 "KeyFieldInFilter",
-                "MaybeDocument",
-                "Mutation",
                 "OAuthToken",
                 "ObjectValue",
                 "ObjectValueBuilder",
@@ -727,25 +715,19 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
-                "Precondition",
                 "Query$1",
                 "QueryDocumentSnapshot",
                 "ResourcePath",
                 "SerializableFieldValue",
-                "SetMutation",
-                "SnapshotVersion",
                 "StreamBridge",
                 "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
                 "UserDataReader",
                 "UserDataWriter"
             ],
             "variables": []
         },
-        "sizeInBytes": 85476
+        "sizeInBytes": 75699
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -834,7 +816,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 38720
+        "sizeInBytes": 38723
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -879,7 +861,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17305
+        "sizeInBytes": 17308
     },
     "Timestamp": {
         "dependencies": {
@@ -924,7 +906,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18607
+        "sizeInBytes": 18610
     },
     "Transaction": {
         "dependencies": {
@@ -1039,7 +1021,6 @@
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "MaybeDocument",
-                "Mutation",
                 "NoDocument",
                 "OAuthToken",
                 "ObjectValue",
@@ -1047,25 +1028,19 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
-                "Precondition",
                 "QueryDocumentSnapshot",
                 "ResourcePath",
                 "SerializableFieldValue",
-                "SetMutation",
-                "SnapshotVersion",
                 "StreamBridge",
                 "Timestamp",
                 "Transaction$1",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
                 "UserDataReader",
                 "UserDataWriter"
             ],
             "variables": []
         },
-        "sizeInBytes": 69588
+        "sizeInBytes": 61028
     },
     "WriteBatch": {
         "dependencies": {
@@ -1078,6 +1053,9 @@
                 "blobEquals",
                 "cast",
                 "coercedFieldValuesArray",
+                "convertDeleteToWrite",
+                "convertSetToWrites",
+                "convertUpdateToWrites",
                 "createError",
                 "createMetadata",
                 "debugAssert",
@@ -1145,7 +1123,6 @@
                 "toDouble",
                 "toFieldTransform",
                 "toInteger",
-                "toMutation",
                 "toMutationDocument",
                 "toName",
                 "toNumber",
@@ -1178,7 +1155,6 @@
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteFieldValueImpl",
-                "DeleteMutation",
                 "Document",
                 "DocumentKeyReference",
                 "DocumentReference",
@@ -1193,8 +1169,6 @@
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "MaybeDocument",
-                "Mutation",
-                "NoDocument",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
                 "ObjectValue",
@@ -1202,25 +1176,19 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
                 "Precondition",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
-                "SetMutation",
-                "SnapshotVersion",
                 "StreamBridge",
                 "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
                 "UserDataReader",
-                "VerifyMutation",
                 "WriteBatch"
             ],
             "variables": []
         },
-        "sizeInBytes": 72512
+        "sizeInBytes": 63272
     },
     "addDoc": {
         "dependencies": {
@@ -1257,6 +1225,7 @@
                 "compareNumbers",
                 "compareReferences",
                 "compareTimestamps",
+                "convertSetToWrites",
                 "createError",
                 "createMetadata",
                 "debugAssert",
@@ -1343,7 +1312,6 @@
                 "toDouble",
                 "toFieldTransform",
                 "toInteger",
-                "toMutation",
                 "toMutationDocument",
                 "toName",
                 "toNumber",
@@ -1384,7 +1352,6 @@
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteFieldValueImpl",
-                "DeleteMutation",
                 "Document",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -1406,8 +1373,6 @@
                 "KeyFieldFilter",
                 "KeyFieldInFilter",
                 "MaybeDocument",
-                "Mutation",
-                "NoDocument",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
                 "ObjectValue",
@@ -1416,7 +1381,6 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
                 "Precondition",
                 "Query",
                 "Query$1",
@@ -1424,21 +1388,16 @@
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
-                "SetMutation",
-                "SnapshotVersion",
                 "StreamBridge",
                 "TargetImpl",
                 "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
                 "UserDataReader",
-                "UserDataWriter",
-                "VerifyMutation"
+                "UserDataWriter"
             ],
             "variables": []
         },
-        "sizeInBytes": 109513
+        "sizeInBytes": 99322
     },
     "arrayRemove": {
         "dependencies": {
@@ -1549,7 +1508,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 42383
+        "sizeInBytes": 42386
     },
     "arrayUnion": {
         "dependencies": {
@@ -1660,7 +1619,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 42391
+        "sizeInBytes": 42394
     },
     "collection": {
         "dependencies": {
@@ -1804,7 +1763,6 @@
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteFieldValueImpl",
-                "Document",
                 "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
@@ -1824,8 +1782,6 @@
                 "JsonProtoSerializer",
                 "KeyFieldFilter",
                 "KeyFieldInFilter",
-                "MaybeDocument",
-                "Mutation",
                 "OAuthToken",
                 "ObjectValue",
                 "ObjectValueBuilder",
@@ -1833,27 +1789,21 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
-                "Precondition",
                 "Query",
                 "Query$1",
                 "QueryDocumentSnapshot",
                 "ResourcePath",
                 "SerializableFieldValue",
-                "SetMutation",
-                "SnapshotVersion",
                 "StreamBridge",
                 "TargetImpl",
                 "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
                 "UserDataReader",
                 "UserDataWriter"
             ],
             "variables": []
         },
-        "sizeInBytes": 99790
+        "sizeInBytes": 90013
     },
     "collectionGroup": {
         "dependencies": {
@@ -1995,7 +1945,6 @@
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteFieldValueImpl",
-                "Document",
                 "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
@@ -2015,8 +1964,6 @@
                 "JsonProtoSerializer",
                 "KeyFieldFilter",
                 "KeyFieldInFilter",
-                "MaybeDocument",
-                "Mutation",
                 "OAuthToken",
                 "ObjectValue",
                 "ObjectValueBuilder",
@@ -2024,58 +1971,38 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
-                "Precondition",
                 "Query",
                 "Query$1",
                 "QueryDocumentSnapshot",
                 "ResourcePath",
                 "SerializableFieldValue",
-                "SetMutation",
-                "SnapshotVersion",
                 "StreamBridge",
                 "TargetImpl",
                 "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
                 "UserDataReader",
                 "UserDataWriter"
             ],
             "variables": []
         },
-        "sizeInBytes": 99222
+        "sizeInBytes": 89445
     },
     "deleteDoc": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "arrayEquals",
-                "binaryStringFromUint8Array",
-                "blobEquals",
                 "cast",
-                "coercedFieldValuesArray",
+                "convertDeleteToWrite",
                 "createMetadata",
                 "debugAssert",
                 "debugCast",
-                "decodeBase64",
                 "deleteDoc",
-                "encodeBase64",
                 "fail",
                 "formatJSON",
                 "fullyQualifiedPrefixPath",
-                "geoPointEquals",
                 "getEncodedDatabaseId",
-                "getLocalWriteTime",
                 "hardAssert",
                 "invokeCommitRpc",
-                "isArray",
-                "isDouble",
-                "isInteger",
-                "isMapValue",
-                "isNegativeZero",
-                "isNumber",
-                "isServerTimestamp",
                 "loadProtos",
                 "logDebug",
                 "logError",
@@ -2085,76 +2012,41 @@
                 "newDatastore",
                 "newSerializer",
                 "nodePromise",
-                "normalizeByteString",
-                "normalizeNumber",
-                "normalizeTimestamp",
-                "numberEquals",
-                "objectEquals",
-                "objectSize",
                 "primitiveComparator",
                 "registerFirestore",
-                "serverTimestamp",
                 "terminate",
                 "terminateDatastore",
-                "timestampEquals",
-                "toDocumentMask",
-                "toDouble",
-                "toFieldTransform",
-                "toInteger",
-                "toMutation",
-                "toMutationDocument",
                 "toName",
                 "toPrecondition",
                 "toResourceName",
                 "toTimestamp",
-                "toVersion",
-                "typeOrder",
-                "uint8ArrayFromBinaryString",
-                "valueEquals"
+                "toVersion"
             ],
             "classes": [
-                "ArrayRemoveTransformOperation",
-                "ArrayUnionTransformOperation",
                 "BasePath",
-                "ByteString",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DeleteMutation",
                 "Document",
                 "DocumentKeyReference",
                 "DocumentReference",
-                "FieldPath",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "MaybeDocument",
-                "Mutation",
-                "NoDocument",
-                "NumericIncrementTransformOperation",
                 "OAuthToken",
-                "ObjectValue",
-                "ObjectValueBuilder",
-                "PatchMutation",
                 "Precondition",
                 "ResourcePath",
-                "ServerTimestampTransform",
-                "SetMutation",
-                "SnapshotVersion",
                 "StreamBridge",
-                "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
-                "User",
-                "VerifyMutation"
+                "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 50238
+        "sizeInBytes": 24018
     },
     "deleteField": {
         "dependencies": {
@@ -2203,7 +2095,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18238
+        "sizeInBytes": 18241
     },
     "doc": {
         "dependencies": {
@@ -2349,7 +2241,6 @@
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteFieldValueImpl",
-                "Document",
                 "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
@@ -2369,8 +2260,6 @@
                 "JsonProtoSerializer",
                 "KeyFieldFilter",
                 "KeyFieldInFilter",
-                "MaybeDocument",
-                "Mutation",
                 "OAuthToken",
                 "ObjectValue",
                 "ObjectValueBuilder",
@@ -2378,27 +2267,21 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
-                "Precondition",
                 "Query",
                 "Query$1",
                 "QueryDocumentSnapshot",
                 "ResourcePath",
                 "SerializableFieldValue",
-                "SetMutation",
-                "SnapshotVersion",
                 "StreamBridge",
                 "TargetImpl",
                 "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
                 "UserDataReader",
                 "UserDataWriter"
             ],
             "variables": []
         },
-        "sizeInBytes": 100611
+        "sizeInBytes": 90834
     },
     "documentId": {
         "dependencies": {
@@ -2455,7 +2338,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23579
+        "sizeInBytes": 23582
     },
     "getDoc": {
         "dependencies": {
@@ -2575,7 +2458,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 47948
+        "sizeInBytes": 47951
     },
     "getFirestore": {
         "dependencies": {
@@ -2620,7 +2503,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17150
+        "sizeInBytes": 17153
     },
     "getQuery": {
         "dependencies": {
@@ -2734,6 +2617,7 @@
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
                 "validateExactNumberOfArgs",
+                "validateHasExplicitOrderByForLimitToLast",
                 "validateNamedArrayAtLeastNumberOfElements",
                 "validatePlainObject",
                 "validatePositiveNumber",
@@ -2778,7 +2662,6 @@
                 "KeyFieldFilter",
                 "KeyFieldInFilter",
                 "MaybeDocument",
-                "Mutation",
                 "OAuthToken",
                 "ObjectValue",
                 "ObjectValueBuilder",
@@ -2786,26 +2669,21 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
-                "Precondition",
                 "Query$1",
                 "QueryDocumentSnapshot",
                 "QuerySnapshot",
                 "ResourcePath",
                 "SerializableFieldValue",
-                "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
                 "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
                 "UserDataReader",
                 "UserDataWriter"
             ],
             "variables": []
         },
-        "sizeInBytes": 91235
+        "sizeInBytes": 83253
     },
     "increment": {
         "dependencies": {
@@ -2916,7 +2794,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 42341
+        "sizeInBytes": 42344
     },
     "initializeFirestore": {
         "dependencies": {
@@ -2961,7 +2839,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17236
+        "sizeInBytes": 17239
     },
     "parent": {
         "dependencies": {
@@ -3104,7 +2982,6 @@
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteFieldValueImpl",
-                "Document",
                 "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
@@ -3124,8 +3001,6 @@
                 "JsonProtoSerializer",
                 "KeyFieldFilter",
                 "KeyFieldInFilter",
-                "MaybeDocument",
-                "Mutation",
                 "OAuthToken",
                 "ObjectValue",
                 "ObjectValueBuilder",
@@ -3133,27 +3008,21 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
-                "Precondition",
                 "Query",
                 "Query$1",
                 "QueryDocumentSnapshot",
                 "ResourcePath",
                 "SerializableFieldValue",
-                "SetMutation",
-                "SnapshotVersion",
                 "StreamBridge",
                 "TargetImpl",
                 "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
                 "UserDataReader",
                 "UserDataWriter"
             ],
             "variables": []
         },
-        "sizeInBytes": 99505
+        "sizeInBytes": 89728
     },
     "queryEqual": {
         "dependencies": {
@@ -3270,7 +3139,6 @@
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteFieldValueImpl",
-                "Document",
                 "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
@@ -3290,8 +3158,6 @@
                 "JsonProtoSerializer",
                 "KeyFieldFilter",
                 "KeyFieldInFilter",
-                "MaybeDocument",
-                "Mutation",
                 "OAuthToken",
                 "ObjectValue",
                 "ObjectValueBuilder",
@@ -3299,25 +3165,19 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
-                "Precondition",
                 "Query$1",
                 "QueryDocumentSnapshot",
                 "ResourcePath",
                 "SerializableFieldValue",
-                "SetMutation",
-                "SnapshotVersion",
                 "StreamBridge",
                 "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
                 "UserDataReader",
                 "UserDataWriter"
             ],
             "variables": []
         },
-        "sizeInBytes": 85680
+        "sizeInBytes": 75903
     },
     "refEqual": {
         "dependencies": {
@@ -3460,7 +3320,6 @@
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteFieldValueImpl",
-                "Document",
                 "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
@@ -3480,8 +3339,6 @@
                 "JsonProtoSerializer",
                 "KeyFieldFilter",
                 "KeyFieldInFilter",
-                "MaybeDocument",
-                "Mutation",
                 "OAuthToken",
                 "ObjectValue",
                 "ObjectValueBuilder",
@@ -3489,27 +3346,21 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
-                "Precondition",
                 "Query",
                 "Query$1",
                 "QueryDocumentSnapshot",
                 "ResourcePath",
                 "SerializableFieldValue",
-                "SetMutation",
-                "SnapshotVersion",
                 "StreamBridge",
                 "TargetImpl",
                 "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
                 "UserDataReader",
                 "UserDataWriter"
             ],
             "variables": []
         },
-        "sizeInBytes": 99447
+        "sizeInBytes": 89670
     },
     "runTransaction": {
         "dependencies": {
@@ -3523,6 +3374,10 @@
                 "blobEquals",
                 "cast",
                 "coercedFieldValuesArray",
+                "convertDeleteToWrite",
+                "convertSetToWrites",
+                "convertUpdateToWrites",
+                "convertVerifyToWrite",
                 "createError",
                 "createMetadata",
                 "debugAssert",
@@ -3608,7 +3463,6 @@
                 "toDouble",
                 "toFieldTransform",
                 "toInteger",
-                "toMutation",
                 "toMutationDocument",
                 "toName",
                 "toNumber",
@@ -3643,7 +3497,6 @@
                 "Deferred",
                 "DelayedOperation",
                 "DeleteFieldValueImpl",
-                "DeleteMutation",
                 "Document",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -3661,7 +3514,6 @@
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "MaybeDocument",
-                "Mutation",
                 "NoDocument",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -3670,29 +3522,24 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
                 "Precondition",
                 "QueryDocumentSnapshot",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
-                "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
                 "Timestamp",
                 "Transaction",
                 "Transaction$1",
                 "TransactionRunner",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
                 "UserDataReader",
-                "UserDataWriter",
-                "VerifyMutation"
+                "UserDataWriter"
             ],
             "variables": []
         },
-        "sizeInBytes": 91963
+        "sizeInBytes": 84048
     },
     "serverTimestamp": {
         "dependencies": {
@@ -3744,7 +3591,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19024
+        "sizeInBytes": 19027
     },
     "setDoc": {
         "dependencies": {
@@ -3757,6 +3604,7 @@
                 "blobEquals",
                 "cast",
                 "coercedFieldValuesArray",
+                "convertSetToWrites",
                 "createError",
                 "createMetadata",
                 "debugAssert",
@@ -3825,7 +3673,6 @@
                 "toDouble",
                 "toFieldTransform",
                 "toInteger",
-                "toMutation",
                 "toMutationDocument",
                 "toName",
                 "toNumber",
@@ -3857,7 +3704,6 @@
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteFieldValueImpl",
-                "DeleteMutation",
                 "Document",
                 "DocumentKeyReference",
                 "DocumentReference",
@@ -3871,8 +3717,6 @@
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "MaybeDocument",
-                "Mutation",
-                "NoDocument",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
                 "ObjectValue",
@@ -3880,24 +3724,18 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
                 "Precondition",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
-                "SetMutation",
-                "SnapshotVersion",
                 "StreamBridge",
                 "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
-                "UserDataReader",
-                "VerifyMutation"
+                "UserDataReader"
             ],
             "variables": []
         },
-        "sizeInBytes": 70801
+        "sizeInBytes": 60838
     },
     "setLogLevel": {
         "dependencies": {
@@ -3942,7 +3780,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17115
+        "sizeInBytes": 17118
     },
     "snapshotEqual": {
         "dependencies": {
@@ -4060,7 +3898,6 @@
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteFieldValueImpl",
-                "Document",
                 "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
@@ -4080,8 +3917,6 @@
                 "JsonProtoSerializer",
                 "KeyFieldFilter",
                 "KeyFieldInFilter",
-                "MaybeDocument",
-                "Mutation",
                 "OAuthToken",
                 "ObjectValue",
                 "ObjectValueBuilder",
@@ -4089,26 +3924,20 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
-                "Precondition",
                 "Query$1",
                 "QueryDocumentSnapshot",
                 "QuerySnapshot",
                 "ResourcePath",
                 "SerializableFieldValue",
-                "SetMutation",
-                "SnapshotVersion",
                 "StreamBridge",
                 "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
                 "UserDataReader",
                 "UserDataWriter"
             ],
             "variables": []
         },
-        "sizeInBytes": 86413
+        "sizeInBytes": 76636
     },
     "terminate": {
         "dependencies": {
@@ -4152,7 +3981,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17050
+        "sizeInBytes": 17053
     },
     "updateDoc": {
         "dependencies": {
@@ -4164,6 +3993,7 @@
                 "blobEquals",
                 "cast",
                 "coercedFieldValuesArray",
+                "convertUpdateToWrites",
                 "createError",
                 "createMetadata",
                 "debugAssert",
@@ -4231,7 +4061,6 @@
                 "toDouble",
                 "toFieldTransform",
                 "toInteger",
-                "toMutation",
                 "toMutationDocument",
                 "toName",
                 "toNumber",
@@ -4264,7 +4093,6 @@
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteFieldValueImpl",
-                "DeleteMutation",
                 "Document",
                 "DocumentKeyReference",
                 "DocumentReference",
@@ -4279,8 +4107,6 @@
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "MaybeDocument",
-                "Mutation",
-                "NoDocument",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
                 "ObjectValue",
@@ -4288,24 +4114,18 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
                 "Precondition",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
-                "SetMutation",
-                "SnapshotVersion",
                 "StreamBridge",
                 "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
-                "UserDataReader",
-                "VerifyMutation"
+                "UserDataReader"
             ],
             "variables": []
         },
-        "sizeInBytes": 70838
+        "sizeInBytes": 60837
     },
     "writeBatch": {
         "dependencies": {
@@ -4318,6 +4138,9 @@
                 "blobEquals",
                 "cast",
                 "coercedFieldValuesArray",
+                "convertDeleteToWrite",
+                "convertSetToWrites",
+                "convertUpdateToWrites",
                 "createError",
                 "createMetadata",
                 "debugAssert",
@@ -4385,7 +4208,6 @@
                 "toDouble",
                 "toFieldTransform",
                 "toInteger",
-                "toMutation",
                 "toMutationDocument",
                 "toName",
                 "toNumber",
@@ -4419,7 +4241,6 @@
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteFieldValueImpl",
-                "DeleteMutation",
                 "Document",
                 "DocumentKeyReference",
                 "DocumentReference",
@@ -4434,8 +4255,6 @@
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "MaybeDocument",
-                "Mutation",
-                "NoDocument",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
                 "ObjectValue",
@@ -4443,24 +4262,18 @@
                 "ParseContext",
                 "ParsedSetData",
                 "ParsedUpdateData",
-                "PatchMutation",
                 "Precondition",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
-                "SetMutation",
-                "SnapshotVersion",
                 "StreamBridge",
                 "Timestamp",
-                "TransformMutation",
-                "UnknownDocument",
                 "User",
                 "UserDataReader",
-                "VerifyMutation",
                 "WriteBatch"
             ],
             "variables": []
         },
-        "sizeInBytes": 72592
+        "sizeInBytes": 63386
     }
 }

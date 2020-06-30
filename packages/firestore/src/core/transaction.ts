@@ -15,25 +15,29 @@
  * limitations under the License.
  */
 
-import { ParsedSetData, ParsedUpdateData } from '../api/user_data_reader';
+import * as api from '../protos/firestore_proto_api';
+import {
+  ParsedSetData,
+  ParsedUpdateData,
+  convertDeleteToWrite,
+  convertSetToWrites,
+  convertUpdateToWrites,
+  convertVerifyToWrite
+} from '../api/user_data_reader';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 
 import { DocumentKey } from '../model/document_key';
-import {
-  DeleteMutation,
-  Mutation,
-  Precondition,
-  VerifyMutation
-} from '../model/mutation';
+import { Precondition } from '../model/mutation';
 import {
   Datastore,
   invokeBatchGetDocumentsRpc,
   invokeCommitRpc
 } from '../remote/datastore';
-import { fail, debugAssert } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { SnapshotVersion } from './snapshot_version';
 import { ResourcePath } from '../model/path';
+import { fromName } from '../remote/serializer';
 
 /**
  * Internal transaction object responsible for accumulating the mutations to
@@ -42,7 +46,7 @@ import { ResourcePath } from '../model/path';
 export class Transaction {
   // The version of each document that was read during this transaction.
   private readVersions = new Map</* path */ string, SnapshotVersion>();
-  private mutations: Mutation[] = [];
+  private writes: api.Write[] = [];
   private committed = false;
 
   /**
@@ -57,14 +61,14 @@ export class Transaction {
    * When there's more than one write to the same key in a transaction, any
    * writes after the first are handled differently.
    */
-  private writtenDocs: Set<DocumentKey> = new Set();
+  private writtenDocs: Set<string> = new Set();
 
   constructor(private datastore: Datastore) {}
 
   async lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
     this.ensureCommitNotCalled();
 
-    if (this.mutations.length > 0) {
+    if (this.writes.length > 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Firestore transactions require all reads to be executed before all writes.'
@@ -82,22 +86,42 @@ export class Transaction {
   }
 
   set(key: DocumentKey, data: ParsedSetData): void {
-    this.write(data.toMutations(key, this.precondition(key)));
-    this.writtenDocs.add(key);
+    this.write(
+      convertSetToWrites(
+        data,
+        this.datastore.serializer,
+        key,
+        this.precondition(key)
+      )
+    );
+    this.writtenDocs.add(key.toString());
   }
 
   update(key: DocumentKey, data: ParsedUpdateData): void {
     try {
-      this.write(data.toMutations(key, this.preconditionForUpdate(key)));
+      this.write(
+        convertUpdateToWrites(
+          data,
+          this.datastore.serializer,
+          key,
+          this.preconditionForUpdate(key)
+        )
+      );
     } catch (e) {
       this.lastWriteError = e;
     }
-    this.writtenDocs.add(key);
+    this.writtenDocs.add(key.toString());
   }
 
   delete(key: DocumentKey): void {
-    this.write([new DeleteMutation(key, this.precondition(key))]);
-    this.writtenDocs.add(key);
+    this.write([
+      convertDeleteToWrite(
+        this.datastore.serializer,
+        key,
+        this.precondition(key)
+      )
+    ]);
+    this.writtenDocs.add(key.toString());
   }
 
   async commit(): Promise<void> {
@@ -108,16 +132,25 @@ export class Transaction {
     }
     const unwritten = this.readVersions;
     // For each mutation, note that the doc was written.
-    this.mutations.forEach(mutation => {
-      unwritten.delete(mutation.key.toString());
+    this.writes.forEach(write => {
+      const encodedPath = write.update ? write.update.name : write.delete;
+      debugAssert(!!encodedPath, 'Expected to find a key');
+      const key = fromName(this.datastore.serializer, encodedPath);
+      unwritten.delete(key.toString());
     });
     // For each document that was read but not written to, we want to perform
     // a `verify` operation.
     unwritten.forEach((_, path) => {
       const key = new DocumentKey(ResourcePath.fromString(path));
-      this.mutations.push(new VerifyMutation(key, this.precondition(key)));
+      this.writes.push(
+        convertVerifyToWrite(
+          this.datastore.serializer,
+          key,
+          this.precondition(key)
+        )
+      );
     });
-    await invokeCommitRpc(this.datastore, this.mutations);
+    await invokeCommitRpc(this.datastore, this.writes);
     this.committed = true;
   }
 
@@ -153,7 +186,7 @@ export class Transaction {
    */
   private precondition(key: DocumentKey): Precondition {
     const version = this.readVersions.get(key.toString());
-    if (!this.writtenDocs.has(key) && version) {
+    if (!this.writtenDocs.has(key.toString()) && version) {
       return Precondition.updateTime(version);
     } else {
       return Precondition.none();
@@ -167,7 +200,7 @@ export class Transaction {
     const version = this.readVersions.get(key.toString());
     // The first time a document is written, we want to take into account the
     // read time and existence
-    if (!this.writtenDocs.has(key) && version) {
+    if (!this.writtenDocs.has(key.toString()) && version) {
       if (version.isEqual(SnapshotVersion.min())) {
         // The document doesn't exist, so fail the transaction.
 
@@ -194,9 +227,9 @@ export class Transaction {
     }
   }
 
-  private write(mutations: Mutation[]): void {
+  private write(write: api.Write[]): void {
     this.ensureCommitNotCalled();
-    this.mutations = this.mutations.concat(mutations);
+    this.writes = this.writes.concat(write);
   }
 
   private ensureCommitNotCalled(): void {

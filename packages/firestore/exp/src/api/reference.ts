@@ -22,7 +22,9 @@ import * as firestore from '../../index';
 import { Firestore } from './database';
 import {
   DocumentKeyReference,
-  ParsedUpdateData
+  ParsedUpdateData,
+  convertSetToMutations,
+  convertUpdateToMutations
 } from '../../../src/api/user_data_reader';
 import { debugAssert } from '../../../src/util/assert';
 import { cast } from '../../../lite/src/api/util';
@@ -185,7 +187,9 @@ export function setDoc<T>(
   return firestore
     ._getFirestoreClient()
     .then(firestoreClient =>
-      firestoreClient.write(parsed.toMutations(ref._key, Precondition.none()))
+      firestoreClient.write(
+        convertSetToMutations(parsed, ref._key, Precondition.none())
+      )
     );
 }
 
@@ -233,7 +237,7 @@ export function updateDoc(
     ._getFirestoreClient()
     .then(firestoreClient =>
       firestoreClient.write(
-        parsed.toMutations(ref._key, Precondition.exists(true))
+        convertUpdateToMutations(parsed, ref._key, Precondition.exists(true))
       )
     );
 }
@@ -272,7 +276,7 @@ export function addDoc<T>(
     ._getFirestoreClient()
     .then(firestoreClient =>
       firestoreClient.write(
-        parsed.toMutations(docRef._key, Precondition.exists(false))
+        convertSetToMutations(parsed, docRef._key, Precondition.exists(false))
       )
     )
     .then(() => docRef);

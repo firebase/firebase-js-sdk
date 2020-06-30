@@ -18,7 +18,6 @@
 import { CredentialsProvider } from '../api/credentials';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { Mutation } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
 import { debugCast, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
@@ -28,7 +27,6 @@ import {
   fromMaybeDocument,
   getEncodedDatabaseId,
   JsonProtoSerializer,
-  toMutation,
   toName,
   toQueryTarget
 } from './serializer';
@@ -47,9 +45,7 @@ import { Query } from '../core/query';
  * for the rest of the client SDK architecture to consume.
  */
 export class Datastore {
-  // Make sure that the structural type of `Datastore` is unique.
-  // See https://github.com/microsoft/TypeScript/issues/5451
-  private _ = undefined;
+  constructor(readonly serializer: JsonProtoSerializer) {}
 }
 
 /**
@@ -62,9 +58,9 @@ class DatastoreImpl extends Datastore {
   constructor(
     readonly connection: Connection,
     readonly credentials: CredentialsProvider,
-    readonly serializer: JsonProtoSerializer
+    serializer: JsonProtoSerializer
   ) {
-    super();
+    super(serializer);
   }
 
   private verifyNotTerminated(): void {
@@ -126,12 +122,12 @@ export function newDatastore(
 
 export async function invokeCommitRpc(
   datastore: Datastore,
-  mutations: Mutation[]
+  writes: api.Write[]
 ): Promise<void> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const params = {
     database: getEncodedDatabaseId(datastoreImpl.serializer),
-    writes: mutations.map(m => toMutation(datastoreImpl.serializer, m))
+    writes
   };
   await datastoreImpl.invokeRPC('Commit', params);
 }
