@@ -29,7 +29,6 @@ const METRICS_SERVICE_URL = process.env.METRICS_SERVICE_URL;
 function generateReportForCDNScripts() {
   const reports = [];
   const firebaseRoot = resolve(__dirname, '../packages/firebase');
-
   const pkgJson = require(`${firebaseRoot}/package.json`);
 
   const special_files = [

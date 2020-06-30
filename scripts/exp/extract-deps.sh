@@ -27,4 +27,5 @@ GENERATE_DEPS_JS="$DIR/extract-deps.ts"
 export TS_NODE_CACHE=NO 
 export TS_NODE_COMPILER_OPTIONS='{"module":"commonjs"}' 
 export TS_NODE_PROJECT="$DIR/../../config/tsconfig.base.json"
+
 $TSNODE $GENERATE_DEPS_JS "$@"
