@@ -34,10 +34,9 @@ let extractedDeclarations: MemberList;
 
 describe('extractDeclarations', () => {
   before(function () {
-    this.timeout(10000);
+    this.timeout(30000);
     testModuleDtsFile = retrieveTestModuleDtsFile();
     extractedDeclarations = extractDeclarations(testModuleDtsFile);
-
   });
   it('test basic variable extractions', () => {
     expect(extractedDeclarations.variables).to.include.members([
