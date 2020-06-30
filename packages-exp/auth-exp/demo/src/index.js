@@ -50,11 +50,24 @@ import {
   signInWithCustomToken,
   signInWithEmailAndPassword,
   unlink,
+<<<<<<< HEAD
   updateEmail,
   updatePassword,
   updateProfile,
   verifyPasswordResetCode
 } from '@firebase/auth-exp';
+=======
+  getMultiFactorResolver,
+  multiFactor,
+  PhoneMultiFactorGenerator,
+  OAuthProvider,
+  signInWithPopup,
+  BrowserPopupRedirectResolver
+} from '@firebase/auth-exp';
+
+const browserPopupRedirectResolver = new BrowserPopupRedirectResolver();
+
+>>>>>>> ad6dfaac7... Popup strategy implementation
 import { config } from './config';
 import {
   alertError,
@@ -1182,10 +1195,10 @@ function onPopupRedirectAddCustomParam(_event) {
  * Performs the corresponding popup/redirect action for a generic provider.
  */
 function onPopupRedirectGenericProviderClick() {
-  alertNotImplemented();
-  // var providerId = $('#popup-redirect-generic-providerid').val();
-  // var provider = new OAuthProvider(providerId);
-  // signInWithPopupRedirect(provider);
+  // alertNotImplemented();
+  var providerId = $('#popup-redirect-generic-providerid').val();
+  var provider = new OAuthProvider(providerId);
+  signInWithPopupRedirect(provider);
 }
 
 /**
@@ -1231,11 +1244,14 @@ function onPopupRedirectProviderClick(_event) {
  *     sign in.
  */
 function signInWithPopupRedirect(provider) {
-  const action = $('input[name=popup-redirect-action]:checked').val();
-  const type = $('input[name=popup-redirect-type]:checked').val();
+  const glob = {
+    signInWithPopup,
+  }
+  let action = $('input[name=popup-redirect-action]:checked').val();
+  let type = $('input[name=popup-redirect-type]:checked').val();
   let method = null;
   let inst = null;
-  if (action === 'link' || action === 'reauthenticate') {
+  if (action == 'link' || action == 'reauthenticate') {
     if (!activeUser()) {
       alertError('No user logged in.');
       return;
@@ -1285,8 +1301,8 @@ function signInWithPopupRedirect(provider) {
   }
   console.log('Provider:');
   console.log(provider);
-  if (type === 'popup') {
-    inst[method](provider).then(response => {
+  if (type == 'popup') {
+    glob[method](inst, provider, browserPopupRedirectResolver).then(response => {
       console.log('Popup response:');
       console.log(response);
       alertSuccess(action + ' with ' + provider['providerId'] + ' successful!');
@@ -1294,12 +1310,13 @@ function signInWithPopupRedirect(provider) {
       onAuthSuccess(activeUser());
     }, onAuthError);
   } else {
-    try {
-      inst[method](provider).catch(onAuthError);
-    } catch (error) {
-      console.log('Error while calling ' + method);
-      console.error(error);
-    }
+    alertNotImplemented();
+    // try {
+    //   inst[method](provider).catch(onAuthError);
+    // } catch (error) {
+    //   console.log('Error while calling ' + method);
+    //   console.error(error);
+    // }
   }
 }
 

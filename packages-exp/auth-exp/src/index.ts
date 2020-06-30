@@ -121,3 +121,6 @@ export async function deleteUser(user: externs.User): Promise<void> {
 export { PhoneMultiFactorGenerator } from './mfa/assertions/phone';
 export { getMultiFactorResolver } from './mfa/mfa_resolver';
 export { multiFactor } from './mfa/mfa_user';
+export { BrowserPopupRedirectResolver } from './platform_browser/popup_redirect';
+export { signInWithPopup } from './core/strategies/popup';
+export { OAuthProvider } from './core/providers/oauth';
