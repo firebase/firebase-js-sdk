@@ -142,7 +142,7 @@
     "ts-node": "8.10.1",
     "tslint": "6.1.2",
     "typedoc": "0.16.11",
-    "typescript": "3.8.3",
+    "typescript": "3.9.5",
     "watch": "1.0.2",
     "webpack": "4.43.0",
     "yargs": "15.3.1",

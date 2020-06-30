@@ -29,6 +29,7 @@ import { cast } from '../../../lite/src/api/util';
 import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import {
   addDocSnapshotListener,
+  addSnapshotsInSyncListener,
   addQuerySnapshotListener,
   applyFirestoreDataConverter,
   getDocsViaSnapshotListener,
@@ -422,6 +423,45 @@ export function onSnapshot<T>(
         )
       );
   }
+
+  // TODO(firestorexp): Add test that verifies that we don't raise a snapshot if
+  // unsubscribe is called before `asyncObserver` resolves.
+  return () => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    asyncObserver.then(unsubscribe => unsubscribe());
+  };
+}
+
+// TODO(firestorexp): Make sure these overloads are tested via the Firestore
+// integration tests
+export function onSnapshotsInSync(
+  firestore: firestore.FirebaseFirestore,
+  observer: {
+    next?: (value: void) => void;
+    error?: (error: firestore.FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
+export function onSnapshotsInSync(
+  firestore: firestore.FirebaseFirestore,
+  onSync: () => void
+): Unsubscribe;
+export function onSnapshotsInSync(
+  firestore: firestore.FirebaseFirestore,
+  arg: unknown
+): Unsubscribe {
+  const firestoreImpl = cast(firestore, Firestore);
+  const observer = isPartialObserver(arg)
+    ? (arg as PartialObserver<void>)
+    : {
+        next: arg as () => void
+      };
+
+  const asyncObserver = firestoreImpl
+    ._getFirestoreClient()
+    .then(firestoreClient =>
+      addSnapshotsInSyncListener(firestoreClient, observer)
+    );
 
   // TODO(firestorexp): Add test that verifies that we don't raise a snapshot if
   // unsubscribe is called before `asyncObserver` resolves.
