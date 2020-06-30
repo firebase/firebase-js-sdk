@@ -49,7 +49,16 @@ export {
 
 export { runTransaction, Transaction } from '../lite/src/api/transaction';
 
-export { getDoc, getDocFromCache, getDocFromServer } from './src/api/reference';
+export {
+  getDoc,
+  getDocFromCache,
+  getDocFromServer,
+  onSnapshot,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  addDoc
+} from './src/api/reference';
 
 export {
   FieldValue,
