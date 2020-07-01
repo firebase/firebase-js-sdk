@@ -32,14 +32,14 @@ export class MultiFactorError extends FirebaseError
   readonly serverResponse: IdTokenMfaResponse;
 
   readonly email?: string;
-  readonly phoneNumebr?: string;
+  readonly phoneNumber?: string;
   readonly tenantid?: string;
 
-  constructor(
+  private constructor(
     auth: Auth,
     error: FirebaseError,
     readonly operationType: externs.OperationType,
-    readonly credential?: externs.AuthCredential,
+    readonly credential: AuthCredential,
     readonly user?: User
   ) {
     super(error.code, error.message);
@@ -47,11 +47,22 @@ export class MultiFactorError extends FirebaseError
     Object.setPrototypeOf(this, MultiFactorError.prototype);
     this.appName = auth.name;
     this.code = error.code;
+    this.tenantid = auth.tenantId || undefined;
     this.serverResponse = error.serverResponse as IdTokenMfaResponse;
+  }
+
+  static _fromErrorAndCredential(
+    auth: Auth,
+    error: FirebaseError,
+    operationType: externs.OperationType,
+    credential: AuthCredential,
+    user?: User
+  ): MultiFactorError {
+    return new MultiFactorError(auth, error, operationType, credential, user);
   }
 }
 
-export function _handleMfaErrors(
+export function _processCredentialSavingMfaContextIfNecessary(
   auth: Auth,
   operationType: externs.OperationType,
   credential: AuthCredential,
@@ -64,7 +75,13 @@ export function _handleMfaErrors(
 
   return idTokenProvider.catch(error => {
     if (error.code === `auth/${AuthErrorCode.MFA_REQUIRED}`) {
-      throw new MultiFactorError(auth, error, operationType, credential, user);
+      throw MultiFactorError._fromErrorAndCredential(
+        auth,
+        error,
+        operationType,
+        credential,
+        user
+      );
     }
 
     throw error;

@@ -25,10 +25,7 @@ describe('core/mfa/mfa_session', () => {
   describe('toPlainObject', () => {
     context('ENROLL', () => {
       it('should serialize correctly', () => {
-        const mfaSession = new MultiFactorSession(
-          MultiFactorSessionType.ENROLL,
-          'id-token'
-        );
+        const mfaSession = MultiFactorSession._fromIdtoken('id-token');
         expect(mfaSession.toPlainObject()).to.eql({
           multiFactorSession: { idToken: 'id-token' }
         });
@@ -37,8 +34,7 @@ describe('core/mfa/mfa_session', () => {
 
     context('SIGN_IN', () => {
       it('should serialize correctly', () => {
-        const mfaSession = new MultiFactorSession(
-          MultiFactorSessionType.SIGN_IN,
+        const mfaSession = MultiFactorSession._fromMfaPendingCredential(
           'mfa-pending-credential'
         );
         expect(mfaSession.toPlainObject()).to.eql({
@@ -54,6 +50,7 @@ describe('core/mfa/mfa_session', () => {
         const mfaSession = MultiFactorSession.fromPlainObject({
           multiFactorSession: { idToken: 'id-token' }
         });
+        expect(mfaSession).to.be.instanceOf(MultiFactorSession);
         expect(mfaSession!.type).to.eq(MultiFactorSessionType.ENROLL);
         expect(mfaSession!.credential).to.eq('id-token');
       });
@@ -64,6 +61,7 @@ describe('core/mfa/mfa_session', () => {
         const mfaSession = MultiFactorSession.fromPlainObject({
           multiFactorSession: { pendingCredential: 'mfa-pending-credential' }
         });
+        expect(mfaSession).to.be.instanceOf(MultiFactorSession);
         expect(mfaSession!.type).to.eq(MultiFactorSessionType.SIGN_IN);
         expect(mfaSession!.credential).to.eq('mfa-pending-credential');
       });

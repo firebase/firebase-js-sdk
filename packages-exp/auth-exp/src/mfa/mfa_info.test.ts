@@ -38,7 +38,7 @@ describe('core/mfa/mfa_info', () => {
       const date = Date.now();
       const enrollmentInfo = {
         mfaEnrollmentId: 'uid',
-        enrolledAt: Date.now(),
+        enrolledAt: date,
         displayName: 'display-name',
         phoneInfo: 'phone-info'
       };
@@ -68,10 +68,7 @@ describe('core/mfa/mfa_info', () => {
             auth,
             enrollmentInfo as PhoneMfaEnrollment
           )
-        ).to.throw(
-          FirebaseError,
-          'Firebase: An internal AuthError has occurred. (auth/internal-error).'
-        );
+        ).to.throw(FirebaseError, 'auth/internal-error');
       });
     });
   });

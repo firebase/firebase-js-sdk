@@ -22,6 +22,7 @@ import {
 } from '../api/account_management/mfa';
 import { AuthErrorCode } from '../core/errors';
 import { fail } from '../core/util/assert';
+import { Auth } from '../model/auth';
 
 export abstract class MultiFactorInfo implements externs.MultiFactorInfo {
   readonly uid: string;
@@ -38,11 +39,11 @@ export abstract class MultiFactorInfo implements externs.MultiFactorInfo {
   }
 
   static _fromServerResponse(
-    auth: externs.Auth,
+    auth: Auth,
     enrollment: MfaEnrollment
   ): MultiFactorInfo {
     if ('phoneInfo' in enrollment) {
-      return new PhoneMultiFactorInfo(enrollment);
+      return PhoneMultiFactorInfo._fromServerResponse(auth, enrollment);
     }
     return fail(auth.name, AuthErrorCode.INTERNAL_ERROR);
   }
@@ -51,8 +52,15 @@ export abstract class MultiFactorInfo implements externs.MultiFactorInfo {
 export class PhoneMultiFactorInfo extends MultiFactorInfo {
   readonly phoneNumber: string;
 
-  constructor(response: PhoneMfaEnrollment) {
+  private constructor(response: PhoneMfaEnrollment) {
     super(externs.ProviderId.PHONE, response);
     this.phoneNumber = response.phoneInfo;
+  }
+
+  static _fromServerResponse(
+    _auth: Auth,
+    enrollment: MfaEnrollment
+  ): PhoneMultiFactorInfo {
+    return new PhoneMultiFactorInfo(enrollment);
   }
 }

@@ -26,8 +26,8 @@ import {
 import { MfaEnrollment } from '../account_management/mfa';
 
 export interface IdTokenMfaResponse {
+  mfaPendingCredential: string;
   mfaInfo?: MfaEnrollment[];
-  mfaPendingCredential?: string;
 }
 
 export interface StartPhoneMfaSignInRequest {

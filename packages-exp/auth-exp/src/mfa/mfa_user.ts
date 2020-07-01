@@ -17,7 +17,7 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { User } from '../model/user';
-import { MultiFactorSessionType, MultiFactorSession } from './mfa_session';
+import { MultiFactorSession } from './mfa_session';
 import { MultiFactorAssertion } from './assertions';
 import { withdrawMfa } from '../api/account_management/mfa';
 import { AuthErrorCode } from '../core/errors';
@@ -26,13 +26,14 @@ export class MultiFactorUser implements externs.MultiFactorUser {
   // TODO(avolkovi): Set these correctly from getAccountInfo on reload
   enrolledFactors: externs.MultiFactorInfo[] = [];
 
-  constructor(readonly user: User) {}
+  private constructor(readonly user: User) {}
 
-  async getSession(): Promise<MultiFactorSession> {
-    return new MultiFactorSession(
-      MultiFactorSessionType.ENROLL,
-      await this.user.getIdToken()
-    );
+  static _fromUser(user: User): MultiFactorUser {
+    return new MultiFactorUser(user);
+  }
+
+  async getSession(): Promise<externs.MultiFactorSession> {
+    return MultiFactorSession._fromIdtoken(await this.user.getIdToken());
   }
 
   async enroll(
@@ -40,7 +41,7 @@ export class MultiFactorUser implements externs.MultiFactorUser {
     displayName?: string | null
   ): Promise<void> {
     const assertion = assertionExtern as MultiFactorAssertion;
-    const session = await this.getSession();
+    const session = (await this.getSession()) as MultiFactorSession;
     const idTokenResponse = await assertion._process(session, displayName);
     // New tokens will be issued after enrollment of the new second factors.
     // They need to be updated on the user.
@@ -79,5 +80,5 @@ export class MultiFactorUser implements externs.MultiFactorUser {
 }
 
 export function multiFactor(user: externs.User): externs.MultiFactorUser {
-  return new MultiFactorUser(user as User);
+  return MultiFactorUser._fromUser(user as User);
 }

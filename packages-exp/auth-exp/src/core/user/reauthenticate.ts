@@ -16,7 +16,7 @@
  */
 
 import { OperationType } from '@firebase/auth-types-exp';
-import { _handleMfaErrors } from '../../mfa/mfa_error';
+import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
 import { User } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { AuthErrorCode } from '../errors';
@@ -32,7 +32,7 @@ export async function _reauthenticate(
   const operationType = OperationType.REAUTHENTICATE;
 
   try {
-    const response = await _handleMfaErrors(
+    const response = await _processCredentialSavingMfaContextIfNecessary(
       user.auth,
       operationType,
       credential,

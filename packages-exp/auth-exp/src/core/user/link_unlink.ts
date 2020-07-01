@@ -18,7 +18,7 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { deleteLinkedAccounts } from '../../api/account_management/account';
-import { _handleMfaErrors } from '../../mfa/mfa_error';
+import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
 import { User } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { AuthErrorCode } from '../errors';

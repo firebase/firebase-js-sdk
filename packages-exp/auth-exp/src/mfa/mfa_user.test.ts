@@ -20,13 +20,10 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { testAuth, testUser } from '../../test/mock_auth';
 import * as mockFetch from '../../test/mock_fetch';
 import { Auth } from '../model/auth';
-import { MultiFactorSessionType } from './mfa_session';
+import { MultiFactorSessionType, MultiFactorSession } from './mfa_session';
 import { MultiFactorUser } from './mfa_user';
 import { PhoneAuthProvider } from '../core/providers/phone';
-import {
-  PhoneMultiFactorGenerator,
-  PhoneMultiFactorAssertion
-} from './assertions/phone';
+import { PhoneMultiFactorAssertion } from './assertions/phone';
 import { mockEndpoint } from '../../test/api/helper';
 import { Endpoint } from '../api';
 import { IdTokenResponse } from '../model/id_token';
@@ -43,14 +40,14 @@ describe('core/mfa/mfa_user', () => {
   beforeEach(async () => {
     auth = await testAuth();
     mockFetch.setUp();
-    mfaUser = new MultiFactorUser(testUser(auth, 'uid', undefined, true));
+    mfaUser = MultiFactorUser._fromUser(testUser(auth, 'uid', undefined, true));
   });
 
   afterEach(mockFetch.tearDown);
 
   describe('getSession', () => {
     it('should return the id token', async () => {
-      const mfaSession = await mfaUser.getSession();
+      const mfaSession = (await mfaUser.getSession()) as MultiFactorSession;
       expect(mfaSession.type).to.eq(MultiFactorSessionType.ENROLL);
       expect(mfaSession.credential).to.eq('access-token');
     });
@@ -89,7 +86,7 @@ describe('core/mfa/mfa_user', () => {
         'verification-id',
         'verification-code'
       );
-      assertion = PhoneMultiFactorGenerator.assertion(auth, credential);
+      assertion = PhoneMultiFactorAssertion._fromCredential(auth, credential);
 
       finalizeMfaEnrollmentMock = mockEndpoint(
         Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT,

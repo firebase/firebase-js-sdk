@@ -21,7 +21,7 @@ import { MultiFactorSession, MultiFactorSessionType } from '../mfa_session';
 
 export abstract class MultiFactorAssertion
   implements externs.MultiFactorAssertion {
-  constructor(readonly factorId: externs.ProviderId) {}
+  protected constructor(readonly factorId: externs.ProviderId) {}
 
   _process(
     session: MultiFactorSession,

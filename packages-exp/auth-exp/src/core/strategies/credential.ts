@@ -18,7 +18,7 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { OperationType, UserCredential } from '@firebase/auth-types-exp';
-import { _handleMfaErrors } from '../../mfa/mfa_error';
+import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { AuthCredential } from '../credentials';
@@ -33,7 +33,11 @@ export async function signInWithCredential(
   const auth = authExtern as Auth;
   const credential = credentialExtern as AuthCredential;
   const operationType = OperationType.SIGN_IN;
-  const response = await _handleMfaErrors(auth, operationType, credential);
+  const response = await _processCredentialSavingMfaContextIfNecessary(
+    auth,
+    operationType,
+    credential
+  );
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
     auth,
     credential,

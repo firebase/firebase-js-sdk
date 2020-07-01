@@ -150,7 +150,7 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
-  const serverResponse = await _performApiRequest<T, V>(
+  const serverResponse = await _performApiRequest<T, V | IdTokenMfaResponse>(
     auth,
     method,
     path,
@@ -160,7 +160,7 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
   if ('mfaPendingCredential' in serverResponse) {
     throw AUTH_ERROR_FACTORY.create(AuthErrorCode.MFA_REQUIRED, {
       appName: auth.name,
-      serverResponse: serverResponse as IdTokenMfaResponse
+      serverResponse
     });
   }
 

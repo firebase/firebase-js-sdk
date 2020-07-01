@@ -20,29 +20,68 @@ import { PhoneOrOauthTokenResponse } from '../api/authentication/mfa';
 import { Auth } from '../model/auth';
 import { IdTokenResponse } from '../model/id_token';
 import { UserCredential } from '../model/user';
-import { AuthCredential } from '../core/credentials';
 import { AuthErrorCode } from '../core/errors';
 import { UserCredentialImpl } from '../core/user/user_credential_impl';
 import { assert } from '../core/util/assert';
 import { MultiFactorAssertion } from './assertions';
 import { MultiFactorError } from './mfa_error';
 import { MultiFactorInfo } from './mfa_info';
-import { MultiFactorSession, MultiFactorSessionType } from './mfa_session';
+import { MultiFactorSession } from './mfa_session';
 
 type IdTokenResolver = (response: IdTokenResponse) => Promise<UserCredential>;
 
 export class MultiFactorResolver implements externs.MultiFactorResolver {
   readonly session: MultiFactorSession;
 
-  constructor(
+  private constructor(
     readonly auth: Auth,
     mfaPendingCredential: string,
-    readonly hints: externs.MultiFactorInfo[],
+    readonly hints: MultiFactorInfo[],
     private readonly idTokenResolver: IdTokenResolver
   ) {
-    this.session = new MultiFactorSession(
-      MultiFactorSessionType.SIGN_IN,
+    this.session = MultiFactorSession._fromMfaPendingCredential(
       mfaPendingCredential
+    );
+  }
+
+  static _fromError(auth: Auth, error: MultiFactorError): MultiFactorResolver {
+    const hints = (error.serverResponse.mfaInfo || []).map(enrollment =>
+      MultiFactorInfo._fromServerResponse(auth, enrollment)
+    );
+
+    return new MultiFactorResolver(
+      auth,
+      error.serverResponse.mfaPendingCredential,
+      hints,
+      async (
+        mfaResponse: PhoneOrOauthTokenResponse
+      ): Promise<UserCredential> => {
+        // Clear out the unneeded fields from the old login response
+        delete error.serverResponse.mfaInfo;
+        delete error.serverResponse.mfaPendingCredential;
+
+        Object.assign(mfaResponse, error.serverResponse);
+        // TODO: we should collapse this if statement into UserCredentialImpl._forOperation and have it support the SIGN_IN case
+        if (
+          error.user &&
+          error.operationType !== externs.OperationType.SIGN_IN
+        ) {
+          return UserCredentialImpl._forOperation(
+            error.user,
+            error.operationType,
+            mfaResponse
+          );
+        } else {
+          const userCredential = await UserCredentialImpl._fromIdTokenResponse(
+            auth,
+            error.credential,
+            error.operationType,
+            mfaResponse
+          );
+          await auth.updateCurrentUser(userCredential.user);
+          return userCredential;
+        }
+      }
     );
   }
 
@@ -56,53 +95,17 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
 }
 
 export function getMultiFactorResolver(
-  authExtern: externs.Auth,
+  auth: externs.Auth,
   errorExtern: externs.MultiFactorError
-): MultiFactorResolver | null {
-  const auth = authExtern as Auth;
+): externs.MultiFactorResolver {
   const error = errorExtern as MultiFactorError;
-  if (!error.serverResponse || !error.operationType) {
-    return null;
-  }
-  assert(error.credential, AuthErrorCode.ARGUMENT_ERROR);
+  assert(error.operationType, auth.name, AuthErrorCode.ARGUMENT_ERROR);
+  assert(error.credential, auth.name, AuthErrorCode.ARGUMENT_ERROR);
   assert(
-    error.serverResponse.mfaPendingCredential,
+    error.serverResponse?.mfaPendingCredential,
+    auth.name,
     AuthErrorCode.ARGUMENT_ERROR
   );
-  const hints: externs.MultiFactorInfo[] = [];
-  if (error.serverResponse.mfaInfo) {
-    error.serverResponse.mfaInfo.forEach(enrollment => {
-      hints.push(MultiFactorInfo._fromServerResponse(auth, enrollment));
-    });
-  }
 
-  return new MultiFactorResolver(
-    auth,
-    error.serverResponse.mfaPendingCredential,
-    hints,
-    async (mfaResponse: PhoneOrOauthTokenResponse): Promise<UserCredential> => {
-      // Clear out the unneeded fields from the old login response
-      delete error.serverResponse.mfaInfo;
-      delete error.serverResponse.mfaPendingCredential;
-
-      Object.assign(mfaResponse, error.serverResponse);
-      // TODO: we should collapse this if statement into UserCredentialImpl._forOperation and have it support the SIGN_IN case
-      if (error.user && error.operationType !== externs.OperationType.SIGN_IN) {
-        return UserCredentialImpl._forOperation(
-          error.user,
-          error.operationType,
-          mfaResponse
-        );
-      } else {
-        const userCredential = await UserCredentialImpl._fromIdTokenResponse(
-          auth,
-          error.credential ? (error.credential as AuthCredential) : null,
-          error.operationType,
-          mfaResponse
-        );
-        await auth.updateCurrentUser(userCredential.user);
-        return userCredential;
-      }
-    }
-  );
+  return MultiFactorResolver._fromError(auth as Auth, error);
 }

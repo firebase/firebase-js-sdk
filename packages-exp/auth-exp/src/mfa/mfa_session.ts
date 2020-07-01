@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import * as externs from '@firebase/auth-types-exp';
-import { debugFail } from '../core/util/assert';
 
 export enum MultiFactorSessionType {
   ENROLL = 'enroll',
@@ -30,46 +29,46 @@ interface SerializedMultiFactorSession {
 }
 
 export class MultiFactorSession implements externs.MultiFactorSession {
-  constructor(
+  private constructor(
     readonly type: MultiFactorSessionType,
     readonly credential: string
   ) {}
 
+  static _fromIdtoken(idToken: string): MultiFactorSession {
+    return new MultiFactorSession(MultiFactorSessionType.ENROLL, idToken);
+  }
+
+  static _fromMfaPendingCredential(
+    mfaPendingCredential: string
+  ): MultiFactorSession {
+    return new MultiFactorSession(
+      MultiFactorSessionType.SIGN_IN,
+      mfaPendingCredential
+    );
+  }
+
   toPlainObject(): SerializedMultiFactorSession {
-    switch (this.type) {
-      case MultiFactorSessionType.ENROLL:
-        return {
-          multiFactorSession: { idToken: this.credential }
-        };
-      case MultiFactorSessionType.SIGN_IN:
-        return {
-          multiFactorSession: { pendingCredential: this.credential }
-        };
-      default:
-        return debugFail('unexpected MultiFactorSessionType');
-    }
+    const key =
+      this.type === MultiFactorSessionType.ENROLL
+        ? 'idToken'
+        : 'pendingCredential';
+    return {
+      multiFactorSession: {
+        [key]: this.credential
+      }
+    };
   }
 
   static fromPlainObject(
     obj: Partial<SerializedMultiFactorSession>
   ): MultiFactorSession | null {
-    if (obj && 'multiFactorSession' in obj && obj.multiFactorSession) {
-      if (
-        'pendingCredential' in obj.multiFactorSession &&
-        obj.multiFactorSession.pendingCredential
-      ) {
-        return new MultiFactorSession(
-          MultiFactorSessionType.SIGN_IN,
+    if (obj?.multiFactorSession) {
+      if (obj.multiFactorSession?.pendingCredential) {
+        return MultiFactorSession._fromMfaPendingCredential(
           obj.multiFactorSession.pendingCredential
         );
-      } else if (
-        'idToken' in obj.multiFactorSession &&
-        obj.multiFactorSession.idToken
-      ) {
-        return new MultiFactorSession(
-          MultiFactorSessionType.ENROLL,
-          obj.multiFactorSession.idToken
-        );
+      } else if (obj.multiFactorSession?.idToken) {
+        return MultiFactorSession._fromIdtoken(obj.multiFactorSession.idToken);
       }
     }
     return null;

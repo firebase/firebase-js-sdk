@@ -24,8 +24,8 @@ import { Endpoint } from '../../api';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { Auth } from '../../model/auth';
 import { PhoneAuthProvider } from '../../core/providers/phone';
-import { MultiFactorSession, MultiFactorSessionType } from '../mfa_session';
-import { PhoneMultiFactorAssertion, PhoneMultiFactorGenerator } from './phone';
+import { MultiFactorSession } from '../mfa_session';
+import { PhoneMultiFactorAssertion } from './phone';
 import { IdTokenResponse } from '../../model/id_token';
 
 use(chaiAsPromised);
@@ -48,16 +48,13 @@ describe('core/mfa/phone', () => {
       'verification-id',
       'verification-code'
     );
-    assertion = PhoneMultiFactorGenerator.assertion(auth, credential);
+    assertion = PhoneMultiFactorAssertion._fromCredential(auth, credential);
   });
   afterEach(mockFetch.tearDown);
 
   describe('enroll', () => {
     beforeEach(() => {
-      session = new MultiFactorSession(
-        MultiFactorSessionType.ENROLL,
-        'enrollment-id-token'
-      );
+      session = MultiFactorSession._fromIdtoken('enrollment-id-token');
     });
 
     it('should finalize the MFA enrollment', async () => {
@@ -100,8 +97,7 @@ describe('core/mfa/phone', () => {
 
   describe('sign_in', () => {
     beforeEach(() => {
-      session = new MultiFactorSession(
-        MultiFactorSessionType.SIGN_IN,
+      session = MultiFactorSession._fromMfaPendingCredential(
         'mfa-pending-credential'
       );
     });

@@ -25,11 +25,18 @@ import { finalizeSignInPhoneMfa } from '../../api/authentication/mfa';
 
 export class PhoneMultiFactorAssertion extends MultiFactorAssertion
   implements externs.PhoneMultiFactorAssertion {
-  constructor(
+  private constructor(
     private readonly auth: Auth,
     private readonly credential: PhoneAuthCredential
   ) {
     super(credential.providerId);
+  }
+
+  static _fromCredential(
+    auth: Auth,
+    credential: PhoneAuthCredential
+  ): PhoneMultiFactorAssertion {
+    return new PhoneMultiFactorAssertion(auth, credential);
   }
 
   _finalizeEnroll(
@@ -56,11 +63,11 @@ export class PhoneMultiFactorGenerator
   private constructor() {}
 
   static assertion(
-    auth: Auth,
+    auth: externs.Auth,
     credential: externs.PhoneAuthCredential
-  ): PhoneMultiFactorAssertion {
-    return new PhoneMultiFactorAssertion(
-      auth,
+  ): externs.PhoneMultiFactorAssertion {
+    return PhoneMultiFactorAssertion._fromCredential(
+      auth as Auth,
       credential as PhoneAuthCredential
     );
   }
