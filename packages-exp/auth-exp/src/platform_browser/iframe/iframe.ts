@@ -21,7 +21,8 @@ import { querystring } from '@firebase/util';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
 import { Delay } from '../../core/util/delay';
 import { Auth } from '../../model/auth';
-import { _loadGapi } from './gapi';
+import { AUTH_WINDOW } from '../auth_window';
+import * as gapiLoader from './gapi';
 
 const PING_TIMEOUT = new Delay(5000, 15000);
 const IFRAME_ATTRIBUTES = {
@@ -40,20 +41,20 @@ function getIframeUrl(auth: Auth): string {
     apiKey: auth.config.apiKey,
     appName: auth.name,
     v: SDK_VERSION
-  }
+  };
   // Can pass 'eid' as one of 'p' (production), 's' (staging), or 't' (test)
   // TODO: do we care about frameworks? pass them as fw=
 
-  return `${url}?${querystring(params)}`;
+  return `${url}?${querystring(params).slice(1)}`;
 }
 
 export async function _openIframe(auth: Auth): Promise<gapi.iframes.Iframe> {
-  const context = await _loadGapi(auth);
+  const context = await gapiLoader._loadGapi(auth);
   return context.open(
     {
       where: document.body,
       url: getIframeUrl(auth),
-      messageHandlersFilter: gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER,
+      messageHandlersFilter: AUTH_WINDOW.gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER,
       attributes: IFRAME_ATTRIBUTES,
       dontclear: true
     },
@@ -64,7 +65,8 @@ export async function _openIframe(auth: Auth): Promise<gapi.iframes.Iframe> {
         });
         // Confirm iframe is correctly loaded.
         // To fallback on failure, set a timeout.
-        const networkErrorTimer = setTimeout(() => {
+        console.warn('setting timeout');
+        const networkErrorTimer = AUTH_WINDOW.setTimeout(() => {
           reject(
             AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
               appName: auth.name
@@ -73,7 +75,7 @@ export async function _openIframe(auth: Auth): Promise<gapi.iframes.Iframe> {
         }, PING_TIMEOUT.get());
         // Clear timer and resolve pending iframe ready promise.
         function clearTimerAndResolve(): void {
-          clearTimeout(networkErrorTimer);
+          AUTH_WINDOW.clearTimeout(networkErrorTimer);
           resolve(iframe);
         };
         // This returns an IThenable. However the reject part does not call

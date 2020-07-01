@@ -32,11 +32,12 @@ function resetUnloadedGapiModules(): void {
   // Clear last failed gapi.load state to force next gapi.load to first
   // load the failed gapi.iframes module.
   // Get gapix.beacon context.
-  const beacon = AUTH_WINDOW['___jsl'];
+  console.warn(AUTH_WINDOW.___jsl);
+  const beacon = AUTH_WINDOW.___jsl;
   // Get current hint.
   if (beacon?.H) {
     // Get gapi hint.
-    for (const hint of beacon.H) {
+    for (const hint of Object.keys(beacon.H)) {
       // Requested modules.
       beacon.H[hint].r = beacon.H[hint].r || [];
       // Loaded modules.
@@ -83,10 +84,11 @@ function loadGapi(auth: Auth): Promise<gapi.iframes.Context> {
       });
     };
     
-    if (gapi?.iframes?.Iframe) {
+    if (AUTH_WINDOW.gapi?.iframes?.Iframe) {
       // If gapi.iframes.Iframe available, resolve.
       resolve(gapi.iframes.getContext());
-    } else if (!!gapi?.load) {
+    } else if (!!AUTH_WINDOW.gapi?.load) {
+      console.error('here');
       // Gapi loader ready, load gapi.iframes.
       loadGapiIframe();
     } else {
@@ -124,4 +126,8 @@ let cachedGApiLoader: Promise<gapi.iframes.Context> | null = null;
 export function _loadGapi(auth: Auth): Promise<gapi.iframes.Context> {
   cachedGApiLoader = cachedGApiLoader || loadGapi(auth);
   return cachedGApiLoader;
+}
+
+export function _resetLoader(): void {
+  cachedGApiLoader = null;
 }
