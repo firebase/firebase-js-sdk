@@ -21,7 +21,7 @@ import { MultiFactorSession, MultiFactorSessionType } from './mfa_session';
 
 use(chaiAsPromised);
 
-describe('core/mfa/mfa_session', () => {
+describe('core/mfa/mfa_session/MultiFactorSession', () => {
   describe('toPlainObject', () => {
     context('ENROLL', () => {
       it('should serialize correctly', () => {

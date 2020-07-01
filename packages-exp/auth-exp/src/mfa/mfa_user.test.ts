@@ -21,19 +21,20 @@ import { testAuth, testUser } from '../../test/mock_auth';
 import * as mockFetch from '../../test/mock_fetch';
 import { Auth } from '../model/auth';
 import { MultiFactorSessionType, MultiFactorSession } from './mfa_session';
-import { MultiFactorUser } from './mfa_user';
+import { MultiFactorUser, multiFactor } from './mfa_user';
 import { PhoneAuthProvider } from '../core/providers/phone';
 import { PhoneMultiFactorAssertion } from './assertions/phone';
 import { mockEndpoint } from '../../test/api/helper';
 import { Endpoint } from '../api';
-import { IdTokenResponse } from '../model/id_token';
 import { APIUserInfo } from '../api/account_management/account';
 import { MultiFactorInfo } from './mfa_info';
 import { ServerError } from '../api/errors';
+import { User } from '../model/user';
+import { FinalizeMfaResponse } from '../api/authentication/mfa';
 
 use(chaiAsPromised);
 
-describe('core/mfa/mfa_user', () => {
+describe('core/mfa/mfa_user/MultiFactorUser', () => {
   let auth: Auth;
   let mfaUser: MultiFactorUser;
 
@@ -76,7 +77,7 @@ describe('core/mfa/mfa_user', () => {
       ]
     };
 
-    const serverResponse: IdTokenResponse = {
+    const serverResponse: FinalizeMfaResponse = {
       idToken: 'final-id-token',
       refreshToken: 'refresh-token'
     };
@@ -130,7 +131,7 @@ describe('core/mfa/mfa_user', () => {
   describe('unenroll', () => {
     let withdrawMfaEnrollmentMock: mockFetch.Route;
 
-    const serverResponse: IdTokenResponse = {
+    const serverResponse: FinalizeMfaResponse = {
       idToken: 'final-id-token',
       refreshToken: 'refresh-token'
     };
@@ -227,5 +228,20 @@ describe('core/mfa/mfa_user', () => {
         await mfaUser.unenroll(mfaInfo);
       });
     });
+  });
+});
+
+describe('core/mfa/mfa_user/multiFactor', () => {
+  let auth: Auth;
+  let user: User;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    user = testUser(auth, 'uid', undefined, true);
+  });
+
+  it('can be used to a create a MultiFactorUser', () => {
+    const mfaUser = multiFactor(user);
+    expect((mfaUser as MultiFactorUser).user).to.eq(user);
   });
 });

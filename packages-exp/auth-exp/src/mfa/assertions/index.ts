@@ -16,8 +16,8 @@
  */
 import * as externs from '@firebase/auth-types-exp';
 import { debugFail } from '../../core/util/assert';
-import { IdTokenResponse } from '../../model/id_token';
 import { MultiFactorSession, MultiFactorSessionType } from '../mfa_session';
+import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 
 export abstract class MultiFactorAssertion
   implements externs.MultiFactorAssertion {
@@ -26,7 +26,7 @@ export abstract class MultiFactorAssertion
   _process(
     session: MultiFactorSession,
     displayName?: string | null
-  ): Promise<IdTokenResponse> {
+  ): Promise<FinalizeMfaResponse> {
     switch (session.type) {
       case MultiFactorSessionType.ENROLL:
         return this._finalizeEnroll(session.credential, displayName);
@@ -40,8 +40,8 @@ export abstract class MultiFactorAssertion
   abstract _finalizeEnroll(
     idToken: string,
     displayName?: string | null
-  ): Promise<IdTokenResponse>;
+  ): Promise<FinalizeMfaResponse>;
   abstract _finalizeSignIn(
     mfaPendingCredential: string
-  ): Promise<IdTokenResponse>;
+  ): Promise<FinalizeMfaResponse>;
 }

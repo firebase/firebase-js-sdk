@@ -26,7 +26,6 @@ import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { Auth } from '../../model/auth';
-import { EmailAuthProvider } from '../providers/email';
 import { EmailAuthCredential } from './email';
 
 use(chaiAsPromised);
@@ -43,10 +42,9 @@ describe('core/credentials/email', () => {
   });
 
   context('email & password', () => {
-    const credential = new EmailAuthCredential(
+    const credential = EmailAuthCredential._fromEmailAndPassword(
       'some-email',
-      'some-password',
-      EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD
+      'some-password'
     );
 
     beforeEach(() => {
@@ -132,10 +130,9 @@ describe('core/credentials/email', () => {
   });
 
   context('email link', () => {
-    const credential = new EmailAuthCredential(
+    const credential = EmailAuthCredential._fromEmailAndCode(
       'some-email',
-      'oob-code',
-      EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD
+      'oob-code'
     );
 
     beforeEach(() => {

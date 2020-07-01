@@ -117,6 +117,7 @@ describe('core/strategies/credential', () => {
 
     it('should handle MFA', async () => {
       const serverResponse: IdTokenMfaResponse = {
+        localId: 'uid',
         mfaInfo: [
           {
             mfaEnrollmentId: 'mfa-enrollment-id',

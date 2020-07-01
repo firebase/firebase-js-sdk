@@ -52,7 +52,10 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
     verificationId: string,
     verificationCode: string
   ): PhoneAuthCredential {
-    return new PhoneAuthCredential({ verificationId, verificationCode });
+    return PhoneAuthCredential._fromVerification(
+      verificationId,
+      verificationCode
+    );
   }
 
   static _credentialFromResult(

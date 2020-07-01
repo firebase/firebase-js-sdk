@@ -35,7 +35,7 @@ export function _fromIdTokenResponse(
   const isNewUser =
     idTokenResponse.isNewUser ||
     idTokenResponse.kind === IdTokenResponseKind.SignupNewUser;
-  if (!providerId && idTokenResponse) {
+  if (!providerId && idTokenResponse?.idToken) {
     const providerId = _parseToken(idTokenResponse.idToken)?.firebase?.[
       'sign_in_provider'
     ];

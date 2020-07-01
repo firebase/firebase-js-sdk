@@ -25,7 +25,12 @@ import {
 } from './sms';
 import { MfaEnrollment } from '../account_management/mfa';
 
-export interface IdTokenMfaResponse {
+export interface FinalizeMfaResponse {
+  idToken: string;
+  refreshToken: string;
+}
+
+export interface IdTokenMfaResponse extends IdTokenResponse {
   mfaPendingCredential: string;
   mfaInfo?: MfaEnrollment[];
 }
@@ -64,7 +69,7 @@ export interface FinalizePhoneMfaSignInRequest {
   tenantId: string | null;
 }
 
-export interface FinalizePhoneMfaSignInResponse extends IdTokenResponse {}
+export interface FinalizePhoneMfaSignInResponse extends FinalizeMfaResponse {}
 
 export function finalizeSignInPhoneMfa(
   auth: Auth,

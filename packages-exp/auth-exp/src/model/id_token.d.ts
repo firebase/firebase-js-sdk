@@ -46,10 +46,10 @@ export interface ParsedIdToken {
  * IdToken as returned by the API
  */
 export interface IdTokenResponse {
-  idToken: IdToken;
-  refreshToken: string;
+  localId: string;
+  idToken?: IdToken;
+  refreshToken?: string;
   expiresIn?: string;
-  localId?: string;
   providerId?: ProviderId;
 
   // Used in AdditionalUserInfo

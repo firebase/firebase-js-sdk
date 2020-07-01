@@ -16,19 +16,16 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { PhoneOrOauthTokenResponse } from '../api/authentication/mfa';
+import { FinalizeMfaResponse } from '../api/authentication/mfa';
 import { Auth } from '../model/auth';
-import { IdTokenResponse } from '../model/id_token';
 import { UserCredential } from '../model/user';
 import { AuthErrorCode } from '../core/errors';
 import { UserCredentialImpl } from '../core/user/user_credential_impl';
-import { assert } from '../core/util/assert';
+import { assert, fail } from '../core/util/assert';
 import { MultiFactorAssertion } from './assertions';
 import { MultiFactorError } from './mfa_error';
 import { MultiFactorInfo } from './mfa_info';
 import { MultiFactorSession } from './mfa_session';
-
-type IdTokenResolver = (response: IdTokenResponse) => Promise<UserCredential>;
 
 export class MultiFactorResolver implements externs.MultiFactorResolver {
   readonly session: MultiFactorSession;
@@ -37,7 +34,9 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
     readonly auth: Auth,
     mfaPendingCredential: string,
     readonly hints: MultiFactorInfo[],
-    private readonly idTokenResolver: IdTokenResolver
+    private readonly signInResolver: (
+      response: FinalizeMfaResponse
+    ) => Promise<UserCredential>
   ) {
     this.session = MultiFactorSession._fromMfaPendingCredential(
       mfaPendingCredential
@@ -53,33 +52,38 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
       auth,
       error.serverResponse.mfaPendingCredential,
       hints,
-      async (
-        mfaResponse: PhoneOrOauthTokenResponse
-      ): Promise<UserCredential> => {
+      async (mfaResponse: FinalizeMfaResponse): Promise<UserCredential> => {
         // Clear out the unneeded fields from the old login response
         delete error.serverResponse.mfaInfo;
         delete error.serverResponse.mfaPendingCredential;
 
-        Object.assign(mfaResponse, error.serverResponse);
-        // TODO: we should collapse this if statement into UserCredentialImpl._forOperation and have it support the SIGN_IN case
-        if (
-          error.user &&
-          error.operationType !== externs.OperationType.SIGN_IN
-        ) {
-          return UserCredentialImpl._forOperation(
-            error.user,
-            error.operationType,
-            mfaResponse
-          );
-        } else {
-          const userCredential = await UserCredentialImpl._fromIdTokenResponse(
-            auth,
-            error.credential,
-            error.operationType,
-            mfaResponse
-          );
-          await auth.updateCurrentUser(userCredential.user);
-          return userCredential;
+        // Use in the new token & refresh token in the old response
+        const idTokenResponse = {
+          ...error.serverResponse,
+          idToken: mfaResponse.idToken,
+          refreshToken: mfaResponse.refreshToken
+        };
+
+        // TODO: we should collapse this switch statement into UserCredentialImpl._forOperation and have it support the SIGN_IN case
+        switch (error.operationType) {
+          case externs.OperationType.SIGN_IN:
+            const userCredential = await UserCredentialImpl._fromIdTokenResponse(
+              auth,
+              error.credential,
+              error.operationType,
+              idTokenResponse
+            );
+            await auth.updateCurrentUser(userCredential.user);
+            return userCredential;
+          case externs.OperationType.REAUTHENTICATE:
+            assert(error.user, auth.name);
+            return UserCredentialImpl._forOperation(
+              error.user,
+              error.operationType,
+              idTokenResponse
+            );
+          default:
+            fail(auth.name, AuthErrorCode.INTERNAL_ERROR);
         }
       }
     );
@@ -89,8 +93,8 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
     assertionExtern: externs.MultiFactorAssertion
   ): Promise<externs.UserCredential> {
     const assertion = assertionExtern as MultiFactorAssertion;
-    const idTokenResponse = await assertion._process(this.session);
-    return this.idTokenResolver(idTokenResponse);
+    const finalizeMfaResponse = await assertion._process(this.session);
+    return this.signInResolver(finalizeMfaResponse);
   }
 }
 

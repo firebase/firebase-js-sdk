@@ -25,18 +25,19 @@ import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { Auth } from '../../model/auth';
 import { PhoneAuthProvider } from '../../core/providers/phone';
 import { MultiFactorSession } from '../mfa_session';
-import { PhoneMultiFactorAssertion } from './phone';
-import { IdTokenResponse } from '../../model/id_token';
+import { PhoneMultiFactorAssertion, PhoneMultiFactorGenerator } from './phone';
+import { ProviderId } from '@firebase/auth-types-exp';
+import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 
 use(chaiAsPromised);
 
-describe('core/mfa/phone', () => {
+describe('core/mfa/phone/PhoneMultiFactorAssertion', () => {
   let auth: Auth;
   let credential: PhoneAuthCredential;
   let assertion: PhoneMultiFactorAssertion;
   let session: MultiFactorSession;
 
-  const serverResponse: IdTokenResponse = {
+  const serverResponse: FinalizeMfaResponse = {
     idToken: 'final-id-token',
     refreshToken: 'refresh-token'
   };
@@ -117,6 +118,26 @@ describe('core/mfa/phone', () => {
           sessionInfo: 'verification-id'
         }
       });
+    });
+  });
+});
+
+describe('core/mfa/phone/PhoneMultiFactorGenerator', () => {
+  describe('.assertion', () => {
+    let auth: Auth;
+    let credential: PhoneAuthCredential;
+
+    beforeEach(async () => {
+      auth = await testAuth();
+      credential = PhoneAuthProvider.credential(
+        'verification-id',
+        'verification-code'
+      );
+    });
+
+    it('can be used to create an assertion', () => {
+      const assertion = PhoneMultiFactorGenerator.assertion(auth, credential);
+      expect(assertion.factorId).to.eq(ProviderId.PHONE);
     });
   });
 });

@@ -26,6 +26,7 @@ import { assert } from '../util/assert';
 import { getIdTokenResult } from './id_token_result';
 import { _reloadWithoutSaving, reload } from './reload';
 import { StsTokenManager } from './token_manager';
+import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 
 export interface UserParameters {
   uid: string;
@@ -102,7 +103,7 @@ export class UserImpl implements User {
   }
 
   async _updateTokensIfNecessary(
-    response: IdTokenResponse,
+    response: IdTokenResponse | FinalizeMfaResponse,
     reload = false
   ): Promise<void> {
     let tokensRefreshed = false;
@@ -195,8 +196,6 @@ export class UserImpl implements User {
   ): Promise<User> {
     const stsTokenManager = new StsTokenManager();
     stsTokenManager.updateFromServerResponse(idTokenResponse);
-
-    assert(idTokenResponse.localId, auth.name);
 
     // Initialize the Firebase Auth user.
     const user = new UserImpl({

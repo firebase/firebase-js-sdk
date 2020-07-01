@@ -24,11 +24,11 @@ export function _authCredentialFromTokenResponse(
   response: PhoneOrOauthTokenResponse
 ): AuthCredential | null {
   const {
-    temporaryProof,
-    phoneNumber
+    phoneNumber,
+    temporaryProof
   } = response as SignInWithPhoneNumberResponse;
-  if (temporaryProof && phoneNumber) {
-    return new PhoneAuthCredential({ temporaryProof, phoneNumber });
+  if (phoneNumber && temporaryProof) {
+    return PhoneAuthCredential._fromTokenResponse(phoneNumber, temporaryProof);
   }
 
   // TODO: Handle Oauth cases

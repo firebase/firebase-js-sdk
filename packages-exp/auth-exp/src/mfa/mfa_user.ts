@@ -42,10 +42,10 @@ export class MultiFactorUser implements externs.MultiFactorUser {
   ): Promise<void> {
     const assertion = assertionExtern as MultiFactorAssertion;
     const session = (await this.getSession()) as MultiFactorSession;
-    const idTokenResponse = await assertion._process(session, displayName);
+    const finalizeMfaResponse = await assertion._process(session, displayName);
     // New tokens will be issued after enrollment of the new second factors.
     // They need to be updated on the user.
-    await this.user._updateTokensIfNecessary(idTokenResponse);
+    await this.user._updateTokensIfNecessary(finalizeMfaResponse);
     // The user needs to be reloaded to get the new multi-factor information
     // from server. USER_RELOADED event will be triggered and `enrolledFactors`
     // will be updated.

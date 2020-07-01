@@ -17,8 +17,8 @@
 
 import { Endpoint, HttpMethod, _performApiRequest } from '..';
 import { Auth } from '../../model/auth';
-import { IdTokenResponse } from '../../model/id_token';
 import { SignInWithPhoneNumberRequest } from '../authentication/sms';
+import { FinalizeMfaResponse } from '../authentication/mfa';
 
 /**
  * MFA Info as returned by the API
@@ -76,7 +76,8 @@ export interface FinalizePhoneMfaEnrollmentRequest {
   tenantId: string | null;
 }
 
-export interface FinalizePhoneMfaEnrollmentResponse extends IdTokenResponse {}
+export interface FinalizePhoneMfaEnrollmentResponse
+  extends FinalizeMfaResponse {}
 
 export function finalizeEnrollPhoneMfa(
   auth: Auth,
@@ -97,7 +98,7 @@ export interface WithdrawMfaRequest {
   tenantId: string | null;
 }
 
-export interface WithdrawMfaResponse extends IdTokenResponse {}
+export interface WithdrawMfaResponse extends FinalizeMfaResponse {}
 
 export function withdrawMfa(
   auth: Auth,

@@ -124,13 +124,13 @@ describe('api/account_management/finalizeEnrollPhoneMfa', () => {
 
   it('should POST to the correct endpoint', async () => {
     const mock = mockEndpoint(Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT, {
-      displayName: 'my-name',
-      idToken: 'id-token'
+      idToken: 'id-token',
+      refreshToken: 'refresh-token'
     });
 
     const response = await finalizeEnrollPhoneMfa(auth, request);
-    expect(response.displayName).to.eq('my-name');
     expect(response.idToken).to.eq('id-token');
+    expect(response.refreshToken).to.eq('refresh-token');
     expect(mock.calls[0].request).to.eql({
       tenantId: null,
       ...request
@@ -189,13 +189,13 @@ describe('api/account_management/withdrawMfa', () => {
 
   it('should POST to the correct endpoint', async () => {
     const mock = mockEndpoint(Endpoint.WITHDRAW_MFA, {
-      displayName: 'my-name',
-      idToken: 'id-token'
+      idToken: 'id-token',
+      refreshToken: 'refresh-token'
     });
 
     const response = await withdrawMfa(auth, request);
-    expect(response.displayName).to.eq('my-name');
     expect(response.idToken).to.eq('id-token');
+    expect(response.refreshToken).to.eq('refresh-token');
     expect(mock.calls[0].request).to.eql({
       tenantId: null,
       ...request

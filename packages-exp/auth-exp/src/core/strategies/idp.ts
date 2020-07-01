@@ -23,7 +23,6 @@ import {
 } from '../../api/authentication/idp';
 import { Auth } from '../../model/auth';
 import { User, UserCredential } from '../../model/user';
-import { _authCredentialFromTokenResponse } from '../credentials/from_token_response';
 import { _link as _linkUser } from '../user/link_unlink';
 import { _reauthenticate } from '../user/reauthenticate';
 import { assert, debugFail } from '../util/assert';

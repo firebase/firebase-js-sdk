@@ -120,13 +120,13 @@ describe('api/authentication/finalizeSignInPhoneMfa', () => {
 
   it('should POST to the correct endpoint', async () => {
     const mock = mockEndpoint(Endpoint.FINALIZE_PHONE_MFA_SIGN_IN, {
-      displayName: 'my-name',
-      idToken: 'id-token'
+      idToken: 'id-token',
+      refreshToken: 'refresh-token'
     });
 
     const response = await finalizeSignInPhoneMfa(auth, request);
-    expect(response.displayName).to.eq('my-name');
     expect(response.idToken).to.eq('id-token');
+    expect(response.refreshToken).to.eq('refresh-token');
     expect(mock.calls[0].request).to.eql({
       tenantId: null,
       ...request

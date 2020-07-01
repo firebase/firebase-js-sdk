@@ -26,7 +26,7 @@ import { PhoneMfaEnrollment } from '../api/account_management/mfa';
 
 use(chaiAsPromised);
 
-describe('core/mfa/mfa_info', () => {
+describe('core/mfa/mfa_info/MultiFactorInfo', () => {
   let auth: Auth;
 
   beforeEach(async () => {

@@ -16,12 +16,14 @@
  */
 import * as externs from '@firebase/auth-types-exp';
 
-import { IdTokenResponse } from '../../model/id_token';
 import { MultiFactorAssertion } from '.';
 import { Auth } from '../../model/auth';
 import { finalizeEnrollPhoneMfa } from '../../api/account_management/mfa';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
-import { finalizeSignInPhoneMfa } from '../../api/authentication/mfa';
+import {
+  finalizeSignInPhoneMfa,
+  FinalizeMfaResponse
+} from '../../api/authentication/mfa';
 
 export class PhoneMultiFactorAssertion extends MultiFactorAssertion
   implements externs.PhoneMultiFactorAssertion {
@@ -42,7 +44,7 @@ export class PhoneMultiFactorAssertion extends MultiFactorAssertion
   _finalizeEnroll(
     idToken: string,
     displayName?: string | null
-  ): Promise<IdTokenResponse> {
+  ): Promise<FinalizeMfaResponse> {
     return finalizeEnrollPhoneMfa(this.auth, {
       idToken,
       displayName,
@@ -50,7 +52,7 @@ export class PhoneMultiFactorAssertion extends MultiFactorAssertion
     });
   }
 
-  _finalizeSignIn(mfaPendingCredential: string): Promise<IdTokenResponse> {
+  _finalizeSignIn(mfaPendingCredential: string): Promise<FinalizeMfaResponse> {
     return finalizeSignInPhoneMfa(this.auth, {
       mfaPendingCredential,
       phoneVerificationInfo: this.credential._makeVerificationRequest()

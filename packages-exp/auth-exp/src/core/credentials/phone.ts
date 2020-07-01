@@ -40,7 +40,21 @@ export class PhoneAuthCredential
   readonly providerId = externs.ProviderId.PHONE;
   readonly signInMethod = externs.SignInMethod.PHONE;
 
-  constructor(private readonly params: PhoneAuthCredentialParameters) {}
+  private constructor(private readonly params: PhoneAuthCredentialParameters) {}
+
+  static _fromVerification(
+    verificationId: string,
+    verificationCode: string
+  ): PhoneAuthCredential {
+    return new PhoneAuthCredential({ verificationId, verificationCode });
+  }
+
+  static _fromTokenResponse(
+    phoneNumber: string,
+    temporaryProof: string
+  ): PhoneAuthCredential {
+    return new PhoneAuthCredential({ phoneNumber, temporaryProof });
+  }
 
   _getIdTokenResponse(auth: Auth): Promise<PhoneOrOauthTokenResponse> {
     return signInWithPhoneNumber(auth, this._makeVerificationRequest());
