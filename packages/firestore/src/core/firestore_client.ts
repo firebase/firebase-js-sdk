@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { LoadBundleTask } from '@firebase/firestore-types';
+import * as firestore from '@firebase/firestore-types';
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
@@ -49,7 +49,7 @@ import {
   MemoryComponentProvider
 } from './component_provider';
 import { BundleReader } from '../util/bundle_reader';
-import { LoadBundleTaskImpl } from './bundle';
+import { LoadBundleTask } from '../api/bundle';
 import { newConnection } from '../platform/connection';
 import { newSerializer } from '../platform/serializer';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
@@ -519,7 +519,7 @@ export class FirestoreClient {
 
   loadBundle(
     data: ReadableStream<Uint8Array> | ArrayBuffer | string
-  ): LoadBundleTask {
+  ): firestore.LoadBundleTask {
     this.verifyNotTerminated();
 
     let content: ReadableStream<Uint8Array> | ArrayBuffer;
@@ -529,7 +529,7 @@ export class FirestoreClient {
       content = data;
     }
     const reader = new BundleReader(toByteStreamReader(content));
-    const task = new LoadBundleTaskImpl();
+    const task = new LoadBundleTask();
     this.asyncQueue.enqueueAndForget(() => {
       return loadBundle(this.syncEngine, reader, task);
     });

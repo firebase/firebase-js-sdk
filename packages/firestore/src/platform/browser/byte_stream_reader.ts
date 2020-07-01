@@ -17,13 +17,14 @@
 
 import { BundleSource } from '../../util/bundle_reader';
 import { toByteStreamReaderHelper } from '../../util/byte_stream';
+import { DEFAULT_BYTES_PER_READ } from '../byte_stream_reader';
 
 /**
  * On web, a `ReadableStream` is wrapped around by a `ByteStreamReader`.
  */
 export function toByteStreamReader(
   source: BundleSource,
-  bytesPerRead: number = 10240
+  bytesPerRead: number = DEFAULT_BYTES_PER_READ
 ): ReadableStreamReader<Uint8Array> {
   if (source instanceof Uint8Array) {
     return toByteStreamReaderHelper(source, bytesPerRead);

@@ -117,7 +117,7 @@ import {
 } from './spec_test_components';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { BundleReader } from '../../../src/util/bundle_reader';
-import { LoadBundleTaskImpl } from '../../../src/core/bundle';
+import { LoadBundleTask } from '../../../src/api/bundle';
 import { encodeBase64 } from '../../../src/platform/base64';
 import {
   FakeDocument,
@@ -457,12 +457,8 @@ abstract class TestRunner {
     const reader = new BundleReader(
       toByteStreamReader(new TextEncoder().encode(bundle))
     );
-    const task = new LoadBundleTaskImpl();
-    this.queue.enqueueAndForget(() => {
-      return loadBundle(this.syncEngine, reader, task);
-    });
-
-    await task;
+    const task = new LoadBundleTask();
+    return this.queue.enqueue(() => loadBundle(this.syncEngine, reader, task));
   }
 
   private doMutations(mutations: Mutation[]): Promise<void> {

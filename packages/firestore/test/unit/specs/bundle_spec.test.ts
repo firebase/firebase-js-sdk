@@ -58,8 +58,8 @@ function bundleWithDocument(testDoc: TestBundleDocument): string {
   );
 }
 
-describeSpec('Bundles:', [], () => {
-  specTest('Newer docs from bundles should overwrite cache.', [], () => {
+describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
+  specTest('Newer docs from bundles should overwrite cache', [], () => {
     const query1 = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
     const docAChanged = doc('collection/a', 2999, { key: 'b' });
@@ -77,10 +77,10 @@ describeSpec('Bundles:', [], () => {
       .watchAcksFull(query1, 1000, docA)
       .expectEvents(query1, { added: [docA] })
       .loadBundle(bundleString)
-      .expectEvents(query1, { modified: [docAChanged] });
+      .expectEvents(query1, { modified: [docAChanged], fromCache: true });
   });
 
-  specTest('Newer deleted docs from bundles should delete cache.', [], () => {
+  specTest('Newer deleted docs from bundles should delete cache', [], () => {
     const query1 = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
 
@@ -94,10 +94,10 @@ describeSpec('Bundles:', [], () => {
       .watchAcksFull(query1, 1000, docA)
       .expectEvents(query1, { added: [docA] })
       .loadBundle(bundleString)
-      .expectEvents(query1, { removed: [docA] });
+      .expectEvents(query1, { removed: [docA], fromCache: true });
   });
 
-  specTest('Older deleted docs from bundles should do nothing.', [], () => {
+  specTest('Older deleted docs from bundles should do nothing', [], () => {
     const query1 = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
 
@@ -117,13 +117,13 @@ describeSpec('Bundles:', [], () => {
   });
 
   specTest(
-    'Newer docs from bundles should raise snapshot only when watch catches up with acknowledged writes.',
+    'Newer docs from bundles should raise snapshot only when watch catches up with acknowledged writes',
     [],
     () => {
       const query = Query.atPath(path('collection'));
       const docA = doc('collection/a', 250, { key: 'a' });
 
-      const bundleString1 = bundleWithDocument({
+      const bundleBeforeMutationAck = bundleWithDocument({
         key: docA.key,
         readTime: 500,
         createTime: 250,
@@ -131,7 +131,7 @@ describeSpec('Bundles:', [], () => {
         content: { key: { stringValue: 'b' } }
       });
 
-      const bundleString2 = bundleWithDocument({
+      const bundleAfterMutationAck = bundleWithDocument({
         key: docA.key,
         readTime: 1001,
         createTime: 250,
@@ -159,35 +159,28 @@ describeSpec('Bundles:', [], () => {
             hasPendingWrites: true
           })
           .writeAcks('collection/a', 1000)
-          // loading bundleString1 will not raise snapshots, because it is before
+          // loading bundleBeforeMutationAck will not raise snapshots, because it is before
           // the acknowledged mutation.
-          .loadBundle(bundleString1)
-          // loading bundleString2 will raise a snapshot, because it is after
+          .loadBundle(bundleBeforeMutationAck)
+          // loading bundleAfterMutationAck will raise a snapshot, because it is after
           // the acknowledged mutation.
-          .loadBundle(bundleString2)
+          .loadBundle(bundleAfterMutationAck)
           .expectEvents(query, {
-            modified: [doc('collection/a', 1001, { key: 'fromBundle' })]
+            modified: [doc('collection/a', 1001, { key: 'fromBundle' })],
+            fromCache: true
           })
       );
     }
   );
 
   specTest(
-    'Newer docs from bundles should keep not raise snapshot if there are unacknowledged writes.',
+    'Newer docs from bundles should keep not raise snapshot if there are unacknowledged writes',
     [],
     () => {
       const query = Query.atPath(path('collection'));
       const docA = doc('collection/a', 250, { key: 'a' });
 
-      const bundleString1 = bundleWithDocument({
-        key: docA.key,
-        readTime: 500,
-        createTime: 250,
-        updateTime: 500,
-        content: { key: { stringValue: 'b' } }
-      });
-
-      const bundleString2 = bundleWithDocument({
+      const bundleString = bundleWithDocument({
         key: docA.key,
         readTime: 1001,
         createTime: 250,
@@ -215,15 +208,14 @@ describeSpec('Bundles:', [], () => {
             ],
             hasPendingWrites: true
           })
-          // Loading both bundles will not raise snapshots, because of the
+          // Loading the bundle will not raise snapshots, because the
           // mutation is not acknowledged.
-          .loadBundle(bundleString1)
-          .loadBundle(bundleString2)
+          .loadBundle(bundleString)
       );
     }
   );
 
-  specTest('Newer docs from bundles might lead to limbo doc.', [], () => {
+  specTest('Newer docs from bundles might lead to limbo doc', [], () => {
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
     const bundleString1 = bundleWithDocument({
@@ -252,7 +244,7 @@ describeSpec('Bundles:', [], () => {
   });
 
   specTest(
-    'Load from secondary clients and observe from primary.',
+    'Load from secondary clients and observe from primary',
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
@@ -265,29 +257,26 @@ describeSpec('Bundles:', [], () => {
         content: { key: { stringValue: 'b' } }
       });
 
-      return (
-        client(0)
-          .userListens(query)
-          .watchAcksFull(query, 250, docA)
-          .expectEvents(query, {
-            added: [docA]
-          })
-          .client(1)
-          // Bundle tells otherwise, leads to limbo resolution.
-          .loadBundle(bundleString1)
-          .client(0)
-          .becomeVisible()
-        // TODO(wuandy): Loading from secondary client does not notify other
-        // clients for now. We need to fix it and uncomment below.
-        // .expectEvents(query, {
-        //   modified: [doc('collection/a', 500, { key: 'b' })],
-        // })
-      );
+      return client(0)
+        .userListens(query)
+        .watchAcksFull(query, 250, docA)
+        .expectEvents(query, {
+          added: [docA]
+        })
+        .client(1)
+        .loadBundle(bundleString1)
+        .client(0)
+        .becomeVisible();
+      // TODO(wuandy): Loading from secondary client does not notify other
+      // clients for now. We need to fix it and uncomment below.
+      // .expectEvents(query, {
+      //   modified: [doc('collection/a', 500, { key: 'b' })],
+      // })
     }
   );
 
   specTest(
-    'Load and observe from same secondary client.',
+    'Load and observe from same secondary client',
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
@@ -313,13 +302,14 @@ describeSpec('Bundles:', [], () => {
         })
         .loadBundle(bundleString1)
         .expectEvents(query, {
-          modified: [doc('collection/a', 500, { key: 'b' })]
+          modified: [doc('collection/a', 500, { key: 'b' })],
+          fromCache: true
         });
     }
   );
 
   specTest(
-    'Load from primary client and observe from secondary.',
+    'Load from primary client and observe from secondary',
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
@@ -346,11 +336,13 @@ describeSpec('Bundles:', [], () => {
         .client(0)
         .loadBundle(bundleString1)
         .expectEvents(query, {
-          modified: [doc('collection/a', 500, { key: 'b' })]
+          modified: [doc('collection/a', 500, { key: 'b' })],
+          fromCache: true
         })
         .client(1)
         .expectEvents(query, {
-          modified: [doc('collection/a', 500, { key: 'b' })]
+          modified: [doc('collection/a', 500, { key: 'b' })],
+          fromCache: true
         });
     }
   );

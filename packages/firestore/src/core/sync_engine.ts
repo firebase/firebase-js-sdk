@@ -77,8 +77,9 @@ import { ViewSnapshot } from './view_snapshot';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
 import { BundleReader } from '../util/bundle_reader';
-import { BundleLoader, initialProgress, LoadBundleTaskImpl } from './bundle';
+import { BundleLoader, initialProgress, skipLoadingProgress } from './bundle';
 import { Datastore } from '../remote/datastore';
+import { LoadBundleTask } from '../api/bundle';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -304,11 +305,6 @@ class SyncEngineImpl implements SyncEngine {
     this.syncEngineListener = syncEngineListener;
   }
 
-  /**
-   * Initiates the new listen, resolves promise when listen enqueued to the
-   * server. All the subsequent view snapshots or errors are sent to the
-   * subscribed handlers. Returns the initial snapshot.
-   */
   async listen(query: Query): Promise<ViewSnapshot> {
     this.assertSubscribed('listen()');
 
@@ -848,7 +844,8 @@ class SyncEngineImpl implements SyncEngine {
 
   async emitNewSnapsAndNotifyLocalStore(
     changes: MaybeDocumentMap,
-    remoteEvent?: RemoteEvent
+    remoteEvent?: RemoteEvent,
+    fromBundle: boolean = false
   ): Promise<void> {
     const newSnaps: ViewSnapshot[] = [];
     const docChangesInAllViews: LocalViewChanges[] = [];
@@ -880,7 +877,8 @@ class SyncEngineImpl implements SyncEngine {
             const viewChange = queryView.view.applyChanges(
               viewDocChanges,
               /* updateLimboDocuments= */ this.isPrimaryClient,
-              targetChange
+              targetChange,
+              fromBundle
             );
             this.updateTrackedLimbos(
               queryView.targetId,
@@ -1388,33 +1386,35 @@ export function newMultiTabSyncEngine(
  * @param bundleReader Bundle to load into the SDK.
  * @param task LoadBundleTask used to update the loading progress to public API.
  */
-export function loadBundle(
+export async function loadBundle(
   syncEngine: SyncEngine,
   bundleReader: BundleReader,
-  task: LoadBundleTaskImpl
+  task: LoadBundleTask
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   syncEngineImpl.assertSubscribed('loadBundle()');
 
-  return loadBundleAsync(syncEngineImpl, bundleReader, task).catch(reason => {
-    task.failedWith(reason);
-  });
+  try {
+    await loadBundleImpl(syncEngineImpl, bundleReader, task);
+  } catch (e) {
+    task._failedWith(e);
+  }
 }
 
-async function loadBundleAsync(
+async function loadBundleImpl(
   syncEngine: SyncEngineImpl,
   reader: BundleReader,
-  task: LoadBundleTaskImpl
+  task: LoadBundleTask
 ): Promise<void> {
   const metadata = await reader.getMetadata();
   const skip = await hasNewerBundle(syncEngine.localStore, metadata);
   if (skip) {
     await reader.close();
-    task.completeWith(initialProgress('Success', metadata));
+    task._completeWith(skipLoadingProgress(metadata));
     return;
   }
 
-  task.updateProgress(initialProgress('Running', metadata));
+  task._updateProgress(initialProgress(metadata));
 
   const loader = new BundleLoader(metadata, syncEngine.localStore);
   let element = await reader.nextElement();
@@ -1425,11 +1425,15 @@ async function loadBundleAsync(
     );
     const result = await loader.addSizedElement(element);
     if (result) {
-      task.updateProgress(result.progress);
+      task._updateProgress(result.progress);
 
       if (result.changedDocs) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        syncEngine.emitNewSnapsAndNotifyLocalStore(result.changedDocs);
+        syncEngine.emitNewSnapsAndNotifyLocalStore(
+          result.changedDocs,
+          /* remoteEvent */ undefined,
+          /* fromBundle */ true
+        );
       }
     }
 
@@ -1439,5 +1443,5 @@ async function loadBundleAsync(
   await saveBundle(syncEngine.localStore, metadata);
 
   const completeProgress = loader.complete();
-  task.completeWith(completeProgress);
+  task._completeWith(completeProgress);
 }

@@ -39,8 +39,8 @@ function verifyInProgress(
   expectedDocuments: number
 ): void {
   expect(p.taskState).to.equal('Running');
-  expect(p.bytesLoaded).lte(p.totalBytes);
-  expect(p.documentsLoaded).lte(p.totalDocuments);
+  expect(p.bytesLoaded <= p.totalBytes).to.be.true;
+  expect(p.documentsLoaded <= p.totalDocuments).to.be.true;
   expect(p.documentsLoaded).to.equal(expectedDocuments);
 }
 
@@ -78,82 +78,69 @@ apiDescribe('Bundles', (persistence: boolean) => {
     return builder;
   }
 
-  it('load with documents only with on progress and promise interface.', () => {
+  function verifySnapEqualTestDocs(snap: firestore.QuerySnapshot): void {
+    expect(toDataArray(snap)).to.deep.equal([
+      { k: 'a', bar: 1 },
+      { k: 'b', bar: 2 }
+    ]);
+  }
+
+  it('load with documents only with on progress and promise interface', () => {
     return withTestDb(persistence, async db => {
       const builder = bundleWithTestDocs(db);
 
-      const progresses: firestore.LoadBundleTaskProgress[] = [];
-      let completeProgress: firestore.LoadBundleTaskProgress,
-        fulfillProgress: firestore.LoadBundleTaskProgress;
-      await db
-        .loadBundle(
-          builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
-        )
-        .onProgress(
-          progress => {
-            progresses.push(progress);
-          },
-          err => {
-            throw err;
-          },
-          progress => {
-            completeProgress = progress!;
-            return progress;
-          }
-        )
-        .then(progress => {
-          fulfillProgress = progress;
-        })
-        .catch(err => {
-          throw err;
-        });
-
-      verifySuccessProgress(completeProgress!);
-      verifySuccessProgress(fulfillProgress!);
-      expect(progresses.length).to.equal(3);
-      verifyInProgress(progresses[0], 0);
-      verifyInProgress(progresses[1], 1);
-      verifyInProgress(progresses[2], 2);
-
-      // Read from cache. These documents do not exist in backend, so they can
-      // only be read from cache.
-      const snap = await db.collection('coll-1').get({ source: 'cache' });
-      expect(toDataArray(snap)).to.deep.equal([
-        { k: 'a', bar: 1 },
-        { k: 'b', bar: 2 }
-      ]);
-    });
-  });
-
-  it('load with documents with promise interface.', () => {
-    return withTestDb(persistence, async db => {
-      const builder = bundleWithTestDocs(db);
-
+      const progressEvents: firestore.LoadBundleTaskProgress[] = [];
+      let completeCalled = false;
+      const task = db.loadBundle(
+        builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
+      );
+      await task.onProgress(
+        progress => {
+          progressEvents.push(progress);
+        },
+        undefined,
+        () => {
+          completeCalled = true;
+        }
+      );
       let fulfillProgress: firestore.LoadBundleTaskProgress;
-      await db
-        .loadBundle(
-          builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
-        )
-        .then(progress => {
-          fulfillProgress = progress;
-        })
-        .catch(err => {
-          throw err;
-        });
+      await task.then(progress => {
+        fulfillProgress = progress;
+      });
+
+      expect(completeCalled).to.be.true;
+      expect(progressEvents.length).to.equal(4);
+      verifyInProgress(progressEvents[0], 0);
+      verifyInProgress(progressEvents[1], 1);
+      verifyInProgress(progressEvents[2], 2);
+      verifySuccessProgress(progressEvents[3]);
+      expect(fulfillProgress!).to.deep.equal(progressEvents[3]);
+
+      // Read from cache. These documents do not exist in backend, so they can
+      // only be read from cache.
+      const snap = await db.collection('coll-1').get({ source: 'cache' });
+      verifySnapEqualTestDocs(snap);
+    });
+  });
+
+  it('load with documents with promise interface', () => {
+    return withTestDb(persistence, async db => {
+      const builder = bundleWithTestDocs(db);
+
+      const fulfillProgress: firestore.LoadBundleTaskProgress = await db.loadBundle(
+        builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
+      );
 
       verifySuccessProgress(fulfillProgress!);
 
       // Read from cache. These documents do not exist in backend, so they can
       // only be read from cache.
       const snap = await db.collection('coll-1').get({ source: 'cache' });
-      expect(toDataArray(snap)).to.deep.equal([
-        { k: 'a', bar: 1 },
-        { k: 'b', bar: 2 }
-      ]);
+      verifySnapEqualTestDocs(snap);
     });
   });
 
-  it('load for a second time skips.', () => {
+  it('load for a second time skips', () => {
     return withTestDb(persistence, async db => {
       const builder = bundleWithTestDocs(db);
 
@@ -161,8 +148,8 @@ apiDescribe('Bundles', (persistence: boolean) => {
         builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
       );
 
-      let completeProgress: firestore.LoadBundleTaskProgress;
-      const progresses: firestore.LoadBundleTaskProgress[] = [];
+      let completeCalled = false;
+      const progressEvents: firestore.LoadBundleTaskProgress[] = [];
       await db
         .loadBundle(
           encoder.encode(
@@ -171,29 +158,28 @@ apiDescribe('Bundles', (persistence: boolean) => {
         )
         .onProgress(
           progress => {
-            progresses.push(progress);
+            progressEvents.push(progress);
           },
           error => {},
-          progress => {
-            completeProgress = progress!;
+          () => {
+            completeCalled = true;
           }
         );
 
-      // No loading actually happened in the second `loadBundle` call.
-      expect(progresses).to.be.empty;
-      verifySuccessProgress(completeProgress!);
+      expect(completeCalled).to.be.true;
+      // No loading actually happened in the second `loadBundle` call only the
+      // success progress is recorded.
+      expect(progressEvents.length).to.equal(1);
+      verifySuccessProgress(progressEvents[0]);
 
       // Read from cache. These documents do not exist in backend, so they can
       // only be read from cache.
       const snap = await db.collection('coll-1').get({ source: 'cache' });
-      expect(toDataArray(snap)).to.deep.equal([
-        { k: 'a', bar: 1 },
-        { k: 'b', bar: 2 }
-      ]);
+      verifySnapEqualTestDocs(snap);
     });
   });
 
-  it('load with documents already pulled from backend.', () => {
+  it('load with documents already pulled from backend', () => {
     return withTestDb(persistence, async db => {
       await db.doc('coll-1/a').set({ k: 'a', bar: 0 });
       await db.doc('coll-1/b').set({ k: 'b', bar: 0 });
@@ -204,7 +190,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
       const builder = bundleWithTestDocs(db);
       const progress = await db.loadBundle(
-        // Testing passing non-string bundles.
+        // Testing passing in non-string bundles.
         encoder.encode(
           builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
         )
@@ -224,7 +210,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
     });
   });
 
-  it('load with documents from other projects fails.', () => {
+  it('load with documents from other projects fails', () => {
     return withTestDb(persistence, async db => {
       let builder = bundleWithTestDocs(db);
       return withAlternateTestDb(persistence, async otherDb => {
@@ -237,20 +223,17 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
         // Verify otherDb still functions, despite loaded a problematic bundle.
         builder = bundleWithTestDocs(otherDb);
-        const progress = await otherDb.loadBundle(
+        const finalProgress = await otherDb.loadBundle(
           builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
         );
-        verifySuccessProgress(progress);
+        verifySuccessProgress(finalProgress);
 
         // Read from cache. These documents do not exist in backend, so they can
         // only be read from cache.
         const snap = await otherDb
           .collection('coll-1')
           .get({ source: 'cache' });
-        expect(toDataArray(snap)).to.deep.equal([
-          { k: 'a', bar: 1 },
-          { k: 'b', bar: 2 }
-        ]);
+        verifySnapEqualTestDocs(snap);
       });
     });
   });
