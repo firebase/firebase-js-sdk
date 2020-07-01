@@ -19,7 +19,6 @@ import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { Deferred } from '../../util/promise';
-import firebase from '../util/firebase_export';
 import {
   apiDescribe,
   withAlternateTestDb,
@@ -27,11 +26,7 @@ import {
   withTestDb
 } from '../util/helpers';
 import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
-
-// tslint:disable:no-floating-promises
-
-const FieldPath = firebase.firestore!.FieldPath;
-const FieldValue = firebase.firestore!.FieldValue;
+import { FieldPath, FieldValue } from '../util/firebase_export';
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 /* eslint-disable @typescript-eslint/no-explicit-any */

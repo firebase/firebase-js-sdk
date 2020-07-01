@@ -21,7 +21,6 @@ import { expect } from 'chai';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
-import firebase from '../util/firebase_export';
 import {
   apiDescribe,
   toChangesArray,
@@ -29,13 +28,9 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
+import { FieldPath, Timestamp, Blob, GeoPoint } from '../util/firebase_export';
 
 // tslint:disable:no-floating-promises
-
-const Blob = firebase.firestore!.Blob;
-const FieldPath = firebase.firestore!.FieldPath;
-const GeoPoint = firebase.firestore!.GeoPoint;
-const Timestamp = firebase.firestore!.Timestamp;
 
 apiDescribe('Queries', (persistence: boolean) => {
   addEqualityMatcher();

@@ -24,7 +24,7 @@ import * as dependencies from './dependencies.json';
 import * as pkg from '../../package.json';
 import { forEach } from '../../../src/util/obj';
 
-describe('Dependencies', () => {
+describe.skip('Dependencies', () => {
   forEach(dependencies, (api, { dependencies }) => {
     it(api, () => {
       return extractDependencies(api, resolve('exp', pkg.main)).then(

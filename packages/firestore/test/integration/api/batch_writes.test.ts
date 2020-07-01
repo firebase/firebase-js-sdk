@@ -19,15 +19,12 @@ import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { EventsAccumulator } from '../util/events_accumulator';
-import firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
+import { FieldPath, FieldValue, Timestamp } from '../util/firebase_export';
 
 // tslint:disable:no-floating-promises
 
 const apiDescribe = integrationHelpers.apiDescribe;
-const FieldPath = firebase.firestore!.FieldPath;
-const FieldValue = firebase.firestore!.FieldValue;
-const Timestamp = firebase.firestore!.Timestamp;
 
 apiDescribe('Database batch writes', (persistence: boolean) => {
   it('supports empty batches', () => {

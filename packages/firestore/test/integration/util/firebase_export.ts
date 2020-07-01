@@ -20,7 +20,34 @@
 // can replace this file reference with a reference to the minified sources
 // instead.
 
-import firebase from '@firebase/app';
+import * as firestore from '@firebase/firestore-types';
 
-// eslint-disable-next-line import/no-default-export
-export default firebase;
+import firebase from '@firebase/app';
+import * as exp from './experimental_sdk_shim';
+
+let FieldValue: typeof firestore.FieldValue;
+let FieldPath: typeof firestore.FieldPath;
+let Timestamp: typeof firestore.Timestamp;
+let Blob: typeof firestore.Blob;
+let GeoPoint: typeof firestore.GeoPoint;
+
+if ('firestore' in firebase) {
+  // We only register firebase.firestore if the tests are run against the
+  // legacy SDK. To prevent a compile-time error with the firestore-exp
+  // SDK, we cast to `any`.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const firestoreNamespace = (firebase as any).firestore;
+  FieldValue = firestoreNamespace.FieldValue;
+  FieldPath = firestoreNamespace.FieldPath;
+  Timestamp = firestoreNamespace.Timestamp;
+  Blob = firestoreNamespace.Blob;
+  GeoPoint = firestoreNamespace.GeoPoint;
+} else {
+  FieldValue = exp.FieldValue;
+  FieldPath = exp.FieldPath;
+  Timestamp = exp.Timestamp;
+  Blob = exp.Blob as any; // TODO(mrschmidt): fix
+  GeoPoint = exp.GeoPoint;
+}
+
+export { FieldValue, FieldPath, Timestamp, Blob, GeoPoint };

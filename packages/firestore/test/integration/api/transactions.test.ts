@@ -17,10 +17,8 @@
 
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
-import firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
-
-const FieldPath = firebase.firestore!.FieldPath;
+import { FieldPath } from '../util/firebase_export';
 
 const apiDescribe = integrationHelpers.apiDescribe;
 apiDescribe('Database transactions', (persistence: boolean) => {

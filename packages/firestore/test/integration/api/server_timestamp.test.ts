@@ -19,15 +19,12 @@ import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { EventsAccumulator } from '../util/events_accumulator';
-import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
+import { FieldValue, Timestamp } from '../util/firebase_export';
 
 // Allow custom types for testing.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyTestData = any;
-
-const Timestamp = firebase.firestore!.Timestamp;
-const FieldValue = firebase.firestore!.FieldValue;
 
 apiDescribe('Server Timestamps', (persistence: boolean) => {
   // Data written in tests via set().

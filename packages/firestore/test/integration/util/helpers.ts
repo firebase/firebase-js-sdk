@@ -16,15 +16,18 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-import firebase from './firebase_export';
+import firebase from '@firebase/app';
 import {
   ALT_PROJECT_ID,
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
 } from './settings';
 import { FirebaseFirestore as FirestoreShim } from './experimental_sdk_shim';
-import { initializeFirestore } from '../../../exp/src/api/database';
-import { enableIndexedDbPersistence } from '../../../exp';
+import {
+  initializeFirestore,
+  enableIndexedDbPersistence
+} from '../../../exp/src/api/database';
+import { initializeApp } from '@firebase/app-exp';
 
 /* eslint-disable no-restricted-globals */
 
@@ -79,7 +82,6 @@ interface ApiDescribe {
   skip: ApiSuiteFunction;
   only: ApiSuiteFunction;
 }
-// TODO(mrschmidt): add useExp here
 export const apiDescribe = apiDescribeInternal.bind(
   null,
   describe
@@ -121,17 +123,11 @@ export function toIds(docSet: firestore.QuerySnapshot): string[] {
 
 export function withTestDb(
   persistence: boolean,
-  fn: (db: firestore.FirebaseFirestore) => Promise<void>,
-  useExp?: boolean
+  fn: (db: firestore.FirebaseFirestore) => Promise<void>
 ): Promise<void> {
-  return withTestDbs(
-    persistence,
-    1,
-    ([db]) => {
-      return fn(db);
-    },
-    useExp
-  );
+  return withTestDbs(persistence, 1, ([db]) => {
+    return fn(db);
+  });
 }
 
 /** Runs provided fn with a db for an alternate project id. */
@@ -153,16 +149,14 @@ export function withAlternateTestDb(
 export function withTestDbs(
   persistence: boolean,
   numDbs: number,
-  fn: (db: firestore.FirebaseFirestore[]) => Promise<void>,
-  useExp?: boolean
+  fn: (db: firestore.FirebaseFirestore[]) => Promise<void>
 ): Promise<void> {
   return withTestDbsSettings(
     persistence,
     DEFAULT_PROJECT_ID,
     DEFAULT_SETTINGS,
     numDbs,
-    fn,
-    useExp
+    fn
   );
 }
 
@@ -173,53 +167,52 @@ export async function withTestDbsSettings(
   projectId: string,
   settings: firestore.Settings,
   numDbs: number,
-  fn: (db: firestore.FirebaseFirestore[]) => Promise<void>,
-  useExp?: boolean
+  fn: (db: firestore.FirebaseFirestore[]) => Promise<void>
 ): Promise<void> {
   if (numDbs === 0) {
     throw new Error("Can't test with no databases");
   }
-  const promises: Array<Promise<firestore.FirebaseFirestore>> = [];
-  for (let i = 0; i < numDbs; i++) {
-    // TODO(dimond): Right now we create a new app and Firestore instance for
-    // every test and never clean them up. We may need to revisit.
-    const app = firebase.initializeApp(
-      { apiKey: 'fake-api-key', projectId },
-      'test-app-' + appCount++
-    );
 
-    if (useExp) {
-      const firestore = initializeFirestore(app, settings);
-      let ready: Promise<firestore.FirebaseFirestore>;
+  const useLegacySdk = 'firestore' in firebase;
+  const clients: Array<firestore.FirebaseFirestore> = [];
+
+  for (let i = 0; i < numDbs; i++) {
+    if (useLegacySdk) {
+      // TODO(dimond): Right now we create a new app and Firestore instance for
+      // every test and never clean them up. We may need to revisit.
+      const app = firebase.initializeApp(
+        { apiKey: 'fake-api-key', projectId },
+        'test-app-' + appCount++
+      );
+
+      // We only register firebase.firestore if the tests are run against the
+      // legacy SDK. To prevent a compile-time error with the firestore-exp
+      // SDK, we cast to `any`.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const firestore = (firebase as any).firestore!(app);
+      firestore.settings(settings);
       if (persistence) {
-        ready = enableIndexedDbPersistence(firestore).then(
-          () => new FirestoreShim(firestore)
-        );
-      } else {
-        ready = Promise.resolve(new FirestoreShim(firestore));
+        await firestore.enablePersistence();
       }
-      promises.push(ready);
+      clients.push(firestore);
     } else {
-      // const firestore = firebase.firestore!(app);
-      // firestore.settings(settings);
-      //
-      // let ready: Promise<firestore.FirebaseFirestore>;
-      // if (persistence) {
-      //   ready = firestore.enablePersistence().then(() => firestore);
-      // } else {
-      //   ready = Promise.resolve(firestore);
-      // }
-      //
-      // promises.push(ready);
+      const app = initializeApp(
+        { apiKey: 'fake-api-key', projectId },
+        'test-app-' + appCount++
+      );
+
+      const firestore = initializeFirestore(app, settings);
+      if (persistence) {
+        await enableIndexedDbPersistence(firestore);
+      }
+      clients.push(new FirestoreShim(firestore));
     }
   }
 
-  const dbs = await Promise.all(promises);
-
   try {
-    await fn(dbs);
+    await fn(clients);
   } finally {
-    for (const db of dbs) {
+    for (const db of clients) {
       await db.terminate();
       if (persistence) {
         await db.clearPersistence();
@@ -230,16 +223,11 @@ export async function withTestDbsSettings(
 
 export function withTestDoc(
   persistence: boolean,
-  fn: (doc: firestore.DocumentReference) => Promise<void>,
-  useExp?: boolean
+  fn: (doc: firestore.DocumentReference) => Promise<void>
 ): Promise<void> {
-  return withTestDb(
-    persistence,
-    db => {
-      return fn(db.collection('test-collection').doc());
-    },
-    useExp
-  );
+  return withTestDb(persistence, db => {
+    return fn(db.collection('test-collection').doc());
+  });
 }
 
 export function withTestDocAndSettings(

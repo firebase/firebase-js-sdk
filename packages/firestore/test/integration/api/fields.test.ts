@@ -16,7 +16,6 @@
  */
 
 import { expect } from 'chai';
-import firebase from '../util/firebase_export';
 import {
   apiDescribe,
   toDataArray,
@@ -26,10 +25,7 @@ import {
   withTestDocAndSettings
 } from '../util/helpers';
 import { DEFAULT_SETTINGS } from '../util/settings';
-
-const FieldPath = firebase.firestore!.FieldPath;
-const FieldValue = firebase.firestore!.FieldValue;
-const Timestamp = firebase.firestore!.Timestamp;
+import { FieldPath, FieldValue, Timestamp } from '../util/firebase_export';
 
 // Allow custom types for testing.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

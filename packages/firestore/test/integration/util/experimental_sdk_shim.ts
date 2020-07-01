@@ -55,8 +55,15 @@ import {
   getDocFromServer
 } from '../../../exp/index.node';
 import { UntypedFirestoreDataConverter } from '../../../src/api/user_data_reader';
+import { isPartialObserver, PartialObserver } from '../../../src/api/observer';
+
+export { GeoPoint, Blob, Timestamp } from '../../../exp/index.node';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+// This module defines a shim layer that implements the legacy API on top
+// of the experimental SDK. This shim is used to run integration tests against
+// both SDK versions.
 
 export class FirebaseFirestore implements firestore.FirebaseFirestore {
   constructor(private readonly _delegate: exp.FirebaseFirestore) {}
@@ -345,7 +352,40 @@ export class DocumentReference<T = firestore.DocumentData>
     onCompletion?: () => void
   ): () => void;
   onSnapshot(...args: any): () => void {
-    return (onSnapshot as any).apply(null, [this._delegate, ...args]);
+    let options: firestore.SnapshotListenOptions = {};
+    let userObserver: PartialObserver<DocumentSnapshot<T>>;
+
+    if (isPartialObserver(args[0])) {
+      userObserver = args[0] as PartialObserver<DocumentSnapshot<T>>;
+    } else if (isPartialObserver(args[1])) {
+      options = args[0];
+      userObserver = args[1];
+    } else if (typeof args[0] === 'function') {
+      userObserver = {
+        next: args[0],
+        error: args[1],
+        complete: args[2]
+      };
+    } else {
+      options = args[0];
+      userObserver = {
+        next: args[1],
+        error: args[2],
+        complete: args[3]
+      };
+    }
+
+    const apiObserver: PartialObserver<exp.DocumentSnapshot<T>> = {
+      next: snapshot => {
+        if (userObserver!.next) {
+          userObserver!.next(new DocumentSnapshot(snapshot));
+        }
+      },
+      error: userObserver.error?.bind(userObserver),
+      complete: userObserver.complete?.bind(userObserver)
+    };
+
+    return onSnapshot(this._delegate, options, apiObserver);
   }
 
   withConverter<U>(
@@ -363,10 +403,13 @@ export class DocumentSnapshot<T = firestore.DocumentData>
   implements firestore.DocumentSnapshot<T> {
   constructor(readonly _delegate: exp.DocumentSnapshot<T>) {}
 
-  readonly exists = !!this._delegate.exists;
   readonly ref = new DocumentReference<T>(this._delegate.ref);
   readonly id = this._delegate.id;
   readonly metadata = this._delegate.metadata;
+
+  get exists(): boolean {
+    return this._delegate.exists();
+  }
 
   data(options?: firestore.SnapshotOptions): T | undefined {
     return this._delegate.data(options);
@@ -504,7 +547,40 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
     onCompletion?: () => void
   ): () => void;
   onSnapshot(...args: any): () => void {
-    return (onSnapshot as any).apply(null, [this._delegate, ...args]);
+    let options: firestore.SnapshotListenOptions = {};
+    let userObserver: PartialObserver<QuerySnapshot<T>>;
+
+    if (isPartialObserver(args[0])) {
+      userObserver = args[0] as PartialObserver<QuerySnapshot<T>>;
+    } else if (isPartialObserver(args[1])) {
+      options = args[0];
+      userObserver = args[1];
+    } else if (typeof args[0] === 'function') {
+      userObserver = {
+        next: args[0],
+        error: args[1],
+        complete: args[2]
+      };
+    } else {
+      options = args[0];
+      userObserver = {
+        next: args[1],
+        error: args[2],
+        complete: args[3]
+      };
+    }
+
+    const apiObserver: PartialObserver<exp.QuerySnapshot<T>> = {
+      next: snapshot => {
+        if (userObserver!.next) {
+          userObserver!.next(new QuerySnapshot(snapshot));
+        }
+      },
+      error: userObserver.error?.bind(userObserver),
+      complete: userObserver.complete?.bind(userObserver)
+    };
+
+    return onSnapshot(this._delegate, options, apiObserver);
   }
 
   withConverter<U>(converter: firestore.FirestoreDataConverter<U>): Query<U> {
@@ -577,7 +653,11 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   }
 
   doc(documentPath?: string): DocumentReference<T> {
-    return new DocumentReference<T>(doc(this._delegate, documentPath));
+    if (documentPath) {
+      return new DocumentReference<T>(doc(this._delegate, documentPath));
+    } else {
+      return new DocumentReference<T>(doc(this._delegate));
+    }
   }
 
   async add(data: T): Promise<DocumentReference<T>> {
