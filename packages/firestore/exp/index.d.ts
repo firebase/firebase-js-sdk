@@ -249,7 +249,7 @@ export class DocumentSnapshot<T = DocumentData> {
 export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
   T
 > {
-  data(): T;
+  data(options?: SnapshotOptions): T;
 }
 
 export type OrderByDirection = 'desc' | 'asc';
