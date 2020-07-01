@@ -123,7 +123,7 @@ export class ServerTimestampFieldValueImpl extends SerializableFieldValue {
   }
 
   _toFieldTransform(context: ParseContext): FieldTransform {
-    return new FieldTransform(context.path!, ServerTimestampTransform.instance);
+    return new FieldTransform(context.path!, new ServerTimestampTransform());
   }
 
   isEqual(other: FieldValue): boolean {
