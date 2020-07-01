@@ -48,7 +48,7 @@ export class AuthPopup {
 
 /** Wrapper so that we can stub the UA in tests */
 export const _uaGetter = {
-  getUA,
+  getUA
 };
 
 export function _open(
@@ -58,10 +58,7 @@ export function _open(
   width = DEFAULT_WIDTH,
   height = DEFAULT_HEIGHT
 ): AuthPopup {
-  const top = Math.min(
-    (window.screen.availHeight - height) / 2,
-    0
-  ).toString();
+  const top = Math.min((window.screen.availHeight - height) / 2, 0).toString();
   const left = Math.min((window.screen.availWidth - width) / 2, 0).toString();
   let target = '';
 
@@ -89,7 +86,10 @@ export function _open(
     options.scrollbars = 'yes';
   }
 
-  const optionsString = Object.entries(options).reduce((accum, [key, value]) => `${accum}${key}=${value},`, '');
+  const optionsString = Object.entries(options).reduce(
+    (accum, [key, value]) => `${accum}${key}=${value},`,
+    ''
+  );
 
   // TODO: Plain-old window.open isn't going to work for iOS, need to fix this
   //       (see goog.window.open)

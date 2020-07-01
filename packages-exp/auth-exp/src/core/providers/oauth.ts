@@ -40,7 +40,9 @@ export class OAuthProvider implements externs.AuthProvider {
   ): externs.OAuthCredential | null {
     debugFail('not implemented');
   }
-  static credentialFromError(_error: AuthErrorCode): externs.OAuthCredential | null {
+  static credentialFromError(
+    _error: AuthErrorCode
+  ): externs.OAuthCredential | null {
     debugFail('not implemented');
   }
   static credentialFromJSON(_json: object): externs.OAuthCredential {
@@ -55,7 +57,9 @@ export class OAuthProvider implements externs.AuthProvider {
     this.defaultLanguageCode = languageCode;
   }
 
-  setCustomParameters(customOAuthParameters: CustomParameters): externs.AuthProvider {
+  setCustomParameters(
+    customOAuthParameters: CustomParameters
+  ): externs.AuthProvider {
     this.customParameters = customOAuthParameters;
     return this;
   }

@@ -47,10 +47,10 @@ describe('src/core/util/popup', () => {
 
   beforeEach(() => {
     windowOpenStub = sinon.stub(window, 'open');
-    popupStub = sinon.stub({
+    popupStub = sinon.stub(({
       focus: () => {},
-      close: () => {},
-    } as unknown as Window);
+      close: () => {}
+    } as unknown) as Window);
     windowOpenStub.returns(popupStub);
   });
 
@@ -103,7 +103,10 @@ describe('src/core/util/popup', () => {
   it('errors if the popup is blocked', () => {
     setUA('');
     windowOpenStub.returns(undefined);
-    expect(() => _open('appName')).to.throw(FirebaseError, 'auth/popup-blocked');
+    expect(() => _open('appName')).to.throw(
+      FirebaseError,
+      'auth/popup-blocked'
+    );
   });
 
   it('builds the proper options string', () => {
@@ -111,16 +114,19 @@ describe('src/core/util/popup', () => {
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     (window as any).sreen = {
       availHeight: 1000,
-      availWidth: 2000,
+      availWidth: 2000
     };
 
     setUA('');
     _open('appName');
-    const options = windowOptions().split(',').filter(s => !!s).map(prop => prop.split('='))
-        .reduce<Record<string, string>>((accum, [prop, val]) => {
-          accum[prop] = val;
-          return accum;
-        }, {});
+    const options = windowOptions()
+      .split(',')
+      .filter(s => !!s)
+      .map(prop => prop.split('='))
+      .reduce<Record<string, string>>((accum, [prop, val]) => {
+        accum[prop] = val;
+        return accum;
+      }, {});
 
     expect(options).to.eql({
       location: 'yes',
@@ -130,7 +136,7 @@ describe('src/core/util/popup', () => {
       width: '500',
       height: '600',
       top: '0',
-      left: '0',
+      left: '0'
     });
 
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
