@@ -24,7 +24,11 @@ import { expect } from 'chai';
 import { Blob } from '../../src/api/blob';
 import { fromDotSeparatedString } from '../../src/api/field_path';
 import { UserDataWriter } from '../../src/api/user_data_writer';
-import { UserDataReader } from '../../src/api/user_data_reader';
+import {
+  parseQueryValue,
+  parseUpdateData,
+  UserDataReader
+} from '../../src/api/user_data_reader';
 import { DatabaseId } from '../../src/core/database_info';
 import {
   Bound,
@@ -163,7 +167,7 @@ export function wrap(value: unknown): api.Value {
   // HACK: We use parseQueryValue() since it accepts scalars as well as
   // arrays / objects, and our tests currently use wrap() pretty generically so
   // we don't know the intent.
-  return testUserDataReader().parseQueryValue('wrap', value);
+  return parseQueryValue(testUserDataReader(), 'wrap', value);
 }
 
 export function wrapObject(obj: JsonObject<unknown>): ObjectValue {
@@ -233,7 +237,8 @@ export function patchMutation(
     }
   });
   const patchKey = key(keyStr);
-  const parsed = testUserDataReader().parseUpdateData(
+  const parsed = parseUpdateData(
+    testUserDataReader(),
     'patchMutation',
     patchKey,
     json
@@ -261,7 +266,8 @@ export function transformMutation(
   data: Dict<unknown>
 ): TransformMutation {
   const transformKey = key(keyStr);
-  const result = testUserDataReader().parseUpdateData(
+  const result = parseUpdateData(
+    testUserDataReader(),
     'transformMutation()',
     transformKey,
     data
