@@ -56,7 +56,7 @@ export abstract class BaseTransaction {
   }
 
   protected _getHelper<DocSnap, T>(
-    documentRef: firestore.DocumentReference<unknown>,
+    documentRef: firestore.DocumentReference<T>,
     converter: (ref: DocumentReference<T>, doc: Document | null) => DocSnap
   ): Promise<DocSnap> {
     const ref = validateReference(documentRef, this._firestore);
