@@ -54,11 +54,13 @@ export async function _openIframe(auth: Auth): Promise<gapi.iframes.Iframe> {
     {
       where: document.body,
       url: getIframeUrl(auth),
-      messageHandlersFilter: AUTH_WINDOW.gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER,
+      messageHandlersFilter:
+        AUTH_WINDOW.gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER,
       attributes: IFRAME_ATTRIBUTES,
       dontclear: true
     },
-    (iframe: gapi.iframes.Iframe) => new Promise(async (resolve, reject) => {
+    (iframe: gapi.iframes.Iframe) =>
+      new Promise(async (resolve, reject) => {
         await iframe.restyle({
           // Prevent iframe from closing on mouse out.
           setHideOnLeave: false
@@ -77,7 +79,7 @@ export async function _openIframe(auth: Auth): Promise<gapi.iframes.Iframe> {
         function clearTimerAndResolve(): void {
           AUTH_WINDOW.clearTimeout(networkErrorTimer);
           resolve(iframe);
-        };
+        }
         // This returns an IThenable. However the reject part does not call
         // when the iframe is not loaded.
         iframe.ping(clearTimerAndResolve).then(clearTimerAndResolve, () => {
@@ -87,5 +89,6 @@ export async function _openIframe(auth: Auth): Promise<gapi.iframes.Iframe> {
             })
           );
         });
-      }));
+      })
+  );
 }

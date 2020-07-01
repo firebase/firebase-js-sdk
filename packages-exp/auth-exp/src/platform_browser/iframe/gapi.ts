@@ -82,8 +82,8 @@ function loadGapi(auth: Auth): Promise<gapi.iframes.Context> {
         },
         timeout: NETWORK_TIMEOUT.get()
       });
-    };
-    
+    }
+
     if (AUTH_WINDOW.gapi?.iframes?.Iframe) {
       // If gapi.iframes.Iframe available, resolve.
       resolve(gapi.iframes.getContext());

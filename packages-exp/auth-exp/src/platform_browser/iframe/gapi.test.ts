@@ -40,12 +40,13 @@ describe('src/platform_browser/iframe/gapi', () => {
   }
 
   beforeEach(async () => {
-
     const head = document.createElement('div');
     tag = document.createElement('script');
 
     sinon.stub(document, 'createElement').returns(tag);
-    sinon.stub(document, 'getElementsByTagName').returns([head] as unknown as HTMLCollection);
+    sinon
+      .stub(document, 'getElementsByTagName')
+      .returns(([head] as unknown) as HTMLCollection);
     sinon.stub(head, 'appendChild').callsFake(() => {
       onJsLoad();
       return head;
@@ -54,12 +55,19 @@ describe('src/platform_browser/iframe/gapi', () => {
     auth = await testAuth();
   });
 
-  function makeGapi(result: unknown, timesout = false): Record<string, unknown> {
+  function makeGapi(
+    result: unknown,
+    timesout = false
+  ): Record<string, unknown> {
     const callbackFn = timesout === false ? 'callback' : 'ontimeout';
     return {
-      load: sinon.stub().callsFake((_name: string, params: Record<string, Function>) => params[callbackFn]()),
+      load: sinon
+        .stub()
+        .callsFake((_name: string, params: Record<string, Function>) =>
+          params[callbackFn]()
+        ),
       iframes: {
-        getContext: () => result,
+        getContext: () => result
       }
     };
   }
@@ -83,7 +91,7 @@ describe('src/platform_browser/iframe/gapi', () => {
       H: {
         something: {
           r: ['requested'],
-          L: ['loaded', 'test'],
+          L: ['loaded', 'test']
         }
       },
       CP: [1, 2, 3, 4]
@@ -92,7 +100,7 @@ describe('src/platform_browser/iframe/gapi', () => {
     library = makeGapi('iframes');
 
     await _loadGapi(auth);
-    
+
     // Expect deep equality, but *not* pointer equality
     expect(AUTH_WINDOW.___jsl.H.something.r).to.eql(
       AUTH_WINDOW.___jsl.H.something.L
@@ -114,18 +122,27 @@ describe('src/platform_browser/iframe/gapi', () => {
 
   it('rejects with a network error if load fails', async () => {
     library = {};
-    await expect(_loadGapi(auth)).to.be.rejectedWith(FirebaseError, 'auth/network-request-failed');
+    await expect(_loadGapi(auth)).to.be.rejectedWith(
+      FirebaseError,
+      'auth/network-request-failed'
+    );
   });
 
   it('rejects with a network error if ontimeout called', async () => {
     library = makeGapi(undefined, /* timesout */ true);
-    await expect(_loadGapi(auth)).to.be.rejectedWith(FirebaseError, 'auth/network-request-failed');
+    await expect(_loadGapi(auth)).to.be.rejectedWith(
+      FirebaseError,
+      'auth/network-request-failed'
+    );
   });
 
   it('resets the load promise if the load errors', async () => {
     library = {};
     const firstAttempt = _loadGapi(auth);
-    await expect(firstAttempt).to.be.rejectedWith(FirebaseError, 'auth/network-request-failed');
+    await expect(firstAttempt).to.be.rejectedWith(
+      FirebaseError,
+      'auth/network-request-failed'
+    );
     expect(_loadGapi(auth)).not.to.eq(firstAttempt);
   });
 });

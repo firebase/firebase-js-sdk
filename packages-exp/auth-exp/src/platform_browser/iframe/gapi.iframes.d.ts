@@ -41,7 +41,9 @@ declare namespace gapi.iframes {
   }
 
   type IframesFilter = (iframe: Iframe) => boolean;
-  type MessageHandler<T extends Message> = (message: T) => unknown | Promise<void>;
+  type MessageHandler<T extends Message> = (
+    message: T
+  ) => unknown | Promise<void>;
   type SendCallback = () => void;
   type StyleHandler = (options: OptionsBag) => void;
   type RpcFilter = (iframe: Iframe) => boolean | Promise<boolean>;

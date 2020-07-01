@@ -41,17 +41,25 @@ describe('src/platform_browser/iframe/iframe', () => {
   let libraryLoadedCallback: IframesCallback;
 
   beforeEach(async () => {
-    AUTH_WINDOW.gapi = {iframes: {
-      CROSS_ORIGIN_IFRAMES_FILTER: 'cross-origin-filter',
-    }} as unknown as typeof gapi;
+    AUTH_WINDOW.gapi = ({
+      iframes: {
+        CROSS_ORIGIN_IFRAMES_FILTER: 'cross-origin-filter'
+      }
+    } as unknown) as typeof gapi;
     auth = await testAuth();
-    
-    sinon.stub(gapiLoader, '_loadGapi').returns(Promise.resolve({
-      open: sinon.stub().callsFake((settings: Record<string, unknown>, cb: IframesCallback) => {
-        iframeSettings = settings;
-        libraryLoadedCallback = cb;
-      })
-    }) as unknown as Promise<gapi.iframes.Context>);
+
+    sinon.stub(gapiLoader, '_loadGapi').returns(
+      (Promise.resolve({
+        open: sinon
+          .stub()
+          .callsFake(
+            (settings: Record<string, unknown>, cb: IframesCallback) => {
+              iframeSettings = settings;
+              libraryLoadedCallback = cb;
+            }
+          )
+      }) as unknown) as Promise<gapi.iframes.Context>
+    );
   });
 
   afterEach(() => {
@@ -63,9 +71,11 @@ describe('src/platform_browser/iframe/iframe', () => {
     console.warn(iframeSettings);
 
     expect(iframeSettings.where).to.eql(document.body);
-    expect(iframeSettings.url).to.eq(`https://${TEST_AUTH_DOMAIN}/__/auth/iframe?apiKey=${TEST_KEY}&appName=test-app&v=${SDK_VERSION}`);
+    expect(iframeSettings.url).to.eq(
+      `https://${TEST_AUTH_DOMAIN}/__/auth/iframe?apiKey=${TEST_KEY}&appName=test-app&v=${SDK_VERSION}`
+    );
     expect(iframeSettings.messageHandlersFilter).to.eq('cross-origin-filter');
-    expect(iframeSettings.attributes).to.eql( {
+    expect(iframeSettings.attributes).to.eql({
       style: {
         position: 'absolute',
         top: '-100px',
@@ -81,10 +91,10 @@ describe('src/platform_browser/iframe/iframe', () => {
     let clearTimeoutStub: sinon.SinonStub;
 
     beforeEach(() => {
-      iframe = sinon.stub({
+      iframe = sinon.stub(({
         restyle: () => {},
         ping: () => {}
-      } as unknown as gapi.iframes.Iframe);
+      } as unknown) as gapi.iframes.Iframe);
       clearTimeoutStub = sinon.stub(AUTH_WINDOW, 'clearTimeout');
     });
 
@@ -100,7 +110,10 @@ describe('src/platform_browser/iframe/iframe', () => {
     it('rejects if the iframe ping promise rejects', async () => {
       stubSingleTimeout();
       iframe.ping.returns(Promise.reject('no'));
-      await expect(libraryLoadedCallback(iframe)).to.be.rejectedWith(FirebaseError, 'auth/network-request-failed');
+      await expect(libraryLoadedCallback(iframe)).to.be.rejectedWith(
+        FirebaseError,
+        'auth/network-request-failed'
+      );
     });
 
     it('clears the rejection timeout on success', async () => {
