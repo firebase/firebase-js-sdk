@@ -18,6 +18,7 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { AuthErrorCode } from '../errors';
+import { debugFail } from '../util/assert';
 
 export interface CustomParameters {
   [key: string]: string;
@@ -35,19 +36,19 @@ export class OAuthProvider implements externs.AuthProvider {
   private customParameters: CustomParameters = {};
   constructor(readonly providerId: externs.ProviderId) {}
   static credentialFromResult(
-    userCredential: externs.UserCredential
+    _userCredential: externs.UserCredential
   ): externs.OAuthCredential | null {
-    throw new Error('not implemented');
+    debugFail('not implemented');
   }
-  static credentialFromError(error: AuthErrorCode): externs.OAuthCredential | null {
-    throw new Error('not implemented');
+  static credentialFromError(_error: AuthErrorCode): externs.OAuthCredential | null {
+    debugFail('not implemented');
   }
-  static credentialFromJSON(json: object): externs.OAuthCredential {
-    throw new Error('not implemented');
+  static credentialFromJSON(_json: object): externs.OAuthCredential {
+    debugFail('not implemented');
   }
 
-  credential(params: CredentialParameters): externs.OAuthCredential {
-    throw new Error('no');
+  credential(_params: CredentialParameters): externs.OAuthCredential {
+    debugFail('not implemented');
   }
 
   setDefaultLanguage(languageCode: string | null): void {
@@ -63,7 +64,7 @@ export class OAuthProvider implements externs.AuthProvider {
     return this.customParameters;
   }
 
-  addScope(scope: string) {
+  addScope(scope: string): externs.AuthProvider {
     // If not already added, add scope to list.
     if (!this.scopes.includes(scope)) {
       this.scopes.push(scope);
@@ -71,7 +72,7 @@ export class OAuthProvider implements externs.AuthProvider {
     return this;
   }
 
-  getScopes() {
-    return this.scopes;
+  getScopes(): string[] {
+    return [...this.scopes];
   }
 }

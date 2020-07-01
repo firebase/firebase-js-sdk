@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2020 Google LLC.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,16 +35,21 @@ const FIREFOX_UA = 'firefox/';
 const FIREFOX_EMPTY_URL = 'http://localhost';
 
 export class AuthPopup {
-  public associatedEvent: string | null = null;
+  associatedEvent: string | null = null;
 
-  constructor(public readonly window: Window) {}
+  constructor(readonly window: Window) {}
 
-  close() {
+  close(): void {
     try {
       this.window.close();
     } catch (e) {}
   }
 }
+
+/** Wrapper so that we can stub the UA in tests */
+export const _uaGetter = {
+  getUA,
+};
 
 export function _open(
   appName: string,
@@ -70,7 +75,7 @@ export function _open(
 
   // Chrome iOS 7 and 8 is returning an undefined popup win when target is
   // specified, even though the popup is not necessarily blocked.
-  const ua = getUA().toLowerCase();
+  const ua = _uaGetter.getUA().toLowerCase();
 
   if (name) {
     target = ua.includes(CHROME_IOS_UA) ? '_blank' : name;
