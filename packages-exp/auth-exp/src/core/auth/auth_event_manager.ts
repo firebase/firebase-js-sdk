@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { AuthEvent, AuthEventConsumer, EventManager } from '../../model/popup_redirect';
+import {
+  AuthEvent,
+  AuthEventConsumer,
+  EventManager
+} from '../../model/popup_redirect';
 
 export class AuthEventManager implements EventManager {
   private readonly consumers: Set<AuthEventConsumer> = new Set();
@@ -30,7 +34,10 @@ export class AuthEventManager implements EventManager {
 
   onEvent(event: AuthEvent): void {
     this.consumers.forEach(consumer => {
-      if (consumer.filter === event.type && consumer.isMatchingEvent(event.eventId)) {
+      if (
+        consumer.filter === event.type &&
+        consumer.isMatchingEvent(event.eventId)
+      ) {
         consumer.onAuthEvent(event);
       }
     });

@@ -19,7 +19,11 @@ import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { AuthEvent, AuthEventConsumer, AuthEventType } from '../../model/popup_redirect';
+import {
+  AuthEvent,
+  AuthEventConsumer,
+  AuthEventType
+} from '../../model/popup_redirect';
 import { AuthEventManager } from './auth_event_manager';
 
 use(sinonChai);
@@ -27,7 +31,9 @@ use(sinonChai);
 describe('src/core/auth/auth_event_manager', () => {
   let manager: AuthEventManager;
 
-  function makeConsumer(filter: AuthEventType ): sinon.SinonStubbedInstance<AuthEventConsumer> {
+  function makeConsumer(
+    filter: AuthEventType
+  ): sinon.SinonStubbedInstance<AuthEventConsumer> {
     const stub = sinon.stub({
       filter,
       isMatchingEvent: () => true,
@@ -43,7 +49,7 @@ describe('src/core/auth/auth_event_manager', () => {
   function makeEvent(type: AuthEventType, eventId = 'event'): AuthEvent {
     return {
       type,
-      eventId,
+      eventId
     } as AuthEvent;
   }
 

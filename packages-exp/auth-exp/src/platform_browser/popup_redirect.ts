@@ -28,7 +28,11 @@ import { _getCurrentUrl } from '../core/util/location';
 import { _open, AuthPopup } from '../core/util/popup';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
-    AuthEventType, EventManager, GapiAuthEvent, GapiOutcome, PopupRedirectResolver
+  AuthEventType,
+  EventManager,
+  GapiAuthEvent,
+  GapiOutcome,
+  PopupRedirectResolver
 } from '../model/popup_redirect';
 import { _openIframe } from './iframe/iframe';
 
@@ -38,7 +42,7 @@ import { _openIframe } from './iframe/iframe';
 const WIDGET_URL = '__/auth/handler';
 
 export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
-  private eventManager: EventManager|null = null;
+  private eventManager: EventManager | null = null;
 
   // Wrapping in async even though we don't await anywhere in order
   // to make sure errors are raised as promise rejections
@@ -59,7 +63,8 @@ export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
 
     const iframe = await _openIframe(auth);
     const eventManager = new AuthEventManager();
-    iframe.register<GapiAuthEvent>('authEvent',
+    iframe.register<GapiAuthEvent>(
+      'authEvent',
       async (message: GapiAuthEvent) => {
         await eventManager.onEvent(message.authEvent);
 
@@ -129,7 +134,9 @@ function getRedirectUrl(
   // TODO: maybe set fw as Frameworks.join(",")
 
   const url = new URL(
-    `https://${auth.config.authDomain}/${WIDGET_URL}?${querystring(params as Record<string, string|number>).slice(1)}`
+    `https://${auth.config.authDomain}/${WIDGET_URL}?${querystring(
+      params as Record<string, string | number>
+    ).slice(1)}`
   );
 
   return url.toString();
