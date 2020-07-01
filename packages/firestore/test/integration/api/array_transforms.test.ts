@@ -21,9 +21,10 @@ import { expect } from 'chai';
 import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
+import { FieldValue } from '../util/experimental_sdk_shim';
 
-// tslint:disable-next-line:variable-name Type alias can be capitalized.
-const FieldValue = firebase.firestore!.FieldValue;
+// // tslint:disable-next-line:variable-name Type alias can be capitalized.
+// const FieldValue = firebase.firestore!.FieldValue;
 
 /**
  * Note: Transforms are tested pretty thoroughly in server_timestamp.test.ts
@@ -31,7 +32,7 @@ const FieldValue = firebase.firestore!.FieldValue;
  * together, etc.) and so these tests mostly focus on the array transform
  * semantics.
  */
-apiDescribe('Array Transforms:', (persistence: boolean) => {
+apiDescribe.only('Array Transforms:', (persistence: boolean) => {
   // A document reference to read and write to.
   let docRef: firestore.DocumentReference;
 
@@ -66,20 +67,24 @@ apiDescribe('Array Transforms:', (persistence: boolean) => {
    * up when done.
    */
   async function withTestSetup<T>(test: () => Promise<T>): Promise<void> {
-    await withTestDoc(persistence, async doc => {
-      docRef = doc;
-      accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
-      unsubscribe = docRef.onSnapshot(
-        { includeMetadataChanges: true },
-        accumulator.storeEvent
-      );
+    await withTestDoc(
+      persistence,
+      async doc => {
+        docRef = doc;
+        accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
+        unsubscribe = docRef.onSnapshot(
+          { includeMetadataChanges: true },
+          accumulator.storeEvent
+        );
 
-      // wait for initial null snapshot to avoid potential races.
-      const snapshot = await accumulator.awaitRemoteEvent();
-      expect(snapshot.exists).to.be.false;
-      await test();
-      unsubscribe();
-    });
+        // wait for initial null snapshot to avoid potential races.
+        const snapshot = await accumulator.awaitRemoteEvent();
+        expect(snapshot.exists).to.be.false;
+        await test();
+        unsubscribe();
+      },
+      true
+    );
   }
 
   it('create document with arrayUnion()', async () => {

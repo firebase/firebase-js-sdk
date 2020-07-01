@@ -22,6 +22,9 @@ import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
 } from './settings';
+import { FirebaseFirestore as FirestoreShim } from './experimental_sdk_shim';
+import { initializeFirestore } from '../../../exp/src/api/database';
+import { enableIndexedDbPersistence } from '../../../exp';
 
 /* eslint-disable no-restricted-globals */
 
@@ -76,7 +79,7 @@ interface ApiDescribe {
   skip: ApiSuiteFunction;
   only: ApiSuiteFunction;
 }
-
+// TODO(mrschmidt): add useExp here
 export const apiDescribe = apiDescribeInternal.bind(
   null,
   describe
@@ -118,11 +121,17 @@ export function toIds(docSet: firestore.QuerySnapshot): string[] {
 
 export function withTestDb(
   persistence: boolean,
-  fn: (db: firestore.FirebaseFirestore) => Promise<void>
+  fn: (db: firestore.FirebaseFirestore) => Promise<void>,
+  useExp?: boolean
 ): Promise<void> {
-  return withTestDbs(persistence, 1, ([db]) => {
-    return fn(db);
-  });
+  return withTestDbs(
+    persistence,
+    1,
+    ([db]) => {
+      return fn(db);
+    },
+    useExp
+  );
 }
 
 /** Runs provided fn with a db for an alternate project id. */
@@ -144,14 +153,16 @@ export function withAlternateTestDb(
 export function withTestDbs(
   persistence: boolean,
   numDbs: number,
-  fn: (db: firestore.FirebaseFirestore[]) => Promise<void>
+  fn: (db: firestore.FirebaseFirestore[]) => Promise<void>,
+  useExp?: boolean
 ): Promise<void> {
   return withTestDbsSettings(
     persistence,
     DEFAULT_PROJECT_ID,
     DEFAULT_SETTINGS,
     numDbs,
-    fn
+    fn,
+    useExp
   );
 }
 
@@ -162,7 +173,8 @@ export async function withTestDbsSettings(
   projectId: string,
   settings: firestore.Settings,
   numDbs: number,
-  fn: (db: firestore.FirebaseFirestore[]) => Promise<void>
+  fn: (db: firestore.FirebaseFirestore[]) => Promise<void>,
+  useExp?: boolean
 ): Promise<void> {
   if (numDbs === 0) {
     throw new Error("Can't test with no databases");
@@ -176,17 +188,30 @@ export async function withTestDbsSettings(
       'test-app-' + appCount++
     );
 
-    const firestore = firebase.firestore!(app);
-    firestore.settings(settings);
-
-    let ready: Promise<firestore.FirebaseFirestore>;
-    if (persistence) {
-      ready = firestore.enablePersistence().then(() => firestore);
+    if (useExp) {
+      const firestore = initializeFirestore(app, settings);
+      let ready: Promise<firestore.FirebaseFirestore>;
+      if (persistence) {
+        ready = enableIndexedDbPersistence(firestore).then(
+          () => new FirestoreShim(firestore)
+        );
+      } else {
+        ready = Promise.resolve(new FirestoreShim(firestore));
+      }
+      promises.push(ready);
     } else {
-      ready = Promise.resolve(firestore);
+      // const firestore = firebase.firestore!(app);
+      // firestore.settings(settings);
+      //
+      // let ready: Promise<firestore.FirebaseFirestore>;
+      // if (persistence) {
+      //   ready = firestore.enablePersistence().then(() => firestore);
+      // } else {
+      //   ready = Promise.resolve(firestore);
+      // }
+      //
+      // promises.push(ready);
     }
-
-    promises.push(ready);
   }
 
   const dbs = await Promise.all(promises);
@@ -205,11 +230,16 @@ export async function withTestDbsSettings(
 
 export function withTestDoc(
   persistence: boolean,
-  fn: (doc: firestore.DocumentReference) => Promise<void>
+  fn: (doc: firestore.DocumentReference) => Promise<void>,
+  useExp?: boolean
 ): Promise<void> {
-  return withTestDb(persistence, db => {
-    return fn(db.collection('test-collection').doc());
-  });
+  return withTestDb(
+    persistence,
+    db => {
+      return fn(db.collection('test-collection').doc());
+    },
+    useExp
+  );
 }
 
 export function withTestDocAndSettings(

@@ -17,7 +17,10 @@
 
 import * as firestore from '../../';
 
-import { UserDataReader } from '../../../src/api/user_data_reader';
+import {
+  DocumentKeyReference,
+  UserDataReader
+} from '../../../src/api/user_data_reader';
 import { Transaction as InternalTransaction } from '../../../src/core/transaction';
 import {
   Document,
@@ -33,26 +36,29 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
 import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
 import { validateReference } from './write_batch';
-import { newUserDataReader } from './reference';
+import { DocumentReference, newUserDataReader } from './reference';
 import { FieldPath } from './field_path';
 import { cast } from './util';
+import { DocumentKey } from '../../../src/model/document_key';
 
-export class Transaction implements firestore.Transaction {
+// TODO(firestoreexp): Consider using this as the base class for the legacy Transaction API
+export abstract class BaseTransaction {
   // This is the lite version of the Transaction API used in the legacy SDK. The
   // class is a close copy but takes different input types.
 
   private readonly _dataReader: UserDataReader;
 
   constructor(
-    private readonly _firestore: Firestore,
+    protected readonly _firestore: Firestore,
     private readonly _transaction: InternalTransaction
   ) {
     this._dataReader = newUserDataReader(_firestore);
   }
 
-  get<T>(
-    documentRef: firestore.DocumentReference<T>
-  ): Promise<firestore.DocumentSnapshot<T>> {
+  protected _getHelper<DocSnap, T>(
+    documentRef: firestore.DocumentReference<unknown>,
+    converter: (ref: DocumentReference<T>, doc: Document | null) => DocSnap
+  ): Promise<DocSnap> {
     const ref = validateReference(documentRef, this._firestore);
     return this._transaction
       .lookup([ref._key])
@@ -62,19 +68,9 @@ export class Transaction implements firestore.Transaction {
         }
         const doc = docs[0];
         if (doc instanceof NoDocument) {
-          return new DocumentSnapshot<T>(
-            this._firestore,
-            ref._key,
-            null,
-            ref._converter
-          );
+          return converter(ref, null);
         } else if (doc instanceof Document) {
-          return new DocumentSnapshot<T>(
-            this._firestore,
-            doc.key,
-            doc,
-            ref._converter
-          );
+          return converter(ref, doc);
         } else {
           throw fail(
             `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
@@ -83,17 +79,17 @@ export class Transaction implements firestore.Transaction {
       });
   }
 
-  set<T>(documentRef: firestore.DocumentReference<T>, value: T): Transaction;
+  set<T>(documentRef: firestore.DocumentReference<T>, value: T): this;
   set<T>(
     documentRef: firestore.DocumentReference<T>,
     value: Partial<T>,
     options: firestore.SetOptions
-  ): Transaction;
+  ): this;
   set<T>(
     documentRef: firestore.DocumentReference<T>,
     value: T,
     options?: firestore.SetOptions
-  ): Transaction {
+  ): this {
     const ref = validateReference(documentRef, this._firestore);
     const convertedValue = applyFirestoreDataConverter(
       ref._converter,
@@ -114,19 +110,19 @@ export class Transaction implements firestore.Transaction {
   update(
     documentRef: firestore.DocumentReference<unknown>,
     value: firestore.UpdateData
-  ): Transaction;
+  ): this;
   update(
     documentRef: firestore.DocumentReference<unknown>,
     field: string | ExternalFieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
-  ): Transaction;
+  ): this;
   update(
     documentRef: firestore.DocumentReference<unknown>,
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
-  ): Transaction {
+  ): this {
     const ref = validateReference(documentRef, this._firestore);
 
     let parsed;
@@ -153,10 +149,26 @@ export class Transaction implements firestore.Transaction {
     return this;
   }
 
-  delete(documentRef: firestore.DocumentReference<unknown>): Transaction {
+  delete(documentRef: firestore.DocumentReference<unknown>): this {
     const ref = validateReference(documentRef, this._firestore);
     this._transaction.delete(ref._key);
     return this;
+  }
+}
+
+export class Transaction extends BaseTransaction
+  implements firestore.Transaction {
+  // This is the lite version of the Transaction API used in the legacy SDK. The
+  // class is a close copy but takes different input types.
+
+  get<T>(
+    documentRef: firestore.DocumentReference<T>
+  ): Promise<firestore.DocumentSnapshot<T>> {
+    return this._getHelper<DocumentSnapshot<T>, T>(
+      documentRef,
+      (ref, doc) =>
+        new DocumentSnapshot<T>(this._firestore, ref._key, doc, ref._converter)
+    );
   }
 }
 

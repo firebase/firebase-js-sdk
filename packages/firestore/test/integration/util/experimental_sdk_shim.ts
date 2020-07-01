@@ -16,6 +16,7 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
+import * as exp from '../../../exp/';
 
 import {
   addDoc,
@@ -24,18 +25,14 @@ import {
   clearIndexedDbPersistence,
   collection,
   collectionGroup,
-  CollectionReference as CollectionReferenceExp,
   deleteDoc,
   deleteField,
   disableNetwork,
   doc,
-  DocumentReference as DocumentReferenceExp,
-  DocumentSnapshot as DocumentSnapshotExp,
   enableIndexedDbPersistence,
   enableMultiTabIndexedDbPersistence,
   enableNetwork,
   FieldPath as FieldPathExp,
-  FirebaseFirestore as FirestoreExp,
   getDoc,
   getQuery,
   getQueryFromCache,
@@ -44,31 +41,25 @@ import {
   onSnapshot,
   onSnapshotsInSync,
   parent,
-  QueryDocumentSnapshot as QueryDocumentSnapshotExp,
   queryEqual,
-  QuerySnapshot as QuerySnapshotExp,
   refEqual,
   runTransaction,
   serverTimestamp,
   setDoc,
   snapshotEqual,
   terminate,
-  Transaction as TransactionExp,
   updateDoc,
   waitForPendingWrites,
-  WriteBatch as WriteBatchExp,
   writeBatch,
-  DocumentChange as DocumentChangeExp,
-  Query as QueryExp,
   getDocFromCache,
   getDocFromServer
-} from '../../../exp';
+} from '../../../exp/index.node';
 import { UntypedFirestoreDataConverter } from '../../../src/api/user_data_reader';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export class Firestore implements firestore.FirebaseFirestore {
-  constructor(private readonly _delegate: FirestoreExp) {}
+export class FirebaseFirestore implements firestore.FirebaseFirestore {
+  constructor(private readonly _delegate: exp.FirebaseFirestore) {}
 
   settings(settings: firestore.Settings): void {
     throw new Error('setting() is not supported in shim');
@@ -95,7 +86,7 @@ export class Firestore implements firestore.FirebaseFirestore {
   }
 
   runTransaction<T>(
-    updateFunction: (transaction: Transaction) => Promise<T>
+    updateFunction: (transaction: firestore.Transaction) => Promise<T>
   ): Promise<T> {
     return runTransaction(this._delegate, t =>
       updateFunction(new Transaction(t))
@@ -103,7 +94,7 @@ export class Firestore implements firestore.FirebaseFirestore {
   }
 
   batch(): firestore.WriteBatch {
-    return new WriteBatch(writeBatch(this._delegate) as WriteBatchExp);
+    return new WriteBatch(writeBatch(this._delegate));
   }
 
   app = this._delegate.app;
@@ -146,7 +137,7 @@ export class Firestore implements firestore.FirebaseFirestore {
 }
 
 export class Transaction {
-  constructor(private readonly _delegate: TransactionExp) {}
+  constructor(private readonly _delegate: exp.Transaction) {}
 
   async get<T>(
     documentRef: DocumentReference<T>
@@ -205,7 +196,7 @@ export class Transaction {
 }
 
 export class WriteBatch {
-  constructor(private readonly _delegate: WriteBatchExp) {}
+  constructor(private readonly _delegate: exp.WriteBatch) {}
 
   set<T>(
     documentRef: DocumentReference<T>,
@@ -262,10 +253,10 @@ export class WriteBatch {
 
 export class DocumentReference<T = firestore.DocumentData>
   implements firestore.DocumentReference<T> {
-  constructor(readonly _delegate: DocumentReferenceExp<T>) {}
+  constructor(readonly _delegate: exp.DocumentReference<T>) {}
 
   readonly id = this._delegate.id;
-  readonly firestore = new Firestore(this._delegate.firestore);
+  readonly firestore = new FirebaseFirestore(this._delegate.firestore);
   readonly path = this._delegate.path;
 
   get parent(): firestore.CollectionReference<T> {
@@ -318,7 +309,7 @@ export class DocumentReference<T = firestore.DocumentData>
   }
 
   async get(options?: firestore.GetOptions): Promise<DocumentSnapshot<T>> {
-    let doc: DocumentSnapshotExp<T>;
+    let doc: exp.DocumentSnapshot<T>;
     if (options?.source === 'cache') {
       doc = await getDocFromCache(this._delegate);
     } else if (options?.source === 'server') {
@@ -370,12 +361,10 @@ export class DocumentReference<T = firestore.DocumentData>
 
 export class DocumentSnapshot<T = firestore.DocumentData>
   implements firestore.DocumentSnapshot<T> {
-  constructor(readonly _delegate: DocumentSnapshotExp<T>) {}
+  constructor(readonly _delegate: exp.DocumentSnapshot<T>) {}
 
   readonly exists = !!this._delegate.exists;
-  readonly ref = new DocumentReference<T>(
-    this._delegate.ref as DocumentReferenceExp<T>
-  );
+  readonly ref = new DocumentReference<T>(this._delegate.ref);
   readonly id = this._delegate.id;
   readonly metadata = this._delegate.metadata;
 
@@ -395,7 +384,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
 export class QueryDocumentSnapshot<T = firestore.DocumentData>
   extends DocumentSnapshot<T>
   implements firestore.QueryDocumentSnapshot<T> {
-  constructor(readonly _delegate: QueryDocumentSnapshotExp<T>) {
+  constructor(readonly _delegate: exp.QueryDocumentSnapshot<T>) {
     super(_delegate);
   }
 
@@ -405,9 +394,9 @@ export class QueryDocumentSnapshot<T = firestore.DocumentData>
 }
 
 export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
-  constructor(readonly _delegate: QueryExp<T>) {}
+  constructor(readonly _delegate: exp.Query<T>) {}
 
-  readonly firestore = new Firestore(this._delegate.firestore);
+  readonly firestore = new FirebaseFirestore(this._delegate.firestore);
 
   where(
     fieldPath: string | FieldPath,
@@ -474,12 +463,12 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
     );
   }
 
-  isEqual(other: Query<T>): boolean {
-    return queryEqual(this._delegate, other._delegate);
+  isEqual(other: firestore.Query<T>): boolean {
+    return queryEqual(this._delegate, (other as Query<T>)._delegate);
   }
 
   async get(options?: firestore.GetOptions): Promise<QuerySnapshot<T>> {
-    let result: QuerySnapshotExp<T>;
+    let result: exp.QuerySnapshot<T>;
     if (options?.source === 'cache') {
       result = await getQueryFromCache(this._delegate);
     } else if (options?.source === 'server') {
@@ -529,7 +518,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
 
 export class QuerySnapshot<T = firestore.DocumentData>
   implements firestore.QuerySnapshot<T> {
-  constructor(readonly _delegate: QuerySnapshotExp<T>) {}
+  constructor(readonly _delegate: exp.QuerySnapshot<T>) {}
 
   readonly query = new Query(this._delegate.query);
   readonly metadata = this._delegate.metadata;
@@ -564,7 +553,7 @@ export class QuerySnapshot<T = firestore.DocumentData>
 
 export class DocumentChange<T = firestore.DocumentData>
   implements firestore.DocumentChange<T> {
-  constructor(private readonly _delegate: DocumentChangeExp<T>) {}
+  constructor(private readonly _delegate: exp.DocumentChange<T>) {}
   readonly type = this._delegate.type;
   readonly doc = new QueryDocumentSnapshot<T>(this._delegate.doc);
   readonly oldIndex = this._delegate.oldIndex;
@@ -573,7 +562,7 @@ export class DocumentChange<T = firestore.DocumentData>
 
 export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   implements firestore.CollectionReference<T> {
-  constructor(readonly _delegate: CollectionReferenceExp<T>) {
+  constructor(readonly _delegate: exp.CollectionReference<T>) {
     super(_delegate);
   }
 
@@ -592,7 +581,7 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   }
 
   async add(data: T): Promise<DocumentReference<T>> {
-    const docRef: DocumentReferenceExp<T> = await addDoc(this._delegate, data);
+    const docRef = await addDoc(this._delegate, data);
     return new DocumentReference<T>(docRef);
   }
 
