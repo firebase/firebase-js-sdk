@@ -20,13 +20,7 @@ import * as node from './node/byte_stream_reader';
 import * as rn from './rn/byte_stream_reader';
 import * as browser from './browser/byte_stream_reader';
 import { isNode, isReactNative } from '@firebase/util';
-
-/**
- * For the byte streams where we have control (like backed by a UInt8Array),
- * how many bytes to read each time when `ReadableStreamReader.read()` is
- * called.
- */
-export const DEFAULT_BYTES_PER_READ = 10240;
+import { DEFAULT_BYTES_PER_READ } from '../util/byte_stream';
 
 export function toByteStreamReader(
   source: BundleSource,

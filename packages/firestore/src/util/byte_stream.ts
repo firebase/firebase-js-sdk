@@ -18,6 +18,13 @@
 import { debugAssert } from './assert';
 
 /**
+ * For the byte streams where we have control (like backed by a UInt8Array),
+ * how many bytes to read each time when `ReadableStreamReader.read()` is
+ * called.
+ */
+export const DEFAULT_BYTES_PER_READ = 10240;
+
+/**
  * Builds a `ByteStreamReader` from a UInt8Array.
  * @param source The data source to use.
  * @param bytesPerRead How many bytes each `read()` from the returned reader
@@ -25,7 +32,7 @@ import { debugAssert } from './assert';
  */
 export function toByteStreamReaderHelper(
   source: Uint8Array,
-  bytesPerRead: number
+  bytesPerRead: number = DEFAULT_BYTES_PER_READ
 ): ReadableStreamReader<Uint8Array> {
   debugAssert(
     bytesPerRead > 0,
