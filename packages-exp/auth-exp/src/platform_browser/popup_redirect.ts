@@ -40,14 +40,16 @@ const WIDGET_URL = '__/auth/handler';
 export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   private eventManager: EventManager|null = null;
 
-  openPopup(
+  // Wrapping in async even though we don't await anywhere in order
+  // to make sure errors are raised as promise rejections
+  async openPopup(
     auth: Auth,
     provider: externs.AuthProvider,
     authType: AuthEventType,
     eventId?: string
   ): Promise<AuthPopup> {
     const url = getRedirectUrl(auth, provider, authType, eventId);
-    return Promise.resolve(_open(auth.name, url, _generateEventId()));
+    return _open(auth.name, url, _generateEventId());
   }
 
   async initialize(auth: Auth): Promise<EventManager> {
@@ -127,7 +129,7 @@ function getRedirectUrl(
   // TODO: maybe set fw as Frameworks.join(",")
 
   const url = new URL(
-    `https://${auth.config.authDomain}/${WIDGET_URL}?${querystring(params as Record<string, string|number>)}`
+    `https://${auth.config.authDomain}/${WIDGET_URL}?${querystring(params as Record<string, string|number>).slice(1)}`
   );
 
   return url.toString();

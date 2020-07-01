@@ -19,7 +19,6 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { AuthPopup } from '../core/util/popup';
 import { Auth } from './auth';
-import { UserCredential } from './user';
 
 export const enum EventFilter {
   POPUP,
@@ -75,8 +74,6 @@ export interface EventManager {
 
 export interface PopupRedirectResolver extends externs.PopupRedirectResolver {
   initialize(auth: Auth): Promise<EventManager>;
-  // registerConsumer(authEventConsumer: AuthEventConsumer): void;
-  // unregisterConsumer(authEventConsumer: AuthEventConsumer): void;
   openPopup(
     auth: Auth,
     provider: externs.AuthProvider,
