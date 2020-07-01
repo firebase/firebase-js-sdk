@@ -31,6 +31,7 @@ import {
 } from '../model/transform_operation';
 import { ParseContext, parseData, UserDataSource } from './user_data_reader';
 import { debugAssert } from '../util/assert';
+import { toNumber } from '../remote/serializer';
 
 /**
  * An opaque base class for FieldValue sentinel objects in our public API that
@@ -188,15 +189,9 @@ export class NumericIncrementFieldValueImpl extends SerializableFieldValue {
   }
 
   _toFieldTransform(context: ParseContext): FieldTransform {
-    const parseContext = createSentinelChildContext(
-      this,
-      context,
-      /*array=*/ false
-    );
-    const operand = parseData(this._operand, parseContext)!;
     const numericIncrement = new NumericIncrementTransformOperation(
       context.serializer,
-      operand
+      toNumber(context.serializer, this._operand)
     );
     return new FieldTransform(context.path!, numericIncrement);
   }
