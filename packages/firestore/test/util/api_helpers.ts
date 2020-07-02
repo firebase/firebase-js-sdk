@@ -18,6 +18,8 @@
 // Helpers here mock Firestore in order to unit-test API types. Do NOT use
 // these in any integration test, where we expect working Firestore object.
 
+import { Provider, ComponentContainer } from '@firebase/component';
+
 import {
   CollectionReference,
   DocumentReference,
@@ -37,8 +39,8 @@ import { DocumentKeySet } from '../../src/model/collections';
 import { Document } from '../../src/model/document';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/object_value';
+
 import { doc, key, path as pathFrom } from './helpers';
-import { Provider, ComponentContainer } from '@firebase/component';
 
 /**
  * A mock Firestore. Will not work for integration test.

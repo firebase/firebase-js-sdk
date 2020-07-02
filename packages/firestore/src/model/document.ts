@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
-
 import { SnapshotVersion } from '../core/snapshot_version';
+import * as api from '../protos/firestore_proto_api';
 import { fail } from '../util/assert';
 
 import { DocumentKey } from './document_key';
