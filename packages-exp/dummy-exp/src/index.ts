@@ -19,7 +19,7 @@ export * from './bar';
 
 export * from './foo';
 
-export { far1, far, far3 } from './far';
+export { far1, far as farrrrr, far3 as far4 } from './far';
 export const VAR = 'variable';
 export let var2: string;
 export let var3 = 'var3';

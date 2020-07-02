@@ -23,6 +23,7 @@ import * as terser from 'terser';
 import * as ts from 'typescript';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
+import { ObjectUnsubscribedError } from 'rxjs';
 
 /** Contains a list of members by type. */
 export interface MemberList {
@@ -157,22 +158,23 @@ export function extractDeclarations(
       declarations.enums.push(node.name.escapedText.toString());
     } else if (ts.isVariableStatement(node)) {
       const variableDeclarations = node.declarationList.declarations;
-      variableDeclarations.forEach(variableDeclaration => {
 
+      variableDeclarations.forEach(variableDeclaration => {
+        //variableDeclaration.name could be of Identifier type or of BindingPattern type
+        // Identifier Example: export const a: string = "aString";
         if (ts.isIdentifier(variableDeclaration.name)) {
+
           declarations.variables.push(
             (variableDeclaration.name).getText(sourceFile)
           );
         }
-        // TODO: variableDeclaration.name is an union type (Identifier | BindingPattern)
-        // need Identifier type, not sure in what case BindingPattern type is for.
+        // Binding Pattern Example: export const {a, b} = {a: 1, b: 1};
         else {
           variableDeclaration.name.elements.forEach(node => {
-            console.log(node);
+            declarations.variables.push(
+              (node.name).getText(sourceFile)
+            );
           });
-          console.log(
-            'this VariableDeclaration.name object is of BindingPattern type !'
-          );
         }
       });
     }
@@ -217,10 +219,10 @@ export function extractDeclarations(
           filterAllBy(reExportsMember, actualExports);
         }
         // concatenate re-exported MemberList with MemberList of the dts file
-        declarations.functions.push(...reExportsMember.functions);
-        declarations.variables.push(...reExportsMember.variables);
-        declarations.classes.push(...reExportsMember.classes);
-        declarations.enums.push(...reExportsMember.enums);
+        Object.keys(declarations).map(each => {
+          declarations[each].push(...reExportsMember[each]);
+        });
+
       }
     }
   });
@@ -230,12 +232,10 @@ export function extractDeclarations(
     declarations = dedup(declarations);
   }
 
-  // Sort to ensure stable output
-  declarations.functions.sort();
-  declarations.classes.sort();
-  declarations.variables.sort();
-  declarations.enums.sort();
-
+  //Sort to ensure stable output
+  Object.values(declarations).map(each => {
+    each.sort();
+  });
   return declarations;
 }
 /**
@@ -260,33 +260,15 @@ function mapSymbolToType(
     variables: [],
     enums: []
   };
-  memberList.classes.forEach(element => {
-    if (map.has(element)) {
-      newMemberList[map.get(element)].push(element);
-    } else {
-      newMemberList.classes.push(element);
-    }
-  });
-  memberList.variables.forEach(element => {
-    if (map.has(element)) {
-      newMemberList[map.get(element)].push(element);
-    } else {
-      newMemberList.variables.push(element);
-    }
-  });
-  memberList.enums.forEach(element => {
-    if (map.has(element)) {
-      newMemberList[map.get(element)].push(element);
-    } else {
-      newMemberList.enums.push(element);
-    }
-  });
-  memberList.functions.forEach(element => {
-    if (map.has(element)) {
-      newMemberList[map.get(element)].push(element);
-    } else {
-      newMemberList.functions.push(element);
-    }
+  Object.keys(memberList).map(key => {
+    memberList[key].forEach(element => {
+      if (map.has(element)) {
+        newMemberList[map.get(element)].push(element);
+      } else {
+        newMemberList[key].push(element);
+      }
+    });
+
   });
   return newMemberList;
 }
@@ -302,28 +284,19 @@ function extractOriginalSymbolName(exportSpecifier: ts.ExportSpecifier): string 
   if (exportSpecifier.propertyName) {
     return exportSpecifier.propertyName.escapedText.toString();
   }
-
   return exportSpecifier.name.escapedText.toString();
 }
 
 function filterAllBy(memberList: MemberList, keep: string[]): void {
-  memberList.functions = memberList.functions.filter(each =>
-    isReExported(each, keep)
-  );
-  memberList.variables = memberList.variables.filter(each =>
-    isReExported(each, keep)
-  );
-  memberList.classes = memberList.classes.filter(each =>
-    isReExported(each, keep)
-  );
-  memberList.enums = memberList.enums.filter(each => isReExported(each, keep));
+  Object.keys(memberList).map(key => {
+    memberList[key] = memberList[key].filter(each => isReExported(each, keep));
+  });
 }
 
 function replaceAll(memberList: MemberList, original: string, current: string): void {
-  memberList.classes = replaceWith(memberList.classes, original, current);
-  memberList.variables = replaceWith(memberList.variables, original, current);
-  memberList.functions = replaceWith(memberList.functions, original, current);
-  memberList.enums = replaceWith(memberList.enums, original, current);
+  Object.keys(memberList).map(key => {
+    memberList[key] = replaceWith(memberList[key], original, current);
+  });
 }
 
 function replaceWith(
