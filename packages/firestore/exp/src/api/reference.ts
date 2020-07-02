@@ -256,7 +256,7 @@ export function addDoc<T>(
   data: T
 ): Promise<firestore.DocumentReference<T>> {
   const collRef = cast<CollectionReference<T>>(reference, CollectionReference);
-  const firestore = cast(collRef, Firestore);
+  const firestore = cast(collRef.firestore, Firestore);
   const docRef = doc(collRef);
 
   const convertedValue = applyFirestoreDataConverter(collRef._converter, data);

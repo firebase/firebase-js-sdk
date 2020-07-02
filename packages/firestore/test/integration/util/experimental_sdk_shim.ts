@@ -56,8 +56,6 @@ import {
 } from '../../../exp/index.node';
 import { UntypedFirestoreDataConverter } from '../../../src/api/user_data_reader';
 import { isPartialObserver, PartialObserver } from '../../../src/api/observer';
-import { BaseFieldPath } from '../../../src/api/field_path';
-import instantiate = WebAssembly.instantiate;
 import { isPlainObject } from '../../../src/util/input_validation';
 
 export { GeoPoint, Blob, Timestamp } from '../../../exp/index.node';
@@ -140,9 +138,7 @@ export class FirebaseFirestore implements firestore.FirebaseFirestore {
   }
 
   INTERNAL = {
-    delete: () => {
-      throw new Error('delete() is not supported in shim');
-    }
+    delete: async () => {}
   };
 }
 
@@ -258,26 +254,6 @@ export class WriteBatch {
 
   commit(): Promise<void> {
     return this._delegate.commit();
-  }
-}
-
-function unwwrap(value: any): any {
-  if (Array.isArray(value)) {
-    return value.map(v => unwwrap(v));
-  } else if (value instanceof FieldPath) {
-    return value._delegate;
-  } else if (value instanceof DocumentReference) {
-    return value._delegate;
-  } else if (isPlainObject(value)) {
-    const obj: any = {};
-    for (const key in value) {
-      if (value.hasOwnProperty(key)) {
-        obj[key] = unwwrap(value[key]);
-      }
-    }
-    return obj;
-  } else {
-    return value;
   }
 }
 
@@ -748,5 +724,25 @@ export class FieldPath implements firestore.FieldPath {
 
   isEqual(other: FieldPath): boolean {
     throw new Error('isEqual() is not supported in shim');
+  }
+}
+
+function unwwrap(value: any): any {
+  if (Array.isArray(value)) {
+    return value.map(v => unwwrap(v));
+  } else if (value instanceof FieldPath) {
+    return value._delegate;
+  } else if (value instanceof DocumentReference) {
+    return value._delegate;
+  } else if (isPlainObject(value)) {
+    const obj: any = {};
+    for (const key in value) {
+      if (value.hasOwnProperty(key)) {
+        obj[key] = unwwrap(value[key]);
+      }
+    }
+    return obj;
+  } else {
+    return value;
   }
 }

@@ -925,13 +925,13 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it('exposes "firestore" on document references.', () => {
+  it.skip('exposes "firestore" on document references.', () => {
     return withTestDb(persistence, async db => {
       expect(db.doc('foo/bar').firestore).to.equal(db);
     });
   });
 
-  it('exposes "firestore" on query references.', () => {
+  it.skip('exposes "firestore" on query references.', () => {
     return withTestDb(persistence, async db => {
       expect(db.collection('foo').limit(5).firestore).to.equal(db);
     });
