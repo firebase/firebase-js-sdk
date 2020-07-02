@@ -31,11 +31,12 @@ import {
   InFilter,
   KeyFieldFilter,
   Operator,
+  filterEquals,
   OrderBy,
   Query
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { Target } from '../../../src/core/target';
+import { Target, targetEquals, TargetImpl } from '../../../src/core/target';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import {
   DeleteMutation,
@@ -136,7 +137,7 @@ export function serializerTest(
     }
 
     describe('converts value', () => {
-      addEqualityMatcher();
+      addEqualityMatcher({ equalsFn: filterEquals, forType: FieldFilter });
 
       /**
        * Verifies full round-trip of encoding/decoding fieldValue objects:
@@ -754,7 +755,7 @@ export function serializerTest(
     });
 
     describe('to/from FieldFilter', () => {
-      addEqualityMatcher();
+      addEqualityMatcher({ equalsFn: filterEquals, forType: FieldFilter });
 
       it('makes dotted-property names', () => {
         const path = new FieldPath(['item', 'part', 'top']);
@@ -913,7 +914,7 @@ export function serializerTest(
     });
 
     describe('to/from UnaryFilter', () => {
-      addEqualityMatcher();
+      addEqualityMatcher({ equalsFn: filterEquals, forType: FieldFilter });
 
       it('converts null', () => {
         const input = filter('field', '==', null);
@@ -964,7 +965,7 @@ export function serializerTest(
     });
 
     describe('toTarget', () => {
-      addEqualityMatcher();
+      addEqualityMatcher({ equalsFn: targetEquals, forType: TargetImpl });
 
       it('converts first-level key queries', () => {
         const q = Query.atPath(path('docs/1')).toTarget();

@@ -462,35 +462,17 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     this.ensureClientConfigured();
 
     if (isPartialObserver(arg)) {
-      return this.onSnapshotsInSyncInternal(arg as PartialObserver<void>);
+      return addSnapshotsInSyncListener(
+        this._firestoreClient!,
+        arg as PartialObserver<void>
+      );
     } else {
       validateArgType('Firestore.onSnapshotsInSync', 'function', 1, arg);
       const observer: PartialObserver<void> = {
         next: arg as () => void
       };
-      return this.onSnapshotsInSyncInternal(observer);
+      return addSnapshotsInSyncListener(this._firestoreClient!, observer);
     }
-  }
-
-  private onSnapshotsInSyncInternal(
-    observer: PartialObserver<void>
-  ): Unsubscribe {
-    const errHandler = (err: Error): void => {
-      throw fail('Uncaught Error in onSnapshotsInSync');
-    };
-    const asyncObserver = new AsyncObserver<void>({
-      next: () => {
-        if (observer.next) {
-          observer.next();
-        }
-      },
-      error: errHandler
-    });
-    this._firestoreClient!.addSnapshotsInSyncListener(asyncObserver);
-    return () => {
-      asyncObserver.mute();
-      this._firestoreClient!.removeSnapshotsInSyncListener(asyncObserver);
-    };
   }
 
   ensureClientConfigured(): FirestoreClient {
@@ -673,6 +655,29 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   _areTimestampsInSnapshotsEnabled(): boolean {
     return this._settings.timestampsInSnapshots;
   }
+}
+
+/** Registers the listener for onSnapshotsInSync() */
+export function addSnapshotsInSyncListener(
+  firestoreClient: FirestoreClient,
+  observer: PartialObserver<void>
+): Unsubscribe {
+  const errHandler = (err: Error): void => {
+    throw fail('Uncaught Error in onSnapshotsInSync');
+  };
+  const asyncObserver = new AsyncObserver<void>({
+    next: () => {
+      if (observer.next) {
+        observer.next();
+      }
+    },
+    error: errHandler
+  });
+  firestoreClient.addSnapshotsInSyncListener(asyncObserver);
+  return () => {
+    asyncObserver.mute();
+    firestoreClient.removeSnapshotsInSyncListener(asyncObserver);
+  };
 }
 
 /**
@@ -1821,7 +1826,7 @@ export class BaseQuery {
         if (conflictingOp === null && isArrayOp) {
           conflictingOp = this._query.findFilterOperator(arrayOps);
         }
-        if (conflictingOp != null) {
+        if (conflictingOp !== null) {
           // We special case when it's a duplicate op to give a slightly clearer error message.
           if (conflictingOp === filter.op) {
             throw new FirestoreError(

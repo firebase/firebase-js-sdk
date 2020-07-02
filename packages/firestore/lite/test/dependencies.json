@@ -73,6 +73,7 @@
                 "canonifyArray",
                 "canonifyBound",
                 "canonifyByteString",
+                "canonifyFilter",
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyOrderBy",
@@ -102,6 +103,7 @@
                 "fieldPathFromArgument",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
+                "filterEquals",
                 "forEach",
                 "formatJSON",
                 "formatPlural",
@@ -155,6 +157,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
@@ -235,7 +238,6 @@
                 "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
-                "Target",
                 "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
@@ -246,7 +248,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 99058
+        "sizeInBytes": 98934
     },
     "DocumentReference": {
         "dependencies": {
@@ -591,14 +593,6 @@
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
-                "canonicalId",
-                "canonifyArray",
-                "canonifyByteString",
-                "canonifyGeoPoint",
-                "canonifyMap",
-                "canonifyReference",
-                "canonifyTimestamp",
-                "canonifyValue",
                 "cast",
                 "compareArrays",
                 "compareBlobs",
@@ -751,7 +745,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 87590
+        "sizeInBytes": 85248
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -1071,7 +1065,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 69580
+        "sizeInBytes": 69588
     },
     "WriteBatch": {
         "dependencies": {
@@ -1083,7 +1077,6 @@
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
-                "coercedFieldValuesArray",
                 "createError",
                 "createMetadata",
                 "debugAssert",
@@ -1101,18 +1094,12 @@
                 "fromDotSeparatedString",
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
-                "getEncodedDatabaseId",
                 "getLocalWriteTime",
                 "hardAssert",
                 "invalidClassError",
-                "invokeCommitRpc",
-                "isArray",
-                "isDouble",
                 "isEmpty",
-                "isInteger",
                 "isMapValue",
                 "isNegativeZero",
-                "isNumber",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -1142,23 +1129,15 @@
                 "parseSentinelFieldValue",
                 "primitiveComparator",
                 "registerFirestore",
-                "serverTimestamp",
                 "terminate",
                 "terminateDatastore",
                 "timestampEquals",
                 "toBytes",
-                "toDocumentMask",
                 "toDouble",
-                "toFieldTransform",
                 "toInteger",
-                "toMutation",
-                "toMutationDocument",
-                "toName",
                 "toNumber",
-                "toPrecondition",
                 "toResourceName",
                 "toTimestamp",
-                "toVersion",
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
@@ -1172,8 +1151,6 @@
                 "valueEquals"
             ],
             "classes": [
-                "ArrayRemoveTransformOperation",
-                "ArrayUnionTransformOperation",
                 "BaseFieldPath",
                 "BasePath",
                 "Blob",
@@ -1201,7 +1178,6 @@
                 "MaybeDocument",
                 "Mutation",
                 "NoDocument",
-                "NumericIncrementTransformOperation",
                 "OAuthToken",
                 "ObjectValue",
                 "ObjectValueBuilder",
@@ -1212,7 +1188,6 @@
                 "Precondition",
                 "ResourcePath",
                 "SerializableFieldValue",
-                "ServerTimestampTransform",
                 "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
@@ -1221,12 +1196,11 @@
                 "UnknownDocument",
                 "User",
                 "UserDataReader",
-                "VerifyMutation",
                 "WriteBatch"
             ],
             "variables": []
         },
-        "sizeInBytes": 72504
+        "sizeInBytes": 65618
     },
     "addDoc": {
         "dependencies": {
@@ -1244,6 +1218,7 @@
                 "canonifyArray",
                 "canonifyBound",
                 "canonifyByteString",
+                "canonifyFilter",
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyOrderBy",
@@ -1275,6 +1250,7 @@
                 "fieldPathFromArgument",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
+                "filterEquals",
                 "forEach",
                 "formatJSON",
                 "formatPlural",
@@ -1335,6 +1311,7 @@
                 "registerFirestore",
                 "serverTimestamp",
                 "sortsBeforeDocument",
+                "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
@@ -1430,7 +1407,6 @@
                 "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
-                "Target",
                 "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
@@ -1442,7 +1418,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 109409
+        "sizeInBytes": 109285
     },
     "arrayRemove": {
         "dependencies": {
@@ -1680,6 +1656,7 @@
                 "canonifyArray",
                 "canonifyBound",
                 "canonifyByteString",
+                "canonifyFilter",
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyOrderBy",
@@ -1710,6 +1687,7 @@
                 "fieldPathFromArgument",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
+                "filterEquals",
                 "forEach",
                 "formatJSON",
                 "formatPlural",
@@ -1763,6 +1741,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
@@ -1844,7 +1823,6 @@
                 "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
-                "Target",
                 "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
@@ -1855,7 +1833,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 99686
+        "sizeInBytes": 99562
     },
     "collectionGroup": {
         "dependencies": {
@@ -1871,6 +1849,7 @@
                 "canonifyArray",
                 "canonifyBound",
                 "canonifyByteString",
+                "canonifyFilter",
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyOrderBy",
@@ -1901,6 +1880,7 @@
                 "fieldPathFromArgument",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
+                "filterEquals",
                 "forEach",
                 "formatJSON",
                 "formatPlural",
@@ -1954,6 +1934,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
@@ -2033,7 +2014,6 @@
                 "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
-                "Target",
                 "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
@@ -2044,7 +2024,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 99118
+        "sizeInBytes": 98994
     },
     "deleteDoc": {
         "dependencies": {
@@ -2219,6 +2199,7 @@
                 "canonifyArray",
                 "canonifyBound",
                 "canonifyByteString",
+                "canonifyFilter",
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyOrderBy",
@@ -2249,6 +2230,7 @@
                 "fieldPathFromArgument",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
+                "filterEquals",
                 "forEach",
                 "formatJSON",
                 "formatPlural",
@@ -2303,6 +2285,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
@@ -2385,7 +2368,6 @@
                 "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
-                "Target",
                 "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
@@ -2396,7 +2378,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 100507
+        "sizeInBytes": 100383
     },
     "documentId": {
         "dependencies": {
@@ -2629,14 +2611,6 @@
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
-                "canonicalId",
-                "canonifyArray",
-                "canonifyByteString",
-                "canonifyGeoPoint",
-                "canonifyMap",
-                "canonifyReference",
-                "canonifyTimestamp",
-                "canonifyValue",
                 "cast",
                 "compareArrays",
                 "compareBlobs",
@@ -2740,6 +2714,7 @@
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
                 "validateExactNumberOfArgs",
+                "validateHasExplicitOrderByForLimitToLast",
                 "validateNamedArrayAtLeastNumberOfElements",
                 "validatePlainObject",
                 "validatePositiveNumber",
@@ -2811,48 +2786,37 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 93349
+        "sizeInBytes": 91307
     },
     "increment": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "arrayEquals",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
-                "createError",
                 "createMetadata",
-                "createSentinelChildContext",
                 "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "encodeBase64",
                 "fail",
-                "forEach",
                 "formatJSON",
-                "formatPlural",
-                "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getLocalWriteTime",
                 "hardAssert",
                 "increment",
-                "invalidClassError",
                 "isDouble",
-                "isEmpty",
                 "isInteger",
                 "isNegativeZero",
                 "isNumber",
-                "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
-                "isWrite",
                 "loadProtos",
                 "logDebug",
                 "logError",
                 "logWarn",
-                "looksLikeJsonObject",
                 "mapCodeFromRpcCode",
                 "newConnection",
                 "newDatastore",
@@ -2864,57 +2828,36 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
-                "ordinal",
-                "parseArray",
-                "parseData",
-                "parseObject",
-                "parseScalarValue",
-                "parseSentinelFieldValue",
                 "primitiveComparator",
                 "registerFirestore",
                 "terminate",
                 "terminateDatastore",
                 "timestampEquals",
-                "toBytes",
                 "toDouble",
                 "toInteger",
                 "toNumber",
-                "toResourceName",
-                "toTimestamp",
-                "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
-                "validateArgType",
-                "validateExactNumberOfArgs",
-                "validatePlainObject",
-                "validateType",
-                "valueDescription",
                 "valueEquals"
             ],
             "classes": [
-                "BasePath",
-                "Blob",
                 "ByteString",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKeyReference",
                 "FieldTransform",
                 "FieldValue",
                 "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
-                "GeoPoint",
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "NumericIncrementFieldValueImpl",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
-                "ParseContext",
-                "ResourcePath",
                 "SerializableFieldValue",
                 "StreamBridge",
                 "Timestamp",
@@ -2922,7 +2865,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 42341
+        "sizeInBytes": 27564
     },
     "initializeFirestore": {
         "dependencies": {
@@ -2983,6 +2926,7 @@
                 "canonifyArray",
                 "canonifyBound",
                 "canonifyByteString",
+                "canonifyFilter",
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyOrderBy",
@@ -3012,6 +2956,7 @@
                 "fieldPathFromArgument",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
+                "filterEquals",
                 "forEach",
                 "formatJSON",
                 "formatPlural",
@@ -3066,6 +3011,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
@@ -3146,7 +3092,6 @@
                 "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
-                "Target",
                 "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
@@ -3157,7 +3102,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 99401
+        "sizeInBytes": 99277
     },
     "queryEqual": {
         "dependencies": {
@@ -3168,14 +3113,6 @@
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
-                "canonicalId",
-                "canonifyArray",
-                "canonifyByteString",
-                "canonifyGeoPoint",
-                "canonifyMap",
-                "canonifyReference",
-                "canonifyTimestamp",
-                "canonifyValue",
                 "cast",
                 "compareArrays",
                 "compareBlobs",
@@ -3329,7 +3266,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 87794
+        "sizeInBytes": 85452
     },
     "refEqual": {
         "dependencies": {
@@ -3345,6 +3282,7 @@
                 "canonifyArray",
                 "canonifyBound",
                 "canonifyByteString",
+                "canonifyFilter",
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyOrderBy",
@@ -3374,6 +3312,7 @@
                 "fieldPathFromArgument",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
+                "filterEquals",
                 "forEach",
                 "formatJSON",
                 "formatPlural",
@@ -3428,6 +3367,7 @@
                 "refValue",
                 "registerFirestore",
                 "sortsBeforeDocument",
+                "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyTarget",
                 "targetEquals",
@@ -3508,7 +3448,6 @@
                 "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
-                "Target",
                 "TargetImpl",
                 "Timestamp",
                 "TransformMutation",
@@ -3519,7 +3458,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 99343
+        "sizeInBytes": 99219
     },
     "runTransaction": {
         "dependencies": {
@@ -3702,7 +3641,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 91955
+        "sizeInBytes": 91963
     },
     "serverTimestamp": {
         "dependencies": {
@@ -3907,7 +3846,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 70793
+        "sizeInBytes": 70801
     },
     "setLogLevel": {
         "dependencies": {
@@ -3963,14 +3902,6 @@
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
-                "canonicalId",
-                "canonifyArray",
-                "canonifyByteString",
-                "canonifyGeoPoint",
-                "canonifyMap",
-                "canonifyReference",
-                "canonifyTimestamp",
-                "canonifyValue",
                 "cast",
                 "compareArrays",
                 "compareBlobs",
@@ -4126,7 +4057,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 88527
+        "sizeInBytes": 86185
     },
     "terminate": {
         "dependencies": {
@@ -4479,6 +4410,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 72584
+        "sizeInBytes": 72710
     }
 }
