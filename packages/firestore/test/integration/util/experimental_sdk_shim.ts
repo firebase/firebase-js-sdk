@@ -56,6 +56,8 @@ import {
 } from '../../../exp/index.node';
 import { UntypedFirestoreDataConverter } from '../../../src/api/user_data_reader';
 import { isPartialObserver, PartialObserver } from '../../../src/api/observer';
+import { BaseFieldPath } from '../../../src/api/field_path';
+import instantiate = WebAssembly.instantiate;
 
 export { GeoPoint, Blob, Timestamp } from '../../../exp/index.node';
 
@@ -187,9 +189,11 @@ export class Transaction {
     } else {
       this._delegate.update.apply(this._delegate, [
         documentRef._delegate,
-        dataOrField,
+        dataOrField instanceof FieldPath ? dataOrField._delegate : dataOrField,
         value,
-        ...moreFieldsAndValues
+        ...moreFieldsAndValues.map(v =>
+          v instanceof FieldPath ? v._delegate : v
+        )
       ]);
     }
 
@@ -239,9 +243,11 @@ export class WriteBatch {
     } else {
       this._delegate.update.apply(this._delegate, [
         documentRef._delegate,
-        dataOrField,
+        dataOrField instanceof FieldPath ? dataOrField._delegate : dataOrField,
         value,
-        ...moreFieldsAndValues
+        ...moreFieldsAndValues.map(v =>
+          v instanceof FieldPath ? v._delegate : v
+        )
       ]);
     }
 
@@ -304,9 +310,11 @@ export class DocumentReference<T = firestore.DocumentData>
     } else {
       return updateDoc.apply(null, [
         this._delegate,
-        dataOrField,
+        dataOrField instanceof FieldPath ? dataOrField._delegate : dataOrField,
         value,
-        ...moreFieldsAndValues
+        ...moreFieldsAndValues.map(v =>
+          v instanceof FieldPath ? v._delegate : v
+        )
       ]);
     }
   }

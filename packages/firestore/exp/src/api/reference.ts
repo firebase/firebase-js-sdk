@@ -396,7 +396,7 @@ export function onSnapshot<T>(
       );
   } else {
     const query = cast<Query<T>>(ref, Query);
-    const firestore = cast(query, Firestore);
+    const firestore = cast(query.firestore, Firestore);
 
     const observer: PartialObserver<ViewSnapshot> = {
       next: snapshot => {
