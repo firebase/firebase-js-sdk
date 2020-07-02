@@ -314,16 +314,16 @@ export class DocumentReference<T = firestore.DocumentData>
     return deleteDoc(this._delegate);
   }
 
-  async get(options?: firestore.GetOptions): Promise<DocumentSnapshot<T>> {
-    let doc: exp.DocumentSnapshot<T>;
+  get(options?: firestore.GetOptions): Promise<DocumentSnapshot<T>> {
+    let doc: Promise<exp.DocumentSnapshot<T>>;
     if (options?.source === 'cache') {
-      doc = await getDocFromCache(this._delegate);
+      doc = getDocFromCache(this._delegate);
     } else if (options?.source === 'server') {
-      doc = await getDocFromServer(this._delegate);
+      doc = getDocFromServer(this._delegate);
     } else {
-      doc = await getDoc(this._delegate);
+      doc = getDoc(this._delegate);
     }
-    return new DocumentSnapshot(doc);
+    return doc.then(result => new DocumentSnapshot(result));
   }
 
   onSnapshot(observer: {
@@ -445,26 +445,18 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
     opStr: firestore.WhereFilterOp,
     value: any
   ): Query<T> {
-    if (typeof fieldPath === 'string') {
-      return new Query<T>(this._delegate.where(fieldPath, opStr, value));
-    } else {
-      return new Query<T>(
-        this._delegate.where(fieldPath._delegate, opStr, value)
-      );
-    }
+    return new Query<T>(
+      this._delegate.where(unwwrap(fieldPath), opStr, unwwrap(value))
+    );
   }
 
   orderBy(
     fieldPath: string | FieldPath,
     directionStr?: firestore.OrderByDirection
   ): Query<T> {
-    if (typeof fieldPath === 'string') {
-      return new Query<T>(this._delegate.orderBy(fieldPath, directionStr));
-    } else {
-      return new Query<T>(
-        this._delegate.orderBy(fieldPath._delegate, directionStr)
-      );
-    }
+    return new Query<T>(
+      this._delegate.orderBy(unwwrap(fieldPath), directionStr)
+    );
   }
 
   limit(limit: number): Query<T> {
@@ -511,16 +503,16 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
     return queryEqual(this._delegate, (other as Query<T>)._delegate);
   }
 
-  async get(options?: firestore.GetOptions): Promise<QuerySnapshot<T>> {
-    let result: exp.QuerySnapshot<T>;
+  get(options?: firestore.GetOptions): Promise<QuerySnapshot<T>> {
+    let query: Promise<exp.QuerySnapshot<T>>;
     if (options?.source === 'cache') {
-      result = await getQueryFromCache(this._delegate);
+      query = getQueryFromCache(this._delegate);
     } else if (options?.source === 'server') {
-      result = await getQueryFromServer(this._delegate);
+      query = getQueryFromServer(this._delegate);
     } else {
-      result = await getQuery(this._delegate);
+      query = getQuery(this._delegate);
     }
-    return new QuerySnapshot(result);
+    return query.then(result => new QuerySnapshot(result));
   }
 
   onSnapshot(observer: {
@@ -662,7 +654,7 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   }
 
   async add(data: T): Promise<DocumentReference<T>> {
-    const docRef = await addDoc(this._delegate, data);
+    const docRef = await addDoc(this._delegate, unwwrap(data));
     return new DocumentReference<T>(docRef);
   }
 
