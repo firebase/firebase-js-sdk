@@ -138,7 +138,7 @@ export class FirebaseFirestore implements firestore.FirebaseFirestore {
   }
 
   INTERNAL = {
-    delete: async () => {}
+    delete: () => terminate(this._delegate)
   };
 }
 

@@ -81,6 +81,7 @@ export class FirestoreClient {
   // initialization completes before any other work is queued, we're cheating
   // with the types rather than littering the code with '!' or unnecessary
   // undefined checks.
+  private databaseInfo!: DatabaseInfo;
   private eventMgr!: EventManager;
   private persistence!: Persistence;
   private localStore!: LocalStore;
@@ -94,7 +95,6 @@ export class FirestoreClient {
   private readonly clientId = AutoId.newId();
 
   constructor(
-    private databaseInfo: DatabaseInfo,
     private credentials: CredentialsProvider,
     /**
      * Asynchronous queue responsible for all of our internal processing. When
@@ -135,6 +135,7 @@ export class FirestoreClient {
    * fallback succeeds we signal success to the async queue even though the
    * start() itself signals failure.
    *
+   * @param databaseInfo The connection information for the current instance.
    * @param componentProvider Provider that returns all core components.
    * @param persistenceSettings Settings object to configure offline
    *     persistence.
@@ -144,10 +145,13 @@ export class FirestoreClient {
    *     unconditionally resolved.
    */
   start(
+    databaseInfo: DatabaseInfo,
     componentProvider: ComponentProvider,
     persistenceSettings: PersistenceSettings
   ): Promise<void> {
     this.verifyNotTerminated();
+
+    this.databaseInfo = databaseInfo;
     // We defer our initialization until we get the current user from
     // setChangeListener(). We block the async queue until we got the initial
     // user and the initialization is completed. This will prevent any scheduled

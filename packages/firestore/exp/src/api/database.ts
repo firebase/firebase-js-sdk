@@ -46,18 +46,19 @@ import { LruParams } from '../../../src/local/lru_garbage_collector';
 export class Firestore extends LiteFirestore
   implements firestore.FirebaseFirestore, _FirebaseService {
   private readonly _queue = new AsyncQueue();
+  private readonly _firestoreClient: FirestoreClient;
   private readonly _persistenceKey: string;
   private _componentProvider: ComponentProvider = new MemoryComponentProvider();
 
   // Assigned via _getFirestoreClient()
-  private _firestoreClientPromise?: Promise<FirestoreClient>;
+  private _deferredInitialization?: Promise<void>;
 
   protected _persistenceSettings: PersistenceSettings = { durable: false };
   // We override the Settings property of the Lite SDK since the full Firestore
   // SDK supports more settings.
   protected _settings?: firestore.Settings;
 
-  _terminated: boolean = false;
+  private _terminated: boolean = false;
 
   constructor(
     app: FirebaseApp,
@@ -65,6 +66,7 @@ export class Firestore extends LiteFirestore
   ) {
     super(app, authProvider);
     this._persistenceKey = app.name;
+    this._firestoreClient = new FirestoreClient(this._credentials, this._queue);
   }
 
   _getSettings(): firestore.Settings {
@@ -75,7 +77,14 @@ export class Firestore extends LiteFirestore
   }
 
   _getFirestoreClient(): Promise<FirestoreClient> {
-    if (!this._firestoreClientPromise) {
+    if (this._terminated) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'The client has already been terminated.'
+      );
+    }
+
+    if (!this._deferredInitialization) {
       const settings = this._getSettings();
       const databaseInfo = this._makeDatabaseInfo(
         settings.host,
@@ -83,18 +92,14 @@ export class Firestore extends LiteFirestore
         settings.experimentalForceLongPolling
       );
 
-      const firestoreClient = new FirestoreClient(
+      this._deferredInitialization = this._firestoreClient.start(
         databaseInfo,
-        this._credentials,
-        this._queue
+        this._componentProvider,
+        this._persistenceSettings
       );
-
-      this._firestoreClientPromise = firestoreClient
-        .start(this._componentProvider, this._persistenceSettings)
-        .then(() => firestoreClient);
     }
 
-    return this._firestoreClientPromise;
+    return this._deferredInitialization.then(() => this._firestoreClient);
   }
 
   // TODO(firestorexp): Factor out MultiTabComponentProvider and remove
@@ -103,7 +108,7 @@ export class Firestore extends LiteFirestore
     persistenceProvider: ComponentProvider,
     synchronizeTabs: boolean
   ): Promise<void> {
-    if (this._firestoreClientPromise) {
+    if (this._deferredInitialization) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Firestore has already been started and persistence can no longer ' +
@@ -131,7 +136,7 @@ export class Firestore extends LiteFirestore
   }
 
   _clearPersistence(): Promise<void> {
-    if (this._firestoreClientPromise !== undefined && !this._terminated) {
+    if (this._firestoreClient !== undefined && !this._terminated) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Persistence can only be cleared before the Firestore instance is ' +
@@ -155,6 +160,16 @@ export class Firestore extends LiteFirestore
       }
     });
     return deferred.promise;
+  }
+
+  _terminate(): Promise<void> {
+    if (!this._terminated) {
+      return this._getFirestoreClient().then(() => {
+        this._terminated = true;
+        return this._firestoreClient.terminate();
+      });
+    }
+    return Promise.resolve();
   }
 }
 
@@ -233,8 +248,5 @@ export function terminate(
 ): Promise<void> {
   _removeServiceInstance(firestore.app, 'firestore/lite');
   const firestoreImpl = cast(firestore, Firestore);
-  firestoreImpl._terminated = true;
-  return firestoreImpl
-    ._getFirestoreClient()
-    .then(firestoreClient => firestoreClient.terminate());
+  return firestoreImpl._terminate();
 }
