@@ -163,11 +163,11 @@ export class Firestore extends LiteFirestore
   }
 
   _terminate(): Promise<void> {
-    if (!this._terminated) {
-      return this._getFirestoreClient().then(() => {
-        this._terminated = true;
-        return this._firestoreClient.terminate();
-      });
+    this._terminated = true;
+    if (this._deferredInitialization) {
+      return this._deferredInitialization.then(() =>
+        this._firestoreClient.terminate()
+      );
     }
     return Promise.resolve();
   }
