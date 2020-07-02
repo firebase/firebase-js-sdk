@@ -16,8 +16,6 @@
  */
 
 import * as firestore from '../../';
-
-import { validateAtLeastNumberOfArgs } from '../../../src/util/input_validation';
 import {
   ArrayRemoveFieldValueImpl,
   ArrayUnionFieldValueImpl,
@@ -28,6 +26,7 @@ import {
 } from '../../../src/api/field_value';
 import { ParseContext } from '../../../src/api/user_data_reader';
 import { FieldTransform } from '../../../src/model/mutation';
+import { validateAtLeastNumberOfArgs } from '../../../src/util/input_validation';
 
 /** The public FieldValue class of the lite API. */
 export abstract class FieldValue extends SerializableFieldValue
