@@ -299,14 +299,14 @@ export class DocumentReference<T = firestore.DocumentData>
     ...moreFieldsAndValues: any[]
   ): Promise<void> {
     if (arguments.length === 1) {
-      return updateDoc(this._delegate, dataOrField);
+      return updateDoc(this._delegate, unwwrap(dataOrField));
     } else {
-      return updateDoc.apply(null, [
+      return updateDoc(
         this._delegate,
         unwwrap(dataOrField),
         value,
         ...unwwrap(moreFieldsAndValues)
-      ]);
+      );
     }
   }
 
@@ -415,7 +415,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
   }
 
   get(fieldPath: string | FieldPath, options?: firestore.SnapshotOptions): any {
-    return this._delegate.get(fieldPath, options);
+    return this._delegate.get(unwwrap(fieldPath), options);
   }
 
   isEqual(other: DocumentSnapshot<T>): boolean {

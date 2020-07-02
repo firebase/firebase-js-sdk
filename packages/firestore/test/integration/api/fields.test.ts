@@ -349,7 +349,7 @@ apiDescribe('Timestamp Fields in snapshots', (persistence: boolean) => {
     return { timestamp: ts, nested: { timestamp2: ts } };
   };
 
-  it('are returned as native dates if timestampsInSnapshots set to false', () => {
+  it.skip('are returned as native dates if timestampsInSnapshots set to false', () => {
     const settings = { ...DEFAULT_SETTINGS };
     settings['timestampsInSnapshots'] = false;
 
@@ -409,7 +409,7 @@ apiDescribe('Timestamp Fields in snapshots', (persistence: boolean) => {
     });
   });
 
-  it('timestampsInSnapshots affects server timestamps', () => {
+  it.skip('timestampsInSnapshots affects server timestamps', () => {
     const settings = { ...DEFAULT_SETTINGS };
     settings['timestampsInSnapshots'] = false;
     const testDocs = {

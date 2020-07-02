@@ -47,7 +47,7 @@ import {
 } from '../../../lite/src/api/reference';
 import { Document } from '../../../src/model/document';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
-import { FieldPath } from '../../../src/api/field_path';
+import { FieldPath } from '../../../lite/src/api/field_path';
 import {
   CompleteFn,
   ErrorFn,
