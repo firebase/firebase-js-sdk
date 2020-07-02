@@ -18,6 +18,7 @@
 import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
+
 import {
   decodeResourcePath,
   encodeResourcePath

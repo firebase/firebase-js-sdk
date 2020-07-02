@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
+import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
+import { BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
 import { debugAssert, hardAssert } from '../util/assert';
 
-import { SnapshotVersion } from '../core/snapshot_version';
-import { BATCHID_UNKNOWN } from '../model/mutation_batch';
 import {
   decodeResourcePath,
   EncodedResourcePath,

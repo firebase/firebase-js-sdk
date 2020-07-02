@@ -15,36 +15,12 @@
  * limitations under the License.
  */
 
-import * as firestore from '../';
-
 import { initializeApp } from '@firebase/app-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import {
-  Firestore,
-  getFirestore,
-  initializeFirestore
-} from '../src/api/database';
-import {
-  withTestDoc,
-  withTestDocAndInitialData,
-  withTestDbSettings,
-  withTestCollection
-} from './helpers';
-import {
-  getDoc,
-  getDocFromCache,
-  getDocFromServer,
-  getQuery,
-  getQueryFromCache,
-  getQueryFromServer
-} from '../src/api/reference';
+import * as firestore from '../';
 import { FieldPath } from '../../lite/src/api/field_path';
-import {
-  DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS
-} from '../../test/integration/util/settings';
 import {
   addDoc,
   collection,
@@ -53,8 +29,32 @@ import {
   setDoc,
   updateDoc
 } from '../../lite/src/api/reference';
+import {
+  DEFAULT_PROJECT_ID,
+  DEFAULT_SETTINGS
+} from '../../test/integration/util/settings';
+import {
+  Firestore,
+  getFirestore,
+  initializeFirestore
+} from '../src/api/database';
+import {
+  getDoc,
+  getDocFromCache,
+  getDocFromServer,
+  getQuery,
+  getQueryFromCache,
+  getQueryFromServer
+} from '../src/api/reference';
 import { QuerySnapshot } from '../src/api/snapshot';
 import { writeBatch } from '../src/api/write_batch';
+
+import {
+  withTestDoc,
+  withTestDocAndInitialData,
+  withTestDbSettings,
+  withTestCollection
+} from './helpers';
 
 use(chaiAsPromised);
 
