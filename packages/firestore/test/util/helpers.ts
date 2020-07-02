@@ -779,7 +779,8 @@ export function expectSetToEqual<T>(set: SortedSet<T>, arr: T[]): void {
  */
 export function expectEqualitySets<T>(
   elems: T[][],
-  equalityFn: (v1: T, v2: T) => boolean
+  equalityFn: (v1: T, v2: T) => boolean,
+  stringifyFn?: (v: T) => string
 ): void {
   for (let i = 0; i < elems.length; i++) {
     const currentElems = elems[i];
@@ -793,9 +794,9 @@ export function expectEqualitySets<T>(
           expect(equalityFn(elem, otherElem)).to.equal(
             expectedComparison,
             'Expected (' +
-              elem +
+              (stringifyFn ? stringifyFn(elem) : elem) +
               ').isEqual(' +
-              otherElem +
+              (stringifyFn ? stringifyFn(otherElem) : otherElem) +
               ').to.equal(' +
               expectedComparison +
               ')'

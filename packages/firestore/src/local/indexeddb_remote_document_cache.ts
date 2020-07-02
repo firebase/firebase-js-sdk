@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
+import { Query, queryMatches } from '../core/query';
 import {
   DocumentKeySet,
   DocumentMap,
@@ -290,7 +290,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         const maybeDoc = fromDbRemoteDocument(this.serializer, dbRemoteDoc);
         if (!query.path.isPrefixOf(maybeDoc.key.path)) {
           control.done();
-        } else if (maybeDoc instanceof Document && query.matches(maybeDoc)) {
+        } else if (
+          maybeDoc instanceof Document &&
+          queryMatches(query, maybeDoc)
+        ) {
           results = results.insert(maybeDoc.key, maybeDoc);
         }
       })
