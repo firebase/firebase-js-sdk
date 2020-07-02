@@ -30,7 +30,12 @@ var3 = 'var3Changed';
 export function boo(): LogLevel {
   return LogLevel.DEBUG;
 }
-
+export function boo1(a: string): string {
+  if (a) {
+    return a;
+  }
+  return "not a";
+}
 export enum LogLevel1 {
   DEBUG = 0,
   VERBOSE = 1,
@@ -57,3 +62,18 @@ export type LogLevel2 =
 
 export const { a, b } = { a: "a", b: "b" };
 export { LogLevel } from '@firebase/logger';
+
+export function pickCard(x: Array<{ suit: string; card: number; }>): number;
+export function pickCard(x: number): { suit: string; card: number; };
+export function pickCard(x: number | Array<{ suit: string; card: number; }>) {
+
+  if (typeof x === "object") {
+    const pickedCard = Math.floor(Math.random() * x.length);
+    return pickedCard;
+  }
+  // Otherwise just let them pick the card
+  else if (typeof x === "number") {
+
+    return { suit: "a", card: x % 13 };
+  }
+}

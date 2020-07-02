@@ -226,11 +226,12 @@ export function extractDeclarations(
       }
     }
   });
+  declarations = dedup(declarations);
 
   if (map) {
     declarations = mapSymbolToType(map, declarations);
-    declarations = dedup(declarations);
   }
+
 
   //Sort to ensure stable output
   Object.values(declarations).map(each => {

@@ -28,7 +28,7 @@ export function foo1(): string {
 export function foo2(): string {
   return f1 + f2;
 }
-export class Apple {}
+export class Apple { }
 
 export enum BUG {
   DEBUG = 0,

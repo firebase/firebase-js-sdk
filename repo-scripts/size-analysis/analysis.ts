@@ -16,7 +16,7 @@
  */
 
 import * as fs from 'fs';
-import { resolve, basename } from 'path';
+import { resolve, basename, dirname } from 'path';
 import {
   extractDependenciesAndSize,
   extractDeclarations,
@@ -26,6 +26,7 @@ import {
 import { mapWorkspaceToPackages } from '../../scripts/release/utils/workspace';
 import { projectRoot } from '../../scripts/utils';
 import * as yargs from 'yargs';
+import { ObjectUnsubscribedError } from 'rxjs';
 
 export const TYPINGS: string = 'typings';
 const BUNDLE: string = 'esm2017';
@@ -116,17 +117,10 @@ async function generateReportForModule(path: string, outputDirectory: string): P
  */
 function buildMap(api: MemberList): Map<string, string> {
   const map: Map<string, string> = new Map();
-  api.functions.forEach(element => {
-    map.set(element, 'functions');
-  });
-  api.classes.forEach(element => {
-    map.set(element, 'classes');
-  });
-  api.enums.forEach(element => {
-    map.set(element, 'enums');
-  });
-  api.variables.forEach(element => {
-    map.set(element, 'variables');
+  Object.keys(api).map(key => {
+    api[key].forEach(element => {
+      map.set(element, key);
+    });
   });
   return map;
 }
@@ -193,6 +187,11 @@ function writeReportToFile(report: string, outputFile: string): void {
   if (fs.existsSync(outputFile) && !fs.lstatSync(outputFile).isFile()) {
     throw new Error(ErrorCode.OUTPUT_FILE_REQUIRED);
   }
+  const directoryPath = dirname(outputFile);
+  //for output file path like ./dir/dir1/dir2/file, we need to make sure parent dirs exist.
+  if (!fs.existsSync(directoryPath)) {
+    fs.mkdirSync(directoryPath, { recursive: true });
+  }
   fs.writeFileSync(outputFile, report);
 }
 /**
@@ -223,6 +222,7 @@ async function generateReport(dtsFile: string, bundleFile: string): Promise<stri
     throw new Error(ErrorCode.INPUT_FILE_DOES_NOT_EXIST);
   }
   const publicAPI = extractDeclarations(resolvedDtsFile);
+  console.log(publicAPI);
   const map: Map<string, string> = buildMap(publicAPI);
   return buildJsonReport(publicAPI, bundleFile, map);
 
@@ -246,7 +246,7 @@ async function main(): Promise<void> {
   // check if it's an adhoc run
   if (argv.inputDtsFile && argv.inputBundleFile) {
     const jsonReport = await generateReport(argv.inputDtsFile, argv.inputBundleFile);
-    writeReportToFile(jsonReport, argv.output);
+    writeReportToFile(jsonReport, resolve(argv.output));
   } else if (!argv.inputDtsFile && !argv.inputBundleFile) {
     // retrieve All Module Names
     let allModulesLocation = await mapWorkspaceToPackages([
