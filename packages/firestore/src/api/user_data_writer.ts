@@ -17,30 +17,30 @@
 
 import * as firestore from '@firebase/firestore-types';
 
-import * as api from '../protos/firestore_proto_api';
-
-import { DocumentKeyReference } from './user_data_reader';
-import { Blob } from './blob';
-import { GeoPoint } from './geo_point';
-import { Timestamp } from './timestamp';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
+import { TypeOrder } from '../model/object_value';
+import { ResourcePath } from '../model/path';
+import {
+  getLocalWriteTime,
+  getPreviousValue
+} from '../model/server_timestamps';
 import {
   normalizeByteString,
   normalizeNumber,
   normalizeTimestamp,
   typeOrder
 } from '../model/values';
-import {
-  getLocalWriteTime,
-  getPreviousValue
-} from '../model/server_timestamps';
-import { fail, hardAssert } from '../util/assert';
-import { forEach } from '../util/obj';
-import { TypeOrder } from '../model/object_value';
-import { ResourcePath } from '../model/path';
+import * as api from '../protos/firestore_proto_api';
 import { isValidResourceName } from '../remote/serializer';
+import { fail, hardAssert } from '../util/assert';
 import { logError } from '../util/log';
+import { forEach } from '../util/obj';
+
+import { Blob } from './blob';
+import { GeoPoint } from './geo_point';
+import { Timestamp } from './timestamp';
+import { DocumentKeyReference } from './user_data_reader';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 

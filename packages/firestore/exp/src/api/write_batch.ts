@@ -17,10 +17,11 @@
 
 // See https://github.com/typescript-eslint/typescript-eslint/issues/363
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import * as firestore from '../../index';
 
 import { cast } from '../../../lite/src/api/util';
 import { WriteBatch } from '../../../lite/src/api/write_batch';
+import * as firestore from '../../index';
+
 import { Firestore } from './database';
 
 export function writeBatch(

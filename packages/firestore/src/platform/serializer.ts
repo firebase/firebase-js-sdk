@@ -16,11 +16,13 @@
  */
 
 import { isNode, isReactNative } from '@firebase/util';
-import * as node from './node/serializer';
-import * as rn from './rn/serializer';
-import * as browser from './browser/serializer';
+
 import { DatabaseId } from '../core/database_info';
 import { JsonProtoSerializer } from '../remote/serializer';
+
+import * as browser from './browser/serializer';
+import * as node from './node/serializer';
+import * as rn from './rn/serializer';
 
 export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
   if (isNode()) {

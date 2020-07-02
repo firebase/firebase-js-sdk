@@ -17,9 +17,9 @@
 
 import { isNode, isReactNative } from '@firebase/util';
 
+import * as browser from './browser/base64';
 import * as node from './node/base64';
 import * as rn from './rn/base64';
-import * as browser from './browser/base64';
 
 /** Converts a Base64 encoded string to a binary string. */
 export function decodeBase64(encoded: string): string {

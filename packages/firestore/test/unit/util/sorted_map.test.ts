@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { primitiveComparator } from '../../../src/util/misc';
 import { forEach } from '../../../src/util/obj';
 import { LLRBNode, SortedMap } from '../../../src/util/sorted_map';

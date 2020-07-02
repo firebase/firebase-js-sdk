@@ -17,7 +17,9 @@
 
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
+import { debugCast } from '../util/assert';
 import { isNullOrUndefined } from '../util/types';
+
 import {
   Bound,
   boundEquals,
@@ -31,7 +33,6 @@ import {
   canonifyOrderBy,
   Filter
 } from './query';
-import { debugCast } from '../util/assert';
 
 /**
  * A Target represents the WatchTarget representation of a Query, which is used

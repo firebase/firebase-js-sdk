@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { resolve } from 'path';
 
+import { expect } from 'chai';
+
 import { extractDependencies } from '../../../../../scripts/exp/extract-deps.helpers';
+import { forEach } from '../../../src/util/obj';
+import * as pkg from '../../package.json';
 
 import * as dependencies from './dependencies.json';
-import * as pkg from '../../package.json';
-import { forEach } from '../../../src/util/obj';
 
 describe('Dependencies', () => {
   forEach(dependencies, (api, { dependencies }) => {

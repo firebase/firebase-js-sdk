@@ -15,23 +15,24 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
-import {
-  DeleteMutation,
-  Mutation,
-  Precondition
-} from '../../../src/model/mutation';
-import { Code, FirestoreError } from '../../../src/util/error';
 import { applyFirestoreDataConverter } from '../../../src/api/database';
 import {
   DocumentKeyReference,
   UserDataReader
 } from '../../../src/api/user_data_reader';
-import { cast } from './util';
-import { DocumentReference, newUserDataReader } from './reference';
-import { Firestore } from './database';
+import {
+  DeleteMutation,
+  Mutation,
+  Precondition
+} from '../../../src/model/mutation';
 import { invokeCommitRpc } from '../../../src/remote/datastore';
+import { Code, FirestoreError } from '../../../src/util/error';
+import * as firestore from '../../index';
+
+import { Firestore } from './database';
 import { FieldPath } from './field_path';
+import { DocumentReference, newUserDataReader } from './reference';
+import { cast } from './util';
 
 export class WriteBatch implements firestore.WriteBatch {
   // This is the lite version of the WriteBatch API used in the legacy SDK. The

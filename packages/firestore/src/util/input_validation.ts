@@ -14,11 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DocumentKey } from '../model/document_key';
+import { ResourcePath } from '../model/path';
+
 import { fail } from './assert';
 import { Code, FirestoreError } from './error';
 import { Dict, forEach } from './obj';
-import { DocumentKey } from '../model/document_key';
-import { ResourcePath } from '../model/path';
 
 /** Types accepted by validateType() and related methods for validation. */
 export type ValidationType =

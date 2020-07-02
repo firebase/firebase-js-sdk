@@ -83,6 +83,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
+import { ByteString } from '../../../src/util/byte_string';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
@@ -106,8 +107,6 @@ import {
   wrap,
   wrapObject
 } from '../../util/helpers';
-
-import { ByteString } from '../../../src/util/byte_string';
 
 const userDataWriter = testUserDataWriter();
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);
