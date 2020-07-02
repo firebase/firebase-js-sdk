@@ -23,14 +23,15 @@ import { getLogLevel, logDebug, LogLevel } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
+
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from './local_store';
 import {
   GarbageCollectionScheduler,
   PersistenceTransaction
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { TargetData } from './target_data';
 import { isIndexedDbTransactionError } from './simple_db';
+import { TargetData } from './target_data';
 
 const LOG_TAG = 'LruGarbageCollector';
 

@@ -19,8 +19,8 @@ import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 
 import { Firestore } from './src/api/database';
-import { MemoryComponentProvider } from './src/core/component_provider';
 import { configureForFirebase } from './src/config';
+import { MemoryComponentProvider } from './src/core/component_provider';
 
 import './register-module';
 

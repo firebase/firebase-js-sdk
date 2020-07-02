@@ -16,6 +16,7 @@
  */
 
 import { Logger, LogLevel, LogLevelString } from '@firebase/logger';
+
 import { SDK_VERSION } from '../core/version';
 import { formatJSON } from '../platform/format_json';
 
