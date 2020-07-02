@@ -58,6 +58,7 @@ import { UntypedFirestoreDataConverter } from '../../../src/api/user_data_reader
 import { isPartialObserver, PartialObserver } from '../../../src/api/observer';
 import { BaseFieldPath } from '../../../src/api/field_path';
 import instantiate = WebAssembly.instantiate;
+import { isPlainObject } from '../../../src/util/input_validation';
 
 export { GeoPoint, Blob, Timestamp } from '../../../exp/index.node';
 
@@ -161,9 +162,9 @@ export class Transaction {
     options?: firestore.SetOptions
   ): Transaction {
     if (options) {
-      this._delegate.set(documentRef._delegate, data, options);
+      this._delegate.set(documentRef._delegate, unwwrap(data), options);
     } else {
-      this._delegate.set(documentRef._delegate, data);
+      this._delegate.set(documentRef._delegate, unwwrap(data));
     }
     return this;
   }
@@ -189,11 +190,9 @@ export class Transaction {
     } else {
       this._delegate.update.apply(this._delegate, [
         documentRef._delegate,
-        dataOrField instanceof FieldPath ? dataOrField._delegate : dataOrField,
+        unwwrap(dataOrField),
         value,
-        ...moreFieldsAndValues.map(v =>
-          v instanceof FieldPath ? v._delegate : v
-        )
+        ...unwwrap(moreFieldsAndValues)
       ]);
     }
 
@@ -215,9 +214,9 @@ export class WriteBatch {
     options?: firestore.SetOptions
   ): WriteBatch {
     if (options) {
-      this._delegate.set(documentRef._delegate, data, options);
+      this._delegate.set(documentRef._delegate, unwwrap(data), options);
     } else {
-      this._delegate.set(documentRef._delegate, data);
+      this._delegate.set(documentRef._delegate, unwwrap(data));
     }
     return this;
   }
@@ -243,11 +242,9 @@ export class WriteBatch {
     } else {
       this._delegate.update.apply(this._delegate, [
         documentRef._delegate,
-        dataOrField instanceof FieldPath ? dataOrField._delegate : dataOrField,
+        unwwrap(dataOrField),
         value,
-        ...moreFieldsAndValues.map(v =>
-          v instanceof FieldPath ? v._delegate : v
-        )
+        ...unwwrap(moreFieldsAndValues)
       ]);
     }
 
@@ -261,6 +258,26 @@ export class WriteBatch {
 
   commit(): Promise<void> {
     return this._delegate.commit();
+  }
+}
+
+function unwwrap(value: any): any {
+  if (Array.isArray(value)) {
+    return value.map(v => unwwrap(v));
+  } else if (value instanceof FieldPath) {
+    return value._delegate;
+  } else if (value instanceof DocumentReference) {
+    return value._delegate;
+  } else if (isPlainObject(value)) {
+    const obj: any = {};
+    for (const key in value) {
+      if (value.hasOwnProperty(key)) {
+        obj[key] = unwwrap(value[key]);
+      }
+    }
+    return obj;
+  } else {
+    return value;
   }
 }
 
@@ -288,9 +305,9 @@ export class DocumentReference<T = firestore.DocumentData>
 
   set(data: Partial<T>, options?: firestore.SetOptions): Promise<void> {
     if (options) {
-      return setDoc(this._delegate, data, options);
+      return setDoc(this._delegate, unwwrap(data), options);
     } else {
-      return setDoc(this._delegate, data);
+      return setDoc(this._delegate, unwwrap(data));
     }
   }
 
@@ -310,11 +327,9 @@ export class DocumentReference<T = firestore.DocumentData>
     } else {
       return updateDoc.apply(null, [
         this._delegate,
-        dataOrField instanceof FieldPath ? dataOrField._delegate : dataOrField,
+        unwwrap(dataOrField),
         value,
-        ...moreFieldsAndValues.map(v =>
-          v instanceof FieldPath ? v._delegate : v
-        )
+        ...unwwrap(moreFieldsAndValues)
       ]);
     }
   }
@@ -485,33 +500,35 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   }
 
   startAt(...args: any[]): Query<T> {
-    return new Query<T>(
-      this._delegate.startAt.apply(this._delegate, [args[0], ...args.slice(1)])
-    );
+    if (args[0] instanceof DocumentSnapshot) {
+      return new Query(this._delegate.startAt(args[0]._delegate));
+    } else {
+      return new Query(this._delegate.startAt(...unwwrap(args)));
+    }
   }
 
   startAfter(...args: any[]): Query<T> {
-    return new Query<T>(
-      this._delegate.startAfter.apply(this._delegate, [
-        args[0],
-        ...args.slice(1)
-      ])
-    );
+    if (args[0] instanceof DocumentSnapshot) {
+      return new Query(this._delegate.startAfter(args[0]._delegate));
+    } else {
+      return new Query(this._delegate.startAfter(...unwwrap(args)));
+    }
   }
 
   endBefore(...args: any[]): Query<T> {
-    return new Query<T>(
-      this._delegate.endBefore.apply(this._delegate, [
-        args[0],
-        ...args.slice(1)
-      ])
-    );
+    if (args[0] instanceof DocumentSnapshot) {
+      return new Query(this._delegate.endBefore(args[0]._delegate));
+    } else {
+      return new Query(this._delegate.endBefore(...unwwrap(args)));
+    }
   }
 
   endAt(...args: any[]): Query<T> {
-    return new Query<T>(
-      this._delegate.endAt.apply(this._delegate, [args[0], ...args.slice(1)])
-    );
+    if (args[0] instanceof DocumentSnapshot) {
+      return new Query(this._delegate.endAt(args[0]._delegate));
+    } else {
+      return new Query(this._delegate.endAt(...unwwrap(args)));
+    }
   }
 
   isEqual(other: firestore.Query<T>): boolean {
