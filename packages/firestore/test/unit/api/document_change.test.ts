@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import {
   changesFromSnapshot,
   DocumentSnapshot,
@@ -26,6 +27,7 @@ import { View } from '../../../src/core/view';
 import { documentKeySet } from '../../../src/model/collections';
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
+import { firestore } from '../../util/api_helpers';
 import {
   applyDocChanges,
   doc,
@@ -34,7 +36,6 @@ import {
   orderBy,
   path
 } from '../../util/helpers';
-import { firestore } from '../../util/api_helpers';
 
 describe('DocumentChange:', () => {
   function expectPositions(
