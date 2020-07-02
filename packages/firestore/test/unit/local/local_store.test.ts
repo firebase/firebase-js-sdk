@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
-import * as api from '../../../src/protos/firestore_proto_api';
-
 import { expect } from 'chai';
+
 import { FieldValue } from '../../../src/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
 import { Query } from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Target } from '../../../src/core/target';
 import { BatchId, TargetId } from '../../../src/core/types';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
@@ -51,6 +50,7 @@ import {
   MutationBatch,
   MutationBatchResult
 } from '../../../src/model/mutation_batch';
+import * as api from '../../../src/protos/firestore_proto_api';
 import { RemoteEvent } from '../../../src/remote/remote_event';
 import {
   WatchChangeAggregator,
@@ -58,6 +58,7 @@ import {
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
 import { debugAssert } from '../../../src/util/assert';
+import { ByteString } from '../../../src/util/byte_string';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   byteStringFromString,
@@ -83,7 +84,6 @@ import {
 
 import { CountingQueryEngine, QueryEngineType } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
-import { ByteString } from '../../../src/util/byte_string';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;

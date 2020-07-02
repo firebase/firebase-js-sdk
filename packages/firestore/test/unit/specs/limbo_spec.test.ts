@@ -16,10 +16,10 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { deletedDoc, doc, filter, path, orderBy } from '../../util/helpers';
-
 import { TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
+import { deletedDoc, doc, filter, path, orderBy } from '../../util/helpers';
+
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
