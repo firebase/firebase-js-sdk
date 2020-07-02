@@ -16,6 +16,14 @@
  */
 
 import {
+  isBrowserExtension,
+  isElectron,
+  isIE,
+  isMobileCordova,
+  isReactNative,
+  isUWP
+} from '@firebase/util';
+import {
   createWebChannelTransport,
   ErrorCode,
   EventType,
@@ -24,15 +32,6 @@ import {
   WebChannelOptions,
   XhrIo
 } from '@firebase/webchannel-wrapper';
-
-import {
-  isBrowserExtension,
-  isElectron,
-  isIE,
-  isMobileCordova,
-  isReactNative,
-  isUWP
-} from '@firebase/util';
 
 import { Token } from '../../api/credentials';
 import { DatabaseId, DatabaseInfo } from '../../core/database_info';

@@ -29,14 +29,11 @@ import { hardAssert, debugAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logError, logDebug } from '../util/log';
-import { SortedSet } from '../util/sorted_set';
-import { SortedMap } from '../util/sorted_map';
 import { primitiveComparator } from '../util/misc';
+import { SortedMap } from '../util/sorted_map';
+import { SortedSet } from '../util/sorted_set';
 import { isSafeInteger, WindowLike } from '../util/types';
-import {
-  QueryTargetState,
-  SharedClientStateSyncer
-} from './shared_client_state_syncer';
+
 import {
   CLIENT_STATE_KEY_PREFIX,
   ClientStateSchema,
@@ -51,6 +48,10 @@ import {
   QueryTargetStateSchema,
   SharedOnlineStateSchema
 } from './shared_client_state_schema';
+import {
+  QueryTargetState,
+  SharedClientStateSyncer
+} from './shared_client_state_syncer';
 
 const LOG_TAG = 'SharedClientState';
 

@@ -16,6 +16,7 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
+import { isDocumentTarget } from '../core/target';
 import { TargetId } from '../core/types';
 import { ChangeType } from '../core/view_snapshot';
 import { TargetData, TargetPurpose } from '../local/target_data';
@@ -27,15 +28,15 @@ import {
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { debugAssert, fail, hardAssert } from '../util/assert';
+import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
+
 import { ExistenceFilter } from './existence_filter';
 import { RemoteEvent, TargetChange } from './remote_event';
-import { ByteString } from '../util/byte_string';
-import { isDocumentTarget } from '../core/target';
 
 /**
  * Internal representation of the watcher API protocol buffers.

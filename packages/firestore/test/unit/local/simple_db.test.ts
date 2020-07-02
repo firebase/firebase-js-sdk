@@ -15,18 +15,16 @@
  * limitations under the License.
  */
 
+import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { expect, use } from 'chai';
+import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
   SimpleDb,
   SimpleDbSchemaConverter,
   SimpleDbStore,
   SimpleDbTransaction
 } from '../../../src/local/simple_db';
-
-import { PersistencePromise } from '../../../src/local/persistence_promise';
-
 import { fail } from '../../../src/util/assert';
 import { Code, FirestoreError } from '../../../src/util/error';
 

@@ -16,26 +16,26 @@
  */
 
 import * as firestore from '../../';
-
+import { applyFirestoreDataConverter } from '../../../src/api/database';
+import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
 import { UserDataReader } from '../../../src/api/user_data_reader';
 import { Transaction as InternalTransaction } from '../../../src/core/transaction';
+import { TransactionRunner } from '../../../src/core/transaction_runner';
 import {
   Document,
   MaybeDocument,
   NoDocument
 } from '../../../src/model/document';
 import { fail } from '../../../src/util/assert';
-import { applyFirestoreDataConverter } from '../../../src/api/database';
-import { DocumentSnapshot } from './snapshot';
-import { Firestore } from './database';
-import { TransactionRunner } from '../../../src/core/transaction_runner';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
-import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
-import { validateReference } from './write_batch';
-import { newUserDataReader } from './reference';
+
+import { Firestore } from './database';
 import { FieldPath } from './field_path';
+import { newUserDataReader } from './reference';
+import { DocumentSnapshot } from './snapshot';
 import { cast } from './util';
+import { validateReference } from './write_batch';
 
 export class Transaction implements firestore.Transaction {
   // This is the lite version of the Transaction API used in the legacy SDK. The

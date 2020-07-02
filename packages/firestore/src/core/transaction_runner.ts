@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-import { Deferred } from '../util/promise';
-import { TimerId, AsyncQueue } from '../util/async_queue';
 import { ExponentialBackoff } from '../remote/backoff';
-import { Transaction } from './transaction';
 import { Datastore } from '../remote/datastore';
-import { isNullOrUndefined } from '../util/types';
 import { isPermanentError } from '../remote/rpc_error';
+import { TimerId, AsyncQueue } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
+import { Deferred } from '../util/promise';
+import { isNullOrUndefined } from '../util/types';
+
+import { Transaction } from './transaction';
 
 const RETRY_COUNT = 5;
 
