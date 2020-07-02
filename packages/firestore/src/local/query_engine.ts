@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import { SnapshotVersion } from '../core/snapshot_version';
 import { Query } from '../core/query';
+import { SnapshotVersion } from '../core/snapshot_version';
 import { DocumentKeySet, DocumentMap } from '../model/collections';
+
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';

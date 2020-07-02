@@ -16,6 +16,7 @@
  */
 
 import { Observer } from '../core/event_manager';
+
 import { EventHandler } from './misc';
 
 /*

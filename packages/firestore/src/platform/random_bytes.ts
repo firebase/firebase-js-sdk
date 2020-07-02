@@ -16,9 +16,10 @@
  */
 
 import { isNode, isReactNative } from '@firebase/util';
+
+import * as browser from './browser/random_bytes';
 import * as node from './node/random_bytes';
 import * as rn from './rn/random_bytes';
-import * as browser from './browser/random_bytes';
 
 /**
  * Generates `nBytes` of random bytes.

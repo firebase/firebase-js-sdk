@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { QueryEngine } from '../../../src/local/query_engine';
-import { LocalDocumentsView } from '../../../src/local/local_documents_view';
-import { PersistenceTransaction } from '../../../src/local/persistence';
 import { Query } from '../../../src/core/query';
-import { PersistencePromise } from '../../../src/local/persistence_promise';
-import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { MutationQueue } from '../../../src/local/mutation_queue';
+import { PersistenceTransaction } from '../../../src/local/persistence';
+import { PersistencePromise } from '../../../src/local/persistence_promise';
+import { QueryEngine } from '../../../src/local/query_engine';
+import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
 
 export enum QueryEngineType {

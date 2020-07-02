@@ -16,6 +16,7 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
+
 import firebase from './firebase_export';
 import {
   ALT_PROJECT_ID,

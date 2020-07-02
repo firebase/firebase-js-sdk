@@ -16,13 +16,13 @@
  */
 
 import * as api from '../protos/firestore_proto_api';
-
 import { debugAssert } from '../util/assert';
+import { forEach } from '../util/obj';
+
 import { FieldMask } from './mutation';
 import { FieldPath } from './path';
 import { isServerTimestamp } from './server_timestamps';
 import { valueEquals, isMapValue, typeOrder } from './values';
-import { forEach } from '../util/obj';
 
 export interface JsonObject<T> {
   [name: string]: T;

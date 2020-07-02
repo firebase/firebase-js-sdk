@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { deletedDoc, doc, expectEqual, key, version } from '../../util/helpers';
 

@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { debugAssert } from './assert';
 import { randomBytes } from '../platform/random_bytes';
+
+import { debugAssert } from './assert';
 
 export type EventHandler<E> = (value: E) => void;
 export interface Indexable {

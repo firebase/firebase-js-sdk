@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { Timestamp as TimestampInstance } from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import firebase from '../util/firebase_export';
@@ -26,7 +27,6 @@ import {
   withTestDb,
   withTestDbs
 } from '../util/helpers';
-import { Timestamp as TimestampInstance } from '@firebase/firestore-types';
 
 const Timestamp = firebase.firestore!.Timestamp;
 const FieldPath = firebase.firestore!.FieldPath;
