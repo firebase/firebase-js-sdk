@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
+import { User } from '../auth/user';
 import { BatchId, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { MutationBatchResult } from '../model/mutation_batch';
 import { FirestoreError } from '../util/error';
+
 import { RemoteEvent } from './remote_event';
-import { User } from '../auth/user';
 
 /**
  * An interface that describes the actions the RemoteStore needs to perform on

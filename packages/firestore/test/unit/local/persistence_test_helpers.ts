@@ -25,7 +25,6 @@ import {
   TargetId,
   ListenSequenceNumber
 } from '../../../src/core/types';
-
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalSerializer } from '../../../src/local/local_serializer';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
@@ -43,12 +42,12 @@ import {
   SharedClientStateSyncer
 } from '../../../src/local/shared_client_state_syncer';
 import { SimpleDb } from '../../../src/local/simple_db';
+import { getDocument, getWindow } from '../../../src/platform/dom';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
 import { WindowLike } from '../../../src/util/types';
-import { getDocument, getWindow } from '../../../src/platform/dom';
 
 /* eslint-disable no-restricted-globals */
 

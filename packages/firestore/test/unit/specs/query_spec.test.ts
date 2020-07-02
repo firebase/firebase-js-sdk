@@ -16,10 +16,10 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { doc, filter, path } from '../../util/helpers';
-
 import { Document } from '../../../src/model/document';
 import { ResourcePath } from '../../../src/model/path';
+import { doc, filter, path } from '../../util/helpers';
+
 import { describeSpec, specTest } from './describe_spec';
 import { spec, SpecBuilder } from './spec_builder';
 

@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import { describeSpec, specTest } from './describe_spec';
-import { client, spec } from './spec_builder';
-import { TimerId } from '../../../src/util/async_queue';
 import { Query } from '../../../src/core/query';
+import { TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
 import { deletedDoc, doc, filter, path } from '../../util/helpers';
+
+import { describeSpec, specTest } from './describe_spec';
+import { client, spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
 
 // The IndexedDB action that the Watch stream uses to detect if IndexedDB access

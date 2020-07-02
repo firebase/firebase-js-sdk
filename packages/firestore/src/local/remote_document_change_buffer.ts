@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { SnapshotVersion } from '../core/snapshot_version';
 import { DocumentKeySet, NullableMaybeDocumentMap } from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -23,7 +24,6 @@ import { ObjectMap } from '../util/obj_map';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { SnapshotVersion } from '../core/snapshot_version';
 
 /**
  * An in-memory buffer of entries to be written to a RemoteDocumentCache.

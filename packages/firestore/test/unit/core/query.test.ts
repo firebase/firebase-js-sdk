@@ -16,10 +16,12 @@
  */
 
 import { expect } from 'chai';
+
 import { Blob } from '../../../src/api/blob';
-import { Timestamp } from '../../../src/api/timestamp';
 import { GeoPoint } from '../../../src/api/geo_point';
+import { Timestamp } from '../../../src/api/timestamp';
 import { Bound, boundEquals, Query } from '../../../src/core/query';
+import { canonifyTarget } from '../../../src/core/target';
 import { DOCUMENT_KEY_NAME, ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
@@ -33,7 +35,6 @@ import {
   ref,
   wrap
 } from '../../util/helpers';
-import { canonifyTarget } from '../../../src/core/target';
 
 describe('Bound', () => {
   function makeBound(values: unknown[], before: boolean): Bound {

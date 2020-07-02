@@ -16,9 +16,9 @@
  */
 
 import { expect, use } from 'chai';
-import { PersistencePromise } from '../../../src/local/persistence_promise';
-
 import * as chaiAsPromised from 'chai-as-promised';
+
+import { PersistencePromise } from '../../../src/local/persistence_promise';
 
 /* eslint-disable no-restricted-globals */
 

@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
-
-import { Document } from '../../../src/model/document';
-import { DocumentKey } from '../../../src/model/document_key';
-import { Firestore } from './database';
+import {
+  applyFirestoreDataConverter,
+  BaseQuery,
+  validateHasExplicitOrderByForLimitToLast
+} from '../../../src/api/database';
+import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
 import {
   DocumentKeyReference,
   ParsedUpdateData,
@@ -31,28 +32,18 @@ import {
   Operator,
   Query as InternalQuery
 } from '../../../src/core/query';
+import { Document } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
+import { DeleteMutation, Precondition } from '../../../src/model/mutation';
 import { ResourcePath } from '../../../src/model/path';
-import { AutoId } from '../../../src/util/misc';
-import {
-  DocumentSnapshot,
-  QueryDocumentSnapshot,
-  QuerySnapshot,
-  fieldPathFromArgument
-} from './snapshot';
+import { newSerializer } from '../../../src/platform/serializer';
 import {
   invokeBatchGetDocumentsRpc,
   invokeCommitRpc,
   invokeRunQueryRpc
 } from '../../../src/remote/datastore';
 import { hardAssert } from '../../../src/util/assert';
-import { DeleteMutation, Precondition } from '../../../src/model/mutation';
-import {
-  applyFirestoreDataConverter,
-  BaseQuery,
-  validateHasExplicitOrderByForLimitToLast
-} from '../../../src/api/database';
-import { FieldPath } from './field_path';
-import { cast } from './util';
+import { Code, FirestoreError } from '../../../src/util/error';
 import {
   validateArgType,
   validateCollectionPath,
@@ -60,9 +51,18 @@ import {
   validateExactNumberOfArgs,
   validatePositiveNumber
 } from '../../../src/util/input_validation';
-import { newSerializer } from '../../../src/platform/serializer';
-import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
-import { Code, FirestoreError } from '../../../src/util/error';
+import { AutoId } from '../../../src/util/misc';
+import * as firestore from '../../index';
+
+import { Firestore } from './database';
+import { FieldPath } from './field_path';
+import {
+  DocumentSnapshot,
+  QueryDocumentSnapshot,
+  QuerySnapshot,
+  fieldPathFromArgument
+} from './snapshot';
+import { cast } from './util';
 
 /**
  * A reference to a particular document in a collection in the database.

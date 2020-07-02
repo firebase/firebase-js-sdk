@@ -25,8 +25,8 @@ import { debugAssert, hardAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug, logError } from '../util/log';
-
 import { isNullOrUndefined } from '../util/types';
+
 import { ExponentialBackoff } from './backoff';
 import { Connection, Stream } from './connection';
 import {

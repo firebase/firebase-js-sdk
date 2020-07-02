@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
-
 import { compareDocumentsByField, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { FieldPath, ResourcePath } from '../model/path';
 import {
   canonicalId,
   valueCompare,
@@ -30,10 +29,11 @@ import {
   isReferenceValue,
   typeOrder
 } from '../model/values';
-import { FieldPath, ResourcePath } from '../model/path';
+import * as api from '../protos/firestore_proto_api';
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
+
 import {
   canonifyTarget,
   isDocumentTarget,
