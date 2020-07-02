@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-import { version } from '../package.json';
 import { _registerComponent, registerVersion } from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
+
+import { version } from '../package.json';
+
 import { Firestore } from './src/api/database';
 
 export { FieldPath, documentId } from '../lite/src/api/field_path';
