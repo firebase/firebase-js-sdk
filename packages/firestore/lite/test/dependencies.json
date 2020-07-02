@@ -248,7 +248,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 99162
+        "sizeInBytes": 98934
     },
     "DocumentReference": {
         "dependencies": {
@@ -745,7 +745,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 85476
+        "sizeInBytes": 85248
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -1077,7 +1077,6 @@
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
-                "coercedFieldValuesArray",
                 "createError",
                 "createMetadata",
                 "debugAssert",
@@ -1095,18 +1094,12 @@
                 "fromDotSeparatedString",
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
-                "getEncodedDatabaseId",
                 "getLocalWriteTime",
                 "hardAssert",
                 "invalidClassError",
-                "invokeCommitRpc",
-                "isArray",
-                "isDouble",
                 "isEmpty",
-                "isInteger",
                 "isMapValue",
                 "isNegativeZero",
-                "isNumber",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -1136,23 +1129,15 @@
                 "parseSentinelFieldValue",
                 "primitiveComparator",
                 "registerFirestore",
-                "serverTimestamp",
                 "terminate",
                 "terminateDatastore",
                 "timestampEquals",
                 "toBytes",
-                "toDocumentMask",
                 "toDouble",
-                "toFieldTransform",
                 "toInteger",
-                "toMutation",
-                "toMutationDocument",
-                "toName",
                 "toNumber",
-                "toPrecondition",
                 "toResourceName",
                 "toTimestamp",
-                "toVersion",
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
@@ -1166,8 +1151,6 @@
                 "valueEquals"
             ],
             "classes": [
-                "ArrayRemoveTransformOperation",
-                "ArrayUnionTransformOperation",
                 "BaseFieldPath",
                 "BasePath",
                 "Blob",
@@ -1195,7 +1178,6 @@
                 "MaybeDocument",
                 "Mutation",
                 "NoDocument",
-                "NumericIncrementTransformOperation",
                 "OAuthToken",
                 "ObjectValue",
                 "ObjectValueBuilder",
@@ -1206,7 +1188,6 @@
                 "Precondition",
                 "ResourcePath",
                 "SerializableFieldValue",
-                "ServerTimestampTransform",
                 "SetMutation",
                 "SnapshotVersion",
                 "StreamBridge",
@@ -1215,12 +1196,11 @@
                 "UnknownDocument",
                 "User",
                 "UserDataReader",
-                "VerifyMutation",
                 "WriteBatch"
             ],
             "variables": []
         },
-        "sizeInBytes": 72512
+        "sizeInBytes": 65618
     },
     "addDoc": {
         "dependencies": {
@@ -1438,7 +1418,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 109513
+        "sizeInBytes": 109285
     },
     "arrayRemove": {
         "dependencies": {
@@ -1853,7 +1833,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 99790
+        "sizeInBytes": 99562
     },
     "collectionGroup": {
         "dependencies": {
@@ -2044,7 +2024,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 99222
+        "sizeInBytes": 98994
     },
     "deleteDoc": {
         "dependencies": {
@@ -2398,7 +2378,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 100611
+        "sizeInBytes": 100383
     },
     "documentId": {
         "dependencies": {
@@ -2734,6 +2714,7 @@
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
                 "validateExactNumberOfArgs",
+                "validateHasExplicitOrderByForLimitToLast",
                 "validateNamedArrayAtLeastNumberOfElements",
                 "validatePlainObject",
                 "validatePositiveNumber",
@@ -2805,48 +2786,37 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 91235
+        "sizeInBytes": 91307
     },
     "increment": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "arrayEquals",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
-                "createError",
                 "createMetadata",
-                "createSentinelChildContext",
                 "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "encodeBase64",
                 "fail",
-                "forEach",
                 "formatJSON",
-                "formatPlural",
-                "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getLocalWriteTime",
                 "hardAssert",
                 "increment",
-                "invalidClassError",
                 "isDouble",
-                "isEmpty",
                 "isInteger",
                 "isNegativeZero",
                 "isNumber",
-                "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
-                "isWrite",
                 "loadProtos",
                 "logDebug",
                 "logError",
                 "logWarn",
-                "looksLikeJsonObject",
                 "mapCodeFromRpcCode",
                 "newConnection",
                 "newDatastore",
@@ -2858,57 +2828,36 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
-                "ordinal",
-                "parseArray",
-                "parseData",
-                "parseObject",
-                "parseScalarValue",
-                "parseSentinelFieldValue",
                 "primitiveComparator",
                 "registerFirestore",
                 "terminate",
                 "terminateDatastore",
                 "timestampEquals",
-                "toBytes",
                 "toDouble",
                 "toInteger",
                 "toNumber",
-                "toResourceName",
-                "toTimestamp",
-                "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
-                "validateArgType",
-                "validateExactNumberOfArgs",
-                "validatePlainObject",
-                "validateType",
-                "valueDescription",
                 "valueEquals"
             ],
             "classes": [
-                "BasePath",
-                "Blob",
                 "ByteString",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
-                "DocumentKeyReference",
                 "FieldTransform",
                 "FieldValue",
                 "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
-                "GeoPoint",
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "NumericIncrementFieldValueImpl",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
-                "ParseContext",
-                "ResourcePath",
                 "SerializableFieldValue",
                 "StreamBridge",
                 "Timestamp",
@@ -2916,7 +2865,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 42341
+        "sizeInBytes": 27564
     },
     "initializeFirestore": {
         "dependencies": {
@@ -3153,7 +3102,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 99505
+        "sizeInBytes": 99277
     },
     "queryEqual": {
         "dependencies": {
@@ -3317,7 +3266,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 85680
+        "sizeInBytes": 85452
     },
     "refEqual": {
         "dependencies": {
@@ -3509,7 +3458,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 99447
+        "sizeInBytes": 99219
     },
     "runTransaction": {
         "dependencies": {
@@ -4108,7 +4057,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 86413
+        "sizeInBytes": 86185
     },
     "terminate": {
         "dependencies": {
@@ -4461,6 +4410,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 72592
+        "sizeInBytes": 72710
     }
 }
