@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { Blob } from '../../../src/api/blob';
 import { blob, expectEqual, expectNotEqual } from '../../util/helpers';
 

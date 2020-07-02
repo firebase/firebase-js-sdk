@@ -15,45 +15,46 @@
  * limitations under the License.
  */
 
-import {
-  ClientId,
-  MemorySharedClientState,
-  SharedClientState,
-  WebStorageSharedClientState
-} from '../local/shared_client_state';
+import { User } from '../auth/user';
+import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
+import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import {
   LocalStore,
   MultiTabLocalStore,
   newLocalStore,
   newMultiTabLocalStore
 } from '../local/local_store';
+import { LruParams, LruScheduler } from '../local/lru_garbage_collector';
+import {
+  MemoryEagerDelegate,
+  MemoryPersistence
+} from '../local/memory_persistence';
+import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
+import {
+  ClientId,
+  MemorySharedClientState,
+  SharedClientState,
+  WebStorageSharedClientState
+} from '../local/shared_client_state';
+import { newConnectivityMonitor } from '../platform/connection';
+import { getDocument, getWindow } from '../platform/dom';
+import { newSerializer } from '../platform/serializer';
+import { Datastore } from '../remote/datastore';
+import { RemoteStore } from '../remote/remote_store';
+import { debugAssert } from '../util/assert';
+import { AsyncQueue } from '../util/async_queue';
+import { Code, FirestoreError } from '../util/error';
+
+import { DatabaseInfo } from './database_info';
+import { EventManager } from './event_manager';
+import { PersistenceSettings } from './firestore_client';
 import {
   MultiTabSyncEngine,
   newMultiTabSyncEngine,
   newSyncEngine,
   SyncEngine
 } from './sync_engine';
-import { RemoteStore } from '../remote/remote_store';
-import { EventManager } from './event_manager';
-import { AsyncQueue } from '../util/async_queue';
-import { DatabaseInfo } from './database_info';
-import { Datastore } from '../remote/datastore';
-import { User } from '../auth/user';
-import { PersistenceSettings } from './firestore_client';
-import { debugAssert } from '../util/assert';
-import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
-import { Code, FirestoreError } from '../util/error';
 import { OnlineStateSource } from './types';
-import { LruParams, LruScheduler } from '../local/lru_garbage_collector';
-import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
-import { IndexedDbPersistence } from '../local/indexeddb_persistence';
-import {
-  MemoryEagerDelegate,
-  MemoryPersistence
-} from '../local/memory_persistence';
-import { newConnectivityMonitor } from '../platform/connection';
-import { newSerializer } from '../platform/serializer';
-import { getDocument, getWindow } from '../platform/dom';
 
 const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
   'You are using the memory-only build of Firestore. Persistence support is ' +

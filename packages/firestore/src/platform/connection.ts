@@ -16,12 +16,14 @@
  */
 
 import { isNode, isReactNative } from '@firebase/util';
-import * as node from './node/connection';
-import * as rn from './rn/connection';
-import * as browser from './browser/connection';
-import { ConnectivityMonitor } from '../remote/connectivity_monitor';
+
 import { DatabaseInfo } from '../core/database_info';
 import { Connection } from '../remote/connection';
+import { ConnectivityMonitor } from '../remote/connectivity_monitor';
+
+import * as browser from './browser/connection';
+import * as node from './node/connection';
+import * as rn from './rn/connection';
 
 export function newConnectivityMonitor(): ConnectivityMonitor {
   if (isNode()) {

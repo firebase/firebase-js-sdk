@@ -16,13 +16,13 @@
  */
 
 import { isBase64Available } from '../platform/base64';
+import { ByteString } from '../util/byte_string';
 import { Code, FirestoreError } from '../util/error';
 import {
   invalidClassError,
   validateArgType,
   validateExactNumberOfArgs
 } from '../util/input_validation';
-import { ByteString } from '../util/byte_string';
 
 /** Helper function to assert Uint8Array is available at runtime. */
 function assertUint8ArrayAvailable(): void {
