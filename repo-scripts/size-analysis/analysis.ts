@@ -103,7 +103,6 @@ async function generateReportForModule(path: string, outputDirectory: string): P
     }
     const bundleFile = `${path}/${packageJson[BUNDLE]}`;
     const json = await generateReport(dtsFile, bundleFile);
-    //console.log(json);
     const fileName = `${basename(packageJson.name)}-dependency.json`;
     writeReportToDirectory(json, fileName, resolve(outputDirectory));
 
@@ -224,7 +223,6 @@ async function generateReport(dtsFile: string, bundleFile: string): Promise<stri
     throw new Error(ErrorCode.INPUT_FILE_DOES_NOT_EXIST);
   }
   const publicAPI = extractDeclarations(resolvedDtsFile);
-  console.log(publicAPI);
   const map: Map<string, string> = buildMap(publicAPI);
   return buildJsonReport(publicAPI, bundleFile, map);
 
