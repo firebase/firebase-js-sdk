@@ -32,15 +32,15 @@ export function bar2(): string {
 
 export function pickAnotherCard(x: Array<{ suit: string; card: number; }>): number;
 export function pickAnotherCard(x: number): { suit: string; card: number; };
-export function pickAnotherCard(x: number | Array<{ suit: string; card: number; }>) {
+export function pickAnotherCard(x: number | Array<{ suit: string; card: number; }>): number | { suit: string; card: number; } {
 
   if (typeof x === "object") {
     const pickedCard = Math.floor(Math.random() * x.length);
     return pickedCard;
   }
   // Otherwise just let them pick the card
-  else if (typeof x === "number") {
 
-    return { suit: "a", card: x % 13 };
-  }
+
+  return { suit: "a", card: x % 13 };
+
 }
