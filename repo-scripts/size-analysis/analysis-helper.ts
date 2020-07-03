@@ -25,6 +25,19 @@ import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import { ObjectUnsubscribedError } from 'rxjs';
 
+
+
+export const enum ErrorCode {
+  INVALID_FLAG_COMBINATION = "Invalid command flag combinations!",
+  BUNDLE_FILE_DOES_NOT_EXIST = "Module doesn't have a bundle file!",
+  DTS_FILE_DOES_NOT_EXIST = "Module doesn't have a dts file!",
+  OUTPUT_DIRECTORY_REQUIRED = "An output directory is required but a file given",
+  OUTPUT_FILE_REQUIRED = "An output file is required but a directory given",
+  INPUT_FILE_DOES_NOT_EXIST = "Input file doesn't exist!"
+
+}
+
+
 /** Contains a list of members by type. */
 export interface MemberList {
   classes: string[];
@@ -242,7 +255,7 @@ export function extractDeclarations(
 /**
  * To Make sure symbols of every category are unique.
  */
-function dedup(memberList: MemberList): MemberList {
+export function dedup(memberList: MemberList): MemberList {
   Object.keys(memberList).map(each => {
     const set: Set<string> = new Set(memberList[each]);
     memberList[each] = Array.from(set);
@@ -251,7 +264,7 @@ function dedup(memberList: MemberList): MemberList {
   return memberList;
 }
 
-function mapSymbolToType(
+export function mapSymbolToType(
   map: Map<string, string>,
   memberList: MemberList
 ): MemberList {
@@ -294,7 +307,7 @@ function filterAllBy(memberList: MemberList, keep: string[]): void {
   });
 }
 
-function replaceAll(memberList: MemberList, original: string, current: string): void {
+export function replaceAll(memberList: MemberList, original: string, current: string): void {
   Object.keys(memberList).map(key => {
     memberList[key] = replaceWith(memberList[key], original, current);
   });
@@ -318,4 +331,41 @@ function replaceWith(
 
 function isExportRenamed(exportSpecifier: ts.ExportSpecifier): boolean {
   return exportSpecifier.propertyName != null;
+}
+
+
+/**
+ *
+ * This functions writes generated json report(s) to a file
+ */
+export function writeReportToFile(report: string, outputFile: string): void {
+  if (fs.existsSync(outputFile) && !fs.lstatSync(outputFile).isFile()) {
+    throw new Error(ErrorCode.OUTPUT_FILE_REQUIRED);
+  }
+  const directoryPath = path.dirname(outputFile);
+  //for output file path like ./dir/dir1/dir2/file, we need to make sure parent dirs exist.
+  if (!fs.existsSync(directoryPath)) {
+    fs.mkdirSync(directoryPath, { recursive: true });
+  }
+  fs.writeFileSync(outputFile, report);
+}
+/**
+ *
+ * This functions writes generated json report(s) to a file of given directory
+ */
+export function writeReportToDirectory(
+  report: string,
+  fileName: string,
+  directoryPath: string
+): void {
+  if (
+    fs.existsSync(directoryPath) &&
+    !fs.lstatSync(directoryPath).isDirectory()
+  ) {
+    throw new Error(ErrorCode.OUTPUT_DIRECTORY_REQUIRED);
+  }
+  if (!fs.existsSync(directoryPath)) {
+    fs.mkdirSync(directoryPath, { recursive: true });
+  }
+  fs.writeFileSync(`${directoryPath}/${fileName}`, report);
 }

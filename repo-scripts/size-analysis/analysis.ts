@@ -16,17 +16,19 @@
  */
 
 import * as fs from 'fs';
-import { resolve, basename, dirname } from 'path';
+import { resolve, basename } from 'path';
 import {
   extractDependenciesAndSize,
   extractDeclarations,
   MemberList,
-  ExportData
+  ExportData,
+  writeReportToDirectory,
+  writeReportToFile,
+  ErrorCode
 } from './analysis-helper';
 import { mapWorkspaceToPackages } from '../../scripts/release/utils/workspace';
 import { projectRoot } from '../../scripts/utils';
 import * as yargs from 'yargs';
-import { ObjectUnsubscribedError } from 'rxjs';
 
 export const TYPINGS: string = 'typings';
 const BUNDLE: string = 'esm2017';
@@ -76,15 +78,7 @@ const argv = yargs
 
 
 
-export const enum ErrorCode {
-  INVALID_FLAG_COMBINATION = "Invalid command flag combinations!",
-  BUNDLE_FILE_DOES_NOT_EXIST = "Module doesn't have a bundle file!",
-  DTS_FILE_DOES_NOT_EXIST = "Module doesn't have a dts file!",
-  OUTPUT_DIRECTORY_REQUIRED = "An output directory is required but a file given",
-  OUTPUT_FILE_REQUIRED = "An output file is required but a directory given",
-  INPUT_FILE_DOES_NOT_EXIST = "Input file doesn't exist!"
 
-}
 /**
  * This functions takes in a module location, retrieve path to dts file of the module,
  * extract exported symbols, and generate a json report accordingly.
@@ -179,41 +173,7 @@ async function buildJsonReport(
   return JSON.stringify(result, null, 4);
 }
 
-/**
- *
- * This functions writes generated json report(s) to a file
- */
-function writeReportToFile(report: string, outputFile: string): void {
-  if (fs.existsSync(outputFile) && !fs.lstatSync(outputFile).isFile()) {
-    throw new Error(ErrorCode.OUTPUT_FILE_REQUIRED);
-  }
-  const directoryPath = dirname(outputFile);
-  //for output file path like ./dir/dir1/dir2/file, we need to make sure parent dirs exist.
-  if (!fs.existsSync(directoryPath)) {
-    fs.mkdirSync(directoryPath, { recursive: true });
-  }
-  fs.writeFileSync(outputFile, report);
-}
-/**
- *
- * This functions writes generated json report(s) to a file of given directory
- */
-function writeReportToDirectory(
-  report: string,
-  fileName: string,
-  directoryPath: string
-): void {
-  if (
-    fs.existsSync(directoryPath) &&
-    !fs.lstatSync(directoryPath).isDirectory()
-  ) {
-    throw new Error(ErrorCode.OUTPUT_DIRECTORY_REQUIRED);
-  }
-  if (!fs.existsSync(directoryPath)) {
-    fs.mkdirSync(directoryPath, { recursive: true });
-  }
-  fs.writeFileSync(`${directoryPath}/${fileName}`, report);
-}
+
 
 async function generateReport(dtsFile: string, bundleFile: string): Promise<string> {
   const resolvedDtsFile = resolve(dtsFile);
@@ -222,7 +182,6 @@ async function generateReport(dtsFile: string, bundleFile: string): Promise<stri
     throw new Error(ErrorCode.INPUT_FILE_DOES_NOT_EXIST);
   }
   const publicAPI = extractDeclarations(resolvedDtsFile);
-  console.log(publicAPI);
   const map: Map<string, string> = buildMap(publicAPI);
   return buildJsonReport(publicAPI, bundleFile, map);
 
