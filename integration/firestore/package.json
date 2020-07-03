@@ -16,7 +16,7 @@
   "devDependencies": {
     "@types/mocha": "7.0.2",
     "gulp": "4.0.2",
-    "gulp-filter": "5.1.0",
+    "gulp-filter": "6.0.0",
     "gulp-replace": "1.0.0",
     "karma": "4.4.1",
     "karma-chrome-launcher": "3.1.0",
