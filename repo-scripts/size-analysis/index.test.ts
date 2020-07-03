@@ -18,21 +18,14 @@
 import { expect } from 'chai';
 
 import { extractDeclarations, MemberList } from './analysis-helper';
+import { ErrorCode } from './analysis';
 
-import { projectRoot } from '../../scripts/utils';
-
-function retrieveTestModuleDtsFile(): string {
-  const moduleLocation = `${projectRoot}/repo-scripts/size-analysis`;
-  const packageJson = require(`${moduleLocation}/package.json`);
-  const TYPINGS: string = 'typings';
-
-  return `${moduleLocation}/${packageJson[TYPINGS]}`;
-}
-
-let testModuleDtsFile: string;
-let extractedDeclarations: MemberList;
+import { retrieveTestModuleDtsFile } from './test-utils';
+import { exec } from 'child_process';
 
 describe('extractDeclarations', () => {
+  let testModuleDtsFile: string;
+  let extractedDeclarations: MemberList;
   before(function () {
     this.timeout(300000);
     testModuleDtsFile = retrieveTestModuleDtsFile();
@@ -66,6 +59,12 @@ describe('extractDeclarations', () => {
       'basicFuncExternalDependencies'
     ]);
   });
+  it('test basic function de-duplication ', () => {
+    expect(extractedDeclarations.functions).include.members(['basicUniqueFunc']);
+
+    expect(extractedDeclarations.functions.filter(each => each.localeCompare("basicUniqueFunc") === 0).length).to.equal(1);
+  });
+
 
   it('test re-exported function extractions from same module', () => {
     expect(extractedDeclarations.functions).to.include.members([
@@ -81,6 +80,13 @@ describe('extractDeclarations', () => {
       'basicFuncExternalDependenciesBar'
     ]);
   });
+
+  it('test re-exported function de-duplication from same module ', () => {
+    expect(extractedDeclarations.functions).include.members(['basicUniqueFuncFar']);
+
+    expect(extractedDeclarations.functions.filter(each => each.localeCompare("basicUniqueFuncFar") === 0).length).to.equal(1);
+  });
+
 
   it('test basic class extractions', () => {
     expect(extractedDeclarations.classes).to.include.members([
@@ -109,4 +115,21 @@ describe('extractDeclarations', () => {
   it('test re-exported enum extractions from firebase external module', () => {
     expect(extractedDeclarations.enums).to.include.members(['LogLevel']);
   });
+
+
+});
+
+
+xdescribe('test command line interface', () => {
+  it('test adhoc run valid flag combinations', () => {
+    expect(async () => {
+      exec("../../node_modules/.bin/ts-node-script analysis.ts --if \"../../packages-exp/dummy-exp/dist/packages-exp/dummy-exp/src/index.d.ts\" -o \"./dependencies/dependencies/adhoc.json\"", (err, stdout, stderr) => {
+        if (err) { throw err; }
+        else if (stderr) { throw new Error(stderr); }
+
+      });
+    }).to.throw();
+
+  });
+
 });

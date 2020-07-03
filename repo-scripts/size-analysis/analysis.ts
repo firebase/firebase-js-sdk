@@ -76,7 +76,7 @@ const argv = yargs
 
 
 
-const enum ErrorCode {
+export const enum ErrorCode {
   INVALID_FLAG_COMBINATION = "Invalid command flag combinations!",
   BUNDLE_FILE_DOES_NOT_EXIST = "Module doesn't have a bundle file!",
   DTS_FILE_DOES_NOT_EXIST = "Module doesn't have a dts file!",
