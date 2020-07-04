@@ -283,6 +283,7 @@ describe('test writeReportToFile helper function', () => {
   it('should not throw error when given path does not pre-exist', () => {
     const aPathToFile = resolve("./a-dir/a-sub-dir/a-file");
     expect(() => writeReportToFile("content", aPathToFile)).to.not.throw();
+    fs.unlinkSync(aPathToFile);
   });
   after(() => {
     fs.rmdirSync('a-dir', { recursive: true });
@@ -301,6 +302,7 @@ describe('test writeReportToDirectory helper function', () => {
     const aPathToFile = `${aDir}/${aFile}`;
     fs.writeFileSync(aPathToFile, "content");
     expect(() => writeReportToDirectory("content", aFile, aPathToFile)).to.throw(ErrorCode.OUTPUT_DIRECTORY_REQUIRED);
+
   });
 
 
@@ -310,6 +312,8 @@ describe('test writeReportToDirectory helper function', () => {
     expect(() => writeReportToDirectory("content", aFile, aDir)).to.not.throw();
   });
   after(() => {
+
+    fs.unlinkSync(`${resolve("./a-dir/a-sub-dir")}/a-file`);
     fs.rmdirSync('a-dir', { recursive: true });
   });
 

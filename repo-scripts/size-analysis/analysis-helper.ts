@@ -104,6 +104,10 @@ export async function extractDependenciesAndSize(
 
   // Extract size of minified build
   const afterContent = fs.readFileSync(output, 'utf-8');
+  console.log("\n\n\n");
+  console.log(beforeContent);
+  console.log(afterContent);
+  console.log("\n\n\n");
 
   const { code } = terser.minify(afterContent, {
     output: {
