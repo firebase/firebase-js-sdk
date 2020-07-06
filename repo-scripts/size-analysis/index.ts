@@ -31,7 +31,6 @@ export {
   basicVarDeclarationExportFar,
   basicVarStatementExportFar,
   reExportVarStatmentExportFar
-
 } from './src/far';
 
 export let basicVarDeclarationExport: string;
@@ -47,7 +46,7 @@ export enum BasicEnumExport {
   SILENT = 5
 }
 
-export class BasicClassExport { }
+export class BasicClassExport {}
 
 export function basicFuncExportNoDependencies(): string {
   return 'basicFuncExportNoDependencies';
@@ -77,24 +76,22 @@ export function basicFuncExternalDependencies(): LogLevel {
   return LogLevel.WARN;
 }
 
-
-export function basicUniqueFunc(x: Array<{ suit: string; card: number; }>): number;
-export function basicUniqueFunc(x: number): { suit: string; card: number; };
-export function basicUniqueFunc(x: number | Array<{ suit: string; card: number; }>) {
-
-  if (typeof x === "object") {
+export function basicUniqueFunc(
+  x: Array<{ suit: string; card: number }>
+): number;
+export function basicUniqueFunc(x: number): { suit: string; card: number };
+export function basicUniqueFunc(
+  x: number | Array<{ suit: string; card: number }>
+) {
+  if (typeof x === 'object') {
     const pickedCard = Math.floor(Math.random() * x.length);
     return pickedCard;
   }
   // Otherwise just let them pick the card
-  else if (typeof x === "number") {
-
-    return { suit: "a", card: x % 13 };
+  else if (typeof x === 'number') {
+    return { suit: 'a', card: x % 13 };
   }
 }
 
-
-
 // re-export from firebase external module
 export { LogLevel } from '@firebase/logger';
-

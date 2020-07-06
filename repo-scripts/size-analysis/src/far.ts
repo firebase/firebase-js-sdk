@@ -30,7 +30,7 @@ export enum BasicEnumExportFar {
   SILENT = 5
 }
 
-export class BasicClassExportFar { }
+export class BasicClassExportFar {}
 
 export function basicFuncExportNoDependenciesFar(): string {
   return 'basicFuncExportNoDependenciesFar';
@@ -60,17 +60,19 @@ export function basicFuncExternalDependenciesFar(): LogLevel {
   return LogLevel.ERROR;
 }
 
-export function basicUniqueFuncFar(x: Array<{ suit: string; card: number; }>): number;
-export function basicUniqueFuncFar(x: number): { suit: string; card: number; };
-export function basicUniqueFuncFar(x: number | Array<{ suit: string; card: number; }>) {
-
-  if (typeof x === "object") {
+export function basicUniqueFuncFar(
+  x: Array<{ suit: string; card: number }>
+): number;
+export function basicUniqueFuncFar(x: number): { suit: string; card: number };
+export function basicUniqueFuncFar(
+  x: number | Array<{ suit: string; card: number }>
+) {
+  if (typeof x === 'object') {
     const pickedCard = Math.floor(Math.random() * x.length);
     return pickedCard;
   }
   // Otherwise just let them pick the card
-  else if (typeof x === "number") {
-
-    return { suit: "a", card: x % 13 };
+  else if (typeof x === 'number') {
+    return { suit: 'a', card: x % 13 };
   }
 }

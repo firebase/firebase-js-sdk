@@ -23,7 +23,7 @@ export { far1, far as farrrrr, far3 as far4 } from './far';
 export const VAR = 'variable';
 export let var2: string;
 export let var3 = 'var3';
-export class Student { }
+export class Student {}
 import { LogLevel } from '@firebase/logger';
 import { far } from './far';
 var3 = 'var3Changed';
@@ -35,7 +35,7 @@ export function boo1(a: string): string {
   if (a) {
     return a;
   }
-  return "not a";
+  return 'not a';
 }
 export enum LogLevel1 {
   DEBUG = 0,
@@ -61,21 +61,20 @@ export type LogLevel2 =
   | 'info'
   | 'verbose';
 
-export const { a, b } = { a: "a", b: "b" };
+export const { a, b } = { a: 'a', b: 'b' };
 export { LogLevel } from '@firebase/logger';
 
-export function pickCard(x: Array<{ suit: string; card: number; }>): number;
-export function pickCard(x: number): { suit: string; card: number; };
-export function pickCard(x: number | Array<{ suit: string; card: number; }>): number | { suit: string; card: number; } {
-
-  if (typeof x === "object") {
+export function pickCard(x: Array<{ suit: string; card: number }>): number;
+export function pickCard(x: number): { suit: string; card: number };
+export function pickCard(
+  x: number | Array<{ suit: string; card: number }>
+): number | { suit: string; card: number } {
+  if (typeof x === 'object') {
     const pickedCard = Math.floor(Math.random() * x.length);
     return pickedCard;
   }
   // Otherwise just let them pick the card
 
-
-  return { suit: "a", card: x % 13 };
-
+  return { suit: 'a', card: x % 13 };
 }
-far("1.1.1.1");
+far('1.1.1.1');
