@@ -20,10 +20,9 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import {
-  AuthEvent,
-  AuthEventConsumer,
-  AuthEventType
+    AuthEvent, AuthEventConsumer, AuthEventError, AuthEventType
 } from '../../model/popup_redirect';
+import { AuthErrorCode } from '../errors';
 import { AuthEventManager } from './auth_event_manager';
 
 use(sinonChai);
@@ -37,7 +36,8 @@ describe('src/core/auth/auth_event_manager', () => {
     const stub = sinon.stub({
       filter,
       isMatchingEvent: () => true,
-      onAuthEvent: () => {}
+      onAuthEvent: () => {},
+      onError: () => {}
     });
 
     // Make isMatchingEvent call through by default
@@ -54,7 +54,7 @@ describe('src/core/auth/auth_event_manager', () => {
   }
 
   beforeEach(() => {
-    manager = new AuthEventManager();
+    manager = new AuthEventManager('app-name');
   });
 
   it('multiple consumers may be registered for one event type', () => {
@@ -106,5 +106,34 @@ describe('src/core/auth/auth_event_manager', () => {
     manager.onEvent(makeEvent(AuthEventType.REAUTH_VIA_POPUP));
     expect(consumer.onAuthEvent).not.to.have.been.called;
     expect(consumer.isMatchingEvent).to.have.been.called;
+  });
+
+  it('converts errors into FirebaseError if the type matches', () => {
+    const consumer = makeConsumer(AuthEventType.REAUTH_VIA_POPUP);
+    manager.registerConsumer(consumer);
+    const event = makeEvent(AuthEventType.REAUTH_VIA_POPUP);
+    event.error = {
+      code: `auth/${AuthErrorCode.INVALID_APP_CREDENTIAL}`,
+      message: 'foo',
+      name: 'name',
+    };
+
+    manager.onEvent(event);
+    const error = consumer.onError.getCall(0).args[0];
+    expect(error.code).to.eq(`auth/${AuthErrorCode.INVALID_APP_CREDENTIAL}`);
+  });
+
+  it('converts random errors into FirebaseError with internal error', () => {
+    const consumer = makeConsumer(AuthEventType.REAUTH_VIA_POPUP);
+    manager.registerConsumer(consumer);
+    const event = makeEvent(AuthEventType.REAUTH_VIA_POPUP);
+    event.error = {
+      message: 'foo',
+      name: 'name',
+    } as AuthEventError;
+
+    manager.onEvent(event);
+    const error = consumer.onError.getCall(0).args[0];
+    expect(error.code).to.eq(`auth/${AuthErrorCode.INTERNAL_ERROR}`);
   });
 });

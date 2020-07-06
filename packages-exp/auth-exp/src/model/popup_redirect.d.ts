@@ -16,6 +16,7 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
+import { FirebaseError } from '@firebase/util';
 
 import { AuthPopup } from '../core/util/popup';
 import { Auth } from './auth';
@@ -45,7 +46,6 @@ export const enum AuthEventType {
   VERIFY_APP = 'verifyApp'
 }
 
-// TODO: convert from these to FirebaseError
 export interface AuthEventError extends Error {
   code: string; // in the form of auth/${AuthErrorCode}
   message: string;
@@ -65,6 +65,7 @@ export interface AuthEventConsumer {
   readonly filter: AuthEventType;
   isMatchingEvent(eventId: string | null): boolean;
   onAuthEvent(event: AuthEvent): unknown;
+  onError(error: FirebaseError): unknown;
 }
 
 export interface EventManager {
@@ -73,8 +74,8 @@ export interface EventManager {
 }
 
 export interface PopupRedirectResolver extends externs.PopupRedirectResolver {
-  initialize(auth: Auth): Promise<EventManager>;
-  openPopup(
+  _initialize(auth: Auth): Promise<EventManager>;
+  _openPopup(
     auth: Auth,
     provider: externs.AuthProvider,
     authType: AuthEventType,

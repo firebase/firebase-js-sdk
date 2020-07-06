@@ -22,17 +22,13 @@ import { isEmpty, querystring } from '@firebase/util';
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
 import { OAuthProvider } from '../core/providers/oauth';
-import { assert } from '../core/util/assert';
+import { assert, debugAssert } from '../core/util/assert';
 import { _generateEventId } from '../core/util/event_id';
 import { _getCurrentUrl } from '../core/util/location';
 import { _open, AuthPopup } from '../core/util/popup';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
-  AuthEventType,
-  EventManager,
-  GapiAuthEvent,
-  GapiOutcome,
-  PopupRedirectResolver
+    AuthEventType, EventManager, GapiAuthEvent, GapiOutcome, PopupRedirectResolver
 } from '../model/popup_redirect';
 import { _openIframe } from './iframe/iframe';
 
@@ -43,26 +39,36 @@ const WIDGET_URL = '__/auth/handler';
 
 export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   private eventManager: EventManager | null = null;
+  private initializationPromise: Promise<EventManager>|null = null;
 
   // Wrapping in async even though we don't await anywhere in order
   // to make sure errors are raised as promise rejections
-  async openPopup(
+  async _openPopup(
     auth: Auth,
     provider: externs.AuthProvider,
     authType: AuthEventType,
     eventId?: string
   ): Promise<AuthPopup> {
+    debugAssert(this.eventManager, '_initialize() not called before _openPopup()');
     const url = getRedirectUrl(auth, provider, authType, eventId);
     return _open(auth.name, url, _generateEventId());
   }
 
-  async initialize(auth: Auth): Promise<EventManager> {
+  _initialize(auth: Auth): Promise<EventManager> {
     if (this.eventManager) {
-      return this.eventManager;
+      return Promise.resolve(this.eventManager);
     }
 
+    if (!this.initializationPromise) {
+      this.initializationPromise = this.initAndGetManager(auth);
+    }
+
+    return this.initializationPromise;
+  }
+
+  private async initAndGetManager(auth: Auth): Promise<EventManager> {
     const iframe = await _openIframe(auth);
-    const eventManager = new AuthEventManager();
+    const eventManager = new AuthEventManager(auth.name);
     iframe.register<GapiAuthEvent>(
       'authEvent',
       async (message: GapiAuthEvent) => {
@@ -90,6 +96,7 @@ type WidgetParams = {
   scopes?: string;
   customParameters?: string;
   eventId?: string;
+  tid?: string;
 };
 
 function getRedirectUrl(
@@ -107,7 +114,8 @@ function getRedirectUrl(
     authType,
     redirectUrl: _getCurrentUrl(),
     v: SDK_VERSION,
-    eventId
+    eventId,
+    tid: auth.tenantId || undefined,
   };
 
   if (provider instanceof OAuthProvider) {

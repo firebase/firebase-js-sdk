@@ -28,11 +28,7 @@ import { TEST_AUTH_DOMAIN, TEST_KEY, testAuth } from '../../test/mock_auth';
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { OAuthProvider } from '../core/providers/oauth';
 import { Auth } from '../model/auth';
-import {
-  AuthEvent,
-  AuthEventType,
-  GapiAuthEvent
-} from '../model/popup_redirect';
+import { AuthEvent, AuthEventType, GapiAuthEvent } from '../model/popup_redirect';
 import * as gapiLoader from './iframe/gapi';
 import { BrowserPopupRedirectResolver } from './popup_redirect';
 
@@ -70,7 +66,7 @@ describe('src/platform_browser/popup_redirect', () => {
       provider.addScope('some-scope-b');
       provider.setCustomParameters({ foo: 'bar' });
 
-      await resolver.openPopup(auth, provider, event);
+      await resolver._openPopup(auth, provider, event);
       expect(popupUrl).to.include(
         `https://${TEST_AUTH_DOMAIN}/__/auth/handler`
       );
@@ -88,7 +84,7 @@ describe('src/platform_browser/popup_redirect', () => {
       delete auth.config.authDomain;
 
       await expect(
-        resolver.openPopup(auth, provider, event)
+        resolver._openPopup(auth, provider, event)
       ).to.be.rejectedWith(FirebaseError, 'auth/auth-domain-config-required');
     });
 
@@ -96,7 +92,7 @@ describe('src/platform_browser/popup_redirect', () => {
       delete auth.config.apiKey;
 
       await expect(
-        resolver.openPopup(auth, provider, event)
+        resolver._openPopup(auth, provider, event)
       ).to.be.rejectedWith(FirebaseError, 'auth/invalid-api-key');
     });
   });
@@ -118,12 +114,12 @@ describe('src/platform_browser/popup_redirect', () => {
     });
 
     it('only registers once, returns same event manager', async () => {
-      const manager = await resolver.initialize(auth);
-      expect(await resolver.initialize(auth)).to.eq(manager);
+      const manager = await resolver._initialize(auth);
+      expect(await resolver._initialize(auth)).to.eq(manager);
     });
 
     it('iframe event goes through to the manager', async () => {
-      const manager = (await resolver.initialize(auth)) as AuthEventManager;
+      const manager = (await resolver._initialize(auth)) as AuthEventManager;
       sinon.spy(manager, 'onEvent');
       const response = await onIframeMessage({
         type: 'authEvent',

@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-import {
-  AuthEvent,
-  AuthEventConsumer,
-  EventManager
-} from '../../model/popup_redirect';
+import { AuthEvent, AuthEventConsumer, EventManager } from '../../model/popup_redirect';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 
 export class AuthEventManager implements EventManager {
   private readonly consumers: Set<AuthEventConsumer> = new Set();
+
+  constructor(private readonly appName: string) {}
 
   registerConsumer(authEventConsumer: AuthEventConsumer): void {
     this.consumers.add(authEventConsumer);
@@ -38,7 +37,15 @@ export class AuthEventManager implements EventManager {
         consumer.filter === event.type &&
         consumer.isMatchingEvent(event.eventId)
       ) {
-        consumer.onAuthEvent(event);
+        if (event.error) {
+          console.error('ERROR');
+          const code = event.error.code?.split('auth/')[1] as AuthErrorCode || AuthErrorCode.INTERNAL_ERROR;
+          consumer.onError(AUTH_ERROR_FACTORY.create(code, {
+            appName: this.appName
+          }));
+        } else {
+          consumer.onAuthEvent(event);
+        }
       }
     });
   }
