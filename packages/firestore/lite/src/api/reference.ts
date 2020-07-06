@@ -23,6 +23,9 @@ import { Firestore } from './database';
 import {
   DocumentKeyReference,
   ParsedUpdateData,
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs,
   UserDataReader
 } from '../../../src/api/user_data_reader';
 import {
@@ -36,9 +39,9 @@ import { ResourcePath } from '../../../src/model/path';
 import { AutoId } from '../../../src/util/misc';
 import {
   DocumentSnapshot,
+  fieldPathFromArgument,
   QueryDocumentSnapshot,
-  QuerySnapshot,
-  fieldPathFromArgument
+  QuerySnapshot
 } from './snapshot';
 import {
   invokeBatchGetDocumentsRpc,
@@ -465,7 +468,8 @@ export function setDoc<T>(
     options
   );
   const dataReader = newUserDataReader(ref.firestore);
-  const parsed = dataReader.parseSetData(
+  const parsed = parseSetData(
+    dataReader,
     'setDoc',
     ref._key,
     convertedValue,
@@ -507,7 +511,8 @@ export function updateDoc(
     typeof fieldOrUpdateData === 'string' ||
     fieldOrUpdateData instanceof FieldPath
   ) {
-    parsed = dataReader.parseUpdateVarargs(
+    parsed = parseUpdateVarargs(
+      dataReader,
       'updateDoc',
       ref._key,
       fieldOrUpdateData,
@@ -515,7 +520,8 @@ export function updateDoc(
       moreFieldsAndValues
     );
   } else {
-    parsed = dataReader.parseUpdateData(
+    parsed = parseUpdateData(
+      dataReader,
       'updateDoc',
       ref._key,
       fieldOrUpdateData
@@ -555,7 +561,8 @@ export function addDoc<T>(
   const convertedValue = applyFirestoreDataConverter(collRef._converter, data);
 
   const dataReader = newUserDataReader(collRef.firestore);
-  const parsed = dataReader.parseSetData(
+  const parsed = parseSetData(
+    dataReader,
     'addDoc',
     docRef._key,
     convertedValue,
