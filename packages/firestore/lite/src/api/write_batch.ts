@@ -23,10 +23,7 @@ import {
 } from '../../../src/model/mutation';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { applyFirestoreDataConverter } from '../../../src/api/database';
-import {
-  DocumentKeyReference,
-  UserDataReader
-} from '../../../src/api/user_data_reader';
+import { UserDataReader } from '../../../src/api/user_data_reader';
 import { cast } from './util';
 import { DocumentReference, newUserDataReader } from './reference';
 import { Firestore } from './database';
@@ -159,7 +156,7 @@ export class WriteBatch implements firestore.WriteBatch {
 export function validateReference<T>(
   documentRef: firestore.DocumentReference<T>,
   firestore: Firestore
-): DocumentKeyReference<T> {
+): DocumentReference<T> {
   if (documentRef.firestore !== firestore) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
