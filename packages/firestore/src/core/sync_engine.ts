@@ -1423,25 +1423,25 @@ async function loadBundleImpl(
       !element.payload.metadata,
       'Unexpected BundleMetadata element.'
     );
-    const result = await loader.addSizedElement(element);
-    if (result) {
-      task._updateProgress(result.progress);
-
-      if (result.changedDocs) {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        syncEngine.emitNewSnapsAndNotifyLocalStore(
-          result.changedDocs,
-          /* remoteEvent */ undefined,
-          /* fromBundle */ true
-        );
-      }
+    const progress = await loader.addSizedElement(element);
+    if (progress) {
+      task._updateProgress(progress);
     }
 
     element = await reader.nextElement();
   }
 
-  await saveBundle(syncEngine.localStore, metadata);
+  const result = await loader.complete();
+  if (result.changedDocs) {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    syncEngine.emitNewSnapsAndNotifyLocalStore(
+      result.changedDocs,
+      /* remoteEvent */ undefined,
+      /* fromBundle */ true
+    );
+  }
 
-  const completeProgress = loader.complete();
-  task._completeWith(completeProgress);
+  // Save metadata, so loading the same bundle will skip.
+  await saveBundle(syncEngine.localStore, metadata);
+  task._completeWith(result.progress);
 }

@@ -167,16 +167,6 @@ export class BundleLoader {
   /** Batched documents to be saved into storage */
   private documents: BundledDocuments = [];
   /**
-   * How many bytes from the bundle are being buffered since last progress
-   * update.
-   */
-  private bytesBuffered = 0;
-  /**
-   * How many documents from the bundle are being buffered since last progress
-   * update.
-   */
-  private documentsBuffered = 0;
-  /**
    * A BundleDocumentMetadata is added to the loader, it is saved here while
    * we wait for the actual document.
    */
@@ -196,10 +186,12 @@ export class BundleLoader {
    * storage, the returned promise will resolve to a `LoadResult`, otherwise
    * it will resolve to null.
    */
-  addSizedElement(element: SizedBundleElement): Promise<LoadResult | null> {
+  addSizedElement(
+    element: SizedBundleElement
+  ): firestore.LoadBundleTaskProgress | null {
     debugAssert(!element.isBundleMetadata(), 'Unexpected bundle metadata.');
 
-    this.bytesBuffered += element.byteLength;
+    this.progress.bytesLoaded += element.byteLength;
     if (element.payload.namedQuery) {
       this.queries.push(element.payload.namedQuery);
     }
@@ -212,7 +204,7 @@ export class BundleLoader {
           metadata: element.payload.documentMetadata,
           document: undefined
         });
-        this.documentsBuffered += 1;
+        this.progress.documentsLoaded += 1;
       }
     }
 
@@ -225,23 +217,26 @@ export class BundleLoader {
         metadata: this.unpairedDocumentMetadata!,
         document: element.payload.document
       });
-      this.documentsBuffered += 1;
+      this.progress.documentsLoaded += 1;
       this.unpairedDocumentMetadata = null;
     }
 
-    return this.saveAndReportProgress();
-  }
-
-  private async saveAndReportProgress(): Promise<LoadResult | null> {
-    if (
-      this.unpairedDocumentMetadata ||
-      (this.documentsBuffered <
-        this.progress.totalDocuments * this.thresholdMultiplier &&
-        this.bytesBuffered <
-          this.progress.totalBytes * this.thresholdMultiplier)
-    ) {
+    // Loading a document metadata will not update progress.
+    if (this.unpairedDocumentMetadata) {
       return null;
     }
+
+    return { ...this.progress };
+  }
+
+  /**
+   * Update the progress to 'Success' and return the updated progress.
+   */
+  async complete(): Promise<LoadResult> {
+    debugAssert(
+      !this.unpairedDocumentMetadata,
+      'Unexpected document when no pairing metadata is found'
+    );
 
     for (const q of this.queries) {
       await saveNamedQuery(this.localStore, q);
@@ -252,26 +247,7 @@ export class BundleLoader {
       changedDocs = await applyBundleDocuments(this.localStore, this.documents);
     }
 
-    this.progress.bytesLoaded += this.bytesBuffered;
-    this.progress.documentsLoaded += this.documentsBuffered;
-    this.bytesBuffered = 0;
-    this.documentsBuffered = 0;
-    this.queries = [];
-    this.documents = [];
-
-    return new LoadResult({ ...this.progress }, changedDocs);
-  }
-
-  /**
-   * Update the progress to 'Success' and return the updated progress.
-   */
-  complete(): firestore.LoadBundleTaskProgress {
-    debugAssert(
-      this.queries.length === 0 && this.documents.length === 0,
-      'There are more items needs to be saved but complete() was called.'
-    );
     this.progress.taskState = 'Success';
-
-    return this.progress;
+    return new LoadResult({ ...this.progress }, changedDocs);
   }
 }
