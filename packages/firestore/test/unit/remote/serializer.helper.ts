@@ -42,6 +42,7 @@ import {
   DeleteMutation,
   FieldMask,
   Mutation,
+  mutationEquals,
   Precondition,
   SetMutation,
   VerifyMutation
@@ -601,12 +602,10 @@ export function serializerTest(
     });
 
     describe('toMutation / fromMutation', () => {
-      addEqualityMatcher();
-
       function verifyMutation(mutation: Mutation, proto: unknown): void {
         const serialized = toMutation(s, mutation);
         expect(serialized).to.deep.equal(proto);
-        expect(fromMutation(s, serialized)).to.deep.equal(mutation);
+        expect(mutationEquals(fromMutation(s, serialized), mutation));
       }
 
       it('SetMutation', () => {
