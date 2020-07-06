@@ -25,6 +25,7 @@ export let var2: string;
 export let var3 = 'var3';
 export class Student { }
 import { LogLevel } from '@firebase/logger';
+import { far } from './far';
 var3 = 'var3Changed';
 
 export function boo(): LogLevel {
@@ -77,3 +78,4 @@ export function pickCard(x: number | Array<{ suit: string; card: number; }>): nu
   return { suit: "a", card: x % 13 };
 
 }
+far("1.1.1.1");

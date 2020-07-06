@@ -16,8 +16,8 @@
  */
 
 export function far(version: string): string {
-  console.log(version);
-  return version;
+  const version1 = far1(version);
+  return far3(version1);
 }
 
 export function far1(version: string): string {
