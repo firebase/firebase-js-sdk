@@ -20,8 +20,9 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import { FirebaseError } from '@firebase/util';
+import * as utils from '@firebase/util';
 
-import { _open, _uaGetter, AuthPopup } from './popup';
+import { _open, AuthPopup } from './popup';
 
 use(sinonChai);
 
@@ -30,7 +31,7 @@ describe('src/core/util/popup', () => {
   let popupStub: sinon.SinonStubbedInstance<Window>;
 
   function setUA(ua: string): void {
-    sinon.stub(_uaGetter, 'getUA').returns(ua);
+    sinon.stub(utils, 'getUA').returns(ua);
   }
 
   function windowTarget(): string {

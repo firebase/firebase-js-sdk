@@ -48,11 +48,6 @@ export class AuthPopup {
   }
 }
 
-/** Wrapper so that we can stub the UA in tests */
-export const _uaGetter = {
-  getUA
-};
-
 export function _open(
   appName: string,
   url?: string,
@@ -74,7 +69,7 @@ export function _open(
 
   // Chrome iOS 7 and 8 is returning an undefined popup win when target is
   // specified, even though the popup is not necessarily blocked.
-  const ua = _uaGetter.getUA().toLowerCase();
+  const ua = getUA().toLowerCase();
 
   if (name) {
     target = _isChromeIOS(ua) ? TARGET_BLANK : name;
