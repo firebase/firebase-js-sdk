@@ -48,21 +48,18 @@ describe('src/platform_browser/iframe/gapi', () => {
     auth = await testAuth();
   });
 
-  function makeGapi(
-    result: unknown,
-    timesout = false
-  ): typeof gapi {
+  function makeGapi(result: unknown, timesout = false): typeof gapi {
     const callbackFn = timesout === false ? 'callback' : 'ontimeout';
-    return {
+    return ({
       load: sinon
         .stub()
         .callsFake((_name: string, params: Record<string, Function>) =>
           params[callbackFn]()
         ),
       iframes: {
-        getContext: () => result as gapi.iframes.Context,
+        getContext: () => result as gapi.iframes.Context
       }
-    } as unknown as typeof gapi;
+    } as unknown) as typeof gapi;
   }
 
   afterEach(() => {

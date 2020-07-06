@@ -42,7 +42,10 @@ declare namespace gapi.iframes {
   type Callback = (iframe: Iframe) => void;
 
   class Context {
-    open(options: Record<string, unknown>, callback?: Callback): Promise<Iframe>;
+    open(
+      options: Record<string, unknown>,
+      callback?: Callback
+    ): Promise<Iframe>;
   }
 
   class Iframe {
@@ -52,7 +55,10 @@ declare namespace gapi.iframes {
       filter?: IframesFilter
     ): void;
     ping(callback: SendCallback, data?: unknown): Promise<unknown[]>;
-    restyle(style: Record<string, string|boolean>, callback?: SendCallback): Promise<unknown[]>;
+    restyle(
+      style: Record<string, string | boolean>,
+      callback?: SendCallback
+    ): Promise<unknown[]>;
   }
 
   const CROSS_ORIGIN_IFRAMES_FILTER: IframesFilter;
