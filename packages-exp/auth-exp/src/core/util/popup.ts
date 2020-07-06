@@ -37,7 +37,7 @@ const FIREFOX_EMPTY_URL = 'http://localhost';
 export class AuthPopup {
   associatedEvent: string | null = null;
 
-  constructor(readonly window: Window|null) {}
+  constructor(readonly window: Window | null) {}
 
   close(): void {
     if (this.window) {
@@ -134,4 +134,4 @@ function openAsNewWindowIOS(url: string, target: string): void {
     null
   );
   el.dispatchEvent(click);
-} 
+}
