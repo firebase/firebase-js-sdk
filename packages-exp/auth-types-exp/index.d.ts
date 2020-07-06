@@ -426,3 +426,6 @@ export interface AdditionalUserInfo {
  * User profile used in `AdditionalUserInfo`
  */
 export type UserProfile = Record<string, unknown>;
+
+/** No documentation for this yet */
+export interface PopupRedirectResolver {}
