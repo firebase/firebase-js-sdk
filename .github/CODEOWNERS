@@ -85,4 +85,4 @@ packages/firebase/index.d.ts @egilmorez @firebase/jssdk-global-approvers
 scripts/docgen/content-sources/ @egilmorez @firebase/jssdk-global-approvers
 
 # Changeset
-.changeset @egilmorez @erikeldridge @alikn @zijianjoy @andirayo @avolkovi @samhorlbeck @scottcrossen @yuchenshi @zwu52 @firebase/firestore-js-team @firebase/jssdk-global-approvers
+.changeset @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers

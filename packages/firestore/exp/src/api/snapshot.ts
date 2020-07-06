@@ -29,8 +29,17 @@ import {
 } from '../../../lite/src/api/snapshot';
 import { Firestore } from './database';
 import { cast } from '../../../lite/src/api/util';
-import { DocumentReference } from '../../../lite/src/api/reference';
-import { SnapshotMetadata } from '../../../src/api/database';
+import {
+  DocumentReference,
+  Query,
+  queryEqual
+} from '../../../lite/src/api/reference';
+import {
+  changesFromSnapshot,
+  SnapshotMetadata
+} from '../../../src/api/database';
+import { Code, FirestoreError } from '../../../src/util/error';
+import { ViewSnapshot } from '../../../src/core/view_snapshot';
 
 const DEFAULT_SERVER_TIMESTAMP_BEHAVIOR: ServerTimestampBehavior = 'none';
 
@@ -43,8 +52,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     readonly _firestore: Firestore,
     key: DocumentKey,
     document: Document | null,
-    converter: firestore.FirestoreDataConverter<T> | null,
-    readonly metadata: firestore.SnapshotMetadata
+    readonly metadata: firestore.SnapshotMetadata,
+    converter: firestore.FirestoreDataConverter<T> | null
   ) {
     super(_firestore, key, document, converter);
     this._firestoreImpl = cast(_firestore, Firestore);
@@ -64,8 +73,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         this._firestore,
         this._key,
         this._document,
-        /* converter= */ null,
-        this.metadata
+        this.metadata,
+        /* converter= */ null
       );
       return this._converter.fromFirestore(snapshot);
     } else {
@@ -108,4 +117,122 @@ export class QueryDocumentSnapshot<T = firestore.DocumentData>
   data(options: firestore.SnapshotOptions = {}): T {
     return super.data(options) as T;
   }
+}
+
+export class QuerySnapshot<T = firestore.DocumentData>
+  implements firestore.QuerySnapshot<T> {
+  readonly metadata: SnapshotMetadata;
+
+  private _cachedChanges?: Array<firestore.DocumentChange<T>>;
+  private _cachedChangesIncludeMetadataChanges?: boolean;
+
+  constructor(
+    readonly _firestore: Firestore,
+    readonly query: Query<T>,
+    readonly _snapshot: ViewSnapshot
+  ) {
+    this.metadata = new SnapshotMetadata(
+      _snapshot.hasPendingWrites,
+      _snapshot.fromCache
+    );
+  }
+
+  get docs(): Array<firestore.QueryDocumentSnapshot<T>> {
+    const result: Array<firestore.QueryDocumentSnapshot<T>> = [];
+    this.forEach(doc => result.push(doc));
+    return result;
+  }
+
+  get size(): number {
+    return this._snapshot.docs.size;
+  }
+
+  get empty(): boolean {
+    return this.size === 0;
+  }
+
+  forEach(
+    callback: (result: firestore.QueryDocumentSnapshot<T>) => void,
+    thisArg?: unknown
+  ): void {
+    this._snapshot.docs.forEach(doc => {
+      callback.call(
+        thisArg,
+        this._convertToDocumentSnapshot(
+          doc,
+          this._snapshot.fromCache,
+          this._snapshot.mutatedKeys.has(doc.key)
+        )
+      );
+    });
+  }
+
+  docChanges(
+    options: firestore.SnapshotListenOptions = {}
+  ): Array<firestore.DocumentChange<T>> {
+    const includeMetadataChanges = !!options.includeMetadataChanges;
+
+    if (includeMetadataChanges && this._snapshot.excludesMetadataChanges) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'To include metadata changes with your document changes, you must ' +
+          'also pass { includeMetadataChanges:true } to onSnapshot().'
+      );
+    }
+
+    if (
+      !this._cachedChanges ||
+      this._cachedChangesIncludeMetadataChanges !== includeMetadataChanges
+    ) {
+      this._cachedChanges = changesFromSnapshot<QueryDocumentSnapshot<T>>(
+        this._snapshot,
+        includeMetadataChanges,
+        this._convertToDocumentSnapshot.bind(this)
+      );
+      this._cachedChangesIncludeMetadataChanges = includeMetadataChanges;
+    }
+
+    return this._cachedChanges;
+  }
+
+  private _convertToDocumentSnapshot(
+    doc: Document,
+    fromCache: boolean,
+    hasPendingWrites: boolean
+  ): QueryDocumentSnapshot<T> {
+    return new QueryDocumentSnapshot<T>(
+      this._firestore,
+      doc.key,
+      doc,
+      new SnapshotMetadata(hasPendingWrites, fromCache),
+      this.query._converter
+    );
+  }
+}
+
+// TODO(firestoreexp): Add tests for snapshotEqual with different snapshot
+// metadata
+export function snapshotEqual<T>(
+  left: firestore.DocumentSnapshot<T> | firestore.QuerySnapshot<T>,
+  right: firestore.DocumentSnapshot<T> | firestore.QuerySnapshot<T>
+): boolean {
+  if (left instanceof DocumentSnapshot && right instanceof DocumentSnapshot) {
+    return (
+      left._firestore === right._firestore &&
+      left._key.isEqual(right._key) &&
+      (left._document === null
+        ? right._document === null
+        : left._document.isEqual(right._document)) &&
+      left._converter === right._converter
+    );
+  } else if (left instanceof QuerySnapshot && right instanceof QuerySnapshot) {
+    return (
+      left._firestore === right._firestore &&
+      queryEqual(left.query, right.query) &&
+      left.metadata.isEqual(right.metadata) &&
+      left._snapshot.isEqual(right._snapshot)
+    );
+  }
+
+  return false;
 }

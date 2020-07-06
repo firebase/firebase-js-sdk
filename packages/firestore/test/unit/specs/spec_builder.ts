@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { FieldFilter, Filter, Query } from '../../../src/core/query';
+import {
+  FieldFilter,
+  Query,
+  queryEquals,
+  Filter
+} from '../../../src/core/query';
 import { canonifyTarget, Target, targetEquals } from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
@@ -1019,7 +1024,9 @@ export class SpecBuilder {
     if (this.activeTargets[targetId]) {
       const activeQueries = this.activeTargets[targetId].queries;
       if (
-        !activeQueries.some(specQuery => parseQuery(specQuery).isEqual(query))
+        !activeQueries.some(specQuery =>
+          queryEquals(parseQuery(specQuery), query)
+        )
       ) {
         // `query` is not added yet.
         this.activeTargets[targetId] = {
@@ -1042,7 +1049,7 @@ export class SpecBuilder {
 
   private removeQueryFromActiveTargets(query: Query, targetId: number): void {
     const queriesAfterRemoval = this.activeTargets[targetId].queries.filter(
-      specQuery => !parseQuery(specQuery).isEqual(query)
+      specQuery => !queryEquals(parseQuery(specQuery), query)
     );
     if (queriesAfterRemoval.length > 0) {
       this.activeTargets[targetId] = {

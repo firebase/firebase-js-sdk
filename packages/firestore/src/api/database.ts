@@ -33,9 +33,11 @@ import {
   Direction,
   FieldFilter,
   Filter,
+  newQueryComparator,
   Operator,
   OrderBy,
-  Query as InternalQuery
+  Query as InternalQuery,
+  queryEquals
 } from '../core/query';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
@@ -69,7 +71,7 @@ import {
 } from '../util/input_validation';
 import { getLogLevel, logError, LogLevel, setLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
-import { Deferred, Rejecter, Resolver } from '../util/promise';
+import { Deferred } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
 
 import {
@@ -462,35 +464,17 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     this.ensureClientConfigured();
 
     if (isPartialObserver(arg)) {
-      return this.onSnapshotsInSyncInternal(arg as PartialObserver<void>);
+      return addSnapshotsInSyncListener(
+        this._firestoreClient!,
+        arg as PartialObserver<void>
+      );
     } else {
       validateArgType('Firestore.onSnapshotsInSync', 'function', 1, arg);
       const observer: PartialObserver<void> = {
         next: arg as () => void
       };
-      return this.onSnapshotsInSyncInternal(observer);
+      return addSnapshotsInSyncListener(this._firestoreClient!, observer);
     }
-  }
-
-  private onSnapshotsInSyncInternal(
-    observer: PartialObserver<void>
-  ): Unsubscribe {
-    const errHandler = (err: Error): void => {
-      throw fail('Uncaught Error in onSnapshotsInSync');
-    };
-    const asyncObserver = new AsyncObserver<void>({
-      next: () => {
-        if (observer.next) {
-          observer.next();
-        }
-      },
-      error: errHandler
-    });
-    this._firestoreClient!.addSnapshotsInSyncListener(asyncObserver);
-    return () => {
-      asyncObserver.mute();
-      this._firestoreClient!.removeSnapshotsInSyncListener(asyncObserver);
-    };
   }
 
   ensureClientConfigured(): FirestoreClient {
@@ -673,6 +657,29 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   _areTimestampsInSnapshotsEnabled(): boolean {
     return this._settings.timestampsInSnapshots;
   }
+}
+
+/** Registers the listener for onSnapshotsInSync() */
+export function addSnapshotsInSyncListener(
+  firestoreClient: FirestoreClient,
+  observer: PartialObserver<void>
+): Unsubscribe {
+  const errHandler = (err: Error): void => {
+    throw fail('Uncaught Error in onSnapshotsInSync');
+  };
+  const asyncObserver = new AsyncObserver<void>({
+    next: () => {
+      if (observer.next) {
+        observer.next();
+      }
+    },
+    error: errHandler
+  });
+  firestoreClient.addSnapshotsInSyncListener(asyncObserver);
+  return () => {
+    asyncObserver.mute();
+    firestoreClient.removeSnapshotsInSyncListener(asyncObserver);
+  };
 }
 
 /**
@@ -1143,7 +1150,6 @@ export class DocumentReference<T = firestore.DocumentData>
     let options: firestore.SnapshotListenOptions = {
       includeMetadataChanges: false
     };
-    let observer: PartialObserver<ViewSnapshot>;
     let currArg = 0;
     if (
       typeof args[currArg] === 'object' &&
@@ -1170,15 +1176,9 @@ export class DocumentReference<T = firestore.DocumentData>
       const userObserver = args[currArg] as PartialObserver<
         firestore.DocumentSnapshot<T>
       >;
-      observer = {
-        next: snapshot => {
-          if (userObserver.next) {
-            userObserver.next(this._convertToDocSnapshot(snapshot));
-          }
-        },
-        error: userObserver.error,
-        complete: userObserver.complete
-      };
+      args[currArg] = userObserver.next?.bind(userObserver);
+      args[currArg + 1] = userObserver.error?.bind(userObserver);
+      args[currArg + 2] = userObserver.complete?.bind(userObserver);
     } else {
       validateArgType(
         'DocumentReference.onSnapshot',
@@ -1198,21 +1198,23 @@ export class DocumentReference<T = firestore.DocumentData>
         currArg + 2,
         args[currArg + 2]
       );
-      observer = {
-        next: snapshot => {
-          if (args[currArg]) {
-            (args[currArg] as NextFn<firestore.DocumentSnapshot<T>>)(
-              this._convertToDocSnapshot(snapshot)
-            );
-          }
-        },
-        error: args[currArg + 1] as ErrorFn,
-        complete: args[currArg + 2] as CompleteFn
-      };
     }
+
+    const observer: PartialObserver<ViewSnapshot> = {
+      next: snapshot => {
+        if (args[currArg]) {
+          (args[currArg] as NextFn<firestore.DocumentSnapshot<T>>)(
+            this._convertToDocSnapshot(snapshot)
+          );
+        }
+      },
+      error: args[currArg + 1] as ErrorFn,
+      complete: args[currArg + 2] as CompleteFn
+    };
+
     return addDocSnapshotListener(
       this._firestoreClient,
-      this,
+      this._key,
       internalOptions,
       observer
     );
@@ -1240,7 +1242,7 @@ export class DocumentReference<T = firestore.DocumentData>
     } else {
       return getDocViaSnapshotListener(
         this._firestoreClient,
-        this,
+        this._key,
         options
       ).then(snapshot => this._convertToDocSnapshot(snapshot));
     }
@@ -1275,9 +1277,9 @@ export class DocumentReference<T = firestore.DocumentData>
 }
 
 /** Registers an internal snapshot listener for `ref`. */
-function addDocSnapshotListener<T>(
+export function addDocSnapshotListener(
   firestoreClient: FirestoreClient,
-  ref: DocumentKeyReference<T>,
+  key: DocumentKey,
   options: ListenOptions,
   observer: PartialObserver<ViewSnapshot>
 ): Unsubscribe {
@@ -1297,7 +1299,7 @@ function addDocSnapshotListener<T>(
     error: errHandler
   });
   const internalListener = firestoreClient.listen(
-    InternalQuery.atPath(ref._key.path),
+    InternalQuery.atPath(key.path),
     asyncObserver,
     options
   );
@@ -1312,15 +1314,15 @@ function addDocSnapshotListener<T>(
  * Retrieves a latency-compensated document from the backend via a
  * SnapshotListener.
  */
-export function getDocViaSnapshotListener<T>(
+export function getDocViaSnapshotListener(
   firestoreClient: FirestoreClient,
-  ref: DocumentKeyReference<T>,
+  key: DocumentKey,
   options?: firestore.GetOptions
 ): Promise<ViewSnapshot> {
   const result = new Deferred<ViewSnapshot>();
   const unlisten = addDocSnapshotListener(
     firestoreClient,
-    ref,
+    key,
     {
       includeMetadataChanges: true,
       waitForSyncWhenOnline: true
@@ -1331,7 +1333,7 @@ export function getDocViaSnapshotListener<T>(
         // user actions affecting the now stale query.
         unlisten();
 
-        const exists = snap.docs.has(ref._key);
+        const exists = snap.docs.has(key);
         if (!exists && snap.fromCache) {
           // TODO(dimond): If we're online and the document doesn't
           // exist then we resolve with a doc.exists set to false. If
@@ -1703,17 +1705,6 @@ export class BaseQuery {
     return new Bound(components, before);
   }
 
-  protected validateHasExplicitOrderByForLimitToLast(
-    query: InternalQuery
-  ): void {
-    if (query.hasLimitToLast() && query.explicitOrderBy.length === 0) {
-      throw new FirestoreError(
-        Code.UNIMPLEMENTED,
-        'limitToLast() queries require specifying at least one orderBy() clause'
-      );
-    }
-  }
-
   /**
    * Parses the given documentIdValue into a ReferenceValue, throwing
    * appropriate errors if the value is anything other than a DocumentReference
@@ -1837,7 +1828,7 @@ export class BaseQuery {
         if (conflictingOp === null && isArrayOp) {
           conflictingOp = this._query.findFilterOperator(arrayOps);
         }
-        if (conflictingOp != null) {
+        if (conflictingOp !== null) {
           // We special case when it's a duplicate op to give a slightly clearer error message.
           if (conflictingOp === filter.op) {
             throw new FirestoreError(
@@ -1881,6 +1872,17 @@ export class BaseQuery {
           `is on field '${orderBy.toString()}' instead.`
       );
     }
+  }
+}
+
+export function validateHasExplicitOrderByForLimitToLast(
+  query: InternalQuery
+): void {
+  if (query.hasLimitToLast() && query.explicitOrderBy.length === 0) {
+    throw new FirestoreError(
+      Code.UNIMPLEMENTED,
+      'limitToLast() queries require specifying at least one orderBy() clause'
+    );
   }
 }
 
@@ -2055,7 +2057,7 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
     }
     return (
       this.firestore === other.firestore &&
-      this._query.isEqual(other._query) &&
+      queryEquals(this._query, other._query) &&
       this._converter === other._converter
     );
   }
@@ -2105,7 +2107,6 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
   onSnapshot(...args: unknown[]): Unsubscribe {
     validateBetweenNumberOfArgs('Query.onSnapshot', arguments, 1, 4);
     let options: firestore.SnapshotListenOptions = {};
-    let observer: PartialObserver<firestore.QuerySnapshot<T>>;
     let currArg = 0;
     if (
       typeof args[currArg] === 'object' &&
@@ -2125,7 +2126,12 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
     }
 
     if (isPartialObserver(args[currArg])) {
-      observer = args[currArg] as PartialObserver<firestore.QuerySnapshot<T>>;
+      const userObserver = args[currArg] as PartialObserver<
+        firestore.QuerySnapshot<T>
+      >;
+      args[currArg] = userObserver.next?.bind(userObserver);
+      args[currArg + 1] = userObserver.error?.bind(userObserver);
+      args[currArg + 2] = userObserver.complete?.bind(userObserver);
     } else {
       validateArgType('Query.onSnapshot', 'function', currArg, args[currArg]);
       validateOptionalArgType(
@@ -2140,120 +2146,121 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
         currArg + 2,
         args[currArg + 2]
       );
-      observer = {
-        next: args[currArg] as NextFn<firestore.QuerySnapshot<T>>,
-        error: args[currArg + 1] as ErrorFn,
-        complete: args[currArg + 2] as CompleteFn
-      };
-    }
-    this.validateHasExplicitOrderByForLimitToLast(this._query);
-    return this.onSnapshotInternal(options, observer);
-  }
-
-  private onSnapshotInternal(
-    options: ListenOptions,
-    observer: PartialObserver<firestore.QuerySnapshot<T>>
-  ): Unsubscribe {
-    let errHandler = (err: Error): void => {
-      console.error('Uncaught Error in onSnapshot:', err);
-    };
-    if (observer.error) {
-      errHandler = observer.error.bind(observer);
     }
 
-    const asyncObserver = new AsyncObserver<ViewSnapshot>({
-      next: (result: ViewSnapshot): void => {
-        if (observer.next) {
-          observer.next(
+    const observer: PartialObserver<ViewSnapshot> = {
+      next: snapshot => {
+        if (args[currArg]) {
+          (args[currArg] as NextFn<firestore.QuerySnapshot<T>>)(
             new QuerySnapshot(
               this.firestore,
               this._query,
-              result,
+              snapshot,
               this._converter
             )
           );
         }
       },
-      error: errHandler
-    });
-
-    const firestoreClient = this.firestore.ensureClientConfigured();
-    const internalListener = firestoreClient.listen(
-      this._query,
-      asyncObserver,
-      options
-    );
-    return (): void => {
-      asyncObserver.mute();
-      firestoreClient.unlisten(internalListener);
+      error: args[currArg + 1] as ErrorFn,
+      complete: args[currArg + 2] as CompleteFn
     };
+
+    validateHasExplicitOrderByForLimitToLast(this._query);
+    const firestoreClient = this.firestore.ensureClientConfigured();
+    return addQuerySnapshotListener(
+      firestoreClient,
+      this._query,
+      options,
+      observer
+    );
   }
 
   get(options?: firestore.GetOptions): Promise<firestore.QuerySnapshot<T>> {
     validateBetweenNumberOfArgs('Query.get', arguments, 0, 1);
     validateGetOptions('Query.get', options);
-    this.validateHasExplicitOrderByForLimitToLast(this._query);
-    return new Promise(
-      (resolve: Resolver<firestore.QuerySnapshot<T>>, reject: Rejecter) => {
-        if (options && options.source === 'cache') {
-          this.firestore
-            .ensureClientConfigured()
-            .getDocumentsFromLocalCache(this._query)
-            .then((viewSnap: ViewSnapshot) => {
-              resolve(
-                new QuerySnapshot(
-                  this.firestore,
-                  this._query,
-                  viewSnap,
-                  this._converter
-                )
-              );
-            }, reject);
+    validateHasExplicitOrderByForLimitToLast(this._query);
+
+    const firestoreClient = this.firestore.ensureClientConfigured();
+    return (options && options.source === 'cache'
+      ? firestoreClient.getDocumentsFromLocalCache(this._query)
+      : getDocsViaSnapshotListener(firestoreClient, this._query, options)
+    ).then(
+      snap =>
+        new QuerySnapshot(this.firestore, this._query, snap, this._converter)
+    );
+  }
+}
+
+/**
+ * Retrieves a latency-compensated query snapshot from the backend via a
+ * SnapshotListener.
+ */
+export function getDocsViaSnapshotListener(
+  firestore: FirestoreClient,
+  query: InternalQuery,
+  options?: firestore.GetOptions
+): Promise<ViewSnapshot> {
+  const result = new Deferred<ViewSnapshot>();
+  const unlisten = addQuerySnapshotListener(
+    firestore,
+    query,
+    {
+      includeMetadataChanges: true,
+      waitForSyncWhenOnline: true
+    },
+    {
+      next: snapshot => {
+        // Remove query first before passing event to user to avoid
+        // user actions affecting the now stale query.
+        unlisten();
+
+        if (snapshot.fromCache && options && options.source === 'server') {
+          result.reject(
+            new FirestoreError(
+              Code.UNAVAILABLE,
+              'Failed to get documents from server. (However, these ' +
+                'documents may exist in the local cache. Run again ' +
+                'without setting source to "server" to ' +
+                'retrieve the cached documents.)'
+            )
+          );
         } else {
-          this.getViaSnapshotListener(resolve, reject, options);
+          result.resolve(snapshot);
         }
-      }
-    );
-  }
-
-  private getViaSnapshotListener(
-    resolve: Resolver<firestore.QuerySnapshot<T>>,
-    reject: Rejecter,
-    options?: firestore.GetOptions
-  ): void {
-    const unlisten = this.onSnapshotInternal(
-      {
-        includeMetadataChanges: true,
-        waitForSyncWhenOnline: true
       },
-      {
-        next: (result: firestore.QuerySnapshot<T>) => {
-          // Remove query first before passing event to user to avoid
-          // user actions affecting the now stale query.
-          unlisten();
+      error: e => result.reject(e)
+    }
+  );
+  return result.promise;
+}
 
-          if (
-            result.metadata.fromCache &&
-            options &&
-            options.source === 'server'
-          ) {
-            reject(
-              new FirestoreError(
-                Code.UNAVAILABLE,
-                'Failed to get documents from server. (However, these ' +
-                  'documents may exist in the local cache. Run again ' +
-                  'without setting source to "server" to ' +
-                  'retrieve the cached documents.)'
-              )
-            );
-          } else {
-            resolve(result);
-          }
-        },
-        error: reject
-      }
-    );
+/** Registers an internal snapshot listener for `query`. */
+export function addQuerySnapshotListener(
+  firestore: FirestoreClient,
+  query: InternalQuery,
+  options: ListenOptions,
+  observer: PartialObserver<ViewSnapshot>
+): Unsubscribe {
+  let errHandler = (err: Error): void => {
+    console.error('Uncaught Error in onSnapshot:', err);
+  };
+  if (observer.error) {
+    errHandler = observer.error.bind(observer);
   }
+  const asyncObserver = new AsyncObserver<ViewSnapshot>({
+    next: (result: ViewSnapshot): void => {
+      if (observer.next) {
+        observer.next(result);
+      }
+    },
+    error: errHandler
+  });
+
+  const internalListener = firestore.listen(query, asyncObserver, options);
+  return (): void => {
+    asyncObserver.mute();
+    firestore.unlisten(internalListener);
+  };
 }
 
 export class QuerySnapshot<T = firestore.DocumentData>
@@ -2296,7 +2303,14 @@ export class QuerySnapshot<T = firestore.DocumentData>
     validateBetweenNumberOfArgs('QuerySnapshot.forEach', arguments, 1, 2);
     validateArgType('QuerySnapshot.forEach', 'function', 1, callback);
     this._snapshot.docs.forEach(doc => {
-      callback.call(thisArg, this.convertToDocumentImpl(doc));
+      callback.call(
+        thisArg,
+        this.convertToDocumentImpl(
+          doc,
+          this.metadata.fromCache,
+          this._snapshot.mutatedKeys.has(doc.key)
+        )
+      );
     });
   }
 
@@ -2335,11 +2349,10 @@ export class QuerySnapshot<T = firestore.DocumentData>
       !this._cachedChanges ||
       this._cachedChangesIncludeMetadataChanges !== includeMetadataChanges
     ) {
-      this._cachedChanges = changesFromSnapshot<T>(
-        this._firestore,
-        includeMetadataChanges,
+      this._cachedChanges = changesFromSnapshot<QueryDocumentSnapshot<T>>(
         this._snapshot,
-        this._converter
+        includeMetadataChanges,
+        this.convertToDocumentImpl.bind(this)
       );
       this._cachedChangesIncludeMetadataChanges = includeMetadataChanges;
     }
@@ -2355,19 +2368,23 @@ export class QuerySnapshot<T = firestore.DocumentData>
 
     return (
       this._firestore === other._firestore &&
-      this._originalQuery.isEqual(other._originalQuery) &&
+      queryEquals(this._originalQuery, other._originalQuery) &&
       this._snapshot.isEqual(other._snapshot) &&
       this._converter === other._converter
     );
   }
 
-  private convertToDocumentImpl(doc: Document): QueryDocumentSnapshot<T> {
+  private convertToDocumentImpl(
+    doc: Document,
+    fromCache: boolean,
+    hasPendingWrites: boolean
+  ): QueryDocumentSnapshot<T> {
     return new QueryDocumentSnapshot(
       this._firestore,
       doc.key,
       doc,
-      this.metadata.fromCache,
-      this._snapshot.mutatedKeys.has(doc.key),
+      fromCache,
+      hasPendingWrites,
       this._converter
     );
   }
@@ -2539,33 +2556,43 @@ function validateReference<T>(
  * Calculates the array of firestore.DocumentChange's for a given ViewSnapshot.
  *
  * Exported for testing.
+ *
+ * @param snapshot The ViewSnapshot that represents the expected state.
+ * @param includeMetadataChanges Whether to include metadata changes.
+ * @param converter A factory function that returns a QueryDocumentSnapshot.
+ * @return An objecyt that matches the firestore.DocumentChange API.
  */
-export function changesFromSnapshot<T>(
-  firestore: Firestore,
-  includeMetadataChanges: boolean,
+export function changesFromSnapshot<DocSnap>(
   snapshot: ViewSnapshot,
-  converter: firestore.FirestoreDataConverter<T> | null
-): Array<firestore.DocumentChange<T>> {
+  includeMetadataChanges: boolean,
+  converter: (
+    doc: Document,
+    fromCache: boolean,
+    hasPendingWrite: boolean
+  ) => DocSnap
+): Array<{
+  type: firestore.DocumentChangeType;
+  doc: DocSnap;
+  oldIndex: number;
+  newIndex: number;
+}> {
   if (snapshot.oldDocs.isEmpty()) {
     // Special case the first snapshot because index calculation is easy and
     // fast
     let lastDoc: Document;
     let index = 0;
     return snapshot.docChanges.map(change => {
-      const doc = new QueryDocumentSnapshot<T>(
-        firestore,
-        change.doc.key,
+      const doc = converter(
         change.doc,
         snapshot.fromCache,
-        snapshot.mutatedKeys.has(change.doc.key),
-        converter
+        snapshot.mutatedKeys.has(change.doc.key)
       );
       debugAssert(
         change.type === ChangeType.Added,
         'Invalid event type for first snapshot'
       );
       debugAssert(
-        !lastDoc || snapshot.query.docComparator(lastDoc, change.doc) < 0,
+        !lastDoc || newQueryComparator(snapshot.query)(lastDoc, change.doc) < 0,
         'Got added events in wrong order'
       );
       lastDoc = change.doc;
@@ -2585,13 +2612,10 @@ export function changesFromSnapshot<T>(
         change => includeMetadataChanges || change.type !== ChangeType.Metadata
       )
       .map(change => {
-        const doc = new QueryDocumentSnapshot<T>(
-          firestore,
-          change.doc.key,
+        const doc = converter(
           change.doc,
           snapshot.fromCache,
-          snapshot.mutatedKeys.has(change.doc.key),
-          converter
+          snapshot.mutatedKeys.has(change.doc.key)
         );
         let oldIndex = -1;
         let newIndex = -1;

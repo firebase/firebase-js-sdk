@@ -29,7 +29,8 @@ import {
   Bound,
   Direction,
   Operator,
-  Query as InternalQuery
+  Query as InternalQuery,
+  queryEquals
 } from '../../../src/core/query';
 import { ResourcePath } from '../../../src/model/path';
 import { AutoId } from '../../../src/util/misc';
@@ -48,7 +49,8 @@ import { hardAssert } from '../../../src/util/assert';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
 import {
   applyFirestoreDataConverter,
-  BaseQuery
+  BaseQuery,
+  validateHasExplicitOrderByForLimitToLast
 } from '../../../src/api/database';
 import { FieldPath } from './field_path';
 import { cast } from './util';
@@ -417,6 +419,7 @@ export function getQuery<T>(
   query: firestore.Query<T>
 ): Promise<firestore.QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
+  validateHasExplicitOrderByForLimitToLast(internalQuery._query);
   return internalQuery.firestore._getDatastore().then(async datastore => {
     const result = await invokeRunQueryRpc(datastore, internalQuery._query);
     const docs = result.map(
@@ -454,9 +457,13 @@ export function setDoc<T>(
   data: T,
   options?: firestore.SetOptions
 ): Promise<void> {
-  const ref = cast(reference, DocumentReference);
+  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
 
-  const convertedValue = applyFirestoreDataConverter(ref._converter, data);
+  const convertedValue = applyFirestoreDataConverter(
+    ref._converter,
+    data,
+    options
+  );
   const dataReader = newUserDataReader(ref.firestore);
   const parsed = dataReader.parseSetData(
     'setDoc',
@@ -492,7 +499,7 @@ export function updateDoc(
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
-  const ref = cast(reference, DocumentReference);
+  const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
   const dataReader = newUserDataReader(ref.firestore);
 
   let parsed: ParsedUpdateData;
@@ -528,7 +535,7 @@ export function updateDoc(
 export function deleteDoc(
   reference: firestore.DocumentReference
 ): Promise<void> {
-  const ref = cast(reference, DocumentReference);
+  const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
   return ref.firestore
     ._getDatastore()
     .then(datastore =>
@@ -542,7 +549,7 @@ export function addDoc<T>(
   reference: firestore.CollectionReference<T>,
   data: T
 ): Promise<firestore.DocumentReference<T>> {
-  const collRef = cast(reference, CollectionReference);
+  const collRef = cast<CollectionReference<T>>(reference, CollectionReference);
   const docRef = doc(collRef);
 
   const convertedValue = applyFirestoreDataConverter(collRef._converter, data);
@@ -592,7 +599,7 @@ export function queryEqual<T>(
   if (left instanceof Query && right instanceof Query) {
     return (
       left.firestore === right.firestore &&
-      left._query.isEqual(right._query) &&
+      queryEquals(left._query, right._query) &&
       left._converter === right._converter
     );
   }
