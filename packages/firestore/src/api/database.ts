@@ -33,9 +33,11 @@ import {
   Direction,
   FieldFilter,
   Filter,
+  newQueryComparator,
   Operator,
   OrderBy,
-  Query as InternalQuery
+  Query as InternalQuery,
+  queryEquals
 } from '../core/query';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
@@ -2055,7 +2057,7 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
     }
     return (
       this.firestore === other.firestore &&
-      this._query.isEqual(other._query) &&
+      queryEquals(this._query, other._query) &&
       this._converter === other._converter
     );
   }
@@ -2366,7 +2368,7 @@ export class QuerySnapshot<T = firestore.DocumentData>
 
     return (
       this._firestore === other._firestore &&
-      this._originalQuery.isEqual(other._originalQuery) &&
+      queryEquals(this._originalQuery, other._originalQuery) &&
       this._snapshot.isEqual(other._snapshot) &&
       this._converter === other._converter
     );
@@ -2590,7 +2592,7 @@ export function changesFromSnapshot<DocSnap>(
         'Invalid event type for first snapshot'
       );
       debugAssert(
-        !lastDoc || snapshot.query.docComparator(lastDoc, change.doc) < 0,
+        !lastDoc || newQueryComparator(snapshot.query)(lastDoc, change.doc) < 0,
         'Got added events in wrong order'
       );
       lastDoc = change.doc;
