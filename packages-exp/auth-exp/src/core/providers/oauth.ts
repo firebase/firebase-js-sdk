@@ -20,9 +20,7 @@ import * as externs from '@firebase/auth-types-exp';
 import { AuthErrorCode } from '../errors';
 import { debugFail } from '../util/assert';
 
-export interface CustomParameters {
-  [key: string]: string;
-}
+export type CustomParameters = Record<string, string>;
 
 interface CredentialParameters {
   idToken?: string;
@@ -34,7 +32,7 @@ export class OAuthProvider implements externs.AuthProvider {
   defaultLanguageCode: string | null = null;
   private scopes: string[] = [];
   private customParameters: CustomParameters = {};
-  constructor(readonly providerId: externs.ProviderId) {}
+  private constructor(readonly providerId: externs.ProviderId) {}
   static credentialFromResult(
     _userCredential: externs.UserCredential
   ): externs.OAuthCredential | null {

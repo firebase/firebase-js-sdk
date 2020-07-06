@@ -19,6 +19,7 @@ import { getUA } from '@firebase/util';
 
 import { AuthErrorCode } from '../errors';
 import { assert } from './assert';
+import { _isChromeIOS, _isFirefox, _isIOSStandalone } from './environment';
 
 const BASE_POPUP_OPTIONS = {
   location: 'yes',
@@ -29,20 +30,21 @@ const BASE_POPUP_OPTIONS = {
 
 const DEFAULT_WIDTH = 500;
 const DEFAULT_HEIGHT = 600;
+const TARGET_BLANK = '_blank';
 
-const CHROME_IOS_UA = 'crios/';
-const FIREFOX_UA = 'firefox/';
 const FIREFOX_EMPTY_URL = 'http://localhost';
 
 export class AuthPopup {
   associatedEvent: string | null = null;
 
-  constructor(readonly window: Window) {}
+  constructor(readonly window: Window|null) {}
 
   close(): void {
-    try {
-      this.window.close();
-    } catch (e) {}
+    if (this.window) {
+      try {
+        this.window.close();
+      } catch (e) {}
+    }
   }
 }
 
@@ -75,10 +77,10 @@ export function _open(
   const ua = _uaGetter.getUA().toLowerCase();
 
   if (name) {
-    target = ua.includes(CHROME_IOS_UA) ? '_blank' : name;
+    target = _isChromeIOS(ua) ? TARGET_BLANK : name;
   }
 
-  if (ua.includes(FIREFOX_UA)) {
+  if (_isFirefox(ua)) {
     // Firefox complains when invalid URLs are popped out. Hacky way to bypass.
     url = url || FIREFOX_EMPTY_URL;
     // Firefox disables by default scrolling on popup windows, which can create
@@ -91,8 +93,10 @@ export function _open(
     ''
   );
 
-  // TODO: Plain-old window.open isn't going to work for iOS, need to fix this
-  //       (see goog.window.open)
+  if (_isIOSStandalone(ua) && target !== '_self') {
+    openAsNewWindowIOS(url || '', target);
+    return new AuthPopup(null);
+  }
 
   // about:blank getting sanitized causing browsers like IE/Edge to display
   // brief error message before redirecting to handler.
@@ -106,3 +110,28 @@ export function _open(
 
   return new AuthPopup(newWin);
 }
+
+function openAsNewWindowIOS(url: string, target: string): void {
+  const el = document.createElement('a');
+  el.href = url;
+  el.target = target;
+  const click = document.createEvent('MouseEvent');
+  click.initMouseEvent(
+    'click',
+    true,
+    true,
+    window,
+    1,
+    0,
+    0,
+    0,
+    0,
+    false,
+    false,
+    false,
+    false,
+    1,
+    null
+  );
+  el.dispatchEvent(click);
+} 
