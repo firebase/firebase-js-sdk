@@ -68,7 +68,6 @@ describe('src/platform_browser/iframe/iframe', () => {
 
   it('sets all the correct settings', async () => {
     await _openIframe(auth);
-    console.warn(iframeSettings);
 
     expect(iframeSettings.where).to.eql(document.body);
     expect(iframeSettings.url).to.eq(

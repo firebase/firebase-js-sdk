@@ -65,15 +65,14 @@ export async function _openIframe(auth: Auth): Promise<gapi.iframes.Iframe> {
           // Prevent iframe from closing on mouse out.
           setHideOnLeave: false
         });
+
+        const networkError = AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
+          appName: auth.name
+        });
         // Confirm iframe is correctly loaded.
         // To fallback on failure, set a timeout.
-        console.warn('setting timeout');
         const networkErrorTimer = AUTH_WINDOW.setTimeout(() => {
-          reject(
-            AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
-              appName: auth.name
-            })
-          );
+          reject(networkError);
         }, PING_TIMEOUT.get());
         // Clear timer and resolve pending iframe ready promise.
         function clearTimerAndResolve(): void {
@@ -83,11 +82,7 @@ export async function _openIframe(auth: Auth): Promise<gapi.iframes.Iframe> {
         // This returns an IThenable. However the reject part does not call
         // when the iframe is not loaded.
         iframe.ping(clearTimerAndResolve).then(clearTimerAndResolve, () => {
-          reject(
-            AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
-              appName: auth.name
-            })
-          );
+          reject(networkError);
         });
       })
   );

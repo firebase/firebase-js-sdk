@@ -25,31 +25,24 @@ import { FirebaseError } from '@firebase/util';
 import { testAuth } from '../../../test/mock_auth';
 import { Auth } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';
+import * as js from '../load_js';
 import { _loadGapi, _resetLoader } from './gapi';
 
 use(sinonChai);
 use(chaiAsPromised);
 
 describe('src/platform_browser/iframe/gapi', () => {
-  let library: unknown;
-  let tag: HTMLElement;
+  let library: typeof gapi;
   let auth: Auth;
-  function onJsLoad(): void {
+  function onJsLoad(globalLoadFnName: string): void {
     AUTH_WINDOW.gapi = library as typeof gapi;
-    AUTH_WINDOW[(tag as HTMLScriptElement).src.split('onload=')[1]]();
+    AUTH_WINDOW[globalLoadFnName]();
   }
 
   beforeEach(async () => {
-    const head = document.createElement('div');
-    tag = document.createElement('script');
-
-    sinon.stub(document, 'createElement').returns(tag);
-    sinon
-      .stub(document, 'getElementsByTagName')
-      .returns(([head] as unknown) as HTMLCollection);
-    sinon.stub(head, 'appendChild').callsFake(() => {
-      onJsLoad();
-      return head;
+    sinon.stub(js, '_loadJS').callsFake(url => {
+      onJsLoad(url.split('onload=')[1]);
+      return Promise.resolve(new Event('load'));
     });
 
     auth = await testAuth();
@@ -58,7 +51,7 @@ describe('src/platform_browser/iframe/gapi', () => {
   function makeGapi(
     result: unknown,
     timesout = false
-  ): Record<string, unknown> {
+  ): typeof gapi {
     const callbackFn = timesout === false ? 'callback' : 'ontimeout';
     return {
       load: sinon
@@ -67,9 +60,9 @@ describe('src/platform_browser/iframe/gapi', () => {
           params[callbackFn]()
         ),
       iframes: {
-        getContext: () => result
+        getContext: () => result as gapi.iframes.Context,
       }
-    };
+    } as unknown as typeof gapi;
   }
 
   afterEach(() => {
@@ -117,11 +110,11 @@ describe('src/platform_browser/iframe/gapi', () => {
     expect(await _loadGapi(auth)).to.eq('test');
     expect(await _loadGapi(auth)).to.eq('test');
 
-    expect(document.createElement).to.have.been.calledOnce;
+    expect(js._loadJS).to.have.been.calledOnce;
   });
 
   it('rejects with a network error if load fails', async () => {
-    library = {};
+    library = {} as typeof gapi;
     await expect(_loadGapi(auth)).to.be.rejectedWith(
       FirebaseError,
       'auth/network-request-failed'
@@ -137,7 +130,7 @@ describe('src/platform_browser/iframe/gapi', () => {
   });
 
   it('resets the load promise if the load errors', async () => {
-    library = {};
+    library = {} as typeof gapi;
     const firstAttempt = _loadGapi(auth);
     await expect(firstAttempt).to.be.rejectedWith(
       FirebaseError,
