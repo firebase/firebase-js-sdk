@@ -28,7 +28,11 @@ import { TEST_AUTH_DOMAIN, TEST_KEY, testAuth } from '../../test/mock_auth';
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { OAuthProvider } from '../core/providers/oauth';
 import { Auth } from '../model/auth';
-import { AuthEvent, AuthEventType, GapiAuthEvent } from '../model/popup_redirect';
+import {
+  AuthEvent,
+  AuthEventType,
+  GapiAuthEvent
+} from '../model/popup_redirect';
 import * as gapiLoader from './iframe/gapi';
 import { BrowserPopupRedirectResolver } from './popup_redirect';
 
