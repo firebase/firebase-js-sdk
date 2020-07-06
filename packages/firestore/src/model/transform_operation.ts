@@ -47,7 +47,7 @@ export function applyTransformOperationToLocalView(
   localWriteTime: Timestamp
 ): api.Value {
   if (transform instanceof ServerTimestampTransform) {
-    return serverTimestamp(localWriteTime!, previousValue);
+    return serverTimestamp(localWriteTime, previousValue);
   } else if (transform instanceof ArrayUnionTransformOperation) {
     return applyArrayUnionTransformOperation(transform, previousValue);
   } else if (transform instanceof ArrayRemoveTransformOperation) {

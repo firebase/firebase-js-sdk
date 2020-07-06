@@ -90,12 +90,12 @@ export class FieldTransform {
 }
 
 export function fieldTransformEquals(
-  l: FieldTransform,
-  r: FieldTransform
+  left: FieldTransform,
+  right: FieldTransform
 ): boolean {
   return (
-    l.field.isEqual(r.field) &&
-    transformOperationEquals(l.transform, r.transform)
+    left.field.isEqual(right.field) &&
+    transformOperationEquals(left.transform, right.transform)
   );
 }
 
