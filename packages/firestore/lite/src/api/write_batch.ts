@@ -23,10 +23,7 @@ import {
 } from '../../../src/model/mutation';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { applyFirestoreDataConverter } from '../../../src/api/database';
-import {
-  DocumentKeyReference,
-  UserDataReader
-} from '../../../src/api/user_data_reader';
+import { UserDataReader } from '../../../src/api/user_data_reader';
 import { cast } from './util';
 import { DocumentReference, newUserDataReader } from './reference';
 import { Firestore } from './database';
