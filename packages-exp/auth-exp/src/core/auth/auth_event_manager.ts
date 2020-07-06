@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { AuthEvent, AuthEventConsumer, EventManager } from '../../model/popup_redirect';
+import {
+  AuthEvent,
+  AuthEventConsumer,
+  EventManager
+} from '../../model/popup_redirect';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 
 export class AuthEventManager implements EventManager {
@@ -39,10 +43,14 @@ export class AuthEventManager implements EventManager {
       ) {
         if (event.error) {
           console.error('ERROR');
-          const code = event.error.code?.split('auth/')[1] as AuthErrorCode || AuthErrorCode.INTERNAL_ERROR;
-          consumer.onError(AUTH_ERROR_FACTORY.create(code, {
-            appName: this.appName
-          }));
+          const code =
+            (event.error.code?.split('auth/')[1] as AuthErrorCode) ||
+            AuthErrorCode.INTERNAL_ERROR;
+          consumer.onError(
+            AUTH_ERROR_FACTORY.create(code, {
+              appName: this.appName
+            })
+          );
         } else {
           consumer.onAuthEvent(event);
         }

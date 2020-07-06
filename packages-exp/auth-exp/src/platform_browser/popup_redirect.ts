@@ -28,7 +28,11 @@ import { _getCurrentUrl } from '../core/util/location';
 import { _open, AuthPopup } from '../core/util/popup';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
-    AuthEventType, EventManager, GapiAuthEvent, GapiOutcome, PopupRedirectResolver
+  AuthEventType,
+  EventManager,
+  GapiAuthEvent,
+  GapiOutcome,
+  PopupRedirectResolver
 } from '../model/popup_redirect';
 import { _openIframe } from './iframe/iframe';
 
@@ -39,7 +43,7 @@ const WIDGET_URL = '__/auth/handler';
 
 export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   private eventManager: EventManager | null = null;
-  private initializationPromise: Promise<EventManager>|null = null;
+  private initializationPromise: Promise<EventManager> | null = null;
 
   // Wrapping in async even though we don't await anywhere in order
   // to make sure errors are raised as promise rejections
@@ -49,7 +53,10 @@ export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     authType: AuthEventType,
     eventId?: string
   ): Promise<AuthPopup> {
-    debugAssert(this.eventManager, '_initialize() not called before _openPopup()');
+    debugAssert(
+      this.eventManager,
+      '_initialize() not called before _openPopup()'
+    );
     const url = getRedirectUrl(auth, provider, authType, eventId);
     return _open(auth.name, url, _generateEventId());
   }
@@ -115,7 +122,7 @@ function getRedirectUrl(
     redirectUrl: _getCurrentUrl(),
     v: SDK_VERSION,
     eventId,
-    tid: auth.tenantId || undefined,
+    tid: auth.tenantId || undefined
   };
 
   if (provider instanceof OAuthProvider) {
