@@ -263,7 +263,7 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
  * Provides all components needed for Firestore with multi-tab IndexedDB
  * persistence.
  *
- * In the legacy client, this providee is used to provide both multi-tab and
+ * In the legacy client, this provider is used to provide both multi-tab and
  * non-multi-tab persistence since we cannot tell at build time whether
  * `synchronizeTabs` will be enabled.
  */
