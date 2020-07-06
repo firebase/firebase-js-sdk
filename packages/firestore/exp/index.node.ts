@@ -54,7 +54,7 @@ export {
   parent
 } from '../lite/src/api/reference';
 
-export { runTransaction, Transaction } from '../lite/src/api/transaction';
+export { runTransaction, Transaction } from './src/api/transaction';
 
 export {
   getDoc,

@@ -159,7 +159,7 @@ export class WriteBatch implements firestore.WriteBatch {
 export function validateReference<T>(
   documentRef: firestore.DocumentReference<T>,
   firestore: Firestore
-): DocumentKeyReference<T> {
+): DocumentReference<T> {
   if (documentRef.firestore !== firestore) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
