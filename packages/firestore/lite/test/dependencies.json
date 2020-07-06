@@ -209,11 +209,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 81798
-=======
-        "sizeInBytes": 83103
->>>>>>> mrschmidt/mutations2
+        "sizeInBytes": 73865
     },
     "DocumentReference": {
         "dependencies": {
@@ -693,7 +689,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 68112
+        "sizeInBytes": 68106
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -1335,11 +1331,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 92272
-=======
-        "sizeInBytes": 89374
->>>>>>> mrschmidt/mutations2
+        "sizeInBytes": 84339
     },
     "arrayRemove": {
         "dependencies": {
@@ -1685,11 +1677,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 82426
-=======
-        "sizeInBytes": 83731
->>>>>>> mrschmidt/mutations2
+        "sizeInBytes": 74493
     },
     "collectionGroup": {
         "dependencies": {
@@ -1841,11 +1829,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 81858
-=======
-        "sizeInBytes": 83163
->>>>>>> mrschmidt/mutations2
+        "sizeInBytes": 73925
     },
     "deleteDoc": {
         "dependencies": {
@@ -2126,11 +2110,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 83247
-=======
-        "sizeInBytes": 84552
->>>>>>> mrschmidt/mutations2
+        "sizeInBytes": 75314
     },
     "documentId": {
         "dependencies": {
@@ -2526,7 +2506,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 76293
+        "sizeInBytes": 76287
     },
     "increment": {
         "dependencies": {
@@ -2784,11 +2764,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 82141
-=======
-        "sizeInBytes": 83446
->>>>>>> mrschmidt/mutations2
+        "sizeInBytes": 74208
     },
     "queryEqual": {
         "dependencies": {
@@ -2940,11 +2916,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 68316
-=======
-        "sizeInBytes": 78930
->>>>>>> mrschmidt/mutations2
+        "sizeInBytes": 69692
     },
     "refEqual": {
         "dependencies": {
@@ -3097,11 +3069,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 82083
-=======
-        "sizeInBytes": 83388
->>>>>>> mrschmidt/mutations2
+        "sizeInBytes": 74150
     },
     "runTransaction": {
         "dependencies": {
@@ -3678,11 +3646,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 69049
-=======
-        "sizeInBytes": 79663
->>>>>>> mrschmidt/mutations2
+        "sizeInBytes": 70425
     },
     "terminate": {
         "dependencies": {
