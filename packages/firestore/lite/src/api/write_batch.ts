@@ -23,7 +23,12 @@ import {
 } from '../../../src/model/mutation';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { applyFirestoreDataConverter } from '../../../src/api/database';
-import { UserDataReader } from '../../../src/api/user_data_reader';
+import {
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs,
+  UserDataReader
+} from '../../../src/api/user_data_reader';
 import { cast } from './util';
 import { DocumentReference, newUserDataReader } from './reference';
 import { Firestore } from './database';
@@ -64,7 +69,8 @@ export class WriteBatch implements firestore.WriteBatch {
       value,
       options
     );
-    const parsed = this._dataReader.parseSetData(
+    const parsed = parseSetData(
+      this._dataReader,
       'WriteBatch.set',
       ref._key,
       convertedValue,
@@ -102,7 +108,8 @@ export class WriteBatch implements firestore.WriteBatch {
       typeof fieldOrUpdateData === 'string' ||
       fieldOrUpdateData instanceof FieldPath
     ) {
-      parsed = this._dataReader.parseUpdateVarargs(
+      parsed = parseUpdateVarargs(
+        this._dataReader,
         'WriteBatch.update',
         ref._key,
         fieldOrUpdateData,
@@ -110,7 +117,8 @@ export class WriteBatch implements firestore.WriteBatch {
         moreFieldsAndValues
       );
     } else {
-      parsed = this._dataReader.parseUpdateData(
+      parsed = parseUpdateData(
+        this._dataReader,
         'WriteBatch.update',
         ref._key,
         fieldOrUpdateData
