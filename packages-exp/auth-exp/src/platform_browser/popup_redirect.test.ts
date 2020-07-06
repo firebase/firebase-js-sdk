@@ -28,11 +28,7 @@ import { TEST_AUTH_DOMAIN, TEST_KEY, testAuth } from '../../test/mock_auth';
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { OAuthProvider } from '../core/providers/oauth';
 import { Auth } from '../model/auth';
-import {
-  AuthEvent,
-  AuthEventType,
-  GapiAuthEvent
-} from '../model/popup_redirect';
+import { AuthEvent, AuthEventType, GapiAuthEvent } from '../model/popup_redirect';
 import * as gapiLoader from './iframe/gapi';
 import { BrowserPopupRedirectResolver } from './popup_redirect';
 
@@ -42,10 +38,23 @@ use(sinonChai);
 describe('src/platform_browser/popup_redirect', () => {
   let resolver: BrowserPopupRedirectResolver;
   let auth: Auth;
+  let onIframeMessage: (event: GapiAuthEvent) => Promise<void>;
 
   beforeEach(async () => {
     auth = await testAuth();
     resolver = new BrowserPopupRedirectResolver();
+
+    sinon.stub(gapiLoader, '_loadGapi').returns(
+      Promise.resolve(({
+        open: () =>
+          Promise.resolve({
+            register: (
+              _message: string,
+              cb: (event: GapiAuthEvent) => Promise<void>
+            ) => (onIframeMessage = cb)
+          })
+      } as unknown) as gapi.iframes.Context)
+    );
   });
 
   afterEach(() => {
@@ -57,12 +66,13 @@ describe('src/platform_browser/popup_redirect', () => {
     let provider: OAuthProvider;
     const event = AuthEventType.LINK_VIA_POPUP;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       sinon.stub(window, 'open').callsFake(url => {
         popupUrl = url;
         return {} as Window;
       });
       provider = new OAuthProvider(ProviderId.GOOGLE);
+      await resolver._initialize(auth);
     });
 
     it('builds the correct url', async () => {
@@ -102,21 +112,6 @@ describe('src/platform_browser/popup_redirect', () => {
   });
 
   context('#initialize', () => {
-    let onIframeMessage: (event: GapiAuthEvent) => Promise<void>;
-    beforeEach(() => {
-      sinon.stub(gapiLoader, '_loadGapi').returns(
-        Promise.resolve(({
-          open: () =>
-            Promise.resolve({
-              register: (
-                _message: string,
-                cb: (event: GapiAuthEvent) => Promise<void>
-              ) => (onIframeMessage = cb)
-            })
-        } as unknown) as gapi.iframes.Context)
-      );
-    });
-
     it('only registers once, returns same event manager', async () => {
       const manager = await resolver._initialize(auth);
       expect(await resolver._initialize(auth)).to.eq(manager);
