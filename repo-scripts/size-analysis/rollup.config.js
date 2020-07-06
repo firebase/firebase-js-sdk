@@ -15,33 +15,33 @@
  * limitations under the License.
  */
 
-import resolve from '@rollup/plugin-node-resolve';
-import strip from '@rollup/plugin-strip';
+import typescriptPlugin from 'rollup-plugin-typescript2';
+import typescript from 'typescript';
 import pkg from './package.json';
+import json from 'rollup-plugin-json';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-/**
- * Common plugins for all builds
- */
-const commonPlugins = [
-  strip({
-    functions: ['debugAssert.*']
-  }),
-  resolve()
-];
-
-const es5Builds = [
-  /**
-   * Browser Builds
-   */
+export default [
   {
-    input: 'src/index.js',
-    output: [{ file: pkg.bundle, format: 'esm', sourcemap: true }],
-    plugins: commonPlugins
+    input: 'index.ts',
+    output: [{ file: pkg.esm2017, format: 'es', sourcemap: true }],
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            target: 'es2017',
+            module: 'es2015'
+          }
+        }
+      }),
+      json({
+        preferConst: true
+      })
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
-
-export default [...es5Builds];
