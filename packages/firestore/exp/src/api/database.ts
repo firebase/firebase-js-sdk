@@ -30,7 +30,8 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import {
   ComponentProvider,
   IndexedDbComponentProvider,
-  MemoryComponentProvider
+  MemoryComponentProvider,
+  MultiTabIndexedDbComponentProvider
 } from '../../../src/core/component_provider';
 
 import { Firestore as LiteFirestore } from '../../../lite/src/api/database';
@@ -189,8 +190,8 @@ export function enableMultiTabIndexedDbPersistence(
 ): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
   return firestoreImpl._enablePersistence(
-    new IndexedDbComponentProvider(),
-    /*synchronizeTabs=*/ true
+    new MultiTabIndexedDbComponentProvider(),
+    /*synchronizeTabs=*/ false
   );
 }
 
