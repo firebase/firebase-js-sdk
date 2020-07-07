@@ -1149,7 +1149,8 @@ apiDescribe('Database', (persistence: boolean) => {
         await expect(
           firestore.clearPersistence()
         ).to.eventually.be.rejectedWith(
-          'Persistence cannot be cleared after this Firestore instance is initialized.'
+          'Persistence cannot be cleared after this Firestore instance is ' +
+            'initialized or after it is terminated.'
         );
       });
     }

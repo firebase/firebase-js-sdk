@@ -426,7 +426,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     ) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
-        'Persistence cannot be cleared after this Firestore instance is initialized.'
+        'Persistence cannot be cleared after this Firestore instance is ' +
+          'initialized or after it is terminated.'
       );
     }
 
