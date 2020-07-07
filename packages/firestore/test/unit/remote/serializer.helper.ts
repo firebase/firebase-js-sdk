@@ -28,10 +28,10 @@ import {
   ArrayContainsFilter,
   Direction,
   FieldFilter,
+  filterEquals,
   InFilter,
   KeyFieldFilter,
   Operator,
-  filterEquals,
   OrderBy,
   Query
 } from '../../../src/core/query';
@@ -42,6 +42,7 @@ import {
   DeleteMutation,
   FieldMask,
   Mutation,
+  mutationEquals,
   Precondition,
   SetMutation,
   VerifyMutation
@@ -108,6 +109,7 @@ import {
 } from '../../util/helpers';
 
 import { ByteString } from '../../../src/util/byte_string';
+import { parseQueryValue } from '../../../src/api/user_data_reader';
 
 const userDataWriter = testUserDataWriter();
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);
@@ -164,7 +166,8 @@ export function serializerTest(
         protoJsValue = protoJsValue ?? jsonValue;
 
         // Convert value to JSON and verify.
-        const actualJsonProto = protobufJsonReader.parseQueryValue(
+        const actualJsonProto = parseQueryValue(
+          protobufJsonReader,
           'verifyFieldValueRoundTrip',
           value
         );
@@ -183,7 +186,8 @@ export function serializerTest(
         }
 
         // Convert value to ProtoJs and verify.
-        const actualProtoJsProto = protoJsReader.parseQueryValue(
+        const actualProtoJsProto = parseQueryValue(
+          protoJsReader,
           'verifyFieldValueRoundTrip',
           value
         );
@@ -353,28 +357,32 @@ export function serializerTest(
 
       it('converts TimestampValue to string (useProto3Json=true)', () => {
         expect(
-          protobufJsonReader.parseQueryValue(
+          parseQueryValue(
+            protobufJsonReader,
             'timestampConversion',
             new Timestamp(1488872578, 916123000)
           )
         ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916123000Z' });
 
         expect(
-          protobufJsonReader.parseQueryValue(
+          parseQueryValue(
+            protobufJsonReader,
             'timestampConversion',
             new Timestamp(1488872578, 916000000)
           )
         ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916000000Z' });
 
         expect(
-          protobufJsonReader.parseQueryValue(
+          parseQueryValue(
+            protobufJsonReader,
             'timestampConversion',
             new Timestamp(1488872578, 916000)
           )
         ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000916000Z' });
 
         expect(
-          protobufJsonReader.parseQueryValue(
+          parseQueryValue(
+            protobufJsonReader,
             'timestampConversion',
             new Timestamp(1488872578, 0)
           )
@@ -601,12 +609,10 @@ export function serializerTest(
     });
 
     describe('toMutation / fromMutation', () => {
-      addEqualityMatcher();
-
       function verifyMutation(mutation: Mutation, proto: unknown): void {
         const serialized = toMutation(s, mutation);
         expect(serialized).to.deep.equal(proto);
-        expect(fromMutation(s, serialized)).to.deep.equal(mutation);
+        expect(mutationEquals(fromMutation(s, serialized), mutation));
       }
 
       it('SetMutation', () => {
