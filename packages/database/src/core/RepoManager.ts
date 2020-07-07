@@ -28,7 +28,7 @@ import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import {
   AuthTokenProvider,
-  EmptyAuthTokenProvider,
+  EmptyAdminAuthTokenProvider,
   FirebaseAuthTokenProvider
 } from './AuthTokenProvider';
 
@@ -99,7 +99,8 @@ export class RepoManager {
   databaseFromApp(
     app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
-    url?: string
+    url?: string,
+    thirdPartyAuth?: boolean
   ): Database {
     let dbUrl: string | undefined = url || app.options[DATABASE_URL_OPTION];
     if (dbUrl === undefined) {
@@ -123,7 +124,9 @@ export class RepoManager {
       dbUrl = `http://${dbEmulatorHost}?ns=${repoInfo.namespace}`;
       parsedUrl = parseRepoInfo(dbUrl);
       repoInfo = parsedUrl.repoInfo;
-      authTokenProvider = new EmptyAuthTokenProvider();
+      authTokenProvider = thirdPartyAuth
+        ? new FirebaseAuthTokenProvider(app, authProvider)
+        : new EmptyAdminAuthTokenProvider();
     } else {
       authTokenProvider = new FirebaseAuthTokenProvider(app, authProvider);
     }

@@ -51,8 +51,16 @@ const ServerValue = Database.ServerValue;
  * @param app A valid FirebaseApp-like object
  * @param url A valid Firebase databaseURL
  * @param version custom version e.g. firebase-admin version
+ * @param thirdPartyAuth Whether to use third party auth for this client (`true`
+ * for NodeJS users that use the client with end user credentials, `false` for
+ * Firebase Admin)
  */
-export function initStandalone(app: FirebaseApp, url: string, version: string) {
+export function initStandalone(
+  app: FirebaseApp,
+  url: string,
+  version: string,
+  thirdPartyAuth = false
+) {
   /**
    * This should allow the firebase-admin package to provide a custom version
    * to the backend
@@ -81,7 +89,12 @@ export function initStandalone(app: FirebaseApp, url: string, version: string) {
   );
 
   return {
-    instance: RepoManager.getInstance().databaseFromApp(app, authProvider, url),
+    instance: RepoManager.getInstance().databaseFromApp(
+      app,
+      authProvider,
+      url,
+      thirdPartyAuth
+    ),
     namespace: {
       Reference,
       Query,
@@ -112,7 +125,8 @@ export function registerDatabase(instance: FirebaseNamespace) {
         return RepoManager.getInstance().databaseFromApp(
           app,
           authProvider,
-          url
+          url,
+          /* thirdPartyAuth= */ true
         );
       },
       ComponentType.PUBLIC
@@ -136,7 +150,8 @@ export function registerDatabase(instance: FirebaseNamespace) {
   instance.registerVersion(name, version, 'node');
 
   if (isNodeSdk()) {
-    module.exports = Object.assign({}, namespace, { initStandalone });
+    module.exports = (app: FirebaseApp, url: string, version: string) =>
+      initStandalone(app, url, version, /* thirdPartyAuth= */ true);
   }
 }
 
