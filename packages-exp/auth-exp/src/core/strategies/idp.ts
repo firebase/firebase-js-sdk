@@ -43,6 +43,9 @@ export interface IdpTaskParams {
 
 export type IdpTask = (params: IdpTaskParams) => Promise<UserCredential>;
 
+/**
+ * Private implementation, not for public export
+ */
 class IdpCredential implements AuthCredential {
   providerId = externs.ProviderId.CUSTOM;
   signInMethod = externs.SignInMethod.ANONYMOUS; // Unused, should we have an IDP one here?

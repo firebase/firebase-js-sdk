@@ -33,7 +33,7 @@ export class MultiFactorError extends FirebaseError
 
   readonly email?: string;
   readonly phoneNumber?: string;
-  readonly tenantid?: string;
+  readonly tenantId?: string;
 
   private constructor(
     auth: Auth,

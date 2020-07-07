@@ -36,13 +36,13 @@ export function _fromIdTokenResponse(
     idTokenResponse.isNewUser ||
     idTokenResponse.kind === IdTokenResponseKind.SignupNewUser;
   if (!providerId && idTokenResponse?.idToken) {
-    const providerId = _parseToken(idTokenResponse.idToken)?.firebase?.[
+    const signInProvider = _parseToken(idTokenResponse.idToken)?.firebase?.[
       'sign_in_provider'
     ];
-    if (providerId) {
+    if (signInProvider) {
       const filteredProviderId =
         providerId !== ProviderId.ANONYMOUS && providerId !== ProviderId.CUSTOM
-          ? (providerId as ProviderId)
+          ? (signInProvider as ProviderId)
           : null;
       // Uses generic class in accordance with the legacy SDK.
       return new GenericAdditionalUserInfo(isNewUser, filteredProviderId);
