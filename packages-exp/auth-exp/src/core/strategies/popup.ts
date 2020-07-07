@@ -16,39 +16,64 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
+import { FirebaseError } from '@firebase/util';
 
 import { Auth } from '../../model/auth';
 import {
-    AuthEvent, AuthEventConsumer, AuthEventType, EventFilter, EventManager, PopupRedirectResolver
+    AuthEvent, AuthEventConsumer, AuthEventType, EventManager, PopupRedirectResolver
 } from '../../model/popup_redirect';
-import { UserCredential } from '../../model/user';
+import { User, UserCredential } from '../../model/user';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { Delay } from '../util/delay';
 import { _generateEventId } from '../util/event_id';
 import { AuthPopup } from '../util/popup';
-import * as idp from './idp';
+import { _link, _reauth, _signIn, IdpTask, IdpTaskParams } from './idp';
 
-const AUTH_EVENT_TIMEOUT = new Delay(2000, 2001);
-const WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
+// The event timeout is the same on mobile and desktop, no need for Delay.
+export const _AUTH_EVENT_TIMEOUT = 2020;
+export const _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
 
 interface PendingPromise {
   resolve: (cred: UserCredential) => void;
   reject: (error: Error) => void;
 }
 
-export async function signInWithPopup(authExtern: externs.Auth, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver) {
+export async function signInWithPopup(authExtern: externs.Auth, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<UserCredential> {
   const auth = authExtern as Auth;
   const resolver = resolverExtern as PopupRedirectResolver;
 
-  const resultManager = new PopupResultManager(auth, AuthEventType.SIGN_IN_VIA_POPUP, idp._signIn, provider, resolver);
-  const cred = await resultManager.getNewPendingPromise();
+  const action = new PopupAction(auth, AuthEventType.SIGN_IN_VIA_POPUP, _signIn, provider, resolver);
+  const cred = await action.execute();
 
   await auth.updateCurrentUser(cred.user);
   return cred;
 }
 
-export class PopupResultManager implements AuthEventConsumer {
-  private static pendingPromise: PendingPromise | null = null;
+export async function reauthenticateWithPopup(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<UserCredential> {
+  const user = userExtern as User;
+  const resolver = resolverExtern as PopupRedirectResolver;
+
+  const action = new PopupAction(user.auth, AuthEventType.REAUTH_VIA_POPUP, _reauth, provider, resolver, user);
+  return action.execute();
+}
+
+export async function linkWithPopup(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<UserCredential> {
+  const user = userExtern as User;
+  const resolver = resolverExtern as PopupRedirectResolver;
+
+  const action = new PopupAction(user.auth, AuthEventType.LINK_VIA_POPUP, _link, provider, resolver, user);
+  return action.execute();
+}
+
+/**
+ * Popup event manager. Handles the popup's entire lifecycle; listens to auth
+ * events
+ */
+class PopupAction implements AuthEventConsumer {
+  // Only one popup is ever shown at once. The lifecycle of the current popup
+  // can be managed / cancelled by the constructor.
+  private static currentPopupAction: PopupAction | null = null;
+  private pendingPromise: PendingPromise | null = null;
   private authWindow: AuthPopup | null = null;
   private pollId: number | null = null;
   private eventManager: EventManager | null = null;
@@ -56,30 +81,25 @@ export class PopupResultManager implements AuthEventConsumer {
   constructor(
       private readonly auth: Auth,
       readonly filter: AuthEventType,
-      private readonly idpTask: idp.IdpTask,
+      private readonly idpTask: IdpTask,
       private readonly provider: externs.AuthProvider,
-      private readonly resolver: PopupRedirectResolver) {
-    
-  }
-
-  getNewPendingPromise(
-  ): Promise<UserCredential> {
-    if (PopupResultManager.pendingPromise) {
-      // There was already a pending promise. Expire it.
-      this.broadcastResult(
-        null,
-        AUTH_ERROR_FACTORY.create(AuthErrorCode.EXPIRED_POPUP_REQUEST, {
-          appName: this.auth.name,
-        })
-      );
+      private readonly resolver: PopupRedirectResolver,
+      private readonly user?: User) {
+    if (PopupAction.currentPopupAction) {
+      PopupAction.currentPopupAction.cancel();
     }
 
-    return new Promise<UserCredential>(async (resolve, reject) => {
-      PopupResultManager.pendingPromise = { resolve, reject };
+    PopupAction.currentPopupAction = this;
+  }
 
-      this.eventManager = await this.resolver.initialize(this.auth);
+  execute(
+  ): Promise<UserCredential> {
+    return new Promise<UserCredential>(async (resolve, reject) => {
+      this.pendingPromise = { resolve, reject };
+
+      this.eventManager = await this.resolver._initialize(this.auth);
       const eventId = _generateEventId();
-      this.authWindow = await this.resolver.openPopup(this.auth, this.provider, AuthEventType.SIGN_IN_VIA_POPUP, eventId);
+      this.authWindow = await this.resolver._openPopup(this.auth, this.provider, this.filter, eventId);
       this.authWindow.associatedEvent = eventId;
 
       this.eventManager.registerConsumer(this);
@@ -94,19 +114,19 @@ export class PopupResultManager implements AuthEventConsumer {
   }
 
   async onAuthEvent(event: AuthEvent): Promise<void> {
-
     const { urlResponse, sessionId, postBody, tenantId, error } = event;
     if (error) {
       this.broadcastResult(null, error);
       return;
     }
     
-    const params: idp.IdpTaskParams = {
+    const params: IdpTaskParams = {
       auth: this.auth,
       requestUri: urlResponse!,
       sessionId: sessionId!,
       tenantId: tenantId || undefined,
       postBody: postBody || undefined,
+      user: this.user,
     };
 
     try {
@@ -116,7 +136,23 @@ export class PopupResultManager implements AuthEventConsumer {
     }
   }
 
-  private broadcastResult(cred: UserCredential | null, error?: Error) {
+  onError(error: FirebaseError): void {
+    this.broadcastResult(null, error);
+  }
+
+  cancel(): void {
+    if (this.pendingPromise) {
+      // There was already a pending promise. Expire it.
+      this.broadcastResult(
+        null,
+        AUTH_ERROR_FACTORY.create(AuthErrorCode.EXPIRED_POPUP_REQUEST, {
+          appName: this.auth.name,
+        })
+      );
+    }
+  }
+
+  private broadcastResult(cred: UserCredential | null, error?: Error): void {
     if (this.authWindow) {
       this.authWindow.close();
     }
@@ -125,27 +161,33 @@ export class PopupResultManager implements AuthEventConsumer {
       window.clearTimeout(this.pollId);
     }
 
-    if (PopupResultManager.pendingPromise) {
+    if (this.pendingPromise) {
       if (error) {
-        PopupResultManager.pendingPromise.reject(error);
+        this.pendingPromise.reject(error);
       } else {
-        PopupResultManager.pendingPromise.resolve(cred!);
+        this.pendingPromise.resolve(cred!);
       }
     }
 
     this.cleanUp();
   }
 
-  private cleanUp() {
+  private cleanUp(): void {
     this.authWindow = null;
-    PopupResultManager.pendingPromise = null;
+    this.pendingPromise = null;
     this.pollId = null;
-    this.eventManager?.unregisterConsumer(this);
+    if (this.eventManager) {
+      this.eventManager.unregisterConsumer(this);
+    }
+    PopupAction.currentPopupAction = null;
   }
 
-  private pollUserCancellation(appName: string) {
-    const poll = () => {
-      if (this.authWindow?.window.closed) {
+  private pollUserCancellation(appName: string):void {
+    const poll = (): void => {
+      if (this.authWindow?.window?.closed) {
+        // Make sure that there is sufficient time for whatever action to
+        // complete. The window could have closed but the sign in network
+        // call could still be in flight.
         this.pollId = window.setTimeout(() => {
           this.pollId = null;
           this.broadcastResult(
@@ -154,10 +196,11 @@ export class PopupResultManager implements AuthEventConsumer {
               appName,
             })
           );
-        }, AUTH_EVENT_TIMEOUT.get());
+        }, _AUTH_EVENT_TIMEOUT);
+        return;
       }
 
-      this.pollId = window.setTimeout(poll, WINDOW_CLOSE_TIMEOUT.get());
+      this.pollId = window.setTimeout(poll, _POLL_WINDOW_CLOSE_TIMEOUT.get());
     };
 
     poll();
