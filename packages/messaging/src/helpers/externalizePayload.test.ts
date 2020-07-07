@@ -31,11 +31,15 @@ describe('externalizePayload', () => {
         title: 'title',
         body: 'body',
         image: 'image'
-      }
+      },
+      from: 'from',
+      collapse_key: 'collapse'
     };
 
     const payload: MessagePayload = {
-      notification: { title: 'title', body: 'body', image: 'image' }
+      notification: { title: 'title', body: 'body', image: 'image' },
+      from: 'from',
+      collapseKey: 'collapse'
     };
     expect(externalizePayload(internalPayload)).to.deep.equal(payload);
   });
@@ -46,11 +50,15 @@ describe('externalizePayload', () => {
         foo: 'foo',
         bar: 'bar',
         baz: 'baz'
-      }
+      },
+      from: 'from',
+      collapse_key: 'collapse'
     };
 
     const payload: MessagePayload = {
-      data: { foo: 'foo', bar: 'bar', baz: 'baz' }
+      data: { foo: 'foo', bar: 'bar', baz: 'baz' },
+      from: 'from',
+      collapseKey: 'collapse'
     };
     expect(externalizePayload(internalPayload)).to.deep.equal(payload);
   });
@@ -70,7 +78,9 @@ describe('externalizePayload', () => {
       fcmOptions: {
         link: 'link',
         analytics_label: 'label'
-      }
+      },
+      from: 'from',
+      collapse_key: 'collapse'
     };
 
     const payload: MessagePayload = {
@@ -87,7 +97,9 @@ describe('externalizePayload', () => {
       fcmOptions: {
         link: 'link',
         analyticsLabel: 'label'
-      }
+      },
+      from: 'from',
+      collapseKey: 'collapse'
     };
     expect(externalizePayload(internalPayload)).to.deep.equal(payload);
   });

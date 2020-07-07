@@ -105,7 +105,9 @@ export class SwController implements FirebaseMessaging, FirebaseService {
   // Calling this from an old SW can cause all kinds of trouble.
   async getToken(): Promise<string> {
     if (!this.vapidKey) {
-      // Call getToken using the current VAPID key if there already is a token. This is needed because usePublicVapidKey was not available in SW. It will be removed when vapidKey becomes a parameter of getToken, or when getToken is removed from SW.
+      // Call getToken using the current VAPID key if there already is a token. This is needed
+      // because usePublicVapidKey was not available in SW. It will be removed when vapidKey becomes
+      // a parameter of getToken, or when getToken is removed from SW.
       const tokenDetails = await dbGet(this.firebaseDependencies);
       this.vapidKey =
         tokenDetails?.subscriptionOptions?.vapidKey ?? DEFAULT_VAPID_KEY;
@@ -156,7 +158,9 @@ export class SwController implements FirebaseMessaging, FirebaseService {
    * A handler for push events that shows notifications based on the content of the payload.
    *
    * The payload must be a JSON-encoded Object with a `notification` key. The
-   * value of the `notification` property will be used as the NotificationOptions object passed to showNotification. Additionally, the `title` property of the notification object will be used as the title.
+   * value of the `notification` property will be used as the NotificationOptions object passed to
+   * showNotification. Additionally, the `title` property of the notification object will be used as
+   * the title.
    *
    * If there is no notification data in the payload then no notification will be shown.
    */
@@ -176,7 +180,7 @@ export class SwController implements FirebaseMessaging, FirebaseService {
       return sendMessagePayloadInternalToWindows(clientList, internalPayload);
     }
 
-    // background handling: display and pass to onBackgroundMessage
+    // background handling: display and pass to onBackgroundMessage hook
     if (!!internalPayload.notification) {
       await showNotification(wrapInternalPayload(internalPayload));
     } else if (this.bgMessageHandler) {
@@ -213,7 +217,8 @@ export class SwController implements FirebaseMessaging, FirebaseService {
     if (!internalPayload) {
       return;
     } else if (event.action) {
-      // User clicked on an action button. This will allow developers to act on action button clicks by using a custom onNotificationClick listener that they define.
+      // User clicked on an action button. This will allow developers to act on action button clicks
+      // by using a custom onNotificationClick listener that they define.
       return;
     }
 
@@ -230,7 +235,8 @@ export class SwController implements FirebaseMessaging, FirebaseService {
     if (!client) {
       // Unable to find window client so need to open one. This also focuses the opened client.
       client = await self.clients.openWindow(link);
-      // Wait three seconds for the client to initialize and set up the message handler so that it can receive the message.
+      // Wait three seconds for the client to initialize and set up the message handler so that it
+      // can receive the message.
       await sleep(3000);
     } else {
       client = await client.focus();
@@ -254,7 +260,9 @@ function wrapInternalPayload(
     ...((internalPayload.notification as unknown) as NotificationPayloadInternal)
   };
 
-  // Put the message payload under FCM_MSG name so we can identify the notification as being an FCM notification vs a notification from somewhere else (i.e. normal web push or developer generated notification).
+  // Put the message payload under FCM_MSG name so we can identify the notification as being an
+  // FCM notification vs a notification from somewhere else (i.e. normal web push or developer
+  // generated notification).
   wrappedInternalPayload.data = {
     [FCM_MSG]: internalPayload
   };
@@ -282,7 +290,8 @@ function getMessagePayloadInternal({
  * @return Returns an existing window client or a newly opened WindowClient.
  */
 async function getWindowClient(url: string): Promise<WindowClient | null> {
-  // Use URL to normalize the URL when comparing to windowClients. This at least handles whether to include trailing slashes or not
+  // Use URL to normalize the URL when comparing to windowClients. This at least handles whether
+  // to include trailing slashes or not
   const parsedURL = new URL(url, self.location.href);
 
   const clientList = await getClientList();
@@ -305,7 +314,8 @@ function hasVisibleClients(clientList: WindowClient[]): boolean {
   return clientList.some(
     client =>
       client.visibilityState === 'visible' &&
-      // Ignore chrome-extension clients as that matches the background pages of extensions, which are always considered visible for some reason.
+      // Ignore chrome-extension clients as that matches the background pages of extensions,
+      // which are always considered visible for some reason.
       !client.url.startsWith('chrome-extension://')
   );
 }
@@ -333,7 +343,8 @@ function getClientList(): Promise<WindowClient[]> {
 function showNotification(
   notificationPayloadInternal: NotificationPayloadInternal
 ): Promise<void> {
-  // Note: Firefox does not support the maxActions property. https://developer.mozilla.org/en-US/docs/Web/API/notification/maxActions
+  // Note: Firefox does not support the maxActions property.
+  // https://developer.mozilla.org/en-US/docs/Web/API/notification/maxActions
   const { actions } = notificationPayloadInternal;
   const { maxActions } = Notification;
   if (actions && maxActions && actions.length > maxActions) {

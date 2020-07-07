@@ -382,7 +382,10 @@ describe('WindowController', () => {
       const internalPayload: MessagePayloadInternal = {
         notification: { title: 'hello', body: 'world' },
         messageType: MessageType.PUSH_RECEIVED,
-        isFirebaseMessaging: true
+        isFirebaseMessaging: true,
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
       };
 
       await messageEventListener(
@@ -403,7 +406,10 @@ describe('WindowController', () => {
       const internalPayload: MessagePayloadInternal = {
         notification: { title: 'hello', body: 'world' },
         messageType: MessageType.PUSH_RECEIVED,
-        isFirebaseMessaging: true
+        isFirebaseMessaging: true,
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
       };
 
       await messageEventListener(
@@ -421,7 +427,10 @@ describe('WindowController', () => {
       const internalPayload: MessagePayloadInternal = {
         notification: { title: 'hello', body: 'world' },
         messageType: MessageType.PUSH_RECEIVED,
-        isFirebaseMessaging: true
+        isFirebaseMessaging: true,
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
       };
 
       await messageEventListener(
@@ -512,7 +521,10 @@ describe('WindowController', () => {
       const internalPayload: MessagePayloadInternal = {
         notification: { title: 'hello', body: 'world' },
         messageType: MessageType.PUSH_RECEIVED,
-        isFirebaseMessaging: true
+        isFirebaseMessaging: true,
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
       };
 
       await messageEventListener(
@@ -529,7 +541,10 @@ describe('WindowController', () => {
       const internalPayload: MessagePayloadInternal = {
         notification: { title: 'hello', body: 'world' },
         messageType: MessageType.NOTIFICATION_CLICKED,
-        isFirebaseMessaging: true
+        isFirebaseMessaging: true,
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
       };
 
       await messageEventListener(
@@ -550,7 +565,10 @@ describe('WindowController', () => {
           [CONSOLE_CAMPAIGN_ANALYTICS_ENABLED]: '1'
         },
         messageType: MessageType.PUSH_RECEIVED,
-        isFirebaseMessaging: true
+        isFirebaseMessaging: true,
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
       };
 
       await messageEventListener(
@@ -583,7 +601,10 @@ describe('WindowController', () => {
           [CONSOLE_CAMPAIGN_ANALYTICS_ENABLED]: '1'
         },
         messageType: MessageType.NOTIFICATION_CLICKED,
-        isFirebaseMessaging: true
+        isFirebaseMessaging: true,
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
       };
 
       await messageEventListener(

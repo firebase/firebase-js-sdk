@@ -74,11 +74,16 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
       return;
     }
 
+    // onMessageCallback is either a function or observer/subscriber.
     if (
       this.onMessageCallback &&
       internalPayload.messageType === MessageType.PUSH_RECEIVED
     ) {
-      this.onMessageCallback(externalizePayload(internalPayload));
+      if (typeof this.onMessageCallback === 'function') {
+        this.onMessageCallback(externalizePayload(internalPayload));
+      } else {
+        this.onMessageCallback.next(externalizePayload(internalPayload));
+      }
     }
 
     const dataPayload = internalPayload.data;

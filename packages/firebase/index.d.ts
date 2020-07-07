@@ -6950,7 +6950,7 @@ declare namespace firebase.messaging {
    */
   interface Messaging {
     /**
-     * Deletes the only registration token associated with this messaging instance and unsubscribes
+     * Deletes the registration token associated with this messaging instance and unsubscribes
      * this messaging instance from the push subscription.
      *
      * @return The promise resolves when the token has been successfully deleted.
@@ -6970,19 +6970,26 @@ declare namespace firebase.messaging {
     deleteToken(token: string): Promise<boolean>;
 
     /**
-     * Subscribes the user to push notifications. Returns an FCM registration
+     * Subscribes the messaging instance to push notifications. Returns an FCM registration
      * token that can be used to send push messages to the user.
      *
      * If notification permission isn't already granted, this method asks the
      * user for permission. The returned promise rejects if the user does not
      * allow the app to show notifications.
      *
-     * @param options.vapidKey the public server key provided to push services. It is used to authenticate
-     * the push subscribers to receive push messages only from sending servers that holds the corresponding private key. If it is not provided, a default VAPID key will be be used. Note that some push services (Chrome Push Service) require a non-default VAPID key. Therefore, it is recommended to to generate and import a VAPID key for your project with {@link https://firebase.google.com/docs/cloud-messaging/js/client#configure_web_credentials_with_fcm Configure Web Credentials with FCM}. Also See {@link https://developers.google.com/web/fundamentals/push-notifications/web-push-protocol The Web Push Protocol} for details on web push services.}
+     * @param options.vapidKey the public server key provided to push services. It is used to
+     * authenticate the push subscribers to receive push messages only from sending servers that
+     * holds the corresponding private key. If it is not provided, a default VAPID key will be used.
+     * Note that some push services (Chrome Push Service) require a non-default VAPID key.
+     * Therefore, it is recommended to generate and import a VAPID key for your project with
+     * {@link https://firebase.google.com/docs/cloud-messaging/js/client#configure_web_credentials_with_fcm Configure Web Credentials with FCM}.
+     * See {@link https://developers.google.com/web/fundamentals/push-notifications/web-push-protocol The Web Push Protocol}
+     * for details on web push services.}
      *
      * @param options.serviceWorkerRegistration the service worker registration for receiving push messaging.
      * If it is not provided explicitly, you need to have a `firebase-messaging-sw.js` at your root location.
-     * See {@link https://firebase.google.com/docs/cloud-messaging/js/client#retrieve-the-current-registration-token Retrieve the current registration token} for more details.
+     * See {@link https://firebase.google.com/docs/cloud-messaging/js/client#retrieve-the-current-registration-token Retrieve the current registration token}
+     * for more details.
      *
      * @return The promise resolves with the FCM token string.
      *
@@ -7027,7 +7034,8 @@ declare namespace firebase.messaging {
     ): firebase.Unsubscribe;
 
     /**
-     * Called when a message is received while the app is in the background. An app is considered as a background app if no active window is displayed.
+     * Called when a message is received while the app is in the background. An app is considered
+     * as a background app if no active window is displayed.
      *
      * @param
      *     nextOrObserver This function, or observer object with `next` defined,
@@ -7115,7 +7123,10 @@ declare namespace firebase.messaging {
   }
 
   /**
-   * Message payload that contains the notification payload that is represented with {@link firebase.Messaging.NotificationPayload} and the data payload that contains an arbitrary number of key-value pairs sent by developers through the {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification Send API}
+   * Message payload that contains the notification payload that is represented with
+   *  {@link firebase.Messaging.NotificationPayload} and the data payload that contains an
+   * arbitrary number of key-value pairs sent by developers through
+   * the {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification Send API}
    */
   export interface MessagePayload {
     /**
@@ -7126,21 +7137,38 @@ declare namespace firebase.messaging {
     /**
      * Arbitrary key/value pairs.
      */
-
     data?: { [key: string]: string };
 
     /**
      * See {@link firebase.Messaging.FcmOptions}.
      */
-
     fcmOptions?: FcmOptions;
+
+    /**
+     * The sender of this message.
+     */
+    from: string;
+
+    /**
+     * The collapse key of this message. See more {@link https://firebase.google.com/docs/cloud-messaging/concept-options#collapsible_and_non-collapsible_messages}.
+     */
+    collapseKey: string;
   }
 
   /**
    * Options for features provided by the FCM SDK for Web. See more {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions}.
    */
   export interface FcmOptions {
+    /**
+     * The link to open when the user clicks on the notification. For all URL values, HTTPS is required.
+     * For example, by setting this value to your app's URL, a notification click click event will
+     * put your app in focus for the user.
+     */
     link?: string;
+
+    /**
+     * Label associated with the message's analytics data.
+     */
     analyticsLabel?: string;
   }
 

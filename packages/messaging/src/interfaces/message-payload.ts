@@ -45,6 +45,9 @@ export interface MessagePayloadInternal {
   fcmOptions?: FcmOptionsInternal;
   messageType?: MessageType;
   isFirebaseMessaging?: boolean;
+  from: string;
+  // eslint-disable-next-line camelcase
+  collapse_key: string;
 }
 
 export enum MessageType {
@@ -68,6 +71,8 @@ export interface MessagePayload {
   notification?: NotificationPayload;
   data?: { [key: string]: string };
   fcmOptions?: FcmOptions;
+  from: string;
+  collapseKey: string;
 }
 
 /** Additional data of a message sent from the FN Console. */

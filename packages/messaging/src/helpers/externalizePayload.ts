@@ -27,7 +27,9 @@ export function externalizePayload(
   const payload: MessagePayload = {
     notification: {},
     data: {},
-    fcmOptions: {}
+    fcmOptions: {},
+    from: internalPayload.from,
+    collapseKey: internalPayload.collapse_key
   } as MessagePayload;
 
   propagateNotificationPayload(payload, internalPayload);

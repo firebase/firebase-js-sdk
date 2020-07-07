@@ -60,14 +60,20 @@ const DISPLAY_MESSAGE: MessagePayloadInternal = {
   },
   fcmOptions: {
     link: 'https://example.org'
-  }
+  },
+  from: 'from',
+  // eslint-disable-next-line camelcase
+  collapse_key: 'collapse'
 };
 
 // internal message payload (parsed directly from the push event) that contains and only contains data payload.
 const DATA_MESSAGE: MessagePayloadInternal = {
   data: {
     key: 'value'
-  }
+  },
+  from: 'from',
+  // eslint-disable-next-line camelcase
+  collapse_key: 'collapse'
 };
 
 describe('SwController', () => {
