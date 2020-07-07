@@ -335,8 +335,7 @@ export class MultiTabIndexedDbComponentProvider extends IndexedDbComponentProvid
         cfg.clientId,
         cfg.initialUser
       );
-    } else {
-      return new MemorySharedClientState();
     }
+    return new MemorySharedClientState();
   }
 }
