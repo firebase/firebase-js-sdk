@@ -22,15 +22,18 @@ import * as firestore from '../../index';
 import { Firestore } from './database';
 import {
   DocumentKeyReference,
-  ParsedUpdateData
+  ParsedUpdateData,
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs
 } from '../../../src/api/user_data_reader';
 import { debugAssert } from '../../../src/util/assert';
 import { cast } from '../../../lite/src/api/util';
 import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import {
   addDocSnapshotListener,
-  addSnapshotsInSyncListener,
   addQuerySnapshotListener,
+  addSnapshotsInSyncListener,
   applyFirestoreDataConverter,
   getDocsViaSnapshotListener,
   getDocViaSnapshotListener,
@@ -175,7 +178,8 @@ export function setDoc<T>(
     options
   );
   const dataReader = newUserDataReader(firestore);
-  const parsed = dataReader.parseSetData(
+  const parsed = parseSetData(
+    dataReader,
     'setDoc',
     ref._key,
     convertedValue,
@@ -215,7 +219,8 @@ export function updateDoc(
     typeof fieldOrUpdateData === 'string' ||
     fieldOrUpdateData instanceof FieldPath
   ) {
-    parsed = dataReader.parseUpdateVarargs(
+    parsed = parseUpdateVarargs(
+      dataReader,
       'updateDoc',
       ref._key,
       fieldOrUpdateData,
@@ -223,7 +228,8 @@ export function updateDoc(
       moreFieldsAndValues
     );
   } else {
-    parsed = dataReader.parseUpdateData(
+    parsed = parseUpdateData(
+      dataReader,
       'updateDoc',
       ref._key,
       fieldOrUpdateData
@@ -262,11 +268,13 @@ export function addDoc<T>(
   const convertedValue = applyFirestoreDataConverter(collRef._converter, data);
 
   const dataReader = newUserDataReader(collRef.firestore);
-  const parsed = dataReader.parseSetData(
+  const parsed = parseSetData(
+    dataReader,
     'addDoc',
     docRef._key,
     convertedValue,
-    collRef._converter !== null
+    collRef._converter !== null,
+    {}
   );
 
   return firestore

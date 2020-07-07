@@ -92,6 +92,10 @@ import {
 import {
   DocumentKeyReference,
   fieldPathFromArgument,
+  parseQueryValue,
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs,
   UntypedFirestoreDataConverter,
   UserDataReader
 } from './user_data_reader';
@@ -757,7 +761,8 @@ export class Transaction implements firestore.Transaction {
       value,
       options
     );
-    const parsed = this._firestore._dataReader.parseSetData(
+    const parsed = parseSetData(
+      this._firestore._dataReader,
       'Transaction.set',
       ref._key,
       convertedValue,
@@ -797,7 +802,8 @@ export class Transaction implements firestore.Transaction {
         documentRef,
         this._firestore
       );
-      parsed = this._firestore._dataReader.parseUpdateVarargs(
+      parsed = parseUpdateVarargs(
+        this._firestore._dataReader,
         'Transaction.update',
         ref._key,
         fieldOrUpdateData,
@@ -811,7 +817,8 @@ export class Transaction implements firestore.Transaction {
         documentRef,
         this._firestore
       );
-      parsed = this._firestore._dataReader.parseUpdateData(
+      parsed = parseUpdateData(
+        this._firestore._dataReader,
         'Transaction.update',
         ref._key,
         fieldOrUpdateData
@@ -864,7 +871,8 @@ export class WriteBatch implements firestore.WriteBatch {
       value,
       options
     );
-    const parsed = this._firestore._dataReader.parseSetData(
+    const parsed = parseSetData(
+      this._firestore._dataReader,
       'WriteBatch.set',
       ref._key,
       convertedValue,
@@ -908,7 +916,8 @@ export class WriteBatch implements firestore.WriteBatch {
         documentRef,
         this._firestore
       );
-      parsed = this._firestore._dataReader.parseUpdateVarargs(
+      parsed = parseUpdateVarargs(
+        this._firestore._dataReader,
         'WriteBatch.update',
         ref._key,
         fieldOrUpdateData,
@@ -922,7 +931,8 @@ export class WriteBatch implements firestore.WriteBatch {
         documentRef,
         this._firestore
       );
-      parsed = this._firestore._dataReader.parseUpdateData(
+      parsed = parseUpdateData(
+        this._firestore._dataReader,
         'WriteBatch.update',
         ref._key,
         fieldOrUpdateData
@@ -1064,7 +1074,8 @@ export class DocumentReference<T = firestore.DocumentData>
       value,
       options
     );
-    const parsed = this.firestore._dataReader.parseSetData(
+    const parsed = parseSetData(
+      this.firestore._dataReader,
       'DocumentReference.set',
       this._key,
       convertedValue,
@@ -1094,7 +1105,8 @@ export class DocumentReference<T = firestore.DocumentData>
       fieldOrUpdateData instanceof ExternalFieldPath
     ) {
       validateAtLeastNumberOfArgs('DocumentReference.update', arguments, 2);
-      parsed = this.firestore._dataReader.parseUpdateVarargs(
+      parsed = parseUpdateVarargs(
+        this.firestore._dataReader,
         'DocumentReference.update',
         this._key,
         fieldOrUpdateData,
@@ -1103,7 +1115,8 @@ export class DocumentReference<T = firestore.DocumentData>
       );
     } else {
       validateExactNumberOfArgs('DocumentReference.update', arguments, 1);
-      parsed = this.firestore._dataReader.parseUpdateData(
+      parsed = parseUpdateData(
+        this.firestore._dataReader,
         'DocumentReference.update',
         this._key,
         fieldOrUpdateData
@@ -1548,11 +1561,11 @@ export class BaseQuery {
       if (op === Operator.IN || op === Operator.ARRAY_CONTAINS_ANY) {
         this.validateDisjunctiveFilterElements(value, op);
       }
-      fieldValue = this._dataReader.parseQueryValue(
+      fieldValue = parseQueryValue(
+        this._dataReader,
         'Query.where',
         value,
-        // We only allow nested arrays for IN queries.
-        /** allowArrays = */ op === Operator.IN
+        op === Operator.IN
       );
     }
     const filter = FieldFilter.create(fieldPath, op, fieldValue);
@@ -1698,7 +1711,7 @@ export class BaseQuery {
         const key = new DocumentKey(path);
         components.push(refValue(this._databaseId, key));
       } else {
-        const wrapped = this._dataReader.parseQueryValue(methodName, rawValue);
+        const wrapped = parseQueryValue(this._dataReader, methodName, rawValue);
         components.push(wrapped);
       }
     }
