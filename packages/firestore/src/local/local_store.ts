@@ -30,7 +30,12 @@ import {
 } from '../model/collections';
 import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { Mutation, PatchMutation, Precondition } from '../model/mutation';
+import {
+  Mutation,
+  PatchMutation,
+  Precondition,
+  extractMutationBaseValue
+} from '../model/mutation';
 import {
   BATCHID_UNKNOWN,
   MutationBatch,
@@ -449,7 +454,8 @@ class LocalStoreImpl implements LocalStore {
           const baseMutations: Mutation[] = [];
 
           for (const mutation of mutations) {
-            const baseValue = mutation.extractBaseValue(
+            const baseValue = extractMutationBaseValue(
+              mutation,
               existingDocs.get(mutation.key)
             );
             if (baseValue != null) {

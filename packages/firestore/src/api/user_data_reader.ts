@@ -319,191 +319,8 @@ export class UserDataReader {
     this.serializer = serializer || newSerializer(databaseId);
   }
 
-  /** Parse document data from a set() call. */
-  parseSetData(
-    methodName: string,
-    targetDoc: DocumentKey,
-    input: unknown,
-    hasConverter: boolean,
-    options: firestore.SetOptions = {}
-  ): ParsedSetData {
-    const context = this.createContext(
-      options.merge || options.mergeFields
-        ? UserDataSource.MergeSet
-        : UserDataSource.Set,
-      methodName,
-      targetDoc,
-      hasConverter
-    );
-    validatePlainObject('Data must be an object, but it was:', context, input);
-    const updateData = parseObject(input, context)!;
-
-    let fieldMask: FieldMask | null;
-    let fieldTransforms: FieldTransform[];
-
-    if (options.merge) {
-      fieldMask = new FieldMask(context.fieldMask);
-      fieldTransforms = context.fieldTransforms;
-    } else if (options.mergeFields) {
-      const validatedFieldPaths: FieldPath[] = [];
-
-      for (const stringOrFieldPath of options.mergeFields) {
-        let fieldPath: FieldPath;
-
-        if (stringOrFieldPath instanceof BaseFieldPath) {
-          fieldPath = stringOrFieldPath._internalPath;
-        } else if (typeof stringOrFieldPath === 'string') {
-          fieldPath = fieldPathFromDotSeparatedString(
-            methodName,
-            stringOrFieldPath,
-            targetDoc
-          );
-        } else {
-          throw fail(
-            'Expected stringOrFieldPath to be a string or a FieldPath'
-          );
-        }
-
-        if (!context.contains(fieldPath)) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            `Field '${fieldPath}' is specified in your field mask but missing from your input data.`
-          );
-        }
-
-        if (!fieldMaskContains(validatedFieldPaths, fieldPath)) {
-          validatedFieldPaths.push(fieldPath);
-        }
-      }
-
-      fieldMask = new FieldMask(validatedFieldPaths);
-      fieldTransforms = context.fieldTransforms.filter(transform =>
-        fieldMask!.covers(transform.field)
-      );
-    } else {
-      fieldMask = null;
-      fieldTransforms = context.fieldTransforms;
-    }
-
-    return new ParsedSetData(
-      new ObjectValue(updateData),
-      fieldMask,
-      fieldTransforms
-    );
-  }
-
-  /** Parse update data from an update() call. */
-  parseUpdateData(
-    methodName: string,
-    targetDoc: DocumentKey,
-    input: unknown
-  ): ParsedUpdateData {
-    const context = this.createContext(
-      UserDataSource.Update,
-      methodName,
-      targetDoc
-    );
-    validatePlainObject('Data must be an object, but it was:', context, input);
-
-    const fieldMaskPaths: FieldPath[] = [];
-    const updateData = new ObjectValueBuilder();
-    forEach(input as Dict<unknown>, (key, value) => {
-      const path = fieldPathFromDotSeparatedString(methodName, key, targetDoc);
-
-      const childContext = context.childContextForFieldPath(path);
-      if (
-        value instanceof SerializableFieldValue &&
-        value._delegate instanceof DeleteFieldValueImpl
-      ) {
-        // Add it to the field mask, but don't add anything to updateData.
-        fieldMaskPaths.push(path);
-      } else {
-        const parsedValue = parseData(value, childContext);
-        if (parsedValue != null) {
-          fieldMaskPaths.push(path);
-          updateData.set(path, parsedValue);
-        }
-      }
-    });
-
-    const mask = new FieldMask(fieldMaskPaths);
-    return new ParsedUpdateData(
-      updateData.build(),
-      mask,
-      context.fieldTransforms
-    );
-  }
-
-  /** Parse update data from a list of field/value arguments. */
-  parseUpdateVarargs(
-    methodName: string,
-    targetDoc: DocumentKey,
-    field: string | BaseFieldPath,
-    value: unknown,
-    moreFieldsAndValues: unknown[]
-  ): ParsedUpdateData {
-    const context = this.createContext(
-      UserDataSource.Update,
-      methodName,
-      targetDoc
-    );
-    const keys = [fieldPathFromArgument(methodName, field, targetDoc)];
-    const values = [value];
-
-    if (moreFieldsAndValues.length % 2 !== 0) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Function ${methodName}() needs to be called with an even number ` +
-          'of arguments that alternate between field names and values.'
-      );
-    }
-
-    for (let i = 0; i < moreFieldsAndValues.length; i += 2) {
-      keys.push(
-        fieldPathFromArgument(
-          methodName,
-          moreFieldsAndValues[i] as string | BaseFieldPath
-        )
-      );
-      values.push(moreFieldsAndValues[i + 1]);
-    }
-
-    const fieldMaskPaths: FieldPath[] = [];
-    const updateData = new ObjectValueBuilder();
-
-    // We iterate in reverse order to pick the last value for a field if the
-    // user specified the field multiple times.
-    for (let i = keys.length - 1; i >= 0; --i) {
-      if (!fieldMaskContains(fieldMaskPaths, keys[i])) {
-        const path = keys[i];
-        const value = values[i];
-        const childContext = context.childContextForFieldPath(path);
-        if (
-          value instanceof SerializableFieldValue &&
-          value._delegate instanceof DeleteFieldValueImpl
-        ) {
-          // Add it to the field mask, but don't add anything to updateData.
-          fieldMaskPaths.push(path);
-        } else {
-          const parsedValue = parseData(value, childContext);
-          if (parsedValue != null) {
-            fieldMaskPaths.push(path);
-            updateData.set(path, parsedValue);
-          }
-        }
-      }
-    }
-
-    const mask = new FieldMask(fieldMaskPaths);
-    return new ParsedUpdateData(
-      updateData.build(),
-      mask,
-      context.fieldTransforms
-    );
-  }
-
   /** Creates a new top-level parse context. */
-  private createContext(
+  createContext(
     dataSource: UserDataSource,
     methodName: string,
     targetDoc?: DocumentKey,
@@ -523,31 +340,216 @@ export class UserDataReader {
       this.ignoreUndefinedProperties
     );
   }
+}
 
-  /**
-   * Parse a "query value" (e.g. value in a where filter or a value in a cursor
-   * bound).
-   *
-   * @param allowArrays Whether the query value is an array that may directly
-   * contain additional arrays (e.g. the operand of an `in` query).
-   */
-  parseQueryValue(
-    methodName: string,
-    input: unknown,
-    allowArrays = false
-  ): api.Value {
-    const context = this.createContext(
-      allowArrays ? UserDataSource.ArrayArgument : UserDataSource.Argument,
-      methodName
+/** Parse document data from a set() call. */
+export function parseSetData(
+  userDataReader: UserDataReader,
+  methodName: string,
+  targetDoc: DocumentKey,
+  input: unknown,
+  hasConverter: boolean,
+  options: firestore.SetOptions = {}
+): ParsedSetData {
+  const context = userDataReader.createContext(
+    options.merge || options.mergeFields
+      ? UserDataSource.MergeSet
+      : UserDataSource.Set,
+    methodName,
+    targetDoc,
+    hasConverter
+  );
+  validatePlainObject('Data must be an object, but it was:', context, input);
+  const updateData = parseObject(input, context)!;
+
+  let fieldMask: FieldMask | null;
+  let fieldTransforms: FieldTransform[];
+
+  if (options.merge) {
+    fieldMask = new FieldMask(context.fieldMask);
+    fieldTransforms = context.fieldTransforms;
+  } else if (options.mergeFields) {
+    const validatedFieldPaths: FieldPath[] = [];
+
+    for (const stringOrFieldPath of options.mergeFields) {
+      let fieldPath: FieldPath;
+
+      if (stringOrFieldPath instanceof BaseFieldPath) {
+        fieldPath = stringOrFieldPath._internalPath;
+      } else if (typeof stringOrFieldPath === 'string') {
+        fieldPath = fieldPathFromDotSeparatedString(
+          methodName,
+          stringOrFieldPath,
+          targetDoc
+        );
+      } else {
+        throw fail('Expected stringOrFieldPath to be a string or a FieldPath');
+      }
+
+      if (!context.contains(fieldPath)) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `Field '${fieldPath}' is specified in your field mask but missing from your input data.`
+        );
+      }
+
+      if (!fieldMaskContains(validatedFieldPaths, fieldPath)) {
+        validatedFieldPaths.push(fieldPath);
+      }
+    }
+
+    fieldMask = new FieldMask(validatedFieldPaths);
+    fieldTransforms = context.fieldTransforms.filter(transform =>
+      fieldMask!.covers(transform.field)
     );
-    const parsed = parseData(input, context);
-    debugAssert(parsed != null, 'Parsed data should not be null.');
-    debugAssert(
-      context.fieldTransforms.length === 0,
-      'Field transforms should have been disallowed.'
-    );
-    return parsed;
+  } else {
+    fieldMask = null;
+    fieldTransforms = context.fieldTransforms;
   }
+
+  return new ParsedSetData(
+    new ObjectValue(updateData),
+    fieldMask,
+    fieldTransforms
+  );
+}
+
+/** Parse update data from an update() call. */
+export function parseUpdateData(
+  userDataReader: UserDataReader,
+  methodName: string,
+  targetDoc: DocumentKey,
+  input: unknown
+): ParsedUpdateData {
+  const context = userDataReader.createContext(
+    UserDataSource.Update,
+    methodName,
+    targetDoc
+  );
+  validatePlainObject('Data must be an object, but it was:', context, input);
+
+  const fieldMaskPaths: FieldPath[] = [];
+  const updateData = new ObjectValueBuilder();
+  forEach(input as Dict<unknown>, (key, value) => {
+    const path = fieldPathFromDotSeparatedString(methodName, key, targetDoc);
+
+    const childContext = context.childContextForFieldPath(path);
+    if (
+      value instanceof SerializableFieldValue &&
+      value._delegate instanceof DeleteFieldValueImpl
+    ) {
+      // Add it to the field mask, but don't add anything to updateData.
+      fieldMaskPaths.push(path);
+    } else {
+      const parsedValue = parseData(value, childContext);
+      if (parsedValue != null) {
+        fieldMaskPaths.push(path);
+        updateData.set(path, parsedValue);
+      }
+    }
+  });
+
+  const mask = new FieldMask(fieldMaskPaths);
+  return new ParsedUpdateData(
+    updateData.build(),
+    mask,
+    context.fieldTransforms
+  );
+}
+
+/** Parse update data from a list of field/value arguments. */
+export function parseUpdateVarargs(
+  userDataReader: UserDataReader,
+  methodName: string,
+  targetDoc: DocumentKey,
+  field: string | BaseFieldPath,
+  value: unknown,
+  moreFieldsAndValues: unknown[]
+): ParsedUpdateData {
+  const context = userDataReader.createContext(
+    UserDataSource.Update,
+    methodName,
+    targetDoc
+  );
+  const keys = [fieldPathFromArgument(methodName, field, targetDoc)];
+  const values = [value];
+
+  if (moreFieldsAndValues.length % 2 !== 0) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `Function ${methodName}() needs to be called with an even number ` +
+        'of arguments that alternate between field names and values.'
+    );
+  }
+
+  for (let i = 0; i < moreFieldsAndValues.length; i += 2) {
+    keys.push(
+      fieldPathFromArgument(
+        methodName,
+        moreFieldsAndValues[i] as string | BaseFieldPath
+      )
+    );
+    values.push(moreFieldsAndValues[i + 1]);
+  }
+
+  const fieldMaskPaths: FieldPath[] = [];
+  const updateData = new ObjectValueBuilder();
+
+  // We iterate in reverse order to pick the last value for a field if the
+  // user specified the field multiple times.
+  for (let i = keys.length - 1; i >= 0; --i) {
+    if (!fieldMaskContains(fieldMaskPaths, keys[i])) {
+      const path = keys[i];
+      const value = values[i];
+      const childContext = context.childContextForFieldPath(path);
+      if (
+        value instanceof SerializableFieldValue &&
+        value._delegate instanceof DeleteFieldValueImpl
+      ) {
+        // Add it to the field mask, but don't add anything to updateData.
+        fieldMaskPaths.push(path);
+      } else {
+        const parsedValue = parseData(value, childContext);
+        if (parsedValue != null) {
+          fieldMaskPaths.push(path);
+          updateData.set(path, parsedValue);
+        }
+      }
+    }
+  }
+
+  const mask = new FieldMask(fieldMaskPaths);
+  return new ParsedUpdateData(
+    updateData.build(),
+    mask,
+    context.fieldTransforms
+  );
+}
+
+/**
+ * Parse a "query value" (e.g. value in a where filter or a value in a cursor
+ * bound).
+ *
+ * @param allowArrays Whether the query value is an array that may directly
+ * contain additional arrays (e.g. the operand of an `in` query).
+ */
+export function parseQueryValue(
+  userDataReader: UserDataReader,
+  methodName: string,
+  input: unknown,
+  allowArrays = false
+): api.Value {
+  const context = userDataReader.createContext(
+    allowArrays ? UserDataSource.ArrayArgument : UserDataSource.Argument,
+    methodName
+  );
+  const parsed = parseData(input, context);
+  debugAssert(parsed != null, 'Parsed data should not be null.');
+  debugAssert(
+    context.fieldTransforms.length === 0,
+    'Field transforms should have been disallowed.'
+  );
+  return parsed;
 }
 
 /**

@@ -17,7 +17,12 @@
 
 import * as firestore from '../../';
 
-import { UserDataReader } from '../../../src/api/user_data_reader';
+import {
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs,
+  UserDataReader
+} from '../../../src/api/user_data_reader';
 import { Transaction as InternalTransaction } from '../../../src/core/transaction';
 import {
   Document,
@@ -100,7 +105,8 @@ export class Transaction implements firestore.Transaction {
       value,
       options
     );
-    const parsed = this._dataReader.parseSetData(
+    const parsed = parseSetData(
+      this._dataReader,
       'Transaction.set',
       ref._key,
       convertedValue,
@@ -134,7 +140,8 @@ export class Transaction implements firestore.Transaction {
       typeof fieldOrUpdateData === 'string' ||
       fieldOrUpdateData instanceof FieldPath
     ) {
-      parsed = this._dataReader.parseUpdateVarargs(
+      parsed = parseUpdateVarargs(
+        this._dataReader,
         'Transaction.update',
         ref._key,
         fieldOrUpdateData,
@@ -142,7 +149,8 @@ export class Transaction implements firestore.Transaction {
         moreFieldsAndValues
       );
     } else {
-      parsed = this._dataReader.parseUpdateData(
+      parsed = parseUpdateData(
+        this._dataReader,
         'Transaction.update',
         ref._key,
         fieldOrUpdateData
