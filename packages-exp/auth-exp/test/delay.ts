@@ -19,8 +19,7 @@
 const SET_TIMEOUT = window.setTimeout;
 
 /**
- * Throws tasks to the back of the async task queue, optionally # times.
- * Each "time" roughly corresponds to one execution of an "await" statement
+ * Throws tasks to the back of the async task queue.
  */
 export function delay(cb: () => void): void {
   SET_TIMEOUT(cb, 1);
