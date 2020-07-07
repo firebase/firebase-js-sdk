@@ -1,6 +1,6 @@
 {
   "name": "@firebase/util",
-  "version": "0.2.49",
+  "version": "0.2.50",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -30,7 +30,7 @@
   "devDependencies": {
     "rollup": "2.7.6",
     "rollup-plugin-typescript2": "0.27.0",
-    "typescript": "3.8.3"
+    "typescript": "3.9.5"
   },
   "repository": {
     "directory": "packages/util",

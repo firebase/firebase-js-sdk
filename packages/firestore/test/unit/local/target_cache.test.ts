@@ -34,7 +34,12 @@ import {
 import { Timestamp } from '../../../src/api/timestamp';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestTargetCache } from './test_target_cache';
-import { canonifyTarget, Target, targetEquals } from '../../../src/core/target';
+import {
+  canonifyTarget,
+  Target,
+  targetEquals,
+  TargetImpl
+} from '../../../src/core/target';
 
 describe('MemoryTargetCache', () => {
   genericTargetCacheTests(persistenceHelpers.testMemoryEagerPersistence);
@@ -106,7 +111,7 @@ describe('IndexedDbTargetCache', () => {
 function genericTargetCacheTests(
   persistencePromise: () => Promise<Persistence>
 ): void {
-  addEqualityMatcher({ equalsFn: targetEquals, forType: Target });
+  addEqualityMatcher({ equalsFn: targetEquals, forType: TargetImpl });
   let cache: TestTargetCache;
 
   const QUERY_ROOMS = Query.atPath(path('rooms')).toTarget();

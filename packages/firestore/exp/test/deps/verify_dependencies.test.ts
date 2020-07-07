@@ -16,32 +16,33 @@
  */
 
 import { expect } from 'chai';
+import { resolve } from 'path';
 
 import { extractDependencies } from '../../../../../scripts/exp/extract-deps.helpers';
 
 import * as dependencies from './dependencies.json';
-import * as pkg from '../../../package.json';
+import * as pkg from '../../package.json';
 import { forEach } from '../../../src/util/obj';
 
-// TODO(firestorexp): Enable test
-// eslint-disable-next-line no-restricted-properties
-describe.skip('Dependencies', () => {
+describe('Dependencies', () => {
   forEach(dependencies, (api, { dependencies }) => {
     it(api, () => {
-      return extractDependencies(api, pkg.exp).then(extractedDependencies => {
-        expect(extractedDependencies.classes).to.have.members(
-          dependencies.classes,
-          'for classes'
-        );
-        expect(extractedDependencies.functions).to.have.members(
-          dependencies.functions,
-          'for functions'
-        );
-        expect(extractedDependencies.variables).to.have.members(
-          dependencies.variables,
-          'for variables'
-        );
-      });
+      return extractDependencies(api, resolve('exp', pkg.main)).then(
+        extractedDependencies => {
+          expect(extractedDependencies.classes).to.have.members(
+            dependencies.classes,
+            'for classes'
+          );
+          expect(extractedDependencies.functions).to.have.members(
+            dependencies.functions,
+            'for functions'
+          );
+          expect(extractedDependencies.variables).to.have.members(
+            dependencies.variables,
+            'for variables'
+          );
+        }
+      );
     });
   });
 });
