@@ -47,7 +47,7 @@ import {
 import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
 import { isPlainObject } from '../../src/util/input_validation';
 
-export { GeoPoint, Blob, Timestamp } from '../../lite/index.node';
+export { GeoPoint, Blob, Timestamp } from '../index.node';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
