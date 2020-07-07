@@ -6,7 +6,7 @@
 -  `--inputModule, --im`      The name of the module(s) to be analyzed. example: --inputModule "@firebase/functions-exp" "firebase/auth-exp" [array]
 -  `--inputDtsFile, --if`     Support for adhoc analysis. requires a path to dts file [string]
 -  `--inputBundleFile, --ib`  Support for adhoc analysis. requires a path to a bundle file [string]
-- `--output, -o`            The location where report(s) will be generated, a directory path if multiple modules are analyzed; a file path if one module is analyzed [string] `[required]`
+- `--output, -o`            The location where report(s) will be generated, a directory path if module(s) are analyzed; a file path if ad hoc analysis is to be performed [string] `[required]`
 - `--help `                  Show help [boolean]
 
 
