@@ -17,18 +17,28 @@
 
 import { base64 } from '@firebase/util';
 
+// WebSafe uses a different URL-encoding safe alphabet that doesn't match
+// the encoding used on the backend.
+const WEB_SAFE = false;
+
 /** Converts a Base64 encoded string to a binary string. */
 export function decodeBase64(encoded: string): string {
-  // WebSafe uses a different URL-encoding safe alphabet that doesn't match
-  // the encoding used on the backend.
-  return base64.decodeString(encoded, /* webSafe =*/ false);
+  return String.fromCharCode.apply(
+    null,
+    // We use `decodeStringToByteArray()` instead of `decodeString()` since
+    // `decodeString()` returns Unicode strings, which doesn't match the values
+    // returned by `atob()`'s Latin1 representation.
+    base64.decodeStringToByteArray(encoded, WEB_SAFE)
+  );
 }
 
 /** Converts a binary string to a Base64 encoded string. */
 export function encodeBase64(raw: string): string {
-  // WebSafe uses a different URL-encoding safe alphabet that doesn't match
-  // the encoding used on the backend.
-  return base64.encodeString(raw, /* webSafe =*/ false);
+  const bytes: number[] = [];
+  for (let i = 0; i < raw.length; i++) {
+    bytes[i] = raw.charCodeAt(i);
+  }
+  return base64.encodeByteArray(bytes, WEB_SAFE);
 }
 
 /** True if and only if the Base64 conversion functions are available. */

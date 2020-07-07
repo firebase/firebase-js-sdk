@@ -183,10 +183,13 @@ export class WriteBatch {
   commit(): Promise<void>;
 }
 
-export interface SetOptions {
-  readonly merge?: boolean;
-  readonly mergeFields?: Array<string | FieldPath>;
-}
+export type SetOptions =
+  | {
+      readonly merge?: boolean;
+    }
+  | {
+      readonly mergeFields?: Array<string | FieldPath>;
+    };
 
 export class DocumentReference<T = DocumentData> {
   private constructor();

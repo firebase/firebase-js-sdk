@@ -23,12 +23,24 @@ import { Firestore } from './src/api/database';
 export { FieldPath, documentId } from '../lite/src/api/field_path';
 
 export {
-  Firestore,
+  Firestore as FirebaseFirestore,
   initializeFirestore,
-  getFirestore
+  getFirestore,
+  enableIndexedDbPersistence,
+  enableMultiTabIndexedDbPersistence,
+  clearIndexedDbPersistence,
+  waitForPendingWrites,
+  disableNetwork,
+  enableNetwork,
+  terminate
 } from './src/api/database';
 
-export { DocumentSnapshot, QueryDocumentSnapshot } from './src/api/snapshot';
+export {
+  DocumentSnapshot,
+  QueryDocumentSnapshot,
+  QuerySnapshot,
+  snapshotEqual
+} from './src/api/snapshot';
 
 export { SnapshotMetadata } from '../src/api/database';
 
@@ -44,7 +56,20 @@ export {
 
 export { runTransaction, Transaction } from '../lite/src/api/transaction';
 
-export { getDoc, getDocFromCache, getDocFromServer } from './src/api/reference';
+export {
+  getDoc,
+  getDocFromCache,
+  getDocFromServer,
+  getQuery,
+  getQueryFromCache,
+  getQueryFromServer,
+  onSnapshot,
+  onSnapshotsInSync,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  addDoc
+} from './src/api/reference';
 
 export {
   FieldValue,

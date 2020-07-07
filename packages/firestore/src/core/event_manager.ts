@@ -18,7 +18,7 @@
 import { debugAssert } from '../util/assert';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
-import { Query } from './query';
+import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
 import { SyncEngine, SyncEngineListener } from './sync_engine';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
@@ -48,8 +48,8 @@ export interface Observer<T> {
  */
 export class EventManager implements SyncEngineListener {
   private queries = new ObjectMap<Query, QueryListenersInfo>(
-    q => q.canonicalId(),
-    (l, r) => l.isEqual(r)
+    q => canonifyQuery(q),
+    queryEquals
   );
 
   private onlineState = OnlineState.Unknown;
@@ -76,7 +76,7 @@ export class EventManager implements SyncEngineListener {
       } catch (e) {
         const firestoreError = wrapInUserErrorIfRecoverable(
           e,
-          `Initialization of query '${listener.query}' failed`
+          `Initialization of query '${stringifyQuery(listener.query)}' failed`
         );
         listener.onError(firestoreError);
         return;

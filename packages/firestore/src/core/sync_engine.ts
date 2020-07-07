@@ -51,7 +51,13 @@ import {
 } from '../local/shared_client_state_syncer';
 import { SortedSet } from '../util/sorted_set';
 import { ListenSequence } from './listen_sequence';
-import { LimitType, Query } from './query';
+import {
+  canonifyQuery,
+  LimitType,
+  Query,
+  queryEquals,
+  stringifyQuery
+} from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { Target } from './target';
 import { TargetIdGenerator } from './target_id_generator';
@@ -238,8 +244,8 @@ class SyncEngineImpl implements SyncEngine {
   protected syncEngineListener: SyncEngineListener | null = null;
 
   protected queryViewsByQuery = new ObjectMap<Query, QueryView>(
-    q => q.canonicalId(),
-    (l, r) => l.isEqual(r)
+    q => canonifyQuery(q),
+    queryEquals
   );
   protected queriesByTarget = new Map<TargetId, Query[]>();
   /**
@@ -382,7 +388,10 @@ class SyncEngineImpl implements SyncEngine {
     this.assertSubscribed('unlisten()');
 
     const queryView = this.queryViewsByQuery.get(query)!;
-    debugAssert(!!queryView, 'Trying to unlisten on query not found:' + query);
+    debugAssert(
+      !!queryView,
+      'Trying to unlisten on query not found:' + stringifyQuery(query)
+    );
 
     // Only clean up the query view and target if this is the only query mapped
     // to the target.
@@ -390,7 +399,7 @@ class SyncEngineImpl implements SyncEngine {
     if (queries.length > 1) {
       this.queriesByTarget.set(
         queryView.targetId,
-        queries.filter(q => !q.isEqual(query))
+        queries.filter(q => !queryEquals(q, query))
       );
       this.queryViewsByQuery.delete(query);
       return;
@@ -951,7 +960,10 @@ class SyncEngineImpl implements SyncEngine {
       }
       for (const query of queries) {
         const queryView = this.queryViewsByQuery.get(query);
-        debugAssert(!!queryView, `No query view found for ${query}`);
+        debugAssert(
+          !!queryView,
+          `No query view found for ${stringifyQuery(query)}`
+        );
         keySet = keySet.unionWith(queryView.view.syncedDocuments);
       }
       return keySet;
@@ -1205,7 +1217,10 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
 
         for (const query of queries) {
           const queryView = this.queryViewsByQuery.get(query);
-          debugAssert(!!queryView, `No query view found for ${query}`);
+          debugAssert(
+            !!queryView,
+            `No query view found for ${stringifyQuery(query)}`
+          );
 
           const viewChange = await this.synchronizeViewAndComputeSnapshot(
             queryView

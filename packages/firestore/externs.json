@@ -1,6 +1,7 @@
 {
   "externs" :  [
     "node_modules/@types/node/base.d.ts",
+    "node_modules/@types/node/globals.d.ts",
     "node_modules/typescript/lib/lib.es5.d.ts",
     "node_modules/typescript/lib/lib.dom.d.ts",
     "node_modules/typescript/lib/lib.es2015.promise.d.ts",

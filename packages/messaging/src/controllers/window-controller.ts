@@ -53,7 +53,7 @@ import { isConsoleMessage } from '../helpers/is-console-message';
 export class WindowController implements FirebaseMessaging, FirebaseService {
   private vapidKey: string | null = null;
   private swRegistration?: ServiceWorkerRegistration;
-  private onMessageCallback: NextFn<object> | null = null;
+  private onMessageCallback: NextFn<object> | Observer<object> | null = null;
 
   constructor(
     private readonly firebaseDependencies: FirebaseInternalDependencies
@@ -248,11 +248,8 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
    *
    * @return The unsubscribe function for the observer.
    */
-  onMessage(nextOrObserver: NextFn<object> | Observer<object>, ): Unsubscribe {
-    this.onMessageCallback =
-      typeof nextOrObserver === 'function'
-        ? nextOrObserver
-        : nextOrObserver.next;
+  onMessage(nextOrObserver: NextFn<object> | Observer<object>): Unsubscribe {
+    this.onMessageCallback = nextOrObserver;
 
     return () => {
       this.onMessageCallback = null;
