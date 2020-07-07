@@ -16,6 +16,7 @@
  */
 
 import { CONSTANTS } from './constants';
+import { rejects } from 'assert';
 
 /**
  * Returns navigator.userAgent string or '' if it's not defined.
@@ -133,4 +134,54 @@ export function isSafari(): boolean {
     navigator.userAgent.includes('Safari') &&
     !navigator.userAgent.includes('Chrome')
   );
+}
+
+/**
+ * This method checks if indexedDB is supported by current browser and throws an error if not.
+ */
+export function validateIndexedDBAvailability(): void {
+  if (!('indexedDB' in window) || indexedDB === null) {
+    throw new Error('IndexedDB is not supported by current browser');
+  }
+}
+
+/**
+ * This method validates browser context for indexedDB by opening a dummy indexedDB database and throws
+ * if errors occur during the database open operation.
+ */
+export function validateIndexedDBOpenable(): Promise<string> {
+  try {
+    let preExist: boolean = true;
+    const DB_CHECK_NAME =
+      'validate-browser-context-for-indexeddb-analytics-module';
+    const request = window.indexedDB.open(DB_CHECK_NAME);
+    request.onsuccess = () => {
+      request.result.close();
+      // delete database only when it doesn't pre-exist
+      if (!preExist) {
+        window.indexedDB.deleteDatabase(DB_CHECK_NAME);
+      }
+      return Promise.resolve();
+    };
+    request.onupgradeneeded = () => {
+      preExist = false;
+    };
+
+    request.onerror = () => {
+      return Promise.reject(request.error?.message || '');
+    };
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+/**
+ *
+ * This method checks whether cookie is enabled within current browser and throws
+ * an error if not
+ */
+export function validateCookieEnabled(): void {
+  if (!navigator || !navigator.cookieEnabled) {
+    throw new Error('Cookie not enabled in this browser environment');
+  }
 }
