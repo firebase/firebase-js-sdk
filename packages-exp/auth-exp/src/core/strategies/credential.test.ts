@@ -32,6 +32,7 @@ import { MockAuthCredential } from '../../../test/mock_auth_credential';
 import * as mockFetch from '../../../test/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
+import { IdTokenMfaResponse } from '../../api/authentication/mfa';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { User } from '../../model/user';
@@ -40,6 +41,10 @@ import {
   reauthenticateWithCredential,
   signInWithCredential
 } from './credential';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { stub } from 'sinon';
+import { MultiFactorError } from '../../mfa/mfa_error';
+import { AuthCredential } from '../credentials';
 
 use(chaiAsPromised);
 
@@ -64,11 +69,7 @@ describe('core/strategies/credential', () => {
     kind: IdTokenResponseKind.CreateAuthUri
   };
 
-  const authCredential = new MockAuthCredential(
-    ProviderId.FIREBASE,
-    SignInMethod.EMAIL_LINK
-  );
-
+  let authCredential: AuthCredential;
   let auth: Auth;
   let getAccountInfoEndpoint: mockFetch.Route;
   let user: User;
@@ -76,7 +77,10 @@ describe('core/strategies/credential', () => {
   beforeEach(async () => {
     auth = await testAuth();
     mockFetch.setUp();
-    authCredential._setIdTokenResponse(idTokenResponse);
+    authCredential = new MockAuthCredential(
+      ProviderId.FIREBASE,
+      SignInMethod.EMAIL_LINK
+    );
     getAccountInfoEndpoint = mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
       users: [serverUser]
     });
@@ -88,6 +92,9 @@ describe('core/strategies/credential', () => {
 
   describe('signInWithCredential', () => {
     it('should return a valid user credential', async () => {
+      stub(authCredential, '_getIdTokenResponse').returns(
+        Promise.resolve(idTokenResponse)
+      );
       const { credential, user, operationType } = await signInWithCredential(
         auth,
         authCredential
@@ -101,17 +108,51 @@ describe('core/strategies/credential', () => {
     });
 
     it('should update the current user', async () => {
+      stub(authCredential, '_getIdTokenResponse').returns(
+        Promise.resolve(idTokenResponse)
+      );
       const { user } = await signInWithCredential(auth, authCredential);
       expect(auth.currentUser).to.eq(user);
+    });
+
+    it('should handle MFA', async () => {
+      const serverResponse: IdTokenMfaResponse = {
+        localId: 'uid',
+        mfaInfo: [
+          {
+            mfaEnrollmentId: 'mfa-enrollment-id',
+            enrolledAt: Date.now(),
+            phoneInfo: 'phone-info'
+          }
+        ],
+        mfaPendingCredential: 'mfa-pending-credential'
+      };
+      stub(authCredential, '_getIdTokenResponse').returns(
+        Promise.reject(
+          AUTH_ERROR_FACTORY.create(AuthErrorCode.MFA_REQUIRED, {
+            appName: auth.name,
+            serverResponse
+          })
+        )
+      );
+      const error = await expect(
+        signInWithCredential(auth, authCredential)
+      ).to.be.rejectedWith(MultiFactorError);
+      expect(error.credential).to.eq(authCredential);
+      expect(error.operationType).to.eq(OperationType.SIGN_IN);
+      expect(error.serverResponse).to.eql(serverResponse);
+      expect(error.user).to.be.undefined;
     });
   });
 
   describe('reauthenticateWithCredential', () => {
     it('should throw an error if the uid is mismatched', async () => {
-      authCredential._setIdTokenResponse({
-        ...idTokenResponse,
-        idToken: makeJWT({ sub: 'not-my-uid' })
-      });
+      stub(authCredential, '_getReauthenticationResolver').returns(
+        Promise.resolve({
+          ...idTokenResponse,
+          idToken: makeJWT({ sub: 'not-my-uid' })
+        })
+      );
 
       await expect(
         reauthenticateWithCredential(user, authCredential)
@@ -121,11 +162,13 @@ describe('core/strategies/credential', () => {
       );
     });
 
-    it('sould return the expected user credential', async () => {
-      authCredential._setIdTokenResponse({
-        ...idTokenResponse,
-        idToken: makeJWT({ sub: 'uid' })
-      });
+    it('should return the expected user credential', async () => {
+      stub(authCredential, '_getReauthenticationResolver').returns(
+        Promise.resolve({
+          ...idTokenResponse,
+          idToken: makeJWT({ sub: 'uid' })
+        })
+      );
 
       const {
         credential,
@@ -140,6 +183,9 @@ describe('core/strategies/credential', () => {
 
   describe('linkWithCredential', () => {
     it('should throw an error if the provider is already linked', async () => {
+      stub(authCredential, '_linkToIdToken').returns(
+        Promise.resolve(idTokenResponse)
+      );
       getAccountInfoEndpoint.response = {
         users: [
           {
@@ -156,6 +202,9 @@ describe('core/strategies/credential', () => {
     });
 
     it('should return a valid user credential', async () => {
+      stub(authCredential, '_linkToIdToken').returns(
+        Promise.resolve(idTokenResponse)
+      );
       const {
         credential,
         user: newUser,
