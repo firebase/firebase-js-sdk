@@ -38,6 +38,8 @@ import { _reauthenticate } from './reauthenticate';
 import { AuthCredential } from '../credentials';
 import { MockAuthCredential } from '../../../test/mock_auth_credential';
 import { stub } from 'sinon';
+import { IdTokenMfaResponse } from '../../api/authentication/mfa';
+import { MultiFactorError } from '../../mfa/mfa_error';
 
 use(chaiAsPromised);
 
@@ -130,7 +132,36 @@ describe('src/core/user/reauthenticate', () => {
     );
   });
 
-  it('should return a valid user credential', async () => {
+  it('should wrap MFA errors with appropriate context', async () => {
+      const serverResponse: IdTokenMfaResponse = {
+        localId: 'uid',
+        mfaInfo: [
+          {
+            mfaEnrollmentId: 'mfa-enrollment-id',
+            enrolledAt: Date.now(),
+            phoneInfo: 'phone-info'
+          }
+        ],
+        mfaPendingCredential: 'mfa-pending-credential'
+      };
+      stub(credential, '_getReauthenticationResolver').returns(
+        Promise.reject(
+          AUTH_ERROR_FACTORY.create(AuthErrorCode.MFA_REQUIRED, {
+            appName: user.auth.name,
+            serverResponse
+          })
+        )
+      );
+      const error = await expect(
+        _reauthenticate(user, credential)
+      ).to.be.rejectedWith(MultiFactorError);
+      expect(error.credential).to.eq(credential);
+      expect(error.operationType).to.eq(OperationType.REAUTHENTICATE);
+      expect(error.serverResponse).to.eql(serverResponse);
+      expect(error.user).to.eq(user);
+  });
+
+  it('should return a valid user credential', async () => { 
     stub(credential, '_getReauthenticationResolver').returns(
       Promise.resolve({
         ...TEST_ID_TOKEN_RESPONSE,
