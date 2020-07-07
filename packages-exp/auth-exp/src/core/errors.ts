@@ -16,9 +16,9 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
+import * as externs from '@firebase/auth-types-exp';
 import { ErrorFactory, ErrorMap } from '@firebase/util';
 import { AppName } from '../model/auth';
-import { User } from '../model/user';
 
 /*
  * Developer facing Firebase Auth error codes.
@@ -307,8 +307,12 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
 type AuthErrorParams = {
   [key in AuthErrorCode]: {
     appName: AppName;
+    credential?: externs.AuthCredential;
+    email?: string;
+    phoneNumber?: string;
+    tenantId?: string;
+    user?: externs.User;
     serverResponse?: object;
-    user?: User;
   };
 };
 
