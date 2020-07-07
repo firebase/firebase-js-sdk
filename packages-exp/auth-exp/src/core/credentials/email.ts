@@ -33,11 +33,33 @@ import { AuthCredential } from './';
 export class EmailAuthCredential implements AuthCredential {
   readonly providerId = EmailAuthProvider.PROVIDER_ID;
 
-  constructor(
+  private constructor(
     readonly email: string,
     readonly password: string,
     readonly signInMethod: externs.SignInMethod
   ) {}
+
+  static _fromEmailAndPassword(
+    email: string,
+    password: string
+  ): EmailAuthCredential {
+    return new EmailAuthCredential(
+      email,
+      password,
+      EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD
+    );
+  }
+
+  static _fromEmailAndCode(
+    email: string,
+    oobCode: string
+  ): EmailAuthCredential {
+    return new EmailAuthCredential(
+      email,
+      oobCode,
+      EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD
+    );
+  }
 
   toJSON(): never {
     debugFail('Method not implemented.');

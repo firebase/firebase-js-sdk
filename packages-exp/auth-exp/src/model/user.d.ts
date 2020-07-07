@@ -20,6 +20,7 @@ import * as externs from '@firebase/auth-types-exp';
 import { PersistedBlob } from '../core/persistence';
 import { Auth } from './auth';
 import { IdTokenResponse } from './id_token';
+import { FinalizeMfaResponse } from '../api/authentication/mfa';
 
 type MutableUserInfo = {
   -readonly [K in keyof externs.UserInfo]: externs.UserInfo[K];
@@ -41,7 +42,7 @@ export interface User extends externs.User {
   metadata: externs.UserMetadata;
 
   _updateTokensIfNecessary(
-    response: IdTokenResponse,
+    response: IdTokenResponse | FinalizeMfaResponse,
     reload?: boolean
   ): Promise<void>;
 

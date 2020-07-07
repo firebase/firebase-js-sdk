@@ -16,7 +16,6 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
