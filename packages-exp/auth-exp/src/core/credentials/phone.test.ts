@@ -47,10 +47,10 @@ describe('core/credentials/phone', () => {
     };
 
     it('calls the endpoint with session and code', async () => {
-      const cred = new PhoneAuthCredential({
-        verificationId: 'session-info',
-        verificationCode: 'code'
-      });
+      const cred = PhoneAuthCredential._fromVerification(
+        'session-info',
+        'code'
+      );
 
       const route = mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, response);
 
@@ -62,10 +62,10 @@ describe('core/credentials/phone', () => {
     });
 
     it('calls the endpoint with proof and number', async () => {
-      const cred = new PhoneAuthCredential({
-        temporaryProof: 'temp-proof',
-        phoneNumber: 'number'
-      });
+      const cred = PhoneAuthCredential._fromTokenResponse(
+        'number',
+        'temp-proof'
+      );
 
       const route = mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, response);
 
@@ -87,10 +87,10 @@ describe('core/credentials/phone', () => {
     };
 
     it('calls the endpoint with session and code', async () => {
-      const cred = new PhoneAuthCredential({
-        verificationId: 'session-info',
-        verificationCode: 'code'
-      });
+      const cred = PhoneAuthCredential._fromVerification(
+        'session-info',
+        'code'
+      );
 
       const route = mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, response);
 
@@ -103,10 +103,10 @@ describe('core/credentials/phone', () => {
     });
 
     it('calls the endpoint with proof and number', async () => {
-      const cred = new PhoneAuthCredential({
-        temporaryProof: 'temp-proof',
-        phoneNumber: 'number'
-      });
+      const cred = PhoneAuthCredential._fromTokenResponse(
+        'number',
+        'temp-proof'
+      );
 
       const route = mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, response);
 
@@ -121,27 +121,17 @@ describe('core/credentials/phone', () => {
 
   context('#toJSON', () => {
     it('fills out the object with everything that is set', () => {
-      const cred = new PhoneAuthCredential({
-        temporaryProof: 'proof',
-        phoneNumber: 'number',
-        verificationId: 'id',
-        verificationCode: 'code'
-      });
+      const cred = PhoneAuthCredential._fromVerification('id', 'code');
 
       expect(cred.toJSON()).to.eql({
         providerId: 'phone',
-        temporaryProof: 'proof',
-        phoneNumber: 'number',
         verificationId: 'id',
         verificationCode: 'code'
       });
     });
 
     it('omits missing fields', () => {
-      const cred = new PhoneAuthCredential({
-        temporaryProof: 'proof',
-        phoneNumber: 'number'
-      });
+      const cred = PhoneAuthCredential._fromTokenResponse('number', 'proof');
 
       expect(cred.toJSON()).to.eql({
         providerId: 'phone',

@@ -114,3 +114,8 @@ export { reload } from './core/user/reload';
 export async function deleteUser(user: externs.User): Promise<void> {
   return user.delete();
 }
+
+// MFA
+export { PhoneMultiFactorGenerator } from './mfa/assertions/phone';
+export { getMultiFactorResolver } from './mfa/mfa_resolver';
+export { multiFactor } from './mfa/mfa_user';

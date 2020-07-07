@@ -43,10 +43,10 @@ class ConfirmationResult implements externs.ConfirmationResult {
   ) {}
 
   confirm(verificationCode: string): Promise<externs.UserCredential> {
-    const authCredential = new PhoneAuthCredential({
-      verificationId: this.verificationId,
+    const authCredential = PhoneAuthCredential._fromVerification(
+      this.verificationId,
       verificationCode
-    });
+    );
     return this.onConfirmation(authCredential);
   }
 }
