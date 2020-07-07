@@ -23,6 +23,17 @@ import {
   SignInWithPhoneNumberRequest,
   SignInWithPhoneNumberResponse
 } from './sms';
+import { MfaEnrollment } from '../account_management/mfa';
+
+export interface FinalizeMfaResponse {
+  idToken: string;
+  refreshToken: string;
+}
+
+export interface IdTokenMfaResponse extends IdTokenResponse {
+  mfaPendingCredential: string;
+  mfaInfo?: MfaEnrollment[];
+}
 
 export interface StartPhoneMfaSignInRequest {
   mfaPendingCredential: string;
@@ -30,6 +41,7 @@ export interface StartPhoneMfaSignInRequest {
   phoneSignInInfo: {
     recaptchaToken: string;
   };
+  tenantId: string | null;
 }
 
 export interface StartPhoneMfaSignInResponse {
@@ -40,29 +52,36 @@ export interface StartPhoneMfaSignInResponse {
 
 export function startSignInPhoneMfa(
   auth: Auth,
-  request: StartPhoneMfaSignInRequest
+  request: Omit<StartPhoneMfaSignInRequest, 'tenantId'>
 ): Promise<StartPhoneMfaSignInResponse> {
   return _performApiRequest<
     StartPhoneMfaSignInRequest,
     StartPhoneMfaSignInResponse
-  >(auth, HttpMethod.POST, Endpoint.START_PHONE_MFA_SIGN_IN, request);
+  >(auth, HttpMethod.POST, Endpoint.START_PHONE_MFA_SIGN_IN, {
+    tenantId: auth.tenantId,
+    ...request
+  });
 }
 
 export interface FinalizePhoneMfaSignInRequest {
   mfaPendingCredential: string;
   phoneVerificationInfo: SignInWithPhoneNumberRequest;
+  tenantId: string | null;
 }
 
-export interface FinalizePhoneMfaSignInResponse extends IdTokenResponse {}
+export interface FinalizePhoneMfaSignInResponse extends FinalizeMfaResponse {}
 
 export function finalizeSignInPhoneMfa(
   auth: Auth,
-  request: FinalizePhoneMfaSignInRequest
+  request: Omit<FinalizePhoneMfaSignInRequest, 'tenantId'>
 ): Promise<FinalizePhoneMfaSignInResponse> {
   return _performApiRequest<
     FinalizePhoneMfaSignInRequest,
     FinalizePhoneMfaSignInResponse
-  >(auth, HttpMethod.POST, Endpoint.FINALIZE_PHONE_MFA_SIGN_IN, request);
+  >(auth, HttpMethod.POST, Endpoint.FINALIZE_PHONE_MFA_SIGN_IN, {
+    tenantId: auth.tenantId,
+    ...request
+  });
 }
 
 export type PhoneOrOauthTokenResponse =
