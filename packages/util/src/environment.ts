@@ -150,6 +150,7 @@ export function validateIndexedDBAvailability(): void {
  * if errors occur during the database open operation.
  */
 export function validateIndexedDBOpenable(): Promise<string> {
+  return new Promise(() => {});
   try {
     let preExist: boolean = true;
     const DB_CHECK_NAME =
