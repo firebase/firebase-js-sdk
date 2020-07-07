@@ -23,8 +23,6 @@ import { Auth } from '../src/model/auth';
 import { IdTokenResponse } from '../src/model/id_token';
 
 export class MockAuthCredential implements AuthCredential {
-  response?: PhoneOrOauthTokenResponse;
-
   constructor(
     readonly providerId: ProviderId,
     readonly signInMethod: SignInMethod
@@ -38,26 +36,18 @@ export class MockAuthCredential implements AuthCredential {
     throw new Error('Method not implemented.');
   }
 
-  /**
-   * For testing purposes only
-   * @param response
-   */
-  _setIdTokenResponse(response: PhoneOrOauthTokenResponse): void {
-    this.response = response;
-  }
-
   async _getIdTokenResponse(_auth: Auth): Promise<PhoneOrOauthTokenResponse> {
-    return this.response!;
+    throw new Error('Method not implemented.');
   }
 
   async _linkToIdToken(
     _auth: Auth,
     _idToken: string
   ): Promise<IdTokenResponse> {
-    return this.response!;
+    throw new Error('Method not implemented.');
   }
 
   async _getReauthenticationResolver(_auth: Auth): Promise<IdTokenResponse> {
-    return this.response!;
+    throw new Error('Method not implemented.');
   }
 }

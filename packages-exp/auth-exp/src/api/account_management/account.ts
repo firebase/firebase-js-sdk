@@ -17,7 +17,7 @@
 
 import { Endpoint, HttpMethod, _performApiRequest } from '../';
 import { Auth } from '../../model/auth';
-import { APIMFAInfo } from '../../model/id_token';
+import { MfaEnrollment } from './mfa';
 
 export interface DeleteAccountRequest {
   idToken: string;
@@ -75,7 +75,7 @@ export interface APIUserInfo {
   tenantId?: string;
   passwordHash?: string;
   providerUserInfo?: ProviderUserInfo[];
-  mfaInfo?: APIMFAInfo[];
+  mfaInfo?: MfaEnrollment[];
 }
 
 export interface GetAccountInfoRequest {

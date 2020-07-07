@@ -45,7 +45,10 @@ import {
   confirmPasswordReset,
   linkWithCredential,
   reauthenticateWithCredential,
-  unlink
+  unlink,
+  getMultiFactorResolver,
+  multiFactor,
+  PhoneMultiFactorGenerator
 } from '@firebase/auth-exp';
 
 import { config } from './config';
@@ -189,8 +192,8 @@ function addProviderIcon(providerId) {
  * @param {!firebase.User} activeUser The corresponding user.
  */
 function showMultiFactorStatus(activeUser) {
-  var enrolledFactors =
-    (activeUser.multiFactor && activeUser.multiFactor.enrolledFactors) || [];
+  mfaUser = multiFactor(activeUser);
+  var enrolledFactors = (mfaUser && mfaUser.enrolledFactors) || [];
   var $listGroup = $('#user-info .dropdown-menu.enrolled-second-factors');
   // Hide the drop down menu initially.
   $listGroup
@@ -221,7 +224,7 @@ function showMultiFactorStatus(activeUser) {
         var label = info && (info.displayName || info.uid);
         if (label) {
           $('#enrolled-factors-drop-down').removeClass('open');
-          activeUser.multiFactor.unenroll(info).then(function() {
+          mfaUser.unenroll(info).then(function() {
             refreshUserData();
             alertSuccess('Multi-factor successfully unenrolled.');
           }, onAuthError);
@@ -249,7 +252,7 @@ function onAuthError(error) {
   logAtLevel_(error, 'error');
   if (error.code == 'auth/multi-factor-auth-required') {
     // Handle second factor sign-in.
-    handleMultiFactorSignIn(error.resolver);
+    handleMultiFactorSignIn(getMultiFactorResolver(auth, error));
   } else {
     alertError('Error: ' + error.code);
   }
@@ -361,10 +364,7 @@ function onSignInWithEmailLink() {
 function onLinkWithEmailLink() {
   var email = $('#link-with-email-link-email').val();
   var link = $('#link-with-email-link-link').val() || undefined;
-  var credential = firebase.auth.EmailAuthProvider.credentialWithLink(
-    email,
-    link
-  );
+  var credential = EmailAuthProvider.credentialWithLink(email, link);
   linkWithCredential(activeUser(), credential).then(
     onAuthUserCredentialSuccess,
     onAuthError
@@ -578,8 +578,8 @@ function onStartEnrollWithPhoneMultiFactor() {
   clearApplicationVerifier();
   // Initialize a reCAPTCHA application verifier.
   makeApplicationVerifier('enroll-mfa-verify-phone-number');
-  activeUser()
-    .multiFactor.getSession()
+  multiFactor(activeUser())
+    .getSession()
     .then(function(multiFactorSession) {
       var phoneInfoOptions = {
         'phoneNumber': phoneNumber,
@@ -604,23 +604,24 @@ function onStartEnrollWithPhoneMultiFactor() {
  * Confirms a phone number verification for MFA enrollment.
  */
 function onFinalizeEnrollWithPhoneMultiFactor() {
-  alertNotImplemented();
-  // var verificationId = $('#enroll-mfa-phone-verification-id').val();
-  // var verificationCode = $('#enroll-mfa-phone-verification-code').val();
-  // if (!verificationId || !verificationCode || !activeUser()) {
-  //   return;
-  // }
-  // var credential = PhoneAuthProvider.credential(
-  //     verificationId, verificationCode);
-  // var multiFactorAssertion =
-  //     firebase.auth.PhoneMultiFactorGenerator.assertion(credential);
-  // var displayName = $('#enroll-mfa-phone-display-name').val() || undefined;
+  var verificationId = $('#enroll-mfa-phone-verification-id').val();
+  var verificationCode = $('#enroll-mfa-phone-verification-code').val();
+  if (!verificationId || !verificationCode || !activeUser()) {
+    return;
+  }
+  var credential = PhoneAuthProvider.credential(
+    verificationId,
+    verificationCode
+  );
+  var multiFactorAssertion = PhoneMultiFactorGenerator.assertion(credential);
+  var displayName = $('#enroll-mfa-phone-display-name').val() || undefined;
 
-  // activeUser().multiFactor.enroll(multiFactorAssertion, displayName)
-  //     .then(function() {
-  //       refreshUserData();
-  //       alertSuccess('Phone number enrolled!');
-  //     }, onAuthError);
+  multiFactor(activeUser())
+    .enroll(multiFactorAssertion, displayName)
+    .then(function() {
+      refreshUserData();
+      alertSuccess('Phone number enrolled!');
+    }, onAuthError);
 }
 
 /**
@@ -830,7 +831,7 @@ function onLinkWithEmailAndPassword() {
   var password = $('#link-password').val();
   linkWithCredential(
     activeUser(),
-    firebase.auth.EmailAuthProvider.credential(email, password)
+    EmailAuthProvider.credential(email, password)
   ).then(onAuthUserCredentialSuccess, onAuthError);
 }
 
@@ -966,7 +967,7 @@ function onSignOut() {
 
 /**
  * Handles multi-factor sign-in completion.
- * @param {!firebase.auth.MultiFactorResolver} resolver The multi-factor error
+ * @param {!MultiFactorResolver} resolver The multi-factor error
  *     resolver.
  */
 function handleMultiFactorSignIn(resolver) {
@@ -1002,7 +1003,7 @@ function handleMultiFactorSignIn(resolver) {
  * Displays the list of multi-factors in the provided list group.
  * @param {!jQuery<!HTMLElement>} $listGroup The list group where the enrolled
  *     factors will be displayed.
- * @param {!Array<!firebase.auth.MultiFactorInfo>} multiFactorInfo The list of
+ * @param {!Array<!MultiFactorInfo>} multiFactorInfo The list of
  *     multi-factors to display.
  * @param {?function(!jQuery.Event)} onClick The click handler when a second
  *     factor is clicked.
@@ -1119,20 +1120,20 @@ function onStartSignInWithPhoneMultiFactor(event) {
  * @param {!jQuery.Event} event The jQuery event object.
  */
 function onFinalizeSignInWithPhoneMultiFactor(event) {
-  alertNotImplemented();
-  // event.preventDefault();
-  // var verificationId = $('#multi-factor-sign-in-verification-id').val();
-  // var code = $('#multi-factor-sign-in-verification-code').val();
-  // if (!code || !verificationId || !multiFactorErrorResolver) {
-  //   return;
-  // }
-  // var cred = PhoneAuthProvider.credential(verificationId, code);
-  // var assertion = firebase.auth.PhoneMultiFactorGenerator.assertion(cred);
-  // multiFactorErrorResolver.resolveSignIn(assertion)
-  //     .then(function(userCredential) {
-  //       onAuthUserCredentialSuccess(userCredential);
-  //       $('#multiFactorModal').modal('hide');
-  //     }, onAuthError);
+  event.preventDefault();
+  var verificationId = $('#multi-factor-sign-in-verification-id').val();
+  var code = $('#multi-factor-sign-in-verification-code').val();
+  if (!code || !verificationId || !multiFactorErrorResolver) {
+    return;
+  }
+  var cred = PhoneAuthProvider.credential(verificationId, code);
+  var assertion = PhoneMultiFactorGenerator.assertion(cred);
+  multiFactorErrorResolver
+    .resolveSignIn(assertion)
+    .then(function(userCredential) {
+      onAuthUserCredentialSuccess(userCredential);
+      $('#multiFactorModal').modal('hide');
+    }, onAuthError);
 }
 
 /**
