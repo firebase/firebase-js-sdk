@@ -77,7 +77,7 @@ Promise.resolve(userToken || cachedToken)
       .then(config =>
         fs.writeFile(
           path.resolve(__dirname, '../config/project.json'),
-          JSON.stringify(config, null, 2)
+          JSON.stringify(config.sdkConfig, null, 2)
         )
       );
 
