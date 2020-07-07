@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { safeGet } from '@firebase/util';
+import { safeGet, CONSTANTS } from '@firebase/util';
 import { Repo } from './Repo';
 import { fatal } from './util/util';
 import { parseRepoInfo } from './util/libs/parser';
@@ -28,7 +28,7 @@ import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import {
   AuthTokenProvider,
-  EmptyAdminAuthTokenProvider,
+  EmulatorAdminTokenProvider,
   FirebaseAuthTokenProvider
 } from './AuthTokenProvider';
 
@@ -99,8 +99,7 @@ export class RepoManager {
   databaseFromApp(
     app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
-    url?: string,
-    thirdPartyAuth?: boolean
+    url?: string
   ): Database {
     let dbUrl: string | undefined = url || app.options[DATABASE_URL_OPTION];
     if (dbUrl === undefined) {
@@ -124,9 +123,9 @@ export class RepoManager {
       dbUrl = `http://${dbEmulatorHost}?ns=${repoInfo.namespace}`;
       parsedUrl = parseRepoInfo(dbUrl);
       repoInfo = parsedUrl.repoInfo;
-      authTokenProvider = thirdPartyAuth
-        ? new FirebaseAuthTokenProvider(app, authProvider)
-        : new EmptyAdminAuthTokenProvider();
+      authTokenProvider = CONSTANTS.NODE_ADMIN
+        ? new EmulatorAdminTokenProvider()
+        : new FirebaseAuthTokenProvider(app, authProvider);
     } else {
       authTokenProvider = new FirebaseAuthTokenProvider(app, authProvider);
     }

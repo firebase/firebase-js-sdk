@@ -113,11 +113,22 @@ export class FirebaseAuthTokenProvider implements AuthTokenProvider {
 }
 
 /* Auth token provider that the Admin SDK uses to connect to the Emulator. */
-export class EmptyAdminAuthTokenProvider implements AuthTokenProvider {
+export class EmulatorAdminTokenProvider implements AuthTokenProvider {
+  private static EMULATOR_AUTH_TOKEN = 'owner';
+
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData> {
-    return Promise.resolve({ accessToken: 'Bearer owner' });
+    return Promise.resolve({
+      accessToken: EmulatorAdminTokenProvider.EMULATOR_AUTH_TOKEN
+    });
   }
-  addTokenChangeListener(listener: (token: string | null) => void): void {}
+
+  addTokenChangeListener(listener: (token: string | null) => void): void {
+    // Invoke the listener immediately to match the behavior in Firebase Auth
+    // (see packages/auth/src/auth.js#L1807)
+    listener(EmulatorAdminTokenProvider.EMULATOR_AUTH_TOKEN);
+  }
+
   removeTokenChangeListener(listener: (token: string | null) => void): void {}
+
   notifyForInvalidToken(): void {}
 }
