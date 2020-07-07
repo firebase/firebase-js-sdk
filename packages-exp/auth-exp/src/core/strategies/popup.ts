@@ -20,7 +20,11 @@ import { FirebaseError } from '@firebase/util';
 
 import { Auth } from '../../model/auth';
 import {
-    AuthEvent, AuthEventConsumer, AuthEventType, EventManager, PopupRedirectResolver
+  AuthEvent,
+  AuthEventConsumer,
+  AuthEventType,
+  EventManager,
+  PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
@@ -38,30 +42,62 @@ interface PendingPromise {
   reject: (error: Error) => void;
 }
 
-export async function signInWithPopup(authExtern: externs.Auth, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<UserCredential> {
+export async function signInWithPopup(
+  authExtern: externs.Auth,
+  provider: externs.AuthProvider,
+  resolverExtern: externs.PopupRedirectResolver
+): Promise<UserCredential> {
   const auth = authExtern as Auth;
   const resolver = resolverExtern as PopupRedirectResolver;
 
-  const action = new PopupAction(auth, AuthEventType.SIGN_IN_VIA_POPUP, _signIn, provider, resolver);
+  const action = new PopupAction(
+    auth,
+    AuthEventType.SIGN_IN_VIA_POPUP,
+    _signIn,
+    provider,
+    resolver
+  );
   const cred = await action.execute();
 
   await auth.updateCurrentUser(cred.user);
   return cred;
 }
 
-export async function reauthenticateWithPopup(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<UserCredential> {
+export async function reauthenticateWithPopup(
+  userExtern: externs.User,
+  provider: externs.AuthProvider,
+  resolverExtern: externs.PopupRedirectResolver
+): Promise<UserCredential> {
   const user = userExtern as User;
   const resolver = resolverExtern as PopupRedirectResolver;
 
-  const action = new PopupAction(user.auth, AuthEventType.REAUTH_VIA_POPUP, _reauth, provider, resolver, user);
+  const action = new PopupAction(
+    user.auth,
+    AuthEventType.REAUTH_VIA_POPUP,
+    _reauth,
+    provider,
+    resolver,
+    user
+  );
   return action.execute();
 }
 
-export async function linkWithPopup(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<UserCredential> {
+export async function linkWithPopup(
+  userExtern: externs.User,
+  provider: externs.AuthProvider,
+  resolverExtern: externs.PopupRedirectResolver
+): Promise<UserCredential> {
   const user = userExtern as User;
   const resolver = resolverExtern as PopupRedirectResolver;
 
-  const action = new PopupAction(user.auth, AuthEventType.LINK_VIA_POPUP, _link, provider, resolver, user);
+  const action = new PopupAction(
+    user.auth,
+    AuthEventType.LINK_VIA_POPUP,
+    _link,
+    provider,
+    resolver,
+    user
+  );
   return action.execute();
 }
 
@@ -79,12 +115,13 @@ class PopupAction implements AuthEventConsumer {
   private eventManager: EventManager | null = null;
 
   constructor(
-      private readonly auth: Auth,
-      readonly filter: AuthEventType,
-      private readonly idpTask: IdpTask,
-      private readonly provider: externs.AuthProvider,
-      private readonly resolver: PopupRedirectResolver,
-      private readonly user?: User) {
+    private readonly auth: Auth,
+    readonly filter: AuthEventType,
+    private readonly idpTask: IdpTask,
+    private readonly provider: externs.AuthProvider,
+    private readonly resolver: PopupRedirectResolver,
+    private readonly user?: User
+  ) {
     if (PopupAction.currentPopupAction) {
       PopupAction.currentPopupAction.cancel();
     }
@@ -92,14 +129,18 @@ class PopupAction implements AuthEventConsumer {
     PopupAction.currentPopupAction = this;
   }
 
-  execute(
-  ): Promise<UserCredential> {
+  execute(): Promise<UserCredential> {
     return new Promise<UserCredential>(async (resolve, reject) => {
       this.pendingPromise = { resolve, reject };
 
       this.eventManager = await this.resolver._initialize(this.auth);
       const eventId = _generateEventId();
-      this.authWindow = await this.resolver._openPopup(this.auth, this.provider, this.filter, eventId);
+      this.authWindow = await this.resolver._openPopup(
+        this.auth,
+        this.provider,
+        this.filter,
+        eventId
+      );
       this.authWindow.associatedEvent = eventId;
 
       this.eventManager.registerConsumer(this);
@@ -119,14 +160,14 @@ class PopupAction implements AuthEventConsumer {
       this.broadcastResult(null, error);
       return;
     }
-    
+
     const params: IdpTaskParams = {
       auth: this.auth,
       requestUri: urlResponse!,
       sessionId: sessionId!,
       tenantId: tenantId || undefined,
       postBody: postBody || undefined,
-      user: this.user,
+      user: this.user
     };
 
     try {
@@ -146,7 +187,7 @@ class PopupAction implements AuthEventConsumer {
       this.broadcastResult(
         null,
         AUTH_ERROR_FACTORY.create(AuthErrorCode.EXPIRED_POPUP_REQUEST, {
-          appName: this.auth.name,
+          appName: this.auth.name
         })
       );
     }
@@ -182,7 +223,7 @@ class PopupAction implements AuthEventConsumer {
     PopupAction.currentPopupAction = null;
   }
 
-  private pollUserCancellation(appName: string):void {
+  private pollUserCancellation(appName: string): void {
     const poll = (): void => {
       if (this.authWindow?.window?.closed) {
         // Make sure that there is sufficient time for whatever action to
@@ -193,7 +234,7 @@ class PopupAction implements AuthEventConsumer {
           this.broadcastResult(
             null,
             AUTH_ERROR_FACTORY.create(AuthErrorCode.POPUP_CLOSED_BY_USER, {
-              appName,
+              appName
             })
           );
         }, _AUTH_EVENT_TIMEOUT);

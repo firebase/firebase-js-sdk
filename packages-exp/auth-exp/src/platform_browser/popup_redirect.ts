@@ -28,7 +28,11 @@ import { _getCurrentUrl } from '../core/util/location';
 import { _open, AuthPopup } from '../core/util/popup';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
-    AuthEventType, EventManager, GapiAuthEvent, GapiOutcome, PopupRedirectResolver
+  AuthEventType,
+  EventManager,
+  GapiAuthEvent,
+  GapiOutcome,
+  PopupRedirectResolver
 } from '../model/popup_redirect';
 import { _openIframe } from './iframe/iframe';
 
@@ -117,7 +121,7 @@ function getRedirectUrl(
     authType,
     redirectUrl: _getCurrentUrl(),
     v: SDK_VERSION,
-    eventId,
+    eventId
   };
 
   if (provider instanceof OAuthProvider) {
@@ -138,7 +142,7 @@ function getRedirectUrl(
     //   }
     // }
   }
-  
+
   if (auth.tenantId) {
     params.tid = auth.tenantId;
   }

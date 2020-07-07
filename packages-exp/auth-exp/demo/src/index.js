@@ -1312,7 +1312,8 @@ function signInWithPopupRedirect(provider) {
       alertSuccess(action + ' with ' + provider['providerId'] + ' successful!');
       logAdditionalUserInfo(response);
       onAuthSuccess(activeUser());
-    }, onAuthError);
+    },
+    onAuthError);
   } else {
     alertNotImplemented();
     // try {

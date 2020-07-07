@@ -27,7 +27,11 @@ import { delay } from '../../../test/delay';
 import { testAuth, testUser } from '../../../test/mock_auth';
 import { stubTimeouts, TimerMap } from '../../../test/timeout_stub';
 import { Auth } from '../../model/auth';
-import { AuthEvent, AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import {
+  AuthEvent,
+  AuthEventType,
+  PopupRedirectResolver
+} from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { AuthEventManager } from '../auth/auth_event_manager';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
@@ -37,8 +41,11 @@ import * as eid from '../util/event_id';
 import { AuthPopup } from '../util/popup';
 import * as idpTasks from './idp';
 import {
-    _AUTH_EVENT_TIMEOUT, _POLL_WINDOW_CLOSE_TIMEOUT, linkWithPopup, reauthenticateWithPopup,
-    signInWithPopup
+  _AUTH_EVENT_TIMEOUT,
+  _POLL_WINDOW_CLOSE_TIMEOUT,
+  linkWithPopup,
+  reauthenticateWithPopup,
+  signInWithPopup
 } from './popup';
 
 use(sinonChai);
@@ -53,7 +60,7 @@ const BASE_AUTH_EVENT: AuthEvent = {
   type: AuthEventType.SIGN_IN_VIA_POPUP,
   sessionId: 'session-id',
   tenantId: 'tenant-id',
-  postBody: 'post-body',
+  postBody: 'post-body'
 };
 
 describe('src/core/strategies/popup', () => {
@@ -61,7 +68,7 @@ describe('src/core/strategies/popup', () => {
   let provider: OAuthProvider;
   let eventManager: AuthEventManager;
   let authPopup: AuthPopup;
-  let underlyingWindow: {closed: boolean};
+  let underlyingWindow: { closed: boolean };
   let auth: Auth;
   let idpStubs: sinon.SinonStubbedInstance<typeof idpTasks>;
   let pendingTimeouts: TimerMap;
@@ -69,12 +76,12 @@ describe('src/core/strategies/popup', () => {
   beforeEach(async () => {
     auth = await testAuth();
     eventManager = new AuthEventManager(auth.name);
-    underlyingWindow = {closed: false};
+    underlyingWindow = { closed: false };
     authPopup = new AuthPopup(underlyingWindow as Window);
     provider = new OAuthProvider(ProviderId.GOOGLE);
     resolver = {
       _initialize: async () => eventManager,
-      _openPopup: async () => authPopup,
+      _openPopup: async () => authPopup
     };
     idpStubs = sinon.stub(idpTasks);
     sinon.stub(eid, '_generateEventId').returns(MATCHING_EVENT_ID);
@@ -91,24 +98,32 @@ describe('src/core/strategies/popup', () => {
     delay(() => {
       eventManager.onEvent({
         ...BASE_AUTH_EVENT,
-        ...event,
+        ...event
       });
     });
   }
 
   context('signInWithPopup', () => {
     it('completes the full flow', async () => {
-      const cred = new UserCredentialImpl(testUser(auth, 'uid'), null, OperationType.SIGN_IN);
+      const cred = new UserCredentialImpl(
+        testUser(auth, 'uid'),
+        null,
+        OperationType.SIGN_IN
+      );
       idpStubs._signIn.returns(Promise.resolve(cred));
       const promise = signInWithPopup(auth, provider, resolver);
       iframeEvent({
-        type: AuthEventType.SIGN_IN_VIA_POPUP,
+        type: AuthEventType.SIGN_IN_VIA_POPUP
       });
       expect(await promise).to.eq(cred);
     });
 
     it('ignores events for another event id', async () => {
-      const cred = new UserCredentialImpl(testUser(auth, 'uid'), null, OperationType.SIGN_IN);
+      const cred = new UserCredentialImpl(
+        testUser(auth, 'uid'),
+        null,
+        OperationType.SIGN_IN
+      );
       idpStubs._signIn.returns(Promise.resolve(cred));
       const promise = signInWithPopup(auth, provider, resolver);
       iframeEvent({
@@ -117,19 +132,23 @@ describe('src/core/strategies/popup', () => {
         error: {
           code: 'auth/internal-error',
           message: '',
-          name: '',
+          name: ''
         }
       });
 
       iframeEvent({
         type: AuthEventType.SIGN_IN_VIA_POPUP,
-        eventId: MATCHING_EVENT_ID,
+        eventId: MATCHING_EVENT_ID
       });
       expect(await promise).to.eq(cred);
     });
 
     it('does not call idp tasks if event is error', async () => {
-      const cred = new UserCredentialImpl(testUser(auth, 'uid'), null, OperationType.SIGN_IN);
+      const cred = new UserCredentialImpl(
+        testUser(auth, 'uid'),
+        null,
+        OperationType.SIGN_IN
+      );
       idpStubs._signIn.returns(Promise.resolve(cred));
       const promise = signInWithPopup(auth, provider, resolver);
       iframeEvent({
@@ -138,15 +157,22 @@ describe('src/core/strategies/popup', () => {
         error: {
           code: 'auth/invalid-app-credential',
           message: '',
-          name: '',
+          name: ''
         }
       });
-      await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/invalid-app-credential');
+      await expect(promise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/invalid-app-credential'
+      );
       expect(idpStubs._signIn).not.to.have.been.called;
     });
 
     it('does not error if the poll timeout trips', async () => {
-      const cred = new UserCredentialImpl(testUser(auth, 'uid'), null, OperationType.SIGN_IN);
+      const cred = new UserCredentialImpl(
+        testUser(auth, 'uid'),
+        null,
+        OperationType.SIGN_IN
+      );
       idpStubs._signIn.returns(Promise.resolve(cred));
       const promise = signInWithPopup(auth, provider, resolver);
       delay(() => {
@@ -154,13 +180,17 @@ describe('src/core/strategies/popup', () => {
         pendingTimeouts[_POLL_WINDOW_CLOSE_TIMEOUT.get()]();
       });
       iframeEvent({
-        type: AuthEventType.SIGN_IN_VIA_POPUP,
+        type: AuthEventType.SIGN_IN_VIA_POPUP
       });
       expect(await promise).to.eq(cred);
     });
 
     it('does error if the poll timeout and event timeout trip', async () => {
-      const cred = new UserCredentialImpl(testUser(auth, 'uid'), null, OperationType.SIGN_IN);
+      const cred = new UserCredentialImpl(
+        testUser(auth, 'uid'),
+        null,
+        OperationType.SIGN_IN
+      );
       idpStubs._signIn.returns(Promise.resolve(cred));
       const promise = signInWithPopup(auth, provider, resolver);
       delay(() => {
@@ -169,31 +199,50 @@ describe('src/core/strategies/popup', () => {
         pendingTimeouts[_AUTH_EVENT_TIMEOUT]();
       });
       iframeEvent({
-        type: AuthEventType.SIGN_IN_VIA_POPUP,
+        type: AuthEventType.SIGN_IN_VIA_POPUP
       });
-      await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/popup-closed-by-user');
+      await expect(promise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/popup-closed-by-user'
+      );
     });
 
     it('passes any errors from idp task', async () => {
-      idpStubs._signIn.returns(Promise.reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.INVALID_APP_ID, {appName: auth.name})));
+      idpStubs._signIn.returns(
+        Promise.reject(
+          AUTH_ERROR_FACTORY.create(AuthErrorCode.INVALID_APP_ID, {
+            appName: auth.name
+          })
+        )
+      );
       const promise = signInWithPopup(auth, provider, resolver);
       iframeEvent({
         eventId: MATCHING_EVENT_ID,
-        type: AuthEventType.SIGN_IN_VIA_POPUP,
+        type: AuthEventType.SIGN_IN_VIA_POPUP
       });
 
-      await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/invalid-app-id');
+      await expect(promise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/invalid-app-id'
+      );
     });
 
     it('cancels the task if called consecutively', async () => {
-      const cred = new UserCredentialImpl(testUser(auth, 'uid'), null, OperationType.SIGN_IN);
+      const cred = new UserCredentialImpl(
+        testUser(auth, 'uid'),
+        null,
+        OperationType.SIGN_IN
+      );
       idpStubs._signIn.returns(Promise.resolve(cred));
       const firstPromise = signInWithPopup(auth, provider, resolver);
       const secondPromise = signInWithPopup(auth, provider, resolver);
       iframeEvent({
-        type: AuthEventType.SIGN_IN_VIA_POPUP,
+        type: AuthEventType.SIGN_IN_VIA_POPUP
       });
-      await expect(firstPromise).to.be.rejectedWith(FirebaseError, 'auth/cancelled-popup-request');
+      await expect(firstPromise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/cancelled-popup-request'
+      );
       expect(await secondPromise).to.eq(cred);
     });
   });
@@ -209,7 +258,7 @@ describe('src/core/strategies/popup', () => {
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider, resolver);
       iframeEvent({
-        type: AuthEventType.LINK_VIA_POPUP,
+        type: AuthEventType.LINK_VIA_POPUP
       });
       expect(await promise).to.eq(cred);
     });
@@ -224,13 +273,13 @@ describe('src/core/strategies/popup', () => {
         error: {
           code: 'auth/internal-error',
           message: '',
-          name: '',
+          name: ''
         }
       });
 
       iframeEvent({
         type: AuthEventType.LINK_VIA_POPUP,
-        eventId: MATCHING_EVENT_ID,
+        eventId: MATCHING_EVENT_ID
       });
       expect(await promise).to.eq(cred);
     });
@@ -245,10 +294,13 @@ describe('src/core/strategies/popup', () => {
         error: {
           code: 'auth/invalid-app-credential',
           message: '',
-          name: '',
+          name: ''
         }
       });
-      await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/invalid-app-credential');
+      await expect(promise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/invalid-app-credential'
+      );
       expect(idpStubs._link).not.to.have.been.called;
     });
 
@@ -261,7 +313,7 @@ describe('src/core/strategies/popup', () => {
         pendingTimeouts[_POLL_WINDOW_CLOSE_TIMEOUT.get()]();
       });
       iframeEvent({
-        type: AuthEventType.LINK_VIA_POPUP,
+        type: AuthEventType.LINK_VIA_POPUP
       });
       expect(await promise).to.eq(cred);
     });
@@ -276,20 +328,32 @@ describe('src/core/strategies/popup', () => {
         pendingTimeouts[_AUTH_EVENT_TIMEOUT]();
       });
       iframeEvent({
-        type: AuthEventType.LINK_VIA_POPUP,
+        type: AuthEventType.LINK_VIA_POPUP
       });
-      await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/popup-closed-by-user');
+      await expect(promise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/popup-closed-by-user'
+      );
     });
 
     it('passes any errors from idp task', async () => {
-      idpStubs._link.returns(Promise.reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.INVALID_APP_ID, {appName: auth.name})));
+      idpStubs._link.returns(
+        Promise.reject(
+          AUTH_ERROR_FACTORY.create(AuthErrorCode.INVALID_APP_ID, {
+            appName: auth.name
+          })
+        )
+      );
       const promise = linkWithPopup(user, provider, resolver);
       iframeEvent({
         eventId: MATCHING_EVENT_ID,
-        type: AuthEventType.LINK_VIA_POPUP,
+        type: AuthEventType.LINK_VIA_POPUP
       });
 
-      await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/invalid-app-id');
+      await expect(promise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/invalid-app-id'
+      );
     });
 
     it('cancels the task if called consecutively', async () => {
@@ -298,9 +362,12 @@ describe('src/core/strategies/popup', () => {
       const firstPromise = linkWithPopup(user, provider, resolver);
       const secondPromise = linkWithPopup(user, provider, resolver);
       iframeEvent({
-        type: AuthEventType.LINK_VIA_POPUP,
+        type: AuthEventType.LINK_VIA_POPUP
       });
-      await expect(firstPromise).to.be.rejectedWith(FirebaseError, 'auth/cancelled-popup-request');
+      await expect(firstPromise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/cancelled-popup-request'
+      );
       expect(await secondPromise).to.eq(cred);
     });
   });
@@ -312,17 +379,25 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('completes the full flow', async () => {
-      const cred = new UserCredentialImpl(user, null, OperationType.REAUTHENTICATE);
+      const cred = new UserCredentialImpl(
+        user,
+        null,
+        OperationType.REAUTHENTICATE
+      );
       idpStubs._reauth.returns(Promise.resolve(cred));
       const promise = reauthenticateWithPopup(user, provider, resolver);
       iframeEvent({
-        type: AuthEventType.REAUTH_VIA_POPUP,
+        type: AuthEventType.REAUTH_VIA_POPUP
       });
       expect(await promise).to.eq(cred);
     });
 
     it('ignores events for another event id', async () => {
-      const cred = new UserCredentialImpl(user, null, OperationType.REAUTHENTICATE);
+      const cred = new UserCredentialImpl(
+        user,
+        null,
+        OperationType.REAUTHENTICATE
+      );
       idpStubs._reauth.returns(Promise.resolve(cred));
       const promise = reauthenticateWithPopup(user, provider, resolver);
       iframeEvent({
@@ -331,19 +406,23 @@ describe('src/core/strategies/popup', () => {
         error: {
           code: 'auth/internal-error',
           message: '',
-          name: '',
+          name: ''
         }
       });
 
       iframeEvent({
         type: AuthEventType.REAUTH_VIA_POPUP,
-        eventId: MATCHING_EVENT_ID,
+        eventId: MATCHING_EVENT_ID
       });
       expect(await promise).to.eq(cred);
     });
 
     it('does not call idp tasks if event is error', async () => {
-      const cred = new UserCredentialImpl(user, null, OperationType.REAUTHENTICATE);
+      const cred = new UserCredentialImpl(
+        user,
+        null,
+        OperationType.REAUTHENTICATE
+      );
       idpStubs._reauth.returns(Promise.resolve(cred));
       const promise = reauthenticateWithPopup(user, provider, resolver);
       iframeEvent({
@@ -352,15 +431,22 @@ describe('src/core/strategies/popup', () => {
         error: {
           code: 'auth/invalid-app-credential',
           message: '',
-          name: '',
+          name: ''
         }
       });
-      await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/invalid-app-credential');
+      await expect(promise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/invalid-app-credential'
+      );
       expect(idpStubs._reauth).not.to.have.been.called;
     });
 
     it('does not error if the poll timeout trips', async () => {
-      const cred = new UserCredentialImpl(user, null, OperationType.REAUTHENTICATE);
+      const cred = new UserCredentialImpl(
+        user,
+        null,
+        OperationType.REAUTHENTICATE
+      );
       idpStubs._reauth.returns(Promise.resolve(cred));
       const promise = reauthenticateWithPopup(user, provider, resolver);
       delay(() => {
@@ -368,13 +454,17 @@ describe('src/core/strategies/popup', () => {
         pendingTimeouts[_POLL_WINDOW_CLOSE_TIMEOUT.get()]();
       });
       iframeEvent({
-        type: AuthEventType.REAUTH_VIA_POPUP,
+        type: AuthEventType.REAUTH_VIA_POPUP
       });
       expect(await promise).to.eq(cred);
     });
 
     it('does error if the poll timeout and event timeout trip', async () => {
-      const cred = new UserCredentialImpl(user, null, OperationType.REAUTHENTICATE);
+      const cred = new UserCredentialImpl(
+        user,
+        null,
+        OperationType.REAUTHENTICATE
+      );
       idpStubs._reauth.returns(Promise.resolve(cred));
       const promise = reauthenticateWithPopup(user, provider, resolver);
       delay(() => {
@@ -383,31 +473,50 @@ describe('src/core/strategies/popup', () => {
         pendingTimeouts[_AUTH_EVENT_TIMEOUT]();
       });
       iframeEvent({
-        type: AuthEventType.REAUTH_VIA_POPUP,
+        type: AuthEventType.REAUTH_VIA_POPUP
       });
-      await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/popup-closed-by-user');
+      await expect(promise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/popup-closed-by-user'
+      );
     });
 
     it('passes any errors from idp task', async () => {
-      idpStubs._reauth.returns(Promise.reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.INVALID_APP_ID, {appName: auth.name})));
+      idpStubs._reauth.returns(
+        Promise.reject(
+          AUTH_ERROR_FACTORY.create(AuthErrorCode.INVALID_APP_ID, {
+            appName: auth.name
+          })
+        )
+      );
       const promise = reauthenticateWithPopup(user, provider, resolver);
       iframeEvent({
         eventId: MATCHING_EVENT_ID,
-        type: AuthEventType.REAUTH_VIA_POPUP,
+        type: AuthEventType.REAUTH_VIA_POPUP
       });
 
-      await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/invalid-app-id');
+      await expect(promise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/invalid-app-id'
+      );
     });
 
     it('cancels the task if called consecutively', async () => {
-      const cred = new UserCredentialImpl(user, null, OperationType.REAUTHENTICATE);
+      const cred = new UserCredentialImpl(
+        user,
+        null,
+        OperationType.REAUTHENTICATE
+      );
       idpStubs._reauth.returns(Promise.resolve(cred));
       const firstPromise = reauthenticateWithPopup(user, provider, resolver);
       const secondPromise = reauthenticateWithPopup(user, provider, resolver);
       iframeEvent({
-        type: AuthEventType.REAUTH_VIA_POPUP,
+        type: AuthEventType.REAUTH_VIA_POPUP
       });
-      await expect(firstPromise).to.be.rejectedWith(FirebaseError, 'auth/cancelled-popup-request');
+      await expect(firstPromise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/cancelled-popup-request'
+      );
       expect(await secondPromise).to.eq(cred);
     });
   });
