@@ -61,7 +61,7 @@ const prompt = createPromptModule();
     /**
      * Determine if the current release is a staging or production release
      */
-    const releaseType = await (async () => {
+    const releaseType: string = await (async () => {
       if (argv.canary) return ReleaseType.Canary;
       /**
        * Capture the release type if it was passed to the CLI via args
@@ -77,7 +77,9 @@ const prompt = createPromptModule();
       /**
        * Prompt for the release type (i.e. staging/prod)
        */
-      const responses = await prompt([releaseTypePrompt]);
+      const responses = await prompt<{ [key: string]: string }>([
+        releaseTypePrompt
+      ]);
       return responses.releaseType;
     })();
 
@@ -133,7 +135,7 @@ const prompt = createPromptModule();
        * Release new versions to NPM using changeset
        * It will also create tags
        */
-      await publish();
+      await publish(releaseType);
 
       /**
        * Changeset creats tags for staging releases as well,
