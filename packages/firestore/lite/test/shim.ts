@@ -138,9 +138,9 @@ export class Transaction implements legacy.Transaction {
     options?: legacy.SetOptions
   ): Transaction {
     if (options) {
-      this._delegate.set(documentRef._delegate, unwwrap(data), options);
+      this._delegate.set(documentRef._delegate, unwrap(data), options);
     } else {
-      this._delegate.set(documentRef._delegate, unwwrap(data));
+      this._delegate.set(documentRef._delegate, unwrap(data));
     }
     return this;
   }
@@ -162,13 +162,13 @@ export class Transaction implements legacy.Transaction {
     ...moreFieldsAndValues: any[]
   ): Transaction {
     if (arguments.length === 2) {
-      this._delegate.update(documentRef._delegate, unwwrap(dataOrField));
+      this._delegate.update(documentRef._delegate, unwrap(dataOrField));
     } else {
       this._delegate.update(
         documentRef._delegate,
-        unwwrap(dataOrField),
-        value,
-        ...unwwrap(moreFieldsAndValues)
+        unwrap(dataOrField),
+        unwrap(value),
+        ...unwrap(moreFieldsAndValues)
       );
     }
 
@@ -190,9 +190,9 @@ export class WriteBatch implements legacy.WriteBatch {
     options?: legacy.SetOptions
   ): WriteBatch {
     if (options) {
-      this._delegate.set(documentRef._delegate, unwwrap(data), options);
+      this._delegate.set(documentRef._delegate, unwrap(data), options);
     } else {
-      this._delegate.set(documentRef._delegate, unwwrap(data));
+      this._delegate.set(documentRef._delegate, unwrap(data));
     }
     return this;
   }
@@ -214,13 +214,13 @@ export class WriteBatch implements legacy.WriteBatch {
     ...moreFieldsAndValues: any[]
   ): WriteBatch {
     if (arguments.length === 2) {
-      this._delegate.update(documentRef._delegate, unwwrap(dataOrField));
+      this._delegate.update(documentRef._delegate, unwrap(dataOrField));
     } else {
       this._delegate.update(
         documentRef._delegate,
-        unwwrap(dataOrField),
-        value,
-        ...unwwrap(moreFieldsAndValues)
+        unwrap(dataOrField),
+        unwrap(value),
+        ...unwrap(moreFieldsAndValues)
       );
     }
 
@@ -261,9 +261,9 @@ export class DocumentReference<T = legacy.DocumentData>
 
   set(data: Partial<T>, options?: legacy.SetOptions): Promise<void> {
     if (options) {
-      return setDoc(this._delegate, unwwrap(data), options);
+      return setDoc(this._delegate, unwrap(data), options);
     } else {
-      return setDoc(this._delegate, unwwrap(data));
+      return setDoc(this._delegate, unwrap(data));
     }
   }
 
@@ -279,13 +279,13 @@ export class DocumentReference<T = legacy.DocumentData>
     ...moreFieldsAndValues: any[]
   ): Promise<void> {
     if (arguments.length === 1) {
-      return updateDoc(this._delegate, unwwrap(dataOrField));
+      return updateDoc(this._delegate, unwrap(dataOrField));
     } else {
       return updateDoc(
         this._delegate,
-        unwwrap(dataOrField),
-        value,
-        ...unwwrap(moreFieldsAndValues)
+        unwrap(dataOrField),
+        unwrap(value),
+        ...unwrap(moreFieldsAndValues)
       );
     }
   }
@@ -343,7 +343,7 @@ export class DocumentSnapshot<T = legacy.DocumentData>
     if (options) {
       throw new Error(NOT_SUPPORTED_MSG);
     }
-    return wrap(this._delegate.get(unwwrap(fieldPath)));
+    return wrap(this._delegate.get(unwrap(fieldPath)));
   }
 
   isEqual(other: DocumentSnapshot<T>): boolean {
@@ -377,7 +377,7 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
     value: any
   ): Query<T> {
     return new Query<T>(
-      this._delegate.where(unwwrap(fieldPath), opStr, unwwrap(value))
+      this._delegate.where(unwrap(fieldPath), opStr, unwrap(value))
     );
   }
 
@@ -386,7 +386,7 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
     directionStr?: legacy.OrderByDirection
   ): Query<T> {
     return new Query<T>(
-      this._delegate.orderBy(unwwrap(fieldPath), directionStr)
+      this._delegate.orderBy(unwrap(fieldPath), directionStr)
     );
   }
 
@@ -402,7 +402,7 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
     if (args[0] instanceof DocumentSnapshot) {
       return new Query(this._delegate.startAt(args[0]._delegate));
     } else {
-      return new Query(this._delegate.startAt(...unwwrap(args)));
+      return new Query(this._delegate.startAt(...unwrap(args)));
     }
   }
 
@@ -410,7 +410,7 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
     if (args[0] instanceof DocumentSnapshot) {
       return new Query(this._delegate.startAfter(args[0]._delegate));
     } else {
-      return new Query(this._delegate.startAfter(...unwwrap(args)));
+      return new Query(this._delegate.startAfter(...unwrap(args)));
     }
   }
 
@@ -418,7 +418,7 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
     if (args[0] instanceof DocumentSnapshot) {
       return new Query(this._delegate.endBefore(args[0]._delegate));
     } else {
-      return new Query(this._delegate.endBefore(...unwwrap(args)));
+      return new Query(this._delegate.endBefore(...unwrap(args)));
     }
   }
 
@@ -426,7 +426,7 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
     if (args[0] instanceof DocumentSnapshot) {
       return new Query(this._delegate.endAt(args[0]._delegate));
     } else {
-      return new Query(this._delegate.endAt(...unwwrap(args)));
+      return new Query(this._delegate.endAt(...unwrap(args)));
     }
   }
 
@@ -530,7 +530,7 @@ export class CollectionReference<T = legacy.DocumentData> extends Query<T>
   }
 
   add(data: T): Promise<DocumentReference<T>> {
-    return addDoc(this._delegate, unwwrap(data)).then(
+    return addDoc(this._delegate, unwrap(data)).then(
       docRef => new DocumentReference(docRef)
     );
   }
@@ -626,9 +626,9 @@ function wrap(value: any): any {
  * Takes user data that uses API types from this shim and replaces them
  * with the the lite API types.
  */
-function unwwrap(value: any): any {
+function unwrap(value: any): any {
   if (Array.isArray(value)) {
-    return value.map(v => unwwrap(v));
+    return value.map(v => unwrap(v));
   } else if (value instanceof FieldPath) {
     return value._delegate; 
   } else if (value instanceof FieldValue) {
@@ -639,7 +639,7 @@ function unwwrap(value: any): any {
     const obj: any = {};
     for (const key in value) {
       if (value.hasOwnProperty(key)) {
-        obj[key] = unwwrap(value[key]);
+        obj[key] = unwrap(value[key]);
       }
     }
     return obj;
