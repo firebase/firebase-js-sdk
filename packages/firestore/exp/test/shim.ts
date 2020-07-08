@@ -749,6 +749,8 @@ function unwwrap(value: any): any {
   if (Array.isArray(value)) {
     return value.map(v => unwwrap(v));
   } else if (value instanceof FieldPath) {
+    return value._delegate;  
+  } else if (value instanceof FieldValue) {
     return value._delegate;
   } else if (value instanceof DocumentReference) {
     return value._delegate;
