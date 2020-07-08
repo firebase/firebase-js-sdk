@@ -19,7 +19,8 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 
 import { testUser } from '../../../test/mock_auth';
-import { _getInstance, PersistedBlob, Persistence, PersistenceType } from './';
+import { _getInstance } from '../util/instantiator';
+import { PersistedBlob, Persistence, PersistenceType } from './';
 import { browserLocalPersistence, browserSessionPersistence } from './browser';
 
 describe('core/persistence/browser', () => {
@@ -74,7 +75,7 @@ describe('core/persistence/browser', () => {
   });
 
   describe('browserSessionPersistence', () => {
-    const persistence = _getInstance(browserSessionPersistence);
+    const persistence: Persistence = _getInstance(browserSessionPersistence);
 
     it('should work with persistence type', async () => {
       const key = 'my-super-special-persistence-type';
