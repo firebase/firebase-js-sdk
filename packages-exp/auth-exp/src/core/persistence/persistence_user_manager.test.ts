@@ -23,7 +23,7 @@ import * as sinonChai from 'sinon-chai';
 import { testAuth, testUser } from '../../../test/mock_auth';
 import { Auth } from '../../model/auth';
 import { UserImpl } from '../user/user_impl';
-import { Persistence, PersistenceType } from './';
+import { _getInstance, Persistence, PersistenceType } from './';
 import { inMemoryPersistence } from './in_memory';
 import { PersistenceUserManager } from './persistence_user_manager';
 
@@ -59,7 +59,7 @@ describe('core/persistence/persistence_user_manager', () => {
   describe('.create', () => {
     it('defaults to inMemory if no list provided', async () => {
       const manager = await PersistenceUserManager.create(auth, []);
-      expect(manager.persistence).to.eq(inMemoryPersistence);
+      expect(manager.persistence).to.eq(_getInstance(inMemoryPersistence));
     });
 
     it('searches in order for a user', async () => {
