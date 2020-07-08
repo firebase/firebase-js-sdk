@@ -129,8 +129,7 @@ class PopupAction extends AbstractPopupRedirectAction {
   }
 
   cancel(): void {
-    this.broadcastResult(
-      null,
+    this.reject(
       AUTH_ERROR_FACTORY.create(AuthErrorCode.EXPIRED_POPUP_REQUEST, {
         appName: this.auth.name
       })
@@ -159,8 +158,7 @@ class PopupAction extends AbstractPopupRedirectAction {
         // call could still be in flight.
         this.pollId = window.setTimeout(() => {
           this.pollId = null;
-          this.broadcastResult(
-            null,
+          this.reject(
             AUTH_ERROR_FACTORY.create(AuthErrorCode.POPUP_CLOSED_BY_USER, {
               appName
             })

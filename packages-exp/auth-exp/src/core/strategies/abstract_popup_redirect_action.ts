@@ -23,7 +23,7 @@ import {
 } from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
 import { AuthErrorCode } from '../errors';
-import { fail } from '../util/assert';
+import { debugAssert, fail } from '../util/assert';
 import { _link, _reauth, _signIn, IdpTask, IdpTaskParams } from './idp';
 
 interface PendingPromise {
@@ -43,7 +43,7 @@ export abstract class AbstractPopupRedirectAction implements AuthEventConsumer {
 
   constructor(
     protected readonly auth: Auth,
-    readonly filter: AuthEventType,
+    readonly filter: AuthEventType|'redirect',
     protected readonly resolver: PopupRedirectResolver,
     protected user?: User
   ) {
@@ -55,16 +55,20 @@ export abstract class AbstractPopupRedirectAction implements AuthEventConsumer {
     return new Promise<UserCredential>(async (resolve, reject) => {
       this.pendingPromise = { resolve, reject };
 
-      this.eventManager = await this.resolver._initialize(this.auth);
-      await this.onExecution();
-      this.eventManager.registerConsumer(this);
+      try {
+        this.eventManager = await this.resolver._initialize(this.auth);
+        await this.onExecution();
+        this.eventManager.registerConsumer(this);
+      } catch (e) {
+        this.reject(e);
+      }
     });
   }
 
   async onAuthEvent(event: AuthEvent): Promise<void> {
     const { urlResponse, sessionId, postBody, tenantId, error, type } = event;
     if (error) {
-      this.broadcastResult(null, error);
+      this.reject(error);
       return;
     }
 
@@ -78,19 +82,19 @@ export abstract class AbstractPopupRedirectAction implements AuthEventConsumer {
     };
 
     try {
-      this.broadcastResult(await this.getIdpTask(type)(params));
+      this.resolve(await this.getIdpTask(type)(params));
     } catch (e) {
-      this.broadcastResult(null, e);
+      this.reject(e);
     }
   }
 
   onError(error: FirebaseError): void {
-    this.broadcastResult(null, error);
+    this.reject(error);
   }
 
-  isMatchingEvent(eventId: string|null): boolean {
-    return !!eventId && this.eventId === eventId;
-  }
+  // isMatchingEvent(eventId: string|null): boolean {
+  //   return !!eventId && this.eventId === eventId;
+  // }
 
   private getIdpTask(type: AuthEventType): IdpTask {
     switch(type) {
@@ -108,19 +112,24 @@ export abstract class AbstractPopupRedirectAction implements AuthEventConsumer {
     }
   }
 
-  protected broadcastResult(cred: UserCredential | null, error?: Error): void {
-    if (this.pendingPromise) {
-      if (error) {
-        this.pendingPromise.reject(error);
-      } else {
-        this.pendingPromise.resolve(cred!);
-      }
-    }
+  protected resolve(cred: UserCredential): void {
+    debugAssert(this.pendingPromise, 'Pending promise was never set');
+    this.pendingPromise.resolve(cred);
+    this.unregisterAndCleanUp();
+  }
 
-    this.pendingPromise = null;
+  protected reject(error: Error): void {
+    debugAssert(this.pendingPromise, 'Pending promise was never set');
+    this.pendingPromise.reject(error);
+    this.unregisterAndCleanUp();
+  }
+  
+  private unregisterAndCleanUp() {
     if (this.eventManager) {
       this.eventManager.unregisterConsumer(this);
     }
+
+    this.pendingPromise = null;
     this.cleanUp();
   }
 
