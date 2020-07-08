@@ -48,9 +48,7 @@ class FakeAsyncStorage implements ReactNativeAsyncStorage {
 
 describe('core/persistence/react', () => {
   const fakeAsyncStorage = new FakeAsyncStorage();
-  const persistence = _getInstance(
-    getReactNativePersistence(fakeAsyncStorage)
-  );
+  const persistence = _getInstance(getReactNativePersistence(fakeAsyncStorage));
 
   beforeEach(() => {
     fakeAsyncStorage.clear();
