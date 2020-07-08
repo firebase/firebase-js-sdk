@@ -34,7 +34,10 @@ import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import {
-    DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST, initializeAuth
+  DEFAULT_API_HOST,
+  DEFAULT_API_SCHEME,
+  DEFAULT_TOKEN_API_HOST,
+  initializeAuth
 } from './auth_impl';
 
 use(sinonChai);

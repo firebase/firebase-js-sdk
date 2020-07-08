@@ -32,10 +32,13 @@ const instanceCache: Map<unknown, unknown> = new Map();
 
 export function _getInstance<T>(cls: unknown): T {
   debugAssert(cls instanceof Function, 'Expected a class definition');
-  let instance = instanceCache.get(cls) as T|undefined;
+  let instance = instanceCache.get(cls) as T | undefined;
 
   if (instance) {
-    debugAssert(instance instanceof cls, 'Instance stored in cache mismatched with class');
+    debugAssert(
+      instance instanceof cls,
+      'Instance stored in cache mismatched with class'
+    );
     return instance;
   }
 
