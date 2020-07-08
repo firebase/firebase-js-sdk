@@ -23,7 +23,8 @@ import * as sinonChai from 'sinon-chai';
 import { testAuth, testUser } from '../../../test/mock_auth';
 import { Auth } from '../../model/auth';
 import { UserImpl } from '../user/user_impl';
-import { _getInstance, Persistence, PersistenceType } from './';
+import { _getInstance } from '../util/instantiator';
+import { Persistence, PersistenceType } from './';
 import { inMemoryPersistence } from './in_memory';
 import { PersistenceUserManager } from './persistence_user_manager';
 
