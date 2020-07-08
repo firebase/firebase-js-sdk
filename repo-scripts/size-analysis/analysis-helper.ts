@@ -30,7 +30,8 @@ export const enum ErrorCode {
   DTS_FILE_DOES_NOT_EXIST = "Module doesn't have a dts file!",
   OUTPUT_DIRECTORY_REQUIRED = 'An output directory is required but a file given',
   OUTPUT_FILE_REQUIRED = 'An output file is required but a directory given',
-  INPUT_FILE_DOES_NOT_EXIST = "Input file doesn't exist!"
+  INPUT_FILE_DOES_NOT_EXIST = "Input file doesn't exist!",
+  FILE_PARSING_ERROR = 'Failed to parse js file'
 }
 
 /** Contains a list of members by type. */
@@ -39,12 +40,13 @@ export interface MemberList {
   functions: string[];
   variables: string[];
   enums: string[];
-  externals: string[];
+  externals: object[];
 }
 /** Contains the dependencies and the size of their code for a single export. */
 export interface ExportData {
   dependencies: MemberList;
   sizeInBytes: number;
+  sizeInBytesWithExternalDeps: number;
 }
 
 /**
@@ -108,32 +110,48 @@ export async function extractDependenciesAndSize(
     minimizedBundleOutput,
     map
   );
-  const dependenciesFullyResolved: MemberList = extractDeclarations(
+
+  const externals: object = extractExternalDependencies(minimizedBundleOutput);
+  dependencies.externals.push(externals);
+
+  const afterContentFullyResolved = fs.readFileSync(
     fulllyResolvedOutput,
-    map
+    'utf-8'
   );
-  const externals: string[] = extractExternalDependencies(
-    dependencies,
-    dependenciesFullyResolved
-  );
-
-  dependencies.externals.push(...externals);
-
   // Extract size of minified build
-  const afterContent = fs.readFileSync(fulllyResolvedOutput, 'utf-8');
-
-  const { code } = terser.minify(afterContent, {
-    output: {
-      comments: false
-    },
-    mangle: true,
-    compress: false
-  });
+  const afterContentMinimized = fs.readFileSync(minimizedBundleOutput, 'utf-8');
+  const codeFullyResolved: terser.MinifyOutput = terser.minify(
+    afterContentFullyResolved,
+    {
+      output: {
+        comments: false
+      },
+      mangle: true,
+      compress: false
+    }
+  );
+  const codeMinimized: terser.MinifyOutput = terser.minify(
+    afterContentMinimized,
+    {
+      output: {
+        comments: false
+      },
+      mangle: true,
+      compress: false
+    }
+  );
 
   fs.unlinkSync(input);
   fs.unlinkSync(minimizedBundleOutput);
   fs.unlinkSync(fulllyResolvedOutput);
-  return { dependencies, sizeInBytes: Buffer.byteLength(code!, 'utf-8') };
+  return {
+    dependencies,
+    sizeInBytes: Buffer.byteLength(codeMinimized.code!, 'utf-8'),
+    sizeInBytesWithExternalDeps: Buffer.byteLength(
+      codeFullyResolved.code!,
+      'utf-8'
+    )
+  };
 }
 
 /**
@@ -167,7 +185,7 @@ export function extractDeclarations(
 
   const sourceFile = program.getSourceFile(jsFile);
   if (!sourceFile) {
-    throw new Error('Failed to parse file: ' + jsFile);
+    throw new Error(`${ErrorCode.FILE_PARSING_ERROR} ${jsFile}`);
   }
 
   let declarations: MemberList = {
@@ -389,23 +407,51 @@ export function writeReportToDirectory(
 }
 
 /**
+ * This function extract unresolved external module symbols from bundle file import statements.
  *
- * @param minimizedDependencies The dependant symbols extracted from a bundle file that doesn't resolve external firebase modules
- *
- * @param fullyResolvedDependencies The dependant symbols extracted from a bundle file that resolves external firebase modules
- *
- * This function calculates the difference between two dependency sets, the difference is the symbols of external firebase modules
- * that the current modular export depends on.
  */
 export function extractExternalDependencies(
-  minimizedDependencies: MemberList,
-  fullyResolvedDependencies: MemberList
-): string[] {
-  const externals: string[] = [];
-  Object.keys(fullyResolvedDependencies).map(each => {
-    const set1: Set<string> = new Set(fullyResolvedDependencies[each]);
-    const set2: Set<string> = new Set(minimizedDependencies[each]);
-    externals.push(...Array.from(set1).filter(x => !set2.has(x)));
+  minimizedBundleFile: string
+): object {
+  const program = ts.createProgram([minimizedBundleFile], { allowJs: true });
+
+  const sourceFile = program.getSourceFile(minimizedBundleFile);
+  if (!sourceFile) {
+    throw new Error(`${ErrorCode.FILE_PARSING_ERROR} ${minimizedBundleFile}`);
+  }
+
+  const externals = {};
+  ts.forEachChild(sourceFile, node => {
+    if (ts.isImportDeclaration(node) && node.importClause) {
+      const moduleName: string = node.moduleSpecifier.getText(sourceFile);
+
+      externals[moduleName] = [];
+
+      //import {a, b } from '@firebase/dummy-exp'
+      if (
+        node.importClause.namedBindings &&
+        ts.isNamedImports(node.importClause.namedBindings)
+      ) {
+        node.importClause.namedBindings.elements.forEach(each => {
+          externals[moduleName].push(each.name.getText(sourceFile));
+        });
+        // import * as fs from 'fs'
+      } else if (
+        node.importClause.namedBindings &&
+        ts.isNamespaceImport(node.importClause.namedBindings)
+      ) {
+        externals[moduleName].push(
+          node.importClause.namedBindings.name.getText(sourceFile)
+        );
+        // import a from '@firebase/dummy-exp'
+      } else if (
+        node.importClause.name &&
+        ts.isIdentifier(node.importClause.name)
+      ) {
+        externals[moduleName].push(node.importClause.name.getText(sourceFile));
+      }
+    }
   });
+
   return externals;
 }

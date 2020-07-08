@@ -57,50 +57,25 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 30115
+        "sizeInBytes": 24028,
+        "sizeInBytesWithExternalDeps": 30115
     },
     "EmailAuthProvider": {
         "dependencies": {
@@ -172,51 +147,27 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension",
+                        "FirebaseError",
+                        "querystring"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 34259
+        "sizeInBytes": 27937,
+        "sizeInBytesWithExternalDeps": 34259
     },
     "PhoneAuthProvider": {
         "dependencies": {
@@ -318,64 +269,34 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "createSubscribe",
-                "getApp",
-                "getUA",
-                "implementsAnyMethods",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "noop",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "ObserverProxy",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "DEFAULT_ENTRY_NAME",
-                "ERRORS$1",
-                "ERROR_FACTORY",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "base64",
-                "base64Decode",
-                "byteArrayToString",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "stringToByteArray",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "getApp",
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension",
+                        "FirebaseError",
+                        "getUA",
+                        "createSubscribe",
+                        "querystring",
+                        "base64Decode"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 52680
+        "sizeInBytes": 40280,
+        "sizeInBytesWithExternalDeps": 52680
     },
     "PhoneMultiFactorGenerator": {
         "dependencies": {
@@ -440,51 +361,27 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension",
+                        "FirebaseError",
+                        "querystring"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 31740
+        "sizeInBytes": 25418,
+        "sizeInBytesWithExternalDeps": 31740
     },
     "RecaptchaVerifier": {
         "dependencies": {
@@ -597,64 +494,34 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "createSubscribe",
-                "getApp",
-                "getUA",
-                "implementsAnyMethods",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "noop",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "ObserverProxy",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "DEFAULT_ENTRY_NAME",
-                "ERRORS$1",
-                "ERROR_FACTORY",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "base64",
-                "base64Decode",
-                "byteArrayToString",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "stringToByteArray",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "getApp",
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "FirebaseError",
+                        "querystring",
+                        "isBrowserExtension",
+                        "getUA",
+                        "createSubscribe",
+                        "base64Decode"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 56512
+        "sizeInBytes": 44112,
+        "sizeInBytesWithExternalDeps": 56512
     },
     "applyActionCode": {
         "dependencies": {
@@ -716,51 +583,27 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "FirebaseError",
+                        "isBrowserExtension",
+                        "querystring"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 30684
+        "sizeInBytes": 24362,
+        "sizeInBytesWithExternalDeps": 30684
     },
     "checkActionCode": {
         "dependencies": {
@@ -823,51 +666,27 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "FirebaseError",
+                        "isBrowserExtension",
+                        "querystring"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 31124
+        "sizeInBytes": 24802,
+        "sizeInBytesWithExternalDeps": 31124
     },
     "confirmPasswordReset": {
         "dependencies": {
@@ -929,51 +748,27 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "FirebaseError",
+                        "isBrowserExtension",
+                        "querystring"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 30681
+        "sizeInBytes": 24359,
+        "sizeInBytesWithExternalDeps": 30681
     },
     "createUserWithEmailAndPassword": {
         "dependencies": {
@@ -1070,56 +865,31 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "base64",
-                "base64Decode",
-                "byteArrayToString",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "stringToByteArray",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension",
+                        "FirebaseError",
+                        "querystring",
+                        "base64Decode"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 47689
+        "sizeInBytes": 37857,
+        "sizeInBytesWithExternalDeps": 47689
     },
     "deleteUser": {
         "dependencies": {
@@ -1176,45 +946,25 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "registerCoreComponents",
-                "registerVersion",
-                "Component",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "LogLevel",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 18694
+        "sizeInBytes": 22904,
+        "sizeInBytesWithExternalDeps": 18694
     },
     "fetchSignInMethodsForEmail": {
         "dependencies": {
@@ -1277,51 +1027,27 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "FirebaseError",
+                        "isBrowserExtension",
+                        "querystring"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 30931
+        "sizeInBytes": 24609,
+        "sizeInBytesWithExternalDeps": 30931
     },
     "getIdToken": {
         "dependencies": {
@@ -1378,45 +1104,25 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "registerCoreComponents",
-                "registerVersion",
-                "Component",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "LogLevel",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 18701
+        "sizeInBytes": 22911,
+        "sizeInBytesWithExternalDeps": 18701
     },
     "getIdTokenResult": {
         "dependencies": {
@@ -1478,54 +1184,26 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "base64",
-                "base64Decode",
-                "byteArrayToString",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "stringToByteArray",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "base64Decode",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 33461
+        "sizeInBytes": 24189,
+        "sizeInBytesWithExternalDeps": 33461
     },
     "getMultiFactorResolver": {
         "dependencies": {
@@ -1615,56 +1293,31 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "base64",
-                "base64Decode",
-                "byteArrayToString",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "stringToByteArray",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension",
+                        "FirebaseError",
+                        "base64Decode",
+                        "querystring"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 46369
+        "sizeInBytes": 36537,
+        "sizeInBytesWithExternalDeps": 46369
     },
     "initializeAuth": {
         "dependencies": {
@@ -1757,64 +1410,34 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "createSubscribe",
-                "getApp",
-                "getUA",
-                "implementsAnyMethods",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "noop",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "ObserverProxy",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "DEFAULT_ENTRY_NAME",
-                "ERRORS$1",
-                "ERROR_FACTORY",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "base64",
-                "base64Decode",
-                "byteArrayToString",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "stringToByteArray",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "getApp",
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "getUA",
+                        "createSubscribe",
+                        "isBrowserExtension",
+                        "FirebaseError",
+                        "base64Decode",
+                        "querystring"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 49476
+        "sizeInBytes": 37076,
+        "sizeInBytesWithExternalDeps": 49476
     },
     "isSignInWithEmailLink": {
         "dependencies": {
@@ -1875,50 +1498,25 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 30261
+        "sizeInBytes": 24174,
+        "sizeInBytesWithExternalDeps": 30261
     },
     "linkWithCredential": {
         "dependencies": {
@@ -2007,56 +1605,31 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "base64",
-                "base64Decode",
-                "byteArrayToString",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "stringToByteArray",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension",
+                        "FirebaseError",
+                        "base64Decode",
+                        "querystring"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 44385
+        "sizeInBytes": 34553,
+        "sizeInBytesWithExternalDeps": 44385
     },
     "linkWithPhoneNumber": {
         "dependencies": {
@@ -2150,56 +1723,31 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "base64",
-                "base64Decode",
-                "byteArrayToString",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "stringToByteArray",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "FirebaseError",
+                        "isBrowserExtension",
+                        "querystring",
+                        "base64Decode"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 45337
+        "sizeInBytes": 35505,
+        "sizeInBytesWithExternalDeps": 45337
     },
     "multiFactor": {
         "dependencies": {
@@ -2263,51 +1811,27 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension",
+                        "FirebaseError",
+                        "querystring"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 32215
+        "sizeInBytes": 25893,
+        "sizeInBytesWithExternalDeps": 32215
     },
     "onAuthStateChanged": {
         "dependencies": {
@@ -2364,45 +1888,25 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "registerCoreComponents",
-                "registerVersion",
-                "Component",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "LogLevel",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 18727
+        "sizeInBytes": 22937,
+        "sizeInBytesWithExternalDeps": 18727
     },
     "onIdTokenChanged": {
         "dependencies": {
@@ -2459,45 +1963,25 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "registerCoreComponents",
-                "registerVersion",
-                "Component",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "LogLevel",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 18721
+        "sizeInBytes": 22931,
+        "sizeInBytesWithExternalDeps": 18721
     },
     "parseActionCodeURL": {
         "dependencies": {
@@ -2558,50 +2042,25 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 30189
+        "sizeInBytes": 24102,
+        "sizeInBytesWithExternalDeps": 30189
     },
     "reauthenticateWithCredential": {
         "dependencies": {
@@ -2690,56 +2149,31 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "base64",
-                "base64Decode",
-                "byteArrayToString",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "stringToByteArray",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension",
+                        "base64Decode",
+                        "FirebaseError",
+                        "querystring"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 45098
+        "sizeInBytes": 35266,
+        "sizeInBytesWithExternalDeps": 45098
     },
     "reauthenticateWithPhoneNumber": {
         "dependencies": {
@@ -2833,56 +2267,31 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "base64",
-                "base64Decode",
-                "byteArrayToString",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "stringToByteArray",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "FirebaseError",
+                        "isBrowserExtension",
+                        "querystring",
+                        "base64Decode"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 46000
+        "sizeInBytes": 36168,
+        "sizeInBytesWithExternalDeps": 46000
     },
     "reload": {
         "dependencies": {
@@ -2948,52 +2357,30 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension",
+                        "FirebaseError",
+                        "querystring"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 32209
+        "sizeInBytes": 25562,
+        "sizeInBytesWithExternalDeps": 32209
     },
     "sendEmailVerification": {
         "dependencies": {
@@ -3057,51 +2444,27 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "FirebaseError",
+                        "isBrowserExtension",
+                        "querystring"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 31307
+        "sizeInBytes": 24985,
+        "sizeInBytesWithExternalDeps": 31307
     },
     "sendPasswordResetEmail": {
         "dependencies": {
@@ -3165,51 +2528,27 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "FirebaseError",
+                        "isBrowserExtension",
+                        "querystring"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 31221
+        "sizeInBytes": 24899,
+        "sizeInBytesWithExternalDeps": 31221
     },
     "sendSignInLinkToEmail": {
         "dependencies": {
@@ -3273,51 +2612,27 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "FirebaseError",
+                        "isBrowserExtension",
+                        "querystring"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 31214
+        "sizeInBytes": 24892,
+        "sizeInBytesWithExternalDeps": 31214
     },
     "setPersistence": {
         "dependencies": {
@@ -3374,45 +2689,25 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "registerCoreComponents",
-                "registerVersion",
-                "Component",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "LogLevel",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 18700
+        "sizeInBytes": 22910,
+        "sizeInBytesWithExternalDeps": 18700
     },
     "signInAnonymously": {
         "dependencies": {
@@ -3504,56 +2799,31 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "base64",
-                "base64Decode",
-                "byteArrayToString",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "stringToByteArray",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension",
+                        "FirebaseError",
+                        "base64Decode",
+                        "querystring"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 45646
+        "sizeInBytes": 35814,
+        "sizeInBytesWithExternalDeps": 45646
     },
     "signInWithCredential": {
         "dependencies": {
@@ -3641,56 +2911,31 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "base64",
-                "base64Decode",
-                "byteArrayToString",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "stringToByteArray",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "FirebaseError",
+                        "isBrowserExtension",
+                        "base64Decode",
+                        "querystring"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 44778
+        "sizeInBytes": 34946,
+        "sizeInBytesWithExternalDeps": 44778
     },
     "signInWithCustomToken": {
         "dependencies": {
@@ -3777,56 +3022,31 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "base64",
-                "base64Decode",
-                "byteArrayToString",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "stringToByteArray",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension",
+                        "FirebaseError",
+                        "querystring",
+                        "base64Decode"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 44194
+        "sizeInBytes": 34362,
+        "sizeInBytesWithExternalDeps": 44194
     },
     "signInWithEmailAndPassword": {
         "dependencies": {
@@ -3925,56 +3145,31 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "base64",
-                "base64Decode",
-                "byteArrayToString",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "stringToByteArray",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension",
+                        "FirebaseError",
+                        "querystring",
+                        "base64Decode"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 48381
+        "sizeInBytes": 38549,
+        "sizeInBytesWithExternalDeps": 48381
     },
     "signInWithEmailLink": {
         "dependencies": {
@@ -4074,56 +3269,31 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "base64",
-                "base64Decode",
-                "byteArrayToString",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "stringToByteArray",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension",
+                        "FirebaseError",
+                        "querystring",
+                        "base64Decode"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 48557
+        "sizeInBytes": 38725,
+        "sizeInBytesWithExternalDeps": 48557
     },
     "signInWithPhoneNumber": {
         "dependencies": {
@@ -4216,56 +3386,31 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "base64",
-                "base64Decode",
-                "byteArrayToString",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "stringToByteArray",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "FirebaseError",
+                        "isBrowserExtension",
+                        "querystring",
+                        "base64Decode"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 45678
+        "sizeInBytes": 35846,
+        "sizeInBytesWithExternalDeps": 45678
     },
     "signOut": {
         "dependencies": {
@@ -4322,45 +3467,25 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "registerCoreComponents",
-                "registerVersion",
-                "Component",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "LogLevel",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 18683
+        "sizeInBytes": 22893,
+        "sizeInBytesWithExternalDeps": 18683
     },
     "unlink": {
         "dependencies": {
@@ -4429,52 +3554,30 @@
             ],
             "enums": [],
             "externals": [
-                "__rest",
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "FirebaseError",
+                        "isBrowserExtension",
+                        "querystring"
+                    ],
+                    "'tslib'": [
+                        "__rest"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 32854
+        "sizeInBytes": 26207,
+        "sizeInBytesWithExternalDeps": 32854
     },
     "updateEmail": {
         "dependencies": {
@@ -4537,51 +3640,27 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "FirebaseError",
+                        "isBrowserExtension",
+                        "querystring"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 30887
+        "sizeInBytes": 24565,
+        "sizeInBytesWithExternalDeps": 30887
     },
     "updatePassword": {
         "dependencies": {
@@ -4644,51 +3723,27 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "FirebaseError",
+                        "isBrowserExtension",
+                        "querystring"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 30893
+        "sizeInBytes": 24571,
+        "sizeInBytesWithExternalDeps": 30893
     },
     "updateProfile": {
         "dependencies": {
@@ -4750,51 +3805,27 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "FirebaseError",
+                        "isBrowserExtension",
+                        "querystring"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 31042
+        "sizeInBytes": 24720,
+        "sizeInBytesWithExternalDeps": 31042
     },
     "useDeviceLanguage": {
         "dependencies": {
@@ -4851,45 +3882,25 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "registerCoreComponents",
-                "registerVersion",
-                "Component",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "LogLevel",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 18706
+        "sizeInBytes": 22916,
+        "sizeInBytesWithExternalDeps": 18706
     },
     "verifyPasswordResetCode": {
         "dependencies": {
@@ -4953,51 +3964,27 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "querystring",
-                "registerCoreComponents",
-                "registerVersion",
-                "replaceTemplate",
-                "Component",
-                "ErrorFactory",
-                "FirebaseError",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "ERROR_NAME",
-                "LogLevel",
-                "PATTERN",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension",
+                        "FirebaseError",
+                        "querystring"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 31232
+        "sizeInBytes": 24910,
+        "sizeInBytesWithExternalDeps": 31232
     },
     "browserLocalPersistence": {
         "dependencies": {
@@ -5053,45 +4040,25 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "registerCoreComponents",
-                "registerVersion",
-                "Component",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "LogLevel",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 18660
+        "sizeInBytes": 22870,
+        "sizeInBytesWithExternalDeps": 18660
     },
     "browserSessionPersistence": {
         "dependencies": {
@@ -5147,45 +4114,25 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "registerCoreComponents",
-                "registerVersion",
-                "Component",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "LogLevel",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 18662
+        "sizeInBytes": 22872,
+        "sizeInBytesWithExternalDeps": 18662
     },
     "inMemoryPersistence": {
         "dependencies": {
@@ -5241,45 +4188,25 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "registerCoreComponents",
-                "registerVersion",
-                "Component",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "LogLevel",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 18656
+        "sizeInBytes": 22866,
+        "sizeInBytesWithExternalDeps": 18656
     },
     "indexedDBLocalPersistence": {
         "dependencies": {
@@ -5335,44 +4262,24 @@
             ],
             "enums": [],
             "externals": [
-                "_addComponent",
-                "_registerComponent",
-                "getUA",
-                "isBrowserExtension",
-                "isMobileCordova",
-                "isReactNative",
-                "isVersionServiceProvider",
-                "registerCoreComponents",
-                "registerVersion",
-                "Component",
-                "Logger",
-                "PlatformLoggerService",
-                "ConsoleMethod",
-                "LogLevel",
-                "PLATFORM_LOG_STRING",
-                "SDK_VERSION",
-                "_apps",
-                "_components",
-                "defaultLogHandler",
-                "defaultLogLevel",
-                "levelStringToEnum",
-                "logger",
-                "name$1",
-                "name$2",
-                "name$3",
-                "name$4",
-                "name$5",
-                "name$6",
-                "name$7",
-                "name$8",
-                "name$9",
-                "name$a",
-                "name$b",
-                "name$c",
-                "version",
-                "version$1"
+                {
+                    "'@firebase/app-exp'": [
+                        "SDK_VERSION"
+                    ],
+                    "'@firebase/util'": [
+                        "ErrorFactory",
+                        "isMobileCordova",
+                        "isReactNative",
+                        "isBrowserExtension"
+                    ],
+                    "'@firebase/logger'": [
+                        "Logger",
+                        "LogLevel"
+                    ]
+                }
             ]
         },
-        "sizeInBytes": 18662
+        "sizeInBytes": 22872,
+        "sizeInBytesWithExternalDeps": 18662
     }
 }
