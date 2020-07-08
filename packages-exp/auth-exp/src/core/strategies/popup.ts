@@ -25,7 +25,7 @@ import { Delay } from '../util/delay';
 import { _generateEventId } from '../util/event_id';
 import { _getInstance } from '../util/instantiator';
 import { AuthPopup } from '../util/popup';
-import { AbstractPopupRedirectAction } from './abstract_popup_redirect_action';
+import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 
 // The event timeout is the same on mobile and desktop, no need for Delay.
 export const _AUTH_EVENT_TIMEOUT = 2020;
@@ -39,7 +39,7 @@ export async function signInWithPopup(
   const auth = authExtern as Auth;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
-  const action = new PopupAction(
+  const action = new PopupOperation(
     auth,
     AuthEventType.SIGN_IN_VIA_POPUP,
     provider,
@@ -56,7 +56,7 @@ export async function reauthenticateWithPopup(
   const user = userExtern as User;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
-  const action = new PopupAction(
+  const action = new PopupOperation(
     user.auth,
     AuthEventType.REAUTH_VIA_POPUP,
     provider,
@@ -74,7 +74,7 @@ export async function linkWithPopup(
   const user = userExtern as User;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
-  const action = new PopupAction(
+  const action = new PopupOperation(
     user.auth,
     AuthEventType.LINK_VIA_POPUP,
     provider,
@@ -88,10 +88,10 @@ export async function linkWithPopup(
  * Popup event manager. Handles the popup's entire lifecycle; listens to auth
  * events
  */
-class PopupAction extends AbstractPopupRedirectAction {
+class PopupOperation extends AbstractPopupRedirectOperation {
   // Only one popup is ever shown at once. The lifecycle of the current popup
   // can be managed / cancelled by the constructor.
-  private static currentPopupAction: PopupAction | null = null;
+  private static currentPopupAction: PopupOperation | null = null;
   private authWindow: AuthPopup | null = null;
   private pollId: number | null = null;
 
@@ -103,11 +103,11 @@ class PopupAction extends AbstractPopupRedirectAction {
     user?: User
   ) {
     super(auth, filter, resolver, user);
-    if (PopupAction.currentPopupAction) {
-      PopupAction.currentPopupAction.cancel();
+    if (PopupOperation.currentPopupAction) {
+      PopupOperation.currentPopupAction.cancel();
     }
 
-    PopupAction.currentPopupAction = this;
+    PopupOperation.currentPopupAction = this;
   }
 
   async onExecution(): Promise<void> {
@@ -147,7 +147,7 @@ class PopupAction extends AbstractPopupRedirectAction {
     
     this.authWindow = null;
     this.pollId = null;
-    PopupAction.currentPopupAction = null;
+    PopupOperation.currentPopupAction = null;
   }
 
   private pollUserCancellation(appName: string): void {

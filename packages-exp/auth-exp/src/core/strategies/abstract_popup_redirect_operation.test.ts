@@ -35,7 +35,7 @@ import { AuthEventManager } from '../auth/auth_event_manager';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _getInstance } from '../util/instantiator';
-import { AbstractPopupRedirectAction } from './abstract_popup_redirect_action';
+import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 import * as idp from './idp';
 
 use(sinonChai);
@@ -48,13 +48,13 @@ const ERROR = AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
 /**
  * A real class is needed to instantiate the action
  */
-class WrapperAction extends AbstractPopupRedirectAction {
+class WrapperOperation extends AbstractPopupRedirectOperation {
   eventId = '100';
   onExecution = sinon.stub().returns(Promise.resolve());
   cleanUp = sinon.stub();
 }
 
-describe('src/core/strategies/abstract_popup_redirect_action', () => {
+describe('src/core/strategies/abstract_popup_redirect_operation', () => {
   let auth: Auth;
   let resolver: PopupRedirectResolver;
   let eventManager: EventManager;
@@ -72,10 +72,10 @@ describe('src/core/strategies/abstract_popup_redirect_action', () => {
   });
 
   context('#execute', () => {
-    let action: WrapperAction;
+    let operation: WrapperOperation;
     
     beforeEach(() => {
-      action = new WrapperAction(auth, AuthEventType.LINK_VIA_POPUP, resolver);
+      operation = new WrapperOperation(auth, AuthEventType.LINK_VIA_POPUP, resolver);
       idpStubs._signIn.returns(Promise.resolve(new UserCredentialImpl(testUser(auth, 'uid'), null, OperationType.SIGN_IN)));
     });
 
@@ -83,17 +83,17 @@ describe('src/core/strategies/abstract_popup_redirect_action', () => {
     function finishPromise(outcome: AuthEvent|FirebaseError): void {
       delay((): void => {
         if (outcome instanceof FirebaseError) {
-          action.onError(outcome);
+          operation.onError(outcome);
         } else {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          action.onAuthEvent(outcome);
+          operation.onAuthEvent(outcome);
         }
       });
     }
 
     it('initializes the resolver', async () => {
       sinon.spy(resolver, '_initialize');
-      const promise = action.execute();
+      const promise = operation.execute();
       finishPromise(authEvent());
       await promise;
       expect(resolver._initialize).to.have.been.calledWith(auth);
@@ -101,63 +101,118 @@ describe('src/core/strategies/abstract_popup_redirect_action', () => {
 
     it('calls subclass onExecution', async () => {
       finishPromise(authEvent());
-      await action.execute();
-      expect(action.onExecution).to.have.been.called;
+      await operation.execute();
+      expect(operation.onExecution).to.have.been.called;
     });
 
     it('registers and unregisters itself with the event manager', async () => {
       sinon.spy(eventManager, 'registerConsumer');
       sinon.spy(eventManager, 'unregisterConsumer');
       finishPromise(authEvent());
-      await action.execute();
-      expect(eventManager.registerConsumer).to.have.been.calledWith(action);
-      expect(eventManager.unregisterConsumer).to.have.been.calledWith(action);
+      await operation.execute();
+      expect(eventManager.registerConsumer).to.have.been.calledWith(operation);
+      expect(eventManager.unregisterConsumer).to.have.been.calledWith(operation);
     });
 
     it('unregisters itself in case of error', async () => {
       sinon.spy(eventManager, 'unregisterConsumer');
       finishPromise(ERROR);
-      try { await action.execute(); } catch {}
-      expect(eventManager.unregisterConsumer).to.have.been.calledWith(action);
+      try { await operation.execute(); } catch {}
+      expect(eventManager.unregisterConsumer).to.have.been.calledWith(operation);
     });
 
     it('emits the user credential returned from idp task', async () => {
       finishPromise(authEvent());
-      const cred = await action.execute();
+      const cred = await operation.execute();
       expect(cred.user.uid).to.eq('uid');
       expect(cred.credential).to.be.null;
       expect(cred.operationType).to.eq(OperationType.SIGN_IN);
     });
 
-    it('bubbles up any error', async (done) => {
+    it('bubbles up any error', done => {
       finishPromise(ERROR);
-      try {
-        await action.execute();
-      } catch (e) {
+      operation.execute().catch(e => {
         expect(e).to.eq(ERROR);
         done();
-      }
+      });
+    });
+
+    it('calls cleanUp on error', async () => {
+      finishPromise(ERROR);
+      try {
+        await operation.execute();
+      } catch {}
+      expect(operation.cleanUp).to.have.been.called;
+    });
+
+    it('calls cleanUp on success', async () => {
+      finishPromise(authEvent());
+      await operation.execute();
+      expect(operation.cleanUp).to.have.been.called;
     });
 
     context('idp tasks', () => {
-      function updateFilter(type: AuthEventType) {
-        (action as unknown as Record<string, unknown>).filter = type;
+      function updateFilter(type: AuthEventType): void {
+        (operation as unknown as Record<string, unknown>).filter = type;
       }
 
-      const expectedIdpTaskParams: idp.IdpTaskParams = {
-        auth,
-        requestUri: BASE_AUTH_EVENT.urlResponse!,
-        sessionId: BASE_AUTH_EVENT.sessionId!,
-        tenantId: BASE_AUTH_EVENT.tenantId || undefined,
-        postBody: BASE_AUTH_EVENT.postBody || undefined,
-      };
+      function expectedIdpTaskParams(): idp.IdpTaskParams {
+        return {
+          auth,
+          requestUri: BASE_AUTH_EVENT.urlResponse!,
+          sessionId: BASE_AUTH_EVENT.sessionId!,
+          tenantId: BASE_AUTH_EVENT.tenantId || undefined,
+          postBody: BASE_AUTH_EVENT.postBody || undefined,
+          user: undefined,
+        };
+      }
 
-      it('routes signInWithPopup', async () => {
+      it('routes SIGN_IN_VIA_POPUP', async () => {
         const type = AuthEventType.SIGN_IN_VIA_POPUP;
         updateFilter(type);
         finishPromise(authEvent({type}));
-        await action.execute();
-        expect(idp._signIn).to.have.been.calledWith(expectedIdpTaskParams);
+        await operation.execute();
+        expect(idp._signIn).to.have.been.calledWith(expectedIdpTaskParams());
+      });
+
+      it('routes SIGN_IN_VIA_REDIRECT', async () => {
+        const type = AuthEventType.SIGN_IN_VIA_REDIRECT;
+        updateFilter(type);
+        finishPromise(authEvent({type}));
+        await operation.execute();
+        expect(idp._signIn).to.have.been.calledWith(expectedIdpTaskParams());
+      });
+
+      it('routes LINK_VIA_POPUP', async () => {
+        const type = AuthEventType.LINK_VIA_POPUP;
+        updateFilter(type);
+        finishPromise(authEvent({type}));
+        await operation.execute();
+        expect(idp._link).to.have.been.calledWith(expectedIdpTaskParams());
+      });
+
+      it('routes LINK_VIA_REDIRECT', async () => {
+        const type = AuthEventType.LINK_VIA_REDIRECT;
+        updateFilter(type);
+        finishPromise(authEvent({type}));
+        await operation.execute();
+        expect(idp._link).to.have.been.calledWith(expectedIdpTaskParams());
+      });
+
+      it('routes REAUTH_VIA_POPUP', async () => {
+        const type = AuthEventType.REAUTH_VIA_POPUP;
+        updateFilter(type);
+        finishPromise(authEvent({type}));
+        await operation.execute();
+        expect(idp._reauth).to.have.been.calledWith(expectedIdpTaskParams());
+      });
+
+      it('routes REAUTH_VIA_REDIRECT', async () => {
+        const type = AuthEventType.REAUTH_VIA_REDIRECT;
+        updateFilter(type);
+        finishPromise(authEvent({type}));
+        await operation.execute();
+        expect(idp._reauth).to.have.been.calledWith(expectedIdpTaskParams());
       });
     });
   });

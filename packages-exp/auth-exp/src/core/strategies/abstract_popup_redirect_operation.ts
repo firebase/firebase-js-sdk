@@ -35,7 +35,7 @@ interface PendingPromise {
  * Popup event manager. Handles the popup's entire lifecycle; listens to auth
  * events
  */
-export abstract class AbstractPopupRedirectAction implements AuthEventConsumer {
+export abstract class AbstractPopupRedirectOperation implements AuthEventConsumer {
   private pendingPromise: PendingPromise | null = null;
   private eventManager: EventManager | null = null;
   
@@ -43,7 +43,7 @@ export abstract class AbstractPopupRedirectAction implements AuthEventConsumer {
 
   constructor(
     protected readonly auth: Auth,
-    readonly filter: AuthEventType|'redirect',
+    readonly filter: AuthEventType,
     protected readonly resolver: PopupRedirectResolver,
     protected user?: User
   ) {
@@ -92,9 +92,9 @@ export abstract class AbstractPopupRedirectAction implements AuthEventConsumer {
     this.reject(error);
   }
 
-  // isMatchingEvent(eventId: string|null): boolean {
-  //   return !!eventId && this.eventId === eventId;
-  // }
+  isMatchingEvent(eventId: string|null): boolean {
+    return !!eventId && this.eventId === eventId;
+  }
 
   private getIdpTask(type: AuthEventType): IdpTask {
     switch(type) {
@@ -124,7 +124,7 @@ export abstract class AbstractPopupRedirectAction implements AuthEventConsumer {
     this.unregisterAndCleanUp();
   }
   
-  private unregisterAndCleanUp() {
+  private unregisterAndCleanUp(): void {
     if (this.eventManager) {
       this.eventManager.unregisterConsumer(this);
     }
