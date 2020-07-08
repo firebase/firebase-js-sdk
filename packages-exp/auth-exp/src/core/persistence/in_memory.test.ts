@@ -18,10 +18,11 @@
 import { expect } from 'chai';
 
 import { testUser } from '../../../test/mock_auth';
-import { _getInstance, PersistenceType } from './';
+import { _getInstance } from '../util/instantiator';
+import { Persistence, PersistenceType } from './';
 import { inMemoryPersistence } from './in_memory';
 
-const persistence = _getInstance(inMemoryPersistence);
+const persistence: Persistence = _getInstance(inMemoryPersistence);
 
 describe('core/persistence/in_memory', () => {
   it('should work with persistence type', async () => {

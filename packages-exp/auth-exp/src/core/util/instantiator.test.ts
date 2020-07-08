@@ -17,9 +17,9 @@
 
 import { expect } from 'chai';
 
-import { _getInstance } from './';
+import { _getInstance } from './instantiator';
 
-describe('src/core/persistence/index', () => {
+describe('src/core/util/instantiator', () => {
   context('_getInstance', () => {
     // All tests define their own classes since the Class object is used in the
     // global map.
@@ -65,6 +65,16 @@ describe('src/core/persistence/index', () => {
       const b = _getInstance(PersistenceB);
       expect(_getInstance(PersistenceA)).to.eq(a);
       expect(_getInstance(PersistenceB)).to.eq(b);
+    });
+
+    it('instantiates any class', () => {
+      class Test {}
+
+      const a = _getInstance(Test);
+      const b = _getInstance(Test);
+
+      expect(a).to.be.instanceOf(Test);
+      expect(a).to.eq(b);
     });
   });
 });
