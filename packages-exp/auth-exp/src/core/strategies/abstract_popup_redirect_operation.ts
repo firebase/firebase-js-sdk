@@ -19,7 +19,11 @@ import { FirebaseError } from '@firebase/util';
 
 import { Auth } from '../../model/auth';
 import {
-    AuthEvent, AuthEventConsumer, AuthEventType, EventManager, PopupRedirectResolver
+  AuthEvent,
+  AuthEventConsumer,
+  AuthEventType,
+  EventManager,
+  PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
 import { AuthErrorCode } from '../errors';
@@ -35,19 +39,19 @@ interface PendingPromise {
  * Popup event manager. Handles the popup's entire lifecycle; listens to auth
  * events
  */
-export abstract class AbstractPopupRedirectOperation implements AuthEventConsumer {
+export abstract class AbstractPopupRedirectOperation
+  implements AuthEventConsumer {
   private pendingPromise: PendingPromise | null = null;
   private eventManager: EventManager | null = null;
-  
-  abstract eventId: string|null;
+
+  abstract eventId: string | null;
 
   constructor(
     protected readonly auth: Auth,
     readonly filter: AuthEventType,
     protected readonly resolver: PopupRedirectResolver,
     protected user?: User
-  ) {
-  }
+  ) {}
 
   abstract onExecution(): Promise<void>;
 
@@ -92,12 +96,12 @@ export abstract class AbstractPopupRedirectOperation implements AuthEventConsume
     this.reject(error);
   }
 
-  isMatchingEvent(eventId: string|null): boolean {
+  isMatchingEvent(eventId: string | null): boolean {
     return !!eventId && this.eventId === eventId;
   }
 
   private getIdpTask(type: AuthEventType): IdpTask {
-    switch(type) {
+    switch (type) {
       case AuthEventType.SIGN_IN_VIA_POPUP:
       case AuthEventType.SIGN_IN_VIA_REDIRECT:
         return _signIn;
@@ -123,7 +127,7 @@ export abstract class AbstractPopupRedirectOperation implements AuthEventConsume
     this.pendingPromise.reject(error);
     this.unregisterAndCleanUp();
   }
-  
+
   private unregisterAndCleanUp(): void {
     if (this.eventManager) {
       this.eventManager.unregisterConsumer(this);

@@ -25,7 +25,10 @@ import { EventManager } from '../src/model/popup_redirect';
  * Generates a PopupRedirectResolver that can be used by the oauth methods.
  * These methods expect a class that can be instantiated.
  */
-export function makeMockPopupRedirectResolver(eventManager?: EventManager, authPopup?: AuthPopup): PopupRedirectResolver {
+export function makeMockPopupRedirectResolver(
+  eventManager?: EventManager,
+  authPopup?: AuthPopup
+): PopupRedirectResolver {
   return class implements PopupRedirectResolver {
     async _initialize(): Promise<EventManager> {
       return eventManager || new AuthEventManager('test-app');

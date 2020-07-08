@@ -18,7 +18,10 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { Auth } from '../../model/auth';
-import { AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import {
+  AuthEventType,
+  PopupRedirectResolver
+} from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { Delay } from '../util/delay';
@@ -144,7 +147,7 @@ class PopupOperation extends AbstractPopupRedirectOperation {
     if (this.pollId) {
       window.clearTimeout(this.pollId);
     }
-    
+
     this.authWindow = null;
     this.pollId = null;
     PopupOperation.currentPopupAction = null;

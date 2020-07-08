@@ -29,7 +29,10 @@ import { testAuth, testUser } from '../../../test/mock_auth';
 import { makeMockPopupRedirectResolver } from '../../../test/mock_popup_redirect_resolver';
 import { Auth } from '../../model/auth';
 import {
-    AuthEvent, AuthEventType, EventManager, PopupRedirectResolver
+  AuthEvent,
+  AuthEventType,
+  EventManager,
+  PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { AuthEventManager } from '../auth/auth_event_manager';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
@@ -73,14 +76,26 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
 
   context('#execute', () => {
     let operation: WrapperOperation;
-    
+
     beforeEach(() => {
-      operation = new WrapperOperation(auth, AuthEventType.LINK_VIA_POPUP, resolver);
-      idpStubs._signIn.returns(Promise.resolve(new UserCredentialImpl(testUser(auth, 'uid'), null, OperationType.SIGN_IN)));
+      operation = new WrapperOperation(
+        auth,
+        AuthEventType.LINK_VIA_POPUP,
+        resolver
+      );
+      idpStubs._signIn.returns(
+        Promise.resolve(
+          new UserCredentialImpl(
+            testUser(auth, 'uid'),
+            null,
+            OperationType.SIGN_IN
+          )
+        )
+      );
     });
 
     /** Finishes out the promise */
-    function finishPromise(outcome: AuthEvent|FirebaseError): void {
+    function finishPromise(outcome: AuthEvent | FirebaseError): void {
       delay((): void => {
         if (outcome instanceof FirebaseError) {
           operation.onError(outcome);
@@ -111,14 +126,20 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
       finishPromise(authEvent());
       await operation.execute();
       expect(eventManager.registerConsumer).to.have.been.calledWith(operation);
-      expect(eventManager.unregisterConsumer).to.have.been.calledWith(operation);
+      expect(eventManager.unregisterConsumer).to.have.been.calledWith(
+        operation
+      );
     });
 
     it('unregisters itself in case of error', async () => {
       sinon.spy(eventManager, 'unregisterConsumer');
       finishPromise(ERROR);
-      try { await operation.execute(); } catch {}
-      expect(eventManager.unregisterConsumer).to.have.been.calledWith(operation);
+      try {
+        await operation.execute();
+      } catch {}
+      expect(eventManager.unregisterConsumer).to.have.been.calledWith(
+        operation
+      );
     });
 
     it('emits the user credential returned from idp task', async () => {
@@ -153,7 +174,7 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
 
     context('idp tasks', () => {
       function updateFilter(type: AuthEventType): void {
-        (operation as unknown as Record<string, unknown>).filter = type;
+        ((operation as unknown) as Record<string, unknown>).filter = type;
       }
 
       function expectedIdpTaskParams(): idp.IdpTaskParams {
@@ -163,14 +184,14 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
           sessionId: BASE_AUTH_EVENT.sessionId!,
           tenantId: BASE_AUTH_EVENT.tenantId || undefined,
           postBody: BASE_AUTH_EVENT.postBody || undefined,
-          user: undefined,
+          user: undefined
         };
       }
 
       it('routes SIGN_IN_VIA_POPUP', async () => {
         const type = AuthEventType.SIGN_IN_VIA_POPUP;
         updateFilter(type);
-        finishPromise(authEvent({type}));
+        finishPromise(authEvent({ type }));
         await operation.execute();
         expect(idp._signIn).to.have.been.calledWith(expectedIdpTaskParams());
       });
@@ -178,7 +199,7 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
       it('routes SIGN_IN_VIA_REDIRECT', async () => {
         const type = AuthEventType.SIGN_IN_VIA_REDIRECT;
         updateFilter(type);
-        finishPromise(authEvent({type}));
+        finishPromise(authEvent({ type }));
         await operation.execute();
         expect(idp._signIn).to.have.been.calledWith(expectedIdpTaskParams());
       });
@@ -186,7 +207,7 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
       it('routes LINK_VIA_POPUP', async () => {
         const type = AuthEventType.LINK_VIA_POPUP;
         updateFilter(type);
-        finishPromise(authEvent({type}));
+        finishPromise(authEvent({ type }));
         await operation.execute();
         expect(idp._link).to.have.been.calledWith(expectedIdpTaskParams());
       });
@@ -194,7 +215,7 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
       it('routes LINK_VIA_REDIRECT', async () => {
         const type = AuthEventType.LINK_VIA_REDIRECT;
         updateFilter(type);
-        finishPromise(authEvent({type}));
+        finishPromise(authEvent({ type }));
         await operation.execute();
         expect(idp._link).to.have.been.calledWith(expectedIdpTaskParams());
       });
@@ -202,7 +223,7 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
       it('routes REAUTH_VIA_POPUP', async () => {
         const type = AuthEventType.REAUTH_VIA_POPUP;
         updateFilter(type);
-        finishPromise(authEvent({type}));
+        finishPromise(authEvent({ type }));
         await operation.execute();
         expect(idp._reauth).to.have.been.calledWith(expectedIdpTaskParams());
       });
@@ -210,7 +231,7 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
       it('routes REAUTH_VIA_REDIRECT', async () => {
         const type = AuthEventType.REAUTH_VIA_REDIRECT;
         updateFilter(type);
-        finishPromise(authEvent({type}));
+        finishPromise(authEvent({ type }));
         await operation.execute();
         expect(idp._reauth).to.have.been.calledWith(expectedIdpTaskParams());
       });
