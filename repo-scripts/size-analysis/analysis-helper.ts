@@ -23,7 +23,6 @@ import * as terser from 'terser';
 import * as ts from 'typescript';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
-import { ObjectUnsubscribedError } from 'rxjs';
 
 export const enum ErrorCode {
   INVALID_FLAG_COMBINATION = 'Invalid command flag combinations!',
@@ -40,6 +39,7 @@ export interface MemberList {
   functions: string[];
   variables: string[];
   enums: string[];
+  externals: string[];
 }
 /** Contains the dependencies and the size of their code for a single export. */
 export interface ExportData {
@@ -79,7 +79,8 @@ export async function extractDependenciesAndSize(
   map: Map<string, string>
 ): Promise<ExportData> {
   const input = tmp.fileSync().name + '.js';
-  const output = tmp.fileSync().name + '.js';
+  const fulllyResolvedOutput = tmp.fileSync().name + '.js';
+  const minimizedBundleOutput = tmp.fileSync().name + '.js';
 
   const beforeContent = `export { ${exportName} } from '${path.resolve(
     jsBundle
@@ -88,7 +89,7 @@ export async function extractDependenciesAndSize(
   fs.writeFileSync(input, beforeContent);
 
   // Run Rollup on the JavaScript above to produce a tree-shaken build
-  const bundle = await rollup.rollup({
+  const fullyResolvedBundle = await rollup.rollup({
     input,
     plugins: [
       resolve({
@@ -97,12 +98,29 @@ export async function extractDependenciesAndSize(
       commonjs()
     ]
   });
-  await bundle.write({ file: output, format: 'es' });
+  await fullyResolvedBundle.write({ file: fulllyResolvedOutput, format: 'es' });
+  const minimizedBundle = await rollup.rollup({
+    input
+  });
+  await minimizedBundle.write({ file: minimizedBundleOutput, format: 'es' });
 
-  const dependencies = extractDeclarations(output, map);
+  const dependencies: MemberList = extractDeclarations(
+    minimizedBundleOutput,
+    map
+  );
+  const dependenciesFullyResolved: MemberList = extractDeclarations(
+    fulllyResolvedOutput,
+    map
+  );
+  const externals: string[] = extractExternalDependencies(
+    dependencies,
+    dependenciesFullyResolved
+  );
+
+  dependencies.externals.push(...externals);
 
   // Extract size of minified build
-  const afterContent = fs.readFileSync(output, 'utf-8');
+  const afterContent = fs.readFileSync(fulllyResolvedOutput, 'utf-8');
 
   const { code } = terser.minify(afterContent, {
     output: {
@@ -113,7 +131,8 @@ export async function extractDependenciesAndSize(
   });
 
   fs.unlinkSync(input);
-  fs.unlinkSync(output);
+  fs.unlinkSync(minimizedBundleOutput);
+  fs.unlinkSync(fulllyResolvedOutput);
   return { dependencies, sizeInBytes: Buffer.byteLength(code!, 'utf-8') };
 }
 
@@ -155,7 +174,8 @@ export function extractDeclarations(
     functions: [],
     classes: [],
     variables: [],
-    enums: []
+    enums: [],
+    externals: []
   };
 
   ts.forEachChild(sourceFile, node => {
@@ -195,6 +215,7 @@ export function extractDeclarations(
         const symbol = checker.getSymbolAtLocation(node.moduleSpecifier);
         const reExportFullPath = symbol.valueDeclaration.getSourceFile()
           .fileName;
+
         // first step: always retrieve all exported symbols from the source location of the re-export.
         const reExportsMember = extractDeclarations(reExportFullPath);
 
@@ -265,7 +286,8 @@ export function mapSymbolToType(
     functions: [],
     classes: [],
     variables: [],
-    enums: []
+    enums: [],
+    externals: []
   };
   Object.keys(memberList).map(key => {
     memberList[key].forEach(element => {
@@ -364,4 +386,26 @@ export function writeReportToDirectory(
     fs.mkdirSync(directoryPath, { recursive: true });
   }
   fs.writeFileSync(`${directoryPath}/${fileName}`, report);
+}
+
+/**
+ *
+ * @param minimizedDependencies The dependant symbols extracted from a bundle file that doesn't resolve external firebase modules
+ *
+ * @param fullyResolvedDependencies The dependant symbols extracted from a bundle file that resolves external firebase modules
+ *
+ * This function calculates the difference between two dependency sets, the difference is the symbols of external firebase modules
+ * that the current modular export depends on.
+ */
+export function extractExternalDependencies(
+  minimizedDependencies: MemberList,
+  fullyResolvedDependencies: MemberList
+): string[] {
+  const externals: string[] = [];
+  Object.keys(fullyResolvedDependencies).map(each => {
+    const set1: Set<string> = new Set(fullyResolvedDependencies[each]);
+    const set2: Set<string> = new Set(minimizedDependencies[each]);
+    externals.push(...Array.from(set1).filter(x => !set2.has(x)));
+  });
+  return externals;
 }

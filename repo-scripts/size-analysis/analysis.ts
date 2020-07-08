@@ -44,8 +44,8 @@ const BUNDLE: string = 'esm2017';
  * -- inputBundleFile (optional): adhoc support. Specify a path to bundle file. Must enable -- inputDtsFile if this flag is specified.
  *
  * --output(required): output directory or file where reports will be generated.
- *          specify a directory if multiple modules are analyzed
- *          specify a file path if only one module is analyzed
+ *          specify a directory if module(s) are analyzed
+ *          specify a file path if ad hoc analysis is to be performed
  *
  */
 const argv = yargs
@@ -71,7 +71,7 @@ const argv = yargs
       alias: 'o',
       demandOption: true,
       desc:
-        'The location where report(s) will be generated, a directory path if multiple modules are analyzed; a file path if one module is analyzed'
+        'The location where report(s) will be generated, a directory path if module(s) are analyzed; a file path if ad hoc analysis is to be performed'
     }
   })
   .help().argv;
@@ -204,7 +204,7 @@ function generateReportForModules(
 /**
  * Entry Point of the Tool.
  * The function first checks if it's an adhoc run (by checking whether --inputDtsFile and --inputBundle are both enabled)
- * The function then checks whether --module flag is specified; Run analysis on all modules if not, run analysis on selected modules if enabled.
+ * The function then checks whether --inputModule flag is specified; Run analysis on all modules if not, run analysis on selected modules if enabled.
  * Throw INVALID_FLAG_COMBINATION error if neither case fulfill.
  */
 async function main(): Promise<void> {
