@@ -27,11 +27,7 @@ import { delay } from '../../../test/delay';
 import { testAuth, testUser } from '../../../test/mock_auth';
 import { stubTimeouts, TimerMap } from '../../../test/timeout_stub';
 import { Auth } from '../../model/auth';
-import {
-  AuthEvent,
-  AuthEventType,
-  PopupRedirectResolver
-} from '../../model/popup_redirect';
+import { AuthEvent, AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { AuthEventManager } from '../auth/auth_event_manager';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
@@ -41,11 +37,8 @@ import * as eid from '../util/event_id';
 import { AuthPopup } from '../util/popup';
 import * as idpTasks from './idp';
 import {
-  _AUTH_EVENT_TIMEOUT,
-  _POLL_WINDOW_CLOSE_TIMEOUT,
-  linkWithPopup,
-  reauthenticateWithPopup,
-  signInWithPopup
+    _AUTH_EVENT_TIMEOUT, _POLL_WINDOW_CLOSE_TIMEOUT, linkWithPopup, reauthenticateWithPopup,
+    signInWithPopup
 } from './popup';
 
 use(sinonChai);
@@ -81,7 +74,8 @@ describe('src/core/strategies/popup', () => {
     provider = new OAuthProvider(ProviderId.GOOGLE);
     resolver = {
       _initialize: async () => eventManager,
-      _openPopup: async () => authPopup
+      _openPopup: async () => authPopup,
+      _openRedirect: () => new Promise(() => {}),
     };
     idpStubs = sinon.stub(idpTasks);
     sinon.stub(eid, '_generateEventId').returns(MATCHING_EVENT_ID);
