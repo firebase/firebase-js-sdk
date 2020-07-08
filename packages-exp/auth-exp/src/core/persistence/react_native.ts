@@ -17,12 +17,7 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import {
-  Persistence,
-  PersistenceType,
-  PersistenceValue,
-  STORAGE_AVAILABLE_KEY
-} from './';
+import { Persistence, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY } from './';
 
 /**
  * Returns a persistence class that wraps AsyncStorage imported from
@@ -38,7 +33,7 @@ import {
  * (closures, esentially) that have the storage layer but empty constructor.
  */
 
-export function makeReactNativePersistence(
+export function getReactNativePersistence(
   storage: externs.ReactNativeAsyncStorage
 ): externs.Persistence {
   return class implements Persistence {
