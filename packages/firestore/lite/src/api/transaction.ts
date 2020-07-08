@@ -38,17 +38,17 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
 import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
 import { validateReference } from './write_batch';
-import { DocumentReference, newUserDataReader } from './reference';
+import { newUserDataReader } from './reference';
 import { FieldPath } from './field_path';
 import { cast } from './util';
 
 // TODO(mrschmidt) Consider using `BaseTransaction` as the base class in the
 // legacy SDK.
-export abstract class BaseTransaction {
+export class Transaction {
   // This is the tree-shakeable version of the Transaction class used in the
   // legacy SDK. The class is a close copy but takes different input and output
-  // types. The Lite as well as the firestore-exp SDK further extend this class
-  // to provide their appropriate API types.
+  // types. The firestore-exp SDK further extends this class to return its API
+  // type.
 
   private readonly _dataReader: UserDataReader;
 
@@ -59,18 +59,9 @@ export abstract class BaseTransaction {
     this._dataReader = newUserDataReader(_firestore);
   }
 
-  /**
-   * Wrapper around the `BatchGetDocuments` RPC that calls the provided
-   * converter with the resulting Document. The converter should return
-   * the QueryDocumentSnapshot type that is expected by the SDK user.
-   *
-   * @param documentRef The document to fetch.
-   * @param converter A function that returns a QueryDocumentSnapshot.
-   */
-  protected _getHelper<DocSnap, T>(
-    documentRef: firestore.DocumentReference<T>,
-    converter: (ref: DocumentReference<T>, doc: Document | null) => DocSnap
-  ): Promise<DocSnap> {
+  get<T>(
+    documentRef: firestore.DocumentReference<T>
+  ): Promise<DocumentSnapshot<T>> {
     const ref = validateReference(documentRef, this._firestore);
     return this._transaction
       .lookup([ref._key])
@@ -80,9 +71,19 @@ export abstract class BaseTransaction {
         }
         const doc = docs[0];
         if (doc instanceof NoDocument) {
-          return converter(ref, null);
+          return new DocumentSnapshot(
+            this._firestore,
+            ref._key,
+            null,
+            ref._converter
+          );
         } else if (doc instanceof Document) {
-          return converter(ref, doc);
+          return new DocumentSnapshot(
+            this._firestore,
+            doc.key,
+            doc,
+            ref._converter
+          );
         } else {
           throw fail(
             `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
@@ -168,19 +169,6 @@ export abstract class BaseTransaction {
     const ref = validateReference(documentRef, this._firestore);
     this._transaction.delete(ref._key);
     return this;
-  }
-}
-
-export class Transaction extends BaseTransaction
-  implements firestore.Transaction {
-  get<T>(
-    documentRef: firestore.DocumentReference<T>
-  ): Promise<firestore.DocumentSnapshot<T>> {
-    return this._getHelper<DocumentSnapshot<T>, T>(
-      documentRef,
-      (ref, doc) =>
-        new DocumentSnapshot<T>(this._firestore, ref._key, doc, ref._converter)
-    );
   }
 }
 

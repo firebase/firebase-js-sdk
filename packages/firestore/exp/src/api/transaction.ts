@@ -17,7 +17,7 @@
 
 import * as firestore from '../../index';
 
-import { BaseTransaction } from '../../../lite/src/api/transaction';
+import { Transaction as LiteTransaction } from '../../../lite/src/api/transaction';
 import { DocumentSnapshot } from './snapshot';
 import { TransactionRunner } from '../../../src/core/transaction_runner';
 import { AsyncQueue } from '../../../src/util/async_queue';
@@ -26,9 +26,13 @@ import { Firestore } from './database';
 import { Deferred } from '../../../src/util/promise';
 import { SnapshotMetadata } from '../../../src/api/database';
 import { Transaction as InternalTransaction } from '../../../src/core/transaction';
+import { validateReference } from '../../../lite/src/api/write_batch';
 
-export class Transaction extends BaseTransaction
+export class Transaction extends LiteTransaction
   implements firestore.Transaction {
+  // This class implements the same logic as the Transaction API in the Lite SDK
+  // but is subclassed in order to return its own DocumentSnapshot types.
+
   constructor(
     protected readonly _firestore: Firestore,
     _transaction: InternalTransaction
@@ -38,21 +42,23 @@ export class Transaction extends BaseTransaction
 
   get<T>(
     documentRef: firestore.DocumentReference<T>
-  ): Promise<firestore.DocumentSnapshot<T>> {
-    return this._getHelper<firestore.DocumentSnapshot<T>, T>(
-      documentRef,
-      (ref, doc) =>
-        new DocumentSnapshot<T>(
-          this._firestore,
-          ref._key,
-          doc,
-          new SnapshotMetadata(
-            /* hasPendingWrites= */ false,
-            /* fromCache= */ false
-          ),
-          ref._converter
-        )
-    );
+  ): Promise<DocumentSnapshot<T>> {
+    const ref = validateReference<T>(documentRef, this._firestore);
+    return super
+      .get(documentRef)
+      .then(
+        liteDocumentSnapshot =>
+          new DocumentSnapshot(
+            this._firestore,
+            ref._key,
+            liteDocumentSnapshot._document,
+            new SnapshotMetadata(
+              /* hasPendingWrites= */ false,
+              /* fromCache= */ false
+            ),
+            ref._converter
+          )
+      );
   }
 }
 
