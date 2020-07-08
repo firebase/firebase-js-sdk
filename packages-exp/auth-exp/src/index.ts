@@ -58,6 +58,7 @@ export {
 } from './core/persistence/browser';
 export { inMemoryPersistence } from './core/persistence/in_memory';
 export { indexedDBLocalPersistence } from './core/persistence/indexed_db';
+export { getReactNativePersistence } from './core/persistence/react_native';
 
 // core/providers
 export { EmailAuthProvider } from './core/providers/email';

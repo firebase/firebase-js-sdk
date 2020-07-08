@@ -20,10 +20,9 @@ import * as externs from '@firebase/auth-types-exp';
 import { Persistence, PersistenceType, PersistenceValue } from '../persistence';
 
 export class InMemoryPersistence implements Persistence {
-  type: PersistenceType = PersistenceType.NONE;
-  storage: {
-    [key: string]: PersistenceValue;
-  } = {};
+  static type: 'NONE' = 'NONE';
+  readonly type = PersistenceType.NONE;
+  storage: Record<string, PersistenceValue> = {};
 
   async isAvailable(): Promise<boolean> {
     return true;
@@ -43,4 +42,4 @@ export class InMemoryPersistence implements Persistence {
   }
 }
 
-export const inMemoryPersistence: externs.Persistence = new InMemoryPersistence();
+export const inMemoryPersistence: externs.Persistence = InMemoryPersistence;
