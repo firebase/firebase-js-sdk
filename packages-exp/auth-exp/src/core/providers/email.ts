@@ -30,16 +30,8 @@ export class EmailAuthProvider implements externs.EmailAuthProvider {
   static readonly EMAIL_LINK_SIGN_IN_METHOD = externs.SignInMethod.EMAIL_LINK;
   readonly providerId = EmailAuthProvider.PROVIDER_ID;
 
-  static credential(
-    email: string,
-    password: string,
-    signInMethod?: externs.SignInMethod
-  ): EmailAuthCredential {
-    return new EmailAuthCredential(
-      email,
-      password,
-      signInMethod || this.EMAIL_PASSWORD_SIGN_IN_METHOD
-    );
+  static credential(email: string, password: string): EmailAuthCredential {
+    return EmailAuthCredential._fromEmailAndPassword(email, password);
   }
 
   static credentialWithLink(
@@ -58,10 +50,6 @@ export class EmailAuthProvider implements externs.EmailAuthProvider {
       AuthErrorCode.TENANT_ID_MISMATCH
     );
 
-    return this.credential(
-      email,
-      actionCodeUrl.code,
-      EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD
-    );
+    return EmailAuthCredential._fromEmailAndCode(email, actionCodeUrl.code);
   }
 }
