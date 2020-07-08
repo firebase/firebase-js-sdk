@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { Auth } from '../../model/auth';
@@ -32,7 +31,7 @@ interface PendingPromise {
   reject: (error: Error) => void;
 }
 
- /**
+/**
  * Popup event manager. Handles the popup's entire lifecycle; listens to auth
  * events
  */
@@ -44,13 +43,13 @@ export abstract class AbstractPopupRedirectAction implements AuthEventConsumer {
 
   constructor(
     protected readonly auth: Auth,
-    readonly filter: AuthEventType|'redirect',
+    readonly filter: AuthEventType,
     protected readonly resolver: PopupRedirectResolver,
     protected user?: User
   ) {
   }
 
-  protected abstract onExecution(): Promise<void>;
+  abstract onExecution(): Promise<void>;
 
   execute(): Promise<UserCredential> {
     return new Promise<UserCredential>(async (resolve, reject) => {
@@ -89,6 +88,10 @@ export abstract class AbstractPopupRedirectAction implements AuthEventConsumer {
     this.broadcastResult(null, error);
   }
 
+  isMatchingEvent(eventId: string|null): boolean {
+    return !!eventId && this.eventId === eventId;
+  }
+
   private getIdpTask(type: AuthEventType): IdpTask {
     switch(type) {
       case AuthEventType.SIGN_IN_VIA_POPUP:
@@ -121,5 +124,5 @@ export abstract class AbstractPopupRedirectAction implements AuthEventConsumer {
     this.cleanUp();
   }
 
-  protected abstract cleanUp(): void;
+  abstract cleanUp(): void;
 }

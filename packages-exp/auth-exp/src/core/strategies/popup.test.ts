@@ -20,14 +20,16 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { OperationType, ProviderId } from '@firebase/auth-types-exp';
+import { OperationType, PopupRedirectResolver, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { delay } from '../../../test/delay';
+import { BASE_AUTH_EVENT } from '../../../test/iframe_event';
 import { testAuth, testUser } from '../../../test/mock_auth';
+import { makeMockPopupRedirectResolver } from '../../../test/mock_popup_redirect_resolver';
 import { stubTimeouts, TimerMap } from '../../../test/timeout_stub';
 import { Auth } from '../../model/auth';
-import { AuthEvent, AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { AuthEventManager } from '../auth/auth_event_manager';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
@@ -47,15 +49,6 @@ use(chaiAsPromised);
 const MATCHING_EVENT_ID = 'matching-event-id';
 const OTHER_EVENT_ID = 'wrong-id';
 
-const BASE_AUTH_EVENT: AuthEvent = {
-  urlResponse: 'url-response',
-  eventId: MATCHING_EVENT_ID,
-  type: AuthEventType.SIGN_IN_VIA_POPUP,
-  sessionId: 'session-id',
-  tenantId: 'tenant-id',
-  postBody: 'post-body'
-};
-
 describe('src/core/strategies/popup', () => {
   let resolver: PopupRedirectResolver;
   let provider: OAuthProvider;
@@ -72,11 +65,7 @@ describe('src/core/strategies/popup', () => {
     underlyingWindow = { closed: false };
     authPopup = new AuthPopup(underlyingWindow as Window);
     provider = new OAuthProvider(ProviderId.GOOGLE);
-    resolver = {
-      _initialize: async () => eventManager,
-      _openPopup: async () => authPopup,
-      _openRedirect: () => new Promise(() => {}),
-    };
+    resolver = makeMockPopupRedirectResolver(eventManager, authPopup);
     idpStubs = sinon.stub(idpTasks);
     sinon.stub(eid, '_generateEventId').returns(MATCHING_EVENT_ID);
     pendingTimeouts = stubTimeouts();
@@ -92,6 +81,7 @@ describe('src/core/strategies/popup', () => {
     delay(() => {
       eventManager.onEvent({
         ...BASE_AUTH_EVENT,
+        eventId: MATCHING_EVENT_ID,
         ...event
       });
     });

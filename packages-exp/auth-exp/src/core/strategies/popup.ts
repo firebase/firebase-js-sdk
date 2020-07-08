@@ -102,7 +102,7 @@ class PopupAction extends AbstractPopupRedirectAction {
     resolver: PopupRedirectResolver,
     user?: User
   ) {
-    super(auth, filter, resolver, user)
+    super(auth, filter, resolver, user);
     if (PopupAction.currentPopupAction) {
       PopupAction.currentPopupAction.cancel();
     }
@@ -110,7 +110,7 @@ class PopupAction extends AbstractPopupRedirectAction {
     PopupAction.currentPopupAction = this;
   }
 
-  protected async onExecution(): Promise<void> {
+  async onExecution(): Promise<void> {
     const eventId = _generateEventId();
     this.authWindow = await this.resolver._openPopup(
       this.auth,
@@ -137,7 +137,7 @@ class PopupAction extends AbstractPopupRedirectAction {
     );
   }
 
-  protected cleanUp(): void {
+  cleanUp(): void {
     if (this.authWindow) {
       this.authWindow.close();
     }
