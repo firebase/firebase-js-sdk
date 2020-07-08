@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { debugAssert } from './assert';
+
 /**
  * Our API has a lot of one-off constants that are used to do things.
  * Unfortunately we can't export these as classes instantiated directly since
@@ -26,14 +28,18 @@ export interface SingletonInstantiator<T> {
   new (): T;
 }
 
-const persistenceCache: Map<unknown, unknown> = new Map();
+const instanceCache: Map<unknown, unknown> = new Map();
 
 export function _getInstance<T>(cls: unknown): T {
-  if (persistenceCache.has(cls)) {
-    return persistenceCache.get(cls)! as T;
+  debugAssert(cls instanceof Function, 'Expected a class definition');
+  let instance = instanceCache.get(cls) as T|undefined;
+
+  if (instance) {
+    debugAssert(instance instanceof cls, 'Instance stored in cache mismatched with class');
+    return instance;
   }
 
-  const persistence = new (cls as SingletonInstantiator<T>)();
-  persistenceCache.set(cls, persistence);
-  return persistence;
+  instance = new (cls as SingletonInstantiator<T>)();
+  instanceCache.set(cls, instance);
+  return instance;
 }
