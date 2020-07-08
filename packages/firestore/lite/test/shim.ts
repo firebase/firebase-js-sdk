@@ -551,7 +551,8 @@ export class CollectionReference<T = legacy.DocumentData> extends Query<T>
 }
 
 export class FieldValue implements legacy.FieldValue {
-  constructor(private readonly delegate: lite.FieldValue) {}
+  constructor(readonly _delegate: lite.FieldValue) {}
+  
   static serverTimestamp(): FieldValue {
     return new FieldValue(serverTimestamp());
   }
@@ -573,7 +574,7 @@ export class FieldValue implements legacy.FieldValue {
   }
 
   isEqual(other: FieldValue): boolean {
-    return this.delegate.isEqual(other.delegate);
+    return this._delegate.isEqual(other._delegate);
   }
 }
 
@@ -629,6 +630,8 @@ function unwwrap(value: any): any {
   if (Array.isArray(value)) {
     return value.map(v => unwwrap(v));
   } else if (value instanceof FieldPath) {
+    return value._delegate; 
+  } else if (value instanceof FieldValue) {
     return value._delegate;
   } else if (value instanceof DocumentReference) {
     return value._delegate;
