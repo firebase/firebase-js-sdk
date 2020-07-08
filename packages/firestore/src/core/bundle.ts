@@ -191,7 +191,7 @@ export class BundleLoader {
     } else if (element.payload.document) {
       debugAssert(
         this.documents.length > 0 &&
-          this.documents[this.documents.length - 1].metadata.name ==
+          this.documents[this.documents.length - 1].metadata.name ===
             element.payload.document.name,
         'The document being added does not match the stored metadata.'
       );

@@ -105,7 +105,7 @@ export interface LoadBundleTask {
     next?: (progress: LoadBundleTaskProgress) => any,
     error?: (error: Error) => any,
     complete?: () => void
-  ): Promise<void>;
+  ): void;
 
   then<T, R>(
     onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,

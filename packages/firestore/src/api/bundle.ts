@@ -24,9 +24,7 @@ export class LoadBundleTask
   implements
     firestore.LoadBundleTask,
     PromiseLike<firestore.LoadBundleTaskProgress> {
-  private _progressResolver = new Deferred<void>();
   private _progressObserver?: PartialObserver<firestore.LoadBundleTaskProgress>;
-
   private _taskCompletionResolver = new Deferred<
     firestore.LoadBundleTaskProgress
   >();
@@ -43,13 +41,12 @@ export class LoadBundleTask
     next?: (progress: firestore.LoadBundleTaskProgress) => unknown,
     error?: (err: Error) => unknown,
     complete?: () => void
-  ): Promise<void> {
+  ): void {
     this._progressObserver = {
       next,
       error,
       complete
     };
-    return this._progressResolver.promise;
   }
 
   catch<R>(
@@ -74,7 +71,6 @@ export class LoadBundleTask
     if (this._progressObserver && this._progressObserver.complete) {
       this._progressObserver.complete();
     }
-    this._progressResolver.resolve();
 
     this._taskCompletionResolver.resolve(progress);
   }
@@ -93,7 +89,6 @@ export class LoadBundleTask
     if (this._progressObserver && this._progressObserver.error) {
       this._progressObserver.error(error);
     }
-    this._progressResolver.reject(error);
 
     this._taskCompletionResolver.reject(error);
   }

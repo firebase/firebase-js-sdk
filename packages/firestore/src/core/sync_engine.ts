@@ -1398,7 +1398,7 @@ export function loadBundle(
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   syncEngineImpl.assertSubscribed('loadBundle()');
 
-  // tslint:disable-next-line:no-floating-promises
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
   loadBundleImpl(syncEngineImpl, bundleReader, task);
 }
 
@@ -1435,8 +1435,7 @@ async function loadBundleImpl(
 
     const result = await loader.complete();
     if (result.changedDocs) {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      syncEngine.emitNewSnapsAndNotifyLocalStore(
+      await syncEngine.emitNewSnapsAndNotifyLocalStore(
         result.changedDocs,
         /* remoteEvent */ undefined,
         /* fromBundle */ true

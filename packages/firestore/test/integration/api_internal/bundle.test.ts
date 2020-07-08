@@ -94,7 +94,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
       const task = db.loadBundle(
         builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
       );
-      await task.onProgress(
+      task.onProgress(
         progress => {
           progressEvents.push(progress);
         },
@@ -103,6 +103,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
           completeCalled = true;
         }
       );
+      await task;
       let fulfillProgress: firestore.LoadBundleTaskProgress;
       await task.then(progress => {
         fulfillProgress = progress;
@@ -150,21 +151,21 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
       let completeCalled = false;
       const progressEvents: firestore.LoadBundleTaskProgress[] = [];
-      await db
-        .loadBundle(
-          encoder.encode(
-            builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
-          )
+      const task = db.loadBundle(
+        encoder.encode(
+          builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
         )
-        .onProgress(
-          progress => {
-            progressEvents.push(progress);
-          },
-          error => {},
-          () => {
-            completeCalled = true;
-          }
-        );
+      );
+      task.onProgress(
+        progress => {
+          progressEvents.push(progress);
+        },
+        error => {},
+        () => {
+          completeCalled = true;
+        }
+      );
+      await task;
 
       expect(completeCalled).to.be.true;
       // No loading actually happened in the second `loadBundle` call only the
