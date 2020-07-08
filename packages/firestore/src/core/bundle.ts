@@ -112,7 +112,7 @@ export class BundleConverter {
  * Returns a `LoadBundleTaskProgress` representing the initial progress of
  * loading a bundle.
  */
-export function initialProgress(
+export function bundleInitialProgress(
   metadata: BundleMetadata
 ): firestore.LoadBundleTaskProgress {
   return {
@@ -125,10 +125,10 @@ export function initialProgress(
 }
 
 /**
- * Returns a `LoadBundleTaskProgress` representing the progress if the bundle
- * is already loaded, and we are skipping current loading.
+ * Returns a `LoadBundleTaskProgress` representing the progress that the loading
+ * has succeeded.
  */
-export function skipLoadingProgress(
+export function bundleSuccessProgress(
   metadata: BundleMetadata
 ): firestore.LoadBundleTaskProgress {
   return {
@@ -154,14 +154,6 @@ export class LoadResult {
 export class BundleLoader {
   /** The current progress of loading */
   private progress: firestore.LoadBundleTaskProgress;
-  /**
-   * The threshold multiplier used to determine whether enough elements are
-   * batched to be loaded, and a progress update is needed.
-   *
-   * Applies to both `documentsBuffered` and `bytesBuffered`, triggers storage
-   * update and reports progress when either of them cross the threshold.
-   */
-  private thresholdMultiplier = 0.01;
   /** Batched queries to be saved into storage */
   private queries: bundleProto.NamedQuery[] = [];
   /** Batched documents to be saved into storage */
@@ -176,15 +168,14 @@ export class BundleLoader {
     private metadata: bundleProto.BundleMetadata,
     private localStore: LocalStore
   ) {
-    this.progress = initialProgress(metadata);
+    this.progress = bundleInitialProgress(metadata);
   }
 
   /**
    * Adds an element from the bundle to the loader.
    *
-   * If adding this element leads to actually saving the batched elements into
-   * storage, the returned promise will resolve to a `LoadResult`, otherwise
-   * it will resolve to null.
+   * Returns a new progress if adding the element leads to a new progress,
+   * otherwise returns null.
    */
   addSizedElement(
     element: SizedBundleElement

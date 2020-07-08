@@ -107,12 +107,14 @@ export interface LoadBundleTask {
     complete?: () => void
   ): Promise<void>;
 
-  then(
-    onFulfilled?: (a: LoadBundleTaskProgress) => any,
-    onRejected?: (a: Error) => any
-  ): Promise<any>;
+  then<T, R>(
+    onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,
+    onRejected?: (a: Error) => R | PromiseLike<R>
+  ): Promise<T | R>;
 
-  catch(onRejected: (a: Error) => any): Promise<any>;
+  catch<R>(
+    onRejected: (a: Error) => R | PromiseLike<R>
+  ): Promise<R | LoadBundleTaskProgress>;
 }
 
 export interface LoadBundleTaskProgress {

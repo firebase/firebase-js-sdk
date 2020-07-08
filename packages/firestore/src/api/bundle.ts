@@ -17,16 +17,16 @@
 
 import * as firestore from '@firebase/firestore-types';
 import { Deferred } from '../util/promise';
+import { PartialObserver } from './observer';
+import { debugAssert } from '../util/assert';
 
 export class LoadBundleTask implements firestore.LoadBundleTask {
   private _progressResolver = new Deferred<void>();
-  private _userProgressHandler?: (
-    progress: firestore.LoadBundleTaskProgress
-  ) => unknown;
-  private _userProgressErrorHandler?: (err: Error) => unknown;
-  private _userProgressCompleteHandler?: () => void;
+  private _progressObserver?: PartialObserver<firestore.LoadBundleTaskProgress>;
 
-  private _promiseResolver = new Deferred<firestore.LoadBundleTaskProgress>();
+  private _taskCompletionResolver = new Deferred<
+    firestore.LoadBundleTaskProgress
+  >();
 
   private _lastProgress: firestore.LoadBundleTaskProgress = {
     taskState: 'Running',
@@ -41,54 +41,58 @@ export class LoadBundleTask implements firestore.LoadBundleTask {
     error?: (err: Error) => unknown,
     complete?: () => void
   ): Promise<void> {
-    this._userProgressHandler = next;
-    this._userProgressErrorHandler = error;
-    this._userProgressCompleteHandler = complete;
+    this._progressObserver = {
+      next,
+      error,
+      complete
+    };
     return this._progressResolver.promise;
   }
 
-  catch(onRejected: (a: Error) => unknown): Promise<unknown> {
-    return this._promiseResolver.promise.catch(onRejected);
+  catch<R>(
+    onRejected: (a: Error) => R | PromiseLike<R>
+  ): Promise<R | firestore.LoadBundleTaskProgress> {
+    return this._taskCompletionResolver.promise.catch(onRejected);
   }
 
-  then(
-    onFulfilled?: (a: firestore.LoadBundleTaskProgress) => unknown,
-    onRejected?: (a: Error) => unknown
-  ): Promise<unknown> {
-    return this._promiseResolver.promise.then(onFulfilled, onRejected);
+  then<T, R>(
+    onFulfilled?: (a: firestore.LoadBundleTaskProgress) => T | PromiseLike<T>,
+    onRejected?: (a: Error) => R | PromiseLike<R>
+  ): Promise<T | R> {
+    return this._taskCompletionResolver.promise.then(onFulfilled, onRejected);
   }
 
   /**
-   * Notifies the completion of loading a bundle, with a provided
+   * Notifies all observers that bundle loading has completed, with a provided
    * `LoadBundleTaskProgress` object.
    */
   _completeWith(progress: firestore.LoadBundleTaskProgress): void {
     this._updateProgress(progress);
-    if (this._userProgressCompleteHandler) {
-      this._userProgressCompleteHandler();
+    if (this._progressObserver && this._progressObserver.complete) {
+      this._progressObserver.complete();
     }
     this._progressResolver.resolve();
 
-    this._promiseResolver.resolve(progress);
+    this._taskCompletionResolver.resolve(progress);
   }
 
   /**
-   * Notifies a failure of loading a bundle, with a provided `Error`
-   * as the reason.
+   * Notifies all observers that bundle loading has failed, with a provided
+   * `Error` as the reason.
    */
-  _failedWith(error: Error): void {
+  _failWith(error: Error): void {
     this._lastProgress.taskState = 'Error';
 
-    if (this._userProgressHandler) {
-      this._userProgressHandler(this._lastProgress);
+    if (this._progressObserver && this._progressObserver.next) {
+      this._progressObserver.next(this._lastProgress);
     }
 
-    if (this._userProgressErrorHandler) {
-      this._userProgressErrorHandler(error);
+    if (this._progressObserver && this._progressObserver.error) {
+      this._progressObserver.error(error);
     }
     this._progressResolver.reject(error);
 
-    this._promiseResolver.reject(error);
+    this._taskCompletionResolver.reject(error);
   }
 
   /**
@@ -96,13 +100,14 @@ export class LoadBundleTask implements firestore.LoadBundleTask {
    * @param progress The new progress.
    */
   _updateProgress(progress: firestore.LoadBundleTaskProgress): void {
-    if (this._lastProgress.taskState === 'Error') {
-      return;
-    }
+    debugAssert(
+      this._lastProgress.taskState !== 'Error',
+      'Cannot update progress on a failed task'
+    );
 
     this._lastProgress = progress;
-    if (this._userProgressHandler) {
-      this._userProgressHandler(progress);
+    if (this._progressObserver && this._progressObserver.next) {
+      this._progressObserver.next(progress);
     }
   }
 }

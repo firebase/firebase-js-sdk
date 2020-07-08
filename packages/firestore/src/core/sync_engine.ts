@@ -77,7 +77,11 @@ import { ViewSnapshot } from './view_snapshot';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
 import { BundleReader } from '../util/bundle_reader';
-import { BundleLoader, initialProgress, skipLoadingProgress } from './bundle';
+import {
+  BundleLoader,
+  bundleInitialProgress,
+  bundleSuccessProgress
+} from './bundle';
 import { Datastore } from '../remote/datastore';
 import { LoadBundleTask } from '../api/bundle';
 
@@ -1397,7 +1401,7 @@ export async function loadBundle(
   try {
     await loadBundleImpl(syncEngineImpl, bundleReader, task);
   } catch (e) {
-    task._failedWith(e);
+    task._failWith(e);
   }
 }
 
@@ -1410,11 +1414,11 @@ async function loadBundleImpl(
   const skip = await hasNewerBundle(syncEngine.localStore, metadata);
   if (skip) {
     await reader.close();
-    task._completeWith(skipLoadingProgress(metadata));
+    task._completeWith(bundleSuccessProgress(metadata));
     return;
   }
 
-  task._updateProgress(initialProgress(metadata));
+  task._updateProgress(bundleInitialProgress(metadata));
 
   const loader = new BundleLoader(metadata, syncEngine.localStore);
   let element = await reader.nextElement();
