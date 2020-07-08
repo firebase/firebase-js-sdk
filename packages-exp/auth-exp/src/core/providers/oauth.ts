@@ -32,7 +32,7 @@ export class OAuthProvider implements externs.AuthProvider {
   defaultLanguageCode: string | null = null;
   private scopes: string[] = [];
   private customParameters: CustomParameters = {};
-  private constructor(readonly providerId: externs.ProviderId) {}
+  constructor(readonly providerId: externs.ProviderId) {}
   static credentialFromResult(
     _userCredential: externs.UserCredential
   ): externs.OAuthCredential | null {
