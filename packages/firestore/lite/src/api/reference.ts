@@ -291,7 +291,7 @@ export function collection(
   parent: firestore.FirebaseFirestore | firestore.DocumentReference<unknown>,
   relativePath: string
 ): CollectionReference<firestore.DocumentData> {
-  validateArgType('doc', 'non-empty string', 2, relativePath);
+  validateArgType('collection', 'non-empty string', 2, relativePath);
   const path = ResourcePath.fromString(relativePath);
   if (parent instanceof Firestore) {
     validateCollectionPath(path);

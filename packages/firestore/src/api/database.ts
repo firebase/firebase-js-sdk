@@ -430,7 +430,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     ) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
-        'Persistence cannot be cleared after this Firestore instance is initialized.'
+        'Persistence can only be cleared before a Firestore instance is ' +
+          'initialized or after it is terminated.'
       );
     }
 
@@ -515,13 +516,13 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     const databaseInfo = this.makeDatabaseInfo();
 
-    this._firestoreClient = new FirestoreClient(
-      databaseInfo,
-      this._credentials,
-      this._queue
-    );
+    this._firestoreClient = new FirestoreClient(this._credentials, this._queue);
 
-    return this._firestoreClient.start(componentProvider, persistenceSettings);
+    return this._firestoreClient.start(
+      databaseInfo,
+      componentProvider,
+      persistenceSettings
+    );
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
