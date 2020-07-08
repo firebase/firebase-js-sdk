@@ -204,7 +204,7 @@ function generateReportForModules(
 /**
  * Entry Point of the Tool.
  * The function first checks if it's an adhoc run (by checking whether --inputDtsFile and --inputBundle are both enabled)
- * The function then checks whether --module flag is specified; Run analysis on all modules if not, run analysis on selected modules if enabled.
+ * The function then checks whether --inputModule flag is specified; Run analysis on all modules if not, run analysis on selected modules if enabled.
  * Throw INVALID_FLAG_COMBINATION error if neither case fulfill.
  */
 async function main(): Promise<void> {

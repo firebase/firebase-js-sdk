@@ -25,7 +25,8 @@ import {
   replaceAll,
   writeReportToFile,
   ErrorCode,
-  writeReportToDirectory
+  writeReportToDirectory,
+  extractExternalDependencies
 } from './analysis-helper';
 
 import { retrieveTestModuleDtsFile } from './test-utils';
@@ -160,7 +161,8 @@ describe('test dedup helper function', () => {
       functions: ['aFunc', 'aFunc', 'bFunc', 'cFunc'],
       classes: ['aClass', 'bClass', 'aClass', 'cClass'],
       variables: ['aVar', 'bVar', 'cVar', 'aVar'],
-      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum']
+      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum'],
+      externals: []
     };
     memberList = dedup(memberList);
 
@@ -190,7 +192,8 @@ describe('test dedup helper function', () => {
       functions: [],
       classes: [],
       variables: ['aVar', 'bVar', 'cVar', 'aVar'],
-      enums: []
+      enums: [],
+      externals: []
     };
     memberList = dedup(memberList);
     expect(memberList.functions).to.have.length(0);
@@ -211,7 +214,8 @@ describe('test replaceAll helper function', () => {
       functions: ['aFunc', 'aFunc', 'bFunc', 'cFunc'],
       classes: ['aClass', 'bClass', 'aClass', 'cClass'],
       variables: ['aVar', 'bVar', 'cVar', 'aVar'],
-      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum']
+      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum'],
+      externals: []
     };
     const original: string = 'aFunc';
     const replaceTo: string = 'replacedFunc';
@@ -234,7 +238,8 @@ describe('test replaceAll helper function', () => {
       functions: ['aFunc', 'aFunc', 'bFunc', 'cFunc'],
       classes: ['aClass', 'bClass', 'aClass', 'cClass'],
       variables: ['aVar', 'bVar', 'cVar', 'aVar'],
-      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum']
+      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum'],
+      externals: []
     };
     const replaceTo: string = 'replacedClass';
     const original: string = 'bClass';
@@ -257,7 +262,8 @@ describe('test replaceAll helper function', () => {
       functions: ['aFunc', 'aFunc', 'bFunc', 'cFunc'],
       classes: ['aClass', 'bClass', 'aClass', 'cClass'],
       variables: ['aVar', 'bVar', 'cVar', 'aVar'],
-      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum']
+      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum'],
+      externals: []
     };
     const replaceTo: string = 'replacedEnum';
     const original: string = 'eEnum';
@@ -280,7 +286,8 @@ describe('test mapSymbolToType helper function', () => {
       functions: ['aVar', 'bFunc', 'cFunc'],
       classes: ['bClass', 'cClass'],
       variables: ['aClass', 'bVar', 'cVar', 'aEnum'],
-      enums: ['bEnum', 'cEnum', 'dEnum', 'aFunc']
+      enums: ['bEnum', 'cEnum', 'dEnum', 'aFunc'],
+      externals: []
     };
 
     const map: Map<string, string> = new Map([
@@ -354,5 +361,38 @@ describe('test writeReportToDirectory helper function', () => {
   after(() => {
     fs.unlinkSync(`${resolve('./a-dir/a-sub-dir')}/a-file`);
     fs.rmdirSync('a-dir', { recursive: true });
+  });
+});
+
+describe('test extractExternalDependencies helper function', () => {
+  it('should correctly generate externals form memberList2 ', () => {
+    const memberList1: MemberList = {
+      functions: ['func1', 'func2', 'func3', 'func4'],
+      enums: ['enum1', 'enum2', 'enum3', 'enum4'],
+      variables: ['variable1', 'variable2'],
+      classes: ['class1', 'class2', 'class3'],
+      externals: []
+    };
+
+    const memberList2: MemberList = {
+      functions: ['func1', 'func2'],
+      enums: ['enum1'],
+      variables: ['variable1', 'variable2'],
+      classes: ['class1', 'class2', 'class3'],
+      externals: []
+    };
+
+    memberList2.externals = extractExternalDependencies(
+      memberList2,
+      memberList1
+    );
+
+    expect(memberList2.externals).to.have.members([
+      'func3',
+      'func4',
+      'enum2',
+      'enum3',
+      'enum4'
+    ]);
   });
 });
