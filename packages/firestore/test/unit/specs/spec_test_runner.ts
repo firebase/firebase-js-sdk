@@ -125,6 +125,7 @@ import {
   testWindow
 } from '../../util/test_platform';
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
+import { logWarn } from '../../../src/util/log';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -458,7 +459,12 @@ abstract class TestRunner {
       toByteStreamReader(new TextEncoder().encode(bundle))
     );
     const task = new LoadBundleTask();
-    return this.queue.enqueue(() => loadBundle(this.syncEngine, reader, task));
+    return this.queue.enqueue(async () => {
+      loadBundle(this.syncEngine, reader, task);
+      await task.catch(e => {
+        logWarn(`Loading bundle failed with ${e}`);
+      });
+    });
   }
 
   private doMutations(mutations: Mutation[]): Promise<void> {

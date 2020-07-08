@@ -27,7 +27,7 @@ import { newDatastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { Deferred } from '../util/promise';
 import {
   EventManager,
@@ -530,8 +530,11 @@ export class FirestoreClient {
     }
     const reader = new BundleReader(toByteStreamReader(content));
     const task = new LoadBundleTask();
-    this.asyncQueue.enqueueAndForget(() => {
-      return loadBundle(this.syncEngine, reader, task);
+    this.asyncQueue.enqueueAndForget(async () => {
+      loadBundle(this.syncEngine, reader, task);
+      return task.catch(e => {
+        logWarn(`Loading bundle failed with ${e}`);
+      });
     });
 
     return task;

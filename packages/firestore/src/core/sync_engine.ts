@@ -1390,19 +1390,16 @@ export function newMultiTabSyncEngine(
  * @param bundleReader Bundle to load into the SDK.
  * @param task LoadBundleTask used to update the loading progress to public API.
  */
-export async function loadBundle(
+export function loadBundle(
   syncEngine: SyncEngine,
   bundleReader: BundleReader,
   task: LoadBundleTask
-): Promise<void> {
+): void {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   syncEngineImpl.assertSubscribed('loadBundle()');
 
-  try {
-    await loadBundleImpl(syncEngineImpl, bundleReader, task);
-  } catch (e) {
-    task._failWith(e);
-  }
+  // tslint:disable-next-line:no-floating-promises
+  loadBundleImpl(syncEngineImpl, bundleReader, task);
 }
 
 async function loadBundleImpl(
@@ -1410,42 +1407,46 @@ async function loadBundleImpl(
   reader: BundleReader,
   task: LoadBundleTask
 ): Promise<void> {
-  const metadata = await reader.getMetadata();
-  const skip = await hasNewerBundle(syncEngine.localStore, metadata);
-  if (skip) {
-    await reader.close();
-    task._completeWith(bundleSuccessProgress(metadata));
-    return;
-  }
-
-  task._updateProgress(bundleInitialProgress(metadata));
-
-  const loader = new BundleLoader(metadata, syncEngine.localStore);
-  let element = await reader.nextElement();
-  while (element) {
-    debugAssert(
-      !element.payload.metadata,
-      'Unexpected BundleMetadata element.'
-    );
-    const progress = await loader.addSizedElement(element);
-    if (progress) {
-      task._updateProgress(progress);
+  try {
+    const metadata = await reader.getMetadata();
+    const skip = await hasNewerBundle(syncEngine.localStore, metadata);
+    if (skip) {
+      await reader.close();
+      task._completeWith(bundleSuccessProgress(metadata));
+      return;
     }
 
-    element = await reader.nextElement();
-  }
+    task._updateProgress(bundleInitialProgress(metadata));
 
-  const result = await loader.complete();
-  if (result.changedDocs) {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    syncEngine.emitNewSnapsAndNotifyLocalStore(
-      result.changedDocs,
-      /* remoteEvent */ undefined,
-      /* fromBundle */ true
-    );
-  }
+    const loader = new BundleLoader(metadata, syncEngine.localStore);
+    let element = await reader.nextElement();
+    while (element) {
+      debugAssert(
+        !element.payload.metadata,
+        'Unexpected BundleMetadata element.'
+      );
+      const progress = await loader.addSizedElement(element);
+      if (progress) {
+        task._updateProgress(progress);
+      }
 
-  // Save metadata, so loading the same bundle will skip.
-  await saveBundle(syncEngine.localStore, metadata);
-  task._completeWith(result.progress);
+      element = await reader.nextElement();
+    }
+
+    const result = await loader.complete();
+    if (result.changedDocs) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      syncEngine.emitNewSnapsAndNotifyLocalStore(
+        result.changedDocs,
+        /* remoteEvent */ undefined,
+        /* fromBundle */ true
+      );
+    }
+
+    // Save metadata, so loading the same bundle will skip.
+    await saveBundle(syncEngine.localStore, metadata);
+    task._completeWith(result.progress);
+  } catch (e) {
+    task._failWith(e);
+  }
 }

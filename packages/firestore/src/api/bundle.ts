@@ -20,7 +20,10 @@ import { Deferred } from '../util/promise';
 import { PartialObserver } from './observer';
 import { debugAssert } from '../util/assert';
 
-export class LoadBundleTask implements firestore.LoadBundleTask {
+export class LoadBundleTask
+  implements
+    firestore.LoadBundleTask,
+    PromiseLike<firestore.LoadBundleTaskProgress> {
   private _progressResolver = new Deferred<void>();
   private _progressObserver?: PartialObserver<firestore.LoadBundleTaskProgress>;
 
