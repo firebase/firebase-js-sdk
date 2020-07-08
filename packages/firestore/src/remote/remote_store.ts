@@ -153,8 +153,11 @@ export class RemoteStore implements TargetMetadataProvider {
     connectivityMonitor: ConnectivityMonitor
   ) {
     this.connectivityMonitor = connectivityMonitor;
-    this.connectivityMonitor.addCallback((status: NetworkStatus) => {
+    this.connectivityMonitor.addCallback((_: NetworkStatus) => {
       asyncQueue.enqueueAndForget(async () => {
+        // Porting Note: Unlike iOS, `restartNetwork()` is called even when the
+        // network becomes unreachable as we don't have any other way to tear
+        // down our streams.
         if (this.canUseNetwork()) {
           logDebug(
             LOG_TAG,
@@ -761,6 +764,8 @@ export class RemoteStore implements TargetMetadataProvider {
     this.offlineCauses.add(OfflineCause.ConnectivityChange);
     await this.disableNetworkInternal();
     this.onlineStateTracker.set(OnlineState.Unknown);
+    this.writeStream.inhibitBackoff();
+    this.watchStream.inhibitBackoff();
     this.offlineCauses.delete(OfflineCause.ConnectivityChange);
     await this.enableNetworkInternal();
   }

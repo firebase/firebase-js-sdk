@@ -17,9 +17,15 @@
 
 import { spawn } from 'child-process-promise';
 import { projectRoot as root } from '../../utils';
+import { ReleaseType } from './enums';
 
-export async function publish() {
-  await spawn('yarn', ['changeset', 'publish'], {
+export async function publish(releaseType: string) {
+  let tag: string[] = [];
+  if (releaseType === ReleaseType.Staging) {
+    tag = ['--tag', 'next'];
+  }
+
+  await spawn('yarn', ['changeset', 'publish', ...tag], {
     cwd: root,
     stdio: 'inherit'
   });
