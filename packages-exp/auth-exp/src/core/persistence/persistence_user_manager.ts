@@ -17,8 +17,9 @@
 
 import { ApiKey, AppName, Auth } from '../../model/auth';
 import { User } from '../../model/user';
-import { _getInstance, PersistedBlob, Persistence } from '../persistence';
+import { PersistedBlob, Persistence } from '../persistence';
 import { UserImpl } from '../user/user_impl';
+import { _getInstance } from '../util/instantiator';
 import { inMemoryPersistence } from './in_memory';
 
 export const _AUTH_USER_KEY_NAME = 'authUser';
