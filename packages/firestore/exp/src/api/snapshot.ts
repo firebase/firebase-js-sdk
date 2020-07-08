@@ -76,7 +76,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         this.metadata,
         /* converter= */ null
       );
-      return this._converter.fromFirestore(snapshot);
+      return this._converter.fromFirestore(snapshot, options);
     } else {
       const userDataWriter = new UserDataWriter(
         this._firestoreImpl._databaseId,

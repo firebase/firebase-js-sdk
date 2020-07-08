@@ -50,7 +50,7 @@ import {
 } from '../../../lite/src/api/reference';
 import { Document } from '../../../src/model/document';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
-import { FieldPath } from '../../../src/api/field_path';
+import { FieldPath } from '../../../lite/src/api/field_path';
 import {
   CompleteFn,
   ErrorFn,
@@ -262,7 +262,7 @@ export function addDoc<T>(
   data: T
 ): Promise<firestore.DocumentReference<T>> {
   const collRef = cast<CollectionReference<T>>(reference, CollectionReference);
-  const firestore = cast(collRef, Firestore);
+  const firestore = cast(collRef.firestore, Firestore);
   const docRef = doc(collRef);
 
   const convertedValue = applyFirestoreDataConverter(collRef._converter, data);
@@ -404,7 +404,7 @@ export function onSnapshot<T>(
       );
   } else {
     const query = cast<Query<T>>(ref, Query);
-    const firestore = cast(query, Firestore);
+    const firestore = cast(query.firestore, Firestore);
 
     const observer: PartialObserver<ViewSnapshot> = {
       next: snapshot => {

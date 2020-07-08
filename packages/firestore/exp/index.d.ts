@@ -65,7 +65,10 @@ export function setLogLevel(logLevel: LogLevel): void;
 export interface FirestoreDataConverter<T> {
   toFirestore(modelObject: T): DocumentData;
   toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
-  fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<DocumentData>,
+    options: SnapshotOptions
+  ): T;
 }
 
 export class FirebaseFirestore {
@@ -219,10 +222,13 @@ export class WriteBatch {
   commit(): Promise<void>;
 }
 
-export interface SetOptions {
-  readonly merge?: boolean;
-  readonly mergeFields?: Array<string | FieldPath>;
-}
+export type SetOptions =
+  | {
+      readonly merge?: boolean;
+    }
+  | {
+      readonly mergeFields?: Array<string | FieldPath>;
+    };
 
 export class DocumentReference<T = DocumentData> {
   private constructor();
@@ -249,7 +255,7 @@ export class DocumentSnapshot<T = DocumentData> {
 export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
   T
 > {
-  data(): T;
+  data(options?: SnapshotOptions): T;
 }
 
 export type OrderByDirection = 'desc' | 'asc';
