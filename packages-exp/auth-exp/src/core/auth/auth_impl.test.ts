@@ -26,17 +26,15 @@ import { FirebaseError } from '@firebase/util';
 import { testUser } from '../../../test/mock_auth';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
-import { _getInstance, Persistence } from '../persistence';
+import { Persistence } from '../persistence';
 import { browserLocalPersistence } from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
+import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import {
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST,
-  initializeAuth
+    DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST, initializeAuth
 } from './auth_impl';
 
 use(sinonChai);
@@ -109,7 +107,7 @@ describe('core/auth/auth_impl', () => {
   describe('#setPersistence', () => {
     it('swaps underlying persistence', async () => {
       const newPersistence = browserLocalPersistence;
-      const newStub = sinon.stub(_getInstance(newPersistence));
+      const newStub = sinon.stub(_getInstance<Persistence>(newPersistence));
       persistenceStub.get.returns(
         Promise.resolve(testUser(auth, 'test').toPlainObject())
       );
@@ -308,7 +306,7 @@ describe('core/auth/initializeAuth', () => {
 
     it('pulls the user from storage', async () => {
       sinon
-        .stub(_getInstance(inMemoryPersistence), 'get')
+        .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
         .returns(Promise.resolve(testUser({}, 'uid').toPlainObject()));
       const auth = await initAndWait(inMemoryPersistence);
       expect(auth.currentUser!.uid).to.eq('uid');
