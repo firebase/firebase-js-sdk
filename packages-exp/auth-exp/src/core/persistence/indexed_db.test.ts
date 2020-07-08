@@ -19,10 +19,11 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 
 import { testUser } from '../../../test/mock_auth';
-import { _getInstance, PersistenceType } from './';
+import { _getInstance } from '../util/instantiator';
+import { Persistence, PersistenceType } from './';
 import { indexedDBLocalPersistence } from './indexed_db';
 
-const persistence = _getInstance(indexedDBLocalPersistence);
+const persistence: Persistence = _getInstance(indexedDBLocalPersistence);
 
 describe('core/persistence/indexed_db', () => {
   afterEach(sinon.restore);
