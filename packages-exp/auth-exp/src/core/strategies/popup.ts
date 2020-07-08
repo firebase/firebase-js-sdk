@@ -18,11 +18,8 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { Auth } from '../../model/auth';
-import {
-  AuthEventType,
-  PopupRedirectResolver
-} from '../../model/popup_redirect';
-import { User, UserCredential } from '../../model/user';
+import { AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import { User } from '../../model/user';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { Delay } from '../util/delay';
 import { _generateEventId } from '../util/event_id';
@@ -38,7 +35,7 @@ export async function signInWithPopup(
   authExtern: externs.Auth,
   provider: externs.AuthProvider,
   resolverExtern: externs.PopupRedirectResolver
-): Promise<UserCredential> {
+): Promise<externs.UserCredential> {
   const auth = authExtern as Auth;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
@@ -55,7 +52,7 @@ export async function reauthenticateWithPopup(
   userExtern: externs.User,
   provider: externs.AuthProvider,
   resolverExtern: externs.PopupRedirectResolver
-): Promise<UserCredential> {
+): Promise<externs.UserCredential> {
   const user = userExtern as User;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
@@ -73,7 +70,7 @@ export async function linkWithPopup(
   userExtern: externs.User,
   provider: externs.AuthProvider,
   resolverExtern: externs.PopupRedirectResolver
-): Promise<UserCredential> {
+): Promise<externs.UserCredential> {
   const user = userExtern as User;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 

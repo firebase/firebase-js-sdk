@@ -1197,7 +1197,6 @@ function onPopupRedirectAddCustomParam(_event) {
  * Performs the corresponding popup/redirect action for a generic provider.
  */
 function onPopupRedirectGenericProviderClick() {
-  // alertNotImplemented();
   var providerId = $('#popup-redirect-generic-providerid').val();
   var provider = new OAuthProvider(providerId);
   signInWithPopupRedirect(provider);
