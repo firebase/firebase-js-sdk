@@ -35,9 +35,9 @@ import { ERROR_FACTORY, AnalyticsError } from './src/errors';
 
 import { name, version } from './package.json';
 import {
-  validateCookieEnabled,
+  isIndexedDBAvailable,
   validateIndexedDBOpenable,
-  validateIndexedDBAvailability
+  isCookieEnabled
 } from '@firebase/util';
 
 declare global {
@@ -51,7 +51,10 @@ declare global {
  */
 const ANALYTICS_TYPE = 'analytics';
 
-export function registerAnalytics(instance: _FirebaseNamespace): void {
+export async function registerAnalytics(
+  instance: _FirebaseNamespace
+): Promise<void> {
+  await validateInitializationEnvironment();
   instance.INTERNAL.registerComponent(
     new Component(
       ANALYTICS_TYPE,
@@ -61,9 +64,6 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
         const installations = container
           .getProvider('installations')
           .getImmediate();
-
-        validateInitializationEnvironment();
-
         return factory(app, installations);
       },
       ComponentType.PUBLIC
@@ -98,6 +98,7 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
 
 export { factory, settings, resetGlobalVars, getGlobalVars };
 
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 registerAnalytics(firebase as _FirebaseNamespace);
 
 /**
@@ -121,23 +122,16 @@ declare module '@firebase/app-types' {
  * This method also validates browser context for indexedDB by opening a dummy indexedDB database and throws AnalyticsError.INVALID_INDEXED_DB_CONTEXT
  * if errors occur during the database open operation.
  */
-function validateInitializationEnvironment(): void {
-  try {
-    validateCookieEnabled();
-  } catch (error) {
+async function validateInitializationEnvironment(): Promise<void> {
+  if (!isCookieEnabled()) {
     throw ERROR_FACTORY.create(AnalyticsError.COOKIE_NOT_ENABLED);
   }
-
-  try {
-    validateIndexedDBAvailability();
-  } catch (error) {
+  if (!isIndexedDBAvailable()) {
     throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
   }
-
   try {
-    validateIndexedDBOpenable();
+    await validateIndexedDBOpenable();
   } catch (error) {
-    console.log('indexedDB is not openable');
     throw ERROR_FACTORY.create(AnalyticsError.INVALID_INDEXED_DB_CONTEXT, {
       errorInfo: error
     });
@@ -151,13 +145,17 @@ function validateInitializationEnvironment(): void {
  * 2. check if IndexedDB is supported by the browser environment.
  * 3. check if the current browser context is valid for using IndexedDB.
  */
-function isSupported(): boolean {
+async function isSupported(): Promise<boolean> {
+  if (!isCookieEnabled()) {
+    return false;
+  }
+  if (!isIndexedDBAvailable()) {
+    return false;
+  }
   try {
-    validateCookieEnabled();
-    validateIndexedDBAvailability();
-    validateIndexedDBOpenable();
-    return true;
-  } catch (e) {
+    const isDBOpenable: boolean = await validateIndexedDBOpenable();
+    return isDBOpenable;
+  } catch (error) {
     return false;
   }
 }
