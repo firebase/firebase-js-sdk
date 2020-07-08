@@ -670,7 +670,8 @@ export class CollectionReference<T = legacy.DocumentData> extends Query<T>
 }
 
 export class FieldValue implements legacy.FieldValue {
-  constructor(private readonly delegate: exp.FieldValue) {}
+  constructor(readonly _delegate: exp.FieldValue) {}
+
   static serverTimestamp(): FieldValue {
     return new FieldValue(serverTimestamp());
   }
@@ -692,7 +693,7 @@ export class FieldValue implements legacy.FieldValue {
   }
 
   isEqual(other: FieldValue): boolean {
-    return this.delegate.isEqual(other.delegate);
+    return this._delegate.isEqual(other._delegate);
   }
 }
 
