@@ -136,7 +136,9 @@ function deleteObject(db: IDBDatabase, key: string): Promise<void> {
 }
 
 class IndexedDBLocalPersistence implements Persistence {
-  type: PersistenceType = PersistenceType.LOCAL;
+  static type: 'LOCAL' = 'LOCAL';
+
+  type = PersistenceType.LOCAL;
   db?: IDBDatabase;
 
   private async initialize(): Promise<IDBDatabase> {
@@ -177,4 +179,4 @@ class IndexedDBLocalPersistence implements Persistence {
   }
 }
 
-export const indexedDBLocalPersistence: externs.Persistence = new IndexedDBLocalPersistence();
+export const indexedDBLocalPersistence: externs.Persistence = IndexedDBLocalPersistence;

@@ -31,11 +31,11 @@ import {
 import { Auth, Dependencies } from '../../model/auth';
 import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
-import { Persistence } from '../persistence';
+import { _getInstance, Persistence } from '../persistence';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { assert } from '../util/assert';
-import { _getClientVersion, ClientPlatform } from '../util/version';
 import { _getUserLanguage } from '../util/navigator';
+import { _getClientVersion, ClientPlatform } from '../util/version';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -101,9 +101,9 @@ export class AuthImpl implements Auth {
     return this.updateCurrentUser(null);
   }
 
-  setPersistence(persistence: Persistence): Promise<void> {
+  setPersistence(persistence: externs.Persistence): Promise<void> {
     return this.queue(async () => {
-      await this.assertedPersistence.setPersistence(persistence);
+      await this.assertedPersistence.setPersistence(_getInstance(persistence));
     });
   }
 
@@ -215,7 +215,10 @@ export function initializeAuth(
   deps?: Dependencies
 ): externs.Auth {
   const persistence = deps?.persistence || [];
-  const hierarchy = Array.isArray(persistence) ? persistence : [persistence];
+  const hierarchy = (Array.isArray(persistence)
+    ? persistence
+    : [persistence]
+  ).map(_getInstance);
   const { apiKey, authDomain } = app.options;
 
   // TODO: platform needs to be determined using heuristics
@@ -234,7 +237,7 @@ export function initializeAuth(
   // This promise is intended to float; auth initialization happens in the
   // background, meanwhile the auth object may be used by the app.
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  auth._initializeWithPersistence(hierarchy as Persistence[]);
+  auth._initializeWithPersistence(hierarchy);
 
   return auth;
 }

@@ -24,41 +24,72 @@ import {
   STORAGE_AVAILABLE_KEY
 } from './';
 
-class BrowserPersistence implements Persistence {
-  type: PersistenceType = PersistenceType.LOCAL;
+// There are two different browser persistence types: local and session.
+// Both have the same implementation but use a different underlying storage
+// object. Using class inheritance compiles down to an es5 polyfill, which
+// prevents rollup from tree shaking. By making these "methods" free floating
+// functions bound to the classes, the two different types can share the
+// implementation without subclassing.
 
-  constructor(private readonly storage: Storage) {}
+interface BrowserPersistenceClass extends Persistence {
+  storage: Storage;
+}
 
-  async isAvailable(): Promise<boolean> {
-    try {
-      if (!this.storage) {
-        return false;
-      }
-      this.storage.setItem(STORAGE_AVAILABLE_KEY, '1');
-      this.storage.removeItem(STORAGE_AVAILABLE_KEY);
-      return true;
-    } catch {
-      return false;
+function isAvailable(this: BrowserPersistenceClass): Promise<boolean> {
+  try {
+    if (!this.storage) {
+      return Promise.resolve(false);
     }
-  }
-
-  async set(key: string, value: PersistenceValue): Promise<void> {
-    this.storage.setItem(key, JSON.stringify(value));
-  }
-
-  async get<T extends PersistenceValue>(key: string): Promise<T | null> {
-    const json = this.storage.getItem(key);
-    return json ? JSON.parse(json) : null;
-  }
-
-  async remove(key: string): Promise<void> {
-    this.storage.removeItem(key);
+    this.storage.setItem(STORAGE_AVAILABLE_KEY, '1');
+    this.storage.removeItem(STORAGE_AVAILABLE_KEY);
+    return Promise.resolve(true);
+  } catch {
+    return Promise.resolve(false);
   }
 }
 
-export const browserLocalPersistence: externs.Persistence = new BrowserPersistence(
-  localStorage
-);
-export const browserSessionPersistence: externs.Persistence = new BrowserPersistence(
-  sessionStorage
-);
+function set(
+  this: BrowserPersistenceClass,
+  key: string,
+  value: PersistenceValue
+): Promise<void> {
+  this.storage.setItem(key, JSON.stringify(value));
+  return Promise.resolve();
+}
+
+function get<T extends PersistenceValue>(
+  this: BrowserPersistenceClass,
+  key: string
+): Promise<T | null> {
+  const json = this.storage.getItem(key);
+  return Promise.resolve(json ? JSON.parse(json) : null);
+}
+
+function remove(this: BrowserPersistenceClass, key: string): Promise<void> {
+  this.storage.removeItem(key);
+  return Promise.resolve();
+}
+
+class BrowserLocalPersistence implements BrowserPersistenceClass {
+  static type: 'LOCAL' = 'LOCAL';
+  type = PersistenceType.LOCAL;
+  isAvailable = isAvailable;
+  set = set;
+  get = get;
+  remove = remove;
+  storage = localStorage;
+}
+
+class BrowserSessionPersistence implements BrowserPersistenceClass {
+  static type: 'SESSION' = 'SESSION';
+  type = PersistenceType.SESSION;
+  isAvailable = isAvailable;
+  set = set;
+  get = get;
+  remove = remove;
+  storage = sessionStorage;
+}
+
+export const browserLocalPersistence: externs.Persistence = BrowserLocalPersistence;
+
+export const browserSessionPersistence: externs.Persistence = BrowserSessionPersistence;

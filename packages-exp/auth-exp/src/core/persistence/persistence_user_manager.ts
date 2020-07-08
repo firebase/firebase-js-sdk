@@ -17,7 +17,7 @@
 
 import { ApiKey, AppName, Auth } from '../../model/auth';
 import { User } from '../../model/user';
-import { PersistedBlob, Persistence } from '../persistence';
+import { _getInstance, PersistedBlob, Persistence } from '../persistence';
 import { UserImpl } from '../user/user_impl';
 import { inMemoryPersistence } from './in_memory';
 
@@ -89,7 +89,7 @@ export class PersistenceUserManager {
   ): Promise<PersistenceUserManager> {
     if (!persistenceHierarchy.length) {
       return new PersistenceUserManager(
-        inMemoryPersistence as Persistence,
+        _getInstance(inMemoryPersistence),
         auth,
         userKey
       );
