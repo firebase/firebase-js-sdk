@@ -365,34 +365,18 @@ describe('test writeReportToDirectory helper function', () => {
 });
 
 describe('test extractExternalDependencies helper function', () => {
-  it('should correctly generate externals form memberList2 ', () => {
-    const memberList1: MemberList = {
-      functions: ['func1', 'func2', 'func3', 'func4'],
-      enums: ['enum1', 'enum2', 'enum3', 'enum4'],
-      variables: ['variable1', 'variable2'],
-      classes: ['class1', 'class2', 'class3'],
-      externals: []
-    };
-
-    const memberList2: MemberList = {
-      functions: ['func1', 'func2'],
-      enums: ['enum1'],
-      variables: ['variable1', 'variable2'],
-      classes: ['class1', 'class2', 'class3'],
-      externals: []
-    };
-
-    memberList2.externals = extractExternalDependencies(
-      memberList2,
-      memberList1
-    );
-
-    expect(memberList2.externals).to.have.members([
-      'func3',
-      'func4',
-      'enum2',
-      'enum3',
-      'enum4'
+  it('should correctly extract all symbols listed in import statements', () => {
+    const assortedImports: string = resolve('./src/assortedImports.js');
+    const externals: object = extractExternalDependencies(assortedImports);
+    expect(externals).to.not.have.property("'@firebase/logger'");
+    expect(externals).to.have.property("'./bar'");
+    expect(externals["'./bar'"]).to.have.members([
+      'basicFuncExternalDependenciesBar',
+      'basicFuncExportEnumDependenciesBar'
     ]);
+    expect(externals).to.have.property("'fs'");
+    expect(externals["'fs'"]).to.have.members(['fs']);
+    expect(externals).to.have.property("'../package.json'");
+    expect(externals["'../package.json'"]).to.have.members(['version']);
   });
 });
