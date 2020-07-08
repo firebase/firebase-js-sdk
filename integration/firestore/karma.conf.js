@@ -19,11 +19,7 @@ const karma = require('karma');
 const path = require('path');
 const karmaBase = require('../../config/karma.base');
 
-const files = [
-  // `${path.dirname(require.resolve('firebase'))}/firebase.js`,
-  // `${path.dirname(require.resolve('firebase'))}/firebase-firestore.js`,
-  './dist/test-harness.js'
-];
+const files = ['./dist/test-harness.js'];
 
 module.exports = function(config) {
   const karmaConfig = Object.assign({}, karmaBase, {
