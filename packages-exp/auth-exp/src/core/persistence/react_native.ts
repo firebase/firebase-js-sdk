@@ -17,7 +17,12 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { Persistence, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY } from './';
+import {
+  Persistence,
+  PersistenceType,
+  PersistenceValue,
+  STORAGE_AVAILABLE_KEY
+} from './';
 
 /**
  * Returns a persistence class that wraps AsyncStorage imported from
