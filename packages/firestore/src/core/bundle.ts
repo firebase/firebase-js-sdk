@@ -67,7 +67,7 @@ export interface NamedQuery {
  */
 interface BundledDocument {
   metadata: bundleProto.BundledDocumentMetadata;
-  document: api.Document | undefined;
+  document?: api.Document;
 }
 
 /**
@@ -158,11 +158,6 @@ export class BundleLoader {
   private queries: bundleProto.NamedQuery[] = [];
   /** Batched documents to be saved into storage */
   private documents: BundledDocuments = [];
-  /**
-   * A BundleDocumentMetadata is added to the loader, it is saved here while
-   * we wait for the actual document.
-   */
-  private unpairedDocumentMetadata: bundleProto.BundledDocumentMetadata | null = null;
 
   constructor(
     private metadata: bundleProto.BundleMetadata,
@@ -183,50 +178,49 @@ export class BundleLoader {
     debugAssert(!element.isBundleMetadata(), 'Unexpected bundle metadata.');
 
     this.progress.bytesLoaded += element.byteLength;
+
+    let documentsLoaded = this.progress.documentsLoaded;
+
     if (element.payload.namedQuery) {
       this.queries.push(element.payload.namedQuery);
-    }
-
-    if (element.payload.documentMetadata) {
-      if (element.payload.documentMetadata.exists) {
-        this.unpairedDocumentMetadata = element.payload.documentMetadata;
-      } else {
-        this.documents.push({
-          metadata: element.payload.documentMetadata,
-          document: undefined
-        });
-        this.progress.documentsLoaded += 1;
+    } else if (element.payload.documentMetadata) {
+      this.documents.push({ metadata: element.payload.documentMetadata });
+      if (!element.payload.documentMetadata.exists) {
+        ++documentsLoaded;
       }
-    }
-
-    if (element.payload.document) {
+    } else if (element.payload.document) {
       debugAssert(
-        !!this.unpairedDocumentMetadata,
-        'Unexpected document when no pairing metadata is found'
+        this.documents.length > 0 &&
+          this.documents[this.documents.length - 1].metadata.name ==
+            element.payload.document.name,
+        'The document being added does not match the stored metadata.'
       );
-      this.documents.push({
-        metadata: this.unpairedDocumentMetadata!,
-        document: element.payload.document
-      });
-      this.progress.documentsLoaded += 1;
-      this.unpairedDocumentMetadata = null;
+      this.documents[this.documents.length - 1].document =
+        element.payload.document;
+      ++documentsLoaded;
     }
 
-    // Loading a document metadata will not update progress.
-    if (this.unpairedDocumentMetadata) {
-      return null;
+    if (documentsLoaded !== this.progress.documentsLoaded) {
+      this.progress.documentsLoaded = documentsLoaded;
+      return { ...this.progress };
     }
 
-    return { ...this.progress };
+    return null;
   }
 
   /**
    * Update the progress to 'Success' and return the updated progress.
    */
   async complete(): Promise<LoadResult> {
+    const lastDocument =
+      this.documents.length === 0
+        ? null
+        : this.documents[this.documents.length - 1];
     debugAssert(
-      !this.unpairedDocumentMetadata,
-      'Unexpected document when no pairing metadata is found'
+      !!lastDocument ||
+        !lastDocument!.metadata.exists ||
+        (!!lastDocument!.metadata.exists && !!lastDocument!.document),
+      'Bundled documents ends with a document metadata.'
     );
 
     for (const q of this.queries) {

@@ -1384,7 +1384,7 @@ export function newMultiTabSyncEngine(
 }
 
 /**
- * Loads a Firestore bundle into the SDK, the returned promise resolves when
+ * Loads a Firestore bundle into the SDK. The returned promise resolves when
  * the bundle finished loading.
  *
  * @param bundleReader Bundle to load into the SDK.
