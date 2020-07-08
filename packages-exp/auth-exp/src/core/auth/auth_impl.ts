@@ -31,9 +31,10 @@ import {
 import { Auth, Dependencies } from '../../model/auth';
 import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
-import { _getInstance, Persistence } from '../persistence';
+import { Persistence } from '../persistence';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import { assert } from '../util/assert';
+import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 
@@ -218,7 +219,7 @@ export function initializeAuth(
   const hierarchy = (Array.isArray(persistence)
     ? persistence
     : [persistence]
-  ).map(_getInstance);
+  ).map<Persistence>(_getInstance);
   const { apiKey, authDomain } = app.options;
 
   // TODO: platform needs to be determined using heuristics
