@@ -125,7 +125,8 @@ export async function _performFetchWithErrorHandling<V>(
       return response.json();
     } else {
       const json: JsonError = await response.json();
-      const authError = errorMap[json.error.message];
+      const serverErrorCode = json.error.message.split(' : ')[0] as ServerError;
+      const authError = errorMap[serverErrorCode];
       if (authError) {
         fail(auth.name, authError);
       } else {

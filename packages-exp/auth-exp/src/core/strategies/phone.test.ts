@@ -39,6 +39,9 @@ import {
   reauthenticateWithPhoneNumber,
   signInWithPhoneNumber
 } from './phone';
+import { multiFactor, MultiFactorUser } from '../../mfa/mfa_user';
+import { MultiFactorSession } from '../../mfa/mfa_session';
+import { MultiFactorInfo } from '../../mfa/mfa_info';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -282,7 +285,8 @@ describe('core/strategies/phone', () => {
 
   describe('_verifyPhoneNumber', () => {
     it('works with a string phone number', async () => {
-      await _verifyPhoneNumber(auth, 'number', verifier);
+      const sessionInfo = await _verifyPhoneNumber(auth, 'number', verifier);
+      expect(sessionInfo).to.eq('session-info');
       expect(sendCodeEndpoint.calls[0].request).to.eql({
         recaptchaToken: 'recaptcha-token',
         phoneNumber: 'number'
@@ -290,16 +294,88 @@ describe('core/strategies/phone', () => {
     });
 
     it('works with an options object', async () => {
-      await _verifyPhoneNumber(
+      const sessionInfo = await _verifyPhoneNumber(
         auth,
         {
           phoneNumber: 'number'
         },
         verifier
       );
+      expect(sessionInfo).to.eq('session-info');
       expect(sendCodeEndpoint.calls[0].request).to.eql({
         recaptchaToken: 'recaptcha-token',
         phoneNumber: 'number'
+      });
+    });
+
+    context('MFA', () => {
+      let user: User;
+      let mfaUser: MultiFactorUser;
+
+      beforeEach(() => {
+        mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+          users: [{ uid: 'uid' }]
+        });
+
+        user = testUser(auth, 'uid', 'email', true);
+        mfaUser = multiFactor(user) as MultiFactorUser;
+      });
+
+      it('works with an enrollment flow', async () => {
+        const endpoint = mockEndpoint(Endpoint.START_PHONE_MFA_ENROLLMENT, {
+          phoneSessionInfo: {
+            sessionInfo: 'session-info'
+          }
+        });
+        const session = (await mfaUser.getSession()) as MultiFactorSession;
+        const sessionInfo = await _verifyPhoneNumber(
+          auth,
+          { phoneNumber: 'number', session },
+          verifier
+        );
+        expect(sessionInfo).to.eq('session-info');
+        expect(endpoint.calls[0].request).to.eql({
+          tenantId: auth.tenantId,
+          idToken: session.credential,
+          phoneEnrollmentInfo: {
+            phoneNumber: 'number',
+            recaptchaToken: 'recaptcha-token'
+          }
+        });
+      });
+
+      it('works when completing the sign in flow, ignoring the supplied phone number', async () => {
+        const endpoint = mockEndpoint(Endpoint.START_PHONE_MFA_SIGN_IN, {
+          phoneResponseInfo: {
+            sessionInfo: 'session-info'
+          }
+        });
+        const session = MultiFactorSession._fromMfaPendingCredential(
+          'mfa-pending-credential'
+        );
+        const mfaInfo = MultiFactorInfo._fromServerResponse(auth, {
+          mfaEnrollmentId: 'mfa-enrollment-id',
+          enrolledAt: Date.now(),
+          phoneInfo: 'phone-number-from-enrollment'
+        });
+        const sessionInfo = await _verifyPhoneNumber(
+          auth,
+          {
+            phoneNumber: 'phone-number-from-user',
+            session,
+            multiFactorHint: mfaInfo
+          },
+          verifier
+        );
+        expect(sessionInfo).to.eq('session-info');
+        expect(endpoint.calls[0].request).to.eql({
+          tenantId: auth.tenantId,
+          mfaPendingCredential: 'mfa-pending-credential',
+          mfaEnrollmentId: 'mfa-enrollment-id',
+          phoneSignInInfo: {
+            recaptchaToken: 'recaptcha-token'
+          }
+        });
       });
     });
 
@@ -307,10 +383,7 @@ describe('core/strategies/phone', () => {
       (verifier.verify as sinon.SinonStub).returns(Promise.resolve(123));
       await expect(
         _verifyPhoneNumber(auth, 'number', verifier)
-      ).to.be.rejectedWith(
-        FirebaseError,
-        'Firebase: Error (auth/argument-error)'
-      );
+      ).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
     });
 
     it('throws if the verifier type is not recaptcha', async () => {
@@ -320,10 +393,7 @@ describe('core/strategies/phone', () => {
       mutVerifier.type = 'not-recaptcha-thats-for-sure';
       await expect(
         _verifyPhoneNumber(auth, 'number', mutVerifier)
-      ).to.be.rejectedWith(
-        FirebaseError,
-        'Firebase: Error (auth/argument-error)'
-      );
+      ).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
     });
 
     it('resets the verifer after successful verification', async () => {
