@@ -1,4 +1,4 @@
-# @firebase/testing
+# @firebase/rules-unit-testing
 
 A set of utilities useful for testing Security Rules with the Realtime Database or Cloud Firestore
 emulators.

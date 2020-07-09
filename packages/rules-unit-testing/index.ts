@@ -18,7 +18,7 @@
 /*
  * The testing module does not need to be registered since it should not ever
  * come by default. The only way to use the testing module is by explicitly
- * creating a dependency on @firebase/testing.
+ * creating a dependency on @firebase/rules-unit-testing.
  */
 
 export {

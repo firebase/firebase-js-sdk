@@ -46,8 +46,6 @@ const FIRESTORE_ADDRESS: string = FIRESTORE_ADDRESS_ENVS.reduce(
   FIRESTORE_ADDRESS_DEFAULT
 );
 
-/** Passing this in tells the emulator to treat you as an admin. */
-const ADMIN_TOKEN = 'owner';
 /** Create an unsecured JWT for the given auth payload. See https://tools.ietf.org/html/rfc7519#section-6. */
 function createUnsecuredJwt(auth: object): string {
   // Unsecured JWTs use "none" as the algorithm.
@@ -95,7 +93,41 @@ export type AdminAppOptions = {
 };
 /** Construct an App authenticated as an admin user. */
 export function initializeAdminApp(options: AdminAppOptions): firebase.app.App {
-  return initializeApp(ADMIN_TOKEN, options.databaseName, options.projectId);
+  const admin = require('firebase-admin');
+
+  const app = admin.initializeApp(
+    getAppOptions(options.databaseName, options.projectId),
+    getRandomAppName()
+  );
+
+  if (options.projectId) {
+    app.firestore().settings({
+      host: FIRESTORE_ADDRESS,
+      ssl: false
+    });
+  }
+
+  return app;
+}
+
+function getRandomAppName(): string {
+  return 'app-' + new Date().getTime() + '-' + Math.random();
+}
+
+function getAppOptions(
+  databaseName?: string,
+  projectId?: string
+): { [key: string]: string } {
+  let appOptions: { [key: string]: string } = {};
+
+  if (databaseName) {
+    appOptions['databaseURL'] = `http://${DATABASE_ADDRESS}?ns=${databaseName}`;
+  }
+  if (projectId) {
+    appOptions['projectId'] = projectId;
+  }
+
+  return appOptions;
 }
 
 function initializeApp(
@@ -103,15 +135,8 @@ function initializeApp(
   databaseName?: string,
   projectId?: string
 ): firebase.app.App {
-  let appOptions: { [key: string]: string } = {};
-  if (databaseName) {
-    appOptions['databaseURL'] = `http://${DATABASE_ADDRESS}?ns=${databaseName}`;
-  }
-  if (projectId) {
-    appOptions['projectId'] = projectId;
-  }
-  const appName = 'app-' + new Date().getTime() + '-' + Math.random();
-  let app = firebase.initializeApp(appOptions, appName);
+  const appOptions = getAppOptions(databaseName, projectId);
+  const app = firebase.initializeApp(appOptions, getRandomAppName());
   if (accessToken) {
     const mockAuthComponent = new Component(
       'auth-internal',
@@ -261,9 +286,23 @@ export function clearFirestoreData(
 
 export function assertFails(pr: Promise<any>): any {
   return pr.then(
-    v =>
-      Promise.reject(new Error('Expected request to fail, but it succeeded.')),
-    err => err
+    (v: any) => {
+      return Promise.reject(
+        new Error('Expected request to fail, but it succeeded.')
+      );
+    },
+    (err: any) => {
+      const isPermissionDenied =
+        err && err.message && err.message.indexOf('PERMISSION_DENIED') >= 0;
+      if (!isPermissionDenied) {
+        return Promise.reject(
+          new Error(
+            `Expected PERMISSION_DENIED but got unexpected error: ${err}`
+          )
+        );
+      }
+      return err;
+    }
   );
 }
 

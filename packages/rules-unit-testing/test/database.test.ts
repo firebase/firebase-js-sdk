@@ -42,18 +42,29 @@ describe('Testing Module Tests', function() {
       .catch(() => {});
   });
 
-  it('assertFails() iff failure', async function() {
+  it('assertFails() iff PERMISSION_DENIED', async function() {
     const success = Promise.resolve('success');
-    const failure = Promise.reject('failure');
+    const permissionDenied = Promise.reject({
+      message: 'PERMISSION_DENIED'
+    });
+    const otherFailure = Promise.reject('failure');
     await firebase
       .assertFails(success)
       .then(() => {
         throw new Error('Expected success to fail.');
       })
       .catch(() => {});
-    await firebase.assertFails(failure).catch(() => {
-      throw new Error('Expected failure to succeed.');
+
+    await firebase.assertFails(permissionDenied).catch(() => {
+      throw new Error('Expected permissionDenied to succeed.');
     });
+
+    await firebase
+      .assertFails(otherFailure)
+      .then(() => {
+        throw new Error('Expected otherFailure to fail.');
+      })
+      .catch(() => {});
   });
 
   it('initializeTestApp() with auth=null does not set access token', async function() {
