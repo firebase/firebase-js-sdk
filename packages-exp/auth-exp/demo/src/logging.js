@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /**
  * @license
  * Copyright 2020 Google LLC
@@ -18,8 +19,8 @@
 // Fix for IE8 when developer's console is not opened.
 if (!window.console) {
   window.console = {
-    log: function() {},
-    error: function() {}
+    log() {},
+    error() {}
   };
 }
 
@@ -77,7 +78,7 @@ function alertMessage_(message, cssClass) {
   if (visibleModal.size() > 0) {
     // Check first if the model has an overlaying-alert. If not, append the
     // overlaying-alert container.
-    if (visibleModal.find('.overlaying-alert').size() == 0) {
+    if (visibleModal.find('.overlaying-alert').size() === 0) {
       const $overlayingAlert = $(
         '<div class="container-fluid overlaying-alert"></div>'
       );
@@ -88,9 +89,9 @@ function alertMessage_(message, cssClass) {
     $('#alert-messages').prepend(alertBox);
   }
   alertBox.fadeIn({
-    complete: function() {
-      setTimeout(function() {
-        alertBox.slideUp(400, function() {
+    complete() {
+      setTimeout(() => {
+        alertBox.slideUp(400, () => {
           // On completion, remove the alert element from the DOM.
           alertBox.remove();
         });

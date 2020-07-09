@@ -17,6 +17,8 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
+import { startEnrollPhoneMfa } from '../../api/account_management/mfa';
+import { startSignInPhoneMfa } from '../../api/authentication/mfa';
 import { sendPhoneVerificationCode } from '../../api/authentication/sms';
 import { ApplicationVerifier } from '../../model/application_verifier';
 import { Auth } from '../../model/auth';
@@ -31,9 +33,20 @@ import {
   reauthenticateWithCredential,
   signInWithCredential
 } from './credential';
+import {
+  MultiFactorSession,
+  MultiFactorSessionType
+} from '../../mfa/mfa_session';
+import { MultiFactorInfo } from '../../mfa/mfa_info';
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<externs.UserCredential>;
+}
+
+interface PhoneInfoOptions extends externs.PhoneInfoOptions {
+  phoneNumber: string;
+  session?: MultiFactorSession;
+  multiFactorHint?: MultiFactorInfo;
 }
 
 class ConfirmationResult implements externs.ConfirmationResult {
@@ -122,20 +135,39 @@ export async function _verifyPhoneNumber(
       AuthErrorCode.ARGUMENT_ERROR
     );
 
-    let phoneNumber: string;
-    if (typeof options === 'string') {
-      phoneNumber = options;
+    const phoneInfoOptions: PhoneInfoOptions =
+      typeof options === 'string'
+        ? { phoneNumber: options }
+        : (options as PhoneInfoOptions);
+
+    if (phoneInfoOptions.session?.type === MultiFactorSessionType.ENROLL) {
+      const response = await startEnrollPhoneMfa(auth, {
+        idToken: phoneInfoOptions.session.credential,
+        phoneEnrollmentInfo: {
+          phoneNumber: phoneInfoOptions.phoneNumber,
+          recaptchaToken
+        }
+      });
+      return response.phoneSessionInfo.sessionInfo;
+    } else if (
+      phoneInfoOptions.session?.type === MultiFactorSessionType.SIGN_IN
+    ) {
+      assert(phoneInfoOptions.multiFactorHint, auth.name);
+      const response = await startSignInPhoneMfa(auth, {
+        mfaPendingCredential: phoneInfoOptions.session.credential,
+        mfaEnrollmentId: phoneInfoOptions.multiFactorHint.uid,
+        phoneSignInInfo: {
+          recaptchaToken
+        }
+      });
+      return response.phoneResponseInfo.sessionInfo;
     } else {
-      phoneNumber = options.phoneNumber;
+      const { sessionInfo } = await sendPhoneVerificationCode(auth, {
+        phoneNumber: phoneInfoOptions.phoneNumber,
+        recaptchaToken
+      });
+      return sessionInfo;
     }
-
-    // MFA steps should happen here, before this next block
-    const { sessionInfo } = await sendPhoneVerificationCode(auth, {
-      phoneNumber,
-      recaptchaToken
-    });
-
-    return sessionInfo;
   } finally {
     verifier._reset();
   }
