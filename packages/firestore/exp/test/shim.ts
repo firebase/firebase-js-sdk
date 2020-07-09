@@ -29,16 +29,19 @@ import {
   deleteField,
   disableNetwork,
   doc,
+  DocumentReference as DocumentReferenceExp,
   enableIndexedDbPersistence,
   enableMultiTabIndexedDbPersistence,
   enableNetwork,
-  DocumentReference as DocumentReferenceExp,
   FieldPath as FieldPathExp,
   getDoc,
+  getDocFromCache,
+  getDocFromServer,
   getQuery,
   getQueryFromCache,
   getQueryFromServer,
   increment,
+  initializeFirestore,
   onSnapshot,
   onSnapshotsInSync,
   parent,
@@ -51,10 +54,7 @@ import {
   terminate,
   updateDoc,
   waitForPendingWrites,
-  writeBatch,
-  getDocFromCache,
-  getDocFromServer,
-  initializeFirestore
+  writeBatch
 } from '../../exp/index.node';
 import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
 import { isPartialObserver, PartialObserver } from '../../src/api/observer';
@@ -350,40 +350,12 @@ export class DocumentReference<T = legacy.DocumentData>
     onCompletion?: () => void
   ): () => void;
   onSnapshot(...args: any): () => void {
-    let options: legacy.SnapshotListenOptions = {};
-    let userObserver: PartialObserver<DocumentSnapshot<T>>;
-
-    if (isPartialObserver(args[0])) {
-      userObserver = args[0] as PartialObserver<DocumentSnapshot<T>>;
-    } else if (isPartialObserver(args[1])) {
-      options = args[0];
-      userObserver = args[1];
-    } else if (typeof args[0] === 'function') {
-      userObserver = {
-        next: args[0],
-        error: args[1],
-        complete: args[2]
-      };
-    } else {
-      options = args[0];
-      userObserver = {
-        next: args[1],
-        error: args[2],
-        complete: args[3]
-      };
-    }
-
-    const apiObserver: PartialObserver<exp.DocumentSnapshot<T>> = {
-      next: snapshot => {
-        if (userObserver!.next) {
-          userObserver!.next(new DocumentSnapshot(snapshot));
-        }
-      },
-      error: userObserver.error?.bind(userObserver),
-      complete: userObserver.complete?.bind(userObserver)
-    };
-
-    return onSnapshot(this._delegate, options, apiObserver);
+    const options = extractSnapshotOptions(args);
+    const observer = wrapObserver<DocumentSnapshot<T>, exp.DocumentSnapshot<T>>(
+      args,
+      snap => new DocumentSnapshot(snap)
+    );
+    return onSnapshot(this._delegate, options, observer);
   }
 
   withConverter<U>(
@@ -539,40 +511,12 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
     onCompletion?: () => void
   ): () => void;
   onSnapshot(...args: any): () => void {
-    let options: legacy.SnapshotListenOptions = {};
-    let userObserver: PartialObserver<QuerySnapshot<T>>;
-
-    if (isPartialObserver(args[0])) {
-      userObserver = args[0] as PartialObserver<QuerySnapshot<T>>;
-    } else if (isPartialObserver(args[1])) {
-      options = args[0];
-      userObserver = args[1];
-    } else if (typeof args[0] === 'function') {
-      userObserver = {
-        next: args[0],
-        error: args[1],
-        complete: args[2]
-      };
-    } else {
-      options = args[0];
-      userObserver = {
-        next: args[1],
-        error: args[2],
-        complete: args[3]
-      };
-    }
-
-    const apiObserver: PartialObserver<exp.QuerySnapshot<T>> = {
-      next: snapshot => {
-        if (userObserver!.next) {
-          userObserver!.next(new QuerySnapshot(snapshot));
-        }
-      },
-      error: userObserver.error?.bind(userObserver),
-      complete: userObserver.complete?.bind(userObserver)
-    };
-
-    return onSnapshot(this._delegate, options, apiObserver);
+    const options = extractSnapshotOptions(args);
+    const observer = wrapObserver<QuerySnapshot<T>, exp.QuerySnapshot<T>>(
+      args,
+      snap => new QuerySnapshot(snap)
+    );
+    return onSnapshot(this._delegate, options, observer);
   }
 
   withConverter<U>(converter: legacy.FirestoreDataConverter<U>): Query<U> {
@@ -698,7 +642,7 @@ export class FieldValue implements legacy.FieldValue {
 }
 
 export class FieldPath implements legacy.FieldPath {
-  private fieldNames: string[];
+  private readonly fieldNames: string[];
 
   constructor(...fieldNames: string[]) {
     this.fieldNames = fieldNames;
@@ -765,4 +709,60 @@ function unwrap(value: any): any {
   } else {
     return value;
   }
+}
+
+/**
+ * Creates an observer that can be passed to the firestore-exp SDK. The
+ * observer converts all observed values into the format expected by the shim.
+ *
+ * @param args The list of arguments from an `onSnapshot` call.
+ * @param wrapper The function that converts the firestore-exp type into the
+ * type used by this shim.
+ */
+function wrapObserver<ShimType, ExpType>(
+  args: any,
+  wrapper: (val: ExpType) => ShimType
+): PartialObserver<ExpType> {
+  let userObserver: PartialObserver<ShimType>;
+  if (isPartialObserver(args[0])) {
+    userObserver = args[0] as PartialObserver<ShimType>;
+  } else if (isPartialObserver(args[1])) {
+    userObserver = args[1];
+  } else if (typeof args[0] === 'function') {
+    userObserver = {
+      next: args[0],
+      error: args[1],
+      complete: args[2]
+    };
+  } else {
+    userObserver = {
+      next: args[1],
+      error: args[2],
+      complete: args[3]
+    };
+  }
+
+  return {
+    next: val => {
+      if (userObserver!.next) {
+        userObserver!.next(wrapper(val));
+      }
+    },
+    error: userObserver.error?.bind(userObserver),
+    complete: userObserver.complete?.bind(userObserver)
+  };
+}
+
+/**
+ * Iterates the list of arguments from an `onSnapshot` call and returns the
+ * first argument that may be an `SnapshotListenOptions` object. Returns an
+ * empty object if none is found.
+ */
+function extractSnapshotOptions(args: any): exp.SnapshotListenOptions {
+  for (const arg of args) {
+    if (typeof arg === 'object' && !isPartialObserver(arg)) {
+      return arg as exp.SnapshotListenOptions;
+    }
+  }
+  return {};
 }
