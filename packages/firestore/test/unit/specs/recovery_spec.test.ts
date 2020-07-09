@@ -569,7 +569,10 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     );
   });
 
-  specTest('Recovers when watch rejection cannot be persisted', [], () => {
+  specTest('Handles rejections that cannot be persisted', [], () => {
+    // This test verifies that the client ignores failures during the
+    // 'Release target' transaction.
+
     const doc1Query = Query.atPath(path('collection/key1'));
     const doc2Query = Query.atPath(path('collection/key2'));
     const doc1a = doc('collection/key1', 1000, { foo: 'a' });
@@ -593,25 +596,22 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
           doc1Query,
           new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
         )
-        // `failDatabaseTransactions()` causes us to go offline.
-        .expectActiveTargets()
-        .expectEvents(doc1Query, { fromCache: true })
-        .expectEvents(doc2Query, { fromCache: true })
+        .expectEvents(doc1Query, { errorCode: Code.PERMISSION_DENIED })
         .recoverDatabase()
-        .runTimer(TimerId.AsyncQueueRetry)
-        .expectActiveTargets(
-          { query: doc1Query, resumeToken: 'resume-token-1000' },
-          { query: doc2Query, resumeToken: 'resume-token-2000' }
-        )
-        .watchAcksFull(doc1Query, 3000)
-        .expectEvents(doc1Query, {})
         .watchRemoves(
           doc2Query,
           new RpcError(Code.PERMISSION_DENIED, 'Simulated target error')
         )
         .expectEvents(doc2Query, { errorCode: Code.PERMISSION_DENIED })
-        .watchSends({ affects: [doc1Query] }, doc1b)
-        .watchSnapshots(4000)
+        // Verify that `doc1Query` can be listened to again. Note that the
+        // resume token is slightly outdated since we failed to persist the
+        // target update during the release.
+        .userListens(doc1Query, 'resume-token-1000')
+        .expectEvents(doc1Query, {
+          added: [doc1a],
+          fromCache: true
+        })
+        .watchAcksFull(doc1Query, 4000, doc1b)
         .expectEvents(doc1Query, {
           modified: [doc1b]
         })
@@ -797,4 +797,45 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       );
     }
   );
+
+  specTest('Unlisten succeeds when target release fails', [], () => {
+    const query = Query.atPath(path('collection'));
+    const doc1 = doc('collection/key1', 1, { foo: 'a' });
+    return spec()
+      .userListens(query)
+      .watchAcksFull(query, 1000, doc1)
+      .expectEvents(query, {
+        added: [doc1]
+      })
+      .failDatabaseTransactions('Release target')
+      .userUnlistens(query)
+      .expectActiveTargets();
+  });
+
+  specTest('Can re-listen to query when unlisten fails', [], () => {
+    const query = Query.atPath(path('collection'));
+    const doc1 = doc('collection/key1', 1, { foo: 'a' });
+    const doc2 = doc('collection/key2', 2, { foo: 'b' });
+    return spec()
+      .withGCEnabled(false)
+      .userListens(query)
+      .watchAcksFull(query, 1000, doc1)
+      .expectEvents(query, {
+        added: [doc1]
+      })
+      .failDatabaseTransactions('Release target')
+      .userUnlistens(query)
+      .watchRemoves(query)
+      .recoverDatabase()
+      .userListens(query, 'resume-token-1000')
+      .expectEvents(query, {
+        added: [doc1],
+        fromCache: true
+      })
+      .watchAcksFull(query, 2000, doc2)
+      .expectEvents(query, {
+        added: [doc2]
+      })
+      .userUnlistens(query);
+  });
 });

@@ -36,7 +36,7 @@ import {
 import { RemoteStore } from '../remote/remote_store';
 import { EventManager } from './event_manager';
 import { AsyncQueue } from '../util/async_queue';
-import { DatabaseInfo } from './database_info';
+import { DatabaseId, DatabaseInfo } from './database_info';
 import { Datastore } from '../remote/datastore';
 import { User } from '../auth/user';
 import { PersistenceSettings } from './firestore_client';
@@ -46,7 +46,11 @@ import { Code, FirestoreError } from '../util/error';
 import { OnlineStateSource } from './types';
 import { LruParams, LruScheduler } from '../local/lru_garbage_collector';
 import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
-import { IndexedDbPersistence } from '../local/indexeddb_persistence';
+import {
+  indexedDbStoragePrefix,
+  IndexedDbPersistence,
+  indexedDbClearPersistence
+} from '../local/indexeddb_persistence';
 import {
   MemoryEagerDelegate,
   MemoryPersistence
@@ -85,7 +89,10 @@ export interface ComponentProvider {
 
   initialize(cfg: ComponentConfiguration): Promise<void>;
 
-  clearPersistence(databaseId: DatabaseInfo): Promise<void>;
+  clearPersistence(
+    databaseId: DatabaseId,
+    persistenceKey: string
+  ): Promise<void>;
 }
 
 /**
@@ -182,7 +189,10 @@ export class MemoryComponentProvider implements ComponentProvider {
     );
   }
 
-  clearPersistence(databaseInfo: DatabaseInfo): Promise<void> {
+  clearPersistence(
+    databaseId: DatabaseId,
+    persistenceKey: string
+  ): Promise<void> {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
       MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
@@ -196,9 +206,81 @@ export class MemoryComponentProvider implements ComponentProvider {
 export class IndexedDbComponentProvider extends MemoryComponentProvider {
   persistence!: IndexedDbPersistence;
 
-  // TODO(tree-shaking): Create an IndexedDbComponentProvider and a
-  // MultiTabComponentProvider. The IndexedDbComponentProvider should depend
-  // on LocalStore and SyncEngine.
+  createLocalStore(cfg: ComponentConfiguration): LocalStore {
+    return newLocalStore(
+      this.persistence,
+      new IndexFreeQueryEngine(),
+      cfg.initialUser
+    );
+  }
+
+  createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
+    return newSyncEngine(
+      this.localStore,
+      this.remoteStore,
+      cfg.datastore,
+      this.sharedClientState,
+      cfg.initialUser,
+      cfg.maxConcurrentLimboResolutions
+    );
+  }
+
+  createGarbageCollectionScheduler(
+    cfg: ComponentConfiguration
+  ): GarbageCollectionScheduler | null {
+    const garbageCollector = this.persistence.referenceDelegate
+      .garbageCollector;
+    return new LruScheduler(garbageCollector, cfg.asyncQueue);
+  }
+
+  createPersistence(cfg: ComponentConfiguration): Persistence {
+    debugAssert(
+      cfg.persistenceSettings.durable,
+      'Can only start durable persistence'
+    );
+
+    const persistenceKey = indexedDbStoragePrefix(
+      cfg.databaseInfo.databaseId,
+      cfg.databaseInfo.persistenceKey
+    );
+    const serializer = newSerializer(cfg.databaseInfo.databaseId);
+    return new IndexedDbPersistence(
+      cfg.persistenceSettings.synchronizeTabs,
+      persistenceKey,
+      cfg.clientId,
+      LruParams.withCacheSize(cfg.persistenceSettings.cacheSizeBytes),
+      cfg.asyncQueue,
+      getWindow(),
+      getDocument(),
+      serializer,
+      this.sharedClientState,
+      cfg.persistenceSettings.forceOwningTab
+    );
+  }
+
+  createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
+    return new MemorySharedClientState();
+  }
+
+  clearPersistence(
+    databaseId: DatabaseId,
+    persistenceKey: string
+  ): Promise<void> {
+    return indexedDbClearPersistence(
+      indexedDbStoragePrefix(databaseId, persistenceKey)
+    );
+  }
+}
+
+/**
+ * Provides all components needed for Firestore with multi-tab IndexedDB
+ * persistence.
+ *
+ * In the legacy client, this provider is used to provide both multi-tab and
+ * non-multi-tab persistence since we cannot tell at build time whether
+ * `synchronizeTabs` will be enabled.
+ */
+export class MultiTabIndexedDbComponentProvider extends IndexedDbComponentProvider {
   localStore!: MultiTabLocalStore;
   syncEngine!: MultiTabSyncEngine;
 
@@ -244,38 +326,6 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
     return syncEngine;
   }
 
-  createGarbageCollectionScheduler(
-    cfg: ComponentConfiguration
-  ): GarbageCollectionScheduler | null {
-    const garbageCollector = this.persistence.referenceDelegate
-      .garbageCollector;
-    return new LruScheduler(garbageCollector, cfg.asyncQueue);
-  }
-
-  createPersistence(cfg: ComponentConfiguration): Persistence {
-    debugAssert(
-      cfg.persistenceSettings.durable,
-      'Can only start durable persistence'
-    );
-
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      cfg.databaseInfo
-    );
-    const serializer = newSerializer(cfg.databaseInfo.databaseId);
-    return new IndexedDbPersistence(
-      cfg.persistenceSettings.synchronizeTabs,
-      persistenceKey,
-      cfg.clientId,
-      LruParams.withCacheSize(cfg.persistenceSettings.cacheSizeBytes),
-      cfg.asyncQueue,
-      getWindow(),
-      getDocument(),
-      serializer,
-      this.sharedClientState,
-      cfg.persistenceSettings.forceOwningTab
-    );
-  }
-
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
     if (
       cfg.persistenceSettings.durable &&
@@ -288,8 +338,9 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
           'IndexedDB persistence is only available on platforms that support LocalStorage.'
         );
       }
-      const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-        cfg.databaseInfo
+      const persistenceKey = indexedDbStoragePrefix(
+        cfg.databaseInfo.databaseId,
+        cfg.databaseInfo.persistenceKey
       );
       return new WebStorageSharedClientState(
         window,
@@ -300,12 +351,5 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
       );
     }
     return new MemorySharedClientState();
-  }
-
-  clearPersistence(databaseInfo: DatabaseInfo): Promise<void> {
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      databaseInfo
-    );
-    return IndexedDbPersistence.clearPersistence(persistenceKey);
   }
 }

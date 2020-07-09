@@ -1,15 +1,13 @@
 {
   "name": "@firebase/database",
-  "version": "0.6.6",
+  "version": "0.6.7",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
@@ -28,15 +26,15 @@
   "peerDependencies": {},
   "dependencies": {
     "@firebase/database-types": "0.5.1",
-    "@firebase/logger": "0.2.5",
+    "@firebase/logger": "0.2.6",
     "@firebase/util": "0.2.50",
-    "@firebase/component": "0.1.15",
+    "@firebase/component": "0.1.16",
     "@firebase/auth-interop-types": "0.1.5",
     "faye-websocket": "0.11.3",
     "tslib": "^1.11.1"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.7",
+    "@firebase/app": "0.6.8",
     "@firebase/app-types": "0.6.1",
     "rollup": "2.7.6",
     "rollup-plugin-typescript2": "0.27.0",
