@@ -30,7 +30,8 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import {
   ComponentProvider,
   IndexedDbComponentProvider,
-  MemoryComponentProvider
+  MemoryComponentProvider,
+  MultiTabIndexedDbComponentProvider
 } from '../../../src/core/component_provider';
 
 import {
@@ -44,7 +45,11 @@ import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
-import { DatabaseInfo } from '../../../src/core/database_info';
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
+import {
+  indexedDbStoragePrefix,
+  indexedDbClearPersistence
+} from '../../../src/local/indexeddb_persistence';
 
 /**
  * The root reference to the Firestore database and the entry point for the
@@ -142,7 +147,16 @@ export class Firestore extends LiteFirestore
     return terminate(this);
   }
 
-  _clearPersistence(): Promise<void> {
+  /**
+   * Verifies that the client is not running and clears persistence by invoking
+   * `delegate` on the async queue.
+   *
+   * @param delegate A function that clears the clients
+   * backing storage.
+   */
+  _clearPersistence(
+    delegate: (databaseId: DatabaseId, persistenceKey: string) => Promise<void>
+  ): Promise<void> {
     if (this._deferredInitialization !== undefined && !this._terminated) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
@@ -151,16 +165,10 @@ export class Firestore extends LiteFirestore
       );
     }
 
-    const settings = this._getSettings();
     const deferred = new Deferred<void>();
     this._queue.enqueueAndForgetEvenAfterShutdown(async () => {
       try {
-        const databaseInfo = this._makeDatabaseInfo(
-          settings.host,
-          settings.ssl,
-          settings.experimentalForceLongPolling
-        );
-        await this._componentProvider.clearPersistence(databaseInfo);
+        await delegate(this._databaseId, this._persistenceKey);
         deferred.resolve();
       } catch (e) {
         deferred.reject(e);
@@ -237,8 +245,8 @@ export function enableMultiTabIndexedDbPersistence(
 ): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
   return firestoreImpl._enablePersistence(
-    new IndexedDbComponentProvider(),
-    /*synchronizeTabs=*/ true
+    new MultiTabIndexedDbComponentProvider(),
+    /*synchronizeTabs=*/ false
   );
 }
 
@@ -246,7 +254,11 @@ export function clearIndexedDbPersistence(
   firestore: firestore.FirebaseFirestore
 ): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
-  return firestoreImpl._clearPersistence();
+  return firestoreImpl._clearPersistence((databaseId, persistenceKey) => {
+    return indexedDbClearPersistence(
+      indexedDbStoragePrefix(databaseId, persistenceKey)
+    );
+  });
 }
 
 export function waitForPendingWrites(

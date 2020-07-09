@@ -1,15 +1,13 @@
 {
   "name": "@firebase/functions",
-  "version": "0.4.47",
+  "version": "0.4.48",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -31,7 +29,7 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/messaging": "0.6.19",
+    "@firebase/messaging": "0.6.20",
     "rollup": "2.7.6",
     "rollup-plugin-typescript2": "0.27.0",
     "typescript": "3.9.5"
@@ -48,7 +46,7 @@
   "dependencies": {
     "@firebase/functions-types": "0.3.17",
     "@firebase/messaging-types": "0.4.5",
-    "@firebase/component": "0.1.15",
+    "@firebase/component": "0.1.16",
     "isomorphic-fetch": "2.2.1",
     "tslib": "^1.11.1"
   },
