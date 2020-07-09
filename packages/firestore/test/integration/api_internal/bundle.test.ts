@@ -216,7 +216,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
       let builder = bundleWithTestDocs(db);
       return withAlternateTestDb(persistence, async otherDb => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        expect(
+        await expect(
           otherDb.loadBundle(
             builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
           )

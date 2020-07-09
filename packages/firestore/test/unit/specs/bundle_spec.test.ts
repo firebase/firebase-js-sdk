@@ -16,7 +16,13 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { doc, path, TestSnapshotVersion, version } from '../../util/helpers';
+import {
+  doc,
+  path,
+  TestSnapshotVersion,
+  version,
+  wrapObject
+} from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
@@ -26,17 +32,17 @@ import {
   TEST_DATABASE_ID
 } from '../local/persistence_test_helpers';
 import { DocumentKey } from '../../../src/model/document_key';
-import * as api from '../../../src/protos/firestore_proto_api';
-import { Value } from '../../../src/protos/firestore_proto_api';
 import { toVersion } from '../../../src/remote/serializer';
+import { JsonObject } from '../../../src/model/object_value';
 
 interface TestBundleDocument {
   key: DocumentKey;
   readTime: TestSnapshotVersion;
   createTime?: TestSnapshotVersion;
   updateTime?: TestSnapshotVersion;
-  content?: api.ApiClientObjectMap<Value>;
+  content?: JsonObject<unknown>;
 }
+
 function bundleWithDocument(testDoc: TestBundleDocument): string {
   const builder = new TestBundleBuilder(TEST_DATABASE_ID);
   builder.addDocumentMetadata(
@@ -49,7 +55,7 @@ function bundleWithDocument(testDoc: TestBundleDocument): string {
       testDoc.key,
       toVersion(JSON_SERIALIZER, version(testDoc.createTime)),
       toVersion(JSON_SERIALIZER, version(testDoc.updateTime!)),
-      testDoc.content!
+      wrapObject(testDoc.content!).proto.mapValue.fields!
     );
   }
   return builder.build(
@@ -69,7 +75,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
       readTime: 3000,
       createTime: 1999,
       updateTime: 2999,
-      content: { key: { stringValue: 'b' } }
+      content: { key: 'b' }
     });
 
     return spec()
@@ -77,25 +83,29 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
       .watchAcksFull(query1, 1000, docA)
       .expectEvents(query1, { added: [docA] })
       .loadBundle(bundleString)
-      .expectEvents(query1, { modified: [docAChanged], fromCache: true });
+      .expectEvents(query1, { modified: [docAChanged] });
   });
 
-  specTest('Newer deleted docs from bundles should delete cache', [], () => {
-    const query1 = Query.atPath(path('collection'));
-    const docA = doc('collection/a', 1000, { key: 'a' });
+  specTest(
+    'Newer deleted docs from bundles should delete cache docs',
+    [],
+    () => {
+      const query1 = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
 
-    const bundleString = bundleWithDocument({
-      key: docA.key,
-      readTime: 3000
-    });
+      const bundleString = bundleWithDocument({
+        key: docA.key,
+        readTime: 3000
+      });
 
-    return spec()
-      .userListens(query1)
-      .watchAcksFull(query1, 1000, docA)
-      .expectEvents(query1, { added: [docA] })
-      .loadBundle(bundleString)
-      .expectEvents(query1, { removed: [docA], fromCache: true });
-  });
+      return spec()
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docA)
+        .expectEvents(query1, { added: [docA] })
+        .loadBundle(bundleString)
+        .expectEvents(query1, { removed: [docA] });
+    }
+  );
 
   specTest('Older deleted docs from bundles should do nothing', [], () => {
     const query1 = Query.atPath(path('collection'));
@@ -117,7 +127,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
   });
 
   specTest(
-    'Newer docs from bundles should raise snapshot only when watch catches up with acknowledged writes',
+    'Newer docs from bundles should raise snapshot only when Watch catches up with acknowledged writes',
     [],
     () => {
       const query = Query.atPath(path('collection'));
@@ -128,7 +138,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
         readTime: 500,
         createTime: 250,
         updateTime: 500,
-        content: { key: { stringValue: 'b' } }
+        content: { key: 'b' }
       });
 
       const bundleAfterMutationAck = bundleWithDocument({
@@ -136,10 +146,12 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
         readTime: 1001,
         createTime: 250,
         updateTime: 1001,
-        content: { key: { stringValue: 'fromBundle' } }
+        content: { key: 'fromBundle' }
       });
       return (
         spec()
+          // TODO(b/160878667): Figure out what happens when memory eager GC is on
+          // a bundle is loaded.
           .withGCEnabled(false)
           .userListens(query)
           .watchAcksFull(query, 250, docA)
@@ -166,8 +178,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
           // the acknowledged mutation.
           .loadBundle(bundleAfterMutationAck)
           .expectEvents(query, {
-            modified: [doc('collection/a', 1001, { key: 'fromBundle' })],
-            fromCache: true
+            modified: [doc('collection/a', 1001, { key: 'fromBundle' })]
           })
       );
     }
@@ -185,7 +196,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
         readTime: 1001,
         createTime: 250,
         updateTime: 1001,
-        content: { key: { stringValue: 'fromBundle' } }
+        content: { key: 'fromBundle' }
       });
 
       return (
@@ -223,8 +234,9 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
       readTime: 500,
       createTime: 250,
       updateTime: 500,
-      content: { key: { stringValue: 'b' } }
+      content: { key: 'b' }
     });
+    const limboQuery = Query.atPath(docA.key.path);
 
     return (
       spec()
@@ -235,11 +247,21 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
         .expectEvents(query, {})
         // Bundle tells otherwise, leads to limbo.
         .loadBundle(bundleString1)
+        .expectLimboDocs(docA.key)
         .expectEvents(query, {
           added: [doc('collection/a', 500, { key: 'b' })],
           fromCache: true
         })
-        .expectLimboDocs(docA.key)
+        // .watchAcksFull(limboQuery, 1002, docA1)
+        .watchAcks(limboQuery)
+        .watchSends({ affects: [limboQuery] })
+        .watchCurrents(limboQuery, 'resume-token-1002')
+        .watchSnapshots(1002)
+        .expectLimboDocs()
+        .expectEvents(query, {
+          removed: [doc('collection/a', 500, { key: 'b' })],
+          fromCache: false
+        })
     );
   });
 
@@ -254,7 +276,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
         readTime: 500,
         createTime: 250,
         updateTime: 500,
-        content: { key: { stringValue: 'b' } }
+        content: { key: 'b' }
       });
 
       return client(0)
@@ -286,7 +308,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
         readTime: 500,
         createTime: 250,
         updateTime: 500,
-        content: { key: { stringValue: 'b' } }
+        content: { key: 'b' }
       });
 
       return client(0)
@@ -302,8 +324,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
         })
         .loadBundle(bundleString1)
         .expectEvents(query, {
-          modified: [doc('collection/a', 500, { key: 'b' })],
-          fromCache: true
+          modified: [doc('collection/a', 500, { key: 'b' })]
         });
     }
   );
@@ -319,7 +340,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
         readTime: 500,
         createTime: 250,
         updateTime: 500,
-        content: { key: { stringValue: 'b' } }
+        content: { key: 'b' }
       });
 
       return client(0)
@@ -336,13 +357,11 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
         .client(0)
         .loadBundle(bundleString1)
         .expectEvents(query, {
-          modified: [doc('collection/a', 500, { key: 'b' })],
-          fromCache: true
+          modified: [doc('collection/a', 500, { key: 'b' })]
         })
         .client(1)
         .expectEvents(query, {
-          modified: [doc('collection/a', 500, { key: 'b' })],
-          fromCache: true
+          modified: [doc('collection/a', 500, { key: 'b' })]
         });
     }
   );

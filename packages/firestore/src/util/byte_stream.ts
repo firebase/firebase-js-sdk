@@ -18,9 +18,9 @@
 import { debugAssert } from './assert';
 
 /**
- * For the byte streams where we have control (like backed by a UInt8Array),
- * how many bytes to read each time when `ReadableStreamReader.read()` is
- * called.
+ * How many bytes to read each time when `ReadableStreamReader.read()` is
+ * called. Only applicable for byte streams that we control (e.g. those backed
+ * by an UInt8Array).
  */
 export const DEFAULT_BYTES_PER_READ = 10240;
 

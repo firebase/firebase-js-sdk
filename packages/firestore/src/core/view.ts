@@ -280,15 +280,13 @@ export class View {
    *        change.
    * @param targetChange A target change to apply for computing limbo docs and
    *        sync state.
-   * @param fromBundle Whether the changes are from applying a bundle file.
    * @return A new ViewChange with the given docs, changes, and sync state.
    */
   // PORTING NOTE: The iOS/Android clients always compute limbo document changes.
   applyChanges(
     docChanges: ViewDocumentChanges,
     updateLimboDocuments: boolean,
-    targetChange?: TargetChange,
-    fromBundle: boolean = false
+    targetChange?: TargetChange
   ): ViewChange {
     debugAssert(
       !docChanges.needsRefill,
@@ -325,7 +323,7 @@ export class View {
         oldDocs,
         changes,
         docChanges.mutatedKeys,
-        newSyncState === SyncState.Local || fromBundle,
+        newSyncState === SyncState.Local,
         syncStateChanged,
         /* excludesMetadataChanges= */ false
       );

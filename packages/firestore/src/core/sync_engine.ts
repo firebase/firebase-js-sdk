@@ -848,8 +848,7 @@ class SyncEngineImpl implements SyncEngine {
 
   async emitNewSnapsAndNotifyLocalStore(
     changes: MaybeDocumentMap,
-    remoteEvent?: RemoteEvent,
-    fromBundle: boolean = false
+    remoteEvent?: RemoteEvent
   ): Promise<void> {
     const newSnaps: ViewSnapshot[] = [];
     const docChangesInAllViews: LocalViewChanges[] = [];
@@ -881,8 +880,7 @@ class SyncEngineImpl implements SyncEngine {
             const viewChange = queryView.view.applyChanges(
               viewDocChanges,
               /* updateLimboDocuments= */ this.isPrimaryClient,
-              targetChange,
-              fromBundle
+              targetChange
             );
             this.updateTrackedLimbos(
               queryView.targetId,
@@ -1435,10 +1433,12 @@ async function loadBundleImpl(
 
     const result = await loader.complete();
     if (result.changedDocs) {
+      // TODO(b/160876443): This currently raises snapshots with
+      // `fromCache=false` if users already listen to some queries and bundles
+      // has newer version.
       await syncEngine.emitNewSnapsAndNotifyLocalStore(
         result.changedDocs,
-        /* remoteEvent */ undefined,
-        /* fromBundle */ true
+        /* remoteEvent */ undefined
       );
     }
 
