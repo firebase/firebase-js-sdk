@@ -47,8 +47,8 @@ import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import {
-  buildStoragePrefix,
-  clearPersistence
+  indexedDbStoragePrefix,
+  indexedDbClearPersistence
 } from '../../../src/local/indexeddb_persistence';
 
 /**
@@ -255,7 +255,9 @@ export function clearIndexedDbPersistence(
 ): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
   return firestoreImpl._clearPersistence((databaseId, persistenceKey) => {
-    return clearPersistence(buildStoragePrefix(databaseId, persistenceKey));
+    return indexedDbClearPersistence(
+      indexedDbStoragePrefix(databaseId, persistenceKey)
+    );
   });
 }
 

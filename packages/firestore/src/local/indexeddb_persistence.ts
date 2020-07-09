@@ -1312,7 +1312,7 @@ function writeSentinelKey(
  * Generates a string used as a prefix when storing data in IndexedDB and
  * LocalStorage.
  */
-export function buildStoragePrefix(
+export function indexedDbStoragePrefix(
   databaseId: DatabaseId,
   persistenceKey: string
 ): string {
@@ -1331,7 +1331,9 @@ export function buildStoragePrefix(
   return 'firestore/' + persistenceKey + '/' + database + '/';
 }
 
-export async function clearPersistence(persistenceKey: string): Promise<void> {
+export async function indexedDbClearPersistence(
+  persistenceKey: string
+): Promise<void> {
   if (!SimpleDb.isAvailable()) {
     return Promise.resolve();
   }

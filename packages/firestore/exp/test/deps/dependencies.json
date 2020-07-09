@@ -6042,7 +6042,6 @@
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "boundEquals",
-                "buildStoragePrefix",
                 "canonicalId",
                 "canonifyArray",
                 "canonifyBound",
@@ -6059,7 +6058,6 @@
                 "cast",
                 "checkForAndReportiOSError",
                 "clearIndexedDbPersistence",
-                "clearPersistence",
                 "coercedFieldValuesArray",
                 "compareArrays",
                 "compareBlobs",
@@ -6114,6 +6112,8 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbClearPersistence",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -6352,7 +6352,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 238375
+        "sizeInBytes": 238401
     },
     "collection": {
         "dependencies": {
@@ -8842,7 +8842,6 @@
                 "blobEquals",
                 "boundEquals",
                 "bufferEntryComparator",
-                "buildStoragePrefix",
                 "canonicalId",
                 "canonifyArray",
                 "canonifyBound",
@@ -8858,7 +8857,6 @@
                 "canonifyValue",
                 "cast",
                 "checkForAndReportiOSError",
-                "clearPersistence",
                 "clientMetadataStore",
                 "coercedFieldValuesArray",
                 "collectionParentsStore",
@@ -8960,6 +8958,8 @@
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "immediateSuccessor",
+                "indexedDbClearPersistence",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -9247,7 +9247,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 312097
+        "sizeInBytes": 312127
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -9276,7 +9276,6 @@
                 "blobEquals",
                 "boundEquals",
                 "bufferEntryComparator",
-                "buildStoragePrefix",
                 "canonicalId",
                 "canonifyArray",
                 "canonifyBound",
@@ -9292,7 +9291,6 @@
                 "canonifyValue",
                 "cast",
                 "checkForAndReportiOSError",
-                "clearPersistence",
                 "clientMetadataStore",
                 "coercedFieldValuesArray",
                 "collectionParentsStore",
@@ -9400,6 +9398,8 @@
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "immediateSuccessor",
+                "indexedDbClearPersistence",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -9698,7 +9698,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 336485
+        "sizeInBytes": 336519
     },
     "enableNetwork": {
         "dependencies": {

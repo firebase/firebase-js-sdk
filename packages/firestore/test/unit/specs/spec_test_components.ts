@@ -27,7 +27,7 @@ import {
   PersistenceTransactionMode
 } from '../../../src/local/persistence';
 import {
-  buildStoragePrefix,
+  indexedDbStoragePrefix,
   IndexedDbPersistence
 } from '../../../src/local/indexeddb_persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
@@ -134,7 +134,7 @@ export class MockIndexedDbComponentProvider extends MultiTabIndexedDbComponentPr
   }
 
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
-    const persistenceKey = buildStoragePrefix(
+    const persistenceKey = indexedDbStoragePrefix(
       cfg.databaseInfo.databaseId,
       cfg.databaseInfo.persistenceKey
     );
@@ -153,7 +153,7 @@ export class MockIndexedDbComponentProvider extends MultiTabIndexedDbComponentPr
       'Can only start durable persistence'
     );
 
-    const persistenceKey = buildStoragePrefix(
+    const persistenceKey = indexedDbStoragePrefix(
       cfg.databaseInfo.databaseId,
       cfg.databaseInfo.persistenceKey
     );

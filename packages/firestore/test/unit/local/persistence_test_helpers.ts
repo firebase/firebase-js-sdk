@@ -27,8 +27,8 @@ import {
 } from '../../../src/core/types';
 
 import {
-  buildStoragePrefix,
-  clearPersistence,
+  indexedDbStoragePrefix,
+  indexedDbClearPersistence,
   IndexedDbPersistence,
   MAIN_DATABASE
 } from '../../../src/local/indexeddb_persistence';
@@ -67,7 +67,7 @@ export const TEST_DATABASE_ID = new DatabaseId('test-project');
 export const TEST_PERSISTENCE_KEY = '[PersistenceTestHelpers]';
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
-export const TEST_PERSISTENCE_PREFIX = buildStoragePrefix(
+export const TEST_PERSISTENCE_PREFIX = indexedDbStoragePrefix(
   TEST_DATABASE_ID,
   TEST_PERSISTENCE_KEY
 );
@@ -78,7 +78,8 @@ export const TEST_PERSISTENCE_PREFIX = buildStoragePrefix(
  * `TEST_DATABASE_ID`.
  */
 export const INDEXEDDB_TEST_DATABASE_NAME =
-  buildStoragePrefix(TEST_DATABASE_ID, TEST_PERSISTENCE_KEY) + MAIN_DATABASE;
+  indexedDbStoragePrefix(TEST_DATABASE_ID, TEST_PERSISTENCE_KEY) +
+  MAIN_DATABASE;
 
 const JSON_SERIALIZER = new JsonProtoSerializer(
   TEST_DATABASE_ID,
@@ -138,7 +139,7 @@ export async function testMemoryLruPersistence(
 
 /** Clears the persistence in tests */
 export function clearTestPersistence(): Promise<void> {
-  return clearPersistence(TEST_PERSISTENCE_PREFIX);
+  return indexedDbClearPersistence(TEST_PERSISTENCE_PREFIX);
 }
 
 class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {

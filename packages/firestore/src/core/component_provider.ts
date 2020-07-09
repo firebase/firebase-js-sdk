@@ -47,9 +47,9 @@ import { OnlineStateSource } from './types';
 import { LruParams, LruScheduler } from '../local/lru_garbage_collector';
 import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
 import {
-  buildStoragePrefix,
+  indexedDbStoragePrefix,
   IndexedDbPersistence,
-  clearPersistence
+  indexedDbClearPersistence
 } from '../local/indexeddb_persistence';
 import {
   MemoryEagerDelegate,
@@ -239,7 +239,7 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
       'Can only start durable persistence'
     );
 
-    const persistenceKey = buildStoragePrefix(
+    const persistenceKey = indexedDbStoragePrefix(
       cfg.databaseInfo.databaseId,
       cfg.databaseInfo.persistenceKey
     );
@@ -266,7 +266,9 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
     databaseId: DatabaseId,
     persistenceKey: string
   ): Promise<void> {
-    return clearPersistence(buildStoragePrefix(databaseId, persistenceKey));
+    return indexedDbClearPersistence(
+      indexedDbStoragePrefix(databaseId, persistenceKey)
+    );
   }
 }
 
@@ -336,7 +338,7 @@ export class MultiTabIndexedDbComponentProvider extends IndexedDbComponentProvid
           'IndexedDB persistence is only available on platforms that support LocalStorage.'
         );
       }
-      const persistenceKey = buildStoragePrefix(
+      const persistenceKey = indexedDbStoragePrefix(
         cfg.databaseInfo.databaseId,
         cfg.databaseInfo.persistenceKey
       );
