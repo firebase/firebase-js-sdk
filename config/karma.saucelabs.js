@@ -46,13 +46,13 @@ const browserMap = {
  * Any special options per package.
  */
 const packageConfigs = {
-  messaging: {
+  '@firebase/messaging': {
     // Messaging currently only supports these browsers.
     browsers: ['Chrome_Windows', 'Firefox_Windows', 'Edge_Windows']
   },
   // Firestore unit tests have OOM problems compiling with Babel for IE.
   // Firestore integration/firestore tests do run on all browsers.
-  'packages/firestore': {
+  '@firebase/firestore': {
     browsers: [
       'Chrome_Windows',
       'Firefox_Windows',
@@ -61,7 +61,7 @@ const packageConfigs = {
     ]
   },
   // Installations has IE errors related to `idb` library that need to be figured out.
-  installations: {
+  '@firebase/installations': {
     browsers: [
       'Chrome_Windows',
       'Firefox_Windows',
@@ -76,14 +76,11 @@ const packageConfigs = {
  *
  * @param {string} packageName Name of package being tested (e.g., "firestore")
  */
-function getSauceLabsBrowsers(packageName, packageType) {
-  const packageConfig =
-    packageConfigs[packageName] ||
-    packageConfigs[`${packageType}/${packageName}`];
-  if (packageConfig) {
+function getSauceLabsBrowsers(packageName) {
+  if (packageConfigs[packageName]) {
     const filteredBrowserMap = {};
     for (const browserKey in browserMap) {
-      if (packageConfig.browsers.includes(browserKey)) {
+      if (packageConfigs[packageName].browsers.includes(browserKey)) {
         filteredBrowserMap[browserKey] = browserMap[browserKey];
       }
     }
@@ -98,12 +95,12 @@ function getSauceLabsBrowsers(packageName, packageType) {
  */
 function getPackageLabels() {
   const match = testConfigFile.match(
-    /([a-zA-Z]+)\/([a-zA-Z-]+)\/karma\.conf\.js/
+    /([a-zA-Z]+\/[a-zA-Z-]+)\/karma\.conf\.js/
   );
-  return {
-    type: match[1],
-    name: match[2]
-  };
+  const packagePath = match[1];
+  const root = path.resolve(__dirname, '..');
+  const pkg = require(path.join(root, packagePath, 'package.json'));
+  return pkg.name;
 }
 
 /**
@@ -113,22 +110,15 @@ function getPackageLabels() {
  */
 function getTestFiles() {
   let root = path.resolve(__dirname, '..');
-  const { name: packageName, type: packageType } = getPackageLabels();
+  const { name: packageName } = getPackageLabels();
   let patterns = require(path.join(root, testConfigFile)).files;
   let dirname = path.dirname(testConfigFile);
-  return {
-    packageName,
-    packageType,
-    files: patterns.map(p => path.join(dirname, p))
-  };
+  return { packageName, files: patterns.map(p => path.join(dirname, p)) };
 }
 
 function seleniumLauncher(browserName, platform, version) {
-  const { name, type } = getPackageLabels();
-  const testName =
-    type === 'integration'
-      ? `${type}-${name}-${browserName}`
-      : `${name}-${browserName}`;
+  const { name } = getPackageLabels();
+  const testName = `${name}-${browserName}`;
   return {
     base: 'SauceLabs',
     browserName: browserName,
@@ -164,12 +154,12 @@ function appiumLauncher(
 }
 
 module.exports = function(config) {
-  const { packageName, packageType, files: testFiles } = getTestFiles();
-  const sauceLabsBrowsers = getSauceLabsBrowsers(packageName, packageType);
+  const { packageName, files: testFiles } = getTestFiles();
+  const sauceLabsBrowsers = getSauceLabsBrowsers(packageName);
 
   const sauceLabsConfig = {
-    tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER + '-' + packageName,
-    build: process.env.TRAVIS_BUILD_NUMBER || argv['buildNumber'],
+    tunnelIdentifier: process.env.GITHUB_RUN_ID + '-' + packageName,
+    build: process.env.GITHUB_RUN_ID || argv['buildNumber'],
     username: process.env.SAUCE_USERNAME,
     accessKey: process.env.SAUCE_ACCESS_KEY,
     startConnect: true,

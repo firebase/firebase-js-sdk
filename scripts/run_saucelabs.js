@@ -65,8 +65,10 @@ async function runTest(testFile) {
   const testFileDir =
     path.resolve(__dirname, '../') + '/' + path.dirname(testFile);
   const pkgPath = testFileDir + '/package.json';
+  let pkgName = testFile;
   if (await exists(pkgPath)) {
     const pkg = require(pkgPath);
+    pkgName = pkg.name;
     if (pkg.scripts.pretest) {
       await spawn('yarn', ['--cwd', testFileDir, 'pretest'], {
         stdio: 'inherit'
@@ -83,7 +85,7 @@ async function runTest(testFile) {
     console.log(
       chalk`{blue Running tests on memory-only build for integration/firestore.}`
     );
-    const exitCode1 = await runKarma(testFile, 'memory');
+    const exitCode1 = await runKarma(testFile, `${pkgName}-memory`);
     console.log(
       chalk`{blue Generating persistence build for integration/firestore.}`
     );
@@ -95,14 +97,20 @@ async function runTest(testFile) {
     console.log(
       chalk`{blue Running tests on persistence build for integration/firestore.}`
     );
-    const exitCode2 = await runKarma(testFile, 'persistence');
+    const exitCode2 = await runKarma(testFile, `${pkgName}-persistence`);
     return Math.max(exitCode1, exitCode2);
   } else {
-    return runKarma(testFile);
+    return runKarma(testFile, pkgName);
   }
 }
 
-async function runKarma(testFile, testDescription) {
+/**
+ * Runs the karma test command for one package.
+ *
+ * @param {string} testFile - path to karma.conf.js file
+ * @param {string} testTag - package label for messages (usually package name)
+ */
+async function runKarma(testFile, testTag) {
   const karmaArgs = [
     'karma',
     'start',
@@ -122,11 +130,6 @@ async function runKarma(testFile, testDescription) {
   childProcess.on('exit', code => {
     exitCode = code;
   });
-
-  let testTag = testFile;
-  if (testDescription) {
-    testTag += ` - ${testDescription}`;
-  }
 
   return promise
     .then(() => {
@@ -151,7 +154,7 @@ async function runNextTest(maxExitCode = 0, results = {}) {
   // When test queue is empty, exit with code 0 if no tests failed or
   // 1 if any tests failed.
   if (!testFiles.length) {
-    for (const fileName in results) {
+    for (const fileName of Object.keys(results)) {
       if (results[fileName] > 0) {
         console.log(`FAILED: ${fileName}`);
       }
