@@ -27,7 +27,7 @@ import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { EmailAuthProvider } from '../providers/email';
-import { debugFail, fail } from '../util/assert';
+import { fail } from '../util/assert';
 import { AuthCredential } from './';
 
 export class EmailAuthCredential implements AuthCredential {
@@ -61,12 +61,28 @@ export class EmailAuthCredential implements AuthCredential {
     );
   }
 
-  toJSON(): never {
-    debugFail('Method not implemented.');
+  toJSON(): object {
+    return {
+      email: this.email,
+      password: this.password,
+      signInMethod: this.signInMethod
+    };
   }
 
-  static fromJSON(_json: object | string): EmailAuthCredential | null {
-    debugFail('Method not implemented');
+  static fromJSON(json: object | string): EmailAuthCredential | null {
+    const obj = typeof json === 'string' ? JSON.parse(json) : json;
+    if (obj?.email && obj?.password) {
+      if (
+        obj.signInMethod === EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD
+      ) {
+        return this._fromEmailAndPassword(obj.email, obj.password);
+      } else if (
+        obj.signInMethod === EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD
+      ) {
+        return this._fromEmailAndCode(obj.email, obj.password);
+      }
+    }
+    return null;
   }
 
   async _getIdTokenResponse(auth: Auth): Promise<IdTokenResponse> {
