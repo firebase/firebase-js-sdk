@@ -8866,11 +8866,6 @@
                 "createQueryCache",
                 "createRemoteDocumentCache",
                 "createRemoteDocumentReadTimeIndex",
-                "createWebStorageClientStateKey",
-                "createWebStorageMutationBatchKey",
-                "createWebStorageOnlineStateKey",
-                "createWebStorageQueryTargetMetadataKey",
-                "createWebStorageSequenceNumberKey",
                 "dbDocumentSize",
                 "dbKey",
                 "debugAssert",
@@ -8935,7 +8930,6 @@
                 "fromVersion",
                 "fromWatchChange",
                 "fromWatchTargetChangeState",
-                "fromWebStorageSequenceNumber",
                 "fromWriteResult",
                 "fromWriteResults",
                 "fullyQualifiedPrefixPath",
@@ -8969,7 +8963,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isReferenceValue",
-                "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -8988,8 +8981,6 @@
                 "newConnectivityMonitor",
                 "newDatastore",
                 "newLocalStore",
-                "newMultiTabLocalStore",
-                "newMultiTabSyncEngine",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
                 "newQueryComparator",
@@ -9177,12 +9168,9 @@
                 "MemorySharedClientState",
                 "MemoryTargetCache",
                 "MemoryTransaction",
-                "MultiTabLocalStoreImpl",
-                "MultiTabSyncEngineImpl",
                 "Mutation",
                 "MutationBatch",
                 "MutationBatchResult",
-                "MutationMetadata",
                 "MutationResult",
                 "NoDocument",
                 "NoopConnectivityMonitor",
@@ -9203,10 +9191,8 @@
                 "Query",
                 "QueryListener",
                 "QueryListenersInfo",
-                "QueryTargetMetadata",
                 "QueryView",
                 "ReferenceSet",
-                "RemoteClientState",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
                 "RemoteStore",
@@ -9216,7 +9202,6 @@
                 "SchemaConverter",
                 "ServerTimestampTransform",
                 "SetMutation",
-                "SharedOnlineState",
                 "SimpleDb",
                 "SimpleDbStore",
                 "SimpleDbTransaction",
@@ -9243,12 +9228,11 @@
                 "View",
                 "ViewSnapshot",
                 "WatchChangeAggregator",
-                "WatchTargetChange",
-                "WebStorageSharedClientState"
+                "WatchTargetChange"
             ],
             "variables": []
         },
-        "sizeInBytes": 335737
+        "sizeInBytes": 311847
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -9625,6 +9609,7 @@
                 "MemorySharedClientState",
                 "MemoryTargetCache",
                 "MemoryTransaction",
+                "MultiTabIndexedDbComponentProvider",
                 "MultiTabLocalStoreImpl",
                 "MultiTabSyncEngineImpl",
                 "Mutation",
@@ -9696,7 +9681,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 335752
+        "sizeInBytes": 336213
     },
     "enableNetwork": {
         "dependencies": {
