@@ -59,6 +59,13 @@ module.exports = {
       rules: {
         'import/no-extraneous-dependencies': 'off'
       }
+    },
+    // TODO(firestoreexp): Remove this exception when app-exp is published
+    {
+      files: ['exp/**/*.ts'],
+      rules: {
+        'import/no-extraneous-dependencies': 'off'
+      }
     }
   ]
 };

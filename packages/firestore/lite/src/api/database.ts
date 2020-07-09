@@ -17,8 +17,8 @@
 
 import * as firestore from '../../';
 
-import { _getProvider } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
 
 import { Code, FirestoreError } from '../../../src/util/error';
@@ -33,26 +33,27 @@ import {
   newDatastore,
   terminateDatastore
 } from '../../../src/remote/datastore';
-import { PlatformSupport } from '../../../src/platform/platform';
+import { newConnection } from '../../../src/platform/connection';
+import { newSerializer } from '../../../src/platform/serializer';
 import { cast } from './util';
 import { Settings } from '../../';
 
 // settings() defaults:
-const DEFAULT_HOST = 'firestore.googleapis.com';
-const DEFAULT_SSL = true;
-
-// TODO(firestorelite): Depend on FirebaseService once #3112 is merged
+export const DEFAULT_HOST = 'firestore.googleapis.com';
+export const DEFAULT_SSL = true;
+export const DEFAULT_FORCE_LONG_POLLING = false; // Used by full SDK
 
 /**
  * The root reference to the Firestore Lite database.
  */
-export class Firestore implements firestore.FirebaseFirestore {
+export class Firestore
+  implements firestore.FirebaseFirestore, _FirebaseService {
   readonly _databaseId: DatabaseId;
   private readonly _firebaseApp: FirebaseApp;
-  private readonly _credentials: CredentialsProvider;
+  protected readonly _credentials: CredentialsProvider;
 
-  // Assigned via _configureClient()/_ensureClientConfigured()
-  private _settings?: firestore.Settings;
+  // Assigned via _configureClient()
+  protected _settings?: firestore.Settings;
   private _datastorePromise?: Promise<Datastore>;
 
   constructor(
@@ -89,27 +90,24 @@ export class Firestore implements firestore.FirebaseFirestore {
 
   _getDatastore(): Promise<Datastore> {
     if (!this._datastorePromise) {
-      const databaseInfo = this._makeDatabaseInfo(this._getSettings());
-      this._datastorePromise = PlatformSupport.getPlatform()
-        .loadConnection(databaseInfo)
-        .then(connection => {
-          const serializer = PlatformSupport.getPlatform().newSerializer(
-            databaseInfo.databaseId
-          );
-          return newDatastore(connection, this._credentials, serializer);
-        });
+      const settings = this._getSettings();
+      const databaseInfo = this._makeDatabaseInfo(settings.host, settings.ssl);
+      this._datastorePromise = newConnection(databaseInfo).then(connection => {
+        const serializer = newSerializer(databaseInfo.databaseId);
+        return newDatastore(connection, this._credentials, serializer);
+      });
     }
 
     return this._datastorePromise;
   }
 
-  private _makeDatabaseInfo(settings: firestore.Settings): DatabaseInfo {
+  protected _makeDatabaseInfo(host?: string, ssl?: boolean): DatabaseInfo {
     return new DatabaseInfo(
       this._databaseId,
       /* persistenceKey= */ 'unsupported',
-      settings.host ?? DEFAULT_HOST,
-      settings.ssl ?? DEFAULT_SSL,
-      /* forceLongPolling= */ false
+      host ?? DEFAULT_HOST,
+      ssl ?? DEFAULT_SSL,
+      DEFAULT_FORCE_LONG_POLLING
     );
   }
 
@@ -122,6 +120,10 @@ export class Firestore implements firestore.FirebaseFirestore {
     }
 
     return new DatabaseId(app.options.projectId!);
+  }
+
+  delete(): Promise<void> {
+    return terminate(this);
   }
 }
 
@@ -144,7 +146,7 @@ export function getFirestore(app: FirebaseApp): Firestore {
 export function terminate(
   firestore: firestore.FirebaseFirestore
 ): Promise<void> {
-  // TODO(firestorelite): Call _removeServiceInstance when available
+  _removeServiceInstance(firestore.app, 'firestore/lite');
   const firestoreClient = cast(firestore, Firestore);
   return firestoreClient
     ._getDatastore()

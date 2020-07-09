@@ -20,9 +20,8 @@ import { FirebaseNamespace } from '@firebase/app-types';
 
 import { Firestore } from './src/api/database';
 import { MemoryComponentProvider } from './src/core/component_provider';
-import { configureForFirebase } from './src/platform/config';
+import { configureForFirebase } from './src/config';
 import './register-module';
-import './src/platform_node/node_init';
 
 import { name, version } from './package.json';
 

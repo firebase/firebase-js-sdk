@@ -19,167 +19,167 @@ import * as api from '../protos/firestore_proto_api';
 
 import { Timestamp } from '../api/timestamp';
 import { debugAssert } from '../util/assert';
-import { JsonProtoSerializer } from '../remote/serializer';
+import { JsonProtoSerializer, toDouble, toInteger } from '../remote/serializer';
 import {
-  valueEquals,
   isArray,
   isInteger,
   isNumber,
-  normalizeNumber
+  normalizeNumber,
+  valueEquals
 } from './values';
 import { serverTimestamp } from './server_timestamps';
 import { arrayEquals } from '../util/misc';
 
 /** Represents a transform within a TransformMutation. */
-export interface TransformOperation {
-  /**
-   * Computes the local transform result against the provided `previousValue`,
-   * optionally using the provided localWriteTime.
-   */
-  applyToLocalView(
-    previousValue: api.Value | null,
-    localWriteTime: Timestamp
-  ): api.Value;
+export class TransformOperation {
+  // Make sure that the structural type of `TransformOperation` is unique.
+  // See https://github.com/microsoft/TypeScript/issues/5451
+  private _ = undefined;
+}
 
-  /**
-   * Computes a final transform result after the transform has been acknowledged
-   * by the server, potentially using the server-provided transformResult.
-   */
-  applyToRemoteDocument(
-    previousValue: api.Value | null,
-    transformResult: api.Value | null
-  ): api.Value;
+/**
+ * Computes the local transform result against the provided `previousValue`,
+ * optionally using the provided localWriteTime.
+ */
+export function applyTransformOperationToLocalView(
+  transform: TransformOperation,
+  previousValue: api.Value | null,
+  localWriteTime: Timestamp
+): api.Value {
+  if (transform instanceof ServerTimestampTransform) {
+    return serverTimestamp(localWriteTime, previousValue);
+  } else if (transform instanceof ArrayUnionTransformOperation) {
+    return applyArrayUnionTransformOperation(transform, previousValue);
+  } else if (transform instanceof ArrayRemoveTransformOperation) {
+    return applyArrayRemoveTransformOperation(transform, previousValue);
+  } else {
+    debugAssert(
+      transform instanceof NumericIncrementTransformOperation,
+      'Expected NumericIncrementTransformOperation but was: ' + transform
+    );
+    return applyNumericIncrementTransformOperationToLocalView(
+      transform,
+      previousValue
+    );
+  }
+}
 
-  /**
-   * If this transform operation is not idempotent, returns the base value to
-   * persist for this transform. If a base value is returned, the transform
-   * operation is always applied to this base value, even if document has
-   * already been updated.
-   *
-   * Base values provide consistent behavior for non-idempotent transforms and
-   * allow us to return the same latency-compensated value even if the backend
-   * has already applied the transform operation. The base value is null for
-   * idempotent transforms, as they can be re-played even if the backend has
-   * already applied them.
-   *
-   * @return a base value to store along with the mutation, or null for
-   * idempotent transforms.
-   */
-  computeBaseValue(previousValue: api.Value | null): api.Value | null;
+/**
+ * Computes a final transform result after the transform has been acknowledged
+ * by the server, potentially using the server-provided transformResult.
+ */
+export function applyTransformOperationToRemoteDocument(
+  transform: TransformOperation,
+  previousValue: api.Value | null,
+  transformResult: api.Value | null
+): api.Value {
+  // The server just sends null as the transform result for array operations,
+  // so we have to calculate a result the same as we do for local
+  // applications.
+  if (transform instanceof ArrayUnionTransformOperation) {
+    return applyArrayUnionTransformOperation(transform, previousValue);
+  } else if (transform instanceof ArrayRemoveTransformOperation) {
+    return applyArrayRemoveTransformOperation(transform, previousValue);
+  }
 
-  isEqual(other: TransformOperation): boolean;
+  debugAssert(
+    transformResult !== null,
+    "Didn't receive transformResult for non-array transform"
+  );
+  return transformResult;
+}
+
+/**
+ * If this transform operation is not idempotent, returns the base value to
+ * persist for this transform. If a base value is returned, the transform
+ * operation is always applied to this base value, even if document has
+ * already been updated.
+ *
+ * Base values provide consistent behavior for non-idempotent transforms and
+ * allow us to return the same latency-compensated value even if the backend
+ * has already applied the transform operation. The base value is null for
+ * idempotent transforms, as they can be re-played even if the backend has
+ * already applied them.
+ *
+ * @return a base value to store along with the mutation, or null for
+ * idempotent transforms.
+ */
+export function computeTransformOperationBaseValue(
+  transform: TransformOperation,
+  previousValue: api.Value | null
+): api.Value | null {
+  if (transform instanceof NumericIncrementTransformOperation) {
+    return isNumber(previousValue) ? previousValue! : { integerValue: 0 };
+  }
+  return null;
+}
+
+export function transformOperationEquals(
+  left: TransformOperation,
+  right: TransformOperation
+): boolean {
+  if (
+    left instanceof ArrayUnionTransformOperation &&
+    right instanceof ArrayUnionTransformOperation
+  ) {
+    return arrayEquals(left.elements, right.elements, valueEquals);
+  } else if (
+    left instanceof ArrayRemoveTransformOperation &&
+    right instanceof ArrayRemoveTransformOperation
+  ) {
+    return arrayEquals(left.elements, right.elements, valueEquals);
+  } else if (
+    left instanceof NumericIncrementTransformOperation &&
+    right instanceof NumericIncrementTransformOperation
+  ) {
+    return valueEquals(left.operand, right.operand);
+  }
+
+  return (
+    left instanceof ServerTimestampTransform &&
+    right instanceof ServerTimestampTransform
+  );
 }
 
 /** Transforms a value into a server-generated timestamp. */
-export class ServerTimestampTransform implements TransformOperation {
-  private constructor() {}
-  static instance = new ServerTimestampTransform();
+export class ServerTimestampTransform extends TransformOperation {}
 
-  applyToLocalView(
-    previousValue: api.Value | null,
-    localWriteTime: Timestamp
-  ): api.Value {
-    return serverTimestamp(localWriteTime!, previousValue);
-  }
-
-  applyToRemoteDocument(
-    previousValue: api.Value | null,
-    transformResult: api.Value | null
-  ): api.Value {
-    return transformResult!;
-  }
-
-  computeBaseValue(previousValue: api.Value | null): api.Value | null {
-    return null; // Server timestamps are idempotent and don't require a base value.
-  }
-
-  isEqual(other: TransformOperation): boolean {
-    return other instanceof ServerTimestampTransform;
+/** Transforms an array value via a union operation. */
+export class ArrayUnionTransformOperation extends TransformOperation {
+  constructor(readonly elements: api.Value[]) {
+    super();
   }
 }
 
-/** Transforms an array value via a union operation. */
-export class ArrayUnionTransformOperation implements TransformOperation {
-  constructor(readonly elements: api.Value[]) {}
-
-  applyToLocalView(
-    previousValue: api.Value | null,
-    localWriteTime: Timestamp
-  ): api.Value {
-    return this.apply(previousValue);
-  }
-
-  applyToRemoteDocument(
-    previousValue: api.Value | null,
-    transformResult: api.Value | null
-  ): api.Value {
-    // The server just sends null as the transform result for array operations,
-    // so we have to calculate a result the same as we do for local
-    // applications.
-    return this.apply(previousValue);
-  }
-
-  private apply(previousValue: api.Value | null): api.Value {
-    const values = coercedFieldValuesArray(previousValue);
-    for (const toUnion of this.elements) {
-      if (!values.some(element => valueEquals(element, toUnion))) {
-        values.push(toUnion);
-      }
+function applyArrayUnionTransformOperation(
+  transform: ArrayUnionTransformOperation,
+  previousValue: api.Value | null
+): api.Value {
+  const values = coercedFieldValuesArray(previousValue);
+  for (const toUnion of transform.elements) {
+    if (!values.some(element => valueEquals(element, toUnion))) {
+      values.push(toUnion);
     }
-    return { arrayValue: { values } };
   }
-
-  computeBaseValue(previousValue: api.Value | null): api.Value | null {
-    return null; // Array transforms are idempotent and don't require a base value.
-  }
-
-  isEqual(other: TransformOperation): boolean {
-    return (
-      other instanceof ArrayUnionTransformOperation &&
-      arrayEquals(this.elements, other.elements, valueEquals)
-    );
-  }
+  return { arrayValue: { values } };
 }
 
 /** Transforms an array value via a remove operation. */
-export class ArrayRemoveTransformOperation implements TransformOperation {
-  constructor(readonly elements: api.Value[]) {}
-
-  applyToLocalView(
-    previousValue: api.Value | null,
-    localWriteTime: Timestamp
-  ): api.Value {
-    return this.apply(previousValue);
+export class ArrayRemoveTransformOperation extends TransformOperation {
+  constructor(readonly elements: api.Value[]) {
+    super();
   }
+}
 
-  applyToRemoteDocument(
-    previousValue: api.Value | null,
-    transformResult: api.Value | null
-  ): api.Value {
-    // The server just sends null as the transform result for array operations,
-    // so we have to calculate a result the same as we do for local
-    // applications.
-    return this.apply(previousValue);
+function applyArrayRemoveTransformOperation(
+  transform: ArrayRemoveTransformOperation,
+  previousValue: api.Value | null
+): api.Value {
+  let values = coercedFieldValuesArray(previousValue);
+  for (const toRemove of transform.elements) {
+    values = values.filter(element => !valueEquals(element, toRemove));
   }
-
-  private apply(previousValue: api.Value | null): api.Value {
-    let values = coercedFieldValuesArray(previousValue);
-    for (const toRemove of this.elements) {
-      values = values.filter(element => !valueEquals(element, toRemove));
-    }
-    return { arrayValue: { values } };
-  }
-
-  computeBaseValue(previousValue: api.Value | null): api.Value | null {
-    return null; // Array transforms are idempotent and don't require a base value.
-  }
-
-  isEqual(other: TransformOperation): boolean {
-    return (
-      other instanceof ArrayRemoveTransformOperation &&
-      arrayEquals(this.elements, other.elements, valueEquals)
-    );
-  }
+  return { arrayValue: { values } };
 }
 
 /**
@@ -188,62 +188,40 @@ export class ArrayRemoveTransformOperation implements TransformOperation {
  * backend does not cap integer values at 2^63. Instead, JavaScript number
  * arithmetic is used and precision loss can occur for values greater than 2^53.
  */
-export class NumericIncrementTransformOperation implements TransformOperation {
+export class NumericIncrementTransformOperation extends TransformOperation {
   constructor(
-    private readonly serializer: JsonProtoSerializer,
+    readonly serializer: JsonProtoSerializer,
     readonly operand: api.Value
   ) {
+    super();
     debugAssert(
       isNumber(operand),
       'NumericIncrementTransform transform requires a NumberValue'
     );
   }
+}
 
-  applyToLocalView(
-    previousValue: api.Value | null,
-    localWriteTime: Timestamp
-  ): api.Value {
-    // PORTING NOTE: Since JavaScript's integer arithmetic is limited to 53 bit
-    // precision and resolves overflows by reducing precision, we do not
-    // manually cap overflows at 2^63.
-    const baseValue = this.computeBaseValue(previousValue);
-    const sum = this.asNumber(baseValue) + this.asNumber(this.operand);
-    if (isInteger(baseValue) && isInteger(this.operand)) {
-      return this.serializer.toInteger(sum);
-    } else {
-      return this.serializer.toDouble(sum);
-    }
+export function applyNumericIncrementTransformOperationToLocalView(
+  transform: NumericIncrementTransformOperation,
+  previousValue: api.Value | null
+): api.Value {
+  // PORTING NOTE: Since JavaScript's integer arithmetic is limited to 53 bit
+  // precision and resolves overflows by reducing precision, we do not
+  // manually cap overflows at 2^63.
+  const baseValue = computeTransformOperationBaseValue(
+    transform,
+    previousValue
+  )!;
+  const sum = asNumber(baseValue) + asNumber(transform.operand);
+  if (isInteger(baseValue) && isInteger(transform.operand)) {
+    return toInteger(sum);
+  } else {
+    return toDouble(transform.serializer, sum);
   }
+}
 
-  applyToRemoteDocument(
-    previousValue: api.Value | null,
-    transformResult: api.Value | null
-  ): api.Value {
-    debugAssert(
-      transformResult !== null,
-      "Didn't receive transformResult for NUMERIC_ADD transform"
-    );
-    return transformResult;
-  }
-
-  /**
-   * Inspects the provided value, returning the provided value if it is already
-   * a NumberValue, otherwise returning a coerced value of 0.
-   */
-  computeBaseValue(previousValue: api.Value | null): api.Value {
-    return isNumber(previousValue) ? previousValue! : { integerValue: 0 };
-  }
-
-  isEqual(other: TransformOperation): boolean {
-    return (
-      other instanceof NumericIncrementTransformOperation &&
-      valueEquals(this.operand, other.operand)
-    );
-  }
-
-  private asNumber(value: api.Value): number {
-    return normalizeNumber(value.integerValue || value.doubleValue);
-  }
+function asNumber(value: api.Value): number {
+  return normalizeNumber(value.integerValue || value.doubleValue);
 }
 
 function coercedFieldValuesArray(value: api.Value | null): api.Value[] {

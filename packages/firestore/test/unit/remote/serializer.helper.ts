@@ -28,6 +28,7 @@ import {
   ArrayContainsFilter,
   Direction,
   FieldFilter,
+  filterEquals,
   InFilter,
   KeyFieldFilter,
   Operator,
@@ -35,19 +36,49 @@ import {
   Query
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { Target } from '../../../src/core/target';
+import { Target, targetEquals, TargetImpl } from '../../../src/core/target';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import {
   DeleteMutation,
   FieldMask,
   Mutation,
+  mutationEquals,
   Precondition,
   SetMutation,
   VerifyMutation
 } from '../../../src/model/mutation';
 import { DOCUMENT_KEY_NAME, FieldPath } from '../../../src/model/path';
 import * as api from '../../../src/protos/firestore_proto_api';
-import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import {
+  fromDirection,
+  fromDocument,
+  fromDocumentMask,
+  fromDocumentsTarget,
+  fromFieldFilter,
+  fromMutation,
+  fromName,
+  fromOperatorName,
+  fromPropertyOrder,
+  fromQueryTarget,
+  fromUnaryFilter,
+  fromWatchChange,
+  JsonProtoSerializer,
+  toBytes,
+  toDirection,
+  toDocument,
+  toDocumentMask,
+  toDocumentsTarget,
+  toListenRequestLabels,
+  toMutation,
+  toMutationDocument,
+  toName,
+  toOperatorName,
+  toPropertyOrder,
+  toQueryTarget,
+  toTarget,
+  toUnaryOrFieldFilter,
+  toVersion
+} from '../../../src/remote/serializer';
 import {
   DocumentWatchChange,
   WatchTargetChange,
@@ -78,6 +109,7 @@ import {
 } from '../../util/helpers';
 
 import { ByteString } from '../../../src/util/byte_string';
+import { parseQueryValue } from '../../../src/api/user_data_reader';
 
 const userDataWriter = testUserDataWriter();
 const protobufJsonReader = testUserDataReader(/* useProto3Json= */ true);
@@ -95,7 +127,7 @@ export function serializerTest(
 ): void {
   describe('Serializer', () => {
     const partition = new DatabaseId('p', 'd');
-    const s = new JsonProtoSerializer(partition, { useProto3Json: false });
+    const s = new JsonProtoSerializer(partition, /* useProto3Json= */ false);
 
     /**
      * Wraps the given target in TargetData. This is useful because the APIs we're
@@ -107,7 +139,7 @@ export function serializerTest(
     }
 
     describe('converts value', () => {
-      addEqualityMatcher();
+      addEqualityMatcher({ equalsFn: filterEquals, forType: FieldFilter });
 
       /**
        * Verifies full round-trip of encoding/decoding fieldValue objects:
@@ -134,7 +166,8 @@ export function serializerTest(
         protoJsValue = protoJsValue ?? jsonValue;
 
         // Convert value to JSON and verify.
-        const actualJsonProto = protobufJsonReader.parseQueryValue(
+        const actualJsonProto = parseQueryValue(
+          protobufJsonReader,
           'verifyFieldValueRoundTrip',
           value
         );
@@ -153,7 +186,8 @@ export function serializerTest(
         }
 
         // Convert value to ProtoJs and verify.
-        const actualProtoJsProto = protoJsReader.parseQueryValue(
+        const actualProtoJsProto = parseQueryValue(
+          protoJsReader,
           'verifyFieldValueRoundTrip',
           value
         );
@@ -323,28 +357,32 @@ export function serializerTest(
 
       it('converts TimestampValue to string (useProto3Json=true)', () => {
         expect(
-          protobufJsonReader.parseQueryValue(
+          parseQueryValue(
+            protobufJsonReader,
             'timestampConversion',
             new Timestamp(1488872578, 916123000)
           )
         ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916123000Z' });
 
         expect(
-          protobufJsonReader.parseQueryValue(
+          parseQueryValue(
+            protobufJsonReader,
             'timestampConversion',
             new Timestamp(1488872578, 916000000)
           )
         ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916000000Z' });
 
         expect(
-          protobufJsonReader.parseQueryValue(
+          parseQueryValue(
+            protobufJsonReader,
             'timestampConversion',
             new Timestamp(1488872578, 916000)
           )
         ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000916000Z' });
 
         expect(
-          protobufJsonReader.parseQueryValue(
+          parseQueryValue(
+            protobufJsonReader,
             'timestampConversion',
             new Timestamp(1488872578, 0)
           )
@@ -484,17 +522,18 @@ export function serializerTest(
 
     describe('toKey', () => {
       it('converts an empty key', () => {
-        const obj = s.toName(key(''));
+        const obj = toName(s, key(''));
         expect(obj).to.deep.equal('projects/p/databases/d/documents');
       });
 
       it('converts a regular key', () => {
-        const actual = s.toName(key('docs/1'));
+        const actual = toName(s, key('docs/1'));
         expect(actual).to.deep.equal('projects/p/databases/d/documents/docs/1');
       });
 
       it('converts a long key', () => {
-        const actual = s.toName(
+        const actual = toName(
+          s,
           key('users/' + Number.MAX_SAFE_INTEGER + '/profiles/primary')
         );
         expect(actual).to.deep.equal(
@@ -510,19 +549,19 @@ export function serializerTest(
 
       it('converts an empty key', () => {
         const expected = key('');
-        const actual = s.fromName(s.toName(expected));
+        const actual = fromName(s, toName(s, expected));
         expect(actual).to.deep.equal(expected);
       });
 
       it('converts a regular key', () => {
         const expected = key('docs/1/part/2');
-        const actual = s.fromName(s.toName(expected));
+        const actual = fromName(s, toName(s, expected));
         expect(actual).to.deep.equal(expected);
       });
 
       it('converts default-value containing key', () => {
         const expected = key('docs/1');
-        const actual = s.fromName(s.toName(expected));
+        const actual = fromName(s, toName(s, expected));
         expect(actual).to.deep.equal(expected);
       });
     });
@@ -539,7 +578,7 @@ export function serializerTest(
         const mask = new FieldMask([
           FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
         ]);
-        const actual = s.toDocumentMask(mask);
+        const actual = toDocumentMask(mask);
         expect(actual).to.deep.equal(expected);
       });
     });
@@ -554,7 +593,7 @@ export function serializerTest(
           FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
         ]);
         const proto: api.DocumentMask = { fieldPaths: ['foo.`bar.baz\\qux`'] };
-        const actual = s.fromDocumentMask(proto);
+        const actual = fromDocumentMask(proto);
         expect(actual).to.deep.equal(expected);
       });
     });
@@ -562,7 +601,7 @@ export function serializerTest(
     describe('toMutation', () => {
       it('converts DeleteMutation', () => {
         const mutation = new DeleteMutation(key('docs/1'), Precondition.none());
-        const result = s.toMutation(mutation);
+        const result = toMutation(s, mutation);
         expect(result).to.deep.equal({
           delete: 'projects/p/databases/d/documents/docs/1'
         });
@@ -570,18 +609,16 @@ export function serializerTest(
     });
 
     describe('toMutation / fromMutation', () => {
-      addEqualityMatcher();
-
       function verifyMutation(mutation: Mutation, proto: unknown): void {
-        const serialized = s.toMutation(mutation);
+        const serialized = toMutation(s, mutation);
         expect(serialized).to.deep.equal(proto);
-        expect(s.fromMutation(serialized)).to.deep.equal(mutation);
+        expect(mutationEquals(fromMutation(s, serialized), mutation));
       }
 
       it('SetMutation', () => {
         const mutation = setMutation('foo/bar', { a: 'b', num: 1 });
         const proto = {
-          update: s.toMutationDocument(mutation.key, mutation.value)
+          update: toMutationDocument(s, mutation.key, mutation.value)
         };
         verifyMutation(mutation, proto);
       });
@@ -593,8 +630,8 @@ export function serializerTest(
           'some.deep.thing': 2
         });
         const proto = {
-          update: s.toMutationDocument(mutation.key, mutation.data),
-          updateMask: s.toDocumentMask(mutation.fieldMask),
+          update: toMutationDocument(s, mutation.key, mutation.data),
+          updateMask: toDocumentMask(mutation.fieldMask),
           currentDocument: { exists: true }
         };
         verifyMutation(mutation, proto);
@@ -607,15 +644,15 @@ export function serializerTest(
           Precondition.none()
         );
         const proto = {
-          update: s.toMutationDocument(mutation.key, mutation.data),
-          updateMask: s.toDocumentMask(mutation.fieldMask)
+          update: toMutationDocument(s, mutation.key, mutation.data),
+          updateMask: toDocumentMask(mutation.fieldMask)
         };
         verifyMutation(mutation, proto);
       });
 
       it('DeleteMutation', () => {
         const mutation = deleteMutation('baz/quux');
-        const proto = { delete: s.toName(mutation.key) };
+        const proto = { delete: toName(s, mutation.key) };
         verifyMutation(mutation, proto);
       });
 
@@ -626,7 +663,7 @@ export function serializerTest(
         });
         const proto = {
           transform: {
-            document: s.toName(mutation.key),
+            document: toName(s, mutation.key),
             fieldTransforms: [
               { fieldPath: 'a', setToServerValue: 'REQUEST_TIME' },
               { fieldPath: 'bar.baz', setToServerValue: 'REQUEST_TIME' }
@@ -644,7 +681,7 @@ export function serializerTest(
         });
         const proto = {
           transform: {
-            document: s.toName(mutation.key),
+            document: toName(s, mutation.key),
             fieldTransforms: [
               { fieldPath: 'integer', increment: { integerValue: '42' } },
               { fieldPath: 'double', increment: { doubleValue: 13.37 } }
@@ -662,7 +699,7 @@ export function serializerTest(
         });
         const proto: api.Write = {
           transform: {
-            document: s.toName(mutation.key),
+            document: toName(s, mutation.key),
             fieldTransforms: [
               {
                 fieldPath: 'a',
@@ -688,7 +725,7 @@ export function serializerTest(
           Precondition.updateTime(version(4))
         );
         const proto = {
-          update: s.toMutationDocument(mutation.key, mutation.value),
+          update: toMutationDocument(s, mutation.key, mutation.value),
           currentDocument: {
             updateTime: { seconds: '0', nanos: 4000 }
           }
@@ -702,7 +739,7 @@ export function serializerTest(
           Precondition.updateTime(version(4))
         );
         const proto = {
-          verify: s.toName(mutation.key),
+          verify: toName(s, mutation.key),
           currentDocument: {
             updateTime: { seconds: '0', nanos: 4000 }
           }
@@ -714,22 +751,22 @@ export function serializerTest(
     it('toDocument() / fromDocument', () => {
       const d = doc('foo/bar', 42, { a: 5, b: 'b' });
       const proto = {
-        name: s.toName(d.key),
+        name: toName(s, d.key),
         fields: d.toProto().mapValue.fields,
-        updateTime: s.toVersion(d.version)
+        updateTime: toVersion(s, d.version)
       };
-      const serialized = s.toDocument(d);
+      const serialized = toDocument(s, d);
       expect(serialized).to.deep.equal(proto);
-      expect(s.fromDocument(serialized).isEqual(d)).to.equal(true);
+      expect(fromDocument(s, serialized, undefined).isEqual(d)).to.equal(true);
     });
 
     describe('to/from FieldFilter', () => {
-      addEqualityMatcher();
+      addEqualityMatcher({ equalsFn: filterEquals, forType: FieldFilter });
 
       it('makes dotted-property names', () => {
         const path = new FieldPath(['item', 'part', 'top']);
         const input = FieldFilter.create(path, Operator.EQUAL, wrap('food'));
-        const actual = s.toUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'item.part.top' },
@@ -737,14 +774,14 @@ export function serializerTest(
             value: { stringValue: 'food' }
           }
         });
-        const roundtripped = s.fromFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts LessThan', () => {
         const input = filter('field', '<', 42);
-        const actual = s.toUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -752,14 +789,14 @@ export function serializerTest(
             value: { integerValue: '42' }
           }
         });
-        const roundtripped = s.fromFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts LessThanOrEqual', () => {
         const input = filter('field', '<=', 'food');
-        const actual = s.toUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -767,14 +804,14 @@ export function serializerTest(
             value: { stringValue: 'food' }
           }
         });
-        const roundtripped = s.fromFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts GreaterThan', () => {
         const input = filter('field', '>', false);
-        const actual = s.toUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -782,14 +819,14 @@ export function serializerTest(
             value: { booleanValue: false }
           }
         });
-        const roundtripped = s.fromFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts GreaterThanOrEqual', () => {
         const input = filter('field', '>=', 1e100);
-        const actual = s.toUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -797,14 +834,14 @@ export function serializerTest(
             value: { doubleValue: 1e100 }
           }
         });
-        const roundtripped = s.fromFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
       it('converts key field', () => {
         const input = filter(DOCUMENT_KEY_NAME, '==', ref('coll/doc'));
-        const actual = s.toUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: '__name__' },
@@ -815,14 +852,14 @@ export function serializerTest(
             }
           }
         });
-        const roundtripped = s.fromFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(KeyFieldFilter);
       });
 
       it('converts array-contains', () => {
         const input = filter('field', 'array-contains', 42);
-        const actual = s.toUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -830,14 +867,14 @@ export function serializerTest(
             value: { integerValue: '42' }
           }
         });
-        const roundtripped = s.fromFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(ArrayContainsFilter);
       });
 
       it('converts IN', () => {
         const input = filter('field', 'in', [42]);
-        const actual = s.toUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -853,14 +890,14 @@ export function serializerTest(
             }
           }
         });
-        const roundtripped = s.fromFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(InFilter);
       });
 
       it('converts array-contains-any', () => {
         const input = filter('field', 'array-contains-any', [42]);
-        const actual = s.toUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           fieldFilter: {
             field: { fieldPath: 'field' },
@@ -876,37 +913,37 @@ export function serializerTest(
             }
           }
         });
-        const roundtripped = s.fromFieldFilter(actual);
+        const roundtripped = fromFieldFilter(actual);
         expect(roundtripped).to.deep.equal(input);
         expect(roundtripped).to.be.instanceof(ArrayContainsAnyFilter);
       });
     });
 
     describe('to/from UnaryFilter', () => {
-      addEqualityMatcher();
+      addEqualityMatcher({ equalsFn: filterEquals, forType: FieldFilter });
 
       it('converts null', () => {
         const input = filter('field', '==', null);
-        const actual = s.toUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           unaryFilter: {
             field: { fieldPath: 'field' },
             op: 'IS_NULL'
           }
         });
-        expect(s.fromUnaryFilter(actual)).to.deep.equal(input);
+        expect(fromUnaryFilter(actual)).to.deep.equal(input);
       });
 
       it('converts Nan', () => {
         const input = filter('field', '==', NaN);
-        const actual = s.toUnaryOrFieldFilter(input);
+        const actual = toUnaryOrFieldFilter(input);
         expect(actual).to.deep.equal({
           unaryFilter: {
             field: { fieldPath: 'field' },
             op: 'IS_NAN'
           }
         });
-        expect(s.fromUnaryFilter(actual)).to.deep.equal(input);
+        expect(fromUnaryFilter(actual)).to.deep.equal(input);
       });
     });
 
@@ -914,11 +951,11 @@ export function serializerTest(
       const target = Query.atPath(path('collection/key')).toTarget();
       let targetData = new TargetData(target, 2, TargetPurpose.Listen, 3);
 
-      let result = s.toListenRequestLabels(targetData);
+      let result = toListenRequestLabels(s, targetData);
       expect(result).to.be.null;
 
       targetData = new TargetData(target, 2, TargetPurpose.LimboResolution, 3);
-      result = s.toListenRequestLabels(targetData);
+      result = toListenRequestLabels(s, targetData);
       expect(result).to.deep.equal({ 'goog-listen-tags': 'limbo-document' });
 
       targetData = new TargetData(
@@ -927,28 +964,28 @@ export function serializerTest(
         TargetPurpose.ExistenceFilterMismatch,
         3
       );
-      result = s.toListenRequestLabels(targetData);
+      result = toListenRequestLabels(s, targetData);
       expect(result).to.deep.equal({
         'goog-listen-tags': 'existence-filter-mismatch'
       });
     });
 
     describe('toTarget', () => {
-      addEqualityMatcher();
+      addEqualityMatcher({ equalsFn: targetEquals, forType: TargetImpl });
 
       it('converts first-level key queries', () => {
         const q = Query.atPath(path('docs/1')).toTarget();
-        const result = s.toTarget(wrapTargetData(q));
+        const result = toTarget(s, wrapTargetData(q));
         expect(result).to.deep.equal({
           documents: { documents: ['projects/p/databases/d/documents/docs/1'] },
           targetId: 1
         });
-        expect(s.fromDocumentsTarget(s.toDocumentsTarget(q))).to.deep.equal(q);
+        expect(fromDocumentsTarget(toDocumentsTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts first-level ancestor queries', () => {
         const q = Query.atPath(path('messages')).toTarget();
-        const result = s.toTarget(wrapTargetData(q));
+        const result = toTarget(s, wrapTargetData(q));
         expect(result).to.deep.equal({
           query: {
             parent: 'projects/p/databases/d/documents',
@@ -964,14 +1001,14 @@ export function serializerTest(
           },
           targetId: 1
         });
-        expect(s.fromQueryTarget(s.toQueryTarget(q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts nested ancestor queries', () => {
         const q = Query.atPath(
           path('rooms/1/messages/10/attachments')
         ).toTarget();
-        const result = s.toTarget(wrapTargetData(q));
+        const result = toTarget(s, wrapTargetData(q));
         const expected = {
           query: {
             parent: 'projects/p/databases/d/documents/rooms/1/messages/10',
@@ -988,14 +1025,14 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(s.fromQueryTarget(s.toQueryTarget(q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts single filters at first-level collections', () => {
         const q = Query.atPath(path('docs'))
           .addFilter(filter('prop', '<', 42))
           .toTarget();
-        const result = s.toTarget(wrapTargetData(q));
+        const result = toTarget(s, wrapTargetData(q));
         const expected = {
           query: {
             parent: 'projects/p/databases/d/documents',
@@ -1023,7 +1060,7 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(s.fromQueryTarget(s.toQueryTarget(q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts multiple filters at first-level collections', () => {
@@ -1034,7 +1071,7 @@ export function serializerTest(
           .addFilter(filter('null', '==', null))
           .addFilter(filter('tags', 'array-contains', 'pending'))
           .toTarget();
-        const result = s.toTarget(wrapTargetData(q));
+        const result = toTarget(s, wrapTargetData(q));
         const expected = {
           query: {
             parent: 'projects/p/databases/d/documents',
@@ -1095,14 +1132,14 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(s.fromQueryTarget(s.toQueryTarget(q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts single filters on deeper collections', () => {
         const q = Query.atPath(path('rooms/1/messages/10/attachments'))
           .addFilter(filter('prop', '<', 42))
           .toTarget();
-        const result = s.toTarget(wrapTargetData(q));
+        const result = toTarget(s, wrapTargetData(q));
         const expected = {
           query: {
             parent: 'projects/p/databases/d/documents/rooms/1/messages/10',
@@ -1130,14 +1167,14 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(s.fromQueryTarget(s.toQueryTarget(q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts order bys', () => {
         const q = Query.atPath(path('docs'))
           .addOrderBy(orderBy('prop', 'asc'))
           .toTarget();
-        const result = s.toTarget(wrapTargetData(q));
+        const result = toTarget(s, wrapTargetData(q));
         const expected = {
           query: {
             parent: 'projects/p/databases/d/documents',
@@ -1158,14 +1195,14 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(s.fromQueryTarget(s.toQueryTarget(q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts limits', () => {
         const q = Query.atPath(path('docs'))
           .withLimitToFirst(26)
           .toTarget();
-        const result = s.toTarget(wrapTargetData(q));
+        const result = toTarget(s, wrapTargetData(q));
         const expected = {
           query: {
             parent: 'projects/p/databases/d/documents',
@@ -1183,7 +1220,7 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(s.fromQueryTarget(s.toQueryTarget(q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts startAt/endAt', () => {
@@ -1201,7 +1238,7 @@ export function serializerTest(
             )
           )
           .toTarget();
-        const result = s.toTarget(wrapTargetData(q));
+        const result = toTarget(s, wrapTargetData(q));
         const expected = {
           query: {
             parent: 'projects/p/databases/d/documents',
@@ -1236,12 +1273,13 @@ export function serializerTest(
           targetId: 1
         };
         expect(result).to.deep.equal(expected);
-        expect(s.fromQueryTarget(s.toQueryTarget(q))).to.deep.equal(q);
+        expect(fromQueryTarget(toQueryTarget(s, q))).to.deep.equal(q);
       });
 
       it('converts resume tokens', () => {
         const q = Query.atPath(path('docs')).toTarget();
-        const result = s.toTarget(
+        const result = toTarget(
+          s,
           new TargetData(
             q,
             1,
@@ -1288,7 +1326,7 @@ export function serializerTest(
         ];
 
         for (const op of allOperators) {
-          expect(s.fromOperatorName(s.toOperatorName(op))).to.deep.equal(op);
+          expect(fromOperatorName(toOperatorName(op))).to.deep.equal(op);
         }
       });
     });
@@ -1300,7 +1338,7 @@ export function serializerTest(
         const allDirections = [Direction.ASCENDING, Direction.DESCENDING];
 
         for (const dir of allDirections) {
-          expect(s.fromDirection(s.toDirection(dir))).to.deep.equal(dir);
+          expect(fromDirection(toDirection(dir))).to.deep.equal(dir);
         }
       });
     });
@@ -1308,24 +1346,24 @@ export function serializerTest(
     describe('to/from PropertyOrder', () => {
       it('renders ascending', () => {
         const orderBy = new OrderBy(field('a.b'), Direction.ASCENDING);
-        const actual = s.toPropertyOrder(orderBy);
+        const actual = toPropertyOrder(orderBy);
         const expected = {
           field: { fieldPath: 'a.b' },
           direction: 'ASCENDING'
         };
         expect(actual).to.deep.equal(expected);
-        expect(s.fromPropertyOrder(actual)).to.deep.equal(orderBy);
+        expect(fromPropertyOrder(actual)).to.deep.equal(orderBy);
       });
 
       it('renders descending', () => {
         const orderBy = new OrderBy(field('a.b.c'), Direction.DESCENDING);
-        const actual = s.toPropertyOrder(orderBy);
+        const actual = toPropertyOrder(orderBy);
         const expected = {
           field: { fieldPath: 'a.b.c' },
           direction: 'DESCENDING'
         };
         expect(actual).to.deep.equal(expected);
-        expect(s.fromPropertyOrder(actual)).to.deep.equal(orderBy);
+        expect(fromPropertyOrder(actual)).to.deep.equal(orderBy);
       });
     });
 
@@ -1340,7 +1378,7 @@ export function serializerTest(
           1,
           4
         ]);
-        const actual = s.fromWatchChange({
+        const actual = fromWatchChange(s, {
           targetChange: { targetChangeType: 'ADD', targetIds: [1, 4] }
         });
         expect(actual).to.deep.equal(expected);
@@ -1353,11 +1391,11 @@ export function serializerTest(
           byteStringFromString('token'),
           new FirestoreError(Code.CANCELLED, 'message')
         );
-        const actual = s.fromWatchChange({
+        const actual = fromWatchChange(s, {
           targetChange: {
             targetChangeType: 'REMOVE',
             targetIds: [1, 4],
-            resumeToken: s.toBytes(byteStringFromString('token')),
+            resumeToken: toBytes(s, byteStringFromString('token')),
             cause: { code: 1, message: 'message' }
           }
         });
@@ -1369,7 +1407,7 @@ export function serializerTest(
           WatchTargetChangeState.NoChange,
           [1, 4]
         );
-        const actual = s.fromWatchChange({
+        const actual = fromWatchChange(s, {
           targetChange: {
             targetChangeType: 'NO_CHANGE',
             targetIds: [1, 4]
@@ -1383,7 +1421,7 @@ export function serializerTest(
           WatchTargetChangeState.NoChange,
           [1, 4]
         );
-        const actual = s.fromWatchChange({
+        const actual = fromWatchChange(s, {
           targetChange: {
             targetIds: [1, 4]
           }
@@ -1398,11 +1436,11 @@ export function serializerTest(
           byteStringFromString('resume'),
           new FirestoreError(Code.CANCELLED, 'message')
         );
-        const actual = s.fromWatchChange({
+        const actual = fromWatchChange(s, {
           targetChange: {
             targetChangeType: 'REMOVE',
             targetIds: [1, 4],
-            resumeToken: s.toBytes(byteStringFromString('resume')),
+            resumeToken: toBytes(s, byteStringFromString('resume')),
             cause: { code: 1, message: 'message' }
           }
         });
@@ -1416,12 +1454,12 @@ export function serializerTest(
           key('coll/1'),
           doc('coll/1', 5, { foo: 'bar' })
         );
-        const actual = s.fromWatchChange({
+        const actual = fromWatchChange(s, {
           documentChange: {
             document: {
-              name: s.toName(key('coll/1')),
+              name: toName(s, key('coll/1')),
               fields: wrap({ foo: 'bar' }).mapValue!.fields,
-              updateTime: s.toVersion(version(5))
+              updateTime: toVersion(s, version(5))
             },
             targetIds: [1, 2]
           }
@@ -1436,12 +1474,12 @@ export function serializerTest(
           key('coll/1'),
           doc('coll/1', 5, { foo: 'bar' })
         );
-        const actual = s.fromWatchChange({
+        const actual = fromWatchChange(s, {
           documentChange: {
             document: {
-              name: s.toName(key('coll/1')),
+              name: toName(s, key('coll/1')),
               fields: wrap({ foo: 'bar' }).mapValue!.fields,
-              updateTime: s.toVersion(version(5))
+              updateTime: toVersion(s, version(5))
             },
             targetIds: [2],
             removedTargetIds: [1]
@@ -1457,10 +1495,10 @@ export function serializerTest(
           key('coll/1'),
           deletedDoc('coll/1', 5)
         );
-        const actual = s.fromWatchChange({
+        const actual = fromWatchChange(s, {
           documentDelete: {
-            document: s.toName(key('coll/1')),
-            readTime: s.toVersion(version(5)),
+            document: toName(s, key('coll/1')),
+            readTime: toVersion(s, version(5)),
             removedTargetIds: [1, 2]
           }
         });
@@ -1474,9 +1512,9 @@ export function serializerTest(
           key('coll/1'),
           null
         );
-        const actual = s.fromWatchChange({
+        const actual = fromWatchChange(s, {
           documentRemove: {
-            document: s.toName(key('coll/1')),
+            document: toName(s, key('coll/1')),
             removedTargetIds: [1, 2]
           }
         });

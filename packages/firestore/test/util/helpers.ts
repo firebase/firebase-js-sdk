@@ -24,7 +24,11 @@ import { expect } from 'chai';
 import { Blob } from '../../src/api/blob';
 import { fromDotSeparatedString } from '../../src/api/field_path';
 import { UserDataWriter } from '../../src/api/user_data_writer';
-import { UserDataReader } from '../../src/api/user_data_reader';
+import {
+  parseQueryValue,
+  parseUpdateData,
+  UserDataReader
+} from '../../src/api/user_data_reader';
 import { DatabaseId } from '../../src/core/database_info';
 import {
   Bound,
@@ -86,7 +90,7 @@ import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 import { FIRESTORE, query } from './api_helpers';
 import { ByteString } from '../../src/util/byte_string';
-import { PlatformSupport } from '../../src/platform/platform';
+import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
 import { DocumentReference } from '../../src/api/database';
@@ -112,7 +116,7 @@ export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
     databaseId,
     /* ignoreUndefinedProperties= */ false,
     useProto3Json !== undefined
-      ? new JsonProtoSerializer(databaseId, { useProto3Json })
+      ? new JsonProtoSerializer(databaseId, useProto3Json)
       : undefined
   );
 }
@@ -163,7 +167,7 @@ export function wrap(value: unknown): api.Value {
   // HACK: We use parseQueryValue() since it accepts scalars as well as
   // arrays / objects, and our tests currently use wrap() pretty generically so
   // we don't know the intent.
-  return testUserDataReader().parseQueryValue('wrap', value);
+  return parseQueryValue(testUserDataReader(), 'wrap', value);
 }
 
 export function wrapObject(obj: JsonObject<unknown>): ObjectValue {
@@ -208,13 +212,7 @@ export function blob(...bytes: number[]): Blob {
 export function filter(path: string, op: string, value: unknown): FieldFilter {
   const dataValue = wrap(value);
   const operator = op as Operator;
-  const filter = FieldFilter.create(field(path), operator, dataValue);
-
-  if (filter instanceof FieldFilter) {
-    return filter;
-  } else {
-    return fail('Unrecognized filter: ' + JSON.stringify(filter));
-  }
+  return FieldFilter.create(field(path), operator, dataValue);
 }
 
 export function setMutation(
@@ -238,9 +236,15 @@ export function patchMutation(
       json[k] = new DeleteFieldValueImpl('FieldValue.delete');
     }
   });
-  const parsed = testUserDataReader().parseUpdateData('patchMutation', json);
+  const patchKey = key(keyStr);
+  const parsed = parseUpdateData(
+    testUserDataReader(),
+    'patchMutation',
+    patchKey,
+    json
+  );
   return new PatchMutation(
-    key(keyStr),
+    patchKey,
     parsed.data,
     parsed.fieldMask,
     precondition
@@ -261,11 +265,14 @@ export function transformMutation(
   keyStr: string,
   data: Dict<unknown>
 ): TransformMutation {
-  const result = testUserDataReader().parseUpdateData(
+  const transformKey = key(keyStr);
+  const result = parseUpdateData(
+    testUserDataReader(),
     'transformMutation()',
+    transformKey,
     data
   );
-  return new TransformMutation(key(keyStr), result.fieldTransforms);
+  return new TransformMutation(transformKey, result.fieldTransforms);
 }
 
 export function mutationResult(
@@ -501,7 +508,7 @@ export function localViewChanges(
  * Returns a ByteString representation for the platform from the given string.
  */
 export function byteStringFromString(value: string): ByteString {
-  const base64 = PlatformSupport.getPlatform().btoa(value);
+  const base64 = encodeBase64(value);
   return ByteString.fromBase64String(base64);
 }
 
@@ -517,7 +524,7 @@ export function stringFromBase64String(value?: string | Uint8Array): string {
     value === undefined || typeof value === 'string',
     'Can only decode base64 encoded strings'
   );
-  return PlatformSupport.getPlatform().atob(value ?? '');
+  return decodeBase64(value ?? '');
 }
 
 /** Creates a resume token to match the given snapshot version. */
@@ -778,7 +785,8 @@ export function expectSetToEqual<T>(set: SortedSet<T>, arr: T[]): void {
  */
 export function expectEqualitySets<T>(
   elems: T[][],
-  equalityFn: (v1: T, v2: T) => boolean
+  equalityFn: (v1: T, v2: T) => boolean,
+  stringifyFn?: (v: T) => string
 ): void {
   for (let i = 0; i < elems.length; i++) {
     const currentElems = elems[i];
@@ -792,9 +800,9 @@ export function expectEqualitySets<T>(
           expect(equalityFn(elem, otherElem)).to.equal(
             expectedComparison,
             'Expected (' +
-              elem +
+              (stringifyFn ? stringifyFn(elem) : elem) +
               ').isEqual(' +
-              otherElem +
+              (stringifyFn ? stringifyFn(otherElem) : otherElem) +
               ').to.equal(' +
               expectedComparison +
               ')'

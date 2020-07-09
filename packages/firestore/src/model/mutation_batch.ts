@@ -18,7 +18,7 @@
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId } from '../core/types';
-import { hardAssert, debugAssert } from '../util/assert';
+import { debugAssert, hardAssert } from '../util/assert';
 import { arrayEquals } from '../util/misc';
 import {
   documentKeySet,
@@ -29,7 +29,13 @@ import {
 } from './collections';
 import { MaybeDocument } from './document';
 import { DocumentKey } from './document_key';
-import { Mutation, MutationResult } from './mutation';
+import {
+  applyMutationToLocalView,
+  applyMutationToRemoteDocument,
+  Mutation,
+  mutationEquals,
+  MutationResult
+} from './mutation';
 
 export const BATCHID_UNKNOWN = -1;
 
@@ -91,7 +97,11 @@ export class MutationBatch {
       const mutation = this.mutations[i];
       if (mutation.key.isEqual(docKey)) {
         const mutationResult = mutationResults[i];
-        maybeDoc = mutation.applyToRemoteDocument(maybeDoc, mutationResult);
+        maybeDoc = applyMutationToRemoteDocument(
+          mutation,
+          maybeDoc,
+          mutationResult
+        );
       }
     }
     return maybeDoc;
@@ -120,7 +130,8 @@ export class MutationBatch {
     // transform against a consistent set of values.
     for (const mutation of this.baseMutations) {
       if (mutation.key.isEqual(docKey)) {
-        maybeDoc = mutation.applyToLocalView(
+        maybeDoc = applyMutationToLocalView(
+          mutation,
           maybeDoc,
           maybeDoc,
           this.localWriteTime
@@ -133,7 +144,8 @@ export class MutationBatch {
     // Second, apply all user-provided mutations.
     for (const mutation of this.mutations) {
       if (mutation.key.isEqual(docKey)) {
-        maybeDoc = mutation.applyToLocalView(
+        maybeDoc = applyMutationToLocalView(
+          mutation,
           maybeDoc,
           baseDoc,
           this.localWriteTime
@@ -174,9 +186,11 @@ export class MutationBatch {
   isEqual(other: MutationBatch): boolean {
     return (
       this.batchId === other.batchId &&
-      arrayEquals(this.mutations, other.mutations, (l, r) => l.isEqual(r)) &&
+      arrayEquals(this.mutations, other.mutations, (l, r) =>
+        mutationEquals(l, r)
+      ) &&
       arrayEquals(this.baseMutations, other.baseMutations, (l, r) =>
-        l.isEqual(r)
+        mutationEquals(l, r)
       )
     );
   }

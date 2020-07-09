@@ -16,11 +16,10 @@
  */
 
 import { User } from '../auth/user';
-import { DatabaseInfo } from '../core/database_info';
+import { DatabaseId } from '../core/database_info';
 import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
-import { Platform } from '../platform/platform';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
@@ -75,6 +74,7 @@ import {
   SimpleDbStore,
   SimpleDbTransaction
 } from './simple_db';
+import { DocumentLike, WindowLike } from '../util/types';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -115,6 +115,12 @@ const UNSUPPORTED_PLATFORM_ERROR_MSG =
 // The format of the LocalStorage key that stores zombied client is:
 //     firestore_zombie_<persistence_prefix>_<instance_key>
 const ZOMBIED_CLIENTS_KEY_PREFIX = 'firestore_zombie';
+
+/**
+ * The name of the main (and currently only) IndexedDB database. This name is
+ * appended to the prefix provided to the IndexedDbPersistence constructor.
+ */
+export const MAIN_DATABASE = 'main';
 
 export class IndexedDbTransaction extends PersistenceTransaction {
   constructor(
@@ -185,15 +191,6 @@ export class IndexedDbPersistence implements Persistence {
     }
   }
 
-  /**
-   * The name of the main (and currently only) IndexedDB database. this name is
-   * appended to the prefix provided to the IndexedDbPersistence constructor.
-   */
-  static MAIN_DATABASE = 'main';
-
-  private readonly document: Document | null;
-  private readonly window: Window | null;
-
   // Technically `simpleDb` should be `| undefined` because it is
   // initialized asynchronously by start(), but that would be more misleading
   // than useful.
@@ -239,9 +236,10 @@ export class IndexedDbPersistence implements Persistence {
 
     private readonly persistenceKey: string,
     private readonly clientId: ClientId,
-    platform: Platform,
     lruParams: LruParams,
     private readonly queue: AsyncQueue,
+    private readonly window: WindowLike | null,
+    private readonly document: DocumentLike | null,
     serializer: JsonProtoSerializer,
     private readonly sequenceNumberSyncer: SequenceNumberSyncer,
 
@@ -259,9 +257,8 @@ export class IndexedDbPersistence implements Persistence {
     }
 
     this.referenceDelegate = new IndexedDbLruDelegate(this, lruParams);
-    this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
+    this.dbName = persistenceKey + MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
-    this.document = platform.document;
     this.targetCache = new IndexedDbTargetCache(
       this.referenceDelegate,
       this.serializer
@@ -271,9 +268,8 @@ export class IndexedDbPersistence implements Persistence {
       this.serializer,
       this.indexManager
     );
-    this.window = platform.window;
-    if (platform.window && platform.window.localStorage) {
-      this.webStorage = platform.window.localStorage;
+    if (this.window && this.window.localStorage) {
+      this.webStorage = this.window.localStorage;
     } else {
       this.webStorage = null;
       if (forceOwningTab === false) {
@@ -737,14 +733,6 @@ export class IndexedDbPersistence implements Persistence {
     });
   }
 
-  static async clearPersistence(persistenceKey: string): Promise<void> {
-    if (!IndexedDbPersistence.isAvailable()) {
-      return Promise.resolve();
-    }
-    const dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
-    await SimpleDb.delete(dbName);
-  }
-
   get started(): boolean {
     return this._started;
   }
@@ -907,26 +895,6 @@ export class IndexedDbPersistence implements Persistence {
 
   static isAvailable(): boolean {
     return SimpleDb.isAvailable();
-  }
-
-  /**
-   * Generates a string used as a prefix when storing data in IndexedDB and
-   * LocalStorage.
-   */
-  static buildStoragePrefix(databaseInfo: DatabaseInfo): string {
-    // Use two different prefix formats:
-    //
-    //   * firestore / persistenceKey / projectID . databaseID / ...
-    //   * firestore / persistenceKey / projectID / ...
-    //
-    // projectIDs are DNS-compatible names and cannot contain dots
-    // so there's no danger of collisions.
-    let database = databaseInfo.databaseId.projectId;
-    if (!databaseInfo.databaseId.isDefaultDatabase) {
-      database += '.' + databaseInfo.databaseId.database;
-    }
-
-    return 'firestore/' + databaseInfo.persistenceKey + '/' + database + '/';
   }
 
   /** Checks the primary lease and removes it if we are the current primary. */
@@ -1338,4 +1306,37 @@ function writeSentinelKey(
   return documentTargetStore(txn).put(
     sentinelRow(key, txn.currentSequenceNumber)
   );
+}
+
+/**
+ * Generates a string used as a prefix when storing data in IndexedDB and
+ * LocalStorage.
+ */
+export function indexedDbStoragePrefix(
+  databaseId: DatabaseId,
+  persistenceKey: string
+): string {
+  // Use two different prefix formats:
+  //
+  //   * firestore / persistenceKey / projectID . databaseID / ...
+  //   * firestore / persistenceKey / projectID / ...
+  //
+  // projectIDs are DNS-compatible names and cannot contain dots
+  // so there's no danger of collisions.
+  let database = databaseId.projectId;
+  if (!databaseId.isDefaultDatabase) {
+    database += '.' + databaseId.database;
+  }
+
+  return 'firestore/' + persistenceKey + '/' + database + '/';
+}
+
+export async function indexedDbClearPersistence(
+  persistenceKey: string
+): Promise<void> {
+  if (!SimpleDb.isAvailable()) {
+    return Promise.resolve();
+  }
+  const dbName = persistenceKey + MAIN_DATABASE;
+  await SimpleDb.delete(dbName);
 }

@@ -16,14 +16,22 @@
  */
 
 import { CredentialsProvider } from '../api/credentials';
-import { MaybeDocument, Document } from '../model/document';
+import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
 import { debugCast, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { Connection } from './connection';
-import { JsonProtoSerializer } from './serializer';
+import {
+  fromDocument,
+  fromMaybeDocument,
+  getEncodedDatabaseId,
+  JsonProtoSerializer,
+  toMutation,
+  toName,
+  toQueryTarget
+} from './serializer';
 import {
   PersistentListenStream,
   PersistentWriteStream,
@@ -122,8 +130,8 @@ export async function invokeCommitRpc(
 ): Promise<void> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const params = {
-    database: datastoreImpl.serializer.encodedDatabaseId,
-    writes: mutations.map(m => datastoreImpl.serializer.toMutation(m))
+    database: getEncodedDatabaseId(datastoreImpl.serializer),
+    writes: mutations.map(m => toMutation(datastoreImpl.serializer, m))
   };
   await datastoreImpl.invokeRPC('Commit', params);
 }
@@ -134,8 +142,8 @@ export async function invokeBatchGetDocumentsRpc(
 ): Promise<MaybeDocument[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const params = {
-    database: datastoreImpl.serializer.encodedDatabaseId,
-    documents: keys.map(k => datastoreImpl.serializer.toName(k))
+    database: getEncodedDatabaseId(datastoreImpl.serializer),
+    documents: keys.map(k => toName(datastoreImpl.serializer, k))
   };
   const response = await datastoreImpl.invokeStreamingRPC<
     api.BatchGetDocumentsRequest,
@@ -144,7 +152,7 @@ export async function invokeBatchGetDocumentsRpc(
 
   const docs = new Map<string, MaybeDocument>();
   response.forEach(proto => {
-    const doc = datastoreImpl.serializer.fromMaybeDocument(proto);
+    const doc = fromMaybeDocument(datastoreImpl.serializer, proto);
     docs.set(doc.key.toString(), doc);
   });
   const result: MaybeDocument[] = [];
@@ -161,11 +169,12 @@ export async function invokeRunQueryRpc(
   query: Query
 ): Promise<Document[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const { structuredQuery, parent } = datastoreImpl.serializer.toQueryTarget(
+  const { structuredQuery, parent } = toQueryTarget(
+    datastoreImpl.serializer,
     query.toTarget()
   );
   const params = {
-    database: datastoreImpl.serializer.encodedDatabaseId,
+    database: getEncodedDatabaseId(datastoreImpl.serializer),
     parent,
     structuredQuery
   };
@@ -179,7 +188,9 @@ export async function invokeRunQueryRpc(
     response
       // Omit RunQueryResponses that only contain readTimes.
       .filter(proto => !!proto.document)
-      .map(proto => datastoreImpl.serializer.fromDocument(proto.document!))
+      .map(proto =>
+        fromDocument(datastoreImpl.serializer, proto.document!, undefined)
+      )
   );
 }
 

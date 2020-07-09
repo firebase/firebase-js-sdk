@@ -22,7 +22,7 @@ import { fail } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
 import { DocumentKeySet } from '../model/collections';
-import { Query } from './query';
+import { Query, queryEquals } from './query';
 
 export const enum ChangeType {
   Added,
@@ -182,7 +182,7 @@ export class ViewSnapshot {
       this.fromCache !== other.fromCache ||
       this.syncStateChanged !== other.syncStateChanged ||
       !this.mutatedKeys.isEqual(other.mutatedKeys) ||
-      !this.query.isEqual(other.query) ||
+      !queryEquals(this.query, other.query) ||
       !this.docs.isEqual(other.docs) ||
       !this.oldDocs.isEqual(other.oldDocs)
     ) {
