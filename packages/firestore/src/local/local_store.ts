@@ -934,9 +934,11 @@ class LocalStoreImpl implements LocalStore {
       }
     } catch (e) {
       if (isIndexedDbTransactionError(e)) {
-        // If `releaseTarget` fails, we did not advance the sequence number of
-        // the target. While the target might be deleted earlier than it
-        // otherwise would have, it does not invalidate its integrity.
+        // All `releaseTarget` does is record the final metadata state for the
+        // target, but we've been recording this periodically during target
+        // activity. If we lose this write this could cause a very slight
+        // difference in the order of target deletion during GC, but we
+        // don't define exact LRU semantics so this is acceptable.
         logDebug(
           LOG_TAG,
           `Failed to update sequence numbers for target ${targetId}: ${e}`
