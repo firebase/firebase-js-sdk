@@ -36,6 +36,7 @@ export const enum AuthErrorCode {
   CREDENTIAL_MISMATCH = 'custom-token-mismatch',
   CREDENTIAL_TOO_OLD_LOGIN_AGAIN = 'requires-recent-login',
   DYNAMIC_LINK_NOT_ACTIVATED = 'dynamic-link-not-activated',
+  EMAIL_CHANGE_NEEDS_VERIFICATION = 'email-change-needs-verification',
   EMAIL_EXISTS = 'email-already-in-use',
   EXPIRED_OOB_CODE = 'expired-action-code',
   EXPIRED_POPUP_REQUEST = 'cancelled-popup-request',
@@ -54,6 +55,7 @@ export const enum AuthErrorCode {
   INVALID_EMAIL = 'invalid-email',
   INVALID_IDP_RESPONSE = 'invalid-credential',
   INVALID_MESSAGE_PAYLOAD = 'invalid-message-payload',
+  INVALID_MFA_SESSION = 'invalid-multi-factor-session',
   INVALID_OAUTH_CLIENT_ID = 'invalid-oauth-client-id',
   INVALID_OAUTH_PROVIDER = 'invalid-oauth-provider',
   INVALID_OOB_CODE = 'invalid-action-code',
@@ -66,6 +68,8 @@ export const enum AuthErrorCode {
   INVALID_SENDER = 'invalid-sender',
   INVALID_SESSION_INFO = 'invalid-verification-id',
   INVALID_TENANT_ID = 'invalid-tenant-id',
+  MFA_INFO_NOT_FOUND = 'multi-factor-info-not-found',
+  MFA_REQUIRED = 'multi-factor-auth-required',
   MISSING_ANDROID_PACKAGE_NAME = 'missing-android-pkg-name',
   MISSING_APP_CREDENTIAL = 'missing-app-credential',
   MISSING_AUTH_DOMAIN = 'auth-domain-config-required',
@@ -74,10 +78,11 @@ export const enum AuthErrorCode {
   MISSING_IFRAME_START = 'missing-iframe-start',
   MISSING_IOS_BUNDLE_ID = 'missing-ios-bundle-id',
   MISSING_OR_INVALID_NONCE = 'missing-or-invalid-nonce',
+  MISSING_MFA_INFO = 'missing-multi-factor-info',
+  MISSING_MFA_SESSION = 'missing-multi-factor-session',
   MISSING_PHONE_NUMBER = 'missing-phone-number',
   MISSING_SESSION_INFO = 'missing-verification-id',
   MODULE_DESTROYED = 'app-deleted',
-  MFA_REQUIRED = 'multi-factor-auth-required',
   NEED_CONFIRMATION = 'account-exists-with-different-credential',
   NETWORK_REQUEST_FAILED = 'network-request-failed',
   NULL_USER = 'null-user',
@@ -92,13 +97,17 @@ export const enum AuthErrorCode {
   REDIRECT_CANCELLED_BY_USER = 'redirect-cancelled-by-user',
   REDIRECT_OPERATION_PENDING = 'redirect-operation-pending',
   REJECTED_CREDENTIAL = 'rejected-credential',
+  SECOND_FACTOR_ALREADY_ENROLLED = 'second-factor-already-in-use',
+  SECOND_FACTOR_LIMIT_EXCEEDED = 'maximum-second-factor-count-exceeded',
   TENANT_ID_MISMATCH = 'tenant-id-mismatch',
   TIMEOUT = 'timeout',
   TOKEN_EXPIRED = 'user-token-expired',
   TOO_MANY_ATTEMPTS_TRY_LATER = 'too-many-requests',
   UNAUTHORIZED_DOMAIN = 'unauthorized-continue-uri',
+  UNSUPPORTED_FIRST_FACTOR = 'unsupported-first-factor',
   UNSUPPORTED_PERSISTENCE = 'unsupported-persistence-type',
   UNSUPPORTED_TENANT_OPERATION = 'unsupported-tenant-operation',
+  UNVERIFIED_EMAIL = 'unverified-email',
   USER_CANCELLED = 'user-cancelled',
   USER_DELETED = 'user-not-found',
   USER_DISABLED = 'user-disabled',
@@ -139,6 +148,8 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
   [AuthErrorCode.DYNAMIC_LINK_NOT_ACTIVATED]:
     'Please activate Dynamic Links in the Firebase Console and agree to the terms and ' +
     'conditions.',
+  [AuthErrorCode.EMAIL_CHANGE_NEEDS_VERIFICATION]:
+    'Multi-factor users must always have a verified email.',
   [AuthErrorCode.EMAIL_EXISTS]:
     'The email address is already in use by another account.',
   [AuthErrorCode.EXPIRED_OOB_CODE]: 'The action code has expired.',
@@ -180,6 +191,8 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
   [AuthErrorCode.INVALID_MESSAGE_PAYLOAD]:
     'The email template corresponding to this action contains invalid characters in its message. ' +
     'Please fix by going to the Auth email templates section in the Firebase Console.',
+  [AuthErrorCode.INVALID_MFA_SESSION]:
+    'The request does not contain a valid proof of first factor successful sign-in.',
   [AuthErrorCode.INVALID_OAUTH_PROVIDER]:
     'EmailAuthProvider is not supported for this operation. This operation ' +
     'only supports OAuth providers.',
@@ -231,12 +244,17 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'The request does not contain a valid nonce. This can occur if the ' +
     'SHA-256 hash of the provided raw nonce does not match the hashed nonce ' +
     'in the ID token payload.',
+  [AuthErrorCode.MISSING_MFA_INFO]: 'No second factor identifier is provided.',
+  [AuthErrorCode.MISSING_MFA_SESSION]:
+    'The request is missing proof of first factor successful sign-in.',
   [AuthErrorCode.MISSING_PHONE_NUMBER]:
     'To send verification codes, provide a phone number for the recipient.',
   [AuthErrorCode.MISSING_SESSION_INFO]:
     'The phone auth credential was created with an empty verification ID.',
   [AuthErrorCode.MODULE_DESTROYED]:
     'This instance of FirebaseApp has been deleted.',
+  [AuthErrorCode.MFA_INFO_NOT_FOUND]:
+    'The user does not have a second factor matching the identifier provided.',
   [AuthErrorCode.MFA_REQUIRED]:
     'Proof of ownership of a second factor is required to complete sign-in.',
   [AuthErrorCode.NEED_CONFIRMATION]:
@@ -273,6 +291,10 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'A redirect sign-in operation is already pending.',
   [AuthErrorCode.REJECTED_CREDENTIAL]:
     'The request contains malformed or mismatching credentials.',
+  [AuthErrorCode.SECOND_FACTOR_ALREADY_ENROLLED]:
+    'The second factor is already enrolled on this account.',
+  [AuthErrorCode.SECOND_FACTOR_LIMIT_EXCEEDED]:
+    'The maximum allowed number of second factors on a user has been exceeded.',
   [AuthErrorCode.TENANT_ID_MISMATCH]:
     "The provided tenant ID does not match the Auth instance's tenant ID",
   [AuthErrorCode.TIMEOUT]: 'The operation has timed out.',
@@ -284,10 +306,13 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
   [AuthErrorCode.UNAUTHORIZED_DOMAIN]:
     'The domain of the continue URL is not whitelisted.  Please whitelist ' +
     'the domain in the Firebase console.',
+  [AuthErrorCode.UNSUPPORTED_FIRST_FACTOR]:
+    'Enrolling a second factor or signing in with a multi-factor account requires sign-in with a supported first factor.',
   [AuthErrorCode.UNSUPPORTED_PERSISTENCE]:
     'The current environment does not support the specified persistence type.',
   [AuthErrorCode.UNSUPPORTED_TENANT_OPERATION]:
     'This operation is not supported in a multi-tenant context.',
+  [AuthErrorCode.UNVERIFIED_EMAIL]: 'The operation requires a verified email.',
   [AuthErrorCode.USER_CANCELLED]:
     'The user did not grant your application the permissions it requested.',
   [AuthErrorCode.USER_DELETED]:

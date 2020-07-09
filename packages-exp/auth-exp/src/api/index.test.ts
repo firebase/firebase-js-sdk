@@ -111,7 +111,36 @@ describe('api/_performApiRequest', () => {
       );
       await expect(promise).to.be.rejectedWith(
         FirebaseError,
-        'Firebase: The email address is already in use by another account. (auth/email-already-in-use).'
+        'auth/email-already-in-use'
+      );
+      expect(mock.calls[0].request).to.eql(request);
+    });
+
+    it('should translate complex server errors to auth errors', async () => {
+      const mock = mockEndpoint(
+        Endpoint.SIGN_UP,
+        {
+          error: {
+            code: 400,
+            message: `${ServerError.INVALID_PHONE_NUMBER} : TOO_SHORT`,
+            errors: [
+              {
+                message: ServerError.EMAIL_EXISTS
+              }
+            ]
+          }
+        },
+        400
+      );
+      const promise = _performApiRequest<typeof request, typeof serverResponse>(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
+      await expect(promise).to.be.rejectedWith(
+        FirebaseError,
+        'auth/invalid-phone-number'
       );
       expect(mock.calls[0].request).to.eql(request);
     });
@@ -140,7 +169,7 @@ describe('api/_performApiRequest', () => {
       );
       await expect(promise).to.be.rejectedWith(
         FirebaseError,
-        'Firebase: An internal AuthError has occurred. (auth/internal-error).'
+        'auth/internal-error'
       );
       expect(mock.calls[0].request).to.eql(request);
     });
@@ -172,7 +201,7 @@ describe('api/_performApiRequest', () => {
       );
       await expect(promise).to.be.rejectedWith(
         FirebaseError,
-        'Firebase: Error (auth/argument-error).'
+        'auth/argument-error'
       );
       expect(mock.calls[0].request).to.eql(request);
     });
@@ -201,10 +230,7 @@ describe('api/_performApiRequest', () => {
         request
       );
       clock.tick(DEFAULT_API_TIMEOUT_MS.get() + 1);
-      await expect(promise).to.be.rejectedWith(
-        FirebaseError,
-        'Firebase: The operation has timed out. (auth/timeout).'
-      );
+      await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/timeout');
       clock.restore();
     });
 
@@ -222,7 +248,7 @@ describe('api/_performApiRequest', () => {
       );
       await expect(promise).to.be.rejectedWith(
         FirebaseError,
-        'Firebase: A network AuthError (such as timeout, interrupted connection or unreachable host) has occurred. (auth/network-request-failed).'
+        'auth/network-request-failed'
       );
     });
   });
