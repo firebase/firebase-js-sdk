@@ -20,15 +20,14 @@ import { Writable } from 'ts-essentials';
 // Add fake SW types.
 declare const self: Window & Writable<ServiceWorkerGlobalScope>;
 
-// When trying to stub self.clients self.registration, Sinon complains that
-// these properties do not exist. This is because we're not actually running
-// these tests in a service worker context.
-//
-// Here we're adding placeholders for Sinon to overwrite, which prevents the
-// "Cannot stub non-existent own property" errors.
-//
-// Casting to any is needed because TS also thinks that we're in a SW
-// context and considers these properties readonly.
+// When trying to stub self.clients self.registration, Sinon complains that these properties do not
+// exist. This is because we're not actually running these tests in a service worker context.
+
+// Here we're adding placeholders for Sinon to overwrite, which prevents the "Cannot stub
+// non-existent own property" errors.
+
+// Casting to any is needed because TS also thinks that we're in a SW context and considers these
+// properties readonly.
 
 // Missing function types are implemented from interfaces, so types are actually defined.
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
@@ -166,8 +165,8 @@ export class FakePushSubscription implements PushSubscription {
 }
 
 /**
- * Most of the fields in here are unused / deprecated.
- * They are only added here to match the TS Event interface.
+ * Most of the fields in here are unused / deprecated. They are only added here to match the TS
+ * Event interface.
  */
 export class FakeEvent implements ExtendableEvent {
   NONE = Event.NONE;

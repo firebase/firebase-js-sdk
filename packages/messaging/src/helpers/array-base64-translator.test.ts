@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-import { arrayToBase64, base64ToArray } from './array-base64-translator';
-import { expect } from 'chai';
 import '../testing/setup';
+
+import { arrayToBase64, base64ToArray } from './array-base64-translator';
+
+import { expect } from 'chai';
 
 // prettier-ignore
 const TEST_P256_ARRAY = new Uint8Array([

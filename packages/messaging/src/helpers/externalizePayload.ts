@@ -1,7 +1,6 @@
-/* eslint-disable camelcase */
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +15,15 @@
  * limitations under the License.
  */
 
-import {
-  MessagePayload,
-  MessagePayloadInternal
-} from '../interfaces/message-payload';
+import { MessagePayload } from '@firebase/messaging-types';
+import { MessagePayloadInternal } from '../interfaces/internal-message-payload';
 
 export function externalizePayload(
   internalPayload: MessagePayloadInternal
 ): MessagePayload {
   const payload: MessagePayload = {
-    notification: {},
-    data: {},
-    fcmOptions: {},
     from: internalPayload.from,
+    // eslint-disable-next-line camelcase
     collapseKey: internalPayload.collapse_key
   } as MessagePayload;
 
@@ -44,9 +39,10 @@ function propagateNotificationPayload(
   messagePayloadInternal: MessagePayloadInternal
 ): void {
   if (!messagePayloadInternal.notification) {
-    delete payload.notification;
     return;
   }
+
+  payload.notification = {};
 
   const title = messagePayloadInternal.notification!.title;
   if (!!title) {
@@ -69,7 +65,6 @@ function propagateDataPayload(
   messagePayloadInternal: MessagePayloadInternal
 ): void {
   if (!messagePayloadInternal.data) {
-    delete payload.data;
     return;
   }
 
@@ -81,9 +76,10 @@ function propagateFcmOptions(
   messagePayloadInternal: MessagePayloadInternal
 ): void {
   if (!messagePayloadInternal.fcmOptions) {
-    delete payload.fcmOptions;
     return;
   }
+
+  payload.fcmOptions = {};
 
   const link = messagePayloadInternal.fcmOptions!.link;
   if (!!link) {

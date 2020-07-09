@@ -1,3 +1,20 @@
+/**
+ * @license
+ * Copyright 2019 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import '../testing/setup';
 
 import * as tokenManagementModule from '../core/token-management';
@@ -14,33 +31,16 @@ import {
 import {
   MessagePayloadInternal,
   MessageType
-} from '../interfaces/message-payload';
+} from '../interfaces/internal-message-payload';
 import { SinonFakeTimers, SinonSpy, spy, stub, useFakeTimers } from 'sinon';
 import { Spy, Stub } from '../testing/sinon-types';
-/**
- * @license
- * Copyright 2017 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-import { assert, expect } from 'chai';
 
 import { ErrorCode } from '../util/errors';
 import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
 import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { WindowController } from './window-controller';
-import { externalizePayload } from '../helpers/externalizePayload';
+import { expect } from 'chai';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
 
 type MessageEventListener = (event: Event) => Promise<void>;
@@ -109,7 +109,7 @@ describe('WindowController', () => {
 
   describe('getToken', () => {
     it('uses default sw if none was registered nor provided', async () => {
-      assert.isUndefined(windowController.getSwReg());
+      expect(windowController.getSwReg()).to.be.undefined;
 
       await windowController.getToken({});
 
@@ -119,7 +119,7 @@ describe('WindowController', () => {
     });
 
     it('uses option-provided swReg if non was registered', async () => {
-      assert.isUndefined(windowController.getSwReg());
+      expect(windowController.getSwReg()).to.be.undefined;
 
       await windowController.getToken({
         serviceWorkerRegistration: swRegistration
@@ -134,10 +134,7 @@ describe('WindowController', () => {
 
     it('uses previously stored sw if non is provided in the option parameter', async () => {
       windowController.useServiceWorker(swRegistration);
-      assert.strictEqual(
-        JSON.stringify(windowController.getSwReg()),
-        JSON.stringify(swRegistration)
-      );
+      expect(windowController.getSwReg()).to.be.deep.equal(swRegistration);
 
       await windowController.getToken({});
 
@@ -150,10 +147,7 @@ describe('WindowController', () => {
 
     it('new swReg overrides existing swReg ', async () => {
       windowController.useServiceWorker(swRegistration);
-      assert.strictEqual(
-        JSON.stringify(windowController.getSwReg()),
-        JSON.stringify(swRegistration)
-      );
+      expect(windowController.getSwReg()).to.be.deep.equal(swRegistration);
 
       const otherSwReg = new FakeServiceWorkerRegistration();
 
@@ -168,12 +162,13 @@ describe('WindowController', () => {
       );
     });
 
-    it('uses default VAPID if: a) no VAPID was stored and b) non iss provided in option', async () => {
-      assert.strictEqual(windowController.getVapidKey(), null);
+    it('uses default VAPID if: a) no VAPID was stored and b) none is provided in option', async () => {
+      expect(windowController.getVapidKey()).is.null;
 
       await windowController.getToken({});
 
-      assert.strictEqual(windowController.getVapidKey(), DEFAULT_VAPID_KEY);
+      expect(windowController.getVapidKey()).to.equal(DEFAULT_VAPID_KEY);
+
       expect(getTokenStub).to.have.been.calledOnceWith(
         firebaseDependencies,
         swRegistration,
@@ -182,11 +177,11 @@ describe('WindowController', () => {
     });
 
     it('uses option-provided VAPID if no VAPID has been registered', async () => {
-      assert.strictEqual(windowController.getVapidKey(), null);
+      expect(windowController.getVapidKey()).is.null;
 
       await windowController.getToken({ vapidKey: 'test_vapid_key' });
 
-      assert.strictEqual(windowController.getVapidKey(), 'test_vapid_key');
+      expect(windowController.getVapidKey()).to.equal('test_vapid_key');
       expect(getTokenStub).to.have.been.calledOnceWith(
         firebaseDependencies,
         swRegistration,
@@ -196,11 +191,11 @@ describe('WindowController', () => {
 
     it('uses option-provided VAPID if it is different from currently registered VAPID', async () => {
       windowController.usePublicVapidKey('old_key');
-      assert.strictEqual(windowController.getVapidKey(), 'old_key');
+      expect(windowController.getVapidKey()).to.equal('old_key');
 
       await windowController.getToken({ vapidKey: 'new_key' });
 
-      assert.strictEqual(windowController.getVapidKey(), 'new_key');
+      expect(windowController.getVapidKey()).to.equal('new_key');
       expect(getTokenStub).to.have.been.calledOnceWith(
         firebaseDependencies,
         swRegistration,
@@ -210,11 +205,11 @@ describe('WindowController', () => {
 
     it('uses existing VAPID if newly provided has the same value', async () => {
       windowController.usePublicVapidKey('key');
-      assert.strictEqual(windowController.getVapidKey(), 'key');
+      expect(windowController.getVapidKey()).to.equal('key');
 
       await windowController.getToken({ vapidKey: 'key' });
 
-      assert.strictEqual(windowController.getVapidKey(), 'key');
+      expect(windowController.getVapidKey()).to.equal('key');
       expect(getTokenStub).to.have.been.calledOnceWith(
         firebaseDependencies,
         swRegistration,
@@ -224,11 +219,11 @@ describe('WindowController', () => {
 
     it('uses existing VAPID if non is provided in the option parameter', async () => {
       windowController.usePublicVapidKey('key');
-      assert.strictEqual(windowController.getVapidKey(), 'key');
+      expect(windowController.getVapidKey()).to.equal('key');
 
       await windowController.getToken({});
 
-      assert.strictEqual(windowController.getVapidKey(), 'key');
+      expect(windowController.getVapidKey()).to.equal('key');
       expect(getTokenStub).to.have.been.calledOnceWith(
         firebaseDependencies,
         swRegistration,
@@ -531,9 +526,12 @@ describe('WindowController', () => {
         new MessageEvent('message', { data: internalPayload })
       );
 
-      expect(onMessageSpy).to.have.been.calledOnceWith(
-        externalizePayload(internalPayload)
-      );
+      expect(onMessageSpy).to.have.been.calledOnceWith({
+        notification: { title: 'hello', body: 'world' },
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
+      });
       expect(logEventSpy).not.to.have.been.called;
     });
 
@@ -575,9 +573,18 @@ describe('WindowController', () => {
         new MessageEvent('message', { data: internalPayload })
       );
 
-      expect(onMessageSpy).to.have.been.calledOnceWith(
-        externalizePayload(internalPayload)
-      );
+      expect(onMessageSpy).to.have.been.calledOnceWith({
+        notification: { title: 'hello', body: 'world' },
+        data: {
+          [CONSOLE_CAMPAIGN_ID]: '123456',
+          [CONSOLE_CAMPAIGN_NAME]: 'Campaign Name',
+          [CONSOLE_CAMPAIGN_TIME]: '1234567890',
+          [CONSOLE_CAMPAIGN_ANALYTICS_ENABLED]: '1'
+        },
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
+      });
       expect(logEventSpy).to.have.been.calledOnceWith(
         'notification_foreground',
         {

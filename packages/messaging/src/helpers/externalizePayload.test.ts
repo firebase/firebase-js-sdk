@@ -1,7 +1,6 @@
-/* eslint-disable camelcase */
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +15,8 @@
  * limitations under the License.
  */
 
-import {
-  MessagePayload,
-  MessagePayloadInternal
-} from '../interfaces/message-payload';
-
+import { MessagePayload } from '@firebase/messaging-types';
+import { MessagePayloadInternal } from '../interfaces/internal-message-payload';
 import { expect } from 'chai';
 import { externalizePayload } from './externalizePayload';
 
@@ -33,6 +29,7 @@ describe('externalizePayload', () => {
         image: 'image'
       },
       from: 'from',
+      // eslint-disable-next-line camelcase
       collapse_key: 'collapse'
     };
 
@@ -52,6 +49,7 @@ describe('externalizePayload', () => {
         baz: 'baz'
       },
       from: 'from',
+      // eslint-disable-next-line camelcase
       collapse_key: 'collapse'
     };
 
@@ -77,9 +75,11 @@ describe('externalizePayload', () => {
       },
       fcmOptions: {
         link: 'link',
+        // eslint-disable-next-line camelcase
         analytics_label: 'label'
       },
       from: 'from',
+      // eslint-disable-next-line camelcase
       collapse_key: 'collapse'
     };
 

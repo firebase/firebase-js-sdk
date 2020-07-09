@@ -1,5 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -24,30 +22,21 @@ import {
   CONSOLE_CAMPAIGN_TIME,
   DEFAULT_SW_PATH,
   DEFAULT_SW_SCOPE,
-  DEFAULT_VAPID_KEY,
-  TAG
+  DEFAULT_VAPID_KEY
 } from '../util/constants';
 import {
-  CompleteFn,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Unsubscribe
-} from '@firebase/util';
-import {
   ConsoleMessageData,
-  MessagePayload,
   MessagePayloadInternal,
   MessageType
-} from '../interfaces/message-payload';
+} from '../interfaces/internal-message-payload';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { NextFn, Observer, Unsubscribe } from '@firebase/util';
 import { deleteToken, getToken } from '../core/token-management';
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { FirebaseMessaging } from '@firebase/messaging-types';
 import { FirebaseService } from '@firebase/app-types/private';
-import { externalizePayload } from '../helpers/externalizePayload';
 import { isConsoleMessage } from '../helpers/is-console-message';
 
 export class WindowController implements FirebaseMessaging, FirebaseService {
@@ -75,18 +64,23 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
     }
 
     // onMessageCallback is either a function or observer/subscriber.
+    // TODO: in the modularization release, have onMessage handle type MessagePayload as supposed to
+    // the legacy payload where some fields are in snake cases.
     if (
       this.onMessageCallback &&
       internalPayload.messageType === MessageType.PUSH_RECEIVED
     ) {
       if (typeof this.onMessageCallback === 'function') {
-        this.onMessageCallback(externalizePayload(internalPayload));
+        this.onMessageCallback(
+          stripInternalFields(Object.assign({}, internalPayload))
+        );
       } else {
-        this.onMessageCallback.next(externalizePayload(internalPayload));
+        this.onMessageCallback.next(Object.assign({}, internalPayload));
       }
     }
 
     const dataPayload = internalPayload.data;
+
     if (
       isConsoleMessage(dataPayload) &&
       dataPayload[CONSOLE_CAMPAIGN_ANALYTICS_ENABLED] === '1'
@@ -118,14 +112,6 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
     await this.updateVapidKey(options?.vapidKey);
     await this.updateSwReg(options?.serviceWorkerRegistration);
 
-    if (!this.swRegistration) {
-      console.debug(
-        TAG +
-          'no sw has been provided explicitly. Attempting to find firebase-messaging-sw.js in default directory.'
-      );
-      await this.registerDefaultSw();
-    }
-
     return getToken(
       this.firebaseDependencies,
       this.swRegistration!,
@@ -133,12 +119,8 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
     );
   }
 
-  async updateVapidKey(vapidKey: string | undefined): Promise<void> {
+  async updateVapidKey(vapidKey?: string | undefined): Promise<void> {
     if (!!this.vapidKey && !!vapidKey && this.vapidKey !== vapidKey) {
-      console.debug(
-        TAG +
-          'newly provided VapidKey is different from previously stored VapidKey.  New VapidKey is overriding.'
-      );
       this.vapidKey = vapidKey;
     }
 
@@ -147,18 +129,18 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
     }
 
     if (!this.vapidKey && !vapidKey) {
-      console.debug(
-        TAG +
-          'no VapidKey is provided. Using the default VapidKey. Note that Push will NOT work in Chrome without a non-default VapidKey.'
-      );
       this.vapidKey = DEFAULT_VAPID_KEY;
     }
   }
 
   async updateSwReg(
-    swRegistration: ServiceWorkerRegistration | undefined
+    swRegistration?: ServiceWorkerRegistration | undefined
   ): Promise<void> {
-    if (!swRegistration) {
+    if (!swRegistration && !this.swRegistration) {
+      await this.registerDefaultSw();
+    }
+
+    if (!swRegistration && !!this.swRegistration) {
       return;
     }
 
@@ -178,10 +160,11 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
         }
       );
 
-      // The timing when browser updates sw when sw has an update is unreliable by my experiment.
-      // It leads to version conflict when the SDK upgrades to a newer version in the main page, but
-      // sw is stuck with the old version. For example, https://github.com/firebase/firebase-js-sdk/issues/2590
-      // The following line reliably updates sw if there was an update.
+      // The timing when browser updates sw when sw has an update is unreliable by my experiment. It
+      // leads to version conflict when the SDK upgrades to a newer version in the main page, but sw
+      // is stuck with the old version. For example,
+      // https://github.com/firebase/firebase-js-sdk/issues/2590 The following line reliably updates
+      // sw if there was an update.
       this.swRegistration.update().catch(() => {
         /* it is non blocking and we don't care if it failed */
       });
@@ -223,6 +206,10 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
     }
   }
 
+  /**
+   * @deprecated. Use getToken(options?: {vapidKey?: string; serviceWorkerRegistration?:
+   * ServiceWorkerRegistration;}): Promise<string> instead.
+   */
   usePublicVapidKey(vapidKey: string): void {
     if (this.vapidKey !== null) {
       throw ERROR_FACTORY.create(ErrorCode.USE_VAPID_KEY_AFTER_GET_TOKEN);
@@ -235,6 +222,10 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
     this.vapidKey = vapidKey;
   }
 
+  /**
+   * @deprecated. Use getToken(options?: {vapidKey?: string; serviceWorkerRegistration?:
+   * ServiceWorkerRegistration;}): Promise<string> instead.
+   */
   useServiceWorker(swRegistration: ServiceWorkerRegistration): void {
     if (!(swRegistration instanceof ServiceWorkerRegistration)) {
       throw ERROR_FACTORY.create(ErrorCode.INVALID_SW_REGISTRATION);
@@ -248,8 +239,7 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
   }
 
   /**
-   * @param nextOrObserver An observer object or a function triggered on
-   * message.
+   * @param nextOrObserver An observer object or a function triggered on message.
    *
    * @return The unsubscribe function for the observer.
    */
@@ -265,17 +255,13 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
     throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_SW);
   }
 
-  onBackgroundMessage(
-    nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe {
+  onBackgroundMessage(): Unsubscribe {
     throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_SW);
   }
 
   /**
-   * No-op. It was initially designed with token rotation requests from server in mind. However, the plan to implement such feature was abandoned.
-   * @deprecated
+   * @deprecated No-op. It was initially designed with token rotation requests from server in mind.
+   * However, the plan to implement such feature was abandoned.
    */
   onTokenRefresh(): Unsubscribe {
     return () => {};
@@ -307,4 +293,12 @@ function getEventType(messageType: MessageType): string {
     default:
       throw new Error();
   }
+}
+
+function stripInternalFields(
+  internalPayload: MessagePayloadInternal
+): MessagePayloadInternal {
+  delete internalPayload.messageType;
+  delete internalPayload.isFirebaseMessaging;
+  return internalPayload;
 }

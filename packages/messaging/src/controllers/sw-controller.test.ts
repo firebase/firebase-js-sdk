@@ -1,5 +1,20 @@
-/* eslint-disable import/no-extraneous-dependencies */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import '../testing/setup';
 
 import * as tokenManagementModule from '../core/token-management';
@@ -23,28 +38,12 @@ import {
 import {
   MessagePayloadInternal,
   MessageType
-} from '../interfaces/message-payload';
+} from '../interfaces/internal-message-payload';
 import { spy, stub } from 'sinon';
 
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { Stub } from '../testing/sinon-types';
 import { dbSet } from '../helpers/idb-manager';
-/**
- * @license
- * Copyright 2017 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 import { expect } from 'chai';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
@@ -52,7 +51,8 @@ import { getFakeTokenDetails } from '../testing/fakes/token-details';
 // Add fake SW types.
 declare const self: Window & Writable<ServiceWorkerGlobalScope>;
 
-// internal message payload (parsed directly from the push event) that contains and only contains notification payload.
+// internal message payload (parsed directly from the push event) that contains and only contains
+// notification payload.
 const DISPLAY_MESSAGE: MessagePayloadInternal = {
   notification: {
     title: 'title',
@@ -66,7 +66,8 @@ const DISPLAY_MESSAGE: MessagePayloadInternal = {
   collapse_key: 'collapse'
 };
 
-// internal message payload (parsed directly from the push event) that contains and only contains data payload.
+// internal message payload (parsed directly from the push event) that contains and only contains
+// data payload.
 const DATA_MESSAGE: MessagePayloadInternal = {
   data: {
     key: 'value'
@@ -89,7 +90,9 @@ describe('SwController', () => {
 
     stub(Notification, 'permission').value('granted');
 
-    // Instead of calling actual addEventListener, add the event to the eventListeners list. Actual event listeners can't be used as the tests are not running in a Service Worker, which means Push events do not exist.
+    // Instead of calling actual addEventListener, add the event to the eventListeners list. Actual
+    // event listeners can't be used as the tests are not running in a Service Worker, which means
+    // Push events do not exist.
     addEventListenerStub = stub(self, 'addEventListener').callsFake(
       (type, listener) => {
         eventListenerMap.set(type, listener);
@@ -279,6 +282,31 @@ describe('SwController', () => {
       );
 
       expect(bgMessageHandlerSpy).to.have.been.calledWith();
+    });
+
+    it('forwards MessagePayload with a notification payload to onBackgroundMessage', async () => {
+      const bgMessageHandlerSpy = spy();
+      const showNotificationSpy = spy(self.registration, 'showNotification');
+
+      swController.setBackgroundMessageHandler(bgMessageHandlerSpy);
+
+      await callEventListener(
+        makeEvent('push', {
+          data: {
+            json: () => ({
+              notification: {
+                ...DISPLAY_MESSAGE
+              },
+              data: {
+                ...DATA_MESSAGE
+              }
+            })
+          }
+        })
+      );
+
+      expect(bgMessageHandlerSpy).to.have.been.called;
+      expect(showNotificationSpy).to.have.been.called;
     });
 
     it('warns if there are more action buttons than the browser limit', async () => {

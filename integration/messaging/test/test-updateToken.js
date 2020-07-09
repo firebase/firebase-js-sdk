@@ -43,7 +43,7 @@ describe('Firebase Messaging Integration Tests > update a token', function() {
   });
 
   const availableBrowsers = seleniumAssistant.getLocalBrowsers();
-  //TODO: enable testing for edge and firefox if applicable
+  // TODO: enable testing for edge and firefox if applicable
   availableBrowsers.forEach(assistantBrowser => {
     if (assistantBrowser.getId() !== 'chrome') {
       return;

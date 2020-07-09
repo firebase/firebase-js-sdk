@@ -33,16 +33,14 @@
     "@firebase/installations": "0.4.13",
     "@firebase/messaging-types": "0.4.5",
     "@firebase/util": "0.2.50",
-    "eslint": "^7.3.1",
     "idb": "3.0.2",
-    "npm-run-all": "^4.1.5",
-    "tslib": "^1.11.1"
+    "tslib": "1.11.1"
   },
   "devDependencies": {
     "rollup": "2.7.6",
     "rollup-plugin-typescript2": "0.27.0",
-    "ts-essentials": "^6.0.7",
-    "typescript": "3.8.3"
+    "ts-essentials": "6.0.7",
+    "typescript": "3.9.5"
   },
   "repository": {
     "directory": "packages/messaging",
