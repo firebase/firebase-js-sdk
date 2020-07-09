@@ -17,8 +17,8 @@
 
 import {
   ComponentConfiguration,
-  IndexedDbComponentProvider,
-  MemoryComponentProvider
+  MemoryComponentProvider,
+  MultiTabIndexedDbComponentProvider
 } from '../../../src/core/component_provider';
 import {
   GarbageCollectionScheduler,
@@ -114,7 +114,7 @@ function failTransactionIfNeeded(
   }
 }
 
-export class MockIndexedDbComponentProvider extends IndexedDbComponentProvider {
+export class MockIndexedDbComponentProvider extends MultiTabIndexedDbComponentProvider {
   persistence!: MockIndexedDbPersistence;
 
   constructor(
