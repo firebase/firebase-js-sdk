@@ -31,7 +31,8 @@ export const enum ErrorCode {
   OUTPUT_DIRECTORY_REQUIRED = 'An output directory is required but a file given',
   OUTPUT_FILE_REQUIRED = 'An output file is required but a directory given',
   INPUT_FILE_DOES_NOT_EXIST = "Input file doesn't exist!",
-  FILE_PARSING_ERROR = 'Failed to parse js file'
+  FILE_PARSING_ERROR = 'Failed to parse js file!',
+  REPORT_REDIRECTION_ERROR = 'Please enable at least one of --output or --ci flag for report redirection!'
 }
 
 /** Contains a list of members by type. */
@@ -87,7 +88,7 @@ export async function extractDependenciesAndSize(
   const beforeContent = `export { ${exportName} } from '${path.resolve(
     jsBundle
   )}';`;
-
+  console.log(beforeContent);
   fs.writeFileSync(input, beforeContent);
 
   // Run Rollup on the JavaScript above to produce a tree-shaken build
@@ -105,12 +106,13 @@ export async function extractDependenciesAndSize(
     input
   });
   await minimizedBundle.write({ file: minimizedBundleOutput, format: 'es' });
-
+  const tmpp = fs.readFileSync(minimizedBundleOutput, 'utf-8');
+  fs.writeFileSync(`dependencies/${exportName}`, tmpp);
   const dependencies: MemberList = extractDeclarations(
     minimizedBundleOutput,
     map
   );
-
+  console.log(dependencies);
   const externals: object = extractExternalDependencies(minimizedBundleOutput);
   dependencies.externals.push(externals);
 

@@ -43,9 +43,13 @@ const BUNDLE: string = 'esm2017';
  *
  * -- inputBundleFile (optional): adhoc support. Specify a path to bundle file. Must enable -- inputDtsFile if this flag is specified.
  *
- * --output(required): output directory or file where reports will be generated.
+ * --ci (optional): if enabled, upload report to ci backend. One of --ci and --output flag must be specified for output redirection.
+ *
+ *
+ * --output (optional): output directory or file where reports will be generated.
  *          specify a directory if module(s) are analyzed
  *          specify a file path if ad hoc analysis is to be performed
+ *          One of --ci and --output flag must be specified for output redirection.
  *
  */
 const argv = yargs
@@ -66,10 +70,16 @@ const argv = yargs
       alias: 'ib',
       desc: 'support for adhoc analysis. requires a path to a bundle file'
     },
+    ci: {
+      type: 'boolean',
+      alias: 'ci',
+      default: false,
+      desc:
+        "when enabled, the binary size report is not persisted on file system; Instead, it's uploaded to CI backend"
+    },
     output: {
       type: 'string',
       alias: 'o',
-      demandOption: true,
       desc:
         'The location where report(s) will be generated, a directory path if module(s) are analyzed; a file path if ad hoc analysis is to be performed'
     }
@@ -82,7 +92,9 @@ const argv = yargs
  */
 async function generateReportForModule(
   path: string,
-  outputDirectory: string
+  outputDirectory: string,
+  writeFiles: boolean,
+  uploadToCI: boolean
 ): Promise<void> {
   const packageJsonPath = `${path}/package.json`;
   if (!fs.existsSync(packageJsonPath)) {
@@ -98,7 +110,12 @@ async function generateReportForModule(
     const bundleFile = `${path}/${packageJson[BUNDLE]}`;
     const json = await generateReport(dtsFile, bundleFile);
     const fileName = `${basename(packageJson.name)}-dependency.json`;
-    writeReportToDirectory(json, fileName, resolve(outputDirectory));
+    if (writeFiles) {
+      writeReportToDirectory(json, fileName, resolve(outputDirectory));
+    }
+    if (uploadToCI) {
+      uploadReportToCI();
+    }
   }
 }
 /**
@@ -122,6 +139,8 @@ function buildMap(api: MemberList): Map<string, string> {
 function traverseDirs(
   moduleLocation: string,
   outputDirectory: string,
+  writeFiles: boolean,
+  uploadToCI: boolean,
   executor,
   level: number,
   levelLimit: number
@@ -130,13 +149,21 @@ function traverseDirs(
     return;
   }
 
-  executor(moduleLocation, outputDirectory);
+  executor(moduleLocation, outputDirectory, writeFiles, uploadToCI);
 
   for (const name of fs.readdirSync(moduleLocation)) {
     const p = `${moduleLocation}/${name}`;
 
     if (fs.lstatSync(p).isDirectory()) {
-      traverseDirs(p, outputDirectory, executor, level + 1, levelLimit);
+      traverseDirs(
+        p,
+        outputDirectory,
+        writeFiles,
+        uploadToCI,
+        executor,
+        level + 1,
+        levelLimit
+      );
     }
   }
 }
@@ -180,13 +207,19 @@ async function generateReport(
     throw new Error(ErrorCode.INPUT_FILE_DOES_NOT_EXIST);
   }
   const publicAPI = extractDeclarations(resolvedDtsFile);
+  console.log(publicAPI);
   const map: Map<string, string> = buildMap(publicAPI);
   return buildJsonReport(publicAPI, bundleFile, map);
 }
 
+function uploadReportToCI(): void {
+  console.log('TODO');
+}
 function generateReportForModules(
   moduleLocations: string[],
-  outputDirectory: string
+  outputDirectory: string,
+  writeFiles: boolean,
+  uploadToCI: boolean
 ): void {
   for (const moduleLocation of moduleLocations) {
     // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
@@ -194,6 +227,8 @@ function generateReportForModules(
     traverseDirs(
       moduleLocation,
       outputDirectory,
+      writeFiles,
+      uploadToCI,
       generateReportForModule,
       0,
       1
@@ -208,8 +243,12 @@ function generateReportForModules(
  * Throw INVALID_FLAG_COMBINATION error if neither case fulfill.
  */
 async function main(): Promise<void> {
+  if (!argv.output && !argv.ci) {
+    throw new Error(ErrorCode.REPORT_REDIRECTION_ERROR);
+  }
   // check if it's an adhoc run
-  if (argv.inputDtsFile && argv.inputBundleFile) {
+  // adhoc run report can only be redirected to files
+  if (argv.inputDtsFile && argv.inputBundleFile && argv.output) {
     const jsonReport = await generateReport(
       argv.inputDtsFile,
       argv.inputBundleFile
@@ -226,8 +265,20 @@ async function main(): Promise<void> {
         return argv.inputModule.includes(json.name);
       });
     }
-
-    generateReportForModules(allModulesLocation, argv.output);
+    let writeFiles: boolean = false;
+    let uploadToCI: boolean = false;
+    if (argv.output) {
+      writeFiles = true;
+    }
+    if (argv.ci) {
+      uploadToCI = true;
+    }
+    generateReportForModules(
+      allModulesLocation,
+      argv.output,
+      writeFiles,
+      uploadToCI
+    );
   } else {
     throw new Error(ErrorCode.INVALID_FLAG_COMBINATION);
   }
