@@ -16,7 +16,7 @@
  */
 
 import { User } from '../../../src/auth/user';
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
+import { DatabaseId } from '../../../src/core/database_info';
 import { SequenceNumberSyncer } from '../../../src/core/listen_sequence';
 import {
   BatchId,
@@ -26,7 +26,12 @@ import {
   ListenSequenceNumber
 } from '../../../src/core/types';
 
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import {
+  buildStoragePrefix,
+  clearPersistence,
+  IndexedDbPersistence,
+  MAIN_DATABASE
+} from '../../../src/local/indexeddb_persistence';
 import { LocalSerializer } from '../../../src/local/local_serializer';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import {
@@ -61,18 +66,10 @@ export const MOCK_SEQUENCE_NUMBER_SYNCER: SequenceNumberSyncer = {
 export const TEST_DATABASE_ID = new DatabaseId('test-project');
 export const TEST_PERSISTENCE_KEY = '[PersistenceTestHelpers]';
 
-/** The DatabaseInfo used by tests that need a serializer. */
-const TEST_DATABASE_INFO = new DatabaseInfo(
-  TEST_DATABASE_ID,
-  TEST_PERSISTENCE_KEY,
-  'host',
-  /*ssl=*/ false,
-  /*forceLongPolling=*/ false
-);
-
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
-export const TEST_PERSISTENCE_PREFIX = IndexedDbPersistence.buildStoragePrefix(
-  TEST_DATABASE_INFO
+export const TEST_PERSISTENCE_PREFIX = buildStoragePrefix(
+  TEST_DATABASE_ID,
+  TEST_PERSISTENCE_KEY
 );
 
 /**
@@ -81,8 +78,7 @@ export const TEST_PERSISTENCE_PREFIX = IndexedDbPersistence.buildStoragePrefix(
  * `TEST_DATABASE_ID`.
  */
 export const INDEXEDDB_TEST_DATABASE_NAME =
-  IndexedDbPersistence.buildStoragePrefix(TEST_DATABASE_INFO) +
-  IndexedDbPersistence.MAIN_DATABASE;
+  buildStoragePrefix(TEST_DATABASE_ID, TEST_PERSISTENCE_KEY) + MAIN_DATABASE;
 
 const JSON_SERIALIZER = new JsonProtoSerializer(
   TEST_DATABASE_ID,
@@ -111,7 +107,7 @@ export async function testIndexedDbPersistence(
   const clientId = AutoId.newId();
   const prefix = `${TEST_PERSISTENCE_PREFIX}/`;
   if (!options.dontPurgeData) {
-    await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
+    await SimpleDb.delete(prefix + MAIN_DATABASE);
   }
   const persistence = new IndexedDbPersistence(
     !!options.synchronizeTabs,
@@ -142,7 +138,7 @@ export async function testMemoryLruPersistence(
 
 /** Clears the persistence in tests */
 export function clearTestPersistence(): Promise<void> {
-  return IndexedDbPersistence.clearPersistence(TEST_PERSISTENCE_PREFIX);
+  return clearPersistence(TEST_PERSISTENCE_PREFIX);
 }
 
 class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {

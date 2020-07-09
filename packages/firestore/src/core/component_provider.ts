@@ -36,7 +36,7 @@ import {
 import { RemoteStore } from '../remote/remote_store';
 import { EventManager } from './event_manager';
 import { AsyncQueue } from '../util/async_queue';
-import { DatabaseInfo } from './database_info';
+import { DatabaseId, DatabaseInfo } from './database_info';
 import { Datastore } from '../remote/datastore';
 import { User } from '../auth/user';
 import { PersistenceSettings } from './firestore_client';
@@ -46,7 +46,11 @@ import { Code, FirestoreError } from '../util/error';
 import { OnlineStateSource } from './types';
 import { LruParams, LruScheduler } from '../local/lru_garbage_collector';
 import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
-import { IndexedDbPersistence } from '../local/indexeddb_persistence';
+import {
+  buildStoragePrefix,
+  IndexedDbPersistence,
+  clearPersistence
+} from '../local/indexeddb_persistence';
 import {
   MemoryEagerDelegate,
   MemoryPersistence
@@ -85,7 +89,10 @@ export interface ComponentProvider {
 
   initialize(cfg: ComponentConfiguration): Promise<void>;
 
-  clearPersistence(databaseId: DatabaseInfo): Promise<void>;
+  clearPersistence(
+    databaseId: DatabaseId,
+    persistenceKey: string
+  ): Promise<void>;
 }
 
 /**
@@ -182,7 +189,10 @@ export class MemoryComponentProvider implements ComponentProvider {
     );
   }
 
-  clearPersistence(databaseInfo: DatabaseInfo): Promise<void> {
+  clearPersistence(
+    databaseId: DatabaseId,
+    persistenceKey: string
+  ): Promise<void> {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
       MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
@@ -229,8 +239,9 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
       'Can only start durable persistence'
     );
 
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      cfg.databaseInfo
+    const persistenceKey = buildStoragePrefix(
+      cfg.databaseInfo.databaseId,
+      cfg.databaseInfo.persistenceKey
     );
     const serializer = newSerializer(cfg.databaseInfo.databaseId);
     return new IndexedDbPersistence(
@@ -251,11 +262,11 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
     return new MemorySharedClientState();
   }
 
-  clearPersistence(databaseInfo: DatabaseInfo): Promise<void> {
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      databaseInfo
-    );
-    return IndexedDbPersistence.clearPersistence(persistenceKey);
+  clearPersistence(
+    databaseId: DatabaseId,
+    persistenceKey: string
+  ): Promise<void> {
+    return clearPersistence(buildStoragePrefix(databaseId, persistenceKey));
   }
 }
 
@@ -325,8 +336,9 @@ export class MultiTabIndexedDbComponentProvider extends IndexedDbComponentProvid
           'IndexedDB persistence is only available on platforms that support LocalStorage.'
         );
       }
-      const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-        cfg.databaseInfo
+      const persistenceKey = buildStoragePrefix(
+        cfg.databaseInfo.databaseId,
+        cfg.databaseInfo.persistenceKey
       );
       return new WebStorageSharedClientState(
         window,

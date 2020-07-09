@@ -16,7 +16,7 @@
  */
 
 import { User } from '../auth/user';
-import { DatabaseInfo } from '../core/database_info';
+import { DatabaseId } from '../core/database_info';
 import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
@@ -116,6 +116,12 @@ const UNSUPPORTED_PLATFORM_ERROR_MSG =
 //     firestore_zombie_<persistence_prefix>_<instance_key>
 const ZOMBIED_CLIENTS_KEY_PREFIX = 'firestore_zombie';
 
+/**
+ * The name of the main (and currently only) IndexedDB database. This name is
+ * appended to the prefix provided to the IndexedDbPersistence constructor.
+ */
+export const MAIN_DATABASE = 'main';
+
 export class IndexedDbTransaction extends PersistenceTransaction {
   constructor(
     readonly simpleDbTransaction: SimpleDbTransaction,
@@ -185,12 +191,6 @@ export class IndexedDbPersistence implements Persistence {
     }
   }
 
-  /**
-   * The name of the main (and currently only) IndexedDB database. this name is
-   * appended to the prefix provided to the IndexedDbPersistence constructor.
-   */
-  static MAIN_DATABASE = 'main';
-
   // Technically `simpleDb` should be `| undefined` because it is
   // initialized asynchronously by start(), but that would be more misleading
   // than useful.
@@ -257,7 +257,7 @@ export class IndexedDbPersistence implements Persistence {
     }
 
     this.referenceDelegate = new IndexedDbLruDelegate(this, lruParams);
-    this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
+    this.dbName = persistenceKey + MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.targetCache = new IndexedDbTargetCache(
       this.referenceDelegate,
@@ -733,14 +733,6 @@ export class IndexedDbPersistence implements Persistence {
     });
   }
 
-  static async clearPersistence(persistenceKey: string): Promise<void> {
-    if (!IndexedDbPersistence.isAvailable()) {
-      return Promise.resolve();
-    }
-    const dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
-    await SimpleDb.delete(dbName);
-  }
-
   get started(): boolean {
     return this._started;
   }
@@ -903,26 +895,6 @@ export class IndexedDbPersistence implements Persistence {
 
   static isAvailable(): boolean {
     return SimpleDb.isAvailable();
-  }
-
-  /**
-   * Generates a string used as a prefix when storing data in IndexedDB and
-   * LocalStorage.
-   */
-  static buildStoragePrefix(databaseInfo: DatabaseInfo): string {
-    // Use two different prefix formats:
-    //
-    //   * firestore / persistenceKey / projectID . databaseID / ...
-    //   * firestore / persistenceKey / projectID / ...
-    //
-    // projectIDs are DNS-compatible names and cannot contain dots
-    // so there's no danger of collisions.
-    let database = databaseInfo.databaseId.projectId;
-    if (!databaseInfo.databaseId.isDefaultDatabase) {
-      database += '.' + databaseInfo.databaseId.database;
-    }
-
-    return 'firestore/' + databaseInfo.persistenceKey + '/' + database + '/';
   }
 
   /** Checks the primary lease and removes it if we are the current primary. */
@@ -1334,4 +1306,35 @@ function writeSentinelKey(
   return documentTargetStore(txn).put(
     sentinelRow(key, txn.currentSequenceNumber)
   );
+}
+
+/**
+ * Generates a string used as a prefix when storing data in IndexedDB and
+ * LocalStorage.
+ */
+export function buildStoragePrefix(
+  databaseId: DatabaseId,
+  persistenceKey: string
+): string {
+  // Use two different prefix formats:
+  //
+  //   * firestore / persistenceKey / projectID . databaseID / ...
+  //   * firestore / persistenceKey / projectID / ...
+  //
+  // projectIDs are DNS-compatible names and cannot contain dots
+  // so there's no danger of collisions.
+  let database = databaseId.projectId;
+  if (!databaseId.isDefaultDatabase) {
+    database += '.' + databaseId.database;
+  }
+
+  return 'firestore/' + persistenceKey + '/' + database + '/';
+}
+
+export async function clearPersistence(persistenceKey: string): Promise<void> {
+  if (!SimpleDb.isAvailable()) {
+    return Promise.resolve();
+  }
+  const dbName = persistenceKey + MAIN_DATABASE;
+  await SimpleDb.delete(dbName);
 }
