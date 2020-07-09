@@ -291,7 +291,7 @@ export function disableNetwork(
 export function terminate(
   firestore: firestore.FirebaseFirestore
 ): Promise<void> {
-  _removeServiceInstance(firestore.app, 'firestore/lite');
+  _removeServiceInstance(firestore.app, 'firestore-exp');
   const firestoreImpl = cast(firestore, Firestore);
   return firestoreImpl._terminate();
 }

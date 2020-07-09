@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+import { FirebaseApp as FirebaseAppLegacy } from '@firebase/app-types';
+import { FirebaseApp as FirebaseAppExp } from '@firebase/app-types-exp';
+import { deleteApp } from '@firebase/app-exp';
 import * as legacy from '@firebase/firestore-types';
 import * as exp from '../';
 
@@ -68,13 +71,26 @@ export { GeoPoint, Blob, Timestamp } from '../index.node';
 // of the experimental SDK. This shim is used to run integration tests against
 // both SDK versions.
 
+export class FirebaseApp implements FirebaseAppLegacy {
+  constructor(readonly _delegate: FirebaseAppExp) {}
+
+  name = this._delegate.name;
+  options = this._delegate.options;
+  automaticDataCollectionEnabled = this._delegate
+    .automaticDataCollectionEnabled;
+
+  delete(): Promise<void> {
+    return deleteApp(this._delegate);
+  }
+}
+
 export class FirebaseFirestore implements legacy.FirebaseFirestore {
   constructor(private readonly _delegate: exp.FirebaseFirestore) {}
 
-  app = this._delegate.app;
+  app = new FirebaseApp(this._delegate.app);
 
   settings(settings: legacy.Settings): void {
-    initializeFirestore(this.app, settings);
+    initializeFirestore(this.app._delegate, settings);
   }
 
   enablePersistence(settings?: legacy.PersistenceSettings): Promise<void> {
