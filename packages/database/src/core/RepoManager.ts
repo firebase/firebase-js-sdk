@@ -115,20 +115,27 @@ export class RepoManager {
 
     let authTokenProvider: AuthTokenProvider;
 
+    let isEmulator: boolean;
+
     let dbEmulatorHost: string | undefined = undefined;
     if (typeof process !== 'undefined') {
       dbEmulatorHost = process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR];
     }
+
     if (dbEmulatorHost) {
+      isEmulator = true;
       dbUrl = `http://${dbEmulatorHost}?ns=${repoInfo.namespace}`;
       parsedUrl = parseRepoInfo(dbUrl);
       repoInfo = parsedUrl.repoInfo;
-      authTokenProvider = CONSTANTS.NODE_ADMIN
+    } else {
+      isEmulator =
+        parsedUrl.repoInfo.host === 'localhost' && !parsedUrl.repoInfo.secure;
+    }
+
+    authTokenProvider =
+      CONSTANTS.NODE_ADMIN && isEmulator
         ? new EmulatorAdminTokenProvider()
         : new FirebaseAuthTokenProvider(app, authProvider);
-    } else {
-      authTokenProvider = new FirebaseAuthTokenProvider(app, authProvider);
-    }
 
     validateUrl('Invalid Firebase Database URL', 1, parsedUrl);
     if (!parsedUrl.path.isEmpty()) {
