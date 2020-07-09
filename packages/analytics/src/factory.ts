@@ -32,7 +32,8 @@ import {
   insertScriptTag,
   getOrCreateDataLayer,
   wrapOrCreateGtag,
-  findGtagScriptOnPage
+  findGtagScriptOnPage,
+  validateInitializationEnvironment
 } from './helpers';
 import { ANALYTICS_ID_FIELD } from './constants';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
@@ -117,6 +118,10 @@ export function factory(
   app: FirebaseApp,
   installations: FirebaseInstallations
 ): FirebaseAnalytics {
+  // Async but non-blocking.
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  validateInitializationEnvironment();
+
   const analyticsId = app.options[ANALYTICS_ID_FIELD];
   if (!analyticsId) {
     throw ERROR_FACTORY.create(AnalyticsError.NO_GA_ID);

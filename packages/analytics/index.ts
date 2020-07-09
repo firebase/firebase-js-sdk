@@ -32,13 +32,12 @@ import {
   ComponentContainer
 } from '@firebase/component';
 import { ERROR_FACTORY, AnalyticsError } from './src/errors';
-
-import { name, version } from './package.json';
 import {
   isIndexedDBAvailable,
   validateIndexedDBOpenable,
   isCookieEnabled
 } from '@firebase/util';
+import { name, version } from './package.json';
 
 declare global {
   interface Window {
@@ -51,10 +50,7 @@ declare global {
  */
 const ANALYTICS_TYPE = 'analytics';
 
-export async function registerAnalytics(
-  instance: _FirebaseNamespace
-): Promise<void> {
-  await validateInitializationEnvironment();
+export function registerAnalytics(instance: _FirebaseNamespace): void {
   instance.INTERNAL.registerComponent(
     new Component(
       ANALYTICS_TYPE,
@@ -98,7 +94,6 @@ export async function registerAnalytics(
 
 export { factory, settings, resetGlobalVars, getGlobalVars };
 
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
 registerAnalytics(firebase as _FirebaseNamespace);
 
 /**
@@ -107,34 +102,10 @@ registerAnalytics(firebase as _FirebaseNamespace);
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     analytics(app?: FirebaseApp): FirebaseAnalytics;
-    isSupported(): boolean;
+    isSupported(): Promise<boolean>;
   }
   interface FirebaseApp {
     analytics(): FirebaseAnalytics;
-  }
-}
-
-/**
- * This method checks whether cookie is enabled within current browser and throws AnalyticsError.COOKIE_NOT_ENABLED if not.
- *
- * This method also checks if indexedDB is supported by current browser and throws AnalyticsError.INDEXED_DB_UNSUPPORTED error if not.
- *
- * This method also validates browser context for indexedDB by opening a dummy indexedDB database and throws AnalyticsError.INVALID_INDEXED_DB_CONTEXT
- * if errors occur during the database open operation.
- */
-async function validateInitializationEnvironment(): Promise<void> {
-  if (!isCookieEnabled()) {
-    throw ERROR_FACTORY.create(AnalyticsError.COOKIE_NOT_ENABLED);
-  }
-  if (!isIndexedDBAvailable()) {
-    throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
-  }
-  try {
-    await validateIndexedDBOpenable();
-  } catch (error) {
-    throw ERROR_FACTORY.create(AnalyticsError.INVALID_INDEXED_DB_CONTEXT, {
-      errorInfo: error
-    });
   }
 }
 

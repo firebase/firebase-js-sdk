@@ -32,7 +32,12 @@ import {
 } from './constants';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { logger } from './logger';
-
+import { ERROR_FACTORY, AnalyticsError } from './errors';
+import {
+  isIndexedDBAvailable,
+  validateIndexedDBOpenable,
+  isCookieEnabled
+} from '@firebase/util';
 /**
  * Initialize the analytics instance in gtag.js by calling config command with fid.
  *
@@ -217,4 +222,28 @@ export function findGtagScriptOnPage(): HTMLScriptElement | null {
     }
   }
   return null;
+}
+
+/**
+ * This method checks whether cookie is enabled within current browser and throws AnalyticsError.COOKIE_NOT_ENABLED if not.
+ *
+ * This method also checks if indexedDB is supported by current browser and throws AnalyticsError.INDEXED_DB_UNSUPPORTED error if not.
+ *
+ * This method also validates browser context for indexedDB by opening a dummy indexedDB database and throws AnalyticsError.INVALID_INDEXED_DB_CONTEXT
+ * if errors occur during the database open operation.
+ */
+export async function validateInitializationEnvironment(): Promise<void> {
+  if (!isCookieEnabled()) {
+    throw ERROR_FACTORY.create(AnalyticsError.COOKIE_NOT_ENABLED);
+  }
+  if (!isIndexedDBAvailable()) {
+    throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
+  }
+  try {
+    await validateIndexedDBOpenable();
+  } catch (error) {
+    throw ERROR_FACTORY.create(AnalyticsError.INVALID_INDEXED_DB_CONTEXT, {
+      errorInfo: error
+    });
+  }
 }

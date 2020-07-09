@@ -173,7 +173,6 @@ export function validateIndexedDBOpenable(): Promise<boolean> {
         reject(request.error?.message || '');
       };
     } catch (error) {
-      console.log('rejecting in validateIndexedDBOpenable');
       reject(error);
     }
   });
