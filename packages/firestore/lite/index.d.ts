@@ -195,6 +195,7 @@ export type SetOptions =
 
 export class DocumentReference<T = DocumentData> {
   private constructor();
+  readonly type = 'collection';
   readonly id: string;
   readonly firestore: FirebaseFirestore;
   readonly path: string;
@@ -229,12 +230,24 @@ export type WhereFilterOp =
 
 export class Query<T = DocumentData> {
   protected constructor();
+  readonly type = 'query';
   readonly firestore: FirebaseFirestore;
 
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
 
-export type QueryConstraint = {};
+export class QueryConstraint {
+  private constructor();
+  readonly type:
+    | 'where'
+    | 'orderBy'
+    | 'limit'
+    | 'limitToLast'
+    | 'startAt'
+    | 'startAfter'
+    | 'endAt'
+    | 'endBefore';
+}
 
 export function query<T>(
   query: CollectionReference<T> | Query<T>,
@@ -285,10 +298,12 @@ export class QuerySnapshot<T = DocumentData> {
   ): void;
 }
 
-export class CollectionReference<T = DocumentData> extends Query<T> {
+export class CollectionReference<T = DocumentData> {
   private constructor();
-  readonly collectionId: string;
+  readonly type = 'collection';
+  readonly id: string;
   readonly path: string;
+
   withConverter<U>(
     converter: FirestoreDataConverter<U>
   ): CollectionReference<U>;
