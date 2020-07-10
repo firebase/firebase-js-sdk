@@ -183,7 +183,7 @@ export function validateIndexedDBOpenable(): Promise<boolean> {
  * This method checks whether cookie is enabled within current browser
  * @return true if cookie is enabled within current browser
  */
-export function isCookieEnabled(): boolean {
+export function areCookiesEnabled(): boolean {
   if (!navigator || !navigator.cookieEnabled) {
     return false;
   }

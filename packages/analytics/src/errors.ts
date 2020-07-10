@@ -25,7 +25,7 @@ export const enum AnalyticsError {
   INTEROP_COMPONENT_REG_FAILED = 'interop-component-reg-failed',
   INDEXED_DB_UNSUPPORTED = 'indexedDB-unsupported',
   INVALID_INDEXED_DB_CONTEXT = 'invalid-indexedDB-context',
-  COOKIE_NOT_ENABLED = 'cookie-not-enabled'
+  COOKIES_NOT_ENABLED = 'cookie-not-enabled'
 }
 
 const ERRORS: ErrorMap<AnalyticsError> = {
@@ -46,9 +46,10 @@ const ERRORS: ErrorMap<AnalyticsError> = {
   [AnalyticsError.INDEXED_DB_UNSUPPORTED]:
     'IndexedDB is not supported by current browswer',
   [AnalyticsError.INVALID_INDEXED_DB_CONTEXT]:
-    "Environment doesn't support IndexedDB: {$errorInfo}. Wrap initialization of analytics in analytics.isSupported() to prevent intialization in unsupported environments",
-  [AnalyticsError.COOKIE_NOT_ENABLED]:
-    'Cookie not enabled in this browser environment. Analytics requires cookies to be enabled.'
+    "Environment doesn't support IndexedDB: {$errorInfo}. " +
+    'Wrap initialization of analytics in analytics.isSupported() to prevent initialization in unsupported environments',
+  [AnalyticsError.COOKIES_NOT_ENABLED]:
+    'Cookies are not enabled in this browser environment. Analytics requires cookies to be enabled.'
 };
 
 interface ErrorParams {
