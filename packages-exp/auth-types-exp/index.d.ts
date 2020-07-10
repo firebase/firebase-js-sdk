@@ -178,12 +178,12 @@ export interface ActionCodeInfo {
  * https://firebase.google.com/docs/reference/js/firebase.auth.ActionCodeInfo#operation_2
  */
 export const enum Operation {
+  EMAIL_SIGNIN = 'EMAIL_SIGNIN',
   PASSWORD_RESET = 'PASSWORD_RESET',
   RECOVER_EMAIL = 'RECOVER_EMAIL',
-  EMAIL_SIGNIN = 'EMAIL_SIGNIN',
-  VERIFY_EMAIL = 'VERIFY_EMAIL',
+  REVERT_SECOND_FACTOR_ADDITION = 'REVERT_SECOND_FACTOR_ADDITION',
   VERIFY_AND_CHANGE_EMAIL = 'VERIFY_AND_CHANGE_EMAIL',
-  REVERT_SECOND_FACTOR_ADDITION = 'REVERT_SECOND_FACTOR_ADDITION'
+  VERIFY_EMAIL = 'VERIFY_EMAIL'
 }
 
 /**
@@ -398,10 +398,24 @@ export abstract class PhoneMultiFactorGenerator {
 /**
  * https://firebase.google.com/docs/reference/js/firebase.auth#phoneinfooptions
  */
-export interface PhoneInfoOptions {
+export type PhoneInfoOptions =
+  | PhoneSingleFactorInfoOptions
+  | PhoneMultiFactorEnrollInfoOptions
+  | PhoneMultiFactorSignInInfoOptions;
+
+export interface PhoneSingleFactorInfoOptions {
   phoneNumber: string;
-  session?: MultiFactorSession;
+}
+
+export interface PhoneMultiFactorEnrollInfoOptions {
+  phoneNumber: string;
+  session: MultiFactorSession;
+}
+
+export interface PhoneMultiFactorSignInInfoOptions {
   multiFactorHint?: MultiFactorInfo;
+  multiFactorUid?: string;
+  session: MultiFactorSession;
 }
 
 export interface ReactNativeAsyncStorage {

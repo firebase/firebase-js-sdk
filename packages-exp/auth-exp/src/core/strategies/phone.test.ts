@@ -344,7 +344,7 @@ describe('core/strategies/phone', () => {
         });
       });
 
-      it('works when completing the sign in flow, ignoring the supplied phone number', async () => {
+      it('works when completing the sign in flow', async () => {
         const endpoint = mockEndpoint(Endpoint.START_PHONE_MFA_SIGN_IN, {
           phoneResponseInfo: {
             sessionInfo: 'session-info'
@@ -361,7 +361,6 @@ describe('core/strategies/phone', () => {
         const sessionInfo = await _verifyPhoneNumber(
           auth,
           {
-            phoneNumber: 'phone-number-from-user',
             session,
             multiFactorHint: mfaInfo
           },

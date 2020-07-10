@@ -37,16 +37,9 @@ import {
   MultiFactorSession,
   MultiFactorSessionType
 } from '../../mfa/mfa_session';
-import { MultiFactorInfo } from '../../mfa/mfa_info';
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<externs.UserCredential>;
-}
-
-interface PhoneInfoOptions extends externs.PhoneInfoOptions {
-  phoneNumber: string;
-  session?: MultiFactorSession;
-  multiFactorHint?: MultiFactorInfo;
 }
 
 class ConfirmationResult implements externs.ConfirmationResult {
@@ -135,32 +128,44 @@ export async function _verifyPhoneNumber(
       AuthErrorCode.ARGUMENT_ERROR
     );
 
-    const phoneInfoOptions: PhoneInfoOptions =
-      typeof options === 'string'
-        ? { phoneNumber: options }
-        : (options as PhoneInfoOptions);
+    let phoneInfoOptions: externs.PhoneInfoOptions;
 
-    if (phoneInfoOptions.session?.type === MultiFactorSessionType.ENROLL) {
-      const response = await startEnrollPhoneMfa(auth, {
-        idToken: phoneInfoOptions.session.credential,
-        phoneEnrollmentInfo: {
-          phoneNumber: phoneInfoOptions.phoneNumber,
-          recaptchaToken
-        }
-      });
-      return response.phoneSessionInfo.sessionInfo;
-    } else if (
-      phoneInfoOptions.session?.type === MultiFactorSessionType.SIGN_IN
-    ) {
-      assert(phoneInfoOptions.multiFactorHint, auth.name);
-      const response = await startSignInPhoneMfa(auth, {
-        mfaPendingCredential: phoneInfoOptions.session.credential,
-        mfaEnrollmentId: phoneInfoOptions.multiFactorHint.uid,
-        phoneSignInInfo: {
-          recaptchaToken
-        }
-      });
-      return response.phoneResponseInfo.sessionInfo;
+    if (typeof options === 'string') {
+      phoneInfoOptions = {
+        phoneNumber: options
+      };
+    } else {
+      phoneInfoOptions = options;
+    }
+
+    if ('session' in phoneInfoOptions) {
+      const session = phoneInfoOptions.session as MultiFactorSession;
+
+      if ('phoneNumber' in phoneInfoOptions) {
+        assert(session.type === MultiFactorSessionType.ENROLL, auth.name);
+        const response = await startEnrollPhoneMfa(auth, {
+          idToken: session.credential,
+          phoneEnrollmentInfo: {
+            phoneNumber: phoneInfoOptions.phoneNumber,
+            recaptchaToken
+          }
+        });
+        return response.phoneSessionInfo.sessionInfo;
+      } else {
+        assert(session.type === MultiFactorSessionType.SIGN_IN, auth.name);
+        const mfaEnrollmentId =
+          phoneInfoOptions.multiFactorHint?.uid ||
+          phoneInfoOptions.multiFactorUid;
+        assert(mfaEnrollmentId, auth.name, AuthErrorCode.MISSING_MFA_INFO);
+        const response = await startSignInPhoneMfa(auth, {
+          mfaPendingCredential: session.credential,
+          mfaEnrollmentId,
+          phoneSignInInfo: {
+            recaptchaToken
+          }
+        });
+        return response.phoneResponseInfo.sessionInfo;
+      }
     } else {
       const { sessionInfo } = await sendPhoneVerificationCode(auth, {
         phoneNumber: phoneInfoOptions.phoneNumber,
