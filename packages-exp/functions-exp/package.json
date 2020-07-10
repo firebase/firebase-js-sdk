@@ -37,7 +37,7 @@
     "@firebase/app-exp": "0.0.800",
     "rollup": "2.7.6",
     "rollup-plugin-typescript2": "0.27.0",
-    "typescript": "3.9.5"
+    "typescript": "3.9.6"
   },
   "repository": {
     "directory": "packages/functions",
