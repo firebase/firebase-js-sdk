@@ -87,7 +87,12 @@ const appBuilds = [
   {
     input: 'app/index.ts',
     output: [
-      { file: resolve('app', appPkg.main), format: 'cjs', sourcemap: true },
+      {
+        file: resolve('app', appPkg.main),
+        format: 'umd',
+        sourcemap: true,
+        name: 'fireapp'
+      },
       { file: resolve('app', appPkg.module), format: 'es', sourcemap: true }
     ],
     plugins,
@@ -119,8 +124,9 @@ const componentBuilds = pkg.components
         output: [
           {
             file: resolve(component, pkg.main),
-            format: 'cjs',
-            sourcemap: true
+            format: 'umd',
+            sourcemap: true,
+            name: `fire${component}`
           },
           {
             file: resolve(component, pkg.module),
@@ -177,7 +183,7 @@ const completeBuilds = [
   {
     input: 'src/index.ts',
     output: [
-      { file: pkg.browser, format: 'cjs', sourcemap: true },
+      { file: pkg.browser, format: 'umd', sourcemap: true, name: 'fireapp' },
       { file: pkg.module, format: 'es', sourcemap: true }
     ],
     plugins,
