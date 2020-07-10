@@ -42,7 +42,7 @@ export function newTestFirestore(
   return firestore;
 }
 
-export function usesModularApi(): false {
+export function usesFunctionalApi(): false {
   return false;
 }
 
