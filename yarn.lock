@@ -10547,11 +10547,6 @@ minimist-options@^3.0.1:
     arrify "^1.0.1"
     is-plain-obj "^1.1.0"
 
-minimist@0.0.8:
-  version "0.0.8"
-  resolved "https://registry.npmjs.org/minimist/-/minimist-0.0.8.tgz#857fcabfc3397d2625b8228262e86aa7a011b05d"
-  integrity sha1-hX/Kv8M5fSYluCKCYuhqp6ARsF0=
-
 minimist@1.x, minimist@^1.1.0, minimist@^1.1.1, minimist@^1.1.3, minimist@^1.2.0, minimist@^1.2.3, minimist@^1.2.5:
   version "1.2.5"
   resolved "https://registry.npmjs.org/minimist/-/minimist-1.2.5.tgz#67d66014b66a6a8aaa0c083c5fd58df4e4e97602"
@@ -10623,13 +10618,6 @@ mkdirp@*, mkdirp@1.0.4, mkdirp@^1.0.4:
   resolved "https://registry.npmjs.org/mkdirp/-/mkdirp-1.0.4.tgz#3eb5ed62622756d79a5f0e2a221dfebad75c2f7e"
   integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
 
-mkdirp@0.5.1:
-  version "0.5.1"
-  resolved "https://registry.npmjs.org/mkdirp/-/mkdirp-0.5.1.tgz#30057438eac6cf7f8c4767f38648d6697d75c903"
-  integrity sha1-MAV0OOrGz3+MR2fzhkjWaX11yQM=
-  dependencies:
-    minimist "0.0.8"
-
 mkdirp@0.5.5, "mkdirp@>=0.5 0", mkdirp@^0.5.0, mkdirp@^0.5.1, mkdirp@^0.5.3:
   version "0.5.5"
   resolved "https://registry.npmjs.org/mkdirp/-/mkdirp-0.5.5.tgz#d91cefd62d1436ca0f41620e251288d420099def"
@@ -10693,10 +10681,10 @@ module-deps@^6.0.0:
     through2 "^2.0.0"
     xtend "^4.0.0"
 
-moment@2.24.0:
-  version "2.24.0"
-  resolved "https://registry.npmjs.org/moment/-/moment-2.24.0.tgz#0d055d53f5052aa653c9f6eb68bb5d12bf5c2b5b"
-  integrity sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==
+moment@2.25.1:
+  version "2.25.1"
+  resolved "https://registry.npmjs.org/moment/-/moment-2.25.1.tgz#1cb546dca1eccdd607c9324747842200b683465d"
+  integrity sha512-nRKMf9wDS4Fkyd0C9LXh2FFXinD+iwbJ5p/lh3CHitW9kZbRbJ8hCruiadiIXZVbeAqKZzqcTvHnK3mRhFjb6w==
 
 morgan@^1.10.0, morgan@^1.8.2:
   version "1.10.0"
@@ -11578,6 +11566,11 @@ package-json@^4.0.0:
     registry-auth-token "^3.0.1"
     registry-url "^3.0.3"
     semver "^5.1.0"
+
+package-name-regex@1.0.8:
+  version "1.0.8"
+  resolved "https://registry.npmjs.org/package-name-regex/-/package-name-regex-1.0.8.tgz#4b8388cace6cc415f462ab4a269583d9a2d9f131"
+  integrity sha512-g3vB2J62dLqf4m50VM4tJUC4sixw3JB+Igd0cF3P/gJhAvmvsmFEV2eWZTeLbwfkKEWTf3+gwQ2C6JFFRxWHEQ==
 
 pad@^3.2.0:
   version "3.2.0"
@@ -12905,17 +12898,18 @@ rollup-plugin-json@4.0.0:
   dependencies:
     rollup-pluginutils "^2.5.0"
 
-rollup-plugin-license@0.14.0:
-  version "0.14.0"
-  resolved "https://registry.npmjs.org/rollup-plugin-license/-/rollup-plugin-license-0.14.0.tgz#623e5b6306b1521d7b89927d0a28d0f99ac52915"
-  integrity sha512-+MCcBBQF9j3PHPus+3Qgk8NfiRT569HBfBAk0UP3hEo3T3buY3lMZUXuTkE+VpTq1HSritCboJ6RxBhm6CEsdA==
+rollup-plugin-license@2.1.0:
+  version "2.1.0"
+  resolved "https://registry.npmjs.org/rollup-plugin-license/-/rollup-plugin-license-2.1.0.tgz#f372f2ec4defbab34ccaca51a76c2c836a2e860d"
+  integrity sha512-HvwwqCbG+//hAwGxOce+XadsEooq79SqDu3z2GTwU2y1rFQ/uqT5JbCzcmauFII+nKZ0/N2BzG76ZuP7OdfU7A==
   dependencies:
     commenting "1.1.0"
     glob "7.1.6"
     lodash "4.17.15"
     magic-string "0.25.7"
-    mkdirp "0.5.1"
-    moment "2.24.0"
+    mkdirp "1.0.4"
+    moment "2.25.1"
+    package-name-regex "1.0.8"
     spdx-expression-validate "2.0.0"
     spdx-satisfies "5.0.0"
 
