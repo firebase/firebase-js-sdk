@@ -30,7 +30,7 @@ import { DEFAULT_SETTINGS } from '../util/settings';
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;
 const Timestamp = firebaseExport.Timestamp;
-const usesModularApi = firebaseExport.usesModularApi;
+const usesModularApi = firebaseExport.usesFunctionalApi;
 
 // Allow custom types for testing.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

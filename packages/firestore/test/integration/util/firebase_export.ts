@@ -43,13 +43,13 @@ import { initializeApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types';
 
 /**
- * Detects whether we are running against the tree-shakeable Firestore API.
- * Used to exclude some tests, e.g. those that validate invalid TypeScript
- * input.
+ * Detects whether we are running against the functionial (tree-shakeable)
+ * Firestore API. Used to exclude some tests, e.g. those that validate invalid
+ * TypeScript input.
  */
-export function usesModularApi(): boolean {
+export function usesFunctionalApi(): boolean {
   // Use the firebase namespace to detect if `firebase.firestore` has been
-  // registered.
+  // registered, which is only registered in the classic version of Firestore.
   return !('firestore' in firebase);
 }
 
@@ -70,7 +70,7 @@ export function newTestFirestore(
     nameOrApp = 'test-app-' + appCount++;
   }
 
-  if (usesModularApi()) {
+  if (usesFunctionalApi()) {
     const app =
       typeof nameOrApp === 'string'
         ? initializeApp({ apiKey: 'fake-api-key', projectId }, nameOrApp)
@@ -105,15 +105,19 @@ export function newTestFirestore(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const legacyNamespace = (firebase as any).firestore;
 
-const Firestore = usesModularApi()
+const Firestore = usesFunctionalApi()
   ? exp.FirebaseFirestore
   : legacyNamespace.FirebaseFirestore;
-const FieldPath = usesModularApi() ? exp.FieldPath : legacyNamespace.FieldPath;
-const Timestamp = usesModularApi() ? exp.Timestamp : legacyNamespace.Timestamp;
-const GeoPoint = usesModularApi() ? exp.GeoPoint : legacyNamespace.GeoPoint;
-const FieldValue = usesModularApi()
+const FieldPath = usesFunctionalApi()
+  ? exp.FieldPath
+  : legacyNamespace.FieldPath;
+const Timestamp = usesFunctionalApi()
+  ? exp.Timestamp
+  : legacyNamespace.Timestamp;
+const GeoPoint = usesFunctionalApi() ? exp.GeoPoint : legacyNamespace.GeoPoint;
+const FieldValue = usesFunctionalApi()
   ? exp.FieldValue
   : legacyNamespace.FieldValue;
-const Blob = usesModularApi() ? exp.Blob : legacyNamespace.Blob;
+const Blob = usesFunctionalApi() ? exp.Blob : legacyNamespace.Blob;
 
 export { Firestore, FieldValue, FieldPath, Timestamp, Blob, GeoPoint };

@@ -36,7 +36,7 @@ import { DEFAULT_SETTINGS } from '../util/settings';
 use(chaiAsPromised);
 
 const newTestFirestore = firebaseExport.newTestFirestore;
-const usesModularApi = firebaseExport.usesModularApi;
+const usesModularApi = firebaseExport.usesFunctionalApi;
 const Timestamp = firebaseExport.Timestamp;
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;

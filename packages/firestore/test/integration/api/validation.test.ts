@@ -31,7 +31,7 @@ import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;
 const newTestFirestore = firebaseExport.newTestFirestore;
-const usesModularApi = firebaseExport.usesModularApi;
+const usesModularApi = firebaseExport.usesFunctionalApi;
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 /* eslint-disable @typescript-eslint/no-explicit-any */
