@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,12 @@ const es5Builds = [
   {
     input: 'index.ts',
     output: [
-      { file: pkg.browser, format: 'umd', sourcemap: true, name: 'firebaseRTDB' },
+      {
+        file: pkg.browser,
+        format: 'umd',
+        sourcemap: true,
+        name: 'firebaseUtil'
+      },
       { file: pkg.module, format: 'es', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
@@ -51,7 +56,9 @@ const es5Builds = [
    */
   {
     input: 'index.node.ts',
-    output: [{ file: format: 'umd', sourcemap: true, name: 'firebaseRTDB' }],
+    output: [
+      { file: pkg.main, format: 'umd', sourcemap: true, name: 'firebaseUtil' }
+    ],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
