@@ -7013,8 +7013,8 @@ declare namespace firebase.messaging {
     ): firebase.Unsubscribe;
 
     /**
-     * Called when a message is received while the app is in the background. An app is to be in the
-     * background if no active window is displayed.
+     * Called when a message is received while the app is in the background. An app is considered to
+     * be in the background if no active window is displayed.
      *
      * @param
      *     nextOrObserver This function, or observer object with `next` defined,
