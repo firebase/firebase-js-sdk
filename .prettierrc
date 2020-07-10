@@ -1,5 +1,7 @@
 {
   singleQuote: true,
   printWidth: 80,
-  quoteProps: preserve
+  quoteProps: preserve,
+  trailingComma: none,
+  arrowParens: avoid
 }

@@ -16,15 +16,17 @@
  */
 
 import json from 'rollup-plugin-json';
+import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 
-import { resolveNodeExterns } from './rollup.shared';
+import { resolveNodeExterns, generateAliasConfig } from './rollup.shared';
 
 import pkg from './lite/package.json';
 import path from 'path';
 
 const defaultPlugins = [
+  alias(generateAliasConfig('node')),
   typescriptPlugin({
     typescript,
     tsconfigOverride: {

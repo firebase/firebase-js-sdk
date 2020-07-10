@@ -18,12 +18,10 @@ import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 
 import { Firestore } from './src/api/database';
-import { IndexedDbComponentProvider } from './src/core/component_provider';
-import { configureForFirebase } from './src/platform/config';
+import { MultiTabIndexedDbComponentProvider } from './src/core/component_provider';
+import { configureForFirebase } from './src/config';
 
 import './register-module';
-import './src/platform_rn/rn_init';
-
 import { name, version } from './package.json';
 
 /**
@@ -33,7 +31,8 @@ import { name, version } from './package.json';
 export function registerFirestore(instance: FirebaseNamespace): void {
   configureForFirebase(
     instance,
-    (app, auth) => new Firestore(app, auth, new IndexedDbComponentProvider())
+    (app, auth) =>
+      new Firestore(app, auth, new MultiTabIndexedDbComponentProvider())
   );
   instance.registerVersion(name, version, 'rn');
 }

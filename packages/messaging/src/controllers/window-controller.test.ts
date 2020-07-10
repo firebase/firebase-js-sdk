@@ -1,3 +1,25 @@
+import '../testing/setup';
+
+import * as tokenManagementModule from '../core/token-management';
+
+import {
+  CONSOLE_CAMPAIGN_ANALYTICS_ENABLED,
+  CONSOLE_CAMPAIGN_ID,
+  CONSOLE_CAMPAIGN_NAME,
+  CONSOLE_CAMPAIGN_TIME,
+  DEFAULT_SW_PATH,
+  DEFAULT_SW_SCOPE,
+  DEFAULT_VAPID_KEY
+} from '../util/constants';
+import { InternalMessage, MessageType } from '../interfaces/internal-message';
+import { SinonFakeTimers, SinonSpy, spy, stub, useFakeTimers } from 'sinon';
+import { Spy, Stub } from '../testing/sinon-types';
+
+import { ErrorCode } from '../util/errors';
+import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
+import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
+import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+import { WindowController } from './window-controller';
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -15,27 +37,7 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { stub, spy, SinonSpy, useFakeTimers, SinonFakeTimers } from 'sinon';
-
-import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
-import { WindowController } from './window-controller';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
-import { ErrorCode } from '../util/errors';
-import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
-import * as tokenManagementModule from '../core/token-management';
-import {
-  DEFAULT_VAPID_KEY,
-  DEFAULT_SW_SCOPE,
-  DEFAULT_SW_PATH,
-  CONSOLE_CAMPAIGN_ANALYTICS_ENABLED,
-  CONSOLE_CAMPAIGN_ID,
-  CONSOLE_CAMPAIGN_NAME,
-  CONSOLE_CAMPAIGN_TIME
-} from '../util/constants';
-import { Stub, Spy } from '../testing/sinon-types';
-import '../testing/setup';
-import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
-import { MessageType, InternalMessage } from '../interfaces/internal-message';
 
 type MessageEventListener = (event: Event) => Promise<void>;
 

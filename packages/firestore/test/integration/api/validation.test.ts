@@ -503,19 +503,13 @@ apiDescribe('Validation:', (persistence: boolean) => {
       return ref
         .set(data)
         .then(() => {
-          return ref.firestore
-            .batch()
-            .set(ref, data)
-            .commit();
+          return ref.firestore.batch().set(ref, data).commit();
         })
         .then(() => {
           return ref.update(data);
         })
         .then(() => {
-          return ref.firestore
-            .batch()
-            .update(ref, data)
-            .commit();
+          return ref.firestore.batch().update(ref, data).commit();
         })
         .then(() => {
           return ref.firestore.runTransaction(async txn => {
@@ -1030,16 +1024,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
           reason
         );
         expect(() =>
-          collection
-            .where('x', '>', 32)
-            .orderBy('y')
-            .orderBy('x')
+          collection.where('x', '>', 32).orderBy('y').orderBy('x')
         ).to.throw(reason);
         expect(() =>
-          collection
-            .orderBy('y')
-            .orderBy('x')
-            .where('x', '>', 32)
+          collection.orderBy('y').orderBy('x').where('x', '>', 32)
         ).to.throw(reason);
       }
     );
@@ -1431,7 +1419,14 @@ function expectWriteToFail(
     includeUpdates = true;
   }
 
-  const docRef = db.doc('foo/bar');
+  const docPath = 'foo/bar';
+  if (reason.includes('in field')) {
+    reason = `${reason.slice(0, -1)} in document ${docPath})`;
+  } else {
+    reason = `${reason} (found in document ${docPath})`;
+  }
+
+  const docRef = db.doc(docPath);
   const error = (fnName: string): string =>
     `Function ${fnName}() called with invalid data. ${reason}`;
 

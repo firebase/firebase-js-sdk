@@ -23,21 +23,25 @@ import { Firestore } from './database';
 import {
   DocumentKeyReference,
   ParsedUpdateData,
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs,
   UserDataReader
 } from '../../../src/api/user_data_reader';
 import {
   Bound,
   Direction,
   Operator,
-  Query as InternalQuery
+  Query as InternalQuery,
+  queryEquals
 } from '../../../src/core/query';
 import { ResourcePath } from '../../../src/model/path';
 import { AutoId } from '../../../src/util/misc';
 import {
   DocumentSnapshot,
+  fieldPathFromArgument,
   QueryDocumentSnapshot,
-  QuerySnapshot,
-  fieldPathFromArgument
+  QuerySnapshot
 } from './snapshot';
 import {
   invokeBatchGetDocumentsRpc,
@@ -46,10 +50,10 @@ import {
 } from '../../../src/remote/datastore';
 import { hardAssert } from '../../../src/util/assert';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
-import { PlatformSupport } from '../../../src/platform/platform';
 import {
   applyFirestoreDataConverter,
-  BaseQuery
+  BaseQuery,
+  validateHasExplicitOrderByForLimitToLast
 } from '../../../src/api/database';
 import { FieldPath } from './field_path';
 import { cast } from './util';
@@ -60,6 +64,7 @@ import {
   validateExactNumberOfArgs,
   validatePositiveNumber
 } from '../../../src/util/input_validation';
+import { newSerializer } from '../../../src/platform/serializer';
 import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
 import { Code, FirestoreError } from '../../../src/util/error';
 
@@ -286,7 +291,7 @@ export function collection(
   parent: firestore.FirebaseFirestore | firestore.DocumentReference<unknown>,
   relativePath: string
 ): CollectionReference<firestore.DocumentData> {
-  validateArgType('doc', 'non-empty string', 2, relativePath);
+  validateArgType('collection', 'non-empty string', 2, relativePath);
   const path = ResourcePath.fromString(relativePath);
   if (parent instanceof Firestore) {
     validateCollectionPath(path);
@@ -322,7 +327,7 @@ export function collectionGroup(
 
   return new Query(
     firestoreClient,
-    new InternalQuery(ResourcePath.EMPTY_PATH, collectionId),
+    new InternalQuery(ResourcePath.emptyPath(), collectionId),
     /* converter= */ null
   );
 }
@@ -417,6 +422,7 @@ export function getQuery<T>(
   query: firestore.Query<T>
 ): Promise<firestore.QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
+  validateHasExplicitOrderByForLimitToLast(internalQuery._query);
   return internalQuery.firestore._getDatastore().then(async datastore => {
     const result = await invokeRunQueryRpc(datastore, internalQuery._query);
     const docs = result.map(
@@ -454,15 +460,22 @@ export function setDoc<T>(
   data: T,
   options?: firestore.SetOptions
 ): Promise<void> {
-  const ref = cast(reference, DocumentReference);
+  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
 
-  const [convertedValue] = applyFirestoreDataConverter(
+  const convertedValue = applyFirestoreDataConverter(
     ref._converter,
     data,
-    'setDoc'
+    options
   );
   const dataReader = newUserDataReader(ref.firestore);
-  const parsed = dataReader.parseSetData('setDoc', convertedValue, options);
+  const parsed = parseSetData(
+    dataReader,
+    'setDoc',
+    ref._key,
+    convertedValue,
+    ref._converter !== null,
+    options
+  );
 
   return ref.firestore
     ._getDatastore()
@@ -490,7 +503,7 @@ export function updateDoc(
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
-  const ref = cast(reference, DocumentReference);
+  const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
   const dataReader = newUserDataReader(ref.firestore);
 
   let parsed: ParsedUpdateData;
@@ -498,14 +511,21 @@ export function updateDoc(
     typeof fieldOrUpdateData === 'string' ||
     fieldOrUpdateData instanceof FieldPath
   ) {
-    parsed = dataReader.parseUpdateVarargs(
+    parsed = parseUpdateVarargs(
+      dataReader,
       'updateDoc',
+      ref._key,
       fieldOrUpdateData,
       value,
       moreFieldsAndValues
     );
   } else {
-    parsed = dataReader.parseUpdateData('updateDoc', fieldOrUpdateData);
+    parsed = parseUpdateData(
+      dataReader,
+      'updateDoc',
+      ref._key,
+      fieldOrUpdateData
+    );
   }
 
   return ref.firestore
@@ -521,7 +541,7 @@ export function updateDoc(
 export function deleteDoc(
   reference: firestore.DocumentReference
 ): Promise<void> {
-  const ref = cast(reference, DocumentReference);
+  const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
   return ref.firestore
     ._getDatastore()
     .then(datastore =>
@@ -535,17 +555,20 @@ export function addDoc<T>(
   reference: firestore.CollectionReference<T>,
   data: T
 ): Promise<firestore.DocumentReference<T>> {
-  const collRef = cast(reference, CollectionReference);
+  const collRef = cast<CollectionReference<T>>(reference, CollectionReference);
   const docRef = doc(collRef);
 
-  const [convertedValue] = applyFirestoreDataConverter(
-    collRef._converter,
-    data,
-    'addDoc'
-  );
+  const convertedValue = applyFirestoreDataConverter(collRef._converter, data);
 
   const dataReader = newUserDataReader(collRef.firestore);
-  const parsed = dataReader.parseSetData('addDoc', convertedValue);
+  const parsed = parseSetData(
+    dataReader,
+    'addDoc',
+    docRef._key,
+    convertedValue,
+    docRef._converter !== null,
+    {}
+  );
 
   return collRef.firestore
     ._getDatastore()
@@ -583,7 +606,7 @@ export function queryEqual<T>(
   if (left instanceof Query && right instanceof Query) {
     return (
       left.firestore === right.firestore &&
-      left._query.isEqual(right._query) &&
+      queryEquals(left._query, right._query) &&
       left._converter === right._converter
     );
   }
@@ -592,9 +615,7 @@ export function queryEqual<T>(
 
 export function newUserDataReader(firestore: Firestore): UserDataReader {
   const settings = firestore._getSettings();
-  const serializer = PlatformSupport.getPlatform().newSerializer(
-    firestore._databaseId
-  );
+  const serializer = newSerializer(firestore._databaseId);
   return new UserDataReader(
     firestore._databaseId,
     !!settings.ignoreUndefinedProperties,

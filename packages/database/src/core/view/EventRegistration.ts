@@ -123,13 +123,13 @@ export class ValueEventRegistration implements EventRegistration {
         'Raising a cancel event on a listener with no cancel callback'
       );
       const cancelCB = this.cancelCallback_;
-      return function() {
+      return function () {
         // We know that error exists, we checked above that this is a cancel event
         cancelCB.call(ctx, (eventData as CancelEvent).error);
       };
     } else {
       const cb = this.callback_;
-      return function() {
+      return function () {
         cb.call(ctx, (eventData as DataEvent).snapshot);
       };
     }
@@ -241,13 +241,13 @@ export class ChildEventRegistration implements EventRegistration {
         'Raising a cancel event on a listener with no cancel callback'
       );
       const cancelCB = this.cancelCallback_;
-      return function() {
+      return function () {
         // We know that error exists, we checked above that this is a cancel event
         cancelCB.call(ctx, (eventData as CancelEvent).error);
       };
     } else {
       const cb = this.callbacks_[(eventData as DataEvent).eventType];
-      return function() {
+      return function () {
         cb.call(
           ctx,
           (eventData as DataEvent).snapshot,

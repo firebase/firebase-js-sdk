@@ -19,7 +19,13 @@ import { QueryEngine } from './query_engine';
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { LimitType, Query } from '../core/query';
+import {
+  LimitType,
+  newQueryComparator,
+  Query,
+  queryMatches,
+  stringifyQuery
+} from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
@@ -103,7 +109,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
             'IndexFreeQueryEngine',
             'Re-using previous result from %s to execute query: %s',
             lastLimboFreeSnapshotVersion.toString(),
-            query.toString()
+            stringifyQuery(query)
           );
         }
 
@@ -133,11 +139,9 @@ export class IndexFreeQueryEngine implements QueryEngine {
   ): SortedSet<Document> {
     // Sort the documents and re-apply the query filter since previously
     // matching documents do not necessarily still match the query.
-    let queryResults = new SortedSet<Document>((d1, d2) =>
-      query.docComparator(d1, d2)
-    );
+    let queryResults = new SortedSet<Document>(newQueryComparator(query));
     documents.forEach((_, maybeDoc) => {
-      if (maybeDoc instanceof Document && query.matches(maybeDoc)) {
+      if (maybeDoc instanceof Document && queryMatches(query, maybeDoc)) {
         queryResults = queryResults.add(maybeDoc);
       }
     });
@@ -197,7 +201,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
       logDebug(
         'IndexFreeQueryEngine',
         'Using full collection scan to execute query:',
-        query.toString()
+        stringifyQuery(query)
       );
     }
 

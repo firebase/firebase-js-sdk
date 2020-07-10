@@ -15,4 +15,100 @@
  * limitations under the License.
  */
 
-// TODO(firestorexp): Export API
+import { version } from '../package.json';
+import { _registerComponent, registerVersion } from '@firebase/app-exp';
+import { Component, ComponentType } from '@firebase/component';
+import { Firestore } from './src/api/database';
+
+export { FieldPath, documentId } from '../lite/src/api/field_path';
+
+export {
+  Firestore as FirebaseFirestore,
+  initializeFirestore,
+  getFirestore,
+  enableIndexedDbPersistence,
+  enableMultiTabIndexedDbPersistence,
+  clearIndexedDbPersistence,
+  waitForPendingWrites,
+  disableNetwork,
+  enableNetwork,
+  terminate
+} from './src/api/database';
+
+export {
+  DocumentSnapshot,
+  QueryDocumentSnapshot,
+  QuerySnapshot,
+  snapshotEqual
+} from './src/api/snapshot';
+
+export { SnapshotMetadata } from '../src/api/database';
+
+export {
+  DocumentReference,
+  CollectionReference,
+  Query,
+  doc,
+  collection,
+  collectionGroup,
+  parent
+} from '../lite/src/api/reference';
+
+export { runTransaction, Transaction } from './src/api/transaction';
+
+export {
+  getDoc,
+  getDocFromCache,
+  getDocFromServer,
+  getQuery,
+  getQueryFromCache,
+  getQueryFromServer,
+  onSnapshot,
+  onSnapshotsInSync,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  addDoc
+} from './src/api/reference';
+
+export {
+  FieldValue,
+  deleteField,
+  increment,
+  arrayRemove,
+  arrayUnion,
+  serverTimestamp
+} from '../lite/src/api/field_value';
+
+export { setLogLevel } from '../src/util/log';
+
+export { Blob } from '../src/api/blob';
+
+export { writeBatch } from './src/api/write_batch';
+
+export { WriteBatch } from '../lite/src/api/write_batch';
+
+export { GeoPoint } from '../src/api/geo_point';
+
+export { Timestamp } from '../src/api/timestamp';
+
+export { refEqual, queryEqual } from '../lite/src/api/reference';
+
+export function registerFirestore(): void {
+  _registerComponent(
+    new Component(
+      'firestore-exp',
+      container => {
+        const app = container.getProvider('app-exp').getImmediate()!;
+        return ((app, auth) => new Firestore(app, auth))(
+          app,
+          container.getProvider('auth-internal')
+        );
+      },
+      ComponentType.PUBLIC
+    )
+  );
+  registerVersion('firestore-exp', version, 'node');
+}
+
+registerFirestore();

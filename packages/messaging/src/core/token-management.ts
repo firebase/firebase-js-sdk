@@ -118,9 +118,9 @@ async function updateToken(
     );
 
     const updatedTokenDetails: TokenDetails = {
+      ...tokenDetails,
       token: updatedToken,
-      createTime: Date.now(),
-      ...tokenDetails
+      createTime: Date.now()
     };
 
     await dbSet(firebaseDependencies, updatedTokenDetails);

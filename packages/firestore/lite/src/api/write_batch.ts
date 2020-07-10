@@ -24,7 +24,9 @@ import {
 import { Code, FirestoreError } from '../../../src/util/error';
 import { applyFirestoreDataConverter } from '../../../src/api/database';
 import {
-  DocumentKeyReference,
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs,
   UserDataReader
 } from '../../../src/api/user_data_reader';
 import { cast } from './util';
@@ -41,7 +43,10 @@ export class WriteBatch implements firestore.WriteBatch {
   private _mutations = [] as Mutation[];
   private _committed = false;
 
-  constructor(private readonly _firestore: Firestore) {
+  constructor(
+    private readonly _firestore: Firestore,
+    private readonly _commitHandler: (m: Mutation[]) => Promise<void>
+  ) {
     this._dataReader = newUserDataReader(_firestore);
   }
 
@@ -59,15 +64,17 @@ export class WriteBatch implements firestore.WriteBatch {
     this.verifyNotCommitted();
     const ref = validateReference(documentRef, this._firestore);
 
-    const [convertedValue] = applyFirestoreDataConverter(
+    const convertedValue = applyFirestoreDataConverter(
       ref._converter,
       value,
-      'WriteBatch.set'
+      options
     );
-
-    const parsed = this._dataReader.parseSetData(
+    const parsed = parseSetData(
+      this._dataReader,
       'WriteBatch.set',
+      ref._key,
       convertedValue,
+      ref._converter !== null,
       options
     );
     this._mutations = this._mutations.concat(
@@ -101,15 +108,19 @@ export class WriteBatch implements firestore.WriteBatch {
       typeof fieldOrUpdateData === 'string' ||
       fieldOrUpdateData instanceof FieldPath
     ) {
-      parsed = this._dataReader.parseUpdateVarargs(
+      parsed = parseUpdateVarargs(
+        this._dataReader,
         'WriteBatch.update',
+        ref._key,
         fieldOrUpdateData,
         value,
         moreFieldsAndValues
       );
     } else {
-      parsed = this._dataReader.parseUpdateData(
+      parsed = parseUpdateData(
+        this._dataReader,
         'WriteBatch.update',
+        ref._key,
         fieldOrUpdateData
       );
     }
@@ -133,9 +144,7 @@ export class WriteBatch implements firestore.WriteBatch {
     this.verifyNotCommitted();
     this._committed = true;
     if (this._mutations.length > 0) {
-      return this._firestore
-        ._getDatastore()
-        .then(datastore => invokeCommitRpc(datastore, this._mutations));
+      return this._commitHandler(this._mutations);
     }
 
     return Promise.resolve();
@@ -155,7 +164,7 @@ export class WriteBatch implements firestore.WriteBatch {
 export function validateReference<T>(
   documentRef: firestore.DocumentReference<T>,
   firestore: Firestore
-): DocumentKeyReference<T> {
+): DocumentReference<T> {
   if (documentRef.firestore !== firestore) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
@@ -169,5 +178,10 @@ export function validateReference<T>(
 export function writeBatch(
   firestore: firestore.FirebaseFirestore
 ): firestore.WriteBatch {
-  return new WriteBatch(cast(firestore, Firestore));
+  const firestoreImpl = cast(firestore, Firestore);
+  return new WriteBatch(firestoreImpl, writes =>
+    firestoreImpl
+      ._getDatastore()
+      .then(datastore => invokeCommitRpc(datastore, writes))
+  );
 }

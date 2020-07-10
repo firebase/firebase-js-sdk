@@ -27,7 +27,7 @@ import { DocumentSet } from '../model/document_set';
 import { TargetChange } from '../remote/remote_event';
 import { debugAssert, fail } from '../util/assert';
 
-import { Query } from './query';
+import { newQueryComparator, Query, queryMatches } from './query';
 import { OnlineState } from './types';
 import {
   ChangeType,
@@ -84,13 +84,16 @@ export class View {
   private limboDocuments = documentKeySet();
   /** Document Keys that have local changes */
   private mutatedKeys = documentKeySet();
+  /** Query comparator that defines the document order in this view. */
+  private docComparator: (d1: Document, d2: Document) => number;
 
   constructor(
     private query: Query,
     /** Documents included in the remote target */
     private _syncedDocuments: DocumentKeySet
   ) {
-    this.documentSet = new DocumentSet(query.docComparator.bind(query));
+    this.docComparator = newQueryComparator(query);
+    this.documentSet = new DocumentSet(this.docComparator);
   }
 
   /**
@@ -157,7 +160,7 @@ export class View {
               ' != ' +
               newDoc.key
           );
-          newDoc = this.query.matches(newDoc) ? newDoc : null;
+          newDoc = queryMatches(this.query, newDoc) ? newDoc : null;
         }
 
         const oldDocHadPendingMutations = oldDoc
@@ -185,9 +188,9 @@ export class View {
 
               if (
                 (lastDocInLimit &&
-                  this.query.docComparator(newDoc, lastDocInLimit) > 0) ||
+                  this.docComparator(newDoc, lastDocInLimit) > 0) ||
                 (firstDocInLimit &&
-                  this.query.docComparator(newDoc, firstDocInLimit) < 0)
+                  this.docComparator(newDoc, firstDocInLimit) < 0)
               ) {
                 // This doc moved from inside the limit to outside the limit.
                 // That means there may be some other doc in the local cache
@@ -300,7 +303,7 @@ export class View {
     changes.sort((c1, c2) => {
       return (
         compareChangeType(c1.type, c2.type) ||
-        this.query.docComparator(c1.doc, c2.doc)
+        this.docComparator(c1.doc, c2.doc)
       );
     });
 

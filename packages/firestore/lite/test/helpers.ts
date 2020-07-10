@@ -26,6 +26,7 @@ import {
   DEFAULT_SETTINGS
 } from '../../test/integration/util/settings';
 import { AutoId } from '../../src/util/misc';
+import { expect } from 'chai';
 
 let appCount = 0;
 
@@ -89,3 +90,50 @@ export function withTestCollection(
     return fn(collection(db, AutoId.newId()));
   });
 }
+
+// Used for testing the FirestoreDataConverter.
+export class Post {
+  constructor(readonly title: string, readonly author: string) {}
+  byline(): string {
+    return this.title + ', by ' + this.author;
+  }
+}
+
+export const postConverter = {
+  toFirestore(post: Post): firestore.DocumentData {
+    return { title: post.title, author: post.author };
+  },
+  fromFirestore(snapshot: firestore.QueryDocumentSnapshot): Post {
+    const data = snapshot.data();
+    return new Post(data.title, data.author);
+  }
+};
+
+export const postConverterMerge = {
+  toFirestore(
+    post: Partial<Post>,
+    options?: firestore.SetOptions
+  ): firestore.DocumentData {
+    if (
+      options &&
+      ((options as { merge: true }).merge ||
+        (options as { mergeFields: Array<string | number> }).mergeFields)
+    ) {
+      expect(post).to.not.be.an.instanceof(Post);
+    } else {
+      expect(post).to.be.an.instanceof(Post);
+    }
+    const result: firestore.DocumentData = {};
+    if (post.title) {
+      result.title = post.title;
+    }
+    if (post.author) {
+      result.author = post.author;
+    }
+    return result;
+  },
+  fromFirestore(snapshot: firestore.QueryDocumentSnapshot): Post {
+    const data = snapshot.data();
+    return new Post(data.title, data.author);
+  }
+};
