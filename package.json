@@ -103,7 +103,7 @@
     "inquirer": "7.1.0",
     "istanbul-instrumenter-loader": "3.0.1",
     "js-yaml": "3.13.1",
-    "karma": "4.4.1",
+    "karma": "5.1.0",
     "karma-chrome-launcher": "3.1.0",
     "karma-cli": "2.0.0",
     "karma-coverage-istanbul-reporter": "2.1.1",
