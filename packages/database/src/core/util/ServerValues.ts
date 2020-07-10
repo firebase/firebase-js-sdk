@@ -75,7 +75,7 @@ class DeferredValueProvider implements ValueProvider {
  * @param {?Object} values
  * @return {!Object}
  */
-export const generateWithValues = function(
+export const generateWithValues = function (
   values: {
     [k: string]: unknown;
   } | null
@@ -92,7 +92,7 @@ export const generateWithValues = function(
  * @param {!Object} serverValues
  * @return {!(string|number|boolean)}
  */
-export const resolveDeferredLeafValue = function(
+export const resolveDeferredLeafValue = function (
   value: { [k: string]: unknown } | string | number | boolean,
   existingVal: ValueProvider,
   serverValues: { [k: string]: unknown }
@@ -111,7 +111,7 @@ export const resolveDeferredLeafValue = function(
   }
 };
 
-const resolveScalarDeferredValue = function(
+const resolveScalarDeferredValue = function (
   op: string,
   existing: ValueProvider,
   serverValues: { [k: string]: unknown }
@@ -124,7 +124,7 @@ const resolveScalarDeferredValue = function(
   }
 };
 
-const resolveComplexDeferredValue = function(
+const resolveComplexDeferredValue = function (
   op: object,
   existing: ValueProvider,
   unused: { [k: string]: unknown }
@@ -167,7 +167,7 @@ const resolveComplexDeferredValue = function(
  * @param {!Object} serverValues
  * @return {!SparseSnapshotTree}
  */
-export const resolveDeferredValueTree = function(
+export const resolveDeferredValueTree = function (
   path: Path,
   node: Node,
   syncTree: SyncTree,
@@ -188,7 +188,7 @@ export const resolveDeferredValueTree = function(
  * @param {!Object} serverValues
  * @return {!Node}
  */
-export const resolveDeferredValueSnapshot = function(
+export const resolveDeferredValueSnapshot = function (
   node: Node,
   existing: Node,
   serverValues: Indexable

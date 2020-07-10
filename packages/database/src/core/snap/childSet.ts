@@ -69,7 +69,7 @@ class Base12Num {
  * @param {(function(K, K):number)=} mapSortFn An optional override for comparator used by the generated sorted map
  * @return {SortedMap.<K, V>}
  */
-export const buildChildSet = function<K, V>(
+export const buildChildSet = function <K, V>(
   childList: NamedNode[],
   cmp: (a: NamedNode, b: NamedNode) => number,
   keyFn?: (a: NamedNode) => K,
@@ -77,7 +77,7 @@ export const buildChildSet = function<K, V>(
 ): SortedMap<K, V> {
   childList.sort(cmp);
 
-  const buildBalancedTree = function(
+  const buildBalancedTree = function (
     low: number,
     high: number
   ): LLRBNode<K, V> | null {
@@ -113,12 +113,12 @@ export const buildChildSet = function<K, V>(
     }
   };
 
-  const buildFrom12Array = function(base12: Base12Num): LLRBNode<K, V> {
+  const buildFrom12Array = function (base12: Base12Num): LLRBNode<K, V> {
     let node: LLRBNode<K, V> = null;
     let root = null;
     let index = childList.length;
 
-    const buildPennant = function(chunkSize: number, color: boolean) {
+    const buildPennant = function (chunkSize: number, color: boolean) {
       const low = index - chunkSize;
       const high = index;
       index -= chunkSize;
@@ -136,7 +136,7 @@ export const buildChildSet = function<K, V>(
       );
     };
 
-    const attachPennant = function(pennant: LLRBNode<K, V>) {
+    const attachPennant = function (pennant: LLRBNode<K, V>) {
       if (node) {
         node.left = pennant;
         node = pennant;

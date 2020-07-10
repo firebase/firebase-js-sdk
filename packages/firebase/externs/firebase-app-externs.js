@@ -63,7 +63,7 @@ var firebase = {};
  *
  * @return {!firebase.app.App} The initialized app.
  */
-firebase.initializeApp = function(options, name) {};
+firebase.initializeApp = function (options, name) {};
 
 /**
  * Retrieves a Firebase {@link firebase.app.App app} instance.
@@ -89,7 +89,7 @@ firebase.initializeApp = function(options, name) {};
  * @return {!firebase.app.App} The app corresponding to the provided app name.
  *   If no app name is provided, the default app is returned.
  */
-firebase.app = function(name) {};
+firebase.app = function (name) {};
 
 /**
  * A (read-only) array of all initialized apps.
@@ -112,7 +112,7 @@ firebase.SDK_VERSION;
  *
  * @interface
  */
-firebase.app.App = function() {};
+firebase.app.App = function () {};
 
 /**
  * The (read-only) name for this app.
@@ -162,7 +162,7 @@ firebase.app.App.prototype.options;
  * @return {!firebase.Promise<void>} An empty promise fulfilled when the app has
  *   been deleted.
  */
-firebase.app.App.prototype.delete = function() {};
+firebase.app.App.prototype.delete = function () {};
 
 /**
  * A Thenable is the standard interface returned by a Promise.
@@ -170,7 +170,7 @@ firebase.app.App.prototype.delete = function() {};
  * @template T
  * @interface
  */
-firebase.Thenable = function() {};
+firebase.Thenable = function () {};
 
 /**
  * Assign callback functions called when the Thenable value either
@@ -181,7 +181,7 @@ firebase.Thenable = function() {};
  *   (with an error).
  * @return {!firebase.Thenable<*>}
  */
-firebase.Thenable.prototype.then = function(onResolve, onReject) {};
+firebase.Thenable.prototype.then = function (onResolve, onReject) {};
 
 /**
  * Assign a callback when the Thenable rejects.
@@ -190,7 +190,7 @@ firebase.Thenable.prototype.then = function(onResolve, onReject) {};
  *   (with an error).
  * @return {!firebase.Thenable<*>}
  */
-firebase.Thenable.prototype.catch = function(onReject) {};
+firebase.Thenable.prototype.catch = function (onReject) {};
 
 /**
  * A Promise represents an eventual (asynchronous) value. A Promise should
@@ -208,7 +208,7 @@ firebase.Thenable.prototype.catch = function(onReject) {};
  * @param {function((function(T): void),
  *                  (function(!Error): void))} resolver
  */
-firebase.Promise = function(resolver) {};
+firebase.Promise = function (resolver) {};
 
 /**
  * Assign callback functions called when the Promise either resolves, or is
@@ -220,7 +220,7 @@ firebase.Promise = function(resolver) {};
  * @return {!firebase.Promise<*>}
  * @override
  */
-firebase.Promise.prototype.then = function(onResolve, onReject) {};
+firebase.Promise.prototype.then = function (onResolve, onReject) {};
 
 /**
  * Assign a callback when the Promise rejects.
@@ -229,7 +229,7 @@ firebase.Promise.prototype.then = function(onResolve, onReject) {};
  *   (with an error).
  * @override
  */
-firebase.Promise.prototype.catch = function(onReject) {};
+firebase.Promise.prototype.catch = function (onReject) {};
 
 /**
  * Return a resolved Promise.
@@ -238,7 +238,7 @@ firebase.Promise.prototype.catch = function(onReject) {};
  * @param {T=} value The value to be returned by the Promise.
  * @return {!firebase.Promise<T>}
  */
-firebase.Promise.resolve = function(value) {};
+firebase.Promise.resolve = function (value) {};
 
 /**
  * Return (an immediately) rejected Promise.
@@ -246,7 +246,7 @@ firebase.Promise.resolve = function(value) {};
  * @param {!Error} error The reason for the Promise being rejected.
  * @return {!firebase.Promise<*>}
  */
-firebase.Promise.reject = function(error) {};
+firebase.Promise.reject = function (error) {};
 
 /**
  * Convert an array of Promises, to a single array of values.
@@ -259,25 +259,25 @@ firebase.Promise.reject = function(error) {};
  * @param {!Array<!firebase.Promise<*>>} values
  * @return {!firebase.Promise<!Array<*>>}
  */
-firebase.Promise.all = function(values) {};
+firebase.Promise.all = function (values) {};
 
 /**
  * @template V, E
  * @interface
  **/
-firebase.Observer = function() {};
+firebase.Observer = function () {};
 
 /**
  * @param {?V} value
  */
-firebase.Observer.prototype.next = function(value) {};
+firebase.Observer.prototype.next = function (value) {};
 
 /**
  * @param {!E} error
  */
-firebase.Observer.prototype.error = function(error) {};
+firebase.Observer.prototype.error = function (error) {};
 
-firebase.Observer.prototype.complete = function() {};
+firebase.Observer.prototype.complete = function () {};
 
 /** @typedef {function(): void} */
 firebase.CompleteFn;
@@ -290,4 +290,4 @@ firebase.Unsubscribe;
  * @param {string} version
  * @param {?string} variant
  */
-firebase.registerVersion = function(name, version, variant) {};
+firebase.registerVersion = function (name, version, variant) {};

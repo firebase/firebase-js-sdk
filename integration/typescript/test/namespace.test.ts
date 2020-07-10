@@ -29,6 +29,6 @@ firebase.initializeApp({
   appId: 'myAppId'
 });
 
-describe('Firebase Namespace Validation', function() {
+describe('Firebase Namespace Validation', function () {
   validateNamespace(namespaceDefinition, firebase);
 });

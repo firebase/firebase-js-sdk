@@ -35,10 +35,7 @@ import { map, take, skip } from 'rxjs/operators';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../config/project.json');
 
-const createId = (): string =>
-  Math.random()
-    .toString(36)
-    .substring(5);
+const createId = (): string => Math.random().toString(36).substring(5);
 
 /**
  * Create a collection with a random name. This helps sandbox offline tests and
