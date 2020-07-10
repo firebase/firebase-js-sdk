@@ -21,7 +21,7 @@ const karmaBase = require('../../config/karma.base');
 
 const files = ['./dist/test-harness.js'];
 
-module.exports = function(config) {
+module.exports = function (config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     // files to load into karma
     files: files,

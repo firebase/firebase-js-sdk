@@ -52,7 +52,7 @@ export const MAX_LEAF_SIZE_ = 10 * 1024 * 1024;
  * @param {*} key
  * @return {boolean}
  */
-export const isValidKey = function(key: unknown): boolean {
+export const isValidKey = function (key: unknown): boolean {
   return (
     typeof key === 'string' && key.length !== 0 && !INVALID_KEY_REGEX_.test(key)
   );
@@ -62,7 +62,7 @@ export const isValidKey = function(key: unknown): boolean {
  * @param {string} pathString
  * @return {boolean}
  */
-export const isValidPathString = function(pathString: string): boolean {
+export const isValidPathString = function (pathString: string): boolean {
   return (
     typeof pathString === 'string' &&
     pathString.length !== 0 &&
@@ -74,7 +74,7 @@ export const isValidPathString = function(pathString: string): boolean {
  * @param {string} pathString
  * @return {boolean}
  */
-export const isValidRootPathString = function(pathString: string): boolean {
+export const isValidRootPathString = function (pathString: string): boolean {
   if (pathString) {
     // Allow '/.info/' at the beginning.
     pathString = pathString.replace(/^\/*\.info(\/|$)/, '/');
@@ -87,7 +87,7 @@ export const isValidRootPathString = function(pathString: string): boolean {
  * @param {*} priority
  * @return {boolean}
  */
-export const isValidPriority = function(priority: unknown): boolean {
+export const isValidPriority = function (priority: unknown): boolean {
   return (
     priority === null ||
     typeof priority === 'string' ||
@@ -108,7 +108,7 @@ export const isValidPriority = function(priority: unknown): boolean {
  * @param {!Path} path
  * @param {boolean} optional
  */
-export const validateFirebaseDataArg = function(
+export const validateFirebaseDataArg = function (
   fnName: string,
   argumentNumber: number,
   data: unknown,
@@ -133,7 +133,7 @@ export const validateFirebaseDataArg = function(
  * @param {*} data
  * @param {!Path|!ValidationPath} path_
  */
-export const validateFirebaseData = function(
+export const validateFirebaseData = function (
   errorPrefix: string,
   data: unknown,
   path_: Path | ValidationPath
@@ -222,7 +222,7 @@ export const validateFirebaseData = function(
  * @param {string} errorPrefix
  * @param {Array<!Path>} mergePaths
  */
-export const validateFirebaseMergePaths = function(
+export const validateFirebaseMergePaths = function (
   errorPrefix: string,
   mergePaths: Path[]
 ) {
@@ -277,7 +277,7 @@ export const validateFirebaseMergePaths = function(
  * @param {!Path} path
  * @param {boolean} optional
  */
-export const validateFirebaseMergeDataArg = function(
+export const validateFirebaseMergeDataArg = function (
   fnName: string,
   argumentNumber: number,
   data: unknown,
@@ -316,7 +316,7 @@ export const validateFirebaseMergeDataArg = function(
   validateFirebaseMergePaths(errorPrefix, mergePaths);
 };
 
-export const validatePriority = function(
+export const validatePriority = function (
   fnName: string,
   argumentNumber: number,
   priority: unknown,
@@ -344,7 +344,7 @@ export const validatePriority = function(
   }
 };
 
-export const validateEventType = function(
+export const validateEventType = function (
   fnName: string,
   argumentNumber: number,
   eventType: string,
@@ -370,7 +370,7 @@ export const validateEventType = function(
   }
 };
 
-export const validateKey = function(
+export const validateKey = function (
   fnName: string,
   argumentNumber: number,
   key: string,
@@ -390,7 +390,7 @@ export const validateKey = function(
   }
 };
 
-export const validatePathString = function(
+export const validatePathString = function (
   fnName: string,
   argumentNumber: number,
   pathString: string,
@@ -411,7 +411,7 @@ export const validatePathString = function(
   }
 };
 
-export const validateRootPathString = function(
+export const validateRootPathString = function (
   fnName: string,
   argumentNumber: number,
   pathString: string,
@@ -425,13 +425,13 @@ export const validateRootPathString = function(
   validatePathString(fnName, argumentNumber, pathString, optional);
 };
 
-export const validateWritablePath = function(fnName: string, path: Path) {
+export const validateWritablePath = function (fnName: string, path: Path) {
   if (path.getFront() === '.info') {
     throw new Error(fnName + " failed = Can't modify data under /.info/");
   }
 };
 
-export const validateUrl = function(
+export const validateUrl = function (
   fnName: string,
   argumentNumber: number,
   parsedUrl: { repoInfo: RepoInfo; path: Path }
@@ -453,7 +453,7 @@ export const validateUrl = function(
   }
 };
 
-export const validateCredential = function(
+export const validateCredential = function (
   fnName: string,
   argumentNumber: number,
   cred: unknown,
@@ -470,7 +470,7 @@ export const validateCredential = function(
   }
 };
 
-export const validateBoolean = function(
+export const validateBoolean = function (
   fnName: string,
   argumentNumber: number,
   bool: unknown,
@@ -486,7 +486,7 @@ export const validateBoolean = function(
   }
 };
 
-export const validateString = function(
+export const validateString = function (
   fnName: string,
   argumentNumber: number,
   string: unknown,
@@ -503,7 +503,7 @@ export const validateString = function(
   }
 };
 
-export const validateObject = function(
+export const validateObject = function (
   fnName: string,
   argumentNumber: number,
   obj: unknown,
@@ -520,7 +520,7 @@ export const validateObject = function(
   }
 };
 
-export const validateObjectContainsKey = function(
+export const validateObjectContainsKey = function (
   fnName: string,
   argumentNumber: number,
   obj: unknown,

@@ -25,7 +25,7 @@ const files = [
   ...pkgJson.components.map(component => `firebase-${component}.js`)
 ];
 
-gulp.task('firebase-js', function() {
+gulp.task('firebase-js', function () {
   return gulp
     .src(files)
     .pipe(sourcemaps.init({ loadMaps: true }))

@@ -47,7 +47,7 @@
  *
  * @return {!firebase.messaging.Messaging}
  */
-firebase.messaging = function(app) {};
+firebase.messaging = function (app) {};
 
 /**
  * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
@@ -60,7 +60,7 @@ firebase.messaging = function(app) {};
  *
  * @return {!firebase.messaging.Messaging}
  */
-firebase.app.App.prototype.messaging = function() {};
+firebase.app.App.prototype.messaging = function () {};
 
 /**
  * The Firebase Messaging service interface.
@@ -76,7 +76,7 @@ firebase.app.App.prototype.messaging = function() {};
  *
  * @interface
  */
-firebase.messaging.Messaging = function() {};
+firebase.messaging.Messaging = function () {};
 
 /**
  * Notification permissions are required to send a user push messages.
@@ -86,7 +86,7 @@ firebase.messaging.Messaging = function() {};
  * @return {firebase.Promise} The promise resolves if permission is
  *   granted. Otherwise, the promise is rejected with an error.
  */
-firebase.messaging.Messaging.prototype.requestPermission = function() {};
+firebase.messaging.Messaging.prototype.requestPermission = function () {};
 
 /**
  * After calling `requestPermission()` you can call this method to get an FCM
@@ -96,7 +96,7 @@ firebase.messaging.Messaging.prototype.requestPermission = function() {};
  *   be retrieved. This method returns null if the current origin does not have
  *   permission to show notifications.
  */
-firebase.messaging.Messaging.prototype.getToken = function() {};
+firebase.messaging.Messaging.prototype.getToken = function () {};
 
 /**
  * You should listen for token refreshes so your web app knows when FCM
@@ -109,7 +109,7 @@ firebase.messaging.Messaging.prototype.getToken = function() {};
  * @return {firebase.Unsubscribe} To stop listening for token
  *   refresh events execute this returned function.
  */
-firebase.messaging.Messaging.prototype.onTokenRefresh = function(
+firebase.messaging.Messaging.prototype.onTokenRefresh = function (
   nextOrObserver
 ) {};
 
@@ -127,7 +127,7 @@ firebase.messaging.Messaging.prototype.onTokenRefresh = function(
  * @return {firebase.Unsubscribe} To stop listening for messages
  *    execute this returned function.
  */
-firebase.messaging.Messaging.prototype.onMessage = function(nextOrObserver) {};
+firebase.messaging.Messaging.prototype.onMessage = function (nextOrObserver) {};
 
 /**
  * To forceably stop a registration token from being used, delete it
@@ -137,7 +137,7 @@ firebase.messaging.Messaging.prototype.onMessage = function(nextOrObserver) {};
  * @return {firebase.Promise} The promise resolves when the token has been
  *   successfully deleted.
  */
-firebase.messaging.Messaging.prototype.deleteToken = function(token) {};
+firebase.messaging.Messaging.prototype.deleteToken = function (token) {};
 
 /**
  * To use your own service worker for receiving push messages, you
@@ -146,7 +146,7 @@ firebase.messaging.Messaging.prototype.deleteToken = function(token) {};
  * @param {!ServiceWorkerRegistration} registration The service worker
  *   registration you wish to use for push messaging.
  */
-firebase.messaging.Messaging.prototype.useServiceWorker = function(
+firebase.messaging.Messaging.prototype.useServiceWorker = function (
   registration
 ) {};
 
@@ -160,6 +160,6 @@ firebase.messaging.Messaging.prototype.useServiceWorker = function(
  *
  * @param {!function(!Object)} callback The function to handle the push message.
  */
-firebase.messaging.Messaging.prototype.setBackgroundMessageHandler = function(
+firebase.messaging.Messaging.prototype.setBackgroundMessageHandler = function (
   callback
 ) {};

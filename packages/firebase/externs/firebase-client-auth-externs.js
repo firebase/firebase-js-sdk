@@ -104,7 +104,7 @@
  *     firebase.auth.EmailAuthProvider} will throw an error.
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
-firebase.User.prototype.linkWithPopup = function(provider) {};
+firebase.User.prototype.linkWithPopup = function (provider) {};
 
 /**
  * Links the authenticated provider to the user account using a full-page
@@ -135,7 +135,7 @@ firebase.User.prototype.linkWithPopup = function(provider) {};
  *     firebase.auth.EmailAuthProvider} will throw an error.
  * @return {!firebase.Promise<void>}
  */
-firebase.User.prototype.linkWithRedirect = function(provider) {};
+firebase.User.prototype.linkWithRedirect = function (provider) {};
 
 /**
  * Authenticates a Firebase client using a popup-based OAuth authentication
@@ -224,7 +224,7 @@ firebase.User.prototype.linkWithRedirect = function(provider) {};
  *     firebase.auth.EmailAuthProvider} will throw an error.
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
-firebase.auth.Auth.prototype.signInWithPopup = function(provider) {};
+firebase.auth.Auth.prototype.signInWithPopup = function (provider) {};
 
 /**
  * Authenticates a Firebase client using a full-page redirect flow. To handle
@@ -252,7 +252,7 @@ firebase.auth.Auth.prototype.signInWithPopup = function(provider) {};
  *     firebase.auth.EmailAuthProvider} will throw an error.
  * @return {!firebase.Promise<void>}
  */
-firebase.auth.Auth.prototype.signInWithRedirect = function(provider) {};
+firebase.auth.Auth.prototype.signInWithRedirect = function (provider) {};
 
 /**
  * Reauthenticates the current user with the specified provider using a pop-up
@@ -315,7 +315,7 @@ firebase.auth.Auth.prototype.signInWithRedirect = function(provider) {};
  *     firebase.auth.EmailAuthProvider} will throw an error.
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
-firebase.User.prototype.reauthenticateWithPopup = function(provider) {};
+firebase.User.prototype.reauthenticateWithPopup = function (provider) {};
 
 /**
  * Reauthenticates the current user with the specified OAuth provider using a
@@ -344,7 +344,7 @@ firebase.User.prototype.reauthenticateWithPopup = function(provider) {};
  *     firebase.auth.EmailAuthProvider} will throw an error.
  * @return {!firebase.Promise<void>}
  */
-firebase.User.prototype.reauthenticateWithRedirect = function(provider) {};
+firebase.User.prototype.reauthenticateWithRedirect = function (provider) {};
 
 /**
  * Returns a UserCredential from the redirect-based sign-in flow.
@@ -451,7 +451,7 @@ firebase.User.prototype.reauthenticateWithRedirect = function(provider) {};
  *
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
-firebase.auth.Auth.prototype.getRedirectResult = function() {};
+firebase.auth.Auth.prototype.getRedirectResult = function () {};
 
 /**
  * An {@link https://www.google.com/recaptcha/ reCAPTCHA}-based application
@@ -473,7 +473,7 @@ firebase.auth.Auth.prototype.getRedirectResult = function() {};
  * @constructor
  * @implements {firebase.auth.ApplicationVerifier}
  */
-firebase.auth.RecaptchaVerifier = function(container, parameters, app) {};
+firebase.auth.RecaptchaVerifier = function (container, parameters, app) {};
 
 /**
  * The application verifier type. For a reCAPTCHA verifier, this is 'recaptcha'.
@@ -484,18 +484,18 @@ firebase.auth.RecaptchaVerifier.prototype.type;
 /**
  * Clears the reCAPTCHA widget from the page and destroys the current instance.
  */
-firebase.auth.RecaptchaVerifier.prototype.clear = function() {};
+firebase.auth.RecaptchaVerifier.prototype.clear = function () {};
 
 /**
  * Renders the reCAPTCHA widget on the page.
  * @return {!firebase.Promise<number>} A Promise that resolves with the
  *     reCAPTCHA widget ID.
  */
-firebase.auth.RecaptchaVerifier.prototype.render = function() {};
+firebase.auth.RecaptchaVerifier.prototype.render = function () {};
 
 /**
  * Waits for the user to solve the reCAPTCHA and resolves with the reCAPTCHA
  * token.
  * @return {!firebase.Promise<string>} A Promise for the reCAPTCHA token.
  */
-firebase.auth.RecaptchaVerifier.prototype.verify = function() {};
+firebase.auth.RecaptchaVerifier.prototype.verify = function () {};

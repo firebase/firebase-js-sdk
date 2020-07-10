@@ -183,10 +183,7 @@ describe.skip('Promise Tests', () => {
       .child('here today')
       .set('gone tomorrow')
       .then(() => {
-        const p = writer
-          .child('here today')
-          .onDisconnect()
-          .remove();
+        const p = writer.child('here today').onDisconnect().remove();
         expect(typeof p.then === 'function').to.equal(true);
         return p;
       })
