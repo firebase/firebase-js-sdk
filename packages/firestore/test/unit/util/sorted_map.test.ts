@@ -193,18 +193,12 @@ describe('SortedMap Tests', () => {
     expect(map.size).to.equal(6);
     expect(map.root.checkMaxDepth()).to.equal(true);
 
-    const m2 = map
-      .insert(20, 20)
-      .insert(18, 18)
-      .insert(2, 2);
+    const m2 = map.insert(20, 20).insert(18, 18).insert(2, 2);
 
     expect(m2.size).to.equal(9);
     expect(m2.root.checkMaxDepth()).to.equal(true);
 
-    const m3 = m2
-      .insert(71, 71)
-      .insert(42, 42)
-      .insert(88, 88);
+    const m3 = m2.insert(71, 71).insert(42, 42).insert(88, 88);
 
     expect(m3.size).to.equal(12);
     expect(m3.root.checkMaxDepth()).to.equal(true);

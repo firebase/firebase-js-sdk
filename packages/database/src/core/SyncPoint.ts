@@ -179,12 +179,7 @@ export class SyncPoint {
           this.views.delete(viewQueryId);
 
           // We'll deal with complete views later.
-          if (
-            !view
-              .getQuery()
-              .getQueryParams()
-              .loadsAllData()
-          ) {
+          if (!view.getQuery().getQueryParams().loadsAllData()) {
             removed.push(view.getQuery());
           }
         }
@@ -200,12 +195,7 @@ export class SyncPoint {
           this.views.delete(queryId);
 
           // We'll deal with complete views later.
-          if (
-            !view
-              .getQuery()
-              .getQueryParams()
-              .loadsAllData()
-          ) {
+          if (!view.getQuery().getQueryParams().loadsAllData()) {
             removed.push(view.getQuery());
           }
         }
@@ -225,12 +215,7 @@ export class SyncPoint {
   getQueryViews(): View[] {
     const result = [];
     for (const view of this.views.values()) {
-      if (
-        !view
-          .getQuery()
-          .getQueryParams()
-          .loadsAllData()
-      ) {
+      if (!view.getQuery().getQueryParams().loadsAllData()) {
         result.push(view);
       }
     }
@@ -269,12 +254,7 @@ export class SyncPoint {
 
   getCompleteView(): View | null {
     for (const view of this.views.values()) {
-      if (
-        view
-          .getQuery()
-          .getQueryParams()
-          .loadsAllData()
-      ) {
+      if (view.getQuery().getQueryParams().loadsAllData()) {
         return view;
       }
     }

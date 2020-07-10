@@ -24,23 +24,23 @@ const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 const TEST_DOMAIN = 'default-sw';
 const TEST_SUITE_TIMEOUT_MS = 70000;
 
-describe(`Firebase Messaging Integration Tests > Use 'firebase-messaging-sw.js' by default`, function() {
+describe(`Firebase Messaging Integration Tests > Use 'firebase-messaging-sw.js' by default`, function () {
   this.timeout(TEST_SUITE_TIMEOUT_MS);
 
   this.retries(3);
 
   let globalWebDriver;
 
-  before(async function() {
+  before(async function () {
     await testServer.start();
   });
 
-  after(async function() {
+  after(async function () {
     await testServer.stop();
     await seleniumAssistant.killWebDriver(globalWebDriver);
   });
 
-  it(`should use default SW by default`, async function() {
+  it(`should use default SW by default`, async function () {
     globalWebDriver = createPermittedWebDriver('chrome');
     await globalWebDriver.get(`${testServer.serverAddress}/${TEST_DOMAIN}/`);
 
@@ -48,7 +48,7 @@ describe(`Firebase Messaging Integration Tests > Use 'firebase-messaging-sw.js' 
     const token = await retrieveToken(globalWebDriver);
     expect(token).to.exist;
 
-    const result = await globalWebDriver.executeAsyncScript(function(cb) {
+    const result = await globalWebDriver.executeAsyncScript(function (cb) {
       navigator.serviceWorker
         .getRegistrations()
         .then(swReg => {

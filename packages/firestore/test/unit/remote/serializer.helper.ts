@@ -1199,9 +1199,7 @@ export function serializerTest(
       });
 
       it('converts limits', () => {
-        const q = Query.atPath(path('docs'))
-          .withLimitToFirst(26)
-          .toTarget();
+        const q = Query.atPath(path('docs')).withLimitToFirst(26).toTarget();
         const result = toTarget(s, wrapTargetData(q));
         const expected = {
           query: {

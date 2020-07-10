@@ -661,16 +661,10 @@ apiDescribe('Database', (persistence: boolean) => {
     it('inequality same as first orderBy works.', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll
-            .where('x', '>', 32)
-            .orderBy('x')
-            .orderBy('y')
+          coll.where('x', '>', 32).orderBy('x').orderBy('y')
         ).not.to.throw();
         expect(() =>
-          coll
-            .orderBy('x')
-            .where('x', '>', 32)
-            .orderBy('y')
+          coll.orderBy('x').where('x', '>', 32).orderBy('y')
         ).not.to.throw();
       });
     });

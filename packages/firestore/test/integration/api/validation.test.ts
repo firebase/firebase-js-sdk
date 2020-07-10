@@ -562,19 +562,13 @@ apiDescribe('Validation:', (persistence: boolean) => {
       return ref
         .set(data)
         .then(() => {
-          return ref.firestore
-            .batch()
-            .set(ref, data)
-            .commit();
+          return ref.firestore.batch().set(ref, data).commit();
         })
         .then(() => {
           return ref.update(data);
         })
         .then(() => {
-          return ref.firestore
-            .batch()
-            .update(ref, data)
-            .commit();
+          return ref.firestore.batch().update(ref, data).commit();
         })
         .then(() => {
           return ref.firestore.runTransaction(async txn => {
@@ -1121,16 +1115,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
           reason
         );
         expect(() =>
-          collection
-            .where('x', '>', 32)
-            .orderBy('y')
-            .orderBy('x')
+          collection.where('x', '>', 32).orderBy('y').orderBy('x')
         ).to.throw(reason);
         expect(() =>
-          collection
-            .orderBy('y')
-            .orderBy('x')
-            .where('x', '>', 32)
+          collection.orderBy('y').orderBy('x').where('x', '>', 32)
         ).to.throw(reason);
       }
     );
