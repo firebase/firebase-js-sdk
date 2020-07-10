@@ -24,7 +24,9 @@ export class LoadBundleTask
   implements
     firestore.LoadBundleTask,
     PromiseLike<firestore.LoadBundleTaskProgress> {
-  private _progressObserver?: PartialObserver<firestore.LoadBundleTaskProgress>;
+  private _progressObserver: PartialObserver<
+    firestore.LoadBundleTaskProgress
+  > = {};
   private _taskCompletionResolver = new Deferred<
     firestore.LoadBundleTaskProgress
   >();
@@ -67,8 +69,12 @@ export class LoadBundleTask
    * `LoadBundleTaskProgress` object.
    */
   _completeWith(progress: firestore.LoadBundleTaskProgress): void {
+    debugAssert(
+      progress.taskState === 'Success',
+      'Task is not completed with Success.'
+    );
     this._updateProgress(progress);
-    if (this._progressObserver && this._progressObserver.complete) {
+    if (this._progressObserver.complete) {
       this._progressObserver.complete();
     }
 
@@ -82,11 +88,11 @@ export class LoadBundleTask
   _failWith(error: Error): void {
     this._lastProgress.taskState = 'Error';
 
-    if (this._progressObserver && this._progressObserver.next) {
+    if (this._progressObserver.next) {
       this._progressObserver.next(this._lastProgress);
     }
 
-    if (this._progressObserver && this._progressObserver.error) {
+    if (this._progressObserver.error) {
       this._progressObserver.error(error);
     }
 
@@ -99,12 +105,12 @@ export class LoadBundleTask
    */
   _updateProgress(progress: firestore.LoadBundleTaskProgress): void {
     debugAssert(
-      this._lastProgress.taskState !== 'Error',
-      'Cannot update progress on a failed task'
+      this._lastProgress.taskState === 'Running',
+      'Cannot update progress on a completed or failed task'
     );
 
     this._lastProgress = progress;
-    if (this._progressObserver && this._progressObserver.next) {
+    if (this._progressObserver.next) {
       this._progressObserver.next(progress);
     }
   }

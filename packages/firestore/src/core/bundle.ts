@@ -140,7 +140,7 @@ export function bundleSuccessProgress(
   };
 }
 
-export class LoadResult {
+export class BundleLoadResult {
   constructor(
     readonly progress: firestore.LoadBundleTaskProgress,
     readonly changedDocs?: MaybeDocumentMap
@@ -211,28 +211,23 @@ export class BundleLoader {
   /**
    * Update the progress to 'Success' and return the updated progress.
    */
-  async complete(): Promise<LoadResult> {
-    const lastDocument =
-      this.documents.length === 0
-        ? null
-        : this.documents[this.documents.length - 1];
+  async complete(): Promise<BundleLoadResult> {
     debugAssert(
-      !!lastDocument ||
-        !lastDocument!.metadata.exists ||
-        (!!lastDocument!.metadata.exists && !!lastDocument!.document),
-      'Bundled documents ends with a document metadata.'
+      this.documents[this.documents.length - 1]?.metadata.exists !== true ||
+        !!this.documents[this.documents.length - 1].document,
+      'Bundled documents ends with a document metadata and missing document.'
     );
 
     for (const q of this.queries) {
       await saveNamedQuery(this.localStore, q);
     }
 
-    let changedDocs;
-    if (this.documents.length > 0) {
-      changedDocs = await applyBundleDocuments(this.localStore, this.documents);
-    }
+    const changedDocs = await applyBundleDocuments(
+      this.localStore,
+      this.documents
+    );
 
     this.progress.taskState = 'Success';
-    return new LoadResult({ ...this.progress }, changedDocs);
+    return new BundleLoadResult({ ...this.progress }, changedDocs);
   }
 }

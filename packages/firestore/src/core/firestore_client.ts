@@ -533,7 +533,7 @@ export class FirestoreClient {
     this.asyncQueue.enqueueAndForget(async () => {
       loadBundle(this.syncEngine, reader, task);
       return task.catch(e => {
-        logWarn(`Loading bundle failed with ${e}`);
+        logWarn(LOG_TAG, `Loading bundle failed with ${e}`);
       });
     });
 
