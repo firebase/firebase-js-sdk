@@ -1,14 +1,12 @@
 {
   "name": "@firebase/messaging",
-  "version": "0.6.19",
+  "version": "0.6.20",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -29,18 +27,18 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/component": "0.1.15",
-    "@firebase/installations": "0.4.13",
+    "@firebase/installations": "0.4.14",
     "@firebase/messaging-types": "0.4.5",
     "@firebase/util": "0.2.50",
+    "@firebase/component": "0.1.16",
     "idb": "3.0.2",
     "tslib": "1.11.1"
   },
   "devDependencies": {
-    "rollup": "2.7.6",
-    "rollup-plugin-typescript2": "0.27.0",
+    "rollup": "2.21.0",
+    "rollup-plugin-typescript2": "0.27.1",
     "ts-essentials": "6.0.7",
-    "typescript": "3.9.5"
+    "typescript": "3.9.6"
   },
   "repository": {
     "directory": "packages/messaging",

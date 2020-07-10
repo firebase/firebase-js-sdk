@@ -24,23 +24,23 @@ const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 const TEST_DOMAIN = 'valid-manifest';
 const TEST_SUITE_TIMEOUT_MS = 70000;
 
-describe(`Firebase Messaging Integration Tests > Use 'use valid manifest`, function() {
+describe(`Firebase Messaging Integration Tests > Use 'use valid manifest`, function () {
   this.timeout(TEST_SUITE_TIMEOUT_MS);
 
   this.retries(3);
 
   let globalWebDriver;
 
-  before(async function() {
+  before(async function () {
     await testServer.start();
   });
 
-  after(async function() {
+  after(async function () {
     await testServer.stop();
     await seleniumAssistant.killWebDriver(globalWebDriver);
   });
 
-  it(`should allow valid manifest`, async function() {
+  it(`should allow valid manifest`, async function () {
     globalWebDriver = createPermittedWebDriver('chrome');
     await globalWebDriver.get(`${testServer.serverAddress}/${TEST_DOMAIN}/`);
 

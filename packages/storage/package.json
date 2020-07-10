@@ -1,14 +1,12 @@
 {
   "name": "@firebase/storage",
-  "version": "0.3.37",
+  "version": "0.3.38",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -25,7 +23,7 @@
   "dependencies": {
     "@firebase/storage-types": "0.3.12",
     "@firebase/util": "0.2.50",
-    "@firebase/component": "0.1.15",
+    "@firebase/component": "0.1.16",
     "tslib": "^1.11.1"
   },
   "peerDependencies": {
@@ -33,9 +31,9 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "rollup": "2.7.6",
-    "rollup-plugin-typescript2": "0.27.0",
-    "typescript": "3.9.5"
+    "rollup": "2.21.0",
+    "rollup-plugin-typescript2": "0.27.1",
+    "typescript": "3.9.6"
   },
   "repository": {
     "directory": "packages/storage",

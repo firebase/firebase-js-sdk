@@ -725,7 +725,7 @@ export class FirebaseIFrameScriptHolder {
           newScript.async = true;
           newScript.src = url;
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          newScript.onload = (newScript as any).onreadystatechange = function() {
+          newScript.onload = (newScript as any).onreadystatechange = function () {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const rstate = (newScript as any).readyState;
             if (!rstate || rstate === 'loaded' || rstate === 'complete') {
