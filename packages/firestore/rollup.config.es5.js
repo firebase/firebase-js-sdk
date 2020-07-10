@@ -79,7 +79,12 @@ const browserBuilds = [
   },
   {
     input: pkg.esm2017,
-    output: { file: pkg.browser, format: 'cjs', sourcemap: true },
+    output: {
+      file: pkg.browser,
+      format: 'umd',
+      sourcemap: true,
+      name: 'firebaseFirestore'
+    },
     plugins: browserPlugins,
     external: resolveBrowserExterns
   },
@@ -98,7 +103,9 @@ const browserBuilds = [
 const nodeBuilds = [
   {
     input: pkg['main-esm2017'],
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
+    output: [
+      { file: pkg.main, format: 'umd', sourcemap: true, name: 'firebaseRTDB' }
+    ],
     plugins: nodePlugins,
     external: resolveNodeExterns
   },

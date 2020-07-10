@@ -10,7 +10,9 @@
   "esm2017": "dist/index.esm2017.js",
   "lite": "dist/index.lite.js",
   "lite-esm2017": "dist/index.lite.esm2017.js",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",

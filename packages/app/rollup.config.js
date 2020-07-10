@@ -38,7 +38,12 @@ const es5Builds = [
   {
     input: 'index.ts',
     output: [
-      { file: pkg.browser, format: 'cjs', sourcemap: true },
+      {
+        file: pkg.browser,
+        format: 'umd',
+        sourcemap: true,
+        name: 'firebaseApp'
+      },
       { file: pkg.module, format: 'es', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
@@ -48,8 +53,9 @@ const es5Builds = [
     input: 'index.node.ts',
     output: {
       file: pkg.main,
-      format: 'cjs',
-      sourcemap: true
+      format: 'umd',
+      sourcemap: true,
+      name: 'firebaseApp'
     },
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))

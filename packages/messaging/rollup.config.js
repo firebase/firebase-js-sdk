@@ -38,7 +38,7 @@ const es5Builds = [
   {
     input: 'src/index.ts',
     output: [
-      { file: pkg.main, format: 'cjs', sourcemap: true },
+      { file: pkg.main, format: 'umd', sourcemap: true, name: 'firebaseRTDB' },
       { file: pkg.module, format: 'es', sourcemap: true }
     ],
     plugins: es5BuildPlugins,

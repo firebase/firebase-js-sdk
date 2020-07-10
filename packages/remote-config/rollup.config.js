@@ -41,7 +41,12 @@ const es5Builds = [
   {
     input: 'index.ts',
     output: [
-      { file: pkg.browser, format: 'cjs', sourcemap: true },
+      {
+        file: pkg.browser,
+        format: 'umd',
+        sourcemap: true,
+        name: 'firebaseRemoteConfig'
+      },
       { file: pkg.module, format: 'es', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
