@@ -917,7 +917,7 @@ class LocalStoreImpl implements LocalStore {
     }
   }
 
-  releaseTarget(
+  async releaseTarget(
     targetId: number,
     keepPersistedTargetData: boolean
   ): Promise<void> {
@@ -928,21 +928,34 @@ class LocalStoreImpl implements LocalStore {
     );
 
     const mode = keepPersistedTargetData ? 'readwrite' : 'readwrite-primary';
-    return this.persistence
-      .runTransaction('Release target', mode, txn => {
-        if (!keepPersistedTargetData) {
+
+    try {
+      if (!keepPersistedTargetData) {
+        await this.persistence.runTransaction('Release target', mode, txn => {
           return this.persistence.referenceDelegate.removeTarget(
             txn,
             targetData!
           );
-        } else {
-          return PersistencePromise.resolve();
-        }
-      })
-      .then(() => {
-        this.targetDataByTarget = this.targetDataByTarget.remove(targetId);
-        this.targetIdByTarget.delete(targetData!.target);
-      });
+        });
+      }
+    } catch (e) {
+      if (isIndexedDbTransactionError(e)) {
+        // All `releaseTarget` does is record the final metadata state for the
+        // target, but we've been recording this periodically during target
+        // activity. If we lose this write this could cause a very slight
+        // difference in the order of target deletion during GC, but we
+        // don't define exact LRU semantics so this is acceptable.
+        logDebug(
+          LOG_TAG,
+          `Failed to update sequence numbers for target ${targetId}: ${e}`
+        );
+      } else {
+        throw e;
+      }
+    }
+
+    this.targetDataByTarget = this.targetDataByTarget.remove(targetId);
+    this.targetIdByTarget.delete(targetData!.target);
   }
 
   executeQuery(

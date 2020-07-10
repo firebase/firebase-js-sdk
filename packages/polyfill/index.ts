@@ -38,3 +38,4 @@ import 'core-js/features/symbol/iterator';
 import 'core-js/features/map';
 import 'core-js/features/set';
 import 'core-js/features/number/is-integer';
+import 'core-js/features/number/is-nan';

@@ -26,7 +26,7 @@ import {
   Query,
   QuerySnapshot
 } from '../../src/api/database';
-import { IndexedDbComponentProvider } from '../../src/core/component_provider';
+import { MultiTabIndexedDbComponentProvider } from '../../src/core/component_provider';
 import { Query as InternalQuery } from '../../src/core/query';
 import {
   ChangeType,
@@ -49,7 +49,7 @@ export const FIRESTORE = new Firestore(
     database: '(default)'
   },
   new Provider('auth-internal', new ComponentContainer('default')),
-  new IndexedDbComponentProvider()
+  new MultiTabIndexedDbComponentProvider()
 );
 
 export function firestore(): Firestore {
