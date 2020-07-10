@@ -21,7 +21,7 @@
  */
 
 /** @return {!firebase.Promise<void>} */
-firebase.database.Database.prototype.INTERNAL.delete = function() {};
+firebase.database.Database.prototype.INTERNAL.delete = function () {};
 
 /** @const {!Object} */
 firebase.database.INTERNAL;

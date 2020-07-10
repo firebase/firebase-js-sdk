@@ -174,12 +174,7 @@ describe('Firebase Storage > Reference', () => {
     });
     it('works chained multiple times with leading slashes', () => {
       assert.equal(
-        root
-          .child('a')
-          .child('/b')
-          .child('c')
-          .child('d/e')
-          .toString(),
+        root.child('a').child('/b').child('c').child('d/e').toString(),
         'gs://test-bucket/a/b/c/d/e'
       );
     });

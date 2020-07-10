@@ -67,10 +67,7 @@ describe('DocumentSet', () => {
 
   it('updates documents', () => {
     const comp = DocComparator.byField('sort');
-    let set = new DocumentSet(comp)
-      .add(d1)
-      .add(d2)
-      .add(d3);
+    let set = new DocumentSet(comp).add(d1).add(d2).add(d3);
     expect(set.size).to.equal(3);
 
     const d2prime = doc('docs/2', 2, { sort: 9 });

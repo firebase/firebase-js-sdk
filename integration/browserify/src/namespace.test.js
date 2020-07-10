@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,6 @@ firebase.initializeApp({
   appId: 'myAppId'
 });
 
-describe('Firebase Namespace Validation', function() {
+describe('Firebase Namespace Validation', function () {
   validateNamespace(namespaceDefinition, firebase);
 });

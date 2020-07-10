@@ -860,7 +860,7 @@ describe('Transaction Tests', () => {
       );
 
       // Meanwhile, do sets from the second connection.
-      const doSet = function() {
+      const doSet = function () {
         ref2.set(setsDone, () => {
           setsDone++;
           if (setsDone < SETS) {
@@ -1282,7 +1282,7 @@ describe('Transaction Tests', () => {
       readSnaps = [],
       writeSnaps = [];
 
-    const evaluateCompletionCriteria = function() {
+    const evaluateCompletionCriteria = function () {
       if (readSnaps.length === 1 && writeSnaps.length === 2) {
         expect(
           Math.abs(new Date().getTime() - writeSnaps[0].val()) < 10000
