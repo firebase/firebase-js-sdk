@@ -39,7 +39,7 @@
     "@firebase/functions-exp": "0.0.800"
   },
   "devDependencies": {
-    "rollup": "1.32.1",
+    "rollup": "2.21.0",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-license": "0.14.0",
     "rollup-plugin-node-resolve": "5.2.0",
