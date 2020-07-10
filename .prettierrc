@@ -4,3 +4,4 @@
   quoteProps: preserve,
   trailingComma: none,
   arrowParens: avoid
+}
