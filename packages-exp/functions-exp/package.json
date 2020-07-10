@@ -54,7 +54,7 @@
     "@firebase/messaging-types": "0.4.5",
     "@firebase/util": "0.2.50",
     "isomorphic-fetch": "2.2.1",
-    "tslib": "^1.11.1"
+    "tslib": "1.13.0"
   },
   "nyc": {
     "extension": [
