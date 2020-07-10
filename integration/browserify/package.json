@@ -9,8 +9,8 @@
   },
   "devDependencies": {
     "firebase": "7.16.0",
-    "@babel/core": "7.9.6",
-    "@babel/preset-env": "7.9.6",
+    "@babel/core": "7.10.4",
+    "@babel/preset-env": "7.10.4",
     "browserify": "16.5.1",
     "chai": "4.2.0",
     "karma": "5.1.0",
@@ -21,6 +21,6 @@
     "karma-sauce-launcher": "1.2.0",
     "karma-spec-reporter": "0.0.32",
     "mkdirp": "1.0.4",
-    "mocha": "7.1.2"
+    "mocha": "7.2.0"
   }
 }
