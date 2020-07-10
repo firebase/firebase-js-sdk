@@ -128,8 +128,7 @@ export class RepoManager {
       parsedUrl = parseRepoInfo(dbUrl);
       repoInfo = parsedUrl.repoInfo;
     } else {
-      isEmulator =
-        parsedUrl.repoInfo.host === 'localhost' && !parsedUrl.repoInfo.secure;
+      isEmulator = !parsedUrl.repoInfo.secure;
     }
 
     authTokenProvider =
