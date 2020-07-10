@@ -14,7 +14,7 @@
     <ui>bdd</ui>
     <extra-mocha-options>--require ts-node/register/type-check --require exp/index.node.ts --require test/util/node_persistence.ts  --timeout 5000</extra-mocha-options>
     <test-kind>PATTERN</test-kind>
-    <test-pattern>exp/test/**/*.test.ts</test-pattern>
+    <test-pattern>test/integration/api/*.test.ts</test-pattern>
     <method v="2" />
   </configuration>
 </component>
