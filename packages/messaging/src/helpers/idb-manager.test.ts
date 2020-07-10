@@ -71,7 +71,9 @@ describe('idb manager', () => {
     });
 
     describe('old DB migration', () => {
-      let migrateOldDatabaseStub: Stub<typeof migrateOldDatabaseModule['migrateOldDatabase']>;
+      let migrateOldDatabaseStub: Stub<
+        typeof migrateOldDatabaseModule['migrateOldDatabase']
+      >;
 
       beforeEach(() => {
         migrateOldDatabaseStub = stub(

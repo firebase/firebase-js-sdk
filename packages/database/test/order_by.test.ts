@@ -211,10 +211,7 @@ describe('.orderBy tests', () => {
 
     await ref.set(data);
 
-    const snap = await ref
-      .orderByKey()
-      .startAt('c')
-      .once('value');
+    const snap = await ref.orderByKey().startAt('c').once('value');
 
     let keys = [];
     snap.forEach(child => {
@@ -305,10 +302,7 @@ describe('.orderBy tests', () => {
 
     const actual = [];
 
-    const orderedRef = reader
-      .orderByKey()
-      .startAt('b')
-      .limitToFirst(2);
+    const orderedRef = reader.orderByKey().startAt('b').limitToFirst(2);
     writer.set(initial, () => {
       orderedRef.on('value', snap => {
         snap.forEach(childSnap => {
@@ -338,10 +332,7 @@ describe('.orderBy tests', () => {
     const addedOrder = [];
     const addedPrevNames = [];
 
-    const orderedRef = ref
-      .orderByValue()
-      .startAt(52, 'tony')
-      .endAt(59);
+    const orderedRef = ref.orderByValue().startAt(52, 'tony').endAt(59);
 
     orderedRef.on('value', snap => {
       snap.forEach(childSnap => {

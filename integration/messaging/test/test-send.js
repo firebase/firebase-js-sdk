@@ -48,15 +48,15 @@ const WAIT_TIME_BEFORE_RETRIEVING_BACKGROUND_MESSAGES_MILLISECONDS = 60000;
 
 const wait = ms => new Promise(res => setTimeout(res, ms));
 
-describe('Starting Integration Test > Sending and Receiving ', function() {
+describe('Starting Integration Test > Sending and Receiving ', function () {
   this.retries(3);
   let globalWebDriver;
 
-  before(async function() {
+  before(async function () {
     await testServer.start();
   });
 
-  after(async function() {
+  after(async function () {
     await testServer.stop();
   });
 
@@ -135,9 +135,10 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
             /* expectedDataPayload= */ getTestDataPayload()
           );
         });
+
       });
 
-      it('Foreground app can receive a {} empty message in onMessage', async function() {
+      it('Foreground app can receive a {} empty message in onMessage', async function () {
         this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
 
         await seleniumAssistant.killWebDriver(globalWebDriver);
@@ -162,7 +163,7 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
       });
 
-      it('Foreground app can receive a {"notification"} message in onMessage', async function() {
+      it('Foreground app can receive a {"notification"} message in onMessage', async function () {
         this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
 
         await seleniumAssistant.killWebDriver(globalWebDriver);
@@ -187,7 +188,7 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
       });
 
-      it('Foreground app can receive a {"data"} message in onMessage', async function() {
+      it('Foreground app can receive a {"data"} message in onMessage', async function () {
         this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
 
         await seleniumAssistant.killWebDriver(globalWebDriver);
@@ -212,7 +213,7 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
       });
 
-      it('Foreground app can receive a {"notification", "data"} message in onMessage', async function() {
+      it('Foreground app can receive a {"notification", "data"} message in onMessage', async function () {
         this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
 
         await seleniumAssistant.killWebDriver(globalWebDriver);

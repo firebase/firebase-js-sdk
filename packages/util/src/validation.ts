@@ -24,7 +24,7 @@
  * @param maxCount The maximum number of argument to allow for the function call
  * @param argCount The actual number of arguments provided.
  */
-export const validateArgCount = function(
+export const validateArgCount = function (
   fnName: string,
   minCount: number,
   maxCount: number,

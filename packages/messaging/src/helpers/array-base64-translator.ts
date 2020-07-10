@@ -18,10 +18,7 @@
 export function arrayToBase64(array: Uint8Array | ArrayBuffer): string {
   const uint8Array = new Uint8Array(array);
   const base64String = btoa(String.fromCharCode(...uint8Array));
-  return base64String
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
+  return base64String.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 }
 
 export function base64ToArray(base64String: string): Uint8Array {
