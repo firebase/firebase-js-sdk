@@ -39,9 +39,9 @@ import { cast } from './util';
 import { Settings } from '../../';
 
 // settings() defaults:
-const DEFAULT_HOST = 'firestore.googleapis.com';
-const DEFAULT_SSL = true;
-const DEFAULT_FORCE_LONG_POLLING = false; // Used by full SDK
+export const DEFAULT_HOST = 'firestore.googleapis.com';
+export const DEFAULT_SSL = true;
+export const DEFAULT_FORCE_LONG_POLLING = false; // Used by full SDK
 
 /**
  * The root reference to the Firestore Lite database.
@@ -101,17 +101,13 @@ export class Firestore
     return this._datastorePromise;
   }
 
-  protected _makeDatabaseInfo(
-    host?: string,
-    ssl?: boolean,
-    forceLongPolling?: boolean
-  ): DatabaseInfo {
+  protected _makeDatabaseInfo(host?: string, ssl?: boolean): DatabaseInfo {
     return new DatabaseInfo(
       this._databaseId,
       /* persistenceKey= */ 'unsupported',
       host ?? DEFAULT_HOST,
       ssl ?? DEFAULT_SSL,
-      forceLongPolling ?? DEFAULT_FORCE_LONG_POLLING
+      DEFAULT_FORCE_LONG_POLLING
     );
   }
 

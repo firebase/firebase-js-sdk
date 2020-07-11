@@ -33,9 +33,11 @@ import {
   Direction,
   FieldFilter,
   Filter,
+  newQueryComparator,
   Operator,
   OrderBy,
-  Query as InternalQuery
+  Query as InternalQuery,
+  queryEquals
 } from '../core/query';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
@@ -90,6 +92,10 @@ import {
 import {
   DocumentKeyReference,
   fieldPathFromArgument,
+  parseQueryValue,
+  parseSetData,
+  parseUpdateData,
+  parseUpdateVarargs,
   UntypedFirestoreDataConverter,
   UserDataReader
 } from './user_data_reader';
@@ -424,15 +430,18 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     ) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
-        'Persistence cannot be cleared after this Firestore instance is initialized.'
+        'Persistence can only be cleared before a Firestore instance is ' +
+          'initialized or after it is terminated.'
       );
     }
 
     const deferred = new Deferred<void>();
     this._queue.enqueueAndForgetEvenAfterShutdown(async () => {
       try {
-        const databaseInfo = this.makeDatabaseInfo();
-        await this._componentProvider.clearPersistence(databaseInfo);
+        await this._componentProvider.clearPersistence(
+          this._databaseId,
+          this._persistenceKey
+        );
         deferred.resolve();
       } catch (e) {
         deferred.reject(e);
@@ -462,35 +471,17 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     this.ensureClientConfigured();
 
     if (isPartialObserver(arg)) {
-      return this.onSnapshotsInSyncInternal(arg as PartialObserver<void>);
+      return addSnapshotsInSyncListener(
+        this._firestoreClient!,
+        arg as PartialObserver<void>
+      );
     } else {
       validateArgType('Firestore.onSnapshotsInSync', 'function', 1, arg);
       const observer: PartialObserver<void> = {
         next: arg as () => void
       };
-      return this.onSnapshotsInSyncInternal(observer);
+      return addSnapshotsInSyncListener(this._firestoreClient!, observer);
     }
-  }
-
-  private onSnapshotsInSyncInternal(
-    observer: PartialObserver<void>
-  ): Unsubscribe {
-    const errHandler = (err: Error): void => {
-      throw fail('Uncaught Error in onSnapshotsInSync');
-    };
-    const asyncObserver = new AsyncObserver<void>({
-      next: () => {
-        if (observer.next) {
-          observer.next();
-        }
-      },
-      error: errHandler
-    });
-    this._firestoreClient!.addSnapshotsInSyncListener(asyncObserver);
-    return () => {
-      asyncObserver.mute();
-      this._firestoreClient!.removeSnapshotsInSyncListener(asyncObserver);
-    };
   }
 
   loadBundle(
@@ -534,13 +525,13 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     const databaseInfo = this.makeDatabaseInfo();
 
-    this._firestoreClient = new FirestoreClient(
-      databaseInfo,
-      this._credentials,
-      this._queue
-    );
+    this._firestoreClient = new FirestoreClient(this._credentials, this._queue);
 
-    return this._firestoreClient.start(componentProvider, persistenceSettings);
+    return this._firestoreClient.start(
+      databaseInfo,
+      componentProvider,
+      persistenceSettings
+    );
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
@@ -682,6 +673,29 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 }
 
+/** Registers the listener for onSnapshotsInSync() */
+export function addSnapshotsInSyncListener(
+  firestoreClient: FirestoreClient,
+  observer: PartialObserver<void>
+): Unsubscribe {
+  const errHandler = (err: Error): void => {
+    throw fail('Uncaught Error in onSnapshotsInSync');
+  };
+  const asyncObserver = new AsyncObserver<void>({
+    next: () => {
+      if (observer.next) {
+        observer.next();
+      }
+    },
+    error: errHandler
+  });
+  firestoreClient.addSnapshotsInSyncListener(asyncObserver);
+  return () => {
+    asyncObserver.mute();
+    firestoreClient.removeSnapshotsInSyncListener(asyncObserver);
+  };
+}
+
 /**
  * A reference to a transaction.
  */
@@ -756,7 +770,8 @@ export class Transaction implements firestore.Transaction {
       value,
       options
     );
-    const parsed = this._firestore._dataReader.parseSetData(
+    const parsed = parseSetData(
+      this._firestore._dataReader,
       'Transaction.set',
       ref._key,
       convertedValue,
@@ -796,7 +811,8 @@ export class Transaction implements firestore.Transaction {
         documentRef,
         this._firestore
       );
-      parsed = this._firestore._dataReader.parseUpdateVarargs(
+      parsed = parseUpdateVarargs(
+        this._firestore._dataReader,
         'Transaction.update',
         ref._key,
         fieldOrUpdateData,
@@ -810,7 +826,8 @@ export class Transaction implements firestore.Transaction {
         documentRef,
         this._firestore
       );
-      parsed = this._firestore._dataReader.parseUpdateData(
+      parsed = parseUpdateData(
+        this._firestore._dataReader,
         'Transaction.update',
         ref._key,
         fieldOrUpdateData
@@ -863,7 +880,8 @@ export class WriteBatch implements firestore.WriteBatch {
       value,
       options
     );
-    const parsed = this._firestore._dataReader.parseSetData(
+    const parsed = parseSetData(
+      this._firestore._dataReader,
       'WriteBatch.set',
       ref._key,
       convertedValue,
@@ -907,7 +925,8 @@ export class WriteBatch implements firestore.WriteBatch {
         documentRef,
         this._firestore
       );
-      parsed = this._firestore._dataReader.parseUpdateVarargs(
+      parsed = parseUpdateVarargs(
+        this._firestore._dataReader,
         'WriteBatch.update',
         ref._key,
         fieldOrUpdateData,
@@ -921,7 +940,8 @@ export class WriteBatch implements firestore.WriteBatch {
         documentRef,
         this._firestore
       );
-      parsed = this._firestore._dataReader.parseUpdateData(
+      parsed = parseUpdateData(
+        this._firestore._dataReader,
         'WriteBatch.update',
         ref._key,
         fieldOrUpdateData
@@ -1063,7 +1083,8 @@ export class DocumentReference<T = firestore.DocumentData>
       value,
       options
     );
-    const parsed = this.firestore._dataReader.parseSetData(
+    const parsed = parseSetData(
+      this.firestore._dataReader,
       'DocumentReference.set',
       this._key,
       convertedValue,
@@ -1093,7 +1114,8 @@ export class DocumentReference<T = firestore.DocumentData>
       fieldOrUpdateData instanceof ExternalFieldPath
     ) {
       validateAtLeastNumberOfArgs('DocumentReference.update', arguments, 2);
-      parsed = this.firestore._dataReader.parseUpdateVarargs(
+      parsed = parseUpdateVarargs(
+        this.firestore._dataReader,
         'DocumentReference.update',
         this._key,
         fieldOrUpdateData,
@@ -1102,7 +1124,8 @@ export class DocumentReference<T = firestore.DocumentData>
       );
     } else {
       validateExactNumberOfArgs('DocumentReference.update', arguments, 1);
-      parsed = this.firestore._dataReader.parseUpdateData(
+      parsed = parseUpdateData(
+        this.firestore._dataReader,
         'DocumentReference.update',
         this._key,
         fieldOrUpdateData
@@ -1176,9 +1199,9 @@ export class DocumentReference<T = firestore.DocumentData>
       const userObserver = args[currArg] as PartialObserver<
         firestore.DocumentSnapshot<T>
       >;
-      args[currArg] = userObserver.next;
-      args[currArg + 1] = userObserver.error;
-      args[currArg + 2] = userObserver.complete;
+      args[currArg] = userObserver.next?.bind(userObserver);
+      args[currArg + 1] = userObserver.error?.bind(userObserver);
+      args[currArg + 2] = userObserver.complete?.bind(userObserver);
     } else {
       validateArgType(
         'DocumentReference.onSnapshot',
@@ -1277,7 +1300,7 @@ export class DocumentReference<T = firestore.DocumentData>
 }
 
 /** Registers an internal snapshot listener for `ref`. */
-function addDocSnapshotListener(
+export function addDocSnapshotListener(
   firestoreClient: FirestoreClient,
   key: DocumentKey,
   options: ListenOptions,
@@ -1547,11 +1570,11 @@ export class BaseQuery {
       if (op === Operator.IN || op === Operator.ARRAY_CONTAINS_ANY) {
         this.validateDisjunctiveFilterElements(value, op);
       }
-      fieldValue = this._dataReader.parseQueryValue(
+      fieldValue = parseQueryValue(
+        this._dataReader,
         'Query.where',
         value,
-        // We only allow nested arrays for IN queries.
-        /** allowArrays = */ op === Operator.IN
+        op === Operator.IN
       );
     }
     const filter = FieldFilter.create(fieldPath, op, fieldValue);
@@ -1697,23 +1720,12 @@ export class BaseQuery {
         const key = new DocumentKey(path);
         components.push(refValue(this._databaseId, key));
       } else {
-        const wrapped = this._dataReader.parseQueryValue(methodName, rawValue);
+        const wrapped = parseQueryValue(this._dataReader, methodName, rawValue);
         components.push(wrapped);
       }
     }
 
     return new Bound(components, before);
-  }
-
-  protected validateHasExplicitOrderByForLimitToLast(
-    query: InternalQuery
-  ): void {
-    if (query.hasLimitToLast() && query.explicitOrderBy.length === 0) {
-      throw new FirestoreError(
-        Code.UNIMPLEMENTED,
-        'limitToLast() queries require specifying at least one orderBy() clause'
-      );
-    }
   }
 
   /**
@@ -1839,7 +1851,7 @@ export class BaseQuery {
         if (conflictingOp === null && isArrayOp) {
           conflictingOp = this._query.findFilterOperator(arrayOps);
         }
-        if (conflictingOp != null) {
+        if (conflictingOp !== null) {
           // We special case when it's a duplicate op to give a slightly clearer error message.
           if (conflictingOp === filter.op) {
             throw new FirestoreError(
@@ -1883,6 +1895,17 @@ export class BaseQuery {
           `is on field '${orderBy.toString()}' instead.`
       );
     }
+  }
+}
+
+export function validateHasExplicitOrderByForLimitToLast(
+  query: InternalQuery
+): void {
+  if (query.hasLimitToLast() && query.explicitOrderBy.length === 0) {
+    throw new FirestoreError(
+      Code.UNIMPLEMENTED,
+      'limitToLast() queries require specifying at least one orderBy() clause'
+    );
   }
 }
 
@@ -2057,7 +2080,7 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
     }
     return (
       this.firestore === other.firestore &&
-      this._query.isEqual(other._query) &&
+      queryEquals(this._query, other._query) &&
       this._converter === other._converter
     );
   }
@@ -2129,9 +2152,9 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
       const userObserver = args[currArg] as PartialObserver<
         firestore.QuerySnapshot<T>
       >;
-      args[currArg] = userObserver.next;
-      args[currArg + 1] = userObserver.error;
-      args[currArg + 2] = userObserver.complete;
+      args[currArg] = userObserver.next?.bind(userObserver);
+      args[currArg + 1] = userObserver.error?.bind(userObserver);
+      args[currArg + 2] = userObserver.complete?.bind(userObserver);
     } else {
       validateArgType('Query.onSnapshot', 'function', currArg, args[currArg]);
       validateOptionalArgType(
@@ -2165,7 +2188,7 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
       complete: args[currArg + 2] as CompleteFn
     };
 
-    this.validateHasExplicitOrderByForLimitToLast(this._query);
+    validateHasExplicitOrderByForLimitToLast(this._query);
     const firestoreClient = this.firestore.ensureClientConfigured();
     return addQuerySnapshotListener(
       firestoreClient,
@@ -2178,7 +2201,7 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
   get(options?: firestore.GetOptions): Promise<firestore.QuerySnapshot<T>> {
     validateBetweenNumberOfArgs('Query.get', arguments, 0, 1);
     validateGetOptions('Query.get', options);
-    this.validateHasExplicitOrderByForLimitToLast(this._query);
+    validateHasExplicitOrderByForLimitToLast(this._query);
 
     const firestoreClient = this.firestore.ensureClientConfigured();
     return (options && options.source === 'cache'
@@ -2235,7 +2258,7 @@ export function getDocsViaSnapshotListener(
 }
 
 /** Registers an internal snapshot listener for `query`. */
-function addQuerySnapshotListener(
+export function addQuerySnapshotListener(
   firestore: FirestoreClient,
   query: InternalQuery,
   options: ListenOptions,
@@ -2368,7 +2391,7 @@ export class QuerySnapshot<T = firestore.DocumentData>
 
     return (
       this._firestore === other._firestore &&
-      this._originalQuery.isEqual(other._originalQuery) &&
+      queryEquals(this._originalQuery, other._originalQuery) &&
       this._snapshot.isEqual(other._snapshot) &&
       this._converter === other._converter
     );
@@ -2592,7 +2615,7 @@ export function changesFromSnapshot<DocSnap>(
         'Invalid event type for first snapshot'
       );
       debugAssert(
-        !lastDoc || snapshot.query.docComparator(lastDoc, change.doc) < 0,
+        !lastDoc || newQueryComparator(snapshot.query)(lastDoc, change.doc) < 0,
         'Got added events in wrong order'
       );
       lastDoc = change.doc;

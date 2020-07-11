@@ -43,7 +43,7 @@
  *
  * @return {!firebase.storage.Storage}
  */
-firebase.storage = function(app) {};
+firebase.storage = function (app) {};
 
 /**
  * Gets the {@link firebase.storage.Storage `Storage`} service for the current
@@ -61,7 +61,7 @@ firebase.storage = function(app) {};
  *     If not passed, uses the app's default Storage Bucket.
  * @return {!firebase.storage.Storage}
  */
-firebase.app.App.prototype.storage = function(url) {};
+firebase.app.App.prototype.storage = function (url) {};
 
 /**
  * The Firebase Storage service interface.
@@ -77,7 +77,7 @@ firebase.app.App.prototype.storage = function(url) {};
  *
  * @interface
  */
-firebase.storage.Storage = function() {};
+firebase.storage.Storage = function () {};
 
 /**
  * The {@link firebase.app.App app} associated with the `Storage` service
@@ -97,7 +97,7 @@ firebase.storage.Storage.prototype.app;
  *     points to the bucket root.
  * @return {!firebase.storage.Reference} A reference for the given path.
  */
-firebase.storage.Storage.prototype.ref = function(path) {};
+firebase.storage.Storage.prototype.ref = function (path) {};
 
 /**
  * Returns a reference for the given absolute URL.
@@ -107,7 +107,7 @@ firebase.storage.Storage.prototype.ref = function(path) {};
  *     @see {@link firebase.storage.FullMetadata.prototype.downloadURLs}
  * @return {!firebase.storage.Reference} A reference for the given URL.
  */
-firebase.storage.Storage.prototype.refFromURL = function(url) {};
+firebase.storage.Storage.prototype.refFromURL = function (url) {};
 
 /**
  * The maximum time to retry operations other than uploads or downloads in
@@ -120,7 +120,9 @@ firebase.storage.Storage.prototype.maxOperationRetryTime;
  * @param {number} time The new maximum operation retry time in milliseconds.
  * @see {@link firebase.storage.Storage.prototype.maxOperationRetryTime}
  */
-firebase.storage.Storage.prototype.setMaxOperationRetryTime = function(time) {};
+firebase.storage.Storage.prototype.setMaxOperationRetryTime = function (
+  time
+) {};
 
 /**
  * The maximum time to retry uploads in milliseconds.
@@ -132,21 +134,21 @@ firebase.storage.Storage.prototype.maxUploadRetryTime;
  * @param {number} time The new maximum upload retry time in milliseconds.
  * @see {@link firebase.storage.Storage.prototype.maxUploadRetryTime}
  */
-firebase.storage.Storage.prototype.setMaxUploadRetryTime = function(time) {};
+firebase.storage.Storage.prototype.setMaxUploadRetryTime = function (time) {};
 
 /**
  * Represents a reference to a Google Cloud Storage object. Developers can
  * upload, download, and delete objects, as well as get/set object metadata.
  * @interface
  */
-firebase.storage.Reference = function() {};
+firebase.storage.Reference = function () {};
 
 /**
  * Returns a gs:// URL for this object in the form
  *   `gs://<bucket>/<path>/<to>/<object>`
  * @return {string} The gs:// URL.
  */
-firebase.storage.Reference.prototype.toString = function() {};
+firebase.storage.Reference.prototype.toString = function () {};
 
 /**
  * Returns a reference to a relative path from this reference.
@@ -154,7 +156,7 @@ firebase.storage.Reference.prototype.toString = function() {};
  *     Leading, trailing, and consecutive slashes are removed.
  * @return {!firebase.storage.Reference} The reference a the given path.
  */
-firebase.storage.Reference.prototype.child = function(path) {};
+firebase.storage.Reference.prototype.child = function (path) {};
 
 /**
  * Uploads data to this reference's location.
@@ -164,7 +166,7 @@ firebase.storage.Reference.prototype.child = function(path) {};
  * @return {!firebase.storage.UploadTask} An object that can be used to monitor
  *     and manage the upload.
  */
-firebase.storage.Reference.prototype.put = function(data, metadata) {};
+firebase.storage.Reference.prototype.put = function (data, metadata) {};
 
 /**
  * @enum {string}
@@ -216,7 +218,7 @@ firebase.storage.StringFormat = {
  * @throws If the format is not an allowed format, or if the given string
  *     doesn't conform to the specified format.
  */
-firebase.storage.Reference.prototype.putString = function(
+firebase.storage.Reference.prototype.putString = function (
   data,
   format,
   metadata
@@ -227,7 +229,7 @@ firebase.storage.Reference.prototype.putString = function(
  * @return {!firebase.Promise<void>} A Promise that resolves if the deletion
  *     succeeded and rejects if it failed, including if the object didn't exist.
  */
-firebase.storage.Reference.prototype.delete = function() {};
+firebase.storage.Reference.prototype.delete = function () {};
 
 /**
  * Fetches metadata for the object at this location, if one exists.
@@ -235,7 +237,7 @@ firebase.storage.Reference.prototype.delete = function() {};
  *     resolves with the metadata, or rejects if the fetch failed, including if
  *     the object did not exist.
  */
-firebase.storage.Reference.prototype.getMetadata = function() {};
+firebase.storage.Reference.prototype.getMetadata = function () {};
 
 /**
  * Updates the metadata for the object at this location, if one exists.
@@ -246,7 +248,7 @@ firebase.storage.Reference.prototype.getMetadata = function() {};
  *     resolves with the full updated metadata or rejects if the updated failed,
  *     including if the object did not exist.
  */
-firebase.storage.Reference.prototype.updateMetadata = function(metadata) {};
+firebase.storage.Reference.prototype.updateMetadata = function (metadata) {};
 
 /**
  * Fetches a long lived download URL for this object.
@@ -254,7 +256,7 @@ firebase.storage.Reference.prototype.updateMetadata = function(metadata) {};
  *     URL or rejects if the fetch failed, including if the object did not
  *     exist.
  */
-firebase.storage.Reference.prototype.getDownloadURL = function() {};
+firebase.storage.Reference.prototype.getDownloadURL = function () {};
 
 /**
  * A reference pointing to the parent location of this reference, or null if
@@ -298,7 +300,7 @@ firebase.storage.Reference.prototype.storage;
  * Object metadata that can be set at any time.
  * @interface
  */
-firebase.storage.SettableMetadata = function() {};
+firebase.storage.SettableMetadata = function () {};
 
 /**
  * Served as the 'Cache-Control' header on object download.
@@ -341,7 +343,7 @@ firebase.storage.SettableMetadata.prototype.customMetadata;
  * @interface
  * @extends {firebase.storage.SettableMetadata}
  */
-firebase.storage.UploadMetadata = function() {};
+firebase.storage.UploadMetadata = function () {};
 
 /**
  * A Base64-encoded MD5 hash of the object being uploaded.
@@ -354,7 +356,7 @@ firebase.storage.UploadMetadata.prototype.md5Hash;
  * @interface
  * @extends {firebase.storage.UploadMetadata}
  */
-firebase.storage.FullMetadata = function() {};
+firebase.storage.FullMetadata = function () {};
 
 /**
  * The bucket this object is contained in.
@@ -457,7 +459,7 @@ firebase.storage.TaskState = {
  * manage the upload.
  * @interface
  */
-firebase.storage.UploadTask = function() {};
+firebase.storage.UploadTask = function () {};
 
 /**
  * This object behaves like a Promise, and resolves with its snapshot data when
@@ -467,7 +469,7 @@ firebase.storage.UploadTask = function() {};
  * @param {(?function(!Error):*)=} onRejected The rejection callback.
  * @return {!firebase.Promise}
  */
-firebase.storage.UploadTask.prototype.then = function(
+firebase.storage.UploadTask.prototype.then = function (
   onFulfilled,
   onRejected
 ) {};
@@ -477,7 +479,7 @@ firebase.storage.UploadTask.prototype.then = function(
  * @param {!function(!Error):*} onRejected
  * @return {!firebase.Promise}
  */
-firebase.storage.UploadTask.prototype.catch = function(onRejected) {};
+firebase.storage.UploadTask.prototype.catch = function (onRejected) {};
 
 /**
  * Listens for events on this task.
@@ -586,7 +588,7 @@ firebase.storage.UploadTask.prototype.catch = function(onRejected) {};
  *     argument is passed, returns a function you can call to unregister the
  *     callbacks.
  */
-firebase.storage.UploadTask.prototype.on = function(
+firebase.storage.UploadTask.prototype.on = function (
   event,
   nextOrObserver,
   error,
@@ -597,19 +599,19 @@ firebase.storage.UploadTask.prototype.on = function(
  * Resumes a paused task. Has no effect on a running or failed task.
  * @return {boolean} True if the resume had an effect.
  */
-firebase.storage.UploadTask.prototype.resume = function() {};
+firebase.storage.UploadTask.prototype.resume = function () {};
 
 /**
  * Pauses a running task. Has no effect on a paused or failed task.
  * @return {boolean} True if the pause had an effect.
  */
-firebase.storage.UploadTask.prototype.pause = function() {};
+firebase.storage.UploadTask.prototype.pause = function () {};
 
 /**
  * Cancels a running task. Has no effect on a complete or failed task.
  * @return {boolean} True if the cancel had an effect.
  */
-firebase.storage.UploadTask.prototype.cancel = function() {};
+firebase.storage.UploadTask.prototype.cancel = function () {};
 
 /**
  * A snapshot of the current task state.
@@ -621,7 +623,7 @@ firebase.storage.UploadTask.prototype.snapshot;
  * Holds data about the current state of the upload task.
  * @interface
  */
-firebase.storage.UploadTaskSnapshot = function() {};
+firebase.storage.UploadTaskSnapshot = function () {};
 
 /**
  * The number of bytes that have been successfully uploaded so far.

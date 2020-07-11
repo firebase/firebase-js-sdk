@@ -36,7 +36,7 @@ declare const waitsFor;
 declare const TEST_ALT_NAMESPACE;
 declare const TEST_NAMESPACE;
 
-describe('.info Tests', function() {
+describe('.info Tests', function () {
   this.timeout(3000);
   it('Can get a reference to .info nodes.', () => {
     const f = getRootNode() as Reference;
@@ -146,7 +146,7 @@ describe('.info Tests', function() {
     // Wait until we're connected to both Firebases
     runs(() => {
       ready = 0;
-      const eventHandler = function(snap) {
+      const eventHandler = function (snap) {
         if (snap.val() === true) {
           snap.ref.off();
           ready += 1;
@@ -167,7 +167,7 @@ describe('.info Tests', function() {
     // Ensure we're disconnected from both Firebases
     runs(() => {
       ready = 0;
-      const eventHandler = function(snap) {
+      const eventHandler = function (snap) {
         expect(snap.val() === false);
         ready += 1;
       };
@@ -203,7 +203,7 @@ describe('.info Tests', function() {
     // Ensure we're connected to both Firebases
     runs(() => {
       ready = 0;
-      const eventHandler = function(snap) {
+      const eventHandler = function (snap) {
         if (snap.val() === true) {
           snap.ref.off();
           ready += 1;

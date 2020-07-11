@@ -17,8 +17,8 @@
 
 import {
   ComponentConfiguration,
-  IndexedDbComponentProvider,
-  MemoryComponentProvider
+  MemoryComponentProvider,
+  MultiTabIndexedDbComponentProvider
 } from '../../../src/core/component_provider';
 import {
   GarbageCollectionScheduler,
@@ -26,7 +26,10 @@ import {
   PersistenceTransaction,
   PersistenceTransactionMode
 } from '../../../src/local/persistence';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import {
+  indexedDbStoragePrefix,
+  IndexedDbPersistence
+} from '../../../src/local/indexeddb_persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { IndexedDbTransactionError } from '../../../src/local/simple_db';
 import { debugAssert, fail } from '../../../src/util/assert';
@@ -114,7 +117,7 @@ function failTransactionIfNeeded(
   }
 }
 
-export class MockIndexedDbComponentProvider extends IndexedDbComponentProvider {
+export class MockIndexedDbComponentProvider extends MultiTabIndexedDbComponentProvider {
   persistence!: MockIndexedDbPersistence;
 
   constructor(
@@ -131,8 +134,9 @@ export class MockIndexedDbComponentProvider extends IndexedDbComponentProvider {
   }
 
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      cfg.databaseInfo
+    const persistenceKey = indexedDbStoragePrefix(
+      cfg.databaseInfo.databaseId,
+      cfg.databaseInfo.persistenceKey
     );
     return new WebStorageSharedClientState(
       this.window,
@@ -149,8 +153,9 @@ export class MockIndexedDbComponentProvider extends IndexedDbComponentProvider {
       'Can only start durable persistence'
     );
 
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      cfg.databaseInfo
+    const persistenceKey = indexedDbStoragePrefix(
+      cfg.databaseInfo.databaseId,
+      cfg.databaseInfo.persistenceKey
     );
     const serializer = newSerializer(cfg.databaseInfo.databaseId);
 

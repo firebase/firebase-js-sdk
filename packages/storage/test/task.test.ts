@@ -403,7 +403,7 @@ describe('Firebase Storage > Upload Task', () => {
     }
     addCallbacks(task);
 
-    (function() {
+    (function () {
       let lastState: string;
       task.on(TaskEvent.STATE_CHANGED, snapshot => {
         const state = snapshot.state;
@@ -461,7 +461,7 @@ describe('Firebase Storage > Upload Task', () => {
       );
       const events2: string[] = [];
 
-      (function() {
+      (function () {
         let lastState: string;
         task2.on(
           TaskEvent.STATE_CHANGED,

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.15.5",
+  "version": "1.16.0",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -21,7 +21,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "prettier": "prettier --write '*.ts' '*.js' 'lite/**/*.ts' 'exp/**/*.ts' 'src/**/*.js' 'test/**/*.js' 'src/**/*.ts' 'test/**/*.ts'",
     "pregendeps:exp": "yarn build:exp",
-    "gendeps:exp": "../../scripts/exp/extract-deps.sh --types ./exp/index.d.ts --bundle ./dist/exp/index.js --output ./exp/test/deps/dependencies.json",
+    "gendeps:exp": "../../scripts/exp/extract-deps.sh --types ./exp/index.d.ts --bundle ./dist/exp/index.node.esm2017.js --output ./exp/test/deps/dependencies.json",
     "pretest:exp": "yarn build:exp",
     "pregendeps:lite": "yarn build:lite",
     "gendeps:lite": "../../scripts/exp/extract-deps.sh --types ./lite/index.d.ts --bundle ./dist/lite/index.node.esm2017.js --output ./lite/test/dependencies.json",
@@ -43,6 +43,7 @@
   },
   "main": "dist/index.node.cjs.js",
   "main-esm2017": "dist/index.node.esm2017.js",
+  "react-native": "dist/index.rn.esm2017.js",
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
@@ -52,9 +53,9 @@
     "memory/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.1.15",
-    "@firebase/firestore-types": "1.11.0",
-    "@firebase/logger": "0.2.5",
+    "@firebase/component": "0.1.16",
+    "@firebase/firestore-types": "1.12.0",
+    "@firebase/logger": "0.2.6",
     "@firebase/util": "0.2.50",
     "@firebase/webchannel-wrapper": "0.2.41",
     "@grpc/grpc-js": "^1.0.0",
@@ -70,16 +71,16 @@
     "@types/json-stable-stringify": "1.0.32",
     "json-stable-stringify": "1.0.1",
     "protobufjs": "6.9.0",
-    "rollup": "2.7.6",
+    "rollup": "2.21.0",
     "rollup-plugin-copy-assets": "1.1.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-replace": "2.2.0",
-    "rollup-plugin-sourcemaps": "0.6.1",
+    "rollup-plugin-sourcemaps": "0.6.2",
     "rollup-plugin-terser": "5.3.0",
-    "rollup-plugin-typescript2": "0.27.0",
-    "ts-node": "8.10.1",
-    "typescript": "3.8.3"
+    "rollup-plugin-typescript2": "0.27.1",
+    "ts-node": "8.10.2",
+    "typescript": "3.9.6"
   },
   "repository": {
     "directory": "packages/firestore",

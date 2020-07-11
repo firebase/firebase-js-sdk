@@ -1,15 +1,13 @@
 {
   "name": "@firebase/testing",
-  "version": "0.20.5",
+  "version": "0.20.6",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/testing --include-dependencies build",
@@ -21,16 +19,16 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "firebase": "7.15.5",
-    "@firebase/logger": "0.2.5",
+    "firebase": "7.16.0",
+    "@firebase/logger": "0.2.6",
     "@firebase/util": "0.2.50",
     "request": "2.88.2"
   },
   "devDependencies": {
-    "@types/request": "2.48.4",
-    "firebase-tools": "^8.4.3",
-    "rollup": "2.7.6",
-    "rollup-plugin-typescript2": "0.27.0"
+    "@types/request": "2.48.5",
+    "firebase-tools": "8.5.0",
+    "rollup": "2.21.0",
+    "rollup-plugin-typescript2": "0.27.1"
   },
   "repository": {
     "directory": "packages/testing",

@@ -20,12 +20,12 @@ var process;
  * @param {!string} a
  * @param {!string} b
  */
-var Buffer = function(a, b) {};
+var Buffer = function (a, b) {};
 /**
  * @param {string=} encoding
  * @return {!string}
  */
-Buffer.prototype.toString = function(encoding) {
+Buffer.prototype.toString = function (encoding) {
   return 'dummy';
 };
 
@@ -52,4 +52,4 @@ module.exports = {};
  * @param {string} moduleName
  * @return {*}
  */
-var require = function(moduleName) {};
+var require = function (moduleName) {};

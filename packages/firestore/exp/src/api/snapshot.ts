@@ -29,7 +29,11 @@ import {
 } from '../../../lite/src/api/snapshot';
 import { Firestore } from './database';
 import { cast } from '../../../lite/src/api/util';
-import { DocumentReference, Query } from '../../../lite/src/api/reference';
+import {
+  DocumentReference,
+  Query,
+  queryEqual
+} from '../../../lite/src/api/reference';
 import {
   changesFromSnapshot,
   SnapshotMetadata
@@ -72,7 +76,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         this.metadata,
         /* converter= */ null
       );
-      return this._converter.fromFirestore(snapshot);
+      return this._converter.fromFirestore(snapshot, options);
     } else {
       const userDataWriter = new UserDataWriter(
         this._firestoreImpl._databaseId,
@@ -117,15 +121,21 @@ export class QueryDocumentSnapshot<T = firestore.DocumentData>
 
 export class QuerySnapshot<T = firestore.DocumentData>
   implements firestore.QuerySnapshot<T> {
+  readonly metadata: SnapshotMetadata;
+
   private _cachedChanges?: Array<firestore.DocumentChange<T>>;
   private _cachedChangesIncludeMetadataChanges?: boolean;
 
   constructor(
-    private readonly _firestore: Firestore,
+    readonly _firestore: Firestore,
     readonly query: Query<T>,
-    private readonly _snapshot: ViewSnapshot,
-    readonly metadata: SnapshotMetadata
-  ) {}
+    readonly _snapshot: ViewSnapshot
+  ) {
+    this.metadata = new SnapshotMetadata(
+      _snapshot.hasPendingWrites,
+      _snapshot.fromCache
+    );
+  }
 
   get docs(): Array<firestore.QueryDocumentSnapshot<T>> {
     const result: Array<firestore.QueryDocumentSnapshot<T>> = [];
@@ -150,7 +160,7 @@ export class QuerySnapshot<T = firestore.DocumentData>
         thisArg,
         this._convertToDocumentSnapshot(
           doc,
-          this.metadata.fromCache,
+          this._snapshot.fromCache,
           this._snapshot.mutatedKeys.has(doc.key)
         )
       );
@@ -198,4 +208,31 @@ export class QuerySnapshot<T = firestore.DocumentData>
       this.query._converter
     );
   }
+}
+
+// TODO(firestoreexp): Add tests for snapshotEqual with different snapshot
+// metadata
+export function snapshotEqual<T>(
+  left: firestore.DocumentSnapshot<T> | firestore.QuerySnapshot<T>,
+  right: firestore.DocumentSnapshot<T> | firestore.QuerySnapshot<T>
+): boolean {
+  if (left instanceof DocumentSnapshot && right instanceof DocumentSnapshot) {
+    return (
+      left._firestore === right._firestore &&
+      left._key.isEqual(right._key) &&
+      (left._document === null
+        ? right._document === null
+        : left._document.isEqual(right._document)) &&
+      left._converter === right._converter
+    );
+  } else if (left instanceof QuerySnapshot && right instanceof QuerySnapshot) {
+    return (
+      left._firestore === right._firestore &&
+      queryEqual(left.query, right.query) &&
+      left.metadata.isEqual(right.metadata) &&
+      left._snapshot.isEqual(right._snapshot)
+    );
+  }
+
+  return false;
 }

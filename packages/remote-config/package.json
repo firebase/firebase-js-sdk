@@ -1,15 +1,13 @@
 {
   "name": "@firebase/remote-config",
-  "version": "0.1.24",
+  "version": "0.1.25",
   "description": "The Remote Config package of the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -28,18 +26,18 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/installations": "0.4.13",
-    "@firebase/logger": "0.2.5",
+    "@firebase/installations": "0.4.14",
+    "@firebase/logger": "0.2.6",
     "@firebase/remote-config-types": "0.1.9",
     "@firebase/util": "0.2.50",
-    "@firebase/component": "0.1.15",
+    "@firebase/component": "0.1.16",
     "tslib": "^1.11.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "2.7.6",
-    "rollup-plugin-typescript2": "0.27.0",
-    "typescript": "3.8.3"
+    "rollup": "2.21.0",
+    "rollup-plugin-typescript2": "0.27.1",
+    "typescript": "3.9.6"
   },
   "repository": {
     "directory": "packages/remote-config",

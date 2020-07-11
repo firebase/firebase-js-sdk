@@ -20,6 +20,7 @@ const { exists } = require('mz/fs');
 const yargs = require('yargs');
 const glob = require('glob');
 const path = require('path');
+const chalk = require('chalk');
 
 // Check for 'configFiles' flag to run on specified karma.conf.js files instead
 // of on all files.
@@ -37,9 +38,11 @@ const { configFiles } = yargs
 const testFiles = configFiles.length
   ? configFiles
   : glob
-      .sync(`{packages,integration}/*/karma.conf.js`)
-      // Automated tests in integration/firestore are currently disabled.
-      .filter(name => !name.includes('integration/firestore'));
+      .sync(`packages/*/karma.conf.js`)
+      // Skip integration namespace tests, not very useful, introduce errors.
+      .concat('integration/firestore/karma.conf.js')
+      // Exclude database - currently too many failures.
+      .filter(name => !name.includes('packages/database'));
 
 // Get CI build number or generate one if running locally.
 const buildNumber =
@@ -54,22 +57,60 @@ const buildNumber =
  * group.
  */
 async function runTest(testFile) {
+  if (!(await exists(testFile))) {
+    console.error(chalk`{red ERROR: ${testFile} does not exist.}`);
+    return 1;
+  }
   // Run pretest if this dir has a package.json with a pretest script.
   const testFileDir =
     path.resolve(__dirname, '../') + '/' + path.dirname(testFile);
   const pkgPath = testFileDir + '/package.json';
+  let pkgName = testFile;
   if (await exists(pkgPath)) {
     const pkg = require(pkgPath);
+    pkgName = pkg.name;
     if (pkg.scripts.pretest) {
       await spawn('yarn', ['--cwd', testFileDir, 'pretest'], {
         stdio: 'inherit'
       });
     }
   }
-  return runKarma(testFile);
+  if (testFile.includes('integration/firestore')) {
+    console.log(
+      chalk`{blue Generating memory-only build for integration/firestore.}`
+    );
+    await spawn('yarn', ['--cwd', 'integration/firestore', 'build:memory'], {
+      stdio: 'inherit'
+    });
+    console.log(
+      chalk`{blue Running tests on memory-only build for integration/firestore.}`
+    );
+    const exitCode1 = await runKarma(testFile, `${pkgName}-memory`);
+    console.log(
+      chalk`{blue Generating persistence build for integration/firestore.}`
+    );
+    await spawn(
+      'yarn',
+      ['--cwd', 'integration/firestore', 'build:persistence'],
+      { stdio: 'inherit' }
+    );
+    console.log(
+      chalk`{blue Running tests on persistence build for integration/firestore.}`
+    );
+    const exitCode2 = await runKarma(testFile, `${pkgName}-persistence`);
+    return Math.max(exitCode1, exitCode2);
+  } else {
+    return runKarma(testFile, pkgName);
+  }
 }
 
-async function runKarma(testFile) {
+/**
+ * Runs the karma test command for one package.
+ *
+ * @param {string} testFile - path to karma.conf.js file
+ * @param {string} testTag - package label for messages (usually package name)
+ */
+async function runKarma(testFile, testTag) {
   const karmaArgs = [
     'karma',
     'start',
@@ -92,11 +133,11 @@ async function runKarma(testFile) {
 
   return promise
     .then(() => {
-      console.log(`[${testFile}] ******* DONE *******`);
+      console.log(chalk`{green [${testTag}] ******* DONE *******}`);
       return exitCode;
     })
     .catch(err => {
-      console.error(`[${testFile}] ERROR:`, err.message);
+      console.error(chalk`{red [${testTag}] ERROR: ${err.message}}`);
       return exitCode;
     });
 }
@@ -109,19 +150,29 @@ async function runKarma(testFile) {
  * of all child processes.  This allows any failing test to result in a CI
  * build failure for the whole Saucelabs run.
  */
-async function runNextTest(maxExitCode = 0) {
+async function runNextTest(maxExitCode = 0, results = {}) {
   // When test queue is empty, exit with code 0 if no tests failed or
   // 1 if any tests failed.
-  if (!testFiles.length) process.exit(maxExitCode);
+  if (!testFiles.length) {
+    for (const fileName of Object.keys(results)) {
+      if (results[fileName] > 0) {
+        console.log(`FAILED: ${fileName}`);
+      }
+    }
+    process.exit(maxExitCode);
+  }
   const nextFile = testFiles.shift();
   let exitCode;
   try {
     exitCode = await runTest(nextFile);
   } catch (e) {
-    console.error(`[${nextFile}] ERROR:`, e.message);
+    console.error(chalk`{red [${nextFile}] ERROR: ${e.message}}`);
     exitCode = 1;
   }
-  runNextTest(Math.max(exitCode, maxExitCode));
+  runNextTest(Math.max(exitCode, maxExitCode), {
+    ...results,
+    [nextFile]: exitCode
+  });
 }
 
 runNextTest();

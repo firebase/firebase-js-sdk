@@ -67,7 +67,7 @@ const config = {
   // test results reporter to use
   // possible values: 'dots', 'progress'
   // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-  reporters: ['spec', 'coverage-istanbul' /*, 'saucelabs' */],
+  reporters: ['mocha', 'coverage-istanbul' /*, 'saucelabs' */],
 
   // web server port
   port: 8089,
@@ -124,13 +124,13 @@ const config = {
 if (false /* process.env.TRAVIS */) {
   config.browsers = [...config.browsers, ...Object.keys(sauceLabsBrowsers)];
 }
-
+config.mochaReporter = {
+  showDiff: true
+};
 // Make it easy to spot failed tests in CI
 if (process.env.CI) {
-  config.specReporter = {
-    suppressErrorSummary: true,
-    suppressPassed: true, // do not print information about passed tests
-    suppressSkipped: true
+  config.mochaReporter = {
+    output: 'minimal'
   };
 }
 

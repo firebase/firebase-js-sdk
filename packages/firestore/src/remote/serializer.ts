@@ -774,7 +774,7 @@ function fromFieldTransform(
       proto.setToServerValue === 'REQUEST_TIME',
       'Unknown server value transform proto: ' + JSON.stringify(proto)
     );
-    transform = ServerTimestampTransform.instance;
+    transform = new ServerTimestampTransform();
   } else if ('appendMissingElements' in proto) {
     const values = proto.appendMissingElements!.values || [];
     transform = new ArrayUnionTransformOperation(values);

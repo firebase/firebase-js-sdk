@@ -21,7 +21,7 @@ import { filter, orderBy, path } from '../../util/helpers';
 import { TestBundleCache } from './test_bundle_cache';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Timestamp } from '../../../src/api/timestamp';
-import { Query } from '../../../src/core/query';
+import { Query, queryEquals } from '../../../src/core/query';
 import {
   clearTestPersistence,
   JSON_SERIALIZER,
@@ -83,7 +83,7 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
     expectedReadNanos: number
   ): void {
     expect(actual.name).to.equal(expectedName);
-    expect(actual.query.isEqual(expectedQuery)).to.be.true;
+    expect(queryEquals(actual.query, expectedQuery)).to.be.true;
     expect(
       actual.readTime.isEqual(
         SnapshotVersion.fromTimestamp(

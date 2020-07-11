@@ -63,7 +63,7 @@ class FieldValueDelegate extends FieldValue implements firestore.FieldValue {
 }
 
 export function deleteField(): firestore.FieldValue {
-  return new FieldValueDelegate(new DeleteFieldValueImpl('delete'));
+  return new FieldValueDelegate(new DeleteFieldValueImpl('deleteField'));
 }
 
 export function serverTimestamp(): firestore.FieldValue {

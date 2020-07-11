@@ -41,7 +41,7 @@
  *
  * @return {!firebase.auth.Auth}
  */
-firebase.auth = function(app) {};
+firebase.auth = function (app) {};
 
 /**
  * Interface that represents the credentials returned by an auth provider.
@@ -50,7 +50,7 @@ firebase.auth = function(app) {};
  *
  * @interface
  */
-firebase.auth.AuthCredential = function() {};
+firebase.auth.AuthCredential = function () {};
 
 /**
  * The authentication provider ID for the credential.
@@ -80,13 +80,13 @@ firebase.auth.AuthCredential.prototype.signInMethod;
  *     AuthCredential.
  * @return {?firebase.auth.AuthCredential} The auth credential.
  */
-firebase.auth.AuthCredential.fromJSON = function(json) {};
+firebase.auth.AuthCredential.fromJSON = function (json) {};
 
 /**
  * Returns a JSON-serializable representation of this object.
  * @return {!Object} The plain object representation of the `AuthCredential`.
  */
-firebase.auth.AuthCredential.prototype.toJSON = function() {};
+firebase.auth.AuthCredential.prototype.toJSON = function () {};
 
 /**
  * Defines the options for initializing an
@@ -95,7 +95,7 @@ firebase.auth.AuthCredential.prototype.toJSON = function() {};
  *
  * @interface
  */
-firebase.auth.OAuthCredentialOptions = function() {};
+firebase.auth.OAuthCredentialOptions = function () {};
 
 /**
  * The OAuth ID token used to initialize the OAuthCredential.
@@ -128,7 +128,7 @@ firebase.auth.OAuthCredentialOptions.prototype.rawNonce;
  * @interface
  * @extends {firebase.auth.AuthCredential}
  */
-firebase.auth.OAuthCredential = function() {};
+firebase.auth.OAuthCredential = function () {};
 
 /**
  * The OAuth ID token associated with the credential if it belongs to an
@@ -160,7 +160,7 @@ firebase.auth.OAuthCredential.prototype.secret;
  * @interface
  * @extends {firebase.auth.AuthCredential}
  */
-firebase.auth.PhoneAuthCredential = function() {};
+firebase.auth.PhoneAuthCredential = function () {};
 
 /**
  * Gets the {@link firebase.auth.Auth `Auth`} service for the current app.
@@ -172,14 +172,14 @@ firebase.auth.PhoneAuthCredential = function() {};
  *
  * @return {!firebase.auth.Auth}
  */
-firebase.app.App.prototype.auth = function() {};
+firebase.app.App.prototype.auth = function () {};
 
 /**
  * Interface representing a user's metadata.
  *
  * @interface
  */
-firebase.auth.UserMetadata = function() {};
+firebase.auth.UserMetadata = function () {};
 
 /**
  * The date the user last signed in, formatted as a UTC string.
@@ -203,7 +203,7 @@ firebase.auth.UserMetadata.prototype.creationTime;
  *
  * @interface
  */
-firebase.UserInfo = function() {};
+firebase.UserInfo = function () {};
 
 /**
  * The user's unique ID.
@@ -253,7 +253,7 @@ firebase.UserInfo.prototype.phoneNumber;
  * @interface
  * @extends {firebase.UserInfo}
  */
-firebase.User = function() {};
+firebase.User = function () {};
 
 /**
  * The phone number normalized based on the E.164 standard (e.g. +16505550101)
@@ -331,14 +331,14 @@ firebase.User.prototype.tenantId;
  *     expiration.
  * @return {!firebase.Promise<string>}
  */
-firebase.User.prototype.getIdToken = function(forceRefresh) {};
+firebase.User.prototype.getIdToken = function (forceRefresh) {};
 
 /**
  * Refreshes the current user, if signed in.
  *
  * @return {!firebase.Promise<void>}
  */
-firebase.User.prototype.reload = function() {};
+firebase.User.prototype.reload = function () {};
 
 /**
  * Sends a verification email to a user.
@@ -398,7 +398,9 @@ firebase.User.prototype.reload = function() {};
  *     are configured in the same Firebase Auth project used.
  * @return {!firebase.Promise<void>}
  */
-firebase.User.prototype.sendEmailVerification = function(actionCodeSettings) {};
+firebase.User.prototype.sendEmailVerification = function (
+  actionCodeSettings
+) {};
 
 /**
  * Links the user account with the given credentials.
@@ -461,7 +463,7 @@ firebase.User.prototype.sendEmailVerification = function(actionCodeSettings) {};
  * @param {!firebase.auth.AuthCredential} credential The auth credential.
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
-firebase.User.prototype.linkWithCredential = function(credential) {};
+firebase.User.prototype.linkWithCredential = function (credential) {};
 
 /**
  * Links the user account with the given credentials, and returns any available
@@ -528,7 +530,7 @@ firebase.User.prototype.linkWithCredential = function(credential) {};
  * @param {!firebase.auth.AuthCredential} credential The auth credential.
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
-firebase.User.prototype.linkAndRetrieveDataWithCredential = function(
+firebase.User.prototype.linkAndRetrieveDataWithCredential = function (
   credential
 ) {};
 
@@ -573,7 +575,7 @@ firebase.User.prototype.linkAndRetrieveDataWithCredential = function(
  * @param {!firebase.auth.ApplicationVerifier} applicationVerifier
  * @return {!firebase.Promise<!firebase.auth.ConfirmationResult>}
  */
-firebase.User.prototype.linkWithPhoneNumber = function(
+firebase.User.prototype.linkWithPhoneNumber = function (
   phoneNumber,
   applicationVerifier
 ) {};
@@ -591,7 +593,7 @@ firebase.User.prototype.linkWithPhoneNumber = function(
  * @param {string} providerId
  * @return {!firebase.Promise<!firebase.User>}
  */
-firebase.User.prototype.unlink = function(providerId) {};
+firebase.User.prototype.unlink = function (providerId) {};
 
 /**
  * Re-authenticates a user using a fresh credential. Use before operations
@@ -630,7 +632,7 @@ firebase.User.prototype.unlink = function(providerId) {};
  * @param {!firebase.auth.AuthCredential} credential
  * @return {!firebase.Promise<firebase.auth.UserCredential>}
  */
-firebase.User.prototype.reauthenticateWithCredential = function(credential) {};
+firebase.User.prototype.reauthenticateWithCredential = function (credential) {};
 
 /**
  * Re-authenticates a user using a fresh credential, and returns any available
@@ -673,7 +675,7 @@ firebase.User.prototype.reauthenticateWithCredential = function(credential) {};
  * @param {!firebase.auth.AuthCredential} credential
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
-firebase.User.prototype.reauthenticateAndRetrieveDataWithCredential = function(
+firebase.User.prototype.reauthenticateAndRetrieveDataWithCredential = function (
   credential
 ) {};
 
@@ -705,7 +707,7 @@ firebase.User.prototype.reauthenticateAndRetrieveDataWithCredential = function(
  * @param {!firebase.auth.ApplicationVerifier} applicationVerifier
  * @return {!firebase.Promise<!firebase.auth.ConfirmationResult>}
  */
-firebase.User.prototype.reauthenticateWithPhoneNumber = function(
+firebase.User.prototype.reauthenticateWithPhoneNumber = function (
   phoneNumber,
   applicationVerifier
 ) {};
@@ -737,7 +739,7 @@ firebase.User.prototype.reauthenticateWithPhoneNumber = function(
  * @param {string} newEmail The new email address.
  * @return {!firebase.Promise<void>}
  */
-firebase.User.prototype.updateEmail = function(newEmail) {};
+firebase.User.prototype.updateEmail = function (newEmail) {};
 
 /**
  * Updates the user's password.
@@ -760,7 +762,7 @@ firebase.User.prototype.updateEmail = function(newEmail) {};
  * @param {string} newPassword
  * @return {!firebase.Promise<void>}
  */
-firebase.User.prototype.updatePassword = function(newPassword) {};
+firebase.User.prototype.updatePassword = function (newPassword) {};
 
 /**
  * Updates the user's phone number.
@@ -776,7 +778,7 @@ firebase.User.prototype.updatePassword = function(newPassword) {};
  * @param {!firebase.auth.AuthCredential} phoneCredential
  * @return {!firebase.Promise<void>}
  */
-firebase.User.prototype.updatePhoneNumber = function(phoneCredential) {};
+firebase.User.prototype.updatePhoneNumber = function (phoneCredential) {};
 
 /**
  * Updates a user's profile data.
@@ -813,7 +815,7 @@ firebase.User.prototype.updatePhoneNumber = function(phoneCredential) {};
  *     displayName and photoURL to update.
  * @return {!firebase.Promise<void>}
  */
-firebase.User.prototype.updateProfile = function(profile) {};
+firebase.User.prototype.updateProfile = function (profile) {};
 
 /**
  * Sends a verification email to a new email address. The user's email will be
@@ -878,7 +880,7 @@ firebase.User.prototype.updateProfile = function(profile) {};
  *     are configured in the same Firebase Auth project used.
  * @return {!firebase.Promise<void>}
  */
-firebase.User.prototype.verifyBeforeUpdateEmail = function(
+firebase.User.prototype.verifyBeforeUpdateEmail = function (
   newEmail,
   actionCodeSettings
 ) {};
@@ -901,14 +903,14 @@ firebase.User.prototype.verifyBeforeUpdateEmail = function(
  *
  * @return {!firebase.Promise<void>}
  */
-firebase.User.prototype.delete = function() {};
+firebase.User.prototype.delete = function () {};
 
 /**
  * Returns a JSON-serializable representation of this object.
  *
  * @return {!Object} A JSON-serializable representation of this object.
  */
-firebase.User.prototype.toJSON = function() {};
+firebase.User.prototype.toJSON = function () {};
 
 /**
  * The Firebase Auth service interface.
@@ -922,7 +924,7 @@ firebase.User.prototype.toJSON = function() {};
  *
  * @interface
  */
-firebase.auth.Auth = function() {};
+firebase.auth.Auth = function () {};
 
 /**
  * Checks a password reset code sent to the user by email or other out-of-band
@@ -949,14 +951,14 @@ firebase.auth.Auth = function() {};
  * @param {string} code A verification code sent to the user.
  * @return {!firebase.Promise<string>}
  */
-firebase.auth.Auth.prototype.verifyPasswordResetCode = function(code) {};
+firebase.auth.Auth.prototype.verifyPasswordResetCode = function (code) {};
 
 /**
  * A response from {@link firebase.auth.Auth#checkActionCode}.
  *
  * @interface
  */
-firebase.auth.ActionCodeInfo = function() {};
+firebase.auth.ActionCodeInfo = function () {};
 
 /**
  * The data associated with the action code.
@@ -1049,7 +1051,7 @@ firebase.auth.ActionCodeInfo.Operation = {
  *
  * @constructor
  */
-firebase.auth.ActionCodeURL = function() {};
+firebase.auth.ActionCodeURL = function () {};
 
 /**
  * The API key of the email action link.
@@ -1103,7 +1105,7 @@ firebase.auth.ActionCodeURL.prototype.tenantId;
  * @return {?firebase.auth.ActionCodeURL} The ActionCodeURL object, or null if
  *     the link is invalid.
  */
-firebase.auth.ActionCodeURL.parseLink = function(link) {};
+firebase.auth.ActionCodeURL.parseLink = function (link) {};
 
 /**
  * This is the interface that defines the required continue/state URL with
@@ -1171,7 +1173,7 @@ firebase.auth.ActionCodeSettings;
  * @param {string} code A verification code sent to the user.
  * @return {!firebase.Promise<!firebase.auth.ActionCodeInfo>}
  */
-firebase.auth.Auth.prototype.checkActionCode = function(code) {};
+firebase.auth.Auth.prototype.checkActionCode = function (code) {};
 
 /**
  * Applies a verification code sent to the user by email or other out-of-band
@@ -1196,7 +1198,7 @@ firebase.auth.Auth.prototype.checkActionCode = function(code) {};
  * @param {string} code A verification code sent to the user.
  * @return {!firebase.Promise<void>}
  */
-firebase.auth.Auth.prototype.applyActionCode = function(code) {};
+firebase.auth.Auth.prototype.applyActionCode = function (code) {};
 
 /**
  * The {@link firebase.app.App app} associated with the `Auth` service
@@ -1303,7 +1305,7 @@ firebase.auth.Auth.Persistence = {
  *     persistence mechanism.
  * @return {!firebase.Promise<void>}
  */
-firebase.auth.Auth.prototype.setPersistence = function(persistence) {};
+firebase.auth.Auth.prototype.setPersistence = function (persistence) {};
 
 /**
  * The current Auth instance's language code. This is a readable/writable
@@ -1321,7 +1323,7 @@ firebase.auth.Auth.prototype.languageCode;
 /**
  * Sets the current language to the default device/browser preference.
  */
-firebase.auth.Auth.prototype.useDeviceLanguage = function() {};
+firebase.auth.Auth.prototype.useDeviceLanguage = function () {};
 
 /**
  * The current Auth instance's settings. This is used to edit/read configuration
@@ -1377,7 +1379,7 @@ firebase.auth.Auth.prototype.settings;
  * @param {string} password The user's chosen password.
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
-firebase.auth.Auth.prototype.createUserWithEmailAndPassword = function(
+firebase.auth.Auth.prototype.createUserWithEmailAndPassword = function (
   email,
   password
 ) {};
@@ -1397,7 +1399,7 @@ firebase.auth.Auth.prototype.createUserWithEmailAndPassword = function(
  * @param {string} email An email address.
  * @return {!firebase.Promise<!Array<string>>}
  */
-firebase.auth.Auth.prototype.fetchSignInMethodsForEmail = function(email) {};
+firebase.auth.Auth.prototype.fetchSignInMethodsForEmail = function (email) {};
 
 /**
  * Checks if an incoming link is a sign-in with email link.
@@ -1405,7 +1407,7 @@ firebase.auth.Auth.prototype.fetchSignInMethodsForEmail = function(email) {};
  * @param {string} emailLink Sign-in email link.
  * @return {boolean} Whether the link is a sign-in with email link.
  */
-firebase.auth.Auth.prototype.isSignInWithEmailLink = function(emailLink) {};
+firebase.auth.Auth.prototype.isSignInWithEmailLink = function (emailLink) {};
 
 /**
  * Adds an observer for changes to the user's sign-in state.
@@ -1432,7 +1434,7 @@ firebase.auth.Auth.prototype.isSignInWithEmailLink = function(emailLink) {};
  *     observer is removed.
  * @return {!firebase.Unsubscribe} The unsubscribe function for the observer.
  */
-firebase.auth.Auth.prototype.onAuthStateChanged = function(
+firebase.auth.Auth.prototype.onAuthStateChanged = function (
   nextOrObserver,
   error,
   completed
@@ -1458,7 +1460,7 @@ firebase.auth.Auth.prototype.onAuthStateChanged = function(
  *     observer is removed.
  * @return {!firebase.Unsubscribe} The unsubscribe function for the observer.
  */
-firebase.auth.Auth.prototype.onIdTokenChanged = function(
+firebase.auth.Auth.prototype.onIdTokenChanged = function (
   nextOrObserver,
   error,
   completed
@@ -1535,7 +1537,7 @@ firebase.auth.Auth.prototype.onIdTokenChanged = function(
  *     are configured in the same Firebase Auth project used.
  * @return {!firebase.Promise<void>}
  */
-firebase.auth.Auth.prototype.sendSignInLinkToEmail = function(
+firebase.auth.Auth.prototype.sendSignInLinkToEmail = function (
   email,
   actionCodeSettings
 ) {};
@@ -1605,7 +1607,7 @@ firebase.auth.Auth.prototype.sendSignInLinkToEmail = function(
  *     are configured in the same Firebase Auth project used.
  * @return {!firebase.Promise<void>}
  */
-firebase.auth.Auth.prototype.sendPasswordResetEmail = function(
+firebase.auth.Auth.prototype.sendPasswordResetEmail = function (
   email,
   actionCodeSettings
 ) {};
@@ -1636,7 +1638,7 @@ firebase.auth.Auth.prototype.sendPasswordResetEmail = function(
  * @param {string} newPassword The new password.
  * @return {!firebase.Promise<void>}
  */
-firebase.auth.Auth.prototype.confirmPasswordReset = function(
+firebase.auth.Auth.prototype.confirmPasswordReset = function (
   code,
   newPassword
 ) {};
@@ -1701,7 +1703,7 @@ firebase.auth.Auth.prototype.confirmPasswordReset = function(
  * @param {!firebase.auth.AuthCredential} credential The auth credential.
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
-firebase.auth.Auth.prototype.signInWithCredential = function(credential) {};
+firebase.auth.Auth.prototype.signInWithCredential = function (credential) {};
 
 /**
  * Asynchronously signs in with the given credentials, and returns any available
@@ -1756,7 +1758,7 @@ firebase.auth.Auth.prototype.signInWithCredential = function(credential) {};
  * @param {!firebase.auth.AuthCredential} credential The auth credential.
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
-firebase.auth.Auth.prototype.signInAndRetrieveDataWithCredential = function(
+firebase.auth.Auth.prototype.signInAndRetrieveDataWithCredential = function (
   credential
 ) {};
 
@@ -1792,7 +1794,7 @@ firebase.auth.Auth.prototype.signInAndRetrieveDataWithCredential = function(
  * @param {string} token The custom token to sign in with.
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
-firebase.auth.Auth.prototype.signInWithCustomToken = function(token) {};
+firebase.auth.Auth.prototype.signInWithCustomToken = function (token) {};
 
 /**
  * Asynchronously signs in using an email and password.
@@ -1837,7 +1839,7 @@ firebase.auth.Auth.prototype.signInWithCustomToken = function(token) {};
  * @param {string} password The users password.
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
-firebase.auth.Auth.prototype.signInWithEmailAndPassword = function(
+firebase.auth.Auth.prototype.signInWithEmailAndPassword = function (
   email,
   password
 ) {};
@@ -1876,7 +1878,7 @@ firebase.auth.Auth.prototype.signInWithEmailAndPassword = function(
  *     URL is used instead.
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
-firebase.auth.Auth.prototype.signInWithEmailLink = function(
+firebase.auth.Auth.prototype.signInWithEmailLink = function (
   email,
   emailLink
 ) {};
@@ -1931,7 +1933,7 @@ firebase.auth.Auth.prototype.signInWithEmailLink = function(
  * @param {!firebase.auth.ApplicationVerifier} applicationVerifier
  * @return {!firebase.Promise<!firebase.auth.ConfirmationResult>}
  */
-firebase.auth.Auth.prototype.signInWithPhoneNumber = function(
+firebase.auth.Auth.prototype.signInWithPhoneNumber = function (
   phoneNumber,
   applicationVerifier
 ) {};
@@ -1940,7 +1942,7 @@ firebase.auth.Auth.prototype.signInWithPhoneNumber = function(
  * A result from a phone number sign-in, link, or reauthenticate call.
  * @interface
  */
-firebase.auth.ConfirmationResult = function() {};
+firebase.auth.ConfirmationResult = function () {};
 
 /**
  * The phone number authentication operation's verification ID. This can be used
@@ -1964,7 +1966,7 @@ firebase.auth.ConfirmationResult.prototype.verificationId;
  * @param {string} verificationCode
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
-firebase.auth.ConfirmationResult.prototype.confirm = function(
+firebase.auth.ConfirmationResult.prototype.confirm = function (
   verificationCode
 ) {};
 
@@ -1997,7 +1999,7 @@ firebase.auth.ConfirmationResult.prototype.confirm = function(
  *
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
-firebase.auth.Auth.prototype.signInAnonymously = function() {};
+firebase.auth.Auth.prototype.signInAnonymously = function () {};
 
 /**
  * Asynchronously sets the provided user as `currentUser` on the current Auth
@@ -2028,7 +2030,7 @@ firebase.auth.Auth.prototype.signInAnonymously = function() {};
  * @param {?firebase.User} user
  * @return {!firebase.Promise<void>}
  */
-firebase.auth.Auth.prototype.updateCurrentUser = function(user) {};
+firebase.auth.Auth.prototype.updateCurrentUser = function (user) {};
 
 /**
  * A structure containing a User, an AuthCredential, the operationType, and
@@ -2069,7 +2071,7 @@ firebase.auth.AdditionalUserInfo;
  *
  * @interface
  */
-firebase.auth.IdTokenResult = function() {};
+firebase.auth.IdTokenResult = function () {};
 
 /**
  * The Firebase Auth ID token JWT string.
@@ -2130,7 +2132,7 @@ firebase.auth.IdTokenResult.prototype.claims;
  *
  * @interface
  */
-firebase.auth.AuthSettings = function() {};
+firebase.auth.AuthSettings = function () {};
 
 /**
  * When set, this property disables app verification for the purpose of testing
@@ -2155,7 +2157,7 @@ firebase.auth.AuthSettings.prototype.appVerificationDisabledForTesting;
  *
  * @return {!firebase.Promise<void>}
  */
-firebase.auth.Auth.prototype.signOut = function() {};
+firebase.auth.Auth.prototype.signOut = function () {};
 
 /**
  * An authentication error.
@@ -2218,7 +2220,7 @@ firebase.auth.Auth.prototype.signOut = function() {};
  *
  * @interface
  */
-firebase.auth.Error = function() {};
+firebase.auth.Error = function () {};
 
 /**
  * Unique error code.
@@ -2281,7 +2283,7 @@ firebase.auth.Error.prototype.message;
  * @interface
  * @extends {firebase.auth.Error}
  */
-firebase.auth.AuthError = function() {};
+firebase.auth.AuthError = function () {};
 
 /**
  * The {@link firebase.auth.AuthCredential} that can be used to resolve the
@@ -2346,7 +2348,7 @@ firebase.auth.AuthError.prototype.tenantId;
  * @interface
  * @extends {firebase.auth.Error}
  */
-firebase.auth.MultiFactorError = function() {};
+firebase.auth.MultiFactorError = function () {};
 
 /**
  * The multi-factor resolver to complete second factor sign-in.
@@ -2364,7 +2366,7 @@ firebase.auth.MultiFactorError.prototype.resolver;
  *
  * @interface
  */
-firebase.auth.AuthProvider = function() {};
+firebase.auth.AuthProvider = function () {};
 
 /** @type {string} */
 firebase.auth.AuthProvider.prototype.providerId;
@@ -2406,7 +2408,7 @@ firebase.auth.AuthProvider.prototype.providerId;
  * @constructor
  * @implements {firebase.auth.AuthProvider}
  */
-firebase.auth.OAuthProvider = function(providerId) {};
+firebase.auth.OAuthProvider = function (providerId) {};
 
 /**
  * Creates a Firebase credential from a generic OAuth provider's access token or
@@ -2429,7 +2431,7 @@ firebase.auth.OAuthProvider = function(providerId) {};
  * @param {?string=} accessToken The OAuth access token.
  * @return {!firebase.auth.OAuthCredential} The auth provider credential.
  */
-firebase.auth.OAuthProvider.prototype.credential = function(
+firebase.auth.OAuthProvider.prototype.credential = function (
   optionsOrIdToken,
   accessToken
 ) {};
@@ -2441,7 +2443,7 @@ firebase.auth.OAuthProvider.prototype.providerId;
  * @param {string} scope Provider OAuth scope to add.
  * @return {!firebase.auth.OAuthProvider} The provider instance.
  */
-firebase.auth.OAuthProvider.prototype.addScope = function(scope) {};
+firebase.auth.OAuthProvider.prototype.addScope = function (scope) {};
 
 /**
  * Sets the OAuth custom parameters to pass in an OAuth request for popup
@@ -2453,7 +2455,7 @@ firebase.auth.OAuthProvider.prototype.addScope = function(scope) {};
  *     in the OAuth request.
  * @return {!firebase.auth.OAuthProvider} The provider instance.
  */
-firebase.auth.OAuthProvider.prototype.setCustomParameters = function(
+firebase.auth.OAuthProvider.prototype.setCustomParameters = function (
   customOAuthParameters
 ) {};
 
@@ -2490,7 +2492,7 @@ firebase.auth.OAuthProvider.prototype.setCustomParameters = function(
  * @constructor
  * @implements {firebase.auth.AuthProvider}
  */
-firebase.auth.FacebookAuthProvider = function() {};
+firebase.auth.FacebookAuthProvider = function () {};
 
 /** @type {string} */
 firebase.auth.FacebookAuthProvider.PROVIDER_ID;
@@ -2513,7 +2515,7 @@ firebase.auth.FacebookAuthProvider.FACEBOOK_SIGN_IN_METHOD;
  * @param {string} token Facebook access token.
  * @return {!firebase.auth.OAuthCredential} The auth provider credential.
  */
-firebase.auth.FacebookAuthProvider.credential = function(token) {};
+firebase.auth.FacebookAuthProvider.credential = function (token) {};
 
 /** @type {string} */
 firebase.auth.FacebookAuthProvider.prototype.providerId;
@@ -2522,7 +2524,7 @@ firebase.auth.FacebookAuthProvider.prototype.providerId;
  * @param {string} scope Facebook OAuth scope.
  * @return {!firebase.auth.AuthProvider} The provider instance itself.
  */
-firebase.auth.FacebookAuthProvider.prototype.addScope = function(scope) {};
+firebase.auth.FacebookAuthProvider.prototype.addScope = function (scope) {};
 
 /**
  * Sets the OAuth custom parameters to pass in a Facebook OAuth request for
@@ -2537,7 +2539,7 @@ firebase.auth.FacebookAuthProvider.prototype.addScope = function(scope) {};
  *     in the OAuth request.
  * @return {!firebase.auth.AuthProvider} The provider instance itself.
  */
-firebase.auth.FacebookAuthProvider.prototype.setCustomParameters = function(
+firebase.auth.FacebookAuthProvider.prototype.setCustomParameters = function (
   customOAuthParameters
 ) {};
 
@@ -2606,7 +2608,7 @@ firebase.auth.FacebookAuthProvider.prototype.setCustomParameters = function(
  * @constructor
  * @implements {firebase.auth.AuthProvider}
  */
-firebase.auth.GithubAuthProvider = function() {};
+firebase.auth.GithubAuthProvider = function () {};
 
 /** @type {string} */
 firebase.auth.GithubAuthProvider.PROVIDER_ID;
@@ -2629,7 +2631,7 @@ firebase.auth.GithubAuthProvider.GITHUB_SIGN_IN_METHOD;
  * @param {string} token Github access token.
  * @return {!firebase.auth.OAuthCredential} The auth provider credential.
  */
-firebase.auth.GithubAuthProvider.credential = function(token) {};
+firebase.auth.GithubAuthProvider.credential = function (token) {};
 
 /** @type {string} */
 firebase.auth.GithubAuthProvider.prototype.providerId;
@@ -2638,7 +2640,7 @@ firebase.auth.GithubAuthProvider.prototype.providerId;
  * @param {string} scope Github OAuth scope.
  * @return {!firebase.auth.AuthProvider} The provider instance itself.
  */
-firebase.auth.GithubAuthProvider.prototype.addScope = function(scope) {};
+firebase.auth.GithubAuthProvider.prototype.addScope = function (scope) {};
 
 /**
  * Sets the OAuth custom parameters to pass in a GitHub OAuth request for popup
@@ -2652,7 +2654,7 @@ firebase.auth.GithubAuthProvider.prototype.addScope = function(scope) {};
  *     in the OAuth request.
  * @return {!firebase.auth.AuthProvider} The provider instance itself.
  */
-firebase.auth.GithubAuthProvider.prototype.setCustomParameters = function(
+firebase.auth.GithubAuthProvider.prototype.setCustomParameters = function (
   customOAuthParameters
 ) {};
 
@@ -2692,7 +2694,7 @@ firebase.auth.GithubAuthProvider.prototype.setCustomParameters = function(
  * @constructor
  * @implements {firebase.auth.AuthProvider}
  */
-firebase.auth.GoogleAuthProvider = function() {};
+firebase.auth.GoogleAuthProvider = function () {};
 
 /** @type {string} */
 firebase.auth.GoogleAuthProvider.PROVIDER_ID;
@@ -2719,7 +2721,10 @@ firebase.auth.GoogleAuthProvider.GOOGLE_SIGN_IN_METHOD;
  * @param {?string=} accessToken Google access token.
  * @return {!firebase.auth.OAuthCredential} The auth provider credential.
  */
-firebase.auth.GoogleAuthProvider.credential = function(idToken, accessToken) {};
+firebase.auth.GoogleAuthProvider.credential = function (
+  idToken,
+  accessToken
+) {};
 
 /** @type {string} */
 firebase.auth.GoogleAuthProvider.prototype.providerId;
@@ -2728,7 +2733,7 @@ firebase.auth.GoogleAuthProvider.prototype.providerId;
  * @param {string} scope Google OAuth scope.
  * @return {!firebase.auth.AuthProvider} The provider instance itself.
  */
-firebase.auth.GoogleAuthProvider.prototype.addScope = function(scope) {};
+firebase.auth.GoogleAuthProvider.prototype.addScope = function (scope) {};
 
 /**
  * Sets the OAuth custom parameters to pass in a Google OAuth request for popup
@@ -2744,7 +2749,7 @@ firebase.auth.GoogleAuthProvider.prototype.addScope = function(scope) {};
  *     in the OAuth request.
  * @return {!firebase.auth.AuthProvider} The provider instance itself.
  */
-firebase.auth.GoogleAuthProvider.prototype.setCustomParameters = function(
+firebase.auth.GoogleAuthProvider.prototype.setCustomParameters = function (
   customOAuthParameters
 ) {};
 
@@ -2782,7 +2787,7 @@ firebase.auth.GoogleAuthProvider.prototype.setCustomParameters = function(
  * @constructor
  * @implements {firebase.auth.AuthProvider}
  */
-firebase.auth.TwitterAuthProvider = function() {};
+firebase.auth.TwitterAuthProvider = function () {};
 
 /** @type {string} */
 firebase.auth.TwitterAuthProvider.PROVIDER_ID;
@@ -2800,7 +2805,7 @@ firebase.auth.TwitterAuthProvider.TWITTER_SIGN_IN_METHOD;
  * @param {string} secret Twitter secret.
  * @return {!firebase.auth.OAuthCredential} The auth provider credential.
  */
-firebase.auth.TwitterAuthProvider.credential = function(token, secret) {};
+firebase.auth.TwitterAuthProvider.credential = function (token, secret) {};
 
 /** @type {string} */
 firebase.auth.TwitterAuthProvider.prototype.providerId;
@@ -2815,7 +2820,7 @@ firebase.auth.TwitterAuthProvider.prototype.providerId;
  *     in the OAuth request.
  * @return {!firebase.auth.AuthProvider} The provider instance itself.
  */
-firebase.auth.TwitterAuthProvider.prototype.setCustomParameters = function(
+firebase.auth.TwitterAuthProvider.prototype.setCustomParameters = function (
   customOAuthParameters
 ) {};
 
@@ -2828,7 +2833,7 @@ firebase.auth.TwitterAuthProvider.prototype.setCustomParameters = function(
  * @constructor
  * @implements {firebase.auth.AuthProvider}
  */
-firebase.auth.EmailAuthProvider = function() {};
+firebase.auth.EmailAuthProvider = function () {};
 
 /** @type {string} */
 firebase.auth.EmailAuthProvider.PROVIDER_ID;
@@ -2860,7 +2865,7 @@ firebase.auth.EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD;
  * @param {string} password User account password.
  * @return {!firebase.auth.AuthCredential} The auth provider credential.
  */
-firebase.auth.EmailAuthProvider.credential = function(email, password) {};
+firebase.auth.EmailAuthProvider.credential = function (email, password) {};
 
 /**
  * Initialize an `EmailAuthProvider` credential using an email and an email link
@@ -2876,7 +2881,7 @@ firebase.auth.EmailAuthProvider.credential = function(email, password) {};
  * @param {string} emailLink Sign-in email link.
  * @return {!firebase.auth.AuthCredential} The auth provider credential.
  */
-firebase.auth.EmailAuthProvider.credentialWithLink = function(
+firebase.auth.EmailAuthProvider.credentialWithLink = function (
   email,
   emailLink
 ) {};
@@ -2908,7 +2913,7 @@ firebase.auth.EmailAuthProvider.prototype.providerId;
  *     sign-ins should occur. Uses the default Auth instance if unspecified.
  * @implements {firebase.auth.AuthProvider}
  */
-firebase.auth.PhoneAuthProvider = function(auth) {};
+firebase.auth.PhoneAuthProvider = function (auth) {};
 
 /** @type {string} */
 firebase.auth.PhoneAuthProvider.PROVIDER_ID;
@@ -2940,7 +2945,7 @@ firebase.auth.PhoneAuthProvider.PHONE_SIGN_IN_METHOD;
  *     mobile device.
  * @return {!firebase.auth.PhoneAuthCredential} The auth provider credential.
  */
-firebase.auth.PhoneAuthProvider.credential = function(
+firebase.auth.PhoneAuthProvider.credential = function (
   verificationId,
   verificationCode
 ) {};
@@ -2988,7 +2993,7 @@ firebase.auth.PhoneAuthProvider.prototype.providerId;
  * @param {!firebase.auth.ApplicationVerifier} applicationVerifier
  * @return {!firebase.Promise<string>} A Promise for the verification ID.
  */
-firebase.auth.PhoneAuthProvider.prototype.verifyPhoneNumber = function(
+firebase.auth.PhoneAuthProvider.prototype.verifyPhoneNumber = function (
   phoneInfoOptions,
   applicationVerifier
 ) {};
@@ -2998,7 +3003,7 @@ firebase.auth.PhoneAuthProvider.prototype.verifyPhoneNumber = function(
  * only implementation is {@link firebase.auth.RecaptchaVerifier}.
  * @interface
  */
-firebase.auth.ApplicationVerifier = function() {};
+firebase.auth.ApplicationVerifier = function () {};
 
 /**
  * Identifies the type of application verifier (e.g. "recaptcha").
@@ -3011,7 +3016,7 @@ firebase.auth.ApplicationVerifier.prototype.type;
  * @return {!firebase.Promise<string>} A Promise for a token that can be used to
  *     assert the validity of a request.
  */
-firebase.auth.ApplicationVerifier.prototype.verify = function() {};
+firebase.auth.ApplicationVerifier.prototype.verify = function () {};
 
 /**
  * The interface for asserting ownership of a second factor. This is used to
@@ -3020,7 +3025,7 @@ firebase.auth.ApplicationVerifier.prototype.verify = function() {};
  *
  * @interface
  */
-firebase.auth.MultiFactorAssertion = function() {};
+firebase.auth.MultiFactorAssertion = function () {};
 
 /**
  * The identifier of the second factor.
@@ -3034,7 +3039,7 @@ firebase.auth.MultiFactorAssertion.prototype.factorId;
  * @interface
  * @extends {firebase.auth.MultiFactorAssertion}
  */
-firebase.auth.PhoneMultiFactorAssertion = function() {};
+firebase.auth.PhoneMultiFactorAssertion = function () {};
 
 /**
  * The interface used to initialize a
@@ -3042,7 +3047,7 @@ firebase.auth.PhoneMultiFactorAssertion = function() {};
  *
  * @interface
  */
-firebase.auth.PhoneMultiFactorGenerator = function() {};
+firebase.auth.PhoneMultiFactorGenerator = function () {};
 
 /**
  * The identifier of the phone second factor: `phone`.
@@ -3058,7 +3063,7 @@ firebase.auth.PhoneMultiFactorGenerator.FACTOR_ID;
  *     Auth credential.
  * @return {!firebase.auth.PhoneMultiFactorAssertion}
  */
-firebase.auth.PhoneMultiFactorGenerator.assertion = function(
+firebase.auth.PhoneMultiFactorGenerator.assertion = function (
   phoneAuthCredential
 ) {};
 
@@ -3067,7 +3072,7 @@ firebase.auth.PhoneMultiFactorGenerator.assertion = function(
  *
  * @interface
  */
-firebase.auth.MultiFactorInfo = function() {};
+firebase.auth.MultiFactorInfo = function () {};
 
 /**
  * The multi-factor enrollment ID.
@@ -3101,7 +3106,7 @@ firebase.auth.MultiFactorInfo.prototype.factorId;
  * @interface
  * @extends {firebase.auth.MultiFactorInfo}
  */
-firebase.auth.PhoneMultiFactorInfo = function() {};
+firebase.auth.PhoneMultiFactorInfo = function () {};
 
 /**
  * The phone number associated with the current second factor.
@@ -3210,7 +3215,7 @@ firebase.auth.PhoneInfoOptions;
  * ```
  * @interface
  */
-firebase.auth.MultiFactorResolver = function() {};
+firebase.auth.MultiFactorResolver = function () {};
 
 /**
  * The Auth instance used to sign in with the first factor.
@@ -3264,7 +3269,7 @@ firebase.auth.MultiFactorResolver.prototype.hints;
  * @return {!firebase.Promise<!firebase.auth.UserCredential>} The promise that
  *     resolves with the user credential object.
  */
-firebase.auth.MultiFactorResolver.prototype.resolveSignIn = function(
+firebase.auth.MultiFactorResolver.prototype.resolveSignIn = function (
   assertion
 ) {};
 
@@ -3274,7 +3279,7 @@ firebase.auth.MultiFactorResolver.prototype.resolveSignIn = function(
  *
  * @interface
  */
-firebase.auth.MultiFactorSession = function() {};
+firebase.auth.MultiFactorSession = function () {};
 
 /**
  * This is the interface that defines the multi-factor related properties and
@@ -3282,7 +3287,7 @@ firebase.auth.MultiFactorSession = function() {};
  *
  * @interface
  */
-firebase.User.MultiFactorUser = function() {};
+firebase.User.MultiFactorUser = function () {};
 
 /**
  * Returns a list of the user's enrolled second factors.
@@ -3364,7 +3369,7 @@ firebase.User.MultiFactorUser.prototype.enrolledFactors;
  * @param {?string=} displayName The display name of the second factor.
  * @return {!firebase.Promise<void>}
  */
-firebase.User.MultiFactorUser.prototype.enroll = function(
+firebase.User.MultiFactorUser.prototype.enroll = function (
   assertion,
   displayName
 ) {};
@@ -3382,7 +3387,7 @@ firebase.User.MultiFactorUser.prototype.enroll = function(
  * @return {!firebase.Promise<!firebase.auth.MultiFactorSession>} The promise
  *     that resolves with the {@link firebase.auth.MultiFactorSession}.
  */
-firebase.User.MultiFactorUser.prototype.getSession = function() {};
+firebase.User.MultiFactorUser.prototype.getSession = function () {};
 
 /**
  * Unenrolls the specified second factor. To specify the factor to remove, pass
@@ -3422,4 +3427,4 @@ firebase.User.MultiFactorUser.prototype.getSession = function() {};
  *     option to unenroll.
  * @return {!firebase.Promise<void>}
  */
-firebase.User.MultiFactorUser.prototype.unenroll = function(option) {};
+firebase.User.MultiFactorUser.prototype.unenroll = function (option) {};

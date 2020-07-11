@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
+import { Query, queryMatches } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
@@ -35,7 +35,7 @@ import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
 import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
-import { PatchMutation } from '../model/mutation';
+import { applyMutationToLocalView, PatchMutation } from '../model/mutation';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
@@ -258,7 +258,8 @@ export class LocalDocumentsView {
             for (const mutation of batch.mutations) {
               const key = mutation.key;
               const baseDoc = results.get(key);
-              const mutatedDoc = mutation.applyToLocalView(
+              const mutatedDoc = applyMutationToLocalView(
+                mutation,
                 baseDoc,
                 baseDoc,
                 batch.localWriteTime
@@ -276,7 +277,7 @@ export class LocalDocumentsView {
         // Finally, filter out any documents that don't actually match
         // the query.
         results.forEach((key, doc) => {
-          if (!query.matches(doc)) {
+          if (!queryMatches(query, doc)) {
             results = results.remove(key);
           }
         });

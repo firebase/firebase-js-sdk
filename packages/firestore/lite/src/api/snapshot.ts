@@ -25,7 +25,10 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { Document } from '../../../src/model/document';
 import { UserDataWriter } from '../../../src/api/user_data_writer';
 import { FieldPath as InternalFieldPath } from '../../../src/model/path';
-import { fieldPathFromDotSeparatedString } from '../../../src/api/user_data_reader';
+import {
+  fieldPathFromDotSeparatedString,
+  UntypedFirestoreDataConverter
+} from '../../../src/api/user_data_reader';
 import { arrayEquals } from '../../../src/util/misc';
 
 export class DocumentSnapshot<T = firestore.DocumentData>
@@ -39,7 +42,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     public _firestore: Firestore,
     public _key: DocumentKey,
     public _document: Document | null,
-    public _converter: firestore.FirestoreDataConverter<T> | null
+    public _converter: UntypedFirestoreDataConverter<T> | null
   ) {}
 
   get id(): string {
