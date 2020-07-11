@@ -15,8 +15,13 @@
  * limitations under the License.
  */
 
-import { FieldFilter, Filter, Query } from '../../../src/core/query';
-import { Target } from '../../../src/core/target';
+import {
+  FieldFilter,
+  Query,
+  queryEquals,
+  Filter
+} from '../../../src/core/query';
+import { canonifyTarget, Target, targetEquals } from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import {
@@ -86,7 +91,10 @@ export interface ActiveTargetMap {
  */
 export class ClientMemoryState {
   activeTargets: ActiveTargetMap = {};
-  queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
+  queryMapping = new ObjectMap<Target, TargetId>(
+    t => canonifyTarget(t),
+    targetEquals
+  );
   limboMapping: LimboMap = {};
 
   limboIdGenerator: TargetIdGenerator = TargetIdGenerator.forSyncEngine();
@@ -98,7 +106,10 @@ export class ClientMemoryState {
 
   /** Reset all internal memory state (as done during a client restart). */
   reset(): void {
-    this.queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
+    this.queryMapping = new ObjectMap<Target, TargetId>(
+      t => canonifyTarget(t),
+      targetEquals
+    );
     this.limboMapping = {};
     this.activeTargets = {};
     this.limboIdGenerator = TargetIdGenerator.forSyncEngine();
@@ -118,7 +129,10 @@ export class ClientMemoryState {
  */
 class CachedTargetIdGenerator {
   // TODO(wuandy): rename this to targetMapping.
-  private queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
+  private queryMapping = new ObjectMap<Target, TargetId>(
+    t => canonifyTarget(t),
+    targetEquals
+  );
   private targetIdGenerator = TargetIdGenerator.forTargetCache();
 
   /**
@@ -1018,7 +1032,9 @@ export class SpecBuilder {
     if (this.activeTargets[targetId]) {
       const activeQueries = this.activeTargets[targetId].queries;
       if (
-        !activeQueries.some(specQuery => parseQuery(specQuery).isEqual(query))
+        !activeQueries.some(specQuery =>
+          queryEquals(parseQuery(specQuery), query)
+        )
       ) {
         // `query` is not added yet.
         this.activeTargets[targetId] = {
@@ -1041,7 +1057,7 @@ export class SpecBuilder {
 
   private removeQueryFromActiveTargets(query: Query, targetId: number): void {
     const queriesAfterRemoval = this.activeTargets[targetId].queries.filter(
-      specQuery => !parseQuery(specQuery).isEqual(query)
+      specQuery => !queryEquals(parseQuery(specQuery), query)
     );
     if (queriesAfterRemoval.length > 0) {
       this.activeTargets[targetId] = {

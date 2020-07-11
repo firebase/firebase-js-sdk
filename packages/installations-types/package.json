@@ -1,6 +1,6 @@
 {
   "name": "@firebase/installations-types",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "@firebase/installations Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -23,6 +23,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "typescript": "3.8.3"
+    "typescript": "3.9.6"
   }
 }

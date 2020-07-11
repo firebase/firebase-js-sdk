@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
+import { Query, queryMatches } from '../core/query';
 import {
   DocumentKeySet,
   DocumentMap,
@@ -44,7 +44,13 @@ import {
   DbRemoteDocumentGlobalKey,
   DbRemoteDocumentKey
 } from './indexeddb_schema';
-import { LocalSerializer } from './local_serializer';
+import {
+  fromDbRemoteDocument,
+  fromDbTimestampKey,
+  LocalSerializer,
+  toDbRemoteDocument,
+  toDbTimestampKey
+} from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
@@ -262,7 +268,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       // since all document changes to queries that have a
       // lastLimboFreeSnapshotVersion (`sinceReadTime`) have a read time set.
       const collectionKey = query.path.toArray();
-      const readTimeKey = this.serializer.toDbTimestampKey(sinceReadTime);
+      const readTimeKey = toDbTimestampKey(sinceReadTime);
       iterationOptions.range = IDBKeyRange.lowerBound(
         [collectionKey, readTimeKey],
         /* open= */ true
@@ -281,10 +287,13 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
           return;
         }
 
-        const maybeDoc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
+        const maybeDoc = fromDbRemoteDocument(this.serializer, dbRemoteDoc);
         if (!query.path.isPrefixOf(maybeDoc.key.path)) {
           control.done();
-        } else if (maybeDoc instanceof Document && query.matches(maybeDoc)) {
+        } else if (
+          maybeDoc instanceof Document &&
+          queryMatches(query, maybeDoc)
+        ) {
           results = results.insert(maybeDoc.key, maybeDoc);
         }
       })
@@ -305,7 +314,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   }> {
     let changedDocs = maybeDocumentMap();
 
-    let lastReadTime = this.serializer.toDbTimestampKey(sinceReadTime);
+    let lastReadTime = toDbTimestampKey(sinceReadTime);
 
     const documentsStore = remoteDocumentsStore(transaction);
     const range = IDBKeyRange.lowerBound(lastReadTime, true);
@@ -315,7 +324,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         (_, dbRemoteDoc) => {
           // Unlike `getEntry()` and others, `getNewDocumentChanges()` parses
           // the documents directly since we want to keep sentinel deletes.
-          const doc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
+          const doc = fromDbRemoteDocument(this.serializer, dbRemoteDoc);
           changedDocs = changedDocs.insert(doc.key, doc);
           lastReadTime = dbRemoteDoc.readTime!;
         }
@@ -323,7 +332,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       .next(() => {
         return {
           changedDocs,
-          readTime: this.serializer.fromDbTimestampKey(lastReadTime)
+          readTime: fromDbTimestampKey(lastReadTime)
         };
       });
   }
@@ -346,7 +355,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         { index: DbRemoteDocument.readTimeIndex, reverse: true },
         (key, dbRemoteDoc, control) => {
           if (dbRemoteDoc.readTime) {
-            readTime = this.serializer.fromDbTimestampKey(dbRemoteDoc.readTime);
+            readTime = fromDbTimestampKey(dbRemoteDoc.readTime);
           }
           control.done();
         }
@@ -393,7 +402,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     dbRemoteDoc: DbRemoteDocument | null
   ): MaybeDocument | null {
     if (dbRemoteDoc) {
-      const doc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
+      const doc = fromDbRemoteDocument(this.serializer, dbRemoteDoc);
       if (
         doc instanceof NoDocument &&
         doc.version.isEqual(SnapshotVersion.min())
@@ -417,10 +426,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
    */
   private static RemoteDocumentChangeBuffer = class extends RemoteDocumentChangeBuffer {
     // A map of document sizes prior to applying the changes in this buffer.
-    protected documentSizes: ObjectMap<
-      DocumentKey,
-      number
-    > = new ObjectMap(key => key.toString());
+    protected documentSizes: ObjectMap<DocumentKey, number> = new ObjectMap(
+      key => key.toString(),
+      (l, r) => l.isEqual(r)
+    );
 
     /**
      * @param documentCache The IndexedDbRemoteDocumentCache to apply the changes to.
@@ -451,13 +460,14 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
           previousSize !== undefined,
           `Cannot modify a document that wasn't read (for ${key})`
         );
-        if (documentChange.maybeDoc) {
+        if (documentChange.maybeDocument) {
           debugAssert(
             !this.getReadTime(key).isEqual(SnapshotVersion.min()),
             'Cannot add a document with a read time of zero'
           );
-          const doc = this.documentCache.serializer.toDbRemoteDocument(
-            documentChange.maybeDoc!,
+          const doc = toDbRemoteDocument(
+            this.documentCache.serializer,
+            documentChange.maybeDocument,
             this.getReadTime(key)
           );
           collectionParents = collectionParents.add(key.path.popLast());
@@ -472,7 +482,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
             // RemoteDocumentCache. This entry is represented by a NoDocument
             // with a version of 0 and ignored by `maybeDecodeDocument()` but
             // preserved in `getNewDocumentChanges()`.
-            const deletedDoc = this.documentCache.serializer.toDbRemoteDocument(
+            const deletedDoc = toDbRemoteDocument(
+              this.documentCache.serializer,
               new NoDocument(key, SnapshotVersion.min()),
               this.getReadTime(key)
             );

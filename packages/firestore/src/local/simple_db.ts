@@ -78,7 +78,7 @@ export class SimpleDb {
       // suggests IE9 and older WebKit browsers handle upgrade
       // differently. They expect setVersion, as described here:
       // https://developer.mozilla.org/en-US/docs/Web/API/IDBVersionChangeRequest/setVersion
-      const request = window.indexedDB.open(name, version);
+      const request = indexedDB.open(name, version);
 
       request.onsuccess = (event: Event) => {
         const db = (event.target as IDBOpenDBRequest).result;
@@ -145,19 +145,12 @@ export class SimpleDb {
 
   /** Returns true if IndexedDB is available in the current environment. */
   static isAvailable(): boolean {
-    if (typeof window === 'undefined' || window.indexedDB == null) {
+    if (typeof indexedDB === 'undefined') {
       return false;
     }
 
     if (SimpleDb.isMockPersistence()) {
       return true;
-    }
-
-    // In some Node environments, `window` is defined, but `window.navigator` is
-    // not. We don't support IndexedDB persistence in Node if the
-    // isMockPersistence() check above returns false.
-    if (window.navigator === undefined) {
-      return false;
     }
 
     // We extensively use indexed array values and compound keys,
@@ -225,10 +218,7 @@ export class SimpleDb {
   static getIOSVersion(ua: string): number {
     const iOSVersionRegex = ua.match(/i(?:phone|pad|pod) os ([\d_]+)/i);
     const version = iOSVersionRegex
-      ? iOSVersionRegex[1]
-          .split('_')
-          .slice(0, 2)
-          .join('.')
+      ? iOSVersionRegex[1].split('_').slice(0, 2).join('.')
       : '-1';
     return Number(version);
   }
@@ -238,10 +228,7 @@ export class SimpleDb {
   static getAndroidVersion(ua: string): number {
     const androidVersionRegex = ua.match(/Android ([\d.]+)/i);
     const version = androidVersionRegex
-      ? androidVersionRegex[1]
-          .split('.')
-          .slice(0, 2)
-          .join('.')
+      ? androidVersionRegex[1].split('.').slice(0, 2).join('.')
       : '-1';
     return Number(version);
   }

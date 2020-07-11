@@ -27,13 +27,19 @@ import {
 } from './indexeddb_schema';
 import { SimpleDbStore } from './simple_db';
 import { IndexedDbPersistence } from './indexeddb_persistence';
-import { LocalSerializer } from './local_serializer';
+import {
+  fromDbBundle,
+  fromDbNamedQuery,
+  LocalSerializer,
+  toDbBundle,
+  toDbNamedQuery
+} from './local_serializer';
 import { Bundle, NamedQuery } from '../core/bundle';
 
 export class IndexedDbBundleCache implements BundleCache {
   constructor(private serializer: LocalSerializer) {}
 
-  getBundle(
+  getBundleMetadata(
     transaction: PersistenceTransaction,
     bundleId: string
   ): PersistencePromise<Bundle | undefined> {
@@ -41,7 +47,7 @@ export class IndexedDbBundleCache implements BundleCache {
       .get(bundleId)
       .next(bundle => {
         if (bundle) {
-          return this.serializer.fromDbBundle(bundle!);
+          return fromDbBundle(this.serializer, bundle);
         }
         return undefined;
       });
@@ -52,7 +58,7 @@ export class IndexedDbBundleCache implements BundleCache {
     bundleMetadata: bundleProto.BundleMetadata
   ): PersistencePromise<void> {
     return bundlesStore(transaction).put(
-      this.serializer.toDbBundle(bundleMetadata)
+      toDbBundle(this.serializer, bundleMetadata)
     );
   }
 
@@ -64,7 +70,7 @@ export class IndexedDbBundleCache implements BundleCache {
       .get(queryName)
       .next(query => {
         if (query) {
-          return this.serializer.fromDbNamedQuery(query!);
+          return fromDbNamedQuery(this.serializer, query);
         }
         return undefined;
       });
@@ -75,7 +81,7 @@ export class IndexedDbBundleCache implements BundleCache {
     query: bundleProto.NamedQuery
   ): PersistencePromise<void> {
     return namedQueriesStore(transaction).put(
-      this.serializer.toDbNamedQuery(query)
+      toDbNamedQuery(this.serializer, query)
     );
   }
 }

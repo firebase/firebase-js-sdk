@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ function validateNamespace(definition, candidate) {
   const keys = Object.keys(definition).filter(key => !~key.indexOf('__'));
 
   if (!validatedVersion) {
-    describe('Firebase SDK Version', function() {
-      it('Should be properly defined', function() {
+    describe('Firebase SDK Version', function () {
+      it('Should be properly defined', function () {
         __expect(candidate.SDK_VERSION).to.equal(
           require('../../packages/firebase/package.json').version
         );
@@ -54,12 +54,12 @@ function validateNamespace(definition, candidate) {
       iKey => ~iKey.indexOf('__return')
     );
 
-    describe(`${key}`, function() {
+    describe(`${key}`, function () {
       /**
        * Tests of the actual API
        */
       if (definitionChunk.__type) {
-        it(`Should be a \`${definitionChunk.__type}\``, function() {
+        it(`Should be a \`${definitionChunk.__type}\``, function () {
           __expect(candidateChunk).to.be.a(definitionChunk.__type);
         });
       }

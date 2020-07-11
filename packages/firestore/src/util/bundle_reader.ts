@@ -20,8 +20,9 @@ import {
   BundleMetadata
 } from '../protos/firestore_bundle_proto';
 import { Deferred } from './promise';
-import { ByteStreamReader, PlatformSupport } from '../platform/platform';
 import { debugAssert } from './assert';
+import { toByteStreamReader } from '../platform/byte_stream_reader';
+import { newTextDecoder } from '../platform/dom';
 
 /**
  * A complete element in the bundle stream, together with the byte length it
@@ -39,6 +40,19 @@ export class SizedBundleElement {
   }
 }
 
+export type BundleSource =
+  | ReadableStream<Uint8Array>
+  | ArrayBuffer
+  | Uint8Array;
+
+/**
+ * When applicable, how many bytes to read from the underlying data source
+ * each time.
+ *
+ * Not applicable for ReadableStreams.
+ */
+const BYTES_PER_READ = 10240;
+
 /**
  * A class representing a bundle.
  *
@@ -48,26 +62,24 @@ export class SizedBundleElement {
 export class BundleReader {
   /** Cached bundle metadata. */
   private metadata: Deferred<BundleMetadata> = new Deferred<BundleMetadata>();
-  /** The reader to read from underlying binary bundle data source. */
-  private reader: ByteStreamReader;
   /**
    * Internal buffer to hold bundle content, accumulating incomplete element
    * content.
    */
   private buffer: Uint8Array = new Uint8Array();
   /** The decoder used to parse binary data into strings. */
-  private textDecoder = new TextDecoder('utf-8');
+  private textDecoder: TextDecoder | null;
+
+  static fromBundleSource(source: BundleSource): BundleReader {
+    return new BundleReader(toByteStreamReader(source, BYTES_PER_READ));
+  }
 
   constructor(
-    private bundleStream:
-      | ReadableStream<Uint8Array | ArrayBuffer>
-      | Uint8Array
-      | ArrayBuffer
+    /** The reader to read from underlying binary bundle data source. */
+    private reader: ReadableStreamReader<Uint8Array>
   ) {
-    this.reader = PlatformSupport.getPlatform().toByteStreamReader(
-      bundleStream
-    );
-
+    this.textDecoder = newTextDecoder();
+    debugAssert(!!this.textDecoder, 'Cannot create a valid text decoder.');
     // Read the metadata (which is the first element).
     this.nextElementImpl().then(
       element => {
@@ -122,7 +134,7 @@ export class BundleReader {
       return null;
     }
 
-    const lengthString = this.textDecoder.decode(lengthBuffer);
+    const lengthString = this.textDecoder!.decode(lengthBuffer);
     const length = Number(lengthString);
     if (isNaN(length)) {
       this.raiseError(`length string (${lengthString}) is not valid number`);
@@ -190,7 +202,7 @@ export class BundleReader {
       }
     }
 
-    const result = this.textDecoder.decode(this.buffer.slice(0, length));
+    const result = this.textDecoder!.decode(this.buffer.slice(0, length));
     // Update the internal buffer to drop the read json string.
     this.buffer = this.buffer.slice(length);
     return result;
@@ -198,8 +210,8 @@ export class BundleReader {
 
   private raiseError(message: string): void {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.reader.cancel('Invalid bundle format.');
-    throw new Error(message);
+    this.reader.cancel();
+    throw new Error(`Invalid bundle format: ${message}`);
   }
 
   /**

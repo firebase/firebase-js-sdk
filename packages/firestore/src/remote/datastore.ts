@@ -16,14 +16,22 @@
  */
 
 import { CredentialsProvider } from '../api/credentials';
-import { MaybeDocument, Document } from '../model/document';
+import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { Mutation, MutationResult } from '../model/mutation';
+import { Mutation } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
 import { debugCast, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { Connection } from './connection';
-import { JsonProtoSerializer } from './serializer';
+import {
+  fromDocument,
+  fromMaybeDocument,
+  getEncodedDatabaseId,
+  JsonProtoSerializer,
+  toMutation,
+  toName,
+  toQueryTarget
+} from './serializer';
 import {
   PersistentListenStream,
   PersistentWriteStream,
@@ -49,16 +57,28 @@ export class Datastore {
  * consumption.
  */
 class DatastoreImpl extends Datastore {
+  terminated = false;
+
   constructor(
-    public readonly connection: Connection,
-    public readonly credentials: CredentialsProvider,
-    public readonly serializer: JsonProtoSerializer
+    readonly connection: Connection,
+    readonly credentials: CredentialsProvider,
+    readonly serializer: JsonProtoSerializer
   ) {
     super();
   }
 
+  private verifyNotTerminated(): void {
+    if (this.terminated) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'The client has already been terminated.'
+      );
+    }
+  }
+
   /** Gets an auth token and invokes the provided RPC. */
   invokeRPC<Req, Resp>(rpcName: string, request: Req): Promise<Resp> {
+    this.verifyNotTerminated();
     return this.credentials
       .getToken()
       .then(token => {
@@ -77,6 +97,7 @@ class DatastoreImpl extends Datastore {
     rpcName: string,
     request: Req
   ): Promise<Resp[]> {
+    this.verifyNotTerminated();
     return this.credentials
       .getToken()
       .then(token => {
@@ -106,20 +127,13 @@ export function newDatastore(
 export async function invokeCommitRpc(
   datastore: Datastore,
   mutations: Mutation[]
-): Promise<MutationResult[]> {
+): Promise<void> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const params = {
-    database: datastoreImpl.serializer.encodedDatabaseId,
-    writes: mutations.map(m => datastoreImpl.serializer.toMutation(m))
+    database: getEncodedDatabaseId(datastoreImpl.serializer),
+    writes: mutations.map(m => toMutation(datastoreImpl.serializer, m))
   };
-  const response = await datastoreImpl.invokeRPC<
-    api.CommitRequest,
-    api.CommitResponse
-  >('Commit', params);
-  return datastoreImpl.serializer.fromWriteResults(
-    response.writeResults,
-    response.commitTime
-  );
+  await datastoreImpl.invokeRPC('Commit', params);
 }
 
 export async function invokeBatchGetDocumentsRpc(
@@ -128,8 +142,8 @@ export async function invokeBatchGetDocumentsRpc(
 ): Promise<MaybeDocument[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const params = {
-    database: datastoreImpl.serializer.encodedDatabaseId,
-    documents: keys.map(k => datastoreImpl.serializer.toName(k))
+    database: getEncodedDatabaseId(datastoreImpl.serializer),
+    documents: keys.map(k => toName(datastoreImpl.serializer, k))
   };
   const response = await datastoreImpl.invokeStreamingRPC<
     api.BatchGetDocumentsRequest,
@@ -138,7 +152,7 @@ export async function invokeBatchGetDocumentsRpc(
 
   const docs = new Map<string, MaybeDocument>();
   response.forEach(proto => {
-    const doc = datastoreImpl.serializer.fromMaybeDocument(proto);
+    const doc = fromMaybeDocument(datastoreImpl.serializer, proto);
     docs.set(doc.key.toString(), doc);
   });
   const result: MaybeDocument[] = [];
@@ -155,11 +169,12 @@ export async function invokeRunQueryRpc(
   query: Query
 ): Promise<Document[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const { structuredQuery, parent } = datastoreImpl.serializer.toQueryTarget(
+  const { structuredQuery, parent } = toQueryTarget(
+    datastoreImpl.serializer,
     query.toTarget()
   );
   const params = {
-    database: datastoreImpl.serializer.encodedDatabaseId,
+    database: getEncodedDatabaseId(datastoreImpl.serializer),
     parent,
     structuredQuery
   };
@@ -173,7 +188,9 @@ export async function invokeRunQueryRpc(
     response
       // Omit RunQueryResponses that only contain readTimes.
       .filter(proto => !!proto.document)
-      .map(proto => datastoreImpl.serializer.fromDocument(proto.document!))
+      .map(proto =>
+        fromDocument(datastoreImpl.serializer, proto.document!, undefined)
+      )
   );
 }
 
@@ -205,4 +222,9 @@ export function newPersistentWatchStream(
     datastoreImpl.serializer,
     listener
   );
+}
+
+export function terminateDatastore(datastore: Datastore): void {
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
+  datastoreImpl.terminated = true;
 }

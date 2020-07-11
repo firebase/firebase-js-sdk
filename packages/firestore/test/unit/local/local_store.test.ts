@@ -28,9 +28,13 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
+  applyBundleDocuments,
+  hasNewerBundle,
   LocalStore,
   LocalWriteResult,
-  MultiTabLocalStore
+  saveBundle,
+  newLocalStore,
+  newMultiTabLocalStore
 } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
@@ -86,7 +90,7 @@ import {
 import { CountingQueryEngine, QueryEngineType } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { ByteString } from '../../../src/util/byte_string';
-import { BundleConverter, BundledDocuments } from '../../../src/core/bundle';
+import { BundledDocuments } from '../../../src/core/bundle';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
 import { BundleMetadata } from '../../../src/protos/firestore_bundle_proto';
 
@@ -170,9 +174,7 @@ class LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain
-      .then(() => {
-        return this.localStore.applyBundledDocuments(documents);
-      })
+      .then(() => applyBundleDocuments(this.localStore, documents))
       .then((result: MaybeDocumentMap) => {
         this.lastChanges = result;
       });
@@ -208,12 +210,7 @@ class LocalStoreTester {
             options.transformResult ? [options.transformResult] : null
           )
         ];
-        const write = MutationBatchResult.from(
-          batch,
-          ver,
-          mutationResults,
-          /*streamToken=*/ ByteString.EMPTY_BYTE_STRING
-        );
+        const write = MutationBatchResult.from(batch, ver, mutationResults);
 
         return this.localStore.acknowledgeBatch(write);
       })
@@ -418,7 +415,7 @@ class LocalStoreTester {
     expected: boolean
   ): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.isNewerBundleLoaded(metadata).then(actual => {
+      return hasNewerBundle(this.localStore, metadata).then(actual => {
         expect(actual).to.equal(expected);
       });
     });
@@ -426,9 +423,9 @@ class LocalStoreTester {
   }
 
   afterSavingBundle(metadata: BundleMetadata): LocalStoreTester {
-    this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.saveBundle(metadata);
-    });
+    this.promiseChain = this.promiseChain.then(() =>
+      saveBundle(this.localStore, metadata)
+    );
     return this;
   }
 
@@ -446,11 +443,11 @@ describe('LocalStore w/ Memory Persistence (SimpleQueryEngine)', () => {
       QueryEngineType.Simple
     );
     const persistence = await persistenceHelpers.testMemoryEagerPersistence();
-    const localStore = new LocalStore(
+    const localStore = newLocalStore(
       persistence,
       queryEngine,
       User.UNAUTHENTICATED,
-      new BundleConverter(JSON_SERIALIZER)
+      JSON_SERIALIZER
     );
     return { queryEngine, persistence, localStore };
   }
@@ -465,11 +462,11 @@ describe('LocalStore w/ Memory Persistence (IndexFreeQueryEngine)', () => {
       QueryEngineType.IndexFree
     );
     const persistence = await persistenceHelpers.testMemoryEagerPersistence();
-    const localStore = new LocalStore(
+    const localStore = newLocalStore(
       persistence,
       queryEngine,
       User.UNAUTHENTICATED,
-      new BundleConverter(JSON_SERIALIZER)
+      JSON_SERIALIZER
     );
     return { queryEngine, persistence, localStore };
   }
@@ -492,11 +489,11 @@ describe('LocalStore w/ IndexedDB Persistence (SimpleQueryEngine)', () => {
       QueryEngineType.Simple
     );
     const persistence = await persistenceHelpers.testIndexedDbPersistence();
-    const localStore = new MultiTabLocalStore(
+    const localStore = newMultiTabLocalStore(
       persistence,
       queryEngine,
       User.UNAUTHENTICATED,
-      new BundleConverter(JSON_SERIALIZER)
+      JSON_SERIALIZER
     );
     await localStore.start();
     return { queryEngine, persistence, localStore };
@@ -520,11 +517,11 @@ describe('LocalStore w/ IndexedDB Persistence (IndexFreeQueryEngine)', () => {
       QueryEngineType.IndexFree
     );
     const persistence = await persistenceHelpers.testIndexedDbPersistence();
-    const localStore = new MultiTabLocalStore(
+    const localStore = newMultiTabLocalStore(
       persistence,
       queryEngine,
       User.UNAUTHENTICATED,
-      new BundleConverter(JSON_SERIALIZER)
+      JSON_SERIALIZER
     );
     await localStore.start();
     return { queryEngine, persistence, localStore };
@@ -1576,20 +1573,33 @@ function genericLocalStoreTests(
     return expectLocalStore()
       .afterAllocatingQuery(query)
       .toReturnTargetId(2)
-      .after(docAddedRemoteEvent(doc('foo/bar1', 1, { val: 'to-delete' }), [2]))
-      .toContain(doc('foo/bar1', 1, { val: 'to-delete' }))
+      .after(docAddedRemoteEvent(doc('foo/bar', 1, { val: 'to-delete' }), [2]))
+      .toContain(doc('foo/bar', 1, { val: 'to-delete' }))
       .after(
         bundledDocuments([
-          doc('foo/bar', 1, { sum: 1336 }),
-          deletedDoc('foo/bar1', 2)
+          doc('foo/new', 1, { sum: 1336 }),
+          deletedDoc('foo/bar', 2)
         ])
       )
       .toReturnChanged(
-        doc('foo/bar', 1, { sum: 1336 }),
-        deletedDoc('foo/bar1', 2)
+        doc('foo/new', 1, { sum: 1336 }),
+        deletedDoc('foo/bar', 2)
       )
-      .toContain(doc('foo/bar', 1, { sum: 1336 }))
-      .toContain(deletedDoc('foo/bar1', 2))
+      .toContain(doc('foo/new', 1, { sum: 1336 }))
+      .toContain(deletedDoc('foo/bar', 2))
+      .finish();
+  });
+
+  it('handles saving bundled documents with same existing version should not overwrite', () => {
+    const query = Query.atPath(path('foo'));
+    return expectLocalStore()
+      .afterAllocatingQuery(query)
+      .toReturnTargetId(2)
+      .after(docAddedRemoteEvent(doc('foo/bar', 1, { val: 'old' }), [2]))
+      .toContain(doc('foo/bar', 1, { val: 'old' }))
+      .after(bundledDocuments([doc('foo/bar', 1, { val: 'new' })]))
+      .toReturnChanged()
+      .toContain(doc('foo/bar', 1, { val: 'old' }))
       .finish();
   });
 
@@ -1615,8 +1625,8 @@ function genericLocalStoreTests(
   });
 
   it('handles PatchMutation with Transform -> BundledDocuments', () => {
-    // Note: This test reflects the current behavior, but it may be preferable
-    // to replay the mutation once we receive the first value from the backend.
+    // Note: see comments in `handles PatchMutation with Transform -> RemoteEvent`.
+    // The behavior for this and remote event is the same.
 
     const query = Query.atPath(path('foo'));
     return expectLocalStore()

@@ -27,13 +27,35 @@ export interface Equatable<T> {
 }
 
 /**
+ * Custom equals override for types that have a free-standing equals functions
+ *  (such as `queryEquals()`).
+ */
+export interface CustomMatcher<T> {
+  equalsFn: (left: T, right: T) => boolean;
+  forType: Function;
+}
+
+/**
  * @file This file provides a helper function to add a matcher that matches
  * based on an objects isEqual method.  If the isEqual method is present one
  * either object it is used to determine equality, else mocha's default isEqual
  * implementation is used.
  */
 
-function customDeepEqual(left: unknown, right: unknown): boolean {
+function customDeepEqual(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  customMatchers: Array<CustomMatcher<any>>,
+  left: unknown,
+  right: unknown
+): boolean {
+  for (const customMatcher of customMatchers) {
+    if (
+      left instanceof customMatcher.forType &&
+      right instanceof customMatcher.forType
+    ) {
+      return customMatcher.equalsFn(left, right);
+    }
+  }
   if (typeof left === 'object' && left && 'isEqual' in left) {
     return (left as Equatable<unknown>).isEqual(right);
   }
@@ -75,8 +97,10 @@ function customDeepEqual(left: unknown, right: unknown): boolean {
     if (!Object.prototype.hasOwnProperty.call(right, key)) {
       return false;
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!customDeepEqual((left as any)[key], (right as any)[key])) {
+    if (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      !customDeepEqual(customMatchers, (left as any)[key], (right as any)[key])
+    ) {
       return false;
     }
   }
@@ -86,7 +110,10 @@ function customDeepEqual(left: unknown, right: unknown): boolean {
 /** The original equality function passed in by chai(). */
 let originalFunction: ((r: unknown, l: unknown) => boolean) | null = null;
 
-export function addEqualityMatcher(): void {
+export function addEqualityMatcher(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ...customMatchers: Array<CustomMatcher<any>>
+): void {
   let isActive = true;
 
   before(() => {
@@ -96,7 +123,7 @@ export function addEqualityMatcher(): void {
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       const assertEql = (_super: (r: unknown, l: unknown) => boolean) => {
         originalFunction = originalFunction || _super;
-        return function(
+        return function (
           this: Chai.Assertion,
           expected?: unknown,
           msg?: unknown
@@ -111,7 +138,7 @@ export function addEqualityMatcher(): void {
             // NOTE: Unlike the top-level chai assert() method, Assertion.assert()
             // takes the expected value before the actual value.
             assertion.assert(
-              customDeepEqual(actual, expected),
+              customDeepEqual(customMatchers, actual, expected),
               'expected #{act} to roughly deeply equal #{exp}',
               'expected #{act} to not roughly deeply equal #{exp}',
               expected,

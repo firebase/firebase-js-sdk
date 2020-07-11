@@ -27,14 +27,12 @@ import {
   key,
   patchMutation,
   path,
-  setMutation,
-  byteStringFromString
+  setMutation
 } from '../../util/helpers';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestMutationQueue } from './test_mutation_queue';
-import { ByteString } from '../../../src/util/byte_string';
 
 let persistence: Persistence;
 let mutationQueue: TestMutationQueue;
@@ -148,16 +146,6 @@ function genericMutationQueueTests(): void {
     expect(await mutationQueue.countBatches()).to.equal(0);
   });
 
-  it('can acknowledge then remove', async () => {
-    const batch1 = await addMutationBatch();
-    expect(await mutationQueue.countBatches()).to.equal(1);
-
-    await mutationQueue.acknowledgeBatch(batch1, ByteString.EMPTY_BYTE_STRING);
-    await mutationQueue.removeMutationBatch(batch1);
-
-    expect(await mutationQueue.countBatches()).to.equal(0);
-  });
-
   it('can lookup mutation batch', async () => {
     // Searching on an empty queue should not find a non-existent batch
     let notFound = await mutationQueue.lookupMutationBatch(42);
@@ -257,9 +245,7 @@ function genericMutationQueueTests(): void {
     }
     const expected = [batches[1], batches[2], batches[4]];
     const matches = await mutationQueue.getAllMutationBatchesAffectingDocumentKeys(
-      documentKeySet()
-        .add(key('foo/bar'))
-        .add(key('foo/baz'))
+      documentKeySet().add(key('foo/bar')).add(key('foo/baz'))
     );
     expectEqualArrays(matches, expected);
   });
@@ -303,25 +289,6 @@ function genericMutationQueueTests(): void {
       query
     );
     expectEqualArrays(matches, expected);
-  });
-
-  it('can save the last stream token', async () => {
-    const streamToken1 = byteStringFromString('token1');
-    const streamToken2 = byteStringFromString('token2');
-
-    await mutationQueue.setLastStreamToken(streamToken1);
-
-    const batch1 = await addMutationBatch();
-
-    expect(await mutationQueue.getLastStreamToken()).to.deep.equal(
-      streamToken1
-    );
-
-    await mutationQueue.acknowledgeBatch(batch1, streamToken2);
-
-    expect(await mutationQueue.getLastStreamToken()).to.deep.equal(
-      streamToken2
-    );
   });
 
   it('can removeMutationBatch()', async () => {

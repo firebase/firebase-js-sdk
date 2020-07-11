@@ -34,7 +34,14 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
-import { Target } from './target';
+import {
+  canonifyTarget,
+  isDocumentTarget,
+  newTarget,
+  stringifyTarget,
+  Target,
+  targetEquals
+} from './target';
 
 export const enum LimitType {
   First = 'F',
@@ -257,52 +264,6 @@ export class Query {
     );
   }
 
-  // TODO(b/29183165): This is used to get a unique string from a query to, for
-  // example, use as a dictionary key, but the implementation is subject to
-  // collisions. Make it collision-free.
-  canonicalId(): string {
-    return `${this.toTarget().canonicalId()}|lt:${this.limitType}`;
-  }
-
-  toString(): string {
-    return `Query(target=${this.toTarget().toString()}; limitType=${
-      this.limitType
-    })`;
-  }
-
-  isEqual(other: Query): boolean {
-    return (
-      this.toTarget().isEqual(other.toTarget()) &&
-      this.limitType === other.limitType
-    );
-  }
-
-  docComparator(d1: Document, d2: Document): number {
-    let comparedOnKeyField = false;
-    for (const orderBy of this.orderBy) {
-      const comp = orderBy.compare(d1, d2);
-      if (comp !== 0) {
-        return comp;
-      }
-      comparedOnKeyField = comparedOnKeyField || orderBy.field.isKeyField();
-    }
-    // Assert that we actually compared by key
-    debugAssert(
-      comparedOnKeyField,
-      "orderBy used that doesn't compare on key field"
-    );
-    return 0;
-  }
-
-  matches(doc: Document): boolean {
-    return (
-      this.matchesPathAndCollectionGroup(doc) &&
-      this.matchesOrderBy(doc) &&
-      this.matchesFilters(doc) &&
-      this.matchesBounds(doc)
-    );
-  }
-
   hasLimitToFirst(): boolean {
     return !isNullOrUndefined(this.limit) && this.limitType === LimitType.First;
   }
@@ -340,7 +301,7 @@ export class Query {
   }
 
   isDocumentQuery(): boolean {
-    return this.toTarget().isDocumentQuery();
+    return isDocumentTarget(this.toTarget());
   }
 
   isCollectionGroupQuery(): boolean {
@@ -354,7 +315,7 @@ export class Query {
   toTarget(): Target {
     if (!this.memoizedTarget) {
       if (this.limitType === LimitType.First) {
-        this.memoizedTarget = new Target(
+        this.memoizedTarget = newTarget(
           this.path,
           this.collectionGroup,
           this.orderBy,
@@ -383,7 +344,7 @@ export class Query {
           : null;
 
         // Now return as a LimitType.First query.
-        this.memoizedTarget = new Target(
+        this.memoizedTarget = newTarget(
           this.path,
           this.collectionGroup,
           orderBys,
@@ -397,60 +358,6 @@ export class Query {
     return this.memoizedTarget!;
   }
 
-  private matchesPathAndCollectionGroup(doc: Document): boolean {
-    const docPath = doc.key.path;
-    if (this.collectionGroup !== null) {
-      // NOTE: this.path is currently always empty since we don't expose Collection
-      // Group queries rooted at a document path yet.
-      return (
-        doc.key.hasCollectionId(this.collectionGroup) &&
-        this.path.isPrefixOf(docPath)
-      );
-    } else if (DocumentKey.isDocumentKey(this.path)) {
-      // exact match for document queries
-      return this.path.isEqual(docPath);
-    } else {
-      // shallow ancestor queries by default
-      return this.path.isImmediateParentOf(docPath);
-    }
-  }
-
-  /**
-   * A document must have a value for every ordering clause in order to show up
-   * in the results.
-   */
-  private matchesOrderBy(doc: Document): boolean {
-    for (const orderBy of this.explicitOrderBy) {
-      // order by key always matches
-      if (!orderBy.field.isKeyField() && doc.field(orderBy.field) === null) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private matchesFilters(doc: Document): boolean {
-    for (const filter of this.filters) {
-      if (!filter.matches(doc)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Makes sure a document is within the bounds, if provided.
-   */
-  private matchesBounds(doc: Document): boolean {
-    if (this.startAt && !this.startAt.sortsBeforeDocument(this.orderBy, doc)) {
-      return false;
-    }
-    if (this.endAt && this.endAt.sortsBeforeDocument(this.orderBy, doc)) {
-      return false;
-    }
-    return true;
-  }
-
   private assertValidBound(bound: Bound): void {
     debugAssert(
       bound.position.length <= this.orderBy.length,
@@ -459,10 +366,121 @@ export class Query {
   }
 }
 
+export function queryEquals(left: Query, right: Query): boolean {
+  return (
+    targetEquals(left.toTarget(), right.toTarget()) &&
+    left.limitType === right.limitType
+  );
+}
+
+// TODO(b/29183165): This is used to get a unique string from a query to, for
+// example, use as a dictionary key, but the implementation is subject to
+// collisions. Make it collision-free.
+export function canonifyQuery(query: Query): string {
+  return `${canonifyTarget(query.toTarget())}|lt:${query.limitType}`;
+}
+
+export function stringifyQuery(query: Query): string {
+  return `Query(target=${stringifyTarget(query.toTarget())}; limitType=${
+    query.limitType
+  })`;
+}
+
+/** Returns whether `doc` matches the constraints of `query`. */
+export function queryMatches(query: Query, doc: Document): boolean {
+  return (
+    queryMatchesPathAndCollectionGroup(query, doc) &&
+    queryMatchesOrderBy(query, doc) &&
+    queryMatchesFilters(query, doc) &&
+    queryMatchesBounds(query, doc)
+  );
+}
+
+function queryMatchesPathAndCollectionGroup(
+  query: Query,
+  doc: Document
+): boolean {
+  const docPath = doc.key.path;
+  if (query.collectionGroup !== null) {
+    // NOTE: this.path is currently always empty since we don't expose Collection
+    // Group queries rooted at a document path yet.
+    return (
+      doc.key.hasCollectionId(query.collectionGroup) &&
+      query.path.isPrefixOf(docPath)
+    );
+  } else if (DocumentKey.isDocumentKey(query.path)) {
+    // exact match for document queries
+    return query.path.isEqual(docPath);
+  } else {
+    // shallow ancestor queries by default
+    return query.path.isImmediateParentOf(docPath);
+  }
+}
+
+/**
+ * A document must have a value for every ordering clause in order to show up
+ * in the results.
+ */
+function queryMatchesOrderBy(query: Query, doc: Document): boolean {
+  for (const orderBy of query.explicitOrderBy) {
+    // order by key always matches
+    if (!orderBy.field.isKeyField() && doc.field(orderBy.field) === null) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function queryMatchesFilters(query: Query, doc: Document): boolean {
+  for (const filter of query.filters) {
+    if (!filter.matches(doc)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/** Makes sure a document is within the bounds, if provided. */
+function queryMatchesBounds(query: Query, doc: Document): boolean {
+  if (
+    query.startAt &&
+    !sortsBeforeDocument(query.startAt, query.orderBy, doc)
+  ) {
+    return false;
+  }
+  if (query.endAt && sortsBeforeDocument(query.endAt, query.orderBy, doc)) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Returns a new comparator function that can be used to compare two documents
+ * based on the Query's ordering constraint.
+ */
+export function newQueryComparator(
+  query: Query
+): (d1: Document, d2: Document) => number {
+  return (d1: Document, d2: Document): number => {
+    let comparedOnKeyField = false;
+    for (const orderBy of query.orderBy) {
+      const comp = compareDocs(orderBy, d1, d2);
+      if (comp !== 0) {
+        return comp;
+      }
+      comparedOnKeyField = comparedOnKeyField || orderBy.field.isKeyField();
+    }
+    // Assert that we actually compared by key
+    debugAssert(
+      comparedOnKeyField,
+      "orderBy used that doesn't compare on key field"
+    );
+    return 0;
+  };
+}
+
 export abstract class Filter {
   abstract matches(doc: Document): boolean;
-  abstract canonicalId(): string;
-  abstract isEqual(filter: Filter): boolean;
 }
 
 export const enum Operator {
@@ -584,35 +602,42 @@ export class FieldFilter extends Filter {
       ].indexOf(this.op) >= 0
     );
   }
+}
 
-  canonicalId(): string {
-    // TODO(b/29183165): Technically, this won't be unique if two values have
-    // the same description, such as the int 3 and the string "3". So we should
-    // add the types in here somehow, too.
-    return (
-      this.field.canonicalString() +
-      this.op.toString() +
-      canonicalId(this.value)
-    );
-  }
+export function canonifyFilter(filter: Filter): string {
+  debugAssert(
+    filter instanceof FieldFilter,
+    'canonifyFilter() only supports FieldFilters'
+  );
+  // TODO(b/29183165): Technically, this won't be unique if two values have
+  // the same description, such as the int 3 and the string "3". So we should
+  // add the types in here somehow, too.
+  return (
+    filter.field.canonicalString() +
+    filter.op.toString() +
+    canonicalId(filter.value)
+  );
+}
 
-  isEqual(other: Filter): boolean {
-    if (other instanceof FieldFilter) {
-      return (
-        this.op === other.op &&
-        this.field.isEqual(other.field) &&
-        valueEquals(this.value, other.value)
-      );
-    } else {
-      return false;
-    }
-  }
+export function filterEquals(f1: Filter, f2: Filter): boolean {
+  return (
+    f1 instanceof FieldFilter &&
+    f2 instanceof FieldFilter &&
+    f1.op === f2.op &&
+    f1.field.isEqual(f2.field) &&
+    valueEquals(f1.value, f2.value)
+  );
+}
 
-  toString(): string {
-    return `${this.field.canonicalString()} ${this.op} ${canonicalId(
-      this.value
-    )}`;
-  }
+/** Returns a debug description for `filter`. */
+export function stringifyFilter(filter: Filter): string {
+  debugAssert(
+    filter instanceof FieldFilter,
+    'stringifyFilter() only supports FieldFilters'
+  );
+  return `${filter.field.canonicalString()} ${filter.op} ${canonicalId(
+    filter.value
+  )}`;
 }
 
 /** Filter that matches on key fields (i.e. '__name__'). */
@@ -722,114 +747,119 @@ export const enum Direction {
  */
 export class Bound {
   constructor(readonly position: api.Value[], readonly before: boolean) {}
+}
 
-  canonicalId(): string {
-    // TODO(b/29183165): Make this collision robust.
-    return `${this.before ? 'b' : 'a'}:${this.position
-      .map(p => canonicalId(p))
-      .join(',')}`;
-  }
+export function canonifyBound(bound: Bound): string {
+  // TODO(b/29183165): Make this collision robust.
+  return `${bound.before ? 'b' : 'a'}:${bound.position
+    .map(p => canonicalId(p))
+    .join(',')}`;
+}
 
-  /**
-   * Returns true if a document sorts before a bound using the provided sort
-   * order.
-   */
-  sortsBeforeDocument(orderBy: OrderBy[], doc: Document): boolean {
-    debugAssert(
-      this.position.length <= orderBy.length,
-      "Bound has more components than query's orderBy"
-    );
-    let comparison = 0;
-    for (let i = 0; i < this.position.length; i++) {
-      const orderByComponent = orderBy[i];
-      const component = this.position[i];
-      if (orderByComponent.field.isKeyField()) {
-        debugAssert(
-          isReferenceValue(component),
-          'Bound has a non-key value where the key path is being used.'
-        );
-        comparison = DocumentKey.comparator(
-          DocumentKey.fromName(component.referenceValue),
-          doc.key
-        );
-      } else {
-        const docValue = doc.field(orderByComponent.field);
-        debugAssert(
-          docValue !== null,
-          'Field should exist since document matched the orderBy already.'
-        );
-        comparison = valueCompare(component, docValue);
-      }
-      if (orderByComponent.dir === Direction.DESCENDING) {
-        comparison = comparison * -1;
-      }
-      if (comparison !== 0) {
-        break;
-      }
+/**
+ * Returns true if a document sorts before a bound using the provided sort
+ * order.
+ */
+export function sortsBeforeDocument(
+  bound: Bound,
+  orderBy: OrderBy[],
+  doc: Document
+): boolean {
+  debugAssert(
+    bound.position.length <= orderBy.length,
+    "Bound has more components than query's orderBy"
+  );
+  let comparison = 0;
+  for (let i = 0; i < bound.position.length; i++) {
+    const orderByComponent = orderBy[i];
+    const component = bound.position[i];
+    if (orderByComponent.field.isKeyField()) {
+      debugAssert(
+        isReferenceValue(component),
+        'Bound has a non-key value where the key path is being used.'
+      );
+      comparison = DocumentKey.comparator(
+        DocumentKey.fromName(component.referenceValue),
+        doc.key
+      );
+    } else {
+      const docValue = doc.field(orderByComponent.field);
+      debugAssert(
+        docValue !== null,
+        'Field should exist since document matched the orderBy already.'
+      );
+      comparison = valueCompare(component, docValue);
     }
-    return this.before ? comparison <= 0 : comparison < 0;
+    if (orderByComponent.dir === Direction.DESCENDING) {
+      comparison = comparison * -1;
+    }
+    if (comparison !== 0) {
+      break;
+    }
+  }
+  return bound.before ? comparison <= 0 : comparison < 0;
+}
+
+export function boundEquals(left: Bound | null, right: Bound | null): boolean {
+  if (left === null) {
+    return right === null;
+  } else if (right === null) {
+    return false;
   }
 
-  isEqual(other: Bound | null): boolean {
-    if (other === null) {
+  if (
+    left.before !== right.before ||
+    left.position.length !== right.position.length
+  ) {
+    return false;
+  }
+  for (let i = 0; i < left.position.length; i++) {
+    const leftPosition = left.position[i];
+    const rightPosition = right.position[i];
+    if (!valueEquals(leftPosition, rightPosition)) {
       return false;
     }
-    if (
-      this.before !== other.before ||
-      this.position.length !== other.position.length
-    ) {
-      return false;
-    }
-    for (let i = 0; i < this.position.length; i++) {
-      const thisPosition = this.position[i];
-      const otherPosition = other.position[i];
-      if (!valueEquals(thisPosition, otherPosition)) {
-        return false;
-      }
-    }
-    return true;
   }
+  return true;
 }
 
 /**
  * An ordering on a field, in some Direction. Direction defaults to ASCENDING.
  */
 export class OrderBy {
-  readonly dir: Direction;
-  private readonly isKeyOrderBy: boolean;
+  constructor(
+    readonly field: FieldPath,
+    readonly dir: Direction = Direction.ASCENDING
+  ) {}
+}
 
-  constructor(readonly field: FieldPath, dir?: Direction) {
-    if (dir === undefined) {
-      dir = Direction.ASCENDING;
-    }
-    this.dir = dir;
-    this.isKeyOrderBy = field.isKeyField();
+export function compareDocs(
+  orderBy: OrderBy,
+  d1: Document,
+  d2: Document
+): number {
+  const comparison = orderBy.field.isKeyField()
+    ? DocumentKey.comparator(d1.key, d2.key)
+    : compareDocumentsByField(orderBy.field, d1, d2);
+  switch (orderBy.dir) {
+    case Direction.ASCENDING:
+      return comparison;
+    case Direction.DESCENDING:
+      return -1 * comparison;
+    default:
+      return fail('Unknown direction: ' + orderBy.dir);
   }
+}
 
-  compare(d1: Document, d2: Document): number {
-    const comparison = this.isKeyOrderBy
-      ? DocumentKey.comparator(d1.key, d2.key)
-      : compareDocumentsByField(this.field, d1, d2);
-    switch (this.dir) {
-      case Direction.ASCENDING:
-        return comparison;
-      case Direction.DESCENDING:
-        return -1 * comparison;
-      default:
-        return fail('Unknown direction: ' + this.dir);
-    }
-  }
+export function canonifyOrderBy(orderBy: OrderBy): string {
+  // TODO(b/29183165): Make this collision robust.
+  return orderBy.field.canonicalString() + orderBy.dir;
+}
 
-  canonicalId(): string {
-    // TODO(b/29183165): Make this collision robust.
-    return this.field.canonicalString() + this.dir.toString();
-  }
+export function stringifyOrderBy(orderBy: OrderBy): string {
+  return `${orderBy.field.canonicalString()} (${orderBy.dir})`;
+}
 
-  toString(): string {
-    return `${this.field.canonicalString()} (${this.dir})`;
-  }
-
-  isEqual(other: OrderBy): boolean {
-    return this.dir === other.dir && this.field.isEqual(other.field);
-  }
+export function orderByEquals(left: OrderBy, right: OrderBy): boolean {
+  return left.dir === right.dir && left.field.isEqual(right.field);
 }

@@ -35,14 +35,22 @@ export interface Settings {
 export interface PersistenceSettings {
   synchronizeTabs?: boolean;
   experimentalTabSynchronization?: boolean;
+  experimentalForceOwningTab?: boolean;
 }
 
-export type LogLevel = 'debug' | 'error' | 'silent';
+export type LogLevel =
+  | 'debug'
+  | 'error'
+  | 'silent'
+  | 'warn'
+  | 'info'
+  | 'verbose';
 
 export function setLogLevel(logLevel: LogLevel): void;
 
 export interface FirestoreDataConverter<T> {
   toFirestore(modelObject: T): DocumentData;
+  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
 
   fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): T;
 }
@@ -96,15 +104,17 @@ export interface LoadBundleTask {
   onProgress(
     next?: (progress: LoadBundleTaskProgress) => any,
     error?: (error: Error) => any,
-    complete?: (progress?: LoadBundleTaskProgress) => any
-  ): Promise<any>;
+    complete?: () => void
+  ): void;
 
-  then(
-    onFulfilled?: (a: LoadBundleTaskProgress) => any,
-    onRejected?: (a: Error) => any
-  ): Promise<any>;
+  then<T, R>(
+    onFulfilled?: (a: LoadBundleTaskProgress) => T | PromiseLike<T>,
+    onRejected?: (a: Error) => R | PromiseLike<R>
+  ): Promise<T | R>;
 
-  catch(onRejected: (a: Error) => any): Promise<any>;
+  catch<R>(
+    onRejected: (a: Error) => R | PromiseLike<R>
+  ): Promise<R | LoadBundleTaskProgress>;
 }
 
 export interface LoadBundleTaskProgress {
@@ -168,9 +178,10 @@ export class Transaction {
 
   set<T>(
     documentRef: DocumentReference<T>,
-    data: T,
-    options?: SetOptions
+    data: Partial<T>,
+    options: SetOptions
   ): Transaction;
+  set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
 
   update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
   update(
@@ -188,9 +199,10 @@ export class WriteBatch {
 
   set<T>(
     documentRef: DocumentReference<T>,
-    data: T,
-    options?: SetOptions
+    data: Partial<T>,
+    options: SetOptions
   ): WriteBatch;
+  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
 
   update(documentRef: DocumentReference<any>, data: UpdateData): WriteBatch;
   update(
@@ -230,7 +242,8 @@ export class DocumentReference<T = DocumentData> {
 
   isEqual(other: DocumentReference<T>): boolean;
 
-  set(data: T, options?: SetOptions): Promise<void>;
+  set(data: Partial<T>, options: SetOptions): Promise<void>;
+  set(data: T): Promise<void>;
 
   update(data: UpdateData): Promise<void>;
   update(

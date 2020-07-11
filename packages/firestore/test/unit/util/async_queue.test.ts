@@ -20,10 +20,11 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { expect, use } from 'chai';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
-import { getLogLevel, setLogLevel, LogLevel } from '../../../src/util/log';
+import { getLogLevel, LogLevel, setLogLevel } from '../../../src/util/log';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
 import { fail } from '../../../src/util/assert';
 import { IndexedDbTransactionError } from '../../../src/local/simple_db';
+import { isSafari } from '@firebase/util';
 
 use(chaiAsPromised);
 
@@ -137,7 +138,9 @@ describe('AsyncQueue', () => {
     });
   });
 
-  it('can schedule ops in the future', async () => {
+  // Flaky on Safari.
+  // eslint-disable-next-line no-restricted-properties
+  (isSafari() ? it.skip : it)('can schedule ops in the future', async () => {
     const queue = new AsyncQueue();
     const completedSteps: number[] = [];
     const doStep = (n: number): Promise<number> =>
@@ -171,7 +174,7 @@ describe('AsyncQueue', () => {
       err => expect(err.code === Code.CANCELLED)
     );
 
-    await queue.runDelayedOperationsEarly(TimerId.All);
+    await queue.runAllDelayedOperationsUntil(TimerId.All);
     expect(completedSteps).to.deep.equal([1]);
   });
 
@@ -187,7 +190,7 @@ describe('AsyncQueue', () => {
     queue.enqueueAfterDelay(timerId2, 10000, () => doStep(3));
     queue.enqueueAndForget(() => doStep(2));
 
-    await queue.runDelayedOperationsEarly(TimerId.All);
+    await queue.runAllDelayedOperationsUntil(TimerId.All);
     expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
   });
 
@@ -205,7 +208,7 @@ describe('AsyncQueue', () => {
     queue.enqueueAfterDelay(timerId3, 15000, () => doStep(4));
     queue.enqueueAndForget(() => doStep(2));
 
-    await queue.runDelayedOperationsEarly(timerId3);
+    await queue.runAllDelayedOperationsUntil(timerId3);
     expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
   });
 
@@ -223,7 +226,7 @@ describe('AsyncQueue', () => {
         );
       }
     });
-    await queue.runDelayedOperationsEarly(TimerId.AsyncQueueRetry);
+    await queue.runAllDelayedOperationsUntil(TimerId.AsyncQueueRetry);
     expect(completedSteps).to.deep.equal([1, 1]);
   });
 
@@ -279,7 +282,7 @@ describe('AsyncQueue', () => {
     expect(completedSteps).to.deep.equal([1]);
 
     // Fast forward all operations
-    await queue.runDelayedOperationsEarly(TimerId.AsyncQueueRetry);
+    await queue.runAllDelayedOperationsUntil(TimerId.AsyncQueueRetry);
     expect(completedSteps).to.deep.equal([1, 1]);
   });
 
@@ -294,8 +297,7 @@ describe('AsyncQueue', () => {
 
     queue.enqueueRetryable(async () => {
       doStep(1);
-      if (completedSteps.length > 1) {
-      } else {
+      if (completedSteps.length === 1) {
         throw new IndexedDbTransactionError(
           new Error('Simulated retryable error')
         );
@@ -308,6 +310,65 @@ describe('AsyncQueue', () => {
 
     await blockingPromise.promise;
     expect(completedSteps).to.deep.equal([1, 1, 2]);
+  });
+
+  it('Does not delay retryable operations that succeed', async () => {
+    const queue = new AsyncQueue();
+    const completedSteps: number[] = [];
+    const doStep = (n: number): void => {
+      completedSteps.push(n);
+    };
+
+    queue.enqueueRetryable(async () => {
+      doStep(1);
+    });
+    queue.enqueueAndForget(async () => {
+      doStep(2);
+    });
+    await queue.enqueue(async () => {
+      doStep(3);
+    });
+
+    expect(completedSteps).to.deep.equal([1, 2, 3]);
+  });
+
+  it('Catches up when retryable operation fails', async () => {
+    const queue = new AsyncQueue();
+    const completedSteps: number[] = [];
+    const doStep = (n: number): void => {
+      completedSteps.push(n);
+    };
+
+    const blockingPromise = new Deferred<void>();
+
+    queue.enqueueRetryable(async () => {
+      doStep(1);
+      if (completedSteps.length === 1) {
+        throw new IndexedDbTransactionError(
+          new Error('Simulated retryable error')
+        );
+      }
+    });
+    queue.enqueueAndForget(async () => {
+      doStep(2);
+    });
+    queue.enqueueRetryable(async () => {
+      doStep(3);
+      blockingPromise.resolve();
+    });
+    await blockingPromise.promise;
+
+    // Once all existing retryable operations succeeded, they are scheduled
+    // in the order they are enqueued.
+    queue.enqueueAndForget(async () => {
+      doStep(4);
+    });
+    await queue.enqueue(async () => {
+      doStep(5);
+    });
+
+    await blockingPromise.promise;
+    expect(completedSteps).to.deep.equal([1, 2, 1, 3, 4, 5]);
   });
 
   it('Can drain (non-delayed) operations', async () => {

@@ -26,7 +26,7 @@ import {
   Query,
   QuerySnapshot
 } from '../../src/api/database';
-import { IndexedDbComponentProvider } from '../../src/core/component_provider';
+import { MultiTabIndexedDbComponentProvider } from '../../src/core/component_provider';
 import { Query as InternalQuery } from '../../src/core/query';
 import {
   ChangeType,
@@ -45,11 +45,11 @@ import { Provider, ComponentContainer } from '@firebase/component';
  */
 export const FIRESTORE = new Firestore(
   {
-    projectId: 'projectid',
-    database: 'database'
+    projectId: 'test-project',
+    database: '(default)'
   },
   new Provider('auth-internal', new ComponentContainer('default')),
-  new IndexedDbComponentProvider()
+  new MultiTabIndexedDbComponentProvider()
 );
 
 export function firestore(): Firestore {
@@ -57,11 +57,25 @@ export function firestore(): Firestore {
 }
 
 export function collectionReference(path: string): CollectionReference {
-  return new CollectionReference(pathFrom(path), firestore());
+  const firestoreClient = firestore();
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  firestoreClient.ensureClientConfigured();
+  return new CollectionReference(
+    pathFrom(path),
+    firestoreClient,
+    /* converter= */ null
+  );
 }
 
 export function documentReference(path: string): DocumentReference {
-  return new DocumentReference(key(path), firestore());
+  const firestoreClient = firestore();
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  firestoreClient.ensureClientConfigured();
+  return new DocumentReference(
+    key(path),
+    firestoreClient,
+    /* converter= */ null
+  );
 }
 
 export function documentSnapshot(
@@ -75,7 +89,8 @@ export function documentSnapshot(
       key(path),
       doc(path, 1, data),
       fromCache,
-      /* hasPendingWrites= */ false
+      /* hasPendingWrites= */ false,
+      /* converter= */ null
     );
   } else {
     return new DocumentSnapshot(
@@ -83,13 +98,18 @@ export function documentSnapshot(
       key(path),
       null,
       fromCache,
-      /* hasPendingWrites= */ false
+      /* hasPendingWrites= */ false,
+      /* converter= */ null
     );
   }
 }
 
 export function query(path: string): Query {
-  return new Query(InternalQuery.atPath(pathFrom(path)), firestore());
+  return new Query(
+    InternalQuery.atPath(pathFrom(path)),
+    firestore(),
+    /* converter= */ null
+  );
 }
 
 /**
@@ -135,5 +155,10 @@ export function querySnapshot(
     syncStateChanged,
     false
   );
-  return new QuerySnapshot(firestore(), query, viewSnapshot);
+  return new QuerySnapshot(
+    firestore(),
+    query,
+    viewSnapshot,
+    /* converter= */ null
+  );
 }

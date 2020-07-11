@@ -273,7 +273,7 @@ export class WriteTree {
         ) {
           return null;
         } else {
-          const filter = function(write: WriteRecord) {
+          const filter = function (write: WriteRecord) {
             return (
               (write.visible || includeHiddenWrites) &&
               (!writeIdsToExclude ||

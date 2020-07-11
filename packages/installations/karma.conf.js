@@ -19,7 +19,7 @@ const karmaBase = require('../../config/karma.base');
 
 const files = ['src/**/*.test.ts'];
 
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
     ...karmaBase,
     files,

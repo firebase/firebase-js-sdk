@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1412,9 +1412,9 @@ fireauth.Auth.prototype.onIdTokenChanged = function(
     // and different promises library and this leads to calls resolutions order
     // being different from the promises registration order.
     Promise.resolve().then(function() {
-      if (goog.isFunction(nextOrObserver)) {
+      if (typeof nextOrObserver === 'function') {
         nextOrObserver(self.currentUser_());
-      } else if (goog.isFunction(nextOrObserver['next'])) {
+      } else if (typeof nextOrObserver['next'] === 'function') {
         nextOrObserver['next'](self.currentUser_());
       }
     });
@@ -1458,9 +1458,9 @@ fireauth.Auth.prototype.onAuthStateChanged = function(
       // it has the correct UID before triggering the user state change
       // listeners.
       self.userStateChangeUid_ = self.getUid();
-      if (goog.isFunction(nextOrObserver)) {
+      if (typeof nextOrObserver === 'function') {
         nextOrObserver(self.currentUser_());
-      } else if (goog.isFunction(nextOrObserver['next'])) {
+      } else if (typeof nextOrObserver['next'] === 'function') {
         nextOrObserver['next'](self.currentUser_());
       }
     });

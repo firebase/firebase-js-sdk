@@ -190,4 +190,14 @@ describe('Firebase Functions > Call', () => {
     const func = functions.httpsCallable('timeoutTest', { timeout: 10 });
     await expectError(func(), 'deadline-exceeded', 'deadline-exceeded');
   });
+
+  it('cancels timeout', async () => {
+    const functions = createTestService(app, region);
+    const globalObj = typeof window !== 'undefined' ? window : global;
+    const clearTimeoutSpy = sinon.spy(globalObj, 'clearTimeout');
+    const func = functions.httpsCallable('nullTest');
+    await func(null);
+    expect(clearTimeoutSpy.called).to.be.true;
+    clearTimeoutSpy.restore();
+  });
 });
