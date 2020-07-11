@@ -1432,15 +1432,13 @@ async function loadBundleImpl(
     }
 
     const result = await loader.complete();
-    if (result.changedDocs) {
-      // TODO(b/160876443): This currently raises snapshots with
-      // `fromCache=false` if users already listen to some queries and bundles
-      // has newer version.
-      await syncEngine.emitNewSnapsAndNotifyLocalStore(
-        result.changedDocs,
-        /* remoteEvent */ undefined
-      );
-    }
+    // TODO(b/160876443): This currently raises snapshots with
+    // `fromCache=false` if users already listen to some queries and bundles
+    // has newer version.
+    await syncEngine.emitNewSnapsAndNotifyLocalStore(
+      result.changedDocs,
+      /* remoteEvent */ undefined
+    );
 
     // Save metadata, so loading the same bundle will skip.
     await saveBundle(syncEngine.localStore, metadata);

@@ -143,7 +143,7 @@ export function bundleSuccessProgress(
 export class BundleLoadResult {
   constructor(
     readonly progress: firestore.LoadBundleTaskProgress,
-    readonly changedDocs?: MaybeDocumentMap
+    readonly changedDocs: MaybeDocumentMap
   ) {}
 }
 
