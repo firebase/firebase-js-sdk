@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import * as firestore from '@firebase/firestore-types';
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
@@ -26,7 +27,7 @@ import { newDatastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { Deferred } from '../util/promise';
 import {
   EventManager,
@@ -34,7 +35,7 @@ import {
   Observer,
   QueryListener
 } from './event_manager';
-import { SyncEngine } from './sync_engine';
+import { SyncEngine, loadBundle } from './sync_engine';
 import { View } from './view';
 
 import { SharedClientState } from '../local/shared_client_state';
@@ -47,8 +48,11 @@ import {
   ComponentProvider,
   MemoryComponentProvider
 } from './component_provider';
+import { BundleReader } from '../util/bundle_reader';
+import { LoadBundleTask } from '../api/bundle';
 import { newConnection } from '../platform/connection';
 import { newSerializer } from '../platform/serializer';
+import { toByteStreamReader } from '../platform/byte_stream_reader';
 
 const LOG_TAG = 'FirestoreClient';
 const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -511,5 +515,28 @@ export class FirestoreClient {
       return Promise.resolve();
     });
     return deferred.promise;
+  }
+
+  loadBundle(
+    data: ReadableStream<Uint8Array> | ArrayBuffer | string
+  ): firestore.LoadBundleTask {
+    this.verifyNotTerminated();
+
+    let content: ReadableStream<Uint8Array> | ArrayBuffer;
+    if (typeof data === 'string') {
+      content = new TextEncoder().encode(data);
+    } else {
+      content = data;
+    }
+    const reader = new BundleReader(toByteStreamReader(content));
+    const task = new LoadBundleTask();
+    this.asyncQueue.enqueueAndForget(async () => {
+      loadBundle(this.syncEngine, reader, task);
+      return task.catch(e => {
+        logWarn(LOG_TAG, `Loading bundle failed with ${e}`);
+      });
+    });
+
+    return task;
   }
 }

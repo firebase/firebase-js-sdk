@@ -493,6 +493,13 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     };
   }
 
+  loadBundle(
+    bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
+  ): firestore.LoadBundleTask {
+    this.ensureClientConfigured();
+    return this._firestoreClient!.loadBundle(bundleData);
+  }
+
   ensureClientConfigured(): FirestoreClient {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.

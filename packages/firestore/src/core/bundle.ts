@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import * as firestore from '@firebase/firestore-types';
 import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import {
@@ -28,6 +29,14 @@ import * as api from '../protos/firestore_proto_api';
 import { DocumentKey } from '../model/document_key';
 import { MaybeDocument, NoDocument } from '../model/document';
 import { debugAssert } from '../util/assert';
+import {
+  applyBundleDocuments,
+  LocalStore,
+  saveNamedQuery
+} from '../local/local_store';
+import { SizedBundleElement } from '../util/bundle_reader';
+import { MaybeDocumentMap } from '../model/collections';
+import { BundleMetadata } from '../protos/firestore_bundle_proto';
 
 /**
  * Represents a Firestore bundle saved by the SDK in its local storage.
@@ -58,7 +67,7 @@ export interface NamedQuery {
  */
 interface BundledDocument {
   metadata: bundleProto.BundledDocumentMetadata;
-  document: api.Document | undefined;
+  document?: api.Document;
 }
 
 /**
@@ -96,5 +105,129 @@ export class BundleConverter {
 
   toSnapshotVersion(time: api.Timestamp): SnapshotVersion {
     return fromVersion(time);
+  }
+}
+
+/**
+ * Returns a `LoadBundleTaskProgress` representing the initial progress of
+ * loading a bundle.
+ */
+export function bundleInitialProgress(
+  metadata: BundleMetadata
+): firestore.LoadBundleTaskProgress {
+  return {
+    taskState: 'Running',
+    documentsLoaded: 0,
+    bytesLoaded: 0,
+    totalDocuments: metadata.totalDocuments!,
+    totalBytes: metadata.totalBytes!
+  };
+}
+
+/**
+ * Returns a `LoadBundleTaskProgress` representing the progress that the loading
+ * has succeeded.
+ */
+export function bundleSuccessProgress(
+  metadata: BundleMetadata
+): firestore.LoadBundleTaskProgress {
+  return {
+    taskState: 'Success',
+    documentsLoaded: metadata.totalDocuments!,
+    bytesLoaded: metadata.totalBytes!,
+    totalDocuments: metadata.totalDocuments!,
+    totalBytes: metadata.totalBytes!
+  };
+}
+
+export class BundleLoadResult {
+  constructor(
+    readonly progress: firestore.LoadBundleTaskProgress,
+    readonly changedDocs: MaybeDocumentMap
+  ) {}
+}
+
+/**
+ * A class to process the elements from a bundle, load them into local
+ * storage and provide progress update while loading.
+ */
+export class BundleLoader {
+  /** The current progress of loading */
+  private progress: firestore.LoadBundleTaskProgress;
+  /** Batched queries to be saved into storage */
+  private queries: bundleProto.NamedQuery[] = [];
+  /** Batched documents to be saved into storage */
+  private documents: BundledDocuments = [];
+
+  constructor(
+    private metadata: bundleProto.BundleMetadata,
+    private localStore: LocalStore
+  ) {
+    this.progress = bundleInitialProgress(metadata);
+  }
+
+  /**
+   * Adds an element from the bundle to the loader.
+   *
+   * Returns a new progress if adding the element leads to a new progress,
+   * otherwise returns null.
+   */
+  addSizedElement(
+    element: SizedBundleElement
+  ): firestore.LoadBundleTaskProgress | null {
+    debugAssert(!element.isBundleMetadata(), 'Unexpected bundle metadata.');
+
+    this.progress.bytesLoaded += element.byteLength;
+
+    let documentsLoaded = this.progress.documentsLoaded;
+
+    if (element.payload.namedQuery) {
+      this.queries.push(element.payload.namedQuery);
+    } else if (element.payload.documentMetadata) {
+      this.documents.push({ metadata: element.payload.documentMetadata });
+      if (!element.payload.documentMetadata.exists) {
+        ++documentsLoaded;
+      }
+    } else if (element.payload.document) {
+      debugAssert(
+        this.documents.length > 0 &&
+          this.documents[this.documents.length - 1].metadata.name ===
+            element.payload.document.name,
+        'The document being added does not match the stored metadata.'
+      );
+      this.documents[this.documents.length - 1].document =
+        element.payload.document;
+      ++documentsLoaded;
+    }
+
+    if (documentsLoaded !== this.progress.documentsLoaded) {
+      this.progress.documentsLoaded = documentsLoaded;
+      return { ...this.progress };
+    }
+
+    return null;
+  }
+
+  /**
+   * Update the progress to 'Success' and return the updated progress.
+   */
+  async complete(): Promise<BundleLoadResult> {
+    debugAssert(
+      this.documents[this.documents.length - 1]?.metadata.exists !== true ||
+        !!this.documents[this.documents.length - 1].document,
+      'Bundled documents ends with a document metadata and missing document.'
+    );
+
+    for (const q of this.queries) {
+      await saveNamedQuery(this.localStore, q);
+    }
+
+    const changedDocs = await applyBundleDocuments(
+      this.localStore,
+      this.documents
+    );
+
+    this.progress.taskState = 'Success';
+    return new BundleLoadResult({ ...this.progress }, changedDocs);
   }
 }

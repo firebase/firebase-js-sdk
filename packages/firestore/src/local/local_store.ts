@@ -1296,7 +1296,7 @@ export function applyBundleDocuments(
   });
   return localStoreImpl.persistence.runTransaction(
     'Apply bundle documents',
-    'readwrite-primary',
+    'readwrite',
     txn => {
       return localStoreImpl
         .populateDocumentChangeBuffer(
@@ -1341,7 +1341,7 @@ export function hasNewerBundle(
       );
     })
     .then(cached => {
-      return !!cached && cached.createTime!.compareTo(currentReadTime) > 0;
+      return !!cached && cached.createTime!.compareTo(currentReadTime) >= 0;
     });
 }
 

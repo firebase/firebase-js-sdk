@@ -354,6 +354,14 @@ export class SpecBuilder {
     return this;
   }
 
+  loadBundle(bundleContent: string): this {
+    this.nextStep();
+    this.currentStep = {
+      loadBundle: bundleContent
+    };
+    return this;
+  }
+
   // PORTING NOTE: Only used by web multi-tab tests.
   becomeHidden(): this {
     this.nextStep();

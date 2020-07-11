@@ -20,8 +20,25 @@ import {
   BundleReader,
   SizedBundleElement
 } from '../../../src/util/bundle_reader';
-import { BundleElement } from '../../../src/protos/firestore_bundle_proto';
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
+import {
+  doc1String,
+  doc1MetaString,
+  doc1Meta,
+  noDocMetaString,
+  noDocMeta,
+  doc2MetaString,
+  doc2Meta,
+  limitQueryString,
+  limitQuery,
+  limitToLastQuery,
+  limitToLastQueryString,
+  meta,
+  metaString,
+  doc2String,
+  doc1,
+  doc2
+} from './bundle_data';
 
 use(chaiAsPromised);
 
@@ -38,12 +55,6 @@ export function byteStreamReaderFromString(
 ): ReadableStreamReader<Uint8Array> {
   const data = new TextEncoder().encode(content);
   return toByteStreamReader(data, bytesPerRead);
-}
-
-function lengthPrefixedString(o: {}): string {
-  const str = JSON.stringify(o);
-  const l = new TextEncoder().encode(str).byteLength;
-  return `${l}${str}`;
 }
 
 // Testing readableStreamFromString() is working as expected.
@@ -83,100 +94,6 @@ function genericBundleReadingTests(bytesPerRead: number): void {
   }
 
   const encoder = new TextEncoder();
-  // Setting up test data.
-  const meta: BundleElement = {
-    metadata: {
-      id: 'test-bundle',
-      createTime: { seconds: 1577836805, nanos: 6 },
-      version: 1,
-      totalDocuments: 1,
-      totalBytes: 416
-    }
-  };
-  const metaString = lengthPrefixedString(meta);
-
-  const doc1Meta: BundleElement = {
-    documentMetadata: {
-      name:
-        'projects/test-project/databases/(default)/documents/collectionId/doc1',
-      readTime: { seconds: 5, nanos: 6 },
-      exists: true
-    }
-  };
-  const doc1MetaString = lengthPrefixedString(doc1Meta);
-  const doc1: BundleElement = {
-    document: {
-      name:
-        'projects/test-project/databases/(default)/documents/collectionId/doc1',
-      createTime: { seconds: 1, nanos: 2000000 },
-      updateTime: { seconds: 3, nanos: 4000 },
-      fields: { foo: { stringValue: 'value' }, bar: { integerValue: -42 } }
-    }
-  };
-  const doc1String = lengthPrefixedString(doc1);
-
-  const doc2Meta: BundleElement = {
-    documentMetadata: {
-      name:
-        'projects/test-project/databases/(default)/documents/collectionId/doc2',
-      readTime: { seconds: 5, nanos: 6 },
-      exists: true
-    }
-  };
-  const doc2MetaString = lengthPrefixedString(doc2Meta);
-  const doc2: BundleElement = {
-    document: {
-      name:
-        'projects/test-project/databases/(default)/documents/collectionId/doc2',
-      createTime: { seconds: 1, nanos: 2000000 },
-      updateTime: { seconds: 3, nanos: 4000 },
-      fields: { foo: { stringValue: 'value1' }, bar: { integerValue: 42 } }
-    }
-  };
-  const doc2String = lengthPrefixedString(doc2);
-
-  const noDocMeta: BundleElement = {
-    documentMetadata: {
-      name:
-        'projects/test-project/databases/(default)/documents/collectionId/nodoc',
-      readTime: { seconds: 5, nanos: 6 },
-      exists: false
-    }
-  };
-  const noDocMetaString = lengthPrefixedString(noDocMeta);
-
-  const limitQuery: BundleElement = {
-    namedQuery: {
-      name: 'limitQuery',
-      bundledQuery: {
-        parent: 'projects/fireeats-97d5e/databases/(default)/documents',
-        structuredQuery: {
-          from: [{ collectionId: 'node_3.7.5_7Li7XoCjutvNxwD0tpo9' }],
-          orderBy: [{ field: { fieldPath: 'sort' }, direction: 'DESCENDING' }],
-          limit: { 'value': 1 }
-        },
-        limitType: 'FIRST'
-      },
-      readTime: { 'seconds': 1590011379, 'nanos': 191164000 }
-    }
-  };
-  const limitQueryString = lengthPrefixedString(limitQuery);
-  const limitToLastQuery: BundleElement = {
-    namedQuery: {
-      name: 'limitToLastQuery',
-      bundledQuery: {
-        parent: 'projects/fireeats-97d5e/databases/(default)/documents',
-        structuredQuery: {
-          from: [{ collectionId: 'node_3.7.5_7Li7XoCjutvNxwD0tpo9' }],
-          orderBy: [{ field: { fieldPath: 'sort' }, direction: 'ASCENDING' }],
-          limit: { 'value': 1 }
-        },
-        limitType: 'LAST'
-      },
-      readTime: { 'seconds': 1590011379, 'nanos': 543063000 }
-    }
-  };
-  const limitToLastQueryString = lengthPrefixedString(limitToLastQuery);
 
   async function getAllElements(
     bundle: BundleReader

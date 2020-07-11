@@ -20,10 +20,11 @@ import * as node from './node/byte_stream_reader';
 import * as rn from './rn/byte_stream_reader';
 import * as browser from './browser/byte_stream_reader';
 import { isNode, isReactNative } from '@firebase/util';
+import { DEFAULT_BYTES_PER_READ } from '../util/byte_stream';
 
 export function toByteStreamReader(
   source: BundleSource,
-  bytesPerRead: number
+  bytesPerRead: number = DEFAULT_BYTES_PER_READ
 ): ReadableStreamReader<Uint8Array> {
   if (isNode()) {
     return node.toByteStreamReader(source, bytesPerRead);

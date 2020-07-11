@@ -27,7 +27,7 @@ import {
 } from '../../../src/core/event_manager';
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { SyncEngine } from '../../../src/core/sync_engine';
+import { loadBundle, SyncEngine } from '../../../src/core/sync_engine';
 import { TargetId } from '../../../src/core/types';
 import {
   ChangeType,
@@ -116,12 +116,16 @@ import {
   SharedWriteTracker
 } from './spec_test_components';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { BundleReader } from '../../../src/util/bundle_reader';
+import { LoadBundleTask } from '../../../src/api/bundle';
 import { encodeBase64 } from '../../../src/platform/base64';
 import {
   FakeDocument,
   SharedFakeWebStorage,
   testWindow
 } from '../../util/test_platform';
+import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
+import { logWarn } from '../../../src/util/log';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -311,6 +315,8 @@ abstract class TestRunner {
       return this.doAddSnapshotsInSyncListener();
     } else if ('removeSnapshotsInSyncListener' in step) {
       return this.doRemoveSnapshotsInSyncListener();
+    } else if ('loadBundle' in step) {
+      return this.doLoadBundle(step.loadBundle!);
     } else if ('watchAck' in step) {
       return this.doWatchAck(step.watchAck!);
     } else if ('watchCurrent' in step) {
@@ -446,6 +452,19 @@ abstract class TestRunner {
       throw new Error('There must be a listener to unlisten to');
     }
     return Promise.resolve();
+  }
+
+  private async doLoadBundle(bundle: string): Promise<void> {
+    const reader = new BundleReader(
+      toByteStreamReader(new TextEncoder().encode(bundle))
+    );
+    const task = new LoadBundleTask();
+    return this.queue.enqueue(async () => {
+      loadBundle(this.syncEngine, reader, task);
+      await task.catch(e => {
+        logWarn(`Loading bundle failed with ${e}`);
+      });
+    });
   }
 
   private doMutations(mutations: Mutation[]): Promise<void> {
@@ -1252,6 +1271,8 @@ export interface SpecStep {
   addSnapshotsInSyncListener?: true;
   /** Unlistens from a SnapshotsInSync event. */
   removeSnapshotsInSyncListener?: true;
+  /** Loads a bundle from a string. */
+  loadBundle?: string;
 
   /** Ack for a query in the watch stream */
   watchAck?: SpecWatchAck;

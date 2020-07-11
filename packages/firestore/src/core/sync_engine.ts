@@ -17,9 +17,11 @@
 
 import { User } from '../auth/user';
 import {
+  hasNewerBundle,
   ignoreIfPrimaryLeaseLoss,
   LocalStore,
-  MultiTabLocalStore
+  MultiTabLocalStore,
+  saveBundle
 } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
@@ -36,7 +38,7 @@ import { BATCHID_UNKNOWN, MutationBatchResult } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
-import { debugAssert, fail, hardAssert } from '../util/assert';
+import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
@@ -74,7 +76,14 @@ import {
 import { ViewSnapshot } from './view_snapshot';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
+import { BundleReader } from '../util/bundle_reader';
+import {
+  BundleLoader,
+  bundleInitialProgress,
+  bundleSuccessProgress
+} from './bundle';
 import { Datastore } from '../remote/datastore';
+import { LoadBundleTask } from '../api/bundle';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -274,7 +283,7 @@ class SyncEngineImpl implements SyncEngine {
   private onlineState = OnlineState.Unknown;
 
   constructor(
-    protected localStore: LocalStore,
+    public localStore: LocalStore,
     protected remoteStore: RemoteStore,
     protected datastore: Datastore,
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
@@ -837,7 +846,7 @@ class SyncEngineImpl implements SyncEngine {
     return this.enqueuedLimboResolutions;
   }
 
-  protected async emitNewSnapsAndNotifyLocalStore(
+  async emitNewSnapsAndNotifyLocalStore(
     changes: MaybeDocumentMap,
     remoteEvent?: RemoteEvent
   ): Promise<void> {
@@ -901,7 +910,7 @@ class SyncEngineImpl implements SyncEngine {
     await this.localStore.notifyLocalViewChanges(docChangesInAllViews);
   }
 
-  protected assertSubscribed(fnName: string): void {
+  assertSubscribed(fnName: string): void {
     debugAssert(
       this.syncEngineListener !== null,
       'Trying to call ' + fnName + ' before calling subscribe().'
@@ -1005,7 +1014,7 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
   private _isPrimaryClient: undefined | boolean = undefined;
 
   constructor(
-    protected localStore: MultiTabLocalStore,
+    public localStore: MultiTabLocalStore,
     remoteStore: RemoteStore,
     datastore: Datastore,
     sharedClientState: SharedClientState,
@@ -1370,4 +1379,71 @@ export function newMultiTabSyncEngine(
     currentUser,
     maxConcurrentLimboResolutions
   );
+}
+
+/**
+ * Loads a Firestore bundle into the SDK. The returned promise resolves when
+ * the bundle finished loading.
+ *
+ * @param bundleReader Bundle to load into the SDK.
+ * @param task LoadBundleTask used to update the loading progress to public API.
+ */
+export function loadBundle(
+  syncEngine: SyncEngine,
+  bundleReader: BundleReader,
+  task: LoadBundleTask
+): void {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  syncEngineImpl.assertSubscribed('loadBundle()');
+
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  loadBundleImpl(syncEngineImpl, bundleReader, task);
+}
+
+async function loadBundleImpl(
+  syncEngine: SyncEngineImpl,
+  reader: BundleReader,
+  task: LoadBundleTask
+): Promise<void> {
+  try {
+    const metadata = await reader.getMetadata();
+    const skip = await hasNewerBundle(syncEngine.localStore, metadata);
+    if (skip) {
+      await reader.close();
+      task._completeWith(bundleSuccessProgress(metadata));
+      return;
+    }
+
+    task._updateProgress(bundleInitialProgress(metadata));
+
+    const loader = new BundleLoader(metadata, syncEngine.localStore);
+    let element = await reader.nextElement();
+    while (element) {
+      debugAssert(
+        !element.payload.metadata,
+        'Unexpected BundleMetadata element.'
+      );
+      const progress = await loader.addSizedElement(element);
+      if (progress) {
+        task._updateProgress(progress);
+      }
+
+      element = await reader.nextElement();
+    }
+
+    const result = await loader.complete();
+    // TODO(b/160876443): This currently raises snapshots with
+    // `fromCache=false` if users already listen to some queries and bundles
+    // has newer version.
+    await syncEngine.emitNewSnapsAndNotifyLocalStore(
+      result.changedDocs,
+      /* remoteEvent */ undefined
+    );
+
+    // Save metadata, so loading the same bundle will skip.
+    await saveBundle(syncEngine.localStore, metadata);
+    task._completeWith(result.progress);
+  } catch (e) {
+    task._failWith(e);
+  }
 }
