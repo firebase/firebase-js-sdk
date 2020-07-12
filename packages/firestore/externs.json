@@ -1,6 +1,7 @@
 {
   "externs" :  [
     "node_modules/@types/node/base.d.ts",
+    "node_modules/@types/node/globals.d.ts",
     "node_modules/typescript/lib/lib.es5.d.ts",
     "node_modules/typescript/lib/lib.dom.d.ts",
     "node_modules/typescript/lib/lib.es2015.promise.d.ts",
@@ -21,6 +22,7 @@
     "packages/component/dist/src/component_container.d.ts",
     "packages/logger/dist/src/logger.d.ts",
     "packages/webchannel-wrapper/src/index.d.ts",
+    "packages/util/dist/src/crypt.d.ts",
     "packages/util/dist/src/environment.d.ts",
     "packages/firestore/src/protos/firestore_proto_api.d.ts",
     "packages/firestore/src/util/error.ts",

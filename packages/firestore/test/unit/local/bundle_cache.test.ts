@@ -18,22 +18,27 @@
 import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { filter, orderBy, path } from '../../util/helpers';
-import * as persistenceHelpers from './persistence_test_helpers';
 import { TestBundleCache } from './test_bundle_cache';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Timestamp } from '../../../src/api/timestamp';
-import { Query } from '../../../src/core/query';
-import { JSON_SERIALIZER } from './persistence_test_helpers';
+import { Query, queryEquals } from '../../../src/core/query';
+import {
+  clearTestPersistence,
+  JSON_SERIALIZER,
+  testIndexedDbPersistence,
+  testMemoryEagerPersistence
+} from './persistence_test_helpers';
 import { ResourcePath } from '../../../src/model/path';
 import { NamedQuery } from '../../../src/core/bundle';
+import { toQueryTarget } from '../../../src/remote/serializer';
 
 describe('MemoryBundleCache', () => {
   let cache: TestBundleCache;
 
   beforeEach(async () => {
-    cache = await persistenceHelpers
-      .testMemoryEagerPersistence()
-      .then(persistence => new TestBundleCache(persistence));
+    cache = await testMemoryEagerPersistence().then(
+      persistence => new TestBundleCache(persistence)
+    );
   });
 
   genericBundleCacheTests(() => cache);
@@ -48,15 +53,13 @@ describe('IndexedDbBundleCache', () => {
   let cache: TestBundleCache;
   let persistence: IndexedDbPersistence;
   beforeEach(async () => {
-    persistence = await persistenceHelpers.testIndexedDbPersistence({
-      synchronizeTabs: true
-    });
+    persistence = await testIndexedDbPersistence();
     cache = new TestBundleCache(persistence);
   });
 
   afterEach(async () => {
     await persistence.shutdown();
-    await persistenceHelpers.clearTestPersistence();
+    await clearTestPersistence();
   });
 
   genericBundleCacheTests(() => cache);
@@ -80,7 +83,7 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
     expectedReadNanos: number
   ): void {
     expect(actual.name).to.equal(expectedName);
-    expect(actual.query.isEqual(expectedQuery)).to.be.true;
+    expect(queryEquals(actual.query, expectedQuery)).to.be.true;
     expect(
       actual.readTime.isEqual(
         SnapshotVersion.fromTimestamp(
@@ -127,7 +130,7 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
     const query = Query.atPath(path('collection'))
       .addFilter(filter('sort', '>=', 2))
       .addOrderBy(orderBy('sort'));
-    const queryTarget = JSON_SERIALIZER.toQueryTarget(query.toTarget());
+    const queryTarget = toQueryTarget(JSON_SERIALIZER, query.toTarget());
 
     await cache.setNamedQuery({
       name: 'query-1',
@@ -143,8 +146,8 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
   });
 
   it('returns saved collection group queries', async () => {
-    const query = new Query(ResourcePath.EMPTY_PATH, 'collection');
-    const queryTarget = JSON_SERIALIZER.toQueryTarget(query.toTarget());
+    const query = new Query(ResourcePath.emptyPath(), 'collection');
+    const queryTarget = toQueryTarget(JSON_SERIALIZER, query.toTarget());
 
     await cache.setNamedQuery({
       name: 'query-1',
@@ -164,7 +167,7 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
     const query = Query.atPath(path('collection'))
       .addOrderBy(orderBy('sort'))
       .withLimitToFirst(3);
-    const queryTarget = JSON_SERIALIZER.toQueryTarget(query.toTarget());
+    const queryTarget = toQueryTarget(JSON_SERIALIZER, query.toTarget());
 
     await cache.setNamedQuery({
       name: 'query-1',
@@ -189,7 +192,7 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
     // value 'LAST'. Client SDKs should apply a withLimitToLast when they see
     // limitType 'LAST' from bundles.
     const limitQuery = query.withLimitToFirst(3);
-    const queryTarget = JSON_SERIALIZER.toQueryTarget(limitQuery.toTarget());
+    const queryTarget = toQueryTarget(JSON_SERIALIZER, limitQuery.toTarget());
 
     await cache.setNamedQuery({
       name: 'query-1',

@@ -36,7 +36,7 @@ export class TestBundleCache {
       'getBundle',
       'readonly',
       transaction => {
-        return this.cache.getBundle(transaction, bundleId);
+        return this.cache.getBundleMetadata(transaction, bundleId);
       }
     );
   }

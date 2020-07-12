@@ -14,16 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
+import { expect, use } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import {
   BundleReader,
   SizedBundleElement
 } from '../../../src/util/bundle_reader';
-import { isNode } from '../../util/test_platform';
-import {
-  PlatformSupport,
-  toByteStreamReader
-} from '../../../src/platform/platform';
+import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
 import {
   doc1String,
   doc1MetaString,
@@ -41,7 +38,12 @@ import {
   doc2String,
   doc1,
   doc2
-} from '../../util/bundle_data';
+} from './bundle_data';
+import { newTextEncoder } from '../../../src/platform/dom';
+
+use(chaiAsPromised);
+
+const encoder = newTextEncoder();
 
 /**
  * Create a `ReadableStream` from a string.
@@ -50,32 +52,18 @@ import {
  * @param bytesPerRead: How many bytes to read from the underlying buffer from
  * each read through the stream.
  */
-export function readableStreamFromString(
+export function byteStreamReaderFromString(
   content: string,
-  bytesPerRead = 10240
-): ReadableStream<Uint8Array | ArrayBuffer> {
-  let readFrom = 0;
-  const data = new TextEncoder().encode(content);
-  return new ReadableStream({
-    start(controller) {},
-    async pull(controller): Promise<void> {
-      controller.enqueue(data.slice(readFrom, readFrom + bytesPerRead));
-      readFrom += bytesPerRead;
-      if (readFrom >= data.byteLength) {
-        controller.close();
-      }
-    }
-  });
+  bytesPerRead: number
+): ReadableStreamReader<Uint8Array> {
+  const data = encoder.encode(content);
+  return toByteStreamReader(data, bytesPerRead);
 }
 
 // Testing readableStreamFromString() is working as expected.
-// eslint-disable-next-line no-restricted-properties
-(isNode() ? describe.skip : describe)('readableStreamFromString()', () => {
-  it('returns stepping readable stream', async () => {
-    const encoder = new TextEncoder();
-    const r = PlatformSupport.getPlatform().toByteStreamReader(
-      readableStreamFromString('0123456789', 4)
-    );
+describe('byteStreamReaderFromString()', () => {
+  it('returns a reader stepping readable stream', async () => {
+    const r = byteStreamReaderFromString('0123456789', 4);
 
     let result = await r.read();
     expect(result.value).to.deep.equal(encoder.encode('0123'));
@@ -95,8 +83,6 @@ export function readableStreamFromString(
   });
 });
 
-const encoder = new TextEncoder();
-
 describe('Bundle ', () => {
   genericBundleReadingTests(1);
   genericBundleReadingTests(4);
@@ -105,21 +91,8 @@ describe('Bundle ', () => {
 });
 
 function genericBundleReadingTests(bytesPerRead: number): void {
-  // On Node, we need to override `bytesPerRead` from it's platform's `toByteStreamReader` call.
-  if (isNode()) {
-    const platform = PlatformSupport.getPlatform();
-    platform.toByteStreamReader = source =>
-      toByteStreamReader(source as Uint8Array, bytesPerRead);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (PlatformSupport as any)._forceSetPlatform(platform);
-  }
-
   function bundleFromString(s: string): BundleReader {
-    if (isNode()) {
-      return new BundleReader(encoder.encode(s));
-    } else {
-      return new BundleReader(readableStreamFromString(s, bytesPerRead));
-    }
+    return new BundleReader(byteStreamReaderFromString(s, bytesPerRead));
   }
 
   async function getAllElements(

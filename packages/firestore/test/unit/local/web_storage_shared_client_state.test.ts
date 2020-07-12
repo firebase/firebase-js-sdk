@@ -37,17 +37,17 @@ import {
   SharedClientStateSyncer
 } from '../../../src/local/shared_client_state_syncer';
 import { targetIdSet } from '../../../src/model/collections';
-import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
 import { objectSize } from '../../../src/util/obj';
 import { SortedSet } from '../../../src/util/sorted_set';
 import {
-  clearWebStorage,
   TEST_PERSISTENCE_PREFIX,
   populateWebStorage
 } from './persistence_test_helpers';
+import { testWindow } from '../../util/test_platform';
+import { WindowLike } from '../../../src/util/types';
 
 /* eslint-disable no-restricted-globals */
 
@@ -155,12 +155,8 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
 }
 
 describe('WebStorageSharedClientState', () => {
-  if (!WebStorageSharedClientState.isAvailable(PlatformSupport.getPlatform())) {
-    console.warn('No WebStorage. Skipping WebStorageSharedClientState tests.');
-    return;
-  }
-
-  const webStorage = window.localStorage;
+  let window: WindowLike;
+  let webStorage: Storage;
 
   let queue: AsyncQueue;
   let primaryClientId: string;
@@ -194,7 +190,8 @@ describe('WebStorageSharedClientState', () => {
   }
 
   beforeEach(() => {
-    clearWebStorage();
+    window = testWindow();
+    webStorage = window.localStorage;
     webStorageCallbacks = [];
 
     previousAddEventListener = window.addEventListener;
@@ -213,8 +210,8 @@ describe('WebStorageSharedClientState', () => {
     primaryClientId = AutoId.newId();
     queue = new AsyncQueue();
     sharedClientState = new WebStorageSharedClientState(
+      window,
       queue,
-      PlatformSupport.getPlatform(),
       TEST_PERSISTENCE_PREFIX,
       primaryClientId,
       AUTHENTICATED_USER
@@ -393,6 +390,7 @@ describe('WebStorageSharedClientState', () => {
 
       return populateWebStorage(
         AUTHENTICATED_USER,
+        window,
         existingClientId,
         [1, 2],
         [3, 4]

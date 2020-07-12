@@ -17,9 +17,11 @@
 
 import { User } from '../auth/user';
 import {
+  hasNewerBundle,
   ignoreIfPrimaryLeaseLoss,
   LocalStore,
-  MultiTabLocalStore
+  MultiTabLocalStore,
+  saveBundle
 } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
@@ -36,7 +38,7 @@ import { BATCHID_UNKNOWN, MutationBatchResult } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
-import { debugAssert, fail, hardAssert } from '../util/assert';
+import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
@@ -51,7 +53,13 @@ import {
 } from '../local/shared_client_state_syncer';
 import { SortedSet } from '../util/sorted_set';
 import { ListenSequence } from './listen_sequence';
-import { LimitType, Query } from './query';
+import {
+  canonifyQuery,
+  LimitType,
+  Query,
+  queryEquals,
+  stringifyQuery
+} from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { Target } from './target';
 import { TargetIdGenerator } from './target_id_generator';
@@ -75,7 +83,13 @@ import { ViewSnapshot } from './view_snapshot';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { TransactionRunner } from './transaction_runner';
 import { BundleReader } from '../util/bundle_reader';
-import { BundleLoader, initialProgress, LoadBundleTaskImpl } from './bundle';
+import {
+  BundleLoader,
+  bundleInitialProgress,
+  bundleSuccessProgress
+} from './bundle';
+import { Datastore } from '../remote/datastore';
+import { LoadBundleTask } from '../api/bundle';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -146,11 +160,101 @@ export interface SyncEngineListener {
  * The SyncEngine’s methods should only ever be called by methods running in the
  * global async queue.
  */
-export class SyncEngine implements RemoteSyncer {
+export interface SyncEngine extends RemoteSyncer {
+  isPrimaryClient: boolean;
+
+  /** Subscribes to SyncEngine notifications. Has to be called exactly once. */
+  subscribe(syncEngineListener: SyncEngineListener): void;
+
+  /**
+   * Initiates the new listen, resolves promise when listen enqueued to the
+   * server. All the subsequent view snapshots or errors are sent to the
+   * subscribed handlers. Returns the initial snapshot.
+   */
+  listen(query: Query, readFrom?: SnapshotVersion): Promise<ViewSnapshot>;
+
+  /** Stops listening to the query. */
+  unlisten(query: Query): Promise<void>;
+
+  /**
+   * Initiates the write of local mutation batch which involves adding the
+   * writes to the mutation queue, notifying the remote store about new
+   * mutations and raising events for any changes this write caused.
+   *
+   * The promise returned by this call is resolved when the above steps
+   * have completed, *not* when the write was acked by the backend. The
+   * userCallback is resolved once the write was acked/rejected by the
+   * backend (or failed locally for any other reason).
+   */
+  write(batch: Mutation[], userCallback: Deferred<void>): Promise<void>;
+
+  /**
+   * Takes an updateFunction in which a set of reads and writes can be performed
+   * atomically. In the updateFunction, the client can read and write values
+   * using the supplied transaction object. After the updateFunction, all
+   * changes will be committed. If a retryable error occurs (ex: some other
+   * client has changed any of the data referenced), then the updateFunction
+   * will be called again after a backoff. If the updateFunction still fails
+   * after all retries, then the transaction will be rejected.
+   *
+   * The transaction object passed to the updateFunction contains methods for
+   * accessing documents and collections. Unlike other datastore access, data
+   * accessed with the transaction will not reflect local changes that have not
+   * been committed. For this reason, it is required that all reads are
+   * performed before any writes. Transactions must be performed while online.
+   *
+   * The Deferred input is resolved when the transaction is fully committed.
+   */
+  runTransaction<T>(
+    asyncQueue: AsyncQueue,
+    updateFunction: (transaction: Transaction) => Promise<T>,
+    deferred: Deferred<T>
+  ): void;
+
+  /**
+   * Applies an OnlineState change to the sync engine and notifies any views of
+   * the change.
+   */
+  applyOnlineStateChange(
+    onlineState: OnlineState,
+    source: OnlineStateSource
+  ): void;
+
+  /**
+   * Registers a user callback that resolves when all pending mutations at the moment of calling
+   * are acknowledged .
+   */
+  registerPendingWritesCallback(callback: Deferred<void>): Promise<void>;
+
+  // Visible for testing
+  activeLimboDocumentResolutions(): SortedMap<DocumentKey, TargetId>;
+
+  // Visible for testing
+  enqueuedLimboDocumentResolutions(): DocumentKey[];
+
+  handleCredentialChange(user: User): Promise<void>;
+
+  enableNetwork(): Promise<void>;
+
+  disableNetwork(): Promise<void>;
+
+  getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet;
+}
+
+/**
+ * An implementation of `SyncEngine` coordinating with other parts of SDK.
+ *
+ * Note: some field defined in this class might have public access level, but
+ * the class is not exported so they are only accessible from this module.
+ * This is useful to implement optional features (like bundles) in free
+ * functions, such that they are tree-shakeable.
+ */
+class SyncEngineImpl implements SyncEngine {
   protected syncEngineListener: SyncEngineListener | null = null;
 
-  protected queryViewsByQuery = new ObjectMap<Query, QueryView>(q =>
-    q.canonicalId()
+  protected queryViewsByQuery = new ObjectMap<Query, QueryView>(
+    q => canonifyQuery(q),
+    queryEquals
   );
   protected queriesByTarget = new Map<TargetId, Query[]>();
   /**
@@ -185,10 +289,11 @@ export class SyncEngine implements RemoteSyncer {
   private onlineState = OnlineState.Unknown;
 
   constructor(
-    protected localStore: LocalStore,
+    public localStore: LocalStore,
     protected remoteStore: RemoteStore,
+    protected datastore: Datastore,
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
-    protected sharedClientState: SharedClientState,
+    public sharedClientState: SharedClientState,
     private currentUser: User,
     private maxConcurrentLimboResolutions: number
   ) {}
@@ -197,7 +302,6 @@ export class SyncEngine implements RemoteSyncer {
     return true;
   }
 
-  /** Subscribes to SyncEngine notifications. Has to be called exactly once. */
   subscribe(syncEngineListener: SyncEngineListener): void {
     debugAssert(
       syncEngineListener !== null,
@@ -211,11 +315,6 @@ export class SyncEngine implements RemoteSyncer {
     this.syncEngineListener = syncEngineListener;
   }
 
-  /**
-   * Initiates the new listen, resolves promise when listen enqueued to the
-   * server. All the subsequent view snapshots or errors are sent to the
-   * subscribed handlers. Returns the initial snapshot.
-   */
   async listen(
     query: Query,
     readFrom?: SnapshotVersion
@@ -300,12 +399,14 @@ export class SyncEngine implements RemoteSyncer {
     return viewChange.snapshot!;
   }
 
-  /** Stops listening to the query. */
   async unlisten(query: Query): Promise<void> {
     this.assertSubscribed('unlisten()');
 
     const queryView = this.queryViewsByQuery.get(query)!;
-    debugAssert(!!queryView, 'Trying to unlisten on query not found:' + query);
+    debugAssert(
+      !!queryView,
+      'Trying to unlisten on query not found:' + stringifyQuery(query)
+    );
 
     // Only clean up the query view and target if this is the only query mapped
     // to the target.
@@ -313,7 +414,7 @@ export class SyncEngine implements RemoteSyncer {
     if (queries.length > 1) {
       this.queriesByTarget.set(
         queryView.targetId,
-        queries.filter(q => !q.isEqual(query))
+        queries.filter(q => !queryEquals(q, query))
       );
       this.queryViewsByQuery.delete(query);
       return;
@@ -347,16 +448,6 @@ export class SyncEngine implements RemoteSyncer {
     }
   }
 
-  /**
-   * Initiates the write of local mutation batch which involves adding the
-   * writes to the mutation queue, notifying the remote store about new
-   * mutations and raising events for any changes this write caused.
-   *
-   * The promise returned by this call is resolved when the above steps
-   * have completed, *not* when the write was acked by the backend. The
-   * userCallback is resolved once the write was acked/rejected by the
-   * backend (or failed locally for any other reason).
-   */
   async write(batch: Mutation[], userCallback: Deferred<void>): Promise<void> {
     this.assertSubscribed('write()');
 
@@ -374,23 +465,6 @@ export class SyncEngine implements RemoteSyncer {
     }
   }
 
-  /**
-   * Takes an updateFunction in which a set of reads and writes can be performed
-   * atomically. In the updateFunction, the client can read and write values
-   * using the supplied transaction object. After the updateFunction, all
-   * changes will be committed. If a retryable error occurs (ex: some other
-   * client has changed any of the data referenced), then the updateFunction
-   * will be called again after a backoff. If the updateFunction still fails
-   * after all retries, then the transaction will be rejected.
-   *
-   * The transaction object passed to the updateFunction contains methods for
-   * accessing documents and collections. Unlike other datastore access, data
-   * accessed with the transaction will not reflect local changes that have not
-   * been committed. For this reason, it is required that all reads are
-   * performed before any writes. Transactions must be performed while online.
-   *
-   * The Deferred input is resolved when the transaction is fully committed.
-   */
   runTransaction<T>(
     asyncQueue: AsyncQueue,
     updateFunction: (transaction: Transaction) => Promise<T>,
@@ -398,7 +472,7 @@ export class SyncEngine implements RemoteSyncer {
   ): void {
     new TransactionRunner<T>(
       asyncQueue,
-      this.remoteStore,
+      this.datastore,
       updateFunction,
       deferred
     ).run();
@@ -447,67 +521,6 @@ export class SyncEngine implements RemoteSyncer {
     }
   }
 
-  loadBundle(
-    bundleReader: BundleReader,
-    task: LoadBundleTaskImpl
-  ): Promise<void> {
-    this.assertSubscribed('loadBundle()');
-
-    return this.loadBundleAsync(bundleReader, task)
-      .catch(reason => {
-        task.failedWith(reason);
-      })
-      .then(() => {
-        if (!this.isPrimaryClient) {
-          this.sharedClientState.remoteDocumentsChanged();
-        }
-      });
-  }
-
-  private async loadBundleAsync(
-    reader: BundleReader,
-    task: LoadBundleTaskImpl
-  ): Promise<void> {
-    const metadata = await reader.getMetadata();
-    const skip = await this.localStore.isNewerBundleLoaded(metadata);
-    if (skip) {
-      await reader.close();
-      task.completeWith(initialProgress('Success', metadata));
-      return;
-    }
-
-    task.updateProgress(initialProgress('Running', metadata));
-
-    const loader = new BundleLoader(metadata, this.localStore);
-    let element = await reader.nextElement();
-    while (element) {
-      debugAssert(
-        !element.payload.metadata,
-        'Unexpected BundleMetadata element.'
-      );
-      const result = await loader.addSizedElement(element);
-      if (result) {
-        task.updateProgress(result.progress);
-
-        if (result.changedDocs) {
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          this.emitNewSnapsAndNotifyLocalStore(result.changedDocs);
-        }
-      }
-
-      element = await reader.nextElement();
-    }
-
-    await this.localStore.saveBundle(metadata);
-
-    const completeProgress = loader.complete();
-    task.completeWith(completeProgress);
-  }
-
-  /**
-   * Applies an OnlineState change to the sync engine and notifies any views of
-   * the change.
-   */
   applyOnlineStateChange(
     onlineState: OnlineState,
     source: OnlineStateSource
@@ -588,18 +601,18 @@ export class SyncEngine implements RemoteSyncer {
 
     const batchId = mutationBatchResult.batch.batchId;
 
-    // The local store may or may not be able to apply the write result and
-    // raise events immediately (depending on whether the watcher is caught
-    // up), so we raise user callbacks first so that they consistently happen
-    // before listen events.
-    this.processUserCallback(batchId, /*error=*/ null);
-
-    this.triggerPendingWritesCallbacks(batchId);
-
     try {
       const changes = await this.localStore.acknowledgeBatch(
         mutationBatchResult
       );
+
+      // The local store may or may not be able to apply the write result and
+      // raise events immediately (depending on whether the watcher is caught
+      // up), so we raise user callbacks first so that they consistently happen
+      // before listen events.
+      this.processUserCallback(batchId, /*error=*/ null);
+      this.triggerPendingWritesCallbacks(batchId);
+
       this.sharedClientState.updateMutationState(batchId, 'acknowledged');
       await this.emitNewSnapsAndNotifyLocalStore(changes);
     } catch (error) {
@@ -613,16 +626,16 @@ export class SyncEngine implements RemoteSyncer {
   ): Promise<void> {
     this.assertSubscribed('rejectFailedWrite()');
 
-    // The local store may or may not be able to apply the write result and
-    // raise events immediately (depending on whether the watcher is caught up),
-    // so we raise user callbacks first so that they consistently happen before
-    // listen events.
-    this.processUserCallback(batchId, error);
-
-    this.triggerPendingWritesCallbacks(batchId);
-
     try {
       const changes = await this.localStore.rejectBatch(batchId);
+
+      // The local store may or may not be able to apply the write result and
+      // raise events immediately (depending on whether the watcher is caught up),
+      // so we raise user callbacks first so that they consistently happen before
+      // listen events.
+      this.processUserCallback(batchId, error);
+      this.triggerPendingWritesCallbacks(batchId);
+
       this.sharedClientState.updateMutationState(batchId, 'rejected', error);
       await this.emitNewSnapsAndNotifyLocalStore(changes);
     } catch (error) {
@@ -630,10 +643,6 @@ export class SyncEngine implements RemoteSyncer {
     }
   }
 
-  /**
-   * Registers a user callback that resolves when all pending mutations at the moment of calling
-   * are acknowledged .
-   */
   async registerPendingWritesCallback(callback: Deferred<void>): Promise<void> {
     if (!this.remoteStore.canUseNetwork()) {
       logDebug(
@@ -852,7 +861,7 @@ export class SyncEngine implements RemoteSyncer {
     return this.enqueuedLimboResolutions;
   }
 
-  protected async emitNewSnapsAndNotifyLocalStore(
+  async emitNewSnapsAndNotifyLocalStore(
     changes: MaybeDocumentMap,
     remoteEvent?: RemoteEvent
   ): Promise<void> {
@@ -916,7 +925,7 @@ export class SyncEngine implements RemoteSyncer {
     await this.localStore.notifyLocalViewChanges(docChangesInAllViews);
   }
 
-  protected assertSubscribed(fnName: string): void {
+  assertSubscribed(fnName: string): void {
     debugAssert(
       this.syncEngineListener !== null,
       'Trying to call ' + fnName + ' before calling subscribe().'
@@ -927,6 +936,8 @@ export class SyncEngine implements RemoteSyncer {
     const userChanged = !this.currentUser.isEqual(user);
 
     if (userChanged) {
+      logDebug(LOG_TAG, 'User change. New user:', user.toKey());
+
       const result = await this.localStore.handleUserChange(user);
       this.currentUser = user;
 
@@ -942,8 +953,6 @@ export class SyncEngine implements RemoteSyncer {
       );
       await this.emitNewSnapsAndNotifyLocalStore(result.affectedDocuments);
     }
-
-    await this.remoteStore.handleCredentialChange();
   }
 
   enableNetwork(): Promise<void> {
@@ -966,7 +975,10 @@ export class SyncEngine implements RemoteSyncer {
       }
       for (const query of queries) {
         const queryView = this.queryViewsByQuery.get(query);
-        debugAssert(!!queryView, `No query view found for ${query}`);
+        debugAssert(
+          !!queryView,
+          `No query view found for ${stringifyQuery(query)}`
+        );
         keySet = keySet.unionWith(queryView.view.syncedDocuments);
       }
       return keySet;
@@ -974,21 +986,55 @@ export class SyncEngine implements RemoteSyncer {
   }
 }
 
+export function newSyncEngine(
+  localStore: LocalStore,
+  remoteStore: RemoteStore,
+  datastore: Datastore,
+  // PORTING NOTE: Manages state synchronization in multi-tab environments.
+  sharedClientState: SharedClientState,
+  currentUser: User,
+  maxConcurrentLimboResolutions: number
+): SyncEngine {
+  return new SyncEngineImpl(
+    localStore,
+    remoteStore,
+    datastore,
+    sharedClientState,
+    currentUser,
+    maxConcurrentLimboResolutions
+  );
+}
+
 /**
- * An impplementation of SyncEngine that implement SharedClientStateSyncer for
+ * An extension of SyncEngine that also includes SharedClientStateSyncer for
  * Multi-Tab synchronization.
  */
 // PORTING NOTE: Web only
-export class MultiTabSyncEngine extends SyncEngine
-  implements SharedClientStateSyncer {
+export interface MultiTabSyncEngine
+  extends SharedClientStateSyncer,
+    SyncEngine {
+  applyPrimaryState(isPrimary: boolean): Promise<void>;
+}
+
+/**
+ * An implementation of `SyncEngineImpl` providing multi-tab synchronization on
+ * top of `SyncEngineImpl`.
+ *
+ * Note: some field defined in this class might have public access level, but
+ * the class is not exported so they are only accessible from this module.
+ * This is useful to implement optional features (like bundles) in free
+ * functions, such that they are tree-shakeable.
+ */
+class MultiTabSyncEngineImpl extends SyncEngineImpl {
   // The primary state is set to `true` or `false` immediately after Firestore
   // startup. In the interim, a client should only be considered primary if
   // `isPrimary` is true.
   private _isPrimaryClient: undefined | boolean = undefined;
 
   constructor(
-    protected localStore: MultiTabLocalStore,
+    public localStore: MultiTabLocalStore,
     remoteStore: RemoteStore,
+    datastore: Datastore,
     sharedClientState: SharedClientState,
     currentUser: User,
     maxConcurrentLimboResolutions: number
@@ -996,6 +1042,7 @@ export class MultiTabSyncEngine extends SyncEngine
     super(
       localStore,
       remoteStore,
+      datastore,
       sharedClientState,
       currentUser,
       maxConcurrentLimboResolutions
@@ -1180,21 +1227,20 @@ export class MultiTabSyncEngine extends SyncEngine
       const queries = this.queriesByTarget.get(targetId);
 
       if (queries && queries.length !== 0) {
-        // For queries that have a local View, we need to update their state
-        // in LocalStore (as the resume token and the snapshot version
+        // For queries that have a local View, we fetch their current state
+        // from LocalStore (as the resume token and the snapshot version
         // might have changed) and reconcile their views with the persisted
         // state (the list of syncedDocuments may have gotten out of sync).
-        await this.localStore.releaseTarget(
-          targetId,
-          /*keepPersistedTargetData=*/ true
-        );
         targetData = await this.localStore.allocateTarget(
           queries[0].toTarget()
         );
 
         for (const query of queries) {
           const queryView = this.queryViewsByQuery.get(query);
-          debugAssert(!!queryView, `No query view found for ${query}`);
+          debugAssert(
+            !!queryView,
+            `No query view found for ${stringifyQuery(query)}`
+          );
 
           const viewChange = await this.synchronizeViewAndComputeSnapshot(
             queryView
@@ -1206,7 +1252,7 @@ export class MultiTabSyncEngine extends SyncEngine
       } else {
         debugAssert(
           transitionToPrimary,
-          'A secondary tab should never have an active target without an active query.'
+          'A secondary tab should never have an active view without an active target.'
         );
         // For queries that never executed on this client, we need to
         // allocate the target in LocalStore and initialize a new View.
@@ -1340,5 +1386,94 @@ export class MultiTabSyncEngine extends SyncEngine
         })
         .catch(ignoreIfPrimaryLeaseLoss);
     }
+  }
+}
+
+export function newMultiTabSyncEngine(
+  localStore: MultiTabLocalStore,
+  remoteStore: RemoteStore,
+  datastore: Datastore,
+  sharedClientState: SharedClientState,
+  currentUser: User,
+  maxConcurrentLimboResolutions: number
+): MultiTabSyncEngine {
+  return new MultiTabSyncEngineImpl(
+    localStore,
+    remoteStore,
+    datastore,
+    sharedClientState,
+    currentUser,
+    maxConcurrentLimboResolutions
+  );
+}
+
+/**
+ * Loads a Firestore bundle into the SDK. The returned promise resolves when
+ * the bundle finished loading.
+ *
+ * @param bundleReader Bundle to load into the SDK.
+ * @param task LoadBundleTask used to update the loading progress to public API.
+ */
+export function loadBundle(
+  syncEngine: SyncEngine,
+  bundleReader: BundleReader,
+  task: LoadBundleTask
+): void {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  syncEngineImpl.assertSubscribed('loadBundle()');
+
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  loadBundleImpl(syncEngineImpl, bundleReader, task).then(() => {
+    if (!syncEngineImpl.isPrimaryClient) {
+      syncEngineImpl.sharedClientState.remoteDocumentsChanged();
+    }
+  });
+}
+
+async function loadBundleImpl(
+  syncEngine: SyncEngineImpl,
+  reader: BundleReader,
+  task: LoadBundleTask
+): Promise<void> {
+  try {
+    const metadata = await reader.getMetadata();
+    const skip = await hasNewerBundle(syncEngine.localStore, metadata);
+    if (skip) {
+      await reader.close();
+      task._completeWith(bundleSuccessProgress(metadata));
+      return;
+    }
+
+    task._updateProgress(bundleInitialProgress(metadata));
+
+    const loader = new BundleLoader(metadata, syncEngine.localStore);
+    let element = await reader.nextElement();
+    while (element) {
+      debugAssert(
+        !element.payload.metadata,
+        'Unexpected BundleMetadata element.'
+      );
+      const progress = await loader.addSizedElement(element);
+      if (progress) {
+        task._updateProgress(progress);
+      }
+
+      element = await reader.nextElement();
+    }
+
+    const result = await loader.complete();
+    // TODO(b/160876443): This currently raises snapshots with
+    // `fromCache=false` if users already listen to some queries and bundles
+    // has newer version.
+    await syncEngine.emitNewSnapsAndNotifyLocalStore(
+      result.changedDocs,
+      /* remoteEvent */ undefined
+    );
+
+    // Save metadata, so loading the same bundle will skip.
+    await saveBundle(syncEngine.localStore, metadata);
+    task._completeWith(result.progress);
+  } catch (e) {
+    task._failWith(e);
   }
 }

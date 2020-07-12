@@ -30,21 +30,14 @@ import {
 // underscore to discourage their use.
 
 /**
- * A FieldPath refers to a field in a document. The path may consist of a single
- * field name (referring to a top-level field in the document), or a list of
- * field names (referring to a nested field in the document).
+ * A field class base class that is shared by the lite, full and legacy SDK,
+ * which supports shared code that deals with FieldPaths.
  */
-export class FieldPath implements firestore.FieldPath {
+export abstract class BaseFieldPath {
   /** Internal representation of a Firestore field path. */
-  _internalPath: InternalFieldPath;
+  readonly _internalPath: InternalFieldPath;
 
-  /**
-   * Creates a FieldPath from the provided field names. If more than one field
-   * name is provided, the path will point to a nested field in a document.
-   *
-   * @param fieldNames A list of field names.
-   */
-  constructor(...fieldNames: string[]) {
+  constructor(fieldNames: string[]) {
     validateNamedArrayAtLeastNumberOfElements(
       'FieldPath',
       fieldNames,
@@ -65,19 +58,32 @@ export class FieldPath implements firestore.FieldPath {
 
     this._internalPath = new InternalFieldPath(fieldNames);
   }
+}
 
+/**
+ * A FieldPath refers to a field in a document. The path may consist of a single
+ * field name (referring to a top-level field in the document), or a list of
+ * field names (referring to a nested field in the document).
+ */
+export class FieldPath extends BaseFieldPath implements firestore.FieldPath {
   /**
-   * Internal Note: The backend doesn't technically support querying by
-   * document ID. Instead it queries by the entire document name (full path
-   * included), but in the cases we currently support documentId(), the net
-   * effect is the same.
+   * Creates a FieldPath from the provided field names. If more than one field
+   * name is provided, the path will point to a nested field in a document.
+   *
+   * @param fieldNames A list of field names.
    */
-  private static readonly _DOCUMENT_ID = new FieldPath(
-    InternalFieldPath.keyField().canonicalString()
-  );
+  constructor(...fieldNames: string[]) {
+    super(fieldNames);
+  }
 
   static documentId(): FieldPath {
-    return FieldPath._DOCUMENT_ID;
+    /**
+     * Internal Note: The backend doesn't technically support querying by
+     * document ID. Instead it queries by the entire document name (full path
+     * included), but in the cases we currently support documentId(), the net
+     * effect is the same.
+     */
+    return new FieldPath(InternalFieldPath.keyField().canonicalString());
   }
 
   isEqual(other: firestore.FieldPath): boolean {

@@ -46,9 +46,28 @@ const browserMap = {
  * Any special options per package.
  */
 const packageConfigs = {
-  messaging: {
+  '@firebase/messaging': {
     // Messaging currently only supports these browsers.
     browsers: ['Chrome_Windows', 'Firefox_Windows', 'Edge_Windows']
+  },
+  // Firestore unit tests have OOM problems compiling with Babel for IE.
+  // Firestore integration/firestore tests do run on all browsers.
+  '@firebase/firestore': {
+    browsers: [
+      'Chrome_Windows',
+      'Firefox_Windows',
+      'Edge_Windows',
+      'Safari_macOS'
+    ]
+  },
+  // Installations has IE errors related to `idb` library that need to be figured out.
+  '@firebase/installations': {
+    browsers: [
+      'Chrome_Windows',
+      'Firefox_Windows',
+      'Edge_Windows',
+      'Safari_macOS'
+    ]
   }
 };
 
@@ -76,12 +95,12 @@ function getSauceLabsBrowsers(packageName) {
  */
 function getPackageLabels() {
   const match = testConfigFile.match(
-    /([a-zA-Z]+)\/([a-zA-Z-]+)\/karma\.conf\.js/
+    /([a-zA-Z]+\/[a-zA-Z-]+)\/karma\.conf\.js/
   );
-  return {
-    type: match[1],
-    name: match[2]
-  };
+  const packagePath = match[1];
+  const root = path.resolve(__dirname, '..');
+  const pkg = require(path.join(root, packagePath, 'package.json'));
+  return pkg.name;
 }
 
 /**
@@ -98,11 +117,8 @@ function getTestFiles() {
 }
 
 function seleniumLauncher(browserName, platform, version) {
-  const { name, type } = getPackageLabels();
-  const testName =
-    type === 'integration'
-      ? `${type}-${name}-${browserName}`
-      : `${name}-${browserName}`;
+  const { name } = getPackageLabels();
+  const testName = `${name}-${browserName}`;
   return {
     base: 'SauceLabs',
     browserName: browserName,
@@ -137,13 +153,13 @@ function appiumLauncher(
   };
 }
 
-module.exports = function(config) {
+module.exports = function (config) {
   const { packageName, files: testFiles } = getTestFiles();
   const sauceLabsBrowsers = getSauceLabsBrowsers(packageName);
 
   const sauceLabsConfig = {
-    tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER + '-' + packageName,
-    build: process.env.TRAVIS_BUILD_NUMBER || argv['buildNumber'],
+    tunnelIdentifier: process.env.GITHUB_RUN_ID + '-' + packageName,
+    build: process.env.GITHUB_RUN_ID || argv['buildNumber'],
     username: process.env.SAUCE_USERNAME,
     accessKey: process.env.SAUCE_ACCESS_KEY,
     startConnect: true,
@@ -170,7 +186,8 @@ module.exports = function(config) {
       'packages/polyfill/index.ts': ['webpack', 'sourcemap'],
       '**/test/**/*.ts': ['webpack', 'sourcemap'],
       '**/*.test.ts': ['webpack', 'sourcemap'],
-      'packages/firestore/test/**/bootstrap.ts': ['webpack', 'babel'],
+      // Restore when ready to run Firestore unit tests in IE.
+      // 'packages/firestore/test/**/bootstrap.ts': ['webpack', 'babel'],
       'integration/**/namespace.*': ['webpack', 'babel', 'sourcemap']
     },
 
@@ -201,7 +218,7 @@ module.exports = function(config) {
       maxLogLines: 5,
       suppressErrorSummary: false,
       suppressFailed: false,
-      suppressPassed: false,
+      suppressPassed: true,
       suppressSkipped: true,
       showSpecTiming: true,
       failFast: false

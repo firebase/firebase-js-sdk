@@ -393,7 +393,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
   }
   interface WriteResponse {
     streamId?: string;
-    streamToken?: string;
+    streamToken?: string | Uint8Array;
     writeResults?: WriteResult[];
     commitTime?: Timestamp;
   }

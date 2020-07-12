@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -307,7 +307,7 @@ fireauth.args.func = function(opt_name, opt_optional) {
     name: opt_name || '',
     typeLabel: 'a function',
     optional: !!opt_optional,
-    validator: goog.isFunction
+    validator: x => typeof x === 'function'
   };
 };
 
@@ -564,7 +564,7 @@ fireauth.args.phoneInfoOptions = function(name, optional) {
 fireauth.args.validateMultiFactorSession_ = function(session, type) {
   return goog.isObject(session) && typeof session.type === 'string' &&
       session.type === type &&
-      goog.isFunction(session.getRawSession);
+      typeof session.getRawSession === 'function';
 };
 
 
@@ -613,7 +613,7 @@ fireauth.args.applicationVerifier = function(opt_optional) {
         function(applicationVerifier) {
           return !!(applicationVerifier &&
                     typeof applicationVerifier.type === 'string' &&
-                    goog.isFunction(applicationVerifier.verify));
+                    typeof applicationVerifier.verify === 'function');
         })
   });
 };

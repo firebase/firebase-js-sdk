@@ -18,10 +18,9 @@
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { debugAssert } from '../util/assert';
-import { AsyncQueue, TimerId } from '../util/async_queue';
+import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { getLogLevel, logDebug, LogLevel } from '../util/log';
 import { primitiveComparator } from '../util/misc';
-import { CancelablePromise } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from './local_store';
@@ -222,7 +221,7 @@ const REGULAR_GC_DELAY_MS = 5 * 60 * 1000;
  */
 export class LruScheduler implements GarbageCollectionScheduler {
   private hasRun: boolean = false;
-  private gcTask: CancelablePromise<void> | null;
+  private gcTask: DelayedOperation<void> | null;
 
   constructor(
     private readonly garbageCollector: LruGarbageCollector,

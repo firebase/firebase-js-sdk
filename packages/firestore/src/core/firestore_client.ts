@@ -15,20 +15,19 @@
  * limitations under the License.
  */
 
-import { LoadBundleTask } from '@firebase/firestore-types';
+import * as firestore from '@firebase/firestore-types';
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
-import { LocalStore } from '../local/local_store';
+import { getNamedQuery, LocalStore } from '../local/local_store';
 import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { Platform } from '../platform/platform';
 import { newDatastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { Deferred } from '../util/promise';
 import {
   EventManager,
@@ -36,7 +35,7 @@ import {
   Observer,
   QueryListener
 } from './event_manager';
-import { SyncEngine } from './sync_engine';
+import { SyncEngine, loadBundle } from './sync_engine';
 import { View } from './view';
 
 import { SharedClientState } from '../local/shared_client_state';
@@ -50,7 +49,12 @@ import {
   MemoryComponentProvider
 } from './component_provider';
 import { BundleReader } from '../util/bundle_reader';
-import { LoadBundleTaskImpl, NamedQuery } from './bundle';
+import { LoadBundleTask } from '../api/bundle';
+import { newConnection } from '../platform/connection';
+import { newSerializer } from '../platform/serializer';
+import { toByteStreamReader } from '../platform/byte_stream_reader';
+import { newTextEncoder } from '../platform/dom';
+import { NamedQuery } from './bundle';
 
 const LOG_TAG = 'FirestoreClient';
 const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -68,6 +72,7 @@ export type PersistenceSettings =
       readonly durable: true;
       readonly cacheSizeBytes: number;
       readonly synchronizeTabs: boolean;
+      readonly forceOwningTab: boolean;
     };
 
 /**
@@ -82,6 +87,7 @@ export class FirestoreClient {
   // initialization completes before any other work is queued, we're cheating
   // with the types rather than littering the code with '!' or unnecessary
   // undefined checks.
+  private databaseInfo!: DatabaseInfo;
   private eventMgr!: EventManager;
   private persistence!: Persistence;
   private localStore!: LocalStore;
@@ -95,8 +101,6 @@ export class FirestoreClient {
   private readonly clientId = AutoId.newId();
 
   constructor(
-    private platform: Platform,
-    private databaseInfo: DatabaseInfo,
     private credentials: CredentialsProvider,
     /**
      * Asynchronous queue responsible for all of our internal processing. When
@@ -137,6 +141,7 @@ export class FirestoreClient {
    * fallback succeeds we signal success to the async queue even though the
    * start() itself signals failure.
    *
+   * @param databaseInfo The connection information for the current instance.
    * @param componentProvider Provider that returns all core components.
    * @param persistenceSettings Settings object to configure offline
    *     persistence.
@@ -146,10 +151,14 @@ export class FirestoreClient {
    *     unconditionally resolved.
    */
   start(
+    databaseInfo: DatabaseInfo,
     componentProvider: ComponentProvider,
     persistenceSettings: PersistenceSettings
   ): Promise<void> {
     this.verifyNotTerminated();
+
+    this.databaseInfo = databaseInfo;
+
     // We defer our initialization until we get the current user from
     // setChangeListener(). We block the async queue until we got the initial
     // user and the initialization is completed. This will prevent any scheduled
@@ -181,9 +190,9 @@ export class FirestoreClient {
           persistenceResult
         ).then(initializationDone.resolve, initializationDone.reject);
       } else {
-        this.asyncQueue.enqueueRetryable(() => {
-          return this.handleCredentialChange(user);
-        });
+        this.asyncQueue.enqueueRetryable(() =>
+          this.remoteStore.handleCredentialChange(user)
+        );
       }
     });
 
@@ -237,16 +246,13 @@ export class FirestoreClient {
       // Datastore (without duplicating the initializing logic once per
       // provider).
 
-      const connection = await this.platform.loadConnection(this.databaseInfo);
-      const serializer = this.platform.newSerializer(
-        this.databaseInfo.databaseId
-      );
+      const connection = await newConnection(this.databaseInfo);
+      const serializer = newSerializer(this.databaseInfo.databaseId);
       const datastore = newDatastore(connection, this.credentials, serializer);
 
       await componentProvider.initialize({
         asyncQueue: this.asyncQueue,
         databaseInfo: this.databaseInfo,
-        platform: this.platform,
         datastore,
         clientId: this.clientId,
         initialUser: user,
@@ -339,13 +345,6 @@ export class FirestoreClient {
         'The client has already been terminated.'
       );
     }
-  }
-
-  private handleCredentialChange(user: User): Promise<void> {
-    this.asyncQueue.verifyOperationInProgress();
-
-    logDebug(LOG_TAG, 'Credential Changed. Current user: ' + user.uid);
-    return this.syncEngine.handleCredentialChange(user);
   }
 
   /** Disables the network connection. Pending operations will not complete. */
@@ -528,20 +527,23 @@ export class FirestoreClient {
   }
 
   loadBundle(
-    data: ReadableStream<ArrayBuffer> | ArrayBuffer | string
-  ): LoadBundleTask {
+    data: ReadableStream<Uint8Array> | ArrayBuffer | string
+  ): firestore.LoadBundleTask {
     this.verifyNotTerminated();
 
-    let content: ReadableStream<ArrayBuffer> | ArrayBuffer;
+    let content: ReadableStream<Uint8Array> | ArrayBuffer;
     if (typeof data === 'string') {
-      content = new TextEncoder().encode(data);
+      content = newTextEncoder().encode(data);
     } else {
       content = data;
     }
-    const reader = new BundleReader(content);
-    const task = new LoadBundleTaskImpl();
-    this.asyncQueue.enqueueAndForget(() => {
-      return this.syncEngine.loadBundle(reader, task);
+    const reader = new BundleReader(toByteStreamReader(content));
+    const task = new LoadBundleTask();
+    this.asyncQueue.enqueueAndForget(async () => {
+      loadBundle(this.syncEngine, reader, task);
+      return task.catch(e => {
+        logWarn(LOG_TAG, `Loading bundle failed with ${e}`);
+      });
     });
 
     return task;
@@ -549,6 +551,6 @@ export class FirestoreClient {
 
   getNamedQuery(queryName: string): Promise<NamedQuery | undefined> {
     this.verifyNotTerminated();
-    return this.localStore.getNamedQuery(queryName);
+    return getNamedQuery(this.localStore, queryName);
   }
 }

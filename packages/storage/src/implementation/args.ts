@@ -69,7 +69,7 @@ export class ArgSpec {
 
   constructor(validator: (p1: unknown) => void, optional?: boolean) {
     const self = this;
-    this.validator = function(p: unknown) {
+    this.validator = function (p: unknown) {
       if (self.optional && !type.isJustDef(p)) {
         return;
       }
@@ -83,7 +83,7 @@ export function and_(
   v1: (p1: unknown) => void,
   v2: (p1: unknown) => void
 ): (p1: unknown) => void {
-  return function(p) {
+  return function (p) {
     v1(p);
     v2(p);
   };

@@ -30,27 +30,27 @@ export class SnapshotVersion {
     return new SnapshotVersion(new Timestamp(0, 0));
   }
 
-  private constructor(private timestamp: Timestamp) {}
+  private constructor(private _timestamp: Timestamp) {}
 
   compareTo(other: SnapshotVersion): number {
-    return this.timestamp._compareTo(other.timestamp);
+    return this._timestamp._compareTo(other._timestamp);
   }
 
   isEqual(other: SnapshotVersion): boolean {
-    return this.timestamp.isEqual(other.timestamp);
+    return this._timestamp.isEqual(other._timestamp);
   }
 
   /** Returns a number representation of the version for use in spec tests. */
   toMicroseconds(): number {
     // Convert to microseconds.
-    return this.timestamp.seconds * 1e6 + this.timestamp.nanoseconds / 1000;
+    return this._timestamp.seconds * 1e6 + this._timestamp.nanoseconds / 1000;
   }
 
   toString(): string {
-    return 'SnapshotVersion(' + this.timestamp.toString() + ')';
+    return 'SnapshotVersion(' + this._timestamp.toString() + ')';
   }
 
   toTimestamp(): Timestamp {
-    return this.timestamp;
+    return this._timestamp;
   }
 }

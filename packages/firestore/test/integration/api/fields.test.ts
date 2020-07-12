@@ -19,13 +19,13 @@ import { expect } from 'chai';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
-  DEFAULT_SETTINGS,
   toDataArray,
   withTestCollection,
   withTestCollectionSettings,
   withTestDoc,
   withTestDocAndSettings
 } from '../util/helpers';
+import { DEFAULT_SETTINGS } from '../util/settings';
 
 const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;

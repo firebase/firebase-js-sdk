@@ -24,7 +24,11 @@ import { expect } from 'chai';
 import { Blob } from '../../src/api/blob';
 import { fromDotSeparatedString } from '../../src/api/field_path';
 import { UserDataWriter } from '../../src/api/user_data_writer';
-import { UserDataReader } from '../../src/api/user_data_reader';
+import {
+  parseQueryValue,
+  parseUpdateData,
+  UserDataReader
+} from '../../src/api/user_data_reader';
 import { DatabaseId } from '../../src/core/database_info';
 import {
   Bound,
@@ -84,12 +88,17 @@ import { primitiveComparator } from '../../src/util/misc';
 import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
-import { query } from './api_helpers';
+import { FIRESTORE, query } from './api_helpers';
 import { ByteString } from '../../src/util/byte_string';
-import { PlatformSupport } from '../../src/platform/platform';
-import { JsonProtoSerializer } from '../../src/remote/serializer';
+import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
+import {
+  JsonProtoSerializer,
+  toDocument,
+  toName,
+  toVersion
+} from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
-import { DocumentReference, Firestore } from '../../src/api/database';
+import { DocumentReference } from '../../src/api/database';
 import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
 import { JSON_SERIALIZER } from '../unit/local/persistence_test_helpers';
@@ -98,17 +107,15 @@ import { BundleMetadata } from '../../src/protos/firestore_bundle_proto';
 
 /* eslint-disable no-restricted-globals */
 
-// A Firestore that can be used in DocumentReferences and UserDataWriter.
-const fakeFirestore: Firestore = {
-  ensureClientConfigured: () => {},
-  _databaseId: new DatabaseId('test-project')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as any;
-
 export type TestSnapshotVersion = number;
 
 export function testUserDataWriter(): UserDataWriter {
-  return new UserDataWriter(fakeFirestore, /* timestampsInSnapshots= */ false);
+  return new UserDataWriter(
+    new DatabaseId('test-project'),
+    /* timestampsInSnapshots= */ false,
+    'none',
+    key => new DocumentReference(key, FIRESTORE, /* converter= */ null)
+  );
 }
 
 export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
@@ -117,7 +124,7 @@ export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
     databaseId,
     /* ignoreUndefinedProperties= */ false,
     useProto3Json !== undefined
-      ? new JsonProtoSerializer(databaseId, { useProto3Json })
+      ? new JsonProtoSerializer(databaseId, useProto3Json)
       : undefined
   );
 }
@@ -131,7 +138,8 @@ export function version(v: TestSnapshotVersion): SnapshotVersion {
 export function ref(key: string, offset?: number): DocumentReference {
   return new DocumentReference(
     new DocumentKey(path(key, offset)),
-    fakeFirestore
+    FIRESTORE,
+    /* converter= */ null
   );
 }
 
@@ -167,7 +175,7 @@ export function wrap(value: unknown): api.Value {
   // HACK: We use parseQueryValue() since it accepts scalars as well as
   // arrays / objects, and our tests currently use wrap() pretty generically so
   // we don't know the intent.
-  return testUserDataReader().parseQueryValue('wrap', value);
+  return parseQueryValue(testUserDataReader(), 'wrap', value);
 }
 
 export function wrapObject(obj: JsonObject<unknown>): ObjectValue {
@@ -212,13 +220,7 @@ export function blob(...bytes: number[]): Blob {
 export function filter(path: string, op: string, value: unknown): FieldFilter {
   const dataValue = wrap(value);
   const operator = op as Operator;
-  const filter = FieldFilter.create(field(path), operator, dataValue);
-
-  if (filter instanceof FieldFilter) {
-    return filter;
-  } else {
-    return fail('Unrecognized filter: ' + JSON.stringify(filter));
-  }
+  return FieldFilter.create(field(path), operator, dataValue);
 }
 
 export function setMutation(
@@ -239,12 +241,18 @@ export function patchMutation(
   // Replace '<DELETE>' from JSON with FieldValue
   forEach(json, (k, v) => {
     if (v === '<DELETE>') {
-      json[k] = new DeleteFieldValueImpl();
+      json[k] = new DeleteFieldValueImpl('FieldValue.delete');
     }
   });
-  const parsed = testUserDataReader().parseUpdateData('patchMutation', json);
+  const patchKey = key(keyStr);
+  const parsed = parseUpdateData(
+    testUserDataReader(),
+    'patchMutation',
+    patchKey,
+    json
+  );
   return new PatchMutation(
-    key(keyStr),
+    patchKey,
     parsed.data,
     parsed.fieldMask,
     precondition
@@ -265,11 +273,14 @@ export function transformMutation(
   keyStr: string,
   data: Dict<unknown>
 ): TransformMutation {
-  const result = testUserDataReader().parseUpdateData(
+  const transformKey = key(keyStr);
+  const result = parseUpdateData(
+    testUserDataReader(),
     'transformMutation()',
+    transformKey,
     data
   );
-  return new TransformMutation(key(keyStr), result.fieldTransforms);
+  return new TransformMutation(transformKey, result.fieldTransforms);
 }
 
 export function mutationResult(
@@ -411,28 +422,17 @@ export class TestBundledDocuments {
 export function bundledDocuments(
   documents: MaybeDocument[]
 ): TestBundledDocuments {
-  const result: BundledDocuments = [];
-  for (const d of documents) {
-    if (d instanceof NoDocument) {
-      result.push([
-        {
-          name: JSON_SERIALIZER.toName(d.key),
-          readTime: JSON_SERIALIZER.toVersion(d.version),
-          exists: false
-        },
-        undefined
-      ]);
-    } else if (d instanceof Document) {
-      result.push([
-        {
-          name: JSON_SERIALIZER.toName(d.key),
-          readTime: JSON_SERIALIZER.toVersion(d.version),
-          exists: true
-        },
-        JSON_SERIALIZER.toDocument(d)
-      ]);
-    }
-  }
+  const result = documents.map(d => {
+    return {
+      metadata: {
+        name: toName(JSON_SERIALIZER, d.key),
+        readTime: toVersion(JSON_SERIALIZER, d.version),
+        exists: d instanceof Document
+      },
+      document:
+        d instanceof Document ? toDocument(JSON_SERIALIZER, d) : undefined
+    };
+  });
 
   return new TestBundledDocuments(result);
 }
@@ -554,7 +554,7 @@ export function localViewChanges(
  * Returns a ByteString representation for the platform from the given string.
  */
 export function byteStringFromString(value: string): ByteString {
-  const base64 = PlatformSupport.getPlatform().btoa(value);
+  const base64 = encodeBase64(value);
   return ByteString.fromBase64String(base64);
 }
 
@@ -570,7 +570,7 @@ export function stringFromBase64String(value?: string | Uint8Array): string {
     value === undefined || typeof value === 'string',
     'Can only decode base64 encoded strings'
   );
-  return PlatformSupport.getPlatform().atob(value ?? '');
+  return decodeBase64(value ?? '');
 }
 
 /** Creates a resume token to match the given snapshot version. */
@@ -831,7 +831,8 @@ export function expectSetToEqual<T>(set: SortedSet<T>, arr: T[]): void {
  */
 export function expectEqualitySets<T>(
   elems: T[][],
-  equalityFn: (v1: T, v2: T) => boolean
+  equalityFn: (v1: T, v2: T) => boolean,
+  stringifyFn?: (v: T) => string
 ): void {
   for (let i = 0; i < elems.length; i++) {
     const currentElems = elems[i];
@@ -845,9 +846,9 @@ export function expectEqualitySets<T>(
           expect(equalityFn(elem, otherElem)).to.equal(
             expectedComparison,
             'Expected (' +
-              elem +
+              (stringifyFn ? stringifyFn(elem) : elem) +
               ').isEqual(' +
-              otherElem +
+              (stringifyFn ? stringifyFn(otherElem) : otherElem) +
               ').to.equal(' +
               expectedComparison +
               ')'

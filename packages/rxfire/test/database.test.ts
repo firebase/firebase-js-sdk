@@ -36,10 +36,7 @@ import { auditTrail } from '../database/list/audit-trail';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../config/project.json');
 
-const rando = (): string =>
-  Math.random()
-    .toString(36)
-    .substring(5);
+const rando = (): string => Math.random().toString(36).substring(5);
 
 const batch = (
   items: Array<{ name: string; key: string }>

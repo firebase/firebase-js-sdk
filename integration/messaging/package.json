@@ -4,18 +4,16 @@
   "version": "0.2.1",
   "scripts": {
     "pretest:manual": "node ./download-browsers.js",
-    "test": "echo 'Tests disabled due to flakiness'",
+    "test": "mocha --exit",
     "test:manual": "mocha --exit"
   },
-  "dependencies": {
-    "firebase": "7.14.4"
-  },
   "devDependencies": {
+    "firebase": "7.16.0",
     "chai": "4.2.0",
-    "chromedriver": "80.0.2",
+    "chromedriver": "83.0.1",
     "express": "4.17.1",
     "geckodriver": "1.19.1",
-    "mocha": "7.1.2",
+    "mocha": "7.2.0",
     "node-fetch": "2.6.0",
     "selenium-assistant": "6.1.0"
   }

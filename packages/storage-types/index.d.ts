@@ -91,7 +91,7 @@ export interface UploadTask {
   on(
     event: TaskEvent,
     nextOrObserver?:
-      | Observer<UploadTaskSnapshot>
+      | Partial<Observer<UploadTaskSnapshot>>
       | null
       | ((a: UploadTaskSnapshot) => any),
     error?: ((a: Error) => any) | null,

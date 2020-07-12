@@ -66,7 +66,7 @@ function decodeQuery(queryString: string): { [key: string]: string } {
  * @param {!string} dataURL
  * @return {{repoInfo: !RepoInfo, path: !Path}}
  */
-export const parseRepoInfo = function(
+export const parseRepoInfo = function (
   dataURL: string
 ): { repoInfo: RepoInfo; path: Path } {
   const parsedUrl = parseDatabaseURL(dataURL),
@@ -114,7 +114,7 @@ export const parseRepoInfo = function(
  * @param {!string} dataURL
  * @return {{host: string, port: number, domain: string, subdomain: string, secure: boolean, scheme: string, pathString: string, namespace: string}}
  */
-export const parseDatabaseURL = function(
+export const parseDatabaseURL = function (
   dataURL: string
 ): {
   host: string;
