@@ -43,15 +43,15 @@ const WAIT_TIME_BEFORE_RETRIEVING_BACKGROUND_MESSAGES_MILLISECONDS = 60000;
 
 const wait = ms => new Promise(res => setTimeout(res, ms));
 
-describe('Starting Integration Test > Sending and Receiving ', function() {
+describe('Starting Integration Test > Sending and Receiving ', function () {
   this.retries(3);
   let globalWebDriver;
 
-  before(async function() {
+  before(async function () {
     await testServer.start();
   });
 
-  after(async function() {
+  after(async function () {
     await testServer.stop();
   });
 
@@ -61,14 +61,14 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
       return;
     }
 
-    describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${TEST_DOMAIN}`, function() {
-      before(async function() {
+    describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${TEST_DOMAIN}`, function () {
+      before(async function () {
         globalWebDriver = createPermittedWebDriver(
           /* browser= */ assistantBrowser.getId()
         );
       });
 
-      it('Background app can receive a {} empty message from sw', async function() {
+      it('Background app can receive a {} empty message from sw', async function () {
         this.timeout(TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
 
         // Clearing the cache and db data by killing the previously instantiated driver. Note that ideally this call is placed inside the after/before hooks. However, Mocha forbids operations longer than 2s in hooks. Hence, this clearing call needs to be inside the test unit.
@@ -97,7 +97,7 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
       });
 
-      it('Background app can receive a {"data"} message frow sw', async function() {
+      it('Background app can receive a {"data"} message frow sw', async function () {
         this.timeout(TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
 
         await seleniumAssistant.killWebDriver(globalWebDriver);
@@ -126,7 +126,7 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
       });
 
-      it('Foreground app can receive a {} empty message in onMessage', async function() {
+      it('Foreground app can receive a {} empty message in onMessage', async function () {
         this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
 
         await seleniumAssistant.killWebDriver(globalWebDriver);
@@ -153,7 +153,7 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
       });
 
-      it('Foreground app can receive a {"notification"} message in onMessage', async function() {
+      it('Foreground app can receive a {"notification"} message in onMessage', async function () {
         this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
 
         await seleniumAssistant.killWebDriver(globalWebDriver);
@@ -180,7 +180,7 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
       });
 
-      it('Foreground app can receive a {"data"} message in onMessage', async function() {
+      it('Foreground app can receive a {"data"} message in onMessage', async function () {
         this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
 
         await seleniumAssistant.killWebDriver(globalWebDriver);
@@ -207,7 +207,7 @@ describe('Starting Integration Test > Sending and Receiving ', function() {
         );
       });
 
-      it('Foreground app can receive a {"notification", "data"} message in onMessage', async function() {
+      it('Foreground app can receive a {"notification", "data"} message in onMessage', async function () {
         this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
 
         await seleniumAssistant.killWebDriver(globalWebDriver);

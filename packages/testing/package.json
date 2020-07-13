@@ -25,10 +25,10 @@
     "request": "2.88.2"
   },
   "devDependencies": {
-    "@types/request": "2.48.4",
-    "firebase-tools": "^8.4.3",
-    "rollup": "2.7.6",
-    "rollup-plugin-typescript2": "0.27.0"
+    "@types/request": "2.48.5",
+    "firebase-tools": "8.5.0",
+    "rollup": "2.21.0",
+    "rollup-plugin-typescript2": "0.27.1"
   },
   "repository": {
     "directory": "packages/testing",

@@ -153,7 +153,7 @@ function appiumLauncher(
   };
 }
 
-module.exports = function(config) {
+module.exports = function (config) {
   const { packageName, files: testFiles } = getTestFiles();
   const sauceLabsBrowsers = getSauceLabsBrowsers(packageName);
 

@@ -36,7 +36,7 @@ interface DecodedToken {
  * - May return with invalid / incomplete claims if there's no native base64 decoding support.
  * - Doesn't check if the token is actually valid.
  */
-export const decode = function(token: string): DecodedToken {
+export const decode = function (token: string): DecodedToken {
   let header = {},
     claims: Claims = {},
     data = {},
@@ -74,7 +74,7 @@ interface DecodedToken {
  * - May return a false negative if there's no native base64 decoding support.
  * - Doesn't check if the token is actually valid.
  */
-export const isValidTimestamp = function(token: string): boolean {
+export const isValidTimestamp = function (token: string): boolean {
   const claims: Claims = decode(token).claims;
   const now: number = Math.floor(new Date().getTime() / 1000);
   let validSince: number = 0,
@@ -111,7 +111,7 @@ export const isValidTimestamp = function(token: string): boolean {
  * - May return null if there's no native base64 decoding support.
  * - Doesn't check if the token is actually valid.
  */
-export const issuedAtTime = function(token: string): number | null {
+export const issuedAtTime = function (token: string): number | null {
   const claims: Claims = decode(token).claims;
   if (typeof claims === 'object' && claims.hasOwnProperty('iat')) {
     return claims['iat'] as number;
@@ -126,7 +126,7 @@ export const issuedAtTime = function(token: string): number | null {
  * - May return a false negative if there's no native base64 decoding support.
  * - Doesn't check if the token is actually valid.
  */
-export const isValidFormat = function(token: string): boolean {
+export const isValidFormat = function (token: string): boolean {
   const decoded = decode(token),
     claims = decoded.claims;
 
@@ -140,7 +140,7 @@ export const isValidFormat = function(token: string): boolean {
  * - May return a false negative if there's no native base64 decoding support.
  * - Doesn't check if the token is actually valid.
  */
-export const isAdmin = function(token: string): boolean {
+export const isAdmin = function (token: string): boolean {
   const claims: Claims = decode(token).claims;
   return typeof claims === 'object' && claims['admin'] === true;
 };

@@ -302,11 +302,7 @@ export function multipartUpload(
   function genBoundary(): string {
     let str = '';
     for (let i = 0; i < 2; i++) {
-      str =
-        str +
-        Math.random()
-          .toString()
-          .slice(2);
+      str = str + Math.random().toString().slice(2);
     }
     return str;
   }

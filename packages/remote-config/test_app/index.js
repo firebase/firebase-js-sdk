@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ const SUCCESS_MESSAGE = 'Done <span class="done-checkmark"> &#10004;</span>';
 let remoteConfig;
 const outputBox = document.getElementById('output-box');
 
-window.onload = function() {
+window.onload = function () {
   document.querySelector(
     '#firebase-config'
   ).placeholder = FB_CONFIG_PLACEHOLDER;

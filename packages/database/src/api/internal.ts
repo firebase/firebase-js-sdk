@@ -27,21 +27,21 @@ import { Reference } from './Reference';
  * @const
  */
 
-export const forceLongPolling = function() {
+export const forceLongPolling = function () {
   WebSocketConnection.forceDisallow();
   BrowserPollConnection.forceAllow();
 };
 
-export const forceWebSockets = function() {
+export const forceWebSockets = function () {
   BrowserPollConnection.forceDisallow();
 };
 
 /* Used by App Manager */
-export const isWebSocketsAvailable = function(): boolean {
+export const isWebSocketsAvailable = function (): boolean {
   return WebSocketConnection['isAvailable']();
 };
 
-export const setSecurityDebugCallback = function(
+export const setSecurityDebugCallback = function (
   ref: Reference,
   callback: (a: object) => void
 ) {
@@ -49,19 +49,19 @@ export const setSecurityDebugCallback = function(
   (ref.repo.persistentConnection_ as any).securityDebugCallback_ = callback;
 };
 
-export const stats = function(ref: Reference, showDelta?: boolean) {
+export const stats = function (ref: Reference, showDelta?: boolean) {
   ref.repo.stats(showDelta);
 };
 
-export const statsIncrementCounter = function(ref: Reference, metric: string) {
+export const statsIncrementCounter = function (ref: Reference, metric: string) {
   ref.repo.statsIncrementCounter(metric);
 };
 
-export const dataUpdateCount = function(ref: Reference): number {
+export const dataUpdateCount = function (ref: Reference): number {
   return ref.repo.dataUpdateCount;
 };
 
-export const interceptServerData = function(
+export const interceptServerData = function (
   ref: Reference,
   callback: ((a: string, b: unknown) => void) | null
 ) {

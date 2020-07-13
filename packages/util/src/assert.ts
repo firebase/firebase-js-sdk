@@ -20,7 +20,7 @@ import { CONSTANTS } from './constants';
 /**
  * Throws an error if the provided assertion is falsy
  */
-export const assert = function(assertion: unknown, message: string): void {
+export const assert = function (assertion: unknown, message: string): void {
   if (!assertion) {
     throw assertionError(message);
   }
@@ -29,7 +29,7 @@ export const assert = function(assertion: unknown, message: string): void {
 /**
  * Returns an Error object suitable for throwing.
  */
-export const assertionError = function(message: string): Error {
+export const assertionError = function (message: string): Error {
   return new Error(
     'Firebase Database (' +
       CONSTANTS.SDK_VERSION +
