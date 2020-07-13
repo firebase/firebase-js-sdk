@@ -32,8 +32,7 @@ import {
   insertScriptTag,
   getOrCreateDataLayer,
   wrapOrCreateGtag,
-  findGtagScriptOnPage,
-  validateInitializationEnvironment
+  findGtagScriptOnPage
 } from './helpers';
 import { ANALYTICS_ID_FIELD } from './constants';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
@@ -42,7 +41,7 @@ import { FirebaseInstallations } from '@firebase/installations-types';
 import {
   isIndexedDBAvailable,
   validateIndexedDBOpenable,
-  isCookieEnabled
+  areCookiesEnabled
 } from '@firebase/util';
 
 /**
@@ -123,15 +122,19 @@ export function factory(
   app: FirebaseApp,
   installations: FirebaseInstallations
 ): FirebaseAnalytics {
-  // Async but non-blocking.
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  if (!isCookieEnabled()) {
+  if (!areCookiesEnabled()) {
     throw ERROR_FACTORY.create(AnalyticsError.COOKIES_NOT_ENABLED);
   }
   if (!isIndexedDBAvailable()) {
     throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
   }
-  validateIndexedDBOpenable().catch;
+  // Async but non-blocking.
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  validateIndexedDBOpenable().catch(error => {
+    throw ERROR_FACTORY.create(AnalyticsError.INVALID_INDEXED_DB_CONTEXT, {
+      errorInfo: error
+    });
+  });
 
   const analyticsId = app.options[ANALYTICS_ID_FIELD];
   if (!analyticsId) {

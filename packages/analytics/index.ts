@@ -35,7 +35,7 @@ import { ERROR_FACTORY, AnalyticsError } from './src/errors';
 import {
   isIndexedDBAvailable,
   validateIndexedDBOpenable,
-  isCookieEnabled
+  areCookiesEnabled
 } from '@firebase/util';
 import { name, version } from './package.json';
 
@@ -117,7 +117,7 @@ declare module '@firebase/app-types' {
  * 3. check if the current browser context is valid for using IndexedDB.
  */
 async function isSupported(): Promise<boolean> {
-  if (!isCookieEnabled()) {
+  if (!areCookiesEnabled()) {
     return false;
   }
   if (!isIndexedDBAvailable()) {
