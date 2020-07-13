@@ -26,7 +26,7 @@ import { User } from '../../model/user';
 import { RECAPTCHA_VERIFIER_TYPE } from '../../platform_browser/recaptcha/recaptcha_verifier';
 import { PhoneAuthCredential } from '../credentials/phone';
 import { AuthErrorCode } from '../errors';
-import { _assertLinkedStatus } from '../user/link_unlink';
+import { _assertLinkedStatus, _link } from '../user/link_unlink';
 import { assert } from '../util/assert';
 import {
   linkWithCredential,
@@ -171,4 +171,11 @@ export async function _verifyPhoneNumber(
   } finally {
     verifier._reset();
   }
+}
+
+export async function updatePhoneNumber(
+  user: externs.User,
+  credential: externs.PhoneAuthCredential
+): Promise<void> {
+  await _link(user as User, credential as PhoneAuthCredential);
 }
