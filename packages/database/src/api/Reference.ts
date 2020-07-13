@@ -213,9 +213,11 @@ export class Reference extends Query {
     validateCallback('Reference.setWithPriority', 3, onComplete, true);
 
     if (this.getKey() === '.length' || this.getKey() === '.keys') {
-      throw 'Reference.setWithPriority failed: ' +
+      throw (
+        'Reference.setWithPriority failed: ' +
         this.getKey() +
-        ' is a read-only object.';
+        ' is a read-only object.'
+      );
     }
 
     const deferred = new Deferred();
@@ -260,9 +262,11 @@ export class Reference extends Query {
     validateBoolean('Reference.transaction', 3, applyLocally, true);
 
     if (this.getKey() === '.length' || this.getKey() === '.keys') {
-      throw 'Reference.transaction failed: ' +
+      throw (
+        'Reference.transaction failed: ' +
         this.getKey() +
-        ' is a read-only object.';
+        ' is a read-only object.'
+      );
     }
 
     if (applyLocally === undefined) {
@@ -274,7 +278,7 @@ export class Reference extends Query {
       deferred.promise.catch(() => {});
     }
 
-    const promiseComplete = function(
+    const promiseComplete = function (
       error: Error,
       committed: boolean,
       snapshot: DataSnapshot

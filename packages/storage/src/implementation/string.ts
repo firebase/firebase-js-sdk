@@ -35,7 +35,8 @@ export function formatValidator(stringFormat: unknown): void {
     case StringFormat.DATA_URL:
       return;
     default:
-      throw 'Expected one of the event types: [' +
+      throw (
+        'Expected one of the event types: [' +
         StringFormat.RAW +
         ', ' +
         StringFormat.BASE64 +
@@ -43,7 +44,8 @@ export function formatValidator(stringFormat: unknown): void {
         StringFormat.BASE64URL +
         ', ' +
         StringFormat.DATA_URL +
-        '].';
+        '].'
+      );
   }
 }
 

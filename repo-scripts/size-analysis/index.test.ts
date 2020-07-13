@@ -37,7 +37,7 @@ import { resolve } from 'path';
 describe('extractDeclarations', () => {
   let testModuleDtsFile: string;
   let extractedDeclarations: MemberList;
-  before(function() {
+  before(function () {
     this.timeout(300000);
     testModuleDtsFile = retrieveTestModuleDtsFile();
     extractedDeclarations = extractDeclarations(testModuleDtsFile);

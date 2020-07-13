@@ -88,7 +88,6 @@ export async function extractDependenciesAndSize(
   const beforeContent = `export { ${exportName} } from '${path.resolve(
     jsBundle
   )}';`;
-  console.log(beforeContent);
   fs.writeFileSync(input, beforeContent);
 
   // Run Rollup on the JavaScript above to produce a tree-shaken build
@@ -106,13 +105,10 @@ export async function extractDependenciesAndSize(
     input
   });
   await minimizedBundle.write({ file: minimizedBundleOutput, format: 'es' });
-  const tmpp = fs.readFileSync(minimizedBundleOutput, 'utf-8');
-  fs.writeFileSync(`dependencies/${exportName}`, tmpp);
   const dependencies: MemberList = extractDeclarations(
     minimizedBundleOutput,
     map
   );
-  console.log(dependencies);
   const externals: object = extractExternalDependencies(minimizedBundleOutput);
   dependencies.externals.push(externals);
 
@@ -168,10 +164,11 @@ export async function extractDependenciesAndSize(
  * ClassDeclaration: export class aClass {};
  * EnumDeclaration: export enum aEnum {};
  * VariableDeclaration: export let aVariable: string;
- * VariableStatement: export const aVarStatement: string = "string";
+ * VariableStatement: export const aVarStatement: string = "string"; export const { a, b } = { a: 'a', b: 'b' };
  * ExportDeclaration:
- *      named exports: export {foo, bar} from '...'; export {foo as foo1, bar} from '...';
+ *      named exports: export {foo, bar} from '...'; export {foo as foo1, bar} from '...'; export {LogLevel};
  *      export everything: export * from '...';
+ *
  *
  *
  *
@@ -197,6 +194,10 @@ export function extractDeclarations(
     enums: [],
     externals: []
   };
+  // define a map here which is used to handle export statements like "export {LogLevel}".
+  // As there is no from clause in such export statements, we retrieve symbol location by parsing the corresponding import
+  // statements. We store the symbol and its defined location as key value pairs in the map.
+  const symbolLocation: Map<string, string> = new Map();
 
   ts.forEachChild(sourceFile, node => {
     if (ts.isFunctionDeclaration(node)) {
@@ -225,52 +226,117 @@ export function extractDeclarations(
           });
         }
       });
+    } else if (ts.isImportDeclaration(node) && node.importClause) {
+      const symbol = checker.getSymbolAtLocation(node.moduleSpecifier);
+      if (symbol && symbol.valueDeclaration) {
+        const importFilePath = symbol.valueDeclaration.getSourceFile().fileName;
+        // import { a, b } from '@firebase/dummy-exp'
+        if (
+          node.importClause.namedBindings &&
+          ts.isNamedImports(node.importClause.namedBindings)
+        ) {
+          node.importClause.namedBindings.elements.forEach(each => {
+            const symbolName: string = each.name.getText(sourceFile);
+            symbolLocation.set(symbolName, importFilePath);
+          });
+          // import * as fs from 'fs'
+        } else if (
+          node.importClause.namedBindings &&
+          ts.isNamespaceImport(node.importClause.namedBindings)
+        ) {
+          const symbolName: string = node.importClause.namedBindings.name.getText(
+            sourceFile
+          );
+          symbolLocation.set(symbolName, importFilePath);
+          // import a from '@firebase/dummy-exp'
+        } else if (
+          node.importClause.name &&
+          ts.isIdentifier(node.importClause.name)
+        ) {
+          const symbolName: string = node.importClause.name.getText(sourceFile);
+          symbolLocation.set(symbolName, importFilePath);
+        }
+      }
     }
     // re-exports handler: handles cases like :
+    // export {LogLevel};
     // export * from '..';
     // export {foo, bar} from '..';
     // export {foo as foo1, bar} from '...';
     else if (ts.isExportDeclaration(node)) {
-      if (node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
-        const symbol = checker.getSymbolAtLocation(node.moduleSpecifier);
-        const reExportFullPath = symbol.valueDeclaration.getSourceFile()
-          .fileName;
+      if (node.moduleSpecifier) {
+        if (ts.isStringLiteral(node.moduleSpecifier)) {
+          const symbol = checker.getSymbolAtLocation(node.moduleSpecifier);
+          if (symbol && symbol.valueDeclaration) {
+            const reExportFullPath = symbol.valueDeclaration.getSourceFile()
+              .fileName;
+            // first step: always retrieve all exported symbols from the source location of the re-export.
+            const reExportsMember = extractDeclarations(reExportFullPath);
 
-        // first step: always retrieve all exported symbols from the source location of the re-export.
-        const reExportsMember = extractDeclarations(reExportFullPath);
-
-        // named exports: eg: export {foo, bar} from '...'; and export {foo as foo1, bar} from '...';
+            // named exports: eg: export {foo, bar} from '...'; and export {foo as foo1, bar} from '...';
+            if (node.exportClause && ts.isNamedExports(node.exportClause)) {
+              const actualExports: string[] = [];
+              node.exportClause.elements.forEach(exportSpecifier => {
+                const reExportedSymbol: string = extractOriginalSymbolName(
+                  exportSpecifier
+                );
+                // eg: export {foo as foo1 } from '...';
+                // if export is renamed, replace with new name
+                // reExportedSymbol: stores the original symbol name
+                // exportSpecifier.name: stores the renamed symbol name
+                if (isExportRenamed(exportSpecifier)) {
+                  actualExports.push(
+                    exportSpecifier.name.escapedText.toString()
+                  );
+                  // reExportsMember stores all re-exported symbols in its orignal name. However, these re-exported symbols
+                  // could be renamed by the re-export. We want to show the renamed name of the symbols in the final analysis report.
+                  // Therefore, replaceAll simply replaces the original name of the symbol with the new name defined in re-export.
+                  replaceAll(
+                    reExportsMember,
+                    reExportedSymbol,
+                    exportSpecifier.name.escapedText.toString()
+                  );
+                } else {
+                  actualExports.push(reExportedSymbol);
+                }
+              });
+              // for named exports: requires a filter step which keeps only the symbols listed in the export statement.
+              filterAllBy(reExportsMember, actualExports);
+            }
+            // concatenate re-exported MemberList with MemberList of the dts file
+            Object.keys(declarations).map(each => {
+              declarations[each].push(...reExportsMember[each]);
+            });
+          } else {
+            if (node.exportClause && ts.isNamedExports(node.exportClause)) {
+              node.exportClause.elements.forEach(exportSpecifier => {
+                declarations.variables.push(
+                  exportSpecifier.name.escapedText.toString()
+                );
+              });
+            }
+          }
+        }
+      } else {
+        // export {LogLevel};
+        // exclusively handles named export statements that has no from clause.
+        // retrieve the exported symbols by parsing node.exportClause
         if (node.exportClause && ts.isNamedExports(node.exportClause)) {
-          const actualExports: string[] = [];
           node.exportClause.elements.forEach(exportSpecifier => {
-            const reExportedSymbol: string = extractOriginalSymbolName(
-              exportSpecifier
-            );
-            // eg: export {foo as foo1 } from '...';
-            // if export is renamed, replace with new name
-            // reExportedSymbol: stores the original symbol name
-            // exportSpecifier.name: stores the renamed symbol name
-            if (isExportRenamed(exportSpecifier)) {
-              actualExports.push(exportSpecifier.name.escapedText.toString());
-              // reExportsMember stores all re-exported symbols in its orignal name. However, these re-exported symbols
-              // could be renamed by the re-export. We want to show the renamed name of the symbols in the final analysis report.
-              // Therefore, replaceAll simply replaces the original name of the symbol with the new name defined in re-export.
-              replaceAll(
-                reExportsMember,
-                reExportedSymbol,
-                exportSpecifier.name.escapedText.toString()
+            const exportedSymbolName = exportSpecifier.name.escapedText.toString();
+
+            if (symbolLocation.has(exportedSymbolName)) {
+              const reExportedSymbols = extractDeclarations(
+                symbolLocation.get(exportedSymbolName)
               );
-            } else {
-              actualExports.push(reExportedSymbol);
+              filterAllBy(reExportedSymbols, [exportedSymbolName]);
+              // concatenate re-exported MemberList with MemberList of the dts file
+              Object.keys(declarations).map(each => {
+                declarations[each].push(...reExportedSymbols[each]);
+              });
             }
           });
-          // for named exports: requires a filter step which keeps only the symbols listed in the export statement.
-          filterAllBy(reExportsMember, actualExports);
         }
-        // concatenate re-exported MemberList with MemberList of the dts file
-        Object.keys(declarations).map(each => {
-          declarations[each].push(...reExportsMember[each]);
-        });
       }
     }
   });

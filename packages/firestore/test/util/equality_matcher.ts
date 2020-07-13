@@ -123,7 +123,7 @@ export function addEqualityMatcher(
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       const assertEql = (_super: (r: unknown, l: unknown) => boolean) => {
         originalFunction = originalFunction || _super;
-        return function(
+        return function (
           this: Chai.Assertion,
           expected?: unknown,
           msg?: unknown

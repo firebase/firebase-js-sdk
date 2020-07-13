@@ -7,7 +7,6 @@
 import { Component } from '@firebase/component';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseAppConfig } from '@firebase/app-types-exp';
-import { FirebaseError } from '@firebase/util';
 import { FirebaseOptions } from '@firebase/app-types-exp';
 import { LogCallback } from '@firebase/logger';
 import { LogLevel } from '@firebase/logger';
@@ -32,8 +31,6 @@ export const _components: Map<string, Component<any>>;
 
 // @public
 export function deleteApp(app: FirebaseApp): Promise<void>;
-
-export { FirebaseError }
 
 // @public
 export function getApp(name?: string): FirebaseApp;

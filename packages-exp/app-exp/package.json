@@ -34,17 +34,17 @@
   "dependencies": {
     "@firebase/app-types-exp": "0.0.800",
     "@firebase/util": "0.2.50",
-    "@firebase/logger": "0.2.5",
-    "@firebase/component": "0.1.15",
+    "@firebase/logger": "0.2.6",
+    "@firebase/component": "0.1.16",
     "tslib": "^1.11.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "1.32.1",
+    "rollup": "2.21.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-replace": "2.2.0",
-    "rollup-plugin-typescript2": "0.27.0",
-    "typescript": "3.9.5"
+    "rollup-plugin-typescript2": "0.27.1",
+    "typescript": "3.9.6"
   },
   "repository": {
     "directory": "packages-exp/app-exp",

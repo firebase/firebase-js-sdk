@@ -207,7 +207,6 @@ async function generateReport(
     throw new Error(ErrorCode.INPUT_FILE_DOES_NOT_EXIST);
   }
   const publicAPI = extractDeclarations(resolvedDtsFile);
-  console.log(publicAPI);
   const map: Map<string, string> = buildMap(publicAPI);
   return buildJsonReport(publicAPI, bundleFile, map);
 }

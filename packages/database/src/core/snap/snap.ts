@@ -31,7 +31,7 @@ export function setMaxNode(val: Node) {
  * @param {(!string|!number)} priority
  * @return {!string}
  */
-export const priorityHashText = function(priority: string | number): string {
+export const priorityHashText = function (priority: string | number): string {
   if (typeof priority === 'number') {
     return 'number:' + doubleToIEEE754String(priority);
   } else {
@@ -44,7 +44,7 @@ export const priorityHashText = function(priority: string | number): string {
  *
  * @param {!Node} priorityNode
  */
-export const validatePriorityNode = function(priorityNode: Node) {
+export const validatePriorityNode = function (priorityNode: Node) {
   if (priorityNode.isLeafNode()) {
     const val = priorityNode.val();
     assert(

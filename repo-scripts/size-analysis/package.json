@@ -26,7 +26,7 @@
   "devDependencies": {
     "@firebase/logger": "0.2.5",
     "mocha-logger": "1.0.6",
-    "rollup": "2.7.6",
+    "rollup": "2.21.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-typescript2": "0.27.0"
   },

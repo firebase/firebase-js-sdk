@@ -25,7 +25,7 @@
  *
  * @return {!firebase.firestore.Firestore} Firestore
  */
-firebase.firestore = function(app) {};
+firebase.firestore = function (app) {};
 
 /**
  * The Cloud Firestore service interface.
@@ -35,7 +35,7 @@ firebase.firestore = function(app) {};
  *
  * @interface
  */
-firebase.firestore.Firestore = function() {};
+firebase.firestore.Firestore = function () {};
 
 /**
  * Specifies custom configurations for your Cloud Firestore instance.
@@ -43,7 +43,7 @@ firebase.firestore.Firestore = function() {};
  *
  * @interface
  */
-firebase.firestore.Settings = function() {};
+firebase.firestore.Settings = function () {};
 
 /**
  * Enables the use of `Timestamps` for timestamp fields in `DocumentSnapshots`.
@@ -79,7 +79,7 @@ firebase.firestore.Settings.prototype.timestampsInSnapshots;
  *     <li><code>silent</code> to turn off logging.</li>
  *   </ul>
  */
-firebase.firestore.Firestore.prototype.setLogLevel = function(logLevel) {};
+firebase.firestore.Firestore.prototype.setLogLevel = function (logLevel) {};
 
 /**
  * Specifies custom settings to be used to configure the `Firestore`
@@ -88,7 +88,7 @@ firebase.firestore.Firestore.prototype.setLogLevel = function(logLevel) {};
  * @param {!firebase.firestore.Settings} settings
  *   The settings for your Cloud Firestore instance.
  */
-firebase.firestore.Firestore.prototype.settings = function(settings) {};
+firebase.firestore.Firestore.prototype.settings = function (settings) {};
 
 /**
  * Attempts to enable persistent storage, if possible.
@@ -109,7 +109,7 @@ firebase.firestore.Firestore.prototype.settings = function(settings) {};
  * @return {!Promise<void>} A promise that represents
  *   successfully enabling persistent storage.
  */
-firebase.firestore.Firestore.prototype.enablePersistence = function() {};
+firebase.firestore.Firestore.prototype.enablePersistence = function () {};
 
 /**
  * Re-enables use of the network for this Firestore instance after a prior
@@ -119,7 +119,7 @@ firebase.firestore.Firestore.prototype.enablePersistence = function() {};
  * @return {!Promise<void>} A promise that is resolved once the network has been
  *   enabled.
  */
-firebase.firestore.Firestore.prototype.enableNetwork = function() {};
+firebase.firestore.Firestore.prototype.enableNetwork = function () {};
 
 /**
  * Disables network usage for this instance. It can be re-enabled via
@@ -131,7 +131,7 @@ firebase.firestore.Firestore.prototype.enableNetwork = function() {};
  * @return {!Promise<void>} A promise that is resolved once the network has been
  *   disabled.
  */
-firebase.firestore.Firestore.prototype.disableNetwork = function() {};
+firebase.firestore.Firestore.prototype.disableNetwork = function () {};
 
 /**
  * Gets a `CollectionReference` instance that refers to the collection at
@@ -143,7 +143,9 @@ firebase.firestore.Firestore.prototype.disableNetwork = function() {};
  * @return {!firebase.firestore.CollectionReference}
  *   The `CollectionReference` instance.
  */
-firebase.firestore.Firestore.prototype.collection = function(collectionPath) {};
+firebase.firestore.Firestore.prototype.collection = function (
+  collectionPath
+) {};
 
 /**
  * Gets a `DocumentReference` instance that refers to the document at the
@@ -155,7 +157,7 @@ firebase.firestore.Firestore.prototype.collection = function(collectionPath) {};
  * @return {!firebase.firestore.DocumentReference}
  *   The `DocumentReference` instance.
  */
-firebase.firestore.Firestore.prototype.doc = function(documentPath) {};
+firebase.firestore.Firestore.prototype.doc = function (documentPath) {};
 
 /**
  * Executes the given `updateFunction` and then attempts to commit the changes
@@ -173,7 +175,7 @@ firebase.firestore.Firestore.prototype.doc = function(documentPath) {};
  *   transaction failed, a rejected promise with the corresponding failure
  *   error will be returned.
  */
-firebase.firestore.Firestore.prototype.runTransaction = function(
+firebase.firestore.Firestore.prototype.runTransaction = function (
   updateFunction
 ) {};
 
@@ -184,7 +186,7 @@ firebase.firestore.Firestore.prototype.runTransaction = function(
  * @return {!firebase.firestore.WriteBatch}
  *   A `WriteBatch` that can be used to atomically execute multiple writes.
  */
-firebase.firestore.Firestore.prototype.batch = function() {};
+firebase.firestore.Firestore.prototype.batch = function () {};
 
 /**
  * The {@link firebase.app.App app} associated with this `Firestore` service
@@ -205,7 +207,7 @@ firebase.firestore.Firestore.prototype.app;
  * @param {number} longitude
  *   Longitude values are in the range of -180 to 180.
  */
-firebase.firestore.GeoPoint = function(latitude, longitude) {};
+firebase.firestore.GeoPoint = function (latitude, longitude) {};
 
 /**
  * The latitude of this GeoPoint instance.
@@ -229,13 +231,13 @@ firebase.firestore.GeoPoint.prototype.longitude;
  *
  * @return {boolean} 'true' if this `GeoPoint` is equal to the provided one.
  */
-firebase.firestore.GeoPoint.prototype.isEqual = function(other) {};
+firebase.firestore.GeoPoint.prototype.isEqual = function (other) {};
 
 /**
  * An immutable object representing an array of bytes.
  * @interface
  */
-firebase.firestore.Blob = function() {};
+firebase.firestore.Blob = function () {};
 
 /**
  * Returns 'true' if this `Blob` is equal to the provided one.
@@ -245,7 +247,7 @@ firebase.firestore.Blob = function() {};
  *
  * @return {boolean} 'true' if this `Blob` is equal to the provided one.
  */
-firebase.firestore.Blob.prototype.isEqual = function(other) {};
+firebase.firestore.Blob.prototype.isEqual = function (other) {};
 
 /**
  * Creates a new Blob from the given Base64 string, converting it to bytes.
@@ -256,7 +258,7 @@ firebase.firestore.Blob.prototype.isEqual = function(other) {};
  * @return {!firebase.firestore.Blob}
  *   The Blob created from the Base64 string.
  */
-firebase.firestore.Blob.fromBase64String = function(base64) {};
+firebase.firestore.Blob.fromBase64String = function (base64) {};
 
 /**
  * Creates a new Blob from the given Uint8Array.
@@ -267,7 +269,7 @@ firebase.firestore.Blob.fromBase64String = function(base64) {};
  * @return {!firebase.firestore.Blob}
  *   The Blob created from the Uint8Array.
  */
-firebase.firestore.Blob.fromUint8Array = function(array) {};
+firebase.firestore.Blob.fromUint8Array = function (array) {};
 
 /**
  * Returns the bytes of a Blob as a Base64-encoded string.
@@ -275,7 +277,7 @@ firebase.firestore.Blob.fromUint8Array = function(array) {};
  * @return {string}
  *   The Base64-encoded string created from the Blob object.
  */
-firebase.firestore.Blob.prototype.toBase64 = function() {};
+firebase.firestore.Blob.prototype.toBase64 = function () {};
 
 /**
  * Returns the bytes of a Blob in a new Uint8Array.
@@ -283,7 +285,7 @@ firebase.firestore.Blob.prototype.toBase64 = function() {};
  * @return {!Uint8Array}
  *   The Uint8Array created from the Blob object.
  */
-firebase.firestore.Blob.prototype.toUint8Array = function() {};
+firebase.firestore.Blob.prototype.toUint8Array = function () {};
 
 /**
  * A reference to a transaction.
@@ -293,7 +295,7 @@ firebase.firestore.Blob.prototype.toUint8Array = function() {};
  * within the transaction context. See `Firestore.runTransaction()`.
  * @interface
  */
-firebase.firestore.Transaction = function() {};
+firebase.firestore.Transaction = function () {};
 
 /**
  * Reads the document referenced by the provided `DocumentReference.`
@@ -304,7 +306,7 @@ firebase.firestore.Transaction = function() {};
  * @return {!Promise<!firebase.firestore.DocumentSnapshot>}
  *   A promise of the read data in a `DocumentSnapshot`.
  */
-firebase.firestore.Transaction.prototype.get = function(documentRef) {};
+firebase.firestore.Transaction.prototype.get = function (documentRef) {};
 
 /**
  * Writes to the document referred to by the provided `DocumentReference`.
@@ -325,7 +327,7 @@ firebase.firestore.Transaction.prototype.get = function(documentRef) {};
  * @return {!firebase.firestore.Transaction}
  *   This `Transaction` instance. Used for chaining method calls.
  */
-firebase.firestore.Transaction.prototype.set = function(
+firebase.firestore.Transaction.prototype.set = function (
   documentRef,
   data,
   options
@@ -349,7 +351,7 @@ firebase.firestore.Transaction.prototype.set = function(
  * @return {!firebase.firestore.Transaction}
  *   This `Transaction` instance. Used for chaining method calls.
  */
-firebase.firestore.Transaction.prototype.update = function(
+firebase.firestore.Transaction.prototype.update = function (
   documentRef,
   var_args
 ) {};
@@ -363,7 +365,7 @@ firebase.firestore.Transaction.prototype.update = function(
  * @return {!firebase.firestore.Transaction}
  *   This `Transaction` instance. Used for chaining method calls.
  */
-firebase.firestore.Transaction.prototype.delete = function(documentRef) {};
+firebase.firestore.Transaction.prototype.delete = function (documentRef) {};
 
 /**
  * A write batch, used to perform multiple writes as a single atomic unit.
@@ -377,7 +379,7 @@ firebase.firestore.Transaction.prototype.delete = function(documentRef) {};
  * preferable when you don't need to condition your writes on read data.
  * @interface
  */
-firebase.firestore.WriteBatch = function() {};
+firebase.firestore.WriteBatch = function () {};
 
 /**
  * Writes to the document referred to by the provided `DocumentReference`.
@@ -398,7 +400,7 @@ firebase.firestore.WriteBatch = function() {};
  * @return {!firebase.firestore.WriteBatch}
  *   This `WriteBatch` instance. Used for chaining method calls.
  */
-firebase.firestore.WriteBatch.prototype.set = function(
+firebase.firestore.WriteBatch.prototype.set = function (
   documentRef,
   data,
   options
@@ -422,7 +424,7 @@ firebase.firestore.WriteBatch.prototype.set = function(
  * @return {!firebase.firestore.WriteBatch}
  *   This `WriteBatch` instance. Used for chaining method calls.
  */
-firebase.firestore.WriteBatch.prototype.update = function(
+firebase.firestore.WriteBatch.prototype.update = function (
   documentRef,
   var_args
 ) {};
@@ -436,7 +438,7 @@ firebase.firestore.WriteBatch.prototype.update = function(
  * @return {!firebase.firestore.WriteBatch}
  *   This `WriteBatch` instance. Used for chaining method calls.
  */
-firebase.firestore.WriteBatch.prototype.delete = function(documentRef) {};
+firebase.firestore.WriteBatch.prototype.delete = function (documentRef) {};
 
 /**
  * Commits all of the writes in this write batch as a single atomic unit.
@@ -446,7 +448,7 @@ firebase.firestore.WriteBatch.prototype.delete = function(documentRef) {};
  *   successfully written to the backend as an atomic unit. Note that it won't
  *   resolve while you're offline.
  */
-firebase.firestore.WriteBatch.prototype.commit = function() {};
+firebase.firestore.WriteBatch.prototype.commit = function () {};
 
 /**
  * An options object that configures the behavior of `set()` calls in
@@ -457,7 +459,7 @@ firebase.firestore.WriteBatch.prototype.commit = function() {};
  * documents in their entirety by providing a `SetOptions` with `merge: true`.
  * @interface
  */
-firebase.firestore.SetOptions = function() {};
+firebase.firestore.SetOptions = function () {};
 
 /**
  * Changes the behavior of a set() call to only replace the values specified
@@ -483,7 +485,7 @@ firebase.firestore.SetOptions.prototype.mergeFields;
  * also be used to create a `CollectionReference` to a subcollection.
  * @interface
  */
-firebase.firestore.DocumentReference = function() {};
+firebase.firestore.DocumentReference = function () {};
 
 /**
  * The document's identifier within its collection.
@@ -514,7 +516,7 @@ firebase.firestore.DocumentReference.prototype.parent;
  * @return {!firebase.firestore.CollectionReference}
  *   The `CollectionReference` instance.
  */
-firebase.firestore.DocumentReference.prototype.collection = function(
+firebase.firestore.DocumentReference.prototype.collection = function (
   collectionPath
 ) {};
 
@@ -535,7 +537,10 @@ firebase.firestore.DocumentReference.prototype.collection = function(
  *   A promise that resolves once the data has been successfully written to the
  *   backend. (Note that it won't resolve while you're offline).
  */
-firebase.firestore.DocumentReference.prototype.set = function(data, options) {};
+firebase.firestore.DocumentReference.prototype.set = function (
+  data,
+  options
+) {};
 
 /**
  * Updates fields in the document referred to by this `DocumentReference`.
@@ -553,7 +558,7 @@ firebase.firestore.DocumentReference.prototype.set = function(data, options) {};
  *   A promise that resolves once the data has been successfully written
  *   to the backend (Note that it won't resolve while you're offline).
  */
-firebase.firestore.DocumentReference.prototype.update = function(var_args) {};
+firebase.firestore.DocumentReference.prototype.update = function (var_args) {};
 
 /**
  * Deletes the document referred to by this `DocumentReference`.
@@ -562,7 +567,7 @@ firebase.firestore.DocumentReference.prototype.update = function(var_args) {};
  *   A promise that resolves once the document has been successfully
  *   deleted from the backend (Note that it won't resolve while you're offline).
  */
-firebase.firestore.DocumentReference.prototype.delete = function() {};
+firebase.firestore.DocumentReference.prototype.delete = function () {};
 
 /**
  * Reads the document referred to by this `DocumentReference`.
@@ -578,7 +583,7 @@ firebase.firestore.DocumentReference.prototype.delete = function() {};
  *   A promise that resolves with a `DocumentSnapshot` containing the current
  *   document contents.
  */
-firebase.firestore.DocumentReference.prototype.get = function(options) {};
+firebase.firestore.DocumentReference.prototype.get = function (options) {};
 
 /**
  * Attaches a listener for DocumentSnapshot events. You may either pass
@@ -602,7 +607,7 @@ firebase.firestore.DocumentReference.prototype.get = function(options) {};
  * @return {!function()} An unsubscribe function that can be called to cancel
  *   the snapshot listener.
  */
-firebase.firestore.DocumentReference.prototype.onSnapshot = function(
+firebase.firestore.DocumentReference.prototype.onSnapshot = function (
   optionsOrObserverOrOnNext,
   observerOrOnNextOrOnError,
   onError
@@ -614,7 +619,7 @@ firebase.firestore.DocumentReference.prototype.onSnapshot = function(
  * to their final value).
  * @interface
  */
-firebase.firestore.SnapshotOptions = function() {};
+firebase.firestore.SnapshotOptions = function () {};
 
 /**
  * If set, controls the return value for server timestamps that have not yet
@@ -638,7 +643,7 @@ firebase.firestore.SnapshotOptions.prototype.serverTimestamps;
  * Options that configure how data is retrieved for a `get()` request.
  * @interface
  */
-firebase.firestore.GetOptions = function() {};
+firebase.firestore.GetOptions = function () {};
 
 /**
  * Describes whether a `get()` call in Firestore should return data from the
@@ -668,7 +673,7 @@ firebase.firestore.GetOptions.prototype.source;
  * Metadata about a snapshot, describing the state of the snapshot.
  * @interface
  */
-firebase.firestore.SnapshotMetadata = function() {};
+firebase.firestore.SnapshotMetadata = function () {};
 
 /**
  * True if the snapshot was created from cached data rather than guaranteed
@@ -703,7 +708,7 @@ firebase.firestore.SnapshotMetadata.prototype.hasPendingWrites;
  * @return {boolean}
  *   'true' if this `SnapshotMetadata` is equal to the provided one.
  */
-firebase.firestore.SnapshotMetadata.prototype.isEqual = function(other) {};
+firebase.firestore.SnapshotMetadata.prototype.isEqual = function (other) {};
 
 /**
  * A `DocumentSnapshot` contains data read from a document in your Cloud
@@ -716,7 +721,7 @@ firebase.firestore.SnapshotMetadata.prototype.isEqual = function(other) {};
  *
  * @constructor
  */
-firebase.firestore.DocumentSnapshot = function() {};
+firebase.firestore.DocumentSnapshot = function () {};
 
 /**
  * Property of the `DocumentSnapshot` that signals whether or not the data
@@ -771,7 +776,7 @@ firebase.firestore.DocumentData;
  *   An object containing all fields in the specified document or 'undefined'
  *   if the document doesn't exist.
  */
-firebase.firestore.DocumentSnapshot.prototype.data = function(options) {};
+firebase.firestore.DocumentSnapshot.prototype.data = function (options) {};
 
 /**
  * Retrieves the field specified by `fieldPath`. Returns `undefined` if the
@@ -793,7 +798,7 @@ firebase.firestore.DocumentSnapshot.prototype.data = function(options) {};
  *   The data at the specified field location or undefined if no such field
  *   exists in the document.
  */
-firebase.firestore.DocumentSnapshot.prototype.get = function(
+firebase.firestore.DocumentSnapshot.prototype.get = function (
   fieldPath,
   options
 ) {};
@@ -807,7 +812,7 @@ firebase.firestore.DocumentSnapshot.prototype.get = function(
  * @return {boolean}
  *   'true' if this `DocumentSnapshot` is equal to the provided one.
  */
-firebase.firestore.DocumentSnapshot.prototype.isEqual = function(other) {};
+firebase.firestore.DocumentSnapshot.prototype.isEqual = function (other) {};
 
 /**
  * A `QueryDocumentSnapshot` contains data read from a document in your
@@ -823,7 +828,7 @@ firebase.firestore.DocumentSnapshot.prototype.isEqual = function(other) {};
  * @constructor
  * @extends {firebase.firestore.DocumentSnapshot}
  */
-firebase.firestore.QueryDocumentSnapshot = function() {};
+firebase.firestore.QueryDocumentSnapshot = function () {};
 
 /**
  * Retrieves all fields in the document as an Object.
@@ -842,7 +847,7 @@ firebase.firestore.QueryDocumentSnapshot = function() {};
  * @return {!firebase.firestore.DocumentData}
  *   An object containing all fields in the specified document.
  */
-firebase.firestore.QueryDocumentSnapshot.prototype.data = function(options) {};
+firebase.firestore.QueryDocumentSnapshot.prototype.data = function (options) {};
 
 /**
  * Options for use with `Query.onSnapshot() to control the behavior of the
@@ -850,7 +855,7 @@ firebase.firestore.QueryDocumentSnapshot.prototype.data = function(options) {};
  * @interface
  *
  */
-firebase.firestore.SnapshotListenOptions = function() {};
+firebase.firestore.SnapshotListenOptions = function () {};
 
 /**
  * Raise an event even if only metadata of the query or document
@@ -865,7 +870,7 @@ firebase.firestore.SnapshotListenOptions.prototype.includeMetadataChanges;
  * construct refined `Query` objects by adding filters and ordering.
  * @constructor
  */
-firebase.firestore.Query = function() {};
+firebase.firestore.Query = function () {};
 
 /**
  * The `Firestore` for the Cloud Firestore database (useful for performing
@@ -891,7 +896,11 @@ firebase.firestore.Query.prototype.firestore;
  * @return {!firebase.firestore.Query}
  *   The created query.
  */
-firebase.firestore.Query.prototype.where = function(fieldPath, opStr, value) {};
+firebase.firestore.Query.prototype.where = function (
+  fieldPath,
+  opStr,
+  value
+) {};
 
 /**
  * Creates a new query where the results are sorted by the
@@ -907,7 +916,7 @@ firebase.firestore.Query.prototype.where = function(fieldPath, opStr, value) {};
  * @return {!firebase.firestore.Query}
  *   The created query.
  */
-firebase.firestore.Query.prototype.orderBy = function(
+firebase.firestore.Query.prototype.orderBy = function (
   fieldPath,
   directionStr
 ) {};
@@ -922,7 +931,7 @@ firebase.firestore.Query.prototype.orderBy = function(
  * @return {!firebase.firestore.Query}
  *   The created query.
  */
-firebase.firestore.Query.prototype.limit = function(limit) {};
+firebase.firestore.Query.prototype.limit = function (limit) {};
 
 /**
  * Creates a new query where the results start at the provided document
@@ -937,7 +946,7 @@ firebase.firestore.Query.prototype.limit = function(limit) {};
  * @return {!firebase.firestore.Query}
  *   The created query.
  */
-firebase.firestore.Query.prototype.startAt = function(snapshotOrVarArgs) {};
+firebase.firestore.Query.prototype.startAt = function (snapshotOrVarArgs) {};
 
 /**
  * Creates a new query where the results start after the provided document
@@ -953,7 +962,7 @@ firebase.firestore.Query.prototype.startAt = function(snapshotOrVarArgs) {};
  * @return {!firebase.firestore.Query}
  *   The created query.
  */
-firebase.firestore.Query.prototype.startAfter = function(snapshotOrVarArgs) {};
+firebase.firestore.Query.prototype.startAfter = function (snapshotOrVarArgs) {};
 
 /**
  * Creates a new query where the results end before the provided document
@@ -969,7 +978,7 @@ firebase.firestore.Query.prototype.startAfter = function(snapshotOrVarArgs) {};
  * @return {!firebase.firestore.Query}
  *   The created query.
  */
-firebase.firestore.Query.prototype.endBefore = function(snapshotOrVarArgs) {};
+firebase.firestore.Query.prototype.endBefore = function (snapshotOrVarArgs) {};
 
 /**
  * Creates a new query where the results end at the provided document
@@ -984,7 +993,7 @@ firebase.firestore.Query.prototype.endBefore = function(snapshotOrVarArgs) {};
  * @return {!firebase.firestore.Query}
  *   The created query.
  */
-firebase.firestore.Query.prototype.endAt = function(snapshotOrVarArgs) {};
+firebase.firestore.Query.prototype.endAt = function (snapshotOrVarArgs) {};
 
 /**
  * Executes the query and returns the results as a `QuerySnapshot`.
@@ -995,7 +1004,7 @@ firebase.firestore.Query.prototype.endAt = function(snapshotOrVarArgs) {};
  * @return {!firebase.firestore.QuerySnapshot}
  *   A promise that will be resolved with the results of the query.
  */
-firebase.firestore.Query.prototype.get = function(options) {};
+firebase.firestore.Query.prototype.get = function (options) {};
 
 /**
  * Attaches a listener for `QuerySnapshot` events. You may either pass
@@ -1022,7 +1031,7 @@ firebase.firestore.Query.prototype.get = function(options) {};
  * @return {!function()} An unsubscribe function that can be called to cancel
  *   the snapshot listener.
  */
-firebase.firestore.Query.prototype.onSnapshot = function(
+firebase.firestore.Query.prototype.onSnapshot = function (
   optionsOrObserverOrOnNext,
   observerOrOnNextOrOnError,
   onError
@@ -1036,7 +1045,7 @@ firebase.firestore.Query.prototype.onSnapshot = function(
  * properties.
  * @interface
  */
-firebase.firestore.QuerySnapshot = function() {};
+firebase.firestore.QuerySnapshot = function () {};
 
 /**
  * The query you called `get` or `onSnapshot` on to get the `QuerySnapshot`.
@@ -1059,7 +1068,7 @@ firebase.firestore.QuerySnapshot.prototype.metadata;
  * whether metadata-only changes (i.e. only `DocumentSnapshot.metadata` changed)
  * should be included.
  */
-firebase.firestore.QuerySnapshot.prototype.docChanges = function(options) {};
+firebase.firestore.QuerySnapshot.prototype.docChanges = function (options) {};
 
 /**
  * An array of all the documents in the `QuerySnapshot`.
@@ -1086,7 +1095,7 @@ firebase.firestore.QuerySnapshot.prototype.empty;
  * @param {*=} thisArg
  *   The `this` binding for the callback.
  */
-firebase.firestore.QuerySnapshot.prototype.forEach = function(
+firebase.firestore.QuerySnapshot.prototype.forEach = function (
   callback,
   thisArg
 ) {};
@@ -1100,14 +1109,14 @@ firebase.firestore.QuerySnapshot.prototype.forEach = function(
  * @return {boolean}
  *   'true' if this `QuerySnapshot` is equal to the provided one.
  */
-firebase.firestore.QuerySnapshot.prototype.isEqual = function(other) {};
+firebase.firestore.QuerySnapshot.prototype.isEqual = function (other) {};
 
 /**
  * A `DocumentChange` represents a change to a document matching a query.
  * It contains the document affected and the type of change that occurred.
  * @interface
  */
-firebase.firestore.DocumentChange = function() {};
+firebase.firestore.DocumentChange = function () {};
 
 /**
  * The type of change that occurred.
@@ -1147,7 +1156,7 @@ firebase.firestore.DocumentChange.prototype.newIndex;
  * @constructor
  * @extends {firebase.firestore.Query}
  */
-firebase.firestore.CollectionReference = function() {};
+firebase.firestore.CollectionReference = function () {};
 
 /**
  * The collection's identifier.
@@ -1174,7 +1183,7 @@ firebase.firestore.CollectionReference.prototype.parent;
  *
  * @return {!firebase.firestore.DocumentReference}
  */
-firebase.firestore.CollectionReference.prototype.doc = function(
+firebase.firestore.CollectionReference.prototype.doc = function (
   documentPath
 ) {};
 
@@ -1187,7 +1196,7 @@ firebase.firestore.CollectionReference.prototype.doc = function(
  *   A Promise that resolves with a `DocumentReference` pointing to the newly
  *   created document after it has been written to the backend.
  */
-firebase.firestore.CollectionReference.prototype.add = function(data) {};
+firebase.firestore.CollectionReference.prototype.add = function (data) {};
 
 /**
  * Returns 'true' if this `CollectionReference` is equal to the provided one.
@@ -1198,27 +1207,27 @@ firebase.firestore.CollectionReference.prototype.add = function(data) {};
  * @return {boolean}
  *   'true' if this `CollectionReference` is equal to the provided one.
  */
-firebase.firestore.CollectionReference.prototype.isEqual = function(other) {};
+firebase.firestore.CollectionReference.prototype.isEqual = function (other) {};
 
 /**
  * Sentinel values that can be used when writing document fields with `set()`
  * or `update()`.
  * @interface
  */
-firebase.firestore.FieldValue = function() {};
+firebase.firestore.FieldValue = function () {};
 
 /**
  * Returns a sentinel used with `set()` or `update()` to include a
  * server-generated timestamp in the written data.
  * @return {!firebase.firestore.FieldValue}
  */
-firebase.firestore.FieldValue.serverTimestamp = function() {};
+firebase.firestore.FieldValue.serverTimestamp = function () {};
 
 /**
  * Returns a sentinel for use with `update()` to mark a field for deletion.
  * @return {!firebase.firestore.FieldValue}
  */
-firebase.firestore.FieldValue.delete = function() {};
+firebase.firestore.FieldValue.delete = function () {};
 
 /**
  * Returns 'true' if this `FieldValue` is equal to the provided one.
@@ -1229,7 +1238,7 @@ firebase.firestore.FieldValue.delete = function() {};
  * @return {boolean}
  *   'true' if this `FieldValue` is equal to the provided one.
  */
-firebase.firestore.FieldValue.prototype.isEqual = function(other) {};
+firebase.firestore.FieldValue.prototype.isEqual = function (other) {};
 
 /**
  * A FieldPath refers to a field in a document. The path may consist of a
@@ -1244,7 +1253,7 @@ firebase.firestore.FieldValue.prototype.isEqual = function(other) {};
  *
  * @constructor
  */
-firebase.firestore.FieldPath = function(var_args) {};
+firebase.firestore.FieldPath = function (var_args) {};
 
 /**
  * Returns a special sentinel `FieldPath` to refer to the ID of a document.
@@ -1252,7 +1261,7 @@ firebase.firestore.FieldPath = function(var_args) {};
  *
  * @return {!firebase.firestore.FieldPath}
  */
-firebase.firestore.FieldPath.documentId = function() {};
+firebase.firestore.FieldPath.documentId = function () {};
 
 /**
  * Returns 'true' if this `FieldPath` is equal to the provided one.
@@ -1263,7 +1272,7 @@ firebase.firestore.FieldPath.documentId = function() {};
  * @return {boolean}
  *   'true' if this `FieldPath` is equal to the provided one.
  */
-firebase.firestore.FieldPath.prototype.isEqual = function(other) {};
+firebase.firestore.FieldPath.prototype.isEqual = function (other) {};
 
 /**
  * The set of Cloud Firestore status codes. These status codes are also exposed
@@ -1304,7 +1313,7 @@ firebase.firestore.FieldPath.prototype.isEqual = function(other) {};
  *   credentials for the operation.
  * @interface
  */
-firebase.firestore.FirestoreError = function() {};
+firebase.firestore.FirestoreError = function () {};
 
 /**
  * A Timestamp represents a point in time independent of any time zone or
@@ -1329,14 +1338,14 @@ firebase.firestore.FirestoreError = function() {};
  *
  * @constructor
  */
-firebase.firestore.Timestamp = function(seconds, nanoseconds) {};
+firebase.firestore.Timestamp = function (seconds, nanoseconds) {};
 
 /**
  * Get the current time as a Timestamp object.
  *
  * @return {!firebase.firestore.Timestamp} a new Timestamp.
  */
-firebase.firestore.Timestamp.now = function() {};
+firebase.firestore.Timestamp.now = function () {};
 
 /**
  * Creates a new timestamp from the given date.
@@ -1345,7 +1354,7 @@ firebase.firestore.Timestamp.now = function() {};
  * @return {!firebase.firestore.Timestamp} A new `Timestamp` representing
  *     the same point in time as the given date.
  */
-firebase.firestore.Timestamp.fromDate = function(date) {};
+firebase.firestore.Timestamp.fromDate = function (date) {};
 
 /**
  * Creates a new timestamp from the given number of milliseconds.
@@ -1355,7 +1364,7 @@ firebase.firestore.Timestamp.fromDate = function(date) {};
  * @return {!firebase.firestore.Timestamp} A new `Timestamp` representing the
  *     same point in time as the given number of milliseconds.
  */
-firebase.firestore.Timestamp.fromMillis = function(milliseconds) {};
+firebase.firestore.Timestamp.fromMillis = function (milliseconds) {};
 
 /**
  * Convert a Timestamp to a JavaScript `Date` object. This conversion causes
@@ -1363,7 +1372,7 @@ firebase.firestore.Timestamp.fromMillis = function(milliseconds) {};
  *
  * @return {!Date} a JavaScript date object.
  */
-firebase.firestore.Timestamp.prototype.toDate = function() {};
+firebase.firestore.Timestamp.prototype.toDate = function () {};
 
 /**
  * Convert a timestamp to a numeric timestamp (in milliseconds since epoch).
@@ -1371,4 +1380,4 @@ firebase.firestore.Timestamp.prototype.toDate = function() {};
  *
  * @return {!number} a numeric timestamp.
  */
-firebase.firestore.Timestamp.prototype.toMillis = function() {};
+firebase.firestore.Timestamp.prototype.toMillis = function () {};
