@@ -61,11 +61,10 @@ export async function extractDependenciesAndSize(
 ): Promise<ExportData> {
   const input = tmp.fileSync().name + '.js';
   const output = tmp.fileSync().name + '.js';
-
+  // JavaScript content that exports a single API from the bundle
   const beforeContent = `export { ${exportName} } from '${path.resolve(
     jsBundle
   )}';`;
-
   fs.writeFileSync(input, beforeContent);
 
   // Run Rollup on the JavaScript above to produce a tree-shaken build
@@ -99,7 +98,6 @@ export async function extractDependenciesAndSize(
  */
 export function extractDeclarations(jsFile: string): MemberList {
   const program = ts.createProgram([jsFile], { allowJs: true });
-
   const sourceFile = program.getSourceFile(jsFile);
   if (!sourceFile) {
     throw new Error('Failed to parse file: ' + jsFile);
