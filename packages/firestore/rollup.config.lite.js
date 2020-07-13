@@ -19,14 +19,20 @@ import json from 'rollup-plugin-json';
 import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
+import { terser } from 'rollup-plugin-terser';
 
-import { resolveNodeExterns, generateAliasConfig } from './rollup.shared';
+import {
+  resolveNodeExterns,
+  generateAliasConfig,
+  resolveBrowserExterns,
+  firestoreTransformers,
+  manglePrivatePropertiesOptions
+} from './rollup.shared';
 
 import pkg from './lite/package.json';
 import path from 'path';
 
-const defaultPlugins = [
-  alias(generateAliasConfig('node')),
+const plugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
@@ -39,21 +45,52 @@ const defaultPlugins = [
   json({ preferConst: true })
 ];
 
-const nodeBuilds = [
+const minifiedPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    },
+    clean: true,
+    transformers: firestoreTransformers
+  }),
+  json({ preferConst: true }),
+  terser(manglePrivatePropertiesOptions)
+];
+
+const allBuilds = [
+  // Node build
   {
-    input: 'lite/index.node.ts',
+    input: './lite/index.ts',
     output: {
       file: path.resolve('./lite', pkg.main),
       format: 'es'
     },
-    plugins: defaultPlugins,
-    external: resolveNodeExterns,
-    treeshake: {
-      tryCatchDeoptimization: false
-    }
+    plugins: [alias(generateAliasConfig('node')), ...plugins],
+    external: resolveNodeExterns
+  },
+  // Browser build
+  {
+    input: './lite/index.ts',
+    output: {
+      file: path.resolve('./lite', pkg.browser),
+      format: 'es'
+    },
+    plugins: [alias(generateAliasConfig('browser')), ...minifiedPlugins],
+    external: resolveBrowserExterns
+  },
+  // RN build
+  {
+    input: './lite/index.ts',
+    output: {
+      file: path.resolve('./lite', pkg['react-native']),
+      format: 'es'
+    },
+    plugins: [alias(generateAliasConfig('rn')), ...minifiedPlugins],
+    external: resolveBrowserExterns
   }
 ];
 
-// TODO(firestorelite): Add browser builds
-
-export default [...nodeBuilds];
+export default allBuilds;

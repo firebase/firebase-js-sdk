@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
+import * as firestore from '../../../exp-types';
 
 import { DocumentKey } from '../../../src/model/document_key';
 import { Document } from '../../../src/model/document';

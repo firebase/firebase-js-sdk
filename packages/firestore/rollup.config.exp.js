@@ -20,13 +20,19 @@ import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import path from 'path';
+import { terser } from 'rollup-plugin-terser';
 
-import { generateAliasConfig, resolveNodeExterns } from './rollup.shared';
+import {
+  firestoreTransformers,
+  generateAliasConfig,
+  manglePrivatePropertiesOptions,
+  resolveBrowserExterns,
+  resolveNodeExterns
+} from './rollup.shared';
 
 import pkg from './exp/package.json';
 
-const defaultPlugins = [
-  alias(generateAliasConfig('node')),
+const plugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
@@ -39,19 +45,52 @@ const defaultPlugins = [
   json({ preferConst: true })
 ];
 
-const nodeBuilds = [
+const minifiedPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    },
+    clean: true,
+    transformers: firestoreTransformers
+  }),
+  json({ preferConst: true }),
+  terser(manglePrivatePropertiesOptions)
+];
+
+const allBuilds = [
+  // Node build
   {
-    input: './exp/index.node.ts',
+    input: './exp/index.ts',
     output: {
       file: path.resolve('./exp', pkg.main),
       format: 'es'
     },
-    plugins: defaultPlugins,
-    external: resolveNodeExterns,
-    treeshake: {
-      tryCatchDeoptimization: false
-    }
+    plugins: [alias(generateAliasConfig('node')), ...plugins],
+    external: resolveNodeExterns
+  },
+  // Browser build
+  {
+    input: './exp/index.ts',
+    output: {
+      file: path.resolve('./exp', pkg.browser),
+      format: 'es'
+    },
+    plugins: [alias(generateAliasConfig('browser')), ...minifiedPlugins],
+    external: resolveBrowserExterns
+  },
+  // RN build
+  {
+    input: './exp/index.ts',
+    output: {
+      file: path.resolve('./exp', pkg['react-native']),
+      format: 'es'
+    },
+    plugins: [alias(generateAliasConfig('rn')), ...minifiedPlugins],
+    external: resolveBrowserExterns
   }
 ];
 
-export default [...nodeBuilds];
+export default allBuilds;

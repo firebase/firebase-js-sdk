@@ -25,7 +25,7 @@
     "pretest:exp": "yarn build:exp",
     "pregendeps:lite": "yarn build:lite",
     "gendeps:lite": "../../scripts/exp/extract-deps.sh --types ./lite/index.d.ts --bundle ./dist/lite/index.node.esm2017.js --output ./lite/test/dependencies.json",
-    "test:exp": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'exp/test/**/*.test.ts' --file exp/index.node.ts --config ../../config/mocharc.node.js",
+    "test:exp": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'exp/test/**/*.test.ts' --file exp/index.ts --config ../../config/mocharc.node.js",
     "test": "run-s lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "test:all": "run-p test:browser test:travis test:minified",
@@ -38,7 +38,7 @@
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
     "pretest:lite": "yarn build:lite",
-    "test:lite": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'lite/test/**/*.test.ts' --file lite/index.node.ts --config ../../config/mocharc.node.js",
+    "test:lite": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'lite/test/**/*.test.ts' --file lite/index.ts --config ../../config/mocharc.node.js",
     "prepare": "yarn build:release"
   },
   "main": "dist/index.node.cjs.js",

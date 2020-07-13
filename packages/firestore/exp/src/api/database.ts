@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
+import * as firestore from '../../../exp-types';
 
 import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
@@ -101,7 +101,7 @@ export class Firestore extends LiteFirestore
       const databaseInfo = this._makeDatabaseInfo(
         settings.host,
         settings.ssl,
-        settings.experimentalForceLongPolling
+        /* experimentalForceLongPolling= */ false
       );
 
       this._deferredInitialization = this._firestoreClient.start(
