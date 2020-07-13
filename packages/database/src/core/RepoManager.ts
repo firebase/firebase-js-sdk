@@ -113,8 +113,6 @@ export class RepoManager {
     let parsedUrl = parseRepoInfo(dbUrl);
     let repoInfo = parsedUrl.repoInfo;
 
-    let authTokenProvider: AuthTokenProvider;
-
     let isEmulator: boolean;
 
     let dbEmulatorHost: string | undefined = undefined;
@@ -131,7 +129,7 @@ export class RepoManager {
       isEmulator = !parsedUrl.repoInfo.secure;
     }
 
-    authTokenProvider =
+    const authTokenProvider =
       CONSTANTS.NODE_ADMIN && isEmulator
         ? new EmulatorAdminTokenProvider()
         : new FirebaseAuthTokenProvider(app, authProvider);
