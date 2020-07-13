@@ -20,6 +20,7 @@ import { Operation } from '@firebase/auth-types-exp';
 import { Endpoint, HttpMethod, _performApiRequest } from '..';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
+import { MfaEnrollment } from './mfa';
 
 export interface ResetPasswordRequest {
   oobCode: string;
@@ -30,6 +31,7 @@ export interface ResetPasswordResponse {
   email: string;
   newEmail?: string;
   requestType?: Operation;
+  mfaInfo?: MfaEnrollment;
 }
 
 export async function resetPassword(
