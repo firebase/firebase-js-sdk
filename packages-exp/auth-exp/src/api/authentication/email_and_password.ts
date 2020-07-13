@@ -78,6 +78,12 @@ export interface EmailSignInRequest extends GetOobCodeRequest {
   email: string;
 }
 
+export interface VerifyAndChangeEmailRequest extends GetOobCodeRequest {
+  requestType: Operation.VERIFY_AND_CHANGE_EMAIL;
+  idToken: IdToken;
+  newEmail: string;
+}
+
 interface GetOobCodeResponse {
   email: string;
 }
@@ -85,6 +91,7 @@ interface GetOobCodeResponse {
 export interface VerifyEmailResponse extends GetOobCodeResponse {}
 export interface PasswordResetResponse extends GetOobCodeResponse {}
 export interface EmailSignInResponse extends GetOobCodeResponse {}
+export interface VerifyAndChangeEmailResponse extends GetOobCodeRequest {}
 
 async function sendOobCode(
   auth: Auth,
@@ -116,5 +123,12 @@ export async function sendSignInLinkToEmail(
   auth: Auth,
   request: EmailSignInRequest
 ): Promise<EmailSignInResponse> {
+  return sendOobCode(auth, request);
+}
+
+export async function verifyAndChangeEmail(
+  auth: Auth,
+  request: VerifyAndChangeEmailRequest
+): Promise<VerifyAndChangeEmailResponse> {
   return sendOobCode(auth, request);
 }
