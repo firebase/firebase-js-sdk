@@ -33,7 +33,9 @@ import {
   sendPasswordResetEmail,
   sendSignInLinkToEmail,
   signInWithPassword,
-  VerifyEmailRequest
+  VerifyEmailRequest,
+  verifyAndChangeEmail,
+  VerifyAndChangeEmailRequest
 } from './email_and_password';
 import { Operation } from '@firebase/auth-types-exp';
 
@@ -263,6 +265,64 @@ describe('api/authentication/sendSignInLinkToEmail', () => {
     );
 
     await expect(sendSignInLinkToEmail(auth, request)).to.be.rejectedWith(
+      FirebaseError,
+      'Firebase: The email address is badly formatted. (auth/invalid-email).'
+    );
+    expect(mock.calls[0].request).to.eql(request);
+  });
+});
+
+describe('api/authentication/verifyAndChangeEmail', () => {
+  const request: VerifyAndChangeEmailRequest = {
+    requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+    idToken: 'id-token',
+    newEmail: 'test@foo.com'
+  };
+
+  let auth: Auth;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    mockFetch.setUp();
+  });
+
+  afterEach(mockFetch.tearDown);
+
+  it('should POST to the correct endpoint', async () => {
+    const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+      email: 'test@foo.com'
+    });
+
+    const response = await verifyAndChangeEmail(auth, request);
+    expect(response.email).to.eq('test@foo.com');
+    expect(mock.calls[0].request).to.eql(request);
+    expect(mock.calls[0].method).to.eq('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+      'application/json'
+    );
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      'testSDK/0.0.0'
+    );
+  });
+
+  it('should handle errors', async () => {
+    const mock = mockEndpoint(
+      Endpoint.SEND_OOB_CODE,
+      {
+        error: {
+          code: 400,
+          message: ServerError.INVALID_EMAIL,
+          errors: [
+            {
+              message: ServerError.INVALID_EMAIL
+            }
+          ]
+        }
+      },
+      400
+    );
+
+    await expect(verifyAndChangeEmail(auth, request)).to.be.rejectedWith(
       FirebaseError,
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );

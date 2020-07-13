@@ -31,7 +31,11 @@ import { ServerError } from '../../api/errors';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import * as location from '../util/location';
-import { fetchSignInMethodsForEmail, sendEmailVerification } from './email';
+import {
+  fetchSignInMethodsForEmail,
+  sendEmailVerification,
+  verifyBeforeUpdateEmail
+} from './email';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -107,18 +111,15 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
 
 describe('core/strategies/sendEmailVerification', () => {
   const email = 'foo@bar.com';
-  const idToken = 'id-token';
+  const idToken = 'access-token';
   let user: User;
   let auth: Auth;
-  let idTokenStub: SinonStub;
   let reloadStub: SinonStub;
 
   beforeEach(async () => {
     auth = await testAuth();
-    user = testUser(auth, 'my-user-uid', email);
+    user = testUser(auth, 'my-user-uid', email, true);
     mockFetch.setUp();
-    idTokenStub = stub(user, 'getIdToken');
-    idTokenStub.callsFake(async () => idToken);
     reloadStub = stub(user, 'reload');
   });
 
@@ -204,6 +205,118 @@ describe('core/strategies/sendEmailVerification', () => {
       expect(mock.calls[0].request).to.eql({
         requestType: Operation.VERIFY_EMAIL,
         idToken,
+        continueUrl: 'my-url',
+        dynamicLinkDomain: 'fdl-domain',
+        canHandleCodeInApp: true,
+        androidInstallApp: false,
+        androidMinimumVersionCode: 'my-version',
+        androidPackageName: 'my-package'
+      });
+    });
+  });
+});
+
+describe('core/strategies/verifyBeforeUpdateEmail', () => {
+  const email = 'foo@bar.com';
+  const newEmail = 'newemail@bar.com';
+  const idToken = 'access-token';
+  let user: User;
+  let auth: Auth;
+  let reloadStub: SinonStub;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    user = testUser(auth, 'my-user-uid', email, true);
+    mockFetch.setUp();
+    reloadStub = stub(user, 'reload');
+  });
+
+  afterEach(() => {
+    mockFetch.tearDown();
+    restore();
+  });
+
+  it('should send the email verification', async () => {
+    const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+      requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+      email
+    });
+
+    await verifyBeforeUpdateEmail(user, newEmail);
+
+    expect(reloadStub).to.not.have.been.called;
+    expect(mock.calls[0].request).to.eql({
+      requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+      idToken,
+      newEmail
+    });
+  });
+
+  it('should reload the user if the API returns a different email', async () => {
+    const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+      requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+      email: 'other@email.com'
+    });
+
+    await verifyBeforeUpdateEmail(user, newEmail);
+
+    expect(reloadStub).to.have.been.calledOnce;
+    expect(mock.calls[0].request).to.eql({
+      requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+      idToken,
+      newEmail
+    });
+  });
+
+  context('on iOS', () => {
+    it('should pass action code parameters', async () => {
+      const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+        requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+        email
+      });
+      await verifyBeforeUpdateEmail(user, newEmail, {
+        handleCodeInApp: true,
+        iOS: {
+          bundleId: 'my-bundle',
+          appStoreId: 'my-appstore-id'
+        },
+        url: 'my-url',
+        dynamicLinkDomain: 'fdl-domain'
+      });
+
+      expect(mock.calls[0].request).to.eql({
+        requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+        idToken,
+        newEmail,
+        continueUrl: 'my-url',
+        dynamicLinkDomain: 'fdl-domain',
+        canHandleCodeInApp: true,
+        iosBundleId: 'my-bundle',
+        iosAppStoreId: 'my-appstore-id'
+      });
+    });
+  });
+
+  context('on Android', () => {
+    it('should pass action code parameters', async () => {
+      const mock = mockEndpoint(Endpoint.SEND_OOB_CODE, {
+        requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+        email
+      });
+      await verifyBeforeUpdateEmail(user, newEmail, {
+        handleCodeInApp: true,
+        android: {
+          installApp: false,
+          minimumVersion: 'my-version',
+          packageName: 'my-package'
+        },
+        url: 'my-url',
+        dynamicLinkDomain: 'fdl-domain'
+      });
+      expect(mock.calls[0].request).to.eql({
+        requestType: Operation.VERIFY_AND_CHANGE_EMAIL,
+        idToken,
+        newEmail,
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
         canHandleCodeInApp: true,

@@ -65,3 +65,28 @@ export async function sendEmailVerification(
     await user.reload();
   }
 }
+
+export async function verifyBeforeUpdateEmail(
+  userExtern: externs.User,
+  newEmail: string,
+  actionCodeSettings?: externs.ActionCodeSettings | null
+): Promise<void> {
+  const user = userExtern as User;
+  const idToken = await user.getIdToken();
+  const request: api.VerifyAndChangeEmailRequest = {
+    requestType: externs.Operation.VERIFY_AND_CHANGE_EMAIL,
+    idToken,
+    newEmail
+  };
+  if (actionCodeSettings) {
+    setActionCodeSettingsOnRequest(request, actionCodeSettings);
+  }
+
+  const { email } = await api.verifyAndChangeEmail(user.auth, request);
+
+  if (email !== user.email) {
+    // If the local copy of the email on user is outdated, reload the
+    // user.
+    await user.reload();
+  }
+}

@@ -20,13 +20,13 @@ import * as externs from '@firebase/auth-types-exp';
 import * as account from '../../api/account_management/email_and_password';
 import * as authentication from '../../api/authentication/email_and_password';
 import { Auth } from '../../model/auth';
-import { AuthErrorCode } from '../errors';
 import { EmailAuthProvider } from '../providers/email';
 import { setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { signUp } from '../../api/authentication/sign_up';
 import { assert } from '../util/assert';
+import { MultiFactorInfo } from '../../mfa/mfa_info';
 
 export async function sendPasswordResetEmail(
   auth: externs.Auth,
@@ -73,16 +73,30 @@ export async function checkActionCode(
   // VERIFY_AND_CHANGE_EMAIL.
   // New email should not be empty if the request type is
   // VERIFY_AND_CHANGE_EMAIL.
+  // Multi-factor info could not be empty if the request type is
+  // REVERT_SECOND_FACTOR_ADDITION.
   const operation = response.requestType;
-  assert(operation, auth.name, AuthErrorCode.INTERNAL_ERROR);
+  assert(operation, auth.name);
   switch (operation) {
     case externs.Operation.EMAIL_SIGNIN:
       break;
     case externs.Operation.VERIFY_AND_CHANGE_EMAIL:
-      assert(response.newEmail, auth.name, AuthErrorCode.INTERNAL_ERROR);
+      assert(response.newEmail, auth.name);
       break;
+    case externs.Operation.REVERT_SECOND_FACTOR_ADDITION:
+      assert(response.mfaInfo, auth.name);
+    // fall through
     default:
-      assert(response.email, auth.name, AuthErrorCode.INTERNAL_ERROR);
+      assert(response.email, auth.name);
+  }
+
+  // The multi-factor info for revert second factor addition
+  let multiFactorInfo: MultiFactorInfo | null = null;
+  if (response.mfaInfo) {
+    multiFactorInfo = MultiFactorInfo._fromServerResponse(
+      auth as Auth,
+      response.mfaInfo
+    );
   }
 
   return {
@@ -94,8 +108,8 @@ export async function checkActionCode(
       previousEmail:
         (response.requestType === externs.Operation.VERIFY_AND_CHANGE_EMAIL
           ? response.email
-          : response.newEmail) || null
-      /* multiFactorInfo: MultiFactorInfo | null; */
+          : response.newEmail) || null,
+      multiFactorInfo
     },
     operation
   };
