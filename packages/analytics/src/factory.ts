@@ -39,6 +39,11 @@ import { ANALYTICS_ID_FIELD } from './constants';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
+import {
+  isIndexedDBAvailable,
+  validateIndexedDBOpenable,
+  isCookieEnabled
+} from '@firebase/util';
 
 /**
  * Maps gaId to FID fetch promises.
@@ -120,7 +125,13 @@ export function factory(
 ): FirebaseAnalytics {
   // Async but non-blocking.
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  validateInitializationEnvironment();
+  if (!isCookieEnabled()) {
+    throw ERROR_FACTORY.create(AnalyticsError.COOKIES_NOT_ENABLED);
+  }
+  if (!isIndexedDBAvailable()) {
+    throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
+  }
+  validateIndexedDBOpenable().catch;
 
   const analyticsId = app.options[ANALYTICS_ID_FIELD];
   if (!analyticsId) {

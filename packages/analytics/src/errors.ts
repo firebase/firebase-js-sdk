@@ -47,7 +47,8 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     'IndexedDB is not supported by current browswer',
   [AnalyticsError.INVALID_INDEXED_DB_CONTEXT]:
     "Environment doesn't support IndexedDB: {$errorInfo}. " +
-    'Wrap initialization of analytics in analytics.isSupported() to prevent initialization in unsupported environments',
+    'Wrap initialization of analytics in analytics.isSupported() ' +
+    'to prevent initialization in unsupported environments',
   [AnalyticsError.COOKIES_NOT_ENABLED]:
     'Cookies are not enabled in this browser environment. Analytics requires cookies to be enabled.'
 };

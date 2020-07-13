@@ -233,12 +233,6 @@ export function findGtagScriptOnPage(): HTMLScriptElement | null {
  * if errors occur during the database open operation.
  */
 export async function validateInitializationEnvironment(): Promise<void> {
-  if (!isCookieEnabled()) {
-    throw ERROR_FACTORY.create(AnalyticsError.COOKIE_NOT_ENABLED);
-  }
-  if (!isIndexedDBAvailable()) {
-    throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
-  }
   try {
     await validateIndexedDBOpenable();
   } catch (error) {
