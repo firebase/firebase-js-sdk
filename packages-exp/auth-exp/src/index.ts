@@ -88,7 +88,8 @@ export {
 } from './core/strategies/email_link';
 export {
   fetchSignInMethodsForEmail,
-  sendEmailVerification
+  sendEmailVerification,
+  verifyBeforeUpdateEmail
 } from './core/strategies/email';
 export {
   signInWithPhoneNumber,
