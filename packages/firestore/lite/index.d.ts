@@ -193,6 +193,7 @@ export type SetOptions =
 
 export class DocumentReference<T = DocumentData> {
   private constructor();
+  readonly type: 'document';
   readonly id: string;
   readonly firestore: FirebaseFirestore;
   readonly path: string;
@@ -227,6 +228,7 @@ export type WhereFilterOp =
 
 export class Query<T = DocumentData> {
   protected constructor();
+  readonly type: 'query' | 'collection';
   readonly firestore: FirebaseFirestore;
   where(
     fieldPath: string | FieldPath,
@@ -264,6 +266,7 @@ export class QuerySnapshot<T = DocumentData> {
 
 export class CollectionReference<T = DocumentData> extends Query<T> {
   private constructor();
+  readonly type: 'collection';
   readonly id: string;
   readonly path: string;
   withConverter<U>(

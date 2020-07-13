@@ -74,6 +74,8 @@ import { Code, FirestoreError } from '../../../src/util/error';
 export class DocumentReference<T = firestore.DocumentData>
   extends DocumentKeyReference<T>
   implements firestore.DocumentReference<T> {
+  readonly type = 'document';
+
   constructor(
     readonly firestore: Firestore,
     key: DocumentKey,
@@ -99,6 +101,8 @@ export class DocumentReference<T = firestore.DocumentData>
 
 export class Query<T = firestore.DocumentData> extends BaseQuery
   implements firestore.Query<T> {
+  readonly type: 'query' | 'collection' = 'query';
+
   // This is the lite version of the Query class in the main SDK.
   constructor(
     readonly firestore: Firestore,
@@ -256,6 +260,8 @@ export class Query<T = firestore.DocumentData> extends BaseQuery
 
 export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   implements firestore.CollectionReference<T> {
+  readonly type = 'collection';
+
   constructor(
     readonly firestore: Firestore,
     readonly _path: ResourcePath,
