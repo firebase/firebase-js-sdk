@@ -25,7 +25,7 @@ export const enum AnalyticsError {
   INTEROP_COMPONENT_REG_FAILED = 'interop-component-reg-failed',
   INDEXED_DB_UNSUPPORTED = 'indexedDB-unsupported',
   INVALID_INDEXED_DB_CONTEXT = 'invalid-indexedDB-context',
-  COOKIES_NOT_ENABLED = 'cookie-not-enabled'
+  COOKIES_NOT_ENABLED = 'cookies-not-enabled'
 }
 
 const ERRORS: ErrorMap<AnalyticsError> = {
