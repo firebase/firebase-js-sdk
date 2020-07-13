@@ -37,11 +37,13 @@ import {
   _verifyPhoneNumber,
   linkWithPhoneNumber,
   reauthenticateWithPhoneNumber,
-  signInWithPhoneNumber
+  signInWithPhoneNumber,
+  updatePhoneNumber
 } from './phone';
 import { multiFactor, MultiFactorUser } from '../../mfa/mfa_user';
 import { MultiFactorSession } from '../../mfa/mfa_session';
 import { MultiFactorInfo } from '../../mfa/mfa_info';
+import { PhoneAuthCredential } from '../credentials/phone';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -410,6 +412,49 @@ describe('core/strategies/phone', () => {
 
       await expect(_verifyPhoneNumber(auth, 'number', verifier)).to.be.rejected;
       expect(verifier._reset).to.have.been.called;
+    });
+  });
+
+  describe("updatePhoneNumber", () => {
+    let user: User;
+    let reloadMock: fetch.Route;
+    let signInMock: fetch.Route;
+    let credential: PhoneAuthCredential;
+
+    beforeEach(() => {
+      reloadMock = mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+        users: [{ uid: 'uid' }]
+      });
+      signInMock = mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, {
+        idToken: 'new-access-token'
+      });
+      credential = PhoneAuthCredential._fromVerification(
+        'session-info',
+        'code'
+      );
+
+      user = testUser(auth, 'uid', 'email', true);
+    });
+
+    it('should link the phone number to the user', async () => {
+      await updatePhoneNumber(user, credential);
+      console.log(JSON.stringify(signInMock.calls[0].request));
+      expect(signInMock.calls[0].request).to.eql({
+        idToken: 'access-token',
+        sessionInfo: 'session-info',
+        code: 'code'
+      });
+    });
+
+    it('should update the access token', async () => {
+      await updatePhoneNumber(user, credential);
+      const idToken = await user.getIdToken();
+      expect(idToken).to.eq('new-access-token');
+    });
+
+    it('should reload the user', async () => {
+      await updatePhoneNumber(user, credential);
+      expect(reloadMock.calls.length).to.eq(1);
     });
   });
 });
