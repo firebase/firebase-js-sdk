@@ -250,7 +250,8 @@ describe('core/strategies/checkActionCode', () => {
     expect(response).to.eql({
       data: {
         email,
-        previousEmail: null
+        previousEmail: null,
+        multiFactorInfo: null
       },
       operation: Operation.PASSWORD_RESET
     });
@@ -269,7 +270,8 @@ describe('core/strategies/checkActionCode', () => {
     expect(response).to.eql({
       data: {
         email,
-        previousEmail: newEmail
+        previousEmail: newEmail,
+        multiFactorInfo: null
       },
       operation: Operation.PASSWORD_RESET
     });
