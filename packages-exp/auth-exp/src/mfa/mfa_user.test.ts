@@ -31,6 +31,7 @@ import { MultiFactorInfo } from './mfa_info';
 import { ServerError } from '../api/errors';
 import { User } from '../model/user';
 import { FinalizeMfaResponse } from '../api/authentication/mfa';
+import { ProviderId } from '@firebase/auth-types-exp';
 
 use(chaiAsPromised);
 
@@ -118,14 +119,14 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
       expect(await mfaUser.user.getIdToken()).to.eq('final-id-token');
     });
 
-    // TODO: Uncomment once we integrate with reload()
-    // it('should update the enrolled Factors', async () => {
-    //   await mfaUser.enroll(assertion);
+    it('should update the enrolled Factors', async () => {
+      await mfaUser.enroll(assertion);
 
-    //   const enrolledFactor = mfaUser.enrolledFactors[1];
-    //   expect(enrolledFactor.factorId).to.eq(ProviderId.PHONE);
-    //   expect(enrolledFactor.uid).to.eq('mfa-id');
-    // });
+      expect(mfaUser.enrolledFactors.length).to.eq(1);
+      const enrolledFactor = mfaUser.enrolledFactors[0];
+      expect(enrolledFactor.factorId).to.eq(ProviderId.PHONE);
+      expect(enrolledFactor.uid).to.eq('mfa-id');
+    });
   });
 
   describe('unenroll', () => {
@@ -150,19 +151,11 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
 
     const serverUser: APIUserInfo = {
       localId: 'local-id',
-      displayName: 'display-name',
-      photoUrl: 'photo-url',
-      email: 'email',
-      emailVerified: true,
-      phoneNumber: 'phone-number',
-      tenantId: 'tenant-id',
-      createdAt: 123,
-      lastLoginAt: 456,
       mfaInfo: [
         {
           mfaEnrollmentId: 'other-mfa-id',
           enrolledAt: Date.now(),
-          phoneInfo: 'other-phone-number'
+          phoneInfo: 'other-phone-info'
         }
       ]
     };
@@ -243,5 +236,68 @@ describe('core/mfa/mfa_user/multiFactor', () => {
   it('can be used to a create a MultiFactorUser', () => {
     const mfaUser = multiFactor(user);
     expect((mfaUser as MultiFactorUser).user).to.eq(user);
+  });
+
+  it('should only create one instance of an MFA user per User', () => {
+    const mfaUser = multiFactor(user);
+    expect(multiFactor(user)).to.eq(mfaUser);
+  });
+
+  context('enrolledFactors', () => {
+    const serverUser: APIUserInfo = {
+      localId: 'local-id',
+      mfaInfo: [
+        {
+          mfaEnrollmentId: 'enrollment-id',
+          enrolledAt: Date.now(),
+          phoneInfo: 'masked-phone-number'
+        }
+      ]
+    };
+
+    const updatedServerUser: APIUserInfo = {
+      localId: 'local-id',
+      mfaInfo: [
+        {
+          mfaEnrollmentId: 'enrollment-id',
+          enrolledAt: Date.now(),
+          phoneInfo: 'masked-phone-number'
+        },
+        {
+          mfaEnrollmentId: 'new-enrollment-id',
+          enrolledAt: Date.now(),
+          phoneInfo: 'other-masked-phone-number'
+        }
+      ]
+    };
+
+    beforeEach(() => {
+      mockFetch.setUp();
+      mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+        users: [serverUser]
+      });
+    });
+
+    afterEach(mockFetch.tearDown);
+
+    it('should initialize the enrolled factors from the last reload', async () => {
+      await user.reload();
+      const mfaUser = multiFactor(user);
+      expect(mfaUser.enrolledFactors.length).to.eq(1);
+      const mfaInfo = mfaUser.enrolledFactors[0];
+      expect(mfaInfo.uid).to.eq('enrollment-id');
+      expect(mfaInfo.factorId).to.eq(ProviderId.PHONE);
+    });
+
+    it('should update the enrolled factors if the user is reloaded', async () => {
+      await user.reload();
+      const mfaUser = multiFactor(user);
+      expect(mfaUser.enrolledFactors.length).to.eq(1);
+      mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
+        users: [updatedServerUser]
+      });
+      await user.reload();
+      expect(mfaUser.enrolledFactors.length).to.eq(2);
+    });
   });
 });

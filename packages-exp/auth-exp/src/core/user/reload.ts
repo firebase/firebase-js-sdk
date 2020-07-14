@@ -32,6 +32,9 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
   assert(response?.users.length, auth.name);
 
   const coreAccount = response.users[0];
+
+  user._notifyReloadListener(coreAccount);
+
   const newProviderData = coreAccount.providerUserInfo?.length
     ? extractProviderData(coreAccount.providerUserInfo)
     : [];
