@@ -58,7 +58,7 @@ export interface AuthEvent {
   sessionId: string | null;
   postBody: string | null;
   tenantId: string | null;
-  error: AuthEventError;
+  error?: AuthEventError;
 }
 
 export interface AuthEventConsumer {
