@@ -27,19 +27,31 @@ import * as ts from 'typescript';
  *
  * See rollup.config.lite.js for usage of this transformer with rollup.
  */
-export default function transformer(ctx) {
-  function visitor(node) {
-    const result = ts.visitEachChild(node, visitor, ctx);
-    const comments = ts.getSyntheticLeadingComments(result);
-    // See: https://github.com/microsoft/TypeScript/pull/16631
-    if (comments && comments.some(c => c.text === '* @class ')) {
-      ts.addSyntheticLeadingComment(
-        result,
-        ts.SyntaxKind.MultiLineCommentTrivia,
-        '#__PURE__'
-      );
+// eslint-disable-next-line import/no-default-export
+export default function createTransformer() {
+  return () => ({
+    // "after" tells TypeScript to run this transformer AFTER all built-in ones, including the ones
+    // that down-levels ES6 classes into ES5 plain function constructors. This is critical in order
+    // for the transformer to take transpiled classes as input and work on the annotation.
+    after: ctx => {
+      function visitor(node) {
+        const result = ts.visitEachChild(node, visitor, ctx);
+        const comments = ts.getSyntheticLeadingComments(result);
+        // See: https://github.com/microsoft/TypeScript/pull/16631
+        if (comments && comments.some(c => c.text === '* @class ')) {
+          // This annotation makes rollup and UglifyJS treat the IIFEs that create classes as pure.
+          // See: https://github.com/rollup/rollup/issues/1293. And more references can be found at:
+          // - https://rollupjs.org/guide/en/#treeshake (under treeshake.annotations)
+          // - https://github.com/mishoo/UglifyJS/blob/master/README.md (search for #__PURE__)
+          ts.addSyntheticLeadingComment(
+            result,
+            ts.SyntaxKind.MultiLineCommentTrivia,
+            '#__PURE__'
+          );
+        }
+        return result;
+      }
+      return file => ts.visitNode(file, visitor);
     }
-    return result;
-  }
-  return file => ts.visitNode(file, visitor);
+  });
 }

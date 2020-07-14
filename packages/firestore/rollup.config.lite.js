@@ -35,11 +35,7 @@ const defaultPlugins = [
         target: 'es5'
       }
     },
-    transformers: [
-      () => ({
-        after: es5PureTransformer
-      })
-    ],
+    transformers: [es5PureTransformer()],
     clean: true
   }),
   json({ preferConst: true })
