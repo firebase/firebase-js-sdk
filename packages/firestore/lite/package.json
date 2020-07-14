@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore/lite",
   "description": "A lite version of the Firestore SDK",
-  "main": "../dist/lite/index.node.esm2017.js",
+  "main": "../dist/lite/index.node.es5.js",
   "private": true
 }
