@@ -24,13 +24,9 @@ import { RequestInfo } from './implementation/requestinfo';
 import { XhrIoPool } from './implementation/xhriopool';
 import { Reference } from './reference';
 import { Provider } from '@firebase/component';
-import {
-  FirebaseAuthInternalName,
-  FirebaseAuthTokenData
-} from '@firebase/auth-interop-types';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseOptions } from '@firebase/app-types-exp';
 import * as constants from '../src/implementation/constants';
-import { RequestMap } from './implementation/requestmap';
 import { requestMaker } from './implementation/requestmaker';
 import * as errorsExports from './implementation/error';
 
@@ -42,15 +38,14 @@ import * as errorsExports from './implementation/error';
  */
 export class StorageService {
   private app_: FirebaseApp | null;
-  private bucket_: Location | null = null;
-  private internals_: ServiceInternals;
-  private authProvider_: Provider<FirebaseAuthInternalName>;
-  private appId_: string | null = null;
+  private readonly bucket_: Location | null = null;
+  private readonly internals_: ServiceInternals;
+  private readonly authProvider_: Provider<FirebaseAuthInternalName>;
+  private readonly appId_: string | null = null;
 
-  private storageRefMaker_: (loc: Location) => Reference;
-  private requestMaker_: requestMaker;
-  private pool_: XhrIoPool;
-  private requestMap_: RequestMap;
+  private readonly requestMaker_: requestMaker;
+  private readonly pool_: XhrIoPool;
+  private readonly requests_: Set<Request<unknown>>;
   private deleted_: boolean = false;
   private maxOperationRetryTime_: number;
   private maxUploadRetryTime_: number;
@@ -63,53 +58,36 @@ export class StorageService {
   ) {
     this.app_ = app;
     this.authProvider_ = authProvider;
-    this.storageRefMaker_ = (loc: Location): Reference => {
-      return new Reference(this, loc);
-    };
     this.requestMaker_ = makeRequest;
     this.maxOperationRetryTime_ = constants.DEFAULT_MAX_OPERATION_RETRY_TIME;
     this.maxUploadRetryTime_ = constants.DEFAULT_MAX_UPLOAD_RETRY_TIME;
-    this.requestMap_ = new RequestMap();
+    this.requests_ = new Set();
     this.pool_ = pool;
     if (url != null) {
       this.bucket_ = Location.makeFromBucketSpec(url);
     } else {
-      const bucketFromOptions =
-        this.app_ != null
-          ? StorageService.extractBucket_(this.app_.options)
-          : null;
-      if (bucketFromOptions != null) {
-        this.bucket_ = new Location(bucketFromOptions, '');
-      }
+      this.bucket_ = StorageService.extractBucket_(this.app_?.options);
     }
     this.internals_ = new ServiceInternals(this);
   }
 
-  private static extractBucket_(config: FirebaseOptions): string | null {
-    const bucketString = config[constants.CONFIG_STORAGE_BUCKET_KEY] || null;
+  private static extractBucket_(config?: FirebaseOptions): Location | null {
+    const bucketString = config?.[constants.CONFIG_STORAGE_BUCKET_KEY];
     if (bucketString == null) {
       return null;
     }
-    const loc: Location = Location.makeFromBucketSpec(bucketString);
-    return loc.bucket;
+    return Location.makeFromBucketSpec(bucketString);
   }
 
-  getAuthToken(): Promise<string | null> {
+  async getAuthToken(): Promise<string | null> {
     const auth = this.authProvider_.getImmediate({ optional: true });
     if (auth) {
-      return auth.getToken().then(
-        (response: FirebaseAuthTokenData | null): string | null => {
-          if (response !== null) {
-            return response.accessToken;
-          } else {
-            return null;
-          }
-        },
-        () => null
-      );
-    } else {
-      return Promise.resolve(null);
+      const tokenData = await auth.getToken();
+      if (tokenData !== null) {
+        return tokenData.accessToken;
+      }
     }
+    return null;
   }
 
   /**
@@ -118,7 +96,8 @@ export class StorageService {
   deleteApp(): void {
     this.deleted_ = true;
     this.app_ = null;
-    this.requestMap_.clear();
+    this.requests_.forEach(request => request.cancel());
+    this.requests_.clear();
   }
 
   /**
@@ -128,7 +107,7 @@ export class StorageService {
    * @return A firebaseStorage.Reference.
    */
   makeStorageReference(loc: Location): Reference {
-    return this.storageRefMaker_(loc);
+    return new Reference(this, loc);
   }
 
   makeRequest<T>(
@@ -142,7 +121,12 @@ export class StorageService {
         authToken,
         this.pool_
       );
-      this.requestMap_.addRequest(request);
+      this.requests_.add(request);
+      // Request removes itself from set when complete.
+      request.getPromise().then(
+        () => this.requests_.delete(request),
+        () => this.requests_.delete(request)
+      );
       return request;
     } else {
       return new FailRequest(errorsExports.appDeleted());
