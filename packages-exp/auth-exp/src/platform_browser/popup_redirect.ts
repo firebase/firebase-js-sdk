@@ -121,8 +121,7 @@ function getRedirectUrl(
     authType,
     redirectUrl: _getCurrentUrl(),
     v: SDK_VERSION,
-    eventId,
-    tid: auth.tenantId || undefined
+    eventId
   };
 
   if (provider instanceof OAuthProvider) {
@@ -144,7 +143,10 @@ function getRedirectUrl(
     // }
   }
 
-  // TODO: maybe set tid as tenantId
+  if (auth.tenantId) {
+    params.tid = auth.tenantId;
+  }
+
   // TODO: maybe set eid as endipointId
   // TODO: maybe set fw as Frameworks.join(",")
 

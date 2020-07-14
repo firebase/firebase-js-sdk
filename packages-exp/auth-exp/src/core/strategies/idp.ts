@@ -21,15 +21,15 @@ import {
   signInWithIdp,
   SignInWithIdpRequest
 } from '../../api/authentication/idp';
+import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import { Auth } from '../../model/auth';
+import { IdTokenResponse } from '../../model/id_token';
 import { User, UserCredential } from '../../model/user';
+import { AuthCredential } from '../credentials';
 import { _link as _linkUser } from '../user/link_unlink';
 import { _reauthenticate } from '../user/reauthenticate';
 import { assert, debugFail } from '../util/assert';
 import { signInWithCredential } from './credential';
-import { AuthCredential } from '../credentials';
-import { IdTokenResponse } from '../../model/id_token';
-import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 
 export interface IdpTaskParams {
   auth: Auth;
@@ -90,23 +90,20 @@ class IdpCredential implements AuthCredential {
   }
 }
 
-export function _signIn(
-  params: IdpTaskParams
-): Promise<externs.UserCredential> {
-  return signInWithCredential(params.auth, new IdpCredential(params));
+export function _signIn(params: IdpTaskParams): Promise<UserCredential> {
+  return signInWithCredential(
+    params.auth,
+    new IdpCredential(params)
+  ) as Promise<UserCredential>;
 }
 
-export function _reauth(
-  params: IdpTaskParams
-): Promise<externs.UserCredential> {
+export function _reauth(params: IdpTaskParams): Promise<UserCredential> {
   const { auth, user } = params;
   assert(user, auth.name);
   return _reauthenticate(user, new IdpCredential(params));
 }
 
-export async function _link(
-  params: IdpTaskParams
-): Promise<externs.UserCredential> {
+export async function _link(params: IdpTaskParams): Promise<UserCredential> {
   const { auth, user } = params;
   assert(user, auth.name);
   return _linkUser(user, new IdpCredential(params));
