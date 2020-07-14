@@ -143,12 +143,30 @@ describe('Firestore', () => {
 });
 
 describe('doc', () => {
-  it('can provide name', () => {
+  it('can be used relative to Firestore root', () => {
     return withTestDb(db => {
       const result = doc(db, 'coll/doc');
       expect(result).to.be.an.instanceOf(DocumentReference);
       expect(result.id).to.equal('doc');
       expect(result.path).to.equal('coll/doc');
+    });
+  });
+
+  it('can be used relative to collection', () => {
+    return withTestDb(db => {
+      const result = doc(collection(db, 'coll'), 'doc');
+      expect(result).to.be.an.instanceOf(DocumentReference);
+      expect(result.id).to.equal('doc');
+      expect(result.path).to.equal('coll/doc');
+    });
+  });
+
+  it('can be relative to doc', () => {
+    return withTestDb(db => {
+      const result = doc(doc(db, 'coll/doc'), 'subcoll/subdoc');
+      expect(result).to.be.an.instanceOf(DocumentReference);
+      expect(result.id).to.equal('subdoc');
+      expect(result.path).to.equal('coll/doc/subcoll/subdoc');
     });
   });
 
@@ -179,9 +197,27 @@ describe('doc', () => {
 });
 
 describe('collection', () => {
-  it('can provide name', () => {
+  it('can be used relative to Firestore root', () => {
     return withTestDb(db => {
       const result = collection(db, 'coll/doc/subcoll');
+      expect(result).to.be.an.instanceOf(CollectionReference);
+      expect(result.id).to.equal('subcoll');
+      expect(result.path).to.equal('coll/doc/subcoll');
+    });
+  });
+
+  it('can be used relative to collection', () => {
+    return withTestDb(db => {
+      const result = collection(collection(db, 'coll'), 'doc/subcoll');
+      expect(result).to.be.an.instanceOf(CollectionReference);
+      expect(result.id).to.equal('subcoll');
+      expect(result.path).to.equal('coll/doc/subcoll');
+    });
+  });
+
+  it('can be used relative to doc', () => {
+    return withTestDb(db => {
+      const result = collection(doc(db, 'coll/doc'), 'subcoll');
       expect(result).to.be.an.instanceOf(CollectionReference);
       expect(result.id).to.equal('subcoll');
       expect(result.path).to.equal('coll/doc/subcoll');
@@ -196,7 +232,7 @@ describe('collection', () => {
       // TODO(firestorelite): Explore returning a more helpful message
       // (e.g. "Empty document paths are not supported.")
       expect(() => collection(doc(db, 'coll/doc'), '')).to.throw(
-        'Function doc() requires its second argument to be of type non-empty string, but it was: ""'
+        'Function collection() requires its second argument to be of type non-empty string, but it was: ""'
       );
       expect(() => collection(doc(db, 'coll/doc'), 'coll/doc')).to.throw(
         'Invalid collection path (coll/doc/coll/doc). Path points to a document.'
@@ -945,8 +981,7 @@ describe('equality', () => {
         const query1a = collRef.orderBy('foo');
         const query1b = collRef.orderBy('foo', 'asc');
         const query2 = collRef.orderBy('foo', 'desc');
-        // TODO(firestorelite): Should we allow `collectionRef(collRef, 'a/b')?
-        const query3 = collection(doc(collRef, 'a'), 'b').orderBy('foo');
+        const query3 = collection(collRef, 'a/b').orderBy('foo');
 
         expect(queryEqual(query1a, query1b)).to.be.true;
         expect(queryEqual(query1a, query2)).to.be.false;

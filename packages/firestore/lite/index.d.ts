@@ -71,6 +71,10 @@ export function collection(
   collectionPath: string
 ): CollectionReference<DocumentData>;
 export function collection(
+  reference: CollectionReference<unknown>,
+  collectionPath: string
+): CollectionReference<DocumentData>;
+export function collection(
   reference: DocumentReference,
   collectionPath: string
 ): CollectionReference<DocumentData>;
@@ -82,6 +86,10 @@ export function doc<T>(
   reference: CollectionReference<T>,
   documentPath?: string
 ): DocumentReference<T>;
+export function doc(
+  reference: DocumentReference<unknown>,
+  documentPath: string
+): DocumentReference<DocumentData>;
 export function parent(
   reference: CollectionReference<unknown>
 ): DocumentReference<DocumentData> | null;
