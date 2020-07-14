@@ -62,6 +62,7 @@ export { getReactNativePersistence } from './core/persistence/react_native';
 
 // core/providers
 export { EmailAuthProvider } from './core/providers/email';
+export { OAuthProvider } from './core/providers/oauth';
 export { PhoneAuthProvider } from './core/providers/phone';
 
 // core/strategies
@@ -96,6 +97,11 @@ export {
   linkWithPhoneNumber,
   reauthenticateWithPhoneNumber
 } from './core/strategies/phone';
+export {
+  signInWithPopup,
+  linkWithPopup,
+  reauthenticateWithPopup
+} from './core/strategies/popup';
 
 // core
 export { ActionCodeURL, parseActionCodeURL } from './core/action_code_url';
@@ -121,3 +127,6 @@ export async function deleteUser(user: externs.User): Promise<void> {
 export { PhoneMultiFactorGenerator } from './mfa/assertions/phone';
 export { getMultiFactorResolver } from './mfa/mfa_resolver';
 export { multiFactor } from './mfa/mfa_user';
+
+// TODO(samhorlbeck): This should be exported as a single const
+export { BrowserPopupRedirectResolver } from './platform_browser/popup_redirect';
