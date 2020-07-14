@@ -20,7 +20,11 @@ import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 
-import { resolveNodeExterns, generateAliasConfig } from './rollup.shared';
+import {
+  resolveNodeExterns,
+  generateAliasConfig,
+  removeAssertTransformer
+} from './rollup.shared';
 
 import pkg from './lite/package.json';
 import path from 'path';
@@ -34,7 +38,8 @@ const defaultPlugins = [
         target: 'es2017'
       }
     },
-    clean: true
+    clean: true,
+    transformers: removeAssertTransformer
   }),
   json({ preferConst: true })
 ];
