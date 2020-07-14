@@ -129,7 +129,6 @@ export function factory(
     throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
   }
   // Async but non-blocking.
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
   validateIndexedDBOpenable().catch(error => {
     throw ERROR_FACTORY.create(AnalyticsError.INVALID_INDEXED_DB_CONTEXT, {
       errorInfo: error
