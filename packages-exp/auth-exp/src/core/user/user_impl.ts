@@ -16,17 +16,21 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
+import { NextFn } from '@firebase/util';
 
-import { deleteAccount } from '../../api/account_management/account';
+import {
+  APIUserInfo,
+  deleteAccount
+} from '../../api/account_management/account';
+import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User } from '../../model/user';
 import { PersistedBlob } from '../persistence';
 import { assert } from '../util/assert';
 import { getIdTokenResult } from './id_token_result';
-import { _reloadWithoutSaving, reload } from './reload';
+import { reload, _reloadWithoutSaving } from './reload';
 import { StsTokenManager } from './token_manager';
-import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 
 export interface UserParameters {
   uid: string;
@@ -100,6 +104,28 @@ export class UserImpl implements User {
 
   reload(): Promise<void> {
     return reload(this);
+  }
+
+  private reloadUserInfo: APIUserInfo | null = null;
+  private reloadListener: NextFn<APIUserInfo> | null = null;
+
+  _onReload(callback: NextFn<APIUserInfo>): void {
+    // There should only ever be one listener, and that is a single instance of MultiFactorUser
+    assert(!this.reloadListener, this.auth.name);
+    this.reloadListener = callback;
+    if (this.reloadUserInfo) {
+      this._notifyReloadListener(this.reloadUserInfo);
+      this.reloadUserInfo = null;
+    }
+  }
+
+  _notifyReloadListener(userInfo: APIUserInfo): void {
+    if (this.reloadListener) {
+      this.reloadListener(userInfo);
+    } else {
+      // If no listener is subscribed yet, save the result so it's available when they do subscribe
+      this.reloadUserInfo = userInfo;
+    }
   }
 
   async _updateTokensIfNecessary(
