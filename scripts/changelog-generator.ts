@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-// import { ChangelogFunctions } from "@changesets/types";
+import { ChangelogFunctions } from '@changesets/types';
 // @ts-ignore
 // import { config } from "dotenv";
 const { getInfo } = require('@changesets/get-github-info');
 
 // config();
 
-const changelogFunctions = {
+const changelogFunctions: ChangelogFunctions = {
   getDependencyReleaseLine: async (
     changesets,
     dependenciesUpdated,
