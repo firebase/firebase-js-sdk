@@ -1141,7 +1141,7 @@
     fs-extra "^7.0.1"
     semver "^5.4.1"
 
-"@changesets/get-github-info@^0.4.3":
+"@changesets/get-github-info@0.4.3", "@changesets/get-github-info@^0.4.3":
   version "0.4.3"
   resolved "https://registry.npmjs.org/@changesets/get-github-info/-/get-github-info-0.4.3.tgz#ed3c3ca76dcbaf4c98aa950a20fc5438da1a2f2c"
   integrity sha512-hMtNDn4Kp2wDUohYipBIH3qGMxONZ3wEoaGtrflXHCSu57iulBcOSQ1oHRYSCJ9pO87dYQHA2XRUfrZUnqRfKA==
@@ -1219,7 +1219,7 @@
     fs-extra "^7.0.1"
     p-filter "^2.1.0"
 
-"@changesets/types@^3.0.0":
+"@changesets/types@3.0.0", "@changesets/types@^3.0.0":
   version "3.0.0"
   resolved "https://registry.npmjs.org/@changesets/types/-/types-3.0.0.tgz#3804662aa455c1622282ec3253cf6ddd309eee65"
   integrity sha512-9Mh/JqkX3nkjfu53ESM3UjFmR2meOo4Zw+Tp4vnon0XYtMurk7KjZG5L+J0fD3+Qx0A2FFTZrgydPwiHR4GrXQ==
@@ -14195,7 +14195,6 @@ symbol-observable@^1.1.0:
 
 "sync-promise@git+https://github.com/brettz9/sync-promise.git#full-sync-missing-promise-features":
   version "1.0.1"
-  uid "25845a49a00aa2d2c985a5149b97c86a1fcdc75a"
   resolved "git+https://github.com/brettz9/sync-promise.git#25845a49a00aa2d2c985a5149b97c86a1fcdc75a"
 
 syntax-error@^1.1.1:
@@ -15509,7 +15508,6 @@ websocket-extensions@>=0.1.1:
 
 "websql@git+https://github.com/brettz9/node-websql.git#configurable-secure2":
   version "1.0.0"
-  uid "5149bc0763376ca757fc32dc74345ada0467bfbb"
   resolved "git+https://github.com/brettz9/node-websql.git#5149bc0763376ca757fc32dc74345ada0467bfbb"
   dependencies:
     argsarray "^0.0.1"

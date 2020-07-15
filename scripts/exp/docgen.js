@@ -38,7 +38,7 @@ async function generateDocs() {
     fs.mkdirSync(tmpDir);
   }
 
-  // TODO: Throw error if path doesn't exist, once all packages add markdown support.
+  // TODO: Throw error if path doesn't exist once all packages add markdown support.
   const apiJsonDirectories = (
     await mapWorkspaceToPackages([
       `${projectRoot}/packages/*`,

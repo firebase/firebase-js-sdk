@@ -1,0 +1,47 @@
+{
+  "name": "@firebase/changelog-generator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "To generate changelog for Firebase SDKs",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.node.cjs.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "build": "tsc",
+    "test": "yarn type-check && run-p lint test:browser test:node",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "test:browser": "karma start --single-run",
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.* --config ../../config/mocharc.node.js",
+    "type-check": "tsc -p . --noEmit",
+    "prepare": "yarn build"
+  },
+  "dependencies": {
+    "@changesets/types": "3.0.0",
+    "@changesets/get-github-info": "0.4.3"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "rollup": "2.21.0",
+    "rollup-plugin-typescript2": "0.27.1",
+    "typescript": "3.9.6"
+  },
+  "repository": {
+    "directory": "packages/template",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "typings": "dist/index.d.ts",
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reportDir": "./coverage/node"
+  }
+}
