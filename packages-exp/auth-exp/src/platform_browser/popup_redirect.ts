@@ -21,6 +21,7 @@ import { isEmpty, querystring } from '@firebase/util';
 
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
+import { browserSessionPersistence } from '../core/persistence/browser';
 import { OAuthProvider } from '../core/providers/oauth';
 import { assert, debugAssert } from '../core/util/assert';
 import { _generateEventId } from '../core/util/event_id';
@@ -45,6 +46,8 @@ const WIDGET_URL = '__/auth/handler';
 class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   private eventManager: EventManager | null = null;
   private initializationPromise: Promise<EventManager> | null = null;
+
+  readonly _redirectPersistence = browserSessionPersistence;
 
   // Wrapping in async even though we don't await anywhere in order
   // to make sure errors are raised as promise rejections

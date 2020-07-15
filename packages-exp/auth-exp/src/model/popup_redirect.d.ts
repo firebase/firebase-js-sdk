@@ -87,4 +87,5 @@ export interface PopupRedirectResolver extends externs.PopupRedirectResolver {
     authType: AuthEventType,
     eventId?: string
   ): Promise<never>;
+  _redirectPersistence: externs.Persistence;
 }
