@@ -86,7 +86,13 @@ export class AuthImpl implements Auth {
       this.redirectUser = await this.redirectPersistenceManager.getCurrentUser();
 
       if (storedUser) {
-        if (storedUser?._redirectEventId !== this.redirectUser?._redirectEventId) {
+        console.log(!this.redirectUser || (this.redirectUser._redirectEventId !== storedUser._redirectEventId));
+        console.log(!this.redirectUser);
+        console.log(this.redirectUser?._redirectEventId);
+        console.log(storedUser._redirectEventId);
+        // Only reload the user if they're not in a pending redirect flow,
+        // otherwise reloading may cause an error (i.e. reauth)
+        if (!this.redirectUser || (this.redirectUser._redirectEventId !== storedUser._redirectEventId)) {
           await _reloadWithoutSaving(storedUser);
         }
 

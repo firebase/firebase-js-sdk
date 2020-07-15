@@ -27,17 +27,15 @@ import { testUser } from '../../../test/mock_auth';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { Persistence } from '../persistence';
-import { browserLocalPersistence } from '../persistence/browser';
+import { browserLocalPersistence, browserSessionPersistence } from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
+import * as reload from '../user/reload';
 import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import {
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST,
-  initializeAuth
+    DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST, initializeAuth
 } from './auth_impl';
 
 use(sinonChai);
@@ -288,6 +286,7 @@ describe('core/auth/initializeAuth', () => {
     let createManagerStub: sinon.SinonSpy;
     beforeEach(() => {
       createManagerStub = sinon.spy(PersistenceUserManager, 'create');
+      sinon.stub(reload, '_reloadWithoutSaving').returns(Promise.resolve());
     });
 
     async function initAndWait(
@@ -324,6 +323,31 @@ describe('core/auth/initializeAuth', () => {
         _getInstance(inMemoryPersistence),
         _getInstance(browserLocalPersistence)
       ]);
+    });
+
+    it('does not reload redirect users', async () => {
+      const user = testUser({}, 'uid');
+      user._redirectEventId = 'event-id';
+      sinon
+      .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
+      .returns(Promise.resolve(user.toPlainObject()));
+      sinon
+      .stub(_getInstance<Persistence>(browserSessionPersistence), 'get')
+      .returns(Promise.resolve(user.toPlainObject()));
+      await initAndWait(inMemoryPersistence);
+      expect(reload._reloadWithoutSaving).not.to.have.been.called;
+    });
+
+    it('reloads non-redirect users', async () => {
+      sinon
+      .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
+      .returns(Promise.resolve(testUser({}, 'uid').toPlainObject()));
+      sinon
+      .stub(_getInstance<Persistence>(browserSessionPersistence), 'get')
+      .returns(Promise.resolve(null));
+
+      await initAndWait(inMemoryPersistence);
+      expect(reload._reloadWithoutSaving).to.have.been.called;
     });
 
     it('sets auth name and config', async () => {
