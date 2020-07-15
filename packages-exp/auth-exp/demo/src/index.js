@@ -53,12 +53,12 @@ import {
   updateEmail,
   updatePassword,
   updateProfile,
-  verifyPasswordResetCode,
-  OAuthProvider,
-  signInWithPopup,
-  linkWithPopup,
-  reauthenticateWithPopup,
-  browserPopupRedirectResolver
+  verifyPasswordResetCode
+  // OAuthProvider,
+  // signInWithPopup,
+  // linkWithPopup,
+  // reauthenticateWithPopup,
+  // browserPopupRedirectResolver
 } from '@firebase/auth-exp';
 
 import { config } from './config';
@@ -79,6 +79,7 @@ let applicationVerifier = null;
 let multiFactorErrorResolver = null;
 let selectedMultiFactorHint = null;
 let recaptchaSize = 'normal';
+let webWorker = null;
 
 // The corresponding Font Awesome icons for each provider.
 const providersIcons = {
@@ -1565,20 +1566,27 @@ function checkDatabaseAuthAccess() {
   }
 }
 
-/** Runs all web worker tests if web workers are supported. */
+/**
+ * Runs various Firebase Auth tests in a web worker environment and confirms the
+ * expected behavior. This is useful for manual testing in different browsers.
+ * @param {string} googleIdToken The Google ID token to sign in with.
+ */
 function onRunWebWorkTests() {
-  alertNotImplemented();
-  // if (!webWorker) {
-  //   alertError('Error: Web workers are not supported in the current browser!');
-  //   return;
-  // }
-  // var onError = function(error) {
-  //   alertError('Error code: ' + error.code + ' message: ' + error.message);
-  // };
-  // auth.signInWithPopup(new GoogleAuthProvider())
-  //     .then(function(result) {
-  //       runWebWorkerTests(result.credential.idToken);
-  //     }, onError);
+  if (!webWorker) {
+    alertError('Error: Web workers are not supported in the current browser!');
+    return;
+  }
+  // auth.signInWithPopup(new GoogleAuthProvider()).then(
+  //   (result) => {
+  webWorker.postMessage({
+    type: 'RUN_TESTS'
+    // googleIdToken: result.credential.idToken
+  });
+  //   },
+  //   error => {
+  //     alertError('Error code: ' + error.code + ' message: ' + error.message);
+  //   }
+  // );
 }
 
 /** Runs service worker tests if supported. */
@@ -1702,21 +1710,20 @@ function initApp() {
 
   // Install servicerWorker if supported.
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker
-      .register('/service-worker.js', { scope: '/' })
-      .then(reg => {
-        // Registration worked.
-        console.log('Registration succeeded. Scope is ' + reg.scope);
-      })
-      .catch(error => {
-        // Registration failed.
-        console.log('Registration failed with ' + error.message);
-      });
+    // navigator.serviceWorker
+    //   .register('/service-worker.js', { scope: '/' })
+    //   .then(reg => {
+    //     // Registration worked.
+    //     console.log('Registration succeeded. Scope is ' + reg.scope);
+    //   })
+    //   .catch(error => {
+    //     // Registration failed.
+    //     console.log('Registration failed with ' + error.message);
+    //   });
   }
 
-  let webWorker = null;
   if (window.Worker) {
-    webWorker = new Worker('/web-worker.js');
+    webWorker = new Worker('/dist/web-worker.js');
     /**
      * Handles the incoming message from the web worker.
      * @param {!Object} e The message event received.
@@ -1749,24 +1756,6 @@ function initApp() {
   function onGetCurrentUserDataFromWebWorker() {
     if (webWorker) {
       webWorker.postMessage({ type: 'GET_USER_INFO' });
-    } else {
-      alertError(
-        'Error: Web workers are not supported in the current browser!'
-      );
-    }
-  }
-
-  /**
-   * Runs various Firebase Auth tests in a web worker environment and confirms the
-   * expected behavior. This is useful for manual testing in different browsers.
-   * @param {string} googleIdToken The Google ID token to sign in with.
-   */
-  function runWebWorkerTests(googleIdToken) {
-    if (webWorker) {
-      webWorker.postMessage({
-        type: 'RUN_TESTS',
-        googleIdToken
-      });
     } else {
       alertError(
         'Error: Web workers are not supported in the current browser!'

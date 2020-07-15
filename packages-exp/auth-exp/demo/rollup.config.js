@@ -14,14 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import resolve from '@rollup/plugin-node-resolve';
 import strip from '@rollup/plugin-strip';
-import pkg from './package.json';
+import typescriptPlugin from 'rollup-plugin-typescript2';
+import typescript from 'typescript';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+import pkg from './package.json';
 
 /**
  * Common plugins for all builds
@@ -40,7 +38,26 @@ const es5Builds = [
   {
     input: 'src/index.js',
     output: [{ file: pkg.bundle, format: 'esm', sourcemap: true }],
-    plugins: commonPlugins
+    plugins: commonPlugins,
+  },
+  {
+    input: 'src/worker/index.ts',
+    output: [{ file: pkg.worker, format: 'esm', sourcemap: true }],
+    plugins: [...commonPlugins,
+      typescriptPlugin({
+      typescript,
+      tsconfigOverride: {
+        compilerOptions: {
+          lib: [
+            // TODO: remove this
+            "dom",
+            "es5",
+            "es6",
+            "webworker"
+          ]
+        }
+      }
+      })],
   }
 ];
 
