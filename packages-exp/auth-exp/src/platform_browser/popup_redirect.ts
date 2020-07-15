@@ -34,6 +34,7 @@ import {
   GapiOutcome,
   PopupRedirectResolver
 } from '../model/popup_redirect';
+import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';
 
 /**
@@ -41,7 +42,7 @@ import { _openIframe } from './iframe/iframe';
  */
 const WIDGET_URL = '__/auth/handler';
 
-export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
+class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   private eventManager: EventManager | null = null;
   private initializationPromise: Promise<EventManager> | null = null;
 
@@ -61,6 +62,16 @@ export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     return _open(auth.name, url, _generateEventId());
   }
 
+  async _openRedirect(
+    auth: Auth,
+    provider: externs.AuthProvider,
+    authType: AuthEventType,
+    eventId?: string
+  ): Promise<never> {
+    _setWindowLocation(getRedirectUrl(auth, provider, authType, eventId));
+    return new Promise(() => {});
+  }
+
   _initialize(auth: Auth): Promise<EventManager> {
     if (this.eventManager) {
       return Promise.resolve(this.eventManager);
@@ -78,11 +89,10 @@ export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     const eventManager = new AuthEventManager(auth.name);
     iframe.register<GapiAuthEvent>(
       'authEvent',
-      async (message: GapiAuthEvent) => {
-        await eventManager.onEvent(message.authEvent);
-
-        // We always ACK with the iframe
-        return { status: GapiOutcome.ACK };
+      ({ authEvent }: GapiAuthEvent) => {
+        // TODO: Consider splitting redirect and popup events earlier on
+        const handled = eventManager.onEvent(authEvent);
+        return { status: handled ? GapiOutcome.ACK : GapiOutcome.ERROR };
       },
       gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER
     );
@@ -91,6 +101,8 @@ export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     return eventManager;
   }
 }
+
+export const browserPopupRedirectResolver: externs.PopupRedirectResolver = BrowserPopupRedirectResolver;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type WidgetParams = {
@@ -130,7 +142,7 @@ function getRedirectUrl(
     if (!isEmpty(provider.getCustomParameters())) {
       params.customParameters = JSON.stringify(provider.getCustomParameters());
     }
-    const scopes = provider.getScopes();
+    const scopes = provider.getScopes().filter(scope => scope !== '');
     if (scopes.length > 0) {
       params.scopes = scopes.join(',');
     }
@@ -145,6 +157,12 @@ function getRedirectUrl(
 
   if (auth.tenantId) {
     params.tid = auth.tenantId;
+  }
+
+  for (const key of Object.keys(params)) {
+    if ((params as Record<string, unknown>)[key] === undefined) {
+      delete (params as Record<string, unknown>)[key];
+    }
   }
 
   // TODO: maybe set eid as endipointId
