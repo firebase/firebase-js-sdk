@@ -18,10 +18,7 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { Auth } from '../../model/auth';
-import {
-  AuthEventType,
-  PopupRedirectResolver
-} from '../../model/popup_redirect';
+import { AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { Delay } from '../util/delay';
@@ -100,7 +97,7 @@ class PopupOperation extends AbstractPopupRedirectOperation {
 
   constructor(
     auth: Auth,
-    readonly filter: AuthEventType,
+    filter: AuthEventType,
     private readonly provider: externs.AuthProvider,
     resolver: PopupRedirectResolver,
     user?: User
@@ -118,7 +115,7 @@ class PopupOperation extends AbstractPopupRedirectOperation {
     this.authWindow = await this.resolver._openPopup(
       this.auth,
       this.provider,
-      this.filter,
+      this.filter[0],  // There's always one, see constructor
       eventId
     );
     this.authWindow.associatedEvent = eventId;

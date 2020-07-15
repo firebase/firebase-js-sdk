@@ -19,11 +19,7 @@ import { FirebaseError } from '@firebase/util';
 
 import { Auth } from '../../model/auth';
 import {
-  AuthEvent,
-  AuthEventConsumer,
-  AuthEventType,
-  EventManager,
-  PopupRedirectResolver
+    AuthEvent, AuthEventConsumer, AuthEventType, EventManager, PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
 import { AuthErrorCode } from '../errors';
@@ -43,15 +39,18 @@ export abstract class AbstractPopupRedirectOperation
   implements AuthEventConsumer {
   private pendingPromise: PendingPromise | null = null;
   private eventManager: EventManager | null = null;
+  readonly filter: AuthEventType[];
 
   abstract eventId: string | null;
 
   constructor(
     protected readonly auth: Auth,
-    readonly filter: AuthEventType,
+    filter: AuthEventType|AuthEventType[],
     protected readonly resolver: PopupRedirectResolver,
     protected user?: User
-  ) {}
+  ) {
+    this.filter = Array.isArray(filter) ? filter : [filter];
+  }
 
   abstract onExecution(): Promise<void>;
 
