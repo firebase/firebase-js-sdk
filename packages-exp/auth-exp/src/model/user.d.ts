@@ -43,6 +43,8 @@ export interface User extends externs.User {
   providerData: MutableUserInfo[];
   metadata: externs.UserMetadata;
 
+  _redirectEventId?: string;
+
   _updateTokensIfNecessary(
     response: IdTokenResponse | FinalizeMfaResponse,
     reload?: boolean

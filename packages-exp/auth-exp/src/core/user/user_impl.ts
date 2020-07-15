@@ -73,6 +73,8 @@ export class UserImpl implements User {
   photoURL: string | null;
   isAnonymous: boolean = false;
 
+  _redirectEventId?: string;
+
   constructor({ uid, auth, stsTokenManager, ...opt }: UserParameters) {
     this.uid = uid;
     this.auth = auth;
@@ -169,7 +171,8 @@ export class UserImpl implements User {
       displayName: this.displayName || undefined,
       email: this.email || undefined,
       phoneNumber: this.phoneNumber || undefined,
-      photoURL: this.phoneNumber || undefined
+      photoURL: this.phoneNumber || undefined,
+      _redirectEventId: this._redirectEventId
     };
   }
 
@@ -184,7 +187,8 @@ export class UserImpl implements User {
       displayName,
       email,
       phoneNumber,
-      photoURL
+      photoURL,
+      _redirectEventId
     } = object;
 
     assert(uid && plainObjectTokenManager, auth.name);
@@ -199,7 +203,8 @@ export class UserImpl implements User {
     assertStringOrUndefined(email, auth.name);
     assertStringOrUndefined(phoneNumber, auth.name);
     assertStringOrUndefined(photoURL, auth.name);
-    return new UserImpl({
+    assertStringOrUndefined(_redirectEventId, auth.name);
+    const user = new UserImpl({
       uid,
       auth,
       stsTokenManager,
@@ -208,6 +213,11 @@ export class UserImpl implements User {
       phoneNumber,
       photoURL
     });
+    if (_redirectEventId) {
+      user._redirectEventId = _redirectEventId;
+    }
+
+    return user;
   }
 
   /**
