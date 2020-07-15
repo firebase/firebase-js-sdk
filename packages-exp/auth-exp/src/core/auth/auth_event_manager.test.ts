@@ -34,17 +34,14 @@ describe('src/core/auth/auth_event_manager', () => {
   let manager: AuthEventManager;
 
   function makeConsumer(
-    filter: AuthEventType
+    filter: AuthEventType | AuthEventType[]
   ): sinon.SinonStubbedInstance<AuthEventConsumer> {
     const stub = sinon.stub({
-      filter,
-      isMatchingEvent: () => true,
+      filter: Array.isArray(filter) ? filter : [filter],
       onAuthEvent: () => {},
-      onError: () => {}
+      onError: () => {},
+      eventId: null
     });
-
-    // Make isMatchingEvent call through by default
-    stub.isMatchingEvent.returns(true);
 
     return stub;
   }
@@ -94,21 +91,22 @@ describe('src/core/auth/auth_event_manager', () => {
     expect(consumer.onAuthEvent).not.to.have.been.called;
   });
 
-  it('calls isMatchingEvent with the event id', () => {
+  it('does not call through if eventId does not match', () => {
     const consumer = makeConsumer(AuthEventType.REAUTH_VIA_POPUP);
+    consumer.eventId = 'not-event-id';
     manager.registerConsumer(consumer);
+
     manager.onEvent(makeEvent(AuthEventType.REAUTH_VIA_POPUP, 'event-id'));
-    expect(consumer.isMatchingEvent).to.have.been.calledWith('event-id');
+    expect(consumer.onAuthEvent).not.to.have.been.called;
   });
 
-  it('does not call through if isMatchingEvent is false', () => {
+  it('does call through if eventId is null', () => {
     const consumer = makeConsumer(AuthEventType.REAUTH_VIA_POPUP);
+    consumer.eventId = null;
     manager.registerConsumer(consumer);
-    consumer.isMatchingEvent.returns(false);
 
-    manager.onEvent(makeEvent(AuthEventType.REAUTH_VIA_POPUP));
-    expect(consumer.onAuthEvent).not.to.have.been.called;
-    expect(consumer.isMatchingEvent).to.have.been.called;
+    manager.onEvent(makeEvent(AuthEventType.REAUTH_VIA_POPUP, 'event-id'));
+    expect(consumer.onAuthEvent).to.have.been.called;
   });
 
   it('converts errors into FirebaseError if the type matches', () => {
@@ -138,5 +136,60 @@ describe('src/core/auth/auth_event_manager', () => {
     manager.onEvent(event);
     const error = consumer.onError.getCall(0).args[0];
     expect(error.code).to.eq(`auth/${AuthErrorCode.INTERNAL_ERROR}`);
+  });
+
+  context('redirect consumers', () => {
+    let consumer: AuthEventConsumer;
+
+    beforeEach(() => {
+      consumer = makeConsumer([
+        AuthEventType.SIGN_IN_VIA_REDIRECT,
+        AuthEventType.LINK_VIA_REDIRECT,
+        AuthEventType.REAUTH_VIA_REDIRECT
+      ]);
+    });
+
+    it('redirect events are queued until the future', () => {
+      const event = makeEvent(AuthEventType.REAUTH_VIA_REDIRECT);
+      expect(manager.onEvent(event)).to.be.true;
+
+      manager.registerConsumer(consumer);
+      expect(consumer.onAuthEvent).to.have.been.calledWith(event);
+    });
+
+    it('queued redirects only work for the first new consumer', () => {
+      const event = makeEvent(AuthEventType.REAUTH_VIA_REDIRECT);
+      expect(manager.onEvent(event)).to.be.true;
+
+      manager.registerConsumer(consumer);
+      expect(consumer.onAuthEvent).to.have.been.calledWith(event);
+
+      const consumerB = makeConsumer(AuthEventType.REAUTH_VIA_REDIRECT);
+      manager.registerConsumer(consumerB);
+      expect(consumerB.onAuthEvent).not.to.have.been.called;
+    });
+
+    it('does not queue a redirect event if it was handled immediately', () => {
+      const event = makeEvent(AuthEventType.REAUTH_VIA_REDIRECT);
+      manager.registerConsumer(consumer);
+
+      expect(manager.onEvent(event)).to.be.true;
+      expect(consumer.onAuthEvent).to.have.been.calledWith(event);
+
+      const consumerB = makeConsumer(AuthEventType.REAUTH_VIA_REDIRECT);
+      manager.registerConsumer(consumerB);
+      expect(consumerB.onAuthEvent).not.to.have.been.called;
+    });
+
+    it('unknown auth error prevents consumption of future redirect events', () => {
+      const event = makeEvent(AuthEventType.UNKNOWN);
+      event.error = { code: 'auth/no-auth-event' } as AuthEventError;
+      expect(manager.onEvent(event)).to.be.true;
+      expect(manager.onEvent(makeEvent(AuthEventType.SIGN_IN_VIA_REDIRECT))).to
+        .be.false;
+
+      manager.registerConsumer(consumer);
+      expect(consumer.onAuthEvent).not.to.have.been.called;
+    });
   });
 });

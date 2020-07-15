@@ -43,15 +43,18 @@ export abstract class AbstractPopupRedirectOperation
   implements AuthEventConsumer {
   private pendingPromise: PendingPromise | null = null;
   private eventManager: EventManager | null = null;
+  readonly filter: AuthEventType[];
 
   abstract eventId: string | null;
 
   constructor(
     protected readonly auth: Auth,
-    readonly filter: AuthEventType,
+    filter: AuthEventType | AuthEventType[],
     protected readonly resolver: PopupRedirectResolver,
     protected user?: User
-  ) {}
+  ) {
+    this.filter = Array.isArray(filter) ? filter : [filter];
+  }
 
   abstract onExecution(): Promise<void>;
 
@@ -94,10 +97,6 @@ export abstract class AbstractPopupRedirectOperation
 
   onError(error: FirebaseError): void {
     this.reject(error);
-  }
-
-  isMatchingEvent(eventId: string | null): boolean {
-    return !!eventId && this.eventId === eventId;
   }
 
   private getIdpTask(type: AuthEventType): IdpTask {

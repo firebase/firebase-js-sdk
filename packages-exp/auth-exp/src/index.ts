@@ -128,5 +128,4 @@ export { PhoneMultiFactorGenerator } from './mfa/assertions/phone';
 export { getMultiFactorResolver } from './mfa/mfa_resolver';
 export { multiFactor } from './mfa/mfa_user';
 
-// TODO(samhorlbeck): This should be exported as a single const
-export { BrowserPopupRedirectResolver } from './platform_browser/popup_redirect';
+export { browserPopupRedirectResolver } from './platform_browser/popup_redirect';
