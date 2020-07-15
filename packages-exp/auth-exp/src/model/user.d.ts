@@ -16,11 +16,13 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
+import { NextFn } from '@firebase/util';
 
+import { APIUserInfo } from '../api/account_management/account';
+import { FinalizeMfaResponse } from '../api/authentication/mfa';
 import { PersistedBlob } from '../core/persistence';
 import { Auth } from './auth';
 import { IdTokenResponse } from './id_token';
-import { FinalizeMfaResponse } from '../api/authentication/mfa';
 
 type MutableUserInfo = {
   -readonly [K in keyof externs.UserInfo]: externs.UserInfo[K];
@@ -45,6 +47,9 @@ export interface User extends externs.User {
     response: IdTokenResponse | FinalizeMfaResponse,
     reload?: boolean
   ): Promise<void>;
+
+  _onReload: (cb: NextFn<APIUserInfo>) => void;
+  _notifyReloadListener: NextFn<APIUserInfo>;
 
   getIdToken(forceRefresh?: boolean): Promise<string>;
   getIdTokenResult(forceRefresh?: boolean): Promise<externs.IdTokenResult>;
