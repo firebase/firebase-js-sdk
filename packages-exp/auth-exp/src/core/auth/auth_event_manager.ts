@@ -16,10 +16,7 @@
  */
 
 import {
-  AuthEvent,
-  AuthEventConsumer,
-  AuthEventType,
-  EventManager
+    AuthEvent, AuthEventConsumer, AuthEventType, EventManager
 } from '../../model/popup_redirect';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 
@@ -81,7 +78,6 @@ export class AuthEventManager implements EventManager {
 
   private sendToConsumer(event: AuthEvent, consumer: AuthEventConsumer): void {
     if (event.error) {
-      console.error('ERROR');
       const code =
         (event.error.code?.split('auth/')[1] as AuthErrorCode) ||
         AuthErrorCode.INTERNAL_ERROR;
