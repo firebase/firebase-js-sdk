@@ -146,7 +146,7 @@ export class UserImpl implements User {
       email: this.email || undefined,
       phoneNumber: this.phoneNumber || undefined,
       photoURL: this.phoneNumber || undefined,
-      _redirectEventId: this._redirectEventId,
+      _redirectEventId: this._redirectEventId
     };
   }
 
@@ -162,7 +162,7 @@ export class UserImpl implements User {
       email,
       phoneNumber,
       photoURL,
-      _redirectEventId,
+      _redirectEventId
     } = object;
 
     assert(uid && plainObjectTokenManager, auth.name);

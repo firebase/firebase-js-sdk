@@ -19,7 +19,13 @@ import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 import {
-    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
+  CompleteFn,
+  createSubscribe,
+  ErrorFn,
+  NextFn,
+  Observer,
+  Subscribe,
+  Unsubscribe
 } from '@firebase/util';
 
 import { Auth, Dependencies } from '../../model/auth';
@@ -28,7 +34,8 @@ import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
 import { browserSessionPersistence } from '../persistence/browser';
 import {
-    _REDIRECT_USER_KEY_NAME, PersistenceUserManager
+  _REDIRECT_USER_KEY_NAME,
+  PersistenceUserManager
 } from '../persistence/persistence_user_manager';
 import { _reloadWithoutSaving } from '../user/reload';
 import { assert } from '../util/assert';
@@ -51,7 +58,7 @@ export class AuthImpl implements Auth {
   private redirectPersistenceManager?: PersistenceUserManager;
   private authStateSubscription = new Subscription<User>(this);
   private idTokenSubscription = new Subscription<User>(this);
-  private redirectUser: User|null = null;
+  private redirectUser: User | null = null;
   _isInitialized = false;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -86,13 +93,19 @@ export class AuthImpl implements Auth {
       this.redirectUser = await this.redirectPersistenceManager.getCurrentUser();
 
       if (storedUser) {
-        console.log(!this.redirectUser || (this.redirectUser._redirectEventId !== storedUser._redirectEventId));
+        console.log(
+          !this.redirectUser ||
+            this.redirectUser._redirectEventId !== storedUser._redirectEventId
+        );
         console.log(!this.redirectUser);
         console.log(this.redirectUser?._redirectEventId);
         console.log(storedUser._redirectEventId);
         // Only reload the user if they're not in a pending redirect flow,
         // otherwise reloading may cause an error (i.e. reauth)
-        if (!this.redirectUser || (this.redirectUser._redirectEventId !== storedUser._redirectEventId)) {
+        if (
+          !this.redirectUser ||
+          this.redirectUser._redirectEventId !== storedUser._redirectEventId
+        ) {
           await _reloadWithoutSaving(storedUser);
         }
 
@@ -155,7 +168,7 @@ export class AuthImpl implements Auth {
     return this.redirectPersistenceManager?.setCurrentUser(user);
   }
 
-  _redirectUserForId(id: string): User|null {
+  _redirectUserForId(id: string): User | null {
     if (this.currentUser?._redirectEventId === id) {
       return this.currentUser;
     }

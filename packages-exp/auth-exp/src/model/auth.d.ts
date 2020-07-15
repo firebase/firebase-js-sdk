@@ -43,7 +43,7 @@ export interface Auth extends externs.Auth {
   _notifyListenersIfCurrent(user: User): void;
   _persistUserIfCurrent(user: User): Promise<void>;
   _setRedirectUser(user: User): Promise<void>;
-  _redirectUserForId(id: string): User|null;
+  _redirectUserForId(id: string): User | null;
 }
 
 export interface Dependencies {
