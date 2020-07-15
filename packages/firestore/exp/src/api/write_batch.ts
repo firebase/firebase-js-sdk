@@ -22,14 +22,15 @@ import * as firestore from '../../index';
 import { cast } from '../../../lite/src/api/util';
 import { WriteBatch } from '../../../lite/src/api/write_batch';
 import { Firestore } from './database';
+import { getFirestoreClient } from './components';
 
 export function writeBatch(
   firestore: firestore.FirebaseFirestore
 ): firestore.WriteBatch {
   const firestoreImpl = cast(firestore, Firestore);
   return new WriteBatch(firestoreImpl, writes =>
-    firestoreImpl
-      ._getFirestoreClient()
-      .then(firestoreClient => firestoreClient.write(writes))
+    getFirestoreClient(firestoreImpl).then(firestoreClient =>
+      firestoreClient.write(writes)
+    )
   );
 }
