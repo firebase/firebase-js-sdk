@@ -16,22 +16,22 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { doc, filter, path } from '../../util/helpers';
+import { doc, filter, query } from '../../util/helpers';
 
 import { Document } from '../../../src/model/document';
-import { ResourcePath } from '../../../src/model/path';
 import { describeSpec, specTest } from './describe_spec';
 import { spec, SpecBuilder } from './spec_builder';
+import { ResourcePath } from '../../../src/model/path';
 
 // Helper to seed the cache with the specified docs by listening to each one.
 function specWithCachedDocs(...docs: Document[]): SpecBuilder {
   let builder = spec();
   for (const doc of docs) {
-    const query = Query.atPath(doc.key.path);
+    const query1 = Query.atPath(doc.key.path);
     builder = builder
-      .userListens(query)
-      .watchAcksFull(query, 1000, doc)
-      .expectEvents(query, { added: [doc] });
+      .userListens(query1)
+      .watchAcksFull(query1, 1000, doc)
+      .expectEvents(query1, { added: [doc] });
   }
   return builder;
 }
@@ -103,7 +103,7 @@ describeSpec('Queries:', [], () => {
     'Latency-compensated updates are included in query results',
     [],
     () => {
-      const fullQuery = Query.atPath(path('collection'));
+      const fullQuery = query('collection');
       const filteredQuery = fullQuery.addFilter(filter('match', '==', true));
       const docA = doc('collection/a', 1000, { match: false });
       const docAv2Local = doc(
