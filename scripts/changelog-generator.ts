@@ -16,11 +16,7 @@
  */
 
 import { ChangelogFunctions } from '@changesets/types';
-// @ts-ignore
-// import { config } from "dotenv";
-const { getInfo } = require('@changesets/get-github-info');
-
-// config();
+import { getInfo } from '@changesets/get-github-info';
 
 const changelogFunctions: ChangelogFunctions = {
   getDependencyReleaseLine: async (
@@ -74,8 +70,6 @@ const changelogFunctions: ChangelogFunctions = {
       });
       return `\n\n- ${links.commit}${
         links.pull === null ? '' : ` ${links.pull}`
-      }${
-        links.user === null ? '' : ` Thanks ${links.user}!`
       } - ${firstLine}\n${futureLines.map(l => `  ${l}`).join('\n')}`;
     } else {
       return `\n\n- ${firstLine}\n${futureLines.map(l => `  ${l}`).join('\n')}`;
