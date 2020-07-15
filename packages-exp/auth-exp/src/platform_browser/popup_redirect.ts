@@ -28,11 +28,7 @@ import { _getCurrentUrl } from '../core/util/location';
 import { _open, AuthPopup } from '../core/util/popup';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
-  AuthEventType,
-  EventManager,
-  GapiAuthEvent,
-  GapiOutcome,
-  PopupRedirectResolver
+    AuthEventType, EventManager, GapiAuthEvent, GapiOutcome, PopupRedirectResolver
 } from '../model/popup_redirect';
 import { _openIframe } from './iframe/iframe';
 
@@ -41,7 +37,7 @@ import { _openIframe } from './iframe/iframe';
  */
 const WIDGET_URL = '__/auth/handler';
 
-export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
+class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   private eventManager: EventManager | null = null;
   private initializationPromise: Promise<EventManager> | null = null;
 
@@ -61,6 +57,16 @@ export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     return _open(auth.name, url, _generateEventId());
   }
 
+  async _openRedirect(
+    auth: Auth,
+    provider: externs.AuthProvider,
+    authType: AuthEventType,
+    eventId?: string
+  ): Promise<never> {
+    window.location.href = getRedirectUrl(auth, provider, authType, eventId);
+    return new Promise(() => {});
+  }
+
   _initialize(auth: Auth): Promise<EventManager> {
     if (this.eventManager) {
       return Promise.resolve(this.eventManager);
@@ -78,11 +84,12 @@ export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     const eventManager = new AuthEventManager(auth.name);
     iframe.register<GapiAuthEvent>(
       'authEvent',
-      async (message: GapiAuthEvent) => {
-        await eventManager.onEvent(message.authEvent);
+      ({authEvent}: GapiAuthEvent) => {
+        const handled = eventManager.onEvent(authEvent);
 
+        console.log(handled ? 'Handled auth message' : 'Other-window message');
         // We always ACK with the iframe
-        return { status: GapiOutcome.ACK };
+        return { status: handled ? GapiOutcome.ACK : GapiOutcome.ERROR };
       },
       gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER
     );
@@ -91,6 +98,8 @@ export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     return eventManager;
   }
 }
+
+export const browserPopupRedirectResolver: externs.PopupRedirectResolver = BrowserPopupRedirectResolver;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type WidgetParams = {
@@ -130,7 +139,7 @@ function getRedirectUrl(
     if (!isEmpty(provider.getCustomParameters())) {
       params.customParameters = JSON.stringify(provider.getCustomParameters());
     }
-    const scopes = provider.getScopes();
+    const scopes = provider.getScopes().filter(scope => scope !== '');
     if (scopes.length > 0) {
       params.scopes = scopes.join(',');
     }
@@ -147,6 +156,12 @@ function getRedirectUrl(
     params.tid = auth.tenantId;
   }
 
+  for (const key of Object.keys(params)) {
+    if ((params as Record<string, unknown>)[key] === undefined) {
+      delete (params as Record<string, unknown>)[key];
+    }
+  }
+
   // TODO: maybe set eid as endipointId
   // TODO: maybe set fw as Frameworks.join(",")
 
@@ -155,6 +170,8 @@ function getRedirectUrl(
       params as Record<string, string | number>
     ).slice(1)}`
   );
+
+  console.log(url);
 
   return url.toString();
 }
