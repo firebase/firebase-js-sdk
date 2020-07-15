@@ -17,9 +17,9 @@
 import { assert } from 'chai';
 import * as sinon from 'sinon';
 import firebase from '@firebase/app';
-import { makeRequest } from '../src/implementation/request';
-import { RequestInfo } from '../src/implementation/requestinfo';
-import { XhrIo } from '../src/implementation/xhrio';
+import { makeRequest } from '../../src/implementation/request';
+import { RequestInfo } from '../../src/implementation/requestinfo';
+import { XhrIo } from '../../src/implementation/xhrio';
 import { makePool } from './testshared';
 import { TestingXhrIo } from './xhrio';
 

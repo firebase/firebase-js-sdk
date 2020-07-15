@@ -16,11 +16,11 @@
  */
 import { expect } from 'chai';
 import { FirebaseApp } from '@firebase/app-types';
-import * as constants from '../src/implementation/constants';
-import { Code, FirebaseStorageError } from '../src/implementation/error';
-import * as type from '../src/implementation/type';
-import { Headers, XhrIo } from '../src/implementation/xhrio';
-import { XhrIoPool } from '../src/implementation/xhriopool';
+import * as constants from '../../src/implementation/constants';
+import { Code, FirebaseStorageError } from '../../src/implementation/error';
+import * as type from '../../src/implementation/type';
+import { Headers, XhrIo } from '../../src/implementation/xhrio';
+import { XhrIoPool } from '../../src/implementation/xhriopool';
 import { SendHook, StringHeaders, TestingXhrIo } from './xhrio';
 import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 import {
