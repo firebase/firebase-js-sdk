@@ -19,13 +19,7 @@ import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 import {
-  CompleteFn,
-  createSubscribe,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Subscribe,
-  Unsubscribe
+    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
 } from '@firebase/util';
 
 import { Auth, Dependencies } from '../../model/auth';
@@ -34,8 +28,7 @@ import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
 import {
-  _REDIRECT_USER_KEY_NAME,
-  PersistenceUserManager
+    _REDIRECT_USER_KEY_NAME, PersistenceUserManager
 } from '../persistence/persistence_user_manager';
 import { _reloadWithoutSaving } from '../user/reload';
 import { assert } from '../util/assert';
@@ -115,7 +108,6 @@ export class AuthImpl implements Auth {
 
     this.redirectUser = await this.redirectPersistenceManager.getCurrentUser();
 
-    console.log(this.redirectUser);
     // If the redirect user's event ID matches the current user's event ID,
     // DO NOT reload the current user, otherwise they'll be cleared from storage.
     // This is important for the reauthenticateWithRedirect() flow.
