@@ -86,7 +86,7 @@ export class FirebaseFirestore {
 
   onSnapshotsInSync(observer: {
     next?: (value: void) => void;
-    error?: (error: Error) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }): () => void;
   onSnapshotsInSync(onSync: () => void): () => void;
@@ -234,19 +234,19 @@ export class DocumentReference<T = DocumentData> {
     options: SnapshotListenOptions,
     observer: {
       next?: (snapshot: DocumentSnapshot<T>) => void;
-      error?: (error: Error) => void;
+      error?: (error: FirestoreError) => void;
       complete?: () => void;
     }
   ): () => void;
   onSnapshot(
     onNext: (snapshot: DocumentSnapshot<T>) => void,
-    onError?: (error: Error) => void,
+    onError?: (error: FirestoreError) => void,
     onCompletion?: () => void
   ): () => void;
   onSnapshot(
     options: SnapshotListenOptions,
     onNext: (snapshot: DocumentSnapshot<T>) => void,
-    onError?: (error: Error) => void,
+    onError?: (error: FirestoreError) => void,
     onCompletion?: () => void
   ): () => void;
 
@@ -337,26 +337,26 @@ export class Query<T = DocumentData> {
 
   onSnapshot(observer: {
     next?: (snapshot: QuerySnapshot<T>) => void;
-    error?: (error: Error) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }): () => void;
   onSnapshot(
     options: SnapshotListenOptions,
     observer: {
       next?: (snapshot: QuerySnapshot<T>) => void;
-      error?: (error: Error) => void;
+      error?: (error: FirestoreError) => void;
       complete?: () => void;
     }
   ): () => void;
   onSnapshot(
     onNext: (snapshot: QuerySnapshot<T>) => void,
-    onError?: (error: Error) => void,
+    onError?: (error: FirestoreError) => void,
     onCompletion?: () => void
   ): () => void;
   onSnapshot(
     options: SnapshotListenOptions,
     onNext: (snapshot: QuerySnapshot<T>) => void,
-    onError?: (error: Error) => void,
+    onError?: (error: FirestoreError) => void,
     onCompletion?: () => void
   ): () => void;
 
