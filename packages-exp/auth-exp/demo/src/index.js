@@ -31,7 +31,6 @@ import {
   createUserWithEmailAndPassword,
   EmailAuthProvider,
   fetchSignInMethodsForEmail,
-  getMultiFactorResolver,
   indexedDBLocalPersistence,
   initializeAuth,
   inMemoryPersistence,
@@ -54,10 +53,15 @@ import {
   updatePassword,
   updateProfile,
   verifyPasswordResetCode,
+  getMultiFactorResolver,
   OAuthProvider,
   signInWithPopup,
   linkWithPopup,
   reauthenticateWithPopup,
+  signInWithRedirect,
+  linkWithRedirect,
+  reauthenticateWithRedirect,
+  getRedirectResult,
   browserPopupRedirectResolver
 } from '@firebase/auth-exp/dist/index.browser';
 
@@ -1240,12 +1244,16 @@ function signInWithPopupRedirect(provider) {
   const glob = {
     signInWithPopup,
     linkWithPopup,
-    reauthenticateWithPopup
-  };
+    reauthenticateWithPopup,
+    signInWithRedirect,
+    linkWithRedirect,
+    reauthenticateWithRedirect
+  }
   let action = $('input[name=popup-redirect-action]:checked').val();
   let type = $('input[name=popup-redirect-type]:checked').val();
   let method = null;
   let inst = null;
+
   if (action == 'link' || action == 'reauthenticate') {
     if (!activeUser()) {
       alertError('No user logged in.');
@@ -1310,13 +1318,12 @@ function signInWithPopupRedirect(provider) {
       onAuthError
     );
   } else {
-    alertNotImplemented();
-    // try {
-    //   inst[method](provider).catch(onAuthError);
-    // } catch (error) {
-    //   console.log('Error while calling ' + method);
-    //   console.error(error);
-    // }
+    try {
+      glob[method](inst, provider, browserPopupRedirectResolver).catch(onAuthError);
+    } catch (error) {
+      console.log('Error while calling ' + method);
+      console.error(error);
+    }
   }
 }
 
@@ -1334,24 +1341,23 @@ function onAuthUserCredentialSuccess(result) {
  * Displays redirect result.
  */
 function onGetRedirectResult() {
-  alertNotImplemented();
-  // auth.getRedirectResult().then(function(response) {
-  //   log('Redirect results:');
-  //   if (response.credential) {
-  //     log('Credential:');
-  //     log(response.credential);
-  //   } else {
-  //     log('No credential');
-  //   }
-  //   if (response.user) {
-  //     log('User\'s id:');
-  //     log(response.user.uid);
-  //   } else {
-  //     log('No user');
-  //   }
-  //   logAdditionalUserInfo(response);
-  //   console.log(response);
-  // }, onAuthError);
+  getRedirectResult(auth, browserPopupRedirectResolver).then(function(response) {
+    log('Redirect results:');
+    if (response.credential) {
+      log('Credential:');
+      log(response.credential);
+    } else {
+      log('No credential');
+    }
+    if (response.user) {
+      log('User\'s id:');
+      log(response.user.uid);
+    } else {
+      log('No user');
+    }
+    logAdditionalUserInfo(response);
+    console.log(response);
+  }, onAuthError);
 }
 
 /**
@@ -1764,11 +1770,10 @@ function initApp() {
   }
 
   // We check for redirect result to refresh user's data.
-  // TODO: redirect result
-  // auth.getRedirectResult().then(function(response) {
-  //   refreshUserData();
-  //   logAdditionalUserInfo(response);
-  // }, onAuthError);
+  getRedirectResult(auth, browserPopupRedirectResolver).then(function(response) {
+    refreshUserData();
+    logAdditionalUserInfo(response);
+  }, onAuthError);
 
   // Bootstrap tooltips.
   $('[data-toggle="tooltip"]').tooltip();
