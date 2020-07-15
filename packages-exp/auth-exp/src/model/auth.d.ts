@@ -16,7 +16,7 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { ErrorFn, CompleteFn, Unsubscribe } from '@firebase/util';
+import { CompleteFn, ErrorFn, Unsubscribe } from '@firebase/util';
 
 import { User } from './user';
 
@@ -42,6 +42,8 @@ export interface Auth extends externs.Auth {
   ): Unsubscribe;
   _notifyListenersIfCurrent(user: User): void;
   _persistUserIfCurrent(user: User): Promise<void>;
+  _setRedirectUser(user: User): Promise<void>;
+  _redirectUserForId(id: string): User|null;
 }
 
 export interface Dependencies {

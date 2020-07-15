@@ -19,20 +19,18 @@ import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 import {
-  CompleteFn,
-  createSubscribe,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Subscribe,
-  Unsubscribe
+    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
 } from '@firebase/util';
 
 import { Auth, Dependencies } from '../../model/auth';
 import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
-import { PersistenceUserManager } from '../persistence/persistence_user_manager';
+import { browserSessionPersistence } from '../persistence/browser';
+import {
+    _REDIRECT_USER_KEY_NAME, PersistenceUserManager
+} from '../persistence/persistence_user_manager';
+import { _reloadWithoutSaving } from '../user/reload';
 import { assert } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
@@ -50,8 +48,10 @@ export class AuthImpl implements Auth {
   currentUser: User | null = null;
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
+  private redirectPersistenceManager?: PersistenceUserManager;
   private authStateSubscription = new Subscription<User>(this);
   private idTokenSubscription = new Subscription<User>(this);
+  private redirectUser: User|null = null;
   _isInitialized = false;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -76,9 +76,20 @@ export class AuthImpl implements Auth {
         persistenceHierarchy
       );
 
+      this.redirectPersistenceManager = await PersistenceUserManager.create(
+        this,
+        [_getInstance(browserSessionPersistence)],
+        _REDIRECT_USER_KEY_NAME
+      );
+
       const storedUser = await this.persistenceManager.getCurrentUser();
-      // TODO: Check redirect user, if not redirect user, call refresh on stored user
+      this.redirectUser = await this.redirectPersistenceManager.getCurrentUser();
+
       if (storedUser) {
+        if (storedUser?._redirectEventId !== this.redirectUser?._redirectEventId) {
+          await _reloadWithoutSaving(storedUser);
+        }
+
         await this.directlySetCurrentUser(storedUser);
       }
 
@@ -132,6 +143,22 @@ export class AuthImpl implements Auth {
       error,
       completed
     );
+  }
+
+  async _setRedirectUser(user: User): Promise<void> {
+    return this.redirectPersistenceManager?.setCurrentUser(user);
+  }
+
+  _redirectUserForId(id: string): User|null {
+    if (this.currentUser?._redirectEventId === id) {
+      return this.currentUser;
+    }
+
+    if (this.redirectUser?._redirectEventId === id) {
+      return this.currentUser;
+    }
+
+    return null;
   }
 
   async _persistUserIfCurrent(user: User): Promise<void> {

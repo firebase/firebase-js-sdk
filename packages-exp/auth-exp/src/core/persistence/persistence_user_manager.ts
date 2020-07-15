@@ -23,15 +23,16 @@ import { _getInstance } from '../util/instantiator';
 import { inMemoryPersistence } from './in_memory';
 
 export const _AUTH_USER_KEY_NAME = 'authUser';
+export const _REDIRECT_USER_KEY_NAME = 'redirectUser';
 export const _PERSISTENCE_KEY_NAME = 'persistence';
-const _PERSISTENCE_NAMESPACE = 'firebase';
+const PERSISTENCE_NAMESPACE = 'firebase';
 
 function _persistenceKeyName(
   key: string,
   apiKey: ApiKey,
   appName: AppName
 ): string {
-  return `${_PERSISTENCE_NAMESPACE}:${key}:${apiKey}:${appName}`;
+  return `${PERSISTENCE_NAMESPACE}:${key}:${apiKey}:${appName}`;
 }
 
 export class PersistenceUserManager {
