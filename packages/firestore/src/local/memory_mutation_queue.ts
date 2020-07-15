@@ -16,7 +16,7 @@
  */
 
 import { Timestamp } from '../api/timestamp';
-import { Query } from '../core/query';
+import { isCollectionGroupQuery, Query } from '../core/query';
 import { BatchId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -180,7 +180,7 @@ export class MemoryMutationQueue implements MutationQueue {
     query: Query
   ): PersistencePromise<MutationBatch[]> {
     debugAssert(
-      !query.isCollectionGroupQuery(),
+      !isCollectionGroupQuery(query),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
     // Use the query path as a prefix for testing if a document matches the

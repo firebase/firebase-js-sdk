@@ -27,7 +27,7 @@ import {
   QuerySnapshot
 } from '../../src/api/database';
 import { MultiTabIndexedDbComponentProvider } from '../../src/core/component_provider';
-import { Query as InternalQuery } from '../../src/core/query';
+import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
   ChangeType,
   DocumentViewChange,
@@ -106,7 +106,7 @@ export function documentSnapshot(
 
 export function query(path: string): Query {
   return new Query(
-    InternalQuery.atPath(pathFrom(path)),
+    newQueryForPath(pathFrom(path)),
     firestore(),
     /* converter= */ null
   );
@@ -133,7 +133,7 @@ export function querySnapshot(
   fromCache: boolean,
   syncStateChanged: boolean
 ): QuerySnapshot {
-  const query: InternalQuery = InternalQuery.atPath(pathFrom(path));
+  const query: InternalQuery = newQueryForPath(pathFrom(path));
   let oldDocuments: DocumentSet = new DocumentSet();
   Object.keys(oldDocs).forEach(key => {
     oldDocuments = oldDocuments.add(doc(path + '/' + key, 1, oldDocs[key]));

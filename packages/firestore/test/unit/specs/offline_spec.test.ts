@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../../../src/core/query';
+import { newQueryForPath } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
 import { doc, query } from '../../util/helpers';
 
@@ -116,7 +116,7 @@ describeSpec('Offline:', [], () => {
   specTest('Queries with limbo documents handle going offline.', [], () => {
     const query1 = query('collection');
     const docA = doc('collection/a', 1000, { key: 'a' });
-    const limboQuery = Query.atPath(docA.key.path);
+    const limboQuery = newQueryForPath(docA.key.path);
     return (
       spec()
         .userListens(query1)

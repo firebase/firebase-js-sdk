@@ -31,8 +31,13 @@ import {
   filterEquals,
   InFilter,
   KeyFieldFilter,
+  LimitType,
   Operator,
-  OrderBy
+  OrderBy,
+  queryToTarget,
+  queryWithEndAt,
+  queryWithLimit,
+  queryWithStartAt
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Target, targetEquals, TargetImpl } from '../../../src/core/target';
@@ -947,7 +952,7 @@ export function serializerTest(
     });
 
     it('encodes listen request labels', () => {
-      const target = query('collection/key').toTarget();
+      const target = queryToTarget(query('collection/key'));
       let targetData = new TargetData(target, 2, TargetPurpose.Listen, 3);
 
       let result = toListenRequestLabels(s, targetData);
@@ -973,7 +978,7 @@ export function serializerTest(
       addEqualityMatcher({ equalsFn: targetEquals, forType: TargetImpl });
 
       it('converts first-level key queries', () => {
-        const q = query('docs/1').toTarget();
+        const q = queryToTarget(query('docs/1'));
         const result = toTarget(s, wrapTargetData(q));
         expect(result).to.deep.equal({
           documents: { documents: ['projects/p/databases/d/documents/docs/1'] },
@@ -984,7 +989,7 @@ export function serializerTest(
       });
 
       it('converts first-level ancestor queries', () => {
-        const q = query('messages').toTarget();
+        const q = queryToTarget(query('messages'));
         const result = toTarget(s, wrapTargetData(q));
         expect(result).to.deep.equal({
           query: {
@@ -1005,7 +1010,7 @@ export function serializerTest(
       });
 
       it('converts nested ancestor queries', () => {
-        const q = query('rooms/1/messages/10/attachments').toTarget();
+        const q = queryToTarget(query('rooms/1/messages/10/attachments'));
         const result = toTarget(s, wrapTargetData(q));
         const expected = {
           query: {
@@ -1027,7 +1032,7 @@ export function serializerTest(
       });
 
       it('converts single filters at first-level collections', () => {
-        const q = query('docs', filter('prop', '<', 42)).toTarget();
+        const q = queryToTarget(query('docs', filter('prop', '<', 42)));
         const result = toTarget(s, wrapTargetData(q));
         const expected = {
           query: {
@@ -1060,14 +1065,16 @@ export function serializerTest(
       });
 
       it('converts multiple filters at first-level collections', () => {
-        const q = query(
-          'docs',
-          filter('prop', '<', 42),
-          filter('name', '==', 'dimond'),
-          filter('nan', '==', NaN),
-          filter('null', '==', null),
-          filter('tags', 'array-contains', 'pending')
-        ).toTarget();
+        const q = queryToTarget(
+          query(
+            'docs',
+            filter('prop', '<', 42),
+            filter('name', '==', 'dimond'),
+            filter('nan', '==', NaN),
+            filter('null', '==', null),
+            filter('tags', 'array-contains', 'pending')
+          )
+        );
         const result = toTarget(s, wrapTargetData(q));
         const expected = {
           query: {
@@ -1133,10 +1140,9 @@ export function serializerTest(
       });
 
       it('converts single filters on deeper collections', () => {
-        const q = query(
-          'rooms/1/messages/10/attachments',
-          filter('prop', '<', 42)
-        ).toTarget();
+        const q = queryToTarget(
+          query('rooms/1/messages/10/attachments', filter('prop', '<', 42))
+        );
         const result = toTarget(s, wrapTargetData(q));
         const expected = {
           query: {
@@ -1169,7 +1175,7 @@ export function serializerTest(
       });
 
       it('converts order bys', () => {
-        const q = query('docs', orderBy('prop', 'asc')).toTarget();
+        const q = queryToTarget(query('docs', orderBy('prop', 'asc')));
         const result = toTarget(s, wrapTargetData(q));
         const expected = {
           query: {
@@ -1195,7 +1201,9 @@ export function serializerTest(
       });
 
       it('converts limits', () => {
-        const q = query('docs').withLimitToFirst(26).toTarget();
+        const q = queryToTarget(
+          queryWithLimit(query('docs'), 26, LimitType.First)
+        );
         const result = toTarget(s, wrapTargetData(q));
         const expected = {
           query: {
@@ -1218,20 +1226,21 @@ export function serializerTest(
       });
 
       it('converts startAt/endAt', () => {
-        const q = query('docs')
-          .withStartAt(
-            bound(
-              [[DOCUMENT_KEY_NAME, ref('foo/bar'), 'asc']],
-              /*before=*/ true
-            )
-          )
-          .withEndAt(
+        const q = queryToTarget(
+          queryWithEndAt(
+            queryWithStartAt(
+              query('docs'),
+              bound(
+                [[DOCUMENT_KEY_NAME, ref('foo/bar'), 'asc']],
+                /*before=*/ true
+              )
+            ),
             bound(
               [[DOCUMENT_KEY_NAME, ref('foo/bar'), 'asc']],
               /*before=*/ false
             )
           )
-          .toTarget();
+        );
         const result = toTarget(s, wrapTargetData(q));
         const expected = {
           query: {
@@ -1271,7 +1280,7 @@ export function serializerTest(
       });
 
       it('converts resume tokens', () => {
-        const q = query('docs').toTarget();
+        const q = queryToTarget(query('docs'));
         const result = toTarget(
           s,
           new TargetData(

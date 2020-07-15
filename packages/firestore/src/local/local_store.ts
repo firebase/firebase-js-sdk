@@ -17,7 +17,7 @@
 
 import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
-import { Query } from '../core/query';
+import { Query, queryToTarget } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { BatchId, TargetId } from '../core/types';
@@ -966,7 +966,7 @@ class LocalStoreImpl implements LocalStore {
     let remoteKeys = documentKeySet();
 
     return this.persistence.runTransaction('Execute query', 'readonly', txn => {
-      return this.getTargetData(txn, query.toTarget())
+      return this.getTargetData(txn, queryToTarget(query))
         .next(targetData => {
           if (targetData) {
             lastLimboFreeSnapshotVersion =

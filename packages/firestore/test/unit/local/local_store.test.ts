@@ -21,7 +21,7 @@ import { expect } from 'chai';
 import { FieldValue } from '../../../src/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
-import { Query } from '../../../src/core/query';
+import { Query, queryToTarget } from '../../../src/core/query';
 import { Target } from '../../../src/core/target';
 import { BatchId, TargetId } from '../../../src/core/types';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
@@ -207,7 +207,7 @@ class LocalStoreTester {
   }
 
   afterAllocatingQuery(query: Query): LocalStoreTester {
-    return this.afterAllocatingTarget(query.toTarget());
+    return this.afterAllocatingTarget(queryToTarget(query));
   }
 
   afterAllocatingTarget(target: Target): LocalStoreTester {
@@ -1103,7 +1103,7 @@ function genericLocalStoreTests(
 
   it('can execute mixed collection queries', async () => {
     const query1 = query('foo');
-    const targetData = await localStore.allocateTarget(query1.toTarget());
+    const targetData = await localStore.allocateTarget(queryToTarget(query1));
     expect(targetData.targetId).to.equal(2);
     await localStore.applyRemoteEvent(
       docAddedRemoteEvent(doc('foo/baz', 10, { a: 'b' }), [2], [])
@@ -1165,7 +1165,7 @@ function genericLocalStoreTests(
   // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it.skip : it)('persists resume tokens', async () => {
     const query1 = query('foo/bar');
-    const targetData = await localStore.allocateTarget(query1.toTarget());
+    const targetData = await localStore.allocateTarget(queryToTarget(query1));
     const targetId = targetData.targetId;
     const resumeToken = byteStringFromString('abc');
     const watchChange = new WatchTargetChange(
@@ -1188,7 +1188,7 @@ function genericLocalStoreTests(
     );
 
     // Should come back with the same resume token
-    const targetData2 = await localStore.allocateTarget(query1.toTarget());
+    const targetData2 = await localStore.allocateTarget(queryToTarget(query1));
     expect(targetData2.resumeToken).to.deep.equal(resumeToken);
   });
 
@@ -1197,7 +1197,7 @@ function genericLocalStoreTests(
     'does not replace resume token with empty resume token',
     async () => {
       const query1 = query('foo/bar');
-      const targetData = await localStore.allocateTarget(query1.toTarget());
+      const targetData = await localStore.allocateTarget(queryToTarget(query1));
       const targetId = targetData.targetId;
       const resumeToken = byteStringFromString('abc');
 
@@ -1234,7 +1234,9 @@ function genericLocalStoreTests(
       );
 
       // Should come back with the same resume token
-      const targetData2 = await localStore.allocateTarget(query1.toTarget());
+      const targetData2 = await localStore.allocateTarget(
+        queryToTarget(query1)
+      );
       expect(targetData2.resumeToken).to.deep.equal(resumeToken);
     }
   );
@@ -1579,7 +1581,7 @@ function genericLocalStoreTests(
     // is advanced when we compute a limbo-free free view and that the mapping
     // is persisted when we release a query.
 
-    const target = query('foo').toTarget();
+    const target = queryToTarget(query('foo'));
 
     const targetData = await localStore.allocateTarget(target);
 

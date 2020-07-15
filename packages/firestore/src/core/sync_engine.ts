@@ -54,8 +54,11 @@ import { ListenSequence } from './listen_sequence';
 import {
   canonifyQuery,
   LimitType,
+  newQuery,
+  newQueryForPath,
   Query,
   queryEquals,
+  queryToTarget,
   stringifyQuery
 } from './query';
 import { SnapshotVersion } from './snapshot_version';
@@ -324,7 +327,9 @@ class SyncEngineImpl implements SyncEngine {
       this.sharedClientState.addLocalQueryTarget(targetId);
       viewSnapshot = queryView.view.computeInitialSnapshot();
     } else {
-      const targetData = await this.localStore.allocateTarget(query.toTarget());
+      const targetData = await this.localStore.allocateTarget(
+        queryToTarget(query)
+      );
 
       const status = this.sharedClientState.addLocalQueryTarget(
         targetData.targetId
@@ -827,7 +832,7 @@ class SyncEngineImpl implements SyncEngine {
       );
       this.remoteStore.listen(
         new TargetData(
-          Query.atPath(key.path).toTarget(),
+          queryToTarget(newQueryForPath(key.path)),
           limboTargetId,
           TargetPurpose.LimboResolution,
           ListenSequence.INVALID
@@ -1212,7 +1217,7 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
         // might have changed) and reconcile their views with the persisted
         // state (the list of syncedDocuments may have gotten out of sync).
         targetData = await this.localStore.allocateTarget(
-          queries[0].toTarget()
+          queryToTarget(queries[0])
         );
 
         for (const query of queries) {
@@ -1264,7 +1269,7 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
    * difference will not cause issues.
    */
   private synthesizeTargetToQuery(target: Target): Query {
-    return new Query(
+    return newQuery(
       target.path,
       target.collectionGroup,
       target.orderBy,
