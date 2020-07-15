@@ -50,26 +50,17 @@ import {
   signInWithCustomToken,
   signInWithEmailAndPassword,
   unlink,
-<<<<<<< HEAD
   updateEmail,
   updatePassword,
   updateProfile,
-  verifyPasswordResetCode
-} from '@firebase/auth-exp';
-=======
-  getMultiFactorResolver,
-  multiFactor,
-  PhoneMultiFactorGenerator,
+  verifyPasswordResetCode,
   OAuthProvider,
   signInWithPopup,
   linkWithPopup,
   reauthenticateWithPopup,
-  BrowserPopupRedirectResolver
+  browserPopupRedirectResolver
 } from '@firebase/auth-exp';
 
-const browserPopupRedirectResolver = new BrowserPopupRedirectResolver();
-
->>>>>>> ad6dfaac7... Popup strategy implementation
 import { config } from './config';
 import {
   alertError,
@@ -1248,8 +1239,8 @@ function signInWithPopupRedirect(provider) {
   const glob = {
     signInWithPopup,
     linkWithPopup,
-    reauthenticateWithPopup,
-  }
+    reauthenticateWithPopup
+  };
   let action = $('input[name=popup-redirect-action]:checked').val();
   let type = $('input[name=popup-redirect-type]:checked').val();
   let method = null;
@@ -1305,14 +1296,18 @@ function signInWithPopupRedirect(provider) {
   console.log('Provider:');
   console.log(provider);
   if (type == 'popup') {
-    glob[method](inst, provider, browserPopupRedirectResolver).then(response => {
-      console.log('Popup response:');
-      console.log(response);
-      alertSuccess(action + ' with ' + provider['providerId'] + ' successful!');
-      logAdditionalUserInfo(response);
-      onAuthSuccess(activeUser());
-    },
-    onAuthError);
+    glob[method](inst, provider, browserPopupRedirectResolver).then(
+      response => {
+        console.log('Popup response:');
+        console.log(response);
+        alertSuccess(
+          action + ' with ' + provider['providerId'] + ' successful!'
+        );
+        logAdditionalUserInfo(response);
+        onAuthSuccess(activeUser());
+      },
+      onAuthError
+    );
   } else {
     alertNotImplemented();
     // try {

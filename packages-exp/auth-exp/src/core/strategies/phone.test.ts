@@ -414,7 +414,7 @@ describe('core/strategies/phone', () => {
     });
   });
 
-  describe("updatePhoneNumber", () => {
+  describe('updatePhoneNumber', () => {
     let user: User;
     let reloadMock: fetch.Route;
     let signInMock: fetch.Route;
