@@ -30,7 +30,10 @@ import { User } from '../../model/user';
 import { browserPopupRedirectResolver } from '../../platform_browser/popup_redirect';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
-import { browserLocalPersistence, browserSessionPersistence } from '../persistence/browser';
+import {
+  browserLocalPersistence,
+  browserSessionPersistence
+} from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import * as reload from '../user/reload';
@@ -38,7 +41,10 @@ import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import {
-    DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST, initializeAuth
+  DEFAULT_API_HOST,
+  DEFAULT_API_SCHEME,
+  DEFAULT_TOKEN_API_HOST,
+  initializeAuth
 } from './auth_impl';
 
 use(sinonChai);
@@ -292,14 +298,19 @@ describe('core/auth/initializeAuth', () => {
 
     beforeEach(() => {
       createManagerStub = sinon.spy(PersistenceUserManager, 'create');
-      reloadStub = sinon.stub(reload, '_reloadWithoutSaving').returns(Promise.resolve());
+      reloadStub = sinon
+        .stub(reload, '_reloadWithoutSaving')
+        .returns(Promise.resolve());
     });
 
     async function initAndWait(
       persistence: externs.Persistence | externs.Persistence[],
       popupRedirectResolver?: externs.PopupRedirectResolver
     ): Promise<Auth> {
-      const auth = initializeAuth(FAKE_APP, { persistence, popupRedirectResolver });
+      const auth = initializeAuth(FAKE_APP, {
+        persistence,
+        popupRedirectResolver
+      });
       // Auth initializes async. We can make sure the initialization is
       // flushed by awaiting a method on the queue.
       await auth.setPersistence(inMemoryPersistence);
@@ -362,8 +373,8 @@ describe('core/auth/initializeAuth', () => {
       user._redirectEventId = 'event-id';
 
       sinon
-      .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
-      .returns(Promise.resolve(user.toPlainObject()));
+        .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
+        .returns(Promise.resolve(user.toPlainObject()));
       sinon
         .stub(_getInstance<Persistence>(browserSessionPersistence), 'get')
         .returns(Promise.resolve(user.toPlainObject()));
@@ -377,8 +388,8 @@ describe('core/auth/initializeAuth', () => {
       user._redirectEventId = 'event-id';
 
       sinon
-      .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
-      .returns(Promise.resolve(user.toPlainObject()));
+        .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
+        .returns(Promise.resolve(user.toPlainObject()));
 
       user._redirectEventId = 'some-other-id';
       sinon
@@ -393,7 +404,13 @@ describe('core/auth/initializeAuth', () => {
       const stub = sinon.stub(_getInstance<Persistence>(inMemoryPersistence));
       stub.get.returns(Promise.resolve(testUser({}, 'uid').toPlainObject()));
       stub.remove.returns(Promise.resolve());
-      reloadStub.returns(Promise.reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.TOKEN_EXPIRED, {appName: 'app'})));
+      reloadStub.returns(
+        Promise.reject(
+          AUTH_ERROR_FACTORY.create(AuthErrorCode.TOKEN_EXPIRED, {
+            appName: 'app'
+          })
+        )
+      );
 
       await initAndWait(inMemoryPersistence);
       expect(stub.remove).to.have.been.called;
@@ -403,7 +420,13 @@ describe('core/auth/initializeAuth', () => {
       const stub = sinon.stub(_getInstance<Persistence>(inMemoryPersistence));
       stub.get.returns(Promise.resolve(testUser({}, 'uid').toPlainObject()));
       stub.remove.returns(Promise.resolve());
-      reloadStub.returns(Promise.reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {appName: 'app'})));
+      reloadStub.returns(
+        Promise.reject(
+          AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
+            appName: 'app'
+          })
+        )
+      );
 
       await initAndWait(inMemoryPersistence);
       expect(stub.remove).not.to.have.been.called;
