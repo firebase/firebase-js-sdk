@@ -30,7 +30,10 @@ import { OAuthProvider } from '../core/providers/oauth';
 import { SingletonInstantiator } from '../core/util/instantiator';
 import { Auth } from '../model/auth';
 import {
-    AuthEvent, AuthEventType, GapiAuthEvent, PopupRedirectResolver
+  AuthEvent,
+  AuthEventType,
+  GapiAuthEvent,
+  PopupRedirectResolver
 } from '../model/popup_redirect';
 import * as authWindow from './auth_window';
 import * as gapiLoader from './iframe/gapi';
@@ -46,7 +49,9 @@ describe('src/platform_browser/popup_redirect', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
-    resolver = new (browserPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolver>)();
+    resolver = new (browserPopupRedirectResolver as SingletonInstantiator<
+      PopupRedirectResolver
+    >)();
 
     sinon.stub(gapiLoader, '_loadGapi').returns(
       Promise.resolve(({
@@ -141,9 +146,13 @@ describe('src/platform_browser/popup_redirect', () => {
       );
       expect(newWindowLocation).to.include(`apiKey=${TEST_KEY}`);
       expect(newWindowLocation).to.include('appName=test-app');
-      expect(newWindowLocation).to.include(`authType=${AuthEventType.LINK_VIA_POPUP}`);
+      expect(newWindowLocation).to.include(
+        `authType=${AuthEventType.LINK_VIA_POPUP}`
+      );
       expect(newWindowLocation).to.include(`v=${SDK_VERSION}`);
-      expect(newWindowLocation).to.include('scopes=some-scope-a%2Csome-scope-b');
+      expect(newWindowLocation).to.include(
+        'scopes=some-scope-a%2Csome-scope-b'
+      );
       expect(newWindowLocation).to.include(
         'customParameters=%7B%22foo%22%3A%22bar%22%7D'
       );

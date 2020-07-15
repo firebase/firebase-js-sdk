@@ -16,7 +16,10 @@
  */
 
 import {
-    AuthEvent, AuthEventConsumer, AuthEventType, EventManager
+  AuthEvent,
+  AuthEventConsumer,
+  AuthEventType,
+  EventManager
 } from '../../model/popup_redirect';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 
@@ -30,7 +33,10 @@ export class AuthEventManager implements EventManager {
   registerConsumer(authEventConsumer: AuthEventConsumer): void {
     this.consumers.add(authEventConsumer);
 
-    if (this.queuedRedirectEvent && this.isEventForConsumer(this.queuedRedirectEvent, authEventConsumer)) {
+    if (
+      this.queuedRedirectEvent &&
+      this.isEventForConsumer(this.queuedRedirectEvent, authEventConsumer)
+    ) {
       this.sendToConsumer(this.queuedRedirectEvent, authEventConsumer);
       this.queuedRedirectEvent = null;
     }
@@ -89,14 +95,22 @@ export class AuthEventManager implements EventManager {
     }
   }
 
-  private isEventForConsumer(event: AuthEvent, consumer: AuthEventConsumer): boolean {
-    const eventIdMatches = consumer.eventId === null || (!!event.eventId && event.eventId === consumer.eventId);
+  private isEventForConsumer(
+    event: AuthEvent,
+    consumer: AuthEventConsumer
+  ): boolean {
+    const eventIdMatches =
+      consumer.eventId === null ||
+      (!!event.eventId && event.eventId === consumer.eventId);
     return consumer.filter.includes(event.type) && eventIdMatches;
   }
 }
 
-function isNullRedirectEvent({type, error}: AuthEvent): boolean {
-  return type === AuthEventType.UNKNOWN && error?.code === `auth/${AuthErrorCode.NO_AUTH_EVENT}`;
+function isNullRedirectEvent({ type, error }: AuthEvent): boolean {
+  return (
+    type === AuthEventType.UNKNOWN &&
+    error?.code === `auth/${AuthErrorCode.NO_AUTH_EVENT}`
+  );
 }
 
 function isRedirectEvent(type: AuthEventType): boolean {

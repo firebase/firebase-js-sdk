@@ -19,7 +19,11 @@ import { FirebaseError } from '@firebase/util';
 
 import { Auth } from '../../model/auth';
 import {
-    AuthEvent, AuthEventConsumer, AuthEventType, EventManager, PopupRedirectResolver
+  AuthEvent,
+  AuthEventConsumer,
+  AuthEventType,
+  EventManager,
+  PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
 import { AuthErrorCode } from '../errors';
@@ -45,7 +49,7 @@ export abstract class AbstractPopupRedirectOperation
 
   constructor(
     protected readonly auth: Auth,
-    filter: AuthEventType|AuthEventType[],
+    filter: AuthEventType | AuthEventType[],
     protected readonly resolver: PopupRedirectResolver,
     protected user?: User
   ) {

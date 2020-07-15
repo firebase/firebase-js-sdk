@@ -63,7 +63,7 @@ export interface AuthEvent {
 
 export interface AuthEventConsumer {
   readonly filter: AuthEventType[];
-  eventId: string|null;
+  eventId: string | null;
   onAuthEvent(event: AuthEvent): unknown;
   onError(error: FirebaseError): unknown;
 }
