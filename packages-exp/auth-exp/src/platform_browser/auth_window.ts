@@ -38,3 +38,7 @@ export type AuthWindow = {
 };
 
 export const AUTH_WINDOW = (window as unknown) as AuthWindow;
+
+export function _setWindowLocation(url: string): void {
+  AUTH_WINDOW.location.href = url;
+}

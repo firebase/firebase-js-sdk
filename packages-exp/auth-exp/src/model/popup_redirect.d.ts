@@ -62,8 +62,8 @@ export interface AuthEvent {
 }
 
 export interface AuthEventConsumer {
-  readonly filter: AuthEventType;
-  isMatchingEvent(eventId: string | null): boolean;
+  readonly filter: AuthEventType[];
+  eventId: string | null;
   onAuthEvent(event: AuthEvent): unknown;
   onError(error: FirebaseError): unknown;
 }
@@ -81,4 +81,10 @@ export interface PopupRedirectResolver extends externs.PopupRedirectResolver {
     authType: AuthEventType,
     eventId?: string
   ): Promise<AuthPopup>;
+  _openRedirect(
+    auth: Auth,
+    provider: externs.AuthProvider,
+    authType: AuthEventType,
+    eventId?: string
+  ): Promise<never>;
 }
