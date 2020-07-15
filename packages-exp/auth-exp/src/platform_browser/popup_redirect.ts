@@ -28,7 +28,11 @@ import { _getCurrentUrl } from '../core/util/location';
 import { _open, AuthPopup } from '../core/util/popup';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
-    AuthEventType, EventManager, GapiAuthEvent, GapiOutcome, PopupRedirectResolver
+  AuthEventType,
+  EventManager,
+  GapiAuthEvent,
+  GapiOutcome,
+  PopupRedirectResolver
 } from '../model/popup_redirect';
 import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';

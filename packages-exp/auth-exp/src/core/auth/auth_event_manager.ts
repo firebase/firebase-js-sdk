@@ -16,7 +16,10 @@
  */
 
 import {
-    AuthEvent, AuthEventConsumer, AuthEventType, EventManager
+  AuthEvent,
+  AuthEventConsumer,
+  AuthEventType,
+  EventManager
 } from '../../model/popup_redirect';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 
