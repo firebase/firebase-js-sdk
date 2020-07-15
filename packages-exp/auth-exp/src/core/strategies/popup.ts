@@ -24,6 +24,7 @@ import {
 } from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { debugAssert } from '../util/assert';
 import { Delay } from '../util/delay';
 import { _generateEventId } from '../util/event_id';
 import { _getInstance } from '../util/instantiator';
@@ -100,7 +101,7 @@ class PopupOperation extends AbstractPopupRedirectOperation {
 
   constructor(
     auth: Auth,
-    readonly filter: AuthEventType,
+    filter: AuthEventType,
     private readonly provider: externs.AuthProvider,
     resolver: PopupRedirectResolver,
     user?: User
@@ -114,11 +115,15 @@ class PopupOperation extends AbstractPopupRedirectOperation {
   }
 
   async onExecution(): Promise<void> {
+    debugAssert(
+      this.filter.length === 1,
+      'Popup operations only handle one event'
+    );
     const eventId = _generateEventId();
     this.authWindow = await this.resolver._openPopup(
       this.auth,
       this.provider,
-      this.filter,
+      this.filter[0], // There's always one, see constructor
       eventId
     );
     this.authWindow.associatedEvent = eventId;
