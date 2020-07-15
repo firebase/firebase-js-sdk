@@ -19,23 +19,16 @@ import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 import {
-  CompleteFn,
-  createSubscribe,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Subscribe,
-  Unsubscribe
+    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
 } from '@firebase/util';
 
 import { Auth, Dependencies } from '../../model/auth';
+import { PopupRedirectResolver } from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
-import { browserSessionPersistence } from '../persistence/browser';
 import {
-  _REDIRECT_USER_KEY_NAME,
-  PersistenceUserManager
+    _REDIRECT_USER_KEY_NAME, PersistenceUserManager
 } from '../persistence/persistence_user_manager';
 import { _reloadWithoutSaving } from '../user/reload';
 import { assert } from '../util/assert';
@@ -75,7 +68,8 @@ export class AuthImpl implements Auth {
   ) {}
 
   _initializeWithPersistence(
-    persistenceHierarchy: Persistence[]
+    persistenceHierarchy: Persistence[],
+    popupRedirectResolver?: externs.PopupRedirectResolver,
   ): Promise<void> {
     return this.queue(async () => {
       this.persistenceManager = await PersistenceUserManager.create(
@@ -83,31 +77,58 @@ export class AuthImpl implements Auth {
         persistenceHierarchy
       );
 
-      this.redirectPersistenceManager = await PersistenceUserManager.create(
-        this,
-        [_getInstance(browserSessionPersistence)],
-        _REDIRECT_USER_KEY_NAME
-      );
-
-      const storedUser = await this.persistenceManager.getCurrentUser();
-      this.redirectUser = await this.redirectPersistenceManager.getCurrentUser();
-
-      if (storedUser) {
-        // Only reload the user if they're not in a pending redirect flow,
-        // otherwise reloading may cause an error (i.e. reauth)
-        if (
-          !this.redirectUser ||
-          this.redirectUser._redirectEventId !== storedUser._redirectEventId
-        ) {
-          await _reloadWithoutSaving(storedUser);
-        }
-
-        await this.directlySetCurrentUser(storedUser);
-      }
+      await this.initializeCurrentUser(popupRedirectResolver);
 
       this._isInitialized = true;
       this.notifyAuthListeners();
     });
+  }
+
+  private async initializeCurrentUser(popupRedirectResolver?: externs.PopupRedirectResolver): Promise<void> {
+    const storedUser = await this.assertedPersistence.getCurrentUser();
+    if (!storedUser) {
+      return this.directlySetCurrentUser(storedUser);
+    }
+
+    if (!storedUser._redirectEventId) {
+      // This isn't a redirect user, we can reload and bail
+      return this.reloadAndSetCurrentUserOrClear(storedUser);
+    }
+
+    assert(popupRedirectResolver, this.name, AuthErrorCode.ARGUMENT_ERROR);
+    const resolver: PopupRedirectResolver = _getInstance(popupRedirectResolver);
+
+    this.redirectPersistenceManager = await PersistenceUserManager.create(
+      this,
+      [_getInstance(resolver._redirectPersistence)],
+      _REDIRECT_USER_KEY_NAME
+    );
+
+    this.redirectUser = await this.redirectPersistenceManager.getCurrentUser();
+
+    console.log(this.redirectUser);
+    // If the redirect user's event ID matches the current user's event ID,
+    // DO NOT reload the current user, otherwise they'll be cleared from storage.
+    // This is important for the reauthenticateWithRedirect() flow.
+    if (this.redirectUser && this.redirectUser._redirectEventId === storedUser._redirectEventId) {
+      return this.directlySetCurrentUser(storedUser);
+    }
+
+    return this.reloadAndSetCurrentUserOrClear(storedUser);
+  }
+
+  private async reloadAndSetCurrentUserOrClear(user: User): Promise<void> {
+    try {
+      await _reloadWithoutSaving(user);
+    } catch (e) {
+      if (e.code !== `auth/${AuthErrorCode.NETWORK_REQUEST_FAILED}`) {
+        // User's token has expired. Log them out and remove them from storage
+        await this.directlySetCurrentUser(null);
+        return;
+      }
+    }
+
+    return this.directlySetCurrentUser(user);
   }
 
   useDeviceLanguage(): void {
@@ -277,7 +298,7 @@ export function initializeAuth(
   // This promise is intended to float; auth initialization happens in the
   // background, meanwhile the auth object may be used by the app.
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  auth._initializeWithPersistence(hierarchy);
+  auth._initializeWithPersistence(hierarchy, deps?.popupRedirectResolver);
 
   return auth;
 }
