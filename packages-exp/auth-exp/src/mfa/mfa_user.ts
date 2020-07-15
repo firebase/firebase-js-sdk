@@ -21,12 +21,20 @@ import { MultiFactorSession } from './mfa_session';
 import { MultiFactorAssertion } from './assertions';
 import { withdrawMfa } from '../api/account_management/mfa';
 import { AuthErrorCode } from '../core/errors';
+import { MultiFactorInfo } from './mfa_info';
 
 export class MultiFactorUser implements externs.MultiFactorUser {
-  // TODO(avolkovi): Set these correctly from getAccountInfo on reload
   enrolledFactors: externs.MultiFactorInfo[] = [];
 
-  private constructor(readonly user: User) {}
+  private constructor(readonly user: User) {
+    user._onReload(userInfo => {
+      if (userInfo.mfaInfo) {
+        this.enrolledFactors = userInfo.mfaInfo.map(enrollment =>
+          MultiFactorInfo._fromServerResponse(user.auth, enrollment)
+        );
+      }
+    });
+  }
 
   static _fromUser(user: User): MultiFactorUser {
     return new MultiFactorUser(user);
@@ -79,6 +87,14 @@ export class MultiFactorUser implements externs.MultiFactorUser {
   }
 }
 
+const multiFactorUserCache = new WeakMap<
+  externs.User,
+  externs.MultiFactorUser
+>();
+
 export function multiFactor(user: externs.User): externs.MultiFactorUser {
-  return MultiFactorUser._fromUser(user as User);
+  if (!multiFactorUserCache.has(user)) {
+    multiFactorUserCache.set(user, MultiFactorUser._fromUser(user as User));
+  }
+  return multiFactorUserCache.get(user)!;
 }
