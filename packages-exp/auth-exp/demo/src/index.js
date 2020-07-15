@@ -50,26 +50,17 @@ import {
   signInWithCustomToken,
   signInWithEmailAndPassword,
   unlink,
-<<<<<<< HEAD
   updateEmail,
   updatePassword,
   updateProfile,
-  verifyPasswordResetCode
-} from '@firebase/auth-exp';
-=======
-  getMultiFactorResolver,
-  multiFactor,
-  PhoneMultiFactorGenerator,
+  verifyPasswordResetCode,
   OAuthProvider,
   signInWithPopup,
   linkWithPopup,
   reauthenticateWithPopup,
-  BrowserPopupRedirectResolver
+  browserPopupRedirectResolver
 } from '@firebase/auth-exp';
 
-const browserPopupRedirectResolver = new BrowserPopupRedirectResolver();
-
->>>>>>> ad6dfaac7... Popup strategy implementation
 import { config } from './config';
 import {
   alertError,

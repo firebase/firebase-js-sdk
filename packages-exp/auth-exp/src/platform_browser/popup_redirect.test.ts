@@ -27,26 +27,26 @@ import { FirebaseError } from '@firebase/util';
 import { TEST_AUTH_DOMAIN, TEST_KEY, testAuth } from '../../test/mock_auth';
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { OAuthProvider } from '../core/providers/oauth';
+import { SingletonInstantiator } from '../core/util/instantiator';
 import { Auth } from '../model/auth';
 import {
-  AuthEvent,
-  AuthEventType,
-  GapiAuthEvent
+    AuthEvent, AuthEventType, GapiAuthEvent, PopupRedirectResolver
 } from '../model/popup_redirect';
+import * as authWindow from './auth_window';
 import * as gapiLoader from './iframe/gapi';
-import { BrowserPopupRedirectResolver } from './popup_redirect';
+import { browserPopupRedirectResolver } from './popup_redirect';
 
 use(chaiAsPromised);
 use(sinonChai);
 
 describe('src/platform_browser/popup_redirect', () => {
-  let resolver: BrowserPopupRedirectResolver;
+  let resolver: PopupRedirectResolver;
   let auth: Auth;
   let onIframeMessage: (event: GapiAuthEvent) => Promise<void>;
 
   beforeEach(async () => {
     auth = await testAuth();
-    resolver = new BrowserPopupRedirectResolver();
+    resolver = new (browserPopupRedirectResolver as SingletonInstantiator<PopupRedirectResolver>)();
 
     sinon.stub(gapiLoader, '_loadGapi').returns(
       Promise.resolve(({
@@ -65,7 +65,7 @@ describe('src/platform_browser/popup_redirect', () => {
     sinon.restore();
   });
 
-  context('#openPopup', () => {
+  context('#_openPopup', () => {
     let popupUrl: string | undefined;
     let provider: OAuthProvider;
     const event = AuthEventType.LINK_VIA_POPUP;
@@ -115,7 +115,58 @@ describe('src/platform_browser/popup_redirect', () => {
     });
   });
 
-  context('#initialize', () => {
+  context('#_openRedirect', () => {
+    let newWindowLocation: string;
+    let provider: OAuthProvider;
+    const event = AuthEventType.LINK_VIA_POPUP;
+
+    beforeEach(async () => {
+      provider = new OAuthProvider(ProviderId.GOOGLE);
+      await resolver._initialize(auth);
+      sinon.stub(authWindow, '_setWindowLocation').callsFake(url => {
+        newWindowLocation = url;
+      });
+    });
+
+    it('builds the correct url', () => {
+      provider.addScope('some-scope-a');
+      provider.addScope('some-scope-b');
+      provider.setCustomParameters({ foo: 'bar' });
+
+      // This promise will never resolve on purpose
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      resolver._openRedirect(auth, provider, event);
+      expect(newWindowLocation).to.include(
+        `https://${TEST_AUTH_DOMAIN}/__/auth/handler`
+      );
+      expect(newWindowLocation).to.include(`apiKey=${TEST_KEY}`);
+      expect(newWindowLocation).to.include('appName=test-app');
+      expect(newWindowLocation).to.include(`authType=${AuthEventType.LINK_VIA_POPUP}`);
+      expect(newWindowLocation).to.include(`v=${SDK_VERSION}`);
+      expect(newWindowLocation).to.include('scopes=some-scope-a%2Csome-scope-b');
+      expect(newWindowLocation).to.include(
+        'customParameters=%7B%22foo%22%3A%22bar%22%7D'
+      );
+    });
+
+    it('throws an error if authDomain is unspecified', async () => {
+      delete auth.config.authDomain;
+
+      await expect(
+        resolver._openRedirect(auth, provider, event)
+      ).to.be.rejectedWith(FirebaseError, 'auth/auth-domain-config-required');
+    });
+
+    it('throws an error if apiKey is unspecified', async () => {
+      delete auth.config.apiKey;
+
+      await expect(
+        resolver._openRedirect(auth, provider, event)
+      ).to.be.rejectedWith(FirebaseError, 'auth/invalid-api-key');
+    });
+  });
+
+  context('#_initialize', () => {
     it('only registers once, returns same event manager', async () => {
       const manager = await resolver._initialize(auth);
       expect(await resolver._initialize(auth)).to.eq(manager);
@@ -123,7 +174,7 @@ describe('src/platform_browser/popup_redirect', () => {
 
     it('iframe event goes through to the manager', async () => {
       const manager = (await resolver._initialize(auth)) as AuthEventManager;
-      sinon.spy(manager, 'onEvent');
+      sinon.stub(manager, 'onEvent').returns(true);
       const response = await onIframeMessage({
         type: 'authEvent',
         authEvent: { type: AuthEventType.LINK_VIA_POPUP } as AuthEvent
@@ -134,6 +185,22 @@ describe('src/platform_browser/popup_redirect', () => {
       });
       expect(response).to.eql({
         status: 'ACK'
+      });
+    });
+
+    it('returns error to the iframe if the event was not handled', async () => {
+      const manager = (await resolver._initialize(auth)) as AuthEventManager;
+      sinon.stub(manager, 'onEvent').returns(false);
+      const response = await onIframeMessage({
+        type: 'authEvent',
+        authEvent: { type: AuthEventType.LINK_VIA_POPUP } as AuthEvent
+      });
+
+      expect(manager.onEvent).to.have.been.calledWith({
+        type: AuthEventType.LINK_VIA_POPUP
+      });
+      expect(response).to.eql({
+        status: 'ERROR'
       });
     });
   });

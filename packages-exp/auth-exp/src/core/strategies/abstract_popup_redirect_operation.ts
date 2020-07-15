@@ -95,10 +95,6 @@ export abstract class AbstractPopupRedirectOperation
     this.reject(error);
   }
 
-  isMatchingEvent(eventId: string | null): boolean {
-    return !!eventId && this.eventId === eventId;
-  }
-
   private getIdpTask(type: AuthEventType): IdpTask {
     switch (type) {
       case AuthEventType.SIGN_IN_VIA_POPUP:

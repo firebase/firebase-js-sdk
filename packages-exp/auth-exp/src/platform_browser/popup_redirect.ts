@@ -30,6 +30,7 @@ import { ApiKey, AppName, Auth } from '../model/auth';
 import {
     AuthEventType, EventManager, GapiAuthEvent, GapiOutcome, PopupRedirectResolver
 } from '../model/popup_redirect';
+import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';
 
 /**
@@ -63,7 +64,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     authType: AuthEventType,
     eventId?: string
   ): Promise<never> {
-    window.location.href = getRedirectUrl(auth, provider, authType, eventId);
+    _setWindowLocation(getRedirectUrl(auth, provider, authType, eventId));
     return new Promise(() => {});
   }
 
@@ -86,9 +87,6 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
       'authEvent',
       ({authEvent}: GapiAuthEvent) => {
         const handled = eventManager.onEvent(authEvent);
-
-        console.log(handled ? 'Handled auth message' : 'Other-window message');
-        // We always ACK with the iframe
         return { status: handled ? GapiOutcome.ACK : GapiOutcome.ERROR };
       },
       gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER
@@ -170,8 +168,6 @@ function getRedirectUrl(
       params as Record<string, string | number>
     ).slice(1)}`
   );
-
-  console.log(url);
 
   return url.toString();
 }

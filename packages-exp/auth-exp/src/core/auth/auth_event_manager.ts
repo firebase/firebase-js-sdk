@@ -41,6 +41,13 @@ export class AuthEventManager implements EventManager {
   }
 
   onEvent(event: AuthEvent): boolean {
+    if (isNullRedirectEvent(event)) {
+      // A null redirect event comes through as the first event when no pending
+      // redirect actions are in the auth domain
+      this.hasHandledPotentialRedirect = true;
+      return true;
+    }
+
     let handled = false;
     this.consumers.forEach(consumer => {
       if (this.isEventForConsumer(event, consumer)) {
@@ -49,23 +56,19 @@ export class AuthEventManager implements EventManager {
       }
     });
 
-    // The redirect event is always available immediately, unlike popup
-    // events (which happen in the normal app lifetime). Since the user
-    // may open the iframe (through a popup method) before getRedirectResult()
-    // is called, we need to queue up the redirect event so the user has access
-    // to it later. On the other hand, if we get a "unknown" auth event with
-    // the message "no-auth-event", we know there will never be a redirect event
-    // for this session.
-    if (event.type === AuthEventType.UNKNOWN && event.error?.code === `auth/${AuthErrorCode.NO_AUTH_EVENT}`) {
-      this.hasHandledPotentialRedirect = true;
-      return true;
+    if (this.hasHandledPotentialRedirect || !isRedirectEvent(event.type)) {
+      // If we've already seen a redirect before, or this is a popup event,
+      // bail now
+      return handled;
+    }
 
-    } else if (!handled && isRedirectEvent(event.type) && !this.hasHandledPotentialRedirect) {
+    this.hasHandledPotentialRedirect = true;
+
+    // If the redirect wasn't handled, hang on to it
+    if (!handled) {
       this.queuedRedirectEvent = event;
       handled = true;
     }
-
-    this.hasHandledPotentialRedirect = this.hasHandledPotentialRedirect || isRedirectEvent(event.type);
 
     return handled;
   }
@@ -90,6 +93,10 @@ export class AuthEventManager implements EventManager {
     const eventIdMatches = consumer.eventId === null || (!!event.eventId && event.eventId === consumer.eventId);
     return consumer.filter.includes(event.type) && eventIdMatches;
   }
+}
+
+function isNullRedirectEvent({type, error}: AuthEvent): boolean {
+  return type === AuthEventType.UNKNOWN && error?.code === `auth/${AuthErrorCode.NO_AUTH_EVENT}`;
 }
 
 function isRedirectEvent(type: AuthEventType): boolean {
