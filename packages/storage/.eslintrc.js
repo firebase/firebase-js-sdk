@@ -37,8 +37,7 @@ module.exports = {
     'import/no-extraneous-dependencies': [
       'error',
       {
-        'packageDir': [path.resolve(__dirname, '../../'), __dirname],
-        devDependencies: true
+        'packageDir': [path.resolve(__dirname, '../../'), __dirname]
       }
     ]
   }

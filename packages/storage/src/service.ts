@@ -27,7 +27,6 @@ import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseOptions } from '@firebase/app-types-exp';
 import * as constants from '../src/implementation/constants';
-import { requestMaker } from './implementation/requestmaker';
 import * as errorsExports from './implementation/error';
 
 /**
@@ -42,8 +41,6 @@ export class StorageService {
   private readonly internals_: ServiceInternals;
   private readonly authProvider_: Provider<FirebaseAuthInternalName>;
   private readonly appId_: string | null = null;
-
-  private readonly requestMaker_: requestMaker;
   private readonly pool_: XhrIoPool;
   private readonly requests_: Set<Request<unknown>>;
   private deleted_: boolean = false;
@@ -58,7 +55,6 @@ export class StorageService {
   ) {
     this.app_ = app;
     this.authProvider_ = authProvider;
-    this.requestMaker_ = makeRequest;
     this.maxOperationRetryTime_ = constants.DEFAULT_MAX_OPERATION_RETRY_TIME;
     this.maxUploadRetryTime_ = constants.DEFAULT_MAX_UPLOAD_RETRY_TIME;
     this.requests_ = new Set();
@@ -115,7 +111,7 @@ export class StorageService {
     authToken: string | null
   ): Request<T> {
     if (!this.deleted_) {
-      const request = this.requestMaker_(
+      const request = makeRequest(
         requestInfo,
         this.appId_,
         authToken,
