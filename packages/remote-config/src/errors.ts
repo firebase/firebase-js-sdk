@@ -30,8 +30,7 @@ export const enum ErrorCode {
   FETCH_TIMEOUT = 'fetch-timeout',
   FETCH_THROTTLE = 'fetch-throttle',
   FETCH_PARSE = 'fetch-client-parse',
-  FETCH_STATUS = 'fetch-status',
-  UNSUPPORTED_BROWSER = 'unsupported-browser'
+  FETCH_STATUS = 'fetch-status'
 }
 
 const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
@@ -65,9 +64,7 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
     'Fetch client could not parse response.' +
     ' Original error: {$originalErrorMessage}.',
   [ErrorCode.FETCH_STATUS]:
-    'Fetch server returned an HTTP error status. HTTP status: {$httpStatus}.',
-  [ErrorCode.UNSUPPORTED_BROWSER]:
-    "This browser doesn't support the API's required to use the firebase SDK."
+    'Fetch server returned an HTTP error status. HTTP status: {$httpStatus}.'
 };
 
 // Note this is effectively a type system binding a code to params. This approach overlaps with the

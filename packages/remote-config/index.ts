@@ -44,17 +44,15 @@ declare global {
   }
 }
 
-const NAMESPACE_EXPORTS = {
-  isSupported
-};
-
 export function registerRemoteConfig(
   firebaseInstance: _FirebaseNamespace
 ): void {
   firebaseInstance.INTERNAL.registerComponent(
-    new Component('remoteConfig', remoteConfigFactory, ComponentType.PUBLIC)
-      .setMultipleInstances(true)
-      .setServiceProps(NAMESPACE_EXPORTS)
+    new Component(
+      'remoteConfig',
+      remoteConfigFactory,
+      ComponentType.PUBLIC
+    ).setMultipleInstances(true)
   );
 
   firebaseInstance.registerVersion(packageName, version);
@@ -72,10 +70,6 @@ export function registerRemoteConfig(
     // Guards against the SDK being used in non-browser environments.
     if (typeof window === 'undefined') {
       throw ERROR_FACTORY.create(ErrorCode.REGISTRATION_WINDOW);
-    }
-
-    if (!isSupported()) {
-      throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
     }
 
     // Normalizes optional inputs.
@@ -139,51 +133,9 @@ declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     remoteConfig?: {
       (app?: FirebaseApp): RemoteConfigType;
-      isSupported(): boolean;
     };
   }
   interface FirebaseApp {
     remoteConfig(): RemoteConfigType;
   }
-}
-
-function isSupported(): boolean {
-  if (self && 'ServiceWorkerGlobalScope' in self) {
-    // Running in ServiceWorker context
-    return isSWControllerSupported();
-  } else {
-    // Assume we are in the window context.
-    return isWindowControllerSupported();
-  }
-}
-
-/**
- * Checks to see if the required APIs exist.
- */
-function isWindowControllerSupported(): boolean {
-  return (
-    'indexedDB' in window &&
-    indexedDB !== null &&
-    navigator.cookieEnabled &&
-    'serviceWorker' in navigator &&
-    'PushManager' in window &&
-    'Notification' in window &&
-    'fetch' in window &&
-    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
-    PushSubscription.prototype.hasOwnProperty('getKey')
-  );
-}
-
-/**
- * Checks to see if the required APIs exist within SW Context.
- */
-function isSWControllerSupported(): boolean {
-  return (
-    'indexedDB' in self &&
-    indexedDB !== null &&
-    'PushManager' in self &&
-    'Notification' in self &&
-    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
-    PushSubscription.prototype.hasOwnProperty('getKey')
-  );
 }
