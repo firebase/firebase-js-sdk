@@ -242,7 +242,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       );
       expect(() => baseDocRef.collection('')).to.throw(
         `Function ${
-          usesFunctionalApi() ? 'doc' : 'DocumentReference.doc'
+          usesFunctionalApi() ? 'collection' : 'DocumentReference.collection'
         }() requires its ${argumentPosition} argument to be of type ` +
           'non-empty string, but it was: ""'
       );
