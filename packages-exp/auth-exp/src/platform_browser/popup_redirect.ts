@@ -29,11 +29,7 @@ import { _getCurrentUrl } from '../core/util/location';
 import { _open, AuthPopup } from '../core/util/popup';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
-  AuthEventType,
-  EventManager,
-  GapiAuthEvent,
-  GapiOutcome,
-  PopupRedirectResolver
+    AuthEventType, EventManager, GapiAuthEvent, GapiOutcome, PopupRedirectResolver
 } from '../model/popup_redirect';
 import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';
@@ -43,9 +39,13 @@ import { _openIframe } from './iframe/iframe';
  */
 const WIDGET_URL = '__/auth/handler';
 
+interface ManagerOrPromise {
+  manager?: EventManager;
+  promise?: Promise<EventManager>;
+}
+
 class BrowserPopupRedirectResolver implements PopupRedirectResolver {
-  private eventManager: EventManager | null = null;
-  private initializationPromise: Promise<EventManager> | null = null;
+  private readonly eventManagers: Record<string, ManagerOrPromise> = {};
 
   readonly _redirectPersistence = browserSessionPersistence;
 
@@ -57,8 +57,11 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     authType: AuthEventType,
     eventId?: string
   ): Promise<AuthPopup> {
+    console.log(this.eventManagers);
+    console.log(this.eventManagers[auth._key()]);
+    console.log(auth._key());
     debugAssert(
-      this.eventManager,
+      this.eventManagers[auth._key()],
       '_initialize() not called before _openPopup()'
     );
     const url = getRedirectUrl(auth, provider, authType, eventId);
@@ -76,32 +79,37 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   }
 
   _initialize(auth: Auth): Promise<EventManager> {
-    if (this.eventManager) {
-      return Promise.resolve(this.eventManager);
+    const key = auth._key();
+    if (this.eventManagers[key]) {
+      const {manager, promise} = this.eventManagers[key];
+      if (manager) {
+        return Promise.resolve(manager);
+      } else {
+        debugAssert(promise, 'If manager is not set, promise should be');
+        return promise;
+      }
     }
 
-    if (!this.initializationPromise) {
-      this.initializationPromise = this.initAndGetManager(auth);
-    }
-
-    return this.initializationPromise;
+    const promise = this.initAndGetManager(auth);
+    this.eventManagers[key] = {promise};
+    return promise;
   }
 
   private async initAndGetManager(auth: Auth): Promise<EventManager> {
     const iframe = await _openIframe(auth);
-    const eventManager = new AuthEventManager(auth.name);
+    const manager = new AuthEventManager(auth.name);
     iframe.register<GapiAuthEvent>(
       'authEvent',
       ({ authEvent }: GapiAuthEvent) => {
         // TODO: Consider splitting redirect and popup events earlier on
-        const handled = eventManager.onEvent(authEvent);
+        const handled = manager.onEvent(authEvent);
         return { status: handled ? GapiOutcome.ACK : GapiOutcome.ERROR };
       },
       gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER
     );
 
-    this.eventManager = eventManager;
-    return eventManager;
+    this.eventManagers[auth._key()] = {manager};
+    return manager;
   }
 }
 

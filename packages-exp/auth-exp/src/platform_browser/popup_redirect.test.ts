@@ -30,10 +30,7 @@ import { OAuthProvider } from '../core/providers/oauth';
 import { SingletonInstantiator } from '../core/util/instantiator';
 import { Auth } from '../model/auth';
 import {
-  AuthEvent,
-  AuthEventType,
-  GapiAuthEvent,
-  PopupRedirectResolver
+    AuthEvent, AuthEventType, GapiAuthEvent, PopupRedirectResolver
 } from '../model/popup_redirect';
 import * as authWindow from './auth_window';
 import * as gapiLoader from './iframe/gapi';
@@ -81,10 +78,10 @@ describe('src/platform_browser/popup_redirect', () => {
         return {} as Window;
       });
       provider = new OAuthProvider(ProviderId.GOOGLE);
-      await resolver._initialize(auth);
     });
 
     it('builds the correct url', async () => {
+      await resolver._initialize(auth);
       provider.addScope('some-scope-a');
       provider.addScope('some-scope-b');
       provider.setCustomParameters({ foo: 'bar' });
@@ -105,6 +102,7 @@ describe('src/platform_browser/popup_redirect', () => {
 
     it('throws an error if authDomain is unspecified', async () => {
       delete auth.config.authDomain;
+      await resolver._initialize(auth);
 
       await expect(
         resolver._openPopup(auth, provider, event)
@@ -113,6 +111,7 @@ describe('src/platform_browser/popup_redirect', () => {
 
     it('throws an error if apiKey is unspecified', async () => {
       delete auth.config.apiKey;
+      await resolver._initialize(auth);
 
       await expect(
         resolver._openPopup(auth, provider, event)
@@ -176,9 +175,26 @@ describe('src/platform_browser/popup_redirect', () => {
   });
 
   context('#_initialize', () => {
-    it('only registers once, returns same event manager', async () => {
+    it('returns different manager for a different auth', async () => {
       const manager = await resolver._initialize(auth);
       expect(await resolver._initialize(auth)).to.eq(manager);
+
+      const secondAuth = await testAuth();
+      secondAuth.config.authDomain = 'something-else';
+      const secondManager = await resolver._initialize(secondAuth);
+      expect(secondManager).not.to.eq(manager);
+      expect(await resolver._initialize(secondAuth)).to.eq(secondManager);
+    });
+
+    it('initialization promise is cached as well for diff auths', async () => {
+      const promise = resolver._initialize(auth);
+      expect(resolver._initialize(auth)).to.eq(promise);
+
+      const secondAuth = await testAuth();
+      secondAuth.config.authDomain = 'something-else';
+      const secondPromise = resolver._initialize(secondAuth);
+      expect(secondPromise).not.to.eq(promise);
+      expect(resolver._initialize(secondAuth)).to.eq(secondPromise);
     });
 
     it('iframe event goes through to the manager', async () => {

@@ -24,18 +24,9 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { delay } from '../../../test/delay';
 import { BASE_AUTH_EVENT } from '../../../test/iframe_event';
-import {
-  MockPersistenceLayer,
-  testAuth,
-  TestAuth,
-  testUser
-} from '../../../test/mock_auth';
+import { MockPersistenceLayer, testAuth, TestAuth, testUser } from '../../../test/mock_auth';
 import { makeMockPopupRedirectResolver } from '../../../test/mock_popup_redirect_resolver';
-import {
-  AuthEvent,
-  AuthEventType,
-  PopupRedirectResolver
-} from '../../model/popup_redirect';
+import { AuthEvent, AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { AuthEventManager } from '../auth/auth_event_manager';
 import { AuthErrorCode } from '../errors';
@@ -47,10 +38,8 @@ import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _getInstance } from '../util/instantiator';
 import * as idpTasks from './idp';
 import {
-  getRedirectResult,
-  linkWithRedirect,
-  reauthenticateWithRedirect,
-  signInWithRedirect
+    _clearOutcomes, getRedirectResult, linkWithRedirect, reauthenticateWithRedirect,
+    signInWithRedirect
 } from './redirect';
 
 use(sinonChai);
@@ -81,6 +70,7 @@ describe('src/core/strategies/redirect', () => {
 
   afterEach(() => {
     sinon.restore();
+    _clearOutcomes();
   });
 
   context('signInWithRedirect', () => {

@@ -18,11 +18,7 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { Auth } from '../../model/auth';
-import {
-  AuthEvent,
-  AuthEventType,
-  PopupRedirectResolver
-} from '../../model/popup_redirect';
+import { AuthEvent, AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
 import { _assertLinkedStatus } from '../user/link_unlink';
 import { _generateEventId } from '../util/event_id';
@@ -107,10 +103,10 @@ async function prepareUserForRedirect(auth: Auth, user: User): Promise<string> {
 
 // We only get one redirect outcome for any one auth, so just store it
 // in here.
-const redirectOutcomeMap: WeakMap<
-  Auth,
+let redirectOutcomeMap: Record<
+  string,
   () => Promise<UserCredential | null>
-> = new WeakMap();
+> = {};
 
 class RedirectAction extends AbstractPopupRedirectOperation {
   eventId = null;
@@ -133,7 +129,7 @@ class RedirectAction extends AbstractPopupRedirectOperation {
    * just return it.
    */
   async execute(): Promise<UserCredential | null> {
-    let readyOutcome = redirectOutcomeMap.get(this.auth);
+    let readyOutcome = redirectOutcomeMap[this.auth._key()];
     if (!readyOutcome) {
       try {
         const result = await super.execute();
@@ -142,7 +138,7 @@ class RedirectAction extends AbstractPopupRedirectOperation {
         readyOutcome = () => Promise.reject(e);
       }
 
-      redirectOutcomeMap.set(this.auth, readyOutcome);
+      redirectOutcomeMap[this.auth._key()] = readyOutcome;
     }
 
     return readyOutcome();
@@ -171,4 +167,8 @@ class RedirectAction extends AbstractPopupRedirectOperation {
   async onExecution(): Promise<void> {}
 
   cleanUp(): void {}
+}
+
+export function _clearOutcomes(): void {
+  redirectOutcomeMap = {};
 }
