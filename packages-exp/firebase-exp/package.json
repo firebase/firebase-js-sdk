@@ -39,18 +39,18 @@
     "@firebase/functions-exp": "0.0.800"
   },
   "devDependencies": {
-    "rollup": "1.32.1",
+    "rollup": "2.21.0",
     "rollup-plugin-commonjs": "10.1.0",
-    "rollup-plugin-license": "0.14.0",
+    "rollup-plugin-license": "2.1.0",
     "rollup-plugin-node-resolve": "5.2.0",
-    "rollup-plugin-sourcemaps": "0.6.1",
+    "rollup-plugin-sourcemaps": "0.6.2",
     "rollup-plugin-terser": "5.3.0",
-    "rollup-plugin-typescript2": "0.27.0",
+    "rollup-plugin-typescript2": "0.27.1",
     "rollup-plugin-uglify": "6.0.4",
     "gulp": "4.0.2",
     "gulp-sourcemaps": "2.6.5",
     "gulp-concat": "2.6.1",
-    "typescript": "3.9.5"
+    "typescript": "3.9.6"
   },
   "components": [
     "app",

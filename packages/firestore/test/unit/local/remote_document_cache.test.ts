@@ -16,7 +16,6 @@
  */
 
 import { expect } from 'chai';
-import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { MaybeDocument } from '../../../src/model/document';
@@ -25,7 +24,7 @@ import {
   doc,
   expectEqual,
   key,
-  path,
+  query,
   removedDoc,
   version
 } from '../../util/helpers';
@@ -305,11 +304,7 @@ function genericRemoteDocumentCacheTests(
     return cache
       .addEntries(docs, version(VERSION))
       .then(() => {
-        return cache.getEntries(
-          documentKeySet()
-            .add(key1)
-            .add(key2)
-        );
+        return cache.getEntries(documentKeySet().add(key1).add(key2));
       })
       .then(read => {
         expectEqual(read.get(key1), docs[0]);
@@ -329,10 +324,7 @@ function genericRemoteDocumentCacheTests(
       .addEntries(docs, version(VERSION))
       .then(() => {
         return cache.getEntries(
-          documentKeySet()
-            .add(key1)
-            .add(key2)
-            .add(missingKey)
+          documentKeySet().add(key1).add(key2).add(missingKey)
         );
       })
       .then(read => {
@@ -375,9 +367,9 @@ function genericRemoteDocumentCacheTests(
       version(VERSION)
     );
 
-    const query = new Query(path('b'));
+    const query1 = query('b');
     const matchingDocs = await cache.getDocumentsMatchingQuery(
-      query,
+      query1,
       SnapshotVersion.min()
     );
 
@@ -401,9 +393,9 @@ function genericRemoteDocumentCacheTests(
       /* readTime= */ version(13)
     );
 
-    const query = new Query(path('b'));
+    const query1 = query('b');
     const matchingDocs = await cache.getDocumentsMatchingQuery(
-      query,
+      query1,
       /* sinceReadTime= */ version(12)
     );
     assertMatches([doc('b/new', 3, DOC_DATA)], matchingDocs);
@@ -419,9 +411,9 @@ function genericRemoteDocumentCacheTests(
       /* readTime= */ version(1)
     );
 
-    const query = new Query(path('b'));
+    const query1 = query('b');
     const matchingDocs = await cache.getDocumentsMatchingQuery(
-      query,
+      query1,
       /* sinceReadTime= */ version(1)
     );
     assertMatches([doc('b/old', 1, DOC_DATA)], matchingDocs);

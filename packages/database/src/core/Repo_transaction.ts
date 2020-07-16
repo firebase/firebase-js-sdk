@@ -109,7 +109,7 @@ interface Transaction {
  * @private
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(Repo.prototype as any).transactionsInit_ = function() {
+(Repo.prototype as any).transactionsInit_ = function () {
   /**
    * Stores queues of outstanding transactions for Firebase locations.
    *
@@ -138,7 +138,7 @@ declare module './Repo' {
  * @param {?function(?Error, boolean, ?DataSnapshot)} onComplete Completion callback.
  * @param {boolean} applyLocally Whether or not to make intermediate results visible
  */
-Repo.prototype.startTransaction = function(
+Repo.prototype.startTransaction = function (
   path: Path,
   transactionUpdate: (a: unknown) => unknown,
   onComplete: ((a: Error, b: boolean, c: DataSnapshot) => void) | null,
@@ -147,10 +147,10 @@ Repo.prototype.startTransaction = function(
   this.log_('transaction on ' + path);
 
   // Add a watch to make sure we get server updates.
-  const valueCallback = function() {};
+  const valueCallback = function () {};
   const watchRef = new Reference(this, path);
   watchRef.on('value', valueCallback);
-  const unwatcher = function() {
+  const unwatcher = function () {
     watchRef.off('value', valueCallback);
   };
 
@@ -274,7 +274,7 @@ Repo.prototype.startTransaction = function(
  * @private
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(Repo.prototype as any).getLatestState_ = function(
+(Repo.prototype as any).getLatestState_ = function (
   path: Path,
   excludeSets?: number[]
 ): Node {
@@ -295,7 +295,7 @@ Repo.prototype.startTransaction = function(
  * @private
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(Repo.prototype as any).sendReadyTransactions_ = function(
+(Repo.prototype as any).sendReadyTransactions_ = function (
   node: Tree<Transaction[]> = this.transactionQueueTree_
 ) {
   // Before recursing, make sure any completed transactions are removed.
@@ -330,7 +330,7 @@ Repo.prototype.startTransaction = function(
  * @private
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(Repo.prototype as any).sendTransactionQueue_ = function(
+(Repo.prototype as any).sendTransactionQueue_ = function (
   path: Path,
   queue: Transaction[]
 ) {
@@ -445,7 +445,9 @@ Repo.prototype.startTransaction = function(
  * @private
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(Repo.prototype as any).rerunTransactions_ = function(changedPath: Path): Path {
+(Repo.prototype as any).rerunTransactions_ = function (
+  changedPath: Path
+): Path {
   const rootMostTransactionNode = this.getAncestorTransactionNode_(changedPath);
   const path = rootMostTransactionNode.path();
 
@@ -463,7 +465,7 @@ Repo.prototype.startTransaction = function(
  * @private
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(Repo.prototype as any).rerunTransactionQueue_ = function(
+(Repo.prototype as any).rerunTransactionQueue_ = function (
   queue: Transaction[],
   path: Path
 ) {
@@ -571,7 +573,7 @@ Repo.prototype.startTransaction = function(
 
       // Removing a listener can trigger pruning which can muck with mergedData/visibleData (as it prunes data).
       // So defer the unwatcher until we're done.
-      (function(unwatcher) {
+      (function (unwatcher) {
         setTimeout(unwatcher, Math.floor(0));
       })(queue[i].unwatcher);
 
@@ -612,7 +614,7 @@ Repo.prototype.startTransaction = function(
  * @private
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(Repo.prototype as any).getAncestorTransactionNode_ = function(
+(Repo.prototype as any).getAncestorTransactionNode_ = function (
   path: Path
 ): Tree<Transaction[]> {
   let front;
@@ -637,7 +639,7 @@ Repo.prototype.startTransaction = function(
  * @private
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(Repo.prototype as any).buildTransactionQueue_ = function(
+(Repo.prototype as any).buildTransactionQueue_ = function (
   transactionNode: Tree<Transaction[]>
 ): Transaction[] {
   // Walk any child transaction queues and aggregate them into a single queue.
@@ -658,7 +660,7 @@ Repo.prototype.startTransaction = function(
  * @private
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(Repo.prototype as any).aggregateTransactionQueuesForNode_ = function(
+(Repo.prototype as any).aggregateTransactionQueuesForNode_ = function (
   node: Tree<Transaction[]>,
   queue: Transaction[]
 ) {
@@ -681,7 +683,7 @@ Repo.prototype.startTransaction = function(
  * @private
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(Repo.prototype as any).pruneCompletedTransactionsBelowNode_ = function(
+(Repo.prototype as any).pruneCompletedTransactionsBelowNode_ = function (
   node: Tree<Transaction[]>
 ) {
   const queue = node.getValue();
@@ -711,7 +713,7 @@ Repo.prototype.startTransaction = function(
  * @private
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(Repo.prototype as any).abortTransactions_ = function(path: Path): Path {
+(Repo.prototype as any).abortTransactions_ = function (path: Path): Path {
   const affectedPath = this.getAncestorTransactionNode_(path).path();
 
   const transactionNode = this.transactionQueueTree_.subTree(path);
@@ -736,7 +738,7 @@ Repo.prototype.startTransaction = function(
  * @private
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(Repo.prototype as any).abortTransactionsOnNode_ = function(
+(Repo.prototype as any).abortTransactionsOnNode_ = function (
   node: Tree<Transaction[]>
 ) {
   const queue = node.getValue();

@@ -18,7 +18,6 @@
 import * as chaiAsPromised from 'chai-as-promised';
 
 import { expect, use } from 'chai';
-import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
   decodeResourcePath,
@@ -64,7 +63,7 @@ import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_pr
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
-import { doc, filter, path, version } from '../../util/helpers';
+import { doc, filter, path, query, version } from '../../util/helpers';
 import { MockIndexedDbPersistence } from '../specs/spec_test_components';
 import {
   INDEXEDDB_TEST_DATABASE_NAME,
@@ -793,9 +792,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       return sdb.runTransaction('readwrite', V8_STORES, txn => {
         const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
 
-        const filteredQuery = Query.atPath(path('collection')).addFilter(
-          filter('foo', '==', 'bar')
-        );
+        const filteredQuery = query('collection', filter('foo', '==', 'bar'));
         const initialTargetData = new TargetData(
           filteredQuery.toTarget(),
           /* targetId= */ 2,

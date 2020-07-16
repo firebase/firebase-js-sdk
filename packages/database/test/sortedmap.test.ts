@@ -22,7 +22,7 @@ import { shuffle } from './helpers/util';
 // Many of these were adapted from the mugs source code.
 // http://mads379.github.com/mugs/
 describe('SortedMap Tests', () => {
-  const defaultCmp = function(a, b) {
+  const defaultCmp = function (a, b) {
     if (a === b) {
       return 0;
     } else if (a < b) {
@@ -194,18 +194,12 @@ describe('SortedMap Tests', () => {
     expect(map.count()).to.equal(6);
     expect((map as any).root_.checkMaxDepth_()).to.equal(true);
 
-    const m2 = map
-      .insert(20, 20)
-      .insert(18, 18)
-      .insert(2, 2);
+    const m2 = map.insert(20, 20).insert(18, 18).insert(2, 2);
 
     expect(m2.count()).to.equal(9);
     expect((m2 as any).root_.checkMaxDepth_()).to.equal(true);
 
-    const m3 = m2
-      .insert(71, 71)
-      .insert(42, 42)
-      .insert(88, 88);
+    const m3 = m2.insert(71, 71).insert(42, 42).insert(88, 88);
 
     expect(m3.count()).to.equal(12);
     expect((m3 as any).root_.checkMaxDepth_()).to.equal(true);
@@ -305,7 +299,7 @@ describe('SortedMap Tests', () => {
   });
 
   xit('Perf: Insertion and removal with various # of items.', () => {
-    const verifyTraversal = function(map, max) {
+    const verifyTraversal = function (map, max) {
       let next = 0;
       map.inorderTraversal((key, value) => {
         expect(key).to.equal(next);
@@ -346,7 +340,7 @@ describe('SortedMap Tests', () => {
   });
 
   xit('Perf: Comparison with {}: Insertion and removal with various # of items.', () => {
-    const verifyTraversal = function(tree, max) {
+    const verifyTraversal = function (tree, max) {
       const keys = [];
       for (const k of Object.keys(tree)) {
         keys.push(k);

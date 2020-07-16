@@ -269,12 +269,7 @@ export class PersistentConnection extends ServerActions {
       const warnings = safeGet(payload as any, 'w');
       if (Array.isArray(warnings) && ~warnings.indexOf('no_index')) {
         const indexSpec =
-          '".indexOn": "' +
-          query
-            .getQueryParams()
-            .getIndex()
-            .toString() +
-          '"';
+          '".indexOn": "' + query.getQueryParams().getIndex().toString() + '"';
         const indexPath = query.path.toString();
         warn(
           `Using an unspecified index. Your data will be downloaded and ` +
@@ -750,7 +745,7 @@ export class PersistentConnection extends ServerActions {
       const lastSessionId = this.lastSessionId;
       let canceled = false;
       let connection: Connection | null = null;
-      const closeFn = function() {
+      const closeFn = function () {
         if (connection) {
           connection.close();
         } else {
@@ -758,7 +753,7 @@ export class PersistentConnection extends ServerActions {
           onDisconnect();
         }
       };
-      const sendRequestFn = function(msg: object) {
+      const sendRequestFn = function (msg: object) {
         assert(
           connection,
           "sendRequest call when we're not connected not allowed."

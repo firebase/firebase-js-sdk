@@ -24,10 +24,17 @@ import { Provider } from '@firebase/component';
 import { log, warn } from './util/util';
 import { FirebaseApp } from '@firebase/app-types';
 
+export interface AuthTokenProvider {
+  getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData>;
+  addTokenChangeListener(listener: (token: string | null) => void): void;
+  removeTokenChangeListener(listener: (token: string | null) => void): void;
+  notifyForInvalidToken(): void;
+}
+
 /**
  * Abstraction around FirebaseApp's token fetching capabilities.
  */
-export class AuthTokenProvider {
+export class FirebaseAuthTokenProvider implements AuthTokenProvider {
   private auth_: FirebaseAuthInternal | null = null;
   constructor(
     private app_: FirebaseApp,
@@ -60,7 +67,7 @@ export class AuthTokenProvider {
     });
   }
 
-  addTokenChangeListener(listener: (token: string | null) => void) {
+  addTokenChangeListener(listener: (token: string | null) => void): void {
     // TODO: We might want to wrap the listener and call it with no args to
     // avoid a leaky abstraction, but that makes removing the listener harder.
     if (this.auth_) {
@@ -73,13 +80,13 @@ export class AuthTokenProvider {
     }
   }
 
-  removeTokenChangeListener(listener: (token: string | null) => void) {
+  removeTokenChangeListener(listener: (token: string | null) => void): void {
     this.authProvider_
       .get()
       .then(auth => auth.removeAuthTokenListener(listener));
   }
 
-  notifyForInvalidToken() {
+  notifyForInvalidToken(): void {
     let errorMessage =
       'Provided authentication credentials for the app named "' +
       this.app_.name +
@@ -103,4 +110,25 @@ export class AuthTokenProvider {
     }
     warn(errorMessage);
   }
+}
+
+/* Auth token provider that the Admin SDK uses to connect to the Emulator. */
+export class EmulatorAdminTokenProvider implements AuthTokenProvider {
+  private static EMULATOR_AUTH_TOKEN = 'owner';
+
+  getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData> {
+    return Promise.resolve({
+      accessToken: EmulatorAdminTokenProvider.EMULATOR_AUTH_TOKEN
+    });
+  }
+
+  addTokenChangeListener(listener: (token: string | null) => void): void {
+    // Invoke the listener immediately to match the behavior in Firebase Auth
+    // (see packages/auth/src/auth.js#L1807)
+    listener(EmulatorAdminTokenProvider.EMULATOR_AUTH_TOKEN);
+  }
+
+  removeTokenChangeListener(listener: (token: string | null) => void): void {}
+
+  notifyForInvalidToken(): void {}
 }
