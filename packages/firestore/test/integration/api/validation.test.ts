@@ -238,16 +238,14 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() => db.collection('')).to.throw(
         `Function ${
           usesFunctionalApi() ? 'collection' : 'Firestore.collection'
-        }() ` +
-          `requires its ${argumentPosition} argument to be of type non-empty ` +
-          'string, but it was: ""'
+        }() requires its ${argumentPosition} argument to be of type ` +
+          'non-empty string, but it was: ""'
       );
       expect(() => baseDocRef.collection('')).to.throw(
         `Function ${
           usesFunctionalApi() ? 'doc' : 'CollectionReference.doc'
-        }() ` +
-          `requires its ${argumentPosition} argument to be of type non-empty ` +
-          'string, but it was: ""'
+        }() requires its ${argumentPosition} argument to be of type ` +
+          'non-empty string, but it was: ""'
       );
 
       if (validatesJsInput) {
@@ -317,9 +315,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() => baseCollectionRef.doc('')).to.throw(
         `Function ${
           usesFunctionalApi() ? 'doc' : 'CollectionReference.doc'
-        }() ` +
-          `requires its ${argumentPosition} argument to be of type non-empty ` +
-          'string, but it was: ""'
+        }() requires its ${argumentPosition} argument to be of type ` +
+          'non-empty string, but it was: ""'
       );
 
       if (validatesJsInput) {
