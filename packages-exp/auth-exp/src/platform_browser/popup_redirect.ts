@@ -29,7 +29,11 @@ import { _getCurrentUrl } from '../core/util/location';
 import { _open, AuthPopup } from '../core/util/popup';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
-    AuthEventType, EventManager, GapiAuthEvent, GapiOutcome, PopupRedirectResolver
+  AuthEventType,
+  EventManager,
+  GapiAuthEvent,
+  GapiOutcome,
+  PopupRedirectResolver
 } from '../model/popup_redirect';
 import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';
@@ -81,7 +85,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   _initialize(auth: Auth): Promise<EventManager> {
     const key = auth._key();
     if (this.eventManagers[key]) {
-      const {manager, promise} = this.eventManagers[key];
+      const { manager, promise } = this.eventManagers[key];
       if (manager) {
         return Promise.resolve(manager);
       } else {
@@ -91,7 +95,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     }
 
     const promise = this.initAndGetManager(auth);
-    this.eventManagers[key] = {promise};
+    this.eventManagers[key] = { promise };
     return promise;
   }
 
@@ -108,7 +112,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
       gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER
     );
 
-    this.eventManagers[auth._key()] = {manager};
+    this.eventManagers[auth._key()] = { manager };
     return manager;
   }
 }

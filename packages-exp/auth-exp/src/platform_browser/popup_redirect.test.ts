@@ -30,7 +30,10 @@ import { OAuthProvider } from '../core/providers/oauth';
 import { SingletonInstantiator } from '../core/util/instantiator';
 import { Auth } from '../model/auth';
 import {
-    AuthEvent, AuthEventType, GapiAuthEvent, PopupRedirectResolver
+  AuthEvent,
+  AuthEventType,
+  GapiAuthEvent,
+  PopupRedirectResolver
 } from '../model/popup_redirect';
 import * as authWindow from './auth_window';
 import * as gapiLoader from './iframe/gapi';
