@@ -27,7 +27,6 @@ import {
   withTestDb
 } from '../util/helpers';
 import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
-import { TEST_PROJECT } from '../../unit/local/persistence_test_helpers';
 
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;
@@ -168,14 +167,14 @@ apiDescribe('Validation:', (persistence: boolean) => {
     });
 
     validationIt(persistence, 'enforces minimum cache size', () => {
-      const db = newTestFirestore(TEST_PROJECT);
+      const db = newTestFirestore('test-project');
       expect(() => db.settings({ cacheSizeBytes: 1 })).to.throw(
         'cacheSizeBytes must be at least 1048576'
       );
     });
 
     validationIt(persistence, 'garbage collection can be disabled', () => {
-      const db = newTestFirestore(TEST_PROJECT);
+      const db = newTestFirestore('test-project');
       // Verify that this doesn't throw.
       db.settings({ cacheSizeBytes: /* CACHE_SIZE_UNLIMITED= */ -1 });
     });
