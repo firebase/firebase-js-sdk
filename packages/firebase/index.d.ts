@@ -5083,6 +5083,16 @@ declare namespace firebase.analytics {
     id?: string;
     name?: string;
   }
+
+  /**
+   * An async function that returns true if current browser context supports initialization of analytics module
+   * (`firebase.analytics()`).
+   *
+   * Returns false otherwise.
+   *
+   *
+   */
+  function isSupported(): Promise<boolean>;
 }
 
 declare namespace firebase.auth.Auth {
