@@ -4,7 +4,7 @@
   "private": true,
   "description": "A template package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/index.node.cjs.js",
+  "main": "dist/index.js",
   "files": [
     "dist"
   ],
