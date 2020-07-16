@@ -85,6 +85,7 @@ import {
   orderBy,
   patchMutation,
   path,
+  query,
   setMutation,
   stringFromBase64String,
   TestSnapshotVersion,
@@ -127,7 +128,7 @@ const ARBITRARY_SEQUENCE_NUMBER = 2;
 
 export function parseQuery(querySpec: string | SpecQuery): Query {
   if (typeof querySpec === 'string') {
-    return Query.atPath(path(querySpec));
+    return query(querySpec);
   } else {
     let query = new Query(path(querySpec.path), querySpec.collectionGroup);
     if (querySpec.limit) {
