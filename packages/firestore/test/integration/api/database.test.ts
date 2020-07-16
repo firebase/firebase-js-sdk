@@ -40,7 +40,6 @@ const usesFunctionalApi = firebaseExport.usesFunctionalApi;
 const Timestamp = firebaseExport.Timestamp;
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;
-const Firestore = firebaseExport.Firestore;
 
 const MEMORY_ONLY_BUILD =
   typeof process !== 'undefined' &&
