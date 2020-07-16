@@ -53,10 +53,10 @@ export function withTestDatastore(
   credentialsProvider: CredentialsProvider = new EmptyCredentialsProvider()
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
-  return newConnection(databaseInfo).then(async conn => {
+  return newConnection(databaseInfo).then(conn => {
     const serializer = newSerializer(databaseInfo.databaseId);
     const datastore = newDatastore(credentialsProvider, serializer);
-    await datastore.start(conn);
+    datastore.start(conn);
     return fn(datastore);
   });
 }
