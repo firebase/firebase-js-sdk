@@ -1064,6 +1064,16 @@ describe('withConverter() support', () => {
     });
   });
 
+  it('keeps the converter when calling parent() with a DocumentReference', () => {
+    return withTestDb(async db => {
+      const coll = doc(db, 'root/doc').withConverter(postConverter);
+      const typedColl = parent(coll)!;
+      expect(
+        refEqual(typedColl, collection(db, 'root').withConverter(postConverter))
+      ).to.be.true;
+    });
+  });
+
   it('drops the converter when calling parent() with a CollectionReference', () => {
     return withTestDb(async db => {
       const coll = collection(db, 'root/doc/parent').withConverter(
