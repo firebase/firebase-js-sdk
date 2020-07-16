@@ -98,7 +98,6 @@ async function getFixedIssueLink(
       method: 'GET'
     }
   ).then(data => data.json());
-  console.log(body, repo, prNumber);
 
   const match = fixedIssueRegex.exec(body);
   if (!match) {
