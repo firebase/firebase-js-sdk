@@ -2,7 +2,7 @@
   "name": "@firebase/changelog-generator",
   "version": "0.1.0",
   "private": true,
-  "description": "To generate changelog for Firebase SDKs",
+  "description": "A template package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
   "files": [
@@ -20,8 +20,10 @@
     "prepare": "yarn build"
   },
   "dependencies": {
-    "@changesets/types": "3.0.0",
-    "@changesets/get-github-info": "0.4.3"
+    "@changesets/types": "3.1.0",
+    "@changesets/get-github-info": "0.4.3",
+    "node-fetch": "2.6.0",
+    "@types/node-fetch": "2.5.7"
   },
   "license": "Apache-2.0",
   "devDependencies": {

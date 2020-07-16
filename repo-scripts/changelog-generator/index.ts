@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 
 import { ChangelogFunctions } from '@changesets/types';
 import { getInfo } from '@changesets/get-github-info';
+import fetch from 'node-fetch';
 
 const changelogFunctions: ChangelogFunctions = {
   getDependencyReleaseLine: async (
@@ -64,14 +65,21 @@ const changelogFunctions: ChangelogFunctions = {
       .map(l => l.trimRight());
 
     if (changeset.commit) {
-      let { links } = await getInfo({
+      let { pull: pullNumber, links } = await getInfo({
         repo: options.repo,
         commit: changeset.commit
       });
+
+      let fixedIssueLink = null;
+      // If the summary didn't mention any issue, we will look at the PR body to try to generate one automatically
+      if (!/issues\/[\d+]/i.test(changeset.summary) && pullNumber) {
+        fixedIssueLink = await getFixedIssueLink(pullNumber, options.repo);
+      }
+
       return `\n\n- ${links.commit}${
         links.pull === null ? '' : ` ${links.pull}`
       }${
-        links.user === null ? '' : ` Thanks ${links.user}!`
+        fixedIssueLink === null ? '' : ` ${fixedIssueLink}`
       } - ${firstLine}\n${futureLines.map(l => `  ${l}`).join('\n')}`;
     } else {
       return `\n\n- ${firstLine}\n${futureLines.map(l => `  ${l}`).join('\n')}`;
@@ -79,4 +87,25 @@ const changelogFunctions: ChangelogFunctions = {
   }
 };
 
-export default changelogFunctions;
+const fixedIssueRegex = /(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) [^\s]*(#|issues\/)([\d]+)/i;
+async function getFixedIssueLink(
+  prNumber: number,
+  repo: string
+): Promise<string> {
+  const { body }: { body: string } = await fetch(
+    `https://api.github.com/repos/${repo}/pulls/${prNumber}`,
+    {
+      method: 'GET'
+    }
+  ).then(data => data.json());
+
+  const match = fixedIssueRegex.exec(body);
+  if (!match) {
+    return '';
+  }
+
+  const issueNumber = match.groups![3];
+  return `Fixed [#${issueNumber}](https://github.com/firebase/firebase-js-sdk/issues/${issueNumber})`;
+}
+
+exports.default = changelogFunctions;
