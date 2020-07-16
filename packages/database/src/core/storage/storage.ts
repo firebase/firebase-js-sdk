@@ -29,7 +29,7 @@ declare const window: Window;
  *   (e.g. 'localStorage' or 'sessionStorage').
  * @return {?} Turning off type information until a common interface is defined.
  */
-const createStoragefor = function(
+const createStoragefor = function (
   domStorageName: string
 ): DOMStorageWrapper | MemoryStorage {
   try {

@@ -16,7 +16,6 @@
  */
 
 import { expect } from 'chai';
-import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
@@ -26,7 +25,7 @@ import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   filter,
   key,
-  path,
+  query,
   resumeTokenForSnapshot,
   version
 } from '../../util/helpers';
@@ -34,7 +33,12 @@ import {
 import { Timestamp } from '../../../src/api/timestamp';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestTargetCache } from './test_target_cache';
-import { canonifyTarget, Target, targetEquals } from '../../../src/core/target';
+import {
+  canonifyTarget,
+  Target,
+  targetEquals,
+  TargetImpl
+} from '../../../src/core/target';
 
 describe('MemoryTargetCache', () => {
   genericTargetCacheTests(persistenceHelpers.testMemoryEagerPersistence);
@@ -65,7 +69,7 @@ describe('IndexedDbTargetCache', () => {
     const lastLimboFreeSnapshotVersion = SnapshotVersion.fromTimestamp(
       new Timestamp(3, 4)
     );
-    const target = Query.atPath(path('rooms')).toTarget();
+    const target = query('rooms').toTarget();
     const targetData = new TargetData(
       target,
       targetId,
@@ -106,12 +110,12 @@ describe('IndexedDbTargetCache', () => {
 function genericTargetCacheTests(
   persistencePromise: () => Promise<Persistence>
 ): void {
-  addEqualityMatcher({ equalsFn: targetEquals, forType: Target });
+  addEqualityMatcher({ equalsFn: targetEquals, forType: TargetImpl });
   let cache: TestTargetCache;
 
-  const QUERY_ROOMS = Query.atPath(path('rooms')).toTarget();
-  const QUERY_HALLS = Query.atPath(path('halls')).toTarget();
-  const QUERY_GARAGES = Query.atPath(path('garages')).toTarget();
+  const QUERY_ROOMS = query('rooms').toTarget();
+  const QUERY_HALLS = query('halls').toTarget();
+  const QUERY_GARAGES = query('garages').toTarget();
 
   /**
    * Creates a new TargetData object from the the given parameters, synthesizing
@@ -168,12 +172,8 @@ function genericTargetCacheTests(
   it('handles canonical ID collisions', async () => {
     // Type information is currently lost in our canonicalID implementations so
     // this currently an easy way to force colliding canonicalIDs
-    const q1 = Query.atPath(path('a'))
-      .addFilter(filter('foo', '==', 1))
-      .toTarget();
-    const q2 = Query.atPath(path('a'))
-      .addFilter(filter('foo', '==', '1'))
-      .toTarget();
+    const q1 = query('a', filter('foo', '==', 1)).toTarget();
+    const q2 = query('a', filter('foo', '==', '1')).toTarget();
     expect(canonifyTarget(q1)).to.equal(canonifyTarget(q2));
 
     const data1 = testTargetData(q1, 1, 1);

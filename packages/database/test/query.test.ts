@@ -30,14 +30,14 @@ type TaskList = Array<[Query, any]>;
 
 describe('Query Tests', () => {
   // Little helper class for testing event callbacks w/ contexts.
-  const EventReceiver = function() {
+  const EventReceiver = function () {
     this.gotValue = false;
     this.gotChildAdded = false;
   };
-  EventReceiver.prototype.onValue = function() {
+  EventReceiver.prototype.onValue = function () {
     this.gotValue = true;
   };
-  EventReceiver.prototype.onChildAdded = function() {
+  EventReceiver.prototype.onChildAdded = function () {
     this.gotChildAdded = true;
   };
 
@@ -295,7 +295,7 @@ describe('Query Tests', () => {
 
   it('Query.queryIdentifier works.', () => {
     const path = getRandomNode() as Reference;
-    const queryId = function(query) {
+    const queryId = function (query) {
       return query.queryIdentifier(query);
     };
 
@@ -447,7 +447,7 @@ describe('Query Tests', () => {
     const path = getRandomNode() as Reference;
     let eventFired = false;
 
-    const callback = function() {
+    const callback = function () {
       eventFired = true;
     };
     path.limitToLast(5).on('value', callback);
@@ -465,7 +465,7 @@ describe('Query Tests', () => {
     const path = getRandomNode() as Reference;
     let eventFired = false;
 
-    const callback = function() {
+    const callback = function () {
       eventFired = true;
     };
     path.limitToLast(5).on('value', callback);
@@ -483,10 +483,10 @@ describe('Query Tests', () => {
     const path = getRandomNode() as Reference;
     let eventFired = false;
 
-    const callback1 = function() {
+    const callback1 = function () {
       eventFired = true;
     };
-    const callback2 = function() {
+    const callback2 = function () {
       eventFired = true;
     };
     path.on('value', callback1);
@@ -505,10 +505,10 @@ describe('Query Tests', () => {
     const path = getRandomNode() as Reference;
     let eventFired = false;
 
-    const callback1 = function() {
+    const callback1 = function () {
       eventFired = true;
     };
-    const callback2 = function() {
+    const callback2 = function () {
       eventFired = true;
     };
     path.on('value', callback1);
@@ -1491,7 +1491,7 @@ describe('Query Tests', () => {
 
   it('Ensure on() returns callback function.', () => {
     const node = getRandomNode() as Reference;
-    const callback = function() {};
+    const callback = function () {};
     const ret = node.on('value', callback);
     expect(ret).to.equal(callback);
   });
@@ -1680,14 +1680,8 @@ describe('Query Tests', () => {
     node.limitToLast(1).off('value', rootLim1On);
     expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"},{"l":5,"vf":"r"}');
 
-    node
-      .child('a')
-      .limitToLast(1)
-      .off('value', aLim1On);
-    node
-      .child('a')
-      .limitToLast(5)
-      .off('value', aLim5On);
+    node.child('a').limitToLast(1).off('value', aLim1On);
+    node.child('a').limitToLast(5).off('value', aLim5On);
     expect(dumpListens(node)).to.equal('');
   });
 
@@ -1712,19 +1706,13 @@ describe('Query Tests', () => {
     expect(dumpListens(node)).to.equal(':default');
 
     // remove in slightly random order.
-    node
-      .child('a')
-      .limitToLast(1)
-      .off('value', aLim1On);
+    node.child('a').limitToLast(1).off('value', aLim1On);
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
     expect(dumpListens(node)).to.equal('/b:{"l":1,"vf":"r"}');
 
-    node
-      .child('b')
-      .limitToLast(1)
-      .off('value', bLim1On);
+    node.child('b').limitToLast(1).off('value', bLim1On);
     expect(dumpListens(node)).to.equal('');
   });
 
@@ -1775,10 +1763,10 @@ describe('Query Tests', () => {
   it('.on() with a context works.', () => {
     const ref = getRandomNode() as Reference;
 
-    const ListenerDoohickey = function() {
+    const ListenerDoohickey = function () {
       this.snap = null;
     };
-    ListenerDoohickey.prototype.onEvent = function(snap) {
+    ListenerDoohickey.prototype.onEvent = function (snap) {
       this.snap = snap;
     };
 
@@ -1798,10 +1786,10 @@ describe('Query Tests', () => {
   it('.once() with a context works.', () => {
     const ref = getRandomNode() as Reference;
 
-    const ListenerDoohickey = function() {
+    const ListenerDoohickey = function () {
       this.snap = null;
     };
-    ListenerDoohickey.prototype.onEvent = function(snap) {
+    ListenerDoohickey.prototype.onEvent = function (snap) {
       this.snap = snap;
     };
 

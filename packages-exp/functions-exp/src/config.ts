@@ -32,7 +32,7 @@ const factory: InstanceFactory<'functions'> = (
   region?: string
 ) => {
   // Dependencies
-  const app = container.getProvider('app').getImmediate();
+  const app = container.getProvider('app-exp').getImmediate();
   const authProvider = container.getProvider('auth-internal');
   const messagingProvider = container.getProvider('messaging');
 

@@ -24,14 +24,20 @@ import { expect } from 'chai';
 import { Blob } from '../../src/api/blob';
 import { fromDotSeparatedString } from '../../src/api/field_path';
 import { UserDataWriter } from '../../src/api/user_data_writer';
-import { UserDataReader } from '../../src/api/user_data_reader';
+import {
+  parseQueryValue,
+  parseUpdateData,
+  UserDataReader
+} from '../../src/api/user_data_reader';
 import { DatabaseId } from '../../src/core/database_info';
 import {
   Bound,
   Direction,
   FieldFilter,
+  Filter,
   Operator,
-  OrderBy
+  OrderBy,
+  Query
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
 import { TargetId } from '../../src/core/types';
@@ -84,7 +90,7 @@ import { primitiveComparator } from '../../src/util/misc';
 import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
-import { FIRESTORE, query } from './api_helpers';
+import { FIRESTORE } from './api_helpers';
 import { ByteString } from '../../src/util/byte_string';
 import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
@@ -163,7 +169,7 @@ export function wrap(value: unknown): api.Value {
   // HACK: We use parseQueryValue() since it accepts scalars as well as
   // arrays / objects, and our tests currently use wrap() pretty generically so
   // we don't know the intent.
-  return testUserDataReader().parseQueryValue('wrap', value);
+  return parseQueryValue(testUserDataReader(), 'wrap', value);
 }
 
 export function wrapObject(obj: JsonObject<unknown>): ObjectValue {
@@ -208,13 +214,7 @@ export function blob(...bytes: number[]): Blob {
 export function filter(path: string, op: string, value: unknown): FieldFilter {
   const dataValue = wrap(value);
   const operator = op as Operator;
-  const filter = FieldFilter.create(field(path), operator, dataValue);
-
-  if (filter instanceof FieldFilter) {
-    return filter;
-  } else {
-    return fail('Unrecognized filter: ' + JSON.stringify(filter));
-  }
+  return FieldFilter.create(field(path), operator, dataValue);
 }
 
 export function setMutation(
@@ -239,7 +239,8 @@ export function patchMutation(
     }
   });
   const patchKey = key(keyStr);
-  const parsed = testUserDataReader().parseUpdateData(
+  const parsed = parseUpdateData(
+    testUserDataReader(),
     'patchMutation',
     patchKey,
     json
@@ -267,7 +268,8 @@ export function transformMutation(
   data: Dict<unknown>
 ): TransformMutation {
   const transformKey = key(keyStr);
-  const result = testUserDataReader().parseUpdateData(
+  const result = parseUpdateData(
+    testUserDataReader(),
     'transformMutation()',
     transformKey,
     data
@@ -293,6 +295,21 @@ export function bound(
   return new Bound(components, before);
 }
 
+export function query(
+  resourcePath: string,
+  ...constraints: Array<OrderBy | Filter>
+): Query {
+  let q = Query.atPath(path(resourcePath));
+  for (const constraint of constraints) {
+    if (constraint instanceof Filter) {
+      q = q.addFilter(constraint);
+    } else {
+      q = q.addOrderBy(constraint);
+    }
+  }
+  return q;
+}
+
 export function targetData(
   targetId: TargetId,
   queryPurpose: TargetPurpose,
@@ -301,7 +318,7 @@ export function targetData(
   // Arbitrary value.
   const sequenceNumber = 0;
   return new TargetData(
-    query(path)._query.toTarget(),
+    query(path).toTarget(),
     targetId,
     queryPurpose,
     sequenceNumber
@@ -785,7 +802,8 @@ export function expectSetToEqual<T>(set: SortedSet<T>, arr: T[]): void {
  */
 export function expectEqualitySets<T>(
   elems: T[][],
-  equalityFn: (v1: T, v2: T) => boolean
+  equalityFn: (v1: T, v2: T) => boolean,
+  stringifyFn?: (v: T) => string
 ): void {
   for (let i = 0; i < elems.length; i++) {
     const currentElems = elems[i];
@@ -799,9 +817,9 @@ export function expectEqualitySets<T>(
           expect(equalityFn(elem, otherElem)).to.equal(
             expectedComparison,
             'Expected (' +
-              elem +
+              (stringifyFn ? stringifyFn(elem) : elem) +
               ').isEqual(' +
-              otherElem +
+              (stringifyFn ? stringifyFn(otherElem) : otherElem) +
               ').to.equal(' +
               expectedComparison +
               ')'

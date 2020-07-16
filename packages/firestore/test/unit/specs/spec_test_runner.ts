@@ -25,7 +25,7 @@ import {
   Observer,
   QueryListener
 } from '../../../src/core/event_manager';
-import { Query } from '../../../src/core/query';
+import { canonifyQuery, Query, queryEquals } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { SyncEngine } from '../../../src/core/sync_engine';
 import { TargetId } from '../../../src/core/types';
@@ -85,6 +85,7 @@ import {
   orderBy,
   patchMutation,
   path,
+  query,
   setMutation,
   stringFromBase64String,
   TestSnapshotVersion,
@@ -127,7 +128,7 @@ const ARBITRARY_SEQUENCE_NUMBER = 2;
 
 export function parseQuery(querySpec: string | SpecQuery): Query {
   if (typeof querySpec === 'string') {
-    return Query.atPath(path(querySpec));
+    return query(querySpec);
   } else {
     let query = new Query(path(querySpec.path), querySpec.collectionGroup);
     if (querySpec.limit) {
@@ -166,8 +167,8 @@ abstract class TestRunner {
 
   protected document = new FakeDocument();
   private queryListeners = new ObjectMap<Query, QueryListener>(
-    q => q.canonicalId(),
-    (l, r) => l.isEqual(r)
+    q => canonifyQuery(q),
+    queryEquals
   );
 
   private expectedActiveLimboDocs: DocumentKey[];
@@ -753,12 +754,12 @@ abstract class TestRunner {
         'Number of expected and actual events mismatch'
       );
       const actualEventsSorted = this.eventList.sort((a, b) =>
-        primitiveComparator(a.query.canonicalId(), b.query.canonicalId())
+        primitiveComparator(canonifyQuery(a.query), canonifyQuery(b.query))
       );
       const expectedEventsSorted = expectedEvents.sort((a, b) =>
         primitiveComparator(
-          parseQuery(a.query).canonicalId(),
-          parseQuery(b.query).canonicalId()
+          canonifyQuery(parseQuery(a.query)),
+          canonifyQuery(parseQuery(b.query))
         )
       );
       for (let i = 0; i < expectedEventsSorted.length; i++) {

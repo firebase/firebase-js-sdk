@@ -54,9 +54,6 @@ export const enum LimitType {
  * query the RemoteStore results.
  */
 export class Query {
-  // TODO(firestorelite): Refactor this class so that methods that are not used
-  // in the Lite client become tree-shakeable.
-
   static atPath(path: ResourcePath): Query {
     return new Query(path);
   }
@@ -267,52 +264,6 @@ export class Query {
     );
   }
 
-  // TODO(b/29183165): This is used to get a unique string from a query to, for
-  // example, use as a dictionary key, but the implementation is subject to
-  // collisions. Make it collision-free.
-  canonicalId(): string {
-    return `${canonifyTarget(this.toTarget())}|lt:${this.limitType}`;
-  }
-
-  toString(): string {
-    return `Query(target=${stringifyTarget(this.toTarget())}; limitType=${
-      this.limitType
-    })`;
-  }
-
-  isEqual(other: Query): boolean {
-    return (
-      targetEquals(this.toTarget(), other.toTarget()) &&
-      this.limitType === other.limitType
-    );
-  }
-
-  docComparator(d1: Document, d2: Document): number {
-    let comparedOnKeyField = false;
-    for (const orderBy of this.orderBy) {
-      const comp = compareDocs(orderBy, d1, d2);
-      if (comp !== 0) {
-        return comp;
-      }
-      comparedOnKeyField = comparedOnKeyField || orderBy.field.isKeyField();
-    }
-    // Assert that we actually compared by key
-    debugAssert(
-      comparedOnKeyField,
-      "orderBy used that doesn't compare on key field"
-    );
-    return 0;
-  }
-
-  matches(doc: Document): boolean {
-    return (
-      this.matchesPathAndCollectionGroup(doc) &&
-      this.matchesOrderBy(doc) &&
-      this.matchesFilters(doc) &&
-      this.matchesBounds(doc)
-    );
-  }
-
   hasLimitToFirst(): boolean {
     return !isNullOrUndefined(this.limit) && this.limitType === LimitType.First;
   }
@@ -407,60 +358,6 @@ export class Query {
     return this.memoizedTarget!;
   }
 
-  private matchesPathAndCollectionGroup(doc: Document): boolean {
-    const docPath = doc.key.path;
-    if (this.collectionGroup !== null) {
-      // NOTE: this.path is currently always empty since we don't expose Collection
-      // Group queries rooted at a document path yet.
-      return (
-        doc.key.hasCollectionId(this.collectionGroup) &&
-        this.path.isPrefixOf(docPath)
-      );
-    } else if (DocumentKey.isDocumentKey(this.path)) {
-      // exact match for document queries
-      return this.path.isEqual(docPath);
-    } else {
-      // shallow ancestor queries by default
-      return this.path.isImmediateParentOf(docPath);
-    }
-  }
-
-  /**
-   * A document must have a value for every ordering clause in order to show up
-   * in the results.
-   */
-  private matchesOrderBy(doc: Document): boolean {
-    for (const orderBy of this.explicitOrderBy) {
-      // order by key always matches
-      if (!orderBy.field.isKeyField() && doc.field(orderBy.field) === null) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private matchesFilters(doc: Document): boolean {
-    for (const filter of this.filters) {
-      if (!filter.matches(doc)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Makes sure a document is within the bounds, if provided.
-   */
-  private matchesBounds(doc: Document): boolean {
-    if (this.startAt && !sortsBeforeDocument(this.startAt, this.orderBy, doc)) {
-      return false;
-    }
-    if (this.endAt && sortsBeforeDocument(this.endAt, this.orderBy, doc)) {
-      return false;
-    }
-    return true;
-  }
-
   private assertValidBound(bound: Bound): void {
     debugAssert(
       bound.position.length <= this.orderBy.length,
@@ -469,10 +366,121 @@ export class Query {
   }
 }
 
+export function queryEquals(left: Query, right: Query): boolean {
+  return (
+    targetEquals(left.toTarget(), right.toTarget()) &&
+    left.limitType === right.limitType
+  );
+}
+
+// TODO(b/29183165): This is used to get a unique string from a query to, for
+// example, use as a dictionary key, but the implementation is subject to
+// collisions. Make it collision-free.
+export function canonifyQuery(query: Query): string {
+  return `${canonifyTarget(query.toTarget())}|lt:${query.limitType}`;
+}
+
+export function stringifyQuery(query: Query): string {
+  return `Query(target=${stringifyTarget(query.toTarget())}; limitType=${
+    query.limitType
+  })`;
+}
+
+/** Returns whether `doc` matches the constraints of `query`. */
+export function queryMatches(query: Query, doc: Document): boolean {
+  return (
+    queryMatchesPathAndCollectionGroup(query, doc) &&
+    queryMatchesOrderBy(query, doc) &&
+    queryMatchesFilters(query, doc) &&
+    queryMatchesBounds(query, doc)
+  );
+}
+
+function queryMatchesPathAndCollectionGroup(
+  query: Query,
+  doc: Document
+): boolean {
+  const docPath = doc.key.path;
+  if (query.collectionGroup !== null) {
+    // NOTE: this.path is currently always empty since we don't expose Collection
+    // Group queries rooted at a document path yet.
+    return (
+      doc.key.hasCollectionId(query.collectionGroup) &&
+      query.path.isPrefixOf(docPath)
+    );
+  } else if (DocumentKey.isDocumentKey(query.path)) {
+    // exact match for document queries
+    return query.path.isEqual(docPath);
+  } else {
+    // shallow ancestor queries by default
+    return query.path.isImmediateParentOf(docPath);
+  }
+}
+
+/**
+ * A document must have a value for every ordering clause in order to show up
+ * in the results.
+ */
+function queryMatchesOrderBy(query: Query, doc: Document): boolean {
+  for (const orderBy of query.explicitOrderBy) {
+    // order by key always matches
+    if (!orderBy.field.isKeyField() && doc.field(orderBy.field) === null) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function queryMatchesFilters(query: Query, doc: Document): boolean {
+  for (const filter of query.filters) {
+    if (!filter.matches(doc)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/** Makes sure a document is within the bounds, if provided. */
+function queryMatchesBounds(query: Query, doc: Document): boolean {
+  if (
+    query.startAt &&
+    !sortsBeforeDocument(query.startAt, query.orderBy, doc)
+  ) {
+    return false;
+  }
+  if (query.endAt && sortsBeforeDocument(query.endAt, query.orderBy, doc)) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Returns a new comparator function that can be used to compare two documents
+ * based on the Query's ordering constraint.
+ */
+export function newQueryComparator(
+  query: Query
+): (d1: Document, d2: Document) => number {
+  return (d1: Document, d2: Document): number => {
+    let comparedOnKeyField = false;
+    for (const orderBy of query.orderBy) {
+      const comp = compareDocs(orderBy, d1, d2);
+      if (comp !== 0) {
+        return comp;
+      }
+      comparedOnKeyField = comparedOnKeyField || orderBy.field.isKeyField();
+    }
+    // Assert that we actually compared by key
+    debugAssert(
+      comparedOnKeyField,
+      "orderBy used that doesn't compare on key field"
+    );
+    return 0;
+  };
+}
+
 export abstract class Filter {
   abstract matches(doc: Document): boolean;
-  abstract canonicalId(): string;
-  abstract isEqual(filter: Filter): boolean;
 }
 
 export const enum Operator {
@@ -594,35 +602,42 @@ export class FieldFilter extends Filter {
       ].indexOf(this.op) >= 0
     );
   }
+}
 
-  canonicalId(): string {
-    // TODO(b/29183165): Technically, this won't be unique if two values have
-    // the same description, such as the int 3 and the string "3". So we should
-    // add the types in here somehow, too.
-    return (
-      this.field.canonicalString() +
-      this.op.toString() +
-      canonicalId(this.value)
-    );
-  }
+export function canonifyFilter(filter: Filter): string {
+  debugAssert(
+    filter instanceof FieldFilter,
+    'canonifyFilter() only supports FieldFilters'
+  );
+  // TODO(b/29183165): Technically, this won't be unique if two values have
+  // the same description, such as the int 3 and the string "3". So we should
+  // add the types in here somehow, too.
+  return (
+    filter.field.canonicalString() +
+    filter.op.toString() +
+    canonicalId(filter.value)
+  );
+}
 
-  isEqual(other: Filter): boolean {
-    if (other instanceof FieldFilter) {
-      return (
-        this.op === other.op &&
-        this.field.isEqual(other.field) &&
-        valueEquals(this.value, other.value)
-      );
-    } else {
-      return false;
-    }
-  }
+export function filterEquals(f1: Filter, f2: Filter): boolean {
+  return (
+    f1 instanceof FieldFilter &&
+    f2 instanceof FieldFilter &&
+    f1.op === f2.op &&
+    f1.field.isEqual(f2.field) &&
+    valueEquals(f1.value, f2.value)
+  );
+}
 
-  toString(): string {
-    return `${this.field.canonicalString()} ${this.op} ${canonicalId(
-      this.value
-    )}`;
-  }
+/** Returns a debug description for `filter`. */
+export function stringifyFilter(filter: Filter): string {
+  debugAssert(
+    filter instanceof FieldFilter,
+    'stringifyFilter() only supports FieldFilters'
+  );
+  return `${filter.field.canonicalString()} ${filter.op} ${canonicalId(
+    filter.value
+  )}`;
 }
 
 /** Filter that matches on key fields (i.e. '__name__'). */

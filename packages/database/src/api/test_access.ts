@@ -28,7 +28,7 @@ export const DataConnection = PersistentConnection;
  * @param {function(*)} onComplete
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(PersistentConnection.prototype as any).simpleListen = function(
+(PersistentConnection.prototype as any).simpleListen = function (
   pathString: string,
   onComplete: (a: unknown) => void
 ) {
@@ -40,7 +40,7 @@ export const DataConnection = PersistentConnection;
  * @param {function(*)} onEcho
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(PersistentConnection.prototype as any).echo = function(
+(PersistentConnection.prototype as any).echo = function (
   data: unknown,
   onEcho: (a: unknown) => void
 ) {
@@ -54,9 +54,9 @@ export const RealTimeConnection = Connection;
  * @param {function(): string} newHash
  * @return {function()}
  */
-export const hijackHash = function(newHash: () => string) {
+export const hijackHash = function (newHash: () => string) {
   const oldPut = PersistentConnection.prototype.put;
-  PersistentConnection.prototype.put = function(
+  PersistentConnection.prototype.put = function (
     pathString,
     data,
     onComplete,
@@ -67,7 +67,7 @@ export const hijackHash = function(newHash: () => string) {
     }
     oldPut.call(this, pathString, data, onComplete, hash);
   };
-  return function() {
+  return function () {
     PersistentConnection.prototype.put = oldPut;
   };
 };
@@ -81,7 +81,7 @@ export const ConnectionTarget = RepoInfo;
  * @param {!Query} query
  * @return {!string}
  */
-export const queryIdentifier = function(query: Query) {
+export const queryIdentifier = function (query: Query) {
   return query.queryIdentifier();
 };
 
@@ -90,6 +90,6 @@ export const queryIdentifier = function(query: Query) {
  *
  * @param {boolean} forceRestClient
  */
-export const forceRestClient = function(forceRestClient: boolean) {
+export const forceRestClient = function (forceRestClient: boolean) {
   RepoManager.getInstance().forceRestClient(forceRestClient);
 };
