@@ -242,7 +242,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       );
       expect(() => baseDocRef.collection('')).to.throw(
         `Function ${
-          usesFunctionalApi() ? 'doc' : 'CollectionReference.doc'
+          usesFunctionalApi() ? 'doc' : 'DocumentReference.doc'
         }() requires its ${argumentPosition} argument to be of type ` +
           'non-empty string, but it was: ""'
       );
@@ -252,7 +252,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
           'Function Firestore.collection() requires its first argument ' +
             'to be of type non-empty string, but it was: null'
         );
-
         expect(() => baseDocRef.collection(null as any)).to.throw(
           'Function DocumentReference.collection() requires its first ' +
             'argument to be of type non-empty string, but it was: null'
