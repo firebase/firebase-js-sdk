@@ -16,10 +16,7 @@
  */
 
 import {
-  AuthEvent,
-  AuthEventConsumer,
-  AuthEventType,
-  EventManager
+    AuthEvent, AuthEventConsumer, AuthEventType, EventManager
 } from '../../model/popup_redirect';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 
@@ -47,13 +44,6 @@ export class AuthEventManager implements EventManager {
   }
 
   onEvent(event: AuthEvent): boolean {
-    if (isNullRedirectEvent(event)) {
-      // A null redirect event comes through as the first event when no pending
-      // redirect actions are in the auth domain
-      this.hasHandledPotentialRedirect = true;
-      return true;
-    }
-
     let handled = false;
     this.consumers.forEach(consumer => {
       if (this.isEventForConsumer(event, consumer)) {
@@ -62,7 +52,7 @@ export class AuthEventManager implements EventManager {
       }
     });
 
-    if (this.hasHandledPotentialRedirect || !isRedirectEvent(event.type)) {
+    if (this.hasHandledPotentialRedirect || !isRedirectEvent(event)) {
       // If we've already seen a redirect before, or this is a popup event,
       // bail now
       return handled;
@@ -80,7 +70,7 @@ export class AuthEventManager implements EventManager {
   }
 
   private sendToConsumer(event: AuthEvent, consumer: AuthEventConsumer): void {
-    if (event.error) {
+    if (event.error && !isNullRedirectEvent(event)) {
       const code =
         (event.error.code?.split('auth/')[1] as AuthErrorCode) ||
         AuthErrorCode.INTERNAL_ERROR;
@@ -112,12 +102,14 @@ function isNullRedirectEvent({ type, error }: AuthEvent): boolean {
   );
 }
 
-function isRedirectEvent(type: AuthEventType): boolean {
-  switch (type) {
+function isRedirectEvent(event: AuthEvent): boolean {
+  switch (event.type) {
     case AuthEventType.SIGN_IN_VIA_REDIRECT:
     case AuthEventType.LINK_VIA_REDIRECT:
     case AuthEventType.REAUTH_VIA_REDIRECT:
       return true;
+    case AuthEventType.UNKNOWN:
+      return isNullRedirectEvent(event);
     default:
       return false;
   }

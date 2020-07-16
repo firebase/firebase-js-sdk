@@ -29,10 +29,7 @@ import { testAuth, testUser } from '../../../test/mock_auth';
 import { makeMockPopupRedirectResolver } from '../../../test/mock_popup_redirect_resolver';
 import { Auth } from '../../model/auth';
 import {
-  AuthEvent,
-  AuthEventType,
-  EventManager,
-  PopupRedirectResolver
+    AuthEvent, AuthEventType, EventManager, PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { AuthEventManager } from '../auth/auth_event_manager';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
@@ -144,7 +141,7 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
 
     it('emits the user credential returned from idp task', async () => {
       finishPromise(authEvent());
-      const cred = await operation.execute();
+      const cred = (await operation.execute())!;
       expect(cred.user.uid).to.eq('uid');
       expect(cred.credential).to.be.null;
       expect(cred.operationType).to.eq(OperationType.SIGN_IN);

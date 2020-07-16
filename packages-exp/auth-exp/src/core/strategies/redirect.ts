@@ -44,10 +44,7 @@ export async function reauthenticateWithRedirect(
   const user = userExtern as User;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
-  const eventId = _generateEventId(`${user.uid}:::`);
-  user._redirectEventId = eventId;
-  await user.auth._setRedirectUser(user);
-
+  const eventId = await prepareUserForRedirect(user.auth, user);
   return resolver._openRedirect(user.auth, provider, AuthEventType.REAUTH_VIA_REDIRECT, eventId);
 }
 
@@ -60,25 +57,36 @@ export async function linkWithRedirect(
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
   await _assertLinkedStatus(false, user, provider.providerId);
-
-  const eventId = _generateEventId(`${user.uid}:::`);
-  user._redirectEventId = eventId;
-  await user.auth._setRedirectUser(user);
-
+  const eventId = await prepareUserForRedirect(user.auth, user);
   return resolver._openRedirect(user.auth, provider, AuthEventType.LINK_VIA_REDIRECT, eventId);
 }
 
-export async function getRedirectResult(authExtern: externs.Auth, resolverExtern: externs.PopupRedirectResolver): Promise<UserCredential> {
+export async function getRedirectResult(authExtern: externs.Auth, resolverExtern: externs.PopupRedirectResolver): Promise<externs.UserCredential|null> {
   const auth = authExtern as Auth;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
   const action = new RedirectAction(auth, resolver);
-  return action.execute();
+  const result = await action.execute();
+
+  if (result) {
+    delete result.user._redirectEventId;
+    await auth._persistUserIfCurrent(result.user);
+    await auth._setRedirectUser(null, resolverExtern);
+  }
+
+  return result;
 }
 
+async function prepareUserForRedirect(auth: Auth, user: User): Promise<string> {
+  const eventId = _generateEventId(`${user.uid}:::`);
+  user._redirectEventId = eventId;
+  await user.auth._setRedirectUser(user);
+  await auth._persistUserIfCurrent(user);
+  return eventId;
+}
 
 // We only get one redirect outcome for any one auth, so just store it
 // in here.
-const redirectOutcomeMap: Map<Auth, Promise<UserCredential>> = new Map();
+const redirectOutcomeMap: WeakMap<Auth, () => Promise<UserCredential|null>> = new WeakMap();
 
 class RedirectAction extends AbstractPopupRedirectOperation {
   eventId = null;
@@ -88,6 +96,7 @@ class RedirectAction extends AbstractPopupRedirectOperation {
       AuthEventType.SIGN_IN_VIA_REDIRECT,
       AuthEventType.LINK_VIA_REDIRECT,
       AuthEventType.REAUTH_VIA_REDIRECT,
+      AuthEventType.UNKNOWN,
     ],
     resolver);
   }
@@ -96,27 +105,38 @@ class RedirectAction extends AbstractPopupRedirectOperation {
    * Override the execute function; if we already have a redirect result, then
    * just return it.
    */
-  async execute(): Promise<UserCredential> {
+   async execute(): Promise<UserCredential|null> {
     let readyOutcome = redirectOutcomeMap.get(this.auth);
     if (!readyOutcome) {
-      readyOutcome = super.execute();
+      try {
+        const result = await super.execute();
+        readyOutcome = () => Promise.resolve(result);
+      } catch (e) {
+        readyOutcome = () => Promise.reject(e);
+      }
+
       redirectOutcomeMap.set(this.auth, readyOutcome);
     }
 
-    return readyOutcome;
+    return readyOutcome();
   }
 
   async onAuthEvent(event: AuthEvent): Promise<void> {
     if (event.type === AuthEventType.SIGN_IN_VIA_REDIRECT) {
       return super.onAuthEvent(event);
+    } else if (event.type === AuthEventType.UNKNOWN) {
+      // This is a sentinel value indicating there's no pending redirect
+      this.resolve(null);
+      return;
     }
 
     if (event.eventId) {
-      const user = this.auth._redirectUserForId(event.eventId);
-      // TODO(samgho): What if user is null?
+      const user = await this.auth._redirectUserForId(event.eventId);
       if (user) {
         this.user = user;
         return super.onAuthEvent(event);
+      } else {
+        this.resolve(null);
       }
     }
   }
@@ -125,6 +145,5 @@ class RedirectAction extends AbstractPopupRedirectOperation {
   }
 
   cleanUp(): void {
-    
   }
 }

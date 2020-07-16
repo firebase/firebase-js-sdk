@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { PopupRedirectResolver } from '@firebase/auth-types-exp';
+
 import { AuthImpl } from '../src/core/auth/auth_impl';
 import { PersistedBlob } from '../src/core/persistence';
 import { InMemoryPersistence } from '../src/core/persistence/in_memory';
@@ -33,7 +35,7 @@ export interface TestAuth extends AuthImpl {
   persistenceLayer: MockPersistenceLayer;
 }
 
-class MockPersistenceLayer extends InMemoryPersistence {
+export class MockPersistenceLayer extends InMemoryPersistence {
   lastObjectSet: PersistedBlob | null = null;
 
   set(key: string, object: PersistedBlob): Promise<void> {
@@ -47,8 +49,7 @@ class MockPersistenceLayer extends InMemoryPersistence {
   }
 }
 
-export async function testAuth(): Promise<TestAuth> {
-  const persistence = new MockPersistenceLayer();
+export async function testAuth(popupRedirectResolver?: PopupRedirectResolver, persistence = new MockPersistenceLayer()): Promise<TestAuth> {
   const auth: TestAuth = new AuthImpl('test-app', {
     apiKey: TEST_KEY,
     authDomain: TEST_AUTH_DOMAIN,
@@ -58,7 +59,7 @@ export async function testAuth(): Promise<TestAuth> {
     sdkClientVersion: 'testSDK/0.0.0'
   }) as TestAuth;
 
-  await auth._initializeWithPersistence([persistence]);
+  await auth._initializeWithPersistence([persistence], popupRedirectResolver);
   auth.persistenceLayer = persistence;
   auth.settings.appVerificationDisabledForTesting = true;
   return auth;

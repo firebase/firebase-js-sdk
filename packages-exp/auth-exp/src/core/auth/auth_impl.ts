@@ -19,13 +19,7 @@ import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 import {
-  CompleteFn,
-  createSubscribe,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Subscribe,
-  Unsubscribe
+    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
 } from '@firebase/util';
 
 import { Auth, Dependencies } from '../../model/auth';
@@ -34,8 +28,7 @@ import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
 import {
-  _REDIRECT_USER_KEY_NAME,
-  PersistenceUserManager
+    _REDIRECT_USER_KEY_NAME, PersistenceUserManager
 } from '../persistence/persistence_user_manager';
 import { _reloadWithoutSaving } from '../user/reload';
 import { assert } from '../util/assert';
@@ -60,6 +53,7 @@ export class AuthImpl implements Auth {
   private idTokenSubscription = new Subscription<User>(this);
   private redirectUser: User | null = null;
   _isInitialized = false;
+  _popupRedirectResolver: PopupRedirectResolver | null = null;
 
   // Tracks the last notified UID for state change listeners to prevent
   // repeated calls to the callbacks
@@ -79,21 +73,23 @@ export class AuthImpl implements Auth {
     popupRedirectResolver?: externs.PopupRedirectResolver
   ): Promise<void> {
     return this.queue(async () => {
+      if (popupRedirectResolver) {
+        this._popupRedirectResolver = _getInstance(popupRedirectResolver);
+      }
+
       this.persistenceManager = await PersistenceUserManager.create(
         this,
         persistenceHierarchy
       );
 
-      await this.initializeCurrentUser(popupRedirectResolver);
+      await this.initializeCurrentUser();
 
       this._isInitialized = true;
       this.notifyAuthListeners();
     });
   }
 
-  private async initializeCurrentUser(
-    popupRedirectResolver?: externs.PopupRedirectResolver
-  ): Promise<void> {
+  private async initializeCurrentUser(): Promise<void> {
     const storedUser = await this.assertedPersistence.getCurrentUser();
     if (!storedUser) {
       return this.directlySetCurrentUser(storedUser);
@@ -104,16 +100,8 @@ export class AuthImpl implements Auth {
       return this.reloadAndSetCurrentUserOrClear(storedUser);
     }
 
-    assert(popupRedirectResolver, this.name, AuthErrorCode.ARGUMENT_ERROR);
-    const resolver: PopupRedirectResolver = _getInstance(popupRedirectResolver);
-
-    this.redirectPersistenceManager = await PersistenceUserManager.create(
-      this,
-      [_getInstance(resolver._redirectPersistence)],
-      _REDIRECT_USER_KEY_NAME
-    );
-
-    this.redirectUser = await this.redirectPersistenceManager.getCurrentUser();
+    assert(this._popupRedirectResolver, this.name, AuthErrorCode.ARGUMENT_ERROR);
+    await this.getOrInitRedirectPersistenceManager();
 
     // If the redirect user's event ID matches the current user's event ID,
     // DO NOT reload the current user, otherwise they'll be cleared from storage.
@@ -189,11 +177,30 @@ export class AuthImpl implements Auth {
     );
   }
 
-  async _setRedirectUser(user: User): Promise<void> {
-    return this.redirectPersistenceManager?.setCurrentUser(user);
+  async _setRedirectUser(user: User|null, popupRedirectResolver?: externs.PopupRedirectResolver): Promise<void> {
+    const redirectManager = await this.getOrInitRedirectPersistenceManager(popupRedirectResolver);
+    return user === null ? redirectManager.removeCurrentUser() : redirectManager.setCurrentUser(user);
   }
 
-  _redirectUserForId(id: string): User | null {
+  private async getOrInitRedirectPersistenceManager(popupRedirectResolver?: externs.PopupRedirectResolver): Promise<PersistenceUserManager> {
+    if (!this.redirectPersistenceManager) {
+      const resolver: PopupRedirectResolver | null = (popupRedirectResolver && _getInstance(popupRedirectResolver) || this._popupRedirectResolver);
+      assert(resolver, this.name, AuthErrorCode.ARGUMENT_ERROR);
+      this.redirectPersistenceManager = await PersistenceUserManager.create(
+        this,
+        [_getInstance(resolver._redirectPersistence)],
+        _REDIRECT_USER_KEY_NAME
+      );
+      this.redirectUser = await this.redirectPersistenceManager.getCurrentUser();
+    }
+
+    return this.redirectPersistenceManager;
+  }
+
+  async _redirectUserForId(id: string): Promise<User | null> {
+    // Make sure we've cleared any pending ppersistence actions
+    await this.queue(async () => {});
+
     if (this.currentUser?._redirectEventId === id) {
       return this.currentUser;
     }
