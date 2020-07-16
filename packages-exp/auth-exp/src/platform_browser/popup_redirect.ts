@@ -29,11 +29,7 @@ import { _getCurrentUrl } from '../core/util/location';
 import { _open, AuthPopup } from '../core/util/popup';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
-  AuthEventType,
-  EventManager,
-  GapiAuthEvent,
-  GapiOutcome,
-  PopupRedirectResolver
+    AuthEventType, EventManager, GapiAuthEvent, GapiOutcome, PopupRedirectResolver
 } from '../model/popup_redirect';
 import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';
@@ -65,7 +61,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     console.log(this.eventManagers[auth._key()]);
     console.log(auth._key());
     debugAssert(
-      this.eventManagers[auth._key()],
+      this.eventManagers[auth._key()]?.manager,
       '_initialize() not called before _openPopup()'
     );
     const url = getRedirectUrl(auth, provider, authType, eventId);
