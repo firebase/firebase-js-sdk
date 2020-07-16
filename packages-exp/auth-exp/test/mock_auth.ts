@@ -49,7 +49,10 @@ export class MockPersistenceLayer extends InMemoryPersistence {
   }
 }
 
-export async function testAuth(popupRedirectResolver?: PopupRedirectResolver, persistence = new MockPersistenceLayer()): Promise<TestAuth> {
+export async function testAuth(
+  popupRedirectResolver?: PopupRedirectResolver,
+  persistence = new MockPersistenceLayer()
+): Promise<TestAuth> {
   const auth: TestAuth = new AuthImpl('test-app', {
     apiKey: TEST_KEY,
     authDomain: TEST_AUTH_DOMAIN,

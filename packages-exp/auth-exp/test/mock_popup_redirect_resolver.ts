@@ -38,8 +38,7 @@ export function makeMockPopupRedirectResolver(
       return authPopup || new AuthPopup(null);
     }
 
-    async _openRedirect(): Promise<void> {
-    }
+    async _openRedirect(): Promise<void> {}
 
     _redirectPersistence?: Persistence;
   };

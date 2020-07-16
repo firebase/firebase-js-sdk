@@ -1248,7 +1248,7 @@ function signInWithPopupRedirect(provider) {
     signInWithRedirect,
     linkWithRedirect,
     reauthenticateWithRedirect
-  }
+  };
   let action = $('input[name=popup-redirect-action]:checked').val();
   let type = $('input[name=popup-redirect-type]:checked').val();
   let method = null;
@@ -1319,7 +1319,9 @@ function signInWithPopupRedirect(provider) {
     );
   } else {
     try {
-      glob[method](inst, provider, browserPopupRedirectResolver).catch(onAuthError);
+      glob[method](inst, provider, browserPopupRedirectResolver).catch(
+        onAuthError
+      );
     } catch (error) {
       console.log('Error while calling ' + method);
       console.error(error);
@@ -1341,7 +1343,9 @@ function onAuthUserCredentialSuccess(result) {
  * Displays redirect result.
  */
 function onGetRedirectResult() {
-  getRedirectResult(auth, browserPopupRedirectResolver).then(function(response) {
+  getRedirectResult(auth, browserPopupRedirectResolver).then(function(
+    response
+  ) {
     log('Redirect results:');
     if (response.credential) {
       log('Credential:');
@@ -1350,14 +1354,15 @@ function onGetRedirectResult() {
       log('No credential');
     }
     if (response.user) {
-      log('User\'s id:');
+      log("User's id:");
       log(response.user.uid);
     } else {
       log('No user');
     }
     logAdditionalUserInfo(response);
     console.log(response);
-  }, onAuthError);
+  },
+  onAuthError);
 }
 
 /**
@@ -1639,7 +1644,7 @@ function initApp() {
   app = initializeApp(config);
   auth = initializeAuth(app, {
     persistence: browserSessionPersistence,
-    popupRedirectResolver: browserPopupRedirectResolver,
+    popupRedirectResolver: browserPopupRedirectResolver
   });
 
   // tempApp = initializeApp({
@@ -1771,10 +1776,13 @@ function initApp() {
   }
 
   // We check for redirect result to refresh user's data.
-  getRedirectResult(auth, browserPopupRedirectResolver).then(function(response) {
+  getRedirectResult(auth, browserPopupRedirectResolver).then(function(
+    response
+  ) {
     refreshUserData();
     logAdditionalUserInfo(response);
-  }, onAuthError);
+  },
+  onAuthError);
 
   // Bootstrap tooltips.
   $('[data-toggle="tooltip"]').tooltip();

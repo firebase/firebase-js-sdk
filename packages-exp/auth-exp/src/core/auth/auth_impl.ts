@@ -19,7 +19,13 @@ import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 import {
-    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
+  CompleteFn,
+  createSubscribe,
+  ErrorFn,
+  NextFn,
+  Observer,
+  Subscribe,
+  Unsubscribe
 } from '@firebase/util';
 
 import { Auth, Dependencies } from '../../model/auth';
@@ -28,7 +34,8 @@ import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
 import {
-    _REDIRECT_USER_KEY_NAME, PersistenceUserManager
+  _REDIRECT_USER_KEY_NAME,
+  PersistenceUserManager
 } from '../persistence/persistence_user_manager';
 import { _reloadWithoutSaving } from '../user/reload';
 import { assert } from '../util/assert';
@@ -100,7 +107,11 @@ export class AuthImpl implements Auth {
       return this.reloadAndSetCurrentUserOrClear(storedUser);
     }
 
-    assert(this._popupRedirectResolver, this.name, AuthErrorCode.ARGUMENT_ERROR);
+    assert(
+      this._popupRedirectResolver,
+      this.name,
+      AuthErrorCode.ARGUMENT_ERROR
+    );
     await this.getOrInitRedirectPersistenceManager();
 
     // If the redirect user's event ID matches the current user's event ID,
@@ -177,14 +188,25 @@ export class AuthImpl implements Auth {
     );
   }
 
-  async _setRedirectUser(user: User|null, popupRedirectResolver?: externs.PopupRedirectResolver): Promise<void> {
-    const redirectManager = await this.getOrInitRedirectPersistenceManager(popupRedirectResolver);
-    return user === null ? redirectManager.removeCurrentUser() : redirectManager.setCurrentUser(user);
+  async _setRedirectUser(
+    user: User | null,
+    popupRedirectResolver?: externs.PopupRedirectResolver
+  ): Promise<void> {
+    const redirectManager = await this.getOrInitRedirectPersistenceManager(
+      popupRedirectResolver
+    );
+    return user === null
+      ? redirectManager.removeCurrentUser()
+      : redirectManager.setCurrentUser(user);
   }
 
-  private async getOrInitRedirectPersistenceManager(popupRedirectResolver?: externs.PopupRedirectResolver): Promise<PersistenceUserManager> {
+  private async getOrInitRedirectPersistenceManager(
+    popupRedirectResolver?: externs.PopupRedirectResolver
+  ): Promise<PersistenceUserManager> {
     if (!this.redirectPersistenceManager) {
-      const resolver: PopupRedirectResolver | null = (popupRedirectResolver && _getInstance(popupRedirectResolver) || this._popupRedirectResolver);
+      const resolver: PopupRedirectResolver | null =
+        (popupRedirectResolver && _getInstance(popupRedirectResolver)) ||
+        this._popupRedirectResolver;
       assert(resolver, this.name, AuthErrorCode.ARGUMENT_ERROR);
       this.redirectPersistenceManager = await PersistenceUserManager.create(
         this,

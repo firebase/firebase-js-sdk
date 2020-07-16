@@ -43,7 +43,10 @@ export interface Auth extends externs.Auth {
   ): Unsubscribe;
   _notifyListenersIfCurrent(user: User): void;
   _persistUserIfCurrent(user: User): Promise<void>;
-  _setRedirectUser(user: User|null, popupRedirectResolver?: externs.PopupRedirectResolver): Promise<void>;
+  _setRedirectUser(
+    user: User | null,
+    popupRedirectResolver?: externs.PopupRedirectResolver
+  ): Promise<void>;
   _redirectUserForId(id: string): Promise<User | null>;
   _popupRedirectResolver: PopupRedirectResolver | null;
 }

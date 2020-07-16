@@ -18,7 +18,11 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { Auth } from '../../model/auth';
-import { AuthEvent, AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import {
+  AuthEvent,
+  AuthEventType,
+  PopupRedirectResolver
+} from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
 import { _assertLinkedStatus } from '../user/link_unlink';
 import { _generateEventId } from '../util/event_id';
@@ -33,7 +37,11 @@ export async function signInWithRedirect(
   const auth = authExtern as Auth;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
-  return resolver._openRedirect(auth, provider, AuthEventType.SIGN_IN_VIA_REDIRECT);
+  return resolver._openRedirect(
+    auth,
+    provider,
+    AuthEventType.SIGN_IN_VIA_REDIRECT
+  );
 }
 
 export async function reauthenticateWithRedirect(
@@ -45,7 +53,12 @@ export async function reauthenticateWithRedirect(
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
   const eventId = await prepareUserForRedirect(user.auth, user);
-  return resolver._openRedirect(user.auth, provider, AuthEventType.REAUTH_VIA_REDIRECT, eventId);
+  return resolver._openRedirect(
+    user.auth,
+    provider,
+    AuthEventType.REAUTH_VIA_REDIRECT,
+    eventId
+  );
 }
 
 export async function linkWithRedirect(
@@ -58,10 +71,18 @@ export async function linkWithRedirect(
 
   await _assertLinkedStatus(false, user, provider.providerId);
   const eventId = await prepareUserForRedirect(user.auth, user);
-  return resolver._openRedirect(user.auth, provider, AuthEventType.LINK_VIA_REDIRECT, eventId);
+  return resolver._openRedirect(
+    user.auth,
+    provider,
+    AuthEventType.LINK_VIA_REDIRECT,
+    eventId
+  );
 }
 
-export async function getRedirectResult(authExtern: externs.Auth, resolverExtern: externs.PopupRedirectResolver): Promise<externs.UserCredential|null> {
+export async function getRedirectResult(
+  authExtern: externs.Auth,
+  resolverExtern: externs.PopupRedirectResolver
+): Promise<externs.UserCredential | null> {
   const auth = authExtern as Auth;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
   const action = new RedirectAction(auth, resolver);
@@ -86,26 +107,32 @@ async function prepareUserForRedirect(auth: Auth, user: User): Promise<string> {
 
 // We only get one redirect outcome for any one auth, so just store it
 // in here.
-const redirectOutcomeMap: WeakMap<Auth, () => Promise<UserCredential|null>> = new WeakMap();
+const redirectOutcomeMap: WeakMap<
+  Auth,
+  () => Promise<UserCredential | null>
+> = new WeakMap();
 
 class RedirectAction extends AbstractPopupRedirectOperation {
   eventId = null;
 
   constructor(auth: Auth, resolver: PopupRedirectResolver) {
-    super(auth, [
-      AuthEventType.SIGN_IN_VIA_REDIRECT,
-      AuthEventType.LINK_VIA_REDIRECT,
-      AuthEventType.REAUTH_VIA_REDIRECT,
-      AuthEventType.UNKNOWN,
-    ],
-    resolver);
+    super(
+      auth,
+      [
+        AuthEventType.SIGN_IN_VIA_REDIRECT,
+        AuthEventType.LINK_VIA_REDIRECT,
+        AuthEventType.REAUTH_VIA_REDIRECT,
+        AuthEventType.UNKNOWN
+      ],
+      resolver
+    );
   }
 
   /**
    * Override the execute function; if we already have a redirect result, then
    * just return it.
    */
-   async execute(): Promise<UserCredential|null> {
+  async execute(): Promise<UserCredential | null> {
     let readyOutcome = redirectOutcomeMap.get(this.auth);
     if (!readyOutcome) {
       try {
@@ -141,9 +168,7 @@ class RedirectAction extends AbstractPopupRedirectOperation {
     }
   }
 
-  async onExecution(): Promise<void> {
-  }
+  async onExecution(): Promise<void> {}
 
-  cleanUp(): void {
-  }
+  cleanUp(): void {}
 }

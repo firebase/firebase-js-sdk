@@ -24,9 +24,18 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { delay } from '../../../test/delay';
 import { BASE_AUTH_EVENT } from '../../../test/iframe_event';
-import { MockPersistenceLayer, testAuth, TestAuth, testUser } from '../../../test/mock_auth';
+import {
+  MockPersistenceLayer,
+  testAuth,
+  TestAuth,
+  testUser
+} from '../../../test/mock_auth';
 import { makeMockPopupRedirectResolver } from '../../../test/mock_popup_redirect_resolver';
-import { AuthEvent, AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import {
+  AuthEvent,
+  AuthEventType,
+  PopupRedirectResolver
+} from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { AuthEventManager } from '../auth/auth_event_manager';
 import { AuthErrorCode } from '../errors';
@@ -38,7 +47,10 @@ import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _getInstance } from '../util/instantiator';
 import * as idpTasks from './idp';
 import {
-    getRedirectResult, linkWithRedirect, reauthenticateWithRedirect, signInWithRedirect
+  getRedirectResult,
+  linkWithRedirect,
+  reauthenticateWithRedirect,
+  signInWithRedirect
 } from './redirect';
 
 use(sinonChai);
@@ -60,7 +72,9 @@ describe('src/core/strategies/redirect', () => {
     eventManager = new AuthEventManager('test-app');
     provider = new OAuthProvider(externs.ProviderId.GOOGLE);
     resolver = makeMockPopupRedirectResolver(eventManager);
-    _getInstance<PopupRedirectResolver>(resolver)._redirectPersistence = RedirectPersistence;
+    _getInstance<PopupRedirectResolver>(
+      resolver
+    )._redirectPersistence = RedirectPersistence;
     auth = await testAuth(resolver);
     idpStubs = sinon.stub(idpTasks);
   });
@@ -71,9 +85,16 @@ describe('src/core/strategies/redirect', () => {
 
   context('signInWithRedirect', () => {
     it('redirects the window', async () => {
-      const spy = sinon.spy(_getInstance<PopupRedirectResolver>(resolver), '_openRedirect');
+      const spy = sinon.spy(
+        _getInstance<PopupRedirectResolver>(resolver),
+        '_openRedirect'
+      );
       await signInWithRedirect(auth, provider, resolver);
-      expect(spy).to.have.been.calledWith(auth, provider, AuthEventType.SIGN_IN_VIA_REDIRECT);
+      expect(spy).to.have.been.calledWith(
+        auth,
+        provider,
+        AuthEventType.SIGN_IN_VIA_REDIRECT
+      );
     });
   });
 
@@ -87,30 +108,50 @@ describe('src/core/strategies/redirect', () => {
     });
 
     it('redirects the window', async () => {
-      const spy = sinon.spy(_getInstance<PopupRedirectResolver>(resolver), '_openRedirect');
+      const spy = sinon.spy(
+        _getInstance<PopupRedirectResolver>(resolver),
+        '_openRedirect'
+      );
       await linkWithRedirect(user, provider, resolver);
-      expect(spy).to.have.been.calledWith(auth, provider, AuthEventType.LINK_VIA_REDIRECT);
+      expect(spy).to.have.been.calledWith(
+        auth,
+        provider,
+        AuthEventType.LINK_VIA_REDIRECT
+      );
     });
 
     it('persists the redirect user and current user', async () => {
-      const redirectPersistence: Persistence = _getInstance(RedirectPersistence);
+      const redirectPersistence: Persistence = _getInstance(
+        RedirectPersistence
+      );
       sinon.spy(redirectPersistence, 'set');
       sinon.spy(auth.persistenceLayer, 'set');
 
       await linkWithRedirect(user, provider, resolver);
-      expect(redirectPersistence.set).to.have.been.calledWith('firebase:redirectUser:test-api-key:test-app', user.toPlainObject());
-      expect(auth.persistenceLayer.set).to.have.been.calledWith('firebase:authUser:test-api-key:test-app', user.toPlainObject());
+      expect(redirectPersistence.set).to.have.been.calledWith(
+        'firebase:redirectUser:test-api-key:test-app',
+        user.toPlainObject()
+      );
+      expect(auth.persistenceLayer.set).to.have.been.calledWith(
+        'firebase:authUser:test-api-key:test-app',
+        user.toPlainObject()
+      );
       expect(typeof user._redirectEventId).to.eq('string');
     });
 
     it('persists the redirect user but not current user if diff currentUser', async () => {
       await auth.updateCurrentUser(testUser(auth, 'not-uid', 'email', true));
-      const redirectPersistence: Persistence = _getInstance(RedirectPersistence);
+      const redirectPersistence: Persistence = _getInstance(
+        RedirectPersistence
+      );
       sinon.spy(redirectPersistence, 'set');
       sinon.spy(auth.persistenceLayer, 'set');
 
       await linkWithRedirect(user, provider, resolver);
-      expect(redirectPersistence.set).to.have.been.calledWith('firebase:redirectUser:test-api-key:test-app', user.toPlainObject());
+      expect(redirectPersistence.set).to.have.been.calledWith(
+        'firebase:redirectUser:test-api-key:test-app',
+        user.toPlainObject()
+      );
       expect(auth.persistenceLayer.set).not.to.have.been.called;
       expect(typeof user._redirectEventId).to.eq('string');
     });
@@ -125,30 +166,50 @@ describe('src/core/strategies/redirect', () => {
     });
 
     it('redirects the window', async () => {
-      const spy = sinon.spy(_getInstance<PopupRedirectResolver>(resolver), '_openRedirect');
+      const spy = sinon.spy(
+        _getInstance<PopupRedirectResolver>(resolver),
+        '_openRedirect'
+      );
       await reauthenticateWithRedirect(user, provider, resolver);
-      expect(spy).to.have.been.calledWith(auth, provider, AuthEventType.REAUTH_VIA_REDIRECT);
+      expect(spy).to.have.been.calledWith(
+        auth,
+        provider,
+        AuthEventType.REAUTH_VIA_REDIRECT
+      );
     });
 
     it('persists the redirect user and current user', async () => {
-      const redirectPersistence: Persistence = _getInstance(RedirectPersistence);
+      const redirectPersistence: Persistence = _getInstance(
+        RedirectPersistence
+      );
       sinon.spy(redirectPersistence, 'set');
       sinon.spy(auth.persistenceLayer, 'set');
 
       await reauthenticateWithRedirect(user, provider, resolver);
-      expect(redirectPersistence.set).to.have.been.calledWith('firebase:redirectUser:test-api-key:test-app', user.toPlainObject());
-      expect(auth.persistenceLayer.set).to.have.been.calledWith('firebase:authUser:test-api-key:test-app', user.toPlainObject());
+      expect(redirectPersistence.set).to.have.been.calledWith(
+        'firebase:redirectUser:test-api-key:test-app',
+        user.toPlainObject()
+      );
+      expect(auth.persistenceLayer.set).to.have.been.calledWith(
+        'firebase:authUser:test-api-key:test-app',
+        user.toPlainObject()
+      );
       expect(typeof user._redirectEventId).to.eq('string');
     });
 
     it('persists the redirect user but not current user if diff currentUser', async () => {
       await auth.updateCurrentUser(testUser(auth, 'not-uid', 'email', true));
-      const redirectPersistence: Persistence = _getInstance(RedirectPersistence);
+      const redirectPersistence: Persistence = _getInstance(
+        RedirectPersistence
+      );
       sinon.spy(redirectPersistence, 'set');
       sinon.spy(auth.persistenceLayer, 'set');
 
       await reauthenticateWithRedirect(user, provider, resolver);
-      expect(redirectPersistence.set).to.have.been.calledWith('firebase:redirectUser:test-api-key:test-app', user.toPlainObject());
+      expect(redirectPersistence.set).to.have.been.calledWith(
+        'firebase:redirectUser:test-api-key:test-app',
+        user.toPlainObject()
+      );
       expect(auth.persistenceLayer.set).not.to.have.been.called;
       expect(typeof user._redirectEventId).to.eq('string');
     });
@@ -165,14 +226,20 @@ describe('src/core/strategies/redirect', () => {
         });
       });
     }
-    
+
     async function reInitAuthWithRedirectUser(eventId: string): Promise<void> {
-      const redirectPersistence: Persistence = _getInstance(RedirectPersistence);
+      const redirectPersistence: Persistence = _getInstance(
+        RedirectPersistence
+      );
       const mainPersistence = new MockPersistenceLayer();
       const user = testUser({}, 'uid');
       user._redirectEventId = eventId;
-      sinon.stub(redirectPersistence, 'get').returns(Promise.resolve(user.toPlainObject()));
-      sinon.stub(mainPersistence, 'get').returns(Promise.resolve(user.toPlainObject()));
+      sinon
+        .stub(redirectPersistence, 'get')
+        .returns(Promise.resolve(user.toPlainObject()));
+      sinon
+        .stub(mainPersistence, 'get')
+        .returns(Promise.resolve(user.toPlainObject()));
 
       auth = await testAuth(resolver, mainPersistence);
     }
@@ -246,7 +313,9 @@ describe('src/core/strategies/redirect', () => {
       const promise = getRedirectResult(auth, resolver);
       iframeEvent({
         type: AuthEventType.UNKNOWN,
-        error: {code: `auth/${AuthErrorCode.NO_AUTH_EVENT}`} as externs.AuthError
+        error: {
+          code: `auth/${AuthErrorCode.NO_AUTH_EVENT}`
+        } as externs.AuthError
       });
       expect(await promise).to.be.null;
     });
@@ -270,7 +339,9 @@ describe('src/core/strategies/redirect', () => {
 
     it('removes the redirect user and clears eventId from currentuser', async () => {
       await reInitAuthWithRedirectUser(MATCHING_EVENT_ID);
-      const redirectPersistence: Persistence = _getInstance(RedirectPersistence);
+      const redirectPersistence: Persistence = _getInstance(
+        RedirectPersistence
+      );
       sinon.spy(redirectPersistence, 'remove');
 
       const cred = new UserCredentialImpl(
@@ -286,7 +357,8 @@ describe('src/core/strategies/redirect', () => {
       expect(await promise).to.eq(cred);
       expect(redirectPersistence.remove).to.have.been.called;
       expect(auth.currentUser?._redirectEventId).to.be.undefined;
-      expect(auth.persistenceLayer.lastObjectSet?._redirectEventId).to.be.undefined;
+      expect(auth.persistenceLayer.lastObjectSet?._redirectEventId).to.be
+        .undefined;
     });
   });
 });
