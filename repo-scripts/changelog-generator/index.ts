@@ -105,7 +105,7 @@ async function getFixedIssueLink(
   }
 
   const issueNumber = match[3];
-  return `Fixed [#${issueNumber}](https://github.com/firebase/firebase-js-sdk/issues/${issueNumber})`;
+  return `Fixed [issue #${issueNumber}](https://github.com/firebase/firebase-js-sdk/issues/${issueNumber})`;
 }
 
 exports.default = changelogFunctions;
