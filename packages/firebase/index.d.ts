@@ -1602,7 +1602,7 @@ declare namespace firebase.performance {
      */
     getAttributes(): { [key: string]: string };
   }
-  function isSupported(): boolean;
+  function isSupported(): Promise<boolean>;
 }
 
 /**
@@ -1772,8 +1772,6 @@ declare namespace firebase.remoteConfig {
    * Defines levels of Remote Config logging.
    */
   export type LogLevel = 'debug' | 'error' | 'silent';
-
-  function isSupported(): boolean;
 }
 
 declare namespace firebase.functions {
