@@ -104,7 +104,7 @@ async function getFixedIssueLink(
     return '';
   }
   const issueNumber = match[3];
-  return `Fixed [issue #${issueNumber}](https://github.com/firebase/firebase-js-sdk/issues/${issueNumber})`;
+  return `(fixes [#${issueNumber}](https://github.com/firebase/firebase-js-sdk/issues/${issueNumber}))`;
 }
 
 exports.default = changelogFunctions;
