@@ -26,7 +26,10 @@ import { ERROR_FACTORY, ErrorCode } from './src/utils/errors';
 import { FirebasePerformance } from '@firebase/performance-types';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations } from '@firebase/installations-types';
-
+import {
+  isIndexedDBAvailable,
+  validateIndexedDBOpenable
+} from '@firebase/util';
 import { name, version } from './package.json';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
@@ -83,7 +86,7 @@ declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     performance?: {
       (app?: FirebaseApp): FirebasePerformance;
-      isSupprted(): boolean;
+      isSupprted(): Promise<boolean>;
     };
   }
   interface FirebaseApp {
@@ -91,43 +94,14 @@ declare module '@firebase/app-types' {
   }
 }
 
-function isSupported(): boolean {
-  if (self && 'ServiceWorkerGlobalScope' in self) {
-    // Running in ServiceWorker context
-    return isSWControllerSupported();
-  } else {
-    // Assume we are in the window context.
-    return isWindowControllerSupported();
+async function isSupported(): Promise<boolean> {
+  if (!isIndexedDBAvailable()) {
+    return false;
   }
-}
-
-/**
- * Checks to see if the required APIs exist.
- */
-function isWindowControllerSupported(): boolean {
-  return (
-    'indexedDB' in window &&
-    indexedDB !== null &&
-    navigator.cookieEnabled &&
-    'serviceWorker' in navigator &&
-    'PushManager' in window &&
-    'Notification' in window &&
-    'fetch' in window &&
-    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
-    PushSubscription.prototype.hasOwnProperty('getKey')
-  );
-}
-
-/**
- * Checks to see if the required APIs exist within SW Context.
- */
-function isSWControllerSupported(): boolean {
-  return (
-    'indexedDB' in self &&
-    indexedDB !== null &&
-    'PushManager' in self &&
-    'Notification' in self &&
-    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
-    PushSubscription.prototype.hasOwnProperty('getKey')
-  );
+  try {
+    const isDBOpenable: boolean = await validateIndexedDBOpenable();
+    return isDBOpenable;
+  } catch (error) {
+    return false;
+  }
 }
