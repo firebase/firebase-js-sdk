@@ -32,7 +32,11 @@ import {
   ComponentContainer
 } from '@firebase/component';
 import { ERROR_FACTORY, AnalyticsError } from './src/errors';
-
+import {
+  isIndexedDBAvailable,
+  validateIndexedDBOpenable,
+  areCookiesEnabled
+} from '@firebase/util';
 import { name, version } from './package.json';
 
 declare global {
@@ -45,6 +49,7 @@ declare global {
  * Type constant for Firebase Analytics.
  */
 const ANALYTICS_TYPE = 'analytics';
+
 export function registerAnalytics(instance: _FirebaseNamespace): void {
   instance.INTERNAL.registerComponent(
     new Component(
@@ -55,17 +60,13 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
         const installations = container
           .getProvider('installations')
           .getImmediate();
-
-        if (!isSupported()) {
-          throw ERROR_FACTORY.create(AnalyticsError.UNSUPPORTED_BROWSER);
-        }
-
         return factory(app, installations);
       },
       ComponentType.PUBLIC
     ).setServiceProps({
       settings,
-      EventName
+      EventName,
+      isSupported
     })
   );
 
@@ -101,50 +102,31 @@ registerAnalytics(firebase as _FirebaseNamespace);
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     analytics(app?: FirebaseApp): FirebaseAnalytics;
-    isSupported(): boolean;
+    isSupported(): Promise<boolean>;
   }
   interface FirebaseApp {
     analytics(): FirebaseAnalytics;
   }
 }
 
-function isSupported(): boolean {
-  if (self && 'ServiceWorkerGlobalScope' in self) {
-    // Running in ServiceWorker context
-    return isSWControllerSupported();
-  } else {
-    // Assume we are in the window context.
-    return isWindowControllerSupported();
+/**
+ * this is a public static method provided to users that wraps three different checks:
+ *
+ * 1. check if cookie is enabled in current browser.
+ * 2. check if IndexedDB is supported by the browser environment.
+ * 3. check if the current browser context is valid for using IndexedDB.
+ */
+async function isSupported(): Promise<boolean> {
+  if (!areCookiesEnabled()) {
+    return false;
   }
-}
-
-/**
- * Checks to see if the required APIs exist.
- */
-function isWindowControllerSupported(): boolean {
-  return (
-    'indexedDB' in window &&
-    indexedDB !== null &&
-    navigator.cookieEnabled &&
-    'serviceWorker' in navigator &&
-    'PushManager' in window &&
-    'Notification' in window &&
-    'fetch' in window &&
-    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
-    PushSubscription.prototype.hasOwnProperty('getKey')
-  );
-}
-
-/**
- * Checks to see if the required APIs exist within SW Context.
- */
-function isSWControllerSupported(): boolean {
-  return (
-    'indexedDB' in self &&
-    indexedDB !== null &&
-    'PushManager' in self &&
-    'Notification' in self &&
-    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
-    PushSubscription.prototype.hasOwnProperty('getKey')
-  );
+  if (!isIndexedDBAvailable()) {
+    return false;
+  }
+  try {
+    const isDBOpenable: boolean = await validateIndexedDBOpenable();
+    return isDBOpenable;
+  } catch (error) {
+    return false;
+  }
 }

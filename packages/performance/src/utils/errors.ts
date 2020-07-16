@@ -31,8 +31,7 @@ export const enum ErrorCode {
   INVALID_ATTRIBUTE_NAME = 'invalid attribute name',
   INVALID_ATTRIBUTE_VALUE = 'invalid attribute value',
   INVALID_CUSTOM_METRIC_NAME = 'invalid custom metric name',
-  INVALID_STRING_MERGER_PARAMETER = 'invalid String merger input',
-  UNSUPPORTED_BROWSER = 'unsupported-browser'
+  INVALID_STRING_MERGER_PARAMETER = 'invalid String merger input'
 }
 
 const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
@@ -53,9 +52,7 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
   [ErrorCode.INVALID_CUSTOM_METRIC_NAME]:
     'Custom metric name {$customMetricName} is invalid',
   [ErrorCode.INVALID_STRING_MERGER_PARAMETER]:
-    'Input for String merger is invalid, contact support team to resolve.',
-  [ErrorCode.UNSUPPORTED_BROWSER]:
-    "This browser doesn't support the API's required to use the firebase SDK."
+    'Input for String merger is invalid, contact support team to resolve.'
 };
 
 interface ErrorParams {

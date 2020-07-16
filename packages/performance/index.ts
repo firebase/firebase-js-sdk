@@ -67,9 +67,6 @@ export function registerPerformance(instance: FirebaseNamespace): void {
         const installations = container
           .getProvider('installations')
           .getImmediate();
-        if (!isSupported()) {
-          throw ERROR_FACTORY.create(ErrorCode.UNSUPPORTED_BROWSER);
-        }
 
         return factoryMethod(app, installations);
       },
@@ -95,7 +92,13 @@ declare module '@firebase/app-types' {
 }
 
 async function isSupported(): Promise<boolean> {
-  if (!isIndexedDBAvailable()) {
+  if (
+    !fetch ||
+    !Promise ||
+    !navigator ||
+    !navigator.cookieEnabled ||
+    !isIndexedDBAvailable()
+  ) {
     return false;
   }
   try {

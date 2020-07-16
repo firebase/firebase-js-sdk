@@ -21,19 +21,18 @@ import { getInitializationPromise } from '../services/initialization_service';
 import { Api } from '../services/api_service';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebasePerformance } from '@firebase/performance-types';
-import { consoleLogger } from '../utils/console_logger';
 import { setupTransportService } from '../services/transport_service';
-
 export class PerformanceController implements FirebasePerformance {
   constructor(readonly app: FirebaseApp) {
-    if (Api.getInstance().requiredApisAvailable()) {
-      setupTransportService();
-      getInitializationPromise().then(setupOobResources, setupOobResources);
-    } else {
-      consoleLogger.info(
-        'Firebase Performance cannot start if browser does not support fetch and Promise or cookie is disabled.'
-      );
-    }
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    Api.getInstance()
+      .requiredApisAvailable()
+      .then(isAvailable => {
+        if (isAvailable) {
+          setupTransportService();
+          getInitializationPromise().then(setupOobResources, setupOobResources);
+        }
+      });
   }
 
   trace(name: string): Trace {

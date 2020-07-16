@@ -16,7 +16,11 @@
  */
 
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
-
+import {
+  isIndexedDBAvailable,
+  validateIndexedDBOpenable
+} from '@firebase/util';
+import { consoleLogger } from '../utils/console_logger';
 declare global {
   interface Window {
     PerformanceObserver: typeof PerformanceObserver;
@@ -109,11 +113,34 @@ export class Api {
     );
   }
 
-  requiredApisAvailable(): boolean {
-    if (fetch && Promise && this.navigator && this.navigator.cookieEnabled) {
-      return true;
+  async requiredApisAvailable(): Promise<boolean> {
+    if (
+      !fetch ||
+      !Promise ||
+      !this.navigator ||
+      !this.navigator.cookieEnabled
+    ) {
+      consoleLogger.info(
+        'Firebase Performance cannot start if browser does not support fetch and Promise or cookie is disabled.'
+      );
+      return false;
     }
-    return false;
+
+    if (!isIndexedDBAvailable()) {
+      consoleLogger.info('IndexedDB is not supported by current browswer');
+      return false;
+    }
+    try {
+      await validateIndexedDBOpenable();
+      return true;
+    } catch (error) {
+      consoleLogger.info(
+        `Environment doesn't support IndexedDB: ${error}` +
+          'Wrap initialization of performance in performance.isSupported() ' +
+          'to prevent initialization in unsupported environments'
+      );
+      return false;
+    }
   }
 
   setupObserver(
