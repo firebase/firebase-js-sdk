@@ -16,6 +16,7 @@
  */
 
 import { debugAssert } from '../util/assert';
+import { FirestoreError } from '../util/error';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
@@ -38,7 +39,7 @@ class QueryListenersInfo {
  */
 export interface Observer<T> {
   next: EventHandler<T>;
-  error: EventHandler<Error>;
+  error: EventHandler<FirestoreError>;
 }
 
 /**
@@ -139,7 +140,7 @@ export class EventManager implements SyncEngineListener {
     }
   }
 
-  onWatchError(query: Query, error: Error): void {
+  onWatchError(query: Query, error: FirestoreError): void {
     const queryInfo = this.queries.get(query);
     if (queryInfo) {
       for (const listener of queryInfo.listeners) {
@@ -271,7 +272,7 @@ export class QueryListener {
     return raisedEvent;
   }
 
-  onError(error: Error): void {
+  onError(error: FirestoreError): void {
     this.queryObserver.error(error);
   }
 

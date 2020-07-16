@@ -86,7 +86,7 @@ export class FirebaseFirestore {
 
   onSnapshotsInSync(observer: {
     next?: (value: void) => void;
-    error?: (error: Error) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }): () => void;
   onSnapshotsInSync(onSync: () => void): () => void;

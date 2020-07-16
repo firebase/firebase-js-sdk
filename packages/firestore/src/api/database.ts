@@ -671,7 +671,7 @@ export function addSnapshotsInSyncListener(
   firestoreClient: FirestoreClient,
   observer: PartialObserver<void>
 ): Unsubscribe {
-  const errHandler = (err: Error): void => {
+  const errHandler = (err: FirestoreError): void => {
     throw fail('Uncaught Error in onSnapshotsInSync');
   };
   const asyncObserver = new AsyncObserver<void>({
@@ -1299,7 +1299,7 @@ export function addDocSnapshotListener(
   options: ListenOptions,
   observer: PartialObserver<ViewSnapshot>
 ): Unsubscribe {
-  let errHandler = (err: Error): void => {
+  let errHandler = (err: FirestoreError): void => {
     console.error('Uncaught Error in onSnapshot:', err);
   };
   if (observer.error) {
@@ -2257,7 +2257,7 @@ export function addQuerySnapshotListener(
   options: ListenOptions,
   observer: PartialObserver<ViewSnapshot>
 ): Unsubscribe {
-  let errHandler = (err: Error): void => {
+  let errHandler = (err: FirestoreError): void => {
     console.error('Uncaught Error in onSnapshot:', err);
   };
   if (observer.error) {

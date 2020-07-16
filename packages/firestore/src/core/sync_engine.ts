@@ -131,7 +131,7 @@ export interface SyncEngineListener {
   onWatchChange(snapshots: ViewSnapshot[]): void;
 
   /** Handles the failure of a query. */
-  onWatchError(query: Query, error: Error): void;
+  onWatchError(query: Query, error: FirestoreError): void;
 
   /** Handles a change in online state. */
   onOnlineStateChange(onlineState: OnlineState): void;
@@ -698,7 +698,10 @@ class SyncEngineImpl implements SyncEngine {
    * Resolves or rejects the user callback for the given batch and then discards
    * it.
    */
-  protected processUserCallback(batchId: BatchId, error: Error | null): void {
+  protected processUserCallback(
+    batchId: BatchId,
+    error: FirestoreError | null
+  ): void {
     let newCallbacks = this.mutationUserCallbacks[this.currentUser.toKey()];
 
     // NOTE: Mutations restored from persistence won't have callbacks, so it's
@@ -723,7 +726,7 @@ class SyncEngineImpl implements SyncEngine {
 
   protected removeAndCleanupTarget(
     targetId: number,
-    error: Error | null = null
+    error: FirestoreError | null = null
   ): void {
     this.sharedClientState.removeLocalQueryTarget(targetId);
 

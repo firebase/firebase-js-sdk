@@ -28,6 +28,7 @@ import { View } from '../../../src/core/view';
 import { ChangeType, ViewSnapshot } from '../../../src/core/view_snapshot';
 import { documentKeySet } from '../../../src/model/collections';
 import { DocumentSet } from '../../../src/model/document_set';
+import { Code, FirestoreError } from '../../../src/util/error';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   ackTarget,
@@ -156,7 +157,7 @@ describe('QueryListener', () => {
   function queryListener(
     query: Query,
     events?: ViewSnapshot[],
-    errors?: Error[],
+    errors?: FirestoreError[],
     options?: ListenOptions
   ): QueryListener {
     return new QueryListener(
@@ -167,7 +168,7 @@ describe('QueryListener', () => {
             events.push(snap);
           }
         },
-        error: (error: Error) => {
+        error: (error: FirestoreError) => {
           if (errors !== undefined) {
             errors.push(error);
           }
@@ -220,11 +221,11 @@ describe('QueryListener', () => {
   });
 
   it('raises error event', () => {
-    const events: Error[] = [];
+    const events: FirestoreError[] = [];
     const query1 = query('rooms/Eros');
 
     const listener = queryListener(query1, [], events);
-    const error = new Error('bad');
+    const error = new FirestoreError(Code.UNKNOWN, 'bad');
 
     listener.onError(error);
     expect(events[0]).to.deep.equal(error);

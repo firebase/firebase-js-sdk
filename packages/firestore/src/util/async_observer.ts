@@ -17,6 +17,7 @@
 
 import { Observer } from '../core/event_manager';
 import { EventHandler } from './misc';
+import { FirestoreError } from './error';
 
 /*
  * A wrapper implementation of Observer<T> that will dispatch events
@@ -36,7 +37,7 @@ export class AsyncObserver<T> implements Observer<T> {
     this.scheduleEvent(this.observer.next, value);
   }
 
-  error(error: Error): void {
+  error(error: FirestoreError): void {
     this.scheduleEvent(this.observer.error, error);
   }
 
