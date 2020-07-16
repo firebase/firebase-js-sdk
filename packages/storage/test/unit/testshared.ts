@@ -22,7 +22,7 @@ import * as type from '../../src/implementation/type';
 import { Headers, XhrIo } from '../../src/implementation/xhrio';
 import { XhrIoPool } from '../../src/implementation/xhriopool';
 import { SendHook, StringHeaders, TestingXhrIo } from './xhrio';
-import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import {
   Provider,
   ComponentContainer,
@@ -36,7 +36,7 @@ export const fakeApp = makeFakeApp();
 export const fakeAuthProvider = makeFakeAuthProvider({
   accessToken: authToken
 });
-export const emptyAuthProvider = new Provider<FirebaseAuthInternal>(
+export const emptyAuthProvider = new Provider<'auth-internal'>(
   'auth-internal',
   new ComponentContainer('storage-container')
 );
@@ -53,8 +53,8 @@ export function makeFakeApp(bucketArg?: string): FirebaseApp {
 }
 
 export function makeFakeAuthProvider(
-  token: {} | null
-): Provider<FirebaseAuthInternal> {
+  token: FirebaseAuthTokenData | null
+): Provider<'auth-internal'> {
   const provider = new Provider(
     'auth-internal',
     new ComponentContainer('storage-container')
@@ -62,14 +62,15 @@ export function makeFakeAuthProvider(
   provider.setComponent(
     new Component(
       'auth-internal',
-      () => ({
-        getToken: async () => token
-      }),
+      (() => {
+        getToken: () => Promise.resolve(token);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }) as any,
       ComponentType.PRIVATE
     )
   );
 
-  return provider as Provider<FirebaseAuthInternal>;
+  return provider as Provider<'auth-internal'>;
 }
 
 export function makePool(sendHook: SendHook | null): XhrIoPool {

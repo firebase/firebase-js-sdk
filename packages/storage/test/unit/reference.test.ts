@@ -32,7 +32,7 @@ import { Provider } from '@firebase/component';
 /* eslint-disable @typescript-eslint/no-floating-promises */
 function makeFakeService(
   app: FirebaseApp,
-  authProvider: Provider<FirebaseAuthInternal>,
+  authProvider: Provider<'auth-internal'>,
   sendHook: SendHook
 ): Service {
   return new Service(app, authProvider, testShared.makePool(sendHook));
