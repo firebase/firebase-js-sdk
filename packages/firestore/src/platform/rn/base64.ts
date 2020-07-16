@@ -16,6 +16,7 @@
  */
 
 import { base64 } from '@firebase/util';
+import { uint8ArrayFromBinaryString } from '../../util/byte_string';
 
 // WebSafe uses a different URL-encoding safe alphabet that doesn't match
 // the encoding used on the backend.

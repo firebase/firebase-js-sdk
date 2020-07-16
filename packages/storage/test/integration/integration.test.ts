@@ -65,6 +65,7 @@ describe('FirebaseStorage', () => {
     return withTestInstance(async storage => {
       const ref = storage.ref('');
       try {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         ref.putString('foo');
         expect.fail();
       } catch (e) {
