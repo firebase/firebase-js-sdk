@@ -62,10 +62,11 @@ export function makeFakeAuthProvider(
   provider.setComponent(
     new Component(
       'auth-internal',
-      (() => {
-        getToken: () => Promise.resolve(token);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      }) as any,
+      () => {
+        return {
+          getToken: () => Promise.resolve(token)
+        } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+      },
       ComponentType.PRIVATE
     )
   );

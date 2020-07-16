@@ -26,7 +26,6 @@ import { Service } from '../../src/service';
 import * as testShared from './testshared';
 import { SendHook, TestingXhrIo } from './xhrio';
 import { DEFAULT_HOST } from '../../src/implementation/constants';
-import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
