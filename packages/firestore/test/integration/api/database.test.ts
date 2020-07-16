@@ -36,7 +36,7 @@ import { DEFAULT_SETTINGS } from '../util/settings';
 use(chaiAsPromised);
 
 const newTestFirestore = firebaseExport.newTestFirestore;
-const usesModularApi = firebaseExport.usesFunctionalApi;
+const usesFunctionalApi = firebaseExport.usesFunctionalApi;
 const Timestamp = firebaseExport.Timestamp;
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;
@@ -926,29 +926,13 @@ apiDescribe('Database', (persistence: boolean) => {
 
   it('exposes "firestore" on document references.', () => {
     return withTestDb(persistence, async db => {
-      if (usesModularApi()) {
-        // FirestoreShim returns a new instance of FirebaseFirestore that is
-        // semantically identical to the originating instance, but does not
-        // compare equal using the default JavaScript semantics.
-        expect(db.doc('foo/bar').firestore).to.be.an.instanceof(Firestore);
-      } else {
-        expect(db.doc('foo/bar').firestore).to.equal(db);
-      }
+      expect(db.doc('foo/bar').firestore).to.equal(db);
     });
   });
 
   it('exposes "firestore" on query references.', () => {
     return withTestDb(persistence, async db => {
-      if (usesModularApi()) {
-        // FirestoreShim returns a new instance of FirebaseFirestore that is
-        // semantically identical to the originating instance, but does not
-        // compare equal using the default JavaScript semantics.
-        expect(db.collection('foo').limit(5).firestore).to.be.an.instanceof(
-          Firestore
-        );
-      } else {
-        expect(db.collection('foo').limit(5).firestore).to.equal(db);
-      }
+      expect(db.collection('foo').limit(5).firestore).to.equal(db);
     });
   });
 
@@ -1158,7 +1142,7 @@ apiDescribe('Database', (persistence: boolean) => {
         const expectedError =
           'Persistence can only be cleared before a Firestore instance is ' +
           'initialized or after it is terminated.';
-        if (usesModularApi()) {
+        if (usesFunctionalApi()) {
           // The modular API throws an exception rather than rejecting the
           // Promise, which matches our overall handling of API call violations.
           expect(() => firestore.clearPersistence()).to.throw(expectedError);

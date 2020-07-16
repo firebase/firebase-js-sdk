@@ -30,7 +30,7 @@ import { DEFAULT_SETTINGS } from '../util/settings';
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;
 const Timestamp = firebaseExport.Timestamp;
-const usesModularApi = firebaseExport.usesFunctionalApi;
+const usesFunctionalApi = firebaseExport.usesFunctionalApi;
 
 // Allow custom types for testing.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -356,7 +356,7 @@ apiDescribe('Timestamp Fields in snapshots', (persistence: boolean) => {
 
   // timestampInSnapshots is not support in the modular API.
   // eslint-disable-next-line no-restricted-properties
-  (usesModularApi() ? it.skip : it)(
+  (usesFunctionalApi() ? it.skip : it)(
     'are returned as native dates if timestampsInSnapshots set to false',
     () => {
       const settings = { ...DEFAULT_SETTINGS };
@@ -426,7 +426,7 @@ apiDescribe('Timestamp Fields in snapshots', (persistence: boolean) => {
 
   // timestampInSnapshots is not support in the modular API.
   // eslint-disable-next-line no-restricted-properties
-  (usesModularApi() ? it.skip : it)(
+  (usesFunctionalApi() ? it.skip : it)(
     'timestampsInSnapshots affects server timestamps',
     () => {
       const settings = { ...DEFAULT_SETTINGS };

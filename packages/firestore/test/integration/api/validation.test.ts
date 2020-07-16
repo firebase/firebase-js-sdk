@@ -27,11 +27,12 @@ import {
   withTestDb
 } from '../util/helpers';
 import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
+import { TEST_PROJECT } from '../../unit/local/persistence_test_helpers';
 
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;
 const newTestFirestore = firebaseExport.newTestFirestore;
-const usesModularApi = firebaseExport.usesFunctionalApi;
+const usesFunctionalApi = firebaseExport.usesFunctionalApi;
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -108,7 +109,7 @@ class TestClass {
 // be extremely tedious, but we do try to hit every error template at least
 // once. Where applicable, some tests are ignored for the modular API, as we
 // assume that most users will use TypeScript to catch invalid input.
-const validatesJsInput = !usesModularApi();
+const validatesJsInput = !usesFunctionalApi();
 
 apiDescribe('Validation:', (persistence: boolean) => {
   describe('FirestoreSettings', () => {
@@ -150,7 +151,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         'Firestore has already been started and its settings can no ' +
         'longer be changed. ';
 
-      if (usesModularApi()) {
+      if (usesFunctionalApi()) {
         errorMsg +=
           'initializeFirestore() cannot be called after calling ' +
           'getFirestore()';
@@ -167,14 +168,14 @@ apiDescribe('Validation:', (persistence: boolean) => {
     });
 
     validationIt(persistence, 'enforces minimum cache size', () => {
-      const db = newTestFirestore('testProjectId');
+      const db = newTestFirestore(TEST_PROJECT);
       expect(() => db.settings({ cacheSizeBytes: 1 })).to.throw(
         'cacheSizeBytes must be at least 1048576'
       );
     });
 
     validationIt(persistence, 'garbage collection can be disabled', () => {
-      const db = newTestFirestore('testProjectId');
+      const db = newTestFirestore(TEST_PROJECT);
       // Verify that this doesn't throw.
       db.settings({ cacheSizeBytes: /* CACHE_SIZE_UNLIMITED= */ -1 });
     });
@@ -193,7 +194,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expect(() => db.enablePersistence()).to.throw(
           'Firestore has already been started and persistence can no ' +
             `longer be enabled. You can only ${
-              usesModularApi()
+              usesFunctionalApi()
                 ? 'enable persistence'
                 : 'call enablePersistence()'
             } ` +
@@ -232,27 +233,32 @@ apiDescribe('Validation:', (persistence: boolean) => {
   describe('Collection paths', () => {
     validationIt(persistence, 'must be non-empty strings', db => {
       const baseDocRef = db.doc('foo/bar');
-      if (usesModularApi()) {
-        expect(() => db.collection('')).to.throw(
-          'Function collection() requires its second argument ' +
-            'to be of type non-empty string, but it was: ""'
-        );
-      } else {
+      const argumentPosition = usesFunctionalApi() ? 'second' : 'first';
+
+      expect(() => db.collection('')).to.throw(
+        `Function ${
+          usesFunctionalApi() ? 'collection' : 'Firestore.collection'
+        }() ` +
+          `requires its ${argumentPosition} argument to be of type non-empty ` +
+          'string, but it was: ""'
+      );
+      expect(() => baseDocRef.collection('')).to.throw(
+        `Function ${
+          usesFunctionalApi() ? 'doc' : 'CollectionReference.doc'
+        }() ` +
+          `requires its ${argumentPosition} argument to be of type non-empty ` +
+          'string, but it was: ""'
+      );
+
+      if (validatesJsInput) {
         expect(() => db.collection(null as any)).to.throw(
           'Function Firestore.collection() requires its first argument ' +
             'to be of type non-empty string, but it was: null'
         );
-        expect(() => db.collection('')).to.throw(
-          'Function Firestore.collection() requires its first argument ' +
-            'to be of type non-empty string, but it was: ""'
-        );
+
         expect(() => baseDocRef.collection(null as any)).to.throw(
           'Function DocumentReference.collection() requires its first ' +
             'argument to be of type non-empty string, but it was: null'
-        );
-        expect(() => baseDocRef.collection('')).to.throw(
-          'Function DocumentReference.collection() requires its first ' +
-            'argument to be of type non-empty string, but it was: ""'
         );
         expect(() => (baseDocRef.collection as any)('foo', 'bar')).to.throw(
           'Function DocumentReference.collection() requires 1 argument, ' +
@@ -301,31 +307,29 @@ apiDescribe('Validation:', (persistence: boolean) => {
   describe('Document paths', () => {
     validationIt(persistence, 'must be strings', db => {
       const baseCollectionRef = db.collection('foo');
-      if (usesModularApi()) {
-        expect(() => db.doc('')).to.throw(
-          'Function doc() requires its second argument to be ' +
-            'of type non-empty string, but it was: ""'
-        );
-        expect(() => baseCollectionRef.doc('')).to.throw(
-          'Function doc() requires its second ' +
-            'argument to be of type non-empty string, but it was: ""'
-        );
-      } else {
+      const argumentPosition = usesFunctionalApi() ? 'second' : 'first';
+
+      expect(() => db.doc('')).to.throw(
+        `Function ${usesFunctionalApi() ? 'doc' : 'Firestore.doc'}() ` +
+          `requires its ${argumentPosition} argument to be of type non-empty ` +
+          'string, but it was: ""'
+      );
+      expect(() => baseCollectionRef.doc('')).to.throw(
+        `Function ${
+          usesFunctionalApi() ? 'doc' : 'CollectionReference.doc'
+        }() ` +
+          `requires its ${argumentPosition} argument to be of type non-empty ` +
+          'string, but it was: ""'
+      );
+
+      if (validatesJsInput) {
         expect(() => db.doc(null as any)).to.throw(
           'Function Firestore.doc() requires its first argument to be ' +
             'of type non-empty string, but it was: null'
         );
-        expect(() => db.doc('')).to.throw(
-          'Function Firestore.doc() requires its first argument to be ' +
-            'of type non-empty string, but it was: ""'
-        );
         expect(() => baseCollectionRef.doc(null as any)).to.throw(
           'Function CollectionReference.doc() requires its first ' +
             'argument to be of type non-empty string, but it was: null'
-        );
-        expect(() => baseCollectionRef.doc('')).to.throw(
-          'Function CollectionReference.doc() requires its first ' +
-            'argument to be of type non-empty string, but it was: ""'
         );
         expect(() => baseCollectionRef.doc(undefined as any)).to.throw(
           'Function CollectionReference.doc() requires its first ' +
@@ -535,7 +539,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
           db,
           { 'array': [FieldValue.serverTimestamp()] },
           `${
-            usesModularApi() ? 'serverTimestamp' : 'FieldValue.serverTimestamp'
+            usesFunctionalApi()
+              ? 'serverTimestamp'
+              : 'FieldValue.serverTimestamp'
           }() is not currently supported inside arrays`
         );
       }
@@ -659,7 +665,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           db,
           { foo: FieldValue.delete() },
           `${
-            usesModularApi() ? 'deleteField' : 'FieldValue.delete'
+            usesFunctionalApi() ? 'deleteField' : 'FieldValue.delete'
           }() cannot be used with set() unless you pass ` +
             '{merge:true} (found in field foo)'
         );
@@ -674,7 +680,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           db,
           { foo: { bar: FieldValue.delete() } },
           `${
-            usesModularApi() ? 'deleteField' : 'FieldValue.delete'
+            usesFunctionalApi() ? 'deleteField' : 'FieldValue.delete'
           }() can only appear at the top level of your ` +
             'update data (found in field foo.bar)'
         );
@@ -777,7 +783,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       ).to.throw(
         'Function Query.where() called with invalid data. ' +
           `${
-            usesModularApi() ? 'arrayUnion' : 'FieldValue.arrayUnion'
+            usesFunctionalApi() ? 'arrayUnion' : 'FieldValue.arrayUnion'
           }() can only be used with update() and set() (found in field test)`
       );
 
@@ -786,7 +792,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       ).to.throw(
         'Function Query.where() called with invalid data. ' +
           `${
-            usesModularApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
+            usesFunctionalApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
           }() can only be used with update() and set() (found in field test)`
       );
     });
@@ -797,7 +803,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         doc.set({ x: FieldValue.arrayUnion(1, new TestClass('foo')) })
       ).to.throw(
         `Function ${
-          usesModularApi() ? 'arrayUnion' : 'FieldValue.arrayUnion'
+          usesFunctionalApi() ? 'arrayUnion' : 'FieldValue.arrayUnion'
         }() called with invalid data. Unsupported field value: a custom ` +
           'TestClass object'
       );
@@ -806,14 +812,14 @@ apiDescribe('Validation:', (persistence: boolean) => {
         doc.set({ x: FieldValue.arrayRemove(1, new TestClass('foo')) })
       ).to.throw(
         `Function ${
-          usesModularApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
+          usesFunctionalApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
         }() called with invalid data. Unsupported field value: a custom ` +
           'TestClass object'
       );
 
       expect(() => doc.set({ x: FieldValue.arrayRemove(undefined) })).to.throw(
         `Function ${
-          usesModularApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
+          usesFunctionalApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
         }() called with invalid data. Unsupported field value: undefined`
       );
     });
@@ -825,7 +831,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         doc.set({ x: FieldValue.arrayUnion(1, ['nested']) })
       ).to.throw(
         `Function ${
-          usesModularApi() ? 'arrayUnion' : 'FieldValue.arrayUnion'
+          usesFunctionalApi() ? 'arrayUnion' : 'FieldValue.arrayUnion'
         }() called with invalid data. Nested arrays are not supported`
       );
 
@@ -833,7 +839,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         doc.set({ x: FieldValue.arrayRemove(1, ['nested']) })
       ).to.throw(
         `Function ${
-          usesModularApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
+          usesFunctionalApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
         }() called with invalid data. Nested arrays are not supported`
       );
     });
@@ -863,7 +869,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       ).to.throw(
         'Function Query.where() called with invalid data. ' +
           `${
-            usesModularApi() ? 'increment' : 'FieldValue.increment'
+            usesFunctionalApi() ? 'increment' : 'FieldValue.increment'
           }() can only be used with update() and set() (found in field test)`
       );
     });
@@ -1454,7 +1460,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(persistence, 'cannot pass undefined as a field value', db => {
       const collection = db.collection('test');
-      if (usesModularApi()) {
+      if (usesFunctionalApi()) {
         expect(() => collection.where('foo', '==', undefined)).to.throw(
           'Function Query.where() called with invalid data. Unsupported field value: undefined'
         );
@@ -1532,7 +1538,7 @@ function expectWriteToFail(
 
   if (includeSets) {
     expect(() => docRef.set(data)).to.throw(
-      error(usesModularApi() ? 'setDoc' : 'DocumentReference.set')
+      error(usesFunctionalApi() ? 'setDoc' : 'DocumentReference.set')
     );
     expect(() => docRef.firestore.batch().set(docRef, data)).to.throw(
       error('WriteBatch.set')
@@ -1541,7 +1547,7 @@ function expectWriteToFail(
 
   if (includeUpdates) {
     expect(() => docRef.update(data)).to.throw(
-      error(usesModularApi() ? 'updateDoc' : 'DocumentReference.update')
+      error(usesFunctionalApi() ? 'updateDoc' : 'DocumentReference.update')
     );
     expect(() => docRef.firestore.batch().update(docRef, data)).to.throw(
       error('WriteBatch.update')

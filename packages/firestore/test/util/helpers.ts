@@ -96,6 +96,7 @@ import { Timestamp } from '../../src/api/timestamp';
 import { DocumentReference } from '../../src/api/database';
 import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
+import { TEST_DATABASE_ID } from '../unit/local/persistence_test_helpers';
 
 /* eslint-disable no-restricted-globals */
 
@@ -103,7 +104,7 @@ export type TestSnapshotVersion = number;
 
 export function testUserDataWriter(): UserDataWriter {
   return new UserDataWriter(
-    new DatabaseId('test-project'),
+    TEST_DATABASE_ID,
     /* timestampsInSnapshots= */ false,
     'none',
     key => new DocumentReference(key, FIRESTORE, /* converter= */ null)
@@ -111,12 +112,11 @@ export function testUserDataWriter(): UserDataWriter {
 }
 
 export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
-  const databaseId = new DatabaseId('test-project');
   return new UserDataReader(
-    databaseId,
+    TEST_DATABASE_ID,
     /* ignoreUndefinedProperties= */ false,
     useProto3Json !== undefined
-      ? new JsonProtoSerializer(databaseId, useProto3Json)
+      ? new JsonProtoSerializer(TEST_DATABASE_ID, useProto3Json)
       : undefined
   );
 }
