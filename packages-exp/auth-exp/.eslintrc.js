@@ -17,6 +17,7 @@
 
 module.exports = {
   extends: '../../config/.eslintrc.js',
+  ignorePatterns: ['demo/'],
   parserOptions: {
     project: 'tsconfig.json',
     // to make vscode-eslint work with monorepo
