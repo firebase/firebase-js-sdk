@@ -26,25 +26,20 @@ import { Component, ComponentType } from '@firebase/component';
 export { database, firestore } from 'firebase';
 
 /** If this environment variable is set, use it for the database emulator's address. */
-const DATABASE_ADDRESS_ENV: string = 'FIREBASE_DATABASE_EMULATOR_ADDRESS';
+const DATABASE_ADDRESS_ENV: string = 'FIREBASE_DATABASE_EMULATOR_HOST';
 /** The default address for the local database emulator. */
 const DATABASE_ADDRESS_DEFAULT: string = 'localhost:9000';
-/** The actual address for the database emulator */
-const DATABASE_ADDRESS: string =
-  process.env[DATABASE_ADDRESS_ENV] || DATABASE_ADDRESS_DEFAULT;
 
 /** If any of environment variable is set, use it for the Firestore emulator. */
-const FIRESTORE_ADDRESS_ENVS: string[] = [
-  'FIRESTORE_EMULATOR_HOST',
-  'FIREBASE_FIRESTORE_EMULATOR_ADDRESS'
-];
+const FIRESTORE_ADDRESS_ENV: string = 'FIRESTORE_EMULATOR_HOST';
 /** The default address for the local Firestore emulator. */
 const FIRESTORE_ADDRESS_DEFAULT: string = 'localhost:8080';
+
+/** The actual address for the database emulator */
+let _databaseAddress: string | undefined = undefined;
+
 /** The actual address for the Firestore emulator */
-const FIRESTORE_ADDRESS: string = FIRESTORE_ADDRESS_ENVS.reduce(
-  (addr, name) => process.env[name] || addr,
-  FIRESTORE_ADDRESS_DEFAULT
-);
+let _firestoreAddress: string | undefined = undefined;
 
 /** Create an unsecured JWT for the given auth payload. See https://tools.ietf.org/html/rfc7519#section-6. */
 function createUnsecuredJwt(auth: object): string {
@@ -102,12 +97,44 @@ export function initializeAdminApp(options: AdminAppOptions): firebase.app.App {
 
   if (options.projectId) {
     app.firestore().settings({
-      host: FIRESTORE_ADDRESS,
+      host: getFirestoreHost(),
       ssl: false
     });
   }
 
   return app;
+}
+
+function getDatabaseHost() {
+  if (!_databaseAddress) {
+    const fromEnv = process.env[DATABASE_ADDRESS_ENV];
+    if (fromEnv) {
+      _databaseAddress = fromEnv;
+    } else {
+      console.warn(
+        `Warning: ${DATABASE_ADDRESS_ENV} not set, using default value ${DATABASE_ADDRESS_DEFAULT}`
+      );
+      _databaseAddress = DATABASE_ADDRESS_DEFAULT;
+    }
+  }
+
+  return _databaseAddress;
+}
+
+function getFirestoreHost() {
+  if (!_firestoreAddress) {
+    const fromEnv = process.env[FIRESTORE_ADDRESS_ENV];
+    if (fromEnv) {
+      _firestoreAddress = fromEnv;
+    } else {
+      console.warn(
+        `Warning: ${FIRESTORE_ADDRESS_ENV} not set, using default value ${FIRESTORE_ADDRESS_DEFAULT}`
+      );
+      _firestoreAddress = FIRESTORE_ADDRESS_DEFAULT;
+    }
+  }
+
+  return _firestoreAddress;
 }
 
 function getRandomAppName(): string {
@@ -121,7 +148,9 @@ function getAppOptions(
   let appOptions: { [key: string]: string } = {};
 
   if (databaseName) {
-    appOptions['databaseURL'] = `http://${DATABASE_ADDRESS}?ns=${databaseName}`;
+    appOptions[
+      'databaseURL'
+    ] = `http://${getDatabaseHost()}?ns=${databaseName}`;
   }
   if (projectId) {
     appOptions['projectId'] = projectId;
@@ -166,7 +195,7 @@ function initializeApp(
   }
   if (projectId) {
     app.firestore().settings({
-      host: FIRESTORE_ADDRESS,
+      host: getFirestoreHost(),
       ssl: false
     });
   }
@@ -196,7 +225,9 @@ export function loadDatabaseRules(
   return new Promise((resolve, reject) => {
     request.put(
       {
-        uri: `http://${DATABASE_ADDRESS}/.settings/rules.json?ns=${options.databaseName}`,
+        uri: `http://${getDatabaseHost()}/.settings/rules.json?ns=${
+          options.databaseName
+        }`,
         headers: { Authorization: 'Bearer owner' },
         body: options.rules
       },
@@ -231,7 +262,9 @@ export function loadFirestoreRules(
   return new Promise((resolve, reject) => {
     request.put(
       {
-        uri: `http://${FIRESTORE_ADDRESS}/emulator/v1/projects/${options.projectId}:securityRules`,
+        uri: `http://${getFirestoreHost()}/emulator/v1/projects/${
+          options.projectId
+        }:securityRules`,
         body: JSON.stringify({
           rules: {
             files: [{ content: options.rules }]
@@ -265,7 +298,9 @@ export function clearFirestoreData(
   return new Promise((resolve, reject) => {
     request.delete(
       {
-        uri: `http://${FIRESTORE_ADDRESS}/emulator/v1/projects/${options.projectId}/databases/(default)/documents`,
+        uri: `http://${getFirestoreHost()}/emulator/v1/projects/${
+          options.projectId
+        }/databases/(default)/documents`,
         body: JSON.stringify({
           database: `projects/${options.projectId}/databases/(default)`
         })
