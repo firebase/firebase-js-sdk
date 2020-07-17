@@ -91,9 +91,11 @@ export class Firestore
     if (!this._datastorePromise) {
       const settings = this._getSettings();
       const databaseInfo = this._makeDatabaseInfo(settings.host, settings.ssl);
+      const serializer = newSerializer(databaseInfo.databaseId);
+      const datastore = newDatastore(this._credentials, serializer);
       this._datastorePromise = newConnection(databaseInfo).then(connection => {
-        const serializer = newSerializer(databaseInfo.databaseId);
-        return newDatastore(connection, this._credentials, serializer);
+        datastore.start(connection);
+        return datastore;
       });
     }
 
@@ -124,6 +126,12 @@ export class Firestore
   delete(): Promise<void> {
     return terminate(this);
   }
+
+  // TODO(firestoreexp): `deleteApp()` should call the delete method above,
+  // but it still calls INTERNAL.delete().
+  INTERNAL = {
+    delete: () => this.delete()
+  };
 }
 
 export function initializeFirestore(

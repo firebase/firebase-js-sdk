@@ -32,7 +32,6 @@ import {
 } from './constants';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { logger } from './logger';
-
 /**
  * Initialize the analytics instance in gtag.js by calling config command with fid.
  *

@@ -19,7 +19,6 @@ import { expect } from 'chai';
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
 import { ListenSequence } from '../../../src/core/listen_sequence';
-import { Query } from '../../../src/core/query';
 import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
@@ -47,7 +46,7 @@ import {
   SetMutation
 } from '../../../src/model/mutation';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { key, path, version, wrapObject } from '../../util/helpers';
+import { key, version, wrapObject, query } from '../../util/helpers';
 import { SortedMap } from '../../../src/util/sorted_map';
 import * as PersistenceTestHelpers from './persistence_test_helpers';
 import { primitiveComparator } from '../../../src/util/misc';
@@ -129,7 +128,7 @@ function genericLruGarbageCollectorTests(
   function nextTargetData(sequenceNumber: ListenSequenceNumber): TargetData {
     const targetId = ++previousTargetId;
     return new TargetData(
-      Query.atPath(path('path' + targetId)).toTarget(),
+      query('path' + targetId).toTarget(),
       targetId,
       TargetPurpose.Listen,
       sequenceNumber

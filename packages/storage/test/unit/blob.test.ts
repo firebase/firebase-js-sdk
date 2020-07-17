@@ -17,8 +17,8 @@
 
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import { FbsBlob } from '../src/implementation/blob';
-import * as type from '../src/implementation/type';
+import { FbsBlob } from '../../src/implementation/blob';
+import * as type from '../../src/implementation/type';
 import * as testShared from './testshared';
 
 describe('Firebase Storage > Blob', () => {

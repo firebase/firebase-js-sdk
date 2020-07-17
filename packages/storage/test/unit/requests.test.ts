@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { AuthWrapper } from '../src/implementation/authwrapper';
-import { FbsBlob } from '../src/implementation/blob';
-import { Location } from '../src/implementation/location';
-import * as MetadataUtils from '../src/implementation/metadata';
-import { makeRequest } from '../src/implementation/request';
-import * as requests from '../src/implementation/requests';
-import { makeUrl } from '../src/implementation/url';
-import * as errors from '../src/implementation/error';
-import { RequestInfo } from '../src/implementation/requestinfo';
-import { XhrIoPool } from '../src/implementation/xhriopool';
-import { Metadata } from '../src/metadata';
-import { Reference } from '../src/reference';
-import { Service } from '../src/service';
+import { AuthWrapper } from '../../src/implementation/authwrapper';
+import { FbsBlob } from '../../src/implementation/blob';
+import { Location } from '../../src/implementation/location';
+import * as MetadataUtils from '../../src/implementation/metadata';
+import { makeRequest } from '../../src/implementation/request';
+import * as requests from '../../src/implementation/requests';
+import { makeUrl } from '../../src/implementation/url';
+import * as errors from '../../src/implementation/error';
+import { RequestInfo } from '../../src/implementation/requestinfo';
+import { XhrIoPool } from '../../src/implementation/xhriopool';
+import { Metadata } from '../../src/metadata';
+import { Reference } from '../../src/reference';
+import { Service } from '../../src/service';
 import {
   assertObjectIncludes,
   fakeXhrIo,
@@ -36,7 +36,7 @@ import {
 import {
   DEFAULT_HOST,
   CONFIG_STORAGE_BUCKET_KEY
-} from '../src/implementation/constants';
+} from '../../src/implementation/constants';
 import { FirebaseApp } from '@firebase/app-types';
 
 describe('Firebase Storage > Requests', () => {
