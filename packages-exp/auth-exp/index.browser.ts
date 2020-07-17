@@ -15,13 +15,10 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
-import { CompleteFn, ErrorFn, Unsubscribe } from '@firebase/util';
-
 // Core functionality shared by all browser based clients
 export * from './index.webworker';
 
-// Additional DOM dependend functionality 
+// Additional DOM dependend functionality
 
 // core/persistence
 export {
@@ -29,7 +26,6 @@ export {
   browserSessionPersistence
 } from './src/core/persistence/browser';
 export { indexedDBLocalPersistence } from './src/core/persistence/indexed_db';
-export { getReactNativePersistence } from './src/core/persistence/react_native';
 
 // core/strategies
 export {

@@ -38,25 +38,27 @@ const es5Builds = [
   {
     input: 'src/index.js',
     output: [{ file: pkg.bundle, format: 'esm', sourcemap: true }],
-    plugins: commonPlugins,
+    plugins: commonPlugins
   },
   {
     input: 'src/worker/index.ts',
     output: [{ file: pkg.worker, format: 'esm', sourcemap: true }],
-    plugins: [...commonPlugins,
+    plugins: [
+      ...commonPlugins,
       typescriptPlugin({
-      typescript,
-      tsconfigOverride: {
-        compilerOptions: {
-          lib: [
-            // TODO: remove this
-            "dom",
-            "es6",
-            "webworker"
-          ]
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            lib: [
+              // TODO: remove this
+              'dom',
+              'es2015',
+              'webworker'
+            ]
+          }
         }
-      }
-      })],
+      })
+    ]
   }
 ];
 

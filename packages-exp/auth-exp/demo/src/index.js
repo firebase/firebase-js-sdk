@@ -53,13 +53,13 @@ import {
   updateEmail,
   updatePassword,
   updateProfile,
-  verifyPasswordResetCode
-  // OAuthProvider,
-  // signInWithPopup,
-  // linkWithPopup,
-  // reauthenticateWithPopup,
-  // browserPopupRedirectResolver
-} from '@firebase/auth-exp';
+  verifyPasswordResetCode,
+  OAuthProvider,
+  signInWithPopup,
+  linkWithPopup,
+  reauthenticateWithPopup,
+  browserPopupRedirectResolver
+} from '@firebase/auth-exp/dist/index.browser';
 
 import { config } from './config';
 import {

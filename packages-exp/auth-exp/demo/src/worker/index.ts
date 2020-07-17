@@ -22,7 +22,7 @@ import {
   inMemoryPersistence,
   signInAnonymously,
   signInWithEmailAndPassword,
-  updateProfile,
+  updateProfile
 } from '@firebase/auth-exp/dist/index.webworker';
 import { OAuthCredential, User } from '@firebase/auth-types-exp';
 
@@ -45,14 +45,15 @@ const auth = initializeAuth(app, {
  *     available. Otherwise, the promise resolves with null.
  */
 function getIdToken(): Promise<string | null> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     auth.onAuthStateChanged((user: User | null) => {
       if (user) {
-        user.getIdToken().then(resolve).catch(
-          () => {
+        user
+          .getIdToken()
+          .then(resolve)
+          .catch(() => {
             resolve(null);
-          }
-        );
+          });
       } else {
         resolve(null);
       }
@@ -168,7 +169,7 @@ self.onmessage = (e: MessageEvent) => {
             ctx.postMessage({
               type: e.data.type,
               idToken,
-              uid: auth.currentUser?.uid,
+              uid: auth.currentUser?.uid
             });
           })
           .catch(error => {
@@ -180,7 +181,7 @@ self.onmessage = (e: MessageEvent) => {
           .then(() => {
             ctx.postMessage({
               type: e.data.type,
-              status: 'success',
+              status: 'success'
             });
           })
           .catch(error => {
