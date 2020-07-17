@@ -17,8 +17,10 @@
 
 import {
   ComponentConfiguration,
-  MemoryComponentProvider,
-  MultiTabIndexedDbComponentProvider
+  MemoryOfflineComponentProvider,
+  OnlineComponentProvider,
+  MultiTabOfflineComponentProvider,
+  MultiTabOnlineComponentProvider
 } from '../../../src/core/component_provider';
 import {
   GarbageCollectionScheduler,
@@ -119,16 +121,8 @@ function failTransactionIfNeeded(
   }
 }
 
-export class MockIndexedDbComponentProvider extends MultiTabIndexedDbComponentProvider {
-  persistence!: MockIndexedDbPersistence;
+export class MockOnlineComponentProvider extends OnlineComponentProvider {
   connection!: MockConnection;
-
-  constructor(
-    private readonly window: WindowLike,
-    private readonly document: FakeDocument
-  ) {
-    super();
-  }
 
   async loadConnection(cfg: ComponentConfiguration): Promise<Connection> {
     this.connection = new MockConnection(cfg.asyncQueue);
@@ -141,6 +135,34 @@ export class MockIndexedDbComponentProvider extends MultiTabIndexedDbComponentPr
       /* useProto3Json= */ true
     );
     return newDatastore(cfg.credentials, serializer);
+  }
+}
+
+export class MockMultiTabOnlineComponentProvider extends MultiTabOnlineComponentProvider {
+  connection!: MockConnection;
+
+  async loadConnection(cfg: ComponentConfiguration): Promise<Connection> {
+    this.connection = new MockConnection(cfg.asyncQueue);
+    return this.connection;
+  }
+
+  createDatastore(cfg: ComponentConfiguration): Datastore {
+    const serializer = new JsonProtoSerializer(
+      cfg.databaseInfo.databaseId,
+      /* useProto3Json= */ true
+    );
+    return newDatastore(cfg.credentials, serializer);
+  }
+}
+
+export class MockMultiTabOfflineComponentProvider extends MultiTabOfflineComponentProvider {
+  persistence!: MockIndexedDbPersistence;
+
+  constructor(
+    private readonly window: WindowLike,
+    private readonly document: FakeDocument
+  ) {
+    super();
   }
 
   createGarbageCollectionScheduler(
@@ -190,25 +212,12 @@ export class MockIndexedDbComponentProvider extends MultiTabIndexedDbComponentPr
   }
 }
 
-export class MockMemoryComponentProvider extends MemoryComponentProvider {
+export class MockMemoryOfflineComponentProvider extends MemoryOfflineComponentProvider {
   persistence!: MockMemoryPersistence;
   connection!: MockConnection;
 
   constructor(private readonly gcEnabled: boolean) {
     super();
-  }
-
-  async loadConnection(cfg: ComponentConfiguration): Promise<Connection> {
-    this.connection = new MockConnection(cfg.asyncQueue);
-    return this.connection;
-  }
-
-  createDatastore(cfg: ComponentConfiguration): Datastore {
-    const serializer = new JsonProtoSerializer(
-      cfg.databaseInfo.databaseId,
-      /* useProto3Json= */ true
-    );
-    return newDatastore(cfg.credentials, serializer);
   }
 
   createGarbageCollectionScheduler(

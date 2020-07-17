@@ -18,7 +18,11 @@
 import { expect } from 'chai';
 import { EmptyCredentialsProvider } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
-import { ComponentConfiguration } from '../../../src/core/component_provider';
+import {
+  ComponentConfiguration,
+  MultiTabOfflineComponentProvider,
+  OfflineComponentProvider
+} from '../../../src/core/component_provider';
 import { DatabaseInfo } from '../../../src/core/database_info';
 import {
   EventManager,
@@ -108,12 +112,14 @@ import { PersistenceSettings } from '../../../src/core/firestore_client';
 import {
   EventAggregator,
   MockConnection,
-  MockIndexedDbComponentProvider,
+  MockMultiTabOnlineComponentProvider,
   MockIndexedDbPersistence,
-  MockMemoryComponentProvider,
   MockMemoryPersistence,
   QueryEvent,
-  SharedWriteTracker
+  SharedWriteTracker,
+  MockMultiTabOfflineComponentProvider,
+  MockMemoryOfflineComponentProvider,
+  MockOnlineComponentProvider
 } from './spec_test_components';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { encodeBase64 } from '../../../src/platform/base64';
@@ -231,27 +237,33 @@ abstract class TestRunner {
   }
 
   async start(): Promise<void> {
-    const componentProvider = await this.initializeComponentProvider(
-      {
-        asyncQueue: this.queue,
-        databaseInfo: this.databaseInfo,
-        credentials: new EmptyCredentialsProvider(),
-        clientId: this.clientId,
-        initialUser: this.user,
-        maxConcurrentLimboResolutions:
-          this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER,
-        persistenceSettings: this.persistenceSettings
-      },
+    const configuration = {
+      asyncQueue: this.queue,
+      databaseInfo: this.databaseInfo,
+      credentials: new EmptyCredentialsProvider(),
+      clientId: this.clientId,
+      initialUser: this.user,
+      maxConcurrentLimboResolutions:
+        this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER,
+      persistenceSettings: this.persistenceSettings
+    };
+    const offlineComponentProvider = await this.initializeOfflineComponentProvider(
+      configuration,
       this.useGarbageCollection
     );
 
-    this.sharedClientState = componentProvider.sharedClientState;
-    this.persistence = componentProvider.persistence;
-    this.localStore = componentProvider.localStore;
-    this.connection = componentProvider.connection;
-    this.remoteStore = componentProvider.remoteStore;
-    this.syncEngine = componentProvider.syncEngine;
-    this.eventManager = componentProvider.eventManager;
+    this.sharedClientState = offlineComponentProvider.sharedClientState;
+    this.persistence = offlineComponentProvider.persistence;
+    this.localStore = offlineComponentProvider.localStore;
+
+    const onlineComponentProvider = await this.initializeOnlineComponentProvider(
+      offlineComponentProvider,
+      configuration
+    );
+    this.connection = onlineComponentProvider.connection;
+    this.remoteStore = onlineComponentProvider.remoteStore;
+    this.syncEngine = onlineComponentProvider.syncEngine;
+    this.eventManager = onlineComponentProvider.eventManager;
 
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
@@ -260,10 +272,17 @@ abstract class TestRunner {
     this.started = true;
   }
 
-  protected abstract initializeComponentProvider(
+  protected abstract initializeOfflineComponentProvider(
     configuration: ComponentConfiguration,
     gcEnabled: boolean
-  ): Promise<MockIndexedDbComponentProvider | MockMemoryComponentProvider>;
+  ): Promise<
+    MockMultiTabOfflineComponentProvider | MockMemoryOfflineComponentProvider
+  >;
+
+  protected abstract initializeOnlineComponentProvider(
+    offlineComponentProvider: OfflineComponentProvider,
+    configuration: ComponentConfiguration
+  ): Promise<MockMultiTabOnlineComponentProvider | MockOnlineComponentProvider>;
 
   get isPrimaryClient(): boolean {
     return this.syncEngine.isPrimaryClient;
@@ -1058,13 +1077,25 @@ class MemoryTestRunner extends TestRunner {
     );
   }
 
-  protected async initializeComponentProvider(
+  protected async initializeOfflineComponentProvider(
     configuration: ComponentConfiguration,
     gcEnabled: boolean
-  ): Promise<MockMemoryComponentProvider> {
-    const componentProvider = new MockMemoryComponentProvider(gcEnabled);
+  ): Promise<MockMemoryOfflineComponentProvider> {
+    const componentProvider = new MockMemoryOfflineComponentProvider(gcEnabled);
     await componentProvider.initialize(configuration);
     return componentProvider;
+  }
+
+  protected async initializeOnlineComponentProvider(
+    offlineComponentProvider: OfflineComponentProvider,
+    configuration: ComponentConfiguration
+  ): Promise<MockOnlineComponentProvider> {
+    const onlineComponentProvider = new MockOnlineComponentProvider();
+    await onlineComponentProvider.initialize(
+      offlineComponentProvider,
+      configuration
+    );
+    return onlineComponentProvider;
   }
 }
 
@@ -1092,16 +1123,28 @@ class IndexedDbTestRunner extends TestRunner {
     );
   }
 
-  protected async initializeComponentProvider(
+  protected async initializeOfflineComponentProvider(
     configuration: ComponentConfiguration,
     gcEnabled: boolean
-  ): Promise<MockIndexedDbComponentProvider> {
-    const componentProvider = new MockIndexedDbComponentProvider(
+  ): Promise<MockMultiTabOfflineComponentProvider> {
+    const offlineComponentProvider = new MockMultiTabOfflineComponentProvider(
       testWindow(this.sharedFakeWebStorage),
       this.document
     );
-    await componentProvider.initialize(configuration);
-    return componentProvider;
+    await offlineComponentProvider.initialize(configuration);
+    return offlineComponentProvider;
+  }
+
+  protected async initializeOnlineComponentProvider(
+    offlineComponentProvider: OfflineComponentProvider,
+    configuration: ComponentConfiguration
+  ): Promise<MockMultiTabOnlineComponentProvider> {
+    const onlineComponentProvider = new MockMultiTabOnlineComponentProvider();
+    await onlineComponentProvider.initialize(
+      offlineComponentProvider as MultiTabOfflineComponentProvider,
+      configuration
+    );
+    return onlineComponentProvider;
   }
 
   static destroyPersistence(): Promise<void> {
