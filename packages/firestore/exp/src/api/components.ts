@@ -138,15 +138,7 @@ export function initializeFirestoreClient(
         'any other methods on a Firestore object.'
     );
   }
-
-  const settings = firestore._getSettings();
-  const databaseInfo = new DatabaseInfo(
-    firestore._databaseId,
-    firestore._persistenceKey,
-    settings.host ?? DEFAULT_HOST,
-    settings.ssl ?? DEFAULT_SSL,
-    /** forceLongPolling= */ false
-  );
+  const databaseInfo = firestore._getDatabaseInfo();
   const firestoreClient = new FirestoreClient(
     firestore._credentials,
     firestore._queue
@@ -189,20 +181,11 @@ export async function setComponentProviders(
   offlineComponentProvider: OfflineComponentProvider,
   onlineComponentProvider: OnlineComponentProvider
 ): Promise<void> {
-  // TODO: Move this to Firestore
-  const componentConfiguration = {
-    asyncQueue: firestore._queue,
-    databaseInfo: firestore._databaseId,
-    clientId: null as any,
-    credentials: null as any,
-    initialUser: null as any,
-    maxConcurrentLimboResolutions: null as any,
-    persistenceSettings: null as any
-  };
-  await offlineComponentProvider.initialize(componentConfiguration as any);
+  const componentConfiguration = firestore._getConfiguration();
+  await offlineComponentProvider.initialize(componentConfiguration);
   await onlineComponentProvider.initialize(
     offlineComponentProvider,
-    componentConfiguration as any
+    componentConfiguration
   );
   offlineComponentProviders.set(firestore, offlineComponentProvider);
   onlineComponentProviders.set(firestore, onlineComponentProvider);

@@ -22,6 +22,7 @@
                 "logError",
                 "ordinal",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -35,9 +36,11 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "Blob",
                 "ByteString",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -52,7 +55,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 21343
+        "sizeInBytes": 23079
     },
     "CollectionReference": {
         "dependencies": {
@@ -126,6 +129,7 @@
                 "parseScalarValue",
                 "parseSentinelFieldValue",
                 "primitiveComparator",
+                "randomBytes",
                 "refValue",
                 "registerFirestore",
                 "removeDatastore",
@@ -155,6 +159,7 @@
                 "ArrayContainsAnyFilter",
                 "ArrayContainsFilter",
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -163,6 +168,7 @@
                 "ByteString",
                 "CollectionReference",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -202,7 +208,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 74039
+        "sizeInBytes": 75775
     },
     "DocumentReference": {
         "dependencies": {
@@ -219,6 +225,7 @@
                 "logDebug",
                 "logError",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -226,8 +233,10 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "BasePath",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -246,7 +255,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 20408
+        "sizeInBytes": 22144
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -285,6 +294,7 @@
                 "normalizeTimestamp",
                 "ordinal",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -300,11 +310,13 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "Blob",
                 "ByteString",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -333,7 +345,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 40017
+        "sizeInBytes": 41753
     },
     "FieldPath": {
         "dependencies": {
@@ -354,6 +366,7 @@
                 "logError",
                 "ordinal",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -366,9 +379,11 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -385,7 +400,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23386
+        "sizeInBytes": 25122
     },
     "FieldValue": {
         "dependencies": {
@@ -402,6 +417,7 @@
                 "logDebug",
                 "logError",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -409,7 +425,9 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -426,7 +444,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16611
+        "sizeInBytes": 18347
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -443,6 +461,7 @@
                 "logDebug",
                 "logError",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -450,7 +469,9 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -465,7 +486,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16520
+        "sizeInBytes": 18256
     },
     "GeoPoint": {
         "dependencies": {
@@ -485,6 +506,7 @@
                 "logError",
                 "ordinal",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -497,7 +519,9 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -513,7 +537,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19407
+        "sizeInBytes": 21143
     },
     "Query": {
         "dependencies": {
@@ -584,6 +608,7 @@
                 "parseScalarValue",
                 "parseSentinelFieldValue",
                 "primitiveComparator",
+                "randomBytes",
                 "refValue",
                 "registerFirestore",
                 "removeDatastore",
@@ -613,6 +638,7 @@
                 "ArrayContainsAnyFilter",
                 "ArrayContainsFilter",
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -620,6 +646,7 @@
                 "Bound",
                 "ByteString",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -657,7 +684,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 68257
+        "sizeInBytes": 69993
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -696,6 +723,7 @@
                 "normalizeTimestamp",
                 "ordinal",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -711,11 +739,13 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "Blob",
                 "ByteString",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -744,7 +774,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 40027
+        "sizeInBytes": 41763
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -794,6 +824,7 @@
                 "normalizeTimestamp",
                 "ordinal",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -811,11 +842,13 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "Blob",
                 "ByteString",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -846,7 +879,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 47138
+        "sizeInBytes": 48874
     },
     "Timestamp": {
         "dependencies": {
@@ -863,6 +896,7 @@
                 "logDebug",
                 "logError",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -870,7 +904,9 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -886,7 +922,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18054
+        "sizeInBytes": 19790
     },
     "Transaction": {
         "dependencies": {
@@ -951,6 +987,7 @@
                 "parseUpdateData",
                 "parseUpdateVarargs",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -976,11 +1013,13 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "Blob",
                 "ByteString",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -1030,7 +1069,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 64573
+        "sizeInBytes": 66309
     },
     "WriteBatch": {
         "dependencies": {
@@ -1092,6 +1131,7 @@
                 "parseUpdateData",
                 "parseUpdateVarargs",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -1117,11 +1157,13 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "Blob",
                 "ByteString",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -1162,7 +1204,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 57135
+        "sizeInBytes": 58871
     },
     "addDoc": {
         "dependencies": {
@@ -1550,7 +1592,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 262405
+        "sizeInBytes": 262869
     },
     "arrayRemove": {
         "dependencies": {
@@ -1590,6 +1632,7 @@
                 "parseScalarValue",
                 "parseSentinelFieldValue",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -1613,10 +1656,12 @@
                 "ArrayRemoveFieldValueImpl",
                 "ArrayRemoveTransformOperation",
                 "AsyncQueue",
+                "AutoId",
                 "BasePath",
                 "Blob",
                 "ByteString",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -1641,7 +1686,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 36418
+        "sizeInBytes": 38154
     },
     "arrayUnion": {
         "dependencies": {
@@ -1681,6 +1726,7 @@
                 "parseScalarValue",
                 "parseSentinelFieldValue",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -1704,10 +1750,12 @@
                 "ArrayUnionFieldValueImpl",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
+                "AutoId",
                 "BasePath",
                 "Blob",
                 "ByteString",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -1732,7 +1780,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 36410
+        "sizeInBytes": 38146
     },
     "clearIndexedDbPersistence": {
         "dependencies": {
@@ -1754,6 +1802,7 @@
                 "logDebug",
                 "logError",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -1762,7 +1811,9 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -1783,7 +1834,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 29933
+        "sizeInBytes": 31669
     },
     "collection": {
         "dependencies": {
@@ -1858,6 +1909,7 @@
                 "parseScalarValue",
                 "parseSentinelFieldValue",
                 "primitiveComparator",
+                "randomBytes",
                 "refValue",
                 "registerFirestore",
                 "removeDatastore",
@@ -1888,6 +1940,7 @@
                 "ArrayContainsAnyFilter",
                 "ArrayContainsFilter",
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -1896,6 +1949,7 @@
                 "ByteString",
                 "CollectionReference",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -1935,7 +1989,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 75023
+        "sizeInBytes": 76759
     },
     "collectionGroup": {
         "dependencies": {
@@ -2010,6 +2064,7 @@
                 "parseScalarValue",
                 "parseSentinelFieldValue",
                 "primitiveComparator",
+                "randomBytes",
                 "refValue",
                 "registerFirestore",
                 "removeDatastore",
@@ -2039,6 +2094,7 @@
                 "ArrayContainsAnyFilter",
                 "ArrayContainsFilter",
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -2046,6 +2102,7 @@
                 "Bound",
                 "ByteString",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -2085,7 +2142,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 74076
+        "sizeInBytes": 75812
     },
     "deleteDoc": {
         "dependencies": {
@@ -2422,7 +2479,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 229500
+        "sizeInBytes": 229964
     },
     "deleteField": {
         "dependencies": {
@@ -2440,6 +2497,7 @@
                 "logDebug",
                 "logError",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -2447,7 +2505,9 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -2466,7 +2526,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17690
+        "sizeInBytes": 19426
     },
     "disableNetwork": {
         "dependencies": {
@@ -2801,7 +2861,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228863
+        "sizeInBytes": 229327
     },
     "doc": {
         "dependencies": {
@@ -2916,6 +2976,7 @@
                 "ByteString",
                 "CollectionReference",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -2955,7 +3016,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 75820
+        "sizeInBytes": 76811
     },
     "documentId": {
         "dependencies": {
@@ -2977,6 +3038,7 @@
                 "logError",
                 "ordinal",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -2989,9 +3051,11 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -3008,7 +3072,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23436
+        "sizeInBytes": 25172
     },
     "enableIndexedDbPersistence": {
         "dependencies": {
@@ -3450,7 +3514,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 314512
+        "sizeInBytes": 314833
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -3920,7 +3984,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 339474
+        "sizeInBytes": 339795
     },
     "enableNetwork": {
         "dependencies": {
@@ -4255,7 +4319,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228860
+        "sizeInBytes": 229324
     },
     "getDoc": {
         "dependencies": {
@@ -4624,7 +4688,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 244067
+        "sizeInBytes": 244531
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4750,6 +4814,7 @@
                 "queryMatchesFilters",
                 "queryMatchesOrderBy",
                 "queryMatchesPathAndCollectionGroup",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -4788,11 +4853,13 @@
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "Blob",
                 "ByteString",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -4875,7 +4942,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 139038
+        "sizeInBytes": 140774
     },
     "getDocFromServer": {
         "dependencies": {
@@ -5244,7 +5311,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 244105
+        "sizeInBytes": 244569
     },
     "getFirestore": {
         "dependencies": {
@@ -5262,6 +5329,7 @@
                 "logDebug",
                 "logError",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -5269,7 +5337,9 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -5284,7 +5354,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16596
+        "sizeInBytes": 18332
     },
     "getQuery": {
         "dependencies": {
@@ -5675,7 +5745,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 264427
+        "sizeInBytes": 264891
     },
     "getQueryFromCache": {
         "dependencies": {
@@ -5816,6 +5886,7 @@
                 "queryMatchesFilters",
                 "queryMatchesOrderBy",
                 "queryMatchesPathAndCollectionGroup",
+                "randomBytes",
                 "refValue",
                 "registerFirestore",
                 "removeDatastore",
@@ -5863,6 +5934,7 @@
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -5870,6 +5942,7 @@
                 "Bound",
                 "ByteString",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -5964,7 +6037,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 170855
+        "sizeInBytes": 172591
     },
     "getQueryFromServer": {
         "dependencies": {
@@ -6354,7 +6427,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 264165
+        "sizeInBytes": 264629
     },
     "increment": {
         "dependencies": {
@@ -6377,6 +6450,7 @@
                 "logDebug",
                 "logError",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -6387,7 +6461,9 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -6409,7 +6485,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18726
+        "sizeInBytes": 20462
     },
     "initializeFirestore": {
         "dependencies": {
@@ -6427,6 +6503,7 @@
                 "logDebug",
                 "logError",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -6434,7 +6511,9 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -6450,7 +6529,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17900
+        "sizeInBytes": 19636
     },
     "onSnapshot": {
         "dependencies": {
@@ -6844,7 +6923,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 266091
+        "sizeInBytes": 266555
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -7183,7 +7262,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 230056
+        "sizeInBytes": 230520
     },
     "parent": {
         "dependencies": {
@@ -7258,6 +7337,7 @@
                 "parseScalarValue",
                 "parseSentinelFieldValue",
                 "primitiveComparator",
+                "randomBytes",
                 "refValue",
                 "registerFirestore",
                 "removeDatastore",
@@ -7287,6 +7367,7 @@
                 "ArrayContainsAnyFilter",
                 "ArrayContainsFilter",
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -7295,6 +7376,7 @@
                 "ByteString",
                 "CollectionReference",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -7334,7 +7416,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 74365
+        "sizeInBytes": 76101
     },
     "queryEqual": {
         "dependencies": {
@@ -7410,6 +7492,7 @@
                 "primitiveComparator",
                 "queryEqual",
                 "queryEquals",
+                "randomBytes",
                 "refValue",
                 "registerFirestore",
                 "removeDatastore",
@@ -7440,6 +7523,7 @@
                 "ArrayContainsAnyFilter",
                 "ArrayContainsFilter",
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -7447,6 +7531,7 @@
                 "Bound",
                 "ByteString",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -7484,7 +7569,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 69843
+        "sizeInBytes": 71579
     },
     "refEqual": {
         "dependencies": {
@@ -7558,6 +7643,7 @@
                 "parseScalarValue",
                 "parseSentinelFieldValue",
                 "primitiveComparator",
+                "randomBytes",
                 "refEqual",
                 "refValue",
                 "registerFirestore",
@@ -7588,6 +7674,7 @@
                 "ArrayContainsAnyFilter",
                 "ArrayContainsFilter",
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -7596,6 +7683,7 @@
                 "ByteString",
                 "CollectionReference",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -7635,7 +7723,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 74324
+        "sizeInBytes": 76060
     },
     "runTransaction": {
         "dependencies": {
@@ -7725,6 +7813,7 @@
                 "parseUpdateData",
                 "parseUpdateVarargs",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -7760,6 +7849,7 @@
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "Blob",
@@ -7825,7 +7915,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 84570
+        "sizeInBytes": 86023
     },
     "serverTimestamp": {
         "dependencies": {
@@ -7842,6 +7932,7 @@
                 "logDebug",
                 "logError",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -7850,7 +7941,9 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -7872,7 +7965,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17588
+        "sizeInBytes": 19324
     },
     "setDoc": {
         "dependencies": {
@@ -8246,7 +8339,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 245538
+        "sizeInBytes": 246002
     },
     "setLogLevel": {
         "dependencies": {
@@ -8263,6 +8356,7 @@
                 "logDebug",
                 "logError",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -8271,7 +8365,9 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -8286,7 +8382,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16562
+        "sizeInBytes": 18298
     },
     "snapshotEqual": {
         "dependencies": {
@@ -8366,6 +8462,7 @@
                 "primitiveComparator",
                 "queryEqual",
                 "queryEquals",
+                "randomBytes",
                 "refValue",
                 "registerFirestore",
                 "removeDatastore",
@@ -8398,6 +8495,7 @@
                 "ArrayContainsAnyFilter",
                 "ArrayContainsFilter",
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
                 "BaseQuery",
@@ -8405,6 +8503,7 @@
                 "Bound",
                 "ByteString",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -8446,7 +8545,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 75544
+        "sizeInBytes": 77280
     },
     "terminate": {
         "dependencies": {
@@ -8464,6 +8563,7 @@
                 "logDebug",
                 "logError",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeDatastore",
                 "removeFirestoreClient",
@@ -8472,7 +8572,9 @@
             ],
             "classes": [
                 "AsyncQueue",
+                "AutoId",
                 "DatabaseId",
+                "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
@@ -8487,7 +8589,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17093
+        "sizeInBytes": 18829
     },
     "updateDoc": {
         "dependencies": {
@@ -8864,7 +8966,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 247092
+        "sizeInBytes": 247556
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -9199,7 +9301,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228881
+        "sizeInBytes": 229345
     },
     "writeBatch": {
         "dependencies": {
@@ -9581,6 +9683,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 250813
+        "sizeInBytes": 251277
     }
 }

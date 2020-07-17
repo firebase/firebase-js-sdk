@@ -49,7 +49,7 @@ import {
 } from './component_provider';
 
 const LOG_TAG = 'FirestoreClient';
-const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
+export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
@@ -72,6 +72,8 @@ export type PersistenceSettings =
  * pieces of the client SDK architecture. It is responsible for creating the
  * async queue that is shared by all of the other components in the system.
  */
+// TODO(firestoreexp): Should we consider getting rid of this class from the
+// Exp Client?
 export class FirestoreClient {
   // NOTE: These should technically have '|undefined' in the types, since
   // they're initialized asynchronously rather than in the constructor, but
@@ -83,13 +85,15 @@ export class FirestoreClient {
   private eventMgr!: EventManager;
   private persistence!: Persistence;
   private localStore!: LocalStore;
-  // private remoteStore!: RemoteStore;
-  //private syncEngine!: SyncEngine;
+  private remoteStore!: RemoteStore;
+  private syncEngine!: SyncEngine;
   private gcScheduler!: GarbageCollectionScheduler | null;
 
   // PORTING NOTE: SharedClientState is only used for multi-tab web.
   private sharedClientState!: SharedClientState;
 
+  // TODO(firestoreexp): This needs to match the ID in the firestore-exp
+  // database client
   private readonly clientId = AutoId.newId();
 
   constructor(

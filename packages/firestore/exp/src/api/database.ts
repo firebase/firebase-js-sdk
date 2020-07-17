@@ -41,11 +41,17 @@ import {
   setComponentProviders
 } from './components';
 import {
+  ComponentConfiguration,
   IndexedDbOfflineComponentProvider,
   MultiTabOfflineComponentProvider,
   MultiTabOnlineComponentProvider,
   OnlineComponentProvider
 } from '../../../src/core/component_provider';
+import { MAX_CONCURRENT_LIMBO_RESOLUTIONS } from '../../../src/core/firestore_client';
+import { DatabaseInfo } from '../../../src/core/database_info';
+import { DEFAULT_HOST, DEFAULT_SSL } from '../../../lite/src/api/components';
+import { User } from '../../../src/auth/user';
+import { AutoId } from '../../../src/util/misc';
 
 /**
  * The root reference to the Firestore database and the entry point for the
@@ -55,6 +61,10 @@ export class Firestore extends LiteFirestore
   implements firestore.FirebaseFirestore, _FirebaseService {
   readonly _queue = new AsyncQueue();
   readonly _persistenceKey: string;
+  // TODO(firestoreexp): Support user change without SyncEning
+  private _initialUser: User = User.UNAUTHENTICATED;
+
+  private readonly _clientId = AutoId.newId();
 
   // We override the Settings property of the Lite SDK since the full Firestore
   // SDK supports more settings.
@@ -66,6 +76,34 @@ export class Firestore extends LiteFirestore
   ) {
     super(app, authProvider);
     this._persistenceKey = app.name;
+
+    this._credentials.getToken().then(token => {
+      if (token) {
+        this._initialUser = token.user;
+      }
+    });
+  }
+
+  _getDatabaseInfo(): DatabaseInfo {
+    const settings = this._getSettings();
+    return new DatabaseInfo(
+      this._databaseId,
+      this._persistenceKey,
+      settings.host ?? DEFAULT_HOST,
+      settings.ssl ?? DEFAULT_SSL,
+      /** forceLongPolling= */ false
+    );
+  }
+  _getConfiguration(): ComponentConfiguration {
+    return {
+      asyncQueue: this._queue,
+      databaseInfo: this._getDatabaseInfo(),
+      clientId: this._clientId,
+      credentials: this._credentials,
+      initialUser: this._initialUser,
+      maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS,
+      persistenceSettings: { durable: false }
+    };
   }
 
   _getSettings(): firestore.Settings {
