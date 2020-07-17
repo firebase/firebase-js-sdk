@@ -51,7 +51,6 @@ const es5Builds = [
           lib: [
             // TODO: remove this
             "dom",
-            "es5",
             "es6",
             "webworker"
           ]

@@ -45,7 +45,7 @@ const auth = initializeAuth(app, {
  *     available. Otherwise, the promise resolves with null.
  */
 function getIdToken(): Promise<string | null> {
-  return new Promise((resolve, _reject) => {
+  return new Promise((resolve) => {
     auth.onAuthStateChanged((user: User | null) => {
       if (user) {
         user.getIdToken().then(resolve).catch(
@@ -160,7 +160,7 @@ async function runWorkerTests(_googleIdToken: OAuthCredential): Promise<void> {
 self.onmessage = (e: MessageEvent) => {
   // https://github.com/microsoft/TypeScript/issues/12657
   const ctx = self as DedicatedWorkerGlobalScope;
-  if (e.data && e.data.type) {
+  if (e?.data.type) {
     switch (e.data.type) {
       case 'GET_USER_INFO':
         getIdToken()

@@ -74,7 +74,6 @@ const es5Builds = [
             lib: [
               // Remove dom after we figure out why navigator stuff doesn't exist
               "dom", 
-              "es5",
               "es6",
               "webworker"
             ]
