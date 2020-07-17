@@ -1,0 +1,14 @@
+{
+  "extends": "../../../config/tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "target": "es2015",
+    "lib": [
+      "es2015",
+      "webworker"
+    ]
+  },
+  "exclude": [
+    "dist/**/*"
+  ]
+}
