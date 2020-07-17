@@ -50,3 +50,28 @@ export interface SharedClientStateSyncer {
   /** Returns the IDs of the clients that are currently active. */
   getActiveClients(): Promise<ClientId[]>;
 }
+
+/**
+ * An implementation of SharedClientStateSyncer that provides (mostly) empty
+ * implementations for the SharedClientStateSyncer protocol.
+ */
+export class MemorySharedClientStateSyncer implements SharedClientStateSyncer {
+  constructor(private readonly activeClients: ClientId[]) {}
+  async applyBatchState(
+    batchId: BatchId,
+    state: MutationBatchState,
+    error?: FirestoreError
+  ): Promise<void> {}
+  async getActiveClients(): Promise<ClientId[]> {
+    return this.activeClients;
+  }
+  async applyTargetState(
+    targetId: TargetId,
+    state: QueryTargetState,
+    error?: FirestoreError
+  ): Promise<void> {}
+  async applyActiveTargetsChange(
+    added: TargetId[],
+    removed: TargetId[]
+  ): Promise<void> {}
+}

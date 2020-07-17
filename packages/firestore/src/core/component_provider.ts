@@ -27,8 +27,11 @@ import {
   synchronizeLastDocumentChangeReadTime
 } from '../local/local_store';
 import {
-  MultiTabSyncEngine,
-  newMultiTabSyncEngine,
+  applyActiveTargetsChange,
+  applyBatchState,
+  applyPrimaryState,
+  applyTargetState,
+  getActiveClients,
   newSyncEngine,
   SyncEngine
 } from './sync_engine';
@@ -45,6 +48,7 @@ import { Code, FirestoreError } from '../util/error';
 import { OnlineStateSource } from './types';
 import { LruParams, LruScheduler } from '../local/lru_garbage_collector';
 import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
+import { MemorySharedClientStateSyncer } from '../local/shared_client_state_syncer';
 import {
   indexedDbStoragePrefix,
   IndexedDbPersistence,
@@ -194,14 +198,19 @@ export class MemoryComponentProvider implements ComponentProvider {
   }
 
   createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
-    return newSyncEngine(
+    const syncEngine = newSyncEngine(
       this.localStore,
       this.remoteStore,
       this.datastore,
       this.sharedClientState,
       cfg.initialUser,
-      cfg.maxConcurrentLimboResolutions
+      cfg.maxConcurrentLimboResolutions,
+      /* isPrimary= */ true
     );
+    this.sharedClientState.syncEngine = new MemorySharedClientStateSyncer([
+      cfg.clientId
+    ]);
+    return syncEngine;
   }
 
   clearPersistence(
@@ -226,17 +235,6 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
       this.persistence,
       new IndexFreeQueryEngine(),
       cfg.initialUser
-    );
-  }
-
-  createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
-    return newSyncEngine(
-      this.localStore,
-      this.remoteStore,
-      this.datastore,
-      this.sharedClientState,
-      cfg.initialUser,
-      cfg.maxConcurrentLimboResolutions
     );
   }
 
@@ -296,17 +294,13 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
  * `synchronizeTabs` will be enabled.
  */
 export class MultiTabIndexedDbComponentProvider extends IndexedDbComponentProvider {
-  syncEngine!: MultiTabSyncEngine;
-
   async initialize(cfg: ComponentConfiguration): Promise<void> {
     await super.initialize(cfg);
 
     // NOTE: This will immediately call the listener, so we make sure to
     // set it after localStore / remoteStore are started.
     await this.persistence.setPrimaryStateListener(async isPrimary => {
-      await (this.syncEngine as MultiTabSyncEngine).applyPrimaryState(
-        isPrimary
-      );
+      await applyPrimaryState(this.syncEngine, isPrimary);
       if (this.gcScheduler) {
         if (isPrimary && !this.gcScheduler.started) {
           this.gcScheduler.start(this.localStore);
@@ -324,17 +318,24 @@ export class MultiTabIndexedDbComponentProvider extends IndexedDbComponentProvid
   }
 
   createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
-    const syncEngine = newMultiTabSyncEngine(
+    const startsAsPrimary =
+      !cfg.persistenceSettings.durable ||
+      !cfg.persistenceSettings.synchronizeTabs;
+    const syncEngine = newSyncEngine(
       this.localStore,
       this.remoteStore,
       this.datastore,
       this.sharedClientState,
       cfg.initialUser,
-      cfg.maxConcurrentLimboResolutions
+      cfg.maxConcurrentLimboResolutions,
+      startsAsPrimary
     );
-    if (this.sharedClientState instanceof WebStorageSharedClientState) {
-      this.sharedClientState.syncEngine = syncEngine;
-    }
+    this.sharedClientState.syncEngine = {
+      applyBatchState: applyBatchState.bind(null, syncEngine),
+      applyTargetState: applyTargetState.bind(null, syncEngine),
+      applyActiveTargetsChange: applyActiveTargetsChange.bind(null, syncEngine),
+      getActiveClients: getActiveClients.bind(null, syncEngine)
+    };
     return syncEngine;
   }
 
