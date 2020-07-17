@@ -36,10 +36,10 @@ const FIRESTORE_ADDRESS_ENV: string = 'FIRESTORE_EMULATOR_HOST';
 const FIRESTORE_ADDRESS_DEFAULT: string = 'localhost:8080';
 
 /** The actual address for the database emulator */
-let _databaseAddress: string | undefined = undefined;
+let _databaseHost: string | undefined = undefined;
 
 /** The actual address for the Firestore emulator */
-let _firestoreAddress: string | undefined = undefined;
+let _firestoreHost: string | undefined = undefined;
 
 /** Create an unsecured JWT for the given auth payload. See https://tools.ietf.org/html/rfc7519#section-6. */
 function createUnsecuredJwt(auth: object): string {
@@ -106,35 +106,35 @@ export function initializeAdminApp(options: AdminAppOptions): firebase.app.App {
 }
 
 function getDatabaseHost() {
-  if (!_databaseAddress) {
+  if (!_databaseHost) {
     const fromEnv = process.env[DATABASE_ADDRESS_ENV];
     if (fromEnv) {
-      _databaseAddress = fromEnv;
+      _databaseHost = fromEnv;
     } else {
       console.warn(
         `Warning: ${DATABASE_ADDRESS_ENV} not set, using default value ${DATABASE_ADDRESS_DEFAULT}`
       );
-      _databaseAddress = DATABASE_ADDRESS_DEFAULT;
+      _databaseHost = DATABASE_ADDRESS_DEFAULT;
     }
   }
 
-  return _databaseAddress;
+  return _databaseHost;
 }
 
 function getFirestoreHost() {
-  if (!_firestoreAddress) {
+  if (!_firestoreHost) {
     const fromEnv = process.env[FIRESTORE_ADDRESS_ENV];
     if (fromEnv) {
-      _firestoreAddress = fromEnv;
+      _firestoreHost = fromEnv;
     } else {
       console.warn(
         `Warning: ${FIRESTORE_ADDRESS_ENV} not set, using default value ${FIRESTORE_ADDRESS_DEFAULT}`
       );
-      _firestoreAddress = FIRESTORE_ADDRESS_DEFAULT;
+      _firestoreHost = FIRESTORE_ADDRESS_DEFAULT;
     }
   }
 
-  return _firestoreAddress;
+  return _firestoreHost;
 }
 
 function getRandomAppName(): string {
