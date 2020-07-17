@@ -111,7 +111,7 @@ export class FirebaseFirestore implements legacy.FirebaseFirestore {
   }
 
   collectionGroup(collectionId: string): Query<legacy.DocumentData> {
-    return new Query(collectionGroup(this._delegate, collectionId));
+    return new Query(this, collectionGroup(this._delegate, collectionId));
   }
 
   runTransaction<T>(
@@ -441,9 +441,10 @@ export class QueryDocumentSnapshot<T = legacy.DocumentData>
 }
 
 export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
-  constructor(readonly _delegate: exp.Query<T>) {}
-
-  readonly firestore = new FirebaseFirestore(this._delegate.firestore);
+  constructor(
+    readonly firestore: FirebaseFirestore,
+    readonly _delegate: exp.Query<T>
+  ) {}
 
   where(
     fieldPath: string | FieldPath,
@@ -451,6 +452,7 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
     value: any
   ): Query<T> {
     return new Query<T>(
+      this.firestore,
       this._delegate.where(unwrap(fieldPath), opStr, unwrap(value))
     );
   }
@@ -460,47 +462,63 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
     directionStr?: legacy.OrderByDirection
   ): Query<T> {
     return new Query<T>(
+      this.firestore,
       this._delegate.orderBy(unwrap(fieldPath), directionStr)
     );
   }
 
   limit(limit: number): Query<T> {
-    return new Query<T>(this._delegate.limit(limit));
+    return new Query<T>(this.firestore, this._delegate.limit(limit));
   }
 
   limitToLast(limit: number): Query<T> {
-    return new Query<T>(this._delegate.limitToLast(limit));
+    return new Query<T>(this.firestore, this._delegate.limitToLast(limit));
   }
 
   startAt(...args: any[]): Query<T> {
     if (args[0] instanceof DocumentSnapshot) {
-      return new Query(this._delegate.startAt(args[0]._delegate));
+      return new Query(
+        this.firestore,
+        this._delegate.startAt(args[0]._delegate)
+      );
     } else {
-      return new Query(this._delegate.startAt(...unwrap(args)));
+      return new Query(this.firestore, this._delegate.startAt(...unwrap(args)));
     }
   }
 
   startAfter(...args: any[]): Query<T> {
     if (args[0] instanceof DocumentSnapshot) {
-      return new Query(this._delegate.startAfter(args[0]._delegate));
+      return new Query(
+        this.firestore,
+        this._delegate.startAfter(args[0]._delegate)
+      );
     } else {
-      return new Query(this._delegate.startAfter(...unwrap(args)));
+      return new Query(
+        this.firestore,
+        this._delegate.startAfter(...unwrap(args))
+      );
     }
   }
 
   endBefore(...args: any[]): Query<T> {
     if (args[0] instanceof DocumentSnapshot) {
-      return new Query(this._delegate.endBefore(args[0]._delegate));
+      return new Query(
+        this.firestore,
+        this._delegate.endBefore(args[0]._delegate)
+      );
     } else {
-      return new Query(this._delegate.endBefore(...unwrap(args)));
+      return new Query(
+        this.firestore,
+        this._delegate.endBefore(...unwrap(args))
+      );
     }
   }
 
   endAt(...args: any[]): Query<T> {
     if (args[0] instanceof DocumentSnapshot) {
-      return new Query(this._delegate.endAt(args[0]._delegate));
+      return new Query(this.firestore, this._delegate.endAt(args[0]._delegate));
     } else {
-      return new Query(this._delegate.endAt(...unwrap(args)));
+      return new Query(this.firestore, this._delegate.endAt(...unwrap(args)));
     }
   }
 
@@ -555,6 +573,7 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
 
   withConverter<U>(converter: legacy.FirestoreDataConverter<U>): Query<U> {
     return new Query<U>(
+      this.firestore,
       this._delegate.withConverter(
         converter as UntypedFirestoreDataConverter<U>
       )
@@ -569,7 +588,7 @@ export class QuerySnapshot<T = legacy.DocumentData>
     readonly _delegate: exp.QuerySnapshot<T>
   ) {}
 
-  readonly query = new Query(this._delegate.query);
+  readonly query = new Query(this._firestore, this._delegate.query);
   readonly metadata = this._delegate.metadata;
   readonly size = this._delegate.size;
   readonly empty = this._delegate.empty;
@@ -621,10 +640,10 @@ export class DocumentChange<T = legacy.DocumentData>
 export class CollectionReference<T = legacy.DocumentData> extends Query<T>
   implements legacy.CollectionReference<T> {
   constructor(
-    readonly firestore: FirebaseFirestore,
+    firestore: FirebaseFirestore,
     readonly _delegate: exp.CollectionReference<T>
   ) {
-    super(_delegate);
+    super(firestore, _delegate);
   }
 
   readonly id = this._delegate.id;
