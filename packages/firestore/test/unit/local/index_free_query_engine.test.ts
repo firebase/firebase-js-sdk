@@ -37,7 +37,7 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { DocumentSet } from '../../../src/model/document_set';
 import { debugAssert } from '../../../src/util/assert';
 import { testMemoryEagerPersistence } from './persistence_test_helpers';
-import { doc, filter, key, orderBy, path, version } from '../../util/helpers';
+import { doc, filter, key, orderBy, query, version } from '../../util/helpers';
 
 const TEST_TARGET_ID = 1;
 
@@ -183,24 +183,20 @@ describe('IndexFreeQueryEngine', () => {
   });
 
   it('uses target mapping for initial view', async () => {
-    const query = Query.atPath(path('coll')).addFilter(
-      filter('matches', '==', true)
-    );
+    const query1 = query('coll', filter('matches', '==', true));
 
     await addDocument(MATCHING_DOC_A, MATCHING_DOC_B);
     await persistQueryMapping(MATCHING_DOC_A.key, MATCHING_DOC_B.key);
 
     const docs = await expectIndexFreeQuery(() =>
-      runQuery(query, LAST_LIMBO_FREE_SNAPSHOT)
+      runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
 
     verifyResult(docs, [MATCHING_DOC_A, MATCHING_DOC_B]);
   });
 
   it('filters non-matching changes since initial results', async () => {
-    const query = Query.atPath(path('coll')).addFilter(
-      filter('matches', '==', true)
-    );
+    const query1 = query('coll', filter('matches', '==', true));
 
     await addDocument(MATCHING_DOC_A, MATCHING_DOC_B);
     await persistQueryMapping(MATCHING_DOC_A.key, MATCHING_DOC_B.key);
@@ -209,22 +205,20 @@ describe('IndexFreeQueryEngine', () => {
     await addDocument(PENDING_NON_MATCHING_DOC_A);
 
     const docs = await expectIndexFreeQuery(() =>
-      runQuery(query, LAST_LIMBO_FREE_SNAPSHOT)
+      runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
 
     verifyResult(docs, [MATCHING_DOC_B]);
   });
 
   it('includes changes since initial results', async () => {
-    const query = Query.atPath(path('coll')).addFilter(
-      filter('matches', '==', true)
-    );
+    const query1 = query('coll', filter('matches', '==', true));
 
     await addDocument(MATCHING_DOC_A, MATCHING_DOC_B);
     await persistQueryMapping(MATCHING_DOC_A.key, MATCHING_DOC_B.key);
 
     let docs = await expectIndexFreeQuery(() =>
-      runQuery(query, LAST_LIMBO_FREE_SNAPSHOT)
+      runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
     verifyResult(docs, [MATCHING_DOC_A, MATCHING_DOC_B]);
 
@@ -232,35 +226,34 @@ describe('IndexFreeQueryEngine', () => {
     await addDocument(UPDATED_MATCHING_DOC_B);
 
     docs = await expectIndexFreeQuery(() =>
-      runQuery(query, LAST_LIMBO_FREE_SNAPSHOT)
+      runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
     verifyResult(docs, [MATCHING_DOC_A, UPDATED_MATCHING_DOC_B]);
   });
 
   it('does not use initial results without limbo free snapshot version', async () => {
-    const query = Query.atPath(path('coll')).addFilter(
-      filter('matches', '==', true)
-    );
+    const query1 = query('coll', filter('matches', '==', true));
 
     const docs = await expectFullCollectionQuery(() =>
-      runQuery(query, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
+      runQuery(query1, MISSING_LAST_LIMBO_FREE_SNAPSHOT)
     );
     verifyResult(docs, []);
   });
 
   it('does not use initial results for unfiltered collection query', async () => {
-    const query = Query.atPath(path('coll'));
+    const query1 = query('coll');
 
     const docs = await expectFullCollectionQuery(() =>
-      runQuery(query, LAST_LIMBO_FREE_SNAPSHOT)
+      runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
     verifyResult(docs, []);
   });
 
   it('does not use initial results for limit query with document removal', async () => {
-    const query = Query.atPath(path('coll'))
-      .addFilter(filter('matches', '==', true))
-      .withLimitToLast(1);
+    const query1 = query(
+      'coll',
+      filter('matches', '==', true)
+    ).withLimitToFirst(1);
 
     // While the backend would never add DocA to the set of remote keys, this
     // allows us to easily simulate what would happen when a document no longer
@@ -271,17 +264,18 @@ describe('IndexFreeQueryEngine', () => {
     await addDocument(MATCHING_DOC_B);
 
     const docs = await expectFullCollectionQuery(() =>
-      runQuery(query, LAST_LIMBO_FREE_SNAPSHOT)
+      runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
 
     verifyResult(docs, [MATCHING_DOC_B]);
   });
 
   it('does not use initial results for limitToLast query with document removal', async () => {
-    const query = Query.atPath(path('coll'))
-      .addFilter(filter('matches', '==', true))
-      .addOrderBy(orderBy('order', 'desc'))
-      .withLimitToLast(1);
+    const query1 = query(
+      'coll',
+      filter('matches', '==', true),
+      orderBy('order', 'desc')
+    ).withLimitToLast(1);
 
     // While the backend would never add DocA to the set of remote keys, this
     // allows us to easily simulate what would happen when a document no longer
@@ -292,17 +286,18 @@ describe('IndexFreeQueryEngine', () => {
     await addDocument(MATCHING_DOC_B);
 
     const docs = await expectFullCollectionQuery(() =>
-      runQuery(query, LAST_LIMBO_FREE_SNAPSHOT)
+      runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
 
     verifyResult(docs, [MATCHING_DOC_B]);
   });
 
   it('does not use initial results for limit query when last document has pending write', async () => {
-    const query = Query.atPath(path('coll'))
-      .addFilter(filter('matches', '==', true))
-      .addOrderBy(orderBy('order', 'desc'))
-      .withLimitToFirst(1);
+    const query1 = query(
+      'coll',
+      filter('matches', '==', true),
+      orderBy('order', 'desc')
+    ).withLimitToFirst(1);
 
     // Add a query mapping for a document that matches, but that sorts below
     // another document due to a pending write.
@@ -312,16 +307,17 @@ describe('IndexFreeQueryEngine', () => {
     await addDocument(MATCHING_DOC_B);
 
     const docs = await expectFullCollectionQuery(() =>
-      runQuery(query, LAST_LIMBO_FREE_SNAPSHOT)
+      runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
     verifyResult(docs, [MATCHING_DOC_B]);
   });
 
   it('does not use initial results for limitToLast query when first document has pending write', async () => {
-    const query = Query.atPath(path('coll'))
-      .addFilter(filter('matches', '==', true))
-      .addOrderBy(orderBy('order'))
-      .withLimitToLast(1);
+    const query1 = query(
+      'coll',
+      filter('matches', '==', true),
+      orderBy('order')
+    ).withLimitToLast(1);
 
     // Add a query mapping for a document that matches, but that sorts below
     // another document due to a pending write.
@@ -331,16 +327,17 @@ describe('IndexFreeQueryEngine', () => {
     await addDocument(MATCHING_DOC_B);
 
     const docs = await expectFullCollectionQuery(() =>
-      runQuery(query, LAST_LIMBO_FREE_SNAPSHOT)
+      runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
     verifyResult(docs, [MATCHING_DOC_B]);
   });
 
   it('does not use initial results for limit query when last document has been updated out of band', async () => {
-    const query = Query.atPath(path('coll'))
-      .addFilter(filter('matches', '==', true))
-      .addOrderBy(orderBy('order', 'desc'))
-      .withLimitToFirst(1);
+    const query1 = query(
+      'coll',
+      filter('matches', '==', true),
+      orderBy('order', 'desc')
+    ).withLimitToFirst(1);
 
     // Add a query mapping for a document that matches, but that sorts below
     // another document based on an update that the SDK received after the
@@ -351,17 +348,17 @@ describe('IndexFreeQueryEngine', () => {
     await addDocument(MATCHING_DOC_B);
 
     const docs = await expectFullCollectionQuery(() =>
-      runQuery(query, LAST_LIMBO_FREE_SNAPSHOT)
+      runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
     verifyResult(docs, [MATCHING_DOC_B]);
   });
 
   it('does not use initial results for limitToLast query when first document in limit has been updated out of band', async () => {
-    const query = Query.atPath(path('coll'))
-      .addFilter(filter('matches', '==', true))
-      .addOrderBy(orderBy('order'))
-      .withLimitToLast(1);
-
+    const query1 = query(
+      'coll',
+      filter('matches', '==', true),
+      orderBy('order')
+    ).withLimitToLast(1);
     // Add a query mapping for a document that matches, but that sorts below
     // another document based on an update that the SDK received after the
     // query's snapshot was persisted.
@@ -371,15 +368,13 @@ describe('IndexFreeQueryEngine', () => {
     await addDocument(MATCHING_DOC_B);
 
     const docs = await expectFullCollectionQuery(() =>
-      runQuery(query, LAST_LIMBO_FREE_SNAPSHOT)
+      runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
     verifyResult(docs, [MATCHING_DOC_B]);
   });
 
   it('uses initial results if last document in limit is unchanged', async () => {
-    const query = Query.atPath(path('coll'))
-      .addOrderBy(orderBy('order'))
-      .withLimitToFirst(2);
+    const query1 = query('coll', orderBy('order')).withLimitToFirst(2);
 
     await addDocument(doc('coll/a', 1, { order: 1 }));
     await addDocument(doc('coll/b', 1, { order: 3 }));
@@ -394,7 +389,7 @@ describe('IndexFreeQueryEngine', () => {
     // that all documents written prior to query execution still sort after
     // "coll/b"), we should use an Index-Free query.
     const docs = await expectIndexFreeQuery(() =>
-      runQuery(query, LAST_LIMBO_FREE_SNAPSHOT)
+      runQuery(query1, LAST_LIMBO_FREE_SNAPSHOT)
     );
     verifyResult(docs, [
       doc('coll/a', 1, { order: 2 }, { hasLocalMutations: true }),

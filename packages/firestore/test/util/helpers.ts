@@ -34,8 +34,10 @@ import {
   Bound,
   Direction,
   FieldFilter,
+  Filter,
   Operator,
-  OrderBy
+  OrderBy,
+  Query
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
 import { TargetId } from '../../src/core/types';
@@ -88,7 +90,7 @@ import { primitiveComparator } from '../../src/util/misc';
 import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
-import { FIRESTORE, query } from './api_helpers';
+import { FIRESTORE } from './api_helpers';
 import { ByteString } from '../../src/util/byte_string';
 import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
@@ -293,6 +295,21 @@ export function bound(
   return new Bound(components, before);
 }
 
+export function query(
+  resourcePath: string,
+  ...constraints: Array<OrderBy | Filter>
+): Query {
+  let q = Query.atPath(path(resourcePath));
+  for (const constraint of constraints) {
+    if (constraint instanceof Filter) {
+      q = q.addFilter(constraint);
+    } else {
+      q = q.addOrderBy(constraint);
+    }
+  }
+  return q;
+}
+
 export function targetData(
   targetId: TargetId,
   queryPurpose: TargetPurpose,
@@ -301,7 +318,7 @@ export function targetData(
   // Arbitrary value.
   const sequenceNumber = 0;
   return new TargetData(
-    query(path)._query.toTarget(),
+    query(path).toTarget(),
     targetId,
     queryPurpose,
     sequenceNumber

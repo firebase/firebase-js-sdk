@@ -1141,7 +1141,7 @@
     fs-extra "^7.0.1"
     semver "^5.4.1"
 
-"@changesets/get-github-info@^0.4.3":
+"@changesets/get-github-info@0.4.3", "@changesets/get-github-info@^0.4.3":
   version "0.4.3"
   resolved "https://registry.npmjs.org/@changesets/get-github-info/-/get-github-info-0.4.3.tgz#ed3c3ca76dcbaf4c98aa950a20fc5438da1a2f2c"
   integrity sha512-hMtNDn4Kp2wDUohYipBIH3qGMxONZ3wEoaGtrflXHCSu57iulBcOSQ1oHRYSCJ9pO87dYQHA2XRUfrZUnqRfKA==
@@ -1219,15 +1219,15 @@
     fs-extra "^7.0.1"
     p-filter "^2.1.0"
 
+"@changesets/types@3.1.0", "@changesets/types@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.npmjs.org/@changesets/types/-/types-3.1.0.tgz#68957af45a0be29f0908e20a990ecf382282e1f1"
+  integrity sha512-czOfaaxr5aGnNwVRgWr3n2CKoc3iRTfrHM4wUHQ+rBlLKKk9NzGwZ2EPsXkp4CUw4hWHGEOi8hdeIfDTWKrWgg==
+
 "@changesets/types@^3.0.0":
   version "3.0.0"
   resolved "https://registry.npmjs.org/@changesets/types/-/types-3.0.0.tgz#3804662aa455c1622282ec3253cf6ddd309eee65"
   integrity sha512-9Mh/JqkX3nkjfu53ESM3UjFmR2meOo4Zw+Tp4vnon0XYtMurk7KjZG5L+J0fD3+Qx0A2FFTZrgydPwiHR4GrXQ==
-
-"@changesets/types@^3.1.0":
-  version "3.1.0"
-  resolved "https://registry.npmjs.org/@changesets/types/-/types-3.1.0.tgz#68957af45a0be29f0908e20a990ecf382282e1f1"
-  integrity sha512-czOfaaxr5aGnNwVRgWr3n2CKoc3iRTfrHM4wUHQ+rBlLKKk9NzGwZ2EPsXkp4CUw4hWHGEOi8hdeIfDTWKrWgg==
 
 "@changesets/write@^0.1.3":
   version "0.1.3"
@@ -2619,6 +2619,14 @@
   version "7.0.2"
   resolved "https://registry.npmjs.org/@types/mocha/-/mocha-7.0.2.tgz#b17f16cf933597e10d6d78eae3251e692ce8b0ce"
   integrity sha512-ZvO2tAcjmMi8V/5Z3JsyofMe3hasRcaw88cto5etSVMwVQfeivGAlEYmaQgceUSVYFofVjT+ioHsATjdWcFt1w==
+
+"@types/node-fetch@2.5.7":
+  version "2.5.7"
+  resolved "https://registry.npmjs.org/@types/node-fetch/-/node-fetch-2.5.7.tgz#20a2afffa882ab04d44ca786449a276f9f6bbf3c"
+  integrity sha512-o2WVNf5UhWRkxlf6eq+jMZDu7kjgpgJfl4xVNlvryc95O/6F2ld8ztKX+qu+Rjyet93WAWm5LjeX9H5FGkODvw==
+  dependencies:
+    "@types/node" "*"
+    form-data "^3.0.0"
 
 "@types/node@*", "@types/node@>= 8":
   version "13.11.0"
@@ -4858,7 +4866,7 @@ combine-source-map@^0.8.0, combine-source-map@~0.8.0:
     lodash.memoize "~3.0.3"
     source-map "~0.5.3"
 
-combined-stream@^1.0.6, combined-stream@~1.0.6:
+combined-stream@^1.0.6, combined-stream@^1.0.8, combined-stream@~1.0.6:
   version "1.0.8"
   resolved "https://registry.npmjs.org/combined-stream/-/combined-stream-1.0.8.tgz#c3d45a8b34fd730631a110a8a2520682b31d5a7f"
   integrity sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==
@@ -7088,6 +7096,15 @@ form-data@^2.5.0:
   dependencies:
     asynckit "^0.4.0"
     combined-stream "^1.0.6"
+    mime-types "^2.1.12"
+
+form-data@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.npmjs.org/form-data/-/form-data-3.0.0.tgz#31b7e39c85f1355b7139ee0c647cf0de7f83c682"
+  integrity sha512-CKMFDglpbMi6PyN+brwB9Q/GOw0eAnsrEZDgcsH5Krhz5Od/haKHAX0NmQfha2zPPz0JpWzA7GJHGSnvCRLWsg==
+  dependencies:
+    asynckit "^0.4.0"
+    combined-stream "^1.0.8"
     mime-types "^2.1.12"
 
 form-data@~2.3.2:
@@ -14195,7 +14212,6 @@ symbol-observable@^1.1.0:
 
 "sync-promise@git+https://github.com/brettz9/sync-promise.git#full-sync-missing-promise-features":
   version "1.0.1"
-  uid "25845a49a00aa2d2c985a5149b97c86a1fcdc75a"
   resolved "git+https://github.com/brettz9/sync-promise.git#25845a49a00aa2d2c985a5149b97c86a1fcdc75a"
 
 syntax-error@^1.1.1:
@@ -15509,7 +15525,6 @@ websocket-extensions@>=0.1.1:
 
 "websql@git+https://github.com/brettz9/node-websql.git#configurable-secure2":
   version "1.0.0"
-  uid "5149bc0763376ca757fc32dc74345ada0467bfbb"
   resolved "git+https://github.com/brettz9/node-websql.git#5149bc0763376ca757fc32dc74345ada0467bfbb"
   dependencies:
     argsarray "^0.0.1"
