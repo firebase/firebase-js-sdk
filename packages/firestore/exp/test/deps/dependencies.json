@@ -95,6 +95,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -282,6 +283,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -336,7 +338,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 231553
+        "sizeInBytes": 233078
     },
     "CollectionReference": {
         "dependencies": {
@@ -440,6 +442,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -651,6 +654,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -711,7 +715,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 257769
+        "sizeInBytes": 259402
     },
     "DocumentReference": {
         "dependencies": {
@@ -807,6 +811,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -987,6 +992,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -1041,7 +1047,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228530
+        "sizeInBytes": 230107
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -1145,6 +1151,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -1341,6 +1348,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -1398,7 +1406,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 240880
+        "sizeInBytes": 242482
     },
     "FieldPath": {
         "dependencies": {
@@ -1495,6 +1503,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -1682,6 +1691,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -1736,7 +1746,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 230777
+        "sizeInBytes": 232302
     },
     "FieldValue": {
         "dependencies": {
@@ -1832,6 +1842,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -2011,6 +2022,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -2066,7 +2078,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228122
+        "sizeInBytes": 229647
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -2162,6 +2174,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -2340,6 +2353,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -2394,7 +2408,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228031
+        "sizeInBytes": 229556
     },
     "GeoPoint": {
         "dependencies": {
@@ -2491,6 +2505,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -2677,6 +2692,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -2731,7 +2747,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 230918
+        "sizeInBytes": 232443
     },
     "Query": {
         "dependencies": {
@@ -2835,6 +2851,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -3045,6 +3062,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -3105,7 +3123,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 257373
+        "sizeInBytes": 258983
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -3209,6 +3227,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -3405,6 +3424,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -3462,7 +3482,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 240890
+        "sizeInBytes": 242492
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -3567,6 +3587,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -3764,6 +3785,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -3823,7 +3845,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 243789
+        "sizeInBytes": 245391
     },
     "Timestamp": {
         "dependencies": {
@@ -3919,6 +3941,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -4097,6 +4120,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -4151,7 +4175,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228008
+        "sizeInBytes": 229533
     },
     "Transaction": {
         "dependencies": {
@@ -4258,6 +4282,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -4470,6 +4495,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -4535,7 +4561,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 255828
+        "sizeInBytes": 257430
     },
     "WriteBatch": {
         "dependencies": {
@@ -4640,6 +4666,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -4850,6 +4877,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -4910,7 +4938,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 249880
+        "sizeInBytes": 251457
     },
     "addDoc": {
         "dependencies": {
@@ -5018,6 +5046,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -5231,6 +5260,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -5292,7 +5322,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 261297
+        "sizeInBytes": 263262
     },
     "arrayRemove": {
         "dependencies": {
@@ -5393,6 +5423,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -5597,6 +5628,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -5653,7 +5685,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 240787
+        "sizeInBytes": 242312
     },
     "arrayUnion": {
         "dependencies": {
@@ -5754,6 +5786,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -5958,6 +5991,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -6014,7 +6048,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 240780
+        "sizeInBytes": 242305
     },
     "clearIndexedDbPersistence": {
         "dependencies": {
@@ -6295,6 +6329,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -6352,7 +6387,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 238401
+        "sizeInBytes": 239687
     },
     "collection": {
         "dependencies": {
@@ -6457,6 +6492,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -6669,6 +6705,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -6729,7 +6766,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 258404
+        "sizeInBytes": 260386
     },
     "collectionGroup": {
         "dependencies": {
@@ -6834,6 +6871,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -7044,6 +7082,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -7104,7 +7143,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 257829
+        "sizeInBytes": 259439
     },
     "deleteDoc": {
         "dependencies": {
@@ -7201,6 +7240,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -7381,6 +7421,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -7435,7 +7476,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228780
+        "sizeInBytes": 230357
     },
     "deleteField": {
         "dependencies": {
@@ -7532,6 +7573,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -7713,6 +7755,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -7768,7 +7811,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 229201
+        "sizeInBytes": 230726
     },
     "disableNetwork": {
         "dependencies": {
@@ -7865,6 +7908,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -8043,6 +8087,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -8097,7 +8142,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228195
+        "sizeInBytes": 229720
     },
     "doc": {
         "dependencies": {
@@ -8202,6 +8247,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -8414,6 +8460,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -8474,7 +8521,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 258473
+        "sizeInBytes": 260438
     },
     "documentId": {
         "dependencies": {
@@ -8572,6 +8619,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -8759,6 +8807,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -8813,7 +8862,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 230827
+        "sizeInBytes": 232352
     },
     "enableIndexedDbPersistence": {
         "dependencies": {
@@ -9188,6 +9237,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -9247,13 +9297,15 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 312127
+        "sizeInBytes": 313249
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
             "functions": [
+                "applyActiveTargetsChange",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
+                "applyBatchState",
                 "applyDeleteMutationToLocalView",
                 "applyDeleteMutationToRemoteDocument",
                 "applyMutationToLocalView",
@@ -9261,8 +9313,10 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyPrimaryState",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
+                "applyTargetState",
                 "applyTransformMutationToLocalView",
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
@@ -9387,12 +9441,15 @@
                 "fromWriteResults",
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
+                "getActiveClients",
                 "getDocument",
                 "getEncodedDatabaseId",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
+                "getNewDocumentChanges",
                 "getPostMutationVersion",
+                "getTarget",
                 "getWindow",
                 "globalTargetStore",
                 "hardAssert",
@@ -9422,10 +9479,12 @@
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
+                "localStoreGetActiveClients",
                 "localTransformResults",
                 "logDebug",
                 "logError",
                 "logWarn",
+                "lookupMutationDocuments",
                 "mapCodeFromRpcCode",
                 "maybeDocumentMap",
                 "mutationEquals",
@@ -9437,8 +9496,6 @@
                 "newConnectivityMonitor",
                 "newDatastore",
                 "newLocalStore",
-                "newMultiTabLocalStore",
-                "newMultiTabSyncEngine",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
                 "newQueryComparator",
@@ -9468,8 +9525,10 @@
                 "randomBytes",
                 "registerFirestore",
                 "remoteDocumentsStore",
+                "removeCachedMutationBatchMetadata",
                 "removeMutationBatch",
                 "requireDocument",
+                "resetLimboDocuments",
                 "sentinelKey",
                 "sentinelKey$1",
                 "sentinelRow",
@@ -9481,6 +9540,10 @@
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "synchronizeLastDocumentChangeReadTime",
+                "synchronizeQueryViewsAndRaiseSnapshots",
+                "synchronizeViewAndComputeSnapshot",
+                "synthesizeTargetToQuery",
                 "targetEquals",
                 "targetIdSet",
                 "targetsStore",
@@ -9627,14 +9690,13 @@
                 "MemoryTargetCache",
                 "MemoryTransaction",
                 "MultiTabIndexedDbComponentProvider",
-                "MultiTabLocalStoreImpl",
-                "MultiTabSyncEngineImpl",
                 "Mutation",
                 "MutationBatch",
                 "MutationBatchResult",
                 "MutationMetadata",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -9698,7 +9760,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 336519
+        "sizeInBytes": 338412
     },
     "enableNetwork": {
         "dependencies": {
@@ -9795,6 +9857,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -9973,6 +10036,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -10027,7 +10091,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228192
+        "sizeInBytes": 229717
     },
     "getDoc": {
         "dependencies": {
@@ -10135,6 +10199,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -10332,6 +10397,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -10390,7 +10456,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 243322
+        "sizeInBytes": 244924
     },
     "getDocFromCache": {
         "dependencies": {
@@ -10495,6 +10561,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -10691,6 +10758,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -10749,7 +10817,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 241502
+        "sizeInBytes": 243104
     },
     "getDocFromServer": {
         "dependencies": {
@@ -10857,6 +10925,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -11054,6 +11123,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -11112,7 +11182,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 243360
+        "sizeInBytes": 244962
     },
     "getFirestore": {
         "dependencies": {
@@ -11209,6 +11279,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -11387,6 +11458,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -11441,7 +11513,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228107
+        "sizeInBytes": 229632
     },
     "getQuery": {
         "dependencies": {
@@ -11549,6 +11621,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -11763,6 +11836,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -11826,7 +11900,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 263664
+        "sizeInBytes": 265284
     },
     "getQueryFromCache": {
         "dependencies": {
@@ -11932,6 +12006,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -12144,6 +12219,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -12207,7 +12283,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 261993
+        "sizeInBytes": 263613
     },
     "getQueryFromServer": {
         "dependencies": {
@@ -12315,6 +12391,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -12528,6 +12605,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -12591,7 +12669,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 263402
+        "sizeInBytes": 265022
     },
     "increment": {
         "dependencies": {
@@ -12688,6 +12766,7 @@
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "increment",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -12871,6 +12950,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementFieldValueImpl",
                 "NumericIncrementTransformOperation",
@@ -12927,7 +13007,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 229340
+        "sizeInBytes": 230865
     },
     "initializeFirestore": {
         "dependencies": {
@@ -13023,6 +13103,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "initializeFirestore",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -13202,6 +13283,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -13256,7 +13338,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228518
+        "sizeInBytes": 230043
     },
     "onSnapshot": {
         "dependencies": {
@@ -13365,6 +13447,7 @@
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "implementsAnyMethods",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -13581,6 +13664,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -13644,7 +13728,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 265330
+        "sizeInBytes": 266950
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -13742,6 +13826,7 @@
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "implementsAnyMethods",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -13923,6 +14008,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -13977,7 +14063,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 229388
+        "sizeInBytes": 230913
     },
     "parent": {
         "dependencies": {
@@ -14081,6 +14167,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -14293,6 +14380,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -14353,7 +14441,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 258112
+        "sizeInBytes": 259728
     },
     "queryEqual": {
         "dependencies": {
@@ -14457,6 +14545,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -14668,6 +14757,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -14728,7 +14818,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 257581
+        "sizeInBytes": 259191
     },
     "refEqual": {
         "dependencies": {
@@ -14832,6 +14922,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -15044,6 +15135,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -15104,7 +15196,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 258054
+        "sizeInBytes": 259687
     },
     "runTransaction": {
         "dependencies": {
@@ -15211,6 +15303,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -15424,6 +15517,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -15489,7 +15583,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 256185
+        "sizeInBytes": 257787
     },
     "serverTimestamp": {
         "dependencies": {
@@ -15585,6 +15679,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -15767,6 +15862,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -15823,7 +15919,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228983
+        "sizeInBytes": 230508
     },
     "setDoc": {
         "dependencies": {
@@ -15927,6 +16023,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -16133,6 +16230,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -16191,7 +16289,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 244818
+        "sizeInBytes": 246395
     },
     "setLogLevel": {
         "dependencies": {
@@ -16287,6 +16385,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -16466,6 +16565,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -16520,7 +16620,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228073
+        "sizeInBytes": 229598
     },
     "snapshotEqual": {
         "dependencies": {
@@ -16625,6 +16725,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -16839,6 +16940,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -16902,7 +17004,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 262414
+        "sizeInBytes": 264034
     },
     "terminate": {
         "dependencies": {
@@ -16998,6 +17100,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -17176,6 +17279,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -17230,7 +17334,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228023
+        "sizeInBytes": 229548
     },
     "updateDoc": {
         "dependencies": {
@@ -17334,6 +17438,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -17543,6 +17648,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -17601,7 +17707,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 246372
+        "sizeInBytes": 247949
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -17697,6 +17803,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
                 "isArray",
@@ -17876,6 +17983,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -17930,7 +18038,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228213
+        "sizeInBytes": 229738
     },
     "writeBatch": {
         "dependencies": {
@@ -18035,6 +18143,7 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "indexedDbStoragePrefix",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
                 "invokeCommitRpc",
@@ -18246,6 +18355,7 @@
                 "MutationBatchResult",
                 "MutationResult",
                 "NoDocument",
+                "NoOpSharedClientStateSyncer",
                 "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
@@ -18306,6 +18416,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 250093
+        "sizeInBytes": 251670
     }
 }

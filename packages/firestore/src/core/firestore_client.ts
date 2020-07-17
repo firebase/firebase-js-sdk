@@ -201,9 +201,9 @@ export class FirestoreClient {
   /** Enables the network connection and requeues all pending operations. */
   enableNetwork(): Promise<void> {
     this.verifyNotTerminated();
-    return this.asyncQueue.enqueue(async () => {
-      await this.remoteStore.enableNetwork();
-      await this.persistence.setNetworkEnabled(true);
+    return this.asyncQueue.enqueue(() => {
+      this.persistence.setNetworkEnabled(true);
+      return this.remoteStore.enableNetwork();
     });
   }
 
@@ -334,9 +334,9 @@ export class FirestoreClient {
   /** Disables the network connection. Pending operations will not complete. */
   disableNetwork(): Promise<void> {
     this.verifyNotTerminated();
-    return this.asyncQueue.enqueue(async () => {
-      await this.persistence.setNetworkEnabled(true);
-      await this.remoteStore.enableNetwork();
+    return this.asyncQueue.enqueue(() => {
+      this.persistence.setNetworkEnabled(true);
+      return this.remoteStore.disableNetwork();
     });
   }
 

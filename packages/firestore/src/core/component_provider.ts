@@ -27,8 +27,11 @@ import {
   synchronizeLastDocumentChangeReadTime
 } from '../local/local_store';
 import {
-  MultiTabSyncEngine,
-  newMultiTabSyncEngine,
+  applyActiveTargetsChange,
+  applyBatchState,
+  applyPrimaryState,
+  applyTargetState,
+  getActiveClients,
   newSyncEngine,
   SyncEngine
 } from './sync_engine';
@@ -59,6 +62,7 @@ import { newSerializer } from '../platform/serializer';
 import { getDocument, getWindow } from '../platform/dom';
 import { CredentialsProvider } from '../api/credentials';
 import { Connection } from '../remote/connection';
+import { NoOpSharedClientStateSyncer } from '../../test/unit/local/persistence_test_helpers';
 const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
   'You are using the memory-only build of Firestore. Persistence support is ' +
   'only available via the @firebase/firestore bundle or the ' +
@@ -194,14 +198,18 @@ export class MemoryComponentProvider implements ComponentProvider {
   }
 
   createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
-    return newSyncEngine(
+    const syncEngine = newSyncEngine(
       this.localStore,
       this.remoteStore,
       this.datastore,
       this.sharedClientState,
       cfg.initialUser,
-      cfg.maxConcurrentLimboResolutions
+      cfg.maxConcurrentLimboResolutions,
+      /* isPrimary= */ true
     );
+    // TODO(mrschmidt) FIX ME
+    this.sharedClientState.syncEngine = new NoOpSharedClientStateSyncer([]);
+    return syncEngine;
   }
 
   clearPersistence(
@@ -226,17 +234,6 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
       this.persistence,
       new IndexFreeQueryEngine(),
       cfg.initialUser
-    );
-  }
-
-  createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
-    return newSyncEngine(
-      this.localStore,
-      this.remoteStore,
-      this.datastore,
-      this.sharedClientState,
-      cfg.initialUser,
-      cfg.maxConcurrentLimboResolutions
     );
   }
 
@@ -296,17 +293,13 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
  * `synchronizeTabs` will be enabled.
  */
 export class MultiTabIndexedDbComponentProvider extends IndexedDbComponentProvider {
-  syncEngine!: MultiTabSyncEngine;
-
   async initialize(cfg: ComponentConfiguration): Promise<void> {
     await super.initialize(cfg);
 
     // NOTE: This will immediately call the listener, so we make sure to
     // set it after localStore / remoteStore are started.
     await this.persistence.setPrimaryStateListener(async isPrimary => {
-      await (this.syncEngine as MultiTabSyncEngine).applyPrimaryState(
-        isPrimary
-      );
+      await applyPrimaryState(this.syncEngine, isPrimary);
       if (this.gcScheduler) {
         if (isPrimary && !this.gcScheduler.started) {
           this.gcScheduler.start(this.localStore);
@@ -320,17 +313,22 @@ export class MultiTabIndexedDbComponentProvider extends IndexedDbComponentProvid
   }
 
   createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
-    const syncEngine = newMultiTabSyncEngine(
+    const syncEngine = newSyncEngine(
       this.localStore,
       this.remoteStore,
       this.datastore,
       this.sharedClientState,
       cfg.initialUser,
-      cfg.maxConcurrentLimboResolutions
+      cfg.maxConcurrentLimboResolutions,
+      /* isPrimary= */ !cfg.persistenceSettings.durable ||
+        !cfg.persistenceSettings.synchronizeTabs
     );
-    if (this.sharedClientState instanceof WebStorageSharedClientState) {
-      this.sharedClientState.syncEngine = syncEngine;
-    }
+    this.sharedClientState.syncEngine = {
+      applyBatchState: applyBatchState.bind(null, syncEngine),
+      applyTargetState: applyTargetState.bind(null, syncEngine),
+      applyActiveTargetsChange: applyActiveTargetsChange.bind(null, syncEngine),
+      getActiveClients: getActiveClients.bind(null, syncEngine)
+    };
     return syncEngine;
   }
 

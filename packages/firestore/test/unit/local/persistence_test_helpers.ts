@@ -21,7 +21,6 @@ import { SequenceNumberSyncer } from '../../../src/core/listen_sequence';
 import {
   BatchId,
   MutationBatchState,
-  OnlineState,
   TargetId,
   ListenSequenceNumber
 } from '../../../src/core/types';
@@ -143,17 +142,12 @@ export function clearTestPersistence(): Promise<void> {
   return indexedDbClearPersistence(TEST_PERSISTENCE_PREFIX);
 }
 
-class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
+export class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
   constructor(private readonly activeClients: ClientId[]) {}
   async applyBatchState(
     batchId: BatchId,
     state: MutationBatchState,
     error?: FirestoreError
-  ): Promise<void> {}
-  async applySuccessfulWrite(batchId: BatchId): Promise<void> {}
-  async rejectFailedWrite(
-    batchId: BatchId,
-    err: FirestoreError
   ): Promise<void> {}
   async getActiveClients(): Promise<ClientId[]> {
     return this.activeClients;
@@ -167,7 +161,6 @@ class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
     added: TargetId[],
     removed: TargetId[]
   ): Promise<void> {}
-  applyOnlineStateChange(onlineState: OnlineState): void {}
 }
 /**
  * Populates Web Storage with instance data from a pre-existing client.
