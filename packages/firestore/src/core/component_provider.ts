@@ -23,9 +23,8 @@ import {
 } from '../local/shared_client_state';
 import {
   LocalStore,
-  MultiTabLocalStore,
   newLocalStore,
-  newMultiTabLocalStore
+  synchronizeLastDocumentChangeReadTime
 } from '../local/local_store';
 import {
   MultiTabSyncEngine,
@@ -133,7 +132,6 @@ export class MemoryComponentProvider implements ComponentProvider {
       );
     this.remoteStore.syncEngine = this.syncEngine;
 
-    await this.localStore.start();
     await this.sharedClientState.start();
     await this.remoteStore.start();
 
@@ -298,7 +296,6 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
  * `synchronizeTabs` will be enabled.
  */
 export class MultiTabIndexedDbComponentProvider extends IndexedDbComponentProvider {
-  localStore!: MultiTabLocalStore;
   syncEngine!: MultiTabSyncEngine;
 
   async initialize(cfg: ComponentConfiguration): Promise<void> {
@@ -318,14 +315,8 @@ export class MultiTabIndexedDbComponentProvider extends IndexedDbComponentProvid
         }
       }
     });
-  }
 
-  createLocalStore(cfg: ComponentConfiguration): LocalStore {
-    return newMultiTabLocalStore(
-      this.persistence,
-      new IndexFreeQueryEngine(),
-      cfg.initialUser
-    );
+    await synchronizeLastDocumentChangeReadTime(this.localStore);
   }
 
   createSyncEngine(cfg: ComponentConfiguration): SyncEngine {

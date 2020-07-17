@@ -17,9 +17,13 @@
 
 import { User } from '../auth/user';
 import {
+  getNewDocumentChanges,
+  getTarget,
   ignoreIfPrimaryLeaseLoss,
   LocalStore,
-  MultiTabLocalStore
+  localStoreGetActiveClients,
+  lookupMutationDocuments,
+  removeCachedMutationBatchMetadata
 } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
@@ -224,10 +228,6 @@ export interface SyncEngine extends RemoteSyncer {
   enqueuedLimboDocumentResolutions(): DocumentKey[];
 
   handleCredentialChange(user: User): Promise<void>;
-
-  enableNetwork(): Promise<void>;
-
-  disableNetwork(): Promise<void>;
 
   getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet;
 }
@@ -940,14 +940,6 @@ class SyncEngineImpl implements SyncEngine {
     }
   }
 
-  enableNetwork(): Promise<void> {
-    return this.remoteStore.enableNetwork();
-  }
-
-  disableNetwork(): Promise<void> {
-    return this.remoteStore.disableNetwork();
-  }
-
   getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet {
     const limboResolution = this.activeLimboResolutionsByTarget.get(targetId);
     if (limboResolution && limboResolution.receivedDocument) {
@@ -1016,36 +1008,8 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
   // `isPrimary` is true.
   private _isPrimaryClient: undefined | boolean = undefined;
 
-  constructor(
-    protected localStore: MultiTabLocalStore,
-    remoteStore: RemoteStore,
-    datastore: Datastore,
-    sharedClientState: SharedClientState,
-    currentUser: User,
-    maxConcurrentLimboResolutions: number
-  ) {
-    super(
-      localStore,
-      remoteStore,
-      datastore,
-      sharedClientState,
-      currentUser,
-      maxConcurrentLimboResolutions
-    );
-  }
-
   get isPrimaryClient(): boolean {
     return this._isPrimaryClient === true;
-  }
-
-  enableNetwork(): Promise<void> {
-    this.localStore.setNetworkEnabled(true);
-    return super.enableNetwork();
-  }
-
-  disableNetwork(): Promise<void> {
-    this.localStore.setNetworkEnabled(false);
-    return super.disableNetwork();
   }
 
   /**
@@ -1097,7 +1061,7 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
     error?: FirestoreError
   ): Promise<void> {
     this.assertSubscribed('applyBatchState()');
-    const documents = await this.localStore.lookupMutationDocuments(batchId);
+    const documents = await lookupMutationDocuments(this.localStore, batchId);
 
     if (documents === null) {
       // A throttled tab may not have seen the mutation before it was completed
@@ -1120,7 +1084,7 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
       // NOTE: Both these methods are no-ops for batches that originated from
       // other clients.
       this.processUserCallback(batchId, error ? error : null);
-      this.localStore.removeCachedMutationBatchMetadata(batchId);
+      removeCachedMutationBatchMetadata(this.localStore, batchId);
     } else {
       fail(`Unknown batchState: ${batchState}`);
     }
@@ -1236,7 +1200,7 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
         );
         // For queries that never executed on this client, we need to
         // allocate the target in LocalStore and initialize a new View.
-        const target = await this.localStore.getTarget(targetId);
+        const target = await getTarget(this.localStore, targetId);
         debugAssert(!!target, `Target for id ${targetId} not found`);
         targetData = await this.localStore.allocateTarget(target);
         await this.initializeViewAndComputeSnapshot(
@@ -1277,7 +1241,7 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
   }
 
   getActiveClients(): Promise<ClientId[]> {
-    return this.localStore.getActiveClients();
+    return localStoreGetActiveClients(this.localStore);
   }
 
   async applyTargetState(
@@ -1296,7 +1260,7 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
       switch (state) {
         case 'current':
         case 'not-current': {
-          const changes = await this.localStore.getNewDocumentChanges();
+          const changes = await getNewDocumentChanges(this.localStore);
           const synthesizedRemoteEvent = RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
             targetId,
             state === 'current'
@@ -1336,7 +1300,7 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
         continue;
       }
 
-      const target = await this.localStore.getTarget(targetId);
+      const target = await getTarget(this.localStore, targetId);
       debugAssert(
         !!target,
         `Query data for active target ${targetId} not found`
@@ -1370,7 +1334,7 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
 }
 
 export function newMultiTabSyncEngine(
-  localStore: MultiTabLocalStore,
+  localStore: LocalStore,
   remoteStore: RemoteStore,
   datastore: Datastore,
   sharedClientState: SharedClientState,
