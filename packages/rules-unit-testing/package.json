@@ -26,7 +26,8 @@
   },
   "devDependencies": {
     "@types/request": "2.48.5",
-    "firebase-tools": "8.5.0",
+    "firebase-tools": "^8.5.0",
+    "firebase-admin": "^9.0.0",
     "rollup": "2.21.0",
     "rollup-plugin-typescript2": "0.27.1"
   },
