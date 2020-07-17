@@ -5,9 +5,10 @@
   "description": "TODO",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
-  "browser": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
+  "browser": "dist/index.browser.esm5.js",
+  "module": "dist/index.node.esm5.js",
   "esm2017": "dist/index.esm2017.js",
+  "webworker": "dist/index.webworker.esm5.js",
   "files": [
     "dist"
   ],
@@ -16,13 +17,16 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/'{app-exp,auth-exp}' --include-dependencies build",
+    "build:release": "rollup -c rollup.config.release.js && yarn api-report && yarn typings:public",
     "dev": "rollup -c -w",
     "test": "yarn type-check && run-p lint test:browser",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.* --opts ../../config/mocha.node.opts",
     "type-check": "tsc -p . --noEmit",
-    "prepare": "yarn build"
+    "prepare": "yarn build",
+    "typings:public": "node ./use_typings.js --public",
+    "typings:internal": "node ./use_typings.js"
   },
   "peerDependencies": {
     "@firebase/app-exp": "0.x",
@@ -51,7 +55,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/index.d.ts",
+  "typings": "./dist/auth-exp-public.d.ts",
   "nyc": {
     "extension": [
       ".ts"
