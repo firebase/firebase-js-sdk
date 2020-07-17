@@ -54,7 +54,11 @@ export class FirebaseStorageError implements Error {
   }
 
   get message(): string {
-    return this.message_;
+    if (this.serverResponse_) {
+      return this.message_ + '\n' + this.serverResponse_;
+    } else {
+      return this.message_;
+    }
   }
 
   get serverResponse(): null | string {
