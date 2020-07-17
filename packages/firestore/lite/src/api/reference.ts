@@ -78,24 +78,24 @@ export class DocumentReference<T = firestore.DocumentData>
 
   constructor(
     readonly firestore: Firestore,
-    key: DocumentKey,
+    readonly _path: ResourcePath,
     readonly _converter: firestore.FirestoreDataConverter<T> | null
   ) {
-    super(firestore._databaseId, key, _converter);
+    super(firestore._databaseId, new DocumentKey(_path), _converter);
   }
 
   get id(): string {
-    return this._key.path.lastSegment();
+    return this._path.lastSegment();
   }
 
   get path(): string {
-    return this._key.path.canonicalString();
+    return this._path.canonicalString();
   }
 
   withConverter<U>(
     converter: firestore.FirestoreDataConverter<U>
   ): firestore.DocumentReference<U> {
-    return new DocumentReference<U>(this.firestore, this._key, converter);
+    return new DocumentReference<U>(this.firestore, this._path, converter);
   }
 }
 
@@ -320,8 +320,8 @@ export function collection(
           'a DocumentReference or FirebaseFirestore'
       );
     }
-    const absolutePath = ResourcePath.fromString(
-      `${parent.path}/${relativePath}`
+    const absolutePath = ResourcePath.fromString(parent.path).child(
+      ResourcePath.fromString(relativePath)
     );
     validateCollectionPath(absolutePath);
     return new CollectionReference(
@@ -385,11 +385,7 @@ export function doc<T>(
   if (parent instanceof Firestore) {
     const absolutePath = ResourcePath.fromString(relativePath!);
     validateDocumentPath(absolutePath);
-    return new DocumentReference(
-      parent,
-      new DocumentKey(absolutePath),
-      /* converter= */ null
-    );
+    return new DocumentReference(parent, absolutePath, /* converter= */ null);
   } else {
     if (
       !(parent instanceof DocumentReference) &&
@@ -401,13 +397,13 @@ export function doc<T>(
           'a DocumentReference or FirebaseFirestore'
       );
     }
-    const absolutePath = ResourcePath.fromString(
-      `${parent.path}/${relativePath}`
+    const absolutePath = parent._path.child(
+      ResourcePath.fromString(relativePath!)
     );
     validateDocumentPath(absolutePath);
     return new DocumentReference(
       parent.firestore,
-      new DocumentKey(absolutePath),
+      absolutePath,
       parent instanceof CollectionReference ? parent._converter : null
     );
   }
@@ -429,7 +425,7 @@ export function parent<T>(
     } else {
       return new DocumentReference(
         child.firestore,
-        new DocumentKey(parentPath),
+        parentPath,
         /* converter= */ null
       );
     }
