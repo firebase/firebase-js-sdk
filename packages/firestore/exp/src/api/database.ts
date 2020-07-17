@@ -37,7 +37,8 @@ import {
 import {
   getFirestoreClient,
   initializeFirestoreClient,
-  removeFirestoreClient
+  removeFirestoreClient,
+  setComponentProviders
 } from './components';
 import {
   IndexedDbOfflineComponentProvider,
@@ -113,17 +114,18 @@ export function enableIndexedDbPersistence(
 ): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
   const settings = firestoreImpl._getSettings();
-  return initializeFirestoreClient(
+  return setComponentProviders(
     firestoreImpl,
     new IndexedDbOfflineComponentProvider(),
-    new OnlineComponentProvider(),
-    {
+    new OnlineComponentProvider()
+  ).then(() =>
+    initializeFirestoreClient(firestoreImpl, {
       durable: true,
       synchronizeTabs: false,
       cacheSizeBytes:
         settings.cacheSizeBytes || LruParams.DEFAULT_CACHE_SIZE_BYTES,
       forceOwningTab: false
-    }
+    })
   );
 }
 
@@ -132,17 +134,18 @@ export function enableMultiTabIndexedDbPersistence(
 ): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
   const settings = firestoreImpl._getSettings();
-  return initializeFirestoreClient(
+  return setComponentProviders(
     firestoreImpl,
     new MultiTabOfflineComponentProvider(),
-    new MultiTabOnlineComponentProvider(),
-    {
+    new MultiTabOnlineComponentProvider()
+  ).then(() =>
+    initializeFirestoreClient(firestoreImpl, {
       durable: true,
       synchronizeTabs: true,
       cacheSizeBytes:
         settings.cacheSizeBytes || LruParams.DEFAULT_CACHE_SIZE_BYTES,
       forceOwningTab: false
-    }
+    })
   );
 }
 

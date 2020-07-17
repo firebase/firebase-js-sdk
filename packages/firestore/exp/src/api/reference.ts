@@ -59,7 +59,11 @@ import {
   PartialObserver,
   Unsubscribe
 } from '../../../src/api/observer';
-import { getFirestoreClient } from './components';
+import { getFirestoreClient, getLocalStore } from './components';
+import {
+  getDocumentFromLocalCache,
+  getDocumentsFromLocalCache
+} from '../../../src/core/firestore_client';
 
 export function getDoc<T>(
   reference: firestore.DocumentReference<T>
@@ -75,15 +79,17 @@ export function getDoc<T>(
   });
 }
 
-// TODO(firestorexp): Make sure we don't include Datastore/RemoteStore in builds
-// that only include `getDocFromCache`.
 export function getDocFromCache<T>(
   reference: firestore.DocumentReference<T>
 ): Promise<firestore.DocumentSnapshot<T>> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
-  return getFirestoreClient(firestore).then(async firestoreClient => {
-    const doc = await firestoreClient.getDocumentFromLocalCache(ref._key);
+  return getLocalStore(firestore).then(async localStore => {
+    const doc = await getDocumentFromLocalCache(
+      firestore._queue,
+      localStore,
+      ref._key
+    );
     return new DocumentSnapshot(
       firestore,
       ref._key,
@@ -133,8 +139,10 @@ export function getQueryFromCache<T>(
 ): Promise<QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
   const firestore = cast<Firestore>(query.firestore, Firestore);
-  return getFirestoreClient(firestore).then(async firestoreClient => {
-    const snapshot = await firestoreClient.getDocumentsFromLocalCache(
+  return getLocalStore(firestore).then(async localStore => {
+    const snapshot = await getDocumentsFromLocalCache(
+      firestore._queue,
+      localStore,
       internalQuery._query
     );
     return new QuerySnapshot(firestore, internalQuery, snapshot);
