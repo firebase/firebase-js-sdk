@@ -19,7 +19,7 @@ import * as externs from '@firebase/auth-types-exp';
 import { CompleteFn, ErrorFn, Unsubscribe } from '@firebase/util';
 
 // core/auth
-export { initializeAuth } from './core/auth/auth_impl';
+export { initializeAuth } from './src/core/auth/auth_impl';
 
 // Non-optional auth methods.
 export function setPersistence(
@@ -52,27 +52,21 @@ export function signOut(auth: externs.Auth): Promise<void> {
 }
 
 // core/persistence
-export {
-  browserLocalPersistence,
-  browserSessionPersistence
-} from './core/persistence/browser';
-export { inMemoryPersistence } from './core/persistence/in_memory';
-export { indexedDBLocalPersistence } from './core/persistence/indexed_db';
-export { getReactNativePersistence } from './core/persistence/react_native';
+export { inMemoryPersistence } from './src/core/persistence/in_memory';
 
 // core/providers
-export { EmailAuthProvider } from './core/providers/email';
-export { OAuthProvider } from './core/providers/oauth';
-export { PhoneAuthProvider } from './core/providers/phone';
+export { EmailAuthProvider } from './src/core/providers/email';
+export { OAuthProvider } from './src/core/providers/oauth';
+export { PhoneAuthProvider } from './src/core/providers/phone';
 
 // core/strategies
-export { signInAnonymously } from './core/strategies/anonymous';
+export { signInAnonymously } from './src/core/strategies/anonymous';
 export {
   signInWithCredential,
   linkWithCredential,
   reauthenticateWithCredential
-} from './core/strategies/credential';
-export { signInWithCustomToken } from './core/strategies/custom_token';
+} from './src/core/strategies/credential';
+export { signInWithCustomToken } from './src/core/strategies/custom_token';
 export {
   sendPasswordResetEmail,
   confirmPasswordReset,
@@ -81,51 +75,37 @@ export {
   verifyPasswordResetCode,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
-} from './core/strategies/email_and_password';
+} from './src/core/strategies/email_and_password';
 export {
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
   signInWithEmailLink
-} from './core/strategies/email_link';
+} from './src/core/strategies/email_link';
 export {
   fetchSignInMethodsForEmail,
   sendEmailVerification,
   verifyBeforeUpdateEmail
-} from './core/strategies/email';
-export {
-  signInWithPhoneNumber,
-  linkWithPhoneNumber,
-  reauthenticateWithPhoneNumber
-} from './core/strategies/phone';
-export {
-  signInWithPopup,
-  linkWithPopup,
-  reauthenticateWithPopup
-} from './core/strategies/popup';
+} from './src/core/strategies/email';
 
 // core
-export { ActionCodeURL, parseActionCodeURL } from './core/action_code_url';
+export { ActionCodeURL, parseActionCodeURL } from './src/core/action_code_url';
 
 // core/user
 export {
   updateProfile,
   updateEmail,
   updatePassword
-} from './core/user/account_info';
-export { getIdToken, getIdTokenResult } from './core/user/id_token_result';
-export { unlink } from './core/user/link_unlink';
-
-export { RecaptchaVerifier } from './platform_browser/recaptcha/recaptcha_verifier';
+} from './src/core/user/account_info';
+export { getIdToken, getIdTokenResult } from './src/core/user/id_token_result';
+export { unlink } from './src/core/user/link_unlink';
 
 // Non-optional user methods.
-export { reload } from './core/user/reload';
+export { reload } from './src/core/user/reload';
 export async function deleteUser(user: externs.User): Promise<void> {
   return user.delete();
 }
 
 // MFA
-export { PhoneMultiFactorGenerator } from './mfa/assertions/phone';
-export { getMultiFactorResolver } from './mfa/mfa_resolver';
-export { multiFactor } from './mfa/mfa_user';
-
-export { browserPopupRedirectResolver } from './platform_browser/popup_redirect';
+export { PhoneMultiFactorGenerator } from './src/mfa/assertions/phone';
+export { getMultiFactorResolver } from './src/mfa/mfa_resolver';
+export { multiFactor } from './src/mfa/mfa_user';

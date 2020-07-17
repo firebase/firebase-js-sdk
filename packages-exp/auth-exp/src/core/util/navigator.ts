@@ -19,21 +19,6 @@ import { isBrowserExtension } from '@firebase/util';
 import { _isHttpOrHttps } from './location';
 
 /**
- * For some reason the TS library doesn't know about NetworkInformation
- */
-interface NetworkInformation {
-  downlink?: number;
-  downlinkMax?: number;
-  effectiveType?: string;
-  rtt?: number;
-  saveData?: boolean;
-  type?: string;
-}
-interface StandardNavigator extends Navigator {
-  connection: NetworkInformation;
-}
-
-/**
  * Determine whether the browser is working online
  */
 export function _isOnline(
@@ -49,7 +34,7 @@ export function _isOnline(
     // defines navigator.connection.
     (_isHttpOrHttps() ||
       isBrowserExtension() ||
-      typeof (navigatorOnline as StandardNavigator).connection !== 'undefined')
+      'connection' in navigatorOnline)
   ) {
     return navigatorOnline.onLine;
   }
