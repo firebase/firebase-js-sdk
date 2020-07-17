@@ -63,7 +63,8 @@ export const MOCK_SEQUENCE_NUMBER_SYNCER: SequenceNumberSyncer = {
 };
 
 /** The Database ID used by most tests that use a serializer. */
-export const TEST_DATABASE_ID = new DatabaseId('test-project');
+export const TEST_PROJECT = 'test-project';
+export const TEST_DATABASE_ID = new DatabaseId(TEST_PROJECT);
 export const TEST_PERSISTENCE_KEY = '[PersistenceTestHelpers]';
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */

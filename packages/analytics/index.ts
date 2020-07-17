@@ -32,7 +32,11 @@ import {
   ComponentContainer
 } from '@firebase/component';
 import { ERROR_FACTORY, AnalyticsError } from './src/errors';
-
+import {
+  isIndexedDBAvailable,
+  validateIndexedDBOpenable,
+  areCookiesEnabled
+} from '@firebase/util';
 import { name, version } from './package.json';
 
 declare global {
@@ -61,7 +65,8 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
       ComponentType.PUBLIC
     ).setServiceProps({
       settings,
-      EventName
+      EventName,
+      isSupported
     })
   );
 
@@ -97,8 +102,31 @@ registerAnalytics(firebase as _FirebaseNamespace);
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     analytics(app?: FirebaseApp): FirebaseAnalytics;
+    isSupported(): Promise<boolean>;
   }
   interface FirebaseApp {
     analytics(): FirebaseAnalytics;
+  }
+}
+
+/**
+ * this is a public static method provided to users that wraps three different checks:
+ *
+ * 1. check if cookie is enabled in current browser.
+ * 2. check if IndexedDB is supported by the browser environment.
+ * 3. check if the current browser context is valid for using IndexedDB.
+ */
+async function isSupported(): Promise<boolean> {
+  if (!areCookiesEnabled()) {
+    return false;
+  }
+  if (!isIndexedDBAvailable()) {
+    return false;
+  }
+  try {
+    const isDBOpenable: boolean = await validateIndexedDBOpenable();
+    return isDBOpenable;
+  } catch (error) {
+    return false;
   }
 }

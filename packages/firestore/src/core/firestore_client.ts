@@ -22,7 +22,6 @@ import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { newDatastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
@@ -47,8 +46,6 @@ import {
   ComponentProvider,
   MemoryComponentProvider
 } from './component_provider';
-import { newConnection } from '../platform/connection';
-import { newSerializer } from '../platform/serializer';
 
 const LOG_TAG = 'FirestoreClient';
 const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -236,19 +233,11 @@ export class FirestoreClient {
     persistenceResult: Deferred<void>
   ): Promise<void> {
     try {
-      // TODO(mrschmidt): Ideally, ComponentProvider would also initialize
-      // Datastore (without duplicating the initializing logic once per
-      // provider).
-
-      const connection = await newConnection(this.databaseInfo);
-      const serializer = newSerializer(this.databaseInfo.databaseId);
-      const datastore = newDatastore(connection, this.credentials, serializer);
-
       await componentProvider.initialize({
         asyncQueue: this.asyncQueue,
         databaseInfo: this.databaseInfo,
-        datastore,
         clientId: this.clientId,
+        credentials: this.credentials,
         initialUser: user,
         maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS,
         persistenceSettings

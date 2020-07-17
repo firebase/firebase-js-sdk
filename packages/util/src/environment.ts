@@ -134,3 +134,58 @@ export function isSafari(): boolean {
     !navigator.userAgent.includes('Chrome')
   );
 }
+
+/**
+ * This method checks if indexedDB is supported by current browser
+ * @return true if indexedDB is supported by current browser
+ */
+export function isIndexedDBAvailable(): boolean {
+  if (!('indexedDB' in window) || indexedDB === null) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * This method validates browser context for indexedDB by opening a dummy indexedDB database and reject
+ * if errors occur during the database open operation.
+ */
+export function validateIndexedDBOpenable(): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    try {
+      let preExist: boolean = true;
+      const DB_CHECK_NAME =
+        'validate-browser-context-for-indexeddb-analytics-module';
+      const request = window.indexedDB.open(DB_CHECK_NAME);
+      request.onsuccess = () => {
+        request.result.close();
+        // delete database only when it doesn't pre-exist
+        if (!preExist) {
+          window.indexedDB.deleteDatabase(DB_CHECK_NAME);
+        }
+        resolve(true);
+      };
+      request.onupgradeneeded = () => {
+        preExist = false;
+      };
+
+      request.onerror = () => {
+        reject(request.error?.message || '');
+      };
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+/**
+ *
+ * This method checks whether cookie is enabled within current browser
+ * @return true if cookie is enabled within current browser
+ */
+export function areCookiesEnabled(): boolean {
+  if (!navigator || !navigator.cookieEnabled) {
+    return false;
+  }
+  return true;
+}
