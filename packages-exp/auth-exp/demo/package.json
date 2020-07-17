@@ -4,19 +4,20 @@
   "private": true,
   "description": "Demo for Auth TS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "bundle": "dist/bundle.js",
-  "files": [
-    "dist"
-  ],
+  "bundle": "public/dist/index.js",
+  "worker": "public/dist/web-worker.js",
   "scripts": {
-    "build": "sh build.sh",
-    "demo": "sh build.sh && firebase serve",
+    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../../.gitignore'",
+    "demo": "rollup -c && firebase serve",
+    "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/'{app-exp,auth-exp}' --include-dependencies build",
     "dev": "rollup -c -w"
   },
   "peerDependencies": {
     "@firebase/app-exp": "0.x",
     "@firebase/app-types-exp": "0.x",
+    "@firebase/auth-exp": "0.x",
     "@firebase/auth-types-exp": "0.x"
   },
   "dependencies": {
