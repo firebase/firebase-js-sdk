@@ -186,6 +186,14 @@ export interface Persistence {
   ): void;
 
   /**
+   * Adjusts the current network state in the client's metadata, potentially
+   * affecting the primary lease.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
+  setNetworkEnabled(networkEnabled: boolean): void;
+
+  /**
    * Returns a MutationQueue representing the persisted mutations for the
    * given user.
    *
