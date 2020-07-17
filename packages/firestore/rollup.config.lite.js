@@ -37,7 +37,7 @@ const nodePlugins = [
     typescript,
     tsconfigOverride: {
       compilerOptions: {
-        target: 'umd'
+        target: 'es5'
       }
     },
     clean: true
