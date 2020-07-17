@@ -1,7 +1,7 @@
 {
   "name": "@firebase/firestore/exp",
   "description": "A tree-shakeable version of the Firestore SDK",
-  "main": "../dist/exp/index.node.esm2017.js",
+  "main": "../dist/exp/index.node.umd.js",
   "browser": "../dist/exp/index.browser.esm2017.js",
   "react-native": "../dist/exp/index.rn.esm2017.js",
   "private": true
