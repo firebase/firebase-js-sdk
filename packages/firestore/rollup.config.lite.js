@@ -24,6 +24,7 @@ import { resolveNodeExterns, generateAliasConfig } from './rollup.shared';
 
 import pkg from './lite/package.json';
 import path from 'path';
+import es5PureTransformer from './es5-pure-transformer';
 
 const defaultPlugins = [
   alias(generateAliasConfig('node')),
@@ -31,9 +32,10 @@ const defaultPlugins = [
     typescript,
     tsconfigOverride: {
       compilerOptions: {
-        target: 'es2017'
+        target: 'es5'
       }
     },
+    transformers: [es5PureTransformer()],
     clean: true
   }),
   json({ preferConst: true })
