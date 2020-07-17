@@ -48,9 +48,33 @@ const es5Builds = [
    * Browser Builds
    */
   {
-    input: 'src/index.ts',
-    output: [{ file: pkg.module, format: 'es', sourcemap: true }],
+    input: 'index.browser.ts',
+    output: [{ file: pkg.browser, format: 'es', sourcemap: true }],
     plugins: es5BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  /**
+   * Web Worker Build (compiled without DOM)
+   */
+  {
+    input: 'index.webworker.ts',
+    output: [{ file: pkg.webworker, format: 'es', sourcemap: true }],
+    plugins: [
+      ...commonPlugins,
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            lib: [
+              // Remove dom after we figure out why navigator stuff doesn't exist
+              'dom',
+              'es2015',
+              'webworker'
+            ]
+          }
+        }
+      })
+    ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   /**
@@ -58,7 +82,10 @@ const es5Builds = [
    */
   {
     input: 'index.node.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
+    output: [
+      { file: pkg.main, format: 'cjs', sourcemap: true },
+      { file: pkg.module, format: 'esm', sourcemap: true }
+    ],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
@@ -84,7 +111,7 @@ const es2017Builds = [
    *  Browser Builds
    */
   {
-    input: 'src/index.ts',
+    input: 'index.browser.ts',
     output: {
       file: pkg.esm2017,
       format: 'es',

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,15 @@
  * limitations under the License.
  */
 
-/**
- * This is the file that people using Node.js will actually import. You should
- * only include this file if you have something specific about your
- * implementation that mandates having a separate entrypoint. Otherwise you can
- * just use index.browser.ts
- */
-
-// Core functionality shared by all clients
-export * from './index.webworker';
+module.exports = {
+  extends: '../../../config/.eslintrc.js',
+  parserOptions: {
+    project: 'tsconfig.json',
+    // to make vscode-eslint work with monorepo
+    // https://github.com/typescript-eslint/typescript-eslint/issues/251#issuecomment-463943250
+    tsconfigRootDir: __dirname
+  },
+  rules: {
+    'import/no-extraneous-dependencies': ['error', { 'devDependencies': true }]
+  }
+};
