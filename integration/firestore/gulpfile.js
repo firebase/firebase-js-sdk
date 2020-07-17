@@ -38,17 +38,9 @@ function copyTests() {
    * Therefore these tests and helpers cannot have any src/ dependencies.
    */
   const testBase = resolve(__dirname, '../../packages/firestore/test');
-  const firebaseAppSdk = 'firebase/app/dist/index.esm.js';
-  const firebaseFirestoreSdk = resolve(
-    __dirname,
-    isPersistenceEnabled()
-      ? '../../packages/firestore/dist/index.esm.js'
-      : '../../packages/firestore/dist/index.memory.esm.js'
-  );
   return gulp
     .src(
       [
-        'firebase_export.ts',
         testBase + '/integration/api/*.ts',
         testBase + '/integration/util/events_accumulator.ts',
         testBase + '/integration/util/helpers.ts',
@@ -72,7 +64,9 @@ function copyTests() {
         /import\s+\* as firebaseExport\s+from\s+('|")[^\1]+firebase_export\1;?/,
         `import * as firebaseExport from '${resolve(
           __dirname,
-          './firebase_export'
+          isPersistenceEnabled()
+            ? './firebase_export'
+            : './firebase_export_memory'
         )}';
         
          if (typeof process === 'undefined') {
@@ -80,13 +74,6 @@ function copyTests() {
          } else {
            process.env.INCLUDE_FIRESTORE_PERSISTENCE = '${isPersistenceEnabled()}';
          }`
-      )
-    )
-    .pipe(
-      replace(
-        'import * as firebase from "firebase";',
-        `import firebase from '${firebaseAppSdk}';
-         import '${firebaseFirestoreSdk}';`
       )
     )
     .pipe(

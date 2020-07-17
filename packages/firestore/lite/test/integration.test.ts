@@ -155,7 +155,7 @@ describe('doc', () => {
   it('validates path', () => {
     return withTestDb(db => {
       expect(() => doc(db, 'coll')).to.throw(
-        'Invalid document path (coll). Path points to a collection.'
+        'Invalid document reference. Document references must have an even number of segments, but coll has 1.'
       );
       expect(() => doc(db, '')).to.throw(
         'Function doc() requires its second argument to be of type non-empty string, but it was: ""'
@@ -191,7 +191,7 @@ describe('collection', () => {
   it('validates path', () => {
     return withTestDb(db => {
       expect(() => collection(db, 'coll/doc')).to.throw(
-        'Invalid collection path (coll/doc). Path points to a document.'
+        'Invalid collection reference. Collection references must have an odd number of segments, but coll/doc has 2.'
       );
       // TODO(firestorelite): Explore returning a more helpful message
       // (e.g. "Empty document paths are not supported.")

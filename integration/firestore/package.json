@@ -11,7 +11,7 @@
     "test:persistence": " yarn build:persistence; karma start --single-run",
     "test:memory": "yarn build:memory; karma start --single-run",
     "test:debug:persistence": "yarn build:deps; yarn build:persistence; karma start --auto-watch --browsers Chrome",
-    "test:debug:memory": "yarn build:deps; yarn build:memory; karma start --single-run"
+    "test:debug:memory": "yarn build:deps; yarn build:memory; karma start --auto-watch --browsers Chrome"
   },
   "devDependencies": {
     "@types/mocha": "7.0.2",

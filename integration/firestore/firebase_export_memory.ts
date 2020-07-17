@@ -16,7 +16,7 @@
  */
 
 import * as firebase from 'firebase/app';
-import 'firebase/firestore';
+import 'firebase/firestore/memory';
 
 // This file replaces "packages/firestore/test/integration/util/firebase_export"
 // and depends on the minified sources.
