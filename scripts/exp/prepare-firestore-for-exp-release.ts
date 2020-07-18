@@ -19,6 +19,7 @@ import { spawn } from 'child-process-promise';
 import { projectRoot, readPackageJson } from '../utils';
 import { writeFile as _writeFile } from 'fs';
 import { promisify } from 'util';
+import { removeExpSuffix } from './remove-exp';
 const writeFile = promisify(_writeFile);
 const packagePath = `${projectRoot}/packages/firestore`;
 
@@ -58,4 +59,8 @@ export async function prepare() {
     `${JSON.stringify(packageJson, null, 2)}\n`,
     { encoding: 'utf-8' }
   );
+
+  // remove -exp in typings files
+  removeExpSuffix(`${packagePath}/exp-types`);
+  removeExpSuffix(`${packagePath}/lite-types`);
 }

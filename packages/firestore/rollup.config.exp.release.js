@@ -57,7 +57,7 @@ const minifiedPlugins = [
     },
     clean: true,
     abortOnError: false,
-    transformers: [...firestoreTransformers, importPathTransformer]
+    transformers: [importPathTransformer, ...firestoreTransformers]
   }),
   json({ preferConst: true }),
   terser(manglePrivatePropertiesOptions)
@@ -72,7 +72,10 @@ const allBuilds = [
       format: 'es'
     },
     plugins: [alias(generateAliasConfig('node')), ...plugins],
-    external: resolveNodeExterns
+    external: resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   },
   // Browser build
   {
@@ -82,7 +85,10 @@ const allBuilds = [
       format: 'es'
     },
     plugins: [alias(generateAliasConfig('browser')), ...minifiedPlugins],
-    external: resolveBrowserExterns
+    external: resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   },
   // RN build
   {
@@ -92,7 +98,10 @@ const allBuilds = [
       format: 'es'
     },
     plugins: [alias(generateAliasConfig('rn')), ...minifiedPlugins],
-    external: resolveBrowserExterns
+    external: resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
 
