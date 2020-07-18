@@ -36,7 +36,6 @@
   },
   "dependencies": {
     "@firebase/app-exp": "0.0.800",
-    "@firebase/dummy-exp": "0.0.800",
     "@firebase/functions-exp": "0.0.800"
   },
   "devDependencies": {

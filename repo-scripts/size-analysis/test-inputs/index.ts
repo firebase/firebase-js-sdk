@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 import { LogLevel } from '@firebase/logger';
-import { license } from './package.json';
+import { license } from '../package.json';
 // wildcard export
-export * from './src/bar';
+export * from './bar';
 // named export
 export {
   BasicEnumExportFar,
@@ -31,7 +31,7 @@ export {
   basicVarDeclarationExportFar,
   basicVarStatementExportFar,
   reExportVarStatmentExportFar
-} from './src/far';
+} from './far';
 
 export let basicVarDeclarationExport: string;
 export const basicVarStatementExport = 'basicVarStatementExport';

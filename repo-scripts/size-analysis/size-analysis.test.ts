@@ -37,8 +37,8 @@ import { resolve } from 'path';
 describe('extractDeclarations', () => {
   let testModuleDtsFile: string;
   let extractedDeclarations: MemberList;
-  before(function () {
-    this.timeout(300000);
+  before(() => {
+    // this.timeout(300000);
     testModuleDtsFile = retrieveTestModuleDtsFile();
     extractedDeclarations = extractDeclarations(testModuleDtsFile);
   });
@@ -135,23 +135,6 @@ describe('extractDeclarations', () => {
 
   it('test re-exported enum extractions from firebase external module', () => {
     expect(extractedDeclarations.enums).to.include.members(['LogLevel']);
-  });
-});
-
-xdescribe('test command line interface', () => {
-  it('test adhoc run valid flag combinations', () => {
-    expect(async () => {
-      exec(
-        '../../node_modules/.bin/ts-node-script analysis.ts --if "../../packages-exp/dummy-exp/dist/packages-exp/dummy-exp/src/index.d.ts" -o "./dependencies/dependencies/adhoc.json"',
-        (err, stdout, stderr) => {
-          if (err) {
-            throw err;
-          } else if (stderr) {
-            throw new Error(stderr);
-          }
-        }
-      );
-    }).to.throw();
   });
 });
 
@@ -366,7 +349,7 @@ describe('test writeReportToDirectory helper function', () => {
 
 describe('test extractExternalDependencies helper function', () => {
   it('should correctly extract all symbols listed in import statements', () => {
-    const assortedImports: string = resolve('./src/assortedImports.js');
+    const assortedImports: string = resolve('./test-inputs/assortedImports.js');
     const externals: object = extractExternalDependencies(assortedImports);
     expect(externals).to.not.have.property("'@firebase/logger'");
     expect(externals).to.have.property("'./bar'");

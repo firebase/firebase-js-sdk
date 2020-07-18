@@ -26,7 +26,7 @@ const deps = Object.keys(
 
 export default [
   {
-    input: 'index.ts',
+    input: 'test-inputs/index.ts',
     output: [{ file: pkg.esm2017, format: 'es', sourcemap: true }],
     plugins: [
       typescriptPlugin({

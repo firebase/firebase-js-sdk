@@ -24,6 +24,8 @@ import * as ts from 'typescript';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 
+const TYPINGS: string = 'typings';
+const BUNDLE: string = 'esm2017';
 export const enum ErrorCode {
   INVALID_FLAG_COMBINATION = 'Invalid command flag combinations!',
   BUNDLE_FILE_DOES_NOT_EXIST = "Module doesn't have a bundle file!",
@@ -31,6 +33,8 @@ export const enum ErrorCode {
   OUTPUT_DIRECTORY_REQUIRED = 'An output directory is required but a file given',
   OUTPUT_FILE_REQUIRED = 'An output file is required but a directory given',
   INPUT_FILE_DOES_NOT_EXIST = "Input file doesn't exist!",
+  INPUT_DTS_FILE_DOES_NOT_EXIST = "Input dts file doesn't exist!",
+  INPUT_BUNDLE_FILE_DOES_NOT_EXIST = "Input bundle file doesn't exist!",
   FILE_PARSING_ERROR = 'Failed to parse js file!',
   REPORT_REDIRECTION_ERROR = 'Please enable at least one of --output or --ci flag for report redirection!'
 }
@@ -82,8 +86,8 @@ export async function extractDependenciesAndSize(
   map: Map<string, string>
 ): Promise<ExportData> {
   const input = tmp.fileSync().name + '.js';
-  const fulllyResolvedOutput = tmp.fileSync().name + '.js';
-  const minimizedBundleOutput = tmp.fileSync().name + '.js';
+  const fullyResolvedOutput = tmp.fileSync().name + '.js';
+  const externalDepsNotResolvedOutput = tmp.fileSync().name + '.js';
 
   const beforeContent = `export { ${exportName} } from '${path.resolve(
     jsBundle
@@ -100,24 +104,32 @@ export async function extractDependenciesAndSize(
       commonjs()
     ]
   });
-  await fullyResolvedBundle.write({ file: fulllyResolvedOutput, format: 'es' });
+  await fullyResolvedBundle.write({ file: fullyResolvedOutput, format: 'es' });
   const minimizedBundle = await rollup.rollup({
     input
   });
-  await minimizedBundle.write({ file: minimizedBundleOutput, format: 'es' });
+  await minimizedBundle.write({
+    file: externalDepsNotResolvedOutput,
+    format: 'es'
+  });
   const dependencies: MemberList = extractDeclarations(
-    minimizedBundleOutput,
+    externalDepsNotResolvedOutput,
     map
   );
-  const externals: object = extractExternalDependencies(minimizedBundleOutput);
+  const externals: object = extractExternalDependencies(
+    externalDepsNotResolvedOutput
+  );
   dependencies.externals.push(externals);
 
   const afterContentFullyResolved = fs.readFileSync(
-    fulllyResolvedOutput,
+    fullyResolvedOutput,
     'utf-8'
   );
   // Extract size of minified build
-  const afterContentMinimized = fs.readFileSync(minimizedBundleOutput, 'utf-8');
+  const afterContentMinimized = fs.readFileSync(
+    externalDepsNotResolvedOutput,
+    'utf-8'
+  );
   const codeFullyResolved: terser.MinifyOutput = terser.minify(
     afterContentFullyResolved,
     {
@@ -140,8 +152,8 @@ export async function extractDependenciesAndSize(
   );
 
   fs.unlinkSync(input);
-  fs.unlinkSync(minimizedBundleOutput);
-  fs.unlinkSync(fulllyResolvedOutput);
+  fs.unlinkSync(externalDepsNotResolvedOutput);
+  fs.unlinkSync(fullyResolvedOutput);
   return {
     dependencies,
     sizeInBytes: Buffer.byteLength(codeMinimized.code!, 'utf-8'),
@@ -156,8 +168,8 @@ export async function extractDependenciesAndSize(
  * Extracts all function, class and variable declarations using the TypeScript
  * compiler API.
  * @param map maps every symbol listed in dts file to its type. eg: aVariable -> variable.
- * map is null when jsFile is a bundle generated from source dts file.
- * map is populated when jsFile is a bundle that contains a single export from the source dts file.
+ * map is null when given filePath is a path to d.ts file.
+ * map is populated when given filePath points to a .js bundle file.
  *
  * Examples of Various Type of Exports
  * FunctionDeclaration: export function aFunc(): string {...};
@@ -168,23 +180,17 @@ export async function extractDependenciesAndSize(
  * ExportDeclaration:
  *      named exports: export {foo, bar} from '...'; export {foo as foo1, bar} from '...'; export {LogLevel};
  *      export everything: export * from '...';
- *
- *
- *
- *
- *
- *
  */
 export function extractDeclarations(
-  jsFile: string,
+  filePath: string,
   map?: Map<string, string>
 ): MemberList {
-  const program = ts.createProgram([jsFile], { allowJs: true });
+  const program = ts.createProgram([filePath], { allowJs: true });
   const checker = program.getTypeChecker();
 
-  const sourceFile = program.getSourceFile(jsFile);
+  const sourceFile = program.getSourceFile(filePath);
   if (!sourceFile) {
-    throw new Error(`${ErrorCode.FILE_PARSING_ERROR} ${jsFile}`);
+    throw new Error(`${ErrorCode.FILE_PARSING_ERROR} ${filePath}`);
   }
 
   let declarations: MemberList = {
@@ -271,43 +277,22 @@ export function extractDeclarations(
             const reExportFullPath = symbol.valueDeclaration.getSourceFile()
               .fileName;
             // first step: always retrieve all exported symbols from the source location of the re-export.
-            const reExportsMember = extractDeclarations(reExportFullPath);
-
+            let reExportsMember = extractDeclarations(reExportFullPath);
+            // if it's a named export statement, filter the MemberList to keep only those listed in exportClause.
             // named exports: eg: export {foo, bar} from '...'; and export {foo as foo1, bar} from '...';
-            if (node.exportClause && ts.isNamedExports(node.exportClause)) {
-              const actualExports: string[] = [];
-              node.exportClause.elements.forEach(exportSpecifier => {
-                const reExportedSymbol: string = extractOriginalSymbolName(
-                  exportSpecifier
-                );
-                // eg: export {foo as foo1 } from '...';
-                // if export is renamed, replace with new name
-                // reExportedSymbol: stores the original symbol name
-                // exportSpecifier.name: stores the renamed symbol name
-                if (isExportRenamed(exportSpecifier)) {
-                  actualExports.push(
-                    exportSpecifier.name.escapedText.toString()
-                  );
-                  // reExportsMember stores all re-exported symbols in its orignal name. However, these re-exported symbols
-                  // could be renamed by the re-export. We want to show the renamed name of the symbols in the final analysis report.
-                  // Therefore, replaceAll simply replaces the original name of the symbol with the new name defined in re-export.
-                  replaceAll(
-                    reExportsMember,
-                    reExportedSymbol,
-                    exportSpecifier.name.escapedText.toString()
-                  );
-                } else {
-                  actualExports.push(reExportedSymbol);
-                }
-              });
-              // for named exports: requires a filter step which keeps only the symbols listed in the export statement.
-              filterAllBy(reExportsMember, actualExports);
-            }
+            reExportsMember = extractSymbolsFromNamedExportStatement(
+              node,
+              reExportsMember
+            );
             // concatenate re-exported MemberList with MemberList of the dts file
-            Object.keys(declarations).map(each => {
-              declarations[each].push(...reExportsMember[each]);
-            });
+            const keys = Object.keys(declarations);
+            for (const key of keys) {
+              declarations[key].push(...reExportsMember[key]);
+            }
           } else {
+            // if the module name in the from clause cant be resolved to actual module location,
+            // just extract symbols listed in the exportClause for named exports, put them in variables first, as
+            // they will be categorized later using map argument.
             if (node.exportClause && ts.isNamedExports(node.exportClause)) {
               node.exportClause.elements.forEach(exportSpecifier => {
                 declarations.variables.push(
@@ -321,21 +306,15 @@ export function extractDeclarations(
         // export {LogLevel};
         // exclusively handles named export statements that has no from clause.
         // retrieve the exported symbols by parsing node.exportClause
-        if (node.exportClause && ts.isNamedExports(node.exportClause)) {
-          node.exportClause.elements.forEach(exportSpecifier => {
-            const exportedSymbolName = exportSpecifier.name.escapedText.toString();
-
-            if (symbolLocation.has(exportedSymbolName)) {
-              const reExportedSymbols = extractDeclarations(
-                symbolLocation.get(exportedSymbolName)
-              );
-              filterAllBy(reExportedSymbols, [exportedSymbolName]);
-              // concatenate re-exported MemberList with MemberList of the dts file
-              Object.keys(declarations).map(each => {
-                declarations[each].push(...reExportedSymbols[each]);
-              });
-            }
-          });
+        // retrieve the location where exported symbols are defined from the corresponding import clauses
+        const importThenExportedSymbols: MemberList = handleImportThenExport(
+          node,
+          symbolLocation
+        );
+        // concatenate re-exported MemberList with MemberList of the dts file
+        const keys = Object.keys(declarations);
+        for (const key of keys) {
+          declarations[key].push(...importThenExportedSymbols[key]);
         }
       }
     }
@@ -352,15 +331,93 @@ export function extractDeclarations(
   });
   return declarations;
 }
+
+/**
+ *
+ * @param node compiler representation of a named export statement
+ * @param exportsFullList a list of all exported symbols retrieved from the location given in the export statement.
+ *
+ * This function filters on exportsFullList and keeps only those symbols that are listed in the given named export statement.
+ */
+function extractSymbolsFromNamedExportStatement(
+  node: ts.ExportDeclaration,
+  exportsFullList: MemberList
+): MemberList {
+  if (node.exportClause && ts.isNamedExports(node.exportClause)) {
+    const actualExports: string[] = [];
+    node.exportClause.elements.forEach(exportSpecifier => {
+      const reExportedSymbol: string = extractOriginalSymbolName(
+        exportSpecifier
+      );
+      // eg: export {foo as foo1 } from '...';
+      // if export is renamed, replace with new name
+      // reExportedSymbol: stores the original symbol name
+      // exportSpecifier.name: stores the renamed symbol name
+      if (isExportRenamed(exportSpecifier)) {
+        actualExports.push(exportSpecifier.name.escapedText.toString());
+        // reExportsMember stores all re-exported symbols in its orignal name. However, these re-exported symbols
+        // could be renamed by the re-export. We want to show the renamed name of the symbols in the final analysis report.
+        // Therefore, replaceAll simply replaces the original name of the symbol with the new name defined in re-export.
+        replaceAll(
+          exportsFullList,
+          reExportedSymbol,
+          exportSpecifier.name.escapedText.toString()
+        );
+      } else {
+        actualExports.push(reExportedSymbol);
+      }
+    });
+    // for named exports: requires a filter step which keeps only the symbols listed in the export statement.
+    filterAllBy(exportsFullList, actualExports);
+  }
+  return exportsFullList;
+}
+/**
+ * @param node compiler representation of a named export statement
+ * @param symbolLocation a map with module name as key and the resolved module location as value. (map is populated by parsing import statements)
+ * This function exclusively handles named export statements that has no from clause, i.e: statements like export {LogLevel};
+ * The function retrieves the location where the exported symbol is defined from the corresponding import statements.
+ */
+function handleImportThenExport(
+  node: ts.ExportDeclaration,
+  symbolLocation: Map<string, string>
+): MemberList {
+  const declarations: MemberList = {
+    functions: [],
+    classes: [],
+    variables: [],
+    enums: [],
+    externals: []
+  };
+  if (node.exportClause && ts.isNamedExports(node.exportClause)) {
+    node.exportClause.elements.forEach(exportSpecifier => {
+      const exportedSymbolName = exportSpecifier.name.escapedText.toString();
+
+      if (symbolLocation.has(exportedSymbolName)) {
+        const reExportedSymbols = extractDeclarations(
+          symbolLocation.get(exportedSymbolName)
+        );
+        filterAllBy(reExportedSymbols, [exportedSymbolName]);
+        // concatenate re-exported MemberList with MemberList of the dts file
+        const keys = Object.keys(declarations);
+        for (const key of keys) {
+          declarations[key].push(...reExportedSymbols[key]);
+        }
+      }
+    });
+  }
+  return declarations;
+}
+
 /**
  * To Make sure symbols of every category are unique.
  */
 export function dedup(memberList: MemberList): MemberList {
-  Object.keys(memberList).map(each => {
-    const set: Set<string> = new Set(memberList[each]);
-    memberList[each] = Array.from(set);
-  });
-
+  const keys: string[] = Object.keys(memberList);
+  for (const key of keys) {
+    const set: Set<string> = new Set(memberList[key]);
+    memberList[key] = Array.from(set);
+  }
   return memberList;
 }
 
@@ -375,7 +432,9 @@ export function mapSymbolToType(
     enums: [],
     externals: []
   };
-  Object.keys(memberList).map(key => {
+  const keys: string[] = Object.keys(memberList);
+
+  for (const key of keys) {
     memberList[key].forEach(element => {
       if (map.has(element)) {
         newMemberList[map.get(element)].push(element);
@@ -383,7 +442,7 @@ export function mapSymbolToType(
         newMemberList[key].push(element);
       }
     });
-  });
+  }
   return newMemberList;
 }
 
@@ -403,9 +462,10 @@ function extractOriginalSymbolName(
 }
 
 function filterAllBy(memberList: MemberList, keep: string[]): void {
-  Object.keys(memberList).map(key => {
+  const keys: string[] = Object.keys(memberList);
+  for (const key of keys) {
     memberList[key] = memberList[key].filter(each => isReExported(each, keep));
-  });
+  }
 }
 
 export function replaceAll(
@@ -413,9 +473,10 @@ export function replaceAll(
   original: string,
   current: string
 ): void {
-  Object.keys(memberList).map(key => {
+  const keys: string[] = Object.keys(memberList);
+  for (const key of keys) {
     memberList[key] = replaceWith(memberList[key], original, current);
-  });
+  }
 }
 
 function replaceWith(
@@ -522,4 +583,158 @@ export function extractExternalDependencies(
   });
 
   return externals;
+}
+
+/**
+ * This function generates a binary size report for the given module specified by the moduleLocation argument.
+ * @param moduleLocation a path to location of a firebase module
+ * @param outputDirectory a path to a directory where the reports will be written under.
+ * @param writeFiles when true, will write reports to designated directory specified by outputDirectory.
+ */
+export async function generateReportForModule(
+  moduleLocation: string,
+  outputDirectory: string,
+  writeFiles: boolean
+): Promise<string> {
+  const packageJsonPath = `${moduleLocation}/package.json`;
+  if (!fs.existsSync(packageJsonPath)) {
+    return;
+  }
+  const packageJson = require(packageJsonPath);
+  // to exclude <modules>-types modules
+  if (packageJson[TYPINGS]) {
+    const dtsFile = `${moduleLocation}/${packageJson[TYPINGS]}`;
+    if (!packageJson[BUNDLE]) {
+      throw new Error(ErrorCode.BUNDLE_FILE_DOES_NOT_EXIST);
+    }
+    const bundleFile = `${moduleLocation}/${packageJson[BUNDLE]}`;
+    const json = await generateReport(dtsFile, bundleFile);
+    const fileName = `${path.basename(packageJson.name)}-dependency.json`;
+    if (writeFiles) {
+      writeReportToDirectory(json, fileName, path.resolve(outputDirectory));
+    }
+    return json;
+  }
+}
+/**
+ *
+ * This function creates a map from a MemberList object which maps symbol names (key) listed
+ * to its type (value)
+ */
+function buildMap(api: MemberList): Map<string, string> {
+  const map: Map<string, string> = new Map();
+  const types: string[] = Object.keys(api);
+  for (const type of types) {
+    api[type].forEach(element => {
+      map.set(element, type);
+    });
+  }
+  return map;
+}
+
+/**
+ * A recursive function that locates and generates reports for sub-modules
+ */
+function traverseDirs(
+  moduleLocation: string,
+  outputDirectory: string,
+  writeFiles: boolean,
+  executor,
+  level: number,
+  levelLimit: number
+): void {
+  if (level > levelLimit) {
+    return;
+  }
+
+  executor(moduleLocation, outputDirectory, writeFiles);
+
+  for (const name of fs.readdirSync(moduleLocation)) {
+    const p = `${moduleLocation}/${name}`;
+
+    if (fs.lstatSync(p).isDirectory()) {
+      traverseDirs(
+        p,
+        outputDirectory,
+        writeFiles,
+        executor,
+        level + 1,
+        levelLimit
+      );
+    }
+  }
+}
+
+/**
+ *
+ * This functions generates the final json report for the module.
+ * @param publicApi all symbols extracted from the input dts file.
+ * @param jsFile a bundle file generated by rollup according to the input dts file.
+ * @param map maps every symbol listed in publicApi to its type. eg: aVariable -> variable.
+ */
+export async function buildJsonReport(
+  publicApi: MemberList,
+  jsFile: string,
+  map: Map<string, string>
+): Promise<string> {
+  const result: { [key: string]: ExportData } = {};
+  for (const exp of publicApi.classes) {
+    result[exp] = await extractDependenciesAndSize(exp, jsFile, map);
+  }
+  for (const exp of publicApi.functions) {
+    result[exp] = await extractDependenciesAndSize(exp, jsFile, map);
+  }
+  for (const exp of publicApi.variables) {
+    result[exp] = await extractDependenciesAndSize(exp, jsFile, map);
+  }
+
+  for (const exp of publicApi.enums) {
+    result[exp] = await extractDependenciesAndSize(exp, jsFile, map);
+  }
+  return JSON.stringify(result, null, 4);
+}
+
+export async function generateReport(
+  dtsFile: string,
+  bundleFile: string
+): Promise<string> {
+  const resolvedDtsFile = path.resolve(dtsFile);
+  const resolvedBundleFile = path.resolve(bundleFile);
+  if (!fs.existsSync(resolvedDtsFile)) {
+    throw new Error(ErrorCode.INPUT_DTS_FILE_DOES_NOT_EXIST);
+  }
+  if (!fs.existsSync(resolvedBundleFile)) {
+    throw new Error(ErrorCode.INPUT_BUNDLE_FILE_DOES_NOT_EXIST);
+  }
+  const publicAPI = extractDeclarations(resolvedDtsFile);
+  const map: Map<string, string> = buildMap(publicAPI);
+  return buildJsonReport(publicAPI, bundleFile, map);
+}
+
+/**
+ * This function recursively generates a binary size report for every module listed in moduleLocations array.
+ *
+ * @param moduleLocations an array of strings where each is a path to location of a firebase module
+ * @param outputDirectory a path to a directory where the reports will be written under.
+ * @param writeFiles when true, will write reports to designated directory specified by outputDirectory.
+ *
+ *
+ */
+export function generateReportForModules(
+  moduleLocations: string[],
+  outputDirectory: string,
+  writeFiles: boolean
+): void {
+  for (const moduleLocation of moduleLocations) {
+    // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
+    // Currently we only traverse 1 level deep because we don't have any submodule deeper than that.
+    traverseDirs(
+      moduleLocation,
+      outputDirectory,
+      writeFiles,
+      generateReportForModule,
+      0,
+      1
+    );
+  }
 }
