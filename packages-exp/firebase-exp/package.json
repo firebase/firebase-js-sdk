@@ -54,7 +54,6 @@
   },
   "components": [
     "app",
-    "dummy",
     "functions"
   ]
 }
