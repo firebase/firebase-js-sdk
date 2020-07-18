@@ -18,6 +18,10 @@
 import { dirname, resolve } from 'path';
 import simpleGit from 'simple-git/promise';
 import { exec } from 'child-process-promise';
+import { readFile as _readFile } from 'fs';
+import { promisify } from 'util';
+
+const readFile = promisify(_readFile);
 
 export const projectRoot = dirname(resolve(__dirname, '../package.json'));
 
@@ -58,4 +62,12 @@ export async function getPackageInfo(
   );
 
   return packageInfo;
+}
+
+export async function readPackageJson(packagePath: string) {
+  /**
+   * Nout using require here because require caches the file
+   * in memory, so it may not contain the updates that are made by e.g. git commands
+   */
+  return JSON.parse(await readFile(`${packagePath}/package.json`, 'utf8'));
 }

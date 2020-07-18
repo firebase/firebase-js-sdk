@@ -4,5 +4,6 @@
   "main": "../dist/lite/index.node.esm2017.js",
   "browser": "../dist/lite/index.browser.esm2017.js",
   "react-native": "../dist/lite/index.rn.esm2017.js",
+  "typings": "../lite-types/index.d.ts",
   "private": true
 }

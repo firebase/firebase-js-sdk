@@ -4,5 +4,6 @@
   "main": "../dist/exp/index.node.esm2017.js",
   "browser": "../dist/exp/index.browser.esm2017.js",
   "react-native": "../dist/exp/index.rn.esm2017.js",
+  "typings": "../exp-types/index.d.ts",
   "private": true
 }

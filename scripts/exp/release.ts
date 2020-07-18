@@ -17,17 +17,16 @@
 
 import { spawn, exec } from 'child-process-promise';
 import ora from 'ora';
-import { projectRoot } from '../utils';
+import { projectRoot, readPackageJson } from '../utils';
 import simpleGit from 'simple-git/promise';
 
 import { mapWorkspaceToPackages } from '../release/utils/workspace';
 import { inc } from 'semver';
-import { readFile as _readFile, writeFile as _writeFile } from 'fs';
+import { writeFile as _writeFile } from 'fs';
 import { promisify } from 'util';
 import chalk from 'chalk';
 import Listr from 'listr';
 
-const readFile = promisify(_readFile);
 const writeFile = promisify(_writeFile);
 const git = simpleGit(projectRoot);
 const FIREBASE_UMBRELLA_PACKAGE_NAME = 'firebase-exp';
@@ -264,14 +263,6 @@ function removeExpInPackageName(name: string) {
   }
 
   return `${captures[1]}${captures[2]}`;
-}
-
-async function readPackageJson(packagePath: string) {
-  /**
-   * Can't require here because require caches the file
-   * in memory, so it may not contain the updates that are made by e.g. git commands
-   */
-  return JSON.parse(await readFile(`${packagePath}/package.json`, 'utf8'));
 }
 
 async function getCurrentSha() {
