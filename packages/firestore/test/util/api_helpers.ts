@@ -39,13 +39,14 @@ import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/object_value';
 import { doc, key, path as pathFrom } from './helpers';
 import { Provider, ComponentContainer } from '@firebase/component';
+import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
 
 /**
  * A mock Firestore. Will not work for integration test.
  */
 export const FIRESTORE = new Firestore(
   {
-    projectId: 'test-project',
+    projectId: TEST_PROJECT,
     database: '(default)'
   },
   new Provider('auth-internal', new ComponentContainer('default')),

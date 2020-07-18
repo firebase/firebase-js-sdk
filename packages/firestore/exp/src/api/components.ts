@@ -76,7 +76,7 @@ export function initializeFirestoreClient(
   componentProvider: ComponentProvider,
   persistenceSettings: PersistenceSettings
 ): Promise<void> {
-  if (firestore._initialized) {
+  if (firestoreClientInstances.has(firestore)) {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
       'Firestore has already been started and persistence can no longer ' +

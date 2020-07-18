@@ -74,15 +74,15 @@ export class Firestore
           'getFirestore().'
       );
     }
-    this._settingsFrozen = true;
     this._settings = settings;
   }
 
   _getSettings(): firestore.Settings {
     if (!this._settings) {
-      this._configureClient({});
+      this._settings = {};
     }
-    return this._settings!;
+    this._settingsFrozen = true;
+    return this._settings;
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
@@ -114,6 +114,12 @@ export class Firestore
     debugAssert(!this._terminated, 'Cannot invoke _terminate() more than once');
     return removeDatastore(this);
   }
+
+  // TODO(firestoreexp): `deleteApp()` should call the delete method above,
+  // but it still calls INTERNAL.delete().
+  INTERNAL = {
+    delete: () => this.delete()
+  };
 }
 
 export function initializeFirestore(

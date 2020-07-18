@@ -38,13 +38,6 @@ function copyTests() {
    * Therefore these tests and helpers cannot have any src/ dependencies.
    */
   const testBase = resolve(__dirname, '../../packages/firestore/test');
-  const firebaseAppSdk = 'firebase/app/dist/index.esm.js';
-  const firebaseFirestoreSdk = resolve(
-    __dirname,
-    isPersistenceEnabled()
-      ? '../../packages/firestore/dist/index.esm.js'
-      : '../../packages/firestore/dist/index.memory.esm.js'
-  );
   return gulp
     .src(
       [
@@ -63,21 +56,24 @@ function copyTests() {
          * This regex is designed to match the following statement used in our
          * firestore integration test suites:
          *
-         * import firebase from '../../util/firebase_export';
+         * import * as firebaseExport from '../../util/firebase_export';
          *
          * It will handle variations in whitespace, single/double quote
          * differences, as well as different paths to a valid firebase_export
          */
-        /import\s+firebase\s+from\s+('|")[^\1]+firebase_export\1;?/,
-        `import firebase from '${firebaseAppSdk}';
-         import '${firebaseFirestoreSdk}';
-         
+        /import\s+\* as firebaseExport\s+from\s+('|")[^\1]+firebase_export\1;?/,
+        `import * as firebaseExport from '${resolve(
+          __dirname,
+          isPersistenceEnabled()
+            ? './firebase_export'
+            : './firebase_export_memory'
+        )}';
+        
          if (typeof process === 'undefined') {
            process = { env: { INCLUDE_FIRESTORE_PERSISTENCE: '${isPersistenceEnabled()}' } } as any;
          } else {
            process.env.INCLUDE_FIRESTORE_PERSISTENCE = '${isPersistenceEnabled()}';
-         }
-         `
+         }`
       )
     )
     .pipe(

@@ -56,7 +56,9 @@ export function getDatastore(firestore: Firestore): Promise<Datastore> {
     );
     const datastorePromise = newConnection(databaseInfo).then(connection => {
       const serializer = newSerializer(databaseInfo.databaseId);
-      return newDatastore(connection, firestore._credentials, serializer);
+      const datastore = newDatastore(firestore._credentials, serializer);
+      datastore.start(connection);
+      return datastore;
     });
     datastoreInstances.set(firestore, datastorePromise);
   }

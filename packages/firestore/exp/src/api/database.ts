@@ -66,10 +66,7 @@ export class Firestore extends LiteFirestore
   }
 
   _getSettings(): firestore.Settings {
-    if (!this._settings) {
-      this._settings = {};
-    }
-    return this._settings;
+    return super._getSettings();
   }
 
   async _terminate(): Promise<void> {
@@ -201,7 +198,7 @@ export function disableNetwork(
 export function terminate(
   firestore: firestore.FirebaseFirestore
 ): Promise<void> {
-  _removeServiceInstance(firestore.app, 'firestore/lite');
+  _removeServiceInstance(firestore.app, 'firestore-exp');
   const firestoreImpl = cast(firestore, Firestore);
   return firestoreImpl.delete();
 }
