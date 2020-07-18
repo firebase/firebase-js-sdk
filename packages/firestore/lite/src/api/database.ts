@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../';
+import * as firestore from '../../../lite-types';
 
 import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
@@ -36,7 +36,6 @@ import {
 import { newConnection } from '../../../src/platform/connection';
 import { newSerializer } from '../../../src/platform/serializer';
 import { cast } from './util';
-import { Settings } from '../../';
 
 // settings() defaults:
 export const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -81,7 +80,7 @@ export class Firestore
     this._settings = settings;
   }
 
-  _getSettings(): Settings {
+  _getSettings(): firestore.Settings {
     if (!this._settings) {
       this._settings = {};
     }

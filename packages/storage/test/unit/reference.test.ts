@@ -16,23 +16,22 @@
  */
 import { assert } from 'chai';
 import { FirebaseApp } from '@firebase/app-types';
-import { AuthWrapper } from '../src/implementation/authwrapper';
-import { makeRequest } from '../src/implementation/request';
-import { StringFormat } from '../src/implementation/string';
-import { Headers } from '../src/implementation/xhrio';
-import { Metadata } from '../src/metadata';
-import { Reference } from '../src/reference';
-import { Service } from '../src/service';
+import { AuthWrapper } from '../../src/implementation/authwrapper';
+import { makeRequest } from '../../src/implementation/request';
+import { StringFormat } from '../../src/implementation/string';
+import { Headers } from '../../src/implementation/xhrio';
+import { Metadata } from '../../src/metadata';
+import { Reference } from '../../src/reference';
+import { Service } from '../../src/service';
 import * as testShared from './testshared';
 import { SendHook, TestingXhrIo } from './xhrio';
-import { DEFAULT_HOST } from '../src/implementation/constants';
-import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import { DEFAULT_HOST } from '../../src/implementation/constants';
 import { Provider } from '@firebase/component';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 function makeFakeService(
   app: FirebaseApp,
-  authProvider: Provider<FirebaseAuthInternal>,
+  authProvider: Provider<'auth-internal'>,
   sendHook: SendHook
 ): Service {
   return new Service(app, authProvider, testShared.makePool(sendHook));

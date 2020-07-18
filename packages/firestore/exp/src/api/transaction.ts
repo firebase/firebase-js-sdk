@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
+import * as firestore from '../../../exp-types';
 
 import { Transaction as LiteTransaction } from '../../../lite/src/api/transaction';
 import { DocumentSnapshot } from './snapshot';

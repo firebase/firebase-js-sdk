@@ -19,19 +19,25 @@ import json from 'rollup-plugin-json';
 import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
+import { terser } from 'rollup-plugin-terser';
 
-import { resolveNodeExterns, generateAliasConfig } from './rollup.shared';
+import {
+  resolveNodeExterns,
+  generateAliasConfig,
+  resolveBrowserExterns,
+  firestoreTransformers,
+  manglePrivatePropertiesOptions
+} from './rollup.shared';
 
 import pkg from './lite/package.json';
 import path from 'path';
 
-const defaultPlugins = [
-  alias(generateAliasConfig('node')),
+const nodePlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
       compilerOptions: {
-        target: 'es2017'
+        target: 'es5'
       }
     },
     clean: true
@@ -39,21 +45,53 @@ const defaultPlugins = [
   json({ preferConst: true })
 ];
 
-const nodeBuilds = [
+const browserPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    },
+    clean: true,
+    transformers: firestoreTransformers
+  }),
+  json({ preferConst: true }),
+  terser(manglePrivatePropertiesOptions)
+];
+
+const allBuilds = [
+  // Node build
   {
-    input: 'lite/index.node.ts',
+    input: './lite/index.ts',
     output: {
       file: path.resolve('./lite', pkg.main),
+      format: 'umd',
+      name: 'firebase.firestore'
+    },
+    plugins: [alias(generateAliasConfig('node')), ...nodePlugins],
+    external: resolveNodeExterns
+  },
+  // Browser build
+  {
+    input: './lite/index.ts',
+    output: {
+      file: path.resolve('./lite', pkg.browser),
       format: 'es'
     },
-    plugins: defaultPlugins,
-    external: resolveNodeExterns,
-    treeshake: {
-      tryCatchDeoptimization: false
-    }
+    plugins: [alias(generateAliasConfig('browser')), ...browserPlugins],
+    external: resolveBrowserExterns
+  },
+  // RN build
+  {
+    input: './lite/index.ts',
+    output: {
+      file: path.resolve('./lite', pkg['react-native']),
+      format: 'es'
+    },
+    plugins: [alias(generateAliasConfig('rn')), ...browserPlugins],
+    external: resolveBrowserExterns
   }
 ];
 
-// TODO(firestorelite): Add browser builds
-
-export default [...nodeBuilds];
+export default allBuilds;

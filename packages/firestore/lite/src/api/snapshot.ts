@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
+import * as firestore from '../../../lite-types';
 
 import { Firestore } from './database';
 import { DocumentReference, queryEqual } from './reference';
