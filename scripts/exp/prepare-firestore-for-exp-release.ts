@@ -33,7 +33,7 @@ export async function prepare() {
 
   // Update package.json
   const packageJson = await readPackageJson(packagePath);
-  const expPackageJson = await readPackageJson(`${packageJson}/exp`);
+  const expPackageJson = await readPackageJson(`${packagePath}/exp`);
   packageJson.version = '0.0.800';
 
   packageJson.peerDependencies = {
