@@ -216,18 +216,22 @@ async function updatePackageJsons(
 
       // update dep version and remove -exp in dep names
       // don't care about devDependencies because they are irrelavant when using the package
-      const dependencies = packageJson.dependencies || {};
-      const newDependenciesObj: { [key: string]: string } = {};
-      for (const d of Object.keys(dependencies)) {
-        const dNextVersion = versions.get(d);
-        const nameWithoutExp = removeExpInPackageName(d);
-        if (!dNextVersion) {
-          newDependenciesObj[nameWithoutExp] = dependencies[d];
-        } else {
-          newDependenciesObj[nameWithoutExp] = dNextVersion;
+      const depTypes = ['dependencies', 'peerDependencies'];
+
+      for (const depType of depTypes) {
+        const dependencies = packageJson[depType] || {};
+        const newDependenciesObj: { [key: string]: string } = {};
+        for (const d of Object.keys(dependencies)) {
+          const dNextVersion = versions.get(d);
+          const nameWithoutExp = removeExpInPackageName(d);
+          if (!dNextVersion) {
+            newDependenciesObj[nameWithoutExp] = dependencies[d];
+          } else {
+            newDependenciesObj[nameWithoutExp] = dNextVersion;
+          }
         }
+        packageJson[depType] = newDependenciesObj;
       }
-      packageJson.dependencies = newDependenciesObj;
     }
 
     // set private to false
