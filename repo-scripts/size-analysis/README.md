@@ -22,11 +22,6 @@ $firebase-js-sdk/repo-scripts/size-analysis  `ts-node-script analysis.ts --if <p
 
 $firebase-js-sdk/repo-scripts/size-analysis  `ts-node-script analysis.ts --im "@firebase/module1-exp" "@firebase/module2-exp" -o <path to output DIRECTORY>`
 
-### To Write Reports to Customized File System Location
-
-$firebase-js-sdk/repo-scripts/size-analysis  `ts-node-script analysis.ts --im "@firebase/module1-exp" "@firebase/module2-exp" -o <path to output DIRECTORY>`
-
-
 ### To Do Analysis On All Firebase-Exp Modules
 
 $firebase-js-sdk/repo-scripts/size-analysis  `ts-node-script analysis.ts  -o <path to output DIRECTORY>`
