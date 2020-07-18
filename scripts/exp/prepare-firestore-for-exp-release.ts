@@ -23,7 +23,7 @@ const writeFile = promisify(_writeFile);
 const packagePath = `${projectRoot}/packages/firestore`;
 
 // Prepare @firebase/firestore, so scripts/exp/release.ts can be used to release it
-async function prepare() {
+export async function prepare() {
   // Build exp and lite packages
   await spawn('yarn', ['build:exp'], {
     cwd: packagePath,
@@ -64,5 +64,3 @@ async function prepare() {
     { encoding: 'utf-8' }
   );
 }
-
-prepare();

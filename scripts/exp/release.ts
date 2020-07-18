@@ -26,6 +26,7 @@ import { writeFile as _writeFile } from 'fs';
 import { promisify } from 'util';
 import chalk from 'chalk';
 import Listr from 'listr';
+import { prepare as prepareAndBuildFirestore } from './prepare-firestore-for-exp-release';
 
 const writeFile = promisify(_writeFile);
 const git = simpleGit(projectRoot);
@@ -43,10 +44,17 @@ async function publishExpPackages() {
      */
     await buildPackages();
 
+    /**
+     * prepare and build firestore
+     */
+    await prepareAndBuildFirestore();
+
     // path to exp packages
     const packagePaths = await mapWorkspaceToPackages([
       `${projectRoot}/packages-exp/*`
     ]);
+
+    packagePaths.push(`${projectRoot}/packages/firestore`);
 
     /**
      * It does 2 things:
@@ -62,26 +70,26 @@ async function publishExpPackages() {
     /**
      * Release packages to NPM
      */
-    await publishToNpm(packagePaths);
+    // await publishToNpm(packagePaths);
 
     /**
      * reset the working tree to recover package names with -exp in the package.json files,
      * then bump patch version of firebase-exp (the umbrella package) only
      */
-    const firebaseExpVersion = new Map<string, string>();
-    firebaseExpVersion.set(
-      FIREBASE_UMBRELLA_PACKAGE_NAME,
-      versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME)
-    );
-    const firebaseExpPath = packagePaths.filter(p =>
-      p.includes(FIREBASE_UMBRELLA_PACKAGE_NAME)
-    );
-    await resetWorkingTreeAndBumpVersions(firebaseExpPath, firebaseExpVersion);
+    // const firebaseExpVersion = new Map<string, string>();
+    // firebaseExpVersion.set(
+    //   FIREBASE_UMBRELLA_PACKAGE_NAME,
+    //   versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME)
+    // );
+    // const firebaseExpPath = packagePaths.filter(p =>
+    //   p.includes(FIREBASE_UMBRELLA_PACKAGE_NAME)
+    // );
+    // await resetWorkingTreeAndBumpVersions(firebaseExpPath, firebaseExpVersion);
 
     /**
      * push to github
      */
-    await commitAndPush(versions);
+    //  await commitAndPush(versions);
   } catch (err) {
     /**
      * Log any errors that happened during the process
