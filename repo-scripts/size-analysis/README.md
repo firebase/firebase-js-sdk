@@ -7,7 +7,7 @@
 -  `--inputDtsFile, --if`     Support for adhoc analysis. requires a path to dts file [string]
 -  `--inputBundleFile, --ib`  Support for adhoc analysis. requires a path to a bundle file [string]
 - `--output, -o`            The location where report(s) will be generated, a directory path if module(s) are analyzed; a file path if ad hoc analysis is to be performed. One of --ci and --output flag must be specified for output redirection. [string]
-- `--ci`: if enabled, upload report to ci backend. One of --ci and --output flag must be specified for output redirection. [boolean]
+- `--ci`: when enabled, the binary size report is not persisted on file system; Instead, it will be uploaded to CI by its backend process [boolean]
 - `--help `                  Show help [boolean]
 
 
@@ -20,15 +20,11 @@ $firebase-js-sdk/repo-scripts/size-analysis  `ts-node-script analysis.ts --if <p
 
 ### To Do Analysis On One to Many Firebase Modules
 
-firebase-js-sdk/repo-scripts/size-analysis  `ts-node-script analysis.ts --im "@firebase/module1-exp" "@firebase/module2-exp" -o <path to output DIRECTORY>`
+$firebase-js-sdk/repo-scripts/size-analysis  `ts-node-script analysis.ts --im "@firebase/module1-exp" "@firebase/module2-exp" -o <path to output DIRECTORY>`
 
-### To Upload Reports to CI
+### To Write Reports to Customized File System Location
 
-firebase-js-sdk/repo-scripts/size-analysis  `ts-node-script analysis.ts --im "@firebase/module1-exp" "@firebase/module2-exp" --ci`
-
-### To Upload Reports to CI and Persist to Files
-
-firebase-js-sdk/repo-scripts/size-analysis  `ts-node-script analysis.ts --im "@firebase/module1-exp" "@firebase/module2-exp" --ci -o <path to output DIRECTORY>`
+$firebase-js-sdk/repo-scripts/size-analysis  `ts-node-script analysis.ts --im "@firebase/module1-exp" "@firebase/module2-exp" -o <path to output DIRECTORY>`
 
 
 ### To Do Analysis On All Firebase-Exp Modules
