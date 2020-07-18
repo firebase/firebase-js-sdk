@@ -25,12 +25,7 @@ const packagePath = `${projectRoot}/packages/firestore`;
 // Prepare @firebase/firestore, so scripts/exp/release.ts can be used to release it
 export async function prepare() {
   // Build exp and lite packages
-  await spawn('yarn', ['build:exp'], {
-    cwd: packagePath,
-    stdio: 'inherit'
-  });
-
-  await spawn('yarn', ['build:lite'], {
+  await spawn('yarn', ['build:exp:release'], {
     cwd: packagePath,
     stdio: 'inherit'
   });
