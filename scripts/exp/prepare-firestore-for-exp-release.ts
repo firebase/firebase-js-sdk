@@ -17,10 +17,12 @@
 
 import { spawn } from 'child-process-promise';
 import { projectRoot, readPackageJson } from '../utils';
-import { writeFile as _writeFile } from 'fs';
+import { writeFile as _writeFile, readFile as _readFile } from 'fs';
 import { promisify } from 'util';
-import { removeExpSuffix } from './remove-exp';
+import path from 'path';
+
 const writeFile = promisify(_writeFile);
+const readFile = promisify(_readFile);
 const packagePath = `${projectRoot}/packages/firestore`;
 
 // Prepare @firebase/firestore, so scripts/exp/release.ts can be used to release it
@@ -34,6 +36,7 @@ export async function prepare() {
   // Update package.json
   const packageJson = await readPackageJson(packagePath);
   const expPackageJson = await readPackageJson(`${packagePath}/exp`);
+  const litePackageJson = await readPackageJson(`${packagePath}/lite`);
   packageJson.version = '0.0.800';
 
   packageJson.peerDependencies = {
@@ -60,7 +63,23 @@ export async function prepare() {
     { encoding: 'utf-8' }
   );
 
+  const expTypingPath = `${packagePath}/${packageJson.typing}`;
+  const liteTypingPath = path.resolve(
+    `${packagePath}/lite`,
+    litePackageJson.typing
+  );
+
   // remove -exp in typings files
-  removeExpSuffix(`${packagePath}/exp-types`);
-  removeExpSuffix(`${packagePath}/lite-types`);
+  await replaceAppTypesExpInFile(expTypingPath);
+  await replaceAppTypesExpInFile(liteTypingPath);
+}
+
+async function replaceAppTypesExpInFile(filePath: string): Promise<void> {
+  const fileContent = await readFile(filePath, { encoding: 'utf-8' });
+  const newFileContent = fileContent.replace(
+    '@firebase/app-types-exp',
+    '@firebase/app-types'
+  );
+
+  await writeFile(filePath, newFileContent, { encoding: 'utf-8' });
 }
