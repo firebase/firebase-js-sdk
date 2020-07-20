@@ -45,6 +45,11 @@ import {
 } from '@firebase/util';
 import { initializeIds } from './initialize-ids';
 import { logger } from './logger';
+import {
+  isIndexedDBAvailable,
+  validateIndexedDBOpenable,
+  areCookiesEnabled
+} from '@firebase/util';
 
 /**
  * Maps appId to full initialization promise.
@@ -150,16 +155,26 @@ export function factory(
   if (!appId) {
     throw ERROR_FACTORY.create(AnalyticsError.NO_APP_ID);
   }
-
   if (!app.options.apiKey) {
     throw ERROR_FACTORY.create(AnalyticsError.NO_API_KEY);
   }
-
   if (initializationPromisesMap[appId] != null) {
     throw ERROR_FACTORY.create(AnalyticsError.ALREADY_EXISTS, {
       id: appId
     });
   }
+  if (!areCookiesEnabled()) {
+    throw ERROR_FACTORY.create(AnalyticsError.COOKIES_NOT_ENABLED);
+  }
+  if (!isIndexedDBAvailable()) {
+    throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
+  }
+  // Async but non-blocking.
+  validateIndexedDBOpenable().catch(error => {
+    throw ERROR_FACTORY.create(AnalyticsError.INVALID_INDEXED_DB_CONTEXT, {
+      errorInfo: error
+    });
+  });
 
   if (!globalInitDone) {
     // Steps here should only be done once per page: creation or wrapping
