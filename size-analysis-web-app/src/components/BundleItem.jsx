@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { BTNTEXT } from '../constants';
+import { TEXT } from '../constants';
 
 class BundleItem extends Component {
     constructor(props) {
@@ -25,7 +25,7 @@ class BundleItem extends Component {
     }
     composeImportStatement(functionNames, moduleName) {
         if (functionNames.size === 0) {
-            return <p>import * from {moduleName}</p>;
+            return <p>import {TEXT.moduleRepresentation} from {moduleName}</p>;
         } else {
             return (
                 <div>
@@ -35,7 +35,7 @@ class BundleItem extends Component {
                             <div key={moduleName + functionName} style={{ display: "inline" }}>
                                 <span
                                     className="badge badge-danger light-orange-btn"
-                                    onClick={() => { this.props.removeFunctionFromModule(functionName, moduleName) }}>
+                                    onClick={() => { this.props.handleRemoveFunctionFromBundle(functionName, moduleName) }}>
                                     {functionName}
                                 </span>
                                 {' '}
@@ -55,8 +55,8 @@ class BundleItem extends Component {
                 {this.composeImportStatement(this.props.functionName, this.props.moduleName)}
                 <button
                     className="badge badge-danger light-orange-btn"
-                    onClick={() => { this.props.removeModuleFromBundle(this.props.moduleName) }}>
-                    {BTNTEXT.deleteButtonText}
+                    onClick={() => { this.props.handleRemoveModuleFromBundle(this.props.moduleName) }}>
+                    {TEXT.deleteButtonText}
                 </button>
 
             </li>

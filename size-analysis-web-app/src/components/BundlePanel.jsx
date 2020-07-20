@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import BundleItem from './BundleItem';
-import { BTNTEXT } from '../constants';
+import { TEXT } from '../constants';
 class BundlePanel extends Component {
     constructor(props) {
         super(props);
@@ -8,8 +8,7 @@ class BundlePanel extends Component {
             currentBundle: this.props.bundle
 
         }
-        this.removeModuleFromBundle = this.removeModuleFromBundle.bind(this);
-        this.removeFunctionFromModule = this.removeFunctionFromModule.bind(this);
+
     }
     componentDidMount() {
 
@@ -18,20 +17,6 @@ class BundlePanel extends Component {
         if (prevProps.bundle !== this.props.bundle) {
             this.setState({ currentBundle: this.props.bundle });
         }
-
-    }
-    removeModuleFromBundle(moduleNameTobeRemoved) {
-        let tmpCurrentBundle = new Map(this.state.currentBundle);
-        tmpCurrentBundle.delete(moduleNameTobeRemoved);
-        this.props.handleUpdateBundle(tmpCurrentBundle);
-    }
-    removeFunctionFromModule(functionNameTobeRemoved, moduleName) {
-        let tmpCurrentBundle = new Map(this.state.currentBundle);
-        tmpCurrentBundle.get(moduleName).delete(functionNameTobeRemoved);
-        if (tmpCurrentBundle.get(moduleName).size === 0) {
-            tmpCurrentBundle.delete(moduleName);
-        }
-        this.props.handleUpdateBundle(tmpCurrentBundle);
 
     }
     render() {
@@ -43,8 +28,9 @@ class BundlePanel extends Component {
 
                     {Array.from(this.state.currentBundle.keys()).map(key =>
                         <BundleItem
-                            removeModuleFromBundle={this.removeModuleFromBundle}
-                            removeFunctionFromModule={this.removeFunctionFromModule}
+
+                            handleRemoveFunctionFromBundle={this.props.handleRemoveFunctionFromBundle}
+                            handleRemoveModuleFromBundle={this.props.handleRemoveModuleFromBundle}
                             index={key} key={key}
                             moduleName={key}
                             functionName={this.state.currentBundle.get(key)} />
@@ -53,7 +39,7 @@ class BundlePanel extends Component {
                 <button
                     className="btn text light-orange-btn float-right"
                     onClick={this.props.handleOnCalculateBundle}>
-                    {BTNTEXT.calculateBtnText}
+                    {TEXT.calculateBtnText}
                 </button>
 
             </div>

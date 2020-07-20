@@ -12,9 +12,10 @@ export const SECTION = {
     bundleOverview: 'Bundle Overview'
 
 }
-export const BTNTEXT = {
+export const TEXT = {
     calculateBtnText: 'Calculate',
     addButtonText: '+',
-    deleteButtonText: 'x'
+    deleteButtonText: 'x',
+    moduleRepresentation: '*'
 }
 

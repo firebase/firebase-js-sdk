@@ -17,10 +17,12 @@ class App extends Component {
     }
     this.handleChange = this.handleChange.bind(this);
     this.onNPMVersionSelected = this.onNPMVersionSelected.bind(this);
-    this.handleAddModule = this.handleAddModule.bind(this);
-    this.handleAddFunction = this.handleAddFunction.bind(this);
+    this.handleAddModuleToBundle = this.handleAddModuleToBundle.bind(this);
+    this.handleAddFunctionToBundle = this.handleAddFunctionToBundle.bind(this);
     this.handleUpdateBundle = this.handleUpdateBundle.bind(this);
     this.handleOnCalculateBundle = this.handleOnCalculateBundle.bind(this);
+    this.handleRemoveModuleFromBundle = this.handleRemoveModuleFromBundle.bind(this);
+    this.handleRemoveFunctionFromBundle = this.handleRemoveFunctionFromBundle.bind(this);
   }
 
   handleUpdateBundle(updatedBundle) {
@@ -28,7 +30,22 @@ class App extends Component {
       currentBundle: updatedBundle
     })
   }
-  handleAddModule(moduleName) {
+  handleRemoveModuleFromBundle(moduleNameTobeRemoved) {
+    let tmpCurrentBundle = new Map(this.state.currentBundle);
+    tmpCurrentBundle.delete(moduleNameTobeRemoved);
+    this.handleUpdateBundle(tmpCurrentBundle);
+  }
+  handleRemoveFunctionFromBundle(functionNameTobeRemoved, moduleName) {
+    let tmpCurrentBundle = new Map(this.state.currentBundle);
+    tmpCurrentBundle.get(moduleName).delete(functionNameTobeRemoved);
+    if (tmpCurrentBundle.get(moduleName).size === 0) {
+      tmpCurrentBundle.delete(moduleName);
+    }
+    this.handleUpdateBundle(tmpCurrentBundle);
+
+  }
+
+  handleAddModuleToBundle(moduleName) {
     // if adding a whole module to the bundle, then an entry in map with key module name and value an empty set 
     // if adding some functions of a module to the bundle, then an entry in map with key module name and value a set of function names 
     let tmpCurrentBundle = new Map(this.state.currentBundle);
@@ -44,7 +61,7 @@ class App extends Component {
     });
 
   }
-  handleAddFunction(functionName, moduleName) {
+  handleAddFunctionToBundle(functionName, moduleName) {
     let tmpCurrentBundle = new Map(this.state.currentBundle);
     if (!tmpCurrentBundle.has(moduleName)) {
       tmpCurrentBundle.set(moduleName, new Set());
@@ -111,9 +128,14 @@ class App extends Component {
                   key={key}
                   index={key}
                   name={key}
+                  handleAddFunctionToBundle={this.handleAddFunctionToBundle}
+                  handleAddModuleToBundle={this.handleAddModuleToBundle}
+                  handleRemoveFunctionFromBundle={this.handleRemoveFunctionFromBundle}
+                  handleRemoveModuleFromBundle={this.handleRemoveModuleFromBundle}
+                  bundle={this.state.currentBundle}
                   module={this.state.allModulesOfSelectedVersion[key]}
-                  handleAddFunction={this.handleAddFunction}
-                  handleAddModule={this.handleAddModule} />)}
+
+                />)}
 
             </div>
           </div>
@@ -122,7 +144,8 @@ class App extends Component {
             <div className="row m-2">
               <BundlePanel
                 bundle={this.state.currentBundle}
-                handleUpdateBundle={this.handleUpdateBundle}
+                handleRemoveFunctionFromBundle={this.handleRemoveFunctionFromBundle}
+                handleRemoveModuleFromBundle={this.handleRemoveModuleFromBundle}
                 handleOnCalculateBundle={this.handleOnCalculateBundle}
               />
             </div>
