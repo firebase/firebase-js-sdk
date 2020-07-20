@@ -49,6 +49,7 @@ export interface Auth extends externs.Auth {
   ): Promise<void>;
   _redirectUserForId(id: string): Promise<User | null>;
   _popupRedirectResolver: PopupRedirectResolver | null;
+  _key(): string;
 }
 
 export interface Dependencies {
