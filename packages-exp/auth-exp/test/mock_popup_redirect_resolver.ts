@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { PopupRedirectResolver } from '@firebase/auth-types-exp';
+import { Persistence, PopupRedirectResolver } from '@firebase/auth-types-exp';
 
 import { AuthEventManager } from '../src/core/auth/auth_event_manager';
 import { AuthPopup } from '../src/core/util/popup';
@@ -37,5 +37,9 @@ export function makeMockPopupRedirectResolver(
     async _openPopup(): Promise<AuthPopup> {
       return authPopup || new AuthPopup(null);
     }
+
+    async _openRedirect(): Promise<void> {}
+
+    _redirectPersistence?: Persistence;
   };
 }
