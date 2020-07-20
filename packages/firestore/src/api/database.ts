@@ -1537,6 +1537,7 @@ export class QueryDocumentSnapshot<T = firestore.DocumentData>
 
 export function newQueryFilter(
   query: InternalQuery,
+  methodName: string,
   dataReader: UserDataReader,
   databaseId: DatabaseId,
   fieldPath: FieldPath,
@@ -1567,7 +1568,7 @@ export function newQueryFilter(
     }
     fieldValue = parseQueryValue(
       dataReader,
-      'Query.where',
+      methodName,
       value,
       op === Operator.IN
     );
@@ -1940,6 +1941,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const filter = newQueryFilter(
       this._query,
+      'Query.where',
       this.firestore._dataReader,
       this.firestore._databaseId,
       fieldPath,

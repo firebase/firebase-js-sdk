@@ -166,6 +166,7 @@ class QueryFilterConstraint extends QueryConstraint {
     const reader = newUserDataReader(query.firestore);
     const filter = newQueryFilter(
       query._query,
+      'where',
       reader,
       query.firestore._databaseId,
       this._field,
