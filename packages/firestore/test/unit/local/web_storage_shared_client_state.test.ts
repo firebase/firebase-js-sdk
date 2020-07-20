@@ -29,7 +29,6 @@ import {
   LocalClientState,
   MutationMetadata,
   QueryTargetMetadata,
-  SharedClientState,
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
 import {
