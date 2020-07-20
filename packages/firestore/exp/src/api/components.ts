@@ -116,9 +116,11 @@ export function initializeFirestoreClient(
 export async function removeFirestoreClient(
   firestore: Firestore
 ): Promise<void> {
-  const firestoreClient = await firestoreClientInstances.get(firestore);
-  if (firestoreClient) {
+  const firestoreClientPromise = firestoreClientInstances.get(firestore);
+  if (firestoreClientPromise) {
     firestoreClientInstances.delete(firestore);
-    return firestoreClient.terminate();
+    return firestoreClientPromise.then(firestoreClient =>
+      firestoreClient.terminate()
+    );
   }
 }
