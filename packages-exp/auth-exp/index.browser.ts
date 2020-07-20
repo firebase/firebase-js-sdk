@@ -38,6 +38,12 @@ export {
   linkWithPopup,
   reauthenticateWithPopup
 } from './src/core/strategies/popup';
+export {
+  signInWithRedirect,
+  linkWithRedirect,
+  reauthenticateWithRedirect,
+  getRedirectResult
+} from './src/core/strategies/redirect';
 
 // platform_browser
 export { RecaptchaVerifier } from './src/platform_browser/recaptcha/recaptcha_verifier';

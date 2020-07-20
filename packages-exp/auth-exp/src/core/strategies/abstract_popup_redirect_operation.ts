@@ -31,7 +31,7 @@ import { debugAssert, fail } from '../util/assert';
 import { _link, _reauth, _signIn, IdpTask, IdpTaskParams } from './idp';
 
 interface PendingPromise {
-  resolve: (cred: UserCredential) => void;
+  resolve: (cred: UserCredential | null) => void;
   reject: (error: Error) => void;
 }
 
@@ -58,8 +58,8 @@ export abstract class AbstractPopupRedirectOperation
 
   abstract onExecution(): Promise<void>;
 
-  execute(): Promise<UserCredential> {
-    return new Promise<UserCredential>(async (resolve, reject) => {
+  execute(): Promise<UserCredential | null> {
+    return new Promise<UserCredential | null>(async (resolve, reject) => {
       this.pendingPromise = { resolve, reject };
 
       try {
@@ -115,7 +115,7 @@ export abstract class AbstractPopupRedirectOperation
     }
   }
 
-  protected resolve(cred: UserCredential): void {
+  protected resolve(cred: UserCredential | null): void {
     debugAssert(this.pendingPromise, 'Pending promise was never set');
     this.pendingPromise.resolve(cred);
     this.unregisterAndCleanUp();

@@ -24,7 +24,7 @@ import {
 } from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
-import { debugAssert } from '../util/assert';
+import { assert, debugAssert } from '../util/assert';
 import { Delay } from '../util/delay';
 import { _generateEventId } from '../util/event_id';
 import { _getInstance } from '../util/instantiator';
@@ -49,7 +49,7 @@ export async function signInWithPopup(
     provider,
     resolver
   );
-  return action.execute();
+  return action.executeNotNull();
 }
 
 export async function reauthenticateWithPopup(
@@ -67,7 +67,7 @@ export async function reauthenticateWithPopup(
     resolver,
     user
   );
-  return action.execute();
+  return action.executeNotNull();
 }
 
 export async function linkWithPopup(
@@ -85,7 +85,7 @@ export async function linkWithPopup(
     resolver,
     user
   );
-  return action.execute();
+  return action.executeNotNull();
 }
 
 /**
@@ -112,6 +112,12 @@ class PopupOperation extends AbstractPopupRedirectOperation {
     }
 
     PopupOperation.currentPopupAction = this;
+  }
+
+  async executeNotNull(): Promise<externs.UserCredential> {
+    const result = await this.execute();
+    assert(result, this.auth.name);
+    return result;
   }
 
   async onExecution(): Promise<void> {
