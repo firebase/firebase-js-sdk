@@ -1585,15 +1585,15 @@ export function newQueryOrderBy(
   if (query.startAt !== null) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      'Invalid query. You must not call Query.startAt() or ' +
-        'Query.startAfter() before calling Query.orderBy().'
+      'Invalid query. You must not call startAt() or startAfter() before ' +
+        'calling orderBy().'
     );
   }
   if (query.endAt !== null) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      'Invalid query. You must not call Query.endAt() or ' +
-        'Query.endBefore() before calling Query.orderBy().'
+      'Invalid query. You must not call endAt() or endBefore() before ' +
+        'calling orderBy().'
     );
   }
   const orderBy = new OrderBy(fieldPath, direction);
@@ -1684,7 +1684,7 @@ export function newQueryBoundFromFields(
       Code.INVALID_ARGUMENT,
       `Too many arguments provided to ${methodName}(). ` +
         `The number of arguments must be less than or equal to the ` +
-        `number of Query.orderBy() clauses`
+        `number of orderBy() clauses`
     );
   }
 
@@ -1893,7 +1893,7 @@ function validateOrderByAndInequalityMatch(
       `Invalid query. You have a where filter with an inequality ` +
         `(<, <=, >, or >=) on field '${inequality.toString()}' ` +
         `and so you must also use '${inequality.toString()}' ` +
-        `as your first Query.orderBy(), but your first Query.orderBy() ` +
+        `as your first orderBy(), but your first orderBy() ` +
         `is on field '${orderBy.toString()}' instead.`
     );
   }

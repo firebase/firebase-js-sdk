@@ -188,7 +188,7 @@ export function where(
   // TODO(firestorelite): Consider validating the enum strings (note that
   // TypeScript does not support passing invalid values).
   const op = opStr as Operator;
-  const field = fieldPathFromArgument('Query.where', fieldPath);
+  const field = fieldPathFromArgument('where', fieldPath);
   return new QueryFilterConstraint(field, op, value);
 }
 
@@ -219,7 +219,7 @@ export function orderBy(
   // TODO(firestorelite): Consider validating the enum strings (note that
   // TypeScript does not support passing invalid values).
   const direction = directionStr as Direction;
-  const fieldPath = fieldPathFromArgument('Query.orderBy', field);
+  const fieldPath = fieldPathFromArgument('orderBy', field);
   return new QueryOrderByConstraint(fieldPath, direction);
 }
 

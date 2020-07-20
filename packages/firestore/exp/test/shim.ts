@@ -766,6 +766,10 @@ function unwrap(value: any): any {
     return value._delegate;
   } else if (value instanceof DocumentReference) {
     return value._delegate;
+  } else if (value instanceof DocumentSnapshot) {
+    return value._delegate;
+  } else if (value instanceof QueryDocumentSnapshot) {
+    return value._delegate;
   } else if (isPlainObject(value)) {
     const obj: any = {};
     for (const key in value) {
