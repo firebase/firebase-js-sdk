@@ -15,16 +15,14 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { AuthWrapper } from '../../src/implementation/authwrapper';
 import { FbsBlob } from '../../src/implementation/blob';
 import { Location } from '../../src/implementation/location';
 import { getMappings } from '../../src/implementation/metadata';
 import { Unsubscribe } from '../../src/implementation/observer';
-import { makeRequest } from '../../src/implementation/request';
 import { TaskEvent, TaskState } from '../../src/implementation/taskenums';
 import { Headers } from '../../src/implementation/xhrio';
 import { Reference } from '../../src/reference';
-import { Service } from '../../src/service';
+import { StorageService } from '../../src/service';
 import { UploadTask } from '../../src/task';
 import {
   assertThrows,
@@ -54,7 +52,7 @@ type RequestHandler = (
   headers?: Headers
 ) => Response;
 
-function authWrapperWithHandler(handler: RequestHandler): AuthWrapper {
+function storageServiceWithHandler(handler: RequestHandler): StorageService {
   function newSend(
     xhrio: TestingXhrIo,
     url: string,
@@ -66,16 +64,7 @@ function authWrapperWithHandler(handler: RequestHandler): AuthWrapper {
     xhrio.simulateResponse(response.status, response.body, response.headers);
   }
 
-  return new AuthWrapper(
-    null,
-    emptyAuthProvider,
-    () => {
-      return {} as Reference;
-    },
-    makeRequest,
-    {} as Service,
-    makePool(newSend)
-  );
+  return new StorageService(null, emptyAuthProvider, makePool(newSend));
 }
 
 function fakeServerHandler(): RequestHandler {
@@ -205,10 +194,10 @@ function fakeServerHandler(): RequestHandler {
 
 describe('Firebase Storage > Upload Task', () => {
   it('Works for a small upload w/ an observer', done => {
-    const authWrapper = authWrapperWithHandler(fakeServerHandler());
+    const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
       {} as Reference,
-      authWrapper,
+      storageService,
       testLocation,
       mappings,
       smallBlob
@@ -221,10 +210,10 @@ describe('Firebase Storage > Upload Task', () => {
     );
   });
   it('Works for a small upload w/ a promise', () => {
-    const authWrapper = authWrapperWithHandler(fakeServerHandler());
+    const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
       {} as Reference,
-      authWrapper,
+      storageService,
       testLocation,
       mappings,
       smallBlob
@@ -234,10 +223,10 @@ describe('Firebase Storage > Upload Task', () => {
     });
   });
   it('Works for a small upload canceled w/ a promise', () => {
-    const authWrapper = authWrapperWithHandler(fakeServerHandler());
+    const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
       {} as Reference,
-      authWrapper,
+      storageService,
       testLocation,
       mappings,
       smallBlob
@@ -253,10 +242,10 @@ describe('Firebase Storage > Upload Task', () => {
     return promise;
   });
   it('Works properly with multiple observers', () => {
-    const authWrapper = authWrapperWithHandler(fakeServerHandler());
+    const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
       {} as Reference,
-      authWrapper,
+      storageService,
       testLocation,
       mappings,
       smallBlob
@@ -309,10 +298,10 @@ describe('Firebase Storage > Upload Task', () => {
     });
   });
   it("Works properly with an observer missing the 'next' method", () => {
-    const authWrapper = authWrapperWithHandler(fakeServerHandler());
+    const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
       {} as Reference,
-      authWrapper,
+      storageService,
       testLocation,
       mappings,
       smallBlob
@@ -330,10 +319,10 @@ describe('Firebase Storage > Upload Task', () => {
   });
 
   function runNormalUploadTest(blob: FbsBlob): Promise<void> {
-    const authWrapper = authWrapperWithHandler(fakeServerHandler());
+    const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
       {} as Reference,
-      authWrapper,
+      storageService,
       testLocation,
       mappings,
       blob
@@ -454,7 +443,7 @@ describe('Firebase Storage > Upload Task', () => {
 
       const task2 = new UploadTask(
         {} as Reference,
-        authWrapper,
+        storageService,
         testLocation,
         mappings,
         blob
@@ -508,10 +497,10 @@ describe('Firebase Storage > Upload Task', () => {
   });
 
   describe('Argument verification', () => {
-    const authWrapper = authWrapperWithHandler(fakeServerHandler());
+    const storageService = storageServiceWithHandler(fakeServerHandler());
     const task = new UploadTask(
       {} as Reference,
-      authWrapper,
+      storageService,
       testLocation,
       mappings,
       smallBlob
