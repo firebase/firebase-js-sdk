@@ -48,11 +48,10 @@ import { Code, FirestoreError } from '../util/error';
 import { OnlineStateSource } from './types';
 import { LruParams, LruScheduler } from '../local/lru_garbage_collector';
 import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
-import { MemorySharedClientStateSyncer } from '../local/shared_client_state_syncer';
 import {
-  indexedDbStoragePrefix,
+  indexedDbClearPersistence,
   IndexedDbPersistence,
-  indexedDbClearPersistence
+  indexedDbStoragePrefix
 } from '../local/indexeddb_persistence';
 import {
   MemoryEagerDelegate,
@@ -63,6 +62,7 @@ import { newSerializer } from '../platform/serializer';
 import { getDocument, getWindow } from '../platform/dom';
 import { CredentialsProvider } from '../api/credentials';
 import { Connection } from '../remote/connection';
+
 const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
   'You are using the memory-only build of Firestore. Persistence support is ' +
   'only available via the @firebase/firestore bundle or the ' +
@@ -198,7 +198,7 @@ export class MemoryComponentProvider implements ComponentProvider {
   }
 
   createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
-    const syncEngine = newSyncEngine(
+    return newSyncEngine(
       this.localStore,
       this.remoteStore,
       this.datastore,
@@ -207,10 +207,6 @@ export class MemoryComponentProvider implements ComponentProvider {
       cfg.maxConcurrentLimboResolutions,
       /* isPrimary= */ true
     );
-    this.sharedClientState.syncEngine = new MemorySharedClientStateSyncer([
-      cfg.clientId
-    ]);
-    return syncEngine;
   }
 
   clearPersistence(
@@ -330,12 +326,17 @@ export class MultiTabIndexedDbComponentProvider extends IndexedDbComponentProvid
       cfg.maxConcurrentLimboResolutions,
       startsAsPrimary
     );
-    this.sharedClientState.syncEngine = {
-      applyBatchState: applyBatchState.bind(null, syncEngine),
-      applyTargetState: applyTargetState.bind(null, syncEngine),
-      applyActiveTargetsChange: applyActiveTargetsChange.bind(null, syncEngine),
-      getActiveClients: getActiveClients.bind(null, syncEngine)
-    };
+    if (this.sharedClientState instanceof WebStorageSharedClientState) {
+      this.sharedClientState.syncEngine = {
+        applyBatchState: applyBatchState.bind(null, syncEngine),
+        applyTargetState: applyTargetState.bind(null, syncEngine),
+        applyActiveTargetsChange: applyActiveTargetsChange.bind(
+          null,
+          syncEngine
+        ),
+        getActiveClients: getActiveClients.bind(null, syncEngine)
+      };
+    }
     return syncEngine;
   }
 

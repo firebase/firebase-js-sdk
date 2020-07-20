@@ -41,7 +41,6 @@ import {
   ClientId,
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
-import { MemorySharedClientStateSyncer } from '../../../src/local/shared_client_state_syncer';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';
@@ -156,13 +155,6 @@ export async function populateWebStorage(
     existingClientId,
     user
   );
-
-  secondaryClientState.syncEngine = new MemorySharedClientStateSyncer([
-    existingClientId
-  ]);
-  secondaryClientState.onlineStateHandler = () => {};
-  await secondaryClientState.start();
-
   for (const batchId of existingMutationBatchIds) {
     secondaryClientState.addPendingMutation(batchId);
   }

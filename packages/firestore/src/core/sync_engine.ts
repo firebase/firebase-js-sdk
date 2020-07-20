@@ -21,7 +21,7 @@ import {
   getCachedTarget,
   ignoreIfPrimaryLeaseLoss,
   LocalStore,
-  getCurrentlyActiveClients,
+  getActiveClientsFromPersistence,
   lookupMutationDocuments,
   removeCachedMutationBatchMetadata
 } from '../local/local_store';
@@ -1234,7 +1234,7 @@ function synthesizeTargetToQuery(target: Target): Query {
 // PORTING NOTE: Multi-Tab only.
 export function getActiveClients(syncEngine: SyncEngine): Promise<ClientId[]> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  return getCurrentlyActiveClients(syncEngineImpl.localStore);
+  return getActiveClientsFromPersistence(syncEngineImpl.localStore);
 }
 
 /** Applies a query target change from a different tab. */

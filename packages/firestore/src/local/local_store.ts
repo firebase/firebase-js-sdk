@@ -1090,7 +1090,7 @@ export function removeCachedMutationBatchMetadata(
 }
 
 // PORTING NOTE: Multi-Tab only.
-export function getCurrentlyActiveClients(
+export function getActiveClientsFromPersistence(
   localStore: LocalStore
 ): Promise<ClientId[]> {
   const persistenceImpl = debugCast(
