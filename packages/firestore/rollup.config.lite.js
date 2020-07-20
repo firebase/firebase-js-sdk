@@ -52,7 +52,7 @@ const browserPlugins = [
     transformers: util.removeAssertAndPrefixInternalTransformer
   }),
   json({ preferConst: true }),
-  terser(manglePrivatePropertiesOptions)
+  terser(util.manglePrivatePropertiesOptions)
 ];
 
 const allBuilds = [
