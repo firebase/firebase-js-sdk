@@ -18,7 +18,11 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { Auth } from '../../model/auth';
-import { AuthEvent, AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import {
+  AuthEvent,
+  AuthEventType,
+  PopupRedirectResolver
+} from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
 import { _assertLinkedStatus } from '../user/link_unlink';
 import { _generateEventId } from '../util/event_id';
