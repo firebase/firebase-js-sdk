@@ -1082,13 +1082,16 @@ apiDescribe('Validation:', (persistence: boolean) => {
         );
         expect(() => query.startAt('foo/bar')).to.throw(
           `Invalid query. When querying a collection and ordering by FieldPath.documentId(), ` +
-            `the value passed to startAt() must be a plain document ID, but 'foo/bar' ` +
-            `contains a slash.`
+            `the value passed to ${
+              usesFunctionalApi() ? 'startAt' : 'Query.startAt'
+            }() must be a plain document ID, but 'foo/bar' contains a slash.`
         );
         expect(() => cgQuery.startAt('foo')).to.throw(
           `Invalid query. When querying a collection group and ordering by ` +
-            `FieldPath.documentId(), the value passed to startAt() must result in a valid ` +
-            `document path, but 'foo' is not because it contains an odd number of segments.`
+            `FieldPath.documentId(), the value passed to ${
+              usesFunctionalApi() ? 'startAt' : 'Query.startAt'
+            }() must result in a valid document path, but 'foo' is not because ` +
+            `it contains an odd number of segments.`
         );
       }
     );
