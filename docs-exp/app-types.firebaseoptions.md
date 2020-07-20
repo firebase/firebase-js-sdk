@@ -15,12 +15,12 @@ export interface FirebaseOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [apiKey](./app-types.firebaseoptions.apikey.md) | <code>string</code> |  |
-|  [appId](./app-types.firebaseoptions.appid.md) | <code>string</code> |  |
-|  [authDomain](./app-types.firebaseoptions.authdomain.md) | <code>string</code> |  |
-|  [databaseURL](./app-types.firebaseoptions.databaseurl.md) | <code>string</code> |  |
-|  [measurementId](./app-types.firebaseoptions.measurementid.md) | <code>string</code> |  |
-|  [messagingSenderId](./app-types.firebaseoptions.messagingsenderid.md) | <code>string</code> |  |
-|  [projectId](./app-types.firebaseoptions.projectid.md) | <code>string</code> |  |
-|  [storageBucket](./app-types.firebaseoptions.storagebucket.md) | <code>string</code> |  |
+|  [apiKey](./app-types.firebaseoptions.apikey.md) | string |  |
+|  [appId](./app-types.firebaseoptions.appid.md) | string |  |
+|  [authDomain](./app-types.firebaseoptions.authdomain.md) | string |  |
+|  [databaseURL](./app-types.firebaseoptions.databaseurl.md) | string |  |
+|  [measurementId](./app-types.firebaseoptions.measurementid.md) | string |  |
+|  [messagingSenderId](./app-types.firebaseoptions.messagingsenderid.md) | string |  |
+|  [projectId](./app-types.firebaseoptions.projectid.md) | string |  |
+|  [storageBucket](./app-types.firebaseoptions.storagebucket.md) | string |  |
 

@@ -48,7 +48,8 @@
     "lint": "lerna run --scope @firebase/* --scope rxfire lint",
     "size-report": "node scripts/report_binary_size.js",
     "api-report": "lerna run --scope @firebase/*-exp api-report",
-    "docgen:exp": "node scripts/exp/docgen.js"
+    "docgen:exp": "ts-node-script scripts/exp/docgen.ts",
+    "postinstall": "yarn --cwd repo-scripts/changelog-generator build"
   },
   "repository": {
     "type": "git",
@@ -57,7 +58,8 @@
   "workspaces": [
     "packages/*",
     "packages-exp/*",
-    "integration/*"
+    "integration/*",
+    "repo-scripts/*"
   ],
   "devDependencies": {
     "@changesets/changelog-github": "0.2.6",

@@ -17,7 +17,7 @@
 
 import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
-import { doc, path } from '../../util/helpers';
+import { doc, query } from '../../util/helpers';
 
 import { TimerId } from '../../../src/util/async_queue';
 import { describeSpec, specTest } from './describe_spec';
@@ -25,12 +25,12 @@ import { spec } from './spec_builder';
 
 describeSpec('Offline:', [], () => {
   specTest('Empty queries are resolved if client goes offline', [], () => {
-    const query = Query.atPath(path('collection'));
+    const query1 = query('collection');
     return (
       spec()
-        .userListens(query)
+        .userListens(query1)
         .watchStreamCloses(Code.UNAVAILABLE)
-        .expectEvents(query, {
+        .expectEvents(query1, {
           fromCache: true,
           hasPendingWrites: false
         })
@@ -41,16 +41,16 @@ describeSpec('Offline:', [], () => {
   });
 
   specTest('A successful message delays offline status', [], () => {
-    const query = Query.atPath(path('collection'));
+    const query1 = query('collection');
     return (
       spec()
-        .userListens(query)
-        .watchAcks(query)
+        .userListens(query1)
+        .watchAcks(query1)
         // first error triggers unknown state
         .watchStreamCloses(Code.UNAVAILABLE)
         // second error triggers offline state
         .watchStreamCloses(Code.UNAVAILABLE)
-        .expectEvents(query, {
+        .expectEvents(query1, {
           fromCache: true,
           hasPendingWrites: false
         })
@@ -66,26 +66,26 @@ describeSpec('Offline:', [], () => {
     'Marked as no-lru because when a listen is re-added, it gets a new target id rather than ' +
       'reusing one',
     () => {
-      const query = Query.atPath(path('collection'));
+      const query1 = query('collection');
       return (
         spec()
-          .userListens(query)
+          .userListens(query1)
           // error triggers offline state
           .watchStreamCloses(Code.UNAVAILABLE)
-          .expectEvents(query, {
+          .expectEvents(query1, {
             fromCache: true,
             hasPendingWrites: false
           })
           // Remove listen.
-          .userUnlistens(query)
+          .userUnlistens(query1)
           // If the next (already scheduled) connection attempt fails, we'll move
           // to unknown since there are no listeners, and stop trying to connect.
           .watchStreamCloses(Code.UNAVAILABLE)
           // Suppose sometime later we listen again, it should take one failure
           // before we get cached data.
-          .userListens(query)
+          .userListens(query1)
           .watchStreamCloses(Code.UNAVAILABLE)
-          .expectEvents(query, {
+          .expectEvents(query1, {
             fromCache: true,
             hasPendingWrites: false
           })
@@ -94,64 +94,64 @@ describeSpec('Offline:', [], () => {
   );
 
   specTest('Queries revert to fromCache=true when offline.', [], () => {
-    const query = Query.atPath(path('collection'));
+    const query1 = query('collection');
     const docA = doc('collection/a', 1000, { key: 'a' });
     return (
       spec()
-        .userListens(query)
-        .watchAcksFull(query, 1000, docA)
-        .expectEvents(query, { added: [docA] })
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docA)
+        .expectEvents(query1, { added: [docA] })
         // first error triggers unknown state
         .watchStreamCloses(Code.UNAVAILABLE)
-        .restoreListen(query, 'resume-token-1000')
+        .restoreListen(query1, 'resume-token-1000')
         // second error triggers offline state and fromCache: true
         .watchStreamCloses(Code.UNAVAILABLE)
-        .expectEvents(query, { fromCache: true })
+        .expectEvents(query1, { fromCache: true })
         // Going online and getting a CURRENT message triggers fromCache: false
-        .watchAcksFull(query, 1000)
-        .expectEvents(query, { fromCache: false })
+        .watchAcksFull(query1, 1000)
+        .expectEvents(query1, { fromCache: false })
     );
   });
 
   specTest('Queries with limbo documents handle going offline.', [], () => {
-    const query = Query.atPath(path('collection'));
+    const query1 = query('collection');
     const docA = doc('collection/a', 1000, { key: 'a' });
     const limboQuery = Query.atPath(docA.key.path);
     return (
       spec()
-        .userListens(query)
-        .watchAcksFull(query, 1000, docA)
-        .expectEvents(query, { added: [docA] })
-        .watchResets(query)
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docA)
+        .expectEvents(query1, { added: [docA] })
+        .watchResets(query1)
         // No more documents
-        .watchCurrents(query, 'resume-token-1001')
+        .watchCurrents(query1, 'resume-token-1001')
         .watchSnapshots(1001)
         // docA will now be in limbo (triggering fromCache=true)
         .expectLimboDocs(docA.key)
-        .expectEvents(query, { fromCache: true })
+        .expectEvents(query1, { fromCache: true })
         // first error triggers unknown state
         .watchStreamCloses(Code.UNAVAILABLE)
-        .restoreListen(query, 'resume-token-1001')
+        .restoreListen(query1, 'resume-token-1001')
         // second error triggers offline state.
         .watchStreamCloses(Code.UNAVAILABLE)
-        .watchAcksFull(query, 1001)
+        .watchAcksFull(query1, 1001)
         .watchAcksFull(limboQuery, 1001)
         // Limbo document is resolved. No longer from cache.
-        .expectEvents(query, { removed: [docA], fromCache: false })
+        .expectEvents(query1, { removed: [docA], fromCache: false })
         .expectLimboDocs()
     );
   });
 
   specTest('OnlineState timeout triggers offline behavior', [], () => {
-    const query = Query.atPath(path('collection'));
+    const query1 = query('collection');
     const docA = doc('collection/a', 1000, { key: 'a' });
     return (
       spec()
-        .userListens(query)
+        .userListens(query1)
 
         // OnlineState timer should trigger offline behavior (fromCache=true).
         .runTimer(TimerId.OnlineStateTimeout)
-        .expectEvents(query, {
+        .expectEvents(query1, {
           fromCache: true
         })
 
@@ -160,17 +160,17 @@ describeSpec('Offline:', [], () => {
         .watchStreamCloses(Code.UNAVAILABLE)
 
         // We should get events after a successful connection.
-        .watchAcksFull(query, 1000, docA)
-        .expectEvents(query, { added: [docA], fromCache: false })
+        .watchAcksFull(query1, 1000, docA)
+        .expectEvents(query1, { added: [docA], fromCache: false })
 
         // Running timers should have no effect now.
         .runTimer(TimerId.All)
 
         // After a disconnect, the timer should become active again.
         .watchStreamCloses(Code.UNAVAILABLE)
-        .restoreListen(query, 'resume-token-1000')
+        .restoreListen(query1, 'resume-token-1000')
         .runTimer(TimerId.OnlineStateTimeout)
-        .expectEvents(query, {
+        .expectEvents(query1, {
           fromCache: true
         })
     );
@@ -181,8 +181,8 @@ describeSpec('Offline:', [], () => {
       'stream failures.',
     [],
     () => {
-      const query1 = Query.atPath(path('collection'));
-      const query2 = Query.atPath(path('collection2'));
+      const query1 = query('collection');
+      const query2 = query('collection2');
       return (
         spec()
           .userListens(query1)
@@ -203,8 +203,8 @@ describeSpec('Offline:', [], () => {
       'OnlineState timeout.',
     [],
     () => {
-      const query1 = Query.atPath(path('collection'));
-      const query2 = Query.atPath(path('collection2'));
+      const query1 = query('collection');
+      const query2 = query('collection2');
       return (
         spec()
           .userListens(query1)
@@ -223,19 +223,19 @@ describeSpec('Offline:', [], () => {
     'Queries return from cache when network disabled',
     ['eager-gc'],
     () => {
-      const query = Query.atPath(path('collection'));
+      const query1 = query('collection');
       return (
         spec()
           .disableNetwork()
-          .userListens(query)
-          .expectEvents(query, { fromCache: true })
-          .userUnlistens(query)
+          .userListens(query1)
+          .expectEvents(query1, { fromCache: true })
+          .userUnlistens(query1)
 
           // There was once a bug where removing the last listener accidentally
           // reverted us to OnlineState.Unknown, so make sure it works a second time
-          .userListens(query)
-          .expectEvents(query, { fromCache: true })
-          .userUnlistens(query)
+          .userListens(query1)
+          .expectEvents(query1, { fromCache: true })
+          .userUnlistens(query1)
       );
     }
   );

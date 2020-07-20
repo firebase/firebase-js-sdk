@@ -16,7 +16,6 @@
  */
 
 import { expect } from 'chai';
-import { Query } from '../../../src/core/query';
 import { View } from '../../../src/core/view';
 import { ChangeType } from '../../../src/core/view_snapshot';
 import { documentKeySet } from '../../../src/model/collections';
@@ -30,7 +29,7 @@ import {
   keySet,
   limboChanges,
   orderBy,
-  path,
+  query,
   updateMapping,
   version
 } from '../../util/helpers';
@@ -38,8 +37,8 @@ import {
 describe('View', () => {
   it('adds documents based on query', () => {
     // shallow ancestor query
-    const query = Query.atPath(path('rooms/eros/messages'));
-    const view = new View(query, documentKeySet());
+    const query1 = query('rooms/eros/messages');
+    const view = new View(query1, documentKeySet());
 
     const doc1 = doc('rooms/eros/messages/1', 0, { text: 'msg1' });
     const doc2 = doc('rooms/eros/messages/2', 0, { text: 'msg2' });
@@ -52,7 +51,7 @@ describe('View', () => {
       ackTarget(doc1, doc2, doc3)
     ).snapshot!;
 
-    expect(snapshot.query).to.deep.equal(query);
+    expect(snapshot.query).to.deep.equal(query1);
     expect(documentSetAsArray(snapshot.docs)).to.deep.equal([doc1, doc2]);
     expect(snapshot.docChanges).to.deep.equal([
       { type: ChangeType.Added, doc: doc1 },
@@ -65,8 +64,8 @@ describe('View', () => {
 
   it('removes documents', () => {
     // shallow ancestor query
-    const query = Query.atPath(path('rooms/eros/messages'));
-    const view = new View(query, documentKeySet());
+    const query1 = query('rooms/eros/messages');
+    const view = new View(query1, documentKeySet());
 
     const doc1 = doc('rooms/eros/messages/1', 0, { text: 'msg1' });
     const doc2 = doc('rooms/eros/messages/2', 0, { text: 'msg2' });
@@ -80,7 +79,7 @@ describe('View', () => {
     const snapshot = view.applyChanges(changes, true, ackTarget(doc1, doc3))
       .snapshot!;
 
-    expect(snapshot.query).to.deep.equal(query);
+    expect(snapshot.query).to.deep.equal(query1);
     expect(documentSetAsArray(snapshot.docs)).to.deep.equal([doc1, doc3]);
     expect(snapshot.docChanges).to.deep.equal([
       { type: ChangeType.Removed, doc: doc2 },
@@ -92,8 +91,8 @@ describe('View', () => {
 
   it('returns null if there are no changes', () => {
     // shallow ancestor query
-    const query = Query.atPath(path('rooms/eros/messages'));
-    const view = new View(query, documentKeySet());
+    const query1 = query('rooms/eros/messages');
+    const view = new View(query1, documentKeySet());
 
     const doc1 = doc('rooms/eros/messages/1', 0, { text: 'msg1' });
     const doc2 = doc('rooms/eros/messages/2', 0, { text: 'msg2' });
@@ -106,17 +105,15 @@ describe('View', () => {
   });
 
   it('does not return null for the first changes', () => {
-    const query = Query.atPath(path('rooms/eros/messages'));
-    const view = new View(query, documentKeySet());
+    const query1 = query('rooms/eros/messages');
+    const view = new View(query1, documentKeySet());
     expect(applyDocChanges(view)).not.to.equal(null);
   });
 
   it('filters documents based on query with filter', () => {
     // shallow ancestor query
-    const query = Query.atPath(path('rooms/eros/messages')).addFilter(
-      filter('sort', '<=', 2)
-    );
-    const view = new View(query, documentKeySet());
+    const query1 = query('rooms/eros/messages', filter('sort', '<=', 2));
+    const view = new View(query1, documentKeySet());
 
     const doc1 = doc('rooms/eros/messages/1', 0, { sort: 1 });
     const doc2 = doc('rooms/eros/messages/2', 0, { sort: 2 });
@@ -127,7 +124,7 @@ describe('View', () => {
     const snapshot = applyDocChanges(view, doc1, doc2, doc3, doc4, doc5)
       .snapshot!;
 
-    expect(snapshot.query).to.deep.equal(query);
+    expect(snapshot.query).to.deep.equal(query1);
     expect(documentSetAsArray(snapshot.docs)).to.deep.equal([doc1, doc5, doc2]);
     expect(snapshot.docChanges).to.deep.equal([
       { type: ChangeType.Added, doc: doc1 },
@@ -140,10 +137,8 @@ describe('View', () => {
 
   it('updates documents based on query with filter', () => {
     // shallow ancestor query
-    const query = Query.atPath(path('rooms/eros/messages')).addFilter(
-      filter('sort', '<=', 2)
-    );
-    const view = new View(query, documentKeySet());
+    const query1 = query('rooms/eros/messages', filter('sort', '<=', 2));
+    const view = new View(query1, documentKeySet());
 
     const doc1 = doc('rooms/eros/messages/1', 0, { sort: 1 });
     const doc2 = doc('rooms/eros/messages/2', 0, { sort: 3 });
@@ -158,7 +153,7 @@ describe('View', () => {
     const newDoc4 = doc('rooms/eros/messages/4', 1, { sort: 0 });
 
     snapshot = applyDocChanges(view, newDoc2, newDoc3, newDoc4).snapshot!;
-    expect(snapshot.query).to.deep.equal(query);
+    expect(snapshot.query).to.deep.equal(query1);
 
     expect(documentSetAsArray(snapshot.docs)).to.deep.equal([
       newDoc4,
@@ -174,8 +169,8 @@ describe('View', () => {
 
   it('removes documents for query with limit', () => {
     // shallow ancestor query
-    const query = Query.atPath(path('rooms/eros/messages')).withLimitToFirst(2);
-    const view = new View(query, documentKeySet());
+    const query1 = query('rooms/eros/messages').withLimitToFirst(2);
+    const view = new View(query1, documentKeySet());
 
     const doc1 = doc('rooms/eros/messages/1', 0, { text: 'msg1' });
     const doc2 = doc('rooms/eros/messages/2', 0, { text: 'msg2' });
@@ -192,7 +187,7 @@ describe('View', () => {
       ackTarget(doc1, doc2, doc3)
     ).snapshot!;
 
-    expect(snapshot.query).to.deep.equal(query);
+    expect(snapshot.query).to.deep.equal(query1);
     expect(documentSetAsArray(snapshot.docs)).to.deep.equal([doc1, doc2]);
     expect(snapshot.docChanges).to.deep.equal([
       { type: ChangeType.Removed, doc: doc3 },
@@ -204,10 +199,11 @@ describe('View', () => {
 
   it("doesn't report changes for documents beyond limit of query", () => {
     // shallow ancestor query
-    const query = Query.atPath(path('rooms/eros/messages'))
-      .addOrderBy(orderBy('num'))
-      .withLimitToFirst(2);
-    const view = new View(query, documentKeySet());
+    const query1 = query(
+      'rooms/eros/messages',
+      orderBy('num')
+    ).withLimitToFirst(2);
+    const view = new View(query1, documentKeySet());
 
     const doc1 = doc('rooms/eros/messages/1', 0, { num: 1 });
     let doc2 = doc('rooms/eros/messages/2', 0, { num: 2 });
@@ -235,7 +231,7 @@ describe('View', () => {
       ackTarget(doc1, doc2, doc3, doc4)
     ).snapshot!;
 
-    expect(snapshot.query).to.deep.equal(query);
+    expect(snapshot.query).to.deep.equal(query1);
     expect(documentSetAsArray(snapshot.docs)).to.deep.equal([doc1, doc3]);
     expect(snapshot.docChanges).to.deep.equal([
       { type: ChangeType.Removed, doc: doc2 },
@@ -246,11 +242,11 @@ describe('View', () => {
   });
 
   it('keeps track of limbo documents', () => {
-    const query = Query.atPath(path('rooms/eros/msgs'));
+    const query1 = query('rooms/eros/msgs');
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
     const doc3 = doc('rooms/eros/msgs/2', 0, {});
-    const view = new View(query, documentKeySet());
+    const view = new View(query1, documentKeySet());
 
     let changes = view.computeDocChanges(documentUpdates(doc1));
     let viewChange = view.applyChanges(changes, true);
@@ -291,8 +287,8 @@ describe('View', () => {
   });
 
   it('is marked from cache with limbo documents', () => {
-    const query = Query.atPath(path('rooms/eros/msgs'));
-    const view = new View(query, documentKeySet());
+    const query1 = query('rooms/eros/msgs');
+    const view = new View(query1, documentKeySet());
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
 
@@ -329,14 +325,14 @@ describe('View', () => {
   });
 
   it('resumes queries without creating limbo documents', () => {
-    const query = Query.atPath(path('rooms/eros/msgs'));
+    const query1 = query('rooms/eros/msgs');
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
 
     // Unlike other cases, here the view is initialized with a set of previously
     // synced documents which happens when listening to a previously listened-to
     // query.
-    const view = new View(query, keySet(doc1.key, doc2.key));
+    const view = new View(query1, keySet(doc1.key, doc2.key));
 
     const changes = view.computeDocChanges(documentUpdates());
     const change = view.applyChanges(changes, true, ackTarget());
@@ -344,10 +340,10 @@ describe('View', () => {
   });
 
   it('returns needsRefill on delete limit query', () => {
-    const query = Query.atPath(path('rooms/eros/msgs')).withLimitToFirst(2);
+    const query1 = query('rooms/eros/msgs').withLimitToFirst(2);
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
-    const view = new View(query, documentKeySet());
+    const view = new View(query1, documentKeySet());
 
     // Start with a full view.
     let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
@@ -370,13 +366,13 @@ describe('View', () => {
   });
 
   it('returns needsRefill on reorder in limit query', () => {
-    const query = Query.atPath(path('rooms/eros/msgs'))
-      .addOrderBy(orderBy('order'))
-      .withLimitToFirst(2);
+    const query1 = query('rooms/eros/msgs', orderBy('order')).withLimitToFirst(
+      2
+    );
     const doc1 = doc('rooms/eros/msgs/0', 0, { order: 1 });
     let doc2 = doc('rooms/eros/msgs/1', 0, { order: 2 });
     const doc3 = doc('rooms/eros/msgs/2', 0, { order: 3 });
-    const view = new View(query, documentKeySet());
+    const view = new View(query1, documentKeySet());
 
     // Start with a full view.
     let changes = view.computeDocChanges(documentUpdates(doc1, doc2, doc3));
@@ -403,15 +399,15 @@ describe('View', () => {
   });
 
   it("doesn't need refill on reorder within limit", () => {
-    const query = Query.atPath(path('rooms/eros/msgs'))
-      .addOrderBy(orderBy('order'))
-      .withLimitToFirst(3);
+    const query1 = query('rooms/eros/msgs', orderBy('order')).withLimitToFirst(
+      3
+    );
     let doc1 = doc('rooms/eros/msgs/0', 0, { order: 1 });
     const doc2 = doc('rooms/eros/msgs/1', 0, { order: 2 });
     const doc3 = doc('rooms/eros/msgs/2', 0, { order: 3 });
     const doc4 = doc('rooms/eros/msgs/3', 0, { order: 4 });
     const doc5 = doc('rooms/eros/msgs/4', 0, { order: 5 });
-    const view = new View(query, documentKeySet());
+    const view = new View(query1, documentKeySet());
 
     // Start with a full view.
     let changes = view.computeDocChanges(
@@ -432,15 +428,15 @@ describe('View', () => {
   });
 
   it("doesn't need refill on reorder after limit query", () => {
-    const query = Query.atPath(path('rooms/eros/msgs'))
-      .addOrderBy(orderBy('order'))
-      .withLimitToFirst(3);
+    const query1 = query('rooms/eros/msgs', orderBy('order')).withLimitToFirst(
+      3
+    );
     const doc1 = doc('rooms/eros/msgs/0', 0, { order: 1 });
     const doc2 = doc('rooms/eros/msgs/1', 0, { order: 2 });
     const doc3 = doc('rooms/eros/msgs/2', 0, { order: 3 });
     let doc4 = doc('rooms/eros/msgs/3', 0, { order: 4 });
     const doc5 = doc('rooms/eros/msgs/4', 0, { order: 5 });
-    const view = new View(query, documentKeySet());
+    const view = new View(query1, documentKeySet());
 
     // Start with a full view.
     let changes = view.computeDocChanges(
@@ -461,10 +457,10 @@ describe('View', () => {
   });
 
   it("doesn't need refill for additions after the limit", () => {
-    const query = Query.atPath(path('rooms/eros/msgs')).withLimitToFirst(2);
+    const query1 = query('rooms/eros/msgs').withLimitToFirst(2);
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
-    const view = new View(query, documentKeySet());
+    const view = new View(query1, documentKeySet());
 
     // Start with a full view.
     let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
@@ -483,10 +479,11 @@ describe('View', () => {
   });
 
   it("doesn't need refill for deletions when not near the limit", () => {
-    const query = Query.atPath(path('rooms/eros/msgs')).withLimitToFirst(20);
+    const query1 = query('rooms/eros/msgs').withLimitToFirst(20);
+
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
-    const view = new View(query, documentKeySet());
+    const view = new View(query1, documentKeySet());
 
     let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
     expect(changes.documentSet.size).to.equal(2);
@@ -503,10 +500,10 @@ describe('View', () => {
   });
 
   it('handles applying irrelevant docs', () => {
-    const query = Query.atPath(path('rooms/eros/msgs')).withLimitToFirst(2);
+    const query1 = query('rooms/eros/msgs').withLimitToFirst(2);
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
-    const view = new View(query, documentKeySet());
+    const view = new View(query1, documentKeySet());
 
     // Start with a full view.
     let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
@@ -525,10 +522,10 @@ describe('View', () => {
   });
 
   it('computes mutatedDocKeys', () => {
-    const query = Query.atPath(path('rooms/eros/msgs'));
+    const query1 = query('rooms/eros/msgs');
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
-    const view = new View(query, documentKeySet());
+    const view = new View(query1, documentKeySet());
     // Start with a full view.
     let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
     view.applyChanges(changes, true);
@@ -543,10 +540,10 @@ describe('View', () => {
     'computes removes keys from mutatedDocKeys when new doc does not have ' +
       'local changes',
     () => {
-      const query = Query.atPath(path('rooms/eros/msgs'));
+      const query1 = query('rooms/eros/msgs');
       const doc1 = doc('rooms/eros/msgs/0', 0, {});
       const doc2 = doc('rooms/eros/msgs/1', 0, {}, { hasLocalMutations: true });
-      const view = new View(query, documentKeySet());
+      const view = new View(query1, documentKeySet());
       // Start with a full view.
       let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
       view.applyChanges(changes, true);
@@ -560,10 +557,10 @@ describe('View', () => {
   );
 
   it('remembers local mutations from previous snapshot', () => {
-    const query = Query.atPath(path('rooms/eros/msgs'));
+    const query1 = query('rooms/eros/msgs');
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {}, { hasLocalMutations: true });
-    const view = new View(query, documentKeySet());
+    const view = new View(query1, documentKeySet());
     // Start with a full view.
     let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
     view.applyChanges(changes, true);
@@ -575,10 +572,10 @@ describe('View', () => {
   });
 
   it('remembers local mutations from previous call to computeDocChanges', () => {
-    const query = Query.atPath(path('rooms/eros/msgs'));
+    const query1 = query('rooms/eros/msgs');
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {}, { hasLocalMutations: true });
-    const view = new View(query, documentKeySet());
+    const view = new View(query1, documentKeySet());
     // Start with a full view.
     let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
     expect(changes.mutatedKeys).to.deep.equal(keySet(doc2.key));

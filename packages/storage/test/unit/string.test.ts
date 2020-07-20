@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { dataFromString, StringFormat } from '../src/implementation/string';
+import { dataFromString, StringFormat } from '../../src/implementation/string';
 import { assertThrows, assertUint8ArrayEquals } from './testshared';
 
 describe('Firebase Storage > String', () => {

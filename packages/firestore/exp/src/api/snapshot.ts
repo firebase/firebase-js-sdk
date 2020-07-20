@@ -83,7 +83,11 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         /* timestampsInSnapshots= */ true,
         options.serverTimestamps || DEFAULT_SERVER_TIMESTAMP_BEHAVIOR,
         key =>
-          new DocumentReference(this._firestore, key, /* converter= */ null)
+          new DocumentReference(
+            this._firestore,
+            key.path,
+            /* converter= */ null
+          )
       );
       return userDataWriter.convertValue(this._document.toProto()) as T;
     }
@@ -102,7 +106,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
           this._firestoreImpl._databaseId,
           /* timestampsInSnapshots= */ true,
           options.serverTimestamps || DEFAULT_SERVER_TIMESTAMP_BEHAVIOR,
-          key => new DocumentReference(this._firestore, key, this._converter)
+          key =>
+            new DocumentReference(this._firestore, key.path, this._converter)
         );
         return userDataWriter.convertValue(value);
       }

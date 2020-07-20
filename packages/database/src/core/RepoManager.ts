@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { safeGet } from '@firebase/util';
+import { safeGet, CONSTANTS } from '@firebase/util';
 import { Repo } from './Repo';
 import { fatal } from './util/util';
 import { parseRepoInfo } from './util/libs/parser';
@@ -26,6 +26,11 @@ import { Database } from '../api/Database';
 import { RepoInfo } from './RepoInfo';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import {
+  AuthTokenProvider,
+  EmulatorAdminTokenProvider,
+  FirebaseAuthTokenProvider
+} from './AuthTokenProvider';
 
 /** @const {string} */
 const DATABASE_URL_OPTION = 'databaseURL';
@@ -108,15 +113,26 @@ export class RepoManager {
     let parsedUrl = parseRepoInfo(dbUrl);
     let repoInfo = parsedUrl.repoInfo;
 
+    let isEmulator: boolean;
+
     let dbEmulatorHost: string | undefined = undefined;
     if (typeof process !== 'undefined') {
       dbEmulatorHost = process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR];
     }
+
     if (dbEmulatorHost) {
+      isEmulator = true;
       dbUrl = `http://${dbEmulatorHost}?ns=${repoInfo.namespace}`;
       parsedUrl = parseRepoInfo(dbUrl);
       repoInfo = parsedUrl.repoInfo;
+    } else {
+      isEmulator = !parsedUrl.repoInfo.secure;
     }
+
+    const authTokenProvider =
+      CONSTANTS.NODE_ADMIN && isEmulator
+        ? new EmulatorAdminTokenProvider()
+        : new FirebaseAuthTokenProvider(app, authProvider);
 
     validateUrl('Invalid Firebase Database URL', 1, parsedUrl);
     if (!parsedUrl.path.isEmpty()) {
@@ -126,7 +142,7 @@ export class RepoManager {
       );
     }
 
-    const repo = this.createRepo(repoInfo, app, authProvider);
+    const repo = this.createRepo(repoInfo, app, authTokenProvider);
 
     return repo.database;
   }
@@ -159,7 +175,7 @@ export class RepoManager {
   createRepo(
     repoInfo: RepoInfo,
     app: FirebaseApp,
-    authProvider: Provider<FirebaseAuthInternalName>
+    authTokenProvider: AuthTokenProvider
   ): Repo {
     let appRepos = safeGet(this.repos_, app.name);
 
@@ -174,7 +190,7 @@ export class RepoManager {
         'Database initialized multiple times. Please make sure the format of the database URL matches with each database() call.'
       );
     }
-    repo = new Repo(repoInfo, this.useRestClient_, app, authProvider);
+    repo = new Repo(repoInfo, this.useRestClient_, app, authTokenProvider);
     appRepos[repoInfo.toURLString()] = repo;
 
     return repo;

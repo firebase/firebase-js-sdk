@@ -23,29 +23,31 @@ import path from 'path';
 import { terser } from 'rollup-plugin-terser';
 
 import {
-  firestoreTransformers,
+  resolveNodeExterns,
   generateAliasConfig,
-  manglePrivatePropertiesOptions,
   resolveBrowserExterns,
-  resolveNodeExterns
+  removeAssertTransformer,
+  removeAssertAndPrefixInternalTransformer,
+  manglePrivatePropertiesOptions
 } from './rollup.shared';
 
 import pkg from './exp/package.json';
 
-const plugins = [
+const nodePlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
       compilerOptions: {
-        target: 'es2017'
+        target: 'es5'
       }
     },
-    clean: true
+    clean: true,
+    transformers: removeAssertTransformer
   }),
   json({ preferConst: true })
 ];
 
-const minifiedPlugins = [
+const browserPlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
@@ -54,7 +56,7 @@ const minifiedPlugins = [
       }
     },
     clean: true,
-    transformers: firestoreTransformers
+    transformers: removeAssertAndPrefixInternalTransformer
   }),
   json({ preferConst: true }),
   terser(manglePrivatePropertiesOptions)
@@ -66,9 +68,10 @@ const allBuilds = [
     input: './exp/index.ts',
     output: {
       file: path.resolve('./exp', pkg.main),
-      format: 'es'
+      format: 'umd',
+      name: 'firebase.firestore'
     },
-    plugins: [alias(generateAliasConfig('node')), ...plugins],
+    plugins: [alias(generateAliasConfig('node')), ...nodePlugins],
     external: resolveNodeExterns
   },
   // Browser build
@@ -78,7 +81,7 @@ const allBuilds = [
       file: path.resolve('./exp', pkg.browser),
       format: 'es'
     },
-    plugins: [alias(generateAliasConfig('browser')), ...minifiedPlugins],
+    plugins: [alias(generateAliasConfig('browser')), ...browserPlugins],
     external: resolveBrowserExterns
   },
   // RN build
@@ -88,7 +91,7 @@ const allBuilds = [
       file: path.resolve('./exp', pkg['react-native']),
       format: 'es'
     },
-    plugins: [alias(generateAliasConfig('rn')), ...minifiedPlugins],
+    plugins: [alias(generateAliasConfig('rn')), ...browserPlugins],
     external: resolveBrowserExterns
   }
 ];

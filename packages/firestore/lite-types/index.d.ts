@@ -71,6 +71,10 @@ export function collection(
   collectionPath: string
 ): CollectionReference<DocumentData>;
 export function collection(
+  reference: CollectionReference<unknown>,
+  collectionPath: string
+): CollectionReference<DocumentData>;
+export function collection(
   reference: DocumentReference,
   collectionPath: string
 ): CollectionReference<DocumentData>;
@@ -82,6 +86,10 @@ export function doc<T>(
   reference: CollectionReference<T>,
   documentPath?: string
 ): DocumentReference<T>;
+export function doc(
+  reference: DocumentReference<unknown>,
+  documentPath: string
+): DocumentReference<DocumentData>;
 export function parent(
   reference: CollectionReference<unknown>
 ): DocumentReference<DocumentData> | null;
@@ -193,6 +201,7 @@ export type SetOptions =
 
 export class DocumentReference<T = DocumentData> {
   private constructor();
+  readonly type: 'document';
   readonly id: string;
   readonly firestore: FirebaseFirestore;
   readonly path: string;
@@ -227,6 +236,7 @@ export type WhereFilterOp =
 
 export class Query<T = DocumentData> {
   protected constructor();
+  readonly type: 'query' | 'collection';
   readonly firestore: FirebaseFirestore;
   where(
     fieldPath: string | FieldPath,
@@ -264,6 +274,7 @@ export class QuerySnapshot<T = DocumentData> {
 
 export class CollectionReference<T = DocumentData> extends Query<T> {
   private constructor();
+  readonly type: 'collection';
   readonly id: string;
   readonly path: string;
   withConverter<U>(
