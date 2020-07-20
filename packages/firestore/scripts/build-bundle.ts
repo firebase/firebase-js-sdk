@@ -68,4 +68,5 @@ async function buildBundle(input: string, output: string): Promise<void> {
   await bundle.write({ file: output, format: 'es' });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 buildBundle(argv.input, argv.output);
