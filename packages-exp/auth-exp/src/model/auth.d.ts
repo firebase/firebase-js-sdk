@@ -18,6 +18,7 @@
 import * as externs from '@firebase/auth-types-exp';
 import { CompleteFn, ErrorFn, Unsubscribe } from '@firebase/util';
 
+import { PopupRedirectResolver } from './popup_redirect';
 import { User } from './user';
 
 export type AppName = string;
@@ -42,8 +43,12 @@ export interface Auth extends externs.Auth {
   ): Unsubscribe;
   _notifyListenersIfCurrent(user: User): void;
   _persistUserIfCurrent(user: User): Promise<void>;
-  _setRedirectUser(user: User): Promise<void>;
-  _redirectUserForId(id: string): User | null;
+  _setRedirectUser(
+    user: User | null,
+    popupRedirectResolver?: externs.PopupRedirectResolver
+  ): Promise<void>;
+  _redirectUserForId(id: string): Promise<User | null>;
+  _popupRedirectResolver: PopupRedirectResolver | null;
 }
 
 export interface Dependencies {
