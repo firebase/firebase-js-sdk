@@ -1459,28 +1459,24 @@ apiDescribe('Validation:', (persistence: boolean) => {
       }
     );
 
-    validationIt.only(
-      persistence,
-      'cannot pass undefined as a field value',
-      db => {
-        const collection = db.collection('test');
-        if (usesFunctionalApi()) {
-          expect(() => collection.where('foo', '==', undefined)).to.throw(
-            'Function where() called with invalid data. Unsupported field value: undefined'
-          );
-          expect(() => collection.orderBy('foo').startAt(undefined)).to.throw(
-            'Function startAt() called with invalid data. Unsupported field value: undefined'
-          );
-        } else {
-          expect(() => collection.where('foo', '==', undefined)).to.throw(
-            'Function Query.where() requires a valid third argument, but it was undefined.'
-          );
-          expect(() => collection.orderBy('foo').startAt(undefined)).to.throw(
-            'Function Query.startAt() requires a valid first argument, but it was undefined.'
-          );
-        }
+    validationIt(persistence, 'cannot pass undefined as a field value', db => {
+      const collection = db.collection('test');
+      if (usesFunctionalApi()) {
+        expect(() => collection.where('foo', '==', undefined)).to.throw(
+          'Function where() called with invalid data. Unsupported field value: undefined'
+        );
+        expect(() => collection.orderBy('foo').startAt(undefined)).to.throw(
+          'Function startAt() called with invalid data. Unsupported field value: undefined'
+        );
+      } else {
+        expect(() => collection.where('foo', '==', undefined)).to.throw(
+          'Function Query.where() requires a valid third argument, but it was undefined.'
+        );
+        expect(() => collection.orderBy('foo').startAt(undefined)).to.throw(
+          'Function Query.startAt() requires a valid first argument, but it was undefined.'
+        );
       }
-    );
+    });
   });
 });
 
