@@ -51,6 +51,8 @@ export async function prepare() {
     '../',
     ''
   );
+  delete packageJson['main-esm2017'];
+  delete packageJson['esm2017'];
 
   packageJson.typings = expPackageJson.typings.replace('../', '');
 
