@@ -52,7 +52,7 @@ export async function prepare() {
     ''
   );
 
-  packageJson.typing = expPackageJson.typings.replace('../', '');
+  packageJson.typings = expPackageJson.typings.replace('../', '');
 
   delete packageJson.scripts.prepare;
 
