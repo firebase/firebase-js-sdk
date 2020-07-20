@@ -17,7 +17,7 @@
 
 // See https://github.com/typescript-eslint/typescript-eslint/issues/363
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import * as firestore from '../../index';
+import * as firestore from '../../../exp-types';
 
 import { Firestore } from './database';
 import {

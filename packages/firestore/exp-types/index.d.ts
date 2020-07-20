@@ -34,7 +34,6 @@ export interface Settings {
   ssl?: boolean;
   ignoreUndefinedProperties?: boolean;
   cacheSizeBytes?: number;
-  experimentalForceLongPolling?: boolean;
 }
 
 export interface SnapshotListenOptions {
@@ -45,7 +44,9 @@ export interface SnapshotOptions {
   readonly serverTimestamps?: 'estimate' | 'previous' | 'none';
 }
 
-export interface SnapshotMetadata {
+export class SnapshotMetadata {
+  private constructor();
+
   readonly hasPendingWrites: boolean;
   readonly fromCache: boolean;
 

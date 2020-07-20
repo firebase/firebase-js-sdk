@@ -19,7 +19,7 @@ import { FirebaseApp as FirebaseAppLegacy } from '@firebase/app-types';
 import { FirebaseApp as FirebaseAppExp } from '@firebase/app-types-exp';
 import { deleteApp } from '@firebase/app-exp';
 import * as legacy from '@firebase/firestore-types';
-import * as exp from '../';
+import * as exp from '../../exp-types';
 
 import {
   addDoc,
@@ -58,12 +58,12 @@ import {
   updateDoc,
   waitForPendingWrites,
   writeBatch
-} from '../../exp/index.node';
+} from '../../exp/index';
 import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
 import { isPartialObserver, PartialObserver } from '../../src/api/observer';
 import { isPlainObject } from '../../src/util/input_validation';
 
-export { GeoPoint, Blob, Timestamp } from '../index.node';
+export { GeoPoint, Blob, Timestamp } from '../index';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

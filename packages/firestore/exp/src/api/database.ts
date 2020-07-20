@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
+import * as firestore from '../../../exp-types';
 
 import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
 import { _FirebaseService, FirebaseApp } from '@firebase/app-types-exp';
