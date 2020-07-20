@@ -247,6 +247,10 @@ export class AuthImpl implements Auth {
     }
   }
 
+  _key(): string {
+    return `${this.config.authDomain}:${this.config.apiKey}:${this.name}`;
+  }
+
   private notifyAuthListeners(): void {
     if (!this._isInitialized) {
       return;
