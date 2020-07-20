@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../';
+import * as firestore from '../../../lite-types';
 
 import {
   parseSetData,

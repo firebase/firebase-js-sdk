@@ -22,7 +22,10 @@ export const enum AnalyticsError {
   NO_GA_ID = 'no-ga-id',
   ALREADY_EXISTS = 'already-exists',
   ALREADY_INITIALIZED = 'already-initialized',
-  INTEROP_COMPONENT_REG_FAILED = 'interop-component-reg-failed'
+  INTEROP_COMPONENT_REG_FAILED = 'interop-component-reg-failed',
+  INDEXED_DB_UNSUPPORTED = 'indexedDB-unsupported',
+  INVALID_INDEXED_DB_CONTEXT = 'invalid-indexedDB-context',
+  COOKIES_NOT_ENABLED = 'cookies-not-enabled'
 }
 
 const ERRORS: ErrorMap<AnalyticsError> = {
@@ -39,12 +42,21 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     'settings() must be called before initializing any Analytics instance' +
     'or it will have no effect.',
   [AnalyticsError.INTEROP_COMPONENT_REG_FAILED]:
-    'Firebase Analytics Interop Component failed to instantiate'
+    'Firebase Analytics Interop Component failed to instantiate',
+  [AnalyticsError.INDEXED_DB_UNSUPPORTED]:
+    'IndexedDB is not supported by current browswer',
+  [AnalyticsError.INVALID_INDEXED_DB_CONTEXT]:
+    "Environment doesn't support IndexedDB: {$errorInfo}. " +
+    'Wrap initialization of analytics in analytics.isSupported() ' +
+    'to prevent initialization in unsupported environments',
+  [AnalyticsError.COOKIES_NOT_ENABLED]:
+    'Cookies are not enabled in this browser environment. Analytics requires cookies to be enabled.'
 };
 
 interface ErrorParams {
   [AnalyticsError.ALREADY_EXISTS]: { id: string };
   [AnalyticsError.INTEROP_COMPONENT_REG_FAILED]: { reason: Error };
+  [AnalyticsError.INVALID_INDEXED_DB_CONTEXT]: { errorInfo: string };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<AnalyticsError, ErrorParams>(

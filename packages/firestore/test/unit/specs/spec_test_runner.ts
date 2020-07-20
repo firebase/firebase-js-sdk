@@ -51,7 +51,6 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/object_value';
 import { Mutation } from '../../../src/model/mutation';
 import * as api from '../../../src/protos/firestore_proto_api';
-import { Datastore, newDatastore } from '../../../src/remote/datastore';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { RemoteStore } from '../../../src/remote/remote_store';
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
@@ -85,6 +84,7 @@ import {
   orderBy,
   patchMutation,
   path,
+  query,
   setMutation,
   stringFromBase64String,
   TestSnapshotVersion,
@@ -127,7 +127,7 @@ const ARBITRARY_SEQUENCE_NUMBER = 2;
 
 export function parseQuery(querySpec: string | SpecQuery): Query {
   if (typeof querySpec === 'string') {
-    return Query.atPath(path(querySpec));
+    return query(querySpec);
   } else {
     let query = new Query(path(querySpec.path), querySpec.collectionGroup);
     if (querySpec.limit) {
@@ -177,7 +177,6 @@ abstract class TestRunner {
   private networkEnabled = true;
 
   // Initialized asynchronously via start().
-  private datastore!: Datastore;
   private localStore!: LocalStore;
   private remoteStore!: RemoteStore;
   private persistence!: MockMemoryPersistence | MockIndexedDbPersistence;
@@ -232,18 +231,11 @@ abstract class TestRunner {
   }
 
   async start(): Promise<void> {
-    this.connection = new MockConnection(this.queue);
-    this.datastore = newDatastore(
-      this.connection,
-      new EmptyCredentialsProvider(),
-      this.serializer
-    );
-
     const componentProvider = await this.initializeComponentProvider(
       {
         asyncQueue: this.queue,
         databaseInfo: this.databaseInfo,
-        datastore: this.datastore,
+        credentials: new EmptyCredentialsProvider(),
         clientId: this.clientId,
         initialUser: this.user,
         maxConcurrentLimboResolutions:
@@ -256,6 +248,7 @@ abstract class TestRunner {
     this.sharedClientState = componentProvider.sharedClientState;
     this.persistence = componentProvider.persistence;
     this.localStore = componentProvider.localStore;
+    this.connection = componentProvider.connection;
     this.remoteStore = componentProvider.remoteStore;
     this.syncEngine = componentProvider.syncEngine;
     this.eventManager = componentProvider.eventManager;
