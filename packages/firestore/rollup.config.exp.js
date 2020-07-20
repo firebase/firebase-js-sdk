@@ -20,13 +20,34 @@ import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import path from 'path';
+import { terser } from 'rollup-plugin-terser';
 
-import { generateAliasConfig, resolveNodeExterns } from './rollup.shared';
+import {
+  resolveNodeExterns,
+  generateAliasConfig,
+  resolveBrowserExterns,
+  removeAssertTransformer,
+  removeAssertAndPrefixInternalTransformer,
+  manglePrivatePropertiesOptions
+} from './rollup.shared';
 
 import pkg from './exp/package.json';
 
-const defaultPlugins = [
-  alias(generateAliasConfig('node')),
+const nodePlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es5'
+      }
+    },
+    clean: true,
+    transformers: removeAssertTransformer
+  }),
+  json({ preferConst: true })
+];
+
+const browserPlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
@@ -34,24 +55,45 @@ const defaultPlugins = [
         target: 'es2017'
       }
     },
-    clean: true
+    clean: true,
+    transformers: removeAssertAndPrefixInternalTransformer
   }),
-  json({ preferConst: true })
+  json({ preferConst: true }),
+  terser(manglePrivatePropertiesOptions)
 ];
 
-const nodeBuilds = [
+const allBuilds = [
+  // Node build
   {
-    input: './exp/index.node.ts',
+    input: './exp/index.ts',
     output: {
       file: path.resolve('./exp', pkg.main),
+      format: 'umd',
+      name: 'firebase.firestore'
+    },
+    plugins: [alias(generateAliasConfig('node')), ...nodePlugins],
+    external: resolveNodeExterns
+  },
+  // Browser build
+  {
+    input: './exp/index.ts',
+    output: {
+      file: path.resolve('./exp', pkg.browser),
       format: 'es'
     },
-    plugins: defaultPlugins,
-    external: resolveNodeExterns,
-    treeshake: {
-      tryCatchDeoptimization: false
-    }
+    plugins: [alias(generateAliasConfig('browser')), ...browserPlugins],
+    external: resolveBrowserExterns
+  },
+  // RN build
+  {
+    input: './exp/index.ts',
+    output: {
+      file: path.resolve('./exp', pkg['react-native']),
+      format: 'es'
+    },
+    plugins: [alias(generateAliasConfig('rn')), ...browserPlugins],
+    external: resolveBrowserExterns
   }
 ];
 
-export default [...nodeBuilds];
+export default allBuilds;

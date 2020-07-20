@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { AuthWrapper } from '../src/implementation/authwrapper';
-import { FbsBlob } from '../src/implementation/blob';
-import { Location } from '../src/implementation/location';
-import { getMappings } from '../src/implementation/metadata';
-import { Unsubscribe } from '../src/implementation/observer';
-import { makeRequest } from '../src/implementation/request';
-import { TaskEvent, TaskState } from '../src/implementation/taskenums';
-import { Headers } from '../src/implementation/xhrio';
-import { Reference } from '../src/reference';
-import { Service } from '../src/service';
-import { UploadTask } from '../src/task';
+import { AuthWrapper } from '../../src/implementation/authwrapper';
+import { FbsBlob } from '../../src/implementation/blob';
+import { Location } from '../../src/implementation/location';
+import { getMappings } from '../../src/implementation/metadata';
+import { Unsubscribe } from '../../src/implementation/observer';
+import { makeRequest } from '../../src/implementation/request';
+import { TaskEvent, TaskState } from '../../src/implementation/taskenums';
+import { Headers } from '../../src/implementation/xhrio';
+import { Reference } from '../../src/reference';
+import { Service } from '../../src/service';
+import { UploadTask } from '../../src/task';
 import {
   assertThrows,
   bind as fbsBind,

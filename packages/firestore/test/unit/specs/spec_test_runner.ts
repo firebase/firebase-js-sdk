@@ -61,7 +61,6 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/object_value';
 import { Mutation } from '../../../src/model/mutation';
 import * as api from '../../../src/protos/firestore_proto_api';
-import { Datastore, newDatastore } from '../../../src/remote/datastore';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { RemoteStore } from '../../../src/remote/remote_store';
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
@@ -192,7 +191,6 @@ abstract class TestRunner {
   private networkEnabled = true;
 
   // Initialized asynchronously via start().
-  private datastore!: Datastore;
   private localStore!: LocalStore;
   private remoteStore!: RemoteStore;
   private persistence!: MockMemoryPersistence | MockIndexedDbPersistence;
@@ -247,18 +245,11 @@ abstract class TestRunner {
   }
 
   async start(): Promise<void> {
-    this.connection = new MockConnection(this.queue);
-    this.datastore = newDatastore(
-      this.connection,
-      new EmptyCredentialsProvider(),
-      this.serializer
-    );
-
     const componentProvider = await this.initializeComponentProvider(
       {
         asyncQueue: this.queue,
         databaseInfo: this.databaseInfo,
-        datastore: this.datastore,
+        credentials: new EmptyCredentialsProvider(),
         clientId: this.clientId,
         initialUser: this.user,
         maxConcurrentLimboResolutions:
@@ -271,6 +262,7 @@ abstract class TestRunner {
     this.sharedClientState = componentProvider.sharedClientState;
     this.persistence = componentProvider.persistence;
     this.localStore = componentProvider.localStore;
+    this.connection = componentProvider.connection;
     this.remoteStore = componentProvider.remoteStore;
     this.syncEngine = componentProvider.syncEngine;
     this.eventManager = componentProvider.eventManager;
@@ -689,7 +681,8 @@ abstract class TestRunner {
     // Make sure to execute all writes that are currently queued. This allows us
     // to assert on the total number of requests sent before shutdown.
     await this.remoteStore.fillWritePipeline();
-    await this.syncEngine.disableNetwork();
+    this.persistence.setNetworkEnabled(false);
+    await this.remoteStore.disableNetwork();
   }
 
   private async doDrainQueue(): Promise<void> {
@@ -698,7 +691,8 @@ abstract class TestRunner {
 
   private async doEnableNetwork(): Promise<void> {
     this.networkEnabled = true;
-    await this.syncEngine.enableNetwork();
+    this.persistence.setNetworkEnabled(true);
+    await this.remoteStore.enableNetwork();
   }
 
   private async doShutdown(): Promise<void> {

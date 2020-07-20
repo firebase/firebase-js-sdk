@@ -27,10 +27,30 @@ export interface UpdateData {
   [fieldPath: string]: any;
 }
 
+export const CACHE_SIZE_UNLIMITED: number;
+
 export interface Settings {
   host?: string;
   ssl?: boolean;
   ignoreUndefinedProperties?: boolean;
+  cacheSizeBytes?: number;
+}
+
+export interface SnapshotListenOptions {
+  readonly includeMetadataChanges?: boolean;
+}
+
+export interface SnapshotOptions {
+  readonly serverTimestamps?: 'estimate' | 'previous' | 'none';
+}
+
+export class SnapshotMetadata {
+  private constructor();
+
+  readonly hasPendingWrites: boolean;
+  readonly fromCache: boolean;
+
+  isEqual(other: SnapshotMetadata): boolean;
 }
 
 export type LogLevel =
@@ -46,7 +66,10 @@ export function setLogLevel(logLevel: LogLevel): void;
 export interface FirestoreDataConverter<T> {
   toFirestore(modelObject: T): DocumentData;
   toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
-  fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<DocumentData>,
+    options: SnapshotOptions
+  ): T;
 }
 
 export class FirebaseFirestore {
@@ -59,15 +82,36 @@ export function initializeFirestore(
   settings: Settings
 ): FirebaseFirestore;
 export function getFirestore(app: FirebaseApp): FirebaseFirestore;
+
 export function terminate(firestore: FirebaseFirestore): Promise<void>;
 export function writeBatch(firestore: FirebaseFirestore): WriteBatch;
 export function runTransaction<T>(
   firestore: FirebaseFirestore,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T>;
+export function waitForPendingWrites(
+  firestore: FirebaseFirestore
+): Promise<void>;
+export function enableNetwork(firestore: FirebaseFirestore): Promise<void>;
+export function disableNetwork(firestore: FirebaseFirestore): Promise<void>;
+
+// TODO(firestoreexp): Add experimentalForceOwningTab support
+export function enableIndexedDbPersistence(
+  firestore: FirebaseFirestore
+): Promise<void>;
+export function enableMultiTabIndexedDbPersistence(
+  firestore: FirebaseFirestore
+): Promise<void>;
+export function clearIndexedDbPersistence(
+  firestore: FirebaseFirestore
+): Promise<void>;
 
 export function collection(
   firestore: FirebaseFirestore,
+  collectionPath: string
+): CollectionReference<DocumentData>;
+export function collection(
+  reference: CollectionReference<unknown>,
   collectionPath: string
 ): CollectionReference<DocumentData>;
 export function collection(
@@ -82,6 +126,10 @@ export function doc<T>(
   reference: CollectionReference<T>,
   documentPath?: string
 ): DocumentReference<T>;
+export function doc(
+  reference: DocumentReference<unknown>,
+  documentPath: string
+): DocumentReference<DocumentData>;
 export function parent(
   reference: CollectionReference<unknown>
 ): DocumentReference<DocumentData> | null;
@@ -201,17 +249,23 @@ export class DocumentReference<T = DocumentData> {
 }
 
 export class DocumentSnapshot<T = DocumentData> {
+  protected constructor();
+
   readonly ref: DocumentReference<T>;
   readonly id: string;
+  readonly metadata: SnapshotMetadata;
+
   exists(): this is QueryDocumentSnapshot<T>;
-  data(): T | undefined;
-  get(fieldPath: string | FieldPath): any;
+
+  data(options?: SnapshotOptions): T | undefined;
+
+  get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
 }
 
 export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
   T
 > {
-  data(): T;
+  data(options?: SnapshotOptions): T;
 }
 
 export type OrderByDirection = 'desc' | 'asc';
@@ -278,12 +332,23 @@ export class QuerySnapshot<T = DocumentData> {
   private constructor();
   readonly query: Query<T>;
   readonly docs: Array<QueryDocumentSnapshot<T>>;
+  readonly metadata: SnapshotMetadata;
   readonly size: number;
   readonly empty: boolean;
+  docChanges(options?: SnapshotListenOptions): Array<DocumentChange<T>>;
   forEach(
     callback: (result: QueryDocumentSnapshot<T>) => void,
     thisArg?: any
   ): void;
+}
+
+export type DocumentChangeType = 'added' | 'removed' | 'modified';
+
+export interface DocumentChange<T = DocumentData> {
+  readonly type: DocumentChangeType;
+  readonly doc: QueryDocumentSnapshot<T>;
+  readonly oldIndex: number;
+  readonly newIndex: number;
 }
 
 export class CollectionReference<T = DocumentData> extends Query<T> {
@@ -299,7 +364,19 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>>;
+export function getDocFromCache<T>(
+  reference: DocumentReference<T>
+): Promise<DocumentSnapshot<T>>;
+export function getDocFromServer<T>(
+  reference: DocumentReference<T>
+): Promise<DocumentSnapshot<T>>;
 export function getQuery<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export function getQueryFromCache<T>(
+  query: Query<T>
+): Promise<QuerySnapshot<T>>;
+export function getQueryFromServer<T>(
+  query: Query<T>
+): Promise<QuerySnapshot<T>>;
 
 export function addDoc<T>(
   reference: CollectionReference<T>,
@@ -325,6 +402,81 @@ export function updateDoc(
   ...moreFieldsAndValues: any[]
 ): Promise<void>;
 export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
+
+// TODO(firestoreexp): Update API Proposal to use FirestoreError in these
+// callbacks
+export function onSnapshot<T>(
+  reference: DocumentReference<T>,
+  observer: {
+    next?: (snapshot: DocumentSnapshot<T>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): () => void;
+export function onSnapshot<T>(
+  reference: DocumentReference<T>,
+  options: SnapshotListenOptions,
+  observer: {
+    next?: (snapshot: DocumentSnapshot<T>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): () => void;
+export function onSnapshot<T>(
+  reference: DocumentReference<T>,
+  onNext: (snapshot: DocumentSnapshot<T>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): () => void;
+export function onSnapshot<T>(
+  reference: DocumentReference<T>,
+  options: SnapshotListenOptions,
+  onNext: (snapshot: DocumentSnapshot<T>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): () => void;
+export function onSnapshot<T>(
+  query: Query<T>,
+  observer: {
+    next?: (snapshot: QuerySnapshot<T>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): () => void;
+export function onSnapshot<T>(
+  query: Query<T>,
+  options: SnapshotListenOptions,
+  observer: {
+    next?: (snapshot: QuerySnapshot<T>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): () => void;
+export function onSnapshot<T>(
+  query: Query<T>,
+  onNext: (snapshot: QuerySnapshot<T>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): () => void;
+export function onSnapshot<T>(
+  query: Query<T>,
+  options: SnapshotListenOptions,
+  onNext: (snapshot: QuerySnapshot<T>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): () => void;
+export function onSnapshotsInSync(
+  firestore: FirebaseFirestore,
+  observer: {
+    next?: (value: void) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): () => void;
+export function onSnapshotsInSync(
+  firestore: FirebaseFirestore,
+  onSync: () => void
+): () => void;
 
 export class FieldValue {
   private constructor();
@@ -381,6 +533,6 @@ export interface FirestoreError {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'firestore/lite': FirebaseFirestore;
+    'firestore-exp': FirebaseFirestore;
   }
 }

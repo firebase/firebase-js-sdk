@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
+import * as firestore from '../../../lite-types';
 
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
@@ -92,24 +92,24 @@ export class DocumentReference<T = firestore.DocumentData>
 
   constructor(
     readonly firestore: Firestore,
-    key: DocumentKey,
+    readonly _path: ResourcePath,
     readonly _converter: firestore.FirestoreDataConverter<T> | null
   ) {
-    super(firestore._databaseId, key, _converter);
+    super(firestore._databaseId, new DocumentKey(_path), _converter);
   }
 
   get id(): string {
-    return this._key.path.lastSegment();
+    return this._path.lastSegment();
   }
 
   get path(): string {
-    return this._key.path.canonicalString();
+    return this._path.canonicalString();
   }
 
   withConverter<U>(
     converter: firestore.FirestoreDataConverter<U>
   ): firestore.DocumentReference<U> {
-    return new DocumentReference<U>(this.firestore, this._key, converter);
+    return new DocumentReference<U>(this.firestore, this._path, converter);
   }
 }
 
@@ -392,24 +392,42 @@ export function collection(
   collectionPath: string
 ): CollectionReference<firestore.DocumentData>;
 export function collection(
+  reference: firestore.CollectionReference<unknown>,
+  collectionPath: string
+): CollectionReference<firestore.DocumentData>;
+export function collection(
   reference: firestore.DocumentReference,
   collectionPath: string
 ): CollectionReference<firestore.DocumentData>;
 export function collection(
-  parent: firestore.FirebaseFirestore | firestore.DocumentReference<unknown>,
+  parent:
+    | firestore.FirebaseFirestore
+    | firestore.DocumentReference<unknown>
+    | firestore.CollectionReference<unknown>,
   relativePath: string
 ): CollectionReference<firestore.DocumentData> {
   validateArgType('collection', 'non-empty string', 2, relativePath);
-  const path = ResourcePath.fromString(relativePath);
   if (parent instanceof Firestore) {
-    validateCollectionPath(path);
-    return new CollectionReference(parent, path, /* converter= */ null);
+    const absolutePath = ResourcePath.fromString(relativePath);
+    validateCollectionPath(absolutePath);
+    return new CollectionReference(parent, absolutePath, /* converter= */ null);
   } else {
-    const doc = cast(parent, DocumentReference);
-    const absolutePath = doc._key.path.child(path);
+    if (
+      !(parent instanceof DocumentReference) &&
+      !(parent instanceof CollectionReference)
+    ) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Expected first argument to collection() to be a CollectionReference, ' +
+          'a DocumentReference or FirebaseFirestore'
+      );
+    }
+    const absolutePath = ResourcePath.fromString(parent.path).child(
+      ResourcePath.fromString(relativePath)
+    );
     validateCollectionPath(absolutePath);
     return new CollectionReference(
-      doc.firestore,
+      parent.firestore,
       absolutePath,
       /* converter= */ null
     );
@@ -448,8 +466,15 @@ export function doc<T>(
   reference: firestore.CollectionReference<T>,
   documentPath?: string
 ): DocumentReference<T>;
+export function doc(
+  reference: firestore.DocumentReference<unknown>,
+  documentPath: string
+): DocumentReference<firestore.DocumentData>;
 export function doc<T>(
-  parent: firestore.FirebaseFirestore | firestore.CollectionReference<T>,
+  parent:
+    | firestore.FirebaseFirestore
+    | firestore.CollectionReference<T>
+    | firestore.DocumentReference<unknown>,
   relativePath?: string
 ): DocumentReference {
   // We allow omission of 'pathString' but explicitly prohibit passing in both
@@ -458,22 +483,30 @@ export function doc<T>(
     relativePath = AutoId.newId();
   }
   validateArgType('doc', 'non-empty string', 2, relativePath);
-  const path = ResourcePath.fromString(relativePath!);
+
   if (parent instanceof Firestore) {
-    validateDocumentPath(path);
-    return new DocumentReference(
-      parent,
-      new DocumentKey(path),
-      /* converter= */ null
-    );
+    const absolutePath = ResourcePath.fromString(relativePath!);
+    validateDocumentPath(absolutePath);
+    return new DocumentReference(parent, absolutePath, /* converter= */ null);
   } else {
-    const coll = cast(parent, CollectionReference);
-    const absolutePath = coll._path.child(path);
+    if (
+      !(parent instanceof DocumentReference) &&
+      !(parent instanceof CollectionReference)
+    ) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Expected first argument to collection() to be a CollectionReference, ' +
+          'a DocumentReference or FirebaseFirestore'
+      );
+    }
+    const absolutePath = parent._path.child(
+      ResourcePath.fromString(relativePath!)
+    );
     validateDocumentPath(absolutePath);
     return new DocumentReference(
-      coll.firestore,
-      new DocumentKey(absolutePath),
-      coll._converter
+      parent.firestore,
+      absolutePath,
+      parent instanceof CollectionReference ? parent._converter : null
     );
   }
 }
@@ -494,7 +527,7 @@ export function parent<T>(
     } else {
       return new DocumentReference(
         child.firestore,
-        new DocumentKey(parentPath),
+        parentPath,
         /* converter= */ null
       );
     }

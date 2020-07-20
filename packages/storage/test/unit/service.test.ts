@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { TaskEvent } from '../src/implementation/taskenums';
-import { XhrIoPool } from '../src/implementation/xhriopool';
-import { Service } from '../src/service';
+import { TaskEvent } from '../../src/implementation/taskenums';
+import { XhrIoPool } from '../../src/implementation/xhriopool';
+import { Service } from '../../src/service';
 import * as testShared from './testshared';
-import { DEFAULT_HOST } from '../src/implementation/constants';
-import { FirebaseStorageError } from '../src/implementation/error';
+import { DEFAULT_HOST } from '../../src/implementation/constants';
+import { FirebaseStorageError } from '../../src/implementation/error';
 
 const fakeAppGs = testShared.makeFakeApp('gs://mybucket');
 const fakeAppGsEndingSlash = testShared.makeFakeApp('gs://mybucket/');

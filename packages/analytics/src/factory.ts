@@ -38,6 +38,11 @@ import { ANALYTICS_ID_FIELD } from './constants';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
+import {
+  isIndexedDBAvailable,
+  validateIndexedDBOpenable,
+  areCookiesEnabled
+} from '@firebase/util';
 
 /**
  * Maps gaId to FID fetch promises.
@@ -117,6 +122,19 @@ export function factory(
   app: FirebaseApp,
   installations: FirebaseInstallations
 ): FirebaseAnalytics {
+  if (!areCookiesEnabled()) {
+    throw ERROR_FACTORY.create(AnalyticsError.COOKIES_NOT_ENABLED);
+  }
+  if (!isIndexedDBAvailable()) {
+    throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
+  }
+  // Async but non-blocking.
+  validateIndexedDBOpenable().catch(error => {
+    throw ERROR_FACTORY.create(AnalyticsError.INVALID_INDEXED_DB_CONTEXT, {
+      errorInfo: error
+    });
+  });
+
   const analyticsId = app.options[ANALYTICS_ID_FIELD];
   if (!analyticsId) {
     throw ERROR_FACTORY.create(AnalyticsError.NO_GA_ID);

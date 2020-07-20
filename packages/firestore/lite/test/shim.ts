@@ -16,7 +16,7 @@
  */
 
 import * as legacy from '@firebase/firestore-types';
-import * as lite from '../';
+import * as lite from '../../lite-types';
 
 import {
   addDoc,
@@ -52,11 +52,11 @@ import {
   limit,
   orderBy,
   where
-} from '../../lite/index.node';
+} from '../../lite/index';
 import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
 import { isPlainObject } from '../../src/util/input_validation';
 
-export { GeoPoint, Blob, Timestamp } from '../index.node';
+export { GeoPoint, Blob, Timestamp } from '../index';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
