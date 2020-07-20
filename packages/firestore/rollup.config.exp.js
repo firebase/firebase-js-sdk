@@ -49,7 +49,7 @@ const browserPlugins = [
       }
     },
     clean: true,
-    transformers: rshared.emoveAssertAndPrefixInternalTransformer
+    transformers: util.removeAssertAndPrefixInternalTransformer
   }),
   json({ preferConst: true }),
   terser(util.manglePrivatePropertiesOptions)
