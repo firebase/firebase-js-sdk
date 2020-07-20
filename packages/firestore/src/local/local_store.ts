@@ -1054,10 +1054,9 @@ export function lookupMutationDocuments(
   localStore: LocalStore,
   batchId: BatchId
 ): Promise<MaybeDocumentMap | null> {
-  const [localStoreImpl, mutationQueueImpl] = debugCast(
-    localStore,
-    LocalStoreImpl,
-    (localStore as LocalStoreImpl).mutationQueue,
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  const mutationQueueImpl = debugCast(
+    localStoreImpl.mutationQueue,
     IndexedDbMutationQueue // We only support IndexedDb in multi-tab mode.
   );
   return localStoreImpl.persistence.runTransaction(
@@ -1106,10 +1105,9 @@ export function getCachedTarget(
   localStore: LocalStore,
   targetId: TargetId
 ): Promise<Target | null> {
-  const [localStoreImpl, targetCacheImpl] = debugCast(
-    localStore,
-    LocalStoreImpl,
-    (localStore as LocalStoreImpl).targetCache,
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  const targetCacheImpl = debugCast(
+    localStoreImpl.targetCache,
     IndexedDbTargetCache // We only support IndexedDb in multi-tab mode.
   );
   const cachedTargetData = localStoreImpl.targetDataByTarget.get(targetId);
@@ -1138,10 +1136,9 @@ export function getCachedTarget(
 export function getNewDocumentChanges(
   localStore: LocalStore
 ): Promise<MaybeDocumentMap> {
-  const [localStoreImpl, remoteDocumentCacheImpl] = debugCast(
-    localStore,
-    LocalStoreImpl,
-    (localStore as LocalStoreImpl).remoteDocuments,
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  const remoteDocumentCacheImpl = debugCast(
+    localStoreImpl.remoteDocuments,
     IndexedDbRemoteDocumentCache // We only support IndexedDb in multi-tab mode.
   );
   return localStoreImpl.persistence
