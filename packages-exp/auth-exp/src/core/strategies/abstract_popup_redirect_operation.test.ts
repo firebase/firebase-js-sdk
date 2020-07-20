@@ -144,7 +144,7 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
 
     it('emits the user credential returned from idp task', async () => {
       finishPromise(authEvent());
-      const cred = await operation.execute();
+      const cred = (await operation.execute())!;
       expect(cred.user.uid).to.eq('uid');
       expect(cred.credential).to.be.null;
       expect(cred.operationType).to.eq(OperationType.SIGN_IN);

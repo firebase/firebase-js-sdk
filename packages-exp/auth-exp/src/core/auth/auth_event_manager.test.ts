@@ -145,7 +145,8 @@ describe('src/core/auth/auth_event_manager', () => {
       consumer = makeConsumer([
         AuthEventType.SIGN_IN_VIA_REDIRECT,
         AuthEventType.LINK_VIA_REDIRECT,
-        AuthEventType.REAUTH_VIA_REDIRECT
+        AuthEventType.REAUTH_VIA_REDIRECT,
+        AuthEventType.UNKNOWN
       ]);
     });
 
@@ -181,15 +182,13 @@ describe('src/core/auth/auth_event_manager', () => {
       expect(consumerB.onAuthEvent).not.to.have.been.called;
     });
 
-    it('unknown auth error prevents consumption of future redirect events', () => {
+    it('queues unknown events', () => {
       const event = makeEvent(AuthEventType.UNKNOWN);
       event.error = { code: 'auth/no-auth-event' } as AuthEventError;
       expect(manager.onEvent(event)).to.be.true;
-      expect(manager.onEvent(makeEvent(AuthEventType.SIGN_IN_VIA_REDIRECT))).to
-        .be.false;
 
       manager.registerConsumer(consumer);
-      expect(consumer.onAuthEvent).not.to.have.been.called;
+      expect(consumer.onAuthEvent).to.have.been.calledWith(event);
     });
   });
 });
