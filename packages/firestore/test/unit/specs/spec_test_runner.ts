@@ -667,7 +667,8 @@ abstract class TestRunner {
     // Make sure to execute all writes that are currently queued. This allows us
     // to assert on the total number of requests sent before shutdown.
     await this.remoteStore.fillWritePipeline();
-    await this.syncEngine.disableNetwork();
+    this.persistence.setNetworkEnabled(false);
+    await this.remoteStore.disableNetwork();
   }
 
   private async doDrainQueue(): Promise<void> {
@@ -676,7 +677,8 @@ abstract class TestRunner {
 
   private async doEnableNetwork(): Promise<void> {
     this.networkEnabled = true;
-    await this.syncEngine.enableNetwork();
+    this.persistence.setNetworkEnabled(true);
+    await this.remoteStore.enableNetwork();
   }
 
   private async doShutdown(): Promise<void> {
