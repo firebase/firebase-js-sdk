@@ -63,10 +63,10 @@ export async function prepare() {
     { encoding: 'utf-8' }
   );
 
-  const expTypingPath = `${packagePath}/${packageJson.typing}`;
+  const expTypingPath = `${packagePath}/${packageJson.typings}`;
   const liteTypingPath = path.resolve(
     `${packagePath}/lite`,
-    litePackageJson.typing
+    litePackageJson.typings
   );
 
   // remove -exp in typings files
