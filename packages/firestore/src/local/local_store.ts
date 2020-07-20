@@ -1207,8 +1207,7 @@ export function newMultiTabLocalStore(
 
 /**
  * Verifies the error thrown by a LocalStore operation. If a LocalStore
- * operation fails becaudatabase.ts
- se the primary lease has been taken by another client,
+ * operation fails because the primary lease has been taken by another client,
  * we ignore the error (the persistence layer will immediately call
  * `applyPrimaryLease` to propagate the primary state change). All other errors
  * are re-thrown.
