@@ -21,5 +21,5 @@ export declare function getFunctions(app: FirebaseApp, region?: string): Functio
 
 <b>Returns:</b>
 
-Functions
+[Functions](./functions-types.functions.md)
 

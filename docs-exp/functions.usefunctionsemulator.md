@@ -16,7 +16,7 @@ export declare function useFunctionsEmulator(functionsInstance: Functions, origi
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  functionsInstance | Functions |  |
+|  functionsInstance | [Functions](./functions-types.functions.md) |  |
 |  origin | string | The origin of the local emulator, such as "http://localhost:5005". |
 
 <b>Returns:</b>

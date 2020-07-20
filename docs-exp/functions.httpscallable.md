@@ -16,11 +16,11 @@ export declare function httpsCallable(functionsInstance: Functions, name: string
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  functionsInstance | Functions |  |
+|  functionsInstance | [Functions](./functions-types.functions.md) |  |
 |  name | string | The name of the trigger. |
-|  options | HttpsCallableOptions |  |
+|  options | [HttpsCallableOptions](./functions-types.httpscallableoptions.md) |  |
 
 <b>Returns:</b>
 
-HttpsCallable
+[HttpsCallable](./functions-types.httpscallable.md)
 
