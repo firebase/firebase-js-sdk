@@ -18,7 +18,7 @@ class Module extends Component {
             <div className="container m-2">
                 <ul className="list-group">
                     <li
-                        className="list-group-item d-flex justify-content-between align-items-center text list-item-module "
+                        className="list-group-item d-flex justify-content-between align-items-center text list-item-module"
                         key={this.props.index}
                         data-toggle="collapse"
                         data-target={"#" + this.props.index}
@@ -26,13 +26,18 @@ class Module extends Component {
                         aria-controls={this.props.index}
                     >
                         {this.props.name}
-                        <span
-                            className="badge badge-primary yellow-btn"
-                            onClick={() => { this.props.handleAddModule(this.props.name) }}>
-                            {BTNTEXT.addButtonText}
-                        </span>
                     </li>
                     <div className="collapse" id={this.props.index}>
+                        <li
+                            className="list-group-item d-flex justify-content-between align-items-center text list-item-module"
+                            key={this.props.index + this.props.name}
+                            onClick={() => { this.props.handleAddModule(this.props.name) }}>
+                            *
+                            <button
+                                className="badge badge-primary yellow-btn">
+                                {BTNTEXT.addButtonText}
+                            </button>
+                        </li>
                         {this.props.module.map((value, key) =>
                             <Function
                                 key={this.props.index + value}

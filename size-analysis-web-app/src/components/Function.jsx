@@ -19,11 +19,11 @@ class Function extends Component {
                 onClick={() => { this.props.handleAddFunction(this.props.name, this.props.moduleName) }}
                 key={this.props.index}>
                 {this.props.name}
-                <span
+                <button
                     className="badge badge-primary light-orange-btn"
                 >
                     {BTNTEXT.addButtonText}
-                </span>
+                </button>
             </li>
 
 

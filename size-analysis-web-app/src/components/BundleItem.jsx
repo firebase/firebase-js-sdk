@@ -53,11 +53,11 @@ class BundleItem extends Component {
         return (
             <li className="list-group-item d-flex justify-content-between align-items-center">
                 {this.composeImportStatement(this.props.functionName, this.props.moduleName)}
-                <span
+                <button
                     className="badge badge-danger light-orange-btn"
                     onClick={() => { this.props.removeModuleFromBundle(this.props.moduleName) }}>
                     {BTNTEXT.deleteButtonText}
-                </span>
+                </button>
 
             </li>
         );
