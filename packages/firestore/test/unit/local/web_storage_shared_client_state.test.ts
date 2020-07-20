@@ -32,6 +32,10 @@ import {
   SharedClientState,
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
+import {
+  QueryTargetState,
+  SharedClientStateSyncer
+} from '../../../src/local/shared_client_state_syncer';
 import { targetIdSet } from '../../../src/model/collections';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
@@ -44,10 +48,6 @@ import {
 } from './persistence_test_helpers';
 import { testWindow } from '../../util/test_platform';
 import { WindowLike } from '../../../src/util/types';
-import {
-  QueryTargetState,
-  SharedClientStateSyncer
-} from '../../../src/local/shared_client_state_syncer';
 
 /* eslint-disable no-restricted-globals */
 
@@ -158,7 +158,7 @@ describe('WebStorageSharedClientState', () => {
 
   let queue: AsyncQueue;
   let primaryClientId: string;
-  let sharedClientState: SharedClientState;
+  let sharedClientState: WebStorageSharedClientState;
   let clientSyncer: TestSharedClientSyncer;
 
   let previousAddEventListener: typeof window.addEventListener;
@@ -215,6 +215,7 @@ describe('WebStorageSharedClientState', () => {
       AUTHENTICATED_USER
     );
     clientSyncer = new TestSharedClientSyncer([primaryClientId]);
+    sharedClientState.syncEngine = clientSyncer;
     sharedClientState.onlineStateHandler = clientSyncer.applyOnlineStateChange.bind(
       clientSyncer
     );
