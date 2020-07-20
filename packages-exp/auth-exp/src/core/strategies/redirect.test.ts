@@ -47,6 +47,7 @@ import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _getInstance } from '../util/instantiator';
 import * as idpTasks from './idp';
 import {
+  _clearOutcomes,
   getRedirectResult,
   linkWithRedirect,
   reauthenticateWithRedirect,
@@ -81,6 +82,7 @@ describe('src/core/strategies/redirect', () => {
 
   afterEach(() => {
     sinon.restore();
+    _clearOutcomes();
   });
 
   context('signInWithRedirect', () => {
