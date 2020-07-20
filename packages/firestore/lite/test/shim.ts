@@ -255,9 +255,7 @@ export class DocumentReference<T = legacy.DocumentData>
   readonly path = this._delegate.path;
 
   get parent(): legacy.CollectionReference<T> {
-    // TODO(firestorelite): This bang should be removed one CollectionReference
-    // has a `type` property.
-    return new CollectionReference<T>(parent(this._delegate)!);
+    return new CollectionReference<T>(parent(this._delegate));
   }
 
   collection(
