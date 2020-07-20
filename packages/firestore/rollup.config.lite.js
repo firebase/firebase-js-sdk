@@ -25,7 +25,8 @@ import {
   resolveNodeExterns,
   generateAliasConfig,
   resolveBrowserExterns,
-  firestoreTransformers,
+  removeAssertTransformer,
+  removeAssertAndPrefixInternalTransformer,
   manglePrivatePropertiesOptions
 } from './rollup.shared';
 
@@ -40,7 +41,8 @@ const nodePlugins = [
         target: 'es5'
       }
     },
-    clean: true
+    clean: true,
+    transformers: removeAssertTransformer
   }),
   json({ preferConst: true })
 ];
@@ -54,7 +56,7 @@ const browserPlugins = [
       }
     },
     clean: true,
-    transformers: firestoreTransformers
+    transformers: removeAssertAndPrefixInternalTransformer
   }),
   json({ preferConst: true }),
   terser(manglePrivatePropertiesOptions)

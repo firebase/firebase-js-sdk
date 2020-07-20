@@ -120,6 +120,8 @@ class DatastoreImpl extends Datastore {
   }
 }
 
+// TODO(firestorexp): Make sure there is only one Datastore instance per
+// firestore-exp client.
 export function newDatastore(
   credentials: CredentialsProvider,
   serializer: JsonProtoSerializer

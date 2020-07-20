@@ -160,7 +160,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           'methods on a Firestore object.';
       }
 
-      db.doc('foo/bar');
+      db.doc('foo/bar').set({});
       expect(() =>
         db.settings({ host: 'something-else.example.com' })
       ).to.throw(errorMsg);

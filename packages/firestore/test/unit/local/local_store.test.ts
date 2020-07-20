@@ -31,7 +31,7 @@ import {
   LocalStore,
   LocalWriteResult,
   newLocalStore,
-  newMultiTabLocalStore
+  synchronizeLastDocumentChangeReadTime
 } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
@@ -441,12 +441,12 @@ describe('LocalStore w/ IndexedDB Persistence (SimpleQueryEngine)', () => {
       QueryEngineType.Simple
     );
     const persistence = await persistenceHelpers.testIndexedDbPersistence();
-    const localStore = newMultiTabLocalStore(
+    const localStore = newLocalStore(
       persistence,
       queryEngine,
       User.UNAUTHENTICATED
     );
-    await localStore.start();
+    await synchronizeLastDocumentChangeReadTime(localStore);
     return { queryEngine, persistence, localStore };
   }
 
@@ -468,12 +468,12 @@ describe('LocalStore w/ IndexedDB Persistence (IndexFreeQueryEngine)', () => {
       QueryEngineType.IndexFree
     );
     const persistence = await persistenceHelpers.testIndexedDbPersistence();
-    const localStore = newMultiTabLocalStore(
+    const localStore = newLocalStore(
       persistence,
       queryEngine,
       User.UNAUTHENTICATED
     );
-    await localStore.start();
+    await synchronizeLastDocumentChangeReadTime(localStore);
     return { queryEngine, persistence, localStore };
   }
 
