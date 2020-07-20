@@ -1054,9 +1054,10 @@ export function lookupMutationDocuments(
   localStore: LocalStore,
   batchId: BatchId
 ): Promise<MaybeDocumentMap | null> {
-  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  const mutationQueueImpl = debugCast(
-    localStoreImpl.mutationQueue,
+  const [localStoreImpl, mutationQueueImpl] = debugCast(
+    localStore,
+    LocalStoreImpl,
+    (localStore as LocalStoreImpl).mutationQueue,
     IndexedDbMutationQueue // We only support IndexedDb in multi-tab mode.
   );
   return localStoreImpl.persistence.runTransaction(
@@ -1082,9 +1083,8 @@ export function removeCachedMutationBatchMetadata(
   localStore: LocalStore,
   batchId: BatchId
 ): void {
-  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const mutationQueueImpl = debugCast(
-    localStoreImpl.mutationQueue,
+    debugCast(localStore, LocalStoreImpl).mutationQueue,
     IndexedDbMutationQueue // We only support IndexedDb in multi-tab mode.
   );
   mutationQueueImpl.removeCachedMutationKeys(batchId);
@@ -1094,9 +1094,8 @@ export function removeCachedMutationBatchMetadata(
 export function getCurrentlyActiveClients(
   localStore: LocalStore
 ): Promise<ClientId[]> {
-  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const persistenceImpl = debugCast(
-    localStoreImpl.persistence,
+    debugCast(localStore, LocalStoreImpl).persistence,
     IndexedDbPersistence // We only support IndexedDb in multi-tab mode.
   );
   return persistenceImpl.getActiveClients();
@@ -1107,9 +1106,10 @@ export function getCachedTarget(
   localStore: LocalStore,
   targetId: TargetId
 ): Promise<Target | null> {
-  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  const targetCacheImpl = debugCast(
-    localStoreImpl.targetCache,
+  const [localStoreImpl, targetCacheImpl] = debugCast(
+    localStore,
+    LocalStoreImpl,
+    (localStore as LocalStoreImpl).targetCache,
     IndexedDbTargetCache // We only support IndexedDb in multi-tab mode.
   );
   const cachedTargetData = localStoreImpl.targetDataByTarget.get(targetId);
@@ -1131,16 +1131,17 @@ export function getCachedTarget(
 /**
  * Returns the set of documents that have been updated since the last call.
  * If this is the first call, returns the set of changes since client
- * initialization. Further invocations will return document changes since
- * the point of rejection.
+ * initialization. Further invocations will return document that have changed
+ * since the prior call.
  */
 // PORTING NOTE: Multi-Tab only.
 export function getNewDocumentChanges(
   localStore: LocalStore
 ): Promise<MaybeDocumentMap> {
-  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  const remoteDocumentCacheImpl = debugCast(
-    localStoreImpl.remoteDocuments,
+  const [localStoreImpl, remoteDocumentCacheImpl] = debugCast(
+    localStore,
+    LocalStoreImpl,
+    (localStore as LocalStoreImpl).remoteDocuments,
     IndexedDbRemoteDocumentCache // We only support IndexedDb in multi-tab mode.
   );
   return localStoreImpl.persistence
@@ -1157,8 +1158,8 @@ export function getNewDocumentChanges(
 }
 
 /**
- * Reads the newest document change from persistence and forwards the internal
- * synchronization marker so that calls to `getNewDocumentChanges()`
+ * Reads the newest document change from persistence and moves the internal
+ * synchronization marker forward so that calls to `getNewDocumentChanges()`
  * only return changes that happened after client initialization.
  */
 // PORTING NOTE: Multi-Tab only.

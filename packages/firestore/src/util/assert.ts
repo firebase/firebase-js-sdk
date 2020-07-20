@@ -72,17 +72,44 @@ export function debugAssert(
 }
 
 /**
- * Casts `obj` to `T`. In non-production builds, verifies that `obj` is an
- * instance of `T` before casting.
+ * Casts `obj1` to `S` and `obj2` to `T`. In non-production builds,
+ * verifies that `obj1` and `obj2` are instances of `S` and `T` before casting.
  */
-export function debugCast<T>(
+export function debugCast<S, T>(
+  obj1: object,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor1: { new (...args: any[]): S },
+  obj2: object,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor2: { new (...args: any[]): T }
+): [S, T] | never;
+/**
+ * Casts `obj` to `S`. In non-production builds, verifies that `obj` is an
+ * instance of `S` before casting.
+ */
+export function debugCast<S>(
   obj: object,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor: { new (...args: any[]): T }
-): T | never {
+  constructor: { new (...args: any[]): S }
+): S | never;
+export function debugCast<S, T>(
+  obj1: object,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor1: { new (...args: any[]): S },
+  obj2?: object,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor2?: { new (...args: any[]): T }
+): S | [S, T] | never {
   debugAssert(
-    obj instanceof constructor,
-    `Expected type '${constructor.name}', but was '${obj.constructor.name}'`
+    obj1 instanceof constructor1,
+    `Expected type '${constructor1.name}', but was '${obj1.constructor.name}'`
   );
-  return obj as T;
+  if (!obj2 || !constructor2) {
+    return obj1 as S;
+  }
+  debugAssert(
+    obj2 instanceof constructor2,
+    `Expected type '${constructor2.name}', but was '${obj2.constructor.name}'`
+  );
+  return [obj1 as S, obj2 as T];
 }
