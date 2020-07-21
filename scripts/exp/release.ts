@@ -70,26 +70,26 @@ async function publishExpPackages() {
     /**
      * Release packages to NPM
      */
-    // await publishToNpm(packagePaths);
+    await publishToNpm(packagePaths);
 
     /**
      * reset the working tree to recover package names with -exp in the package.json files,
      * then bump patch version of firebase-exp (the umbrella package) only
      */
-    // const firebaseExpVersion = new Map<string, string>();
-    // firebaseExpVersion.set(
-    //   FIREBASE_UMBRELLA_PACKAGE_NAME,
-    //   versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME)
-    // );
-    // const firebaseExpPath = packagePaths.filter(p =>
-    //   p.includes(FIREBASE_UMBRELLA_PACKAGE_NAME)
-    // );
-    // await resetWorkingTreeAndBumpVersions(firebaseExpPath, firebaseExpVersion);
+    const firebaseExpVersion = new Map<string, string>();
+    firebaseExpVersion.set(
+      FIREBASE_UMBRELLA_PACKAGE_NAME,
+      versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME)
+    );
+    const firebaseExpPath = packagePaths.filter(p =>
+      p.includes(FIREBASE_UMBRELLA_PACKAGE_NAME)
+    );
+    await resetWorkingTreeAndBumpVersions(firebaseExpPath, firebaseExpVersion);
 
     /**
      * push to github
      */
-    //  await commitAndPush(versions);
+    await commitAndPush(versions);
   } catch (err) {
     /**
      * Log any errors that happened during the process
