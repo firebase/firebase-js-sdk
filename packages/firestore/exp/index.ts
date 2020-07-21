@@ -47,11 +47,21 @@ export { SnapshotMetadata } from '../src/api/database';
 export {
   DocumentReference,
   CollectionReference,
+  QueryConstraint,
   Query,
   doc,
   collection,
   collectionGroup,
-  parent
+  parent,
+  startAt,
+  startAfter,
+  endAt,
+  endBefore,
+  query,
+  limit,
+  limitToLast,
+  where,
+  orderBy
 } from '../lite/src/api/reference';
 
 export { runTransaction, Transaction } from './src/api/transaction';

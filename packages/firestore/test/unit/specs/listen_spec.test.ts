@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { LimitType, queryWithLimit } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
 import { deletedDoc, doc, filter, orderBy, query } from '../../util/helpers';
 
@@ -151,7 +152,7 @@ describeSpec('Listens:', [], () => {
     [],
     () => {
       const query1 = query('collection');
-      const query2 = query1.withLimitToFirst(10);
+      const query2 = queryWithLimit(query1, 10, LimitType.First);
       const docA = doc('collection/a', 1000, { a: true });
       const docB = doc('collection/b', 1000, { b: true });
 
@@ -915,13 +916,16 @@ describeSpec('Listens:', [], () => {
     'Mirror queries from same secondary client',
     ['multi-client'],
     () => {
-      const limit = query('collection', orderBy('val', 'asc')).withLimitToFirst(
-        2
+      const limit = queryWithLimit(
+        query('collection', orderBy('val', 'asc')),
+        2,
+        LimitType.First
       );
-      const limitToLast = query(
-        'collection',
-        orderBy('val', 'desc')
-      ).withLimitToLast(2);
+      const limitToLast = queryWithLimit(
+        query('collection', orderBy('val', 'desc')),
+        2,
+        LimitType.Last
+      );
       const docA = doc('collection/a', 1000, { val: 0 });
       const docB = doc('collection/b', 1000, { val: 1 });
       const docC = doc('collection/c', 2000, { val: 0 });
@@ -956,13 +960,16 @@ describeSpec('Listens:', [], () => {
     'Mirror queries from different secondary client',
     ['multi-client'],
     () => {
-      const limit = query('collection', orderBy('val', 'asc')).withLimitToFirst(
-        2
+      const limit = queryWithLimit(
+        query('collection', orderBy('val', 'asc')),
+        2,
+        LimitType.First
       );
-      const limitToLast = query(
-        'collection',
-        orderBy('val', 'desc')
-      ).withLimitToLast(2);
+      const limitToLast = queryWithLimit(
+        query('collection', orderBy('val', 'desc')),
+        2,
+        LimitType.Last
+      );
       const docA = doc('collection/a', 1000, { val: 0 });
       const docB = doc('collection/b', 1000, { val: 1 });
       const docC = doc('collection/c', 2000, { val: 0 });
@@ -995,13 +1002,16 @@ describeSpec('Listens:', [], () => {
     'Mirror queries from primary and secondary client',
     ['multi-client'],
     () => {
-      const limit = query('collection', orderBy('val', 'asc')).withLimitToFirst(
-        2
+      const limit = queryWithLimit(
+        query('collection', orderBy('val', 'asc')),
+        2,
+        LimitType.First
       );
-      const limitToLast = query(
-        'collection',
-        orderBy('val', 'desc')
-      ).withLimitToLast(2);
+      const limitToLast = queryWithLimit(
+        query('collection', orderBy('val', 'desc')),
+        2,
+        LimitType.Last
+      );
       const docA = doc('collection/a', 1000, { val: 0 });
       const docB = doc('collection/b', 1000, { val: 1 });
       const docC = doc('collection/c', 2000, { val: 0 });
@@ -1057,13 +1067,16 @@ describeSpec('Listens:', [], () => {
   );
 
   specTest('Can listen/unlisten to mirror queries.', [], () => {
-    const limit = query('collection', orderBy('val', 'asc')).withLimitToFirst(
-      2
+    const limit = queryWithLimit(
+      query('collection', orderBy('val', 'asc')),
+      2,
+      LimitType.First
     );
-    const limitToLast = query(
-      'collection',
-      orderBy('val', 'desc')
-    ).withLimitToLast(2);
+    const limitToLast = queryWithLimit(
+      query('collection', orderBy('val', 'desc')),
+      2,
+      LimitType.Last
+    );
     const docA = doc('collection/a', 1000, { val: 0 });
     const docB = doc('collection/b', 1000, { val: 1 });
     const docC = doc('collection/c', 2000, { val: 0 });

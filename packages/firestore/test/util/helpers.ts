@@ -35,9 +35,13 @@ import {
   Direction,
   FieldFilter,
   Filter,
+  newQueryForPath,
   Operator,
   OrderBy,
-  Query
+  Query,
+  queryToTarget,
+  queryWithAddedFilter,
+  queryWithAddedOrderBy
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
 import { TargetId } from '../../src/core/types';
@@ -299,12 +303,12 @@ export function query(
   resourcePath: string,
   ...constraints: Array<OrderBy | Filter>
 ): Query {
-  let q = Query.atPath(path(resourcePath));
+  let q = newQueryForPath(path(resourcePath));
   for (const constraint of constraints) {
     if (constraint instanceof Filter) {
-      q = q.addFilter(constraint);
+      q = queryWithAddedFilter(q, constraint);
     } else {
-      q = q.addOrderBy(constraint);
+      q = queryWithAddedOrderBy(q, constraint);
     }
   }
   return q;
@@ -318,7 +322,7 @@ export function targetData(
   // Arbitrary value.
   const sequenceNumber = 0;
   return new TargetData(
-    query(path).toTarget(),
+    queryToTarget(query(path)),
     targetId,
     queryPurpose,
     sequenceNumber

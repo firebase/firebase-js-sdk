@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../index';
+import * as firestore from '../../lite-types';
 
 import { initializeApp } from '@firebase/app-exp';
 import { expect, use } from 'chai';
@@ -52,25 +52,23 @@ import {
   refEqual,
   queryEqual,
   collectionGroup,
-  getQuery
-} from '../src/api/reference';
-import { FieldPath } from '../src/api/field_path';
-import {
-  DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS
-} from '../../test/integration/util/settings';
-import { writeBatch } from '../src/api/write_batch';
-import { runTransaction } from '../src/api/transaction';
-import { expectEqual, expectNotEqual } from '../../test/util/helpers';
-import { snapshotEqual } from '../src/api/snapshot';
-import {
+  getQuery,
+  FieldPath,
+  writeBatch,
+  runTransaction,
+  snapshotEqual,
   FieldValue,
   deleteField,
   increment,
   serverTimestamp,
   arrayUnion,
   arrayRemove
-} from '../src/api/field_value';
+} from '..';
+import {
+  DEFAULT_PROJECT_ID,
+  DEFAULT_SETTINGS
+} from '../../test/integration/util/settings';
+import { expectEqual, expectNotEqual } from '../../test/util/helpers';
 import { Timestamp } from '../../src/api/timestamp';
 
 use(chaiAsPromised);
