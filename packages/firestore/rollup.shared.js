@@ -74,7 +74,7 @@ exports.removeAssertTransformer = [
  * Transformers that remove calls to `debugAssert`, messages for 'fail` and
  * `hardAssert` and appends a __PRIVATE_ prefix to all internal symbols.
  */
-exports.firestoreTransformers = [
+exports.removeAssertAndPrefixInternalTransformer = [
   service => ({
     before: [
       removeAsserts(service.getProgram()),
