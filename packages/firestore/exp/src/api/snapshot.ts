@@ -29,11 +29,7 @@ import {
 } from '../../../lite/src/api/snapshot';
 import { Firestore } from './database';
 import { cast } from '../../../lite/src/api/util';
-import {
-  DocumentReference,
-  Query,
-  queryEqual
-} from '../../../lite/src/api/reference';
+import { DocumentReference, Query, queryEqual } from '../../../lite';
 import {
   changesFromSnapshot,
   SnapshotMetadata
@@ -85,8 +81,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         key =>
           new DocumentReference(
             this._firestore,
-            key.path,
-            /* converter= */ null
+            /* converter= */ null,
+            key.path
           )
       );
       return userDataWriter.convertValue(this._document.toProto()) as T;
@@ -107,7 +103,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
           /* timestampsInSnapshots= */ true,
           options.serverTimestamps || DEFAULT_SERVER_TIMESTAMP_BEHAVIOR,
           key =>
-            new DocumentReference(this._firestore, key.path, this._converter)
+            new DocumentReference(this._firestore, this._converter, key.path)
         );
         return userDataWriter.convertValue(value);
       }
@@ -210,7 +206,7 @@ export class QuerySnapshot<T = firestore.DocumentData>
       doc.key,
       doc,
       new SnapshotMetadata(hasPendingWrites, fromCache),
-      this.query._converter
+      this.query.converter
     );
   }
 }
