@@ -776,7 +776,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         collection.where('test', '==', { test: FieldValue.arrayUnion(1) })
       ).to.throw(
-        'Function Query.where() called with invalid data. ' +
+        `Function ${
+          usesFunctionalApi() ? 'where' : 'Query.where'
+        }() called with invalid data. ` +
           `${
             usesFunctionalApi() ? 'arrayUnion' : 'FieldValue.arrayUnion'
           }() can only be used with update() and set() (found in field test)`
@@ -785,7 +787,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         collection.where('test', '==', { test: FieldValue.arrayRemove(1) })
       ).to.throw(
-        'Function Query.where() called with invalid data. ' +
+        `Function ${
+          usesFunctionalApi() ? 'where' : 'Query.where'
+        }() called with invalid data. ` +
           `${
             usesFunctionalApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
           }() can only be used with update() and set() (found in field test)`
@@ -862,7 +866,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         collection.where('test', '==', { test: FieldValue.increment(1) })
       ).to.throw(
-        'Function Query.where() called with invalid data. ' +
+        `Function ${
+          usesFunctionalApi() ? 'where' : 'Query.where'
+        }() called with invalid data. ` +
           `${
             usesFunctionalApi() ? 'increment' : 'FieldValue.increment'
           }() can only be used with update() and set() (found in field test)`
