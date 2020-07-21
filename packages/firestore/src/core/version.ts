@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-//import firebase from '@firebase/app';
+import firebase from '@firebase/app';
 
 /** The semver (www.semver.org) version of the SDK. */
-// export const SDK_VERSION = firebase.SDK_VERSION;
-export const SDK_VERSION = 'firebase.SDK_VERSION';
+export const SDK_VERSION = firebase.SDK_VERSION;
