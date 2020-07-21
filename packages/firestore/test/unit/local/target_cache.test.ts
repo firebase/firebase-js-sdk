@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+import { queryToTarget } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
@@ -69,7 +70,7 @@ describe('IndexedDbTargetCache', () => {
     const lastLimboFreeSnapshotVersion = SnapshotVersion.fromTimestamp(
       new Timestamp(3, 4)
     );
-    const target = query('rooms').toTarget();
+    const target = queryToTarget(query('rooms'));
     const targetData = new TargetData(
       target,
       targetId,
@@ -113,9 +114,9 @@ function genericTargetCacheTests(
   addEqualityMatcher({ equalsFn: targetEquals, forType: TargetImpl });
   let cache: TestTargetCache;
 
-  const QUERY_ROOMS = query('rooms').toTarget();
-  const QUERY_HALLS = query('halls').toTarget();
-  const QUERY_GARAGES = query('garages').toTarget();
+  const QUERY_ROOMS = queryToTarget(query('rooms'));
+  const QUERY_HALLS = queryToTarget(query('halls'));
+  const QUERY_GARAGES = queryToTarget(query('garages'));
 
   /**
    * Creates a new TargetData object from the the given parameters, synthesizing
@@ -172,8 +173,8 @@ function genericTargetCacheTests(
   it('handles canonical ID collisions', async () => {
     // Type information is currently lost in our canonicalID implementations so
     // this currently an easy way to force colliding canonicalIDs
-    const q1 = query('a', filter('foo', '==', 1)).toTarget();
-    const q2 = query('a', filter('foo', '==', '1')).toTarget();
+    const q1 = queryToTarget(query('a', filter('foo', '==', 1)));
+    const q2 = queryToTarget(query('a', filter('foo', '==', '1')));
     expect(canonifyTarget(q1)).to.equal(canonifyTarget(q2));
 
     const data1 = testTargetData(q1, 1, 1);

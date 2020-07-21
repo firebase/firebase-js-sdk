@@ -16,11 +16,11 @@ export declare function registerVersion(libraryKeyOrName: string, version: strin
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  libraryKeyOrName | <code>string</code> |  |
-|  version | <code>string</code> | Current version of that library. |
-|  variant | <code>string</code> | Bundle variant, e.g., node, rn, etc. |
+|  libraryKeyOrName | string |  |
+|  version | string | Current version of that library. |
+|  variant | string | Bundle variant, e.g., node, rn, etc. |
 
 <b>Returns:</b>
 
-`void`
+void
 

@@ -20,15 +20,15 @@ import * as api from '../protos/firestore_proto_api';
 import { compareDocumentsByField, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
-  canonicalId,
-  valueCompare,
   arrayValueContains,
-  valueEquals,
+  canonicalId,
   isArray,
   isNanValue,
   isNullValue,
   isReferenceValue,
-  typeOrder
+  typeOrder,
+  valueCompare,
+  valueEquals
 } from '../model/values';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, fail } from '../util/assert';
@@ -36,12 +36,12 @@ import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
 import {
   canonifyTarget,
-  isDocumentTarget,
   newTarget,
   stringifyTarget,
   Target,
   targetEquals
 } from './target';
+import { cast } from '../../lite/src/api/util';
 
 export const enum LimitType {
   First = 'F',
@@ -49,19 +49,50 @@ export const enum LimitType {
 }
 
 /**
+ * The Query interface defines all external properties of a query.
+ *
+ * QueryImpl implements this interface to provide memoization for `queryOrderBy`
+ * and `queryToTarget`.
+ */
+export interface Query {
+  readonly path: ResourcePath;
+  readonly collectionGroup: string | null;
+  readonly explicitOrderBy: OrderBy[];
+  readonly filters: Filter[];
+  readonly limit: number | null;
+  readonly limitType: LimitType;
+  readonly startAt: Bound | null;
+  readonly endAt: Bound | null;
+
+  hasLimitToFirst(): boolean;
+  hasLimitToLast(): boolean;
+  getFirstOrderByField(): FieldPath | null;
+  getInequalityFilterField(): FieldPath | null;
+  asCollectionQueryAtPath(path: ResourcePath): Query;
+
+  /**
+   * Returns true if this query does not specify any query constraints that
+   * could remove results.
+   */
+  matchesAllDocuments(): boolean;
+
+  // Checks if any of the provided Operators are included in the query and
+  // returns the first one that is, or null if none are.
+  findFilterOperator(operators: Operator[]): Operator | null;
+}
+
+/**
  * Query encapsulates all the query attributes we support in the SDK. It can
  * be run against the LocalStore, as well as be converted to a `Target` to
  * query the RemoteStore results.
+ *
+ * Visible for testing.
  */
-export class Query {
-  static atPath(path: ResourcePath): Query {
-    return new Query(path);
-  }
-
-  private memoizedOrderBy: OrderBy[] | null = null;
+export class QueryImpl implements Query {
+  memoizedOrderBy: OrderBy[] | null = null;
 
   // The corresponding `Target` of this `Query` instance.
-  private memoizedTarget: Target | null = null;
+  memoizedTarget: Target | null = null;
 
   /**
    * Initializes a Query with a path and optional additional query constraints.
@@ -78,155 +109,17 @@ export class Query {
     readonly endAt: Bound | null = null
   ) {
     if (this.startAt) {
-      this.assertValidBound(this.startAt);
+      debugAssert(
+        this.startAt.position.length <= queryOrderBy(this).length,
+        'Bound is longer than orderBy'
+      );
     }
     if (this.endAt) {
-      this.assertValidBound(this.endAt);
+      debugAssert(
+        this.endAt.position.length <= queryOrderBy(this).length,
+        'Bound is longer than orderBy'
+      );
     }
-  }
-
-  get orderBy(): OrderBy[] {
-    if (this.memoizedOrderBy === null) {
-      this.memoizedOrderBy = [];
-
-      const inequalityField = this.getInequalityFilterField();
-      const firstOrderByField = this.getFirstOrderByField();
-      if (inequalityField !== null && firstOrderByField === null) {
-        // In order to implicitly add key ordering, we must also add the
-        // inequality filter field for it to be a valid query.
-        // Note that the default inequality field and key ordering is ascending.
-        if (!inequalityField.isKeyField()) {
-          this.memoizedOrderBy.push(new OrderBy(inequalityField));
-        }
-        this.memoizedOrderBy.push(
-          new OrderBy(FieldPath.keyField(), Direction.ASCENDING)
-        );
-      } else {
-        debugAssert(
-          inequalityField === null ||
-            (firstOrderByField !== null &&
-              inequalityField.isEqual(firstOrderByField)),
-          'First orderBy should match inequality field.'
-        );
-        let foundKeyOrdering = false;
-        for (const orderBy of this.explicitOrderBy) {
-          this.memoizedOrderBy.push(orderBy);
-          if (orderBy.field.isKeyField()) {
-            foundKeyOrdering = true;
-          }
-        }
-        if (!foundKeyOrdering) {
-          // The order of the implicit key ordering always matches the last
-          // explicit order by
-          const lastDirection =
-            this.explicitOrderBy.length > 0
-              ? this.explicitOrderBy[this.explicitOrderBy.length - 1].dir
-              : Direction.ASCENDING;
-          this.memoizedOrderBy.push(
-            new OrderBy(FieldPath.keyField(), lastDirection)
-          );
-        }
-      }
-    }
-    return this.memoizedOrderBy;
-  }
-
-  addFilter(filter: Filter): Query {
-    debugAssert(
-      this.getInequalityFilterField() == null ||
-        !(filter instanceof FieldFilter) ||
-        !filter.isInequality() ||
-        filter.field.isEqual(this.getInequalityFilterField()!),
-      'Query must only have one inequality field.'
-    );
-
-    debugAssert(
-      !this.isDocumentQuery(),
-      'No filtering allowed for document query'
-    );
-
-    const newFilters = this.filters.concat([filter]);
-    return new Query(
-      this.path,
-      this.collectionGroup,
-      this.explicitOrderBy.slice(),
-      newFilters,
-      this.limit,
-      this.limitType,
-      this.startAt,
-      this.endAt
-    );
-  }
-
-  addOrderBy(orderBy: OrderBy): Query {
-    debugAssert(
-      !this.startAt && !this.endAt,
-      'Bounds must be set after orderBy'
-    );
-    // TODO(dimond): validate that orderBy does not list the same key twice.
-    const newOrderBy = this.explicitOrderBy.concat([orderBy]);
-    return new Query(
-      this.path,
-      this.collectionGroup,
-      newOrderBy,
-      this.filters.slice(),
-      this.limit,
-      this.limitType,
-      this.startAt,
-      this.endAt
-    );
-  }
-
-  withLimitToFirst(limit: number | null): Query {
-    return new Query(
-      this.path,
-      this.collectionGroup,
-      this.explicitOrderBy.slice(),
-      this.filters.slice(),
-      limit,
-      LimitType.First,
-      this.startAt,
-      this.endAt
-    );
-  }
-
-  withLimitToLast(limit: number | null): Query {
-    return new Query(
-      this.path,
-      this.collectionGroup,
-      this.explicitOrderBy.slice(),
-      this.filters.slice(),
-      limit,
-      LimitType.Last,
-      this.startAt,
-      this.endAt
-    );
-  }
-
-  withStartAt(bound: Bound): Query {
-    return new Query(
-      this.path,
-      this.collectionGroup,
-      this.explicitOrderBy.slice(),
-      this.filters.slice(),
-      this.limit,
-      this.limitType,
-      bound,
-      this.endAt
-    );
-  }
-
-  withEndAt(bound: Bound): Query {
-    return new Query(
-      this.path,
-      this.collectionGroup,
-      this.explicitOrderBy.slice(),
-      this.filters.slice(),
-      this.limit,
-      this.limitType,
-      this.startAt,
-      bound
-    );
   }
 
   /**
@@ -236,7 +129,7 @@ export class Query {
    * paths.
    */
   asCollectionQueryAtPath(path: ResourcePath): Query {
-    return new Query(
+    return new QueryImpl(
       path,
       /*collectionGroup=*/ null,
       this.explicitOrderBy.slice(),
@@ -248,10 +141,6 @@ export class Query {
     );
   }
 
-  /**
-   * Returns true if this query does not specify any query constraints that
-   * could remove results.
-   */
   matchesAllDocuments(): boolean {
     return (
       this.filters.length === 0 &&
@@ -280,95 +169,282 @@ export class Query {
 
   getInequalityFilterField(): FieldPath | null {
     for (const filter of this.filters) {
-      if (filter instanceof FieldFilter && filter.isInequality()) {
+      debugAssert(
+        filter instanceof FieldFilter,
+        'Only FieldFilters are supported'
+      );
+      if (filter.isInequality()) {
         return filter.field;
       }
     }
     return null;
   }
 
-  // Checks if any of the provided Operators are included in the query and
-  // returns the first one that is, or null if none are.
   findFilterOperator(operators: Operator[]): Operator | null {
     for (const filter of this.filters) {
-      if (filter instanceof FieldFilter) {
-        if (operators.indexOf(filter.op) >= 0) {
-          return filter.op;
-        }
+      debugAssert(
+        filter instanceof FieldFilter,
+        'Only FieldFilters are supported'
+      );
+      if (operators.indexOf(filter.op) >= 0) {
+        return filter.op;
       }
     }
     return null;
   }
+}
 
-  isDocumentQuery(): boolean {
-    return isDocumentTarget(this.toTarget());
-  }
+/** Creates a new Query instance with the options provided. */
+export function newQuery(
+  path: ResourcePath,
+  collectionGroup: string | null,
+  explicitOrderBy: OrderBy[],
+  filters: Filter[],
+  limit: number | null,
+  limitType: LimitType,
+  startAt: Bound | null,
+  endAt: Bound | null
+): Query {
+  return new QueryImpl(
+    path,
+    collectionGroup,
+    explicitOrderBy,
+    filters,
+    limit,
+    limitType,
+    startAt,
+    endAt
+  );
+}
 
-  isCollectionGroupQuery(): boolean {
-    return this.collectionGroup !== null;
-  }
+/** Creates a new Query for a query that matches all documents at `path` */
+export function newQueryForPath(path: ResourcePath): Query {
+  return new QueryImpl(path);
+}
 
-  /**
-   * Converts this `Query` instance to it's corresponding `Target`
-   * representation.
-   */
-  toTarget(): Target {
-    if (!this.memoizedTarget) {
-      if (this.limitType === LimitType.First) {
-        this.memoizedTarget = newTarget(
-          this.path,
-          this.collectionGroup,
-          this.orderBy,
-          this.filters,
-          this.limit,
-          this.startAt,
-          this.endAt
-        );
-      } else {
-        // Flip the orderBy directions since we want the last results
-        const orderBys = [] as OrderBy[];
-        for (const orderBy of this.orderBy) {
-          const dir =
-            orderBy.dir === Direction.DESCENDING
-              ? Direction.ASCENDING
-              : Direction.DESCENDING;
-          orderBys.push(new OrderBy(orderBy.field, dir));
+/**
+ * Creates a new Query for a collection group query that matches all documents
+ * within the provided collection group.
+ */
+export function newQueryForCollectionGroup(collectionId: string): Query {
+  return new QueryImpl(ResourcePath.emptyPath(), collectionId);
+}
+
+/**
+ * Returns whether the query matches a single document by path (rather than a
+ * collection).
+ */
+export function isDocumentQuery(query: Query): boolean {
+  return (
+    DocumentKey.isDocumentKey(query.path) &&
+    query.collectionGroup === null &&
+    query.filters.length === 0
+  );
+}
+
+/**
+ * Returns whether the query matches a collection group rather than a specific
+ * collection.
+ */
+export function isCollectionGroupQuery(query: Query): boolean {
+  return query.collectionGroup !== null;
+}
+
+/**
+ * Returns the implicit order by constraint that is used to execute the Query,
+ * which can be different from the order by constraints the user provided (e.g.
+ * the SDK and backend always orders by `__name__`).
+ */
+export function queryOrderBy(query: Query): OrderBy[] {
+  const queryImpl = cast(query, QueryImpl);
+  if (queryImpl.memoizedOrderBy === null) {
+    queryImpl.memoizedOrderBy = [];
+
+    const inequalityField = queryImpl.getInequalityFilterField();
+    const firstOrderByField = queryImpl.getFirstOrderByField();
+    if (inequalityField !== null && firstOrderByField === null) {
+      // In order to implicitly add key ordering, we must also add the
+      // inequality filter field for it to be a valid query.
+      // Note that the default inequality field and key ordering is ascending.
+      if (!inequalityField.isKeyField()) {
+        queryImpl.memoizedOrderBy.push(new OrderBy(inequalityField));
+      }
+      queryImpl.memoizedOrderBy.push(
+        new OrderBy(FieldPath.keyField(), Direction.ASCENDING)
+      );
+    } else {
+      debugAssert(
+        inequalityField === null ||
+          (firstOrderByField !== null &&
+            inequalityField.isEqual(firstOrderByField)),
+        'First orderBy should match inequality field.'
+      );
+      let foundKeyOrdering = false;
+      for (const orderBy of queryImpl.explicitOrderBy) {
+        queryImpl.memoizedOrderBy.push(orderBy);
+        if (orderBy.field.isKeyField()) {
+          foundKeyOrdering = true;
         }
-
-        // We need to swap the cursors to match the now-flipped query ordering.
-        const startAt = this.endAt
-          ? new Bound(this.endAt.position, !this.endAt.before)
-          : null;
-        const endAt = this.startAt
-          ? new Bound(this.startAt.position, !this.startAt.before)
-          : null;
-
-        // Now return as a LimitType.First query.
-        this.memoizedTarget = newTarget(
-          this.path,
-          this.collectionGroup,
-          orderBys,
-          this.filters,
-          this.limit,
-          startAt,
-          endAt
+      }
+      if (!foundKeyOrdering) {
+        // The order of the implicit key ordering always matches the last
+        // explicit order by
+        const lastDirection =
+          queryImpl.explicitOrderBy.length > 0
+            ? queryImpl.explicitOrderBy[queryImpl.explicitOrderBy.length - 1]
+                .dir
+            : Direction.ASCENDING;
+        queryImpl.memoizedOrderBy.push(
+          new OrderBy(FieldPath.keyField(), lastDirection)
         );
       }
     }
-    return this.memoizedTarget!;
   }
+  return queryImpl.memoizedOrderBy;
+}
 
-  private assertValidBound(bound: Bound): void {
-    debugAssert(
-      bound.position.length <= this.orderBy.length,
-      'Bound is longer than orderBy'
-    );
+/**
+ * Converts this `Query` instance to it's corresponding `Target` representation.
+ */
+export function queryToTarget(query: Query): Target {
+  const queryImpl = cast(query, QueryImpl);
+  if (!queryImpl.memoizedTarget) {
+    if (queryImpl.limitType === LimitType.First) {
+      queryImpl.memoizedTarget = newTarget(
+        queryImpl.path,
+        queryImpl.collectionGroup,
+        queryOrderBy(queryImpl),
+        queryImpl.filters,
+        queryImpl.limit,
+        queryImpl.startAt,
+        queryImpl.endAt
+      );
+    } else {
+      // Flip the orderBy directions since we want the last results
+      const orderBys = [] as OrderBy[];
+      for (const orderBy of queryOrderBy(queryImpl)) {
+        const dir =
+          orderBy.dir === Direction.DESCENDING
+            ? Direction.ASCENDING
+            : Direction.DESCENDING;
+        orderBys.push(new OrderBy(orderBy.field, dir));
+      }
+
+      // We need to swap the cursors to match the now-flipped query ordering.
+      const startAt = queryImpl.endAt
+        ? new Bound(queryImpl.endAt.position, !queryImpl.endAt.before)
+        : null;
+      const endAt = queryImpl.startAt
+        ? new Bound(queryImpl.startAt.position, !queryImpl.startAt.before)
+        : null;
+
+      // Now return as a LimitType.First query.
+      queryImpl.memoizedTarget = newTarget(
+        queryImpl.path,
+        queryImpl.collectionGroup,
+        orderBys,
+        queryImpl.filters,
+        queryImpl.limit,
+        startAt,
+        endAt
+      );
+    }
   }
+  return queryImpl.memoizedTarget!;
+}
+
+export function queryWithAddedFilter(query: Query, filter: Filter): Query {
+  debugAssert(
+    query.getInequalityFilterField() == null ||
+      !(filter instanceof FieldFilter) ||
+      !filter.isInequality() ||
+      filter.field.isEqual(query.getInequalityFilterField()!),
+    'Query must only have one inequality field.'
+  );
+
+  debugAssert(
+    !isDocumentQuery(query),
+    'No filtering allowed for document query'
+  );
+
+  const newFilters = query.filters.concat([filter]);
+  return new QueryImpl(
+    query.path,
+    query.collectionGroup,
+    query.explicitOrderBy.slice(),
+    newFilters,
+    query.limit,
+    query.limitType,
+    query.startAt,
+    query.endAt
+  );
+}
+
+export function queryWithAddedOrderBy(query: Query, orderBy: OrderBy): Query {
+  debugAssert(
+    !query.startAt && !query.endAt,
+    'Bounds must be set after orderBy'
+  );
+  // TODO(dimond): validate that orderBy does not list the same key twice.
+  const newOrderBy = query.explicitOrderBy.concat([orderBy]);
+  return new QueryImpl(
+    query.path,
+    query.collectionGroup,
+    newOrderBy,
+    query.filters.slice(),
+    query.limit,
+    query.limitType,
+    query.startAt,
+    query.endAt
+  );
+}
+
+export function queryWithLimit(
+  query: Query,
+  limit: number,
+  limitType: LimitType
+): Query {
+  return new QueryImpl(
+    query.path,
+    query.collectionGroup,
+    query.explicitOrderBy.slice(),
+    query.filters.slice(),
+    limit,
+    limitType,
+    query.startAt,
+    query.endAt
+  );
+}
+
+export function queryWithStartAt(query: Query, bound: Bound): Query {
+  return new QueryImpl(
+    query.path,
+    query.collectionGroup,
+    query.explicitOrderBy.slice(),
+    query.filters.slice(),
+    query.limit,
+    query.limitType,
+    bound,
+    query.endAt
+  );
+}
+
+export function queryWithEndAt(query: Query, bound: Bound): Query {
+  return new QueryImpl(
+    query.path,
+    query.collectionGroup,
+    query.explicitOrderBy.slice(),
+    query.filters.slice(),
+    query.limit,
+    query.limitType,
+    query.startAt,
+    bound
+  );
 }
 
 export function queryEquals(left: Query, right: Query): boolean {
   return (
-    targetEquals(left.toTarget(), right.toTarget()) &&
+    targetEquals(queryToTarget(left), queryToTarget(right)) &&
     left.limitType === right.limitType
   );
 }
@@ -377,11 +453,11 @@ export function queryEquals(left: Query, right: Query): boolean {
 // example, use as a dictionary key, but the implementation is subject to
 // collisions. Make it collision-free.
 export function canonifyQuery(query: Query): string {
-  return `${canonifyTarget(query.toTarget())}|lt:${query.limitType}`;
+  return `${canonifyTarget(queryToTarget(query))}|lt:${query.limitType}`;
 }
 
 export function stringifyQuery(query: Query): string {
-  return `Query(target=${stringifyTarget(query.toTarget())}; limitType=${
+  return `Query(target=${stringifyTarget(queryToTarget(query))}; limitType=${
     query.limitType
   })`;
 }
@@ -444,11 +520,14 @@ function queryMatchesFilters(query: Query, doc: Document): boolean {
 function queryMatchesBounds(query: Query, doc: Document): boolean {
   if (
     query.startAt &&
-    !sortsBeforeDocument(query.startAt, query.orderBy, doc)
+    !sortsBeforeDocument(query.startAt, queryOrderBy(query), doc)
   ) {
     return false;
   }
-  if (query.endAt && sortsBeforeDocument(query.endAt, query.orderBy, doc)) {
+  if (
+    query.endAt &&
+    sortsBeforeDocument(query.endAt, queryOrderBy(query), doc)
+  ) {
     return false;
   }
   return true;
@@ -463,7 +542,7 @@ export function newQueryComparator(
 ): (d1: Document, d2: Document) => number {
   return (d1: Document, d2: Document): number => {
     let comparedOnKeyField = false;
-    for (const orderBy of query.orderBy) {
+    for (const orderBy of queryOrderBy(query)) {
       const comp = compareDocs(orderBy, d1, d2);
       if (comp !== 0) {
         return comp;

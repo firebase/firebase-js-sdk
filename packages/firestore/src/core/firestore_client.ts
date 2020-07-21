@@ -202,7 +202,8 @@ export class FirestoreClient {
   enableNetwork(): Promise<void> {
     this.verifyNotTerminated();
     return this.asyncQueue.enqueue(() => {
-      return this.syncEngine.enableNetwork();
+      this.persistence.setNetworkEnabled(true);
+      return this.remoteStore.enableNetwork();
     });
   }
 
@@ -334,7 +335,8 @@ export class FirestoreClient {
   disableNetwork(): Promise<void> {
     this.verifyNotTerminated();
     return this.asyncQueue.enqueue(() => {
-      return this.syncEngine.disableNetwork();
+      this.persistence.setNetworkEnabled(false);
+      return this.remoteStore.disableNetwork();
     });
   }
 

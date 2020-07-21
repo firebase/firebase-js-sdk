@@ -25,7 +25,17 @@ import {
   Observer,
   QueryListener
 } from '../../../src/core/event_manager';
-import { canonifyQuery, Query, queryEquals } from '../../../src/core/query';
+import {
+  canonifyQuery,
+  LimitType,
+  newQueryForCollectionGroup,
+  Query,
+  queryEquals,
+  queryToTarget,
+  queryWithAddedFilter,
+  queryWithAddedOrderBy,
+  queryWithLimit
+} from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { SyncEngine } from '../../../src/core/sync_engine';
 import { TargetId } from '../../../src/core/types';
@@ -83,7 +93,6 @@ import {
   key,
   orderBy,
   patchMutation,
-  path,
   query,
   setMutation,
   stringFromBase64String,
@@ -129,24 +138,29 @@ export function parseQuery(querySpec: string | SpecQuery): Query {
   if (typeof querySpec === 'string') {
     return query(querySpec);
   } else {
-    let query = new Query(path(querySpec.path), querySpec.collectionGroup);
+    let query1 = querySpec.collectionGroup
+      ? newQueryForCollectionGroup(querySpec.collectionGroup)
+      : query(querySpec.path);
     if (querySpec.limit) {
-      query =
+      query1 = queryWithLimit(
+        query1,
+        querySpec.limit,
         querySpec.limitType === 'LimitToFirst'
-          ? query.withLimitToFirst(querySpec.limit)
-          : query.withLimitToLast(querySpec.limit);
+          ? LimitType.First
+          : LimitType.Last
+      );
     }
     if (querySpec.filters) {
       querySpec.filters.forEach(([field, op, value]) => {
-        query = query.addFilter(filter(field, op, value));
+        query1 = queryWithAddedFilter(query1, filter(field, op, value));
       });
     }
     if (querySpec.orderBys) {
       querySpec.orderBys.forEach(([filter, direction]) => {
-        query = query.addOrderBy(orderBy(filter, direction));
+        query1 = queryWithAddedOrderBy(query1, orderBy(filter, direction));
       });
     }
-    return query;
+    return query1;
   }
 }
 
@@ -667,7 +681,8 @@ abstract class TestRunner {
     // Make sure to execute all writes that are currently queued. This allows us
     // to assert on the total number of requests sent before shutdown.
     await this.remoteStore.fillWritePipeline();
-    await this.syncEngine.disableNetwork();
+    this.persistence.setNetworkEnabled(false);
+    await this.remoteStore.disableNetwork();
   }
 
   private async doDrainQueue(): Promise<void> {
@@ -676,7 +691,8 @@ abstract class TestRunner {
 
   private async doEnableNetwork(): Promise<void> {
     this.networkEnabled = true;
-    await this.syncEngine.enableNetwork();
+    this.persistence.setNetworkEnabled(true);
+    await this.remoteStore.enableNetwork();
   }
 
   private async doShutdown(): Promise<void> {
@@ -944,7 +960,7 @@ abstract class TestRunner {
       const expectedTarget = toTarget(
         this.serializer,
         new TargetData(
-          parseQuery(expected.queries[0]).toTarget(),
+          queryToTarget(parseQuery(expected.queries[0])),
           targetId,
           TargetPurpose.Listen,
           ARBITRARY_SEQUENCE_NUMBER,

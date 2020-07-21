@@ -29,7 +29,8 @@ import pkg from './package.json';
 import memoryPkg from './memory/package.json';
 
 import {
-  firestoreTransformers,
+  removeAssertTransformer,
+  removeAssertAndPrefixInternalTransformer,
   manglePrivatePropertiesOptions,
   resolveNodeExterns,
   resolveBrowserExterns,
@@ -72,7 +73,7 @@ const browserBuildPlugins = [
       }
     },
     clean: true,
-    transformers: firestoreTransformers
+    transformers: removeAssertAndPrefixInternalTransformer
   }),
   json({ preferConst: true }),
   terser(manglePrivatePropertiesOptions)
@@ -144,7 +145,8 @@ const nodeBuildPlugins = [
         target: 'es2017'
       }
     },
-    clean: true
+    clean: true,
+    transformers: removeAssertTransformer
   }),
   json(),
   // Needed as we also use the *.proto files

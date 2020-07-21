@@ -20,11 +20,11 @@ export declare function getApp(name?: string): FirebaseApp;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  name | <code>string</code> | Optional name of the app to return. If no name is provided, the default is <code>&quot;[DEFAULT]&quot;</code>. |
+|  name | string | Optional name of the app to return. If no name is provided, the default is <code>&quot;[DEFAULT]&quot;</code>. |
 
 <b>Returns:</b>
 
-`FirebaseApp`
+[FirebaseApp](./app-types.firebaseapp.md)
 
 The app corresponding to the provided app name. If no app name is provided, the default app is returned.
 

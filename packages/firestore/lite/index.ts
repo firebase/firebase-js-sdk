@@ -30,6 +30,7 @@ export {
 export {
   DocumentReference,
   Query,
+  QueryConstraint,
   CollectionReference,
   collection,
   collectionGroup,
@@ -42,7 +43,16 @@ export {
   updateDoc,
   addDoc,
   refEqual,
-  queryEqual
+  queryEqual,
+  startAt,
+  startAfter,
+  endAt,
+  endBefore,
+  query,
+  limit,
+  limitToLast,
+  where,
+  orderBy
 } from './src/api/reference';
 
 // TOOD(firestorelite): Add tests when Queries are usable

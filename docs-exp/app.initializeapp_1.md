@@ -16,10 +16,10 @@ export declare function initializeApp(options: FirebaseOptions, config?: Firebas
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | <code>FirebaseOptions</code> | Options to configure the app's services. |
-|  config | <code>FirebaseAppConfig</code> | FirebaseApp Configuration |
+|  options | [FirebaseOptions](./app-types.firebaseoptions.md) | Options to configure the app's services. |
+|  config | [FirebaseAppConfig](./app-types.firebaseappconfig.md) | FirebaseApp Configuration |
 
 <b>Returns:</b>
 
-`FirebaseApp`
+[FirebaseApp](./app-types.firebaseapp.md)
 

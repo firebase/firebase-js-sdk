@@ -17,7 +17,7 @@
 
 import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
-import { Query } from '../core/query';
+import { isCollectionGroupQuery, isDocumentQuery, Query } from '../core/query';
 import { BatchId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
@@ -390,11 +390,11 @@ export class IndexedDbMutationQueue implements MutationQueue {
     query: Query
   ): PersistencePromise<MutationBatch[]> {
     debugAssert(
-      !query.isDocumentQuery(),
+      !isDocumentQuery(query),
       "Document queries shouldn't go down this path"
     );
     debugAssert(
-      !query.isCollectionGroupQuery(),
+      !isCollectionGroupQuery(query),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
 
