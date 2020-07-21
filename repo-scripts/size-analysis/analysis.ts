@@ -36,13 +36,9 @@ import * as yargs from 'yargs';
  *
  * -- inputBundleFile (optional): adhoc support. Specify a path to bundle file. Must enable -- inputDtsFile if this flag is specified.
  *
- * --ci (optional): designed for CI infrastructure. if enabled, does not output reports to files. Instead, will be uploaded to CI by its backend process.
- *
- *
  * --output (optional): output directory or file where reports will be generated.
  *          specify a directory if module(s) are analyzed
  *          specify a file path if ad hoc analysis is to be performed
- *          One of --ci and --output flag must be specified for output redirection.
  *
  */
 const argv = yargs
@@ -62,13 +58,6 @@ const argv = yargs
       type: 'string',
       alias: 'ib',
       desc: 'support for adhoc analysis. requires a path to a bundle file'
-    },
-    ci: {
-      type: 'boolean',
-      alias: 'ci',
-      default: false,
-      desc:
-        'when enabled, the binary size report is not persisted on file system; Instead, it will be uploaded to CI by its backend process'
     },
     output: {
       type: 'string',
@@ -111,9 +100,6 @@ async function main(): Promise<void> {
     let writeFiles: boolean = false;
     if (argv.output) {
       writeFiles = true;
-    }
-    if (argv.ci) {
-      writeFiles = false;
     }
     generateReportForModules(allModulesLocation, argv.output, writeFiles);
   } else {

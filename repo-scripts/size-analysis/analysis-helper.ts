@@ -38,6 +38,9 @@ export const enum ErrorCode {
   FILE_PARSING_ERROR = 'Failed to parse js file!',
   REPORT_REDIRECTION_ERROR = 'Please enable at least one of --output or --ci flag for report redirection!'
 }
+export const enum Warning {
+  MODULE_NOT_RESOLVED = 'module can not be resolved to actual location'
+}
 
 /** Contains a list of members by type. */
 export interface MemberList {
@@ -270,36 +273,19 @@ export function extractDeclarations(
     // export {foo, bar} from '..';
     // export {foo as foo1, bar} from '...';
     else if (ts.isExportDeclaration(node)) {
+      // this clause handles the export statements that have a from clause (referred to as moduleSpecifier in ts compiler).
+      // examples are "export {foo as foo1, bar} from '...';"
+      // and "export * from '..';"
       if (node.moduleSpecifier) {
         if (ts.isStringLiteral(node.moduleSpecifier)) {
-          const symbol = checker.getSymbolAtLocation(node.moduleSpecifier);
-          if (symbol && symbol.valueDeclaration) {
-            const reExportFullPath = symbol.valueDeclaration.getSourceFile()
-              .fileName;
-            // first step: always retrieve all exported symbols from the source location of the re-export.
-            let reExportsMember = extractDeclarations(reExportFullPath);
-            // if it's a named export statement, filter the MemberList to keep only those listed in exportClause.
-            // named exports: eg: export {foo, bar} from '...'; and export {foo as foo1, bar} from '...';
-            reExportsMember = extractSymbolsFromNamedExportStatement(
-              node,
-              reExportsMember
-            );
-            // concatenate re-exported MemberList with MemberList of the dts file
-            const keys = Object.keys(declarations);
-            for (const key of keys) {
-              declarations[key].push(...reExportsMember[key]);
-            }
-          } else {
-            // if the module name in the from clause cant be resolved to actual module location,
-            // just extract symbols listed in the exportClause for named exports, put them in variables first, as
-            // they will be categorized later using map argument.
-            if (node.exportClause && ts.isNamedExports(node.exportClause)) {
-              node.exportClause.elements.forEach(exportSpecifier => {
-                declarations.variables.push(
-                  exportSpecifier.name.escapedText.toString()
-                );
-              });
-            }
+          const reExportsWithFromClause: MemberList = handleExportStatementsWithFromClause(
+            checker,
+            node,
+            node.moduleSpecifier.getText(sourceFile)
+          );
+          // concatenate re-exported MemberList with MemberList of the dts file
+          for (const key of Object.keys(declarations)) {
+            declarations[key].push(...reExportsWithFromClause[key]);
           }
         }
       } else {
@@ -312,8 +298,7 @@ export function extractDeclarations(
           symbolLocation
         );
         // concatenate re-exported MemberList with MemberList of the dts file
-        const keys = Object.keys(declarations);
-        for (const key of keys) {
+        for (const key of Object.keys(declarations)) {
           declarations[key].push(...importThenExportedSymbols[key]);
         }
       }
@@ -329,6 +314,49 @@ export function extractDeclarations(
   Object.values(declarations).map(each => {
     each.sort();
   });
+  return declarations;
+}
+/**
+ *
+ * @param node compiler representation of an export statement
+ *
+ * This function exclusively handles export statements that have a from clause. The function uses checker argument to resolve
+ * module name specified in from clause to its actual location. It then retrieves all exported symbols from the module.
+ * If the statement is a named export, the function does an extra step, that is, filtering out the symbols that are not listed
+ * in exportClause.
+ */
+function handleExportStatementsWithFromClause(
+  checker: ts.TypeChecker,
+  node: ts.ExportDeclaration,
+  moduleName: string
+): MemberList {
+  const symbol = checker.getSymbolAtLocation(node.moduleSpecifier);
+  let declarations: MemberList = {
+    functions: [],
+    classes: [],
+    variables: [],
+    enums: [],
+    externals: []
+  };
+  if (symbol && symbol.valueDeclaration) {
+    const reExportFullPath = symbol.valueDeclaration.getSourceFile().fileName;
+    // first step: always retrieve all exported symbols from the source location of the re-export.
+    declarations = extractDeclarations(reExportFullPath);
+    // if it's a named export statement, filter the MemberList to keep only those listed in exportClause.
+    // named exports: eg: export {foo, bar} from '...'; and export {foo as foo1, bar} from '...';
+    declarations = extractSymbolsFromNamedExportStatement(node, declarations);
+  }
+  // if the module name in the from clause cant be resolved to actual module location,
+  // just extract symbols listed in the exportClause for named exports, put them in variables first, as
+  // they will be categorized later using map argument.
+  else if (node.exportClause && ts.isNamedExports(node.exportClause)) {
+    node.exportClause.elements.forEach(exportSpecifier => {
+      declarations.variables.push(exportSpecifier.name.escapedText.toString());
+    });
+  } else {
+    console.log(`${moduleName}: ${Warning.MODULE_NOT_RESOLVED}`);
+  }
+
   return declarations;
 }
 
@@ -399,8 +427,7 @@ function handleImportThenExport(
         );
         filterAllBy(reExportedSymbols, [exportedSymbolName]);
         // concatenate re-exported MemberList with MemberList of the dts file
-        const keys = Object.keys(declarations);
-        for (const key of keys) {
+        for (const key of Object.keys(declarations)) {
           declarations[key].push(...reExportedSymbols[key]);
         }
       }
@@ -413,8 +440,7 @@ function handleImportThenExport(
  * To Make sure symbols of every category are unique.
  */
 export function dedup(memberList: MemberList): MemberList {
-  const keys: string[] = Object.keys(memberList);
-  for (const key of keys) {
+  for (const key of Object.keys(memberList)) {
     const set: Set<string> = new Set(memberList[key]);
     memberList[key] = Array.from(set);
   }
@@ -432,9 +458,8 @@ export function mapSymbolToType(
     enums: [],
     externals: []
   };
-  const keys: string[] = Object.keys(memberList);
 
-  for (const key of keys) {
+  for (const key of Object.keys(memberList)) {
     memberList[key].forEach(element => {
       if (map.has(element)) {
         newMemberList[map.get(element)].push(element);
@@ -444,10 +469,6 @@ export function mapSymbolToType(
     });
   }
   return newMemberList;
-}
-
-function isReExported(symbol: string, reExportedSymbols: string[]): boolean {
-  return reExportedSymbols.includes(symbol);
 }
 
 function extractOriginalSymbolName(
@@ -462,9 +483,8 @@ function extractOriginalSymbolName(
 }
 
 function filterAllBy(memberList: MemberList, keep: string[]): void {
-  const keys: string[] = Object.keys(memberList);
-  for (const key of keys) {
-    memberList[key] = memberList[key].filter(each => isReExported(each, keep));
+  for (const key of Object.keys(memberList)) {
+    memberList[key] = memberList[key].filter(each => keep.includes(each));
   }
 }
 
@@ -473,8 +493,7 @@ export function replaceAll(
   original: string,
   current: string
 ): void {
-  const keys: string[] = Object.keys(memberList);
-  for (const key of keys) {
+  for (const key of Object.keys(memberList)) {
     memberList[key] = replaceWith(memberList[key], original, current);
   }
 }
@@ -623,8 +642,7 @@ export async function generateReportForModule(
  */
 function buildMap(api: MemberList): Map<string, string> {
   const map: Map<string, string> = new Map();
-  const types: string[] = Object.keys(api);
-  for (const type of types) {
+  for (const type of Object.keys(api)) {
     api[type].forEach(element => {
       map.set(element, type);
     });
