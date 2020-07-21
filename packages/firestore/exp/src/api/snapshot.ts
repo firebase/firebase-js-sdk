@@ -59,7 +59,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     return super.exists();
   }
 
-  data(options: firestore.SnapshotOptions = {}): T | undefined {
+  data(options?: firestore.SnapshotOptions): T | undefined {
     if (!this._document) {
       return undefined;
     } else if (this._converter) {
@@ -77,7 +77,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
       const userDataWriter = new UserDataWriter(
         this._firestoreImpl._databaseId,
         /* timestampsInSnapshots= */ true,
-        options.serverTimestamps || DEFAULT_SERVER_TIMESTAMP_BEHAVIOR,
+        options?.serverTimestamps || DEFAULT_SERVER_TIMESTAMP_BEHAVIOR,
         key =>
           new DocumentReference(
             this._firestore,
