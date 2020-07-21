@@ -16,10 +16,10 @@ export declare function onLog(logCallback: LogCallback | null, options?: LogOpti
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  logCallback | <code>LogCallback &#124; null</code> | An optional custom log handler that executes user code whenever the Firebase SDK makes a logging call. |
-|  options | <code>LogOptions</code> |  |
+|  logCallback | LogCallback \| null | An optional custom log handler that executes user code whenever the Firebase SDK makes a logging call. |
+|  options | LogOptions |  |
 
 <b>Returns:</b>
 
-`void`
+void
 

@@ -39,7 +39,7 @@ import {
   WriteStreamListener
 } from './persistent_stream';
 import { AsyncQueue } from '../util/async_queue';
-import { Query } from '../core/query';
+import { Query, queryToTarget } from '../core/query';
 
 /**
  * Datastore and its related methods are a wrapper around the external Google
@@ -120,6 +120,8 @@ class DatastoreImpl extends Datastore {
   }
 }
 
+// TODO(firestorexp): Make sure there is only one Datastore instance per
+// firestore-exp client.
 export function newDatastore(
   credentials: CredentialsProvider,
   serializer: JsonProtoSerializer
@@ -174,7 +176,7 @@ export async function invokeRunQueryRpc(
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const { structuredQuery, parent } = toQueryTarget(
     datastoreImpl.serializer,
-    query.toTarget()
+    queryToTarget(query)
   );
   const params = {
     database: getEncodedDatabaseId(datastoreImpl.serializer),

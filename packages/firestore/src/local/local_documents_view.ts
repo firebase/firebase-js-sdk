@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { Query, queryMatches } from '../core/query';
+import {
+  isCollectionGroupQuery,
+  isDocumentQuery,
+  Query,
+  queryMatches
+} from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
@@ -156,9 +161,9 @@ export class LocalDocumentsView {
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    if (query.isDocumentQuery()) {
+    if (isDocumentQuery(query)) {
       return this.getDocumentsMatchingDocumentQuery(transaction, query.path);
-    } else if (query.isCollectionGroupQuery()) {
+    } else if (isCollectionGroupQuery(query)) {
       return this.getDocumentsMatchingCollectionGroupQuery(
         transaction,
         query,

@@ -23,10 +23,21 @@ import {
   Bound,
   boundEquals,
   canonifyQuery,
+  LimitType,
   newQueryComparator,
+  newQueryForPath,
   Query,
   queryMatches,
-  stringifyQuery
+  queryOrderBy,
+  queryWithAddedFilter,
+  queryWithEndAt,
+  queryWithLimit,
+  queryWithStartAt,
+  stringifyQuery,
+  queryToTarget,
+  QueryImpl,
+  queryEquals,
+  OrderBy
 } from '../../../src/core/query';
 import { DOCUMENT_KEY_NAME, ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';
@@ -74,7 +85,7 @@ describe('Bound', () => {
 });
 
 describe('Query', () => {
-  addEqualityMatcher();
+  addEqualityMatcher({ equalsFn: queryEquals, forType: QueryImpl });
 
   it('matches based on document key', () => {
     const queryKey = new ResourcePath(['rooms', 'eros', 'messages', '1']);
@@ -82,7 +93,7 @@ describe('Query', () => {
     const doc2 = doc('rooms/eros/messages/2', 0, { text: 'msg2' });
     const doc3 = doc('rooms/other/messages/1', 0, { text: 'msg3' });
     // document query
-    const query = Query.atPath(queryKey);
+    const query = newQueryForPath(queryKey);
     expect(queryMatches(query, doc1)).to.equal(true);
     expect(queryMatches(query, doc2)).to.equal(false);
     expect(queryMatches(query, doc3)).to.equal(false);
@@ -97,7 +108,7 @@ describe('Query', () => {
     const doc2 = doc('rooms/eros/messages/2', 0, { text: 'msg2' });
     const doc3 = doc('rooms/other/messages/1', 0, { text: 'msg3' });
     // shallow ancestor query
-    const query = Query.atPath(queryPath);
+    const query = newQueryForPath(queryPath);
     expect(queryMatches(query, doc1)).to.equal(true);
     expect(queryMatches(query, doc1meta)).to.equal(false);
     expect(queryMatches(query, doc2)).to.equal(true);
@@ -345,11 +356,11 @@ describe('Query', () => {
       filter('tags', '==', ['foo', true, 1])
     ];
     for (const filter of matchingFilters) {
-      const filteredQuery = baseQuery.addFilter(filter);
+      const filteredQuery = queryWithAddedFilter(baseQuery, filter);
       expect(queryMatches(filteredQuery, doc1)).to.equal(true);
     }
     for (const filter of nonMatchingFilters) {
-      const filteredQuery = baseQuery.addFilter(filter);
+      const filteredQuery = queryWithAddedFilter(baseQuery, filter);
       expect(queryMatches(filteredQuery, doc1)).to.equal(false);
     }
   });
@@ -369,11 +380,11 @@ describe('Query', () => {
       filter('tags', '==', { foo: 'foo', a: 0, b: true })
     ];
     for (const filter of matchingFilters) {
-      const filteredQuery = baseQuery.addFilter(filter);
+      const filteredQuery = queryWithAddedFilter(baseQuery, filter);
       expect(queryMatches(filteredQuery, doc1)).to.equal(true);
     }
     for (const filter of nonMatchingFilters) {
-      const filteredQuery = baseQuery.addFilter(filter);
+      const filteredQuery = queryWithAddedFilter(baseQuery, filter);
       expect(queryMatches(filteredQuery, doc1)).to.equal(false);
     }
   });
@@ -460,8 +471,8 @@ describe('Query', () => {
 
     const q6a = query('foo', filter('bar', '>', 2), orderBy('bar'));
 
-    const q7a = query('foo').withLimitToFirst(10);
-    const q8a = query('foo').withLimitToLast(10);
+    const q7a = queryWithLimit(query('foo'), 10, LimitType.First);
+    const q8a = queryWithLimit(query('foo'), 10, LimitType.Last);
 
     const lip1a = bound([[DOCUMENT_KEY_NAME, 'coll/foo', 'asc']], true);
     const lip1b = bound([[DOCUMENT_KEY_NAME, 'coll/foo', 'asc']], false);
@@ -469,12 +480,12 @@ describe('Query', () => {
     // TODO(b/35851862): descending key ordering not supported yet
     // const lip3 = bound([[DOCUMENT_KEY_NAME, 'coll/bar', 'desc']]);
 
-    const q9a = query('foo').withStartAt(lip1a);
-    const q10a = query('foo').withStartAt(lip1b);
-    const q11a = query('foo').withStartAt(lip2);
-    const q12a = query('foo').withEndAt(lip1a);
-    const q13a = query('foo').withEndAt(lip1b);
-    const q14a = query('foo').withEndAt(lip2);
+    const q9a = queryWithStartAt(query('foo'), lip1a);
+    const q10a = queryWithStartAt(query('foo'), lip1b);
+    const q11a = queryWithStartAt(query('foo'), lip2);
+    const q12a = queryWithEndAt(query('foo'), lip1a);
+    const q13a = queryWithEndAt(query('foo'), lip1b);
+    const q14a = queryWithEndAt(query('foo'), lip2);
 
     // TODO(b/35851862): descending key ordering not supported yet
     // const q15a = query('foo')
@@ -594,7 +605,8 @@ describe('Query', () => {
       'collection|f:|ob:aasc,__name__asc'
     );
     assertCanonicalId(
-      query('collection', orderBy('a', 'asc'), orderBy('b', 'asc')).withStartAt(
+      queryWithStartAt(
+        query('collection', orderBy('a', 'asc'), orderBy('b', 'asc')),
         bound(
           [
             ['a', 'foo', 'asc'],
@@ -606,7 +618,8 @@ describe('Query', () => {
       'collection|f:|ob:aasc,basc,__name__asc|lb:b:foo,[1,2,3]'
     );
     assertCanonicalId(
-      query('collection', orderBy('a', 'desc'), orderBy('b', 'desc')).withEndAt(
+      queryWithEndAt(
+        query('collection', orderBy('a', 'desc'), orderBy('b', 'desc')),
         bound(
           [
             ['a', 'foo', 'desc'],
@@ -618,11 +631,11 @@ describe('Query', () => {
       'collection|f:|ob:adesc,bdesc,__name__desc|ub:a:foo,[1,2,3]'
     );
     assertCanonicalId(
-      query('collection').withLimitToFirst(5),
+      queryWithLimit(query('collection'), 5, LimitType.First),
       'collection|f:|ob:__name__asc|l:5'
     );
     assertCanonicalId(
-      query('collection').withLimitToLast(5),
+      queryWithLimit(query('collection'), 5, LimitType.Last),
       'collection|f:|ob:__name__desc|l:5'
     );
   });
@@ -630,58 +643,56 @@ describe('Query', () => {
   it("generates the correct implicit order by's", () => {
     const baseQuery = query('foo');
     // Default is ascending
-    expect(baseQuery.orderBy).to.deep.equal([orderBy(DOCUMENT_KEY_NAME)]);
+    assertImplicitOrderBy(baseQuery, orderBy(DOCUMENT_KEY_NAME));
     // Explicit key ordering is respected
-    expect(
-      baseQuery.addOrderBy(orderBy(DOCUMENT_KEY_NAME)).orderBy
-    ).to.deep.equal([orderBy(DOCUMENT_KEY_NAME)]);
-    expect(
-      baseQuery.addOrderBy(orderBy(DOCUMENT_KEY_NAME, 'desc')).orderBy
-    ).to.deep.equal([orderBy(DOCUMENT_KEY_NAME, 'desc')]);
-    expect(
-      baseQuery
-        .addOrderBy(orderBy('foo'))
-        .addOrderBy(orderBy(DOCUMENT_KEY_NAME)).orderBy
-    ).to.deep.equal([orderBy('foo'), orderBy(DOCUMENT_KEY_NAME, 'asc')]);
-    expect(
-      baseQuery
-        .addOrderBy(orderBy('foo'))
-        .addOrderBy(orderBy(DOCUMENT_KEY_NAME, 'desc')).orderBy
-    ).to.deep.equal([orderBy('foo'), orderBy(DOCUMENT_KEY_NAME, 'desc')]);
+    assertImplicitOrderBy(
+      query('foo', orderBy(DOCUMENT_KEY_NAME)),
+      orderBy(DOCUMENT_KEY_NAME)
+    );
+    assertImplicitOrderBy(
+      query('foo', orderBy(DOCUMENT_KEY_NAME, 'desc')),
+      orderBy(DOCUMENT_KEY_NAME, 'desc')
+    );
+    assertImplicitOrderBy(
+      query('foo', orderBy('foo'), orderBy(DOCUMENT_KEY_NAME)),
+      orderBy('foo'),
+      orderBy(DOCUMENT_KEY_NAME, 'asc')
+    );
+    assertImplicitOrderBy(
+      query('foo', orderBy('foo'), orderBy(DOCUMENT_KEY_NAME, 'desc')),
+      orderBy('foo'),
+      orderBy(DOCUMENT_KEY_NAME, 'desc')
+    );
 
     // Inequality filters add order by's
-    expect(baseQuery.addFilter(filter('foo', '<', 5)).orderBy).to.deep.equal([
+    assertImplicitOrderBy(
+      query('foo', filter('foo', '<', 5)),
       orderBy('foo'),
       orderBy(DOCUMENT_KEY_NAME)
-    ]);
+    );
 
     // Descending order by applies to implicit key ordering
-    expect(baseQuery.addOrderBy(orderBy('foo', 'desc')).orderBy).to.deep.equal([
+    assertImplicitOrderBy(
+      query('foo', orderBy('foo', 'desc')),
       orderBy('foo', 'desc'),
       orderBy(DOCUMENT_KEY_NAME, 'desc')
-    ]);
-    expect(
-      baseQuery
-        .addOrderBy(orderBy('foo', 'asc'))
-        .addOrderBy(orderBy('bar', 'desc')).orderBy
-    ).to.deep.equal([
+    );
+    assertImplicitOrderBy(
+      query('foo', orderBy('foo', 'asc'), orderBy('bar', 'desc')),
       orderBy('foo', 'asc'),
       orderBy('bar', 'desc'),
       orderBy(DOCUMENT_KEY_NAME, 'desc')
-    ]);
-    expect(
-      baseQuery
-        .addOrderBy(orderBy('foo', 'desc'))
-        .addOrderBy(orderBy('bar', 'asc')).orderBy
-    ).to.deep.equal([
+    );
+    assertImplicitOrderBy(
+      query('foo', orderBy('foo', 'desc'), orderBy('bar', 'asc')),
       orderBy('foo', 'desc'),
       orderBy('bar', 'asc'),
       orderBy(DOCUMENT_KEY_NAME, 'asc')
-    ]);
+    );
   });
 
   it('matchesAllDocuments() considers filters, orders and bounds', () => {
-    const baseQuery = query('collection');
+    const baseQuery = newQueryForPath(ResourcePath.fromString('collection'));
     expect(baseQuery.matchesAllDocuments()).to.be.true;
 
     let query1 = query('collection', orderBy('__name__'));
@@ -693,17 +704,21 @@ describe('Query', () => {
     query1 = query('collection', filter('foo', '==', 'bar'));
     expect(query1.matchesAllDocuments()).to.be.false;
 
-    query1 = query('foo').withLimitToFirst(1);
+    query1 = queryWithLimit(query('foo'), 1, LimitType.First);
     expect(query1.matchesAllDocuments()).to.be.false;
 
-    query1 = baseQuery.withStartAt(bound([], true));
+    query1 = queryWithStartAt(baseQuery, bound([], true));
     expect(query1.matchesAllDocuments()).to.be.false;
 
-    query1 = baseQuery.withEndAt(bound([], true));
+    query1 = queryWithEndAt(baseQuery, bound([], true));
     expect(query1.matchesAllDocuments()).to.be.false;
   });
 
+  function assertImplicitOrderBy(query: Query, ...orderBys: OrderBy[]): void {
+    expect(queryOrderBy(query)).to.deep.equal(orderBys);
+  }
+
   function assertCanonicalId(query: Query, expectedCanonicalId: string): void {
-    expect(canonifyTarget(query.toTarget())).to.equal(expectedCanonicalId);
+    expect(canonifyTarget(queryToTarget(query))).to.equal(expectedCanonicalId);
   }
 });

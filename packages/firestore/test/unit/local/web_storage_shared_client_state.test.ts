@@ -29,7 +29,6 @@ import {
   LocalClientState,
   MutationMetadata,
   QueryTargetMetadata,
-  SharedClientState,
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
 import {
@@ -158,7 +157,7 @@ describe('WebStorageSharedClientState', () => {
 
   let queue: AsyncQueue;
   let primaryClientId: string;
-  let sharedClientState: SharedClientState;
+  let sharedClientState: WebStorageSharedClientState;
   let clientSyncer: TestSharedClientSyncer;
 
   let previousAddEventListener: typeof window.addEventListener;

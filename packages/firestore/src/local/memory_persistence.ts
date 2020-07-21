@@ -108,6 +108,10 @@ export class MemoryPersistence implements Persistence {
     // No op.
   }
 
+  setNetworkEnabled(): void {
+    // No op.
+  }
+
   getIndexManager(): MemoryIndexManager {
     return this.indexManager;
   }

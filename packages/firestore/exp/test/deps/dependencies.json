@@ -53,7 +53,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -113,7 +112,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -209,7 +207,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -336,7 +333,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 231553
+        "sizeInBytes": 213002
     },
     "CollectionReference": {
         "dependencies": {
@@ -393,7 +390,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -458,7 +454,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -569,7 +564,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -711,7 +705,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 257769
+        "sizeInBytes": 238931
     },
     "DocumentReference": {
         "dependencies": {
@@ -766,7 +760,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -823,7 +816,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -913,7 +905,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -1041,7 +1032,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228530
+        "sizeInBytes": 210014
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -1098,7 +1089,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -1163,7 +1153,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -1260,7 +1249,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -1398,7 +1386,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 240880
+        "sizeInBytes": 222249
     },
     "FieldPath": {
         "dependencies": {
@@ -1453,7 +1441,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -1512,7 +1499,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -1608,7 +1594,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -1736,7 +1721,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 230777
+        "sizeInBytes": 212226
     },
     "FieldValue": {
         "dependencies": {
@@ -1791,7 +1776,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -1848,7 +1832,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -1938,7 +1921,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -2066,7 +2048,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228122
+        "sizeInBytes": 209606
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -2121,7 +2103,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -2178,7 +2159,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -2268,7 +2248,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -2394,7 +2373,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228031
+        "sizeInBytes": 209515
     },
     "GeoPoint": {
         "dependencies": {
@@ -2449,7 +2428,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -2508,7 +2486,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -2604,7 +2581,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -2731,7 +2707,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 230918
+        "sizeInBytes": 212367
     },
     "Query": {
         "dependencies": {
@@ -2788,7 +2764,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -2853,7 +2828,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -2964,7 +2938,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -3105,7 +3078,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 257373
+        "sizeInBytes": 238535
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -3162,7 +3135,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -3227,7 +3199,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -3324,7 +3295,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -3462,7 +3432,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 240890
+        "sizeInBytes": 222259
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -3520,7 +3490,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -3585,7 +3554,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -3683,7 +3651,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -3823,7 +3790,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 243789
+        "sizeInBytes": 224891
     },
     "Timestamp": {
         "dependencies": {
@@ -3878,7 +3845,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -3935,7 +3901,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -4025,7 +3990,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -4151,7 +4115,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228008
+        "sizeInBytes": 209492
     },
     "Transaction": {
         "dependencies": {
@@ -4209,7 +4173,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -4276,7 +4239,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -4388,7 +4350,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -4535,7 +4496,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 255828
+        "sizeInBytes": 236841
     },
     "WriteBatch": {
         "dependencies": {
@@ -4593,7 +4554,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -4658,7 +4618,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -4770,7 +4729,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -4910,7 +4868,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 249880
+        "sizeInBytes": 231107
     },
     "addDoc": {
         "dependencies": {
@@ -4969,7 +4927,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "doc",
@@ -5036,7 +4993,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -5149,7 +5105,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -5292,7 +5247,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 261297
+        "sizeInBytes": 242401
     },
     "arrayRemove": {
         "dependencies": {
@@ -5351,7 +5306,6 @@
                 "createError",
                 "createMetadata",
                 "createSentinelChildContext",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -5411,7 +5365,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -5518,7 +5471,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -5653,7 +5605,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 240787
+        "sizeInBytes": 222185
     },
     "arrayUnion": {
         "dependencies": {
@@ -5712,7 +5664,6 @@
                 "createError",
                 "createMetadata",
                 "createSentinelChildContext",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -5772,7 +5723,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -5879,7 +5829,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -6014,7 +5963,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 240780
+        "sizeInBytes": 222178
     },
     "clearIndexedDbPersistence": {
         "dependencies": {
@@ -6071,7 +6020,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -6130,7 +6078,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -6220,7 +6167,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable",
                 "wrapRequest"
@@ -6352,7 +6298,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 238401
+        "sizeInBytes": 219642
     },
     "collection": {
         "dependencies": {
@@ -6410,7 +6356,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -6475,7 +6420,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -6587,7 +6531,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -6729,7 +6672,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 258404
+        "sizeInBytes": 239566
     },
     "collectionGroup": {
         "dependencies": {
@@ -6787,7 +6730,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -6852,7 +6794,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -6963,7 +6904,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -7104,7 +7044,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 257829
+        "sizeInBytes": 238991
     },
     "deleteDoc": {
         "dependencies": {
@@ -7159,7 +7099,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "deleteDoc",
@@ -7217,7 +7156,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -7307,7 +7245,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -7435,7 +7372,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228780
+        "sizeInBytes": 210264
     },
     "deleteField": {
         "dependencies": {
@@ -7490,7 +7427,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "deleteField",
@@ -7548,7 +7484,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -7638,7 +7573,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -7768,7 +7702,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 229201
+        "sizeInBytes": 210572
     },
     "disableNetwork": {
         "dependencies": {
@@ -7823,7 +7757,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "disableNetwork",
@@ -7881,7 +7814,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -7971,7 +7903,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -8097,7 +8028,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228195
+        "sizeInBytes": 209679
     },
     "doc": {
         "dependencies": {
@@ -8154,7 +8085,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "doc",
@@ -8220,7 +8150,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -8332,7 +8261,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -8474,7 +8402,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 258473
+        "sizeInBytes": 239635
     },
     "documentId": {
         "dependencies": {
@@ -8529,7 +8457,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -8589,7 +8516,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -8685,7 +8611,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -8813,7 +8738,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 230827
+        "sizeInBytes": 212276
     },
     "enableIndexedDbPersistence": {
         "dependencies": {
@@ -8881,7 +8806,6 @@
                 "createRemoteDocumentReadTimeIndex",
                 "dbDocumentSize",
                 "dbKey",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "decodeResourcePath",
@@ -8977,7 +8901,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -9085,7 +9008,6 @@
                 "upgradeMutationBatchSchemaAndMigrateData",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable",
                 "wrapRequest",
@@ -9247,7 +9169,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 312127
+        "sizeInBytes": 289566
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -9320,7 +9242,6 @@
                 "createWebStorageSequenceNumberKey",
                 "dbDocumentSize",
                 "dbKey",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "decodeResourcePath",
@@ -9417,7 +9338,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -9528,7 +9448,6 @@
                 "upgradeMutationBatchSchemaAndMigrateData",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable",
                 "wrapRequest",
@@ -9698,7 +9617,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 336519
+        "sizeInBytes": 312642
     },
     "enableNetwork": {
         "dependencies": {
@@ -9753,7 +9672,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -9811,7 +9729,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -9901,7 +9818,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -10027,7 +9943,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228192
+        "sizeInBytes": 209676
     },
     "getDoc": {
         "dependencies": {
@@ -10086,7 +10002,6 @@
                 "convertToDocSnapshot",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -10153,7 +10068,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -10250,7 +10164,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -10390,7 +10303,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 243322
+        "sizeInBytes": 224596
     },
     "getDocFromCache": {
         "dependencies": {
@@ -10447,7 +10360,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -10513,7 +10425,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -10610,7 +10521,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -10749,7 +10659,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 241502
+        "sizeInBytes": 222871
     },
     "getDocFromServer": {
         "dependencies": {
@@ -10808,7 +10718,6 @@
                 "convertToDocSnapshot",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -10875,7 +10784,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -10972,7 +10880,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -11112,7 +11019,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 243360
+        "sizeInBytes": 224634
     },
     "getFirestore": {
         "dependencies": {
@@ -11167,7 +11074,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -11225,7 +11131,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -11315,7 +11220,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -11441,7 +11345,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228107
+        "sizeInBytes": 209591
     },
     "getQuery": {
         "dependencies": {
@@ -11500,7 +11404,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -11567,7 +11470,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -11680,7 +11582,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -11826,7 +11727,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 263664
+        "sizeInBytes": 244559
     },
     "getQueryFromCache": {
         "dependencies": {
@@ -11884,7 +11785,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -11950,7 +11850,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -12062,7 +11961,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -12207,7 +12105,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 261993
+        "sizeInBytes": 242888
     },
     "getQueryFromServer": {
         "dependencies": {
@@ -12266,7 +12164,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -12333,7 +12230,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -12445,7 +12341,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -12591,7 +12486,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 263402
+        "sizeInBytes": 244297
     },
     "increment": {
         "dependencies": {
@@ -12646,7 +12541,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -12704,7 +12598,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -12796,7 +12689,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -12927,7 +12819,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 229340
+        "sizeInBytes": 210824
     },
     "initializeFirestore": {
         "dependencies": {
@@ -12982,7 +12874,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -13040,7 +12931,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -13130,7 +13020,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -13256,7 +13145,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228518
+        "sizeInBytes": 210002
     },
     "onSnapshot": {
         "dependencies": {
@@ -13317,7 +13206,6 @@
                 "convertToDocSnapshot",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -13384,7 +13272,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -13498,7 +13385,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -13644,7 +13530,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 265330
+        "sizeInBytes": 246130
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -13700,7 +13586,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -13759,7 +13644,6 @@
                 "isPartialObserver",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -13850,7 +13734,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -13977,7 +13860,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 229388
+        "sizeInBytes": 210835
     },
     "parent": {
         "dependencies": {
@@ -14034,7 +13917,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -14099,7 +13981,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -14211,7 +14092,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -14353,7 +14233,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 258112
+        "sizeInBytes": 239274
     },
     "queryEqual": {
         "dependencies": {
@@ -14410,7 +14290,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -14475,7 +14354,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -14587,7 +14465,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -14728,7 +14605,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 257581
+        "sizeInBytes": 238743
     },
     "refEqual": {
         "dependencies": {
@@ -14785,7 +14662,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -14850,7 +14726,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -14962,7 +14837,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -15104,7 +14978,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 258054
+        "sizeInBytes": 239216
     },
     "runTransaction": {
         "dependencies": {
@@ -15162,7 +15036,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -15229,7 +15102,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -15342,7 +15214,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -15489,7 +15360,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 256185
+        "sizeInBytes": 237198
     },
     "serverTimestamp": {
         "dependencies": {
@@ -15544,7 +15415,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -15601,7 +15471,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -15692,7 +15561,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -15823,7 +15691,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228983
+        "sizeInBytes": 210467
     },
     "setDoc": {
         "dependencies": {
@@ -15881,7 +15749,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -15945,7 +15812,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -16055,7 +15921,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -16191,7 +16056,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 244818
+        "sizeInBytes": 226158
     },
     "setLogLevel": {
         "dependencies": {
@@ -16246,7 +16111,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -16303,7 +16167,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -16394,7 +16257,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -16520,7 +16382,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228073
+        "sizeInBytes": 209557
     },
     "snapshotEqual": {
         "dependencies": {
@@ -16578,7 +16440,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -16643,7 +16504,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -16757,7 +16617,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -16902,7 +16761,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 262414
+        "sizeInBytes": 243309
     },
     "terminate": {
         "dependencies": {
@@ -16957,7 +16816,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -17014,7 +16872,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -17104,7 +16961,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -17230,7 +17086,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228023
+        "sizeInBytes": 209507
     },
     "updateDoc": {
         "dependencies": {
@@ -17287,7 +17143,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -17352,7 +17207,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -17463,7 +17317,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -17601,7 +17454,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 246372
+        "sizeInBytes": 227657
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -17656,7 +17509,6 @@
                 "compareTimestamps",
                 "computeTransformOperationBaseValue",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -17713,7 +17565,6 @@
                 "isNumber",
                 "isPermanentError",
                 "isPermanentWriteError",
-                "isReferenceValue",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "loadProtos",
@@ -17803,7 +17654,6 @@
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "waitForPendingWrites",
                 "wrapInUserErrorIfRecoverable"
@@ -17930,7 +17780,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 228213
+        "sizeInBytes": 209697
     },
     "writeBatch": {
         "dependencies": {
@@ -17988,7 +17838,6 @@
                 "computeTransformOperationBaseValue",
                 "createError",
                 "createMetadata",
-                "debugAssert",
                 "debugCast",
                 "decodeBase64",
                 "documentEntryMap",
@@ -18053,7 +17902,6 @@
                 "isPermanentError",
                 "isPermanentWriteError",
                 "isPlainObject",
-                "isReferenceValue",
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -18165,7 +18013,6 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "verifyMutationKeyMatches",
                 "versionFromListenResponse",
                 "wrapInUserErrorIfRecoverable",
                 "writeBatch"
@@ -18306,6 +18153,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 250093
+        "sizeInBytes": 231320
     }
 }

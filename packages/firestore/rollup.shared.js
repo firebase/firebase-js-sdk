@@ -60,10 +60,21 @@ const externsPaths = externs.map(p => path.resolve(__dirname, '../../', p));
 const publicIdentifiers = extractPublicIdentifiers(externsPaths);
 
 /**
+ * Transformers that remove calls to `debugAssert` and messages for 'fail` and
+ * `hardAssert`.
+ */
+export const removeAssertTransformer = [
+  service => ({
+    before: [removeAsserts(service.getProgram())],
+    after: []
+  })
+];
+
+/**
  * Transformers that remove calls to `debugAssert`, messages for 'fail` and
  * `hardAssert` and appends a __PRIVATE_ prefix to all internal symbols.
  */
-export const firestoreTransformers = [
+export const removeAssertAndPrefixInternalTransformer = [
   service => ({
     before: [
       removeAsserts(service.getProgram()),

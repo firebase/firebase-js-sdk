@@ -23,11 +23,12 @@ import path from 'path';
 import { terser } from 'rollup-plugin-terser';
 
 import {
-  firestoreTransformers,
+  resolveNodeExterns,
   generateAliasConfig,
-  manglePrivatePropertiesOptions,
   resolveBrowserExterns,
-  resolveNodeExterns
+  removeAssertTransformer,
+  removeAssertAndPrefixInternalTransformer,
+  manglePrivatePropertiesOptions
 } from './rollup.shared';
 
 import pkg from './exp/package.json';
@@ -40,7 +41,8 @@ const nodePlugins = [
         target: 'es5'
       }
     },
-    clean: true
+    clean: true,
+    transformers: removeAssertTransformer
   }),
   json({ preferConst: true })
 ];
@@ -54,7 +56,7 @@ const browserPlugins = [
       }
     },
     clean: true,
-    transformers: firestoreTransformers
+    transformers: removeAssertAndPrefixInternalTransformer
   }),
   json({ preferConst: true }),
   terser(manglePrivatePropertiesOptions)
