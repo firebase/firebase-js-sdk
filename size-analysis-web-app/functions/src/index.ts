@@ -16,6 +16,7 @@
  */
 
 import * as functions from 'firebase-functions';
+import * as npm from 'npm';
 
 // Start writing Firebase Functions
 // https://firebase.google.com/docs/functions/typescript
@@ -25,5 +26,9 @@ export const helloWorld = functions.https.onRequest((request, response) => {
 });
 
 export const retrieveFirebaseVersionFromNPM = functions.https.onRequest(
-  (request, response) => {}
+  (request, response) => {
+    npm.load(() => {
+      npm.run();
+    });
+  }
 );
