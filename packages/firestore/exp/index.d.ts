@@ -67,7 +67,9 @@ export interface FirestoreDataConverter<T> {
   toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
   fromFirestore(
     snapshot: QueryDocumentSnapshot<DocumentData>,
-    options: SnapshotOptions
+    // Make optional to make this assignable to the converter in the Lite SDK
+    // This makes sure that the Lite API remains a true subset.
+    options?: SnapshotOptions
   ): T;
 }
 
@@ -249,6 +251,8 @@ export class DocumentReference<T = DocumentData> {
   readonly id: string;
   readonly firestore: FirebaseFirestore;
   readonly path: string;
+  // Add a 'converter' property to match Query
+  readonly converter: FirestoreDataConverter<T>|null;
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
@@ -288,6 +292,9 @@ export class Query<T = DocumentData> {
   protected constructor();
   readonly type: 'collection' | 'query';
   readonly firestore: FirebaseFirestore;
+  // Add a 'converter' property since Typescript cannot deduce the generic type
+  // param `T` if it is not referenced in the API.
+  readonly converter: FirestoreDataConverter<T>|null;
 
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }

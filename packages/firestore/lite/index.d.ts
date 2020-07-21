@@ -201,6 +201,7 @@ export class DocumentReference<T = DocumentData> {
   readonly id: string;
   readonly firestore: FirebaseFirestore;
   readonly path: string;
+  readonly converter: FirestoreDataConverter<T>|null;
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
@@ -234,6 +235,7 @@ export class Query<T = DocumentData> {
   protected constructor();
   readonly type: 'collection' | 'query';
   readonly firestore: FirebaseFirestore;
+  readonly converter: FirestoreDataConverter<T>|null;
 
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
