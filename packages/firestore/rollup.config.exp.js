@@ -21,6 +21,7 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import path from 'path';
 import { terser } from 'rollup-plugin-terser';
+import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
 import {
   resolveNodeExterns,
@@ -42,7 +43,8 @@ const nodePlugins = [
       }
     },
     clean: true,
-    transformers: removeAssertTransformer
+    abortOnError: false,
+    transformers: [...removeAssertTransformer, importPathTransformer]
   }),
   json({ preferConst: true })
 ];
@@ -56,7 +58,11 @@ const browserPlugins = [
       }
     },
     clean: true,
-    transformers: removeAssertAndPrefixInternalTransformer
+    abortOnError: false,
+    transformers: [
+      ...removeAssertAndPrefixInternalTransformer,
+      importPathTransformer
+    ]
   }),
   json({ preferConst: true }),
   terser(manglePrivatePropertiesOptions)
@@ -72,7 +78,10 @@ const allBuilds = [
       name: 'firebase.firestore'
     },
     plugins: [alias(generateAliasConfig('node')), ...nodePlugins],
-    external: resolveNodeExterns
+    external: resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   },
   // Browser build
   {
@@ -82,7 +91,10 @@ const allBuilds = [
       format: 'es'
     },
     plugins: [alias(generateAliasConfig('browser')), ...browserPlugins],
-    external: resolveBrowserExterns
+    external: resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   },
   // RN build
   {
@@ -92,7 +104,10 @@ const allBuilds = [
       format: 'es'
     },
     plugins: [alias(generateAliasConfig('rn')), ...browserPlugins],
-    external: resolveBrowserExterns
+    external: resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
 
