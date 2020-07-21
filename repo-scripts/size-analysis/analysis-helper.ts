@@ -28,13 +28,13 @@ const TYPINGS: string = 'typings';
 const BUNDLE: string = 'esm2017';
 export const enum ErrorCode {
   INVALID_FLAG_COMBINATION = 'Invalid command flag combinations!',
-  BUNDLE_FILE_DOES_NOT_EXIST = "Module doesn't have a bundle file!",
-  DTS_FILE_DOES_NOT_EXIST = "Module doesn't have a dts file!",
-  OUTPUT_DIRECTORY_REQUIRED = 'An output directory is required but a file given',
-  OUTPUT_FILE_REQUIRED = 'An output file is required but a directory given',
-  INPUT_FILE_DOES_NOT_EXIST = "Input file doesn't exist!",
-  INPUT_DTS_FILE_DOES_NOT_EXIST = "Input dts file doesn't exist!",
-  INPUT_BUNDLE_FILE_DOES_NOT_EXIST = "Input bundle file doesn't exist!",
+  BUNDLE_FILE_DOES_NOT_EXIST = 'Module does not have a bundle file!',
+  DTS_FILE_DOES_NOT_EXIST = 'Module does not have a dts file!',
+  OUTPUT_DIRECTORY_REQUIRED = 'An output directory is required but a file given!',
+  OUTPUT_FILE_REQUIRED = 'An output file is required but a directory given!',
+  INPUT_FILE_DOES_NOT_EXIST = 'Input file does not exist!',
+  INPUT_DTS_FILE_DOES_NOT_EXIST = 'Input dts file does not exist!',
+  INPUT_BUNDLE_FILE_DOES_NOT_EXIST = 'Input bundle file does not exist!',
   FILE_PARSING_ERROR = 'Failed to parse js file!',
   REPORT_REDIRECTION_ERROR = 'Please enable at least one of --output or --ci flag for report redirection!'
 }
