@@ -16,19 +16,33 @@
  */
 
 import * as functions from 'firebase-functions';
-import * as npm from 'npm';
-
+import { execSync } from 'child_process';
 // Start writing Firebase Functions
 // https://firebase.google.com/docs/functions/typescript
-
+const versionFilter = new RegExp(/^\d+.\d*.\d+$/);
 export const helloWorld = functions.https.onRequest((request, response) => {
   response.send('Hello from Firebase!');
 });
 
 export const retrieveFirebaseVersionFromNPM = functions.https.onRequest(
   (request, response) => {
-    npm.load(() => {
-      npm.run();
-    });
+    const firebaseName: string = 'firebase';
+    // execute shell npm command to retrieve published versions of firebase
+    const versionArrayString = execSync(`npm view ${firebaseName} versions`)
+      .toString()
+      .replace(/'/g, '"');
+    // convert string representation of array to actual array
+    let versionsArray: string[] = JSON.parse(versionArrayString);
+    // keep versions that are of major.minor.patch format
+    versionsArray = versionsArray.filter(each => versionFilter.test(each));
+    versionsArray = versionsArray.reverse();
+    // return latest 10 published version of firebase
+    response.send(versionsArray.slice(0, 10));
+  }
+);
+export const generateSizeAnalysisReportGivenCustomBundle = functions.https.onRequest(
+  (request, response) => {
+    const customBundle = request.body;
+    response.send(`Hello from Firebase! ${customBundle}`);
   }
 );
