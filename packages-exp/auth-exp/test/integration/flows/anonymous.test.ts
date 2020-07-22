@@ -19,21 +19,13 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import {
-  createUserWithEmailAndPassword,
-  EmailAuthProvider,
-  linkWithCredential,
-  signInAnonymously,
-  signInWithEmailAndPassword,
-  updateEmail,
-  updatePassword
+    createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential, signInAnonymously,
+    signInWithEmailAndPassword, updateEmail, updatePassword
 } from '@firebase/auth-exp/index.browser';
 import { OperationType } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import {
-  initIntegrationTestContext,
-  randomEmail
-} from '../../helpers/integration/helpers';
+import { initIntegrationTestContext, randomEmail } from '../../helpers/integration/helpers';
 
 use(chaiAsPromised);
 
@@ -47,7 +39,7 @@ describe('Integration test: anonymous auth', () => {
 
     const user = userCred.user;
     expect(user.isAnonymous).to.be.true;
-    expect(typeof user.uid).to.eq('string');
+    expect(user.uid).to.be.a('string');
   });
 
   it('second sign in on the same device yields same user', async () => {
@@ -85,27 +77,28 @@ describe('Integration test: anonymous auth', () => {
     });
 
     it('account can be upgraded by setting email and password', async () => {
-      const { user } = await signInAnonymously(auth);
-      await updateEmail(user, email);
-      await updatePassword(user, 'password');
+      const { user: anonUser } = await signInAnonymously(auth);
+      await updateEmail(anonUser, email);
+      await updatePassword(anonUser, 'password');
 
-      const anonId = user.uid;
       await auth.signOut();
+
+      const {user: emailPassUser} = await signInWithEmailAndPassword(auth, email, 'password');
       expect(
-        (await signInWithEmailAndPassword(auth, email, 'password')).user.uid
-      ).to.eq(anonId);
+        emailPassUser.uid
+      ).to.eq(anonUser.uid);
     });
 
     it('account can be linked using email and password', async () => {
-      const { user } = await signInAnonymously(auth);
+      const { user: anonUser } = await signInAnonymously(auth);
       const cred = EmailAuthProvider.credential(email, 'password');
-      const id = user.uid;
-      await linkWithCredential(user, cred);
+      await linkWithCredential(anonUser, cred);
       await auth.signOut();
 
+      const {user: emailPassUser} = await signInWithEmailAndPassword(auth, email, 'password');
       expect(
-        (await signInWithEmailAndPassword(auth, email, 'password')).user.uid
-      ).to.eq(id);
+        emailPassUser.uid
+      ).to.eq(anonUser.uid);
     });
 
     it('account cannot be linked with existing email/password', async () => {
