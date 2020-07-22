@@ -61,6 +61,8 @@ import {
 } from '../../../src/local/shared_client_state';
 import { WindowLike } from '../../../src/util/types';
 import { newSerializer } from '../../../src/platform/serializer';
+import { Datastore, newDatastore } from '../../../src/remote/datastore';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
 
 /**
  * A test-only MemoryPersistence implementation that is able to inject
@@ -119,12 +121,26 @@ function failTransactionIfNeeded(
 
 export class MockIndexedDbComponentProvider extends MultiTabIndexedDbComponentProvider {
   persistence!: MockIndexedDbPersistence;
+  connection!: MockConnection;
 
   constructor(
     private readonly window: WindowLike,
     private readonly document: FakeDocument
   ) {
     super();
+  }
+
+  async loadConnection(cfg: ComponentConfiguration): Promise<Connection> {
+    this.connection = new MockConnection(cfg.asyncQueue);
+    return this.connection;
+  }
+
+  createDatastore(cfg: ComponentConfiguration): Datastore {
+    const serializer = new JsonProtoSerializer(
+      cfg.databaseInfo.databaseId,
+      /* useProto3Json= */ true
+    );
+    return newDatastore(cfg.credentials, serializer);
   }
 
   createGarbageCollectionScheduler(
@@ -176,9 +192,23 @@ export class MockIndexedDbComponentProvider extends MultiTabIndexedDbComponentPr
 
 export class MockMemoryComponentProvider extends MemoryComponentProvider {
   persistence!: MockMemoryPersistence;
+  connection!: MockConnection;
 
   constructor(private readonly gcEnabled: boolean) {
     super();
+  }
+
+  async loadConnection(cfg: ComponentConfiguration): Promise<Connection> {
+    this.connection = new MockConnection(cfg.asyncQueue);
+    return this.connection;
+  }
+
+  createDatastore(cfg: ComponentConfiguration): Datastore {
+    const serializer = new JsonProtoSerializer(
+      cfg.databaseInfo.databaseId,
+      /* useProto3Json= */ true
+    );
+    return newDatastore(cfg.credentials, serializer);
   }
 
   createGarbageCollectionScheduler(

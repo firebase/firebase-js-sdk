@@ -23,13 +23,15 @@ import {
 } from '../local/shared_client_state';
 import {
   LocalStore,
-  MultiTabLocalStore,
   newLocalStore,
-  newMultiTabLocalStore
+  synchronizeLastDocumentChangeReadTime
 } from '../local/local_store';
 import {
-  MultiTabSyncEngine,
-  newMultiTabSyncEngine,
+  applyActiveTargetsChange,
+  applyBatchState,
+  applyPrimaryState,
+  applyTargetState,
+  getActiveClients,
   newSyncEngine,
   SyncEngine
 } from './sync_engine';
@@ -37,7 +39,7 @@ import { RemoteStore } from '../remote/remote_store';
 import { EventManager } from './event_manager';
 import { AsyncQueue } from '../util/async_queue';
 import { DatabaseId, DatabaseInfo } from './database_info';
-import { Datastore } from '../remote/datastore';
+import { Datastore, newDatastore } from '../remote/datastore';
 import { User } from '../auth/user';
 import { PersistenceSettings } from './firestore_client';
 import { debugAssert } from '../util/assert';
@@ -47,17 +49,19 @@ import { OnlineStateSource } from './types';
 import { LruParams, LruScheduler } from '../local/lru_garbage_collector';
 import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
 import {
-  indexedDbStoragePrefix,
+  indexedDbClearPersistence,
   IndexedDbPersistence,
-  indexedDbClearPersistence
+  indexedDbStoragePrefix
 } from '../local/indexeddb_persistence';
 import {
   MemoryEagerDelegate,
   MemoryPersistence
 } from '../local/memory_persistence';
-import { newConnectivityMonitor } from '../platform/connection';
+import { newConnection, newConnectivityMonitor } from '../platform/connection';
 import { newSerializer } from '../platform/serializer';
 import { getDocument, getWindow } from '../platform/dom';
+import { CredentialsProvider } from '../api/credentials';
+import { Connection } from '../remote/connection';
 
 const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
   'You are using the memory-only build of Firestore. Persistence support is ' +
@@ -67,7 +71,7 @@ const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
   databaseInfo: DatabaseInfo;
-  datastore: Datastore;
+  credentials: CredentialsProvider;
   clientId: ClientId;
   initialUser: User;
   maxConcurrentLimboResolutions: number;
@@ -84,6 +88,7 @@ export interface ComponentProvider {
   localStore: LocalStore;
   syncEngine: SyncEngine;
   gcScheduler: GarbageCollectionScheduler | null;
+  datastore: Datastore;
   remoteStore: RemoteStore;
   eventManager: EventManager;
 
@@ -105,6 +110,7 @@ export class MemoryComponentProvider implements ComponentProvider {
   localStore!: LocalStore;
   syncEngine!: SyncEngine;
   gcScheduler!: GarbageCollectionScheduler | null;
+  datastore!: Datastore;
   remoteStore!: RemoteStore;
   eventManager!: EventManager;
 
@@ -114,6 +120,11 @@ export class MemoryComponentProvider implements ComponentProvider {
     await this.persistence.start();
     this.gcScheduler = this.createGarbageCollectionScheduler(cfg);
     this.localStore = this.createLocalStore(cfg);
+
+    this.datastore = this.createDatastore(cfg);
+    const connection = await this.loadConnection(cfg);
+    this.datastore.start(connection);
+
     this.remoteStore = this.createRemoteStore(cfg);
     this.syncEngine = this.createSyncEngine(cfg);
     this.eventManager = this.createEventManager(cfg);
@@ -125,11 +136,14 @@ export class MemoryComponentProvider implements ComponentProvider {
       );
     this.remoteStore.syncEngine = this.syncEngine;
 
-    await this.localStore.start();
     await this.sharedClientState.start();
     await this.remoteStore.start();
 
     await this.remoteStore.applyPrimaryState(this.syncEngine.isPrimaryClient);
+  }
+
+  protected loadConnection(cfg: ComponentConfiguration): Promise<Connection> {
+    return newConnection(cfg.databaseInfo);
   }
 
   createEventManager(cfg: ComponentConfiguration): EventManager {
@@ -160,10 +174,15 @@ export class MemoryComponentProvider implements ComponentProvider {
     return new MemoryPersistence(MemoryEagerDelegate.factory);
   }
 
+  createDatastore(cfg: ComponentConfiguration): Datastore {
+    const serializer = newSerializer(cfg.databaseInfo.databaseId);
+    return newDatastore(cfg.credentials, serializer);
+  }
+
   createRemoteStore(cfg: ComponentConfiguration): RemoteStore {
     return new RemoteStore(
       this.localStore,
-      cfg.datastore,
+      this.datastore,
       cfg.asyncQueue,
       onlineState =>
         this.syncEngine.applyOnlineStateChange(
@@ -182,10 +201,11 @@ export class MemoryComponentProvider implements ComponentProvider {
     return newSyncEngine(
       this.localStore,
       this.remoteStore,
-      cfg.datastore,
+      this.datastore,
       this.sharedClientState,
       cfg.initialUser,
-      cfg.maxConcurrentLimboResolutions
+      cfg.maxConcurrentLimboResolutions,
+      /* isPrimary= */ true
     );
   }
 
@@ -211,17 +231,6 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
       this.persistence,
       new IndexFreeQueryEngine(),
       cfg.initialUser
-    );
-  }
-
-  createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
-    return newSyncEngine(
-      this.localStore,
-      this.remoteStore,
-      cfg.datastore,
-      this.sharedClientState,
-      cfg.initialUser,
-      cfg.maxConcurrentLimboResolutions
     );
   }
 
@@ -281,18 +290,13 @@ export class IndexedDbComponentProvider extends MemoryComponentProvider {
  * `synchronizeTabs` will be enabled.
  */
 export class MultiTabIndexedDbComponentProvider extends IndexedDbComponentProvider {
-  localStore!: MultiTabLocalStore;
-  syncEngine!: MultiTabSyncEngine;
-
   async initialize(cfg: ComponentConfiguration): Promise<void> {
     await super.initialize(cfg);
 
     // NOTE: This will immediately call the listener, so we make sure to
     // set it after localStore / remoteStore are started.
     await this.persistence.setPrimaryStateListener(async isPrimary => {
-      await (this.syncEngine as MultiTabSyncEngine).applyPrimaryState(
-        isPrimary
-      );
+      await applyPrimaryState(this.syncEngine, isPrimary);
       if (this.gcScheduler) {
         if (isPrimary && !this.gcScheduler.started) {
           this.gcScheduler.start(this.localStore);
@@ -301,27 +305,37 @@ export class MultiTabIndexedDbComponentProvider extends IndexedDbComponentProvid
         }
       }
     });
-  }
 
-  createLocalStore(cfg: ComponentConfiguration): LocalStore {
-    return newMultiTabLocalStore(
-      this.persistence,
-      new IndexFreeQueryEngine(),
-      cfg.initialUser
-    );
+    // In multi-tab mode, we need to read the last document change marker from
+    // persistence once during client initialization. The next call to
+    // `getNewDocumentChanges()` will then only read changes that were persisted
+    // since client startup.
+    await synchronizeLastDocumentChangeReadTime(this.localStore);
   }
 
   createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
-    const syncEngine = newMultiTabSyncEngine(
+    const startsAsPrimary =
+      !cfg.persistenceSettings.durable ||
+      !cfg.persistenceSettings.synchronizeTabs;
+    const syncEngine = newSyncEngine(
       this.localStore,
       this.remoteStore,
-      cfg.datastore,
+      this.datastore,
       this.sharedClientState,
       cfg.initialUser,
-      cfg.maxConcurrentLimboResolutions
+      cfg.maxConcurrentLimboResolutions,
+      startsAsPrimary
     );
     if (this.sharedClientState instanceof WebStorageSharedClientState) {
-      this.sharedClientState.syncEngine = syncEngine;
+      this.sharedClientState.syncEngine = {
+        applyBatchState: applyBatchState.bind(null, syncEngine),
+        applyTargetState: applyTargetState.bind(null, syncEngine),
+        applyActiveTargetsChange: applyActiveTargetsChange.bind(
+          null,
+          syncEngine
+        ),
+        getActiveClients: getActiveClients.bind(null, syncEngine)
+      };
     }
     return syncEngine;
   }

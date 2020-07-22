@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
+import * as firestore from '../../../lite-types';
 
 import { Firestore } from './database';
 import { DocumentReference, queryEqual } from './reference';
@@ -52,7 +52,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
   get ref(): firestore.DocumentReference<T> {
     return new DocumentReference<T>(
       this._firestore,
-      this._key,
+      this._key.path,
       this._converter
     );
   }
@@ -80,7 +80,11 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         /* timestampsInSnapshots= */ true,
         /* serverTimestampBehavior=*/ 'none',
         key =>
-          new DocumentReference(this._firestore, key, /* converter= */ null)
+          new DocumentReference(
+            this._firestore,
+            key.path,
+            /* converter= */ null
+          )
       );
       return userDataWriter.convertValue(this._document.toProto()) as T;
     }
@@ -96,7 +100,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
           this._firestore._databaseId,
           /* timestampsInSnapshots= */ true,
           /* serverTimestampBehavior=*/ 'none',
-          key => new DocumentReference(this._firestore, key, this._converter)
+          key =>
+            new DocumentReference(this._firestore, key.path, this._converter)
         );
         return userDataWriter.convertValue(value);
       }

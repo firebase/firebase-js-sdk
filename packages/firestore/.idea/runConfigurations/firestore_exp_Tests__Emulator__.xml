@@ -1,0 +1,19 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="firestore-exp Tests (Emulator) " type="mocha-javascript-test-runner">
+    <node-interpreter>project</node-interpreter>
+    <node-options />
+    <mocha-package>$PROJECT_DIR$/../../node_modules/mocha</mocha-package>
+    <working-directory>$PROJECT_DIR$</working-directory>
+    <pass-parent-env>true</pass-parent-env>
+    <envs>
+      <env name="TS_NODE_COMPILER_OPTIONS" value="{&quot;module&quot;:&quot;commonjs&quot;}" />
+      <env name="FIRESTORE_EMULATOR_PORT" value="8080" />
+      <env name="FIRESTORE_EMULATOR_PROJECT_ID" value="abc-xyz-123" />
+    </envs>
+    <ui>bdd</ui>
+    <extra-mocha-options>--require ts-node/register/type-check --require exp/index.node.ts --timeout 5000</extra-mocha-options>
+    <test-kind>PATTERN</test-kind>
+    <test-pattern>test/integration/api/*.test.ts</test-pattern>
+    <method v="2" />
+  </configuration>
+</component>

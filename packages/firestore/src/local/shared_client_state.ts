@@ -75,7 +75,6 @@ export type ClientId = string;
  * assigned before calling `start()`.
  */
 export interface SharedClientState {
-  syncEngine: SharedClientStateSyncer | null;
   onlineStateHandler: ((onlineState: OnlineState) => void) | null;
   sequenceNumberHandler:
     | ((sequenceNumber: ListenSequenceNumber) => void)
@@ -1059,8 +1058,6 @@ function fromWebStorageSequenceNumber(
 export class MemorySharedClientState implements SharedClientState {
   private localState = new LocalClientState();
   private queryState: { [targetId: number]: QueryTargetState } = {};
-
-  syncEngine: SharedClientStateSyncer | null = null;
   onlineStateHandler: ((onlineState: OnlineState) => void) | null = null;
   sequenceNumberHandler:
     | ((sequenceNumber: ListenSequenceNumber) => void)

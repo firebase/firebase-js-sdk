@@ -1,5 +1,13 @@
 # Unreleased
 
+## 0.6.8
+
+### Patch Changes
+
+- [`c2b737b2`](https://github.com/firebase/firebase-js-sdk/commit/c2b737b2187cb525af4d926ca477102db7835420) [#3228](https://github.com/firebase/firebase-js-sdk/pull/3228) Thanks [@schmidt-sebastian](https://github.com/schmidt-sebastian)! - [fix] Instead of using production auth, the SDK will use test credentials
+  to connect to the Emulator when the RTDB SDK is used via the Firebase
+  Admin SDK.
+
 ## 0.6.7
 
 ### Patch Changes

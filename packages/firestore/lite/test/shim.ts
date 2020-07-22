@@ -16,7 +16,7 @@
  */
 
 import * as legacy from '@firebase/firestore-types';
-import * as lite from '../';
+import * as lite from '../../lite-types';
 
 import {
   addDoc,
@@ -42,12 +42,21 @@ import {
   terminate,
   updateDoc,
   writeBatch,
-  initializeFirestore
-} from '../../lite/index.node';
+  initializeFirestore,
+  query,
+  limitToLast,
+  startAt,
+  startAfter,
+  endBefore,
+  endAt,
+  limit,
+  orderBy,
+  where
+} from '../../lite/index';
 import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
 import { isPlainObject } from '../../src/util/input_validation';
 
-export { GeoPoint, Blob, Timestamp } from '../index.node';
+export { GeoPoint, Blob, Timestamp } from '../index';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -377,7 +386,7 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
     value: any
   ): Query<T> {
     return new Query<T>(
-      this._delegate.where(unwrap(fieldPath), opStr, unwrap(value))
+      query(this._delegate, where(unwrap(fieldPath), opStr, unwrap(value)))
     );
   }
 
@@ -386,48 +395,32 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
     directionStr?: legacy.OrderByDirection
   ): Query<T> {
     return new Query<T>(
-      this._delegate.orderBy(unwrap(fieldPath), directionStr)
+      query(this._delegate, orderBy(unwrap(fieldPath), directionStr))
     );
   }
 
-  limit(limit: number): Query<T> {
-    return new Query<T>(this._delegate.limit(limit));
+  limit(n: number): Query<T> {
+    return new Query<T>(query(this._delegate, limit(n)));
   }
 
-  limitToLast(limit: number): Query<T> {
-    return new Query<T>(this._delegate.limitToLast(limit));
+  limitToLast(n: number): Query<T> {
+    return new Query<T>(query(this._delegate, limitToLast(n)));
   }
 
   startAt(...args: any[]): Query<T> {
-    if (args[0] instanceof DocumentSnapshot) {
-      return new Query(this._delegate.startAt(args[0]._delegate));
-    } else {
-      return new Query(this._delegate.startAt(...unwrap(args)));
-    }
+    return new Query(query(this._delegate, startAt(...unwrap(args))));
   }
 
   startAfter(...args: any[]): Query<T> {
-    if (args[0] instanceof DocumentSnapshot) {
-      return new Query(this._delegate.startAfter(args[0]._delegate));
-    } else {
-      return new Query(this._delegate.startAfter(...unwrap(args)));
-    }
+    return new Query(query(this._delegate, startAfter(...unwrap(args))));
   }
 
   endBefore(...args: any[]): Query<T> {
-    if (args[0] instanceof DocumentSnapshot) {
-      return new Query(this._delegate.endBefore(args[0]._delegate));
-    } else {
-      return new Query(this._delegate.endBefore(...unwrap(args)));
-    }
+    return new Query(query(this._delegate, endBefore(...unwrap(args))));
   }
 
   endAt(...args: any[]): Query<T> {
-    if (args[0] instanceof DocumentSnapshot) {
-      return new Query(this._delegate.endAt(args[0]._delegate));
-    } else {
-      return new Query(this._delegate.endAt(...unwrap(args)));
-    }
+    return new Query(query(this._delegate, endAt(...unwrap(args))));
   }
 
   isEqual(other: legacy.Query<T>): boolean {

@@ -55,7 +55,8 @@ export function withTestDatastore(
   const databaseInfo = getDefaultDatabaseInfo();
   return newConnection(databaseInfo).then(conn => {
     const serializer = newSerializer(databaseInfo.databaseId);
-    const datastore = newDatastore(conn, credentialsProvider, serializer);
+    const datastore = newDatastore(credentialsProvider, serializer);
+    datastore.start(conn);
     return fn(datastore);
   });
 }
