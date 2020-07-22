@@ -251,6 +251,11 @@ interface DynamicConfig {
   measurementId: string;
 }
 
+interface MinimalDynamicConfig {
+  appId: string;
+  measurementId: string;
+}
+
 /**
  * Encapsulates metadata concerning throttled fetch requests.
  */

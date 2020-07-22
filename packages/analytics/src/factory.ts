@@ -19,7 +19,8 @@ import {
   FirebaseAnalytics,
   Gtag,
   SettingsOptions,
-  DynamicConfig
+  DynamicConfig,
+  MinimalDynamicConfig
 } from '@firebase/analytics-types';
 import {
   logEvent,
@@ -61,7 +62,9 @@ let initializationPromisesMap: {
 /**
  * List of dynamic config fetch promises.
  */
-let dynamicConfigPromisesList: Array<Promise<DynamicConfig>> = [];
+let dynamicConfigPromisesList: Array<Promise<
+  DynamicConfig | MinimalDynamicConfig
+>> = [];
 
 /**
  * Maps fetched measurementIds to appId.
@@ -116,7 +119,9 @@ export function resetGlobalVars(
  */
 export function getGlobalVars(): {
   initializationPromisesMap: { [gaId: string]: Promise<string> };
-  dynamicConfigPromisesList: Array<Promise<DynamicConfig>>;
+  dynamicConfigPromisesList: Array<
+    Promise<DynamicConfig | MinimalDynamicConfig>
+  >;
 } {
   return {
     initializationPromisesMap,
@@ -156,7 +161,15 @@ export function factory(
     throw ERROR_FACTORY.create(AnalyticsError.NO_APP_ID);
   }
   if (!app.options.apiKey) {
-    throw ERROR_FACTORY.create(AnalyticsError.NO_API_KEY);
+    if (app.options.measurementId) {
+      logger.warn(
+        `"apiKey" field is empty in Firebase config. This is needed to fetch the latest` +
+          ` measurement id for this Firebase project. Falling back to measurement id ${app.options.measurementId}` +
+          ` provided in "measurementId" field.`
+      );
+    } else {
+      throw ERROR_FACTORY.create(AnalyticsError.NO_API_KEY);
+    }
   }
   if (initializationPromisesMap[appId] != null) {
     throw ERROR_FACTORY.create(AnalyticsError.ALREADY_EXISTS, {

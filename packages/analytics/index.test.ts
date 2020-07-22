@@ -59,12 +59,23 @@ describe('FirebaseAnalytics instance tests', () => {
       'field is empty'
     );
   });
-  it('Throws if no apiKey in config', () => {
+  it('Throws if no apiKey and no measurementId in config', () => {
     const app = getFakeApp({ appId: fakeAppParams.appId });
     const installations = getFakeInstallations();
     expect(() => analyticsFactory(app, installations)).to.throw(
       'field is empty'
     );
+  });
+  it('Warns if config has no apiKey but does have a measurementId', () => {
+    const consoleStub = stub(console, 'warn');
+    const app = getFakeApp({
+      appId: fakeAppParams.appId,
+      measurementId: fakeMeasurementId
+    });
+    const installations = getFakeInstallations();
+    analyticsFactory(app, installations);
+    expect(consoleStub.args[0][1]).to.include(fakeMeasurementId);
+    consoleStub.restore();
   });
   it('Throws if creating an instance with already-used analytics ID', () => {
     const app = getFakeApp(fakeAppParams);

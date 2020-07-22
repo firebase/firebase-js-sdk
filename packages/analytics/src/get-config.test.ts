@@ -18,10 +18,15 @@
 import { expect } from 'chai';
 import { SinonStub, stub, useFakeTimers } from 'sinon';
 import '../testing/setup';
-import { fetchDynamicConfig, fetchDynamicConfigWithRetry } from './get-config';
+import {
+  fetchDynamicConfig,
+  fetchDynamicConfigWithRetry,
+  AppFields,
+  LONG_RETRY_FACTOR
+} from './get-config';
 import { DYNAMIC_CONFIG_URL } from './constants';
 import { getFakeApp } from '../testing/get-fake-firebase-services';
-import { DynamicConfig } from '@firebase/analytics-types';
+import { DynamicConfig, MinimalDynamicConfig } from '@firebase/analytics-types';
 import { AnalyticsError } from './errors';
 
 const fakeMeasurementId = 'abcd-efgh-ijkl';
@@ -43,8 +48,7 @@ describe('Dynamic Config Fetch Functions', () => {
   describe('fetchDynamicConfig() - no retry', () => {
     it('successfully request and receives dynamic config JSON data', async () => {
       stubFetch(200, successObject);
-      const app = getFakeApp(fakeAppParams);
-      const config: DynamicConfig = await fetchDynamicConfig(app);
+      const config: DynamicConfig = await fetchDynamicConfig(fakeAppParams);
       expect(fetchStub.args[0][0]).to.equal(fakeUrl);
       expect(fetchStub.args[0][1].headers.get('x-goog-api-key')).to.equal(
         fakeAppParams.apiKey
@@ -59,14 +63,16 @@ describe('Dynamic Config Fetch Functions', () => {
         }
       });
       const app = getFakeApp(fakeAppParams);
-      await expect(fetchDynamicConfig(app)).to.be.rejectedWith(
-        AnalyticsError.CONFIG_FETCH_FAILED
-      );
+      await expect(
+        fetchDynamicConfig(app.options as AppFields)
+      ).to.be.rejectedWith(AnalyticsError.CONFIG_FETCH_FAILED);
     });
     it('throws error on failed response, includes server error message if provided', async () => {
       stubFetch(500, { error: { message: 'Oops' } });
       const app = getFakeApp(fakeAppParams);
-      await expect(fetchDynamicConfig(app)).to.be.rejectedWith(
+      await expect(
+        fetchDynamicConfig(app.options as AppFields)
+      ).to.be.rejectedWith(
         new RegExp(`Oops.+${AnalyticsError.CONFIG_FETCH_FAILED}`)
       );
     });
@@ -75,7 +81,9 @@ describe('Dynamic Config Fetch Functions', () => {
     it('successfully request and receives dynamic config JSON data', async () => {
       stubFetch(200, successObject);
       const app = getFakeApp(fakeAppParams);
-      const config: DynamicConfig = await fetchDynamicConfigWithRetry(app);
+      const config:
+        | DynamicConfig
+        | MinimalDynamicConfig = await fetchDynamicConfigWithRetry(app);
       expect(fetchStub.args[0][0]).to.equal(fakeUrl);
       expect(fetchStub.args[0][1].headers.get('x-goog-api-key')).to.equal(
         fakeAppParams.apiKey
@@ -94,6 +102,21 @@ describe('Dynamic Config Fetch Functions', () => {
         AnalyticsError.CONFIG_FETCH_FAILED
       );
     });
+    it('warns on non-retriable failed response if local measurementId available', async () => {
+      stubFetch(404, {
+        error: {
+          /* no message */
+        }
+      });
+      const consoleStub = stub(console, 'warn');
+      const app = getFakeApp({
+        ...fakeAppParams,
+        measurementId: fakeMeasurementId
+      });
+      await fetchDynamicConfigWithRetry(app);
+      expect(consoleStub.args[0][1]).to.include(fakeMeasurementId);
+      consoleStub.restore();
+    });
     it('retries on retriable error until success', async () => {
       // Configures Date.now() to advance clock from zero in 20ms increments, enabling
       // tests to assert a known throttle end time and allow setTimeout to work.
@@ -106,7 +129,8 @@ describe('Dynamic Config Fetch Functions', () => {
         throttleMetadata: {},
         getThrottleMetadata: stub(),
         setThrottleMetadata: stub(),
-        deleteThrottleMetadata: stub()
+        deleteThrottleMetadata: stub(),
+        intervalMillis: 5
       };
 
       // Returns responses with each of 4 retriable statuses, then a success response.
@@ -127,7 +151,9 @@ describe('Dynamic Config Fetch Functions', () => {
       fetchStub.onCall(retriableStatuses.length).resolves(successResponse);
 
       const app = getFakeApp(fakeAppParams);
-      const config: DynamicConfig = await fetchDynamicConfigWithRetry(
+      const config:
+        | DynamicConfig
+        | MinimalDynamicConfig = await fetchDynamicConfigWithRetry(
         app,
         fakeRetryData
       );
@@ -157,19 +183,76 @@ describe('Dynamic Config Fetch Functions', () => {
         throttleMetadata: {},
         getThrottleMetadata: stub(),
         setThrottleMetadata: stub(),
-        deleteThrottleMetadata: stub()
+        deleteThrottleMetadata: stub(),
+        intervalMillis: 10
       };
 
       // Always returns retriable server error.
       stubFetch(500, {});
 
       const app = getFakeApp(fakeAppParams);
-      // Set fetch timeout to 200 ms.
-      const fetchPromise = fetchDynamicConfigWithRetry(app, fakeRetryData, 200);
+      // Set fetch timeout to 50 ms.
+      const fetchPromise = fetchDynamicConfigWithRetry(app, fakeRetryData, 50);
       await expect(fetchPromise).to.be.rejectedWith(
         AnalyticsError.FETCH_THROTTLE
       );
-      expect(fakeRetryData.setThrottleMetadata).to.be.called;
+      // Should be enough time for at least 2 retries, including fuzzing.
+      expect(fakeRetryData.setThrottleMetadata.callCount).to.be.greaterThan(1);
     });
+    it('retries on 503 error until aborted by timeout', async () => {
+      const fakeRetryData = {
+        throttleMetadata: {},
+        getThrottleMetadata: stub(),
+        setThrottleMetadata: stub(),
+        deleteThrottleMetadata: stub(),
+        intervalMillis: 10
+      };
+
+      // Always returns retriable server error.
+      stubFetch(503, {});
+
+      const app = getFakeApp(fakeAppParams);
+      // Set fetch timeout to 50 ms.
+      const fetchPromise = fetchDynamicConfigWithRetry(app, fakeRetryData, 50);
+      await expect(fetchPromise).to.be.rejectedWith(
+        AnalyticsError.FETCH_THROTTLE
+      );
+      const retryTime1 =
+        fakeRetryData.setThrottleMetadata.args[0][1].throttleEndTimeMillis;
+      const retryTime2 =
+        fakeRetryData.setThrottleMetadata.args[1][1].throttleEndTimeMillis;
+      expect(fakeRetryData.setThrottleMetadata).to.be.called;
+      // Interval between first and second retry should be greater than lowest fuzzable
+      // value of LONG_RETRY_FACTOR.
+      expect(retryTime2 - retryTime1).to.be.at.least(
+        Math.floor(LONG_RETRY_FACTOR / 2) * fakeRetryData.intervalMillis
+      );
+    });
+    it(
+      'retries on retriable error until aborted by timeout,' +
+        ' then uses local measurementId if available',
+      async () => {
+        const fakeRetryData = {
+          throttleMetadata: {},
+          getThrottleMetadata: stub(),
+          setThrottleMetadata: stub(),
+          deleteThrottleMetadata: stub(),
+          intervalMillis: 10
+        };
+
+        // Always returns retriable server error.
+        stubFetch(500, {});
+        const consoleStub = stub(console, 'warn');
+
+        const app = getFakeApp({
+          ...fakeAppParams,
+          measurementId: fakeMeasurementId
+        });
+        // Set fetch timeout to 50 ms.
+        await fetchDynamicConfigWithRetry(app, fakeRetryData, 50);
+        expect(consoleStub.args[0][1]).to.include(fakeMeasurementId);
+        consoleStub.restore();
+      }
+    );
   });
 });
