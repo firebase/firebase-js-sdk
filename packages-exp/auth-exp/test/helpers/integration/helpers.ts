@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-import { initializeApp } from '@firebase/app-exp';
+import { deleteApp, initializeApp } from '@firebase/app-exp';
 import { initializeAuth } from '@firebase/auth-exp/index.browser';
 import { Auth, User } from '@firebase/auth-types-exp';
+
+import { _generateEventId } from '../../../src/core/util/event_id';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const PROJECT_CONFIG = require('../../../../../config/project.json');
@@ -26,9 +28,15 @@ export const PROJECT_ID = PROJECT_CONFIG.projectId;
 export const AUTH_DOMAIN = PROJECT_CONFIG.authDomain;
 export const API_KEY = PROJECT_CONFIG.apiKey;
 
-export async function withTestInstance(
-  fn: (auth: Auth) => void | Promise<void>
-): Promise<void> {
+interface IntegrationTestAuth extends Auth {
+  cleanUp(): Promise<void>;
+}
+
+export function randomEmail(): string {
+  return `${_generateEventId('test.email.')}@test.com`;
+}
+
+export function getTestInstance(): Auth {
   const app = initializeApp({
     apiKey: API_KEY,
     projectId: PROJECT_ID,
@@ -36,7 +44,7 @@ export async function withTestInstance(
   });
 
   const createdUsers: User[] = [];
-  const auth = initializeAuth(app);
+  const auth = initializeAuth(app) as IntegrationTestAuth;
   auth.settings.appVerificationDisabledForTesting = true;
 
   auth.onAuthStateChanged(user => {
@@ -45,14 +53,38 @@ export async function withTestInstance(
     }
   });
 
-  await fn(auth);
-
-  // Clear out any new users that were created in the course of the test
-  for (const user of createdUsers) {
-    try {
-      await user.delete();
-    } catch {
-      // Best effort. Maybe the test already deleted the user ¯\_(ツ)_/¯
+  auth.cleanUp = async () => {
+    // Clear out any new users that were created in the course of the test
+    for (const user of createdUsers) {
+      try {
+        await user.delete();
+      } catch {
+        // Best effort. Maybe the test already deleted the user ¯\_(ツ)_/¯
+      }
     }
-  }
+
+    await deleteApp(app);
+  };
+
+  return auth;
+}
+
+export async function cleanUpTestInstance(auth: Auth) {
+  await (auth as IntegrationTestAuth).cleanUp();
+}
+
+export function describeIntegration(name: string, suite: (auth: Auth) => void): void {
+  describe(`Integration test: ${name}`, () => {
+    let auth = getTestInstance();
+
+    afterEach(async () => {
+      await auth.signOut();
+    });
+
+    after(async () => {
+      await cleanUpTestInstance(auth);
+    });
+
+    suite(auth);
+  });
 }
