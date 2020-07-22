@@ -15,13 +15,20 @@
  * limitations under the License.
  */
 
-import { IdTokenResponse, IdTokenResponseKind } from '../src/model/id_token';
-import { makeJWT } from './jwt';
+import { AuthEvent, AuthEventType } from '../../src/model/popup_redirect';
 
-export const TEST_ID_TOKEN_RESPONSE: IdTokenResponse = {
-  idToken: makeJWT({}),
-  refreshToken: 'refresh-token',
-  expiresIn: '1000',
-  localId: 'uid',
-  kind: IdTokenResponseKind.CreateAuthUri
+export const BASE_AUTH_EVENT: AuthEvent = {
+  urlResponse: 'url-response',
+  eventId: 'event-id',
+  type: AuthEventType.SIGN_IN_VIA_POPUP,
+  sessionId: 'session-id',
+  tenantId: 'tenant-id',
+  postBody: 'post-body'
 };
+
+export function authEvent(event: Partial<AuthEvent> = {}): AuthEvent {
+  return {
+    ...BASE_AUTH_EVENT,
+    ...event
+  };
+}

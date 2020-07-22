@@ -24,7 +24,7 @@ import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { testUser } from '../../../test/mock_auth';
+import { testUser } from '../../../test/helpers/mock_auth';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { browserPopupRedirectResolver } from '../../platform_browser/popup_redirect';

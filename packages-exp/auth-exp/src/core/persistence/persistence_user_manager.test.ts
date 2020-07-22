@@ -20,7 +20,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { testAuth, testUser } from '../../../test/mock_auth';
+import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { Auth } from '../../model/auth';
 import { UserImpl } from '../user/user_impl';
 import { _getInstance } from '../util/instantiator';

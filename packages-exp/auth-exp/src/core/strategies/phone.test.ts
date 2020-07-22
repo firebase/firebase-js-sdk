@@ -23,16 +23,20 @@ import * as sinonChai from 'sinon-chai';
 import { OperationType, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { mockEndpoint } from '../../../test/api/helper';
-import { makeJWT } from '../../../test/jwt';
-import { testAuth, testUser } from '../../../test/mock_auth';
-import * as fetch from '../../../test/mock_fetch';
+import { mockEndpoint } from '../../../test/helpers/api/helper';
+import { makeJWT } from '../../../test/helpers/jwt';
+import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
+import { MultiFactorInfo } from '../../mfa/mfa_info';
+import { MultiFactorSession } from '../../mfa/mfa_session';
+import { multiFactor, MultiFactorUser } from '../../mfa/mfa_user';
 import { ApplicationVerifier } from '../../model/application_verifier';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { User } from '../../model/user';
 import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_verifier';
+import { PhoneAuthCredential } from '../credentials/phone';
 import {
   _verifyPhoneNumber,
   linkWithPhoneNumber,
@@ -40,10 +44,6 @@ import {
   signInWithPhoneNumber,
   updatePhoneNumber
 } from './phone';
-import { multiFactor, MultiFactorUser } from '../../mfa/mfa_user';
-import { MultiFactorSession } from '../../mfa/mfa_session';
-import { MultiFactorInfo } from '../../mfa/mfa_info';
-import { PhoneAuthCredential } from '../credentials/phone';
 
 use(chaiAsPromised);
 use(sinonChai);
