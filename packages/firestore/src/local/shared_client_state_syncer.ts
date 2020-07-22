@@ -51,8 +51,8 @@ export interface SharedClientStateSyncer {
   getActiveClients(): Promise<ClientId[]>;
 
   /**
-   * Query for changed documents from remote document cache and raise snapshots
-   * if needed.
+   * Retrieves newly changed documents from remote document cache and raises
+   * snapshots if needed.
    */
   synchronizeWithChangedDocuments(): Promise<void>;
 }

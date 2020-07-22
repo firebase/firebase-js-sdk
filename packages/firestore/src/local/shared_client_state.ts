@@ -40,7 +40,7 @@ import {
 import {
   CLIENT_STATE_KEY_PREFIX,
   ClientStateSchema,
-  createRemoteDocumentsChangedKey,
+  createRemoteDocumentsLoadFromBundleKey,
   createWebStorageClientStateKey,
   createWebStorageMutationBatchKey,
   createWebStorageOnlineStateKey,
@@ -175,7 +175,11 @@ export interface SharedClientState {
 
   writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
 
-  remoteDocumentsChanged(): void;
+  /**
+   * Notifies other clients when remote documents have changed due to loading
+   * a bundle.
+   */
+  notifyBundleChangedRemoteDocuments(): void;
 }
 
 /**
@@ -480,7 +484,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   private readonly sequenceNumberKey: string;
   private readonly storageListener = this.handleWebStorageEvent.bind(this);
   private readonly onlineStateKey: string;
-  private readonly remoteDocumentsChangedKey: string;
+  private readonly bundleChangedRemoteDocumentsKey: string;
   private readonly clientStateKeyRe: RegExp;
   private readonly mutationBatchKeyRe: RegExp;
   private readonly queryTargetKeyRe: RegExp;
@@ -536,7 +540,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
     this.onlineStateKey = createWebStorageOnlineStateKey(this.persistenceKey);
 
-    this.remoteDocumentsChangedKey = createRemoteDocumentsChangedKey(
+    this.bundleChangedRemoteDocumentsKey = createRemoteDocumentsLoadFromBundleKey(
       this.persistenceKey
     );
 
@@ -719,8 +723,8 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.persistOnlineState(onlineState);
   }
 
-  remoteDocumentsChanged(): void {
-    this.persistRemoteDocumentsChangedState();
+  notifyBundleChangedRemoteDocuments(): void {
+    this.persistBundleChangedRemoteDocumentsState();
   }
 
   shutdown(): void {
@@ -830,7 +834,7 @@ export class WebStorageSharedClientState implements SharedClientState {
           if (sequenceNumber !== ListenSequence.INVALID) {
             this.sequenceNumberHandler!(sequenceNumber);
           }
-        } else if (storageEvent.key === this.remoteDocumentsChangedKey) {
+        } else if (storageEvent.key === this.bundleChangedRemoteDocumentsKey) {
           return this.syncEngine!.synchronizeWithChangedDocuments();
         }
       });
@@ -897,8 +901,8 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.setItem(targetKey, targetMetadata.toWebStorageJSON());
   }
 
-  private persistRemoteDocumentsChangedState(): void {
-    this.setItem(this.remoteDocumentsChangedKey, 'value-not-used');
+  private persistBundleChangedRemoteDocumentsState(): void {
+    this.setItem(this.bundleChangedRemoteDocumentsKey, 'value-not-used');
   }
 
   /**
@@ -1150,7 +1154,7 @@ export class MemorySharedClientState implements SharedClientState {
 
   writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void {}
 
-  remoteDocumentsChanged(): void {
+  notifyBundleChangedRemoteDocuments(): void {
     // No op.
   }
 }

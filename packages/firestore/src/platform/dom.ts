@@ -43,8 +43,7 @@ export function getDocument(): Document | null {
 }
 
 /**
- * An instance of the Platform's 'TextEncoder' implementation or null
- * if not available.
+ * An instance of the Platform's 'TextEncoder' implementation.
  */
 export function newTextEncoder(): TextEncoder {
   if (isNode()) {

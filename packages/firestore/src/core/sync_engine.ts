@@ -1100,9 +1100,10 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
     }
   }
 
-  async synchronizeWithChangedDocuments(): Promise<void> {
-    const changes = await this.localStore.getNewDocumentChanges();
-    await this.emitNewSnapsAndNotifyLocalStore(changes);
+  synchronizeWithChangedDocuments(): Promise<void> {
+    return this.localStore
+      .getNewDocumentChanges()
+      .then(changes => this.emitNewSnapsAndNotifyLocalStore(changes));
   }
 
   async applyBatchState(
@@ -1418,9 +1419,7 @@ export function loadBundle(
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   loadBundleImpl(syncEngineImpl, bundleReader, task).then(() => {
-    if (!syncEngineImpl.isPrimaryClient) {
-      syncEngineImpl.sharedClientState.remoteDocumentsChanged();
-    }
+    syncEngineImpl.sharedClientState.notifyBundleChangedRemoteDocuments();
   });
 }
 
