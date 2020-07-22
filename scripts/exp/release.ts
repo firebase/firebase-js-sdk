@@ -26,7 +26,7 @@ import { writeFile as _writeFile } from 'fs';
 import { promisify } from 'util';
 import chalk from 'chalk';
 import Listr from 'listr';
-import { prepare as prepareAndBuildFirestore } from './prepare-firestore-for-exp-release';
+import { prepare as prepareFirestoreForRelease } from './prepare-firestore-for-exp-release';
 
 const writeFile = promisify(_writeFile);
 const git = simpleGit(projectRoot);
@@ -40,14 +40,14 @@ async function publishExpPackages() {
     console.log('Welcome to the Firebase Exp Packages release CLI!');
 
     /**
-     * prepare and build firestore
-     */
-    await prepareAndBuildFirestore();
-
-    /**
      * build packages
      */
     await buildPackages();
+
+    /**
+     * Update fields in package.json and stuff
+     */
+    await prepareFirestoreForRelease();
 
     // path to exp packages
     const packagePaths = await mapWorkspaceToPackages([
@@ -103,12 +103,59 @@ async function publishExpPackages() {
   }
 }
 
+/**
+ * The order of build is important
+ */
 async function buildPackages() {
   const spinner = ora(' Building Packages').start();
-  await spawn('yarn', ['build:exp:release'], {
+
+  // Build dependencies
+  await spawn(
+    'yarn',
+    [
+      'lerna',
+      '--scope',
+      '@firebase/util',
+      '--scope',
+      '@firebase/component',
+      '--scope',
+      '@firebase/logger',
+      '--scope',
+      '@firebase/webchannel-wrapper'
+    ],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
+  // Build exp packages except for firebase-exp
+  await spawn(
+    'yarn',
+    ['lerna', '--scope', '@firebase/*-exp', 'build:release'],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
+  // Build exp packages developed in place
+  // Firestore
+  await spawn(
+    'yarn',
+    ['lerna', '--scope', '@firebase/firestore', 'build:exp:release'],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
+  // Build firebase-exp
+  await spawn('yarn', ['lerna', '--scope', 'firebase-exp', 'build:release'], {
     cwd: projectRoot,
     stdio: 'inherit'
   });
+
   spinner.stopAndPersist({
     symbol: '✅'
   });

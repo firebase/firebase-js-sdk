@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { spawn } from 'child-process-promise';
 import { projectRoot, readPackageJson } from '../utils';
 import { writeFile as _writeFile, readFile as _readFile } from 'fs';
 import { promisify } from 'util';
@@ -27,12 +26,6 @@ const packagePath = `${projectRoot}/packages/firestore`;
 
 // Prepare @firebase/firestore, so scripts/exp/release.ts can be used to release it
 export async function prepare() {
-  // Build exp and lite packages
-  await spawn('yarn', ['build:exp:release'], {
-    cwd: packagePath,
-    stdio: 'inherit'
-  });
-
   // Update package.json
   const packageJson = await readPackageJson(packagePath);
   const expPackageJson = await readPackageJson(`${packagePath}/exp`);
