@@ -16,13 +16,12 @@
  */
 
 const karmaBase = require('../../config/karma.base');
-
-const files = ['src/**/*.test.ts', 'test/**/*.test.ts'];
+const { argv } = require('yargs');
 
 module.exports = function(config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     // files to load into karma
-    files: files,
+    files: getTestFiles(argv),
     preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
@@ -32,4 +31,14 @@ module.exports = function(config) {
   config.set(karmaConfig);
 };
 
-module.exports.files = files;
+function getTestFiles(argv) {
+  if (argv.unit) {
+    return ['src/**/*.test.ts', 'test/helpers/**/*.test.ts'];
+  } else if (argv.integration) {
+    return ['test/integration/**/*.test.ts'];
+  } else {
+    return ['src/**/*.test.ts', 'test/**/*.test.ts'];
+  }
+}
+
+module.exports.files = getTestFiles(argv);
