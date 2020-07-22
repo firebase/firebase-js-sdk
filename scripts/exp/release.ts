@@ -70,7 +70,7 @@ async function publishExpPackages() {
     /**
      * Release packages to NPM
      */
-    // await publishToNpm(packagePaths);
+    await publishToNpm(packagePaths);
 
     /**
      * reset the working tree to recover package names with -exp in the package.json files,
@@ -84,12 +84,12 @@ async function publishExpPackages() {
     const firebaseExpPath = packagePaths.filter(p =>
       p.includes(FIREBASE_UMBRELLA_PACKAGE_NAME)
     );
-    // await resetWorkingTreeAndBumpVersions(firebaseExpPath, firebaseExpVersion);
+    await resetWorkingTreeAndBumpVersions(firebaseExpPath, firebaseExpVersion);
 
     /**
      * push to github
      */
-    // await commitAndPush(versions);
+    await commitAndPush(versions);
   } catch (err) {
     /**
      * Log any errors that happened during the process
