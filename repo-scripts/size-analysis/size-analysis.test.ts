@@ -30,18 +30,31 @@ import {
 } from './analysis-helper';
 
 import { retrieveTestModuleDtsFile } from './test-utils';
-import { exec } from 'child_process';
 import * as fs from 'fs';
 import { resolve } from 'path';
 
 describe('extractDeclarations', () => {
   let testModuleDtsFile: string;
   let extractedDeclarations: MemberList;
-  before(() => {
-    // this.timeout(300000);
+  before(function () {
+    this.timeout(10000); // A very long environment setup.
     testModuleDtsFile = retrieveTestModuleDtsFile();
     extractedDeclarations = extractDeclarations(testModuleDtsFile);
   });
+  // export {tar as tarr, tar1 as tarr1} from '..'
+  it('test export rename', () => {
+    expect(extractedDeclarations.functions).to.include.members([
+      'tarr',
+      'tarr1'
+    ]);
+  });
+  // function foo() {}
+  // export {foo as foo2 };
+  it('test declare then export ', () => {
+    expect(extractedDeclarations.functions).to.include.members(['foo2']);
+    expect(extractedDeclarations.classes).to.include.members(['Foo1']);
+  });
+
   it('test basic variable extractions', () => {
     expect(extractedDeclarations.variables).to.include.members([
       'basicVarDeclarationExport',

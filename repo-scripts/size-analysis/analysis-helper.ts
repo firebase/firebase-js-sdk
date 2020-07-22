@@ -291,16 +291,11 @@ export function extractDeclarations(
       } else {
         // export {LogLevel};
         // exclusively handles named export statements that has no from clause.
-        // retrieve the exported symbols by parsing node.exportClause
-        // retrieve the location where exported symbols are defined from the corresponding import clauses
-        const importThenExportedSymbols: MemberList = handleImportThenExport(
+        handleExportStatementsWithoutFromClause(
           node,
-          symbolLocation
+          symbolLocation,
+          declarations
         );
-        // concatenate re-exported MemberList with MemberList of the dts file
-        for (const key of Object.keys(declarations)) {
-          declarations[key].push(...importThenExportedSymbols[key]);
-        }
       }
     }
   });
@@ -314,6 +309,7 @@ export function extractDeclarations(
   Object.values(declarations).map(each => {
     each.sort();
   });
+  console.log(declarations);
   return declarations;
 }
 /**
@@ -403,37 +399,58 @@ function extractSymbolsFromNamedExportStatement(
 /**
  * @param node compiler representation of a named export statement
  * @param symbolLocation a map with module name as key and the resolved module location as value. (map is populated by parsing import statements)
+ * @param declarations a collection of symbols extracted from current file of context (either a dts file or a js file).
  * This function exclusively handles named export statements that has no from clause, i.e: statements like export {LogLevel};
+ * first case : import then export
+ * example: import {a} from '...'; export {a}
  * The function retrieves the location where the exported symbol is defined from the corresponding import statements.
+ *
+ * second case: declare first then export
+ * examples: declare const apps: Map<string, number>; export { apps };
+ * function foo(){} ; export {foo as bar};
+ * The function parses export clause of the statement and replaces symbol with its current name (if the symbol is renamed) from the declaration argument.
  */
-function handleImportThenExport(
+function handleExportStatementsWithoutFromClause(
   node: ts.ExportDeclaration,
-  symbolLocation: Map<string, string>
-): MemberList {
-  const declarations: MemberList = {
-    functions: [],
-    classes: [],
-    variables: [],
-    enums: [],
-    externals: []
-  };
+  symbolLocation: Map<string, string>,
+  declarations: MemberList
+): void {
   if (node.exportClause && ts.isNamedExports(node.exportClause)) {
     node.exportClause.elements.forEach(exportSpecifier => {
-      const exportedSymbolName = exportSpecifier.name.escapedText.toString();
-
-      if (symbolLocation.has(exportedSymbolName)) {
+      // export symbol could be renamed, we retrieve its current/renamed name
+      const exportedSymbolCurrentName = exportSpecifier.name.escapedText.toString();
+      // handles import then exports
+      // import {a, b} from '...'
+      // export {a,b};
+      if (symbolLocation.has(exportedSymbolCurrentName)) {
         const reExportedSymbols = extractDeclarations(
-          symbolLocation.get(exportedSymbolName)
+          symbolLocation.get(exportedSymbolCurrentName)
         );
-        filterAllBy(reExportedSymbols, [exportedSymbolName]);
+        filterAllBy(reExportedSymbols, [exportedSymbolCurrentName]);
         // concatenate re-exported MemberList with MemberList of the dts file
         for (const key of Object.keys(declarations)) {
           declarations[key].push(...reExportedSymbols[key]);
         }
       }
+      // handles declare first then export
+      // declare const apps: Map<string, number>;
+      // export { apps };
+      // function a() {};
+      // export {a};
+      else {
+        const exportedSymbolOriginalName: string = extractOriginalSymbolName(
+          exportSpecifier
+        );
+        if (isExportRenamed(exportSpecifier)) {
+          replaceAll(
+            declarations,
+            exportedSymbolOriginalName,
+            exportedSymbolCurrentName
+          );
+        }
+      }
     });
   }
-  return declarations;
 }
 
 /**
@@ -575,7 +592,8 @@ export function extractExternalDependencies(
 
       externals[moduleName] = [];
 
-      //import {a, b } from '@firebase/dummy-exp'
+      //import {a, b } from '@firebase/dummy-exp';
+      // import {a as c, b } from '@firebase/dummy-exp';
       if (
         node.importClause.namedBindings &&
         ts.isNamedImports(node.importClause.namedBindings)

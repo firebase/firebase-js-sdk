@@ -32,7 +32,6 @@ export {
   basicVarStatementExportFar,
   reExportVarStatmentExportFar
 } from './far';
-
 export let basicVarDeclarationExport: string;
 export const basicVarStatementExport = 'basicVarStatementExport';
 export const reExportVarStatmentExport = license;
@@ -82,7 +81,7 @@ export function basicUniqueFunc(
 export function basicUniqueFunc(x: number): { suit: string; card: number };
 export function basicUniqueFunc(
   x: number | Array<{ suit: string; card: number }>
-) {
+): number | object {
   if (typeof x === 'object') {
     const pickedCard = Math.floor(Math.random() * x.length);
     return pickedCard;
@@ -93,5 +92,19 @@ export function basicUniqueFunc(
   }
 }
 
+const appsNotExported: Map<string, number> = new Map();
+const apps: Map<string, number> = new Map();
+export { apps };
+
+class FooNotExported {}
+class Foo {}
+export { Foo as Foo1 };
+
+function foo(x: string): string {
+  return x;
+}
+export { foo as foo2 };
+
+export { tar as tarr, tar1 as tarr1 } from './tar';
 // re-export from firebase external module
 export { LogLevel } from '@firebase/logger';

@@ -6,8 +6,7 @@
 -  `--inputModule, --im`      The name of the module(s) to be analyzed. example: --inputModule "@firebase/functions-exp" "firebase/auth-exp" [array]
 -  `--inputDtsFile, --if`     Support for adhoc analysis. requires a path to dts file [string]
 -  `--inputBundleFile, --ib`  Support for adhoc analysis. requires a path to a bundle file [string]
-- `--output, -o`            The location where report(s) will be generated, a directory path if module(s) are analyzed; a file path if ad hoc analysis is to be performed. One of --ci and --output flag must be specified for output redirection. [string]
-- `--ci`: when enabled, the binary size report is not persisted on file system; Instead, it will be uploaded to CI by its backend process [boolean]
+- `--output, -o`            The location where report(s) will be generated, a directory path if module(s) are analyzed; a file path if ad hoc analysis is to be performed [string]
 - `--help `                  Show help [boolean]
 
 
