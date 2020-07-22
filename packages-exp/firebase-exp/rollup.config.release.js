@@ -144,7 +144,7 @@ const componentBuilds = pkg.components
       },
       {
         input: `${component}/index.ts`,
-        output: createUmdOutputConfig(`firebase-${component}.js`, component),
+        output: createUmdOutputConfig(`firebase-${scriptName}.js`, component),
         plugins: [...plugins, typescriptPluginUMD],
         external: ['@firebase/app']
       }
