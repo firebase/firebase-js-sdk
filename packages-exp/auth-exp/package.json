@@ -23,7 +23,7 @@
     "test:browser": "karma start --single-run",
     "test:browser:unit": "karma start --single-run --unit",
     "test:browser:integration": "karma start --single-run --integration",
-    "test:browser:debug": "karma start",
+    "test:browser:debug": "karma start --auto-watch",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.* --opts ../../config/mocha.node.opts",
     "type-check": "tsc -p . --noEmit",
     "prepare": "yarn build",
