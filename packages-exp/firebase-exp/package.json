@@ -55,6 +55,8 @@
   },
   "components": [
     "app",
-    "functions"
+    "functions",
+    "firestore",
+    "firestore/lite"
   ]
 }
