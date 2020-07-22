@@ -32,7 +32,7 @@ export async function withTestInstance(
   const app = initializeApp({
     apiKey: API_KEY,
     projectId: PROJECT_ID,
-    authDomain: AUTH_DOMAIN,
+    authDomain: AUTH_DOMAIN
   });
 
   const createdUsers: User[] = [];
