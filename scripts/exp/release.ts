@@ -106,7 +106,8 @@ async function publishExpPackages() {
 async function buildPackages() {
   const spinner = ora(' Building Packages').start();
   await spawn('yarn', ['build:exp:release'], {
-    cwd: projectRoot
+    cwd: projectRoot,
+    stdio: 'inherit'
   });
   spinner.stopAndPersist({
     symbol: '✅'
