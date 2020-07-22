@@ -21,17 +21,17 @@ import { SinonStub, stub, useFakeTimers } from 'sinon';
 
 import { FirebaseError } from '@firebase/util';
 
-import { mockEndpoint } from '../../test/api/helper';
-import { testAuth } from '../../test/mock_auth';
-import * as mockFetch from '../../test/mock_fetch';
+import { mockEndpoint } from '../../test/helpers/api/helper';
+import { testAuth } from '../../test/helpers/mock_auth';
+import * as mockFetch from '../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../core/errors';
 import { Auth } from '../model/auth';
 import {
   _performApiRequest,
   DEFAULT_API_TIMEOUT_MS,
   Endpoint,
-  HttpMethod,
-  HttpHeader
+  HttpHeader,
+  HttpMethod
 } from './';
 import { ServerError } from './errors';
 

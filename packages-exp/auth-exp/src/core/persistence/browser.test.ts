@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 
-import { testUser } from '../../../test/mock_auth';
+import { testUser } from '../../../test/helpers/mock_auth';
 import { _getInstance } from '../util/instantiator';
 import { PersistedBlob, Persistence, PersistenceType } from './';
 import { browserLocalPersistence, browserSessionPersistence } from './browser';

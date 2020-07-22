@@ -22,8 +22,8 @@ import * as sinon from 'sinon';
 import { ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { makeJWT } from '../../../test/jwt';
-import { testAuth, testUser } from '../../../test/mock_auth';
+import { makeJWT } from '../../../test/helpers/jwt';
+import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { User } from '../../model/user';
 import { getIdTokenResult } from './id_token_result';
 

@@ -15,12 +15,14 @@
  * limitations under the License.
  */
 
+import { expect, use } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+
 import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { FirebaseError } from '@firebase/util';
-import { expect, use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
-import { testAuth } from '../../../test/mock_auth';
+
+import { testAuth } from '../../../test/helpers/mock_auth';
 import { Auth } from '../../model/auth';
 import { EmailAuthProvider } from './email';
 

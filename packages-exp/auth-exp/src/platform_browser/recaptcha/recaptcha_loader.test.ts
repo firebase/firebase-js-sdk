@@ -22,8 +22,8 @@ import * as sinonChai from 'sinon-chai';
 
 import { FirebaseError } from '@firebase/util';
 
-import { testAuth } from '../../../test/mock_auth';
-import { stubSingleTimeout } from '../../../test/timeout_stub';
+import { testAuth } from '../../../test/helpers/mock_auth';
+import { stubSingleTimeout } from '../../../test/helpers/timeout_stub';
 import { Auth } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';
 import * as jsHelpers from '../load_js';

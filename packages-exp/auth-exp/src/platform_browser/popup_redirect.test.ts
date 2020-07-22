@@ -24,7 +24,11 @@ import { SDK_VERSION } from '@firebase/app-exp';
 import { ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { TEST_AUTH_DOMAIN, TEST_KEY, testAuth } from '../../test/mock_auth';
+import {
+  TEST_AUTH_DOMAIN,
+  TEST_KEY,
+  testAuth
+} from '../../test/helpers/mock_auth';
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { OAuthProvider } from '../core/providers/oauth';
 import { SingletonInstantiator } from '../core/util/instantiator';

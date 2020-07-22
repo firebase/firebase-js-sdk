@@ -16,7 +16,8 @@
  */
 
 import { SinonStub, stub } from 'sinon';
-import { HttpHeader } from '../src/api';
+
+import { HttpHeader } from '../../src/api';
 
 export interface Call {
   request?: object | string;
