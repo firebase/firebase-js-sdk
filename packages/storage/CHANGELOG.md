@@ -1,5 +1,11 @@
 #Unreleased
 
+## 0.3.40
+
+### Patch Changes
+
+- [`ee33ebf7`](https://github.com/firebase/firebase-js-sdk/commit/ee33ebf726b1dc31ab4817e7a1923f7b2757e17c) [#3414](https://github.com/firebase/firebase-js-sdk/pull/3414) - Error messages for backend errors now include the backend's reponse message.
+
 ## 0.3.39
 
 ### Patch Changes
