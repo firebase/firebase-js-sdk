@@ -134,11 +134,7 @@ export class Api {
       await validateIndexedDBOpenable();
       return true;
     } catch (error) {
-      consoleLogger.info(
-        `Environment doesn't support IndexedDB: ${error}` +
-          'Wrap initialization of performance in performance.isSupported() ' +
-          'to prevent initialization in unsupported environments'
-      );
+      consoleLogger.info(`Environment doesn't support IndexedDB: ${error}`);
       return false;
     }
   }

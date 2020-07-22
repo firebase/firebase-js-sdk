@@ -1603,7 +1603,6 @@ declare namespace firebase.performance {
      */
     getAttributes(): { [key: string]: string };
   }
-  function isSupported(): Promise<boolean>;
 }
 
 /**

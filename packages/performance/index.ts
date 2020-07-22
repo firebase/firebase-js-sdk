@@ -26,10 +26,6 @@ import { ERROR_FACTORY, ErrorCode } from './src/utils/errors';
 import { FirebasePerformance } from '@firebase/performance-types';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations } from '@firebase/installations-types';
-import {
-  isIndexedDBAvailable,
-  validateIndexedDBOpenable
-} from '@firebase/util';
 import { name, version } from './package.json';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
@@ -51,10 +47,6 @@ export function registerPerformance(instance: FirebaseNamespace): void {
     return new PerformanceController(app);
   };
 
-  const NAMESPACE_EXPORTS = {
-    isSupported
-  };
-
   // Register performance with firebase-app.
   (instance as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component(
@@ -71,7 +63,7 @@ export function registerPerformance(instance: FirebaseNamespace): void {
         return factoryMethod(app, installations);
       },
       ComponentType.PUBLIC
-    ).setServiceProps(NAMESPACE_EXPORTS)
+    )
   );
 
   instance.registerVersion(name, version);
@@ -83,28 +75,9 @@ declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     performance?: {
       (app?: FirebaseApp): FirebasePerformance;
-      isSupprted(): Promise<boolean>;
     };
   }
   interface FirebaseApp {
     performance?(): FirebasePerformance;
-  }
-}
-
-async function isSupported(): Promise<boolean> {
-  if (
-    !fetch ||
-    !Promise ||
-    !navigator ||
-    !navigator.cookieEnabled ||
-    !isIndexedDBAvailable()
-  ) {
-    return false;
-  }
-  try {
-    const isDBOpenable: boolean = await validateIndexedDBOpenable();
-    return isDBOpenable;
-  } catch (error) {
-    return false;
   }
 }
