@@ -20,9 +20,11 @@ import { expect } from 'chai';
 import { signInAnonymously } from '@firebase/auth-exp/index.browser';
 import { OperationType } from '@firebase/auth-types-exp';
 
-import { describeIntegration } from '../helpers/integration/helpers';
+import { initIntegrationTestContext } from '../helpers/integration/helpers';
 
-describeIntegration('smoke test', auth => {
+describe('smoke test', () => {
+  const auth = initIntegrationTestContext();
+  
   it('signs in anonymously', async () => {
     const userCred = await signInAnonymously(auth);
     expect(auth.currentUser).to.eq(userCred.user);

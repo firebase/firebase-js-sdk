@@ -69,25 +69,20 @@ export function getTestInstance(): Auth {
   return auth;
 }
 
-export async function cleanUpTestInstance(auth: Auth) {
+export async function cleanUpTestInstance(auth: Auth): Promise<void> {
   await (auth as IntegrationTestAuth).cleanUp();
 }
 
-export function describeIntegration(
-  name: string,
-  suite: (auth: Auth) => void
-): void {
-  describe(`Integration test: ${name}`, () => {
-    let auth = getTestInstance();
+export function initIntegrationTestContext(): Auth {
+  const auth = getTestInstance();
 
-    afterEach(async () => {
-      await auth.signOut();
-    });
-
-    after(async () => {
-      await cleanUpTestInstance(auth);
-    });
-
-    suite(auth);
+  afterEach(async () => {
+    await auth.signOut();
   });
+
+  after(async () => {
+    await cleanUpTestInstance(auth);
+  });
+
+  return auth;
 }
