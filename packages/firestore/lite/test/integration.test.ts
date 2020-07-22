@@ -404,11 +404,12 @@ describe('Transaction', () => {
       data: T | Partial<T>,
       options?: firestore.SetOptions
     ): Promise<void> {
-      const args = Array.from(arguments);
       return runTransaction(ref.firestore, async transaction => {
-        // TODO(mrschmidt): Find a way to remove the `any` cast here
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (transaction.set as any).apply(transaction, args);
+        if (options) {
+          transaction.set(ref, data, options);
+        } else {
+          transaction.set(ref, data);
+        }
       });
     }
 
@@ -418,17 +419,19 @@ describe('Transaction', () => {
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {
-      const args = Array.from(arguments);
       return runTransaction(ref.firestore, async transaction => {
-        // TODO(mrschmidt): Find a way to remove the `any` cast here
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (transaction.update as any).apply(transaction, args);
+        if (value) {
+          transaction.update(ref, dataOrField as string | firestore.FieldPath, value, ...moreFieldsAndValues);
+        } else {
+          transaction.update(ref, dataOrField as firestore.UpdateData);
+        }
       });
     }
   }
 
   genericMutationTests(
     new TransactionTester(),
+    /* testRunnerMayUseBackoff= */ true,
     /* validationUsesPromises= */ true
   );
 
@@ -478,7 +481,8 @@ describe('Transaction', () => {
 
 function genericMutationTests(
   op: MutationTester,
-  validationUsesPromises: boolean = false
+  testRunnerMayUseBackoff= false,
+  validationUsesPromises  = false
 ): void {
   const setDoc = op.set;
   const updateDoc = op.update;
@@ -603,7 +607,10 @@ function genericMutationTests(
       });
     });
 
-    it('enforces that document exists', () => {
+    // The Transaction tests use backoff for updates that fail with failed
+    // preconditions. This leads to test timeouts.
+    // eslint-disable-next-line no-restricted-properties
+    (testRunnerMayUseBackoff ? it.skip : it)('enforces that document exists', function() {
       return withTestDoc(async docRef => {
         await expect(updateDoc(docRef, { foo: 2, baz: 2 })).to.eventually.be
           .rejected;
