@@ -73,7 +73,10 @@ export async function cleanUpTestInstance(auth: Auth) {
   await (auth as IntegrationTestAuth).cleanUp();
 }
 
-export function describeIntegration(name: string, suite: (auth: Auth) => void): void {
+export function describeIntegration(
+  name: string,
+  suite: (auth: Auth) => void
+): void {
   describe(`Integration test: ${name}`, () => {
     let auth = getTestInstance();
 
