@@ -28,7 +28,7 @@ import pkg from './package.json';
 import appPkg from './app/package.json';
 
 // remove -exp from dependencies name
-const external = Object.keys(pkg.dependencies || {}).map(name =>
+const deps = Object.keys(pkg.dependencies || {}).map(name =>
   name.replace('-exp', '')
 );
 
@@ -99,7 +99,7 @@ const appBuilds = [
       { file: resolve('app', appPkg.module), format: 'es', sourcemap: true }
     ],
     plugins: [...plugins, typescriptPlugin],
-    external
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   /**
    * App UMD Builds
@@ -121,6 +121,9 @@ const componentBuilds = pkg.components
   .filter(component => component !== 'app')
   .map(component => {
     const pkg = require(`./${component}/package.json`);
+    // It is needed for handling sub modules, for example firestore/lite which should produce firebase-firestore-lite.js
+    // Otherwise, we will create a directory with '/' in the name.
+    const scriptName = component.replace('/', '-');
     return [
       {
         input: `${component}/index.ts`,
@@ -137,7 +140,7 @@ const componentBuilds = pkg.components
           }
         ],
         plugins: [...plugins, typescriptPlugin],
-        external
+        external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
       },
       {
         input: `${component}/index.ts`,
