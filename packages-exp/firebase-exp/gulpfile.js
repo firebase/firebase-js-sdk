@@ -22,7 +22,10 @@ var sourcemaps = require('gulp-sourcemaps');
 const OUTPUT_FILE = 'firebase.js';
 const pkgJson = require('./package.json');
 const files = [
-  ...pkgJson.components.map(component => `firebase-${component}.js`)
+  ...pkgJson.components.map(component => {
+    const scriptName = component.replace('/', '-');
+    `firebase-${scriptName}.js`;
+  })
 ];
 
 gulp.task('firebase-js', function () {
