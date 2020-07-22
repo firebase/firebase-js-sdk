@@ -70,19 +70,7 @@ export function getTestInstance(): Auth {
 }
 
 export async function cleanUpTestInstance(auth: Auth): Promise<void> {
+  await auth.signOut();
   await (auth as IntegrationTestAuth).cleanUp();
 }
 
-export function initIntegrationTestContext(): Auth {
-  const auth = getTestInstance();
-
-  afterEach(async () => {
-    await auth.signOut();
-  });
-
-  after(async () => {
-    await cleanUpTestInstance(auth);
-  });
-
-  return auth;
-}
