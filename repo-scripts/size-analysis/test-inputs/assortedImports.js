@@ -22,3 +22,4 @@ import {
   basicFuncExportEnumDependenciesBar,
   basicFuncExternalDependenciesBar
 } from './bar';
+import { BasicClassExportBar as BasicClassExportBarRenamed } from './bar';

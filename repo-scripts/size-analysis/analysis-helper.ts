@@ -589,8 +589,9 @@ export function extractExternalDependencies(
   ts.forEachChild(sourceFile, node => {
     if (ts.isImportDeclaration(node) && node.importClause) {
       const moduleName: string = node.moduleSpecifier.getText(sourceFile);
-
-      externals[moduleName] = [];
+      if (!externals.hasOwnProperty(moduleName)) {
+        externals[moduleName] = [];
+      }
 
       //import {a, b } from '@firebase/dummy-exp';
       // import {a as c, b } from '@firebase/dummy-exp';
@@ -599,16 +600,19 @@ export function extractExternalDependencies(
         ts.isNamedImports(node.importClause.namedBindings)
       ) {
         node.importClause.namedBindings.elements.forEach(each => {
-          externals[moduleName].push(each.name.getText(sourceFile));
+          // if imported symbol is renamed, we want its original name which is stored in propertyName
+          if (each.propertyName) {
+            externals[moduleName].push(each.propertyName.getText(sourceFile));
+          } else {
+            externals[moduleName].push(each.name.getText(sourceFile));
+          }
         });
         // import * as fs from 'fs'
       } else if (
         node.importClause.namedBindings &&
         ts.isNamespaceImport(node.importClause.namedBindings)
       ) {
-        externals[moduleName].push(
-          node.importClause.namedBindings.name.getText(sourceFile)
-        );
+        externals[moduleName].push('*');
         // import a from '@firebase/dummy-exp'
       } else if (
         node.importClause.name &&
