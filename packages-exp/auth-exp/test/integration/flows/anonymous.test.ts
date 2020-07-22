@@ -19,21 +19,28 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import {
-    createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential, signInAnonymously,
-    signInWithEmailAndPassword, updateEmail, updatePassword
+  createUserWithEmailAndPassword,
+  EmailAuthProvider,
+  linkWithCredential,
+  signInAnonymously,
+  signInWithEmailAndPassword,
+  updateEmail,
+  updatePassword
 } from '@firebase/auth-exp/index.browser';
 import { Auth, OperationType } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import {
-    cleanUpTestInstance, getTestInstance, randomEmail
+  cleanUpTestInstance,
+  getTestInstance,
+  randomEmail
 } from '../../helpers/integration/helpers';
 
 use(chaiAsPromised);
 
 describe('Integration test: anonymous auth', () => {
   let auth: Auth;
-  beforeEach(() => auth = getTestInstance());
+  beforeEach(() => (auth = getTestInstance()));
   afterEach(() => cleanUpTestInstance(auth));
 
   it('signs in anonymously', async () => {

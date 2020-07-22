@@ -73,4 +73,3 @@ export async function cleanUpTestInstance(auth: Auth): Promise<void> {
   await auth.signOut();
   await (auth as IntegrationTestAuth).cleanUp();
 }
-
