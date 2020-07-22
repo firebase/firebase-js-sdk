@@ -369,10 +369,10 @@ describe('test extractExternalDependencies helper function', () => {
     expect(externals["'./bar'"]).to.have.members([
       'basicFuncExternalDependenciesBar',
       'basicFuncExportEnumDependenciesBar',
-      'BasicClassExportBar'
+      'BasicClassExportBar' // extract original name if renamed
     ]);
     expect(externals).to.have.property("'fs'");
-    expect(externals["'fs'"]).to.have.members(['*']);
+    expect(externals["'fs'"]).to.have.members(['*']); // namespace export
     expect(externals).to.have.property("'../package.json'");
     expect(externals["'../package.json'"]).to.have.members(['version']);
   });

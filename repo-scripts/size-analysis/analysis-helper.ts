@@ -309,7 +309,6 @@ export function extractDeclarations(
   Object.values(declarations).map(each => {
     each.sort();
   });
-  console.log(declarations);
   return declarations;
 }
 /**
