@@ -1,4 +1,4 @@
-# Unreleased
+# @firebase/performance
 
 ## 0.3.9
 
@@ -11,10 +11,10 @@
   - @firebase/installations@0.4.14
   - @firebase/logger@0.2.6
 
-# 0.3.0
+## 0.3.0
 
 - [changed] Updated internal performance event transport mechanism.
 
-# 0.2.30
+## 0.2.30
 
 - [changed] Internal transport protocol update from proto2 to proto3.
