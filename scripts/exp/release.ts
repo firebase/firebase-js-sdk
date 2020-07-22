@@ -114,6 +114,7 @@ async function buildPackages() {
     'yarn',
     [
       'lerna',
+      'run',
       '--scope',
       '@firebase/util',
       '--scope',
@@ -133,7 +134,7 @@ async function buildPackages() {
   // Build exp packages except for firebase-exp
   await spawn(
     'yarn',
-    ['lerna', '--scope', '@firebase/*-exp', 'build:release'],
+    ['lerna', 'run', '--scope', '@firebase/*-exp', 'build:release'],
     {
       cwd: projectRoot,
       stdio: 'inherit'
@@ -144,7 +145,7 @@ async function buildPackages() {
   // Firestore
   await spawn(
     'yarn',
-    ['lerna', '--scope', '@firebase/firestore', 'build:exp:release'],
+    ['lerna', 'run', '--scope', '@firebase/firestore', 'build:exp:release'],
     {
       cwd: projectRoot,
       stdio: 'inherit'
@@ -152,10 +153,14 @@ async function buildPackages() {
   );
 
   // Build firebase-exp
-  await spawn('yarn', ['lerna', '--scope', 'firebase-exp', 'build:release'], {
-    cwd: projectRoot,
-    stdio: 'inherit'
-  });
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', 'firebase-exp', 'build:release'],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
 
   spinner.stopAndPersist({
     symbol: '✅'
