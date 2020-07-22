@@ -20,12 +20,12 @@ import * as chaiAsPromised from 'chai-as-promised';
 
 import { FirebaseError, querystringDecode } from '@firebase/util';
 
-import { testAuth } from '../../../test/mock_auth';
-import * as fetch from '../../../test/mock_fetch';
+import { HttpHeader } from '../';
+import { testAuth } from '../../../test/helpers/mock_auth';
+import * as fetch from '../../../test/helpers/mock_fetch';
 import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { _ENDPOINT, requestStsToken } from './token';
-import { HttpHeader } from '..';
 
 use(chaiAsPromised);
 

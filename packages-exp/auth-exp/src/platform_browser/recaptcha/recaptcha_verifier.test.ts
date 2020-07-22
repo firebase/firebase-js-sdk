@@ -22,9 +22,9 @@ import * as sinonChai from 'sinon-chai';
 
 import { FirebaseError } from '@firebase/util';
 
-import { mockEndpoint } from '../../../test/api/helper';
-import { testAuth } from '../../../test/mock_auth';
-import * as fetch from '../../../test/mock_fetch';
+import { mockEndpoint } from '../../../test/helpers/api/helper';
+import { testAuth } from '../../../test/helpers/mock_auth';
+import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { Auth } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';

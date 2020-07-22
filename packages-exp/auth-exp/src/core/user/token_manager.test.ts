@@ -21,8 +21,8 @@ import * as sinon from 'sinon';
 
 import { FirebaseError } from '@firebase/util';
 
-import { testAuth } from '../../../test/mock_auth';
-import * as fetch from '../../../test/mock_fetch';
+import { testAuth } from '../../../test/helpers/mock_auth';
+import * as fetch from '../../../test/helpers/mock_fetch';
 import { _ENDPOINT } from '../../api/authentication/token';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';

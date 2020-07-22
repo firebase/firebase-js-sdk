@@ -19,7 +19,7 @@ import { expect } from 'chai';
 
 import { ReactNativeAsyncStorage } from '@firebase/auth-types-exp';
 
-import { testUser } from '../../../test/mock_auth';
+import { testUser } from '../../../test/helpers/mock_auth';
 import { _getInstance } from '../util/instantiator';
 import { PersistedBlob, Persistence, PersistenceType } from './';
 import { getReactNativePersistence } from './react_native';

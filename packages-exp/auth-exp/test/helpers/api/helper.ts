@@ -15,20 +15,18 @@
  * limitations under the License.
  */
 
-import { AuthEvent, AuthEventType } from '../src/model/popup_redirect';
+import { Endpoint } from '../../../src/api';
+import { TEST_HOST, TEST_KEY, TEST_SCHEME } from '../mock_auth';
+import { mock, Route } from '../mock_fetch';
 
-export const BASE_AUTH_EVENT: AuthEvent = {
-  urlResponse: 'url-response',
-  eventId: 'event-id',
-  type: AuthEventType.SIGN_IN_VIA_POPUP,
-  sessionId: 'session-id',
-  tenantId: 'tenant-id',
-  postBody: 'post-body'
-};
-
-export function authEvent(event: Partial<AuthEvent> = {}): AuthEvent {
-  return {
-    ...BASE_AUTH_EVENT,
-    ...event
-  };
+export function mockEndpoint(
+  endpoint: Endpoint,
+  response: object,
+  status = 200
+): Route {
+  return mock(
+    `${TEST_SCHEME}://${TEST_HOST}${endpoint}?key=${TEST_KEY}`,
+    response,
+    status
+  );
 }

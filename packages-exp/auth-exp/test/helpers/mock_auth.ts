@@ -17,13 +17,13 @@
 
 import { PopupRedirectResolver } from '@firebase/auth-types-exp';
 
-import { AuthImpl } from '../src/core/auth/auth_impl';
-import { PersistedBlob } from '../src/core/persistence';
-import { InMemoryPersistence } from '../src/core/persistence/in_memory';
-import { StsTokenManager } from '../src/core/user/token_manager';
-import { UserImpl } from '../src/core/user/user_impl';
-import { Auth } from '../src/model/auth';
-import { User } from '../src/model/user';
+import { AuthImpl } from '../../src/core/auth/auth_impl';
+import { PersistedBlob } from '../../src/core/persistence';
+import { InMemoryPersistence } from '../../src/core/persistence/in_memory';
+import { StsTokenManager } from '../../src/core/user/token_manager';
+import { UserImpl } from '../../src/core/user/user_impl';
+import { Auth } from '../../src/model/auth';
+import { User } from '../../src/model/user';
 
 export const TEST_HOST = 'localhost';
 export const TEST_TOKEN_HOST = 'localhost/token';
