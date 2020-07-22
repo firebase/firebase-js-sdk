@@ -23,16 +23,13 @@ import * as sinonChai from 'sinon-chai';
 import { OperationType } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { delay } from '../../../test/delay';
-import { authEvent, BASE_AUTH_EVENT } from '../../../test/iframe_event';
-import { testAuth, testUser } from '../../../test/mock_auth';
-import { makeMockPopupRedirectResolver } from '../../../test/mock_popup_redirect_resolver';
+import { delay } from '../../../test/helpers/delay';
+import { authEvent, BASE_AUTH_EVENT } from '../../../test/helpers/iframe_event';
+import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import { makeMockPopupRedirectResolver } from '../../../test/helpers/mock_popup_redirect_resolver';
 import { Auth } from '../../model/auth';
 import {
-  AuthEvent,
-  AuthEventType,
-  EventManager,
-  PopupRedirectResolver
+    AuthEvent, AuthEventType, EventManager, PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { AuthEventManager } from '../auth/auth_event_manager';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';

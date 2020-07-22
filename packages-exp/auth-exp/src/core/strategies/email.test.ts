@@ -20,21 +20,19 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { restore, SinonStub, stub } from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { ProviderId, Operation } from '@firebase/auth-types-exp';
+import { Operation, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { mockEndpoint } from '../../../test/api/helper';
-import { testAuth, testUser } from '../../../test/mock_auth';
-import * as mockFetch from '../../../test/mock_fetch';
+import { mockEndpoint } from '../../../test/helpers/api/helper';
+import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import * as location from '../util/location';
 import {
-  fetchSignInMethodsForEmail,
-  sendEmailVerification,
-  verifyBeforeUpdateEmail
+    fetchSignInMethodsForEmail, sendEmailVerification, verifyBeforeUpdateEmail
 } from './email';
 
 use(chaiAsPromised);

@@ -20,17 +20,13 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import {
-  OperationType,
-  ProviderId,
-  SignInMethod
-} from '@firebase/auth-types-exp';
+import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 
-import { mockEndpoint } from '../../../test/api/helper';
-import { TEST_ID_TOKEN_RESPONSE } from '../../../test/id_token_response';
-import { testAuth, TestAuth, testUser } from '../../../test/mock_auth';
-import { MockAuthCredential } from '../../../test/mock_auth_credential';
-import * as mockFetch from '../../../test/mock_fetch';
+import { mockEndpoint } from '../../../test/helpers/api/helper';
+import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
+import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
+import { MockAuthCredential } from '../../../test/helpers/mock_auth_credential';
+import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';

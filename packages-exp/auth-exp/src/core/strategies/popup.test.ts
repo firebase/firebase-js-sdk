@@ -20,18 +20,14 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import {
-  OperationType,
-  PopupRedirectResolver,
-  ProviderId
-} from '@firebase/auth-types-exp';
+import { OperationType, PopupRedirectResolver, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { delay } from '../../../test/delay';
-import { BASE_AUTH_EVENT } from '../../../test/iframe_event';
-import { testAuth, testUser } from '../../../test/mock_auth';
-import { makeMockPopupRedirectResolver } from '../../../test/mock_popup_redirect_resolver';
-import { stubTimeouts, TimerMap } from '../../../test/timeout_stub';
+import { delay } from '../../../test/helpers/delay';
+import { BASE_AUTH_EVENT } from '../../../test/helpers/iframe_event';
+import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import { makeMockPopupRedirectResolver } from '../../../test/helpers/mock_popup_redirect_resolver';
+import { stubTimeouts, TimerMap } from '../../../test/helpers/timeout_stub';
 import { Auth } from '../../model/auth';
 import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
 import { User } from '../../model/user';
@@ -43,11 +39,8 @@ import * as eid from '../util/event_id';
 import { AuthPopup } from '../util/popup';
 import * as idpTasks from './idp';
 import {
-  _AUTH_EVENT_TIMEOUT,
-  _POLL_WINDOW_CLOSE_TIMEOUT,
-  linkWithPopup,
-  reauthenticateWithPopup,
-  signInWithPopup
+    _AUTH_EVENT_TIMEOUT, _POLL_WINDOW_CLOSE_TIMEOUT, linkWithPopup, reauthenticateWithPopup,
+    signInWithPopup
 } from './popup';
 
 use(sinonChai);

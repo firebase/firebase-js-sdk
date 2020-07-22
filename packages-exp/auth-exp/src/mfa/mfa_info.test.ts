@@ -15,14 +15,16 @@
  * limitations under the License.
  */
 
-import { ProviderId } from '@firebase/auth-types-exp';
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { testAuth } from '../../test/mock_auth';
+
+import { ProviderId } from '@firebase/auth-types-exp';
+import { FirebaseError } from '@firebase/util';
+
+import { testAuth } from '../../test/helpers/mock_auth';
+import { PhoneMfaEnrollment } from '../api/account_management/mfa';
 import { Auth } from '../model/auth';
 import { MultiFactorInfo } from './mfa_info';
-import { PhoneMfaEnrollment } from '../api/account_management/mfa';
 
 use(chaiAsPromised);
 

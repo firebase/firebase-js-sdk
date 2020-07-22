@@ -15,31 +15,23 @@
  * limitations under the License.
  */
 
-import {
-  Operation,
-  OperationType,
-  ProviderId,
-  SignInMethod
-} from '@firebase/auth-types-exp';
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
-import { mockEndpoint } from '../../../test/api/helper';
-import { testAuth } from '../../../test/mock_auth';
-import * as mockFetch from '../../../test/mock_fetch';
+
+import { Operation, OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import { FirebaseError } from '@firebase/util';
+
+import { mockEndpoint } from '../../../test/helpers/api/helper';
+import { testAuth } from '../../../test/helpers/mock_auth';
+import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { Auth } from '../../model/auth';
 import {
-  checkActionCode,
-  confirmPasswordReset,
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  verifyPasswordResetCode,
-  applyActionCode
+    applyActionCode, checkActionCode, confirmPasswordReset, createUserWithEmailAndPassword,
+    sendPasswordResetEmail, signInWithEmailAndPassword, verifyPasswordResetCode
 } from './email_and_password';
 
 use(chaiAsPromised);

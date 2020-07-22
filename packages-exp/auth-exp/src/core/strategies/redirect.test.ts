@@ -22,20 +22,13 @@ import * as sinonChai from 'sinon-chai';
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { delay } from '../../../test/delay';
-import { BASE_AUTH_EVENT } from '../../../test/iframe_event';
+import { delay } from '../../../test/helpers/delay';
+import { BASE_AUTH_EVENT } from '../../../test/helpers/iframe_event';
 import {
-  MockPersistenceLayer,
-  testAuth,
-  TestAuth,
-  testUser
-} from '../../../test/mock_auth';
-import { makeMockPopupRedirectResolver } from '../../../test/mock_popup_redirect_resolver';
-import {
-  AuthEvent,
-  AuthEventType,
-  PopupRedirectResolver
-} from '../../model/popup_redirect';
+    MockPersistenceLayer, testAuth, TestAuth, testUser
+} from '../../../test/helpers/mock_auth';
+import { makeMockPopupRedirectResolver } from '../../../test/helpers/mock_popup_redirect_resolver';
+import { AuthEvent, AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { AuthEventManager } from '../auth/auth_event_manager';
 import { AuthErrorCode } from '../errors';
@@ -47,11 +40,8 @@ import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _getInstance } from '../util/instantiator';
 import * as idpTasks from './idp';
 import {
-  _clearOutcomes,
-  getRedirectResult,
-  linkWithRedirect,
-  reauthenticateWithRedirect,
-  signInWithRedirect
+    _clearOutcomes, getRedirectResult, linkWithRedirect, reauthenticateWithRedirect,
+    signInWithRedirect
 } from './redirect';
 
 use(sinonChai);

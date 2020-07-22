@@ -22,10 +22,10 @@ import * as sinonChai from 'sinon-chai';
 
 import { FirebaseError } from '@firebase/util';
 
-import { mockEndpoint } from '../../../test/api/helper';
-import { makeJWT } from '../../../test/jwt';
-import { testAuth } from '../../../test/mock_auth';
-import * as fetch from '../../../test/mock_fetch';
+import { mockEndpoint } from '../../../test/helpers/api/helper';
+import { makeJWT } from '../../../test/helpers/jwt';
+import { testAuth } from '../../../test/helpers/mock_auth';
+import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { Auth } from '../../model/auth';

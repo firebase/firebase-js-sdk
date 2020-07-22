@@ -22,9 +22,9 @@ import * as sinonChai from 'sinon-chai';
 
 import { ProviderId, UserInfo } from '@firebase/auth-types-exp';
 
-import { mockEndpoint } from '../../../test/api/helper';
-import { TestAuth, testAuth, testUser } from '../../../test/mock_auth';
-import * as fetch from '../../../test/mock_fetch';
+import { mockEndpoint } from '../../../test/helpers/api/helper';
+import { TestAuth, testAuth, testUser } from '../../../test/helpers/mock_auth';
+import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { User } from '../../model/user';
 import { updateEmail, updatePassword, updateProfile } from './account_info';

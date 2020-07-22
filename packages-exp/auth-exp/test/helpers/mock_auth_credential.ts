@@ -17,10 +17,10 @@
 
 import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 
-import { PhoneOrOauthTokenResponse } from '../src/api/authentication/mfa';
-import { AuthCredential } from '../src/core/credentials';
-import { Auth } from '../src/model/auth';
-import { IdTokenResponse } from '../src/model/id_token';
+import { PhoneOrOauthTokenResponse } from '../../src/api/authentication/mfa';
+import { AuthCredential } from '../../src/core/credentials';
+import { Auth } from '../../src/model/auth';
+import { IdTokenResponse } from '../../src/model/id_token';
 
 export class MockAuthCredential implements AuthCredential {
   constructor(
