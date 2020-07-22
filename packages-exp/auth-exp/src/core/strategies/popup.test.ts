@@ -27,11 +27,11 @@ import {
 } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { delay } from '../../../test/delay';
-import { BASE_AUTH_EVENT } from '../../../test/iframe_event';
-import { testAuth, testUser } from '../../../test/mock_auth';
-import { makeMockPopupRedirectResolver } from '../../../test/mock_popup_redirect_resolver';
-import { stubTimeouts, TimerMap } from '../../../test/timeout_stub';
+import { delay } from '../../../test/helpers/delay';
+import { BASE_AUTH_EVENT } from '../../../test/helpers/iframe_event';
+import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import { makeMockPopupRedirectResolver } from '../../../test/helpers/mock_popup_redirect_resolver';
+import { stubTimeouts, TimerMap } from '../../../test/helpers/timeout_stub';
 import { Auth } from '../../model/auth';
 import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
 import { User } from '../../model/user';

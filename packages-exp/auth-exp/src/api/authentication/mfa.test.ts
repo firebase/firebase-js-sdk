@@ -21,9 +21,9 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { FirebaseError } from '@firebase/util';
 
 import { Endpoint, HttpHeader } from '../';
-import { mockEndpoint } from '../../../test/api/helper';
-import { testAuth } from '../../../test/mock_auth';
-import * as mockFetch from '../../../test/mock_fetch';
+import { mockEndpoint } from '../../../test/helpers/api/helper';
+import { testAuth } from '../../../test/helpers/mock_auth';
+import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { finalizeSignInPhoneMfa, startSignInPhoneMfa } from './mfa';
