@@ -17,21 +17,23 @@
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { testAuth, testUser } from '../../test/mock_auth';
-import * as mockFetch from '../../test/mock_fetch';
-import { Auth } from '../model/auth';
-import { MultiFactorSessionType, MultiFactorSession } from './mfa_session';
-import { MultiFactorUser, multiFactor } from './mfa_user';
-import { PhoneAuthProvider } from '../core/providers/phone';
-import { PhoneMultiFactorAssertion } from './assertions/phone';
-import { mockEndpoint } from '../../test/api/helper';
+
+import { ProviderId } from '@firebase/auth-types-exp';
+
+import { mockEndpoint } from '../../test/helpers/api/helper';
+import { testAuth, testUser } from '../../test/helpers/mock_auth';
+import * as mockFetch from '../../test/helpers/mock_fetch';
 import { Endpoint } from '../api';
 import { APIUserInfo } from '../api/account_management/account';
-import { MultiFactorInfo } from './mfa_info';
-import { ServerError } from '../api/errors';
-import { User } from '../model/user';
 import { FinalizeMfaResponse } from '../api/authentication/mfa';
-import { ProviderId } from '@firebase/auth-types-exp';
+import { ServerError } from '../api/errors';
+import { PhoneAuthProvider } from '../core/providers/phone';
+import { Auth } from '../model/auth';
+import { User } from '../model/user';
+import { PhoneMultiFactorAssertion } from './assertions/phone';
+import { MultiFactorInfo } from './mfa_info';
+import { MultiFactorSession, MultiFactorSessionType } from './mfa_session';
+import { multiFactor, MultiFactorUser } from './mfa_user';
 
 use(chaiAsPromised);
 

@@ -17,6 +17,7 @@
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import { stub } from 'sinon';
 
 import {
   OperationType,
@@ -25,26 +26,25 @@ import {
 } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { mockEndpoint } from '../../../test/api/helper';
-import { makeJWT } from '../../../test/jwt';
-import { testAuth, testUser } from '../../../test/mock_auth';
-import { MockAuthCredential } from '../../../test/mock_auth_credential';
-import * as mockFetch from '../../../test/mock_fetch';
+import { mockEndpoint } from '../../../test/helpers/api/helper';
+import { makeJWT } from '../../../test/helpers/jwt';
+import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import { MockAuthCredential } from '../../../test/helpers/mock_auth_credential';
+import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { IdTokenMfaResponse } from '../../api/authentication/mfa';
+import { MultiFactorError } from '../../mfa/mfa_error';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { User } from '../../model/user';
+import { AuthCredential } from '../credentials';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import {
   linkWithCredential,
   reauthenticateWithCredential,
   signInWithCredential
 } from './credential';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
-import { stub } from 'sinon';
-import { MultiFactorError } from '../../mfa/mfa_error';
-import { AuthCredential } from '../credentials';
 
 use(chaiAsPromised);
 

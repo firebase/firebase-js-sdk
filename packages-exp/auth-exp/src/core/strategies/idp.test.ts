@@ -20,11 +20,11 @@ import * as chaiAsPromised from 'chai-as-promised';
 
 import { OperationType } from '@firebase/auth-types-exp';
 
-import { mockEndpoint } from '../../../test/api/helper';
-import { TEST_ID_TOKEN_RESPONSE } from '../../../test/id_token_response';
-import { makeJWT } from '../../../test/jwt';
-import { testAuth, testUser } from '../../../test/mock_auth';
-import * as fetch from '../../../test/mock_fetch';
+import { mockEndpoint } from '../../../test/helpers/api/helper';
+import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
+import { makeJWT } from '../../../test/helpers/jwt';
+import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';

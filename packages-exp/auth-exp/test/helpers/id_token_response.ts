@@ -15,18 +15,13 @@
  * limitations under the License.
  */
 
-import { Endpoint } from '../../src/api';
-import { TEST_HOST, TEST_KEY, TEST_SCHEME } from '../mock_auth';
-import { mock, Route } from '../mock_fetch';
+import { IdTokenResponse, IdTokenResponseKind } from '../../src/model/id_token';
+import { makeJWT } from './jwt';
 
-export function mockEndpoint(
-  endpoint: Endpoint,
-  response: object,
-  status = 200
-): Route {
-  return mock(
-    `${TEST_SCHEME}://${TEST_HOST}${endpoint}?key=${TEST_KEY}`,
-    response,
-    status
-  );
-}
+export const TEST_ID_TOKEN_RESPONSE: IdTokenResponse = {
+  idToken: makeJWT({}),
+  refreshToken: 'refresh-token',
+  expiresIn: '1000',
+  localId: 'uid',
+  kind: IdTokenResponseKind.CreateAuthUri
+};
