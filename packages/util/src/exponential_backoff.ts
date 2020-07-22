@@ -18,13 +18,13 @@
 /**
  * The amount of milliseconds to exponentially increase.
  */
-const INTERVAL_MILLIS = 1000;
+const DEFAULT_INTERVAL_MILLIS = 1000;
 
 /**
  * The factor to backoff by.
  * Should be a number greater than 1.
  */
-const BACKOFF_FACTOR = 2;
+const DEFAULT_BACKOFF_FACTOR = 2;
 
 /**
  * The maximum milliseconds to increase to.
@@ -48,12 +48,15 @@ export const RANDOM_FACTOR = 0.5;
  * https://github.com/google/closure-library/blob/master/closure/goog/math/exponentialbackoff.js.
  * Extracted here so we don't need to pass metadata and a stateful ExponentialBackoff object around.
  */
-export function calculateBackoffMillis(backoffCount: number): number {
+export function calculateBackoffMillis(
+  backoffCount: number,
+  intervalMillis: number = DEFAULT_INTERVAL_MILLIS,
+  backoffFactor: number = DEFAULT_BACKOFF_FACTOR
+): number {
   // Calculates an exponentially increasing value.
   // Deviation: calculates value from count and a constant interval, so we only need to save value
   // and count to restore state.
-  const currBaseValue =
-    INTERVAL_MILLIS * Math.pow(BACKOFF_FACTOR, backoffCount);
+  const currBaseValue = intervalMillis * Math.pow(backoffFactor, backoffCount);
 
   // A random "fuzz" to avoid waves of retries.
   // Deviation: randomFactor is required.

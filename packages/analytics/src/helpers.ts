@@ -21,7 +21,8 @@ import {
   Gtag,
   CustomParams,
   ControlParams,
-  EventParams
+  EventParams,
+  MinimalDynamicConfig
 } from '@firebase/analytics-types';
 import { GtagCommand, GTAG_URL } from './constants';
 import { logger } from './logger';
@@ -57,7 +58,9 @@ export function getOrCreateDataLayer(dataLayerName: string): DataLayer {
 async function gtagOnConfig(
   gtagCore: Gtag,
   initializationPromisesMap: { [appId: string]: Promise<string> },
-  dynamicConfigPromisesList: Array<Promise<DynamicConfig>>,
+  dynamicConfigPromisesList: Array<
+    Promise<DynamicConfig | MinimalDynamicConfig>
+  >,
   measurementIdToAppId: { [measurementId: string]: string },
   measurementId: string,
   gtagParams?: ControlParams & EventParams & CustomParams
@@ -95,7 +98,9 @@ async function gtagOnConfig(
 async function gtagOnEvent(
   gtagCore: Gtag,
   initializationPromisesMap: { [appId: string]: Promise<string> },
-  dynamicConfigPromisesList: Array<Promise<DynamicConfig>>,
+  dynamicConfigPromisesList: Array<
+    Promise<DynamicConfig | MinimalDynamicConfig>
+  >,
   measurementId: string,
   gtagParams?: ControlParams & EventParams & CustomParams
 ): Promise<void> {
@@ -161,7 +166,9 @@ async function gtagOnEvent(
 function wrapGtag(
   gtagCore: Gtag,
   initializationPromisesMap: { [appId: string]: Promise<string> },
-  dynamicConfigPromisesList: Array<Promise<DynamicConfig>>,
+  dynamicConfigPromisesList: Array<
+    Promise<DynamicConfig | MinimalDynamicConfig>
+  >,
   measurementIdToAppId: { [measurementId: string]: string }
 ): Gtag {
   /**
@@ -218,7 +225,9 @@ function wrapGtag(
  */
 export function wrapOrCreateGtag(
   initializationPromisesMap: { [appId: string]: Promise<string> },
-  dynamicConfigPromisesList: Array<Promise<DynamicConfig>>,
+  dynamicConfigPromisesList: Array<
+    Promise<DynamicConfig | MinimalDynamicConfig>
+  >,
   measurementIdToAppId: { [measurementId: string]: string },
   dataLayerName: string,
   gtagFunctionName: string

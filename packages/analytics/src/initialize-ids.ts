@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { DynamicConfig, Gtag } from '@firebase/analytics-types';
+import {
+  DynamicConfig,
+  Gtag,
+  MinimalDynamicConfig
+} from '@firebase/analytics-types';
 import { GtagCommand, GA_FID_KEY, ORIGIN_KEY } from './constants';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { fetchDynamicConfigWithRetry } from './get-config';
@@ -37,7 +41,9 @@ import { FirebaseApp } from '@firebase/app-types';
  */
 export async function initializeIds(
   app: FirebaseApp,
-  dynamicConfigPromisesList: Array<Promise<DynamicConfig>>,
+  dynamicConfigPromisesList: Array<
+    Promise<DynamicConfig | MinimalDynamicConfig>
+  >,
   measurementIdToAppId: { [key: string]: string },
   installations: FirebaseInstallations,
   gtagCore: Gtag

@@ -20,18 +20,41 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { DynamicConfig, ThrottleMetadata } from '@firebase/analytics-types';
+import {
+  DynamicConfig,
+  ThrottleMetadata,
+  MinimalDynamicConfig
+} from '@firebase/analytics-types';
 import { FirebaseError, calculateBackoffMillis } from '@firebase/util';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { DYNAMIC_CONFIG_URL, FETCH_TIMEOUT_MILLIS } from './constants';
 import { logger } from './logger';
+
+// App config fields needed by analytics.
+export interface AppFields {
+  appId: string;
+  apiKey: string;
+  measurementId?: string;
+}
+
+/**
+ * Initial retry interval in seconds for 503 errors, which we want to be conservative about
+ * to avoid overloading servers.
+ */
+export const LONG_RETRY_FACTOR = 30;
+
+/**
+ * Base wait interval to multiplied by backoffFactor^backoffCount.
+ */
+const BASE_INTERVAL_MILLIS = 1000;
 
 /**
  * Stubbable retry data storage class.
  */
 class RetryData {
   constructor(
-    public throttleMetadata: { [appId: string]: ThrottleMetadata } = {}
+    public throttleMetadata: { [appId: string]: ThrottleMetadata } = {},
+    public intervalMillis: number = BASE_INTERVAL_MILLIS
   ) {}
 
   getThrottleMetadata(appId: string): ThrottleMetadata {
@@ -61,31 +84,13 @@ function getHeaders(apiKey: string): Headers {
 }
 
 /**
- * Validate needed fields in app.options and return them.
- *
- * @param app
- */
-function getAppFields(app: FirebaseApp): { appId: string; apiKey: string } {
-  if (!app.options.apiKey) {
-    throw ERROR_FACTORY.create(AnalyticsError.NO_API_KEY);
-  }
-  if (!app.options.appId) {
-    throw ERROR_FACTORY.create(AnalyticsError.NO_APP_ID);
-  }
-  return {
-    appId: app.options.appId,
-    apiKey: app.options.apiKey
-  };
-}
-
-/**
  * Fetches dynamic config from backend.
  * @param app Firebase app to fetch config for.
  */
 export async function fetchDynamicConfig(
-  app: FirebaseApp
+  appFields: AppFields
 ): Promise<DynamicConfig> {
-  const { appId, apiKey } = getAppFields(app);
+  const { appId, apiKey } = appFields;
   const request: RequestInit = {
     method: 'GET',
     headers: getHeaders(apiKey)
@@ -119,8 +124,22 @@ export async function fetchDynamicConfigWithRetry(
   app: FirebaseApp,
   retryData: RetryData = defaultRetryData, // for testing
   timeoutMillis?: number // for testing
-): Promise<DynamicConfig> {
-  const { appId } = getAppFields(app);
+): Promise<DynamicConfig | MinimalDynamicConfig> {
+  const { appId, apiKey, measurementId } = app.options;
+
+  if (!appId) {
+    throw ERROR_FACTORY.create(AnalyticsError.NO_APP_ID);
+  }
+
+  if (!apiKey) {
+    if (measurementId) {
+      return {
+        measurementId,
+        appId
+      };
+    }
+    throw ERROR_FACTORY.create(AnalyticsError.NO_API_KEY);
+  }
 
   const throttleMetadata: ThrottleMetadata = retryData.getThrottleMetadata(
     appId
@@ -140,7 +159,7 @@ export async function fetchDynamicConfigWithRetry(
   );
 
   return attemptFetchDynamicConfigWithRetry(
-    app,
+    { appId, apiKey, measurementId },
     throttleMetadata,
     signal,
     retryData
@@ -149,24 +168,36 @@ export async function fetchDynamicConfigWithRetry(
 
 /**
  * Runs one retry attempt.
- * @param app Firebase app to fetch config for.
+ * @param appFields Necessary app config fields.
  * @param throttleMetadata Ongoing metadata to determine throttling times.
  * @param signal Abort signal.
  */
 async function attemptFetchDynamicConfigWithRetry(
-  app: FirebaseApp,
+  appFields: AppFields,
   { throttleEndTimeMillis, backoffCount }: ThrottleMetadata,
   signal: AnalyticsAbortSignal,
   retryData: RetryData = defaultRetryData // for testing
-): Promise<DynamicConfig> {
-  const { appId } = getAppFields(app);
+): Promise<DynamicConfig | MinimalDynamicConfig> {
+  const { appId, measurementId } = appFields;
   // Starts with a (potentially zero) timeout to support resumption from stored state.
   // Ensures the throttle end time is honored if the last attempt timed out.
   // Note the SDK will never make a request if the fetch timeout expires at this point.
-  await setAbortableTimeout(signal, throttleEndTimeMillis);
+  try {
+    await setAbortableTimeout(signal, throttleEndTimeMillis);
+  } catch (e) {
+    if (measurementId) {
+      logger.warn(
+        `Timed out fetching this Firebase project's measurement id from the server.` +
+          ` Falling back to measurement id ${measurementId}` +
+          ` provided in "measurementId" field. [${e.message}]`
+      );
+      return { appId, measurementId };
+    }
+    throw e;
+  }
 
   try {
-    const response = await fetchDynamicConfig(app);
+    const response = await fetchDynamicConfig(appFields);
 
     // Note the SDK only clears throttle state if response is success or non-retriable.
     retryData.deleteThrottleMetadata(appId);
@@ -175,10 +206,26 @@ async function attemptFetchDynamicConfigWithRetry(
   } catch (e) {
     if (!isRetriableError(e)) {
       retryData.deleteThrottleMetadata(appId);
-      throw e;
+      if (measurementId) {
+        logger.warn(
+          `Failed to fetch this Firebase project's measurement id from the server.` +
+            ` Falling back to measurement id ${measurementId}` +
+            ` provided in "measurementId" field. [${e.message}]`
+        );
+        return { appId, measurementId };
+      } else {
+        throw e;
+      }
     }
 
-    const backoffMillis = calculateBackoffMillis(backoffCount);
+    const backoffMillis =
+      Number(e.httpStatus) === 503
+        ? calculateBackoffMillis(
+            backoffCount,
+            retryData.intervalMillis,
+            LONG_RETRY_FACTOR
+          )
+        : calculateBackoffMillis(backoffCount, retryData.intervalMillis);
 
     // Increments backoff state.
     const throttleMetadata = {
@@ -191,7 +238,7 @@ async function attemptFetchDynamicConfigWithRetry(
     logger.debug(`Calling attemptFetch again in ${backoffMillis} millis`);
 
     return attemptFetchDynamicConfigWithRetry(
-      app,
+      appFields,
       throttleMetadata,
       signal,
       retryData
