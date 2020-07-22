@@ -24,7 +24,7 @@ const pkgJson = require('./package.json');
 const files = [
   ...pkgJson.components.map(component => {
     const componentName = component.replace('/', '-');
-    `firebase-${componentName}.js`;
+    return `firebase-${componentName}.js`;
   })
 ];
 
