@@ -121,7 +121,8 @@ async function buildPackages() {
       '--scope',
       '@firebase/logger',
       '--scope',
-      '@firebase/webchannel-wrapper'
+      '@firebase/webchannel-wrapper',
+      'build'
     ],
     {
       cwd: projectRoot,
