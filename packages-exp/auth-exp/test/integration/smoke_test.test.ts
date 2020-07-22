@@ -24,7 +24,7 @@ import { initIntegrationTestContext } from '../helpers/integration/helpers';
 
 describe('smoke test', () => {
   const auth = initIntegrationTestContext();
-  
+
   it('signs in anonymously', async () => {
     const userCred = await signInAnonymously(auth);
     expect(auth.currentUser).to.eq(userCred.user);
