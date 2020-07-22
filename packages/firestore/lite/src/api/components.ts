@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  Datastore,
-  newDatastore,
-  terminateDatastore
-} from '../../../src/remote/datastore';
+import { Datastore, newDatastore } from '../../../src/remote/datastore';
 import { newConnection } from '../../../src/platform/connection';
 import { newSerializer } from '../../../src/platform/serializer';
 import { Firestore } from './database';
@@ -66,13 +62,13 @@ export function getDatastore(firestore: Firestore): Promise<Datastore> {
 }
 
 /**
- * Removes and terminates the Datastore for the given instance if it has
- * been started.
+ * Removes all components associated with the provided instance. Must be called
+ * when the Firestore instance is terminated.
  */
-export async function removeDatastore(firestore: Firestore): Promise<void> {
-  const datastore = await datastoreInstances.get(firestore);
-  if (datastore) {
+export async function removeComponents(firestore: Firestore): Promise<void> {
+  const datastorePromise = await datastoreInstances.get(firestore);
+  if (datastorePromise) {
     datastoreInstances.delete(firestore);
-    return terminateDatastore(datastore);
+    return (await datastorePromise).termiate();
   }
 }

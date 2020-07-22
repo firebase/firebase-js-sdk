@@ -41,7 +41,7 @@ import {
 import {
   getFirestoreClient,
   initializeFirestoreClient,
-  removeFirestoreClient
+  removeComponents
 } from './components';
 
 /**
@@ -71,7 +71,7 @@ export class Firestore extends LiteFirestore
 
   async _terminate(): Promise<void> {
     await super._terminate();
-    await removeFirestoreClient(this);
+    await removeComponents(this);
   }
 }
 

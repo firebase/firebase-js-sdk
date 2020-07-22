@@ -124,3 +124,15 @@ export async function removeFirestoreClient(
     );
   }
 }
+
+/**
+ * Removes all components associated with the provided instance. Must be called
+ * when the Firestore instance is terminated.
+ */
+export async function removeComponents(firestore: Firestore): Promise<void> {
+  const firestoreClientPromise = firestoreClientInstances.get(firestore);
+  if (firestoreClientPromise) {
+    firestoreClientInstances.delete(firestore);
+    return (await firestoreClientPromise).terminate();
+  }
+}
