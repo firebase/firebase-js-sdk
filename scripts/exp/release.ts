@@ -116,6 +116,10 @@ async function buildPackages() {
       'lerna',
       'run',
       '--scope',
+      // We replace `@firebase/app-exp` with `@firebase/app` during compilation, so we need to
+      // compile @firebase/app to make rollup happy though it's not an actual dependency.
+      '@firebase/app',
+      '--scope',
       '@firebase/util',
       '--scope',
       '@firebase/component',
