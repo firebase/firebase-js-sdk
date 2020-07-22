@@ -28,9 +28,15 @@ import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import {
-    EmailSignInRequest, PasswordResetRequest, sendEmailVerification, sendPasswordResetEmail,
-    sendSignInLinkToEmail, signInWithPassword, verifyAndChangeEmail, VerifyAndChangeEmailRequest,
-    VerifyEmailRequest
+  EmailSignInRequest,
+  PasswordResetRequest,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  sendSignInLinkToEmail,
+  signInWithPassword,
+  verifyAndChangeEmail,
+  VerifyAndChangeEmailRequest,
+  VerifyEmailRequest
 } from './email_and_password';
 
 use(chaiAsPromised);

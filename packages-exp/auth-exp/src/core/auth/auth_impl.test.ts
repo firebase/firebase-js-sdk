@@ -30,7 +30,10 @@ import { User } from '../../model/user';
 import { browserPopupRedirectResolver } from '../../platform_browser/popup_redirect';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
-import { browserLocalPersistence, browserSessionPersistence } from '../persistence/browser';
+import {
+  browserLocalPersistence,
+  browserSessionPersistence
+} from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { PersistenceUserManager } from '../persistence/persistence_user_manager';
 import * as reload from '../user/reload';
@@ -38,7 +41,10 @@ import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import {
-    DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST, initializeAuth
+  DEFAULT_API_HOST,
+  DEFAULT_API_SCHEME,
+  DEFAULT_TOKEN_API_HOST,
+  initializeAuth
 } from './auth_impl';
 
 use(sinonChai);

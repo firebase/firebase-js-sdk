@@ -26,7 +26,10 @@ import { testAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
-import { signInWithEmailLink, signInWithEmailLinkForLinking } from './email_link';
+import {
+  signInWithEmailLink,
+  signInWithEmailLinkForLinking
+} from './email_link';
 
 use(chaiAsPromised);
 

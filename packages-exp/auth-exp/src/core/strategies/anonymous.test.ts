@@ -17,7 +17,11 @@
 
 import { expect } from 'chai';
 
-import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';

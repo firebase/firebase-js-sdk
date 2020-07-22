@@ -20,7 +20,11 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { OperationType, PopupRedirectResolver, ProviderId } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  PopupRedirectResolver,
+  ProviderId
+} from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { delay } from '../../../test/helpers/delay';
@@ -39,8 +43,11 @@ import * as eid from '../util/event_id';
 import { AuthPopup } from '../util/popup';
 import * as idpTasks from './idp';
 import {
-    _AUTH_EVENT_TIMEOUT, _POLL_WINDOW_CLOSE_TIMEOUT, linkWithPopup, reauthenticateWithPopup,
-    signInWithPopup
+  _AUTH_EVENT_TIMEOUT,
+  _POLL_WINDOW_CLOSE_TIMEOUT,
+  linkWithPopup,
+  reauthenticateWithPopup,
+  signInWithPopup
 } from './popup';
 
 use(sinonChai);

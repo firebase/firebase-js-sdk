@@ -26,7 +26,12 @@ import { testAuth } from '../../../test/helpers/mock_auth';
 import { stubTimeouts, TimerMap } from '../../../test/helpers/timeout_stub';
 import { Auth } from '../../model/auth';
 import {
-    _EXPIRATION_TIME_MS, _SOLVE_TIME_MS, _WIDGET_ID_START, MockReCaptcha, MockWidget, Widget
+  _EXPIRATION_TIME_MS,
+  _SOLVE_TIME_MS,
+  _WIDGET_ID_START,
+  MockReCaptcha,
+  MockWidget,
+  Widget
 } from './recaptcha_mock';
 
 use(sinonChai);

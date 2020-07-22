@@ -28,8 +28,10 @@ import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import {
-    linkWithPhoneNumber, sendPhoneVerificationCode, signInWithPhoneNumber,
-    verifyPhoneNumberForExisting
+  linkWithPhoneNumber,
+  sendPhoneVerificationCode,
+  signInWithPhoneNumber,
+  verifyPhoneNumberForExisting
 } from './sms';
 
 use(chaiAsPromised);

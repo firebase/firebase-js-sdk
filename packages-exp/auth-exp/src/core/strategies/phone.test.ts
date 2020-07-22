@@ -38,8 +38,11 @@ import { User } from '../../model/user';
 import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_verifier';
 import { PhoneAuthCredential } from '../credentials/phone';
 import {
-    _verifyPhoneNumber, linkWithPhoneNumber, reauthenticateWithPhoneNumber, signInWithPhoneNumber,
-    updatePhoneNumber
+  _verifyPhoneNumber,
+  linkWithPhoneNumber,
+  reauthenticateWithPhoneNumber,
+  signInWithPhoneNumber,
+  updatePhoneNumber
 } from './phone';
 
 use(chaiAsPromised);

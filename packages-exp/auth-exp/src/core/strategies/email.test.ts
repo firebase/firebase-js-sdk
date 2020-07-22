@@ -32,7 +32,9 @@ import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import * as location from '../util/location';
 import {
-    fetchSignInMethodsForEmail, sendEmailVerification, verifyBeforeUpdateEmail
+  fetchSignInMethodsForEmail,
+  sendEmailVerification,
+  verifyBeforeUpdateEmail
 } from './email';
 
 use(chaiAsPromised);

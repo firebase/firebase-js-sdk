@@ -26,7 +26,11 @@ import { testAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
-import { finalizeEnrollPhoneMfa, startEnrollPhoneMfa, withdrawMfa } from './mfa';
+import {
+  finalizeEnrollPhoneMfa,
+  startEnrollPhoneMfa,
+  withdrawMfa
+} from './mfa';
 
 use(chaiAsPromised);
 

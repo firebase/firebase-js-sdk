@@ -23,7 +23,11 @@ import * as sinonChai from 'sinon-chai';
 import { SDK_VERSION } from '@firebase/app-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { TEST_AUTH_DOMAIN, TEST_KEY, testAuth } from '../../../test/helpers/mock_auth';
+import {
+  TEST_AUTH_DOMAIN,
+  TEST_KEY,
+  testAuth
+} from '../../../test/helpers/mock_auth';
 import { stubSingleTimeout } from '../../../test/helpers/timeout_stub';
 import { Auth } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';

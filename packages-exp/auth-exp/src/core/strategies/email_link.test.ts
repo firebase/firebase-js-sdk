@@ -20,7 +20,11 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
 
 import * as externs from '@firebase/auth-types-exp';
-import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -30,7 +34,11 @@ import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { Auth } from '../../model/auth';
-import { isSignInWithEmailLink, sendSignInLinkToEmail, signInWithEmailLink } from './email_link';
+import {
+  isSignInWithEmailLink,
+  sendSignInLinkToEmail,
+  signInWithEmailLink
+} from './email_link';
 
 use(chaiAsPromised);
 use(sinonChai);
