@@ -230,15 +230,17 @@ export class GrpcConnection implements Connection {
     });
 
     grpcStream.on('error', (grpcError: ServiceError) => {
-      logWarn(
-        LOG_TAG,
-        'GRPC stream error. Code:',
-        grpcError.code,
-        'Message:',
-        grpcError.message
-      );
-      const code = mapCodeFromRpcCode(grpcError.code);
-      close(new FirestoreError(code, grpcError.message));
+      if (!closed) {
+        logWarn(
+          LOG_TAG,
+          'GRPC stream error. Code:',
+          grpcError.code,
+          'Message:',
+          grpcError.message
+        );
+        const code = mapCodeFromRpcCode(grpcError.code);
+        close(new FirestoreError(code, grpcError.message));
+      }
     });
 
     logDebug(LOG_TAG, 'Opening GRPC stream');
