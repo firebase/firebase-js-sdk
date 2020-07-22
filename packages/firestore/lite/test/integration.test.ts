@@ -22,12 +22,6 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import {
-  Firestore,
-  getFirestore,
-  initializeFirestore,
-  terminate
-} from '../src/api/database';
-import {
   Post,
   postConverter,
   postConverterMerge,
@@ -39,6 +33,10 @@ import {
   withTestDocAndInitialData
 } from './helpers';
 import {
+  FirebaseFirestore,
+  getFirestore,
+  initializeFirestore,
+  terminate,
   parent,
   collection,
   CollectionReference,
@@ -89,7 +87,7 @@ describe('Firestore', () => {
       'test-app-initializeFirestore'
     );
     const fs1 = initializeFirestore(app, { host: 'localhost', ssl: false });
-    expect(fs1).to.be.an.instanceOf(Firestore);
+    expect(fs1).to.be.an.instanceOf(FirebaseFirestore);
   });
 
   it('returns same instance', () => {
