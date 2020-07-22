@@ -19,13 +19,21 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import {
-    createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential, signInAnonymously,
-    signInWithEmailAndPassword, updateEmail, updatePassword
+  createUserWithEmailAndPassword,
+  EmailAuthProvider,
+  linkWithCredential,
+  signInAnonymously,
+  signInWithEmailAndPassword,
+  updateEmail,
+  updatePassword
 } from '@firebase/auth-exp/index.browser';
 import { OperationType } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { initIntegrationTestContext, randomEmail } from '../../helpers/integration/helpers';
+import {
+  initIntegrationTestContext,
+  randomEmail
+} from '../../helpers/integration/helpers';
 
 use(chaiAsPromised);
 
@@ -83,10 +91,12 @@ describe('Integration test: anonymous auth', () => {
 
       await auth.signOut();
 
-      const {user: emailPassUser} = await signInWithEmailAndPassword(auth, email, 'password');
-      expect(
-        emailPassUser.uid
-      ).to.eq(anonUser.uid);
+      const { user: emailPassUser } = await signInWithEmailAndPassword(
+        auth,
+        email,
+        'password'
+      );
+      expect(emailPassUser.uid).to.eq(anonUser.uid);
     });
 
     it('account can be linked using email and password', async () => {
@@ -95,10 +105,12 @@ describe('Integration test: anonymous auth', () => {
       await linkWithCredential(anonUser, cred);
       await auth.signOut();
 
-      const {user: emailPassUser} = await signInWithEmailAndPassword(auth, email, 'password');
-      expect(
-        emailPassUser.uid
-      ).to.eq(anonUser.uid);
+      const { user: emailPassUser } = await signInWithEmailAndPassword(
+        auth,
+        email,
+        'password'
+      );
+      expect(emailPassUser.uid).to.eq(anonUser.uid);
     });
 
     it('account cannot be linked with existing email/password', async () => {
