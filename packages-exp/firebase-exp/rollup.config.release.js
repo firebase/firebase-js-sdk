@@ -123,7 +123,7 @@ const componentBuilds = pkg.components
     const pkg = require(`./${component}/package.json`);
     // It is needed for handling sub modules, for example firestore/lite which should produce firebase-firestore-lite.js
     // Otherwise, we will create a directory with '/' in the name.
-    const scriptName = component.replace('/', '-');
+    const componentName = component.replace('/', '-');
     return [
       {
         input: `${component}/index.ts`,
@@ -144,7 +144,10 @@ const componentBuilds = pkg.components
       },
       {
         input: `${component}/index.ts`,
-        output: createUmdOutputConfig(`firebase-${scriptName}.js`, component),
+        output: createUmdOutputConfig(
+          `firebase-${componentName}.js`,
+          componentName
+        ),
         plugins: [...plugins, typescriptPluginUMD],
         external: ['@firebase/app']
       }
