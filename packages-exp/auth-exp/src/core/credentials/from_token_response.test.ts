@@ -19,7 +19,7 @@ import { expect } from 'chai';
 
 import { ProviderId } from '@firebase/auth-types-exp';
 
-import { TEST_ID_TOKEN_RESPONSE } from '../../../test/id_token_response';
+import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
 import { _authCredentialFromTokenResponse } from './from_token_response';
 
 describe('src/core/credentials/inferred', () => {

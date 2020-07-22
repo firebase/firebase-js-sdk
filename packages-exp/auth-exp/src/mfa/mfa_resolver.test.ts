@@ -15,25 +15,27 @@
  * limitations under the License.
  */
 
-import { OperationType, ProviderId } from '@firebase/auth-types-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { testAuth, testUser } from '../../test/mock_auth';
-import * as mockFetch from '../../test/mock_fetch';
+
+import { OperationType, ProviderId } from '@firebase/auth-types-exp';
+import { FirebaseError } from '@firebase/util';
+
+import { mockEndpoint } from '../../test/helpers/api/helper';
+import { testAuth, testUser } from '../../test/helpers/mock_auth';
+import * as mockFetch from '../../test/helpers/mock_fetch';
+import { Endpoint } from '../api';
+import { APIUserInfo } from '../api/account_management/account';
 import { AuthCredential } from '../core/credentials';
 import { PhoneAuthCredential } from '../core/credentials/phone';
-import { AuthErrorCode, AUTH_ERROR_FACTORY } from '../core/errors';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { EmailAuthProvider } from '../core/providers/email';
 import { Auth } from '../model/auth';
+import { User } from '../model/user';
 import { MultiFactorAssertion } from './assertions';
 import { PhoneMultiFactorAssertion } from './assertions/phone';
 import { MultiFactorError } from './mfa_error';
 import { getMultiFactorResolver, MultiFactorResolver } from './mfa_resolver';
-import { mockEndpoint } from '../../test/api/helper';
-import { Endpoint } from '../api';
-import { APIUserInfo } from '../api/account_management/account';
-import { FirebaseError } from '@firebase/util';
-import { User } from '../model/user';
 
 use(chaiAsPromised);
 

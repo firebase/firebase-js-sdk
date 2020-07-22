@@ -22,7 +22,7 @@ import * as sinonChai from 'sinon-chai';
 
 import { FirebaseError } from '@firebase/util';
 
-import { testAuth } from '../../../test/mock_auth';
+import { testAuth } from '../../../test/helpers/mock_auth';
 import { Auth } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';
 import * as js from '../load_js';
