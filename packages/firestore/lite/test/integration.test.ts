@@ -610,7 +610,7 @@ function genericMutationTests(
     // The Transaction tests use backoff for updates that fail with failed
     // preconditions. This leads to test timeouts.
     // eslint-disable-next-line no-restricted-properties
-    (testRunnerMayUseBackoff ? it.skip : it)('enforces that document exists', function() {
+    (testRunnerMayUseBackoff ? it.skip : it)('enforces that document exists', () => {
       return withTestDoc(async docRef => {
         await expect(updateDoc(docRef, { foo: 2, baz: 2 })).to.eventually.be
           .rejected;
