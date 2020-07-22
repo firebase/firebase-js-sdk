@@ -8,11 +8,13 @@ import {
 import { OperationType } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { describeIntegration, randomEmail } from '../../helpers/integration/with_test_instance';
+import { initIntegrationTestContext, randomEmail } from '../../helpers/integration/helpers';
 
 use(chaiAsPromised);
 
-describeIntegration('anonymous auth', auth => {
+describe('Integration test: anonymous auth', () => {
+  const auth = initIntegrationTestContext();
+  
   it('signs in anonymously', async () => {
     const userCred = await signInAnonymously(auth);
     expect(auth.currentUser).to.eq(userCred.user);
