@@ -40,14 +40,14 @@ async function publishExpPackages() {
     console.log('Welcome to the Firebase Exp Packages release CLI!');
 
     /**
-     * build packages
-     */
-    await buildPackages();
-
-    /**
      * prepare and build firestore
      */
     await prepareAndBuildFirestore();
+
+    /**
+     * build packages
+     */
+    await buildPackages();
 
     // path to exp packages
     const packagePaths = await mapWorkspaceToPackages([
