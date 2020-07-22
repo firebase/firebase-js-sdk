@@ -44,7 +44,7 @@ const nodePlugins = [
     clean: true,
     transformers: removeAssertTransformer
   }),
-  json({ preferConst: true })
+  json()
 ];
 
 const browserPlugins = [
