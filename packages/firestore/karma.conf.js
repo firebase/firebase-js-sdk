@@ -26,7 +26,7 @@ module.exports = function (config) {
     preprocessors: {
       'exp/test/**/*.ts': ['webpack', 'sourcemap'],
       'lite/test/**/*.ts': ['webpack', 'sourcemap'],
-      'test/**/*.ts': ['webpack', 'sourcemap'],
+      'test/**/*.ts': ['webpack', 'sourcemap']
     },
 
     // frameworks to use

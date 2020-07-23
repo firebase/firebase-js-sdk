@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import '../';
+import '../register';
 
 /**
  * This will include all of the test files and compile them as needed
@@ -29,7 +29,7 @@ import '../';
 const testsContext = (require as any).context(
   '../../test/integration/api',
   true,
-  /^*\.test$/
+  /^.*\.test\.ts$/
 );
 const browserTests = testsContext.keys();
 browserTests.forEach(testsContext);

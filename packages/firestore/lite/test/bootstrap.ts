@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import '../';
+import '../register';
 
 /**
  * This will include all of the test files and compile them as needed
@@ -26,6 +26,6 @@ import '../';
 
 // 'context()' definition requires additional dependency on webpack-env package.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const testsContext = (require as any).context('.', true, /^.*\.test$/);
+const testsContext = (require as any).context('.', true, /^.*\.test.*$/);
 const browserTests = testsContext.keys();
 browserTests.forEach(testsContext);
