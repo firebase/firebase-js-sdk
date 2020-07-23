@@ -27,6 +27,9 @@ import {
   MemoryComponentProvider
 } from '../../../src/core/component_provider';
 import { DEFAULT_HOST, DEFAULT_SSL } from '../../../lite/src/api/components';
+import {logDebug} from "../../../src/util/log";
+
+export const LOG_TAG = 'ComponentProvider';
 
 // The components module manages the lifetime of dependencies of the Firestore
 // client. Dependencies can be lazily constructed and only one exists per
@@ -84,7 +87,7 @@ export function initializeFirestoreClient(
         'any other methods on a Firestore object.'
     );
   }
-
+  logDebug(LOG_TAG, "Initializing FirestoreClient");
   const settings = firestore._getSettings();
   const databaseInfo = new DatabaseInfo(
     firestore._databaseId,
@@ -132,6 +135,7 @@ export async function removeFirestoreClient(
 export async function removeComponents(firestore: Firestore): Promise<void> {
   const firestoreClientPromise = firestoreClientInstances.get(firestore);
   if (firestoreClientPromise) {
+    logDebug(LOG_TAG, "Removing FirestoreClient");
     firestoreClientInstances.delete(firestore);
     return (await firestoreClientPromise).terminate();
   }
