@@ -36,8 +36,8 @@ import { resolve } from 'path';
 describe('extractDeclarations', () => {
   let testModuleDtsFile: string;
   let extractedDeclarations: MemberList;
-  before(function () {
-    this.timeout(10000); // A very long environment setup.
+  before(() => {
+    //this.timeout(10000); // A very long environment setup.
     testModuleDtsFile = retrieveTestModuleDtsFile();
     extractedDeclarations = extractDeclarations(testModuleDtsFile);
   });
@@ -48,8 +48,8 @@ describe('extractDeclarations', () => {
       'tarr1'
     ]);
   });
-  // function foo() {}
-  // export {foo as foo2 };
+  // function foo() { }
+  // export { foo as foo2 };
   it('test declare then export ', () => {
     expect(extractedDeclarations.functions).to.include.members(['foo2']);
     expect(extractedDeclarations.classes).to.include.members(['Foo1']);

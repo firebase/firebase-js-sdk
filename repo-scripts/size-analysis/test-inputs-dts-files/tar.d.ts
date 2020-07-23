@@ -14,9 +14,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { projectRoot } from '../../scripts/utils';
-
-export function retrieveTestModuleDtsFile(): string {
-  return `${projectRoot}/repo-scripts/size-analysis/test-inputs-dts-files/index.d.ts`;
-}
+export declare function tar(name: string): string;
+export declare function tar1(name: string): string;
