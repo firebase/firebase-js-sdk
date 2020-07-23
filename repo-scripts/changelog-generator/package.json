@@ -14,7 +14,8 @@
     "build": "tsc",
     "build:dev": "tsc -w",
     "test": "yarn type-check",
-    "prepare": "yarn build"
+    "prepare": "yarn build",
+    "type-check": "tsc -p . --noEmit"
   },
   "dependencies": {
     "@changesets/types": "3.1.0",

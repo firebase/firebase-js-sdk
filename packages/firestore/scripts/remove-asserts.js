@@ -1,3 +1,4 @@
+'use strict';
 /**
  * @license
  * Copyright 2020 Google LLC
@@ -14,68 +15,67 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import * as ts from 'typescript';
-
+exports.__esModule = true;
+exports.removeAsserts = void 0;
+// eslint-disable-next-line import/no-extraneous-dependencies
+var ts = require('typescript');
 // Location of file that includes the asserts
-const ASSERT_LOCATION = 'packages/firestore/src/util/assert.ts';
-
-export function removeAsserts(
-  program: ts.Program
-): ts.TransformerFactory<ts.SourceFile> {
-  const removeAsserts = new RemoveAsserts(program.getTypeChecker());
-  return (context: ts.TransformationContext) => (file: ts.SourceFile) => {
-    return removeAsserts.visitNodeAndChildren(file, context);
+var ASSERT_LOCATION = 'packages/firestore/src/util/assert.ts';
+function removeAsserts(program) {
+  var removeAsserts = new RemoveAsserts(program.getTypeChecker());
+  return function (context) {
+    return function (file) {
+      return removeAsserts.visitNodeAndChildren(file, context);
+    };
   };
 }
-
+exports.removeAsserts = removeAsserts;
 /**
  * Transformer that removes all "debugAssert" statements from the SDK and
  * removes the custom message for fail() and hardAssert().
  */
-class RemoveAsserts {
-  constructor(private readonly typeChecker: ts.TypeChecker) {}
-
-  visitNodeAndChildren<T extends ts.Node>(
-    node: T,
-    context: ts.TransformationContext
-  ): T {
+var RemoveAsserts = /** @class */ (function () {
+  function RemoveAsserts(typeChecker) {
+    this.typeChecker = typeChecker;
+  }
+  RemoveAsserts.prototype.visitNodeAndChildren = function (node, context) {
+    var _this = this;
     return ts.visitEachChild(
       this.visitNode(node),
-      (childNode: ts.Node) => this.visitNodeAndChildren(childNode, context),
+      function (childNode) {
+        return _this.visitNodeAndChildren(childNode, context);
+      },
       context
-    ) as T;
-  }
-
-  visitNode(node: ts.Node): ts.Node {
-    let updatedNode: ts.Node | null = null;
-
+    );
+  };
+  RemoveAsserts.prototype.visitNode = function (node) {
+    var updatedNode = null;
     if (ts.isCallExpression(node)) {
-      const signature = this.typeChecker.getResolvedSignature(node);
+      var signature = this.typeChecker.getResolvedSignature(node);
       if (
         signature &&
         signature.declaration &&
         signature.declaration.kind === ts.SyntaxKind.FunctionDeclaration
       ) {
-        const declaration = signature.declaration as ts.FunctionDeclaration;
+        var declaration = signature.declaration;
         if (
           declaration &&
           declaration.getSourceFile().fileName.indexOf(ASSERT_LOCATION) >= 0
         ) {
-          const method = declaration.name!.text;
+          var method = declaration.name.text;
           if (method === 'debugAssert') {
             updatedNode = ts.createEmptyStatement();
           } else if (method === 'hardAssert') {
             // Remove the log message but keep the assertion
             updatedNode = ts.createCall(
-              declaration.name!,
+              declaration.name,
               /*typeArgs*/ undefined,
               [node.arguments[0]]
             );
           } else if (method === 'fail') {
             // Remove the log message
             updatedNode = ts.createCall(
-              declaration.name!,
+              declaration.name,
               /*typeArgs*/ undefined,
               []
             );
@@ -83,12 +83,12 @@ class RemoveAsserts {
         }
       }
     }
-
     if (updatedNode) {
       ts.setSourceMapRange(updatedNode, ts.getSourceMapRange(node));
       return updatedNode;
     } else {
       return node;
     }
-  }
-}
+  };
+  return RemoveAsserts;
+})();

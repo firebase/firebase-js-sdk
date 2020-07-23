@@ -526,7 +526,7 @@ export function parent<T>(
     if (parentPath.isEmpty()) {
       return null;
     } else {
-      return new DocumentReference(child.firestore, null, parentPath);
+      return new DocumentReference(child.firestore,  /* converter= */ null, parentPath);
     }
   } else {
     const doc = cast<DocumentReference<T>>(child, DocumentReference);
