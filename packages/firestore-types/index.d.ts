@@ -30,6 +30,7 @@ export interface Settings {
   cacheSizeBytes?: number;
   experimentalForceLongPolling?: boolean;
   ignoreUndefinedProperties?: boolean;
+  inherit?: boolean;
 }
 
 export interface PersistenceSettings {

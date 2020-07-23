@@ -363,6 +363,12 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     validateExactNumberOfArgs('Firestore.settings', arguments, 1);
     validateArgType('Firestore.settings', 'object', 1, settingsLiteral);
 
+    if (settingsLiteral.inherit) {
+      settingsLiteral = this.mergeSettings(settingsLiteral);
+      // Remove the property from the settings once the merge is completed.
+      delete settingsLiteral.inherit;
+    }
+
     const newSettings = new FirestoreSettings(settingsLiteral);
     if (this._firestoreClient && !this._settings.isEqual(newSettings)) {
       throw new FirestoreError(
@@ -377,6 +383,33 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (newSettings.credentials !== undefined) {
       this._credentials = makeCredentialsProvider(newSettings.credentials);
     }
+  }
+
+  private mergeSettings(
+    settingsLiteral: firestore.Settings
+  ): firestore.Settings {
+    settingsLiteral.host =
+      settingsLiteral.host === undefined
+        ? this._settings.host
+        : settingsLiteral.host;
+    settingsLiteral.ssl =
+      settingsLiteral.ssl === undefined
+        ? this._settings.ssl
+        : settingsLiteral.ssl;
+    settingsLiteral.timestampsInSnapshots =
+      settingsLiteral.timestampsInSnapshots === undefined
+        ? this._settings.timestampsInSnapshots
+        : settingsLiteral.timestampsInSnapshots;
+    settingsLiteral.cacheSizeBytes =
+      settingsLiteral.cacheSizeBytes === undefined
+        ? this._settings.cacheSizeBytes
+        : settingsLiteral.cacheSizeBytes;
+    settingsLiteral.ignoreUndefinedProperties =
+      settingsLiteral.ignoreUndefinedProperties === undefined
+        ? this._settings.ignoreUndefinedProperties
+        : settingsLiteral.ignoreUndefinedProperties;
+
+    return settingsLiteral;
   }
 
   enableNetwork(): Promise<void> {
@@ -673,6 +706,11 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // the way TypeScript compiler outputs properties.
   _areTimestampsInSnapshotsEnabled(): boolean {
     return this._settings.timestampsInSnapshots;
+  }
+
+  // Visible for testing.
+  _getSettings(): firestore.Settings {
+    return this._settings;
   }
 }
 

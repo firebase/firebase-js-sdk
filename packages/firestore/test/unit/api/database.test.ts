@@ -19,10 +19,13 @@ import {
   collectionReference,
   documentReference,
   documentSnapshot,
+  firestore,
   query,
   querySnapshot
 } from '../../util/api_helpers';
 import { expectEqual, expectNotEqual, keys } from '../../util/helpers';
+import { expect } from 'chai';
+import { DEFAULT_SETTINGS } from '../../integration/util/settings';
 
 describe('CollectionReference', () => {
   it('support equality checking with isEqual()', () => {
@@ -151,5 +154,31 @@ describe('SnapshotMetadata', () => {
       querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
       querySnapshot('foo', {}, {}, keys(), false, false).metadata
     );
+  });
+});
+
+describe.only('Settings', () => {
+  it('replaces settings by default', () => {
+    const firestoreClient = firestore();
+    firestoreClient.settings({ host: 'other.host' });
+    firestoreClient.settings({ ignoreUndefinedProperties: true });
+
+    expect(firestoreClient._getSettings().ignoreUndefinedProperties).to.be.true;
+    // Expect host to be replaced with default host.
+    expect(firestoreClient._getSettings().host).to.equal(
+      'firestore.googleapis.com'
+    );
+  });
+
+  it('can merge settings', () => {
+    const firestoreClient = firestore();
+    firestoreClient.settings({ host: 'other.host' });
+    firestoreClient.settings({
+      ignoreUndefinedProperties: true,
+      inherit: true
+    });
+
+    expect(firestoreClient._getSettings().ignoreUndefinedProperties).to.be.true;
+    expect(firestoreClient._getSettings().host).to.equal('other.host');
   });
 });
