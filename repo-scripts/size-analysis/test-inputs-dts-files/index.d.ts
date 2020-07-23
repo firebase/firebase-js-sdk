@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { LogLevel } from '@firebase/logger';
-export * from './bar';
+//export * from './bar';
 export {
   BasicEnumExportFar,
   BasicClassExportFar,
