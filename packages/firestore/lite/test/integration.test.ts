@@ -69,20 +69,12 @@ import {
   increment,
   serverTimestamp,
   arrayUnion,
-  arrayRemove,
+  arrayRemove
 } from '../src/api/field_value';
-import {
-  FieldPath,
-} from '../src/api/field_path';
-import {
-  writeBatch
-} from '../src/api/write_batch';
-import {
-  runTransaction
-} from '../src/api/transaction';
-import {
-  snapshotEqual
-} from '../src/api/snapshot';
+import { FieldPath } from '../src/api/field_path';
+import { writeBatch } from '../src/api/write_batch';
+import { runTransaction } from '../src/api/transaction';
+import { snapshotEqual } from '../src/api/snapshot';
 import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
@@ -431,7 +423,12 @@ describe('Transaction', () => {
     ): Promise<void> {
       return runTransaction(ref.firestore, async transaction => {
         if (value) {
-          transaction.update(ref, dataOrField as string | firestore.FieldPath, value, ...moreFieldsAndValues);
+          transaction.update(
+            ref,
+            dataOrField as string | firestore.FieldPath,
+            value,
+            ...moreFieldsAndValues
+          );
         } else {
           transaction.update(ref, dataOrField as firestore.UpdateData);
         }
@@ -491,8 +488,8 @@ describe('Transaction', () => {
 
 function genericMutationTests(
   op: MutationTester,
-  testRunnerMayUseBackoff= false,
-  validationUsesPromises  = false
+  testRunnerMayUseBackoff = false,
+  validationUsesPromises = false
 ): void {
   const setDoc = op.set;
   const updateDoc = op.update;
@@ -620,12 +617,15 @@ function genericMutationTests(
     // The Transaction tests use backoff for updates that fail with failed
     // preconditions. This leads to test timeouts.
     // eslint-disable-next-line no-restricted-properties
-    (testRunnerMayUseBackoff ? it.skip : it)('enforces that document exists', () => {
-      return withTestDoc(async docRef => {
-        await expect(updateDoc(docRef, { foo: 2, baz: 2 })).to.eventually.be
-          .rejected;
-      });
-    });
+    (testRunnerMayUseBackoff ? it.skip : it)(
+      'enforces that document exists',
+      () => {
+        return withTestDoc(async docRef => {
+          await expect(updateDoc(docRef, { foo: 2, baz: 2 })).to.eventually.be
+            .rejected;
+        });
+      }
+    );
 
     it('throws when user input fails validation', () => {
       return withTestDoc(async docRef => {
