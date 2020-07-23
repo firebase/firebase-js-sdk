@@ -53,17 +53,28 @@ import {
   queryEqual,
   collectionGroup,
   getQuery,
-  FieldPath,
-  writeBatch,
-  runTransaction,
-  snapshotEqual,
+  orderBy,
+  startAfter,
+  query,
+  limit,
+  endAt,
+  endBefore,
+  startAt,
+  limitToLast,
+  where
+} from '../src/api/reference';
+import {
   FieldValue,
   deleteField,
   increment,
   serverTimestamp,
   arrayUnion,
   arrayRemove
-} from '..';
+} from '../src/api/field_value';
+import { FieldPath } from '../src/api/field_path';
+import { writeBatch } from '../src/api/write_batch';
+import { runTransaction } from '../src/api/transaction';
+import { snapshotEqual } from '../src/api/snapshot';
 import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
@@ -171,13 +182,16 @@ describe('doc', () => {
   it('validates path', () => {
     return withTestDb(db => {
       expect(() => doc(db, 'coll')).to.throw(
-        'Invalid document reference. Document references must have an even number of segments, but coll has 1.'
+        'Invalid document reference. Document references must have an even ' +
+          'number of segments, but coll has 1.'
       );
       expect(() => doc(db, '')).to.throw(
-        'Function doc() requires its second argument to be of type non-empty string, but it was: ""'
+        'Function doc() requires its second argument to be of type non-empty ' +
+          'string, but it was: ""'
       );
       expect(() => doc(collection(db, 'coll'), 'doc/coll')).to.throw(
-        'Invalid document path (coll/doc/coll). Path points to a collection.'
+        'Invalid document reference. Document references must have an even ' +
+          'number of segments, but coll/doc/coll has 3.'
       );
       expect(() => doc(db, 'coll//doc')).to.throw(
         'Invalid path (coll//doc). Paths must not contain // in them.'
@@ -225,15 +239,18 @@ describe('collection', () => {
   it('validates path', () => {
     return withTestDb(db => {
       expect(() => collection(db, 'coll/doc')).to.throw(
-        'Invalid collection reference. Collection references must have an odd number of segments, but coll/doc has 2.'
+        'Invalid collection reference. Collection references must have an odd ' +
+          'number of segments, but coll/doc has 2.'
       );
       // TODO(firestorelite): Explore returning a more helpful message
       // (e.g. "Empty document paths are not supported.")
       expect(() => collection(doc(db, 'coll/doc'), '')).to.throw(
-        'Function collection() requires its second argument to be of type non-empty string, but it was: ""'
+        'Function collection() requires its second argument to be of type ' +
+          'non-empty string, but it was: ""'
       );
       expect(() => collection(doc(db, 'coll/doc'), 'coll/doc')).to.throw(
-        'Invalid collection path (coll/doc/coll/doc). Path points to a document.'
+        'Invalid collection reference. Collection references must have an odd ' +
+          'number of segments, but coll/doc/coll/doc has 4.'
       );
     });
   });
@@ -389,11 +406,12 @@ describe('Transaction', () => {
       data: T | Partial<T>,
       options?: firestore.SetOptions
     ): Promise<void> {
-      const args = Array.from(arguments);
       return runTransaction(ref.firestore, async transaction => {
-        // TODO(mrschmidt): Find a way to remove the `any` cast here
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (transaction.set as any).apply(transaction, args);
+        if (options) {
+          transaction.set(ref, data, options);
+        } else {
+          transaction.set(ref, data);
+        }
       });
     }
 
@@ -403,17 +421,24 @@ describe('Transaction', () => {
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {
-      const args = Array.from(arguments);
       return runTransaction(ref.firestore, async transaction => {
-        // TODO(mrschmidt): Find a way to remove the `any` cast here
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (transaction.update as any).apply(transaction, args);
+        if (value) {
+          transaction.update(
+            ref,
+            dataOrField as string | firestore.FieldPath,
+            value,
+            ...moreFieldsAndValues
+          );
+        } else {
+          transaction.update(ref, dataOrField as firestore.UpdateData);
+        }
       });
     }
   }
 
   genericMutationTests(
     new TransactionTester(),
+    /* testRunnerMayUseBackoff= */ true,
     /* validationUsesPromises= */ true
   );
 
@@ -463,7 +488,8 @@ describe('Transaction', () => {
 
 function genericMutationTests(
   op: MutationTester,
-  validationUsesPromises: boolean = false
+  testRunnerMayUseBackoff = false,
+  validationUsesPromises = false
 ): void {
   const setDoc = op.set;
   const updateDoc = op.update;
@@ -588,12 +614,18 @@ function genericMutationTests(
       });
     });
 
-    it('enforces that document exists', () => {
-      return withTestDoc(async docRef => {
-        await expect(updateDoc(docRef, { foo: 2, baz: 2 })).to.eventually.be
-          .rejected;
-      });
-    });
+    // The Transaction tests use backoff for updates that fail with failed
+    // preconditions. This leads to test timeouts.
+    // eslint-disable-next-line no-restricted-properties
+    (testRunnerMayUseBackoff ? it.skip : it)(
+      'enforces that document exists',
+      () => {
+        return withTestDoc(async docRef => {
+          await expect(updateDoc(docRef, { foo: 2, baz: 2 })).to.eventually.be
+            .rejected;
+        });
+      }
+    );
 
     it('throws when user input fails validation', () => {
       return withTestDoc(async docRef => {
@@ -764,8 +796,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.where('foo', '==', 1);
-        const result = await getQuery(query);
+        const query1 = query(collRef, where('foo', '==', 1));
+        const result = await getQuery(query1);
         verifyResults(result, { foo: 1 });
       }
     );
@@ -775,8 +807,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.where(new FieldPath('foo'), '==', 1);
-        const result = await getQuery(query);
+        const query1 = query(collRef, where(new FieldPath('foo'), '==', 1));
+        const result = await getQuery(query1);
         verifyResults(result, { foo: 1 });
       }
     );
@@ -786,8 +818,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.orderBy('foo');
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo'));
+        const result = await getQuery(query1);
         verifyResults(result, { foo: 1 }, { foo: 2 });
       }
     );
@@ -797,8 +829,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.orderBy('foo', 'asc');
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo', 'asc'));
+        const result = await getQuery(query1);
         verifyResults(result, { foo: 1 }, { foo: 2 });
       }
     );
@@ -808,8 +840,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.orderBy('foo', 'desc');
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo', 'desc'));
+        const result = await getQuery(query1);
         verifyResults(result, { foo: 2 }, { foo: 1 });
       }
     );
@@ -819,8 +851,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.orderBy('foo').limit(1);
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo'), limit(1));
+        const result = await getQuery(query1);
         verifyResults(result, { foo: 1 });
       }
     );
@@ -830,8 +862,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }, { foo: 3 }],
       async collRef => {
-        const query = collRef.orderBy('foo').limitToLast(2);
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo'), limitToLast(2));
+        const result = await getQuery(query1);
         verifyResults(result, { foo: 2 }, { foo: 3 });
       }
     );
@@ -841,8 +873,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.orderBy('foo').startAt(2);
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo'), startAt(2));
+        const result = await getQuery(query1);
         verifyResults(result, { foo: 2 });
       }
     );
@@ -852,8 +884,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.orderBy('foo').startAfter(1);
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo'), startAfter(1));
+        const result = await getQuery(query1);
         verifyResults(result, { foo: 2 });
       }
     );
@@ -863,8 +895,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.orderBy('foo').endAt(1);
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo'), endAt(1));
+        const result = await getQuery(query1);
         verifyResults(result, { foo: 1 });
       }
     );
@@ -874,8 +906,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.orderBy('foo').endBefore(2);
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo'), endBefore(2));
+        const result = await getQuery(query1);
         verifyResults(result, { foo: 1 });
       }
     );
@@ -885,13 +917,13 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        let query = collRef.orderBy('foo').limit(1);
-        let result = await getQuery(query);
+        let query1 = query(collRef, orderBy('foo'), limit(1));
+        let result = await getQuery(query1);
         verifyResults(result, { foo: 1 });
 
         // Pass the document snapshot from the previous result
-        query = query.startAfter(result.docs[0]);
-        result = await getQuery(query);
+        query1 = query(query1, startAfter(result.docs[0]));
+        result = await getQuery(query1);
         verifyResults(result, { foo: 2 });
       }
     );
@@ -912,8 +944,8 @@ describe('Query', () => {
       await setDoc(fooDoc, { foo: 1 });
       await setDoc(barDoc, { bar: 1 });
 
-      const query = collectionGroup(collRef.firestore, collectionGroupId);
-      const result = await getQuery(query);
+      const query1 = collectionGroup(collRef.firestore, collectionGroupId);
+      const result = await getQuery(query1);
 
       verifyResults(result, { bar: 1 }, { foo: 1 });
     });
@@ -976,10 +1008,10 @@ describe('equality', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query1a = collRef.orderBy('foo');
-        const query1b = collRef.orderBy('foo', 'asc');
-        const query2 = collRef.orderBy('foo', 'desc');
-        const query3 = collection(collRef, 'a/b').orderBy('foo');
+        const query1a = query(collRef, orderBy('foo'));
+        const query1b = query(collRef, orderBy('foo', 'asc'));
+        const query2 = query(collRef, orderBy('foo', 'desc'));
+        const query3 = query(collection(collRef, 'a/b'), orderBy('foo'));
 
         expect(queryEqual(query1a, query1b)).to.be.true;
         expect(queryEqual(query1a, query2)).to.be.false;
@@ -992,9 +1024,9 @@ describe('equality', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query1a = collRef.limit(10);
-        const query1b = collRef.limit(10);
-        const query2 = collRef.limit(100);
+        const query1a = query(collRef, limit(10));
+        const query1b = query(collRef, limit(10));
+        const query2 = query(collRef, limit(100));
 
         const snap1a = await getQuery(query1a);
         const snap1b = await getQuery(query1b);

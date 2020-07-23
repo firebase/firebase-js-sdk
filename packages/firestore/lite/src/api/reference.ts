@@ -92,10 +92,10 @@ export class DocumentReference<T = firestore.DocumentData>
 
   constructor(
     readonly firestore: Firestore,
-    readonly _path: ResourcePath,
-    readonly _converter: firestore.FirestoreDataConverter<T> | null
+    readonly converter: firestore.FirestoreDataConverter<T> | null,
+    readonly _path: ResourcePath
   ) {
-    super(firestore._databaseId, new DocumentKey(_path), _converter);
+    super(firestore._databaseId, new DocumentKey(_path), converter);
   }
 
   get id(): string {
@@ -109,7 +109,7 @@ export class DocumentReference<T = firestore.DocumentData>
   withConverter<U>(
     converter: firestore.FirestoreDataConverter<U>
   ): firestore.DocumentReference<U> {
-    return new DocumentReference<U>(this.firestore, this._path, converter);
+    return new DocumentReference<U>(this.firestore, converter, this._path);
   }
 }
 
@@ -119,14 +119,14 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   // This is the lite version of the Query class in the main SDK.
   constructor(
     readonly firestore: Firestore,
-    readonly _query: InternalQuery,
-    readonly _converter: firestore.FirestoreDataConverter<T> | null
+    readonly converter: firestore.FirestoreDataConverter<T> | null,
+    readonly _query: InternalQuery
   ) {}
 
   withConverter<U>(
     converter: firestore.FirestoreDataConverter<U>
   ): firestore.Query<U> {
-    return new Query<U>(this.firestore, this._query, converter);
+    return new Query<U>(this.firestore, converter, this._query);
   }
 }
 
@@ -175,8 +175,8 @@ class QueryFilterConstraint extends QueryConstraint {
     );
     return new Query(
       query.firestore,
-      queryWithAddedFilter(query._query, filter),
-      query._converter
+      query.converter,
+      queryWithAddedFilter(query._query, filter)
     );
   }
 }
@@ -207,8 +207,8 @@ class QueryOrderByConstraint extends QueryConstraint {
     const orderBy = newQueryOrderBy(query._query, this._field, this._direction);
     return new Query(
       query.firestore,
-      queryWithAddedOrderBy(query._query, orderBy),
-      query._converter
+      query.converter,
+      queryWithAddedOrderBy(query._query, orderBy)
     );
   }
 }
@@ -236,8 +236,8 @@ class QueryLimitConstraint extends QueryConstraint {
   apply<T>(query: Query<T>): Query<T> {
     return new Query(
       query.firestore,
-      queryWithLimit(query._query, this._limit, this._limitType),
-      query._converter
+      query.converter,
+      queryWithLimit(query._query, this._limit, this._limitType)
     );
   }
 }
@@ -272,8 +272,8 @@ class QueryStartAtConstraint extends QueryConstraint {
     );
     return new Query(
       query.firestore,
-      queryWithStartAt(query._query, bound),
-      query._converter
+      query.converter,
+      queryWithStartAt(query._query, bound)
     );
   }
 }
@@ -314,8 +314,8 @@ class QueryEndAtConstraint extends QueryConstraint {
     );
     return new Query(
       query.firestore,
-      queryWithEndAt(query._query, bound),
-      query._converter
+      query.converter,
+      queryWithEndAt(query._query, bound)
     );
   }
 }
@@ -368,9 +368,9 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   constructor(
     readonly firestore: Firestore,
     readonly _path: ResourcePath,
-    readonly _converter: firestore.FirestoreDataConverter<T> | null
+    converter: firestore.FirestoreDataConverter<T> | null
   ) {
-    super(firestore, newQueryForPath(_path), _converter);
+    super(firestore, converter, newQueryForPath(_path));
   }
 
   get id(): string {
@@ -454,8 +454,8 @@ export function collectionGroup(
 
   return new Query(
     firestoreClient,
-    newQueryForCollectionGroup(collectionId),
-    /* converter= */ null
+    /* converter= */ null,
+    newQueryForCollectionGroup(collectionId)
   );
 }
 
@@ -488,7 +488,7 @@ export function doc<T>(
   if (parent instanceof Firestore) {
     const absolutePath = ResourcePath.fromString(relativePath!);
     validateDocumentPath(absolutePath);
-    return new DocumentReference(parent, absolutePath, /* converter= */ null);
+    return new DocumentReference(parent, /* converter= */ null, absolutePath);
   } else {
     if (
       !(parent instanceof DocumentReference) &&
@@ -506,8 +506,8 @@ export function doc<T>(
     validateDocumentPath(absolutePath);
     return new DocumentReference(
       parent.firestore,
-      absolutePath,
-      parent instanceof CollectionReference ? parent._converter : null
+      parent instanceof CollectionReference ? parent.converter : null,
+      absolutePath
     );
   }
 }
@@ -526,11 +526,7 @@ export function parent<T>(
     if (parentPath.isEmpty()) {
       return null;
     } else {
-      return new DocumentReference(
-        child.firestore,
-        parentPath,
-        /* converter= */ null
-      );
+      return new DocumentReference(child.firestore,  /* converter= */ null, parentPath);
     }
   } else {
     const doc = cast<DocumentReference<T>>(child, DocumentReference);
@@ -573,7 +569,7 @@ export function getQuery<T>(
           internalQuery.firestore,
           doc.key,
           doc,
-          internalQuery._converter
+          internalQuery.converter
         )
     );
 
@@ -700,7 +696,7 @@ export function addDoc<T>(
   const collRef = cast<CollectionReference<T>>(reference, CollectionReference);
   const docRef = doc(collRef);
 
-  const convertedValue = applyFirestoreDataConverter(collRef._converter, data);
+  const convertedValue = applyFirestoreDataConverter(collRef.converter, data);
 
   const dataReader = newUserDataReader(collRef.firestore);
   const parsed = parseSetData(
@@ -735,7 +731,7 @@ export function refEqual<T>(
     return (
       left.firestore === right.firestore &&
       left.path === right.path &&
-      left._converter === right._converter
+      left.converter === right.converter
     );
   }
   return false;
@@ -749,7 +745,7 @@ export function queryEqual<T>(
     return (
       left.firestore === right.firestore &&
       queryEquals(left._query, right._query) &&
-      left._converter === right._converter
+      left.converter === right.converter
     );
   }
   return false;
