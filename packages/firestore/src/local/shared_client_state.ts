@@ -40,6 +40,7 @@ import {
 import {
   CLIENT_STATE_KEY_PREFIX,
   ClientStateSchema,
+  createBundleLoadedKey,
   createWebStorageClientStateKey,
   createWebStorageMutationBatchKey,
   createWebStorageOnlineStateKey,
@@ -173,6 +174,12 @@ export interface SharedClientState {
   setOnlineState(onlineState: OnlineState): void;
 
   writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
+
+  /**
+   * Notifies other clients when remote documents have changed due to loading
+   * a bundle.
+   */
+  notifyBundleLoaded(): void;
 }
 
 /**
@@ -477,6 +484,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   private readonly sequenceNumberKey: string;
   private readonly storageListener = this.handleWebStorageEvent.bind(this);
   private readonly onlineStateKey: string;
+  private readonly bundleLoadedKey: string;
   private readonly clientStateKeyRe: RegExp;
   private readonly mutationBatchKeyRe: RegExp;
   private readonly queryTargetKeyRe: RegExp;
@@ -531,6 +539,8 @@ export class WebStorageSharedClientState implements SharedClientState {
     );
 
     this.onlineStateKey = createWebStorageOnlineStateKey(this.persistenceKey);
+
+    this.bundleLoadedKey = createBundleLoadedKey(this.persistenceKey);
 
     // Rather than adding the storage observer during start(), we add the
     // storage observer during initialization. This ensures that we collect
@@ -711,6 +721,10 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.persistOnlineState(onlineState);
   }
 
+  notifyBundleLoaded(): void {
+    this.persistBundleLoadedState();
+  }
+
   shutdown(): void {
     if (this.started) {
       this.window.removeEventListener('storage', this.storageListener);
@@ -818,6 +832,8 @@ export class WebStorageSharedClientState implements SharedClientState {
           if (sequenceNumber !== ListenSequence.INVALID) {
             this.sequenceNumberHandler!(sequenceNumber);
           }
+        } else if (storageEvent.key === this.bundleLoadedKey) {
+          return this.syncEngine!.synchronizeWithChangedDocuments();
         }
       });
     }
@@ -881,6 +897,10 @@ export class WebStorageSharedClientState implements SharedClientState {
     );
     const targetMetadata = new QueryTargetMetadata(targetId, state, error);
     this.setItem(targetKey, targetMetadata.toWebStorageJSON());
+  }
+
+  private persistBundleLoadedState(): void {
+    this.setItem(this.bundleLoadedKey, 'value-not-used');
   }
 
   /**
@@ -1131,4 +1151,8 @@ export class MemorySharedClientState implements SharedClientState {
   shutdown(): void {}
 
   writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void {}
+
+  notifyBundleLoaded(): void {
+    // No op.
+  }
 }

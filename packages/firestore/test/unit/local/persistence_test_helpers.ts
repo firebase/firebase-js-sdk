@@ -170,6 +170,8 @@ class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
     removed: TargetId[]
   ): Promise<void> {}
   applyOnlineStateChange(onlineState: OnlineState): void {}
+
+  async synchronizeWithChangedDocuments(): Promise<void> {}
 }
 /**
  * Populates Web Storage with instance data from a pre-existing client.

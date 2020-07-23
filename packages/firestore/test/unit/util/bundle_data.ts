@@ -23,11 +23,16 @@ import * as api from '../../../src/protos/firestore_proto_api';
 import { Value } from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer, toName } from '../../../src/remote/serializer';
 import { DocumentKey } from '../../../src/model/document_key';
-import { newSerializer } from '../../../src/platform/serializer';
+import {
+  newSerializer,
+  newTextEncoder
+} from '../../../src/platform/serializer';
+
+export const encoder = newTextEncoder();
 
 function lengthPrefixedString(o: {}): string {
   const str = JSON.stringify(o);
-  const l = new TextEncoder().encode(str).byteLength;
+  const l = encoder.encode(str).byteLength;
   return `${l}${str}`;
 }
 
@@ -83,7 +88,6 @@ export class TestBundleBuilder {
   ): BundleElement {
     let totalDocuments = 0;
     let totalBytes = 0;
-    const encoder = new TextEncoder();
     for (const element of this.elements) {
       if (element.documentMetadata && !element.documentMetadata.exists) {
         totalDocuments += 1;

@@ -39,8 +39,11 @@ import {
   doc1,
   doc2
 } from './bundle_data';
+import { newTextEncoder } from '../../../src/platform/serializer';
 
 use(chaiAsPromised);
+
+const encoder = newTextEncoder();
 
 /**
  * Create a `ReadableStream` from a string.
@@ -53,14 +56,13 @@ export function byteStreamReaderFromString(
   content: string,
   bytesPerRead: number
 ): ReadableStreamReader<Uint8Array> {
-  const data = new TextEncoder().encode(content);
+  const data = encoder.encode(content);
   return toByteStreamReader(data, bytesPerRead);
 }
 
 // Testing readableStreamFromString() is working as expected.
 describe('byteStreamReaderFromString()', () => {
   it('returns a reader stepping readable stream', async () => {
-    const encoder = new TextEncoder();
     const r = byteStreamReaderFromString('0123456789', 4);
 
     let result = await r.read();
@@ -92,8 +94,6 @@ function genericBundleReadingTests(bytesPerRead: number): void {
   function bundleFromString(s: string): BundleReader {
     return new BundleReader(byteStreamReaderFromString(s, bytesPerRead));
   }
-
-  const encoder = new TextEncoder();
 
   async function getAllElements(
     bundle: BundleReader

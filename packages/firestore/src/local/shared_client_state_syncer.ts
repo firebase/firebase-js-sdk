@@ -49,4 +49,10 @@ export interface SharedClientStateSyncer {
 
   /** Returns the IDs of the clients that are currently active. */
   getActiveClients(): Promise<ClientId[]>;
+
+  /**
+   * Retrieves newly changed documents from remote document cache and raises
+   * snapshots if needed.
+   */
+  synchronizeWithChangedDocuments(): Promise<void>;
 }

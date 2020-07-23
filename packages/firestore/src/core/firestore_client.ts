@@ -51,7 +51,7 @@ import {
 import { BundleReader } from '../util/bundle_reader';
 import { LoadBundleTask } from '../api/bundle';
 import { newConnection } from '../platform/connection';
-import { newSerializer } from '../platform/serializer';
+import { newSerializer, newTextEncoder } from '../platform/serializer';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 
 const LOG_TAG = 'FirestoreClient';
@@ -529,7 +529,7 @@ export class FirestoreClient {
 
     let content: ReadableStream<Uint8Array> | ArrayBuffer;
     if (typeof data === 'string') {
-      content = new TextEncoder().encode(data);
+      content = newTextEncoder().encode(data);
     } else {
       content = data;
     }

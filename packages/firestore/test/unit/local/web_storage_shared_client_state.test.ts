@@ -150,6 +150,8 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
   applyOnlineStateChange(onlineState: OnlineState): void {
     this.onlineState = onlineState;
   }
+
+  async synchronizeWithChangedDocuments(): Promise<void> {}
 }
 
 describe('WebStorageSharedClientState', () => {

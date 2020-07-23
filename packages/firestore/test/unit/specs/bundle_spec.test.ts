@@ -293,12 +293,9 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
         .client(1)
         .loadBundle(bundleString1)
         .client(0)
-        .becomeVisible();
-      // TODO(wuandy): Loading from secondary client does not notify other
-      // clients for now. We need to fix it and uncomment below.
-      // .expectEvents(query, {
-      //   modified: [doc('collection/a', 500, { value: 'b' })],
-      // })
+        .expectEvents(query, {
+          modified: [doc('collection/a', 500, { value: 'b' })]
+        });
     }
   );
 

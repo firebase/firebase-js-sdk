@@ -27,6 +27,9 @@ import { DatabaseId } from '../../../src/core/database_info';
 import { key } from '../../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
 import { TestBundleBuilder } from '../../unit/util/bundle_data';
+import { newTextEncoder } from '../../../src/platform/serializer';
+
+export const encoder = newTextEncoder();
 
 function verifySuccessProgress(p: firestore.LoadBundleTaskProgress): void {
   expect(p.taskState).to.equal('Success');
@@ -45,7 +48,6 @@ function verifyInProgress(
 }
 
 apiDescribe('Bundles', (persistence: boolean) => {
-  const encoder = new TextEncoder();
   const testDocs: { [key: string]: firestore.DocumentData } = {
     a: { k: { stringValue: 'a' }, bar: { integerValue: 1 } },
     b: { k: { stringValue: 'b' }, bar: { integerValue: 2 } }

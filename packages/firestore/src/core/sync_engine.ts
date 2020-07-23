@@ -293,7 +293,7 @@ class SyncEngineImpl implements SyncEngine {
     protected remoteStore: RemoteStore,
     protected datastore: Datastore,
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
-    protected sharedClientState: SharedClientState,
+    public sharedClientState: SharedClientState,
     private currentUser: User,
     private maxConcurrentLimboResolutions: number
   ) {}
@@ -1100,6 +1100,12 @@ class MultiTabSyncEngineImpl extends SyncEngineImpl {
     }
   }
 
+  synchronizeWithChangedDocuments(): Promise<void> {
+    return this.localStore
+      .getNewDocumentChanges()
+      .then(changes => this.emitNewSnapsAndNotifyLocalStore(changes));
+  }
+
   async applyBatchState(
     batchId: BatchId,
     batchState: MutationBatchState,
@@ -1412,7 +1418,9 @@ export function loadBundle(
   syncEngineImpl.assertSubscribed('loadBundle()');
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  loadBundleImpl(syncEngineImpl, bundleReader, task);
+  loadBundleImpl(syncEngineImpl, bundleReader, task).then(() => {
+    syncEngineImpl.sharedClientState.notifyBundleLoaded();
+  });
 }
 
 async function loadBundleImpl(
