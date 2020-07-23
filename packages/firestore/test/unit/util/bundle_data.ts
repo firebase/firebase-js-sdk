@@ -23,8 +23,10 @@ import * as api from '../../../src/protos/firestore_proto_api';
 import { Value } from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer, toName } from '../../../src/remote/serializer';
 import { DocumentKey } from '../../../src/model/document_key';
-import { newSerializer } from '../../../src/platform/serializer';
-import { newTextEncoder } from '../../../src/platform/dom';
+import {
+  newSerializer,
+  newTextEncoder
+} from '../../../src/platform/serializer';
 
 export const encoder = newTextEncoder();
 

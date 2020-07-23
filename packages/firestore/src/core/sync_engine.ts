@@ -1419,7 +1419,7 @@ export function loadBundle(
 
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   loadBundleImpl(syncEngineImpl, bundleReader, task).then(() => {
-    syncEngineImpl.sharedClientState.notifyBundleChangedRemoteDocuments();
+    syncEngineImpl.sharedClientState.notifyBundleLoaded();
   });
 }
 

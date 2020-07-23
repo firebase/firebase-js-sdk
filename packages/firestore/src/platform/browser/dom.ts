@@ -28,17 +28,3 @@ export function getDocument(): Document | null {
   // eslint-disable-next-line no-restricted-globals
   return typeof document !== 'undefined' ? document : null;
 }
-
-/**
- * An instance of the Platform's 'TextEncoder' implementation.
- */
-export function newTextEncoder(): TextEncoder {
-  return new TextEncoder();
-}
-
-/**
- * An instance of the Platform's 'TextDecoder' implementation.
- */
-export function newTextDecoder(): TextDecoder {
-  return new TextDecoder('utf-8');
-}

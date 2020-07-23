@@ -51,9 +51,8 @@ import {
 import { BundleReader } from '../util/bundle_reader';
 import { LoadBundleTask } from '../api/bundle';
 import { newConnection } from '../platform/connection';
-import { newSerializer } from '../platform/serializer';
+import { newSerializer, newTextEncoder } from '../platform/serializer';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
-import { newTextEncoder } from '../platform/dom';
 
 const LOG_TAG = 'FirestoreClient';
 const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;

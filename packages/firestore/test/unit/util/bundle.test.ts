@@ -39,7 +39,7 @@ import {
   doc1,
   doc2
 } from './bundle_data';
-import { newTextEncoder } from '../../../src/platform/dom';
+import { newTextEncoder } from '../../../src/platform/serializer';
 
 use(chaiAsPromised);
 

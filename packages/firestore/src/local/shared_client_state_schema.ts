@@ -119,12 +119,9 @@ export function createWebStorageOnlineStateKey(persistenceKey: string): string {
 // might have changed due to some secondary tabs loading a bundle.
 // format of the key is:
 //     firestore_remote_documents_changed_<persistenceKey>
-export const REMOTE_DOCUMENTS_LOAD_FROM_BUNDLE_KEY_PREFIX =
-  'firestore_bundle_loaded';
-export function createRemoteDocumentsLoadFromBundleKey(
-  persistenceKey: string
-): string {
-  return `${REMOTE_DOCUMENTS_LOAD_FROM_BUNDLE_KEY_PREFIX}_${persistenceKey}`;
+export const BUNDLE_LOADED_KEY_PREFIX = 'firestore_bundle_loaded';
+export function createBundleLoadedKey(persistenceKey: string): string {
+  return `${BUNDLE_LOADED_KEY_PREFIX}_${persistenceKey}`;
 }
 
 /**

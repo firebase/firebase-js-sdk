@@ -15,9 +15,4 @@
  * limitations under the License.
  */
 
-export {
-  getWindow,
-  getDocument,
-  newTextEncoder,
-  newTextDecoder
-} from '../browser/dom';
+export { getWindow, getDocument } from '../browser/dom';

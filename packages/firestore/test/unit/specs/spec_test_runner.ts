@@ -126,7 +126,7 @@ import {
 } from '../../util/test_platform';
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
 import { logWarn } from '../../../src/util/log';
-import { newTextEncoder } from '../../../src/platform/dom';
+import { newTextEncoder } from '../../../src/platform/serializer';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 

@@ -22,7 +22,7 @@ import {
 import { Deferred } from './promise';
 import { debugAssert } from './assert';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
-import { newTextDecoder } from '../platform/dom';
+import { newTextDecoder } from '../platform/serializer';
 
 /**
  * A complete element in the bundle stream, together with the byte length it
