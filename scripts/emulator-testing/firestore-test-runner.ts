@@ -49,7 +49,6 @@ async function run(): Promise<void> {
     await emulator.download();
     await emulator.setUp();
     await runTest(emulator.port, emulator.projectId, true);
-    await runTest(emulator.port, emulator.projectId, false);
   } finally {
     await emulator.tearDown();
   }
