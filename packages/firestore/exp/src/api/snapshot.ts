@@ -29,7 +29,11 @@ import {
 } from '../../../lite/src/api/snapshot';
 import { Firestore } from './database';
 import { cast } from '../../../lite/src/api/util';
-import { DocumentReference, Query, queryEqual } from '../../../lite';
+import {
+  DocumentReference,
+  Query,
+  queryEqual
+} from '../../../lite/src/api/reference';
 import {
   changesFromSnapshot,
   SnapshotMetadata
