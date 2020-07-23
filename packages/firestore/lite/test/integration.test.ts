@@ -22,6 +22,12 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import {
+  Firestore,
+  getFirestore,
+  initializeFirestore,
+  terminate
+} from '../src/api/database';
+import {
   Post,
   postConverter,
   postConverterMerge,
@@ -33,10 +39,6 @@ import {
   withTestDocAndInitialData
 } from './helpers';
 import {
-  FirebaseFirestore,
-  getFirestore,
-  initializeFirestore,
-  terminate,
   parent,
   collection,
   CollectionReference,
@@ -51,16 +53,6 @@ import {
   queryEqual,
   collectionGroup,
   getQuery,
-  FieldPath,
-  writeBatch,
-  runTransaction,
-  snapshotEqual,
-  FieldValue,
-  deleteField,
-  increment,
-  serverTimestamp,
-  arrayUnion,
-  arrayRemove,
   orderBy,
   startAfter,
   query,
@@ -70,7 +62,27 @@ import {
   startAt,
   limitToLast,
   where
-} from '..';
+} from '../src/api/reference';
+import {
+  FieldValue,
+  deleteField,
+  increment,
+  serverTimestamp,
+  arrayUnion,
+  arrayRemove,
+} from '../src/api/field_value';
+import {
+  FieldPath,
+} from '../src/api/field_path';
+import {
+  writeBatch
+} from '../src/api/write_batch';
+import {
+  runTransaction
+} from '../src/api/transaction';
+import {
+  snapshotEqual
+} from '../src/api/snapshot';
 import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
@@ -87,7 +99,7 @@ describe('Firestore', () => {
       'test-app-initializeFirestore'
     );
     const fs1 = initializeFirestore(app, { host: 'localhost', ssl: false });
-    expect(fs1).to.be.an.instanceOf(FirebaseFirestore);
+    expect(fs1).to.be.an.instanceOf(Firestore);
   });
 
   it('returns same instance', () => {

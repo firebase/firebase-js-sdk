@@ -36,7 +36,7 @@
     "test:node:persistence:prod": "USE_MOCK_PERSISTENCE=YES TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --require index.node.ts --require test/util/node_persistence.ts --config ../../config/mocharc.node.js",
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
-    "test:lite": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'lite/test/**/*.test.ts' --file lite/index.ts --config ../../config/mocharc.node.js",
+    "test:lite": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'lite/test/**/*.test.ts' --require ts-node/register --file lite/index.ts --config ../../config/mocharc.node.js",
     "prepare": "yarn build:release"
   },
   "main": "dist/index.node.cjs.js",
