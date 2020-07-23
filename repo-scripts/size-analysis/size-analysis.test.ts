@@ -37,7 +37,6 @@ describe('extractDeclarations', () => {
   let testModuleDtsFile: string;
   let extractedDeclarations: MemberList;
   before(() => {
-    //this.timeout(10000); // A very long environment setup.
     testModuleDtsFile = retrieveTestModuleDtsFile();
     extractedDeclarations = extractDeclarations(testModuleDtsFile);
   });
