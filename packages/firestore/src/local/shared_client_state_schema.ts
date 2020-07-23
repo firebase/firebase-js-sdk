@@ -120,7 +120,7 @@ export function createWebStorageOnlineStateKey(persistenceKey: string): string {
 // format of the key is:
 //     firestore_remote_documents_changed_<persistenceKey>
 export const REMOTE_DOCUMENTS_LOAD_FROM_BUNDLE_KEY_PREFIX =
-  'firestore_remote_documents_changed';
+  'firestore_bundle_loaded';
 export function createRemoteDocumentsLoadFromBundleKey(
   persistenceKey: string
 ): string {

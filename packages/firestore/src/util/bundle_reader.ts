@@ -68,7 +68,7 @@ export class BundleReader {
    */
   private buffer: Uint8Array = new Uint8Array();
   /** The decoder used to parse binary data into strings. */
-  private textDecoder: TextDecoder | null;
+  private textDecoder: TextDecoder;
 
   static fromBundleSource(source: BundleSource): BundleReader {
     return new BundleReader(toByteStreamReader(source, BYTES_PER_READ));
@@ -79,7 +79,6 @@ export class BundleReader {
     private reader: ReadableStreamReader<Uint8Array>
   ) {
     this.textDecoder = newTextDecoder();
-    debugAssert(!!this.textDecoder, 'Cannot create a valid text decoder.');
     // Read the metadata (which is the first element).
     this.nextElementImpl().then(
       element => {
@@ -134,7 +133,7 @@ export class BundleReader {
       return null;
     }
 
-    const lengthString = this.textDecoder!.decode(lengthBuffer);
+    const lengthString = this.textDecoder.decode(lengthBuffer);
     const length = Number(lengthString);
     if (isNaN(length)) {
       this.raiseError(`length string (${lengthString}) is not valid number`);
@@ -202,7 +201,7 @@ export class BundleReader {
       }
     }
 
-    const result = this.textDecoder!.decode(this.buffer.slice(0, length));
+    const result = this.textDecoder.decode(this.buffer.slice(0, length));
     // Update the internal buffer to drop the read json string.
     this.buffer = this.buffer.slice(length);
     return result;
