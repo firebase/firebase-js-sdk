@@ -24,7 +24,9 @@ module.exports = function (config) {
     files: getTestFiles(argv),
 
     preprocessors: {
-      '**/test/*.ts': ['webpack', 'sourcemap'],
+      'exp/test/**/*.ts': ['webpack', 'sourcemap'],
+      'lite/test/**/*.ts': ['webpack', 'sourcemap'],
+      'test/**/*.ts': ['webpack', 'sourcemap'],
     },
 
     // frameworks to use
