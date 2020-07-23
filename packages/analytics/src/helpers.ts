@@ -27,6 +27,10 @@ import {
 import { GtagCommand, GTAG_URL } from './constants';
 import { logger } from './logger';
 
+/**
+ * Inserts gtag script tag into the page to asynchronously download gtag.
+ * @param dataLayerName Name of datalayer (most often the default, "_dataLayer").
+ */
 export function insertScriptTag(dataLayerName: string): void {
   const script = document.createElement('script');
   // We are not providing an analyticsId in the URL because it would trigger a `page_view`
@@ -36,8 +40,9 @@ export function insertScriptTag(dataLayerName: string): void {
   document.head.appendChild(script);
 }
 
-/** Get reference to, or create, global datalayer.
- * @param dataLayerName Name of datalayer (most often the default, "_dataLayer")
+/**
+ * Get reference to, or create, global datalayer.
+ * @param dataLayerName Name of datalayer (most often the default, "_dataLayer").
  */
 export function getOrCreateDataLayer(dataLayerName: string): DataLayer {
   // Check for existing dataLayer and create if needed.
@@ -49,11 +54,16 @@ export function getOrCreateDataLayer(dataLayerName: string): DataLayer {
   }
   return dataLayer;
 }
+
 /**
  * Wrapped gtag logic when gtag is called with 'config' command.
  *
- * @param measurementId GA Measurement ID.
- * @param gtagParams Config params.
+ * @param gtagCore Basic gtag function that just appends to dataLayer.
+ * @param initializationPromisesMap Map of appIds to their initialization promises.
+ * @param dynamicConfigPromisesList Array of dynamic config fetch promises.
+ * @param measurementIdToAppId Map of GA measurementIDs to corresponding Firebase appId.
+ * @param measurementId GA Measurement ID to set config for.
+ * @param gtagParams Gtag config params to set.
  */
 async function gtagOnConfig(
   gtagCore: Gtag,
@@ -89,11 +99,15 @@ async function gtagOnConfig(
   }
   gtagCore(GtagCommand.CONFIG, measurementId, gtagParams);
 }
+
 /**
  * Wrapped gtag logic when gtag is called with 'event' command.
  *
- * @param measurementId GA Measurement ID.
- * @param gtagParams Event params.
+ * @param gtagCore Basic gtag function that just appends to dataLayer.
+ * @param initializationPromisesMap Map of appIds to their initialization promises.
+ * @param dynamicConfigPromisesList Array of dynamic config fetch promises.
+ * @param measurementId GA Measurement ID to log event to.
+ * @param gtagParams Params to log with this event.
  */
 async function gtagOnEvent(
   gtagCore: Gtag,
@@ -160,15 +174,30 @@ async function gtagOnEvent(
  * Wraps a standard gtag function with extra code to wait for completion of
  * relevant initialization promises before sending requests.
  *
- * @param gtagCore Basic gtag function that just appends to dataLayer
- * @param initializedIdPromisesMap Map of gaIds to their initialization promises
+ * @param gtagCore Basic gtag function that just appends to dataLayer.
+ * @param initializationPromisesMap Map of appIds to their initialization promises.
+ * @param dynamicConfigPromisesList Array of dynamic config fetch promises.
+ * @param measurementIdToAppId Map of GA measurementIDs to corresponding Firebase appId.
  */
 function wrapGtag(
   gtagCore: Gtag,
+  /**
+   * Allows wrapped gtag calls to wait on whichever intialization promises are required,
+   * depending on the contents of the gtag params' `send_to` field, if any.
+   */
   initializationPromisesMap: { [appId: string]: Promise<string> },
+  /**
+   * Wrapped gtag calls sometimes require all dynamic config fetches to have returned
+   * before determining what initialization promises (which include FIDs) to wait for.
+   */
   dynamicConfigPromisesList: Array<
     Promise<DynamicConfig | MinimalDynamicConfig>
   >,
+  /**
+   * Wrapped gtag config calls can narrow down which initialization promise (with FID)
+   * to wait for if the measurementId is already fetched, by getting the corresponding appId,
+   * which is the key for the initialization promises map.
+   */
   measurementIdToAppId: { [measurementId: string]: string }
 ): Gtag {
   /**
@@ -219,9 +248,11 @@ function wrapGtag(
  * This wrapped function attaches Firebase instance ID (FID) to gtag 'config' and
  * 'event' calls that belong to the GAID associated with this Firebase instance.
  *
- * @param initializedIdPromisesMap Map of gaId to initialization promises.
+ * @param initializationPromisesMap Map of appIds to their initialization promises.
+ * @param dynamicConfigPromisesList Array of dynamic config fetch promises.
+ * @param measurementIdToAppId Map of GA measurementIDs to corresponding Firebase appId.
  * @param dataLayerName Name of global GA datalayer array.
- * @param gtagFunctionName Name of global gtag function ("gtag" if not user-specified)
+ * @param gtagFunctionName Name of global gtag function ("gtag" if not user-specified).
  */
 export function wrapOrCreateGtag(
   initializationPromisesMap: { [appId: string]: Promise<string> },

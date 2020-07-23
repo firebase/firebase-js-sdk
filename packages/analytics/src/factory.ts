@@ -53,21 +53,28 @@ import {
 } from '@firebase/util';
 
 /**
- * Maps appId to full initialization promise.
+ * Maps appId to full initialization promise. Wrapped gtag calls must wait on
+ * all or some of these, depending on the call's `send_to` param and the status
+ * of the dynamic config fetches (see below).
  */
 let initializationPromisesMap: {
   [appId: string]: Promise<string>; // Promise contains measurement ID string.
 } = {};
 
 /**
- * List of dynamic config fetch promises.
+ * List of dynamic config fetch promises. In certain cases, wrapped gtag calls
+ * wait on all these to be complete in order to determine if it can selectively
+ * wait for only certain initialization (FID) promises or if it must wait for all.
  */
 let dynamicConfigPromisesList: Array<Promise<
   DynamicConfig | MinimalDynamicConfig
 >> = [];
 
 /**
- * Maps fetched measurementIds to appId.
+ * Maps fetched measurementIds to appId. Populated when the app's dynamic config
+ * fetch completes. If already populated, gtag config calls can use this to
+ * selectively wait for only this app's initialization promise (FID) instead of all
+ * initialization promises.
  */
 const measurementIdToAppId: { [measurementId: string]: string } = {};
 

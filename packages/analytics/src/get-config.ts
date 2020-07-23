@@ -38,8 +38,10 @@ export interface AppFields {
 }
 
 /**
- * Initial retry interval in seconds for 503 errors, which we want to be conservative about
- * to avoid overloading servers.
+ * Backoff factor for 503 errors, which we want to be conservative about
+ * to avoid overloading servers. Each retry interval will be
+ * BASE_INTERVAL_MILLIS * LONG_RETRY_FACTOR ^ retryCount, so the second one
+ * will be ~30 seconds (with fuzzing).
  */
 export const LONG_RETRY_FACTOR = 30;
 
@@ -107,7 +109,7 @@ export async function fetchDynamicConfig(
       if (jsonResponse.error?.message) {
         errorMessage = jsonResponse.error.message;
       }
-    } catch (ignored) {}
+    } catch (_ignored) {}
     throw ERROR_FACTORY.create(AnalyticsError.CONFIG_FETCH_FAILED, {
       httpStatus: response.status,
       responseMessage: errorMessage
@@ -122,8 +124,9 @@ export async function fetchDynamicConfig(
  */
 export async function fetchDynamicConfigWithRetry(
   app: FirebaseApp,
-  retryData: RetryData = defaultRetryData, // for testing
-  timeoutMillis?: number // for testing
+  // retryData and timeoutMillis are parameterized to allow passing a different value for testing.
+  retryData: RetryData = defaultRetryData,
+  timeoutMillis?: number
 ): Promise<DynamicConfig | MinimalDynamicConfig> {
   const { appId, apiKey, measurementId } = app.options;
 
