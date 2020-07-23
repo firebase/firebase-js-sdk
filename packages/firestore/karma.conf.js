@@ -23,6 +23,10 @@ module.exports = function (config) {
     // files to load into karma
     files: getTestFiles(argv),
 
+    preprocessors: {
+      '**/test/*.ts': ['webpack', 'sourcemap'],
+    },
+
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha'],
