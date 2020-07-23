@@ -27,7 +27,9 @@ export {
   basicUniqueFuncFar,
   basicVarDeclarationExportFar,
   basicVarStatementExportFar,
-  reExportVarStatmentExportFar
+  reExportVarStatmentExportFar,
+  tar as tarr,
+  tar1 as tarr1
 } from './far';
 export declare let basicVarDeclarationExport: string;
 export declare const basicVarStatementExport = 'basicVarStatementExport';
@@ -64,5 +66,4 @@ declare class Foo {}
 export { Foo as Foo1 };
 declare function foo(x: string): string;
 export { foo as foo2 };
-export { tar as tarr, tar1 as tarr1 } from './tar';
 export { LogLevel } from '@firebase/logger';

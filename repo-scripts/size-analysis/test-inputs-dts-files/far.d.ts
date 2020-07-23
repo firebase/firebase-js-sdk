@@ -45,3 +45,5 @@ export declare function basicUniqueFuncFar(
   suit: string;
   card: number;
 };
+export declare function tar(name: string): string;
+export declare function tar1(name: string): string;
