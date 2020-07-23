@@ -38,7 +38,7 @@ export async function logEvent(
   options?: AnalyticsCallOptions
 ): Promise<void> {
   if (options && options.global) {
-    gtagFunction(GtagCommand.EVENT, eventName, eventParams || {});
+    gtagFunction(GtagCommand.EVENT, eventName, eventParams);
     return;
   } else {
     const measurementId = await initializationPromise;
@@ -46,8 +46,7 @@ export async function logEvent(
       ...eventParams,
       'send_to': measurementId
     };
-    // Workaround for http://b/141370449 - third argument cannot be undefined.
-    gtagFunction(GtagCommand.EVENT, eventName, params || {});
+    gtagFunction(GtagCommand.EVENT, eventName, params);
   }
 }
 
@@ -57,7 +56,7 @@ export async function logEvent(
  * @param gtagFunction Wrapped gtag function that waits for fid to be set before sending an event
  * @param screenName Screen name string to set.
  */
-export function setCurrentScreen(
+export async function setCurrentScreen(
   gtagFunction: Gtag,
   initializationPromise: Promise<string>,
   screenName: string | null,
@@ -82,7 +81,7 @@ export function setCurrentScreen(
  * @param gtagFunction Wrapped gtag function that waits for fid to be set before sending an event
  * @param id User ID string to set
  */
-export function setUserId(
+export async function setUserId(
   gtagFunction: Gtag,
   initializationPromise: Promise<string>,
   id: string | null,
@@ -107,7 +106,7 @@ export function setUserId(
  * @param gtagFunction Wrapped gtag function that waits for fid to be set before sending an event
  * @param properties Map of user properties to set
  */
-export function setUserProperties(
+export async function setUserProperties(
   gtagFunction: Gtag,
   initializationPromise: Promise<string>,
   properties: CustomParams,
@@ -136,7 +135,7 @@ export function setUserProperties(
  *
  * @param enabled If true, collection is enabled for this ID.
  */
-export function setAnalyticsCollectionEnabled(
+export async function setAnalyticsCollectionEnabled(
   initializationPromise: Promise<string>,
   enabled: boolean
 ): Promise<void> {

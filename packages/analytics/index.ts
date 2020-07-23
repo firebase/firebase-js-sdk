@@ -130,7 +130,6 @@ async function isSupported(): Promise<boolean> {
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     analytics(app?: FirebaseApp): FirebaseAnalytics;
-    isSupported(): Promise<boolean>;
   }
   interface FirebaseApp {
     analytics(): FirebaseAnalytics;
