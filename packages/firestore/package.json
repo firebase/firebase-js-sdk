@@ -27,7 +27,7 @@
     "test:exp:persistence": "USE_MOCK_PERSISTENCE=YES TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/integration/api/*.test.ts' --require ts-node/register --require exp/index.ts --require test/util/node_persistence.ts  --config ../../config/mocharc.node.js",
     "test": "run-s lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
-    "test:all": "run-p test:browser test:travis test:minified test:exp test:lite",
+    "test:all": "run-s test:browser test:travis test:minified test:exp test:lite",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "FIRESTORE_EMULATOR_PORT=8080 FIRESTORE_EMULATOR_PROJECT_ID=test-emulator TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file index.node.ts --config ../../config/mocharc.node.js",
