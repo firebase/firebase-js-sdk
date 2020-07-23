@@ -28,10 +28,11 @@ import {
 } from '../../../src/core/firestore_client';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import {
-  ComponentProvider,
-  IndexedDbComponentProvider,
-  MemoryComponentProvider,
-  MultiTabIndexedDbComponentProvider
+  OnlineComponentProvider,
+  MemoryOfflineComponentProvider,
+  OfflineComponentProvider,
+  IndexedDbOfflineComponentProvider,
+  MultiTabOfflineComponentProvider
 } from '../../../src/core/component_provider';
 
 import {
@@ -60,7 +61,8 @@ export class Firestore extends LiteFirestore
   private readonly _queue = new AsyncQueue();
   private readonly _firestoreClient: FirestoreClient;
   private readonly _persistenceKey: string;
-  private _componentProvider: ComponentProvider = new MemoryComponentProvider();
+  private _offlineComponentProvider: OfflineComponentProvider = new MemoryOfflineComponentProvider();
+  private _onlineComponentProvider = new OnlineComponentProvider();
 
   // Assigned via _getFirestoreClient()
   private _deferredInitialization?: Promise<void>;
@@ -106,7 +108,8 @@ export class Firestore extends LiteFirestore
 
       this._deferredInitialization = this._firestoreClient.start(
         databaseInfo,
-        this._componentProvider,
+        this._offlineComponentProvider,
+        this._onlineComponentProvider,
         this._persistenceSettings
       );
     }
@@ -117,7 +120,8 @@ export class Firestore extends LiteFirestore
   // TODO(firestorexp): Factor out MultiTabComponentProvider and remove
   // `synchronizeTabs` argument
   _enablePersistence(
-    persistenceProvider: ComponentProvider,
+    offlineComponentProvider: OfflineComponentProvider,
+    onlineComponentProvider: OnlineComponentProvider,
     synchronizeTabs: boolean
   ): Promise<void> {
     if (this._deferredInitialization) {
@@ -137,7 +141,7 @@ export class Firestore extends LiteFirestore
       cacheSizeBytes:
         settings.cacheSizeBytes ?? LruParams.DEFAULT_CACHE_SIZE_BYTES
     };
-    this._componentProvider = persistenceProvider;
+    this._offlineComponentProvider = offlineComponentProvider;
 
     // TODO(firestorexp): Add support for Persistence fallback
     return this._getFirestoreClient().then(() => {});
@@ -235,7 +239,8 @@ export function enableIndexedDbPersistence(
 ): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
   return firestoreImpl._enablePersistence(
-    new IndexedDbComponentProvider(),
+    new IndexedDbOfflineComponentProvider(),
+    new OnlineComponentProvider(),
     /*synchronizeTabs=*/ false
   );
 }
@@ -244,8 +249,13 @@ export function enableMultiTabIndexedDbPersistence(
   firestore: firestore.FirebaseFirestore
 ): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
+  const onlineComponentProvider = new OnlineComponentProvider();
+  const offlineComponentProvider = new MultiTabOfflineComponentProvider(
+    onlineComponentProvider
+  );
   return firestoreImpl._enablePersistence(
-    new MultiTabIndexedDbComponentProvider(),
+    offlineComponentProvider,
+    onlineComponentProvider,
     /*synchronizeTabs=*/ false
   );
 }
