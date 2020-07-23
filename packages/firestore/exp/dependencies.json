@@ -333,7 +333,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 213002
+        "sizeInBytes": 213157
     },
     "CollectionReference": {
         "dependencies": {
@@ -705,7 +705,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 238931
+        "sizeInBytes": 239194
     },
     "DocumentReference": {
         "dependencies": {
@@ -1032,7 +1032,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 210014
+        "sizeInBytes": 210221
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -1386,7 +1386,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 222249
+        "sizeInBytes": 222481
     },
     "FieldPath": {
         "dependencies": {
@@ -1721,7 +1721,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 212226
+        "sizeInBytes": 212381
     },
     "FieldValue": {
         "dependencies": {
@@ -2048,7 +2048,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 209606
+        "sizeInBytes": 209761
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -2373,7 +2373,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 209515
+        "sizeInBytes": 209670
     },
     "GeoPoint": {
         "dependencies": {
@@ -2707,7 +2707,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 212367
+        "sizeInBytes": 212522
     },
     "Query": {
         "dependencies": {
@@ -3078,7 +3078,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 238535
+        "sizeInBytes": 238775
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -3432,7 +3432,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 222259
+        "sizeInBytes": 222491
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -3790,7 +3790,333 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 224891
+        "sizeInBytes": 225123
+    },
+    "SnapshotMetadata": {
+        "dependencies": {
+            "functions": [
+                "applyArrayRemoveTransformOperation",
+                "applyArrayUnionTransformOperation",
+                "applyDeleteMutationToLocalView",
+                "applyDeleteMutationToRemoteDocument",
+                "applyMutationToLocalView",
+                "applyMutationToRemoteDocument",
+                "applyNumericIncrementTransformOperationToLocalView",
+                "applyPatchMutationToLocalView",
+                "applyPatchMutationToRemoteDocument",
+                "applySetMutationToLocalView",
+                "applySetMutationToRemoteDocument",
+                "applyTransformMutationToLocalView",
+                "applyTransformMutationToRemoteDocument",
+                "applyTransformOperationToLocalView",
+                "applyTransformOperationToRemoteDocument",
+                "argToString",
+                "arrayEquals",
+                "arrayValueContains",
+                "asNumber",
+                "assertPresent",
+                "binaryStringFromUint8Array",
+                "blobEquals",
+                "boundEquals",
+                "canonicalId",
+                "canonifyArray",
+                "canonifyBound",
+                "canonifyByteString",
+                "canonifyFilter",
+                "canonifyGeoPoint",
+                "canonifyMap",
+                "canonifyOrderBy",
+                "canonifyQuery",
+                "canonifyReference",
+                "canonifyTarget",
+                "canonifyTimestamp",
+                "canonifyValue",
+                "cast",
+                "coercedFieldValuesArray",
+                "compareArrays",
+                "compareBlobs",
+                "compareChangeType",
+                "compareDocs",
+                "compareDocumentsByField",
+                "compareGeoPoints",
+                "compareMaps",
+                "compareNumbers",
+                "compareReferences",
+                "compareTimestamps",
+                "computeTransformOperationBaseValue",
+                "createMetadata",
+                "debugCast",
+                "decodeBase64",
+                "documentEntryMap",
+                "documentKeySet",
+                "documentMap",
+                "documentTargetMap",
+                "documentVersionMap",
+                "encodeBase64",
+                "extractFieldMask",
+                "extractLocalPathFromResourceName",
+                "extractMutationBaseValue",
+                "extractTransformMutationBaseValue",
+                "fail",
+                "fieldTransformEquals",
+                "filterEquals",
+                "forEach",
+                "formatJSON",
+                "fromBytes",
+                "fromFound",
+                "fromMaybeDocument",
+                "fromMissing",
+                "fromName",
+                "fromResourceName",
+                "fromRpcStatus",
+                "fromTimestamp",
+                "fromVersion",
+                "fromWatchChange",
+                "fromWatchTargetChangeState",
+                "fromWriteResult",
+                "fromWriteResults",
+                "fullyQualifiedPrefixPath",
+                "geoPointEquals",
+                "getEncodedDatabaseId",
+                "getLocalWriteTime",
+                "getLogLevel",
+                "getMessageOrStack",
+                "getPostMutationVersion",
+                "getWindow",
+                "hardAssert",
+                "ignoreIfPrimaryLeaseLoss",
+                "invokeBatchGetDocumentsRpc",
+                "invokeCommitRpc",
+                "isArray",
+                "isDocumentTarget",
+                "isDouble",
+                "isEmpty",
+                "isIndexedDbTransactionError",
+                "isInteger",
+                "isMapValue",
+                "isNanValue",
+                "isNegativeZero",
+                "isNullOrUndefined",
+                "isNullValue",
+                "isNumber",
+                "isPermanentError",
+                "isPermanentWriteError",
+                "isServerTimestamp",
+                "isValidResourceName",
+                "loadProtos",
+                "localTransformResults",
+                "logDebug",
+                "logError",
+                "logWarn",
+                "mapCodeFromRpcCode",
+                "maybeDocumentMap",
+                "mutationEquals",
+                "newConnection",
+                "newConnectivityMonitor",
+                "newDatastore",
+                "newLocalStore",
+                "newPersistentWatchStream",
+                "newPersistentWriteStream",
+                "newQueryComparator",
+                "newSerializer",
+                "newSyncEngine",
+                "newTarget",
+                "nodePromise",
+                "normalizeByteString",
+                "normalizeNumber",
+                "normalizeTimestamp",
+                "nullableMaybeDocumentMap",
+                "numberEquals",
+                "objectEquals",
+                "objectSize",
+                "orderByEquals",
+                "patchDocument",
+                "patchObject",
+                "preconditionIsValidForDocument",
+                "primitiveComparator",
+                "queryEquals",
+                "queryMatches",
+                "queryMatchesBounds",
+                "queryMatchesFilters",
+                "queryMatchesOrderBy",
+                "queryMatchesPathAndCollectionGroup",
+                "randomBytes",
+                "registerFirestore",
+                "requireDocument",
+                "serverTimestamp",
+                "serverTransformResults",
+                "snapshotChangesMap",
+                "sortsBeforeDocument",
+                "stringifyFilter",
+                "stringifyOrderBy",
+                "stringifyQuery",
+                "stringifyTarget",
+                "targetEquals",
+                "targetIdSet",
+                "terminate",
+                "terminate$1",
+                "terminateDatastore",
+                "timestampEquals",
+                "toBytes",
+                "toCursor",
+                "toDirection",
+                "toDocumentMask",
+                "toDocumentsTarget",
+                "toDouble",
+                "toFieldPathReference",
+                "toFieldTransform",
+                "toFilter",
+                "toInt32Proto",
+                "toInteger",
+                "toLabel",
+                "toListenRequestLabels",
+                "toMutation",
+                "toMutationDocument",
+                "toName",
+                "toOperatorName",
+                "toOrder",
+                "toPrecondition",
+                "toPropertyOrder",
+                "toQueryPath",
+                "toQueryTarget",
+                "toResourceName",
+                "toTarget",
+                "toTimestamp",
+                "toUnaryOrFieldFilter",
+                "toVersion",
+                "transformObject",
+                "transformOperationEquals",
+                "typeOrder",
+                "uint8ArrayFromBinaryString",
+                "valueCompare",
+                "valueEquals",
+                "versionFromListenResponse",
+                "wrapInUserErrorIfRecoverable"
+            ],
+            "classes": [
+                "AddedLimboDocument",
+                "ArrayContainsAnyFilter",
+                "ArrayContainsFilter",
+                "ArrayRemoveTransformOperation",
+                "ArrayUnionTransformOperation",
+                "AsyncQueue",
+                "AutoId",
+                "BasePath",
+                "Bound",
+                "ByteString",
+                "DatabaseId",
+                "DatabaseInfo",
+                "Datastore",
+                "DatastoreImpl",
+                "Deferred",
+                "DelayedOperation",
+                "DeleteMutation",
+                "DocReference",
+                "Document",
+                "DocumentChangeSet",
+                "DocumentKey",
+                "DocumentSet",
+                "DocumentWatchChange",
+                "EventManager",
+                "ExistenceFilter",
+                "ExistenceFilterChange",
+                "ExponentialBackoff",
+                "FieldFilter",
+                "FieldMask",
+                "FieldPath",
+                "Filter",
+                "FirebaseCredentialsProvider",
+                "Firestore",
+                "Firestore$1",
+                "FirestoreClient",
+                "FirestoreError",
+                "GrpcConnection",
+                "InFilter",
+                "IndexFreeQueryEngine",
+                "JsonProtoSerializer",
+                "KeyFieldFilter",
+                "KeyFieldInFilter",
+                "LLRBEmptyNode",
+                "LLRBNode",
+                "LimboResolution",
+                "ListenSequence",
+                "LocalClientState",
+                "LocalDocumentsView",
+                "LocalStoreImpl",
+                "LocalViewChanges",
+                "LruParams",
+                "MaybeDocument",
+                "MemoryCollectionParentIndex",
+                "MemoryComponentProvider",
+                "MemoryEagerDelegate",
+                "MemoryIndexManager",
+                "MemoryMutationQueue",
+                "MemoryPersistence",
+                "MemoryRemoteDocumentCache",
+                "MemorySharedClientState",
+                "MemoryTargetCache",
+                "MemoryTransaction",
+                "Mutation",
+                "MutationBatch",
+                "MutationBatchResult",
+                "MutationResult",
+                "NoDocument",
+                "NoopConnectivityMonitor",
+                "NumericIncrementTransformOperation",
+                "OAuthToken",
+                "ObjectMap",
+                "ObjectValue",
+                "ObjectValueBuilder",
+                "OnlineStateTracker",
+                "OrderBy",
+                "PatchMutation",
+                "PersistencePromise",
+                "PersistenceTransaction",
+                "PersistentListenStream",
+                "PersistentStream",
+                "PersistentWriteStream",
+                "Precondition",
+                "Query",
+                "QueryListener",
+                "QueryListenersInfo",
+                "QueryView",
+                "ReferenceSet",
+                "RemoteDocumentChangeBuffer",
+                "RemoteEvent",
+                "RemoteStore",
+                "RemovedLimboDocument",
+                "ResourcePath",
+                "ServerTimestampTransform",
+                "SetMutation",
+                "SnapshotMetadata",
+                "SnapshotVersion",
+                "SortedMap",
+                "SortedMapIterator",
+                "SortedSet",
+                "SortedSetIterator",
+                "StreamBridge",
+                "SyncEngineImpl",
+                "TargetChange",
+                "TargetData",
+                "TargetIdGenerator",
+                "TargetImpl",
+                "TargetState",
+                "Timestamp",
+                "Transaction",
+                "TransactionRunner",
+                "TransformMutation",
+                "TransformOperation",
+                "UnknownDocument",
+                "User",
+                "VerifyMutation",
+                "View",
+                "ViewSnapshot",
+                "WatchChangeAggregator",
+                "WatchTargetChange"
+            ],
+            "variables": []
+        },
+        "sizeInBytes": 209885
     },
     "Timestamp": {
         "dependencies": {
@@ -4115,7 +4441,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 209492
+        "sizeInBytes": 209647
     },
     "Transaction": {
         "dependencies": {
@@ -4496,7 +4822,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 236841
+        "sizeInBytes": 237073
     },
     "WriteBatch": {
         "dependencies": {
@@ -4868,7 +5194,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 231107
+        "sizeInBytes": 231314
     },
     "addDoc": {
         "dependencies": {
@@ -5247,7 +5573,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 242401
+        "sizeInBytes": 242996
     },
     "arrayRemove": {
         "dependencies": {
@@ -5605,7 +5931,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 222185
+        "sizeInBytes": 222340
     },
     "arrayUnion": {
         "dependencies": {
@@ -5963,7 +6289,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 222178
+        "sizeInBytes": 222333
     },
     "clearIndexedDbPersistence": {
         "dependencies": {
@@ -6298,7 +6624,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 219642
+        "sizeInBytes": 219797
     },
     "collection": {
         "dependencies": {
@@ -6672,7 +6998,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 239566
+        "sizeInBytes": 240178
     },
     "collectionGroup": {
         "dependencies": {
@@ -7044,7 +7370,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 238991
+        "sizeInBytes": 239231
     },
     "deleteDoc": {
         "dependencies": {
@@ -7372,7 +7698,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 210264
+        "sizeInBytes": 210471
     },
     "deleteField": {
         "dependencies": {
@@ -7702,7 +8028,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 210572
+        "sizeInBytes": 210727
     },
     "disableNetwork": {
         "dependencies": {
@@ -8028,7 +8354,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 209679
+        "sizeInBytes": 209834
     },
     "doc": {
         "dependencies": {
@@ -8402,7 +8728,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 239635
+        "sizeInBytes": 240230
     },
     "documentId": {
         "dependencies": {
@@ -8738,7 +9064,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 212276
+        "sizeInBytes": 212431
     },
     "enableIndexedDbPersistence": {
         "dependencies": {
@@ -9169,7 +9495,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 289566
+        "sizeInBytes": 289722
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -9308,11 +9634,14 @@
                 "fromWriteResults",
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
+                "getCachedTarget",
+                "getCurrentlyActiveClients",
                 "getDocument",
                 "getEncodedDatabaseId",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
+                "getNewDocumentChanges",
                 "getPostMutationVersion",
                 "getWindow",
                 "globalTargetStore",
@@ -9346,6 +9675,7 @@
                 "logDebug",
                 "logError",
                 "logWarn",
+                "lookupMutationDocuments",
                 "mapCodeFromRpcCode",
                 "maybeDocumentMap",
                 "mutationEquals",
@@ -9357,7 +9687,6 @@
                 "newConnectivityMonitor",
                 "newDatastore",
                 "newLocalStore",
-                "newMultiTabLocalStore",
                 "newMultiTabSyncEngine",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
@@ -9388,6 +9717,7 @@
                 "randomBytes",
                 "registerFirestore",
                 "remoteDocumentsStore",
+                "removeCachedMutationBatchMetadata",
                 "removeMutationBatch",
                 "requireDocument",
                 "sentinelKey",
@@ -9401,6 +9731,7 @@
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "synchronizeLastDocumentChangeReadTime",
                 "targetEquals",
                 "targetIdSet",
                 "targetsStore",
@@ -9546,7 +9877,6 @@
                 "MemoryTargetCache",
                 "MemoryTransaction",
                 "MultiTabIndexedDbComponentProvider",
-                "MultiTabLocalStoreImpl",
                 "MultiTabSyncEngineImpl",
                 "Mutation",
                 "MutationBatch",
@@ -9617,7 +9947,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 312642
+        "sizeInBytes": 312634
     },
     "enableNetwork": {
         "dependencies": {
@@ -9943,7 +10273,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 209676
+        "sizeInBytes": 209831
     },
     "getDoc": {
         "dependencies": {
@@ -10303,7 +10633,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 224596
+        "sizeInBytes": 224828
     },
     "getDocFromCache": {
         "dependencies": {
@@ -10659,7 +10989,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 222871
+        "sizeInBytes": 223103
     },
     "getDocFromServer": {
         "dependencies": {
@@ -11019,7 +11349,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 224634
+        "sizeInBytes": 224866
     },
     "getFirestore": {
         "dependencies": {
@@ -11345,7 +11675,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 209591
+        "sizeInBytes": 209746
     },
     "getQuery": {
         "dependencies": {
@@ -11727,7 +12057,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 244559
+        "sizeInBytes": 244809
     },
     "getQueryFromCache": {
         "dependencies": {
@@ -12105,7 +12435,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 242888
+        "sizeInBytes": 243138
     },
     "getQueryFromServer": {
         "dependencies": {
@@ -12486,7 +12816,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 244297
+        "sizeInBytes": 244547
     },
     "increment": {
         "dependencies": {
@@ -12819,7 +13149,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 210824
+        "sizeInBytes": 210979
     },
     "initializeFirestore": {
         "dependencies": {
@@ -13145,7 +13475,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 210002
+        "sizeInBytes": 210157
     },
     "onSnapshot": {
         "dependencies": {
@@ -13530,7 +13860,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 246130
+        "sizeInBytes": 246380
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -13860,7 +14190,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 210835
+        "sizeInBytes": 210990
     },
     "parent": {
         "dependencies": {
@@ -14233,7 +14563,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 239274
+        "sizeInBytes": 239520
     },
     "queryEqual": {
         "dependencies": {
@@ -14605,7 +14935,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 238743
+        "sizeInBytes": 238983
     },
     "refEqual": {
         "dependencies": {
@@ -14978,7 +15308,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 239216
+        "sizeInBytes": 239479
     },
     "runTransaction": {
         "dependencies": {
@@ -15360,7 +15690,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 237198
+        "sizeInBytes": 237430
     },
     "serverTimestamp": {
         "dependencies": {
@@ -15691,7 +16021,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 210467
+        "sizeInBytes": 210622
     },
     "setDoc": {
         "dependencies": {
@@ -16056,7 +16386,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 226158
+        "sizeInBytes": 226365
     },
     "setLogLevel": {
         "dependencies": {
@@ -16382,7 +16712,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 209557
+        "sizeInBytes": 209712
     },
     "snapshotEqual": {
         "dependencies": {
@@ -16761,7 +17091,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 243309
+        "sizeInBytes": 243559
     },
     "terminate": {
         "dependencies": {
@@ -17086,7 +17416,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 209507
+        "sizeInBytes": 209662
     },
     "updateDoc": {
         "dependencies": {
@@ -17454,7 +17784,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 227657
+        "sizeInBytes": 227864
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -17780,7 +18110,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 209697
+        "sizeInBytes": 209852
     },
     "writeBatch": {
         "dependencies": {
@@ -18153,6 +18483,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 231320
+        "sizeInBytes": 231527
     }
 }

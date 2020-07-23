@@ -56,7 +56,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 20582
+        "sizeInBytes": 20614
     },
     "CollectionReference": {
         "dependencies": {
@@ -206,7 +206,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 69755
+        "sizeInBytes": 69895
     },
     "DocumentReference": {
         "dependencies": {
@@ -233,11 +233,13 @@
                 "terminateDatastore"
             ],
             "classes": [
+                "BasePath",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
+                "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
                 "FirebaseCredentialsProvider",
@@ -246,12 +248,13 @@
                 "GrpcConnection",
                 "JsonProtoSerializer",
                 "OAuthToken",
+                "ResourcePath",
                 "StreamBridge",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 16293
+        "sizeInBytes": 19219
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -339,7 +342,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 36707
+        "sizeInBytes": 36806
     },
     "FieldPath": {
         "dependencies": {
@@ -394,7 +397,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 21845
+        "sizeInBytes": 21877
     },
     "FieldValue": {
         "dependencies": {
@@ -439,7 +442,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 15885
+        "sizeInBytes": 15917
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -482,7 +485,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 15792
+        "sizeInBytes": 15824
     },
     "GeoPoint": {
         "dependencies": {
@@ -534,7 +537,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18646
+        "sizeInBytes": 18678
     },
     "Query": {
         "dependencies": {
@@ -678,7 +681,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 64598
+        "sizeInBytes": 64715
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -766,7 +769,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 36712
+        "sizeInBytes": 36811
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -810,7 +813,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16026
+        "sizeInBytes": 16058
     },
     "Timestamp": {
         "dependencies": {
@@ -854,7 +857,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17328
+        "sizeInBytes": 17360
     },
     "Transaction": {
         "dependencies": {
@@ -995,7 +998,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 59416
+        "sizeInBytes": 59515
     },
     "WriteBatch": {
         "dependencies": {
@@ -1094,6 +1097,7 @@
                 "Deferred",
                 "DeleteFieldValueImpl",
                 "DeleteMutation",
+                "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
                 "FieldMask",
@@ -1127,7 +1131,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53607
+        "sizeInBytes": 54277
     },
     "addDoc": {
         "dependencies": {
@@ -1310,7 +1314,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 79064
+        "sizeInBytes": 79536
     },
     "arrayRemove": {
         "dependencies": {
@@ -1405,7 +1409,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 35152
+        "sizeInBytes": 35184
     },
     "arrayUnion": {
         "dependencies": {
@@ -1500,7 +1504,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 35144
+        "sizeInBytes": 35176
     },
     "collection": {
         "dependencies": {
@@ -1652,7 +1656,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 70390
+        "sizeInBytes": 70879
     },
     "collectionGroup": {
         "dependencies": {
@@ -1802,7 +1806,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 69815
+        "sizeInBytes": 69932
     },
     "deleteDoc": {
         "dependencies": {
@@ -1851,6 +1855,7 @@
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteMutation",
+                "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
                 "FirebaseCredentialsProvider",
@@ -1874,7 +1879,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23962
+        "sizeInBytes": 24632
     },
     "deleteField": {
         "dependencies": {
@@ -1922,7 +1927,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16851
+        "sizeInBytes": 16883
     },
     "doc": {
         "dependencies": {
@@ -2076,7 +2081,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 70960
+        "sizeInBytes": 71432
     },
     "documentId": {
         "dependencies": {
@@ -2132,7 +2137,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 21895
+        "sizeInBytes": 21927
     },
     "getDoc": {
         "dependencies": {
@@ -2250,7 +2255,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 44898
+        "sizeInBytes": 44997
     },
     "getFirestore": {
         "dependencies": {
@@ -2294,7 +2299,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 15871
+        "sizeInBytes": 15903
     },
     "getQuery": {
         "dependencies": {
@@ -2466,7 +2471,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 72058
+        "sizeInBytes": 72175
     },
     "increment": {
         "dependencies": {
@@ -2522,7 +2527,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17716
+        "sizeInBytes": 17748
     },
     "initializeFirestore": {
         "dependencies": {
@@ -2566,7 +2571,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 15957
+        "sizeInBytes": 15989
     },
     "parent": {
         "dependencies": {
@@ -2717,7 +2722,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 70098
+        "sizeInBytes": 70221
     },
     "queryEqual": {
         "dependencies": {
@@ -2867,7 +2872,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 66184
+        "sizeInBytes": 66301
     },
     "refEqual": {
         "dependencies": {
@@ -3018,7 +3023,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 70040
+        "sizeInBytes": 70180
     },
     "runTransaction": {
         "dependencies": {
@@ -3197,7 +3202,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 76752
+        "sizeInBytes": 76851
     },
     "serverTimestamp": {
         "dependencies": {
@@ -3248,7 +3253,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16839
+        "sizeInBytes": 16871
     },
     "setDoc": {
         "dependencies": {
@@ -3354,6 +3359,7 @@
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteMutation",
+                "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
                 "FieldMask",
@@ -3387,7 +3393,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 50416
+        "sizeInBytes": 51086
     },
     "setLogLevel": {
         "dependencies": {
@@ -3431,7 +3437,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 15836
+        "sizeInBytes": 15868
     },
     "snapshotEqual": {
         "dependencies": {
@@ -3583,7 +3589,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 66917
+        "sizeInBytes": 67034
     },
     "terminate": {
         "dependencies": {
@@ -3626,7 +3632,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 15771
+        "sizeInBytes": 15803
     },
     "updateDoc": {
         "dependencies": {
@@ -3734,6 +3740,7 @@
                 "Deferred",
                 "DeleteFieldValueImpl",
                 "DeleteMutation",
+                "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
                 "FieldMask",
@@ -3769,7 +3776,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53523
+        "sizeInBytes": 54193
     },
     "writeBatch": {
         "dependencies": {
@@ -3880,6 +3887,7 @@
                 "Deferred",
                 "DeleteFieldValueImpl",
                 "DeleteMutation",
+                "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
                 "FieldMask",
@@ -3917,6 +3925,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 57224
+        "sizeInBytes": 57894
     }
 }
