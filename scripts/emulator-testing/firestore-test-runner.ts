@@ -48,6 +48,8 @@ async function run(): Promise<void> {
   try {
     await emulator.download();
     await emulator.setUp();
+    // When persistence is enabled, the test runner runs all tests
+    // twice (once with and once without persistence).
     await runTest(emulator.port, emulator.projectId, true);
   } finally {
     await emulator.tearDown();
