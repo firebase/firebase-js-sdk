@@ -48,11 +48,16 @@ export interface MemberList {
   functions: string[];
   variables: string[];
   enums: string[];
-  externals: object[];
+  externals: object;
 }
 /** Contains the dependencies and the size of their code for a single export. */
 export interface ExportData {
-  dependencies: MemberList;
+  symbol: string;
+  classes: string[];
+  functions: string[];
+  variables: string[];
+  enums: string[];
+  externals: object;
   sizeInBytes: number;
   sizeInBytesWithExternalDeps: number;
 }
@@ -66,18 +71,18 @@ export interface ExportData {
  * @param jsBundle The file name of the source bundle that contains the export
  * @return A list of dependencies for the given export
  */
-export async function extractDependencies(
-  exportName: string,
-  jsBundle: string,
-  map: Map<string, string>
-): Promise<MemberList> {
-  const { dependencies } = await extractDependenciesAndSize(
-    exportName,
-    jsBundle,
-    map
-  );
-  return dependencies;
-}
+// export async function extractDependencies(
+//   exportName: string,
+//   jsBundle: string,
+//   map: Map<string, string>
+// ): Promise<MemberList> {
+//   const { dependencies } = await extractDependenciesAndSize(
+//     exportName,
+//     jsBundle,
+//     map
+//   );
+//   return dependencies;
+// }
 
 /**
  * Helper for extractDependencies that extracts the dependencies and the size
@@ -119,10 +124,13 @@ export async function extractDependenciesAndSize(
     externalDepsNotResolvedOutput,
     map
   );
+  console.log('\n\n\n');
+  console.log(fs.readFileSync(externalDepsNotResolvedOutput, 'utf-8'));
+  console.log('\n\n\n');
   const externals: object = extractExternalDependencies(
     externalDepsNotResolvedOutput
   );
-  dependencies.externals.push(externals);
+  Object.assign(dependencies.externals, externals);
 
   const afterContentFullyResolved = fs.readFileSync(
     fullyResolvedOutput,
@@ -157,14 +165,26 @@ export async function extractDependenciesAndSize(
   fs.unlinkSync(input);
   fs.unlinkSync(externalDepsNotResolvedOutput);
   fs.unlinkSync(fullyResolvedOutput);
-  return {
-    dependencies,
-    sizeInBytes: Buffer.byteLength(codeMinimized.code!, 'utf-8'),
-    sizeInBytesWithExternalDeps: Buffer.byteLength(
-      codeFullyResolved.code!,
-      'utf-8'
-    )
+  const report: ExportData = {
+    symbol: '',
+    classes: null,
+    functions: null,
+    variables: null,
+    enums: null,
+    externals: null,
+    sizeInBytes: 0,
+    sizeInBytesWithExternalDeps: 0
   };
+  report.symbol = exportName;
+  for (const key of Object.keys(dependencies)) {
+    report[key] = dependencies[key];
+  }
+  report.sizeInBytes = Buffer.byteLength(codeMinimized.code!, 'utf-8');
+  report.sizeInBytesWithExternalDeps = Buffer.byteLength(
+    codeFullyResolved.code!,
+    'utf-8'
+  );
+  return report;
 }
 
 /**
@@ -201,7 +221,7 @@ export function extractDeclarations(
     classes: [],
     variables: [],
     enums: [],
-    externals: []
+    externals: {}
   };
   // define a map here which is used to handle export statements like "export {LogLevel}".
   // As there is no from clause in such export statements, we retrieve symbol location by parsing the corresponding import
@@ -307,7 +327,9 @@ export function extractDeclarations(
 
   //Sort to ensure stable output
   Object.values(declarations).map(each => {
-    each.sort();
+    if (Array.isArray(each)) {
+      each.sort();
+    }
   });
   return declarations;
 }
@@ -331,7 +353,7 @@ function handleExportStatementsWithFromClause(
     classes: [],
     variables: [],
     enums: [],
-    externals: []
+    externals: {}
   };
   if (symbol && symbol.valueDeclaration) {
     const reExportFullPath = symbol.valueDeclaration.getSourceFile().fileName;
@@ -457,8 +479,10 @@ function handleExportStatementsWithoutFromClause(
  */
 export function dedup(memberList: MemberList): MemberList {
   for (const key of Object.keys(memberList)) {
-    const set: Set<string> = new Set(memberList[key]);
-    memberList[key] = Array.from(set);
+    if (Array.isArray(memberList[key])) {
+      const set: Set<string> = new Set(memberList[key]);
+      memberList[key] = Array.from(set);
+    }
   }
   return memberList;
 }
@@ -472,17 +496,19 @@ export function mapSymbolToType(
     classes: [],
     variables: [],
     enums: [],
-    externals: []
+    externals: {}
   };
 
   for (const key of Object.keys(memberList)) {
-    memberList[key].forEach(element => {
-      if (map.has(element)) {
-        newMemberList[map.get(element)].push(element);
-      } else {
-        newMemberList[key].push(element);
-      }
-    });
+    if (Array.isArray(memberList[key])) {
+      memberList[key].forEach(element => {
+        if (map.has(element)) {
+          newMemberList[map.get(element)].push(element);
+        } else {
+          newMemberList[key].push(element);
+        }
+      });
+    }
   }
   return newMemberList;
 }
@@ -664,9 +690,11 @@ export async function generateReportForModule(
 function buildMap(api: MemberList): Map<string, string> {
   const map: Map<string, string> = new Map();
   for (const type of Object.keys(api)) {
-    api[type].forEach(element => {
-      map.set(element, type);
-    });
+    if (Array.isArray(api[type])) {
+      api[type].forEach(element => {
+        map.set(element, type);
+      });
+    }
   }
   return map;
 }
@@ -716,19 +744,21 @@ export async function buildJsonReport(
   jsFile: string,
   map: Map<string, string>
 ): Promise<string> {
-  const result: { [key: string]: ExportData } = {};
+  const result: object = {};
+  const SYMBOLS: string = 'symbols';
+  result[SYMBOLS] = [];
   for (const exp of publicApi.classes) {
-    result[exp] = await extractDependenciesAndSize(exp, jsFile, map);
+    result[SYMBOLS].push(await extractDependenciesAndSize(exp, jsFile, map));
   }
   for (const exp of publicApi.functions) {
-    result[exp] = await extractDependenciesAndSize(exp, jsFile, map);
+    result[SYMBOLS].push(await extractDependenciesAndSize(exp, jsFile, map));
   }
   for (const exp of publicApi.variables) {
-    result[exp] = await extractDependenciesAndSize(exp, jsFile, map);
+    result[SYMBOLS].push(await extractDependenciesAndSize(exp, jsFile, map));
   }
 
   for (const exp of publicApi.enums) {
-    result[exp] = await extractDependenciesAndSize(exp, jsFile, map);
+    result[SYMBOLS].push(await extractDependenciesAndSize(exp, jsFile, map));
   }
   return JSON.stringify(result, null, 4);
 }
