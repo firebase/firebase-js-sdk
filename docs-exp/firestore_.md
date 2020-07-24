@@ -54,10 +54,10 @@
 |  [getDoc(reference)](./firestore_.getdoc.md) |  |
 |  [getDocFromCache(reference)](./firestore_.getdocfromcache.md) |  |
 |  [getDocFromServer(reference)](./firestore_.getdocfromserver.md) |  |
+|  [getDocs(query)](./firestore_.getdocs.md) |  |
+|  [getDocsFromCache(query)](./firestore_.getdocsfromcache.md) |  |
+|  [getDocsFromServer(query)](./firestore_.getdocsfromserver.md) |  |
 |  [getFirestore(app)](./firestore_.getfirestore.md) |  |
-|  [getQuery(query)](./firestore_.getquery.md) |  |
-|  [getQueryFromCache(query)](./firestore_.getqueryfromcache.md) |  |
-|  [getQueryFromServer(query)](./firestore_.getqueryfromserver.md) |  |
 |  [increment(n)](./firestore_.increment.md) |  |
 |  [initializeFirestore(app, settings)](./firestore_.initializefirestore.md) |  |
 |  [limit(limit)](./firestore_.limit.md) |  |

@@ -46,8 +46,8 @@
 |  [endBefore(snapshot)](./firestore_lite.endbefore.md) |  |
 |  [endBefore(fieldValues)](./firestore_lite.endbefore_1.md) |  |
 |  [getDoc(reference)](./firestore_lite.getdoc.md) |  |
+|  [getDocs(query)](./firestore_lite.getdocs.md) |  |
 |  [getFirestore(app)](./firestore_lite.getfirestore.md) |  |
-|  [getQuery(query)](./firestore_lite.getquery.md) |  |
 |  [increment(n)](./firestore_lite.increment.md) |  |
 |  [initializeFirestore(app, settings)](./firestore_lite.initializefirestore.md) |  |
 |  [limit(limit)](./firestore_lite.limit.md) |  |
