@@ -102,7 +102,6 @@ registerAnalytics(firebase as _FirebaseNamespace);
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     analytics(app?: FirebaseApp): FirebaseAnalytics;
-    isSupported(): Promise<boolean>;
   }
   interface FirebaseApp {
     analytics(): FirebaseAnalytics;
