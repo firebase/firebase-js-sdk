@@ -1,7 +1,7 @@
 ---
 '@firebase/analytics': patch
 '@firebase/util': minor
-'firebase': minor
+'firebase': patch
 ---
 
 - Fix an error where an analytics PR included a change to `@firebase/util`, but
