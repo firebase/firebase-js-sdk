@@ -61,9 +61,9 @@ export class RecaptchaVerifier
     private readonly parameters: Parameters = {
       ...DEFAULT_PARAMS
     },
-    auth?: Auth | null
+    auth?: externs.Auth | null
   ) {
-    this.auth = auth || (initializeAuth() as Auth);
+    this.auth = (auth || initializeAuth()) as Auth;
     this.appName = this.auth.name;
     this.isInvisible = this.parameters.size === 'invisible';
     const container =
