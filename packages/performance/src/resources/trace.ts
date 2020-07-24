@@ -148,24 +148,24 @@ export class Trace implements PerformanceTrace {
    * custom metric if one with the given name does not exist. The value will be floored down to an
    * integer.
    * @param counter Name of the custom metric
-   * @param num Increment by value
+   * @param numAsInteger Increment by value
    */
-  incrementMetric(counter: string, num = 1): void {
+  incrementMetric(counter: string, numAsInteger = 1): void {
     if (this.counters[counter] === undefined) {
       this.putMetric(counter, 0);
     }
-    this.counters[counter] += Math.floor(num);
+    this.counters[counter] += Math.floor(numAsInteger);
   }
 
   /**
    * Sets a custom metric to a specified value. Will create a new custom metric if one with the
    * given name does not exist. The value will be floored down to an integer.
    * @param counter Name of the custom metric
-   * @param num Set custom metric to this value
+   * @param numAsInteger Set custom metric to this value
    */
-  putMetric(counter: string, num: number): void {
+  putMetric(counter: string, numAsInteger: number): void {
     if (isValidMetricName(counter, this.name)) {
-      this.counters[counter] = Math.floor(num);
+      this.counters[counter] = Math.floor(numAsInteger);
     } else {
       throw ERROR_FACTORY.create(ErrorCode.INVALID_CUSTOM_METRIC_NAME, {
         customMetricName: counter
