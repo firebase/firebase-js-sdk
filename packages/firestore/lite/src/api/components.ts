@@ -21,6 +21,7 @@ import { newSerializer } from '../../../src/platform/serializer';
 import { Firestore } from './database';
 import { DatabaseInfo } from '../../../src/core/database_info';
 import { logDebug } from '../../../src/util/log';
+import { Code, FirestoreError } from '../../../src/util/error';
 
 export const LOG_TAG = 'ComponentProvider';
 
@@ -44,6 +45,12 @@ const datastoreInstances = new Map<Firestore, Promise<Datastore>>();
  * instance is terminated.
  */
 export function getDatastore(firestore: Firestore): Promise<Datastore> {
+  if (firestore._terminated) {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'The client has already been terminated.'
+    );
+  }
   if (!datastoreInstances.has(firestore)) {
     logDebug(LOG_TAG, 'Initializing Datastore');
     const settings = firestore._getSettings();

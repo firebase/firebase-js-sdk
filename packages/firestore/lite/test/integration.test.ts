@@ -109,9 +109,13 @@ describe('Firestore', () => {
       { apiKey: 'fake-api-key', projectId: 'test-project' },
       'test-app-initializeFirestore-twice'
     );
-    initializeFirestore(app, { host: 'localhost', ssl: false });
+    const db = initializeFirestore(app, {});
+
+    // Start the client.
+    writeBatch(db);
+
     expect(() => {
-      initializeFirestore(app, { host: 'localhost', ssl: false });
+      initializeFirestore(app, {});
     }).to.throw(
       'Firestore has already been started and its settings can no longer be changed.'
     );
@@ -132,9 +136,13 @@ describe('Firestore', () => {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     terminate(firestore);
 
-    return expect(
-      getDoc(doc(firestore, 'coll/doc'))
-    ).to.be.eventually.rejectedWith('The client has already been terminated.');
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      getDoc(doc(firestore, 'coll/doc'));
+      expect.fail();
+    } catch (e) {
+      expect(e.message).to.equal('The client has already been terminated.');
+    }
   });
 
   it('can call terminate() multiple times', () => {
