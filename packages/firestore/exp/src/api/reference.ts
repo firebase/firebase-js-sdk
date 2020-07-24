@@ -17,7 +17,7 @@
 
 // See https://github.com/typescript-eslint/typescript-eslint/issues/363
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import * as firestore from '../../index';
+import * as firestore from '../../../exp-types';
 
 import { Firestore } from './database';
 import {
@@ -265,7 +265,7 @@ export function addDoc<T>(
   const firestore = cast(collRef.firestore, Firestore);
   const docRef = doc(collRef);
 
-  const convertedValue = applyFirestoreDataConverter(collRef._converter, data);
+  const convertedValue = applyFirestoreDataConverter(collRef.converter, data);
 
   const dataReader = newUserDataReader(collRef.firestore);
   const parsed = parseSetData(
@@ -273,7 +273,7 @@ export function addDoc<T>(
     'addDoc',
     docRef._key,
     convertedValue,
-    collRef._converter !== null,
+    collRef.converter !== null,
     {}
   );
 

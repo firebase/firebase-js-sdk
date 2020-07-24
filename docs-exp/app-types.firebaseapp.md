@@ -18,7 +18,7 @@ export interface FirebaseApp
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [automaticDataCollectionEnabled](./app-types.firebaseapp.automaticdatacollectionenabled.md) | <code>boolean</code> | The settable config flag for GDPR opt-in/opt-out |
-|  [name](./app-types.firebaseapp.name.md) | <code>string</code> | The (read-only) name for this app.<!-- -->The default app's name is <code>&quot;[DEFAULT]&quot;</code>. |
-|  [options](./app-types.firebaseapp.options.md) | <code>FirebaseOptions</code> | The (read-only) configuration options for this app. These are the original parameters given in [initializeApp()](./app.initializeapp.md)<!-- -->. |
+|  [automaticDataCollectionEnabled](./app-types.firebaseapp.automaticdatacollectionenabled.md) | boolean | The settable config flag for GDPR opt-in/opt-out |
+|  [name](./app-types.firebaseapp.name.md) | string | The (read-only) name for this app.<!-- -->The default app's name is <code>&quot;[DEFAULT]&quot;</code>. |
+|  [options](./app-types.firebaseapp.options.md) | [FirebaseOptions](./app-types.firebaseoptions.md) | The (read-only) configuration options for this app. These are the original parameters given in [initializeApp()](./app.initializeapp.md)<!-- -->. |
 

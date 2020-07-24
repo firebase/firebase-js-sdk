@@ -19,7 +19,9 @@ import {
   FieldFilter,
   Query,
   queryEquals,
-  Filter
+  Filter,
+  newQueryForPath,
+  queryToTarget
 } from '../../../src/core/query';
 import { canonifyTarget, Target, targetEquals } from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
@@ -254,7 +256,7 @@ export class SpecBuilder {
   userListens(query: Query, resumeToken?: string): this {
     this.nextStep();
 
-    const target = query.toTarget();
+    const target = queryToTarget(query);
     let targetId: TargetId = 0;
 
     if (this.injectFailures) {
@@ -284,7 +286,7 @@ export class SpecBuilder {
    * stream disconnect.
    */
   restoreListen(query: Query, resumeToken: string): this {
-    const targetId = this.queryMapping.get(query.toTarget());
+    const targetId = this.queryMapping.get(queryToTarget(query));
 
     if (isNullOrUndefined(targetId)) {
       throw new Error("Can't restore an unknown query: " + query);
@@ -300,7 +302,7 @@ export class SpecBuilder {
 
   userUnlistens(query: Query): this {
     this.nextStep();
-    const target = query.toTarget();
+    const target = queryToTarget(query);
     if (!this.queryMapping.has(target)) {
       throw new Error('Unlistening to query not listened to: ' + query);
     }
@@ -527,7 +529,7 @@ export class SpecBuilder {
       // Limbo doc queries are always without resume token
       this.addQueryToActiveTargets(
         this.limboMapping[path],
-        Query.atPath(key.path),
+        newQueryForPath(key.path),
         ''
       );
     });
@@ -562,7 +564,7 @@ export class SpecBuilder {
    * messages.
    */
   ackLimbo(version: TestSnapshotVersion, doc: Document | NoDocument): this {
-    const query = Query.atPath(doc.key.path);
+    const query = newQueryForPath(doc.key.path);
     this.watchAcks(query);
     if (doc instanceof Document) {
       this.watchSends({ affects: [query] }, doc);
@@ -582,7 +584,7 @@ export class SpecBuilder {
    * translated into normal watch messages.
    */
   watchRemovesLimboTarget(doc: Document | NoDocument): this {
-    const query = Query.atPath(doc.key.path);
+    const query = newQueryForPath(doc.key.path);
     this.watchRemoves(query);
     return this;
   }
@@ -861,7 +863,7 @@ export class SpecBuilder {
   expectListen(query: Query, resumeToken?: string): this {
     this.assertStep('Expectations require previous step');
 
-    const target = query.toTarget();
+    const target = queryToTarget(query);
     const targetId = this.queryIdGenerator.cachedId(target);
     this.queryMapping.set(target, targetId);
 
@@ -877,7 +879,7 @@ export class SpecBuilder {
   expectUnlisten(query: Query): this {
     this.assertStep('Expectations require previous step');
 
-    const target = query.toTarget();
+    const target = queryToTarget(query);
     const targetId = this.queryMapping.get(target)!;
 
     this.removeQueryFromActiveTargets(query, targetId);
@@ -1076,7 +1078,7 @@ export class SpecBuilder {
   }
 
   private getTargetId(query: Query): TargetId {
-    const queryTargetId = this.queryMapping.get(query.toTarget());
+    const queryTargetId = this.queryMapping.get(queryToTarget(query));
     const limboTargetId = this.limboMapping[query.path.canonicalString()];
     if (queryTargetId && limboTargetId) {
       // TODO(dimond): add support for query for doc and limbo doc at the same

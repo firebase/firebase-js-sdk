@@ -27,7 +27,7 @@ import {
   QuerySnapshot
 } from '../../src/api/database';
 import { MultiTabIndexedDbComponentProvider } from '../../src/core/component_provider';
-import { Query as InternalQuery } from '../../src/core/query';
+import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
   ChangeType,
   DocumentViewChange,
@@ -39,13 +39,14 @@ import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/object_value';
 import { doc, key, path as pathFrom } from './helpers';
 import { Provider, ComponentContainer } from '@firebase/component';
+import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
 
 /**
  * A mock Firestore. Will not work for integration test.
  */
 export const FIRESTORE = new Firestore(
   {
-    projectId: 'test-project',
+    projectId: TEST_PROJECT,
     database: '(default)'
   },
   new Provider('auth-internal', new ComponentContainer('default')),
@@ -106,7 +107,7 @@ export function documentSnapshot(
 
 export function query(path: string): Query {
   return new Query(
-    InternalQuery.atPath(pathFrom(path)),
+    newQueryForPath(pathFrom(path)),
     firestore(),
     /* converter= */ null
   );
@@ -133,7 +134,7 @@ export function querySnapshot(
   fromCache: boolean,
   syncStateChanged: boolean
 ): QuerySnapshot {
-  const query: InternalQuery = InternalQuery.atPath(pathFrom(path));
+  const query: InternalQuery = newQueryForPath(pathFrom(path));
   let oldDocuments: DocumentSet = new DocumentSet();
   Object.keys(oldDocs).forEach(key => {
     oldDocuments = oldDocuments.add(doc(path + '/' + key, 1, oldDocs[key]));

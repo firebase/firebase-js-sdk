@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { Query } from '../../../src/core/query';
+import { queryToTarget } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
@@ -26,7 +26,7 @@ import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   filter,
   key,
-  path,
+  query,
   resumeTokenForSnapshot,
   version
 } from '../../util/helpers';
@@ -70,7 +70,7 @@ describe('IndexedDbTargetCache', () => {
     const lastLimboFreeSnapshotVersion = SnapshotVersion.fromTimestamp(
       new Timestamp(3, 4)
     );
-    const target = Query.atPath(path('rooms')).toTarget();
+    const target = queryToTarget(query('rooms'));
     const targetData = new TargetData(
       target,
       targetId,
@@ -114,9 +114,9 @@ function genericTargetCacheTests(
   addEqualityMatcher({ equalsFn: targetEquals, forType: TargetImpl });
   let cache: TestTargetCache;
 
-  const QUERY_ROOMS = Query.atPath(path('rooms')).toTarget();
-  const QUERY_HALLS = Query.atPath(path('halls')).toTarget();
-  const QUERY_GARAGES = Query.atPath(path('garages')).toTarget();
+  const QUERY_ROOMS = queryToTarget(query('rooms'));
+  const QUERY_HALLS = queryToTarget(query('halls'));
+  const QUERY_GARAGES = queryToTarget(query('garages'));
 
   /**
    * Creates a new TargetData object from the the given parameters, synthesizing
@@ -173,12 +173,8 @@ function genericTargetCacheTests(
   it('handles canonical ID collisions', async () => {
     // Type information is currently lost in our canonicalID implementations so
     // this currently an easy way to force colliding canonicalIDs
-    const q1 = Query.atPath(path('a'))
-      .addFilter(filter('foo', '==', 1))
-      .toTarget();
-    const q2 = Query.atPath(path('a'))
-      .addFilter(filter('foo', '==', '1'))
-      .toTarget();
+    const q1 = queryToTarget(query('a', filter('foo', '==', 1)));
+    const q2 = queryToTarget(query('a', filter('foo', '==', '1')));
     expect(canonifyTarget(q1)).to.equal(canonifyTarget(q2));
 
     const data1 = testTargetData(q1, 1, 1);

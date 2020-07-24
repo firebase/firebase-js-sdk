@@ -24,9 +24,12 @@ import {
   FieldFilter,
   Filter,
   LimitType,
+  newQuery,
+  newQueryForPath,
   Operator,
   OrderBy,
-  Query
+  Query,
+  queryToTarget
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { isDocumentTarget, Target } from '../core/target';
@@ -809,7 +812,7 @@ export function fromDocumentsTarget(
     'DocumentsTarget contained other than 1 document: ' + count
   );
   const name = documentsTarget.documents![0];
-  return Query.atPath(fromQueryPath(name)).toTarget();
+  return queryToTarget(newQueryForPath(fromQueryPath(name)));
 }
 
 export function toQueryTarget(
@@ -909,7 +912,7 @@ export function convertQueryTargetToQuery(target: api.QueryTarget): Query {
     endAt = fromCursor(query.endAt);
   }
 
-  return new Query(
+  return newQuery(
     path,
     collectionGroup,
     orderBy,
@@ -922,7 +925,7 @@ export function convertQueryTargetToQuery(target: api.QueryTarget): Query {
 }
 
 export function fromQueryTarget(target: api.QueryTarget): Target {
-  return convertQueryTargetToQuery(target).toTarget();
+  return queryToTarget(convertQueryTargetToQuery(target));
 }
 
 export function toListenRequestLabels(

@@ -8,7 +8,11 @@
   "scripts": {
     "test": "tsc",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
-    "prepare": "node ../../scripts/exp/remove-exp.js ./index.d.ts"
+    "prepare": "node ../../scripts/exp/remove-exp.js ./index.d.ts",
+    "api-report": "api-extractor run --local --verbose",
+    "predoc": "node ../../scripts/exp/remove-exp.js temp",
+    "doc": "api-documenter markdown --input temp --output docs",
+    "build:doc": "yarn api-report && yarn doc"
   },
   "files": [
     "index.d.ts"

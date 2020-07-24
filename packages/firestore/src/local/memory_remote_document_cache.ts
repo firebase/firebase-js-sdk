@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query, queryMatches } from '../core/query';
+import { isCollectionGroupQuery, Query, queryMatches } from '../core/query';
 import {
   DocumentKeySet,
   DocumentMap,
@@ -141,7 +141,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
     debugAssert(
-      !query.isCollectionGroupQuery(),
+      !isCollectionGroupQuery(query),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
     let results = documentMap();

@@ -56,7 +56,7 @@ import {
 } from './indexeddb_schema';
 import { TargetData, TargetPurpose } from './target_data';
 import { Bundle, NamedQuery } from '../core/bundle';
-import { Query } from '../core/query';
+import { LimitType, Query, queryWithLimit } from '../core/query';
 import * as bundleProto from '../protos/firestore_bundle_proto';
 
 /** Serializer for values stored in the LocalStore. */
@@ -342,7 +342,11 @@ export function fromBundledQuery(
     structuredQuery: bundledQuery.structuredQuery!
   });
   if (bundledQuery.limitType === 'LAST') {
-    return query.withLimitToLast(query.limit);
+    debugAssert(
+      !!query.limit,
+      'Bundled query has limitType LAST, but limit is null'
+    );
+    return queryWithLimit(query, query.limit, LimitType.Last);
   }
   return query;
 }

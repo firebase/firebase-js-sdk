@@ -23,7 +23,6 @@ import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { newDatastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
@@ -50,8 +49,7 @@ import {
 } from './component_provider';
 import { BundleReader } from '../util/bundle_reader';
 import { LoadBundleTask } from '../api/bundle';
-import { newConnection } from '../platform/connection';
-import { newSerializer, newTextEncoder } from '../platform/serializer';
+import { newTextEncoder } from '../platform/serializer';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 
 const LOG_TAG = 'FirestoreClient';
@@ -209,7 +207,8 @@ export class FirestoreClient {
   enableNetwork(): Promise<void> {
     this.verifyNotTerminated();
     return this.asyncQueue.enqueue(() => {
-      return this.syncEngine.enableNetwork();
+      this.persistence.setNetworkEnabled(true);
+      return this.remoteStore.enableNetwork();
     });
   }
 
@@ -240,19 +239,11 @@ export class FirestoreClient {
     persistenceResult: Deferred<void>
   ): Promise<void> {
     try {
-      // TODO(mrschmidt): Ideally, ComponentProvider would also initialize
-      // Datastore (without duplicating the initializing logic once per
-      // provider).
-
-      const connection = await newConnection(this.databaseInfo);
-      const serializer = newSerializer(this.databaseInfo.databaseId);
-      const datastore = newDatastore(connection, this.credentials, serializer);
-
       await componentProvider.initialize({
         asyncQueue: this.asyncQueue,
         databaseInfo: this.databaseInfo,
-        datastore,
         clientId: this.clientId,
+        credentials: this.credentials,
         initialUser: user,
         maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS,
         persistenceSettings
@@ -349,7 +340,8 @@ export class FirestoreClient {
   disableNetwork(): Promise<void> {
     this.verifyNotTerminated();
     return this.asyncQueue.enqueue(() => {
-      return this.syncEngine.disableNetwork();
+      this.persistence.setNetworkEnabled(false);
+      return this.remoteStore.disableNetwork();
     });
   }
 

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../';
+import * as firestore from '../../../lite-types';
 
 import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
@@ -36,7 +36,6 @@ import {
 import { newConnection } from '../../../src/platform/connection';
 import { newSerializer } from '../../../src/platform/serializer';
 import { cast } from './util';
-import { Settings } from '../../';
 
 // settings() defaults:
 export const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -81,7 +80,7 @@ export class Firestore
     this._settings = settings;
   }
 
-  _getSettings(): Settings {
+  _getSettings(): firestore.Settings {
     if (!this._settings) {
       this._settings = {};
     }
@@ -92,9 +91,11 @@ export class Firestore
     if (!this._datastorePromise) {
       const settings = this._getSettings();
       const databaseInfo = this._makeDatabaseInfo(settings.host, settings.ssl);
+      const serializer = newSerializer(databaseInfo.databaseId);
+      const datastore = newDatastore(this._credentials, serializer);
       this._datastorePromise = newConnection(databaseInfo).then(connection => {
-        const serializer = newSerializer(databaseInfo.databaseId);
-        return newDatastore(connection, this._credentials, serializer);
+        datastore.start(connection);
+        return datastore;
       });
     }
 
@@ -125,6 +126,12 @@ export class Firestore
   delete(): Promise<void> {
     return terminate(this);
   }
+
+  // TODO(firestoreexp): `deleteApp()` should call the delete method above,
+  // but it still calls INTERNAL.delete().
+  INTERNAL = {
+    delete: () => this.delete()
+  };
 }
 
 export function initializeFirestore(
