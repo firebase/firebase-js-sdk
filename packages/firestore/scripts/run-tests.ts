@@ -35,8 +35,8 @@ const argv = yargs.options({
 const nyc = resolve(__dirname, '../../../node_modules/.bin/nyc');
 const mocha = resolve(__dirname, '../../../node_modules/.bin/mocha');
 
-process.env.TS_NODE_CACHE = 'NO',
-process.env.TS_NODE_COMPILER_OPTIONS ='{"module":"commonjs"}'
+process.env.TS_NODE_CACHE = 'NO';
+process.env.TS_NODE_COMPILER_OPTIONS = '{"module":"commonjs"}';
 
 let args = [
   mocha,
