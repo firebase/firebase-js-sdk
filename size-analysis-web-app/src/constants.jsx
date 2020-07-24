@@ -19,3 +19,9 @@ export const TEXT = {
     moduleRepresentation: '*'
 }
 
+export const ENDPOINTS = {
+    retrieveFirebaseVersionFromNPM: 'retrieveFirebaseVersionFromNPM'
+}
+export const API_ROOT = 'https://us-central1-web-app-size-analysis.cloudfunctions.net/';
+export const API_ROOT_DEV = 'http://localhost:5001/web-app-size-analysis/us-central1/';
+

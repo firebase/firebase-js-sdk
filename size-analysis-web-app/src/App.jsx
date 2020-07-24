@@ -3,7 +3,7 @@ import ReactJson from 'react-json-view'
 import DropDown from './components/DropDown';
 import Module from './components/Module';
 import BundlePanel from './components/BundlePanel';
-import { SECTION } from './constants';
+import { SECTION, ENDPOINTS, API_ROOT_DEV, API_ROOT } from './constants';
 import { dropdownData, modules, sample_bundle } from './dummy-data';
 import './App.css';
 class App extends Component {
@@ -13,16 +13,18 @@ class App extends Component {
       selectedVersion: "",
       allModulesOfSelectedVersion: "",
       currentBundle: new Map(),
-      currentBundleReport: null
+      currentBundleReport: null,
+      dropDownData: []
     }
     this.handleChange = this.handleChange.bind(this);
-    this.onNPMVersionSelected = this.onNPMVersionSelected.bind(this);
+    this.onFirebaseVersionSelected = this.onFirebaseVersionSelected.bind(this);
     this.handleAddModuleToBundle = this.handleAddModuleToBundle.bind(this);
     this.handleAddFunctionToBundle = this.handleAddFunctionToBundle.bind(this);
     this.handleUpdateBundle = this.handleUpdateBundle.bind(this);
     this.handleOnCalculateBundle = this.handleOnCalculateBundle.bind(this);
     this.handleRemoveModuleFromBundle = this.handleRemoveModuleFromBundle.bind(this);
     this.handleRemoveFunctionFromBundle = this.handleRemoveFunctionFromBundle.bind(this);
+    this.populateDropDownData = this.populateDropDownData.bind(this);
   }
 
   handleUpdateBundle(updatedBundle) {
@@ -80,6 +82,28 @@ class App extends Component {
     });
   }
   componentDidMount() {
+    this.populateDropDownData();
+  }
+
+  populateDropDownData() {
+    fetch(`${API_ROOT}${ENDPOINTS.retrieveFirebaseVersionFromNPM}`, {
+      headers: {
+        'Accept': 'application/json'
+      },
+      method: "GET",
+    })
+      .then(res => res.json())
+      .then(
+        (result) => {
+          this.setState(prevState => ({
+            dropDownData: [...prevState.dropDownData, ...result]
+          }))
+        },
+        (error) => {
+          console.log(error);
+        }
+      );
+
 
   }
   handleOnCalculateBundle() {
@@ -88,12 +112,13 @@ class App extends Component {
     });
 
   }
-  onNPMVersionSelected(e) {
+  onFirebaseVersionSelected(e) {
 
     // retrieve the packages and get all the functions
     this.setState({
       [e.target.name]: e.target.value,
-      allModulesOfSelectedVersion: modules[e.target.value]
+      // allModulesOfSelectedVersion: modules[e.target.value]
+      allModulesOfSelectedVersion: modules["12.2.4"]
     });
 
 
@@ -114,10 +139,10 @@ class App extends Component {
           </div>
           <div className="col-4">
             <DropDown
-              listItems={dropdownData}
+              listItems={this.state.dropDownData}
               name="selectedVersion"
               value={this.state.selectedVersion}
-              onChange={this.onNPMVersionSelected} />
+              onChange={this.onFirebaseVersionSelected} />
           </div>
         </div>
         <div className="row">
