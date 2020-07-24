@@ -75,7 +75,9 @@ export abstract class RestConnection implements Connection {
     logDebug(LOG_TAG, 'Sending: ', url + ' ' + jsonObj);
 
     // Content-Type: text/plain will avoid preflight requests which might
-    // mess with CORS and redirects by proxies.
+    // mess with CORS and redirects by proxies. If we add custom headers
+    // we will need to change this code to potentially use the $httpOverwrite
+    // parameter supported by ESF to avoid	triggering preflight requests.
     const headers: StringMap = { 'Content-Type': 'text/plain' };
     this.modifyHeadersForRequest(headers, token);
 
