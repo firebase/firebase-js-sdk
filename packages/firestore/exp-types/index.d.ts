@@ -68,7 +68,7 @@ export interface FirestoreDataConverter<T> {
   toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
   fromFirestore(
     snapshot: QueryDocumentSnapshot<DocumentData>,
-    options: SnapshotOptions
+    options?: SnapshotOptions
   ): T;
 }
 
@@ -242,9 +242,11 @@ export type SetOptions =
 export class DocumentReference<T = DocumentData> {
   private constructor();
   readonly type: 'document';
-  readonly id: string;
   readonly firestore: FirebaseFirestore;
+  readonly converter: FirestoreDataConverter<T> | null;
   readonly path: string;
+  readonly id: string;
+
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
@@ -284,27 +286,50 @@ export class Query<T = DocumentData> {
   protected constructor();
   readonly type: 'query' | 'collection';
   readonly firestore: FirebaseFirestore;
-  where(
-    fieldPath: string | FieldPath,
-    opStr: WhereFilterOp,
-    value: any
-  ): Query<T>;
-  orderBy(
-    fieldPath: string | FieldPath,
-    directionStr?: OrderByDirection
-  ): Query<T>;
-  limit(limit: number): Query<T>;
-  limitToLast(limit: number): Query<T>;
-  startAt(snapshot: DocumentSnapshot<any>): Query<T>;
-  startAt(...fieldValues: any[]): Query<T>;
-  startAfter(snapshot: DocumentSnapshot<any>): Query<T>;
-  startAfter(...fieldValues: any[]): Query<T>;
-  endBefore(snapshot: DocumentSnapshot<any>): Query<T>;
-  endBefore(...fieldValues: any[]): Query<T>;
-  endAt(snapshot: DocumentSnapshot<any>): Query<T>;
-  endAt(...fieldValues: any[]): Query<T>;
+  readonly converter: FirestoreDataConverter<T> | null;
+
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
+
+export type QueryConstraintType =
+  | 'where'
+  | 'orderBy'
+  | 'limit'
+  | 'limitToLast'
+  | 'startAt'
+  | 'startAfter'
+  | 'endAt'
+  | 'endBefore';
+
+export class QueryConstraint {
+  private constructor();
+  readonly type: QueryConstraintType;
+}
+
+export function query<T>(
+  query: CollectionReference<T> | Query<T>,
+  ...constraints: QueryConstraint[]
+): Query<T>;
+
+export function where(
+  fieldPath: string | FieldPath,
+  opStr: WhereFilterOp,
+  value: any
+): QueryConstraint;
+export function orderBy(
+  fieldPath: string | FieldPath,
+  directionStr?: OrderByDirection
+): QueryConstraint;
+export function limit(limit: number): QueryConstraint;
+export function limitToLast(limit: number): QueryConstraint;
+export function startAt(snapshot: DocumentSnapshot<any>): QueryConstraint;
+export function startAt(...fieldValues: any[]): QueryConstraint;
+export function startAfter(snapshot: DocumentSnapshot<any>): QueryConstraint;
+export function startAfter(...fieldValues: any[]): QueryConstraint;
+export function endBefore(snapshot: DocumentSnapshot<any>): QueryConstraint;
+export function endBefore(...fieldValues: any[]): QueryConstraint;
+export function endAt(snapshot: DocumentSnapshot<any>): QueryConstraint;
+export function endAt(...fieldValues: any[]): QueryConstraint;
 
 export class QuerySnapshot<T = DocumentData> {
   private constructor();
@@ -348,11 +373,9 @@ export function getDocFromCache<T>(
 export function getDocFromServer<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>>;
-export function getQuery<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
-export function getQueryFromCache<T>(
-  query: Query<T>
-): Promise<QuerySnapshot<T>>;
-export function getQueryFromServer<T>(
+export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export function getDocsFromCache<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export function getDocsFromServer<T>(
   query: Query<T>
 ): Promise<QuerySnapshot<T>>;
 

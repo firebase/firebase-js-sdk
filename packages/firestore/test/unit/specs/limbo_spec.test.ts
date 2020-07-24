@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { Query } from '../../../src/core/query';
+import {
+  LimitType,
+  newQueryForPath,
+  queryWithLimit
+} from '../../../src/core/query';
 import { deletedDoc, doc, filter, orderBy, query } from '../../util/helpers';
 
 import { TimerId } from '../../../src/util/async_queue';
@@ -31,7 +35,7 @@ describeSpec('Limbo Documents:', [], () => {
     () => {
       const query1 = query('collection');
       const doc1 = doc('collection/a', 1000, { key: 'a' });
-      const limboQuery = Query.atPath(doc1.key.path);
+      const limboQuery = newQueryForPath(doc1.key.path);
       return (
         spec()
           .userListens(query1)
@@ -61,7 +65,7 @@ describeSpec('Limbo Documents:', [], () => {
   specTest('Limbo documents are deleted with an existence filter', [], () => {
     const query1 = query('collection');
     const doc1 = doc('collection/a', 1000, { key: 'a' });
-    const limboQuery = Query.atPath(doc1.key.path);
+    const limboQuery = newQueryForPath(doc1.key.path);
     return (
       spec()
         .userListens(query1)
@@ -91,7 +95,7 @@ describeSpec('Limbo Documents:', [], () => {
     const query1 = query('collection', filter('key', '==', 'a'));
     const doc1a = doc('collection/a', 1000, { key: 'a' });
     const doc1b = doc('collection/a', 1002, { key: 'b' });
-    const limboQuery = Query.atPath(doc1a.key.path);
+    const limboQuery = newQueryForPath(doc1a.key.path);
     return (
       spec()
         .userListens(query1)
@@ -125,7 +129,7 @@ describeSpec('Limbo Documents:', [], () => {
       const query2 = query('collection', filter('key', '==', 'b'));
       const doc1a = doc('collection/a', 1000, { key: 'a' });
       const doc1b = doc('collection/a', 1002, { key: 'b' });
-      const limboQuery = Query.atPath(doc1a.key.path);
+      const limboQuery = newQueryForPath(doc1a.key.path);
       return (
         spec()
           .userListens(query1)
@@ -188,13 +192,14 @@ describeSpec('Limbo Documents:', [], () => {
   // Regression test for b/72533250.
   specTest('Limbo resolution handles snapshot before CURRENT', [], () => {
     const fullQuery = query('collection');
-    const limitQuery = query(
-      'collection',
-      filter('include', '==', true)
-    ).withLimitToFirst(1);
+    const limitQuery = queryWithLimit(
+      query('collection', filter('include', '==', true)),
+      1,
+      LimitType.First
+    );
     const docA = doc('collection/a', 1000, { key: 'a', include: true });
     const docB = doc('collection/b', 1000, { key: 'b', include: true });
-    const docBQuery = Query.atPath(docB.key.path);
+    const docBQuery = newQueryForPath(docB.key.path);
     return (
       spec()
         // No GC so we can keep the cache populated.
@@ -259,13 +264,14 @@ describeSpec('Limbo Documents:', [], () => {
     [],
     () => {
       const fullQuery = query('collection');
-      const limitQuery = query(
-        'collection',
-        filter('include', '==', true)
-      ).withLimitToFirst(1);
+      const limitQuery = queryWithLimit(
+        query('collection', filter('include', '==', true)),
+        1,
+        LimitType.First
+      );
       const docA = doc('collection/a', 1000, { key: 'a', include: true });
       const docB = doc('collection/b', 1000, { key: 'b', include: true });
-      const docBQuery = Query.atPath(docB.key.path);
+      const docBQuery = newQueryForPath(docB.key.path);
       return (
         spec()
           // No GC so we can keep the cache populated.
@@ -551,10 +557,11 @@ describeSpec('Limbo Documents:', [], () => {
     'LimitToLast query from secondary results in no expected limbo doc',
     ['multi-client'],
     () => {
-      const limitToLast = query(
-        'collection',
-        orderBy('val', 'desc')
-      ).withLimitToLast(3);
+      const limitToLast = queryWithLimit(
+        query('collection', orderBy('val', 'desc')),
+        3,
+        LimitType.Last
+      );
       const docA = doc('collection/a', 1000, { val: 11 });
       const docB = doc('collection/b', 1000, { val: 12 });
       const docC = doc('collection/c', 1000, { val: 13 });
@@ -597,10 +604,11 @@ describeSpec('Limbo Documents:', [], () => {
     'LimitToLast query from secondary results in expected limbo doc',
     ['multi-client'],
     () => {
-      const limitToLast = query(
-        'collection',
-        orderBy('val', 'desc')
-      ).withLimitToLast(3);
+      const limitToLast = queryWithLimit(
+        query('collection', orderBy('val', 'desc')),
+        3,
+        LimitType.Last
+      );
       const docA = doc('collection/a', 1000, { val: 11 });
       const docB = doc('collection/b', 1000, { val: 12 });
       const docC = doc('collection/c', 1000, { val: 13 });
@@ -646,11 +654,11 @@ describeSpec('Limbo Documents:', [], () => {
       const doc3 = doc('collection/c', 1000, { key: 'c' });
       const doc4 = doc('collection/d', 1000, { key: 'd' });
       const doc5 = doc('collection/e', 1000, { key: 'e' });
-      const limboQuery1 = Query.atPath(doc1.key.path);
-      const limboQuery2 = Query.atPath(doc2.key.path);
-      const limboQuery3 = Query.atPath(doc3.key.path);
-      const limboQuery4 = Query.atPath(doc4.key.path);
-      const limboQuery5 = Query.atPath(doc5.key.path);
+      const limboQuery1 = newQueryForPath(doc1.key.path);
+      const limboQuery2 = newQueryForPath(doc2.key.path);
+      const limboQuery3 = newQueryForPath(doc3.key.path);
+      const limboQuery4 = newQueryForPath(doc4.key.path);
+      const limboQuery5 = newQueryForPath(doc5.key.path);
 
       // Simulate Watch sending us a reset if another client deletes the
       // documents that match our query. Verify that limbo throttling works
@@ -723,11 +731,11 @@ describeSpec('Limbo Documents:', [], () => {
       const doc3 = doc('collection/c', 1000, { key: 'c' });
       const doc4 = doc('collection/d', 1000, { key: 'd' });
       const doc5 = doc('collection/e', 1000, { key: 'e' });
-      const limboQuery1 = Query.atPath(doc1.key.path);
-      const limboQuery2 = Query.atPath(doc2.key.path);
-      const limboQuery3 = Query.atPath(doc3.key.path);
-      const limboQuery4 = Query.atPath(doc4.key.path);
-      const limboQuery5 = Query.atPath(doc5.key.path);
+      const limboQuery1 = newQueryForPath(doc1.key.path);
+      const limboQuery2 = newQueryForPath(doc2.key.path);
+      const limboQuery3 = newQueryForPath(doc3.key.path);
+      const limboQuery4 = newQueryForPath(doc4.key.path);
+      const limboQuery5 = newQueryForPath(doc5.key.path);
 
       // Simulate Watch sending us a reset if another client deletes the
       // documents that match our query. Verify that limbo throttling works
@@ -800,8 +808,8 @@ describeSpec('Limbo Documents:', [], () => {
       const query1 = query('collection');
       const doc1 = doc('collection/a', 1000, { key: 'a' });
       const doc2 = doc('collection/b', 1000, { key: 'b' });
-      const limboQuery1 = Query.atPath(doc1.key.path);
-      const limboQuery2 = Query.atPath(doc2.key.path);
+      const limboQuery1 = newQueryForPath(doc1.key.path);
+      const limboQuery2 = newQueryForPath(doc2.key.path);
 
       // Simulate Watch sending us a reset if another client deletes the
       // documents that match our query. Verify that limbo throttling works
@@ -857,9 +865,9 @@ describeSpec('Limbo Documents:', [], () => {
       const docB1 = doc('collection/b1', 1000, { key: 'b1' });
       const docB2 = doc('collection/b2', 1000, { key: 'b2' });
       const docB3 = doc('collection/b3', 1000, { key: 'b3' });
-      const docA1Query = Query.atPath(docA1.key.path);
-      const docA2Query = Query.atPath(docA2.key.path);
-      const docA3Query = Query.atPath(docA3.key.path);
+      const docA1Query = newQueryForPath(docA1.key.path);
+      const docA2Query = newQueryForPath(docA2.key.path);
+      const docA3Query = newQueryForPath(docA3.key.path);
 
       // Verify that limbo resolution throttling works correctly with existence
       // filter mismatches. This test exercises the steps that resulted in

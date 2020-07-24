@@ -40,14 +40,15 @@ import {
   getDoc,
   getDocFromCache,
   getDocFromServer,
-  getQuery,
-  getQueryFromCache,
-  getQueryFromServer,
+  getDocs,
+  getDocsFromCache,
+  getDocsFromServer,
   increment,
   initializeFirestore,
   onSnapshot,
   onSnapshotsInSync,
   parent,
+  query,
   queryEqual,
   refEqual,
   runTransaction,
@@ -57,7 +58,15 @@ import {
   terminate,
   updateDoc,
   waitForPendingWrites,
-  writeBatch
+  writeBatch,
+  endAt,
+  endBefore,
+  startAfter,
+  startAt,
+  limitToLast,
+  limit,
+  orderBy,
+  where
 } from '../../exp/index';
 import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
 import { isPartialObserver, PartialObserver } from '../../src/api/observer';
@@ -453,7 +462,7 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
   ): Query<T> {
     return new Query<T>(
       this.firestore,
-      this._delegate.where(unwrap(fieldPath), opStr, unwrap(value))
+      query(this._delegate, where(unwrap(fieldPath), opStr, unwrap(value)))
     );
   }
 
@@ -463,63 +472,44 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
   ): Query<T> {
     return new Query<T>(
       this.firestore,
-      this._delegate.orderBy(unwrap(fieldPath), directionStr)
+      query(this._delegate, orderBy(unwrap(fieldPath), directionStr))
     );
   }
 
-  limit(limit: number): Query<T> {
-    return new Query<T>(this.firestore, this._delegate.limit(limit));
+  limit(n: number): Query<T> {
+    return new Query<T>(this.firestore, query(this._delegate, limit(n)));
   }
 
-  limitToLast(limit: number): Query<T> {
-    return new Query<T>(this.firestore, this._delegate.limitToLast(limit));
+  limitToLast(n: number): Query<T> {
+    return new Query<T>(this.firestore, query(this._delegate, limitToLast(n)));
   }
 
   startAt(...args: any[]): Query<T> {
-    if (args[0] instanceof DocumentSnapshot) {
-      return new Query(
-        this.firestore,
-        this._delegate.startAt(args[0]._delegate)
-      );
-    } else {
-      return new Query(this.firestore, this._delegate.startAt(...unwrap(args)));
-    }
+    return new Query(
+      this.firestore,
+      query(this._delegate, startAt(...unwrap(args)))
+    );
   }
 
   startAfter(...args: any[]): Query<T> {
-    if (args[0] instanceof DocumentSnapshot) {
-      return new Query(
-        this.firestore,
-        this._delegate.startAfter(args[0]._delegate)
-      );
-    } else {
-      return new Query(
-        this.firestore,
-        this._delegate.startAfter(...unwrap(args))
-      );
-    }
+    return new Query(
+      this.firestore,
+      query(this._delegate, startAfter(...unwrap(args)))
+    );
   }
 
   endBefore(...args: any[]): Query<T> {
-    if (args[0] instanceof DocumentSnapshot) {
-      return new Query(
-        this.firestore,
-        this._delegate.endBefore(args[0]._delegate)
-      );
-    } else {
-      return new Query(
-        this.firestore,
-        this._delegate.endBefore(...unwrap(args))
-      );
-    }
+    return new Query(
+      this.firestore,
+      query(this._delegate, endBefore(...unwrap(args)))
+    );
   }
 
   endAt(...args: any[]): Query<T> {
-    if (args[0] instanceof DocumentSnapshot) {
-      return new Query(this.firestore, this._delegate.endAt(args[0]._delegate));
-    } else {
-      return new Query(this.firestore, this._delegate.endAt(...unwrap(args)));
-    }
+    return new Query(
+      this.firestore,
+      query(this._delegate, endAt(...unwrap(args)))
+    );
   }
 
   isEqual(other: legacy.Query<T>): boolean {
@@ -529,11 +519,11 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
   get(options?: legacy.GetOptions): Promise<QuerySnapshot<T>> {
     let query: Promise<exp.QuerySnapshot<T>>;
     if (options?.source === 'cache') {
-      query = getQueryFromCache(this._delegate);
+      query = getDocsFromCache(this._delegate);
     } else if (options?.source === 'server') {
-      query = getQueryFromServer(this._delegate);
+      query = getDocsFromServer(this._delegate);
     } else {
-      query = getQuery(this._delegate);
+      query = getDocs(this._delegate);
     }
     return query.then(result => new QuerySnapshot(this.firestore, result));
   }
@@ -775,6 +765,10 @@ function unwrap(value: any): any {
   } else if (value instanceof FieldValue) {
     return value._delegate;
   } else if (value instanceof DocumentReference) {
+    return value._delegate;
+  } else if (value instanceof DocumentSnapshot) {
+    return value._delegate;
+  } else if (value instanceof QueryDocumentSnapshot) {
     return value._delegate;
   } else if (isPlainObject(value)) {
     const obj: any = {};

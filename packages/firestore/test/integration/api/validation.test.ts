@@ -145,26 +145,30 @@ apiDescribe('Validation:', (persistence: boolean) => {
       }
     );
 
-    validationIt(persistence, 'disallows changing settings after use', db => {
-      let errorMsg =
-        'Firestore has already been started and its settings can no ' +
-        'longer be changed. ';
+    validationIt(
+      persistence,
+      'disallows changing settings after use',
+      async db => {
+        let errorMsg =
+          'Firestore has already been started and its settings can no ' +
+          'longer be changed. ';
 
-      if (usesFunctionalApi()) {
-        errorMsg +=
-          'initializeFirestore() cannot be called after calling ' +
-          'getFirestore()';
-      } else {
-        errorMsg +=
-          'You can only call settings() before calling any other ' +
-          'methods on a Firestore object.';
+        if (usesFunctionalApi()) {
+          errorMsg +=
+            'initializeFirestore() cannot be called after calling ' +
+            'getFirestore()';
+        } else {
+          errorMsg +=
+            'You can only call settings() before calling any other ' +
+            'methods on a Firestore object.';
+        }
+
+        await db.doc('foo/bar').set({});
+        expect(() =>
+          db.settings({ host: 'something-else.example.com' })
+        ).to.throw(errorMsg);
       }
-
-      db.doc('foo/bar');
-      expect(() =>
-        db.settings({ host: 'something-else.example.com' })
-      ).to.throw(errorMsg);
-    });
+    );
 
     validationIt(persistence, 'enforces minimum cache size', () => {
       const db = newTestFirestore('test-project');
@@ -776,7 +780,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         collection.where('test', '==', { test: FieldValue.arrayUnion(1) })
       ).to.throw(
-        'Function Query.where() called with invalid data. ' +
+        `Function ${
+          usesFunctionalApi() ? 'where' : 'Query.where'
+        }() called with invalid data. ` +
           `${
             usesFunctionalApi() ? 'arrayUnion' : 'FieldValue.arrayUnion'
           }() can only be used with update() and set() (found in field test)`
@@ -785,7 +791,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         collection.where('test', '==', { test: FieldValue.arrayRemove(1) })
       ).to.throw(
-        'Function Query.where() called with invalid data. ' +
+        `Function ${
+          usesFunctionalApi() ? 'where' : 'Query.where'
+        }() called with invalid data. ` +
           `${
             usesFunctionalApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
           }() can only be used with update() and set() (found in field test)`
@@ -862,7 +870,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         collection.where('test', '==', { test: FieldValue.increment(1) })
       ).to.throw(
-        'Function Query.where() called with invalid data. ' +
+        `Function ${
+          usesFunctionalApi() ? 'where' : 'Query.where'
+        }() called with invalid data. ` +
           `${
             usesFunctionalApi() ? 'increment' : 'FieldValue.increment'
           }() can only be used with update() and set() (found in field test)`
@@ -908,12 +918,14 @@ apiDescribe('Validation:', (persistence: boolean) => {
     validationIt(persistence, 'with non-positive limit fail', db => {
       const collection = db.collection('test');
       expect(() => collection.limit(0)).to.throw(
-        'Function Query.limit() requires its first argument to be a positive number, ' +
-          'but it was: 0.'
+        `Function ${
+          usesFunctionalApi() ? 'limit' : 'Query.limit'
+        }() requires its first argument to be a positive number, but it was: 0.`
       );
       expect(() => collection.limitToLast(-1)).to.throw(
-        'Function Query.limitToLast() requires its first argument to be a positive number, ' +
-          'but it was: -1.'
+        `Function ${
+          usesFunctionalApi() ? 'limitToLast' : 'Query.limitToLast'
+        }() requires its first argument to be a positive number, but it was: -1.`
       );
     });
 
@@ -1053,9 +1065,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const collection = db.collection('collection');
         const query = collection.orderBy('foo');
         const reason =
-          `Too many arguments provided to Query.startAt(). ` +
-          `The number of arguments must be less than or equal to the ` +
-          `number of Query.orderBy() clauses`;
+          `Too many arguments provided to ${
+            usesFunctionalApi() ? 'startAt' : 'Query.startAt'
+          }(). The number of arguments must be less than or equal to the ` +
+          `number of orderBy() clauses`;
         expect(() => query.startAt(1, 2)).to.throw(reason);
         expect(() => query.orderBy('bar').startAt(1, 2, 3)).to.throw(reason);
       }
@@ -1073,17 +1086,22 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .orderBy(FieldPath.documentId());
         expect(() => query.startAt(1)).to.throw(
           'Invalid query. Expected a string for document ID in ' +
-            'Query.startAt(), but got a number'
+            `${
+              usesFunctionalApi() ? 'startAt' : 'Query.startAt'
+            }(), but got a number`
         );
         expect(() => query.startAt('foo/bar')).to.throw(
           `Invalid query. When querying a collection and ordering by FieldPath.documentId(), ` +
-            `the value passed to Query.startAt() must be a plain document ID, but 'foo/bar' ` +
-            `contains a slash.`
+            `the value passed to ${
+              usesFunctionalApi() ? 'startAt' : 'Query.startAt'
+            }() must be a plain document ID, but 'foo/bar' contains a slash.`
         );
         expect(() => cgQuery.startAt('foo')).to.throw(
           `Invalid query. When querying a collection group and ordering by ` +
-            `FieldPath.documentId(), the value passed to Query.startAt() must result in a valid ` +
-            `document path, but 'foo' is not because it contains an odd number of segments.`
+            `FieldPath.documentId(), the value passed to ${
+              usesFunctionalApi() ? 'startAt' : 'Query.startAt'
+            }() must result in a valid document path, but 'foo' is not because ` +
+            `it contains an odd number of segments.`
         );
       }
     );
@@ -1107,8 +1125,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const reason =
           `Invalid query. You have a where filter with an ` +
           `inequality (<, <=, >, or >=) on field 'x' and so you must also ` +
-          `use 'x' as your first Query.orderBy(), but your first ` +
-          `Query.orderBy() is on field 'y' instead.`;
+          `use 'x' as your first orderBy(), but your first orderBy() is on ` +
+          `field 'y' instead.`;
         expect(() => collection.where('x', '>', 32).orderBy('y')).to.throw(
           reason
         );
@@ -1350,14 +1368,12 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const collection = db.collection('collection');
         const query = collection.orderBy('foo');
         let reason =
-          'Invalid query. You must not call Query.startAt() or ' +
-          'Query.startAfter() before calling Query.orderBy().';
+          'Invalid query. You must not call startAt() or startAfter() before calling orderBy().';
         expect(() => query.startAt(1).orderBy('bar')).to.throw(reason);
         expect(() => query.startAfter(1).orderBy('bar')).to.throw(reason);
 
         reason =
-          'Invalid query. You must not call Query.endAt() or ' +
-          'Query.endBefore() before calling Query.orderBy().';
+          'Invalid query. You must not call endAt() or endBefore() before calling orderBy().';
         expect(() => query.endAt(1).orderBy('bar')).to.throw(reason);
         expect(() => query.endBefore(1).orderBy('bar')).to.throw(reason);
       }
@@ -1457,10 +1473,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
       const collection = db.collection('test');
       if (usesFunctionalApi()) {
         expect(() => collection.where('foo', '==', undefined)).to.throw(
-          'Function Query.where() called with invalid data. Unsupported field value: undefined'
+          'Function where() called with invalid data. Unsupported field value: undefined'
         );
         expect(() => collection.orderBy('foo').startAt(undefined)).to.throw(
-          'Function Query.startAt() called with invalid data. Unsupported field value: undefined'
+          'Function startAt() called with invalid data. Unsupported field value: undefined'
         );
       } else {
         expect(() => collection.where('foo', '==', undefined)).to.throw(
@@ -1585,10 +1601,14 @@ function expectFieldPathToFail(
     // <=, etc omitted for brevity since the code path is trivially
     // shared.
     expect(() => coll.where(path, '==', 1)).to.throw(
-      'Function Query.where() called with invalid data. ' + reason
+      `Function ${
+        usesFunctionalApi() ? 'where' : 'Query.where'
+      }() called with invalid data. ` + reason
     );
     expect(() => coll.orderBy(path)).to.throw(
-      'Function Query.orderBy() called with invalid data. ' + reason
+      `Function ${
+        usesFunctionalApi() ? 'orderBy' : 'Query.orderBy'
+      }() called with invalid data. ` + reason
     );
 
     // Update paths.

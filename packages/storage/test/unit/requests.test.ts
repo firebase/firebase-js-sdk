@@ -15,19 +15,16 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { AuthWrapper } from '../../src/implementation/authwrapper';
 import { FbsBlob } from '../../src/implementation/blob';
 import { Location } from '../../src/implementation/location';
 import * as MetadataUtils from '../../src/implementation/metadata';
-import { makeRequest } from '../../src/implementation/request';
 import * as requests from '../../src/implementation/requests';
 import { makeUrl } from '../../src/implementation/url';
 import * as errors from '../../src/implementation/error';
 import { RequestInfo } from '../../src/implementation/requestinfo';
 import { XhrIoPool } from '../../src/implementation/xhriopool';
 import { Metadata } from '../../src/metadata';
-import { Reference } from '../../src/reference';
-import { Service } from '../../src/service';
+import { StorageService } from '../../src/service';
 import {
   assertObjectIncludes,
   fakeXhrIo,
@@ -65,14 +62,9 @@ describe('Firebase Storage > Requests', () => {
     delete: async () => undefined
   };
 
-  const authWrapper = new AuthWrapper(
+  const storageService = new StorageService(
     mockApp,
     fakeAuthProvider,
-    (authWrapper, loc) => {
-      return new Reference(authWrapper, loc);
-    },
-    makeRequest,
-    {} as Service,
     new XhrIoPool()
   );
 
@@ -115,7 +107,7 @@ describe('Firebase Storage > Requests', () => {
   };
   const serverResourceString = JSON.stringify(serverResource);
   const metadataFromServerResource = MetadataUtils.fromResourceString(
-    authWrapper,
+    storageService,
     serverResourceString,
     mappings
   );
@@ -190,7 +182,11 @@ describe('Firebase Storage > Requests', () => {
       [locationEscapes, locationEscapesUrl]
     ];
     for (const [location, url] of maps) {
-      const requestInfo = requests.getMetadata(authWrapper, location, mappings);
+      const requestInfo = requests.getMetadata(
+        storageService,
+        location,
+        mappings
+      );
       assertObjectIncludes(
         {
           url: makeUrl(url),
@@ -206,7 +202,7 @@ describe('Firebase Storage > Requests', () => {
 
   it('getMetadata handler', () => {
     const requestInfo = requests.getMetadata(
-      authWrapper,
+      storageService,
       locationNormal,
       mappings
     );
@@ -214,7 +210,7 @@ describe('Firebase Storage > Requests', () => {
   });
 
   it('list root request info', () => {
-    const requestInfo = requests.list(authWrapper, locationRoot, '/');
+    const requestInfo = requests.list(storageService, locationRoot, '/');
     assertObjectIncludes(
       {
         url: makeUrl(locationNormalNoObjUrl),
@@ -239,7 +235,7 @@ describe('Firebase Storage > Requests', () => {
     const maxResults = 13;
     for (const [location, locationNoObjectUrl] of maps) {
       const requestInfo = requests.list(
-        authWrapper,
+        storageService,
         location,
         '/',
         pageToken,
@@ -264,7 +260,7 @@ describe('Firebase Storage > Requests', () => {
   });
 
   it('list handler', () => {
-    const requestInfo = requests.list(authWrapper, locationNormal);
+    const requestInfo = requests.list(storageService, locationNormal);
     const pageToken = 'YS9mLw==';
     const listResponse = {
       prefixes: ['a/f/'],
@@ -289,7 +285,7 @@ describe('Firebase Storage > Requests', () => {
   });
 
   it('list handler with custom bucket', () => {
-    const requestInfo = requests.list(authWrapper, locationDifferentBucket);
+    const requestInfo = requests.list(storageService, locationDifferentBucket);
     const pageToken = 'YS9mLw==';
     const listResponse = {
       items: [
@@ -312,7 +308,7 @@ describe('Firebase Storage > Requests', () => {
     ];
     for (const [location, url] of maps) {
       const requestInfo = requests.getDownloadUrl(
-        authWrapper,
+        storageService,
         location,
         mappings
       );
@@ -330,7 +326,7 @@ describe('Firebase Storage > Requests', () => {
   });
   it('getDownloadUrl handler', () => {
     const requestInfo = requests.getDownloadUrl(
-      authWrapper,
+      storageService,
       locationNormal,
       mappings
     );
@@ -346,7 +342,7 @@ describe('Firebase Storage > Requests', () => {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;
       const requestInfo = requests.updateMetadata(
-        authWrapper,
+        storageService,
         location,
         metadata,
         mappings
@@ -365,7 +361,7 @@ describe('Firebase Storage > Requests', () => {
   });
   it('updateMetadata handler', () => {
     const requestInfo = requests.updateMetadata(
-      authWrapper,
+      storageService,
       locationNormal,
       metadata,
       mappings
@@ -381,7 +377,7 @@ describe('Firebase Storage > Requests', () => {
     for (let i = 0; i < maps.length; i++) {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;
-      const requestInfo = requests.deleteObject(authWrapper, location);
+      const requestInfo = requests.deleteObject(storageService, location);
       assertObjectIncludes(
         {
           url: makeUrl(url),
@@ -395,7 +391,7 @@ describe('Firebase Storage > Requests', () => {
     }
   });
   it('deleteObject handler', () => {
-    const requestInfo = requests.deleteObject(authWrapper, locationNormal);
+    const requestInfo = requests.deleteObject(storageService, locationNormal);
     checkNoOpHandler(requestInfo);
   });
   it('multipartUpload request info', () => {
@@ -431,7 +427,7 @@ describe('Firebase Storage > Requests', () => {
         );
       };
       const requestInfo = requests.multipartUpload(
-        authWrapper,
+        storageService,
         location,
         mappings,
         smallBlob,
@@ -467,7 +463,7 @@ describe('Firebase Storage > Requests', () => {
   });
   it('multipartUpload handler', () => {
     const requestInfo = requests.multipartUpload(
-      authWrapper,
+      storageService,
       locationNormal,
       mappings,
       smallBlob,
@@ -486,7 +482,7 @@ describe('Firebase Storage > Requests', () => {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;
       const requestInfo = requests.createResumableUpload(
-        authWrapper,
+        storageService,
         location,
         mappings,
         smallBlob,
@@ -516,7 +512,7 @@ describe('Firebase Storage > Requests', () => {
 
   function _testCreateResumableUploadHandler(): void {
     const requestInfo = requests.createResumableUpload(
-      authWrapper,
+      storageService,
       locationNormal,
       mappings,
       smallBlob,
@@ -538,7 +534,7 @@ describe('Firebase Storage > Requests', () => {
     const url =
       'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
     const requestInfo = requests.getResumableUploadStatus(
-      authWrapper,
+      storageService,
       locationNormal,
       url,
       smallBlob
@@ -557,7 +553,7 @@ describe('Firebase Storage > Requests', () => {
     const url =
       'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
     const requestInfo = requests.getResumableUploadStatus(
-      authWrapper,
+      storageService,
       locationNormal,
       url,
       smallBlob
@@ -596,7 +592,7 @@ describe('Firebase Storage > Requests', () => {
       'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
     const requestInfo = requests.continueResumableUpload(
       locationNormal,
-      authWrapper,
+      storageService,
       url,
       smallBlob,
       requests.resumableUploadChunkSize,
@@ -625,7 +621,7 @@ describe('Firebase Storage > Requests', () => {
     assert.isTrue(smallBlob.size() < chunkSize);
     let requestInfo = requests.continueResumableUpload(
       locationNormal,
-      authWrapper,
+      storageService,
       url,
       smallBlob,
       chunkSize,
@@ -646,7 +642,7 @@ describe('Firebase Storage > Requests', () => {
     assert.isTrue(bigBlob.size() > chunkSize);
     requestInfo = requests.continueResumableUpload(
       locationNormal,
-      authWrapper,
+      storageService,
       url,
       bigBlob,
       chunkSize,
@@ -666,7 +662,7 @@ describe('Firebase Storage > Requests', () => {
 
   it('error handler passes through unknown errors', () => {
     const requestInfo = requests.getMetadata(
-      authWrapper,
+      storageService,
       locationNormal,
       mappings
     );
@@ -676,7 +672,7 @@ describe('Firebase Storage > Requests', () => {
   });
   it('error handler converts 404 to not found', () => {
     const requestInfo = requests.getMetadata(
-      authWrapper,
+      storageService,
       locationNormal,
       mappings
     );
@@ -686,7 +682,7 @@ describe('Firebase Storage > Requests', () => {
   });
   it('error handler converts 402 to quota exceeded', () => {
     const requestInfo = requests.getMetadata(
-      authWrapper,
+      storageService,
       locationNormal,
       mappings
     );

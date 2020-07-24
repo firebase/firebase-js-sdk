@@ -41,6 +41,7 @@ import { validateReference } from './write_batch';
 import { newUserDataReader } from './reference';
 import { FieldPath } from './field_path';
 import { cast } from './util';
+import { getDatastore } from './components';
 
 // TODO(mrschmidt) Consider using `BaseTransaction` as the base class in the
 // legacy SDK.
@@ -177,7 +178,7 @@ export function runTransaction<T>(
   updateFunction: (transaction: firestore.Transaction) => Promise<T>
 ): Promise<T> {
   const firestoreClient = cast(firestore, Firestore);
-  return firestoreClient._getDatastore().then(async datastore => {
+  return getDatastore(firestoreClient).then(async datastore => {
     const deferred = new Deferred<T>();
     new TransactionRunner<T>(
       new AsyncQueue(),

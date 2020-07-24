@@ -16,41 +16,33 @@
  */
 import { assert } from 'chai';
 import { FirebaseApp } from '@firebase/app-types';
-import { AuthWrapper } from '../../src/implementation/authwrapper';
-import { makeRequest } from '../../src/implementation/request';
 import { StringFormat } from '../../src/implementation/string';
 import { Headers } from '../../src/implementation/xhrio';
 import { Metadata } from '../../src/metadata';
 import { Reference } from '../../src/reference';
-import { Service } from '../../src/service';
+import { StorageService } from '../../src/service';
 import * as testShared from './testshared';
 import { SendHook, TestingXhrIo } from './xhrio';
 import { DEFAULT_HOST } from '../../src/implementation/constants';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
 /* eslint-disable @typescript-eslint/no-floating-promises */
 function makeFakeService(
   app: FirebaseApp,
-  authProvider: Provider<'auth-internal'>,
+  authProvider: Provider<FirebaseAuthInternalName>,
   sendHook: SendHook
-): Service {
-  return new Service(app, authProvider, testShared.makePool(sendHook));
+): StorageService {
+  return new StorageService(app, authProvider, testShared.makePool(sendHook));
 }
 
 function makeStorage(url: string): Reference {
-  function maker(): Reference {
-    return ({} as unknown) as Reference;
-  }
-
-  const authWrapper = new AuthWrapper(
+  const service = new StorageService(
     null,
     testShared.emptyAuthProvider,
-    maker,
-    makeRequest,
-    ({} as any) as Service,
     testShared.makePool(null)
   );
-  return new Reference(authWrapper, url);
+  return new Reference(service, url);
 }
 
 describe('Firebase Storage > Reference', () => {

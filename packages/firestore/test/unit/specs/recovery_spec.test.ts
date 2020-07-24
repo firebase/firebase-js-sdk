@@ -18,7 +18,7 @@
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 import { TimerId } from '../../../src/util/async_queue';
-import { Query } from '../../../src/core/query';
+import { newQueryForPath } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
 import { deletedDoc, doc, filter, query } from '../../util/helpers';
 import { RpcError } from './spec_rpc_error';
@@ -632,7 +632,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       const filteredQuery = query('collection', filter('included', '==', true));
       const doc1a = doc('collection/key1', 1, { included: true });
       const doc1b = doc('collection/key1', 1500, { included: false });
-      const limboQuery = Query.atPath(doc1a.key.path);
+      const limboQuery = newQueryForPath(doc1a.key.path);
       return spec()
         .withGCEnabled(false)
         .userListens(fullQuery)
@@ -673,7 +673,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
     const fullQuery = query('collection');
     const filteredQuery = query('collection', filter('included', '==', true));
     const doc1 = doc('collection/key1', 1, { included: true });
-    const limboQuery = Query.atPath(doc1.key.path);
+    const limboQuery = newQueryForPath(doc1.key.path);
     return spec()
       .withGCEnabled(false)
       .userListens(fullQuery)

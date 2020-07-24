@@ -39,7 +39,7 @@ import {
   WriteStreamListener
 } from './persistent_stream';
 import { AsyncQueue } from '../util/async_queue';
-import { Query } from '../core/query';
+import { Query, queryToTarget } from '../core/query';
 
 /**
  * Datastore and its related methods are a wrapper around the external Google
@@ -48,6 +48,7 @@ import { Query } from '../core/query';
  */
 export abstract class Datastore {
   abstract start(connection: Connection): void;
+  abstract termiate(): Promise<void>;
 }
 
 /**
@@ -118,6 +119,10 @@ class DatastoreImpl extends Datastore {
         throw error;
       });
   }
+
+  async termiate(): Promise<void> {
+    this.terminated = false;
+  }
 }
 
 // TODO(firestorexp): Make sure there is only one Datastore instance per
@@ -176,7 +181,7 @@ export async function invokeRunQueryRpc(
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const { structuredQuery, parent } = toQueryTarget(
     datastoreImpl.serializer,
-    query.toTarget()
+    queryToTarget(query)
   );
   const params = {
     database: getEncodedDatabaseId(datastoreImpl.serializer),
@@ -229,9 +234,4 @@ export function newPersistentWatchStream(
     datastoreImpl.serializer,
     listener
   );
-}
-
-export function terminateDatastore(datastore: Datastore): void {
-  const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  datastoreImpl.terminated = true;
 }
