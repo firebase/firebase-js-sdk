@@ -25,7 +25,6 @@ import {
 } from '../../util/api_helpers';
 import { expectEqual, expectNotEqual, keys } from '../../util/helpers';
 import { expect } from 'chai';
-import { DEFAULT_SETTINGS } from '../../integration/util/settings';
 
 describe('CollectionReference', () => {
   it('support equality checking with isEqual()', () => {
@@ -157,7 +156,7 @@ describe('SnapshotMetadata', () => {
   });
 });
 
-describe.only('Settings', () => {
+describe('Settings', () => {
   it('replaces settings by default', () => {
     const firestoreClient = firestore();
     firestoreClient.settings({ host: 'other.host' });
