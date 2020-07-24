@@ -68,9 +68,12 @@ describe('Path', () => {
     expect(path.popFirst().popFirst()).to.deep.equal(
       new ResourcePath(['messages'])
     );
-    expect(path.popFirst().popFirst().popFirst()).to.deep.equal(
-      new ResourcePath([])
-    );
+    expect(
+      path
+        .popFirst()
+        .popFirst()
+        .popFirst()
+    ).to.deep.equal(new ResourcePath([]));
     expect(path.popFirst(0)).to.deep.equal(
       new ResourcePath(['rooms', 'Eros', 'messages'])
     );
@@ -88,7 +91,12 @@ describe('Path', () => {
 
     expect(path.lastSegment()).to.equal('messages');
     expect(path.popLast().lastSegment()).to.equal('Eros');
-    expect(path.popLast().popLast().lastSegment()).to.equal('rooms');
+    expect(
+      path
+        .popLast()
+        .popLast()
+        .lastSegment()
+    ).to.equal('rooms');
   });
 
   it('can create child path', () => {
@@ -105,9 +113,12 @@ describe('Path', () => {
 
     expect(path.popLast()).to.deep.equal(new ResourcePath(['rooms', 'Eros']));
     expect(path.popLast().popLast()).to.deep.equal(new ResourcePath(['rooms']));
-    expect(path.popLast().popLast().popLast()).to.deep.equal(
-      new ResourcePath([])
-    );
+    expect(
+      path
+        .popLast()
+        .popLast()
+        .popLast()
+    ).to.deep.equal(new ResourcePath([]));
 
     // original remains unmodified
     expect(path).to.deep.equal(new ResourcePath(['rooms', 'Eros', 'messages']));

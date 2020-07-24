@@ -25,7 +25,11 @@ describe('SortedSet', () => {
   it('keeps elements in the right order', () => {
     let set = new SortedSet<number>(primitiveComparator);
 
-    set = set.add(4).add(2).add(-1).add(0);
+    set = set
+      .add(4)
+      .add(2)
+      .add(-1)
+      .add(0);
 
     expectSetToEqual(set, [-1, 0, 2, 4]);
 
@@ -124,7 +128,12 @@ describe('SortedSet', () => {
 
   it('can find element equal or greater to provided.', () => {
     const empty = new SortedSet<number>(primitiveComparator);
-    const set = empty.add(0).add(2).add(5).add(10).add(12);
+    const set = empty
+      .add(0)
+      .add(2)
+      .add(5)
+      .add(10)
+      .add(12);
 
     expect(set.firstAfterOrEqual(2)).to.equal(2);
     expect(set.firstAfterOrEqual(3)).to.equal(5);
@@ -134,9 +143,20 @@ describe('SortedSet', () => {
 
   it('can unionWith another set.', () => {
     const empty = new SortedSet<number>(primitiveComparator);
-    const set = empty.add(0).add(1).add(2);
-    const set2 = empty.add(2).add(3).add(4);
-    const expected = empty.add(0).add(1).add(2).add(3).add(4);
+    const set = empty
+      .add(0)
+      .add(1)
+      .add(2);
+    const set2 = empty
+      .add(2)
+      .add(3)
+      .add(4);
+    const expected = empty
+      .add(0)
+      .add(1)
+      .add(2)
+      .add(3)
+      .add(4);
     expect(set.unionWith(set2)).to.deep.equal(expected);
   });
 

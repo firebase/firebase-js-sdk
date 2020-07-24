@@ -304,7 +304,11 @@ function genericRemoteDocumentCacheTests(
     return cache
       .addEntries(docs, version(VERSION))
       .then(() => {
-        return cache.getEntries(documentKeySet().add(key1).add(key2));
+        return cache.getEntries(
+          documentKeySet()
+            .add(key1)
+            .add(key2)
+        );
       })
       .then(read => {
         expectEqual(read.get(key1), docs[0]);
@@ -324,7 +328,10 @@ function genericRemoteDocumentCacheTests(
       .addEntries(docs, version(VERSION))
       .then(() => {
         return cache.getEntries(
-          documentKeySet().add(key1).add(key2).add(missingKey)
+          documentKeySet()
+            .add(key1)
+            .add(key2)
+            .add(missingKey)
         );
       })
       .then(read => {

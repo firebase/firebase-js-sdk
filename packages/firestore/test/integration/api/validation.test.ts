@@ -145,26 +145,30 @@ apiDescribe('Validation:', (persistence: boolean) => {
       }
     );
 
-    validationIt(persistence, 'disallows changing settings after use', db => {
-      let errorMsg =
-        'Firestore has already been started and its settings can no ' +
-        'longer be changed. ';
+    validationIt(
+      persistence,
+      'disallows changing settings after use',
+      async db => {
+        let errorMsg =
+          'Firestore has already been started and its settings can no ' +
+          'longer be changed. ';
 
-      if (usesFunctionalApi()) {
-        errorMsg +=
-          'initializeFirestore() cannot be called after calling ' +
-          'getFirestore()';
-      } else {
-        errorMsg +=
-          'You can only call settings() before calling any other ' +
-          'methods on a Firestore object.';
+        if (usesFunctionalApi()) {
+          errorMsg +=
+            'initializeFirestore() cannot be called after calling ' +
+            'getFirestore()';
+        } else {
+          errorMsg +=
+            'You can only call settings() before calling any other ' +
+            'methods on a Firestore object.';
+        }
+
+        await db.doc('foo/bar').set({});
+        expect(() =>
+          db.settings({ host: 'something-else.example.com' })
+        ).to.throw(errorMsg);
       }
-
-      db.doc('foo/bar');
-      expect(() =>
-        db.settings({ host: 'something-else.example.com' })
-      ).to.throw(errorMsg);
-    });
+    );
 
     validationIt(persistence, 'enforces minimum cache size', () => {
       const db = newTestFirestore('test-project');
@@ -563,13 +567,19 @@ apiDescribe('Validation:', (persistence: boolean) => {
       return ref
         .set(data)
         .then(() => {
-          return ref.firestore.batch().set(ref, data).commit();
+          return ref.firestore
+            .batch()
+            .set(ref, data)
+            .commit();
         })
         .then(() => {
           return ref.update(data);
         })
         .then(() => {
-          return ref.firestore.batch().update(ref, data).commit();
+          return ref.firestore
+            .batch()
+            .update(ref, data)
+            .commit();
         })
         .then(() => {
           return ref.firestore.runTransaction(async txn => {
@@ -1130,10 +1140,16 @@ apiDescribe('Validation:', (persistence: boolean) => {
           reason
         );
         expect(() =>
-          collection.where('x', '>', 32).orderBy('y').orderBy('x')
+          collection
+            .where('x', '>', 32)
+            .orderBy('y')
+            .orderBy('x')
         ).to.throw(reason);
         expect(() =>
-          collection.orderBy('y').orderBy('x').where('x', '>', 32)
+          collection
+            .orderBy('y')
+            .orderBy('x')
+            .where('x', '>', 32)
         ).to.throw(reason);
       }
     );
