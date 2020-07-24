@@ -26,7 +26,11 @@ import { ApplicationVerifier } from '../../model/application_verifier';
 import { Auth } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';
 import { Parameters, Recaptcha } from './recaptcha';
-import { MockReCaptchaLoaderImpl, ReCaptchaLoader, ReCaptchaLoaderImpl } from './recaptcha_loader';
+import {
+  MockReCaptchaLoaderImpl,
+  ReCaptchaLoader,
+  ReCaptchaLoaderImpl
+} from './recaptcha_loader';
 
 const DEFAULT_PARAMS: Parameters = {
   theme: 'light',
@@ -59,7 +63,7 @@ export class RecaptchaVerifier
     },
     auth?: externs.Auth | null
   ) {
-    this.auth = auth as Auth || (initializeAuth() as Auth);
+    this.auth = (auth as Auth) || (initializeAuth() as Auth);
     this.appName = this.auth.name;
     this.isInvisible = this.parameters.size === 'invisible';
     const container =
