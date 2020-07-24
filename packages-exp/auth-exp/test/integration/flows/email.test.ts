@@ -19,20 +19,14 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import {
-  createUserWithEmailAndPassword,
-  EmailAuthProvider,
-  reload,
-  signInWithCredential,
-  signInWithEmailAndPassword,
-  updateProfile
+    createUserWithEmailAndPassword, EmailAuthProvider, reload, signInWithCredential,
+    signInWithEmailAndPassword, updateProfile
 } from '@firebase/auth-exp/index.browser';
 import { Auth, OperationType, UserCredential } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import {
-  cleanUpTestInstance,
-  getTestInstance,
-  randomEmail
+    cleanUpTestInstance, getTestInstance, randomEmail
 } from '../../helpers/integration/helpers';
 
 use(chaiAsPromised);
@@ -61,6 +55,14 @@ describe('Integration test: email/password auth', () => {
     expect(user.uid).to.be.a('string');
     expect(user.email).to.eq(email);
     expect(user.emailVerified).to.be.false;
+  });
+
+  it('errors when createUser called twice', async () => {
+    await createUserWithEmailAndPassword(auth, email, 'password');
+    await expect(createUserWithEmailAndPassword(auth, email, 'password')).to.be.rejectedWith(
+      FirebaseError,
+      'auth/email-already-in-use'
+    );
   });
 
   context('with existing user', () => {
