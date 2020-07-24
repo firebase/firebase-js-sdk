@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import * as ts from 'typescript';
 
 // `undefined` is treated as an identifier by TSC, but not part of any externs.

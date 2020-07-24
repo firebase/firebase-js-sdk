@@ -20,7 +20,7 @@ import { newConnection } from '../../../src/platform/connection';
 import { newSerializer } from '../../../src/platform/serializer';
 import { Firestore } from './database';
 import { DatabaseInfo } from '../../../src/core/database_info';
-import {logDebug} from "../../../src/util/log";
+import { logDebug } from '../../../src/util/log';
 
 export const LOG_TAG = 'ComponentProvider';
 
@@ -45,7 +45,7 @@ const datastoreInstances = new Map<Firestore, Promise<Datastore>>();
  */
 export function getDatastore(firestore: Firestore): Promise<Datastore> {
   if (!datastoreInstances.has(firestore)) {
-    logDebug(LOG_TAG, "Initializing Datastore");
+    logDebug(LOG_TAG, 'Initializing Datastore');
     const settings = firestore._getSettings();
     const databaseInfo = new DatabaseInfo(
       firestore._databaseId,
@@ -72,7 +72,7 @@ export function getDatastore(firestore: Firestore): Promise<Datastore> {
 export async function removeComponents(firestore: Firestore): Promise<void> {
   const datastorePromise = await datastoreInstances.get(firestore);
   if (datastorePromise) {
-    logDebug(LOG_TAG, "Removing Datastore");
+    logDebug(LOG_TAG, 'Removing Datastore');
     datastoreInstances.delete(firestore);
     return (await datastorePromise).termiate();
   }

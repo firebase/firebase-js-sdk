@@ -22,16 +22,9 @@ import typescript from 'typescript';
 import path from 'path';
 import { terser } from 'rollup-plugin-terser';
 
-import {
-  resolveNodeExterns,
-  generateAliasConfig,
-  resolveBrowserExterns,
-  removeAssertTransformer,
-  removeAssertAndPrefixInternalTransformer,
-  manglePrivatePropertiesOptions
-} from './rollup.shared';
-
 import pkg from './exp/package.json';
+
+const util = require('./rollup.shared');
 
 const nodePlugins = [
   typescriptPlugin({
@@ -42,9 +35,9 @@ const nodePlugins = [
       }
     },
     clean: true,
-    transformers: removeAssertTransformer
+    transformers: util.removeAssertTransformer
   }),
-  json({ preferConst: true })
+  json()
 ];
 
 const browserPlugins = [
@@ -56,10 +49,10 @@ const browserPlugins = [
       }
     },
     clean: true,
-    transformers: removeAssertAndPrefixInternalTransformer
+    transformers: util.removeAssertAndPrefixInternalTransformer
   }),
   json({ preferConst: true }),
-  terser(manglePrivatePropertiesOptions)
+  terser(util.manglePrivatePropertiesOptions)
 ];
 
 const allBuilds = [
@@ -71,8 +64,8 @@ const allBuilds = [
       format: 'umd',
       name: 'firebase.firestore'
     },
-    plugins: [alias(generateAliasConfig('node')), ...nodePlugins],
-    external: resolveNodeExterns
+    plugins: [alias(util.generateAliasConfig('node')), ...nodePlugins],
+    external: util.resolveNodeExterns
   },
   // Browser build
   {
@@ -81,8 +74,8 @@ const allBuilds = [
       file: path.resolve('./exp', pkg.browser),
       format: 'es'
     },
-    plugins: [alias(generateAliasConfig('browser')), ...browserPlugins],
-    external: resolveBrowserExterns
+    plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins],
+    external: util.resolveBrowserExterns
   },
   // RN build
   {
@@ -91,8 +84,8 @@ const allBuilds = [
       file: path.resolve('./exp', pkg['react-native']),
       format: 'es'
     },
-    plugins: [alias(generateAliasConfig('rn')), ...browserPlugins],
-    external: resolveBrowserExterns
+    plugins: [alias(util.generateAliasConfig('rn')), ...browserPlugins],
+    external: util.resolveBrowserExterns
   }
 ];
 

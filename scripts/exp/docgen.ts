@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-const { spawn } = require('child-process-promise');
-const { mapWorkspaceToPackages } = require('../release/utils/workspace');
-const { projectRoot } = require('../utils');
-const { removeExpSuffix } = require('./remove-exp');
-const fs = require('fs');
-const glob = require('glob');
+import { spawn } from 'child-process-promise';
+import { mapWorkspaceToPackages } from '../release/utils/workspace';
+import { projectRoot } from '../utils';
+import { removeExpSuffix } from './remove-exp';
+import fs from 'fs';
+import glob from 'glob';
 
 const tmpDir = `${projectRoot}/temp`;
 // create *.api.json files
@@ -49,7 +49,7 @@ async function generateDocs() {
     .filter(path => fs.existsSync(path));
 
   for (const dir of apiJsonDirectories) {
-    const paths = await new Promise(resolve =>
+    const paths = await new Promise<string[]>(resolve =>
       glob(`${dir}/*.api.json`, (err, paths) => {
         if (err) throw err;
         resolve(paths);

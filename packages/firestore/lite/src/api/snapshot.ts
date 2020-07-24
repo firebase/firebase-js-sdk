@@ -52,8 +52,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
   get ref(): firestore.DocumentReference<T> {
     return new DocumentReference<T>(
       this._firestore,
-      this._key.path,
-      this._converter
+      this._converter,
+      this._key.path
     );
   }
 
@@ -82,8 +82,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         key =>
           new DocumentReference(
             this._firestore,
-            key.path,
-            /* converter= */ null
+            /* converter= */ null,
+            key.path
           )
       );
       return userDataWriter.convertValue(this._document.toProto()) as T;
@@ -101,7 +101,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
           /* timestampsInSnapshots= */ true,
           /* serverTimestampBehavior=*/ 'none',
           key =>
-            new DocumentReference(this._firestore, key.path, this._converter)
+            new DocumentReference(this._firestore, this._converter, key.path)
         );
         return userDataWriter.convertValue(value);
       }

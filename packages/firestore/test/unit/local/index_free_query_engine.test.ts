@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import { User } from '../../../src/auth/user';
-import { Query } from '../../../src/core/query';
+import { LimitType, Query, queryWithLimit } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { View } from '../../../src/core/view';
@@ -250,10 +250,11 @@ describe('IndexFreeQueryEngine', () => {
   });
 
   it('does not use initial results for limit query with document removal', async () => {
-    const query1 = query(
-      'coll',
-      filter('matches', '==', true)
-    ).withLimitToFirst(1);
+    const query1 = queryWithLimit(
+      query('coll', filter('matches', '==', true)),
+      1,
+      LimitType.First
+    );
 
     // While the backend would never add DocA to the set of remote keys, this
     // allows us to easily simulate what would happen when a document no longer
@@ -271,11 +272,11 @@ describe('IndexFreeQueryEngine', () => {
   });
 
   it('does not use initial results for limitToLast query with document removal', async () => {
-    const query1 = query(
-      'coll',
-      filter('matches', '==', true),
-      orderBy('order', 'desc')
-    ).withLimitToLast(1);
+    const query1 = queryWithLimit(
+      query('coll', filter('matches', '==', true), orderBy('order', 'desc')),
+      1,
+      LimitType.Last
+    );
 
     // While the backend would never add DocA to the set of remote keys, this
     // allows us to easily simulate what would happen when a document no longer
@@ -293,11 +294,11 @@ describe('IndexFreeQueryEngine', () => {
   });
 
   it('does not use initial results for limit query when last document has pending write', async () => {
-    const query1 = query(
-      'coll',
-      filter('matches', '==', true),
-      orderBy('order', 'desc')
-    ).withLimitToFirst(1);
+    const query1 = queryWithLimit(
+      query('coll', filter('matches', '==', true), orderBy('order', 'desc')),
+      1,
+      LimitType.First
+    );
 
     // Add a query mapping for a document that matches, but that sorts below
     // another document due to a pending write.
@@ -313,12 +314,11 @@ describe('IndexFreeQueryEngine', () => {
   });
 
   it('does not use initial results for limitToLast query when first document has pending write', async () => {
-    const query1 = query(
-      'coll',
-      filter('matches', '==', true),
-      orderBy('order')
-    ).withLimitToLast(1);
-
+    const query1 = queryWithLimit(
+      query('coll', filter('matches', '==', true), orderBy('order')),
+      1,
+      LimitType.Last
+    );
     // Add a query mapping for a document that matches, but that sorts below
     // another document due to a pending write.
     await addDocument(PENDING_MATCHING_DOC_A);
@@ -333,11 +333,11 @@ describe('IndexFreeQueryEngine', () => {
   });
 
   it('does not use initial results for limit query when last document has been updated out of band', async () => {
-    const query1 = query(
-      'coll',
-      filter('matches', '==', true),
-      orderBy('order', 'desc')
-    ).withLimitToFirst(1);
+    const query1 = queryWithLimit(
+      query('coll', filter('matches', '==', true), orderBy('order', 'desc')),
+      1,
+      LimitType.First
+    );
 
     // Add a query mapping for a document that matches, but that sorts below
     // another document based on an update that the SDK received after the
@@ -354,11 +354,11 @@ describe('IndexFreeQueryEngine', () => {
   });
 
   it('does not use initial results for limitToLast query when first document in limit has been updated out of band', async () => {
-    const query1 = query(
-      'coll',
-      filter('matches', '==', true),
-      orderBy('order')
-    ).withLimitToLast(1);
+    const query1 = queryWithLimit(
+      query('coll', filter('matches', '==', true), orderBy('order')),
+      1,
+      LimitType.Last
+    );
     // Add a query mapping for a document that matches, but that sorts below
     // another document based on an update that the SDK received after the
     // query's snapshot was persisted.
@@ -374,7 +374,11 @@ describe('IndexFreeQueryEngine', () => {
   });
 
   it('uses initial results if last document in limit is unchanged', async () => {
-    const query1 = query('coll', orderBy('order')).withLimitToFirst(2);
+    const query1 = queryWithLimit(
+      query('coll', orderBy('order')),
+      2,
+      LimitType.First
+    );
 
     await addDocument(doc('coll/a', 1, { order: 1 }));
     await addDocument(doc('coll/b', 1, { order: 3 }));

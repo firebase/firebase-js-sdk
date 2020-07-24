@@ -112,7 +112,7 @@ export function getDocFromServer<T>(
   });
 }
 
-export function getQuery<T>(
+export function getDocs<T>(
   query: firestore.Query<T>
 ): Promise<QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
@@ -128,7 +128,7 @@ export function getQuery<T>(
   });
 }
 
-export function getQueryFromCache<T>(
+export function getDocsFromCache<T>(
   query: firestore.Query<T>
 ): Promise<QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
@@ -141,7 +141,7 @@ export function getQueryFromCache<T>(
   });
 }
 
-export function getQueryFromServer<T>(
+export function getDocsFromServer<T>(
   query: firestore.Query<T>
 ): Promise<QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
@@ -260,7 +260,7 @@ export function addDoc<T>(
   const firestore = cast(collRef.firestore, Firestore);
   const docRef = doc(collRef);
 
-  const convertedValue = applyFirestoreDataConverter(collRef._converter, data);
+  const convertedValue = applyFirestoreDataConverter(collRef.converter, data);
 
   const dataReader = newUserDataReader(collRef.firestore);
   const parsed = parseSetData(
@@ -268,7 +268,7 @@ export function addDoc<T>(
     'addDoc',
     docRef._key,
     convertedValue,
-    collRef._converter !== null,
+    collRef.converter !== null,
     {}
   );
 

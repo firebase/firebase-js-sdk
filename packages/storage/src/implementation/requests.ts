@@ -21,7 +21,6 @@
 
 import { Metadata } from '../metadata';
 import { ListResult } from '../list';
-import { AuthWrapper } from './authwrapper';
 import { FbsBlob } from './blob';
 import {
   FirebaseStorageError,
@@ -40,6 +39,7 @@ import { RequestInfo, UrlParams } from './requestinfo';
 import * as type from './type';
 import * as UrlUtils from './url';
 import { XhrIo } from './xhrio';
+import { StorageService } from '../service';
 
 /**
  * Throws the UNKNOWN FirebaseStorageError if cndn is false.
@@ -51,15 +51,11 @@ export function handlerCheck(cndn: boolean): void {
 }
 
 export function metadataHandler(
-  authWrapper: AuthWrapper,
+  service: StorageService,
   mappings: MetadataUtils.Mappings
 ): (p1: XhrIo, p2: string) => Metadata {
   function handler(xhr: XhrIo, text: string): Metadata {
-    const metadata = MetadataUtils.fromResourceString(
-      authWrapper,
-      text,
-      mappings
-    );
+    const metadata = MetadataUtils.fromResourceString(service, text, mappings);
     handlerCheck(metadata !== null);
     return metadata as Metadata;
   }
@@ -67,12 +63,12 @@ export function metadataHandler(
 }
 
 export function listHandler(
-  authWrapper: AuthWrapper,
+  service: StorageService,
   bucket: string
 ): (p1: XhrIo, p2: string) => ListResult {
   function handler(xhr: XhrIo, text: string): ListResult {
     const listResult = ListResultUtils.fromResponseString(
-      authWrapper,
+      service,
       bucket,
       text
     );
@@ -83,15 +79,11 @@ export function listHandler(
 }
 
 export function downloadUrlHandler(
-  authWrapper: AuthWrapper,
+  service: StorageService,
   mappings: MetadataUtils.Mappings
 ): (p1: XhrIo, p2: string) => string | null {
   function handler(xhr: XhrIo, text: string): string | null {
-    const metadata = MetadataUtils.fromResourceString(
-      authWrapper,
-      text,
-      mappings
-    );
+    const metadata = MetadataUtils.fromResourceString(service, text, mappings);
     handlerCheck(metadata !== null);
     return MetadataUtils.downloadUrlFromResourceString(
       metadata as Metadata,
@@ -148,18 +140,18 @@ export function objectErrorHandler(
 }
 
 export function getMetadata(
-  authWrapper: AuthWrapper,
+  service: StorageService,
   location: Location,
   mappings: MetadataUtils.Mappings
 ): RequestInfo<Metadata> {
   const urlPart = location.fullServerUrl();
   const url = UrlUtils.makeUrl(urlPart);
   const method = 'GET';
-  const timeout = authWrapper.maxOperationRetryTime();
+  const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
     url,
     method,
-    metadataHandler(authWrapper, mappings),
+    metadataHandler(service, mappings),
     timeout
   );
   requestInfo.errorHandler = objectErrorHandler(location);
@@ -167,7 +159,7 @@ export function getMetadata(
 }
 
 export function list(
-  authWrapper: AuthWrapper,
+  service: StorageService,
   location: Location,
   delimiter?: string,
   pageToken?: string | null,
@@ -191,11 +183,11 @@ export function list(
   const urlPart = location.bucketOnlyServerUrl();
   const url = UrlUtils.makeUrl(urlPart);
   const method = 'GET';
-  const timeout = authWrapper.maxOperationRetryTime();
+  const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
     url,
     method,
-    listHandler(authWrapper, location.bucket),
+    listHandler(service, location.bucket),
     timeout
   );
   requestInfo.urlParams = urlParams;
@@ -204,18 +196,18 @@ export function list(
 }
 
 export function getDownloadUrl(
-  authWrapper: AuthWrapper,
+  service: StorageService,
   location: Location,
   mappings: MetadataUtils.Mappings
 ): RequestInfo<string | null> {
   const urlPart = location.fullServerUrl();
   const url = UrlUtils.makeUrl(urlPart);
   const method = 'GET';
-  const timeout = authWrapper.maxOperationRetryTime();
+  const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
     url,
     method,
-    downloadUrlHandler(authWrapper, mappings),
+    downloadUrlHandler(service, mappings),
     timeout
   );
   requestInfo.errorHandler = objectErrorHandler(location);
@@ -223,7 +215,7 @@ export function getDownloadUrl(
 }
 
 export function updateMetadata(
-  authWrapper: AuthWrapper,
+  service: StorageService,
   location: Location,
   metadata: Metadata,
   mappings: MetadataUtils.Mappings
@@ -233,11 +225,11 @@ export function updateMetadata(
   const method = 'PATCH';
   const body = MetadataUtils.toResourceString(metadata, mappings);
   const headers = { 'Content-Type': 'application/json; charset=utf-8' };
-  const timeout = authWrapper.maxOperationRetryTime();
+  const timeout = service.maxOperationRetryTime;
   const requestInfo = new RequestInfo(
     url,
     method,
-    metadataHandler(authWrapper, mappings),
+    metadataHandler(service, mappings),
     timeout
   );
   requestInfo.headers = headers;
@@ -247,13 +239,13 @@ export function updateMetadata(
 }
 
 export function deleteObject(
-  authWrapper: AuthWrapper,
+  service: StorageService,
   location: Location
 ): RequestInfo<void> {
   const urlPart = location.fullServerUrl();
   const url = UrlUtils.makeUrl(urlPart);
   const method = 'DELETE';
-  const timeout = authWrapper.maxOperationRetryTime();
+  const timeout = service.maxOperationRetryTime;
 
   function handler(_xhr: XhrIo, _text: string): void {}
   const requestInfo = new RequestInfo(url, method, handler, timeout);
@@ -288,7 +280,7 @@ export function metadataForUpload_(
 }
 
 export function multipartUpload(
-  authWrapper: AuthWrapper,
+  service: StorageService,
   location: Location,
   mappings: MetadataUtils.Mappings,
   blob: FbsBlob,
@@ -330,11 +322,11 @@ export function multipartUpload(
   const urlParams: UrlParams = { name: metadata_['fullPath']! };
   const url = UrlUtils.makeUrl(urlPart);
   const method = 'POST';
-  const timeout = authWrapper.maxUploadRetryTime();
+  const timeout = service.maxUploadRetryTime;
   const requestInfo = new RequestInfo(
     url,
     method,
-    metadataHandler(authWrapper, mappings),
+    metadataHandler(service, mappings),
     timeout
   );
   requestInfo.urlParams = urlParams;
@@ -380,7 +372,7 @@ export function checkResumeHeader_(xhr: XhrIo, allowed?: string[]): string {
 }
 
 export function createResumableUpload(
-  authWrapper: AuthWrapper,
+  service: StorageService,
   location: Location,
   mappings: MetadataUtils.Mappings,
   blob: FbsBlob,
@@ -399,7 +391,7 @@ export function createResumableUpload(
     'Content-Type': 'application/json; charset=utf-8'
   };
   const body = MetadataUtils.toResourceString(metadataForUpload, mappings);
-  const timeout = authWrapper.maxUploadRetryTime();
+  const timeout = service.maxUploadRetryTime;
 
   function handler(xhr: XhrIo): string {
     checkResumeHeader_(xhr);
@@ -424,7 +416,7 @@ export function createResumableUpload(
  * @param url From a call to fbs.requests.createResumableUpload.
  */
 export function getResumableUploadStatus(
-  authWrapper: AuthWrapper,
+  service: StorageService,
   location: Location,
   url: string,
   blob: FbsBlob
@@ -450,7 +442,7 @@ export function getResumableUploadStatus(
     return new ResumableUploadStatus(size, blob.size(), status === 'final');
   }
   const method = 'POST';
-  const timeout = authWrapper.maxUploadRetryTime();
+  const timeout = service.maxUploadRetryTime;
   const requestInfo = new RequestInfo(url, method, handler, timeout);
   requestInfo.headers = headers;
   requestInfo.errorHandler = sharedErrorHandler(location);
@@ -474,7 +466,7 @@ export const resumableUploadChunkSize: number = 256 * 1024;
  */
 export function continueResumableUpload(
   location: Location,
-  authWrapper: AuthWrapper,
+  service: StorageService,
   url: string,
   blob: FbsBlob,
   chunkSize: number,
@@ -523,7 +515,7 @@ export function continueResumableUpload(
     const size = blob.size();
     let metadata;
     if (uploadStatus === 'final') {
-      metadata = metadataHandler(authWrapper, mappings)(xhr, text);
+      metadata = metadataHandler(service, mappings)(xhr, text);
     } else {
       metadata = null;
     }
@@ -535,7 +527,7 @@ export function continueResumableUpload(
     );
   }
   const method = 'POST';
-  const timeout = authWrapper.maxUploadRetryTime();
+  const timeout = service.maxUploadRetryTime;
   const requestInfo = new RequestInfo(url, method, handler, timeout);
   requestInfo.headers = headers;
   requestInfo.body = body.uploadData();

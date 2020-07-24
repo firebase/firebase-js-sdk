@@ -20,8 +20,6 @@ import { DatabaseId } from '../../../src/core/database_info';
 import { SequenceNumberSyncer } from '../../../src/core/listen_sequence';
 import {
   BatchId,
-  MutationBatchState,
-  OnlineState,
   TargetId,
   ListenSequenceNumber
 } from '../../../src/core/types';
@@ -43,14 +41,9 @@ import {
   ClientId,
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
-import {
-  QueryTargetState,
-  SharedClientStateSyncer
-} from '../../../src/local/shared_client_state_syncer';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
 import { WindowLike } from '../../../src/util/types';
 import { getDocument, getWindow } from '../../../src/platform/dom';
@@ -143,32 +136,6 @@ export function clearTestPersistence(): Promise<void> {
   return indexedDbClearPersistence(TEST_PERSISTENCE_PREFIX);
 }
 
-class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
-  constructor(private readonly activeClients: ClientId[]) {}
-  async applyBatchState(
-    batchId: BatchId,
-    state: MutationBatchState,
-    error?: FirestoreError
-  ): Promise<void> {}
-  async applySuccessfulWrite(batchId: BatchId): Promise<void> {}
-  async rejectFailedWrite(
-    batchId: BatchId,
-    err: FirestoreError
-  ): Promise<void> {}
-  async getActiveClients(): Promise<ClientId[]> {
-    return this.activeClients;
-  }
-  async applyTargetState(
-    targetId: TargetId,
-    state: QueryTargetState,
-    error?: FirestoreError
-  ): Promise<void> {}
-  async applyActiveTargetsChange(
-    added: TargetId[],
-    removed: TargetId[]
-  ): Promise<void> {}
-  applyOnlineStateChange(onlineState: OnlineState): void {}
-}
 /**
  * Populates Web Storage with instance data from a pre-existing client.
  */
@@ -188,13 +155,6 @@ export async function populateWebStorage(
     existingClientId,
     user
   );
-
-  secondaryClientState.syncEngine = new NoOpSharedClientStateSyncer([
-    existingClientId
-  ]);
-  secondaryClientState.onlineStateHandler = () => {};
-  await secondaryClientState.start();
-
   for (const batchId of existingMutationBatchIds) {
     secondaryClientState.addPendingMutation(batchId);
   }

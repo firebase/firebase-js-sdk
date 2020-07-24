@@ -18,7 +18,6 @@
  * @fileoverview Defines types for interacting with blob transfer tasks.
  */
 
-import { AuthWrapper } from './implementation/authwrapper';
 import { FbsBlob } from './implementation/blob';
 import { FirebaseStorageError, Code, canceled } from './implementation/error';
 import {
@@ -52,6 +51,7 @@ import * as fbsMetadata from './implementation/metadata';
 import * as fbsRequests from './implementation/requests';
 import * as typeUtils from './implementation/type';
 import { Reference } from './reference';
+import { StorageService } from './service';
 
 /**
  * Represents a blob being uploaded. Can be used to pause/resume/cancel the
@@ -59,7 +59,7 @@ import { Reference } from './reference';
  */
 export class UploadTask {
   private ref_: Reference;
-  private authWrapper_: AuthWrapper;
+  private service_: StorageService;
   private location_: Location;
   private blob_: FbsBlob;
   private metadata_: Metadata | null;
@@ -87,14 +87,14 @@ export class UploadTask {
    */
   constructor(
     ref: Reference,
-    authWrapper: AuthWrapper,
+    service: StorageService,
     location: Location,
     mappings: fbsMetadata.Mappings,
     blob: FbsBlob,
     metadata: Metadata | null = null
   ) {
     this.ref_ = ref;
-    this.authWrapper_ = authWrapper;
+    this.service_ = service;
     this.location_ = location;
     this.blob_ = blob;
     this.metadata_ = metadata;
@@ -171,7 +171,7 @@ export class UploadTask {
 
   private resolveToken_(callback: (p1: string | null) => void): void {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.authWrapper_.getAuthToken().then(authToken => {
+    this.service_.getAuthToken().then(authToken => {
       switch (this.state_) {
         case InternalTaskState.RUNNING:
           callback(authToken);
@@ -192,16 +192,13 @@ export class UploadTask {
   private createResumable_(): void {
     this.resolveToken_(authToken => {
       const requestInfo = fbsRequests.createResumableUpload(
-        this.authWrapper_,
+        this.service_,
         this.location_,
         this.mappings_,
         this.blob_,
         this.metadata_
       );
-      const createRequest = this.authWrapper_.makeRequest(
-        requestInfo,
-        authToken
-      );
+      const createRequest = this.service_.makeRequest(requestInfo, authToken);
       this.request_ = createRequest;
       createRequest.getPromise().then((url: string) => {
         this.request_ = null;
@@ -217,15 +214,12 @@ export class UploadTask {
     const url = this.uploadUrl_ as string;
     this.resolveToken_(authToken => {
       const requestInfo = fbsRequests.getResumableUploadStatus(
-        this.authWrapper_,
+        this.service_,
         this.location_,
         url,
         this.blob_
       );
-      const statusRequest = this.authWrapper_.makeRequest(
-        requestInfo,
-        authToken
-      );
+      const statusRequest = this.service_.makeRequest(requestInfo, authToken);
       this.request_ = statusRequest;
       statusRequest.getPromise().then(status => {
         status = status as fbsRequests.ResumableUploadStatus;
@@ -255,7 +249,7 @@ export class UploadTask {
       try {
         requestInfo = fbsRequests.continueResumableUpload(
           this.location_,
-          this.authWrapper_,
+          this.service_,
           url,
           this.blob_,
           chunkSize,
@@ -268,10 +262,7 @@ export class UploadTask {
         this.transition_(InternalTaskState.ERROR);
         return;
       }
-      const uploadRequest = this.authWrapper_.makeRequest(
-        requestInfo,
-        authToken
-      );
+      const uploadRequest = this.service_.makeRequest(requestInfo, authToken);
       this.request_ = uploadRequest;
       uploadRequest
         .getPromise()
@@ -302,14 +293,11 @@ export class UploadTask {
   private fetchMetadata_(): void {
     this.resolveToken_(authToken => {
       const requestInfo = fbsRequests.getMetadata(
-        this.authWrapper_,
+        this.service_,
         this.location_,
         this.mappings_
       );
-      const metadataRequest = this.authWrapper_.makeRequest(
-        requestInfo,
-        authToken
-      );
+      const metadataRequest = this.service_.makeRequest(requestInfo, authToken);
       this.request_ = metadataRequest;
       metadataRequest.getPromise().then(metadata => {
         this.request_ = null;
@@ -322,13 +310,13 @@ export class UploadTask {
   private oneShotUpload_(): void {
     this.resolveToken_(authToken => {
       const requestInfo = fbsRequests.multipartUpload(
-        this.authWrapper_,
+        this.service_,
         this.location_,
         this.mappings_,
         this.blob_,
         this.metadata_
       );
-      const multipartRequest = this.authWrapper_.makeRequest(
+      const multipartRequest = this.service_.makeRequest(
         requestInfo,
         authToken
       );

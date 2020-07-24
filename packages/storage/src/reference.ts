@@ -18,7 +18,6 @@
 /**
  * @fileoverview Defines the Firebase Storage Reference class.
  */
-import { AuthWrapper } from './implementation/authwrapper';
 import { FbsBlob } from './implementation/blob';
 import * as errorsExports from './implementation/error';
 import { Location } from './implementation/location';
@@ -32,7 +31,7 @@ import {
 } from './implementation/string';
 import * as type from './implementation/type';
 import { Metadata } from './metadata';
-import { Service } from './service';
+import { StorageService } from './service';
 import { UploadTask } from './task';
 import { ListOptions, ListResult } from './list';
 import {
@@ -57,7 +56,7 @@ import {
 export class Reference {
   protected location: Location;
 
-  constructor(protected authWrapper: AuthWrapper, location: string | Location) {
+  constructor(protected service: StorageService, location: string | Location) {
     if (location instanceof Location) {
       this.location = location;
     } else {
@@ -75,8 +74,8 @@ export class Reference {
     return 'gs://' + this.location.bucket + '/' + this.location.path;
   }
 
-  protected newRef(authWrapper: AuthWrapper, location: Location): Reference {
-    return new Reference(authWrapper, location);
+  protected newRef(service: StorageService, location: Location): Reference {
+    return new Reference(service, location);
   }
 
   protected mappings(): metadata.Mappings {
@@ -92,7 +91,7 @@ export class Reference {
     validate('child', [stringSpec()], arguments);
     const newPath = path.child(this.location.path, childPath);
     const location = new Location(this.location.bucket, newPath);
-    return this.newRef(this.authWrapper, location);
+    return this.newRef(this.service, location);
   }
 
   /**
@@ -105,7 +104,7 @@ export class Reference {
       return null;
     }
     const location = new Location(this.location.bucket, newPath);
-    return this.newRef(this.authWrapper, location);
+    return this.newRef(this.service, location);
   }
 
   /**
@@ -114,7 +113,7 @@ export class Reference {
    */
   get root(): Reference {
     const location = new Location(this.location.bucket, '');
-    return this.newRef(this.authWrapper, location);
+    return this.newRef(this.service, location);
   }
 
   get bucket(): string {
@@ -129,8 +128,8 @@ export class Reference {
     return path.lastComponent(this.location.path);
   }
 
-  get storage(): Service {
-    return this.authWrapper.service();
+  get storage(): StorageService {
+    return this.service;
   }
 
   /**
@@ -147,7 +146,7 @@ export class Reference {
     this.throwIfRoot_('put');
     return new UploadTask(
       this,
-      this.authWrapper,
+      this.service,
       this.location,
       this.mappings(),
       new FbsBlob(data),
@@ -183,7 +182,7 @@ export class Reference {
     }
     return new UploadTask(
       this,
-      this.authWrapper,
+      this.service,
       this.location,
       this.mappings(),
       new FbsBlob(data.data, true),
@@ -198,12 +197,9 @@ export class Reference {
   delete(): Promise<void> {
     validate('delete', [], arguments);
     this.throwIfRoot_('delete');
-    return this.authWrapper.getAuthToken().then(authToken => {
-      const requestInfo = requests.deleteObject(
-        this.authWrapper,
-        this.location
-      );
-      return this.authWrapper.makeRequest(requestInfo, authToken).getPromise();
+    return this.service.getAuthToken().then(authToken => {
+      const requestInfo = requests.deleteObject(this.service, this.location);
+      return this.service.makeRequest(requestInfo, authToken).getPromise();
     });
   }
 
@@ -272,16 +268,16 @@ export class Reference {
   list(options?: ListOptions | null): Promise<ListResult> {
     validate('list', [listOptionSpec(true)], arguments);
     const self = this;
-    return this.authWrapper.getAuthToken().then(authToken => {
+    return this.service.getAuthToken().then(authToken => {
       const op = options || {};
       const requestInfo = requests.list(
-        self.authWrapper,
+        self.service,
         self.location,
         /*delimiter= */ '/',
         op.pageToken,
         op.maxResults
       );
-      return self.authWrapper.makeRequest(requestInfo, authToken).getPromise();
+      return self.service.makeRequest(requestInfo, authToken).getPromise();
     });
   }
 
@@ -293,13 +289,13 @@ export class Reference {
   getMetadata(): Promise<Metadata> {
     validate('getMetadata', [], arguments);
     this.throwIfRoot_('getMetadata');
-    return this.authWrapper.getAuthToken().then(authToken => {
+    return this.service.getAuthToken().then(authToken => {
       const requestInfo = requests.getMetadata(
-        this.authWrapper,
+        this.service,
         this.location,
         this.mappings()
       );
-      return this.authWrapper.makeRequest(requestInfo, authToken).getPromise();
+      return this.service.makeRequest(requestInfo, authToken).getPromise();
     });
   }
 
@@ -315,14 +311,14 @@ export class Reference {
   updateMetadata(metadata: Metadata): Promise<Metadata> {
     validate('updateMetadata', [metadataSpec()], arguments);
     this.throwIfRoot_('updateMetadata');
-    return this.authWrapper.getAuthToken().then(authToken => {
+    return this.service.getAuthToken().then(authToken => {
       const requestInfo = requests.updateMetadata(
-        this.authWrapper,
+        this.service,
         this.location,
         metadata,
         this.mappings()
       );
-      return this.authWrapper.makeRequest(requestInfo, authToken).getPromise();
+      return this.service.makeRequest(requestInfo, authToken).getPromise();
     });
   }
 
@@ -333,13 +329,13 @@ export class Reference {
   getDownloadURL(): Promise<string> {
     validate('getDownloadURL', [], arguments);
     this.throwIfRoot_('getDownloadURL');
-    return this.authWrapper.getAuthToken().then(authToken => {
+    return this.service.getAuthToken().then(authToken => {
       const requestInfo = requests.getDownloadUrl(
-        this.authWrapper,
+        this.service,
         this.location,
         this.mappings()
       );
-      return this.authWrapper
+      return this.service
         .makeRequest(requestInfo, authToken)
         .getPromise()
         .then(url => {

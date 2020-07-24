@@ -22,7 +22,7 @@ import * as type from '../../src/implementation/type';
 import { Headers, XhrIo } from '../../src/implementation/xhrio';
 import { XhrIoPool } from '../../src/implementation/xhriopool';
 import { SendHook, StringHeaders, TestingXhrIo } from './xhrio';
-import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import {
   Provider,
   ComponentContainer,
@@ -36,7 +36,7 @@ export const fakeApp = makeFakeApp();
 export const fakeAuthProvider = makeFakeAuthProvider({
   accessToken: authToken
 });
-export const emptyAuthProvider = new Provider<'auth-internal'>(
+export const emptyAuthProvider = new Provider<FirebaseAuthInternalName>(
   'auth-internal',
   new ComponentContainer('storage-container')
 );
@@ -53,8 +53,8 @@ export function makeFakeApp(bucketArg?: string): FirebaseApp {
 }
 
 export function makeFakeAuthProvider(
-  token: FirebaseAuthTokenData | null
-): Provider<'auth-internal'> {
+  token: {} | null
+): Provider<FirebaseAuthInternalName> {
   const provider = new Provider(
     'auth-internal',
     new ComponentContainer('storage-container')
@@ -71,7 +71,7 @@ export function makeFakeAuthProvider(
     )
   );
 
-  return provider as Provider<'auth-internal'>;
+  return provider as Provider<FirebaseAuthInternalName>;
 }
 
 export function makePool(sendHook: SendHook | null): XhrIoPool {
