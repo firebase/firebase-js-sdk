@@ -35,6 +35,7 @@ import { DocumentReference, newUserDataReader } from './reference';
 import { Firestore } from './database';
 import { invokeCommitRpc } from '../../../src/remote/datastore';
 import { FieldPath } from './field_path';
+import { getDatastore } from './components';
 
 export class WriteBatch implements firestore.WriteBatch {
   // This is the lite version of the WriteBatch API used in the legacy SDK. The
@@ -180,9 +181,8 @@ export function writeBatch(
   firestore: firestore.FirebaseFirestore
 ): firestore.WriteBatch {
   const firestoreImpl = cast(firestore, Firestore);
+  const datastore = getDatastore(firestoreImpl);
   return new WriteBatch(firestoreImpl, writes =>
-    firestoreImpl
-      ._getDatastore()
-      .then(datastore => invokeCommitRpc(datastore, writes))
+      invokeCommitRpc(datastore, writes)
   );
 }

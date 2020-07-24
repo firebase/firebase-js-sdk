@@ -27,6 +27,7 @@ import { Deferred } from '../../../src/util/promise';
 import { SnapshotMetadata } from '../../../src/api/database';
 import { Transaction as InternalTransaction } from '../../../src/core/transaction';
 import { validateReference } from '../../../lite/src/api/write_batch';
+import { getDatastore } from '../../../lite/src/api/components';
 
 export class Transaction extends LiteTransaction
   implements firestore.Transaction {
@@ -67,15 +68,14 @@ export function runTransaction<T>(
   updateFunction: (transaction: firestore.Transaction) => Promise<T>
 ): Promise<T> {
   const firestoreClient = cast(firestore, Firestore);
-  return firestoreClient._getDatastore().then(async datastore => {
-    const deferred = new Deferred<T>();
-    new TransactionRunner<T>(
-      new AsyncQueue(),
-      datastore,
-      internalTransaction =>
-        updateFunction(new Transaction(firestoreClient, internalTransaction)),
-      deferred
-    ).run();
-    return deferred.promise;
-  });
+  const datastore = getDatastore(firestoreClient);
+  const deferred = new Deferred<T>();
+  new TransactionRunner<T>(
+    new AsyncQueue(),
+    datastore,
+    internalTransaction =>
+      updateFunction(new Transaction(firestoreClient, internalTransaction)),
+    deferred
+  ).run();
+  return deferred.promise;
 }
