@@ -66,8 +66,8 @@ export async function getPackageInfo(
 
 export async function readPackageJson(packagePath: string) {
   /**
-   * Nout using require here because require caches the file
-   * in memory, so it may not contain the updates that are made by e.g. git commands
+   * Not using require here because require caches the file
+   * in memory, so it may not contain the latest updates made by scripts
    */
   return JSON.parse(await readFile(`${packagePath}/package.json`, 'utf8'));
 }
