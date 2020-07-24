@@ -153,7 +153,7 @@ export class Trace implements PerformanceTrace {
     if (this.counters[counter] === undefined) {
       this.putMetric(counter, 0);
     }
-    this.counters[counter] += num;
+    this.counters[counter] += Math.floor(num);
   }
 
   /**
