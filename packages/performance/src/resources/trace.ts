@@ -158,13 +158,13 @@ export class Trace implements PerformanceTrace {
 
   /**
    * Sets a custom metric to a specified value. Will create a new custom metric if one with the
-   * given name does not exist.
+   * given name does not exist. The value will be floored down to an integer.
    * @param counter Name of the custom metric
    * @param num Set custom metric to this value
    */
   putMetric(counter: string, num: number): void {
     if (isValidMetricName(counter, this.name)) {
-      this.counters[counter] = num;
+      this.counters[counter] = Math.floor(num);
     } else {
       throw ERROR_FACTORY.create(ErrorCode.INVALID_CUSTOM_METRIC_NAME, {
         customMetricName: counter

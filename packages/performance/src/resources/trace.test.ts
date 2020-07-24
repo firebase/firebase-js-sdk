@@ -129,6 +129,12 @@ describe('Firebase Performance > trace', () => {
       expect(trace.getMetric('cacheHits')).to.eql(200);
     });
 
+    it('sets the metric value as an integer even if the value is provided in float.', () => {
+      trace.putMetric('timelapse', 200.48);
+
+      expect(trace.getMetric('timelapse')).to.eql(200);
+    });
+
     it('replaces metric if it already exists.', () => {
       trace.putMetric('cacheHits', 200);
       trace.putMetric('cacheHits', 400);
