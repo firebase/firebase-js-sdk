@@ -44,7 +44,7 @@ const nodePlugins = [
     },
     clean: true,
     abortOnError: false,
-    transformers: [...removeAssertTransformer, importPathTransformer]
+    transformers: [removeAssertTransformer, importPathTransformer]
   }),
   json({ preferConst: true })
 ];
@@ -60,7 +60,7 @@ const browserPlugins = [
     clean: true,
     abortOnError: false,
     transformers: [
-      ...removeAssertAndPrefixInternalTransformer,
+      removeAssertAndPrefixInternalTransformer,
       importPathTransformer
     ]
   }),
