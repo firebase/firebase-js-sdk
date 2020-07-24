@@ -57,6 +57,17 @@ export function firestore(): Firestore {
   return FIRESTORE;
 }
 
+export function namedFirestore(projectId: string): Firestore {
+  return new Firestore(
+    {
+      projectId,
+      database: '(default)'
+    },
+    new Provider('auth-internal', new ComponentContainer('default')),
+    new MultiTabIndexedDbComponentProvider()
+  );
+}
+
 export function collectionReference(path: string): CollectionReference {
   const firestoreClient = firestore();
   // eslint-disable-next-line @typescript-eslint/no-floating-promises

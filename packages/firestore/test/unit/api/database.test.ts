@@ -19,7 +19,7 @@ import {
   collectionReference,
   documentReference,
   documentSnapshot,
-  firestore,
+  namedFirestore,
   query,
   querySnapshot
 } from '../../util/api_helpers';
@@ -158,7 +158,8 @@ describe('SnapshotMetadata', () => {
 
 describe('Settings', () => {
   it('replaces settings by default', () => {
-    const firestoreClient = firestore();
+    // Use a new instance of Firestore in order to configure settings.
+    const firestoreClient = namedFirestore('new-project');
     firestoreClient.settings({ host: 'other.host' });
     firestoreClient.settings({ ignoreUndefinedProperties: true });
 
@@ -170,7 +171,8 @@ describe('Settings', () => {
   });
 
   it('can merge settings', () => {
-    const firestoreClient = firestore();
+    // Use a new instance of Firestore in order to configure settings.
+    const firestoreClient = namedFirestore('new-project');
     firestoreClient.settings({ host: 'other.host' });
     firestoreClient.settings({
       ignoreUndefinedProperties: true,
