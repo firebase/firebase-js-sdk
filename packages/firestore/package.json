@@ -8,7 +8,7 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
     "build": "rollup -c rollup.config.es2017.js && rollup -c rollup.config.es5.js && yarn build:lite && yarn build:exp",
-    "build:scripts": "tsc -moduleResolution node --module commonjs scripts/*.ts",
+    "build:scripts": "tsc -moduleResolution node --module commonjs scripts/*.ts && ls scripts/*.js | xargs -I % sh -c 'terser %  -o %'",
     "build:release": "rollup -c rollup.config.es2017.js && rollup -c rollup.config.es5.js",
     "build:deps": "lerna run --scope @firebase/'{app,firestore}' --include-dependencies build",
     "build:console": "node tools/console.build.js",

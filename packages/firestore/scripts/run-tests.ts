@@ -35,11 +35,8 @@ const argv = yargs.options({
 const nyc = resolve(__dirname, '../../../node_modules/.bin/nyc');
 const mocha = resolve(__dirname, '../../../node_modules/.bin/mocha');
 
-const env: { [key: string]: string } = {
-  ...process.env,
-  TS_NODE_CACHE: 'NO',
-  TS_NODE_COMPILER_OPTIONS: '{"module":"commonjs"}'
-};
+process.env.TS_NODE_CACHE = 'NO',
+process.env.TS_NODE_COMPILER_OPTIONS ='{"module":"commonjs"}'
 
 let args = [
   mocha,
@@ -52,12 +49,12 @@ let args = [
 ];
 
 if (argv.emulator) {
-  env.FIRESTORE_EMULATOR_PORT = '8080';
-  env.FIRESTORE_EMULATOR_PROJECT_ID = 'test-emulator';
+  process.env.FIRESTORE_EMULATOR_PORT = '8080';
+  process.env.FIRESTORE_EMULATOR_PROJECT_ID = 'test-emulator';
 }
 
 if (argv.persistence) {
-  env.USE_MOCK_PERSISTENCE = 'YES';
+  process.env.USE_MOCK_PERSISTENCE = 'YES';
   args.push('--require', 'test/util/node_persistence.ts');
 }
 
@@ -65,7 +62,6 @@ args = args.concat(argv._);
 
 const childProcess = spawn(nyc, args, {
   stdio: 'inherit',
-  env,
   cwd: process.cwd()
 }).childProcess;
 
