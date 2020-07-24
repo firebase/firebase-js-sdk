@@ -30,31 +30,34 @@ export class FetchConnection extends RestConnection {
     throw new Error('Not supported by FetchConnection');
   }
 
-  protected performRPCRequest(
+  protected async performRPCRequest<Req, Resp>(
     rpcName: string,
     url: string,
     headers: StringMap,
-    body: string
-  ): Promise<string> {
-    return fetch(url, {
-      method: 'POST',
-      headers,
-      body
-    })
-      .then(response => {
-        if (response.status >= 400) {
-          throw new FirestoreError(
-            mapCodeFromHttpStatus(response.status),
-            'Request returned error: ' + response.statusText
-          );
-        }
-        return response.text();
-      })
-      .catch(err => {
-        throw new FirestoreError(
-          Code.UNKNOWN,
-          'Request failed with error: ' + err.code
-        );
+    body: Req
+  ): Promise<Resp> {
+    const requestJson = JSON.stringify(body);
+    let response: Response;
+
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: requestJson
       });
+    } catch (err) {
+      throw new FirestoreError(
+        Code.UNKNOWN,
+        'Request failed with error: ' + err.code
+      );
+    }
+
+    if (response.status >= 400) {
+      throw new FirestoreError(
+        mapCodeFromHttpStatus(response.status),
+        'Request returned error: ' + response.statusText
+      );
+    }
+    return JSON.parse(await response.text());
   }
 }

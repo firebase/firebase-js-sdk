@@ -25,12 +25,13 @@ import { Code, FirestoreError } from '../../../src/util/error';
 import { fail } from '../../../src/util/assert';
 import { User } from '../../../src/auth/user';
 import { SDK_VERSION } from '../../../src/core/version';
+import { Indexable } from '../../../src/util/misc';
 
 export class TestRestConnection extends RestConnection {
   lastUrl: string = '';
   lastHeaders: StringMap = {};
-  lastRequestBody: string = '';
-  nextResponse = Promise.resolve('{}');
+  lastRequestBody: unknown = {};
+  nextResponse = Promise.resolve<unknown>({});
 
   openStream<Req, Resp>(
     rpcName: string,
@@ -39,18 +40,18 @@ export class TestRestConnection extends RestConnection {
     throw new Error('Not Implemented');
   }
 
-  protected performRPCRequest(
+  protected performRPCRequest<Req, Resp>(
     rpcName: string,
     url: string,
     headers: StringMap,
-    body: string
-  ): Promise<string> {
+    body: Req
+  ): Promise<Resp> {
     this.lastUrl = url;
-    this.lastRequestBody = body;
+    this.lastRequestBody = (body as unknown) as Indexable;
     this.lastHeaders = headers;
     const response = this.nextResponse;
-    this.nextResponse = Promise.resolve('{}');
-    return response;
+    this.nextResponse = Promise.resolve<unknown>({});
+    return response as Promise<Resp>;
   }
 }
 
@@ -96,7 +97,7 @@ describe('RestConnection', () => {
       },
       null
     );
-    expect(JSON.parse(connection.lastRequestBody)).to.deep.equal({
+    expect(connection.lastRequestBody).to.deep.equal({
       foo: 'bar'
     });
   });
@@ -119,7 +120,7 @@ describe('RestConnection', () => {
   });
 
   it('returns success', async () => {
-    connection.nextResponse = Promise.resolve('{"response": true}');
+    connection.nextResponse = Promise.resolve({ response: true });
     const response = await connection.invokeRPC('RunQuery', {}, null);
     expect(response).to.deep.equal({ response: true });
   });

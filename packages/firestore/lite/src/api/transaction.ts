@@ -179,13 +179,13 @@ export function runTransaction<T>(
 ): Promise<T> {
   const firestoreClient = cast(firestore, Firestore);
   const datastore = getDatastore(firestoreClient);
-    const deferred = new Deferred<T>();
-    new TransactionRunner<T>(
-      new AsyncQueue(),
-      datastore,
-      internalTransaction =>
-        updateFunction(new Transaction(firestoreClient, internalTransaction)),
-      deferred
-    ).run();
-    return deferred.promise;
+  const deferred = new Deferred<T>();
+  new TransactionRunner<T>(
+    new AsyncQueue(),
+    datastore,
+    internalTransaction =>
+      updateFunction(new Transaction(firestoreClient, internalTransaction)),
+    deferred
+  ).run();
+  return deferred.promise;
 }

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import axios, { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import { Token } from '../../api/credentials';
 import { Stream } from '../../remote/connection';
@@ -34,34 +34,32 @@ export class HttpConnection extends RestConnection {
     throw new Error('Not supported by HttpConnection');
   }
 
-  protected performRPCRequest(
+  protected async performRPCRequest<Req, Resp>(
     rpcName: string,
     url: string,
     headers: StringMap,
-    body: string
-  ): Promise<string> {
+    body: Req
+  ): Promise<Resp> {
     const options: AxiosRequestConfig = {
       timeout: TIMEOUT_SECS * 1000,
-      headers,
-      responseType: 'text'
+      headers
     };
+    let response: AxiosResponse;
+    try {
+      response = await axios.post(url, body, options);
+    } catch (err) {
+      throw new FirestoreError(
+        Code.UNKNOWN,
+        'Request failed with error: ' + err.message
+      );
+    }
 
-    return axios
-      .post(url, body, options)
-      .then(response => {
-        if (response.status >= 400) {
-          throw new FirestoreError(
-            mapCodeFromHttpStatus(response.status),
-            'Request failed with error: ' + response.statusText
-          );
-        }
-        return response.data;
-      })
-      .catch(err => {
-        throw new FirestoreError(
-          Code.UNKNOWN,
-          'Request failed with error: ' + err.message
-        );
-      });
+    if (response.status >= 400) {
+      throw new FirestoreError(
+        mapCodeFromHttpStatus(response.status),
+        'Request failed with error: ' + response.statusText
+      );
+    }
+    return response.data;
   }
 }

@@ -183,6 +183,6 @@ export function writeBatch(
   const firestoreImpl = cast(firestore, Firestore);
   const datastore = getDatastore(firestoreImpl);
   return new WriteBatch(firestoreImpl, writes =>
-      invokeCommitRpc(datastore, writes)
+    invokeCommitRpc(datastore, writes)
   );
 }

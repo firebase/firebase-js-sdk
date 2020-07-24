@@ -16,12 +16,8 @@
  */
 
 import { Datastore, newDatastore } from '../../../src/remote/datastore';
-import {
-  newRestConnection
-} from '../../../src/platform/connection';
-import {
-  newRestSerializer,
-} from '../../../src/platform/serializer';
+import { newRestConnection } from '../../../src/platform/connection';
+import { newRestSerializer } from '../../../src/platform/serializer';
 import { Firestore } from './database';
 import { DatabaseInfo } from '../../../src/core/database_info';
 import { logDebug } from '../../../src/util/log';
@@ -55,7 +51,7 @@ export function getDatastore(firestore: Firestore): Datastore {
       'The client has already been terminated.'
     );
   }
-  
+
   if (!datastoreInstances.has(firestore)) {
     logDebug(LOG_TAG, 'Initializing Datastore');
     const settings = firestore._getSettings();
@@ -72,7 +68,7 @@ export function getDatastore(firestore: Firestore): Datastore {
     datastore.start(connection);
     datastoreInstances.set(firestore, datastore);
   }
-  
+
   return datastoreInstances.get(firestore)!;
 }
 

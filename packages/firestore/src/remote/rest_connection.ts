@@ -72,18 +72,22 @@ export abstract class RestConnection implements Connection {
     delete jsonObj.parent;
     delete jsonObj.database;
 
-    const requestBody = JSON.stringify(jsonObj);
-    logDebug(LOG_TAG, 'Sending: ', url + ' ' + requestBody);
+    logDebug(LOG_TAG, 'Sending: ', url + ' ' + jsonObj);
 
     // Content-Type: text/plain will avoid preflight requests which might
     // mess with CORS and redirects by proxies.
     const headers: StringMap = { 'Content-Type': 'text/plain' };
     this.modifyHeadersForRequest(headers, token);
 
-    return this.performRPCRequest(rpcName, url, headers, requestBody).then(
-      json => {
-        logDebug(LOG_TAG, 'Received: ', json);
-        return JSON.parse(json);
+    return this.performRPCRequest<Indexable, Resp>(
+      rpcName,
+      url,
+      headers,
+      jsonObj
+    ).then(
+      response => {
+        logDebug(LOG_TAG, 'Received: ', response);
+        return response;
       },
       (err: FirestoreError) => {
         logDebug(LOG_TAG, 'Request failed, Code:', err.code, err.message);
@@ -123,12 +127,12 @@ export abstract class RestConnection implements Connection {
   /**
    * Performs an RPC request using an implementation specific networking layer.
    */
-  protected abstract performRPCRequest(
+  protected abstract performRPCRequest<Req, Resp>(
     rpcName: string,
     url: string,
     headers: StringMap,
-    body: string
-  ): Promise<string>;
+    body: Req
+  ): Promise<Resp>;
 
   abstract openStream<Req, Resp>(
     rpcName: string,

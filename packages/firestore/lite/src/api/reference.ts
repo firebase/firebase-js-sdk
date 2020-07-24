@@ -620,10 +620,10 @@ export function setDoc<T>(
   );
 
   const datastore = getDatastore(ref.firestore);
-  return  invokeCommitRpc(
-      datastore,
-      parsed.toMutations(ref._key, Precondition.none())
-    );
+  return invokeCommitRpc(
+    datastore,
+    parsed.toMutations(ref._key, Precondition.none())
+  );
 }
 
 export function updateDoc(
@@ -668,9 +668,9 @@ export function updateDoc(
   }
 
   const datastore = getDatastore(ref.firestore);
-  return   invokeCommitRpc(
-      datastore,
-      parsed.toMutations(ref._key, Precondition.exists(true))
+  return invokeCommitRpc(
+    datastore,
+    parsed.toMutations(ref._key, Precondition.exists(true))
   );
 }
 
@@ -679,10 +679,9 @@ export function deleteDoc(
 ): Promise<void> {
   const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
   const datastore = getDatastore(ref.firestore);
-  return  invokeCommitRpc(datastore, [
-      new DeleteMutation(ref._key, Precondition.none())
-    ]
-  );
+  return invokeCommitRpc(datastore, [
+    new DeleteMutation(ref._key, Precondition.none())
+  ]);
 }
 
 export function addDoc<T>(
@@ -705,11 +704,10 @@ export function addDoc<T>(
   );
 
   const datastore = getDatastore(collRef.firestore);
-  return  invokeCommitRpc(
-        datastore,
-        parsed.toMutations(docRef._key, Precondition.exists(false))
-      )
-    .then(() => docRef);
+  return invokeCommitRpc(
+    datastore,
+    parsed.toMutations(docRef._key, Precondition.exists(false))
+  ).then(() => docRef);
 }
 
 export function refEqual<T>(

@@ -62,20 +62,22 @@ export class WebChannelConnection extends RestConnection {
     this.forceLongPolling = databaseInfo.forceLongPolling;
   }
 
-  protected performRPCRequest(
+  protected performRPCRequest<Req, Resp>(
     rpcName: string,
     url: string,
     headers: StringMap,
-    body: string
-  ): Promise<string> {
-    return new Promise((resolve: Resolver<string>, reject: Rejecter) => {
+    body: Req
+  ): Promise<Resp> {
+    const requestString = JSON.stringify(body);
+
+    return new Promise((resolve: Resolver<Resp>, reject: Rejecter) => {
       const xhr = new XhrIo();
       xhr.listenOnce(EventType.COMPLETE, () => {
         try {
           switch (xhr.getLastErrorCode()) {
             case ErrorCode.NO_ERROR:
-              const json = xhr.getResponseText();
-              resolve(json);
+              const json = xhr.getResponseJson();
+              resolve(json as Resp);
               break;
             case ErrorCode.TIMEOUT:
               logDebug(LOG_TAG, 'RPC "' + rpcName + '" timed out');
@@ -141,7 +143,7 @@ export class WebChannelConnection extends RestConnection {
           logDebug(LOG_TAG, 'RPC "' + rpcName + '" completed.');
         }
       });
-      xhr.send(url, 'POST', body, headers, XHR_TIMEOUT_SECS);
+      xhr.send(url, 'POST', requestString, headers, XHR_TIMEOUT_SECS);
     });
   }
 
