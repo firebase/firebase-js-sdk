@@ -154,7 +154,7 @@ var rollup_1 = require('rollup');
 var typescriptPlugin = require('rollup-plugin-typescript2');
 var alias = require('@rollup/plugin-alias');
 var json = require('rollup-plugin-json');
-var rollup_shared_1 = require('../rollup.shared');
+var util = require('../rollup.shared');
 var argv = yargs.options({
   input: {
     type: 'string',
@@ -185,18 +185,18 @@ function buildBundle(input, output) {
             rollup_1.rollup({
               input: input,
               plugins: [
-                alias(rollup_shared_1.generateAliasConfig('node')),
+                alias(util.generateAliasConfig('node')),
                 typescriptPlugin({
                   tsconfigOverride: {
                     compilerOptions: {
                       target: 'es2017'
                     }
                   },
-                  transformers: rollup_shared_1.removeAssertTransformer
+                  transformers: util.removeAssertTransformer
                 }),
                 json({ preferConst: true })
               ],
-              external: rollup_shared_1.resolveNodeExterns
+              external: util.resolveNodeExterns
             })
           ];
         case 1:
@@ -209,4 +209,5 @@ function buildBundle(input, output) {
     });
   });
 }
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 buildBundle(argv.input, argv.output);

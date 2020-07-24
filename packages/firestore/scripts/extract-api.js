@@ -17,7 +17,6 @@
  */
 exports.__esModule = true;
 exports.extractPublicIdentifiers = void 0;
-// eslint-disable-next-line import/no-extraneous-dependencies
 var ts = require('typescript');
 var fs = require('fs');
 function extractIdentifiersFromNodeAndChildren(node, symbols) {

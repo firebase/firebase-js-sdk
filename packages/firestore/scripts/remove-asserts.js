@@ -17,7 +17,6 @@
  */
 exports.__esModule = true;
 exports.removeAsserts = void 0;
-// eslint-disable-next-line import/no-extraneous-dependencies
 var ts = require('typescript');
 // Location of file that includes the asserts
 var ASSERT_LOCATION = 'packages/firestore/src/util/assert.ts';

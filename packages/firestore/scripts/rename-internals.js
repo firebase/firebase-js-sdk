@@ -17,7 +17,6 @@
  */
 exports.__esModule = true;
 exports.renameInternals = void 0;
-// eslint-disable-next-line import/no-extraneous-dependencies
 var ts = require('typescript');
 // `undefined` is treated as an identifier by TSC, but not part of any externs.
 var blacklist = ['undefined'];
