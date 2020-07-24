@@ -145,7 +145,8 @@ export class Trace implements PerformanceTrace {
 
   /**
    * Increments a custom metric by a certain number or 1 if number not specified. Will create a new
-   * custom metric if one with the given name does not exist.
+   * custom metric if one with the given name does not exist. The value will be floored down to an
+   * integer.
    * @param counter Name of the custom metric
    * @param num Increment by value
    */
