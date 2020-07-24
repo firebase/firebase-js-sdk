@@ -1,5 +1,20 @@
 # firebase
 
+## 7.17.0
+
+### Minor Changes
+
+- [`02419ce8`](https://github.com/firebase/firebase-js-sdk/commit/02419ce8470141f012d9ce425a6a4a4aa912e480) [#3165](https://github.com/firebase/firebase-js-sdk/pull/3165) - Issue 2393 fix - analytics module
+
+  - Added a public method `isSupported` to Analytics module which returns true if current browser context supports initialization of analytics module.
+  - Added runtime checks to Analytics module that validate if cookie is enabled in current browser and if current browser environment supports indexedDB functionalities.
+
+### Patch Changes
+
+- Updated dependencies [[`02419ce8`](https://github.com/firebase/firebase-js-sdk/commit/02419ce8470141f012d9ce425a6a4a4aa912e480), [`ee33ebf7`](https://github.com/firebase/firebase-js-sdk/commit/ee33ebf726b1dc31ab4817e7a1923f7b2757e17c)]:
+  - @firebase/analytics@0.4.0
+  - @firebase/storage@0.3.40
+
 ## 7.16.1
 
 ### Patch Changes

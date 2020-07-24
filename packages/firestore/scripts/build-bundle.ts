@@ -22,11 +22,7 @@ const typescriptPlugin = require('rollup-plugin-typescript2');
 const alias = require('@rollup/plugin-alias');
 const json = require('rollup-plugin-json');
 
-import {
-  removeAssertTransformer,
-  resolveNodeExterns,
-  generateAliasConfig
-} from '../rollup.shared';
+const util = require('../rollup.shared');
 
 const argv = yargs.options({
   input: {
@@ -52,18 +48,18 @@ async function buildBundle(input: string, output: string): Promise<void> {
   const bundle = await rollup({
     input,
     plugins: [
-      alias(generateAliasConfig('node')),
+      alias(util.generateAliasConfig('node')),
       typescriptPlugin({
         tsconfigOverride: {
           compilerOptions: {
             target: 'es2017'
           }
         },
-        transformers: removeAssertTransformer
+        transformers: util.removeAssertTransformer
       }),
       json({ preferConst: true })
     ],
-    external: resolveNodeExterns
+    external: util.resolveNodeExterns
   });
   await bundle.write({ file: output, format: 'es' });
 }
