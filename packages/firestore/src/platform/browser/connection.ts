@@ -21,10 +21,16 @@ import { Connection } from '../../remote/connection';
 import { ConnectivityMonitor } from '../../remote/connectivity_monitor';
 import { BrowserConnectivityMonitor } from './connectivity_monitor';
 import { NoopConnectivityMonitor } from '../../remote/connectivity_monitor_noop';
+import { FetchConnection } from './fetch_connection';
 
 /** Initializes the WebChannelConnection for the browser. */
 export function newConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
   return Promise.resolve(new WebChannelConnection(databaseInfo));
+}
+
+/** Initializes the XML HTTP connection for the REST API. */
+export function newRestConnection(databaseInfo: DatabaseInfo): Connection {
+  return new FetchConnection(databaseInfo);
 }
 
 /** Return the Platform-specific connectivity monitor. */

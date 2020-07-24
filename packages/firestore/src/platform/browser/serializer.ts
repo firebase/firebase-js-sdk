@@ -22,3 +22,7 @@ import { JsonProtoSerializer } from '../../remote/serializer';
 export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
   return new JsonProtoSerializer(databaseId, /* useProto3Json= */ true);
 }
+
+export function newRestSerializer(databaseId: DatabaseId): JsonProtoSerializer {
+  return new JsonProtoSerializer(databaseId, /* useProto3Json= */ true);
+}

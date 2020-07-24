@@ -21,11 +21,17 @@ import { DatabaseInfo } from '../../core/database_info';
 import { ConnectivityMonitor } from '../../remote/connectivity_monitor';
 import { Connection } from '../../remote/connection';
 import { NoopConnectivityMonitor } from '../../remote/connectivity_monitor_noop';
+import { HttpConnection } from './http_connection';
 
 /** Loads the GRPC stack */
 export function newConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
   const protos = loadProtos();
   return Promise.resolve(new GrpcConnection(protos, databaseInfo));
+}
+
+/** Initializes an HTTP connection for the REST API. */
+export function newRestConnection(databaseInfo: DatabaseInfo): Connection {
+  return new HttpConnection(databaseInfo);
 }
 
 /** Return the Platform-specific connectivity monitor. */

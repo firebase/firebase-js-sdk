@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export { newSerializer } from '../browser/serializer';
+export { newSerializer, newRestSerializer } from '../browser/serializer';

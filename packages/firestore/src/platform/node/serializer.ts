@@ -22,3 +22,7 @@ import { DatabaseId } from '../../core/database_info';
 export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
   return new JsonProtoSerializer(databaseId, /* useProto3Json= */ false);
 }
+
+export function newRestSerializer(databaseId: DatabaseId): JsonProtoSerializer {
+  return new JsonProtoSerializer(databaseId, /* useProto3Json= */ true);
+}

@@ -15,4 +15,8 @@
  * limitations under the License.
  */
 
-export { newConnection, newConnectivityMonitor } from '../browser/connection';
+export {
+  newConnection,
+  newRestConnection,
+  newConnectivityMonitor
+} from '../browser/connection';

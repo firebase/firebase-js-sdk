@@ -31,3 +31,13 @@ export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
     return browser.newSerializer(databaseId);
   }
 }
+
+export function newRestSerializer(databaseId: DatabaseId): JsonProtoSerializer {
+  if (isNode()) {
+    return node.newRestSerializer(databaseId);
+  } else if (isReactNative()) {
+    return rn.newRestSerializer(databaseId);
+  } else {
+    return browser.newRestSerializer(databaseId);
+  }
+}

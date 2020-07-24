@@ -42,3 +42,13 @@ export function newConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
     return browser.newConnection(databaseInfo);
   }
 }
+
+export function newRestConnection(databaseInfo: DatabaseInfo): Connection {
+  if (isNode()) {
+    return node.newRestConnection(databaseInfo);
+  } else if (isReactNative()) {
+    return rn.newRestConnection(databaseInfo);
+  } else {
+    return browser.newRestConnection(databaseInfo);
+  }
+}

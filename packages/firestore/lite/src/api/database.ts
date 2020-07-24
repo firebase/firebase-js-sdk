@@ -33,8 +33,8 @@ import {
   newDatastore,
   terminateDatastore
 } from '../../../src/remote/datastore';
-import { newConnection } from '../../../src/platform/connection';
-import { newSerializer } from '../../../src/platform/serializer';
+import { newRestConnection } from '../../../src/platform/connection';
+import { newRestSerializer } from '../../../src/platform/serializer';
 import { cast } from './util';
 
 // settings() defaults:
@@ -53,7 +53,7 @@ export class Firestore
 
   // Assigned via _configureClient()
   protected _settings?: firestore.Settings;
-  private _datastorePromise?: Promise<Datastore>;
+  private _datastore?: Datastore;
 
   constructor(
     app: FirebaseApp,
@@ -88,18 +88,15 @@ export class Firestore
   }
 
   _getDatastore(): Promise<Datastore> {
-    if (!this._datastorePromise) {
+    if (!this._datastore) {
       const settings = this._getSettings();
       const databaseInfo = this._makeDatabaseInfo(settings.host, settings.ssl);
-      const serializer = newSerializer(databaseInfo.databaseId);
-      const datastore = newDatastore(this._credentials, serializer);
-      this._datastorePromise = newConnection(databaseInfo).then(connection => {
-        datastore.start(connection);
-        return datastore;
-      });
+      const serializer = newRestSerializer(databaseInfo.databaseId);
+      this._datastore = newDatastore(this._credentials, serializer);
+      this._datastore.start(newRestConnection(databaseInfo));
     }
 
-    return this._datastorePromise;
+    return Promise.resolve(this._datastore);
   }
 
   protected _makeDatabaseInfo(host?: string, ssl?: boolean): DatabaseInfo {
