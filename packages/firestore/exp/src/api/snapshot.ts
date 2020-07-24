@@ -63,7 +63,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     return super.exists();
   }
 
-  data(options: firestore.SnapshotOptions = {}): T | undefined {
+  data(options?: firestore.SnapshotOptions): T | undefined {
     if (!this._document) {
       return undefined;
     } else if (this._converter) {
@@ -81,12 +81,12 @@ export class DocumentSnapshot<T = firestore.DocumentData>
       const userDataWriter = new UserDataWriter(
         this._firestoreImpl._databaseId,
         /* timestampsInSnapshots= */ true,
-        options.serverTimestamps || DEFAULT_SERVER_TIMESTAMP_BEHAVIOR,
+        options?.serverTimestamps || DEFAULT_SERVER_TIMESTAMP_BEHAVIOR,
         key =>
           new DocumentReference(
             this._firestore,
-            key.path,
-            /* converter= */ null
+            /* converter= */ null,
+            key.path
           )
       );
       return userDataWriter.convertValue(this._document.toProto()) as T;
@@ -107,7 +107,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
           /* timestampsInSnapshots= */ true,
           options.serverTimestamps || DEFAULT_SERVER_TIMESTAMP_BEHAVIOR,
           key =>
-            new DocumentReference(this._firestore, key.path, this._converter)
+            new DocumentReference(this._firestore, this._converter, key.path)
         );
         return userDataWriter.convertValue(value);
       }
@@ -210,7 +210,7 @@ export class QuerySnapshot<T = firestore.DocumentData>
       doc.key,
       doc,
       new SnapshotMetadata(hasPendingWrites, fromCache),
-      this.query._converter
+      this.query.converter
     );
   }
 }
