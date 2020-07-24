@@ -31,7 +31,8 @@ export { indexedDBLocalPersistence } from './src/core/persistence/indexed_db';
 export {
   signInWithPhoneNumber,
   linkWithPhoneNumber,
-  reauthenticateWithPhoneNumber
+  reauthenticateWithPhoneNumber,
+  updatePhoneNumber
 } from './src/core/strategies/phone';
 export {
   signInWithPopup,
