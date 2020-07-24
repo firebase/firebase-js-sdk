@@ -20,13 +20,27 @@ import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import path from 'path';
-
-import { generateAliasConfig, resolveNodeExterns } from './rollup.shared';
+import { terser } from 'rollup-plugin-terser';
 
 import pkg from './exp/package.json';
 
-const defaultPlugins = [
-  alias(generateAliasConfig('node')),
+const util = require('./rollup.shared');
+
+const nodePlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es5'
+      }
+    },
+    clean: true,
+    transformers: util.removeAssertTransformer
+  }),
+  json()
+];
+
+const browserPlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
@@ -34,24 +48,45 @@ const defaultPlugins = [
         target: 'es2017'
       }
     },
-    clean: true
+    clean: true,
+    transformers: util.removeAssertAndPrefixInternalTransformer
   }),
-  json({ preferConst: true })
+  json({ preferConst: true }),
+  terser(util.manglePrivatePropertiesOptions)
 ];
 
-const nodeBuilds = [
+const allBuilds = [
+  // Node build
   {
-    input: './exp/index.node.ts',
+    input: './exp/index.ts',
     output: {
       file: path.resolve('./exp', pkg.main),
+      format: 'umd',
+      name: 'firebase.firestore'
+    },
+    plugins: [alias(util.generateAliasConfig('node')), ...nodePlugins],
+    external: util.resolveNodeExterns
+  },
+  // Browser build
+  {
+    input: './exp/index.ts',
+    output: {
+      file: path.resolve('./exp', pkg.browser),
       format: 'es'
     },
-    plugins: defaultPlugins,
-    external: resolveNodeExterns,
-    treeshake: {
-      tryCatchDeoptimization: false
-    }
+    plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins],
+    external: util.resolveBrowserExterns
+  },
+  // RN build
+  {
+    input: './exp/index.ts',
+    output: {
+      file: path.resolve('./exp', pkg['react-native']),
+      format: 'es'
+    },
+    plugins: [alias(util.generateAliasConfig('rn')), ...browserPlugins],
+    external: util.resolveBrowserExterns
   }
 ];
 
-export default [...nodeBuilds];
+export default allBuilds;

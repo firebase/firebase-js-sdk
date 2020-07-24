@@ -17,18 +17,24 @@
 
 import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { filter, orderBy, path } from '../../util/helpers';
+import { filter, orderBy, query } from '../../util/helpers';
 import { TestBundleCache } from './test_bundle_cache';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Timestamp } from '../../../src/api/timestamp';
-import { Query, queryEquals } from '../../../src/core/query';
+import {
+  LimitType,
+  newQueryForCollectionGroup,
+  Query,
+  queryEquals,
+  queryToTarget,
+  queryWithLimit
+} from '../../../src/core/query';
 import {
   clearTestPersistence,
   JSON_SERIALIZER,
   testIndexedDbPersistence,
   testMemoryEagerPersistence
 } from './persistence_test_helpers';
-import { ResourcePath } from '../../../src/model/path';
 import { NamedQuery } from '../../../src/core/bundle';
 import { toQueryTarget } from '../../../src/remote/serializer';
 
@@ -127,10 +133,12 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
   });
 
   it('returns saved collection queries', async () => {
-    const query = Query.atPath(path('collection'))
-      .addFilter(filter('sort', '>=', 2))
-      .addOrderBy(orderBy('sort'));
-    const queryTarget = toQueryTarget(JSON_SERIALIZER, query.toTarget());
+    const query1 = query(
+      'collection',
+      filter('sort', '>=', 2),
+      orderBy('sort')
+    );
+    const queryTarget = toQueryTarget(JSON_SERIALIZER, queryToTarget(query1));
 
     await cache.setNamedQuery({
       name: 'query-1',
@@ -142,12 +150,12 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
     });
 
     const namedQuery = await cache.getNamedQuery('query-1');
-    verifyNamedQuery(namedQuery!, 'query-1', query, 1, 9999);
+    verifyNamedQuery(namedQuery!, 'query-1', query1, 1, 9999);
   });
 
   it('returns saved collection group queries', async () => {
-    const query = new Query(ResourcePath.emptyPath(), 'collection');
-    const queryTarget = toQueryTarget(JSON_SERIALIZER, query.toTarget());
+    const query = newQueryForCollectionGroup('collection');
+    const queryTarget = toQueryTarget(JSON_SERIALIZER, queryToTarget(query));
 
     await cache.setNamedQuery({
       name: 'query-1',
@@ -164,10 +172,12 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
   });
 
   it('returns expected limit queries', async () => {
-    const query = Query.atPath(path('collection'))
-      .addOrderBy(orderBy('sort'))
-      .withLimitToFirst(3);
-    const queryTarget = toQueryTarget(JSON_SERIALIZER, query.toTarget());
+    const query1 = queryWithLimit(
+      query('collection', orderBy('sort')),
+      3,
+      LimitType.First
+    );
+    const queryTarget = toQueryTarget(JSON_SERIALIZER, queryToTarget(query1));
 
     await cache.setNamedQuery({
       name: 'query-1',
@@ -180,19 +190,24 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
     });
 
     const namedQuery = await cache.getNamedQuery('query-1');
-    verifyNamedQuery(namedQuery!, 'query-1', query, 1, 9999);
+    verifyNamedQuery(namedQuery!, 'query-1', query1, 1, 9999);
   });
 
   it('returns expected limit to last queries', async () => {
-    const query = Query.atPath(path('collection'))
-      .addOrderBy(orderBy('sort'))
-      .withLimitToLast(3);
+    const query1 = queryWithLimit(
+      query('collection', orderBy('sort')),
+      3,
+      LimitType.Last
+    );
     // Simulating bundle building for limit-to-last queries from the server
     // SDKs: they save the equivelent limit-to-first queries with a limitType
     // value 'LAST'. Client SDKs should apply a withLimitToLast when they see
     // limitType 'LAST' from bundles.
-    const limitQuery = query.withLimitToFirst(3);
-    const queryTarget = toQueryTarget(JSON_SERIALIZER, limitQuery.toTarget());
+    const limitQuery = queryWithLimit(query1, 3, LimitType.First);
+    const queryTarget = toQueryTarget(
+      JSON_SERIALIZER,
+      queryToTarget(limitQuery)
+    );
 
     await cache.setNamedQuery({
       name: 'query-1',
@@ -205,6 +220,6 @@ function genericBundleCacheTests(cacheFn: () => TestBundleCache): void {
     });
 
     const namedQuery = await cache.getNamedQuery('query-1');
-    verifyNamedQuery(namedQuery!, 'query-1', query, 1, 9999);
+    verifyNamedQuery(namedQuery!, 'query-1', query1, 1, 9999);
   });
 }

@@ -34,8 +34,14 @@ import {
   Bound,
   Direction,
   FieldFilter,
+  Filter,
+  newQueryForPath,
   Operator,
-  OrderBy
+  OrderBy,
+  Query,
+  queryToTarget,
+  queryWithAddedFilter,
+  queryWithAddedOrderBy
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
 import { TargetId } from '../../src/core/types';
@@ -88,7 +94,7 @@ import { primitiveComparator } from '../../src/util/misc';
 import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
-import { FIRESTORE, query } from './api_helpers';
+import { FIRESTORE } from './api_helpers';
 import { ByteString } from '../../src/util/byte_string';
 import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
 import {
@@ -101,7 +107,10 @@ import { Timestamp } from '../../src/api/timestamp';
 import { DocumentReference } from '../../src/api/database';
 import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
-import { JSON_SERIALIZER } from '../unit/local/persistence_test_helpers';
+import {
+  JSON_SERIALIZER,
+  TEST_DATABASE_ID
+} from '../unit/local/persistence_test_helpers';
 import { BundledDocuments } from '../../src/core/bundle';
 import { BundleMetadata } from '../../src/protos/firestore_bundle_proto';
 
@@ -111,7 +120,7 @@ export type TestSnapshotVersion = number;
 
 export function testUserDataWriter(): UserDataWriter {
   return new UserDataWriter(
-    new DatabaseId('test-project'),
+    TEST_DATABASE_ID,
     /* timestampsInSnapshots= */ false,
     'none',
     key => new DocumentReference(key, FIRESTORE, /* converter= */ null)
@@ -119,12 +128,11 @@ export function testUserDataWriter(): UserDataWriter {
 }
 
 export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
-  const databaseId = new DatabaseId('test-project');
   return new UserDataReader(
-    databaseId,
+    TEST_DATABASE_ID,
     /* ignoreUndefinedProperties= */ false,
     useProto3Json !== undefined
-      ? new JsonProtoSerializer(databaseId, useProto3Json)
+      ? new JsonProtoSerializer(TEST_DATABASE_ID, useProto3Json)
       : undefined
   );
 }
@@ -301,6 +309,21 @@ export function bound(
   return new Bound(components, before);
 }
 
+export function query(
+  resourcePath: string,
+  ...constraints: Array<OrderBy | Filter>
+): Query {
+  let q = newQueryForPath(path(resourcePath));
+  for (const constraint of constraints) {
+    if (constraint instanceof Filter) {
+      q = queryWithAddedFilter(q, constraint);
+    } else {
+      q = queryWithAddedOrderBy(q, constraint);
+    }
+  }
+  return q;
+}
+
 export function targetData(
   targetId: TargetId,
   queryPurpose: TargetPurpose,
@@ -309,7 +332,7 @@ export function targetData(
   // Arbitrary value.
   const sequenceNumber = 0;
   return new TargetData(
-    query(path)._query.toTarget(),
+    queryToTarget(query(path)),
     targetId,
     queryPurpose,
     sequenceNumber

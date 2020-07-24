@@ -83,10 +83,8 @@ export class Repo {
     public repoInfo_: RepoInfo,
     forceRestClient: boolean,
     public app: FirebaseApp,
-    authProvider: Provider<FirebaseAuthInternalName>
+    authTokenProvider: AuthTokenProvider
   ) {
-    const authTokenProvider = new AuthTokenProvider(app, authProvider);
-
     this.stats_ = StatsManager.getCollection(repoInfo_);
 
     if (forceRestClient || beingCrawled()) {

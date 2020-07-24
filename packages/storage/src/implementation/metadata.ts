@@ -20,13 +20,13 @@
  */
 import { Metadata } from '../metadata';
 
-import { AuthWrapper } from './authwrapper';
 import * as json from './json';
 import { Location } from './location';
 import * as path from './path';
 import * as type from './type';
 import * as UrlUtils from './url';
 import { Reference } from '../reference';
+import { StorageService } from '../service';
 
 export function noXform_<T>(metadata: Metadata, value: T): T {
   return value;
@@ -114,18 +114,18 @@ export function getMappings(): Mappings {
   return mappings_;
 }
 
-export function addRef(metadata: Metadata, authWrapper: AuthWrapper): void {
+export function addRef(metadata: Metadata, service: StorageService): void {
   function generateRef(): Reference {
     const bucket: string = metadata['bucket'] as string;
     const path: string = metadata['fullPath'] as string;
     const loc = new Location(bucket, path);
-    return authWrapper.makeStorageReference(loc);
+    return service.makeStorageReference(loc);
   }
   Object.defineProperty(metadata, 'ref', { get: generateRef });
 }
 
 export function fromResource(
-  authWrapper: AuthWrapper,
+  service: StorageService,
   resource: { [name: string]: unknown },
   mappings: Mappings
 ): Metadata {
@@ -139,12 +139,12 @@ export function fromResource(
       resource[mapping.server]
     );
   }
-  addRef(metadata, authWrapper);
+  addRef(metadata, service);
   return metadata;
 }
 
 export function fromResourceString(
-  authWrapper: AuthWrapper,
+  service: StorageService,
   resourceString: string,
   mappings: Mappings
 ): Metadata | null {
@@ -153,7 +153,7 @@ export function fromResourceString(
     return null;
   }
   const resource = obj as Metadata;
-  return fromResource(authWrapper, resource, mappings);
+  return fromResource(service, resource, mappings);
 }
 
 export function downloadUrlFromResourceString(

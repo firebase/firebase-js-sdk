@@ -27,7 +27,7 @@ import { DatabaseId } from '../../../src/core/database_info';
 import { key } from '../../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
 import { TestBundleBuilder } from '../../unit/util/bundle_data';
-import { newTextEncoder } from '../../../src/platform/dom';
+import { newTextEncoder } from '../../../src/platform/serializer';
 import { collectionReference } from '../../util/api_helpers';
 
 export const encoder = newTextEncoder();

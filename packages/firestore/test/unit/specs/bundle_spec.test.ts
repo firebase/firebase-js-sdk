@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { Query } from '../../../src/core/query';
+import { newQueryForPath, Query } from '../../../src/core/query';
 import {
   doc,
+  query,
   filter,
-  path,
   TestSnapshotVersion,
   version,
   wrapObject
@@ -88,7 +88,7 @@ function bundleWithDocumentAndQuery(
 
 describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
   specTest('Newer docs from bundles should overwrite cache', [], () => {
-    const query1 = Query.atPath(path('collection'));
+    const query1 = query('collection');
     const docA = doc('collection/a', 1000, { value: 'a' });
     const docAChanged = doc('collection/a', 2999, { value: 'b' });
 
@@ -117,7 +117,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
     'Newer deleted docs from bundles should delete cached docs',
     [],
     () => {
-      const query1 = Query.atPath(path('collection'));
+      const query1 = query('collection');
       const docA = doc('collection/a', 1000, { value: 'a' });
 
       const bundleString = bundleWithDocumentAndQuery({
@@ -135,7 +135,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
   );
 
   specTest('Older deleted docs from bundles should do nothing', [], () => {
-    const query1 = Query.atPath(path('collection'));
+    const query1 = query('collection');
     const docA = doc('collection/a', 1000, { value: 'a' });
 
     const bundleString = bundleWithDocumentAndQuery({
@@ -157,7 +157,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
     'Newer docs from bundles should raise snapshot only when Watch catches up with acknowledged writes',
     [],
     () => {
-      const query = Query.atPath(path('collection'));
+      const query1 = query('collection');
       const docA = doc('collection/a', 250, { value: 'a' });
 
       const bundleBeforeMutationAck = bundleWithDocumentAndQuery({
@@ -180,13 +180,13 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
           // TODO(b/160878667): Figure out what happens when memory eager GC is on
           // a bundle is loaded.
           .withGCEnabled(false)
-          .userListens(query)
-          .watchAcksFull(query, 250, docA)
-          .expectEvents(query, {
+          .userListens(query1)
+          .watchAcksFull(query1, 250, docA)
+          .expectEvents(query1, {
             added: [doc('collection/a', 250, { value: 'a' })]
           })
           .userPatches('collection/a', { value: 'patched' })
-          .expectEvents(query, {
+          .expectEvents(query1, {
             modified: [
               doc(
                 'collection/a',
@@ -204,7 +204,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
           // loading bundleAfterMutationAck will raise a snapshot, because it is after
           // the acknowledged mutation.
           .loadBundle(bundleAfterMutationAck)
-          .expectEvents(query, {
+          .expectEvents(query1, {
             modified: [doc('collection/a', 1001, { value: 'fromBundle' })]
           })
       );
@@ -215,7 +215,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
     'Newer docs from bundles should keep not raise snapshot if there are unacknowledged writes',
     [],
     () => {
-      const query = Query.atPath(path('collection'));
+      const query1 = query('collection');
       const docA = doc('collection/a', 250, { value: 'a' });
 
       const bundleString = bundleWithDocumentAndQuery({
@@ -229,13 +229,13 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
       return (
         spec()
           .withGCEnabled(false)
-          .userListens(query)
-          .watchAcksFull(query, 250, docA)
-          .expectEvents(query, {
+          .userListens(query1)
+          .watchAcksFull(query1, 250, docA)
+          .expectEvents(query1, {
             added: [doc('collection/a', 250, { value: 'a' })]
           })
           .userPatches('collection/a', { value: 'patched' })
-          .expectEvents(query, {
+          .expectEvents(query1, {
             modified: [
               doc(
                 'collection/a',
@@ -254,7 +254,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
   );
 
   specTest('Newer docs from bundles might lead to limbo doc', [], () => {
-    const query = Query.atPath(path('collection'));
+    const query1 = query('collection');
     const docA = doc('collection/a', 1000, { value: 'a' });
     const bundleString1 = bundleWithDocumentAndQuery({
       key: docA.key,
@@ -263,19 +263,19 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
       updateTime: 500,
       content: { value: 'b' }
     });
-    const limboQuery = Query.atPath(docA.key.path);
+    const limboQuery = newQueryForPath(docA.key.path);
 
     return (
       spec()
         .withGCEnabled(false)
-        .userListens(query)
-        .watchAcksFull(query, 250)
+        .userListens(query1)
+        .watchAcksFull(query1, 250)
         // Backend tells is there is no such doc.
-        .expectEvents(query, {})
+        .expectEvents(query1, {})
         // Bundle tells otherwise, leads to limbo.
         .loadBundle(bundleString1)
         .expectLimboDocs(docA.key)
-        .expectEvents(query, {
+        .expectEvents(query1, {
           added: [doc('collection/a', 500, { value: 'b' })],
           fromCache: true
         })
@@ -285,7 +285,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
         .watchCurrents(limboQuery, 'resume-token-1002')
         .watchSnapshots(1002)
         .expectLimboDocs()
-        .expectEvents(query, {
+        .expectEvents(query1, {
           removed: [doc('collection/a', 500, { value: 'b' })],
           fromCache: false
         })
@@ -293,7 +293,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
   });
 
   specTest('Bundles query can be loaded and resumed.', [], () => {
-    const query = Query.atPath(path('collection'));
+    const query1 = query('collection');
     const docA = doc('collection/a', 100, { key: 'a' });
     const bundleString1 = bundleWithDocumentAndQuery(
       {
@@ -303,13 +303,13 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
         updateTime: 500,
         content: { value: 'b' }
       },
-      { name: 'bundled-query', readTime: 400, query }
+      { name: 'bundled-query', readTime: 400, query: query1 }
     );
 
     return spec()
       .loadBundle(bundleString1)
-      .userListensToNamedQuery('bundled-query', query, 400)
-      .expectEvents(query, {
+      .userListensToNamedQuery('bundled-query', query1, 400)
+      .expectEvents(query1, {
         added: [doc('collection/a', 500, { value: 'b' })],
         fromCache: true
       });
@@ -319,10 +319,8 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
     'Bundles query can be loaded and resumed from different tabs',
     ['multi-client'],
     () => {
-      const query = Query.atPath(path('collection'));
-      const query1 = Query.atPath(path('collection')).addFilter(
-        filter('value', '==', 'c')
-      );
+      const query1 = query('collection');
+      const query2 = query('collection', filter('value', '==', 'c'));
       const docA = doc('collection/a', 100, { value: 'a' });
       const bundleString1 = bundleWithDocumentAndQuery(
         {
@@ -332,7 +330,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
           updateTime: 500,
           content: { value: 'b' }
         },
-        { name: 'bundled-query', readTime: 400, query }
+        { name: 'bundled-query', readTime: 400, query: query1 }
       );
 
       const bundleString2 = bundleWithDocumentAndQuery(
@@ -343,7 +341,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
           updateTime: 550,
           content: { value: 'c' }
         },
-        { name: 'bundled-query', readTime: 560, query: query1 }
+        { name: 'bundled-query', readTime: 560, query: query2 }
       );
 
       return (
@@ -351,22 +349,22 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
           .loadBundle(bundleString1)
           // Read named query from loaded bundle by primary.
           .client(1)
-          .userListensToNamedQuery('bundled-query', query, 400)
-          .expectEvents(query, {
+          .userListensToNamedQuery('bundled-query', query1, 400)
+          .expectEvents(query1, {
             added: [doc('collection/a', 500, { value: 'b' })],
             fromCache: true
           })
           // Loads a newer bundle.
           .loadBundle(bundleString2)
-          .expectEvents(query, {
+          .expectEvents(query1, {
             modified: [doc('collection/a', 550, { value: 'c' })],
             fromCache: true
           })
-          .userUnlistens(query)
+          .userUnlistens(query1)
           // Read named query from loaded bundle by secondary.
           .client(0)
-          .userListensToNamedQuery('bundled-query', query1, 560)
-          .expectEvents(query1, {
+          .userListensToNamedQuery('bundled-query', query2, 560)
+          .expectEvents(query2, {
             added: [doc('collection/a', 550, { value: 'c' })],
             fromCache: true
           })
@@ -378,7 +376,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
     'Load from secondary clients and observe from primary',
     ['multi-client'],
     () => {
-      const query = Query.atPath(path('collection'));
+      const query1 = query('collection');
       const docA = doc('collection/a', 250, { value: 'a' });
       const bundleString1 = bundleWithDocumentAndQuery({
         key: docA.key,
@@ -389,15 +387,15 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
       });
 
       return client(0)
-        .userListens(query)
-        .watchAcksFull(query, 250, docA)
-        .expectEvents(query, {
+        .userListens(query1)
+        .watchAcksFull(query1, 250, docA)
+        .expectEvents(query1, {
           added: [docA]
         })
         .client(1)
         .loadBundle(bundleString1)
         .client(0)
-        .expectEvents(query, {
+        .expectEvents(query1, {
           modified: [doc('collection/a', 500, { value: 'b' })]
         });
     }
@@ -407,7 +405,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
     'Load and observe from same secondary client',
     ['multi-client'],
     () => {
-      const query = Query.atPath(path('collection'));
+      const query1 = query('collection');
       const docA = doc('collection/a', 250, { value: 'a' });
       const bundleString = bundleWithDocumentAndQuery({
         key: docA.key,
@@ -418,18 +416,18 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
       });
 
       return client(0)
-        .userListens(query)
-        .watchAcksFull(query, 250, docA)
-        .expectEvents(query, {
+        .userListens(query1)
+        .watchAcksFull(query1, 250, docA)
+        .expectEvents(query1, {
           added: [docA]
         })
         .client(1)
-        .userListens(query)
-        .expectEvents(query, {
+        .userListens(query1)
+        .expectEvents(query1, {
           added: [docA]
         })
         .loadBundle(bundleString)
-        .expectEvents(query, {
+        .expectEvents(query1, {
           modified: [doc('collection/a', 500, { value: 'b' })]
         });
     }
@@ -439,7 +437,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
     'Load from primary client and observe from secondary',
     ['multi-client'],
     () => {
-      const query = Query.atPath(path('collection'));
+      const query1 = query('collection');
       const docA = doc('collection/a', 250, { value: 'a' });
       const bundleString1 = bundleWithDocumentAndQuery({
         key: docA.key,
@@ -450,23 +448,23 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
       });
 
       return client(0)
-        .userListens(query)
-        .watchAcksFull(query, 250, docA)
-        .expectEvents(query, {
+        .userListens(query1)
+        .watchAcksFull(query1, 250, docA)
+        .expectEvents(query1, {
           added: [docA]
         })
         .client(1)
-        .userListens(query)
-        .expectEvents(query, {
+        .userListens(query1)
+        .expectEvents(query1, {
           added: [docA]
         })
         .client(0)
         .loadBundle(bundleString1)
-        .expectEvents(query, {
+        .expectEvents(query1, {
           modified: [doc('collection/a', 500, { value: 'b' })]
         })
         .client(1)
-        .expectEvents(query, {
+        .expectEvents(query1, {
           modified: [doc('collection/a', 500, { value: 'b' })]
         });
     }

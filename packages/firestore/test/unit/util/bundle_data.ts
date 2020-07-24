@@ -27,9 +27,11 @@ import {
   toQueryTarget
 } from '../../../src/remote/serializer';
 import { DocumentKey } from '../../../src/model/document_key';
-import { newSerializer } from '../../../src/platform/serializer';
-import { newTextEncoder } from '../../../src/platform/dom';
-import { Query } from '../../../src/core/query';
+import {
+  newSerializer,
+  newTextEncoder
+} from '../../../src/platform/serializer';
+import { Query, queryToTarget } from '../../../src/core/query';
 
 export const encoder = newTextEncoder();
 
@@ -83,7 +85,7 @@ export class TestBundleBuilder {
     query: Query,
     limitType?: LimitType
   ): TestBundleBuilder {
-    const queryTarget = toQueryTarget(this.serializer, query.toTarget());
+    const queryTarget = toQueryTarget(this.serializer, queryToTarget(query));
     this.elements.push({
       namedQuery: {
         name,

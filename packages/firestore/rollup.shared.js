@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-import * as path from 'path';
+const path = require('path');
 
-import { externs } from './externs.json';
-import { renameInternals } from './scripts/rename-internals';
-import { extractPublicIdentifiers } from './scripts/extract-api';
-import { removeAsserts } from './scripts/remove-asserts';
+const { renameInternals } = require('./scripts/rename-internals');
+const { extractPublicIdentifiers } = require('./scripts/extract-api');
+const { removeAsserts } = require('./scripts/remove-asserts');
 
-import pkg from './package.json';
+const { externs } = require('./externs.json');
+const pkg = require('./package.json');
 
 /**
  * Returns an replacement configuration for `@rollup/plugin-alias` that replaces
  * references to platform-specific files with implementations for the provided
  * target platform.
  */
-export function generateAliasConfig(platform) {
+exports.generateAliasConfig = function (platform) {
   return {
     entries: [
       {
@@ -38,7 +38,7 @@ export function generateAliasConfig(platform) {
       }
     ]
   };
-}
+};
 
 const browserDeps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
@@ -47,23 +47,34 @@ const browserDeps = Object.keys(
 const nodeDeps = [...browserDeps, 'util', 'path'];
 
 /** Resolves the external dependencies for the browser build. */
-export function resolveBrowserExterns(id) {
+exports.resolveBrowserExterns = function (id) {
   return browserDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
-}
+};
 
 /** Resolves the external dependencies for the Node build. */
-export function resolveNodeExterns(id) {
+exports.resolveNodeExterns = function (id) {
   return nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
-}
+};
 
 const externsPaths = externs.map(p => path.resolve(__dirname, '../../', p));
 const publicIdentifiers = extractPublicIdentifiers(externsPaths);
 
 /**
+ * Transformers that remove calls to `debugAssert` and messages for 'fail` and
+ * `hardAssert`.
+ */
+exports.removeAssertTransformer = [
+  service => ({
+    before: [removeAsserts(service.getProgram())],
+    after: []
+  })
+];
+
+/**
  * Transformers that remove calls to `debugAssert`, messages for 'fail` and
  * `hardAssert` and appends a __PRIVATE_ prefix to all internal symbols.
  */
-export const firestoreTransformers = [
+exports.removeAssertAndPrefixInternalTransformer = [
   service => ({
     before: [
       removeAsserts(service.getProgram()),
@@ -79,7 +90,7 @@ export const firestoreTransformers = [
 /**
  * Terser options that mangle all properties prefixed with __PRIVATE_.
  */
-export const manglePrivatePropertiesOptions = {
+exports.manglePrivatePropertiesOptions = {
   output: {
     comments: 'all',
     beautify: true

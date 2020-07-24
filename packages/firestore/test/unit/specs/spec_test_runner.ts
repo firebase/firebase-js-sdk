@@ -25,7 +25,17 @@ import {
   Observer,
   QueryListener
 } from '../../../src/core/event_manager';
-import { canonifyQuery, Query, queryEquals } from '../../../src/core/query';
+import {
+  canonifyQuery,
+  LimitType,
+  newQueryForCollectionGroup,
+  Query,
+  queryEquals,
+  queryToTarget,
+  queryWithAddedFilter,
+  queryWithAddedOrderBy,
+  queryWithLimit
+} from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { loadBundle, SyncEngine } from '../../../src/core/sync_engine';
 import { TargetId } from '../../../src/core/types';
@@ -51,7 +61,6 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/object_value';
 import { Mutation } from '../../../src/model/mutation';
 import * as api from '../../../src/protos/firestore_proto_api';
-import { Datastore, newDatastore } from '../../../src/remote/datastore';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { RemoteStore } from '../../../src/remote/remote_store';
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
@@ -84,7 +93,7 @@ import {
   key,
   orderBy,
   patchMutation,
-  path,
+  query,
   setMutation,
   stringFromBase64String,
   TestSnapshotVersion,
@@ -126,32 +135,37 @@ import {
 } from '../../util/test_platform';
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
 import { logWarn } from '../../../src/util/log';
-import { newTextEncoder } from '../../../src/platform/dom';
+import { newTextEncoder } from '../../../src/platform/serializer';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
 export function parseQuery(querySpec: string | SpecQuery): Query {
   if (typeof querySpec === 'string') {
-    return Query.atPath(path(querySpec));
+    return query(querySpec);
   } else {
-    let query = new Query(path(querySpec.path), querySpec.collectionGroup);
+    let query1 = querySpec.collectionGroup
+      ? newQueryForCollectionGroup(querySpec.collectionGroup)
+      : query(querySpec.path);
     if (querySpec.limit) {
-      query =
+      query1 = queryWithLimit(
+        query1,
+        querySpec.limit,
         querySpec.limitType === 'LimitToFirst'
-          ? query.withLimitToFirst(querySpec.limit)
-          : query.withLimitToLast(querySpec.limit);
+          ? LimitType.First
+          : LimitType.Last
+      );
     }
     if (querySpec.filters) {
       querySpec.filters.forEach(([field, op, value]) => {
-        query = query.addFilter(filter(field, op, value));
+        query1 = queryWithAddedFilter(query1, filter(field, op, value));
       });
     }
     if (querySpec.orderBys) {
       querySpec.orderBys.forEach(([filter, direction]) => {
-        query = query.addOrderBy(orderBy(filter, direction));
+        query1 = queryWithAddedOrderBy(query1, orderBy(filter, direction));
       });
     }
-    return query;
+    return query1;
   }
 }
 
@@ -182,7 +196,6 @@ abstract class TestRunner {
   private networkEnabled = true;
 
   // Initialized asynchronously via start().
-  private datastore!: Datastore;
   private localStore!: LocalStore;
   private remoteStore!: RemoteStore;
   private persistence!: MockMemoryPersistence | MockIndexedDbPersistence;
@@ -237,18 +250,11 @@ abstract class TestRunner {
   }
 
   async start(): Promise<void> {
-    this.connection = new MockConnection(this.queue);
-    this.datastore = newDatastore(
-      this.connection,
-      new EmptyCredentialsProvider(),
-      this.serializer
-    );
-
     const componentProvider = await this.initializeComponentProvider(
       {
         asyncQueue: this.queue,
         databaseInfo: this.databaseInfo,
-        datastore: this.datastore,
+        credentials: new EmptyCredentialsProvider(),
         clientId: this.clientId,
         initialUser: this.user,
         maxConcurrentLimboResolutions:
@@ -261,6 +267,7 @@ abstract class TestRunner {
     this.sharedClientState = componentProvider.sharedClientState;
     this.persistence = componentProvider.persistence;
     this.localStore = componentProvider.localStore;
+    this.connection = componentProvider.connection;
     this.remoteStore = componentProvider.remoteStore;
     this.syncEngine = componentProvider.syncEngine;
     this.eventManager = componentProvider.eventManager;
@@ -705,7 +712,8 @@ abstract class TestRunner {
     // Make sure to execute all writes that are currently queued. This allows us
     // to assert on the total number of requests sent before shutdown.
     await this.remoteStore.fillWritePipeline();
-    await this.syncEngine.disableNetwork();
+    this.persistence.setNetworkEnabled(false);
+    await this.remoteStore.disableNetwork();
   }
 
   private async doDrainQueue(): Promise<void> {
@@ -714,7 +722,8 @@ abstract class TestRunner {
 
   private async doEnableNetwork(): Promise<void> {
     this.networkEnabled = true;
-    await this.syncEngine.enableNetwork();
+    this.persistence.setNetworkEnabled(true);
+    await this.remoteStore.enableNetwork();
   }
 
   private async doShutdown(): Promise<void> {
@@ -980,7 +989,7 @@ abstract class TestRunner {
       // encode that in the spec tests. For now, hard-code that it's a listen
       // despite the fact that it's not always the right value.
       let targetData = new TargetData(
-        parseQuery(expected.queries[0]).toTarget(),
+        queryToTarget(parseQuery(expected.queries[0])),
         targetId,
         TargetPurpose.Listen,
         ARBITRARY_SEQUENCE_NUMBER

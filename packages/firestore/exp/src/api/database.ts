@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
+import * as firestore from '../../../exp-types';
 
 import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
@@ -101,7 +101,7 @@ export class Firestore extends LiteFirestore
       const databaseInfo = this._makeDatabaseInfo(
         settings.host,
         settings.ssl,
-        settings.experimentalForceLongPolling
+        /* experimentalForceLongPolling= */ false
       );
 
       this._deferredInitialization = this._firestoreClient.start(
@@ -291,7 +291,31 @@ export function disableNetwork(
 export function terminate(
   firestore: firestore.FirebaseFirestore
 ): Promise<void> {
-  _removeServiceInstance(firestore.app, 'firestore/lite');
+  _removeServiceInstance(firestore.app, 'firestore-exp');
   const firestoreImpl = cast(firestore, Firestore);
   return firestoreImpl._terminate();
+}
+
+export function loadBundle(
+  firestore: firestore.FirebaseFirestore,
+  bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
+): firestore.LoadBundleTask | null {
+  return null;
+  // const firestoreImpl = cast(firestore, Firestore);
+  // return firestoreImpl._getFirestoreClient()
+  // .then(firestoreClient => firestoreClient.loadBundle(bundleData));
+}
+
+export async function namedQuery(
+  firestore: firestore.FirebaseFirestore,
+  name: string
+): Promise<firestore.Query | null> {
+  const firestoreImpl = cast(firestore, Firestore);
+  const client = await firestoreImpl._getFirestoreClient();
+  const namedQuery = await client.getNamedQuery(name);
+  if (!namedQuery) {
+    return null;
+  }
+  return null;
+  // return new firestore.Query(namedQuery.query, cast(firestoreImpl, LegacyFirestore), null, namedQuery.readTime);
 }

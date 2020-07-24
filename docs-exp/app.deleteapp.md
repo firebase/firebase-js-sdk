@@ -16,11 +16,11 @@ export declare function deleteApp(app: FirebaseApp): Promise<void>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | <code>FirebaseApp</code> |  |
+|  app | [FirebaseApp](./app-types.firebaseapp.md) |  |
 
 <b>Returns:</b>
 
-`Promise<void>`
+Promise&lt;void&gt;
 
 ## Example
 
