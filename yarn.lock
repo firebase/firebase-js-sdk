@@ -14439,10 +14439,10 @@ try-require@^1.0.0:
   resolved "https://registry.npmjs.org/try-require/-/try-require-1.2.1.tgz#34489a2cac0c09c1cc10ed91ba011594d4333be2"
   integrity sha1-NEiaLKwMCcHMEO2RugEVlNQzO+I=
 
-ts-essentials@6.0.7:
-  version "6.0.7"
-  resolved "https://registry.npmjs.org/ts-essentials/-/ts-essentials-6.0.7.tgz#5f4880911b7581a873783740ce8b94da163d18a6"
-  integrity sha512-2E4HIIj4tQJlIHuATRHayv0EfMGK3ris/GRk1E3CFnsZzeNV+hUmelbaTZHLtXaZppM5oLhHRtO04gINC4Jusw==
+ts-essentials@7.0.0:
+  version "7.0.0"
+  resolved "https://registry.npmjs.org/ts-essentials/-/ts-essentials-7.0.0.tgz#eb807945d65e258bae8914f541543758f879f6c5"
+  integrity sha512-DptrzFAwb5afnsTdKxfScHqLbVZHl7YsxvDT+iT8tbXWFGSzbXALhfWlal25HBesqlX0NZd6wz9KBGnJcWScdQ==
 
 ts-loader@6.2.2:
   version "6.2.2"
