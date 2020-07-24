@@ -19,27 +19,13 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import {
-  linkWithPhoneNumber,
-  PhoneAuthProvider,
-  reauthenticateWithPhoneNumber,
-  RecaptchaVerifier,
-  signInAnonymously,
-  signInWithPhoneNumber,
-  unlink,
-  updatePhoneNumber
+    linkWithPhoneNumber, PhoneAuthProvider, reauthenticateWithPhoneNumber, RecaptchaVerifier,
+    signInAnonymously, signInWithPhoneNumber, unlink, updatePhoneNumber
 } from '@firebase/auth-exp/index.browser';
-import {
-  Auth,
-  OperationType,
-  ProviderId,
-  UserCredential
-} from '@firebase/auth-types-exp';
+import { Auth, OperationType, ProviderId, UserCredential } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import {
-  cleanUpTestInstance,
-  getTestInstance
-} from '../../helpers/integration/helpers';
+import { cleanUpTestInstance, getTestInstance } from '../../helpers/integration/helpers';
 
 use(chaiAsPromised);
 
@@ -98,6 +84,7 @@ describe('Integration test: phone auth', () => {
     const linkResult = await cr.confirm(PHONE_A.code);
     expect(linkResult.operationType).to.eq(OperationType.LINK);
     expect(linkResult.user.uid).to.eq(user.uid);
+    expect(linkResult.user.phoneNumber).to.eq(PHONE_A.number);
 
     await unlink(user, ProviderId.PHONE);
     expect(auth.currentUser!.uid).to.eq(anonId);
@@ -177,6 +164,13 @@ describe('Integration test: phone auth', () => {
         FirebaseError,
         'auth/user-mismatch'
       );
+
+      // We need to manually delete PHONE_B number since a failed
+      // reauthenticateWithPhoneNumber does not trigger a state change
+      resetVerifier();
+      cr = await signInWithPhoneNumber(auth, PHONE_B.number, verifier);
+      const {user: otherUser} = await cr.confirm(PHONE_B.code);
+      await otherUser.delete();
     });
   });
 });
