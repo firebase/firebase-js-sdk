@@ -1,5 +1,28 @@
 # firebase
 
+## 7.17.1
+
+### Patch Changes
+
+- [`a87676b8`](https://github.com/firebase/firebase-js-sdk/commit/a87676b84b78ccc2f057a22eb947a5d13402949c) [#3472](https://github.com/firebase/firebase-js-sdk/pull/3472) - - Fix an error where an analytics PR included a change to `@firebase/util`, but
+  the util package was not properly included in the changeset for a patch bump.
+
+  - `@firebase/util` adds environment check methods `isIndexedDBAvailable`
+    `validateIndexedDBOpenable`, and `areCookiesEnabled`.
+
+- Updated dependencies [[`a87676b8`](https://github.com/firebase/firebase-js-sdk/commit/a87676b84b78ccc2f057a22eb947a5d13402949c)]:
+  - @firebase/analytics@0.4.1
+  - @firebase/util@0.3.0
+  - @firebase/app@0.6.9
+  - @firebase/database@0.6.9
+  - @firebase/firestore@1.16.2
+  - @firebase/installations@0.4.15
+  - @firebase/messaging@0.6.21
+  - @firebase/performance@0.3.10
+  - @firebase/remote-config@0.1.26
+  - @firebase/storage@0.3.41
+  - @firebase/functions@0.4.49
+
 ## 7.17.0
 
 ### Minor Changes
