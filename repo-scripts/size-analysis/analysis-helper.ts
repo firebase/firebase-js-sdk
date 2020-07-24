@@ -24,8 +24,6 @@ import * as ts from 'typescript';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 
-const TYPINGS: string = 'typings';
-const BUNDLE: string = 'esm2017';
 export const enum ErrorCode {
   INVALID_FLAG_COMBINATION = 'Invalid command flag combinations!',
   BUNDLE_FILE_DOES_NOT_EXIST = 'Module does not have a bundle file!',
@@ -61,29 +59,6 @@ export interface ExportData {
   sizeInBytes: number;
   sizeInBytesWithExternalDeps: number;
 }
-
-/**
- * This functions builds a simple JS app that only depends on the provided
- * export. It then uses Rollup to gather all top-level classes and functions
- * that that the export depends on.
- *
- * @param exportName The name of the export to verify
- * @param jsBundle The file name of the source bundle that contains the export
- * @return A list of dependencies for the given export
- */
-// export async function extractDependencies(
-//   exportName: string,
-//   jsBundle: string,
-//   map: Map<string, string>
-// ): Promise<MemberList> {
-//   const { dependencies } = await extractDependenciesAndSize(
-//     exportName,
-//     jsBundle,
-//     map
-//   );
-//   return dependencies;
-// }
-
 /**
  * Helper for extractDependencies that extracts the dependencies and the size
  * of the minified build.
@@ -124,9 +99,6 @@ export async function extractDependenciesAndSize(
     externalDepsNotResolvedOutput,
     map
   );
-  console.log('\n\n\n');
-  console.log(fs.readFileSync(externalDepsNotResolvedOutput, 'utf-8'));
-  console.log('\n\n\n');
   const externals: object = extractExternalDependencies(
     externalDepsNotResolvedOutput
   );
@@ -304,8 +276,11 @@ export function extractDeclarations(
             node.moduleSpecifier.getText(sourceFile)
           );
           // concatenate re-exported MemberList with MemberList of the dts file
+          console.log(reExportsWithFromClause);
           for (const key of Object.keys(declarations)) {
-            declarations[key].push(...reExportsWithFromClause[key]);
+            if (Array.isArray(declarations[key])) {
+              declarations[key].push(...reExportsWithFromClause[key]);
+            }
           }
         }
       } else {
@@ -450,7 +425,9 @@ function handleExportStatementsWithoutFromClause(
         filterAllBy(reExportedSymbols, [exportedSymbolCurrentName]);
         // concatenate re-exported MemberList with MemberList of the dts file
         for (const key of Object.keys(declarations)) {
-          declarations[key].push(...reExportedSymbols[key]);
+          if (Array.isArray(declarations[key])) {
+            declarations[key].push(...reExportedSymbols[key]);
+          }
         }
       }
       // handles declare first then export
@@ -526,7 +503,9 @@ function extractOriginalSymbolName(
 
 function filterAllBy(memberList: MemberList, keep: string[]): void {
   for (const key of Object.keys(memberList)) {
-    memberList[key] = memberList[key].filter(each => keep.includes(each));
+    if (Array.isArray(memberList[key])) {
+      memberList[key] = memberList[key].filter(each => keep.includes(each));
+    }
   }
 }
 
@@ -536,7 +515,9 @@ export function replaceAll(
   current: string
 ): void {
   for (const key of Object.keys(memberList)) {
-    memberList[key] = replaceWith(memberList[key], original, current);
+    if (Array.isArray(memberList[key])) {
+      memberList[key] = replaceWith(memberList[key], original, current);
+    }
   }
 }
 
@@ -564,7 +545,7 @@ function isExportRenamed(exportSpecifier: ts.ExportSpecifier): boolean {
  *
  * This functions writes generated json report(s) to a file
  */
-export function writeReportToFile(report: string, outputFile: string): void {
+export function writeReportToFile(report: object, outputFile: string): void {
   if (fs.existsSync(outputFile) && !fs.lstatSync(outputFile).isFile()) {
     throw new Error(ErrorCode.OUTPUT_FILE_REQUIRED);
   }
@@ -573,14 +554,14 @@ export function writeReportToFile(report: string, outputFile: string): void {
   if (!fs.existsSync(directoryPath)) {
     fs.mkdirSync(directoryPath, { recursive: true });
   }
-  fs.writeFileSync(outputFile, report);
+  fs.writeFileSync(outputFile, JSON.stringify(report, null, 4));
 }
 /**
  *
  * This functions writes generated json report(s) to a file of given directory
  */
 export function writeReportToDirectory(
-  report: string,
+  report: object,
   fileName: string,
   directoryPath: string
 ): void {
@@ -593,7 +574,11 @@ export function writeReportToDirectory(
   if (!fs.existsSync(directoryPath)) {
     fs.mkdirSync(directoryPath, { recursive: true });
   }
-  fs.writeFileSync(`${directoryPath}/${fileName}`, report);
+
+  fs.writeFileSync(
+    `${directoryPath}/${fileName}`,
+    JSON.stringify(report, null, 4)
+  );
 }
 
 /**
@@ -661,26 +646,50 @@ export async function generateReportForModule(
   moduleLocation: string,
   outputDirectory: string,
   writeFiles: boolean
-): Promise<string> {
+): Promise<object> {
   const packageJsonPath = `${moduleLocation}/package.json`;
   if (!fs.existsSync(packageJsonPath)) {
-    return;
+    return null;
   }
   const packageJson = require(packageJsonPath);
   // to exclude <modules>-types modules
+  const TYPINGS: string = 'typings';
   if (packageJson[TYPINGS]) {
     const dtsFile = `${moduleLocation}/${packageJson[TYPINGS]}`;
-    if (!packageJson[BUNDLE]) {
+    const bundleLocation: string = retrieveBundleFileLocation(packageJson);
+    if (!bundleLocation) {
       throw new Error(ErrorCode.BUNDLE_FILE_DOES_NOT_EXIST);
     }
-    const bundleFile = `${moduleLocation}/${packageJson[BUNDLE]}`;
-    const json = await generateReport(dtsFile, bundleFile);
+    const bundleFile = `${moduleLocation}/${bundleLocation}`;
+    const json = await generateReport(packageJson.name, dtsFile, bundleFile);
     const fileName = `${path.basename(packageJson.name)}-dependency.json`;
     if (writeFiles) {
       writeReportToDirectory(json, fileName, path.resolve(outputDirectory));
     }
     return json;
   }
+  return null;
+}
+/**
+ *
+ * @param pkgJson package.json of the module.
+ *
+ * This function implements a fallback of locating module's budle file.
+ * It first looks at esm2017 field of package.json, then module field. Main
+ * field at the last.
+ *
+ */
+function retrieveBundleFileLocation(pkgJson: string): string {
+  if (pkgJson['esm2017']) {
+    return pkgJson['esm2017'];
+  }
+  if (pkgJson['module']) {
+    return pkgJson['module'];
+  }
+  if (pkgJson['main']) {
+    return pkgJson['main'];
+  }
+  return null;
 }
 /**
  *
@@ -702,25 +711,33 @@ function buildMap(api: MemberList): Map<string, string> {
 /**
  * A recursive function that locates and generates reports for sub-modules
  */
-function traverseDirs(
+async function traverseDirs(
   moduleLocation: string,
   outputDirectory: string,
   writeFiles: boolean,
   executor,
   level: number,
   levelLimit: number
-): void {
+): Promise<object[]> {
   if (level > levelLimit) {
-    return;
+    return null;
   }
 
-  executor(moduleLocation, outputDirectory, writeFiles);
+  const reports: object[] = [];
+  const report: object = await executor(
+    moduleLocation,
+    outputDirectory,
+    writeFiles
+  );
+  if (report !== null) {
+    reports.push(report);
+  }
 
   for (const name of fs.readdirSync(moduleLocation)) {
     const p = `${moduleLocation}/${name}`;
 
     if (fs.lstatSync(p).isDirectory()) {
-      traverseDirs(
+      const subModuleReports: object[] = await traverseDirs(
         p,
         outputDirectory,
         writeFiles,
@@ -728,8 +745,12 @@ function traverseDirs(
         level + 1,
         levelLimit
       );
+      if (subModuleReports !== null && subModuleReports.length !== 0) {
+        reports.push(...subModuleReports);
+      }
     }
   }
+  return reports;
 }
 
 /**
@@ -740,12 +761,15 @@ function traverseDirs(
  * @param map maps every symbol listed in publicApi to its type. eg: aVariable -> variable.
  */
 export async function buildJsonReport(
+  moduleName: string,
   publicApi: MemberList,
   jsFile: string,
   map: Map<string, string>
-): Promise<string> {
+): Promise<object> {
   const result: object = {};
   const SYMBOLS: string = 'symbols';
+  const MODULE: string = 'module';
+  result[MODULE] = moduleName;
   result[SYMBOLS] = [];
   for (const exp of publicApi.classes) {
     result[SYMBOLS].push(await extractDependenciesAndSize(exp, jsFile, map));
@@ -760,13 +784,14 @@ export async function buildJsonReport(
   for (const exp of publicApi.enums) {
     result[SYMBOLS].push(await extractDependenciesAndSize(exp, jsFile, map));
   }
-  return JSON.stringify(result, null, 4);
+  return result;
 }
 
 export async function generateReport(
+  moduleName: string,
   dtsFile: string,
   bundleFile: string
-): Promise<string> {
+): Promise<object> {
   const resolvedDtsFile = path.resolve(dtsFile);
   const resolvedBundleFile = path.resolve(bundleFile);
   if (!fs.existsSync(resolvedDtsFile)) {
@@ -775,9 +800,10 @@ export async function generateReport(
   if (!fs.existsSync(resolvedBundleFile)) {
     throw new Error(ErrorCode.INPUT_BUNDLE_FILE_DOES_NOT_EXIST);
   }
+
   const publicAPI = extractDeclarations(resolvedDtsFile);
   const map: Map<string, string> = buildMap(publicAPI);
-  return buildJsonReport(publicAPI, bundleFile, map);
+  return buildJsonReport(moduleName, publicAPI, bundleFile, map);
 }
 
 /**
@@ -789,15 +815,18 @@ export async function generateReport(
  *
  *
  */
-export function generateReportForModules(
+export async function generateReportForModules(
   moduleLocations: string[],
   outputDirectory: string,
   writeFiles: boolean
-): void {
+): Promise<object> {
+  const reportCollection: object = {};
+  const MODULE: string = 'modules';
+  reportCollection[MODULE] = [];
   for (const moduleLocation of moduleLocations) {
     // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
     // Currently we only traverse 1 level deep because we don't have any submodule deeper than that.
-    traverseDirs(
+    const reportsForModuleAndItsSubModule: object[] = await traverseDirs(
       moduleLocation,
       outputDirectory,
       writeFiles,
@@ -805,5 +834,12 @@ export function generateReportForModules(
       0,
       1
     );
+    if (
+      reportsForModuleAndItsSubModule !== null &&
+      reportsForModuleAndItsSubModule.length !== 0
+    ) {
+      reportCollection[MODULE].push(...reportsForModuleAndItsSubModule);
+    }
   }
+  return reportCollection;
 }

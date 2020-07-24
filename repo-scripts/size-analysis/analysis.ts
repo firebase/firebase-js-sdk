@@ -82,6 +82,7 @@ async function main(): Promise<void> {
   // adhoc run report can only be redirected to files
   if (argv.inputDtsFile && argv.inputBundleFile && argv.output) {
     const jsonReport = await generateReport(
+      'adhoc',
       argv.inputDtsFile,
       argv.inputBundleFile
     );
@@ -101,7 +102,8 @@ async function main(): Promise<void> {
     if (argv.output) {
       writeFiles = true;
     }
-    generateReportForModules(allModulesLocation, argv.output, writeFiles);
+
+    await generateReportForModules(allModulesLocation, argv.output, writeFiles);
   } else {
     throw new Error(ErrorCode.INVALID_FLAG_COMBINATION);
   }
