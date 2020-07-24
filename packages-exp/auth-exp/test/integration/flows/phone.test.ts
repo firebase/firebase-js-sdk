@@ -19,13 +19,27 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import {
-    linkWithPhoneNumber, PhoneAuthProvider, reauthenticateWithPhoneNumber, RecaptchaVerifier,
-    signInAnonymously, signInWithPhoneNumber, unlink, updatePhoneNumber
+  linkWithPhoneNumber,
+  PhoneAuthProvider,
+  reauthenticateWithPhoneNumber,
+  RecaptchaVerifier,
+  signInAnonymously,
+  signInWithPhoneNumber,
+  unlink,
+  updatePhoneNumber
 } from '@firebase/auth-exp/index.browser';
-import { Auth, OperationType, ProviderId, UserCredential } from '@firebase/auth-types-exp';
+import {
+  Auth,
+  OperationType,
+  ProviderId,
+  UserCredential
+} from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { cleanUpTestInstance, getTestInstance } from '../../helpers/integration/helpers';
+import {
+  cleanUpTestInstance,
+  getTestInstance
+} from '../../helpers/integration/helpers';
 
 use(chaiAsPromised);
 
@@ -169,7 +183,7 @@ describe('Integration test: phone auth', () => {
       // reauthenticateWithPhoneNumber does not trigger a state change
       resetVerifier();
       cr = await signInWithPhoneNumber(auth, PHONE_B.number, verifier);
-      const {user: otherUser} = await cr.confirm(PHONE_B.code);
+      const { user: otherUser } = await cr.confirm(PHONE_B.code);
       await otherUser.delete();
     });
   });
