@@ -63,29 +63,25 @@ const publicIdentifiers = extractPublicIdentifiers(externsPaths);
  * Transformers that remove calls to `debugAssert` and messages for 'fail` and
  * `hardAssert`.
  */
-exports.removeAssertTransformer = [
-  service => ({
-    before: [removeAsserts(service.getProgram())],
-    after: []
-  })
-];
+exports.removeAssertTransformer = service => ({
+  before: [removeAsserts(service.getProgram())],
+  after: []
+});
 
 /**
  * Transformers that remove calls to `debugAssert`, messages for 'fail` and
  * `hardAssert` and appends a __PRIVATE_ prefix to all internal symbols.
  */
-exports.removeAssertAndPrefixInternalTransformer = [
-  service => ({
-    before: [
-      removeAsserts(service.getProgram()),
-      renameInternals(service.getProgram(), {
-        publicIdentifiers,
-        prefix: '__PRIVATE_'
-      })
-    ],
-    after: []
-  })
-];
+exports.removeAssertAndPrefixInternalTransformer = service => ({
+  before: [
+    removeAsserts(service.getProgram()),
+    renameInternals(service.getProgram(), {
+      publicIdentifiers,
+      prefix: '__PRIVATE_'
+    })
+  ],
+  after: []
+});
 
 /**
  * Terser options that mangle all properties prefixed with __PRIVATE_.
