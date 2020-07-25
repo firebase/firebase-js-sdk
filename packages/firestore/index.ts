@@ -38,7 +38,12 @@ export function registerFirestore(instance: FirebaseNamespace): void {
     const offlineComponentProvider = new MultiTabOfflineComponentProvider(
       onlineComponentProvider
     );
-    new Firestore(app, auth, offlineComponentProvider, onlineComponentProvider);
+    return new Firestore(
+      app,
+      auth,
+      offlineComponentProvider,
+      onlineComponentProvider
+    );
   });
   instance.registerVersion(name, version);
 }
