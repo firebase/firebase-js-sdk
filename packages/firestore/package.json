@@ -19,7 +19,7 @@
     "dev": "rollup -c -w",
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "prettier": "prettier --write '*.js' '{,!(dist)}/**/*.ts'",
+    "prettier": "prettier --write '*.js' '*.ts' '@(lite|exp|src|test)/**/*.ts'",
     "pregendeps:exp": "node scripts/build-bundle.js --input ./exp/index.ts --output ./dist/exp/tmp.js",
     "gendeps:exp": "../../scripts/exp/extract-deps.sh --types ./exp-types/index.d.ts --bundle ./dist/exp/tmp.js --output ./exp/dependencies.json",
     "pregendeps:lite": "node scripts/build-bundle.js --input ./lite/index.ts --output ./dist/lite/tmp.js",

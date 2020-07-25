@@ -1242,10 +1242,10 @@
                 "LocalViewChanges",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -1262,6 +1262,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "ParseContext",
@@ -1315,7 +1316,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 225563
+        "sizeInBytes": 226246
     },
     "arrayRemove": {
         "dependencies": {
@@ -1898,10 +1899,10 @@
                 "LocalViewChanges",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -1918,6 +1919,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "PatchMutation",
@@ -1966,7 +1968,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 207951
+        "sizeInBytes": 208634
     },
     "deleteField": {
         "dependencies": {
@@ -2268,10 +2270,10 @@
                 "LocalViewChanges",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -2288,6 +2290,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "PatchMutation",
@@ -2336,7 +2339,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 207318
+        "sizeInBytes": 208001
     },
     "doc": {
         "dependencies": {
@@ -2670,6 +2673,7 @@
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "synchronizeLastDocumentChangeReadTime",
                 "targetEquals",
                 "targetIdSet",
                 "targetsStore",
@@ -2775,10 +2779,10 @@
                 "GrpcConnection",
                 "InFilter",
                 "IndexFreeQueryEngine",
-                "IndexedDbComponentProvider",
                 "IndexedDbIndexManager",
                 "IndexedDbLruDelegate",
                 "IndexedDbMutationQueue",
+                "IndexedDbOfflineComponentProvider",
                 "IndexedDbPersistence",
                 "IndexedDbRemoteDocumentCache",
                 "IndexedDbTargetCache",
@@ -2802,10 +2806,10 @@
                 "LruScheduler",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -2822,6 +2826,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "PatchMutation",
@@ -2875,7 +2880,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 287988
+        "sizeInBytes": 289307
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -3234,10 +3239,10 @@
                 "GrpcConnection",
                 "InFilter",
                 "IndexFreeQueryEngine",
-                "IndexedDbComponentProvider",
                 "IndexedDbIndexManager",
                 "IndexedDbLruDelegate",
                 "IndexedDbMutationQueue",
+                "IndexedDbOfflineComponentProvider",
                 "IndexedDbPersistence",
                 "IndexedDbRemoteDocumentCache",
                 "IndexedDbTargetCache",
@@ -3261,16 +3266,16 @@
                 "LruScheduler",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
                 "MemoryTargetCache",
                 "MemoryTransaction",
-                "MultiTabIndexedDbComponentProvider",
+                "MultiTabOfflineComponentProvider",
                 "Mutation",
                 "MutationBatch",
                 "MutationBatchResult",
@@ -3283,6 +3288,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "PatchMutation",
@@ -3340,7 +3346,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 311588
+        "sizeInBytes": 312538
     },
     "enableNetwork": {
         "dependencies": {
@@ -3603,10 +3609,10 @@
                 "LocalViewChanges",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -3623,6 +3629,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "PatchMutation",
@@ -3671,7 +3678,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 207315
+        "sizeInBytes": 207998
     },
     "endAt": {
         "dependencies": {
@@ -4204,10 +4211,10 @@
                 "LocalViewChanges",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -4224,6 +4231,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "PatchMutation",
@@ -4276,7 +4284,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 222350
+        "sizeInBytes": 223033
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4565,10 +4573,10 @@
                 "LocalViewChanges",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -4585,6 +4593,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "PatchMutation",
@@ -4637,7 +4646,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 220622
+        "sizeInBytes": 221305
     },
     "getDocFromServer": {
         "dependencies": {
@@ -4930,10 +4939,10 @@
                 "LocalViewChanges",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -4950,6 +4959,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "PatchMutation",
@@ -5002,7 +5012,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 222388
+        "sizeInBytes": 223071
     },
     "getDocs": {
         "dependencies": {
@@ -5297,10 +5307,10 @@
                 "LocalViewChanges",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -5317,6 +5327,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "PatchMutation",
@@ -5371,7 +5382,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 224871
+        "sizeInBytes": 225554
     },
     "getDocsFromCache": {
         "dependencies": {
@@ -5662,10 +5673,10 @@
                 "LocalViewChanges",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -5682,6 +5693,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "PatchMutation",
@@ -5736,7 +5748,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 223200
+        "sizeInBytes": 223883
     },
     "getDocsFromServer": {
         "dependencies": {
@@ -6030,10 +6042,10 @@
                 "LocalViewChanges",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -6050,6 +6062,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "PatchMutation",
@@ -6104,7 +6117,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 224609
+        "sizeInBytes": 225292
     },
     "getFirestore": {
         "dependencies": {
@@ -6606,10 +6619,10 @@
                 "LocalViewChanges",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -6626,6 +6639,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "PatchMutation",
@@ -6680,7 +6694,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 226445
+        "sizeInBytes": 227128
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -6947,10 +6961,10 @@
                 "LocalViewChanges",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -6967,6 +6981,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "PatchMutation",
@@ -7015,7 +7030,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 208474
+        "sizeInBytes": 209157
     },
     "orderBy": {
         "dependencies": {
@@ -7487,7 +7502,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 79786
+        "sizeInBytes": 79905
     },
     "serverTimestamp": {
         "dependencies": {
@@ -7827,10 +7842,10 @@
                 "LocalViewChanges",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -7847,6 +7862,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "ParseContext",
@@ -7899,7 +7915,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 223845
+        "sizeInBytes": 224528
     },
     "setLogLevel": {
         "dependencies": {
@@ -8641,10 +8657,10 @@
                 "LocalViewChanges",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -8661,6 +8677,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "ParseContext",
@@ -8713,7 +8730,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 225344
+        "sizeInBytes": 226027
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -8976,10 +8993,10 @@
                 "LocalViewChanges",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -8996,6 +9013,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "PatchMutation",
@@ -9044,7 +9062,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 207336
+        "sizeInBytes": 208019
     },
     "where": {
         "dependencies": {
@@ -9488,10 +9506,10 @@
                 "LocalViewChanges",
                 "MaybeDocument",
                 "MemoryCollectionParentIndex",
-                "MemoryComponentProvider",
                 "MemoryEagerDelegate",
                 "MemoryIndexManager",
                 "MemoryMutationQueue",
+                "MemoryOfflineComponentProvider",
                 "MemoryPersistence",
                 "MemoryRemoteDocumentCache",
                 "MemorySharedClientState",
@@ -9508,6 +9526,7 @@
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
                 "OnlineStateTracker",
                 "OrderBy",
                 "ParseContext",
@@ -9562,6 +9581,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 229007
+        "sizeInBytes": 229690
     }
 }

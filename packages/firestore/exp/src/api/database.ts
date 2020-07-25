@@ -24,8 +24,9 @@ import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import {
-  IndexedDbComponentProvider,
-  MultiTabIndexedDbComponentProvider
+  IndexedDbOfflineComponentProvider,
+  MultiTabOfflineComponentProvider,
+  OnlineComponentProvider
 } from '../../../src/core/component_provider';
 
 import { Firestore as LiteFirestore } from '../../../lite/src/api/database';
@@ -110,7 +111,8 @@ export function enableIndexedDbPersistence(
   const settings = firestoreImpl._getSettings();
   return initializeFirestoreClient(
     firestoreImpl,
-    new IndexedDbComponentProvider(),
+    new IndexedDbOfflineComponentProvider(),
+    new OnlineComponentProvider(),
     {
       durable: true,
       synchronizeTabs: false,
@@ -125,10 +127,15 @@ export function enableMultiTabIndexedDbPersistence(
   firestore: firestore.FirebaseFirestore
 ): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
+  const onlineComponentProvider = new OnlineComponentProvider();
+  const offlineComponentProvider = new MultiTabOfflineComponentProvider(
+    onlineComponentProvider
+  );
   const settings = firestoreImpl._getSettings();
   return initializeFirestoreClient(
     firestoreImpl,
-    new MultiTabIndexedDbComponentProvider(),
+    offlineComponentProvider,
+    onlineComponentProvider,
     {
       durable: true,
       synchronizeTabs: true,

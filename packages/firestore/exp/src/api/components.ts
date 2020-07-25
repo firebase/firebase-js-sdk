@@ -23,8 +23,9 @@ import {
 } from '../../../src/core/firestore_client';
 import { Code, FirestoreError } from '../../../src/util/error';
 import {
-  ComponentProvider,
-  MemoryComponentProvider
+  MemoryOfflineComponentProvider,
+  OfflineComponentProvider,
+  OnlineComponentProvider
 } from '../../../src/core/component_provider';
 import { DEFAULT_HOST, DEFAULT_SSL } from '../../../lite/src/api/components';
 import { logDebug } from '../../../src/util/log';
@@ -58,9 +59,14 @@ export function getFirestoreClient(
   }
   if (!firestoreClientInstances.has(firestore)) {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    initializeFirestoreClient(firestore, new MemoryComponentProvider(), {
-      durable: false
-    });
+    initializeFirestoreClient(
+      firestore,
+      new MemoryOfflineComponentProvider(),
+      new OnlineComponentProvider(),
+      {
+        durable: false
+      }
+    );
   }
   return firestoreClientInstances.get(firestore)!;
 }
@@ -71,12 +77,16 @@ export function getFirestoreClient(
  *
  * @param firestore The Firestore instance for which to create the
  * FirestoreClient.
- * @param componentProvider The component provider to use.
+ * @param offlineComponentProvider Provider that returns all components required
+ * for memory-only or IndexedDB persistence.
+ * @param onlineComponentProvider Provider that returns all components required
+ * for online support.
  * @param persistenceSettings Settings for the component provider.
  */
 export function initializeFirestoreClient(
   firestore: Firestore,
-  componentProvider: ComponentProvider,
+  offlineComponentProvider: OfflineComponentProvider,
+  onlineComponentProvider: OnlineComponentProvider,
   persistenceSettings: PersistenceSettings
 ): Promise<void> {
   if (firestoreClientInstances.has(firestore)) {
@@ -102,7 +112,8 @@ export function initializeFirestoreClient(
   );
   const initializationPromise = firestoreClient.start(
     databaseInfo,
-    componentProvider,
+    offlineComponentProvider,
+    onlineComponentProvider,
     persistenceSettings
   );
   firestoreClientInstances.set(

@@ -861,7 +861,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 55009
+        "sizeInBytes": 55128
     },
     "arrayRemove": {
         "dependencies": {
@@ -1170,7 +1170,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 24918
+        "sizeInBytes": 25037
     },
     "deleteField": {
         "dependencies": {
@@ -1624,7 +1624,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 45283
+        "sizeInBytes": 45402
     },
     "getDocs": {
         "dependencies": {
@@ -1778,7 +1778,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 57551
+        "sizeInBytes": 57670
     },
     "getFirestore": {
         "dependencies": {
@@ -2357,7 +2357,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 77137
+        "sizeInBytes": 77256
     },
     "serverTimestamp": {
         "dependencies": {
@@ -2530,7 +2530,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 51372
+        "sizeInBytes": 51491
     },
     "setLogLevel": {
         "dependencies": {
@@ -3065,7 +3065,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 54479
+        "sizeInBytes": 54598
     },
     "where": {
         "dependencies": {
@@ -3345,6 +3345,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 58180
+        "sizeInBytes": 58299
     }
 }
