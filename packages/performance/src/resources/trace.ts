@@ -33,6 +33,7 @@ import {
 } from '../utils/attributes_utils';
 import { isValidMetricName } from '../utils/metric_utils';
 import { PerformanceTrace } from '@firebase/performance-types';
+import { consoleLogger } from '../utils/console_logger';
 
 const enum TraceState {
   UNINITIALIZED = 1,
@@ -154,7 +155,13 @@ export class Trace implements PerformanceTrace {
     if (this.counters[counter] === undefined) {
       this.putMetric(counter, 0);
     }
-    this.counters[counter] += Math.floor(numAsInteger);
+    const valueAsInteger: number = Math.floor(numAsInteger);
+    if (valueAsInteger < numAsInteger) {
+      consoleLogger.info(
+        `Metric value should be an Integer, setting the value as : ${valueAsInteger}.`
+      );
+    }
+    this.counters[counter] += valueAsInteger;
   }
 
   /**
@@ -165,7 +172,13 @@ export class Trace implements PerformanceTrace {
    */
   putMetric(counter: string, numAsInteger: number): void {
     if (isValidMetricName(counter, this.name)) {
-      this.counters[counter] = Math.floor(numAsInteger);
+      const valueAsInteger: number = Math.floor(numAsInteger);
+      if (valueAsInteger < numAsInteger) {
+        consoleLogger.info(
+          `Metric value should be an Integer, setting the value as : ${valueAsInteger}.`
+        );
+      }
+      this.counters[counter] = valueAsInteger;
     } else {
       throw ERROR_FACTORY.create(ErrorCode.INVALID_CUSTOM_METRIC_NAME, {
         customMetricName: counter

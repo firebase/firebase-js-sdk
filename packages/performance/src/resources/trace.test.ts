@@ -117,7 +117,7 @@ describe('Firebase Performance > trace', () => {
       expect(trace.getMetric('cacheHits')).to.eql(600);
     });
 
-    it('increments the metric value as an integer even if the value is provided in float.', () => {
+    it('increments metric value as an integer even if the value is provided in float.', () => {
       trace.incrementMetric('cacheHits', 200);
       trace.incrementMetric('cacheHits', 400.38);
 
