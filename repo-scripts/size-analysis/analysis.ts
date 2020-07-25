@@ -15,12 +15,14 @@
  * limitations under the License.
  */
 
-import { resolve } from 'path';
+import { resolve, basename } from 'path';
 import {
   generateReport,
   generateReportForModules,
   writeReportToFile,
-  ErrorCode
+  Report,
+  ErrorCode,
+  writeReportToDirectory
 } from './analysis-helper';
 import { mapWorkspaceToPackages } from '../../scripts/release/utils/workspace';
 import { projectRoot } from '../../scripts/utils';
@@ -81,7 +83,7 @@ async function main(): Promise<void> {
   // check if it's an adhoc run
   // adhoc run report can only be redirected to files
   if (argv.inputDtsFile && argv.inputBundleFile && argv.output) {
-    const jsonReport = await generateReport(
+    const jsonReport: Report = await generateReport(
       'adhoc',
       argv.inputDtsFile,
       argv.inputBundleFile
@@ -103,7 +105,18 @@ async function main(): Promise<void> {
       writeFiles = true;
     }
 
-    await generateReportForModules(allModulesLocation, argv.output, writeFiles);
+    const reports: Report[] = await generateReportForModules(
+      allModulesLocation
+    );
+    if (writeFiles) {
+      for (const report of reports) {
+        writeReportToDirectory(
+          report,
+          `${basename(report.module)}-dependencies.json`,
+          resolve(argv.output)
+        );
+      }
+    }
   } else {
     throw new Error(ErrorCode.INVALID_FLAG_COMBINATION);
   }

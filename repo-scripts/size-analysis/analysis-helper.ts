@@ -59,6 +59,11 @@ export interface ExportData {
   sizeInBytes: number;
   sizeInBytesWithExternalDeps: number;
 }
+
+export interface Report {
+  module: string;
+  symbols: ExportData[];
+}
 /**
  * Helper for extractDependencies that extracts the dependencies and the size
  * of the minified build.
@@ -137,7 +142,7 @@ export async function extractDependenciesAndSize(
   fs.unlinkSync(input);
   fs.unlinkSync(externalDepsNotResolvedOutput);
   fs.unlinkSync(fullyResolvedOutput);
-  const report: ExportData = {
+  const exportData: ExportData = {
     symbol: '',
     classes: null,
     functions: null,
@@ -147,16 +152,16 @@ export async function extractDependenciesAndSize(
     sizeInBytes: 0,
     sizeInBytesWithExternalDeps: 0
   };
-  report.symbol = exportName;
+  exportData.symbol = exportName;
   for (const key of Object.keys(dependencies)) {
-    report[key] = dependencies[key];
+    exportData[key] = dependencies[key];
   }
-  report.sizeInBytes = Buffer.byteLength(codeMinimized.code!, 'utf-8');
-  report.sizeInBytesWithExternalDeps = Buffer.byteLength(
+  exportData.sizeInBytes = Buffer.byteLength(codeMinimized.code!, 'utf-8');
+  exportData.sizeInBytesWithExternalDeps = Buffer.byteLength(
     codeFullyResolved.code!,
     'utf-8'
   );
-  return report;
+  return exportData;
 }
 
 /**
@@ -276,7 +281,6 @@ export function extractDeclarations(
             node.moduleSpecifier.getText(sourceFile)
           );
           // concatenate re-exported MemberList with MemberList of the dts file
-          console.log(reExportsWithFromClause);
           for (const key of Object.keys(declarations)) {
             if (Array.isArray(declarations[key])) {
               declarations[key].push(...reExportsWithFromClause[key]);
@@ -545,7 +549,7 @@ function isExportRenamed(exportSpecifier: ts.ExportSpecifier): boolean {
  *
  * This functions writes generated json report(s) to a file
  */
-export function writeReportToFile(report: object, outputFile: string): void {
+export function writeReportToFile(report: Report, outputFile: string): void {
   if (fs.existsSync(outputFile) && !fs.lstatSync(outputFile).isFile()) {
     throw new Error(ErrorCode.OUTPUT_FILE_REQUIRED);
   }
@@ -561,7 +565,7 @@ export function writeReportToFile(report: object, outputFile: string): void {
  * This functions writes generated json report(s) to a file of given directory
  */
 export function writeReportToDirectory(
-  report: object,
+  report: Report,
   fileName: string,
   directoryPath: string
 ): void {
@@ -643,10 +647,8 @@ export function extractExternalDependencies(
  * @param writeFiles when true, will write reports to designated directory specified by outputDirectory.
  */
 export async function generateReportForModule(
-  moduleLocation: string,
-  outputDirectory: string,
-  writeFiles: boolean
-): Promise<object> {
+  moduleLocation: string
+): Promise<Report> {
   const packageJsonPath = `${moduleLocation}/package.json`;
   if (!fs.existsSync(packageJsonPath)) {
     return null;
@@ -661,12 +663,12 @@ export async function generateReportForModule(
       throw new Error(ErrorCode.BUNDLE_FILE_DOES_NOT_EXIST);
     }
     const bundleFile = `${moduleLocation}/${bundleLocation}`;
-    const json = await generateReport(packageJson.name, dtsFile, bundleFile);
-    const fileName = `${path.basename(packageJson.name)}-dependency.json`;
-    if (writeFiles) {
-      writeReportToDirectory(json, fileName, path.resolve(outputDirectory));
-    }
-    return json;
+    const jsonReport: Report = await generateReport(
+      packageJson.name,
+      dtsFile,
+      bundleFile
+    );
+    return jsonReport;
   }
   return null;
 }
@@ -713,22 +715,16 @@ function buildMap(api: MemberList): Map<string, string> {
  */
 async function traverseDirs(
   moduleLocation: string,
-  outputDirectory: string,
-  writeFiles: boolean,
   executor,
   level: number,
   levelLimit: number
-): Promise<object[]> {
+): Promise<Report[]> {
   if (level > levelLimit) {
     return null;
   }
 
-  const reports: object[] = [];
-  const report: object = await executor(
-    moduleLocation,
-    outputDirectory,
-    writeFiles
-  );
+  const reports: Report[] = [];
+  const report: Report = await executor(moduleLocation);
   if (report !== null) {
     reports.push(report);
   }
@@ -737,10 +733,8 @@ async function traverseDirs(
     const p = `${moduleLocation}/${name}`;
 
     if (fs.lstatSync(p).isDirectory()) {
-      const subModuleReports: object[] = await traverseDirs(
+      const subModuleReports: Report[] = await traverseDirs(
         p,
-        outputDirectory,
-        writeFiles,
         executor,
         level + 1,
         levelLimit
@@ -765,24 +759,24 @@ export async function buildJsonReport(
   publicApi: MemberList,
   jsFile: string,
   map: Map<string, string>
-): Promise<object> {
-  const result: object = {};
-  const SYMBOLS: string = 'symbols';
-  const MODULE: string = 'module';
-  result[MODULE] = moduleName;
-  result[SYMBOLS] = [];
+): Promise<Report> {
+  const result: Report = {
+    module: moduleName,
+    symbols: []
+  };
+
   for (const exp of publicApi.classes) {
-    result[SYMBOLS].push(await extractDependenciesAndSize(exp, jsFile, map));
+    result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
   }
   for (const exp of publicApi.functions) {
-    result[SYMBOLS].push(await extractDependenciesAndSize(exp, jsFile, map));
+    result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
   }
   for (const exp of publicApi.variables) {
-    result[SYMBOLS].push(await extractDependenciesAndSize(exp, jsFile, map));
+    result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
   }
 
   for (const exp of publicApi.enums) {
-    result[SYMBOLS].push(await extractDependenciesAndSize(exp, jsFile, map));
+    result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
   }
   return result;
 }
@@ -791,7 +785,7 @@ export async function generateReport(
   moduleName: string,
   dtsFile: string,
   bundleFile: string
-): Promise<object> {
+): Promise<Report> {
   const resolvedDtsFile = path.resolve(dtsFile);
   const resolvedBundleFile = path.resolve(bundleFile);
   if (!fs.existsSync(resolvedDtsFile)) {
@@ -816,20 +810,15 @@ export async function generateReport(
  *
  */
 export async function generateReportForModules(
-  moduleLocations: string[],
-  outputDirectory: string,
-  writeFiles: boolean
-): Promise<object> {
-  const reportCollection: object = {};
-  const MODULE: string = 'modules';
-  reportCollection[MODULE] = [];
+  moduleLocations: string[]
+): Promise<Report[]> {
+  const reportCollection: Report[] = [];
+
   for (const moduleLocation of moduleLocations) {
     // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
     // Currently we only traverse 1 level deep because we don't have any submodule deeper than that.
-    const reportsForModuleAndItsSubModule: object[] = await traverseDirs(
+    const reportsForModuleAndItsSubModule: Report[] = await traverseDirs(
       moduleLocation,
-      outputDirectory,
-      writeFiles,
       generateReportForModule,
       0,
       1
@@ -838,7 +827,7 @@ export async function generateReportForModules(
       reportsForModuleAndItsSubModule !== null &&
       reportsForModuleAndItsSubModule.length !== 0
     ) {
-      reportCollection[MODULE].push(...reportsForModuleAndItsSubModule);
+      reportCollection.push(...reportsForModuleAndItsSubModule);
     }
   }
   return reportCollection;
