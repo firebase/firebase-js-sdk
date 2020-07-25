@@ -76,12 +76,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
     return integrationHelpers.withTestDoc(persistence, doc => {
       return doc
         .set({ foo: 'bar' })
-        .then(() =>
-          doc.firestore
-            .batch()
-            .update(doc, { baz: 42 })
-            .commit()
-        )
+        .then(() => doc.firestore.batch().update(doc, { baz: 42 }).commit())
         .then(() => doc.get())
         .then(snapshot => {
           expect(snapshot.exists).to.equal(true);
@@ -126,12 +121,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
         .then(snapshot => {
           expect(snapshot.exists).to.equal(true);
         })
-        .then(() =>
-          doc.firestore
-            .batch()
-            .delete(doc)
-            .commit()
-        )
+        .then(() => doc.firestore.batch().delete(doc).commit())
         .then(() => doc.get())
         .then(snapshot => {
           expect(snapshot.exists).to.equal(false);

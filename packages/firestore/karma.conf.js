@@ -18,7 +18,7 @@
 const karmaBase = require('../../config/karma.base');
 const { argv } = require('yargs');
 
-module.exports = function(config) {
+module.exports = function (config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     // files to load into karma
     files: getTestFiles(argv),

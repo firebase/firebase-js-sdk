@@ -164,12 +164,7 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
   gcScheduler!: GarbageCollectionScheduler | null;
 
   async initialize(cfg: ComponentConfiguration): Promise<void> {
-    this.sharedClientState = this.createSharedClientState(cfg);
-    this.persistence = this.createPersistence(cfg);
-    await this.persistence.start();
-    this.gcScheduler = this.createGarbageCollectionScheduler(cfg);
-    this.localStore = this.createLocalStore(cfg);
-
+    await super.initialize(cfg);
     await synchronizeLastDocumentChangeReadTime(this.localStore);
   }
 
@@ -251,7 +246,6 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
         ),
         getActiveClients: getActiveClients.bind(null, syncEngine)
       };
-
       await this.sharedClientState.start();
     }
 

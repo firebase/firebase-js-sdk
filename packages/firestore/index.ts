@@ -33,20 +33,13 @@ import './register-module';
  * Persistence can be enabled via `firebase.firestore().enablePersistence()`.
  */
 export function registerFirestore(instance: FirebaseNamespace): void {
-  const onlineComponentProvider = new OnlineComponentProvider();
-  const offlineComponentProvider = new MultiTabOfflineComponentProvider(
-    onlineComponentProvider
-  );
-  configureForFirebase(
-    instance,
-    (app, auth) =>
-      new Firestore(
-        app,
-        auth,
-        offlineComponentProvider,
-        onlineComponentProvider
-      )
-  );
+  configureForFirebase(instance, (app, auth) => {
+    const onlineComponentProvider = new OnlineComponentProvider();
+    const offlineComponentProvider = new MultiTabOfflineComponentProvider(
+      onlineComponentProvider
+    );
+    new Firestore(app, auth, offlineComponentProvider, onlineComponentProvider);
+  });
   instance.registerVersion(name, version);
 }
 

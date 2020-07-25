@@ -244,9 +244,7 @@ function genericMutationQueueTests(): void {
     }
     const expected = [batches[1], batches[2], batches[4]];
     const matches = await mutationQueue.getAllMutationBatchesAffectingDocumentKeys(
-      documentKeySet()
-        .add(key('foo/bar'))
-        .add(key('foo/baz'))
+      documentKeySet().add(key('foo/bar')).add(key('foo/baz'))
     );
     expectEqualArrays(matches, expected);
   });
