@@ -66,7 +66,7 @@ const browserBuildPlugins = [
       }
     },
     clean: true,
-    transformers: util.removeAssertAndPrefixInternalTransformer
+    transformers: [util.removeAssertAndPrefixInternalTransformer]
   }),
   json({ preferConst: true }),
   terser(util.manglePrivatePropertiesOptions)
@@ -139,7 +139,7 @@ const nodeBuildPlugins = [
       }
     },
     clean: true,
-    transformers: util.removeAssertTransformer
+    transformers: [util.removeAssertTransformer]
   }),
   json(),
   // Needed as we also use the *.proto files
