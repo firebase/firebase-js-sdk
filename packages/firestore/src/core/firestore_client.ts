@@ -43,8 +43,9 @@ import { Query } from './query';
 import { Transaction } from './transaction';
 import { ViewSnapshot } from './view_snapshot';
 import {
-  ComponentProvider,
-  MemoryComponentProvider
+  OnlineComponentProvider,
+  MemoryOfflineComponentProvider,
+  OfflineComponentProvider
 } from './component_provider';
 
 const LOG_TAG = 'FirestoreClient';
@@ -133,7 +134,10 @@ export class FirestoreClient {
    * start() itself signals failure.
    *
    * @param databaseInfo The connection information for the current instance.
-   * @param componentProvider Provider that returns all core components.
+   * @param offlineComponentProvider Provider that returns all components
+   * required for memory-only or IndexedDB persistence.
+   * @param onlineComponentProvider Provider that returns all components
+   * required for online support.
    * @param persistenceSettings Settings object to configure offline
    *     persistence.
    * @returns A deferred result indicating the user-visible result of enabling
@@ -143,7 +147,8 @@ export class FirestoreClient {
    */
   start(
     databaseInfo: DatabaseInfo,
-    componentProvider: ComponentProvider,
+    offlineComponentProvider: OfflineComponentProvider,
+    onlineComponentProvider: OnlineComponentProvider,
     persistenceSettings: PersistenceSettings
   ): Promise<void> {
     this.verifyNotTerminated();
@@ -175,7 +180,8 @@ export class FirestoreClient {
         logDebug(LOG_TAG, 'Initializing. user=', user.uid);
 
         return this.initializeComponents(
-          componentProvider,
+          offlineComponentProvider,
+          onlineComponentProvider,
           persistenceSettings,
           user,
           persistenceResult
@@ -215,8 +221,10 @@ export class FirestoreClient {
    * platform can't possibly support our implementation then this method rejects
    * the persistenceResult and falls back on memory-only persistence.
    *
-   * @param componentProvider The provider that provides all core componennts
-   *     for IndexedDB or memory-backed persistence
+   * @param offlineComponentProvider Provider that returns all components
+   * required for memory-only or IndexedDB persistence.
+   * @param onlineComponentProvider Provider that returns all components
+   * required for online support.
    * @param persistenceSettings Settings object to configure offline persistence
    * @param user The initial user
    * @param persistenceResult A deferred result indicating the user-visible
@@ -228,13 +236,14 @@ export class FirestoreClient {
    *     succeeded.
    */
   private async initializeComponents(
-    componentProvider: ComponentProvider,
+    offlineComponentProvider: OfflineComponentProvider,
+    onlineComponentProvider: OnlineComponentProvider,
     persistenceSettings: PersistenceSettings,
     user: User,
     persistenceResult: Deferred<void>
   ): Promise<void> {
     try {
-      await componentProvider.initialize({
+      const componentConfiguration = {
         asyncQueue: this.asyncQueue,
         databaseInfo: this.databaseInfo,
         clientId: this.clientId,
@@ -242,15 +251,21 @@ export class FirestoreClient {
         initialUser: user,
         maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS,
         persistenceSettings
-      });
+      };
 
-      this.persistence = componentProvider.persistence;
-      this.sharedClientState = componentProvider.sharedClientState;
-      this.localStore = componentProvider.localStore;
-      this.remoteStore = componentProvider.remoteStore;
-      this.syncEngine = componentProvider.syncEngine;
-      this.gcScheduler = componentProvider.gcScheduler;
-      this.eventMgr = componentProvider.eventManager;
+      await offlineComponentProvider.initialize(componentConfiguration);
+      await onlineComponentProvider.initialize(
+        offlineComponentProvider,
+        componentConfiguration
+      );
+
+      this.persistence = offlineComponentProvider.persistence;
+      this.sharedClientState = offlineComponentProvider.sharedClientState;
+      this.localStore = offlineComponentProvider.localStore;
+      this.gcScheduler = offlineComponentProvider.gcScheduler;
+      this.remoteStore = onlineComponentProvider.remoteStore;
+      this.syncEngine = onlineComponentProvider.syncEngine;
+      this.eventMgr = onlineComponentProvider.eventManager;
 
       // When a user calls clearPersistence() in one client, all other clients
       // need to be terminated to allow the delete to succeed.
@@ -274,7 +289,8 @@ export class FirestoreClient {
           error
       );
       return this.initializeComponents(
-        new MemoryComponentProvider(),
+        new MemoryOfflineComponentProvider(),
+        new OnlineComponentProvider(),
         { durable: false },
         user,
         persistenceResult

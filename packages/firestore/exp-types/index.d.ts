@@ -68,7 +68,7 @@ export interface FirestoreDataConverter<T> {
   toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
   fromFirestore(
     snapshot: QueryDocumentSnapshot<DocumentData>,
-    options: SnapshotOptions
+    options?: SnapshotOptions
   ): T;
 }
 
@@ -242,9 +242,11 @@ export type SetOptions =
 export class DocumentReference<T = DocumentData> {
   private constructor();
   readonly type: 'document';
-  readonly id: string;
   readonly firestore: FirebaseFirestore;
+  readonly converter: FirestoreDataConverter<T> | null;
   readonly path: string;
+  readonly id: string;
+
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
@@ -284,6 +286,7 @@ export class Query<T = DocumentData> {
   protected constructor();
   readonly type: 'query' | 'collection';
   readonly firestore: FirebaseFirestore;
+  readonly converter: FirestoreDataConverter<T> | null;
 
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
@@ -370,11 +373,9 @@ export function getDocFromCache<T>(
 export function getDocFromServer<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>>;
-export function getQuery<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
-export function getQueryFromCache<T>(
-  query: Query<T>
-): Promise<QuerySnapshot<T>>;
-export function getQueryFromServer<T>(
+export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export function getDocsFromCache<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export function getDocsFromServer<T>(
   query: Query<T>
 ): Promise<QuerySnapshot<T>>;
 

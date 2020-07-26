@@ -11,7 +11,7 @@
       <env name="FIRESTORE_EMULATOR_PROJECT_ID" value="abc-xyz-123" />
     </envs>
     <ui>bdd</ui>
-    <extra-mocha-options>--require ts-node/register/type-check --require exp/index.node.ts --timeout 5000</extra-mocha-options>
+    <extra-mocha-options>--require ts-node/register/type-check --require exp/index.ts --timeout 5000</extra-mocha-options>
     <test-kind>PATTERN</test-kind>
     <test-pattern>test/integration/api/*.test.ts</test-pattern>
     <method v="2" />

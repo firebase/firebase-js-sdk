@@ -202,9 +202,11 @@ export type SetOptions =
 export class DocumentReference<T = DocumentData> {
   private constructor();
   readonly type: 'document';
-  readonly id: string;
   readonly firestore: FirebaseFirestore;
+  readonly converter: FirestoreDataConverter<T> | null;
   readonly path: string;
+  readonly id: string;
+
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
@@ -238,6 +240,7 @@ export class Query<T = DocumentData> {
   protected constructor();
   readonly type: 'query' | 'collection';
   readonly firestore: FirebaseFirestore;
+  readonly converter: FirestoreDataConverter<T> | null;
 
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
@@ -307,7 +310,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>>;
-export function getQuery<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
 export function addDoc<T>(
   reference: CollectionReference<T>,
