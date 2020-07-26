@@ -22,7 +22,6 @@ import { Trace } from '../resources/trace';
 import { Api, setupApi } from '../services/api_service';
 import { FirebaseApp } from '@firebase/app-types';
 import * as initializationService from '../services/initialization_service';
-import { consoleLogger } from '../utils/console_logger';
 import '../../test/setup';
 
 describe('Firebase Performance Test', () => {
@@ -44,13 +43,12 @@ describe('Firebase Performance Test', () => {
 
   describe('#constructor', () => {
     it('does not initialize performance if the required apis are not available', () => {
-      stub(Api.prototype, 'requiredApisAvailable').returns(false);
+      stub(Api.prototype, 'requiredApisAvailable').returns(
+        Promise.resolve(false)
+      );
       stub(initializationService, 'getInitializationPromise');
-      stub(consoleLogger, 'info');
       new PerformanceController(fakeFirebaseApp);
-
       expect(initializationService.getInitializationPromise).not.be.called;
-      expect(consoleLogger.info).be.called;
     });
   });
 

@@ -19,6 +19,8 @@ import { stub } from 'sinon';
 import { expect } from 'chai';
 import { Api, setupApi } from './api_service';
 import '../../test/setup';
+import * as FirebaseUtil from '@firebase/util';
+import { consoleLogger } from '../utils/console_logger';
 
 describe('Firebase Performance > api_service', () => {
   const PAGE_URL = 'http://www.test.com/abcd?a=2';
@@ -47,8 +49,44 @@ describe('Firebase Performance > api_service', () => {
     ]);
     // This is to make sure the test page is not changed by changing the href of location object.
     mockWindow.location = { ...self.location, href: PAGE_URL };
+
     setupApi(mockWindow);
     api = Api.getInstance();
+  });
+  describe('requiredApisAvailable', () => {
+    it('call logger when navigator is not available', () => {
+      stub(consoleLogger, 'info');
+      stub(api, 'navigator').value(null);
+      return api.requiredApisAvailable().then(() => {
+        expect(consoleLogger.info).to.be.called;
+      });
+    });
+    it('call logger when cookie is not enabled', () => {
+      stub(consoleLogger, 'info');
+      stub(api.navigator, 'cookieEnabled').value(false);
+      return api.requiredApisAvailable().then(() => {
+        expect(consoleLogger.info).to.be.called;
+      });
+    });
+
+    it('call logger when isIndexedDBAvailable returns false', () => {
+      stub(consoleLogger, 'info');
+      stub(FirebaseUtil, 'isIndexedDBAvailable').returns(false);
+      stub(api.navigator, 'cookieEnabled').value(true);
+      return api.requiredApisAvailable().then(() => {
+        expect(consoleLogger.info).to.be.called;
+      });
+    });
+
+    it('call logger when validateIndexedDBOpenable throws an exception', () => {
+      stub(consoleLogger, 'info');
+      stub(FirebaseUtil, 'isIndexedDBAvailable').returns(true);
+      stub(FirebaseUtil, 'validateIndexedDBOpenable').throws();
+      stub(api.navigator, 'cookieEnabled').value(true);
+      return api.requiredApisAvailable().then(() => {
+        expect(consoleLogger.info).to.to.be.called;
+      });
+    });
   });
 
   describe('getUrl', () => {
