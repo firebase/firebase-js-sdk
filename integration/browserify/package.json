@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "firebase": "7.17.1",
-    "@babel/core": "7.10.4",
+    "@babel/core": "7.10.5",
     "@babel/preset-env": "7.10.4",
     "browserify": "16.5.1",
     "chai": "4.2.0",
