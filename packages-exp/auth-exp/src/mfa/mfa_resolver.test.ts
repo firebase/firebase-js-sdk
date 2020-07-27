@@ -31,7 +31,7 @@ import { PhoneAuthCredential } from '../core/credentials/phone';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { EmailAuthProvider } from '../core/providers/email';
 import { Auth } from '../model/auth';
-import { User } from '../model/user';
+import { User, UserCredential } from '../model/user';
 import { MultiFactorAssertion } from './assertions';
 import { PhoneMultiFactorAssertion } from './assertions/phone';
 import { MultiFactorError } from './mfa_error';
@@ -132,12 +132,16 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
         });
 
         it('finalizes the sign in flow', async () => {
-          const userCredential = await resolver.resolveSignIn(assertion);
+          const userCredential = await resolver.resolveSignIn(assertion) as UserCredential;
           expect(userCredential.user.uid).to.eq('local-id');
           expect(await userCredential.user.getIdToken()).to.eq(
             'final-id-token'
           );
-          expect(userCredential.credential).to.equal(primaryFactorCredential);
+          expect(userCredential._tokenResponse).to.eql({
+            localId: 'local-id',
+            expiresIn: 3600,
+            idToken: 'final-id-token', refreshToken: 'final-refresh-token'
+          });
           expect(mock.calls[0].request).to.eql({
             tenantId: auth.tenantId,
             mfaPendingCredential: 'mfa-pending-credential',
@@ -165,12 +169,17 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
         });
 
         it('finalizes the reauth flow', async () => {
-          const userCredential = await resolver.resolveSignIn(assertion);
+          const userCredential = await resolver.resolveSignIn(assertion) as UserCredential;
           expect(userCredential.user).to.eq(user);
           expect(await userCredential.user.getIdToken()).to.eq(
             'final-id-token'
           );
-          expect(userCredential.credential).to.be.null;
+          expect(userCredential._tokenResponse).to.eql({
+            localId: 'local-id',
+            expiresIn: 3600,
+            idToken: 'final-id-token',
+            refreshToken: 'final-refresh-token'
+          });
           expect(mock.calls[0].request).to.eql({
             tenantId: auth.tenantId,
             mfaPendingCredential: 'mfa-pending-credential',

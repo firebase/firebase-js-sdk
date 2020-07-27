@@ -27,6 +27,7 @@ import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
+import { UserCredential } from '../../model/user';
 import { signInWithCustomToken } from './custom_token';
 
 use(chaiAsPromised);
@@ -65,11 +66,11 @@ describe('core/strategies/signInWithCustomToken', () => {
   afterEach(mockFetch.tearDown);
 
   it('should return a valid user credential', async () => {
-    const { credential, user, operationType } = await signInWithCustomToken(
+    const { user, operationType, _tokenResponse } = await signInWithCustomToken(
       auth,
       'look-at-me-im-a-jwt'
-    );
-    expect(credential).to.be.null;
+    ) as UserCredential;
+    expect(_tokenResponse).to.eql(idTokenResponse);
     expect(user.uid).to.eq('local-id');
     expect(user.tenantId).to.eq('tenant-id');
     expect(user.displayName).to.eq('display-name');

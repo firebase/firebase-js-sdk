@@ -16,18 +16,19 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
+
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User, UserCredential } from '../../model/user';
 import { AuthCredential } from '../credentials';
-import { _authCredentialFromTokenResponse } from '../credentials/from_token_response';
 import { UserImpl } from './user_impl';
 
 export class UserCredentialImpl implements UserCredential {
   constructor(
     public readonly user: User,
-    public readonly credential: AuthCredential | null,
+    public readonly providerId: externs.ProviderId|null,
+    public readonly _tokenResponse: PhoneOrOauthTokenResponse | undefined,
     public readonly operationType: externs.OperationType
   ) {}
 
@@ -42,7 +43,8 @@ export class UserCredentialImpl implements UserCredential {
       idTokenResponse,
       credential?.providerId === externs.ProviderId.ANONYMOUS
     );
-    const userCred = new UserCredentialImpl(user, credential, operationType);
+    const providerId = providerIdForResponse(idTokenResponse);
+    const userCred = new UserCredentialImpl(user, providerId, idTokenResponse, operationType);
     // TODO: handle additional user info
     // updateAdditionalUserInfoFromIdTokenResponse(userCred, idTokenResponse);
     return userCred;
@@ -53,8 +55,20 @@ export class UserCredentialImpl implements UserCredential {
     operationType: externs.OperationType,
     response: PhoneOrOauthTokenResponse
   ): Promise<UserCredentialImpl> {
-    const newCred = _authCredentialFromTokenResponse(response);
     await user._updateTokensIfNecessary(response, /* reload */ true);
-    return new UserCredentialImpl(user, newCred, operationType);
+    const providerId = providerIdForResponse(response);
+    return new UserCredentialImpl(user, providerId, response, operationType);
   }
+}
+
+function providerIdForResponse(response: IdTokenResponse): externs.ProviderId|null {
+  if (response.providerId) {
+    return response.providerId as externs.ProviderId;;
+  }
+
+  if ('phoneNumber' in response) {
+    return externs.ProviderId.PHONE;
+  }
+
+  return null;
 }

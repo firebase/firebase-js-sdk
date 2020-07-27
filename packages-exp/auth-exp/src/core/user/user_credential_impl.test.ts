@@ -20,11 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import {
-  OperationType,
-  ProviderId,
-  SignInMethod
-} from '@firebase/auth-types-exp';
+import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
@@ -86,7 +82,8 @@ describe('core/user/user_credential_impl', () => {
         OperationType.SIGN_IN,
         idTokenResponse
       );
-      expect(userCredential.credential).to.eq(credential);
+      expect(userCredential.providerId).to.be.null;
+      expect(userCredential._tokenResponse).to.eq(idTokenResponse);
       expect(userCredential.operationType).to.eq(OperationType.SIGN_IN);
       expect(userCredential.user.uid).to.eq('local-id');
     });
@@ -126,7 +123,7 @@ describe('core/user/user_credential_impl', () => {
         }
       );
 
-      expect(cred.credential!.providerId).to.eq(ProviderId.PHONE);
+      expect(cred.providerId).to.eq(ProviderId.PHONE);
       expect(cred.operationType).to.eq(OperationType.REAUTHENTICATE);
     });
 

@@ -25,17 +25,10 @@ import * as externs from '@firebase/auth-types-exp';
 import { delay } from '../../../test/helpers/delay';
 import { BASE_AUTH_EVENT } from '../../../test/helpers/iframe_event';
 import {
-  MockPersistenceLayer,
-  testAuth,
-  TestAuth,
-  testUser
+    MockPersistenceLayer, testAuth, TestAuth, testUser
 } from '../../../test/helpers/mock_auth';
 import { makeMockPopupRedirectResolver } from '../../../test/helpers/mock_popup_redirect_resolver';
-import {
-  AuthEvent,
-  AuthEventType,
-  PopupRedirectResolver
-} from '../../model/popup_redirect';
+import { AuthEvent, AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { AuthEventManager } from '../auth/auth_event_manager';
 import { AuthErrorCode } from '../errors';
@@ -47,11 +40,8 @@ import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _getInstance } from '../util/instantiator';
 import * as idpTasks from './idp';
 import {
-  _clearOutcomes,
-  getRedirectResult,
-  linkWithRedirect,
-  reauthenticateWithRedirect,
-  signInWithRedirect
+    _clearOutcomes, getRedirectResult, linkWithRedirect, reauthenticateWithRedirect,
+    signInWithRedirect
 } from './redirect';
 
 use(sinonChai);
@@ -249,7 +239,8 @@ describe('src/core/strategies/redirect', () => {
     it('completes the proper flow', async () => {
       const cred = new UserCredentialImpl(
         testUser(auth, 'uid'),
-        null,
+        externs.ProviderId.GOOGLE,
+        undefined,
         externs.OperationType.SIGN_IN
       );
       idpStubs._signIn.returns(Promise.resolve(cred));
@@ -263,7 +254,8 @@ describe('src/core/strategies/redirect', () => {
     it('returns the same value if called multiple times', async () => {
       const cred = new UserCredentialImpl(
         testUser(auth, 'uid'),
-        null,
+        externs.ProviderId.GOOGLE,
+        undefined,
         externs.OperationType.SIGN_IN
       );
       idpStubs._signIn.returns(Promise.resolve(cred));
@@ -282,7 +274,8 @@ describe('src/core/strategies/redirect', () => {
 
       const cred = new UserCredentialImpl(
         testUser(auth, 'uid'),
-        null,
+        externs.ProviderId.GOOGLE,
+        undefined,
         externs.OperationType.LINK
       );
       idpStubs._link.returns(Promise.resolve(cred));
@@ -300,7 +293,8 @@ describe('src/core/strategies/redirect', () => {
 
       const cred = new UserCredentialImpl(
         testUser(auth, 'uid'),
-        null,
+        externs.ProviderId.GOOGLE,
+        undefined,
         externs.OperationType.LINK
       );
       idpStubs._link.returns(Promise.resolve(cred));
@@ -327,7 +321,8 @@ describe('src/core/strategies/redirect', () => {
 
       const cred = new UserCredentialImpl(
         testUser(auth, 'uid'),
-        null,
+        externs.ProviderId.GOOGLE,
+        undefined,
         externs.OperationType.REAUTHENTICATE
       );
       idpStubs._reauth.returns(Promise.resolve(cred));
@@ -348,7 +343,8 @@ describe('src/core/strategies/redirect', () => {
 
       const cred = new UserCredentialImpl(
         auth.currentUser!,
-        null,
+        externs.ProviderId.GOOGLE,
+        undefined,
         externs.OperationType.LINK
       );
       idpStubs._link.returns(Promise.resolve(cred));

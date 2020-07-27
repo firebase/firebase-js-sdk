@@ -20,19 +20,17 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { OperationType } from '@firebase/auth-types-exp';
+import { OperationType, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { delay } from '../../../test/helpers/delay';
+import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
 import { authEvent, BASE_AUTH_EVENT } from '../../../test/helpers/iframe_event';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { makeMockPopupRedirectResolver } from '../../../test/helpers/mock_popup_redirect_resolver';
 import { Auth } from '../../model/auth';
 import {
-  AuthEvent,
-  AuthEventType,
-  EventManager,
-  PopupRedirectResolver
+    AuthEvent, AuthEventType, EventManager, PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { AuthEventManager } from '../auth/auth_event_manager';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
@@ -87,7 +85,8 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
         Promise.resolve(
           new UserCredentialImpl(
             testUser(auth, 'uid'),
-            null,
+            ProviderId.GOOGLE,
+            {...TEST_ID_TOKEN_RESPONSE},
             OperationType.SIGN_IN
           )
         )
@@ -146,7 +145,7 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
       finishPromise(authEvent());
       const cred = (await operation.execute())!;
       expect(cred.user.uid).to.eq('uid');
-      expect(cred.credential).to.be.null;
+      expect(cred._tokenResponse).to.eql(TEST_ID_TOKEN_RESPONSE);
       expect(cred.operationType).to.eq(OperationType.SIGN_IN);
     });
 

@@ -19,14 +19,14 @@ import * as externs from '@firebase/auth-types-exp';
 
 import * as account from '../../api/account_management/email_and_password';
 import * as authentication from '../../api/authentication/email_and_password';
+import { signUp } from '../../api/authentication/sign_up';
+import { MultiFactorInfo } from '../../mfa/mfa_info';
 import { Auth } from '../../model/auth';
 import { EmailAuthProvider } from '../providers/email';
+import { UserCredentialImpl } from '../user/user_credential_impl';
+import { assert } from '../util/assert';
 import { setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
-import { UserCredentialImpl } from '../user/user_credential_impl';
-import { signUp } from '../../api/authentication/sign_up';
-import { assert } from '../util/assert';
-import { MultiFactorInfo } from '../../mfa/mfa_info';
 
 export async function sendPasswordResetEmail(
   auth: externs.Auth,
