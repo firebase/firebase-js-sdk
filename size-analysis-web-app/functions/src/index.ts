@@ -19,6 +19,7 @@ import * as functions from 'firebase-functions';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import { resolve } from 'path';
+import { extractDeclarations } from './analysis-helper';
 let cors = require('cors')({ origin: true });
 const pkgName: string = 'firebase';
 const packageInstalledDirectory: string = 'tmp-folder-size-analysis-web-app';
