@@ -15,7 +15,14 @@
  * limitations under the License.
  */
 
-import { CompleteFn, ErrorFn, FirebaseError, NextFn, Observer, Unsubscribe } from '@firebase/util';
+import {
+  CompleteFn,
+  ErrorFn,
+  FirebaseError,
+  NextFn,
+  Observer,
+  Unsubscribe
+} from '@firebase/util';
 
 /**
  * Supported providers
@@ -439,7 +446,7 @@ export interface User extends UserInfo {
  */
 export interface UserCredential {
   user: User;
-  providerId: ProviderId|null;
+  providerId: ProviderId | null;
   operationType: OperationType;
 }
 

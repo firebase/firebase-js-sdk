@@ -19,7 +19,12 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
 
-import { Operation, OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import {
+  Operation,
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -31,8 +36,13 @@ import { ServerError } from '../../api/errors';
 import { Auth } from '../../model/auth';
 import { UserCredential } from '../../model/user';
 import {
-    applyActionCode, checkActionCode, confirmPasswordReset, createUserWithEmailAndPassword,
-    sendPasswordResetEmail, signInWithEmailAndPassword, verifyPasswordResetCode
+  applyActionCode,
+  checkActionCode,
+  confirmPasswordReset,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  verifyPasswordResetCode
 } from './email_and_password';
 
 use(chaiAsPromised);
@@ -385,11 +395,11 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       _tokenResponse,
       user,
       operationType
-    } = await createUserWithEmailAndPassword(
+    } = (await createUserWithEmailAndPassword(
       auth,
       'some-email',
       'some-password'
-    ) as UserCredential;
+    )) as UserCredential;
     expect(_tokenResponse).to.eql({
       idToken: 'id-token',
       refreshToken: 'refresh-token',
@@ -428,7 +438,11 @@ describe('core/strategies/email_and_password/signInWithEmailAndPassword', () => 
       _tokenResponse,
       user,
       operationType
-    } = await signInWithEmailAndPassword(auth, 'some-email', 'some-password') as UserCredential;
+    } = (await signInWithEmailAndPassword(
+      auth,
+      'some-email',
+      'some-password'
+    )) as UserCredential;
     expect(_tokenResponse).to.eql({
       idToken: 'id-token',
       refreshToken: 'refresh-token',

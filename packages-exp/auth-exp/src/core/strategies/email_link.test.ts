@@ -20,7 +20,11 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
 
 import * as externs from '@firebase/auth-types-exp';
-import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -31,7 +35,11 @@ import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { Auth } from '../../model/auth';
 import { UserCredential } from '../../model/user';
-import { isSignInWithEmailLink, sendSignInLinkToEmail, signInWithEmailLink } from './email_link';
+import {
+  isSignInWithEmailLink,
+  sendSignInLinkToEmail,
+  signInWithEmailLink
+} from './email_link';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -226,11 +234,11 @@ describe('core/strategies/email_and_password/signInWithEmailLink', () => {
       'continueUrl=' +
       encodeURIComponent(continueUrl) +
       '&languageCode=en&state=bla';
-    const { _tokenResponse, user, operationType } = await signInWithEmailLink(
+    const { _tokenResponse, user, operationType } = (await signInWithEmailLink(
       auth,
       'some-email',
       actionLink
-    ) as UserCredential;
+    )) as UserCredential;
     expect(_tokenResponse).to.eql({
       idToken: 'id-token',
       refreshToken: 'refresh-token',

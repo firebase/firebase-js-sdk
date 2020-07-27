@@ -65,13 +65,20 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
     userCredential: externs.UserCredential
   ): externs.AuthCredential | null {
     const credential = userCredential as UserCredential;
-    assert(credential._tokenResponse, credential.user.auth.name, AuthErrorCode.ARGUMENT_ERROR);
+    assert(
+      credential._tokenResponse,
+      credential.user.auth.name,
+      AuthErrorCode.ARGUMENT_ERROR
+    );
     const {
       phoneNumber,
       temporaryProof
     } = credential._tokenResponse as SignInWithPhoneNumberResponse;
     if (phoneNumber && temporaryProof) {
-      return PhoneAuthCredential._fromTokenResponse(phoneNumber, temporaryProof);
+      return PhoneAuthCredential._fromTokenResponse(
+        phoneNumber,
+        temporaryProof
+      );
     }
 
     fail(credential.user.auth.name, AuthErrorCode.ARGUMENT_ERROR);

@@ -27,7 +27,7 @@ import { UserImpl } from './user_impl';
 export class UserCredentialImpl implements UserCredential {
   constructor(
     public readonly user: User,
-    public readonly providerId: externs.ProviderId|null,
+    public readonly providerId: externs.ProviderId | null,
     public readonly _tokenResponse: PhoneOrOauthTokenResponse | undefined,
     public readonly operationType: externs.OperationType
   ) {}
@@ -44,7 +44,12 @@ export class UserCredentialImpl implements UserCredential {
       credential?.providerId === externs.ProviderId.ANONYMOUS
     );
     const providerId = providerIdForResponse(idTokenResponse);
-    const userCred = new UserCredentialImpl(user, providerId, idTokenResponse, operationType);
+    const userCred = new UserCredentialImpl(
+      user,
+      providerId,
+      idTokenResponse,
+      operationType
+    );
     // TODO: handle additional user info
     // updateAdditionalUserInfoFromIdTokenResponse(userCred, idTokenResponse);
     return userCred;
@@ -61,9 +66,11 @@ export class UserCredentialImpl implements UserCredential {
   }
 }
 
-function providerIdForResponse(response: IdTokenResponse): externs.ProviderId|null {
+function providerIdForResponse(
+  response: IdTokenResponse
+): externs.ProviderId | null {
   if (response.providerId) {
-    return response.providerId as externs.ProviderId;;
+    return response.providerId as externs.ProviderId;
   }
 
   if ('phoneNumber' in response) {

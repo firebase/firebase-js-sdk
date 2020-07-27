@@ -19,7 +19,10 @@ import * as externs from '@firebase/auth-types-exp';
 import { NextFn } from '@firebase/util';
 
 import { APIUserInfo } from '../api/account_management/account';
-import { FinalizeMfaResponse, PhoneOrOauthTokenResponse } from '../api/authentication/mfa';
+import {
+  FinalizeMfaResponse,
+  PhoneOrOauthTokenResponse
+} from '../api/authentication/mfa';
 import { PersistedBlob } from '../core/persistence';
 import { Auth } from './auth';
 import { IdTokenResponse } from './id_token';

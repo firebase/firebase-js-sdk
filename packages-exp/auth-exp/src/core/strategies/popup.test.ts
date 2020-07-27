@@ -20,7 +20,11 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { OperationType, PopupRedirectResolver, ProviderId } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  PopupRedirectResolver,
+  ProviderId
+} from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { delay } from '../../../test/helpers/delay';
@@ -39,8 +43,11 @@ import * as eid from '../util/event_id';
 import { AuthPopup } from '../util/popup';
 import * as idpTasks from './idp';
 import {
-    _AUTH_EVENT_TIMEOUT, _POLL_WINDOW_CLOSE_TIMEOUT, linkWithPopup, reauthenticateWithPopup,
-    signInWithPopup
+  _AUTH_EVENT_TIMEOUT,
+  _POLL_WINDOW_CLOSE_TIMEOUT,
+  linkWithPopup,
+  reauthenticateWithPopup,
+  signInWithPopup
 } from './popup';
 
 use(sinonChai);
@@ -244,8 +251,12 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('completes the full flow', async () => {
-      const cred = new UserCredentialImpl(user, ProviderId.GOOGLE,
-        undefined, OperationType.LINK);
+      const cred = new UserCredentialImpl(
+        user,
+        ProviderId.GOOGLE,
+        undefined,
+        OperationType.LINK
+      );
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider, resolver);
       iframeEvent({
@@ -255,8 +266,12 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('ignores events for another event id', async () => {
-      const cred = new UserCredentialImpl(user, ProviderId.GOOGLE,
-        undefined, OperationType.LINK);
+      const cred = new UserCredentialImpl(
+        user,
+        ProviderId.GOOGLE,
+        undefined,
+        OperationType.LINK
+      );
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider, resolver);
       iframeEvent({
@@ -277,8 +292,12 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('does not call idp tasks if event is error', async () => {
-      const cred = new UserCredentialImpl(user, ProviderId.GOOGLE,
-        undefined, OperationType.LINK);
+      const cred = new UserCredentialImpl(
+        user,
+        ProviderId.GOOGLE,
+        undefined,
+        OperationType.LINK
+      );
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider, resolver);
       iframeEvent({
@@ -298,8 +317,12 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('does not error if the poll timeout trips', async () => {
-      const cred = new UserCredentialImpl(user, ProviderId.GOOGLE,
-        undefined, OperationType.LINK);
+      const cred = new UserCredentialImpl(
+        user,
+        ProviderId.GOOGLE,
+        undefined,
+        OperationType.LINK
+      );
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider, resolver);
       delay(() => {
@@ -313,8 +336,12 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('does error if the poll timeout and event timeout trip', async () => {
-      const cred = new UserCredentialImpl(user, ProviderId.GOOGLE,
-        undefined, OperationType.LINK);
+      const cred = new UserCredentialImpl(
+        user,
+        ProviderId.GOOGLE,
+        undefined,
+        OperationType.LINK
+      );
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider, resolver);
       delay(() => {
@@ -352,8 +379,12 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('cancels the task if called consecutively', async () => {
-      const cred = new UserCredentialImpl(user, ProviderId.GOOGLE,
-        undefined, OperationType.LINK);
+      const cred = new UserCredentialImpl(
+        user,
+        ProviderId.GOOGLE,
+        undefined,
+        OperationType.LINK
+      );
       idpStubs._link.returns(Promise.resolve(cred));
       const firstPromise = linkWithPopup(user, provider, resolver);
       const secondPromise = linkWithPopup(user, provider, resolver);

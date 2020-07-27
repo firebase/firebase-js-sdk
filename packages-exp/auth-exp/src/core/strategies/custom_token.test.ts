@@ -66,10 +66,14 @@ describe('core/strategies/signInWithCustomToken', () => {
   afterEach(mockFetch.tearDown);
 
   it('should return a valid user credential', async () => {
-    const { user, operationType, _tokenResponse } = await signInWithCustomToken(
+    const {
+      user,
+      operationType,
+      _tokenResponse
+    } = (await signInWithCustomToken(
       auth,
       'look-at-me-im-a-jwt'
-    ) as UserCredential;
+    )) as UserCredential;
     expect(_tokenResponse).to.eql(idTokenResponse);
     expect(user.uid).to.eq('local-id');
     expect(user.tenantId).to.eq('tenant-id');

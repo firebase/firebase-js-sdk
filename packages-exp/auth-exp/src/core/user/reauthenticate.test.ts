@@ -19,7 +19,11 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { stub } from 'sinon';
 
-import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -170,7 +174,7 @@ describe('src/core/user/reauthenticate', () => {
       users: [{ localId: 'uid' }]
     });
 
-    const cred = await _reauthenticate(user, credential) as UserCredential;
+    const cred = (await _reauthenticate(user, credential)) as UserCredential;
 
     expect(cred.operationType).to.eq(OperationType.REAUTHENTICATE);
     expect(cred._tokenResponse).to.eq(response);

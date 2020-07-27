@@ -132,7 +132,9 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
         });
 
         it('finalizes the sign in flow', async () => {
-          const userCredential = await resolver.resolveSignIn(assertion) as UserCredential;
+          const userCredential = (await resolver.resolveSignIn(
+            assertion
+          )) as UserCredential;
           expect(userCredential.user.uid).to.eq('local-id');
           expect(await userCredential.user.getIdToken()).to.eq(
             'final-id-token'
@@ -140,7 +142,8 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
           expect(userCredential._tokenResponse).to.eql({
             localId: 'local-id',
             expiresIn: 3600,
-            idToken: 'final-id-token', refreshToken: 'final-refresh-token'
+            idToken: 'final-id-token',
+            refreshToken: 'final-refresh-token'
           });
           expect(mock.calls[0].request).to.eql({
             tenantId: auth.tenantId,
@@ -169,7 +172,9 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
         });
 
         it('finalizes the reauth flow', async () => {
-          const userCredential = await resolver.resolveSignIn(assertion) as UserCredential;
+          const userCredential = (await resolver.resolveSignIn(
+            assertion
+          )) as UserCredential;
           expect(userCredential.user).to.eq(user);
           expect(await userCredential.user.getIdToken()).to.eq(
             'final-id-token'

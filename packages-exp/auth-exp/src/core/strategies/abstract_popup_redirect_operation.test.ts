@@ -30,7 +30,10 @@ import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { makeMockPopupRedirectResolver } from '../../../test/helpers/mock_popup_redirect_resolver';
 import { Auth } from '../../model/auth';
 import {
-    AuthEvent, AuthEventType, EventManager, PopupRedirectResolver
+  AuthEvent,
+  AuthEventType,
+  EventManager,
+  PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { AuthEventManager } from '../auth/auth_event_manager';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
@@ -86,7 +89,7 @@ describe('src/core/strategies/abstract_popup_redirect_operation', () => {
           new UserCredentialImpl(
             testUser(auth, 'uid'),
             ProviderId.GOOGLE,
-            {...TEST_ID_TOKEN_RESPONSE},
+            { ...TEST_ID_TOKEN_RESPONSE },
             OperationType.SIGN_IN
           )
         )
