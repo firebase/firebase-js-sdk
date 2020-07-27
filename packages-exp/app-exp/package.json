@@ -34,7 +34,7 @@
     "@firebase/util": "0.3.0",
     "@firebase/logger": "0.2.6",
     "@firebase/component": "0.1.17",
-    "tslib": "^1.11.1"
+    "tslib": "1.13.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
