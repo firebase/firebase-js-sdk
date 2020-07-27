@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { TextEncoder, TextDecoder } from 'util';
-
 /** The Platform's 'window' implementation or null if not available. */
 export function getWindow(): Window | null {
   if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
@@ -30,18 +28,4 @@ export function getWindow(): Window | null {
 /** The Platform's 'document' implementation or null if not available. */
 export function getDocument(): Document | null {
   return null;
-}
-
-/**
- * An instance of the Platform's 'TextEncoder' implementation.
- */
-export function newTextEncoder(): TextEncoder {
-  return new TextEncoder();
-}
-
-/**
- * An instance of the Platform's 'TextDecoder' implementation.
- */
-export function newTextDecoder(): TextDecoder {
-  return new TextDecoder('utf-8');
 }

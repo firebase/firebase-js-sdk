@@ -41,30 +41,3 @@ export function getDocument(): Document | null {
     return browser.getDocument();
   }
 }
-
-/**
- * An instance of the Platform's 'TextEncoder' implementation or null
- * if not available.
- */
-export function newTextEncoder(): TextEncoder {
-  if (isNode()) {
-    return node.newTextEncoder();
-  } else if (isReactNative()) {
-    return rn.newTextEncoder();
-  } else {
-    return browser.newTextEncoder();
-  }
-}
-
-/**
- * An instance of the Platform's 'TextDecoder' implementation.
- */
-export function newTextDecoder(): TextDecoder {
-  if (isNode()) {
-    return node.newTextDecoder() as TextDecoder;
-  } else if (isReactNative()) {
-    return rn.newTextDecoder();
-  } else {
-    return browser.newTextDecoder();
-  }
-}
