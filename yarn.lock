@@ -4335,16 +4335,16 @@ chrome-trace-event@^1.0.2:
   dependencies:
     tslib "^1.9.0"
 
-chromedriver@83.0.1:
-  version "83.0.1"
-  resolved "https://registry.npmjs.org/chromedriver/-/chromedriver-83.0.1.tgz#c4cf9b3f7076fea5e9ef787e65907cd035ffbd10"
-  integrity sha512-51/YsLIMRF+L0ooMlM4aZjyoOpDs0gDXGlT6+/CwWEnvK53PUyef9FkotKbzknCaUeL/qUw3ic3IMmsNc+SUxg==
+chromedriver@84.0.1:
+  version "84.0.1"
+  resolved "https://registry.npmjs.org/chromedriver/-/chromedriver-84.0.1.tgz#eaca7723f1a58c262a5c521b8596769af40b0d4f"
+  integrity sha512-iJ6Y680yp58+KlAPS5YgYe3oePVFf8jY5k4YoczhXkT0p/mQZKfGNkGG/Xc0LjGWDQRTgZwXg66hOXoApIQecg==
   dependencies:
     "@testim/chrome-version" "^1.0.7"
     axios "^0.19.2"
     del "^5.1.0"
-    extract-zip "^2.0.0"
-    https-proxy-agent "^2.2.4"
+    extract-zip "^2.0.1"
+    https-proxy-agent "^5.0.0"
     mkdirp "^1.0.4"
     tcp-port-used "^1.0.1"
 
@@ -6353,7 +6353,7 @@ extglob@^2.0.4:
     snapdragon "^0.8.1"
     to-regex "^3.0.1"
 
-extract-zip@^2.0.0:
+extract-zip@^2.0.1:
   version "2.0.1"
   resolved "https://registry.npmjs.org/extract-zip/-/extract-zip-2.0.1.tgz#663dca56fe46df890d5f131ef4a06d22bb8ba13a"
   integrity sha512-GDhU9ntwuKyGXdZBUgTIe+vXnWj0fppUEtMDL0+idd5Sta8TGpHssn/eusA9mrPr9qNDym6SxAYZjNvCn/9RBg==
@@ -7956,7 +7956,7 @@ https-proxy-agent@3.0.0:
     agent-base "^4.3.0"
     debug "^3.1.0"
 
-https-proxy-agent@^2.2.1, https-proxy-agent@^2.2.3, https-proxy-agent@^2.2.4:
+https-proxy-agent@^2.2.1, https-proxy-agent@^2.2.3:
   version "2.2.4"
   resolved "https://registry.npmjs.org/https-proxy-agent/-/https-proxy-agent-2.2.4.tgz#4ee7a737abd92678a293d9b34a1af4d0d08c787b"
   integrity sha512-OmvfoQ53WLjtA9HeYP9RNrWMJzzAz1JGaSFr1nijg0PVR1JaD/xbJq1mdEIIlxGpXp9eSe/O2LgU9DJmTPd0Eg==
