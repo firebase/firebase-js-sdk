@@ -144,7 +144,7 @@
     "ts-node": "8.10.2",
     "tslint": "6.1.2",
     "typedoc": "0.16.11",
-    "typescript": "3.9.6",
+    "typescript": "3.9.7",
     "watch": "1.0.2",
     "webpack": "4.44.0",
     "yargs": "15.4.1"
