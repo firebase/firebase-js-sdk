@@ -37,7 +37,7 @@
   "devDependencies": {
     "rollup": "2.23.0",
     "rollup-plugin-typescript2": "0.27.1",
-    "ts-essentials": "6.0.7",
+    "ts-essentials": "7.0.0",
     "typescript": "3.9.6"
   },
   "repository": {
