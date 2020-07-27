@@ -57,10 +57,10 @@ export function firestore(): Firestore {
   return FIRESTORE;
 }
 
-export function namedFirestore(projectId: string): Firestore {
+export function newTestFirestore(): Firestore {
   return new Firestore(
     {
-      projectId,
+      projectId: 'new-project',
       database: '(default)'
     },
     new Provider('auth-internal', new ComponentContainer('default')),

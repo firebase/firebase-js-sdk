@@ -161,7 +161,7 @@ class FirestoreSettings {
 
   readonly cacheSizeBytes: number;
 
-  readonly forceLongPolling: boolean;
+  readonly experimentalForceLongPolling: boolean;
 
   readonly ignoreUndefinedProperties: boolean;
 
@@ -264,7 +264,7 @@ class FirestoreSettings {
       'experimentalForceLongPolling',
       settings.experimentalForceLongPolling
     );
-    this.forceLongPolling =
+    this.experimentalForceLongPolling =
       settings.experimentalForceLongPolling ?? DEFAULT_FORCE_LONG_POLLING;
   }
 
@@ -275,7 +275,8 @@ class FirestoreSettings {
       this.timestampsInSnapshots === other.timestampsInSnapshots &&
       this.credentials === other.credentials &&
       this.cacheSizeBytes === other.cacheSizeBytes &&
-      this.forceLongPolling === other.forceLongPolling &&
+      this.experimentalForceLongPolling ===
+        other.experimentalForceLongPolling &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties
     );
   }
@@ -364,8 +365,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     validateArgType('Firestore.settings', 'object', 1, settingsLiteral);
 
     if (settingsLiteral.inherit) {
-      settingsLiteral = this.mergeSettings(settingsLiteral);
-      // Remove the property from the settings once the merge is completed.
+      settingsLiteral = { ...this._settings, ...settingsLiteral };
+      // Remove the property from the settings once the merge is completed
       delete settingsLiteral.inherit;
     }
 
@@ -383,33 +384,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (newSettings.credentials !== undefined) {
       this._credentials = makeCredentialsProvider(newSettings.credentials);
     }
-  }
-
-  private mergeSettings(
-    settingsLiteral: firestore.Settings
-  ): firestore.Settings {
-    settingsLiteral.host =
-      settingsLiteral.host === undefined
-        ? this._settings.host
-        : settingsLiteral.host;
-    settingsLiteral.ssl =
-      settingsLiteral.ssl === undefined
-        ? this._settings.ssl
-        : settingsLiteral.ssl;
-    settingsLiteral.timestampsInSnapshots =
-      settingsLiteral.timestampsInSnapshots === undefined
-        ? this._settings.timestampsInSnapshots
-        : settingsLiteral.timestampsInSnapshots;
-    settingsLiteral.cacheSizeBytes =
-      settingsLiteral.cacheSizeBytes === undefined
-        ? this._settings.cacheSizeBytes
-        : settingsLiteral.cacheSizeBytes;
-    settingsLiteral.ignoreUndefinedProperties =
-      settingsLiteral.ignoreUndefinedProperties === undefined
-        ? this._settings.ignoreUndefinedProperties
-        : settingsLiteral.ignoreUndefinedProperties;
-
-    return settingsLiteral;
   }
 
   enableNetwork(): Promise<void> {
@@ -544,7 +518,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._persistenceKey,
       this._settings.host,
       this._settings.ssl,
-      this._settings.forceLongPolling
+      this._settings.experimentalForceLongPolling
     );
   }
 
