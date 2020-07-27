@@ -15,6 +15,7 @@
   "main": "lib/index.js",
   "dependencies": {
     "cors": "^2.8.5",
+    "typescript": "3.8.3",
     "firebase-admin": "^8.10.0",
     "firebase-functions": "^3.6.1"
   },
