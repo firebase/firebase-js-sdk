@@ -536,6 +536,11 @@ export interface LoadBundleTaskProgress {
 
 export type TaskState = 'Error' | 'Running' | 'Success';
 
+export function loadBundle(
+  firestore: FirebaseFirestore,
+  bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
+): LoadBundleTask;
+
 export type FirestoreErrorCode =
   | 'cancelled'
   | 'unknown'

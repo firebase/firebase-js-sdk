@@ -113,6 +113,7 @@ import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { LoadBundleTask } from './bundle';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -499,7 +500,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
   ): firestore.LoadBundleTask {
     this.ensureClientConfigured();
-    return this._firestoreClient!.loadBundle(bundleData);
+    const resultTask = new LoadBundleTask();
+    this._firestoreClient!.loadBundle(bundleData, resultTask);
+    return resultTask;
   }
 
   async namedQuery(name: string): Promise<firestore.Query | null> {
