@@ -9,6 +9,7 @@
 ```typescript
 export class CollectionReference<T = DocumentData> extends Query<T> 
 ```
+<b>Extends:</b> [Query](./firestore_.query.md)<!-- -->&lt;T&gt;
 
 ## Properties
 

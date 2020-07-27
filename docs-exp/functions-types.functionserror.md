@@ -9,6 +9,7 @@
 ```typescript
 export interface FunctionsError extends FirebaseError 
 ```
+<b>Extends:</b> FirebaseError
 
 ## Properties
 

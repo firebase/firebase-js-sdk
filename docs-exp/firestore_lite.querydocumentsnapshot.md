@@ -11,6 +11,7 @@ export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
   T
 > 
 ```
+<b>Extends:</b> [DocumentSnapshot](./firestore_lite.documentsnapshot.md)<!-- -->&lt; T &gt;
 
 ## Methods
 
