@@ -18,7 +18,12 @@
 import * as functions from 'firebase-functions';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
+import { resolve } from 'path';
 let cors = require('cors')({ origin: true });
+const pkgName: string = 'firebase';
+const packageInstalledDirectory: string = 'tmp-folder-size-analysis-web-app';
+const pkgRoot: string = `${packageInstalledDirectory}/node_modules/${pkgName}`;
+
 // Start writing Firebase Functions
 // https://firebase.google.com/docs/functions/typescript
 const versionFilter = new RegExp(/^\d+.\d*.\d+$/);
@@ -55,18 +60,36 @@ export const retrieveFirebaseVersionFromNPM = functions.https.onRequest(
   }
 );
 /**
- * This funcitons creates a package.json file programatically and installs the firebase package.
+ * This functions creates a package.json file programatically and installs the firebase package.
  */
 function setUpPackageEnvironment(firebaseVersionToBeInstalled: string): void {
-  const tmpFolderName: string = 'tmp-folder-size-analysis-web-app';
-  const firebasePkgName: string = 'firebase';
   try {
-    if (!fs.existsSync(tmpFolderName)) {
-      fs.mkdirSync(tmpFolderName);
+    if (!fs.existsSync(packageInstalledDirectory)) {
+      fs.mkdirSync(packageInstalledDirectory);
     }
-    const packageJsonContent: string = `{\"name\":\"size-analysis-firebase\",\"version\":\"0.1.0\",\"dependencies\":{\"typescript\":\"3.8.3\"},\"devDependencies\":{\"rollup\":\"2.21.0\",\"rollup-plugin-json\":\"4.0.0\",\"rollup-plugin-typescript2\":\"0.27.0\",\"${firebasePkgName}\":\"${firebaseVersionToBeInstalled}\"}}`;
-    fs.writeFileSync(`${tmpFolderName}/package.json`, packageJsonContent);
-    execSync(`cd ${tmpFolderName}; npm install`);
+    const packageJsonContent: string = `{\"name\":\"size-analysis-firebase\",\"version\":\"0.1.0\",\"dependencies\":{\"typescript\":\"3.8.3\"},\"devDependencies\":{\"rollup\":\"2.21.0\",\"rollup-plugin-json\":\"4.0.0\",\"rollup-plugin-typescript2\":\"0.27.0\",\"${pkgName}\":\"${firebaseVersionToBeInstalled}\"}}`;
+    fs.writeFileSync(
+      `${packageInstalledDirectory}/package.json`,
+      packageJsonContent
+    );
+    execSync(`cd ${packageInstalledDirectory}; npm install; cd ..`);
+  } catch (error) {
+    throw error;
+  }
+}
+/**
+ * This functions returns a list of module(under firebase scope) locations.
+ */
+function retrieveAllModuleLocation(): string[] {
+  const moduleLocations: string[] = [];
+  try {
+    const pkgRootAbsolutedPath: string = resolve(`${pkgRoot}`);
+    const pkgJson = require(`${pkgRootAbsolutedPath}/package.json`);
+    const components = pkgJson.components;
+    for (const component of components) {
+      moduleLocations.push(`${pkgRootAbsolutedPath}/${component}`);
+    }
+    return moduleLocations;
   } catch (error) {
     throw error;
   }
@@ -87,7 +110,11 @@ export const downloadPackageFromNPMGivenVersionAndReturnExportedSymbols = functi
       const versionTobeInstalled = request.body.version;
       try {
         setUpPackageEnvironment(versionTobeInstalled);
-        response.status(200).end();
+        const allModuleLocations: string[] = retrieveAllModuleLocation();
+        console.log(allModuleLocations);
+        // extract declarations
+
+        response.status(200).send(allModuleLocations);
       } catch (error) {
         response.status(500).send(error);
       }
