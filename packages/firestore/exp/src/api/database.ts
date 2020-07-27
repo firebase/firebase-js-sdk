@@ -50,6 +50,7 @@ import {
   indexedDbStoragePrefix,
   indexedDbClearPersistence
 } from '../../../src/local/indexeddb_persistence';
+import { LoadBundleTask } from '../../../src/api/bundle';
 
 /**
  * The root reference to the Firestore database and the entry point for the
@@ -299,9 +300,13 @@ export function terminate(
 export function loadBundle(
   firestore: firestore.FirebaseFirestore,
   bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
-): firestore.LoadBundleTask | null {
-  return null;
-  // const firestoreImpl = cast(firestore, Firestore);
-  // return firestoreImpl._getFirestoreClient()
-  // .then(firestoreClient => firestoreClient.loadBundle(bundleData));
+): LoadBundleTask {
+  const firestoreImpl = cast(firestore, Firestore);
+  const resultTask = new LoadBundleTask();
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  firestoreImpl._getFirestoreClient().then(firestoreClient => {
+    firestoreClient.loadBundle(bundleData, resultTask);
+  });
+
+  return resultTask;
 }

@@ -72,6 +72,7 @@ import {
 import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
 import { isPartialObserver, PartialObserver } from '../../src/api/observer';
 import { isPlainObject } from '../../src/util/input_validation';
+import { LoadBundleTask } from '../../exp-types';
 
 export { GeoPoint, Blob, Timestamp } from '../index';
 
@@ -168,7 +169,7 @@ export class FirebaseFirestore implements legacy.FirebaseFirestore {
 
   loadBundle(
     bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
-  ): legacy.LoadBundleTask {
+  ): LoadBundleTask {
     return loadBundle(this._delegate, bundleData)!;
   }
 
