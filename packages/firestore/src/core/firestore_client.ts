@@ -209,10 +209,11 @@ export class FirestoreClient {
   /** Enables the network connection and requeues all pending operations. */
   enableNetwork(): Promise<void> {
     this.verifyNotTerminated();
-    return enqueueEnableNetwork(
+    return enqueueNetworkEnabled(
       this.asyncQueue,
       this.remoteStore,
-      this.persistence
+      this.persistence,
+      /* enabled= */ true
     );
   }
 
@@ -353,10 +354,11 @@ export class FirestoreClient {
   /** Disables the network connection. Pending operations will not complete. */
   disableNetwork(): Promise<void> {
     this.verifyNotTerminated();
-    return enqueueDisableNetwork(
+    return enqueueNetworkEnabled(
       this.asyncQueue,
       this.remoteStore,
-      this.persistence
+      this.persistence,
+      /* enabled= */ false
     );
   }
 
@@ -461,35 +463,18 @@ export function enqueueWrite(
   return deferred.promise;
 }
 
-/** Enables the network connection and requeues all pending operations. */
-export function enqueueEnableNetwork(
+export function enqueueNetworkEnabled(
   asyncQueue: AsyncQueue,
   remoteStore: RemoteStore,
-  persistence: Persistence
+  persistence: Persistence,
+  enabled: boolean
 ): Promise<void> {
   return asyncQueue.enqueue(() => {
     persistence.setNetworkEnabled(true);
-    return remoteStore.enableNetwork();
+    return enabled ? remoteStore.enableNetwork() : remoteStore.disableNetwork();
   });
 }
 
-/** Disables the network connection. Pending operations will not complete. */
-export function enqueueDisableNetwork(
-  asyncQueue: AsyncQueue,
-  remoteStore: RemoteStore,
-  persistence: Persistence
-): Promise<void> {
-  return asyncQueue.enqueue(() => {
-    persistence.setNetworkEnabled(false);
-    return remoteStore.disableNetwork();
-  });
-}
-
-/**
- * Returns a Promise that resolves when all writes that were pending at the time this
- * method was called received server acknowledgement. An acknowledgement can be either acceptance
- * or rejection.
- */
 export function enqueueWaitForPendingWrites(
   asyncQueue: AsyncQueue,
   syncEngine: SyncEngine
@@ -517,7 +502,6 @@ export function enqueueListen(
   };
 }
 
-/** Registers the listener for onSnapshotsInSync() */
 export function enqueueSnapshotsInSyncListen(
   asyncQueue: AsyncQueue,
   eventManager: EventManager,
