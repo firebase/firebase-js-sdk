@@ -83,17 +83,6 @@ const browserBuilds = [
     },
     plugins: browserBuildPlugins,
     external: util.resolveBrowserExterns
-  },
-  // Memory-only build
-  {
-    input: 'index.memory.ts',
-    output: {
-      file: path.resolve('./memory', memoryPkg.esm2017),
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: browserBuildPlugins,
-    external: util.resolveBrowserExterns
   }
 ];
 
@@ -158,20 +147,7 @@ const nodeBuilds = [
     output: [{ file: pkg['main-esm2017'], format: 'es', sourcemap: true }],
     plugins: nodeBuildPlugins,
     external: util.resolveNodeExterns
-  },
-  // Memory-only build
-  {
-    input: 'index.node.memory.ts',
-    output: [
-      {
-        file: path.resolve('./memory', memoryPkg['main-esm2017']),
-        format: 'es',
-        sourcemap: true
-      }
-    ],
-    plugins: nodeBuildPlugins,
-    external: util.resolveNodeExterns
   }
 ];
 
-export default [...browserBuilds, ...reactNativeBuilds, ...nodeBuilds];
+export default [...browserBuilds, ...nodeBuilds];

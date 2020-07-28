@@ -69,28 +69,8 @@ const browserBuilds = [
     external: util.resolveBrowserExterns
   },
   {
-    input: path.resolve('./memory', memoryPkg.esm2017),
-    output: {
-      file: path.resolve('./memory', memoryPkg.module),
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: browserPlugins,
-    external: util.resolveBrowserExterns
-  },
-  {
     input: pkg.esm2017,
     output: { file: pkg.browser, format: 'cjs', sourcemap: true },
-    plugins: browserPlugins,
-    external: util.resolveBrowserExterns
-  },
-  {
-    input: path.resolve('./memory', memoryPkg.esm2017),
-    output: {
-      file: path.resolve('./memory', memoryPkg.browser),
-      format: 'cjs',
-      sourcemap: true
-    },
     plugins: browserPlugins,
     external: util.resolveBrowserExterns
   }
@@ -100,18 +80,6 @@ const nodeBuilds = [
   {
     input: pkg['main-esm2017'],
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    plugins: nodePlugins,
-    external: util.resolveNodeExterns
-  },
-  {
-    input: path.resolve('./memory', memoryPkg['main-esm2017']),
-    output: [
-      {
-        file: path.resolve('./memory', memoryPkg.main),
-        format: 'cjs',
-        sourcemap: true
-      }
-    ],
     plugins: nodePlugins,
     external: util.resolveNodeExterns
   }
