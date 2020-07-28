@@ -9164,7 +9164,7 @@ declare namespace firebase.firestore {
      */
     onSnapshot(
       onNext: (snapshot: QuerySnapshot<T>) => void,
-      onError?: (error: Error) => void,
+      onError?: (error: FirestoreError) => void,
       onCompletion?: () => void
     ): () => void;
     /**
