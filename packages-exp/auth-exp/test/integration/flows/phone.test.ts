@@ -51,12 +51,12 @@ use(chaiAsPromised);
 //   • +1 (555) 555-2000, SMS code 654321
 
 const PHONE_A = {
-  number: '+15555551000',
+  phoneNumber: '+15555551000',
   code: '123456'
 };
 
 const PHONE_B = {
-  number: '+15555552000',
+  phoneNumber: '+15555552000',
   code: '654321'
 };
 
@@ -78,7 +78,7 @@ describe('Integration test: phone auth', () => {
   });
 
   it('allows user to sign up', async () => {
-    const cr = await signInWithPhoneNumber(auth, PHONE_A.number, verifier);
+    const cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier);
     const userCred = await cr.confirm(PHONE_A.code);
 
     expect(auth.currentUser).to.eq(userCred.user);
@@ -87,18 +87,18 @@ describe('Integration test: phone auth', () => {
     const user = userCred.user;
     expect(user.isAnonymous).to.be.false;
     expect(user.uid).to.be.a('string');
-    expect(user.phoneNumber).to.eq(PHONE_A.number);
+    expect(user.phoneNumber).to.eq(PHONE_A.phoneNumber);
   });
 
   it('anonymous users can link (and unlink) phone number', async () => {
     const { user } = await signInAnonymously(auth);
     const { uid: anonId } = user;
 
-    const cr = await linkWithPhoneNumber(user, PHONE_A.number, verifier);
+    const cr = await linkWithPhoneNumber(user, PHONE_A.phoneNumber, verifier);
     const linkResult = await cr.confirm(PHONE_A.code);
     expect(linkResult.operationType).to.eq(OperationType.LINK);
     expect(linkResult.user.uid).to.eq(user.uid);
-    expect(linkResult.user.phoneNumber).to.eq(PHONE_A.number);
+    expect(linkResult.user.phoneNumber).to.eq(PHONE_A.phoneNumber);
 
     await unlink(user, ProviderId.PHONE);
     expect(auth.currentUser!.uid).to.eq(anonId);
@@ -115,28 +115,36 @@ describe('Integration test: phone auth', () => {
     }
 
     beforeEach(async () => {
-      const cr = await signInWithPhoneNumber(auth, PHONE_A.number, verifier);
+      const cr = await signInWithPhoneNumber(
+        auth,
+        PHONE_A.phoneNumber,
+        verifier
+      );
       signUpCred = await cr.confirm(PHONE_A.code);
       resetVerifier();
       await auth.signOut();
     });
 
     it('allows the user to sign in again', async () => {
-      const cr = await signInWithPhoneNumber(auth, PHONE_A.number, verifier);
+      const cr = await signInWithPhoneNumber(
+        auth,
+        PHONE_A.phoneNumber,
+        verifier
+      );
       const signInCred = await cr.confirm(PHONE_A.code);
 
       expect(signInCred.user.uid).to.eq(signUpCred.user.uid);
     });
 
     it('allows the user to update their phone number', async () => {
-      let cr = await signInWithPhoneNumber(auth, PHONE_A.number, verifier);
+      let cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier);
       const { user } = await cr.confirm(PHONE_A.code);
 
       resetVerifier();
 
       const provider = new PhoneAuthProvider(auth);
       const verificationId = await provider.verifyPhoneNumber(
-        PHONE_B.number,
+        PHONE_B.phoneNumber,
         verifier
       );
 
@@ -144,36 +152,44 @@ describe('Integration test: phone auth', () => {
         user,
         PhoneAuthProvider.credential(verificationId, PHONE_B.code)
       );
-      expect(user.phoneNumber).to.eq(PHONE_B.number);
+      expect(user.phoneNumber).to.eq(PHONE_B.phoneNumber);
 
       await auth.signOut();
       resetVerifier();
 
-      cr = await signInWithPhoneNumber(auth, PHONE_B.number, verifier);
+      cr = await signInWithPhoneNumber(auth, PHONE_B.phoneNumber, verifier);
       const { user: secondSignIn } = await cr.confirm(PHONE_B.code);
       expect(secondSignIn.uid).to.eq(user.uid);
     });
 
     it('allows the user to reauthenticate with phone number', async () => {
-      let cr = await signInWithPhoneNumber(auth, PHONE_A.number, verifier);
+      let cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier);
       const { user } = await cr.confirm(PHONE_A.code);
       const oldToken = user.refreshToken;
 
       resetVerifier();
 
-      cr = await reauthenticateWithPhoneNumber(user, PHONE_A.number, verifier);
+      cr = await reauthenticateWithPhoneNumber(
+        user,
+        PHONE_A.phoneNumber,
+        verifier
+      );
       await cr.confirm(PHONE_A.code);
 
       expect(user.refreshToken).not.to.eq(oldToken);
     });
 
     it('prevents reauthentication with wrong phone number', async () => {
-      let cr = await signInWithPhoneNumber(auth, PHONE_A.number, verifier);
+      let cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier);
       const { user } = await cr.confirm(PHONE_A.code);
 
       resetVerifier();
 
-      cr = await reauthenticateWithPhoneNumber(user, PHONE_B.number, verifier);
+      cr = await reauthenticateWithPhoneNumber(
+        user,
+        PHONE_B.phoneNumber,
+        verifier
+      );
       await expect(cr.confirm(PHONE_B.code)).to.be.rejectedWith(
         FirebaseError,
         'auth/user-mismatch'
@@ -182,7 +198,7 @@ describe('Integration test: phone auth', () => {
       // We need to manually delete PHONE_B number since a failed
       // reauthenticateWithPhoneNumber does not trigger a state change
       resetVerifier();
-      cr = await signInWithPhoneNumber(auth, PHONE_B.number, verifier);
+      cr = await signInWithPhoneNumber(auth, PHONE_B.phoneNumber, verifier);
       const { user: otherUser } = await cr.confirm(PHONE_B.code);
       await otherUser.delete();
     });
