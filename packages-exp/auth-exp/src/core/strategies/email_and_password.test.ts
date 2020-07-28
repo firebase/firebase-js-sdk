@@ -19,12 +19,7 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
 
-import {
-  Operation,
-  OperationType,
-  ProviderId,
-  SignInMethod
-} from '@firebase/auth-types-exp';
+import { Operation, OperationType } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -36,13 +31,8 @@ import { ServerError } from '../../api/errors';
 import { Auth } from '../../model/auth';
 import { UserCredential } from '../../model/user';
 import {
-  applyActionCode,
-  checkActionCode,
-  confirmPasswordReset,
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  verifyPasswordResetCode
+    applyActionCode, checkActionCode, confirmPasswordReset, createUserWithEmailAndPassword,
+    sendPasswordResetEmail, signInWithEmailAndPassword, verifyPasswordResetCode
 } from './email_and_password';
 
 use(chaiAsPromised);
