@@ -19,7 +19,10 @@ import * as externs from '@firebase/auth-types-exp';
 import { NextFn } from '@firebase/util';
 
 import { APIUserInfo } from '../api/account_management/account';
-import { FinalizeMfaResponse } from '../api/authentication/mfa';
+import {
+  FinalizeMfaResponse,
+  PhoneOrOauthTokenResponse
+} from '../api/authentication/mfa';
 import { PersistedBlob } from '../core/persistence';
 import { Auth } from './auth';
 import { IdTokenResponse } from './id_token';
@@ -62,4 +65,5 @@ export interface User extends externs.User {
 
 export interface UserCredential extends externs.UserCredential {
   user: User;
+  _tokenResponse?: PhoneOrOauthTokenResponse;
 }

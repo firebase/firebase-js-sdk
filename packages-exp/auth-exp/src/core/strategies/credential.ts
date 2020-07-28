@@ -16,8 +16,8 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-
 import { OperationType, UserCredential } from '@firebase/auth-types-exp';
+
 import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';

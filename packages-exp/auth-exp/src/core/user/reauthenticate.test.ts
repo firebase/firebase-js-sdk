@@ -36,7 +36,7 @@ import { Endpoint } from '../../api';
 import { IdTokenMfaResponse } from '../../api/authentication/mfa';
 import { MultiFactorError } from '../../mfa/mfa_error';
 import { IdTokenResponse } from '../../model/id_token';
-import { User } from '../../model/user';
+import { User, UserCredential } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { _reauthenticate } from './reauthenticate';
@@ -162,21 +162,22 @@ describe('src/core/user/reauthenticate', () => {
   });
 
   it('should return a valid user credential', async () => {
+    const response = {
+      ...TEST_ID_TOKEN_RESPONSE,
+      idToken: makeJWT({ sub: 'uid' })
+    };
     stub(credential, '_getReauthenticationResolver').returns(
-      Promise.resolve({
-        ...TEST_ID_TOKEN_RESPONSE,
-        idToken: makeJWT({ sub: 'uid' })
-      })
+      Promise.resolve(response)
     );
 
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
       users: [{ localId: 'uid' }]
     });
 
-    const cred = await _reauthenticate(user, credential);
+    const cred = (await _reauthenticate(user, credential)) as UserCredential;
 
     expect(cred.operationType).to.eq(OperationType.REAUTHENTICATE);
-    expect(cred.credential).to.eq(null);
+    expect(cred._tokenResponse).to.eq(response);
     expect(cred.user).to.eq(user);
   });
 });
