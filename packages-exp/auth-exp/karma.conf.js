@@ -22,7 +22,6 @@ module.exports = function(config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     // files to load into karma
     files: getTestFiles(argv),
-    preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha']
