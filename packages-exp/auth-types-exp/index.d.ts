@@ -18,10 +18,10 @@
 import {
   CompleteFn,
   ErrorFn,
+  FirebaseError,
   NextFn,
   Observer,
-  Unsubscribe,
-  FirebaseError
+  Unsubscribe
 } from '@firebase/util';
 
 /**
@@ -446,7 +446,7 @@ export interface User extends UserInfo {
  */
 export interface UserCredential {
   user: User;
-  credential: AuthCredential | null;
+  providerId: ProviderId | null;
   operationType: OperationType;
 }
 

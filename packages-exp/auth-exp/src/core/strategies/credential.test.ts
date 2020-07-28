@@ -37,7 +37,7 @@ import { IdTokenMfaResponse } from '../../api/authentication/mfa';
 import { MultiFactorError } from '../../mfa/mfa_error';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
-import { User } from '../../model/user';
+import { User, UserCredential } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import {
@@ -95,12 +95,11 @@ describe('core/strategies/credential', () => {
       stub(authCredential, '_getIdTokenResponse').returns(
         Promise.resolve(idTokenResponse)
       );
-      const { credential, user, operationType } = await signInWithCredential(
+      const { user, operationType, ...rest } = await signInWithCredential(
         auth,
         authCredential
       );
-      expect(credential!.providerId).to.eq(ProviderId.FIREBASE);
-      expect(credential!.signInMethod).to.eq(SignInMethod.EMAIL_LINK);
+      expect((rest as UserCredential)._tokenResponse).to.eq(idTokenResponse);
       expect(user.uid).to.eq('local-id');
       expect(user.tenantId).to.eq('tenant-id');
       expect(user.displayName).to.eq('display-name');
@@ -171,13 +170,16 @@ describe('core/strategies/credential', () => {
       );
 
       const {
-        credential,
         user: newUser,
-        operationType
+        operationType,
+        ...rest
       } = await reauthenticateWithCredential(user, authCredential);
       expect(operationType).to.eq(OperationType.REAUTHENTICATE);
       expect(newUser).to.eq(user);
-      expect(credential).to.be.null;
+      expect((rest as UserCredential)._tokenResponse).to.eql({
+        ...idTokenResponse,
+        idToken: makeJWT({ sub: 'uid' })
+      });
     });
   });
 
@@ -206,13 +208,13 @@ describe('core/strategies/credential', () => {
         Promise.resolve(idTokenResponse)
       );
       const {
-        credential,
         user: newUser,
-        operationType
+        operationType,
+        ...rest
       } = await linkWithCredential(user, authCredential);
       expect(operationType).to.eq(OperationType.LINK);
       expect(newUser).to.eq(user);
-      expect(credential).to.be.null;
+      expect((rest as UserCredential)._tokenResponse).to.eq(idTokenResponse);
     });
   });
 });

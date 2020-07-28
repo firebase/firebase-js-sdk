@@ -20,11 +20,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
 
 import * as externs from '@firebase/auth-types-exp';
-import {
-  OperationType,
-  ProviderId,
-  SignInMethod
-} from '@firebase/auth-types-exp';
+import { OperationType } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -34,6 +30,7 @@ import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { Auth } from '../../model/auth';
+import { UserCredential } from '../../model/user';
 import {
   isSignInWithEmailLink,
   sendSignInLinkToEmail,
@@ -233,13 +230,17 @@ describe('core/strategies/email_and_password/signInWithEmailLink', () => {
       'continueUrl=' +
       encodeURIComponent(continueUrl) +
       '&languageCode=en&state=bla';
-    const { credential, user, operationType } = await signInWithEmailLink(
+    const { _tokenResponse, user, operationType } = (await signInWithEmailLink(
       auth,
       'some-email',
       actionLink
-    );
-    expect(credential?.providerId).to.eq(ProviderId.PASSWORD);
-    expect(credential?.signInMethod).to.eq(SignInMethod.EMAIL_LINK);
+    )) as UserCredential;
+    expect(_tokenResponse).to.eql({
+      idToken: 'id-token',
+      refreshToken: 'refresh-token',
+      expiresIn: '1234',
+      localId: serverUser.localId!
+    });
     expect(operationType).to.eq(OperationType.SIGN_IN);
     expect(user.uid).to.eq(serverUser.localId);
     expect(user.isAnonymous).to.be.false;

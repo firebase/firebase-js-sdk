@@ -247,11 +247,11 @@ describe('src/core/strategies/redirect', () => {
     }
 
     it('completes the proper flow', async () => {
-      const cred = new UserCredentialImpl(
-        testUser(auth, 'uid'),
-        null,
-        externs.OperationType.SIGN_IN
-      );
+      const cred = new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: externs.ProviderId.GOOGLE,
+        operationType: externs.OperationType.SIGN_IN
+      });
       idpStubs._signIn.returns(Promise.resolve(cred));
       const promise = getRedirectResult(auth, resolver);
       iframeEvent({
@@ -261,11 +261,11 @@ describe('src/core/strategies/redirect', () => {
     });
 
     it('returns the same value if called multiple times', async () => {
-      const cred = new UserCredentialImpl(
-        testUser(auth, 'uid'),
-        null,
-        externs.OperationType.SIGN_IN
-      );
+      const cred = new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: externs.ProviderId.GOOGLE,
+        operationType: externs.OperationType.SIGN_IN
+      });
       idpStubs._signIn.returns(Promise.resolve(cred));
       const promise = getRedirectResult(auth, resolver);
       iframeEvent({
@@ -280,11 +280,11 @@ describe('src/core/strategies/redirect', () => {
       // auth load
       await reInitAuthWithRedirectUser(MATCHING_EVENT_ID);
 
-      const cred = new UserCredentialImpl(
-        testUser(auth, 'uid'),
-        null,
-        externs.OperationType.LINK
-      );
+      const cred = new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: externs.ProviderId.GOOGLE,
+        operationType: externs.OperationType.LINK
+      });
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = getRedirectResult(auth, resolver);
       iframeEvent({
@@ -298,11 +298,11 @@ describe('src/core/strategies/redirect', () => {
       // auth load
       await reInitAuthWithRedirectUser(OTHER_EVENT_ID);
 
-      const cred = new UserCredentialImpl(
-        testUser(auth, 'uid'),
-        null,
-        externs.OperationType.LINK
-      );
+      const cred = new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: externs.ProviderId.GOOGLE,
+        operationType: externs.OperationType.LINK
+      });
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = getRedirectResult(auth, resolver);
       iframeEvent({
@@ -325,11 +325,11 @@ describe('src/core/strategies/redirect', () => {
     it('works with reauthenticate', async () => {
       await reInitAuthWithRedirectUser(MATCHING_EVENT_ID);
 
-      const cred = new UserCredentialImpl(
-        testUser(auth, 'uid'),
-        null,
-        externs.OperationType.REAUTHENTICATE
-      );
+      const cred = new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: externs.ProviderId.GOOGLE,
+        operationType: externs.OperationType.REAUTHENTICATE
+      });
       idpStubs._reauth.returns(Promise.resolve(cred));
       const promise = getRedirectResult(auth, resolver);
       iframeEvent({
@@ -346,11 +346,11 @@ describe('src/core/strategies/redirect', () => {
       );
       sinon.spy(redirectPersistence, 'remove');
 
-      const cred = new UserCredentialImpl(
-        auth.currentUser!,
-        null,
-        externs.OperationType.LINK
-      );
+      const cred = new UserCredentialImpl({
+        user: auth.currentUser!,
+        providerId: externs.ProviderId.GOOGLE,
+        operationType: externs.OperationType.LINK
+      });
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = getRedirectResult(auth, resolver);
       iframeEvent({
