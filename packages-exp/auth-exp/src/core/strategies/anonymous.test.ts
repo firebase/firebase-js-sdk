@@ -17,11 +17,7 @@
 
 import { expect } from 'chai';
 
-import {
-  OperationType,
-  ProviderId,
-  SignInMethod
-} from '@firebase/auth-types-exp';
+import { OperationType } from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
@@ -54,9 +50,7 @@ describe('core/strategies/anonymous', () => {
 
   describe('signInAnonymously', () => {
     it('should sign in an anonymous user', async () => {
-      const { credential, user, operationType } = await signInAnonymously(auth);
-      expect(credential?.providerId).to.eq(ProviderId.ANONYMOUS);
-      expect(credential?.signInMethod).to.eq(SignInMethod.ANONYMOUS);
+      const { user, operationType } = await signInAnonymously(auth);
       expect(operationType).to.eq(OperationType.SIGN_IN);
       expect(user.uid).to.eq(serverUser.localId);
       expect(user.isAnonymous).to.be.true;
@@ -67,11 +61,7 @@ describe('core/strategies/anonymous', () => {
         const userCredential = await signInAnonymously(auth);
         expect(userCredential.user.isAnonymous).to.be.true;
 
-        const { credential, user, operationType } = await signInAnonymously(
-          auth
-        );
-        expect(credential?.providerId).to.eq(ProviderId.ANONYMOUS);
-        expect(credential?.signInMethod).to.eq(SignInMethod.ANONYMOUS);
+        const { user, operationType } = await signInAnonymously(auth);
         expect(operationType).to.eq(OperationType.SIGN_IN);
         expect(user.uid).to.eq(userCredential.user.uid);
         expect(user.isAnonymous).to.be.true;
@@ -84,11 +74,7 @@ describe('core/strategies/anonymous', () => {
         await auth.updateCurrentUser(fakeUser);
         expect(fakeUser.isAnonymous).to.be.false;
 
-        const { credential, user, operationType } = await signInAnonymously(
-          auth
-        );
-        expect(credential?.providerId).to.eq(ProviderId.ANONYMOUS);
-        expect(credential?.signInMethod).to.eq(SignInMethod.ANONYMOUS);
+        const { user, operationType } = await signInAnonymously(auth);
         expect(operationType).to.eq(OperationType.SIGN_IN);
         expect(user.uid).to.not.eq(fakeUser.uid);
         expect(user.isAnonymous).to.be.true;
