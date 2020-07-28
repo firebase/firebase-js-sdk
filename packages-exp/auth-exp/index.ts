@@ -25,7 +25,6 @@ export {
   browserLocalPersistence,
   browserSessionPersistence
 } from './src/core/persistence/browser';
-export { indexedDBLocalPersistence } from './src/core/persistence/indexed_db';
 
 // core/strategies
 export {
