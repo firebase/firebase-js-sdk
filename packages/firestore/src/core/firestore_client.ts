@@ -47,7 +47,6 @@ import {
   OfflineComponentProvider
 } from './component_provider';
 import { AsyncObserver } from '../util/async_observer';
-import { PartialObserver } from '../api/observer';
 
 const LOG_TAG = 'FirestoreClient';
 const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -393,7 +392,7 @@ export class FirestoreClient {
   listen(
     query: Query,
     options: ListenOptions,
-    observer: PartialObserver<ViewSnapshot>
+    observer: Partial<Observer<ViewSnapshot>>
   ): () => void {
     this.verifyNotTerminated();
     const wrappedObserver = new AsyncObserver(observer);
@@ -480,7 +479,7 @@ export class FirestoreClient {
     return this.databaseInfo.databaseId;
   }
 
-  addSnapshotsInSyncListener(observer: PartialObserver<void>): () => void {
+  addSnapshotsInSyncListener(observer: Partial<Observer<void>>): () => void {
     this.verifyNotTerminated();
     const wrappedObserver = new AsyncObserver(observer);
     this.asyncQueue.enqueueAndForget(async () =>
