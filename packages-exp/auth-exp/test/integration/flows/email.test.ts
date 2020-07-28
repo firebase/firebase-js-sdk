@@ -25,7 +25,7 @@ import {
   signInWithCredential,
   signInWithEmailAndPassword,
   updateProfile
-} from '@firebase/auth-exp/index.browser';
+} from '@firebase/auth-exp';
 import { Auth, OperationType, UserCredential } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
