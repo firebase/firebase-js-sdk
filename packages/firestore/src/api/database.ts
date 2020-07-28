@@ -22,11 +22,10 @@ import * as api from '../protos/firestore_proto_api';
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
-import { ListenOptions } from '../core/event_manager';
 import {
-  OnlineComponentProvider,
   MemoryOfflineComponentProvider,
-  OfflineComponentProvider
+  OfflineComponentProvider,
+  OnlineComponentProvider
 } from '../core/component_provider';
 import { FirestoreClient, PersistenceSettings } from '../core/firestore_client';
 import {
@@ -485,16 +484,17 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     this.ensureClientConfigured();
 
     if (isPartialObserver(arg)) {
-      return addSnapshotsInSyncListener(
-        this._firestoreClient!,
-        arg as PartialObserver<void>
+      return this._firestoreClient!.addSnapshotsInSyncListener(
+        new AsyncObserver(arg as PartialObserver<void>)
       );
     } else {
       validateArgType('Firestore.onSnapshotsInSync', 'function', 1, arg);
       const observer: PartialObserver<void> = {
         next: arg as () => void
       };
-      return addSnapshotsInSyncListener(this._firestoreClient!, observer);
+      return this._firestoreClient!.addSnapshotsInSyncListener(
+        new AsyncObserver(observer)
+      );
     }
   }
 
@@ -684,29 +684,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   _areTimestampsInSnapshotsEnabled(): boolean {
     return this._settings.timestampsInSnapshots;
   }
-}
-
-/** Registers the listener for onSnapshotsInSync() */
-export function addSnapshotsInSyncListener(
-  firestoreClient: FirestoreClient,
-  observer: PartialObserver<void>
-): Unsubscribe {
-  const errHandler = (err: Error): void => {
-    throw fail('Uncaught Error in onSnapshotsInSync');
-  };
-  const asyncObserver = new AsyncObserver<void>({
-    next: () => {
-      if (observer.next) {
-        observer.next();
-      }
-    },
-    error: errHandler
-  });
-  firestoreClient.addSnapshotsInSyncListener(asyncObserver);
-  return () => {
-    asyncObserver.mute();
-    firestoreClient.removeSnapshotsInSyncListener(asyncObserver);
-  };
 }
 
 /**
@@ -1248,11 +1225,10 @@ export class DocumentReference<T = firestore.DocumentData>
       complete: args[currArg + 2] as CompleteFn
     };
 
-    return addDocSnapshotListener(
-      this._firestoreClient,
-      this._key,
+    return this._firestoreClient.listen(
+      newQueryForPath(this._key.path),
       internalOptions,
-      observer
+      new AsyncObserver(observer)
     );
   }
 
@@ -1312,40 +1288,6 @@ export class DocumentReference<T = firestore.DocumentData>
   }
 }
 
-/** Registers an internal snapshot listener for `ref`. */
-export function addDocSnapshotListener(
-  firestoreClient: FirestoreClient,
-  key: DocumentKey,
-  options: ListenOptions,
-  observer: PartialObserver<ViewSnapshot>
-): Unsubscribe {
-  let errHandler = (err: Error): void => {
-    console.error('Uncaught Error in onSnapshot:', err);
-  };
-  if (observer.error) {
-    errHandler = observer.error.bind(observer);
-  }
-
-  const asyncObserver = new AsyncObserver<ViewSnapshot>({
-    next: snapshot => {
-      if (observer.next) {
-        observer.next(snapshot);
-      }
-    },
-    error: errHandler
-  });
-  const internalListener = firestoreClient.listen(
-    newQueryForPath(key.path),
-    asyncObserver,
-    options
-  );
-
-  return () => {
-    asyncObserver.mute();
-    firestoreClient.unlisten(internalListener);
-  };
-}
-
 /**
  * Retrieves a latency-compensated document from the backend via a
  * SnapshotListener.
@@ -1356,14 +1298,13 @@ export function getDocViaSnapshotListener(
   options?: firestore.GetOptions
 ): Promise<ViewSnapshot> {
   const result = new Deferred<ViewSnapshot>();
-  const unlisten = addDocSnapshotListener(
-    firestoreClient,
-    key,
+  const unlisten = firestoreClient.listen(
+    newQueryForPath(key.path),
     {
       includeMetadataChanges: true,
       waitForSyncWhenOnline: true
     },
-    {
+    new AsyncObserver({
       next: (snap: ViewSnapshot) => {
         // Remove query first before passing event to user to avoid
         // user actions affecting the now stale query.
@@ -1404,7 +1345,7 @@ export function getDocViaSnapshotListener(
         }
       },
       error: e => result.reject(e)
-    }
+    })
   );
   return result.promise;
 }
@@ -2220,11 +2161,10 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
 
     validateHasExplicitOrderByForLimitToLast(this._query);
     const firestoreClient = this.firestore.ensureClientConfigured();
-    return addQuerySnapshotListener(
-      firestoreClient,
+    return firestoreClient.listen(
       this._query,
       options,
-      observer
+      new AsyncObserver(observer)
     );
   }
 
@@ -2254,14 +2194,13 @@ export function getDocsViaSnapshotListener(
   options?: firestore.GetOptions
 ): Promise<ViewSnapshot> {
   const result = new Deferred<ViewSnapshot>();
-  const unlisten = addQuerySnapshotListener(
-    firestore,
+  const unlisten = firestore.listen(
     query,
     {
       includeMetadataChanges: true,
       waitForSyncWhenOnline: true
     },
-    {
+    new AsyncObserver({
       next: snapshot => {
         // Remove query first before passing event to user to avoid
         // user actions affecting the now stale query.
@@ -2282,38 +2221,9 @@ export function getDocsViaSnapshotListener(
         }
       },
       error: e => result.reject(e)
-    }
+    })
   );
   return result.promise;
-}
-
-/** Registers an internal snapshot listener for `query`. */
-export function addQuerySnapshotListener(
-  firestore: FirestoreClient,
-  query: InternalQuery,
-  options: ListenOptions,
-  observer: PartialObserver<ViewSnapshot>
-): Unsubscribe {
-  let errHandler = (err: Error): void => {
-    console.error('Uncaught Error in onSnapshot:', err);
-  };
-  if (observer.error) {
-    errHandler = observer.error.bind(observer);
-  }
-  const asyncObserver = new AsyncObserver<ViewSnapshot>({
-    next: (result: ViewSnapshot): void => {
-      if (observer.next) {
-        observer.next(result);
-      }
-    },
-    error: errHandler
-  });
-
-  const internalListener = firestore.listen(query, asyncObserver, options);
-  return (): void => {
-    asyncObserver.mute();
-    firestore.unlisten(internalListener);
-  };
 }
 
 export class QuerySnapshot<T = firestore.DocumentData>

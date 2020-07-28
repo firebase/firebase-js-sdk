@@ -31,9 +31,6 @@ import { debugAssert } from '../../../src/util/assert';
 import { cast } from '../../../lite/src/api/util';
 import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import {
-  addDocSnapshotListener,
-  addQuerySnapshotListener,
-  addSnapshotsInSyncListener,
   applyFirestoreDataConverter,
   getDocsViaSnapshotListener,
   getDocViaSnapshotListener,
@@ -60,6 +57,8 @@ import {
   Unsubscribe
 } from '../../../src/api/observer';
 import { getFirestoreClient } from './components';
+import { AsyncObserver } from '../../../src/util/async_observer';
+import { newQueryForPath } from '../../../src/core/query';
 
 export function getDoc<T>(
   reference: firestore.DocumentReference<T>
@@ -387,11 +386,10 @@ export function onSnapshot<T>(
     };
 
     asyncObserver = getFirestoreClient(firestore).then(firestoreClient =>
-      addDocSnapshotListener(
-        firestoreClient,
-        ref._key,
+      firestoreClient.listen(
+        newQueryForPath(ref._key.path),
         internalOptions,
-        observer
+        new AsyncObserver(observer)
       )
     );
   } else {
@@ -413,11 +411,10 @@ export function onSnapshot<T>(
     validateHasExplicitOrderByForLimitToLast(query._query);
 
     asyncObserver = getFirestoreClient(firestore).then(firestoreClient =>
-      addQuerySnapshotListener(
-        firestoreClient,
+      firestoreClient.listen(
         query._query,
         internalOptions,
-        observer
+        new AsyncObserver(observer)
       )
     );
   }
@@ -458,7 +455,7 @@ export function onSnapshotsInSync(
   const asyncObserver = getFirestoreClient(
     firestoreImpl
   ).then(firestoreClient =>
-    addSnapshotsInSyncListener(firestoreClient, observer)
+    firestoreClient.addSnapshotsInSyncListener(new AsyncObserver(observer))
   );
 
   // TODO(firestorexp): Add test that verifies that we don't raise a snapshot if

@@ -43,10 +43,12 @@ import { Query } from './query';
 import { Transaction } from './transaction';
 import { ViewSnapshot } from './view_snapshot';
 import {
-  OnlineComponentProvider,
   MemoryOfflineComponentProvider,
-  OfflineComponentProvider
+  OfflineComponentProvider,
+  OnlineComponentProvider
 } from './component_provider';
+import { Unsubscribe } from '../api/observer';
+import { AsyncObserver } from '../util/async_observer';
 
 const LOG_TAG = 'FirestoreClient';
 const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -391,24 +393,16 @@ export class FirestoreClient {
 
   listen(
     query: Query,
-    observer: Observer<ViewSnapshot>,
-    options: ListenOptions
-  ): QueryListener {
+    options: ListenOptions,
+    observer: AsyncObserver<ViewSnapshot>
+  ): Unsubscribe {
     this.verifyNotTerminated();
     const listener = new QueryListener(query, observer, options);
     this.asyncQueue.enqueueAndForget(() => this.eventMgr.listen(listener));
-    return listener;
-  }
-
-  unlisten(listener: QueryListener): void {
-    // Checks for termination but does not raise error, allowing unlisten after
-    // termination to be a no-op.
-    if (this.clientTerminated) {
-      return;
-    }
-    this.asyncQueue.enqueueAndForget(() => {
-      return this.eventMgr.unlisten(listener);
-    });
+    return () => {
+      observer.mute();
+      this.asyncQueue.enqueueAndForget(() => this.eventMgr.unlisten(listener));
+    };
   }
 
   async getDocumentFromLocalCache(
@@ -486,24 +480,17 @@ export class FirestoreClient {
     return this.databaseInfo.databaseId;
   }
 
-  addSnapshotsInSyncListener(observer: Observer<void>): void {
+  addSnapshotsInSyncListener(observer: AsyncObserver<void>): Unsubscribe {
     this.verifyNotTerminated();
-    this.asyncQueue.enqueueAndForget(() => {
-      this.eventMgr.addSnapshotsInSyncListener(observer);
-      return Promise.resolve();
-    });
-  }
-
-  removeSnapshotsInSyncListener(observer: Observer<void>): void {
-    // Checks for shutdown but does not raise error, allowing remove after
-    // shutdown to be a no-op.
-    if (this.clientTerminated) {
-      return;
-    }
-    this.asyncQueue.enqueueAndForget(() => {
-      this.eventMgr.removeSnapshotsInSyncListener(observer);
-      return Promise.resolve();
-    });
+    this.asyncQueue.enqueueAndForget(async () =>
+      this.eventMgr.addSnapshotsInSyncListener(observer)
+    );
+    return () => {
+      observer.mute();
+      this.asyncQueue.enqueueAndForget(async () =>
+        this.eventMgr.removeSnapshotsInSyncListener(observer)
+      );
+    };
   }
 
   get clientTerminated(): boolean {

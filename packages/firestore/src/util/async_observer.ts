@@ -17,6 +17,7 @@
 
 import { Observer } from '../core/event_manager';
 import { EventHandler } from './misc';
+import { PartialObserver } from '../api/observer';
 
 /*
  * A wrapper implementation of Observer<T> that will dispatch events
@@ -30,14 +31,20 @@ export class AsyncObserver<T> implements Observer<T> {
    */
   private muted = false;
 
-  constructor(private observer: Observer<T>) {}
+  constructor(private observer: PartialObserver<T>) {}
 
   next(value: T): void {
-    this.scheduleEvent(this.observer.next, value);
+    if (this.observer.next) {
+      this.scheduleEvent(this.observer.next, value);
+    }
   }
 
   error(error: Error): void {
-    this.scheduleEvent(this.observer.error, error);
+    if (this.observer.error) {
+      this.scheduleEvent(this.observer.error, error);
+    } else {
+      console.error('Uncaught Error in snapshot listener:', error);
+    }
   }
 
   mute(): void {
