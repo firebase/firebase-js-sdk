@@ -27,7 +27,7 @@ import {
   signInWithPhoneNumber,
   unlink,
   updatePhoneNumber
-} from '@firebase/auth-exp/index.browser';
+} from '@firebase/auth-exp';
 import {
   Auth,
   OperationType,

@@ -53,6 +53,7 @@ export function signOut(auth: externs.Auth): Promise<void> {
 
 // core/persistence
 export { inMemoryPersistence } from './src/core/persistence/in_memory';
+export { indexedDBLocalPersistence } from './src/core/persistence/indexed_db';
 
 // core/providers
 export { EmailAuthProvider } from './src/core/providers/email';

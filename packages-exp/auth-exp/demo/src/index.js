@@ -63,7 +63,7 @@ import {
   reauthenticateWithRedirect,
   getRedirectResult,
   browserPopupRedirectResolver
-} from '@firebase/auth-exp/dist/index.browser';
+} from '@firebase/auth-exp';
 
 import { config } from './config';
 import {
@@ -1722,20 +1722,20 @@ function initApp() {
 
   // Install servicerWorker if supported.
   if ('serviceWorker' in navigator) {
-    // navigator.serviceWorker
-    //   .register('/service-worker.js', { scope: '/' })
-    //   .then(reg => {
-    //     // Registration worked.
-    //     console.log('Registration succeeded. Scope is ' + reg.scope);
-    //   })
-    //   .catch(error => {
-    //     // Registration failed.
-    //     console.log('Registration failed with ' + error.message);
-    //   });
+    navigator.serviceWorker
+      .register('/service-worker.js')
+      .then(reg => {
+        // Registration worked.
+        console.log('Registration succeeded. Scope is ' + reg.scope);
+      })
+      .catch(error => {
+        // Registration failed.
+        console.log('Registration failed with ' + error.message);
+      });
   }
 
   if (window.Worker) {
-    webWorker = new Worker('/dist/web-worker.js');
+    webWorker = new Worker('/web-worker.js');
     /**
      * Handles the incoming message from the web worker.
      * @param {!Object} e The message event received.

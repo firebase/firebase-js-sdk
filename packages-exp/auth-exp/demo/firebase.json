@@ -3,6 +3,12 @@
     "rules": "database.rules.json"
   },
   "hosting": {
-    "public": "public"
+    "public": "public",
+      "rewrites": [
+        {
+          "source": "/checkIfAuthenticated",
+          "function": "checkIfAuthenticated"
+        }
+      ]
   }
 }

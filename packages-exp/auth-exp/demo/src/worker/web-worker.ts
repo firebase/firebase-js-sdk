@@ -23,7 +23,7 @@ import {
   signInAnonymously,
   signInWithEmailAndPassword,
   updateProfile
-} from '@firebase/auth-exp/dist/index.webworker';
+} from '@firebase/auth-exp';
 import { OAuthCredential, User } from '@firebase/auth-types-exp';
 
 import { config } from '../config';
