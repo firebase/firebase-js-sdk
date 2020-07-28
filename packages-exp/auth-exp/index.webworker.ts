@@ -60,9 +60,12 @@ export { indexedDBLocalPersistence } from './src/core/persistence/indexed_db';
 
 // core/providers
 export { EmailAuthProvider } from './src/core/providers/email';
+export { FacebookAuthProvider } from './src/core/providers/facebook';
 export { GoogleAuthProvider } from './src/core/providers/google';
+export { GithubAuthProvider } from './src/core/providers/github';
 export { OAuthProvider } from './src/core/providers/oauth';
 export { PhoneAuthProvider } from './src/core/providers/phone';
+export { TwitterAuthProvider } from './src/core/providers/twitter';
 
 // core/strategies
 export { signInAnonymously } from './src/core/strategies/anonymous';
