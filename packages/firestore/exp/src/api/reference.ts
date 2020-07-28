@@ -387,8 +387,8 @@ export function onSnapshot<T>(
     asyncUnsubscribe = getFirestoreClient(firestore).then(firestoreClient =>
       firestoreClient.listen(
         newQueryForPath(ref._key.path),
-        observer,
-        internalOptions
+        internalOptions,
+        observer
       )
     );
   } else {
@@ -410,7 +410,7 @@ export function onSnapshot<T>(
     validateHasExplicitOrderByForLimitToLast(query._query);
 
     asyncUnsubscribe = getFirestoreClient(firestore).then(firestoreClient =>
-      firestoreClient.listen(query._query, observer, internalOptions)
+      firestoreClient.listen(query._query, internalOptions, observer)
     );
   }
 
