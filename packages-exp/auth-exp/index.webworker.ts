@@ -51,12 +51,16 @@ export function signOut(auth: externs.Auth): Promise<void> {
   return auth.signOut();
 }
 
+// core/credentials
+export { OAuthCredential } from './src/core/credentials/oauth';
+
 // core/persistence
 export { inMemoryPersistence } from './src/core/persistence/in_memory';
 export { indexedDBLocalPersistence } from './src/core/persistence/indexed_db';
 
 // core/providers
 export { EmailAuthProvider } from './src/core/providers/email';
+export { GoogleAuthProvider } from './src/core/providers/google';
 export { OAuthProvider } from './src/core/providers/oauth';
 export { PhoneAuthProvider } from './src/core/providers/phone';
 
