@@ -28,9 +28,7 @@ export class GithubAuthProvider extends OAuthProvider {
   static readonly PROVIDER_ID = externs.ProviderId.GITHUB;
   readonly providerId = GithubAuthProvider.PROVIDER_ID;
 
-  static credential(
-    accessToken: string
-  ): externs.OAuthCredential {
+  static credential(accessToken: string): externs.OAuthCredential {
     return OAuthCredential._fromParams({
       providerId: GithubAuthProvider.PROVIDER_ID,
       signInMethod: GithubAuthProvider.GITHUB_SIGN_IN_METHOD,
@@ -66,9 +64,7 @@ export class GithubAuthProvider extends OAuthProvider {
     }
 
     try {
-      return GithubAuthProvider.credential(
-        tokenResponse.oauthAccessToken
-      );
+      return GithubAuthProvider.credential(tokenResponse.oauthAccessToken);
     } catch {
       return null;
     }

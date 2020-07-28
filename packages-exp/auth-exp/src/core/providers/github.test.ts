@@ -17,7 +17,11 @@
 
 import { expect } from 'chai';
 
-import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
 
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
 import { testUser } from '../../../test/helpers/mock_auth';
@@ -40,7 +44,7 @@ describe('src/core/providers/github', () => {
       providerId: ProviderId.GITHUB,
       _tokenResponse: {
         ...TEST_ID_TOKEN_RESPONSE,
-        oauthAccessToken: 'access-token',
+        oauthAccessToken: 'access-token'
       },
       operationType: OperationType.SIGN_IN
     });
@@ -56,7 +60,7 @@ describe('src/core/providers/github', () => {
     });
     (error as TaggedWithTokenResponse)._tokenResponse = {
       ...TEST_ID_TOKEN_RESPONSE,
-      oauthAccessToken: 'access-token',
+      oauthAccessToken: 'access-token'
     };
 
     const cred = GithubAuthProvider.credentialFromError(error)!;

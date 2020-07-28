@@ -28,9 +28,7 @@ export class FacebookAuthProvider extends OAuthProvider {
   static readonly PROVIDER_ID = externs.ProviderId.FACEBOOK;
   readonly providerId = FacebookAuthProvider.PROVIDER_ID;
 
-  static credential(
-    accessToken: string
-  ): externs.OAuthCredential {
+  static credential(accessToken: string): externs.OAuthCredential {
     return OAuthCredential._fromParams({
       providerId: FacebookAuthProvider.PROVIDER_ID,
       signInMethod: FacebookAuthProvider.FACEBOOK_SIGN_IN_METHOD,
@@ -66,9 +64,7 @@ export class FacebookAuthProvider extends OAuthProvider {
     }
 
     try {
-      return FacebookAuthProvider.credential(
-        tokenResponse.oauthAccessToken
-      );
+      return FacebookAuthProvider.credential(tokenResponse.oauthAccessToken);
     } catch {
       return null;
     }

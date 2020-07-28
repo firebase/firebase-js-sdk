@@ -1,5 +1,22 @@
 /**
  * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * @license
  * Copyright 2020 Twitter LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,15 +46,12 @@ export class TwitterAuthProvider extends OAuthProvider {
   static readonly PROVIDER_ID = externs.ProviderId.TWITTER;
   readonly providerId = TwitterAuthProvider.PROVIDER_ID;
 
-  static credential(
-    token: string,
-    secret: string,
-  ): externs.OAuthCredential {
+  static credential(token: string, secret: string): externs.OAuthCredential {
     return OAuthCredential._fromParams({
       providerId: TwitterAuthProvider.PROVIDER_ID,
       signInMethod: TwitterAuthProvider.TWITTER_SIGN_IN_METHOD,
       oauthToken: token,
-      oauthTokenSecret: secret,
+      oauthTokenSecret: secret
     });
   }
 
@@ -63,16 +77,16 @@ export class TwitterAuthProvider extends OAuthProvider {
     if (!tokenResponse) {
       return null;
     }
-    const {oauthAccessToken, oauthTokenSecret} = tokenResponse as SignInWithIdpResponse;
+    const {
+      oauthAccessToken,
+      oauthTokenSecret
+    } = tokenResponse as SignInWithIdpResponse;
     if (!oauthAccessToken || !oauthTokenSecret) {
       return null;
     }
 
     try {
-      return TwitterAuthProvider.credential(
-        oauthAccessToken,
-        oauthTokenSecret
-      );
+      return TwitterAuthProvider.credential(oauthAccessToken, oauthTokenSecret);
     } catch {
       return null;
     }
