@@ -16,15 +16,18 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { FirebaseError } from '@firebase/util';
+
+import { SignInWithPhoneNumberResponse } from '../../api/authentication/sms';
+import { ApplicationVerifier } from '../../model/application_verifier';
 import { Auth } from '../../model/auth';
+import { UserCredential } from '../../model/user';
 import { initializeAuth } from '../auth/auth_impl';
 import { PhoneAuthCredential } from '../credentials/phone';
+import { AuthErrorCode } from '../errors';
 import { _verifyPhoneNumber } from '../strategies/phone';
-import { debugFail } from '../util/assert';
-import { ApplicationVerifier } from '../../model/application_verifier';
+import { assert, debugFail, fail } from '../util/assert';
 
 export class PhoneAuthProvider implements externs.PhoneAuthProvider {
   static readonly PROVIDER_ID = externs.ProviderId.PHONE;
@@ -58,11 +61,27 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
     );
   }
 
-  static _credentialFromResult(
+  static credentialFromResult(
     userCredential: externs.UserCredential
   ): externs.AuthCredential | null {
-    void userCredential;
-    return debugFail('not implemented');
+    const credential = userCredential as UserCredential;
+    assert(
+      credential._tokenResponse,
+      credential.user.auth.name,
+      AuthErrorCode.ARGUMENT_ERROR
+    );
+    const {
+      phoneNumber,
+      temporaryProof
+    } = credential._tokenResponse as SignInWithPhoneNumberResponse;
+    if (phoneNumber && temporaryProof) {
+      return PhoneAuthCredential._fromTokenResponse(
+        phoneNumber,
+        temporaryProof
+      );
+    }
+
+    fail(credential.user.auth.name, AuthErrorCode.ARGUMENT_ERROR);
   }
 
   static _credentialFromError(
