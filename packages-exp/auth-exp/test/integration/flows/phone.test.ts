@@ -19,13 +19,27 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import {
-    linkWithPhoneNumber, PhoneAuthProvider, reauthenticateWithPhoneNumber, RecaptchaVerifier,
-    signInAnonymously, signInWithPhoneNumber, unlink, updatePhoneNumber
+  linkWithPhoneNumber,
+  PhoneAuthProvider,
+  reauthenticateWithPhoneNumber,
+  RecaptchaVerifier,
+  signInAnonymously,
+  signInWithPhoneNumber,
+  unlink,
+  updatePhoneNumber
 } from '@firebase/auth-exp/index.browser';
-import { Auth, OperationType, ProviderId, UserCredential } from '@firebase/auth-types-exp';
+import {
+  Auth,
+  OperationType,
+  ProviderId,
+  UserCredential
+} from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { cleanUpTestInstance, getTestInstance } from '../../helpers/integration/helpers';
+import {
+  cleanUpTestInstance,
+  getTestInstance
+} from '../../helpers/integration/helpers';
 
 use(chaiAsPromised);
 
@@ -101,14 +115,22 @@ describe('Integration test: phone auth', () => {
     }
 
     beforeEach(async () => {
-      const cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier);
+      const cr = await signInWithPhoneNumber(
+        auth,
+        PHONE_A.phoneNumber,
+        verifier
+      );
       signUpCred = await cr.confirm(PHONE_A.code);
       resetVerifier();
       await auth.signOut();
     });
 
     it('allows the user to sign in again', async () => {
-      const cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier);
+      const cr = await signInWithPhoneNumber(
+        auth,
+        PHONE_A.phoneNumber,
+        verifier
+      );
       const signInCred = await cr.confirm(PHONE_A.code);
 
       expect(signInCred.user.uid).to.eq(signUpCred.user.uid);
@@ -147,7 +169,11 @@ describe('Integration test: phone auth', () => {
 
       resetVerifier();
 
-      cr = await reauthenticateWithPhoneNumber(user, PHONE_A.phoneNumber, verifier);
+      cr = await reauthenticateWithPhoneNumber(
+        user,
+        PHONE_A.phoneNumber,
+        verifier
+      );
       await cr.confirm(PHONE_A.code);
 
       expect(user.refreshToken).not.to.eq(oldToken);
@@ -159,7 +185,11 @@ describe('Integration test: phone auth', () => {
 
       resetVerifier();
 
-      cr = await reauthenticateWithPhoneNumber(user, PHONE_B.phoneNumber, verifier);
+      cr = await reauthenticateWithPhoneNumber(
+        user,
+        PHONE_B.phoneNumber,
+        verifier
+      );
       await expect(cr.confirm(PHONE_B.code)).to.be.rejectedWith(
         FirebaseError,
         'auth/user-mismatch'

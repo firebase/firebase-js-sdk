@@ -31,7 +31,11 @@ import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { Auth } from '../../model/auth';
 import { UserCredential } from '../../model/user';
-import { isSignInWithEmailLink, sendSignInLinkToEmail, signInWithEmailLink } from './email_link';
+import {
+  isSignInWithEmailLink,
+  sendSignInLinkToEmail,
+  signInWithEmailLink
+} from './email_link';
 
 use(chaiAsPromised);
 use(sinonChai);

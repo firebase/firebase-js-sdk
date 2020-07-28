@@ -31,15 +31,14 @@ interface UserCredentialParams {
   readonly operationType: externs.OperationType;
 }
 
-export class UserCredentialImpl implements UserCredential, UserCredentialParams {
+export class UserCredentialImpl
+  implements UserCredential, UserCredentialParams {
   readonly user: User;
   readonly providerId: externs.ProviderId | null;
   readonly _tokenResponse: PhoneOrOauthTokenResponse | undefined;
   readonly operationType: externs.OperationType;
-  
-  constructor(
-    params: UserCredentialParams
-  ) {
+
+  constructor(params: UserCredentialParams) {
     this.user = params.user;
     this.providerId = params.providerId;
     this._tokenResponse = params._tokenResponse;
@@ -77,7 +76,10 @@ export class UserCredentialImpl implements UserCredential, UserCredentialParams 
     await user._updateTokensIfNecessary(response, /* reload */ true);
     const providerId = providerIdForResponse(response);
     return new UserCredentialImpl({
-      user, providerId, _tokenResponse: response, operationType
+      user,
+      providerId,
+      _tokenResponse: response,
+      operationType
     });
   }
 }
