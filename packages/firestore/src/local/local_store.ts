@@ -236,6 +236,10 @@ export interface LocalStore {
    * they don't get GC'd. A target must be allocated in the local store before
    * the store can be used to manage its view.
    *
+   * @param {SnapshotVersion} readFrom The snapshot version the allocated target
+   * should resume from, unless the existing `TargetData` has an even newer
+   * version.
+   *
    * Allocating an already allocated `Target` will return the existing `TargetData`
    * for that `Target`.
    */
@@ -905,8 +909,16 @@ class LocalStoreImpl implements LocalStore {
           .next((cached: TargetData | null) => {
             if (cached) {
               // This target has been listened to previously, so reuse the
-              // previous targetID.
+              // previous targetID if no `readFrom` is provided.
+              // If `readFrom` is provided, the cached target data needs to be
+              // compared and updated if `readFrom` is newer.
               // TODO(mcg): freshen last accessed date?
+              if (readFrom && cached.snapshotVersion.compareTo(readFrom) < 0) {
+                targetData = cached.withSnapshotVersion(readFrom);
+                return this.targetCache
+                  .updateTargetData(txn, targetData)
+                  .next(() => targetData);
+              }
               targetData = cached;
               return PersistencePromise.resolve(targetData);
             } else {
@@ -916,7 +928,7 @@ class LocalStoreImpl implements LocalStore {
                   targetId,
                   TargetPurpose.Listen,
                   txn.currentSequenceNumber,
-                  readFrom || SnapshotVersion.min()
+                  readFrom
                 );
                 return this.targetCache
                   .addTargetData(txn, targetData)

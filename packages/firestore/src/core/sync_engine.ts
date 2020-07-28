@@ -174,6 +174,9 @@ export interface SyncEngine extends RemoteSyncer {
    * Initiates the new listen, resolves promise when listen enqueued to the
    * server. All the subsequent view snapshots or errors are sent to the
    * subscribed handlers. Returns the initial snapshot.
+   *
+   * @param {SnapshotVersion} readFrom If provided, it tells the backend to
+   * only return deltas from this snapshot version on.
    */
   listen(query: Query, readFrom?: SnapshotVersion): Promise<ViewSnapshot>;
 

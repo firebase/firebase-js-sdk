@@ -175,7 +175,9 @@ export class FirebaseFirestore implements legacy.FirebaseFirestore {
   }
 
   async namedQuery(name: string): Promise<legacy.Query | null> {
-    return namedQuery(this._delegate, name) as Promise<legacy.Query | null>;
+    return namedQuery(this._delegate, name).then(query => {
+      return query ? new Query(this, query) : null;
+    });
   }
 
   INTERNAL = {

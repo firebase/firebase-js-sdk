@@ -1937,7 +1937,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
     public _query: InternalQuery,
     readonly firestore: Firestore,
     protected readonly _converter: firestore.FirestoreDataConverter<T> | null,
-    private _readFrom?: SnapshotVersion
+    private _readTime?: SnapshotVersion
   ) {}
 
   where(
@@ -2236,7 +2236,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
       firestoreClient,
       this._query,
       {
-        readFrom: this._readFrom,
+        readFrom: this._readTime,
         includeMetadataChanges: options.includeMetadataChanges
       },
       observer
