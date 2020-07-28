@@ -24,8 +24,9 @@ import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
-  ComponentProvider,
-  MemoryComponentProvider
+  OnlineComponentProvider,
+  MemoryOfflineComponentProvider,
+  OfflineComponentProvider
 } from '../core/component_provider';
 import { FirestoreClient, PersistenceSettings } from '../core/firestore_client';
 import {
@@ -290,7 +291,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // underscore to discourage their use.
   readonly _databaseId: DatabaseId;
   private readonly _persistenceKey: string;
-  private readonly _componentProvider: ComponentProvider;
   private _credentials: CredentialsProvider;
   private readonly _firebaseApp: FirebaseApp | null = null;
   private _settings: FirestoreSettings;
@@ -315,7 +315,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   constructor(
     databaseIdOrApp: FirestoreDatabase | FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
-    componentProvider: ComponentProvider = new MemoryComponentProvider()
+    private _offlineComponentProvider: OfflineComponentProvider = new MemoryOfflineComponentProvider(),
+    private _onlineComponentProvider = new OnlineComponentProvider()
   ) {
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
@@ -340,7 +341,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._credentials = new EmptyCredentialsProvider();
     }
 
-    this._componentProvider = componentProvider;
     this._settings = new FirestoreSettings({});
   }
 
@@ -425,12 +425,16 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       }
     }
 
-    return this.configureClient(this._componentProvider, {
-      durable: true,
-      cacheSizeBytes: this._settings.cacheSizeBytes,
-      synchronizeTabs,
-      forceOwningTab: experimentalForceOwningTab
-    });
+    return this.configureClient(
+      this._offlineComponentProvider,
+      this._onlineComponentProvider,
+      {
+        durable: true,
+        cacheSizeBytes: this._settings.cacheSizeBytes,
+        synchronizeTabs,
+        forceOwningTab: experimentalForceOwningTab
+      }
+    );
   }
 
   async clearPersistence(): Promise<void> {
@@ -448,7 +452,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     const deferred = new Deferred<void>();
     this._queue.enqueueAndForgetEvenAfterShutdown(async () => {
       try {
-        await this._componentProvider.clearPersistence(
+        await this._offlineComponentProvider.clearPersistence(
           this._databaseId,
           this._persistenceKey
         );
@@ -498,9 +502,13 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.configureClient(new MemoryComponentProvider(), {
-        durable: false
-      });
+      this.configureClient(
+        new MemoryOfflineComponentProvider(),
+        new OnlineComponentProvider(),
+        {
+          durable: false
+        }
+      );
     }
     return this._firestoreClient as FirestoreClient;
   }
@@ -516,7 +524,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   private configureClient(
-    componentProvider: ComponentProvider,
+    offlineComponentProvider: OfflineComponentProvider,
+    onlineComponentProvider: OnlineComponentProvider,
     persistenceSettings: PersistenceSettings
   ): Promise<void> {
     debugAssert(!!this._settings.host, 'FirestoreSettings.host is not set');
@@ -532,7 +541,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     return this._firestoreClient.start(
       databaseInfo,
-      componentProvider,
+      offlineComponentProvider,
+      onlineComponentProvider,
       persistenceSettings
     );
   }
