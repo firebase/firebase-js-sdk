@@ -40,8 +40,6 @@ async function getDiffData(): Promise<{
     const changesetMatch = filename.match(/^\.changeset\/[a-zA-Z-]+\.md/);
     if (changesetMatch) {
       changesetFile = changesetMatch[0];
-    } else {
-      return null;
     }
     // Check for changed files inside package dirs.
     const pkgMatch = filename.match('^(packages(-exp)?/[a-zA-Z0-9-]+)/.*');
@@ -53,11 +51,11 @@ async function getDiffData(): Promise<{
       ));
       if (changedPackage) {
         // Add the package itself.
-        changedPackagesMap[pkgMatch[1]] = true;
+        changedPackagesMap[changedPackage.name] = true;
       }
     }
   }
-  if (Object.keys(changedPackagesMap).length === 0) {
+  if (!changesetFile || Object.keys(changedPackagesMap).length === 0) {
     return null;
   }
   return { changedPackages: Object.keys(changedPackagesMap), changesetFile };
@@ -67,10 +65,12 @@ async function parseChangesetFile(changesetFile: string) {
   const fileText: string = await fs.readFile(changesetFile, 'utf8');
   const fileParts = fileText.split('---\n');
   const packageLines = fileParts[1].split('\n');
-  const changesetPackages = packageLines.map(line => {
-    const [packageName] = line.split(':');
-    return packageName.replace(/'/g, '');
-  });
+  const changesetPackages = packageLines
+    .filter(line => line)
+    .map(line => {
+      const [packageName] = line.split(':');
+      return packageName.replace(/'/g, '');
+    });
   return changesetPackages;
 }
 
@@ -81,9 +81,11 @@ async function main() {
       process.exit();
     } else {
       const { changedPackages, changesetFile } = diffData;
-      const changesetPackages = parseChangesetFile(changesetFile);
-      console.log(changedPackages);
-      console.log(changesetPackages);
+      const changesetPackages = await parseChangesetFile(changesetFile);
+      const missingPackages = changedPackages.filter(
+        changedPkg => !changesetPackages.includes(changedPkg)
+      );
+      console.log(missingPackages);
     }
   } catch (e) {
     console.error(chalk`{red ${e}}`);
