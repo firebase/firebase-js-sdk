@@ -35,11 +35,9 @@ async function getDiffData(): Promise<{
   const changedFiles = diff.split('\n');
   let changesetFile = '';
   const changedPackagesMap: { [key: string]: boolean } = {};
-  console.log(changedFiles);
   for (const filename of changedFiles) {
     // Check for an existing .changeset
-    const changesetMatch = filename.match(/^\.\/changeset\/[a-zA-Z-]+\.md/);
-    console.log(changesetMatch);
+    const changesetMatch = filename.match(/^\.changeset\/[a-zA-Z-]+\.md/);
     if (changesetMatch) {
       changesetFile = changesetMatch[0];
     } else {
