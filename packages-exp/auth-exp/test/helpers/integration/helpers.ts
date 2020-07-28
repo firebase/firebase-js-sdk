@@ -16,7 +16,7 @@
  */
 
 import { deleteApp, initializeApp } from '@firebase/app-exp';
-import { initializeAuth } from '@firebase/auth-exp/index.browser';
+import { initializeAuth } from '@firebase/auth-exp';
 import { Auth, User } from '@firebase/auth-types-exp';
 
 import { _generateEventId } from '../../../src/core/util/event_id';
