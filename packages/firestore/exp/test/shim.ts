@@ -170,7 +170,7 @@ export class FirebaseFirestore implements legacy.FirebaseFirestore {
 
   loadBundle(
     bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
-  ): LoadBundleTask {
+  ): legacy.LoadBundleTask {
     return loadBundle(this._delegate, bundleData)!;
   }
 
