@@ -17,11 +17,7 @@
 
 import { expect } from 'chai';
 
-import {
-  OperationType,
-  ProviderId,
-  SignInMethod
-} from '@firebase/auth-types-exp';
+import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
 import { testUser } from '../../../test/helpers/mock_auth';
@@ -40,16 +36,16 @@ describe('src/core/providers/google', () => {
   });
 
   it('credentialFromResult creates the cred from a tagged result', () => {
-    const userCred = new UserCredentialImpl(
-      testUser({}, 'uid'),
-      ProviderId.GOOGLE,
-      {
+    const userCred = new UserCredentialImpl({
+      user: testUser({}, 'uid'),
+      providerId: ProviderId.GOOGLE,
+      _tokenResponse: {
         ...TEST_ID_TOKEN_RESPONSE,
         oauthAccessToken: 'access-token',
         idToken: 'id-token'
       },
-      OperationType.SIGN_IN
-    );
+      operationType: OperationType.SIGN_IN
+    });
     const cred = GoogleAuthProvider.credentialFromResult(userCred)!;
     expect(cred.accessToken).to.eq('access-token');
     expect(cred.idToken).to.eq('id-token');
