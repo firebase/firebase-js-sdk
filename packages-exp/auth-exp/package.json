@@ -5,8 +5,8 @@
   "description": "TODO",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
-  "browser": "dist/index.browser.esm5.js",
-  "module": "dist/index.node.esm5.js",
+  "browser": "dist/index.cjs.js",
+  "module": "dist/index.esm5.js",
   "esm2017": "dist/index.esm2017.js",
   "webworker": "dist/index.webworker.esm5.js",
   "files": [

@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import resolve from '@rollup/plugin-node-resolve';
+import { terser } from "rollup-plugin-terser";
 import strip from '@rollup/plugin-strip';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
@@ -27,8 +28,33 @@ import pkg from './package.json';
 const commonPlugins = [
   strip({
     functions: ['debugAssert.*']
+  })
+];
+
+const workerPlugins = [
+  ...commonPlugins,
+  resolve({
+    mainFields: ['webworker', 'module', 'main']
   }),
-  resolve()
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        declaration: false,
+        lib: [
+          // TODO: remove this
+          'dom',
+          'es2015',
+          'webworker'
+        ]
+      }
+    }
+  }),
+  terser({
+    output: {
+      comments: false
+    }
+  })
 ];
 
 const es5Builds = [
@@ -37,28 +63,28 @@ const es5Builds = [
    */
   {
     input: 'src/index.js',
-    output: [{ file: pkg.bundle, format: 'esm', sourcemap: true }],
-    plugins: commonPlugins
-  },
-  {
-    input: 'src/worker/index.ts',
-    output: [{ file: pkg.worker, format: 'esm', sourcemap: true }],
+    output: [{ file: pkg.browser, format: 'esm', sourcemap: true }],
     plugins: [
       ...commonPlugins,
-      typescriptPlugin({
-        typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            lib: [
-              // TODO: remove this
-              'dom',
-              'es2015',
-              'webworker'
-            ]
-          }
+      resolve({
+        mainFields: ['module', 'main']
+      }),
+      terser({
+        output: {
+          comments: false
         }
       })
     ]
+  },
+  {
+    input: 'src/worker/web-worker.ts',
+    output: [{ file: pkg.webworker, format: 'esm', sourcemap: true }],
+    plugins: workerPlugins
+  },
+  {
+    input: 'src/worker/service-worker.ts',
+    output: [{ file: pkg.serviceworker, format: 'esm', sourcemap: true }],
+    plugins: workerPlugins
   }
 ];
 

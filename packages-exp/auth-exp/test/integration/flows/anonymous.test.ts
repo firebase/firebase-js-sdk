@@ -26,7 +26,7 @@ import {
   signInWithEmailAndPassword,
   updateEmail,
   updatePassword
-} from '@firebase/auth-exp/index.browser';
+} from '@firebase/auth-exp';
 import { Auth, OperationType } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
