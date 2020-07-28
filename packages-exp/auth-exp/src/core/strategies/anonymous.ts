@@ -29,12 +29,11 @@ export async function signInAnonymously(
   const credential = AnonymousProvider.credential();
   if (auth.currentUser?.isAnonymous) {
     // If an anonymous user is already signed in, no need to sign them in again.
-    return new UserCredentialImpl(
-      auth.currentUser,
-      null,
-      undefined,
-      externs.OperationType.SIGN_IN
-    );
+    return new UserCredentialImpl({
+      user: auth.currentUser,
+      providerId: null,
+      operationType: externs.OperationType.SIGN_IN
+    });
   }
   return signInWithCredential(auth, credential);
 }

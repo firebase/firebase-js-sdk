@@ -24,13 +24,27 @@ import { User, UserCredential } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { UserImpl } from './user_impl';
 
-export class UserCredentialImpl implements UserCredential {
+interface UserCredentialParams {
+  readonly user: User;
+  readonly providerId: externs.ProviderId | null;
+  readonly _tokenResponse?: PhoneOrOauthTokenResponse;
+  readonly operationType: externs.OperationType;
+}
+
+export class UserCredentialImpl implements UserCredential, UserCredentialParams {
+  readonly user: User;
+  readonly providerId: externs.ProviderId | null;
+  readonly _tokenResponse: PhoneOrOauthTokenResponse | undefined;
+  readonly operationType: externs.OperationType;
+  
   constructor(
-    public readonly user: User,
-    public readonly providerId: externs.ProviderId | null,
-    public readonly _tokenResponse: PhoneOrOauthTokenResponse | undefined,
-    public readonly operationType: externs.OperationType
-  ) {}
+    params: UserCredentialParams
+  ) {
+    this.user = params.user;
+    this.providerId = params.providerId;
+    this._tokenResponse = params._tokenResponse;
+    this.operationType = params.operationType;
+  }
 
   static async _fromIdTokenResponse(
     auth: Auth,
@@ -44,12 +58,12 @@ export class UserCredentialImpl implements UserCredential {
       credential?.providerId === externs.ProviderId.ANONYMOUS
     );
     const providerId = providerIdForResponse(idTokenResponse);
-    const userCred = new UserCredentialImpl(
+    const userCred = new UserCredentialImpl({
       user,
       providerId,
-      idTokenResponse,
+      _tokenResponse: idTokenResponse,
       operationType
-    );
+    });
     // TODO: handle additional user info
     // updateAdditionalUserInfoFromIdTokenResponse(userCred, idTokenResponse);
     return userCred;
@@ -62,7 +76,9 @@ export class UserCredentialImpl implements UserCredential {
   ): Promise<UserCredentialImpl> {
     await user._updateTokensIfNecessary(response, /* reload */ true);
     const providerId = providerIdForResponse(response);
-    return new UserCredentialImpl(user, providerId, response, operationType);
+    return new UserCredentialImpl({
+      user, providerId, _tokenResponse: response, operationType
+    });
   }
 }
 
