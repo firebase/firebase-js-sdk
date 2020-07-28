@@ -31,9 +31,6 @@ import { debugAssert } from '../../../src/util/assert';
 import { cast } from '../../../lite/src/api/util';
 import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import {
-  addDocSnapshotListener,
-  addQuerySnapshotListener,
-  addSnapshotsInSyncListener,
   applyFirestoreDataConverter,
   getDocsViaSnapshotListener,
   getDocViaSnapshotListener,
@@ -60,6 +57,7 @@ import {
   Unsubscribe
 } from '../../../src/api/observer';
 import { getFirestoreClient } from './components';
+import { newQueryForPath } from '../../../src/core/query';
 
 export function getDoc<T>(
   reference: firestore.DocumentReference<T>
@@ -369,7 +367,7 @@ export function onSnapshot<T>(
     args[currArg + 2] = userObserver.complete?.bind(userObserver);
   }
 
-  let asyncObserver: Promise<Unsubscribe>;
+  let asyncUnsubscribe: Promise<Unsubscribe>;
 
   if (ref instanceof DocumentReference) {
     const firestore = cast(ref.firestore, Firestore);
@@ -386,10 +384,9 @@ export function onSnapshot<T>(
       complete: args[currArg + 2] as CompleteFn
     };
 
-    asyncObserver = getFirestoreClient(firestore).then(firestoreClient =>
-      addDocSnapshotListener(
-        firestoreClient,
-        ref._key,
+    asyncUnsubscribe = getFirestoreClient(firestore).then(firestoreClient =>
+      firestoreClient.listen(
+        newQueryForPath(ref._key.path),
         internalOptions,
         observer
       )
@@ -412,13 +409,8 @@ export function onSnapshot<T>(
 
     validateHasExplicitOrderByForLimitToLast(query._query);
 
-    asyncObserver = getFirestoreClient(firestore).then(firestoreClient =>
-      addQuerySnapshotListener(
-        firestoreClient,
-        query._query,
-        internalOptions,
-        observer
-      )
+    asyncUnsubscribe = getFirestoreClient(firestore).then(firestoreClient =>
+      firestoreClient.listen(query._query, internalOptions, observer)
     );
   }
 
@@ -426,7 +418,7 @@ export function onSnapshot<T>(
   // unsubscribe is called before `asyncObserver` resolves.
   return () => {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    asyncObserver.then(unsubscribe => unsubscribe());
+    asyncUnsubscribe.then(unsubscribe => unsubscribe());
   };
 }
 
@@ -458,7 +450,7 @@ export function onSnapshotsInSync(
   const asyncObserver = getFirestoreClient(
     firestoreImpl
   ).then(firestoreClient =>
-    addSnapshotsInSyncListener(firestoreClient, observer)
+    firestoreClient.addSnapshotsInSyncListener(observer)
   );
 
   // TODO(firestorexp): Add test that verifies that we don't raise a snapshot if
