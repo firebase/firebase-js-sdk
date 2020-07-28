@@ -17,7 +17,11 @@
 
 import { expect } from 'chai';
 
-import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  ProviderId,
+  SignInMethod
+} from '@firebase/auth-types-exp';
 
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
 import { testUser } from '../../../test/helpers/mock_auth';
@@ -27,7 +31,6 @@ import { UserCredentialImpl } from '../user/user_credential_impl';
 import { GoogleAuthProvider } from './google';
 
 describe('src/core/providers/google', () => {
-
   it('generates the correct type of oauth credential', () => {
     const cred = GoogleAuthProvider.credential('id-token', 'access-token');
     expect(cred.accessToken).to.eq('access-token');
@@ -37,8 +40,16 @@ describe('src/core/providers/google', () => {
   });
 
   it('credentialFromResult creates the cred from a tagged result', () => {
-    const userCred = new UserCredentialImpl(testUser({}, 'uid'), 
-    ProviderId.GOOGLE, {...TEST_ID_TOKEN_RESPONSE, oauthAccessToken: 'access-token', idToken: 'id-token'}, OperationType.SIGN_IN);
+    const userCred = new UserCredentialImpl(
+      testUser({}, 'uid'),
+      ProviderId.GOOGLE,
+      {
+        ...TEST_ID_TOKEN_RESPONSE,
+        oauthAccessToken: 'access-token',
+        idToken: 'id-token'
+      },
+      OperationType.SIGN_IN
+    );
     const cred = GoogleAuthProvider.credentialFromResult(userCred)!;
     expect(cred.accessToken).to.eq('access-token');
     expect(cred.idToken).to.eq('id-token');
@@ -50,8 +61,11 @@ describe('src/core/providers/google', () => {
     const error = AUTH_ERROR_FACTORY.create(AuthErrorCode.NEED_CONFIRMATION, {
       appName: 'foo'
     });
-    (error as TaggedWithTokenResponse)._tokenResponse =
-    {...TEST_ID_TOKEN_RESPONSE, oauthAccessToken: 'access-token', idToken: 'id-token'};
+    (error as TaggedWithTokenResponse)._tokenResponse = {
+      ...TEST_ID_TOKEN_RESPONSE,
+      oauthAccessToken: 'access-token',
+      idToken: 'id-token'
+    };
 
     const cred = GoogleAuthProvider.credentialFromError(error)!;
     expect(cred.accessToken).to.eq('access-token');

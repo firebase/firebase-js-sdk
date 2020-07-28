@@ -42,23 +42,32 @@ export class GoogleAuthProvider extends OAuthProvider {
 
   static credentialFromResult(
     userCredential: externs.UserCredential
-  ): externs.OAuthCredential|null {
-    return GoogleAuthProvider.credentialFromTaggedObject(userCredential as UserCredential);
+  ): externs.OAuthCredential | null {
+    return GoogleAuthProvider.credentialFromTaggedObject(
+      userCredential as UserCredential
+    );
   }
 
   static credentialFromError(
     error: FirebaseError
-  ): externs.OAuthCredential|null {
-    return GoogleAuthProvider.credentialFromTaggedObject(error as TaggedWithTokenResponse);
+  ): externs.OAuthCredential | null {
+    return GoogleAuthProvider.credentialFromTaggedObject(
+      error as TaggedWithTokenResponse
+    );
   }
 
-  private static credentialFromTaggedObject({_tokenResponse: tokenResponse}: TaggedWithTokenResponse): externs.OAuthCredential|null {
+  private static credentialFromTaggedObject({
+    _tokenResponse: tokenResponse
+  }: TaggedWithTokenResponse): externs.OAuthCredential | null {
     if (!tokenResponse || !('oauthAccessToken' in tokenResponse)) {
       return null;
     }
-    
+
     try {
-      return GoogleAuthProvider.credential(tokenResponse.idToken, tokenResponse.oauthAccessToken);
+      return GoogleAuthProvider.credential(
+        tokenResponse.idToken,
+        tokenResponse.oauthAccessToken
+      );
     } catch {
       return null;
     }

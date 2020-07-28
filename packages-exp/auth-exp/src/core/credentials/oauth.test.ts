@@ -30,7 +30,7 @@ import { OAuthCredential, OAuthCredentialParams } from './oauth';
 
 const BASE_PARAMS: OAuthCredentialParams = {
   providerId: ProviderId.GOOGLE,
-  signInMethod: SignInMethod.GOOGLE,
+  signInMethod: SignInMethod.GOOGLE
 };
 
 describe('src/core/credentials/oauth', () => {
@@ -42,7 +42,7 @@ describe('src/core/credentials/oauth', () => {
     fetch.setUp();
 
     signInWithIdp = mockEndpoint(Endpoint.SIGN_IN_WITH_IDP, {
-      ...TEST_ID_TOKEN_RESPONSE,
+      ...TEST_ID_TOKEN_RESPONSE
     });
   });
 
@@ -55,7 +55,7 @@ describe('src/core/credentials/oauth', () => {
       const cred = OAuthCredential._fromParams({
         ...BASE_PARAMS,
         idToken: 'id-token',
-        accessToken: 'access-token',
+        accessToken: 'access-token'
       });
 
       expect(cred.idToken).to.eq('id-token');
@@ -67,7 +67,7 @@ describe('src/core/credentials/oauth', () => {
         ...BASE_PARAMS,
         idToken: 'id-token',
         accessToken: 'access-token',
-        nonce: 'nonce',
+        nonce: 'nonce'
       });
 
       expect(cred.nonce).to.eq('nonce');
@@ -79,7 +79,7 @@ describe('src/core/credentials/oauth', () => {
         nonce: 'nonce',
         idToken: 'id-token',
         accessToken: 'access-token',
-        pendingToken: 'pending-token',
+        pendingToken: 'pending-token'
       });
 
       expect(cred.nonce).to.be.undefined;
@@ -89,7 +89,7 @@ describe('src/core/credentials/oauth', () => {
       const cred = OAuthCredential._fromParams({
         ...BASE_PARAMS,
         oauthToken: 'oauth-token',
-        oauthTokenSecret: 'oauth-token-secret',
+        oauthTokenSecret: 'oauth-token-secret'
       });
 
       expect(cred.accessToken).to.eq('oauth-token');
@@ -103,7 +103,7 @@ describe('src/core/credentials/oauth', () => {
         ...BASE_PARAMS,
         idToken: 'id-token',
         accessToken: 'access-token',
-        pendingToken: 'pending-token',
+        pendingToken: 'pending-token'
       });
 
       expect(cred.toJSON()).to.eql({
@@ -112,7 +112,7 @@ describe('src/core/credentials/oauth', () => {
         accessToken: 'access-token',
         pendingToken: 'pending-token',
         secret: undefined,
-        nonce: undefined,
+        nonce: undefined
       });
     });
   });
@@ -123,7 +123,7 @@ describe('src/core/credentials/oauth', () => {
         ...BASE_PARAMS,
         idToken: 'id-token',
         accessToken: 'access-token',
-        pendingToken: 'pending-token',
+        pendingToken: 'pending-token'
       });
 
       expect(cred).to.be.instanceOf(OAuthCredential);
@@ -140,10 +140,11 @@ describe('src/core/credentials/oauth', () => {
         ...BASE_PARAMS,
         idToken: 'id-token',
         accessToken: 'access-token',
-        nonce: 'nonce',
+        nonce: 'nonce'
       })._getIdTokenResponse(auth);
 
-      const {postBody, ...rest} = signInWithIdp.calls[0].request as SignInWithIdpRequest;
+      const { postBody, ...rest } = signInWithIdp.calls[0]
+        .request as SignInWithIdpRequest;
       expect(rest.requestUri).to.eq('http://localhost');
       expect(rest.returnSecureToken).to.be.true;
       expect(postBody).to.contain('id_token=id-token');
@@ -158,7 +159,7 @@ describe('src/core/credentials/oauth', () => {
         idToken: 'id-token',
         accessToken: 'access-token',
         nonce: 'nonce',
-        pendingToken: 'pending-token',
+        pendingToken: 'pending-token'
       })._getIdTokenResponse(auth);
 
       const request = signInWithIdp.calls[0].request as SignInWithIdpRequest;
@@ -176,7 +177,7 @@ describe('src/core/credentials/oauth', () => {
       cred = OAuthCredential._fromParams({
         ...BASE_PARAMS,
         idToken: 'id-token',
-        accessToken: 'access-token',
+        accessToken: 'access-token'
       });
     });
 

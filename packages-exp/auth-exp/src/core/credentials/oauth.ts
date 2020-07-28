@@ -18,7 +18,10 @@
 import * as externs from '@firebase/auth-types-exp';
 import { querystring } from '@firebase/util';
 
-import { signInWithIdp, SignInWithIdpRequest } from '../../api/authentication/idp';
+import {
+  signInWithIdp,
+  SignInWithIdpRequest
+} from '../../api/authentication/idp';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
@@ -39,16 +42,18 @@ export interface OAuthCredentialParams {
   signInMethod: externs.SignInMethod;
 }
 
-export class OAuthCredential implements externs.OAuthCredential, AuthCredential {
+export class OAuthCredential
+  implements externs.OAuthCredential, AuthCredential {
   idToken?: string;
   accessToken?: string;
   secret?: string;
   nonce?: string;
   private pendingToken: string | null = null;
-  
 
-  private constructor(readonly providerId: externs.ProviderId,
-    readonly signInMethod: externs.SignInMethod,) {}
+  private constructor(
+    readonly providerId: externs.ProviderId,
+    readonly signInMethod: externs.SignInMethod
+  ) {}
 
   static _fromParams(params: OAuthCredentialParams): OAuthCredential {
     const cred = new OAuthCredential(params.providerId, params.signInMethod);
@@ -90,12 +95,12 @@ export class OAuthCredential implements externs.OAuthCredential, AuthCredential 
       nonce: this.nonce,
       pendingToken: this.pendingToken,
       providerId: this.providerId,
-      signInMethod: this.signInMethod,
+      signInMethod: this.signInMethod
     };
   }
 
   static fromJSON(obj: object): externs.OAuthCredential | null {
-    const {providerId, signInMethod, ...rest}: Partial<OAuthCredential> = obj;
+    const { providerId, signInMethod, ...rest }: Partial<OAuthCredential> = obj;
     if (!providerId || !signInMethod) {
       return null;
     }
@@ -130,9 +135,15 @@ export class OAuthCredential implements externs.OAuthCredential, AuthCredential 
     };
 
     const postBody: { [key: string]: string } = {};
-    if (this.idToken) {postBody['id_token'] = this.idToken;}
-    if (this.accessToken) {postBody['access_token'] = this.accessToken;}
-    if (this.secret) {postBody['oauth_token_secret'] = this.secret;}
+    if (this.idToken) {
+      postBody['id_token'] = this.idToken;
+    }
+    if (this.accessToken) {
+      postBody['access_token'] = this.accessToken;
+    }
+    if (this.secret) {
+      postBody['oauth_token_secret'] = this.secret;
+    }
 
     postBody['providerId'] = this.providerId;
     if (this.nonce && !this.pendingToken) {
