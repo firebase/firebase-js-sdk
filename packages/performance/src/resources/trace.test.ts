@@ -124,6 +124,13 @@ describe('Firebase Performance > trace', () => {
       expect(trace.getMetric('cacheHits')).to.eql(600);
     });
 
+    it('increments metric value with a negative float.', () => {
+      trace.incrementMetric('cacheHits', 200);
+      trace.incrementMetric('cacheHits', -230.38);
+
+      expect(trace.getMetric('cacheHits')).to.eql(-31);
+    });
+
     it('throws error if metric doesnt exist and has invalid name', () => {
       expect(() => trace.incrementMetric('_invalidMetric', 1)).to.throw();
     });

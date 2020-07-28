@@ -31,9 +31,11 @@ import {
   isValidCustomAttributeName,
   isValidCustomAttributeValue
 } from '../utils/attributes_utils';
-import { isValidMetricName } from '../utils/metric_utils';
+import {
+  isValidMetricName,
+  convertMetricValueToInteger
+} from '../utils/metric_utils';
 import { PerformanceTrace } from '@firebase/performance-types';
-import { consoleLogger } from '../utils/console_logger';
 
 const enum TraceState {
   UNINITIALIZED = 1,
@@ -153,9 +155,10 @@ export class Trace implements PerformanceTrace {
    */
   incrementMetric(counter: string, numAsInteger = 1): void {
     if (this.counters[counter] === undefined) {
-      this.putMetric(counter, 0);
+      this.putMetric(counter, numAsInteger);
+    } else {
+      this.putMetric(counter, this.counters[counter] + numAsInteger);
     }
-    this.counters[counter] += this.convertMetricValueToInteger(numAsInteger);
   }
 
   /**
@@ -166,7 +169,7 @@ export class Trace implements PerformanceTrace {
    */
   putMetric(counter: string, numAsInteger: number): void {
     if (isValidMetricName(counter, this.name)) {
-      this.counters[counter] = this.convertMetricValueToInteger(numAsInteger);
+      this.counters[counter] = convertMetricValueToInteger(numAsInteger);
     } else {
       throw ERROR_FACTORY.create(ErrorCode.INVALID_CUSTOM_METRIC_NAME, {
         customMetricName: counter
@@ -248,22 +251,6 @@ export class Trace implements PerformanceTrace {
         (perfMeasureEntry.startTime + this.api.getTimeOrigin()) * 1000
       );
     }
-  }
-
-  /**
-   * Converts the provided value to an integer value to be used in case of a metric.
-   * @param providedValue Provided number value of the metric that needs to be converted to an integer.
-   *
-   * @returns Converted integer number to be set for the metric.
-   */
-  private convertMetricValueToInteger(providedValue: number): number {
-    const valueAsInteger: number = Math.floor(providedValue);
-    if (valueAsInteger < providedValue) {
-      consoleLogger.info(
-        `Metric value should be an Integer, setting the value as : ${valueAsInteger}.`
-      );
-    }
-    return valueAsInteger;
   }
 
   /**
