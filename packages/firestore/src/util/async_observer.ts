@@ -17,7 +17,6 @@
 
 import { Observer } from '../core/event_manager';
 import { EventHandler } from './misc';
-import { PartialObserver } from '../api/observer';
 
 /*
  * A wrapper implementation of Observer<T> that will dispatch events
@@ -31,7 +30,7 @@ export class AsyncObserver<T> implements Observer<T> {
    */
   private muted = false;
 
-  constructor(private observer: PartialObserver<T>) {}
+  constructor(private observer: Partial<Observer<T>>) {}
 
   next(value: T): void {
     if (this.observer.next) {

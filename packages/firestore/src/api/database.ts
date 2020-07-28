@@ -22,6 +22,7 @@ import * as api from '../protos/firestore_proto_api';
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
+import { ListenOptions } from '../core/event_manager';
 import {
   MemoryOfflineComponentProvider,
   OfflineComponentProvider,
@@ -59,7 +60,6 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { isServerTimestamp } from '../model/server_timestamps';
 import { refValue } from '../model/values';
 import { debugAssert, fail } from '../util/assert';
-import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import {
@@ -485,16 +485,14 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     if (isPartialObserver(arg)) {
       return this._firestoreClient!.addSnapshotsInSyncListener(
-        new AsyncObserver(arg as PartialObserver<void>)
+        arg as PartialObserver<void>
       );
     } else {
       validateArgType('Firestore.onSnapshotsInSync', 'function', 1, arg);
       const observer: PartialObserver<void> = {
         next: arg as () => void
       };
-      return this._firestoreClient!.addSnapshotsInSyncListener(
-        new AsyncObserver(observer)
-      );
+      return this._firestoreClient!.addSnapshotsInSyncListener(observer);
     }
   }
 
@@ -1160,7 +1158,7 @@ export class DocumentReference<T = firestore.DocumentData>
       1,
       4
     );
-    let options: firestore.SnapshotListenOptions = {
+    let options: ListenOptions = {
       includeMetadataChanges: false
     };
     let currArg = 0;
@@ -1228,7 +1226,7 @@ export class DocumentReference<T = firestore.DocumentData>
     return this._firestoreClient.listen(
       newQueryForPath(this._key.path),
       internalOptions,
-      new AsyncObserver(observer)
+      observer
     );
   }
 
@@ -1304,7 +1302,7 @@ export function getDocViaSnapshotListener(
       includeMetadataChanges: true,
       waitForSyncWhenOnline: true
     },
-    new AsyncObserver({
+    {
       next: (snap: ViewSnapshot) => {
         // Remove query first before passing event to user to avoid
         // user actions affecting the now stale query.
@@ -1345,7 +1343,7 @@ export function getDocViaSnapshotListener(
         }
       },
       error: e => result.reject(e)
-    })
+    }
   );
   return result.promise;
 }
@@ -2100,7 +2098,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
 
   onSnapshot(...args: unknown[]): Unsubscribe {
     validateBetweenNumberOfArgs('Query.onSnapshot', arguments, 1, 4);
-    let options: firestore.SnapshotListenOptions = {};
+    let options: ListenOptions = {};
     let currArg = 0;
     if (
       typeof args[currArg] === 'object' &&
@@ -2161,11 +2159,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
 
     validateHasExplicitOrderByForLimitToLast(this._query);
     const firestoreClient = this.firestore.ensureClientConfigured();
-    return firestoreClient.listen(
-      this._query,
-      options,
-      new AsyncObserver(observer)
-    );
+    return firestoreClient.listen(this._query, options, observer);
   }
 
   get(options?: firestore.GetOptions): Promise<firestore.QuerySnapshot<T>> {
@@ -2200,7 +2194,7 @@ export function getDocsViaSnapshotListener(
       includeMetadataChanges: true,
       waitForSyncWhenOnline: true
     },
-    new AsyncObserver({
+    {
       next: snapshot => {
         // Remove query first before passing event to user to avoid
         // user actions affecting the now stale query.
@@ -2221,7 +2215,7 @@ export function getDocsViaSnapshotListener(
         }
       },
       error: e => result.reject(e)
-    })
+    }
   );
   return result.promise;
 }

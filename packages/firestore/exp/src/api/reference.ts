@@ -57,7 +57,6 @@ import {
   Unsubscribe
 } from '../../../src/api/observer';
 import { getFirestoreClient } from './components';
-import { AsyncObserver } from '../../../src/util/async_observer';
 import { newQueryForPath } from '../../../src/core/query';
 
 export function getDoc<T>(
@@ -368,7 +367,7 @@ export function onSnapshot<T>(
     args[currArg + 2] = userObserver.complete?.bind(userObserver);
   }
 
-  let asyncObserver: Promise<Unsubscribe>;
+  let asyncUnsubscribe: Promise<Unsubscribe>;
 
   if (ref instanceof DocumentReference) {
     const firestore = cast(ref.firestore, Firestore);
@@ -385,11 +384,11 @@ export function onSnapshot<T>(
       complete: args[currArg + 2] as CompleteFn
     };
 
-    asyncObserver = getFirestoreClient(firestore).then(firestoreClient =>
+    asyncUnsubscribe = getFirestoreClient(firestore).then(firestoreClient =>
       firestoreClient.listen(
         newQueryForPath(ref._key.path),
         internalOptions,
-        new AsyncObserver(observer)
+        observer
       )
     );
   } else {
@@ -410,12 +409,8 @@ export function onSnapshot<T>(
 
     validateHasExplicitOrderByForLimitToLast(query._query);
 
-    asyncObserver = getFirestoreClient(firestore).then(firestoreClient =>
-      firestoreClient.listen(
-        query._query,
-        internalOptions,
-        new AsyncObserver(observer)
-      )
+    asyncUnsubscribe = getFirestoreClient(firestore).then(firestoreClient =>
+      firestoreClient.listen(query._query, internalOptions, observer)
     );
   }
 
@@ -423,7 +418,7 @@ export function onSnapshot<T>(
   // unsubscribe is called before `asyncObserver` resolves.
   return () => {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    asyncObserver.then(unsubscribe => unsubscribe());
+    asyncUnsubscribe.then(unsubscribe => unsubscribe());
   };
 }
 
@@ -455,7 +450,7 @@ export function onSnapshotsInSync(
   const asyncObserver = getFirestoreClient(
     firestoreImpl
   ).then(firestoreClient =>
-    firestoreClient.addSnapshotsInSyncListener(new AsyncObserver(observer))
+    firestoreClient.addSnapshotsInSyncListener(observer)
   );
 
   // TODO(firestorexp): Add test that verifies that we don't raise a snapshot if

@@ -35,7 +35,6 @@ import {
 } from './event_manager';
 import { SyncEngine } from './sync_engine';
 import { View } from './view';
-
 import { SharedClientState } from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
 import { DatabaseId, DatabaseInfo } from './database_info';
@@ -393,7 +392,7 @@ export class FirestoreClient {
   listen(
     query: Query,
     options: ListenOptions,
-    observer: AsyncObserver<ViewSnapshot>
+    observer: Partial<Observer<ViewSnapshot>>
   ): Unsubscribe {
     this.verifyNotTerminated();
     return enqueueListen(
@@ -424,7 +423,7 @@ export class FirestoreClient {
     return this.databaseInfo.databaseId;
   }
 
-  addSnapshotsInSyncListener(observer: AsyncObserver<void>): Unsubscribe {
+  addSnapshotsInSyncListener(observer: Partial<Observer<void>>): Unsubscribe {
     this.verifyNotTerminated();
     return enqueueSnapshotsInSyncListen(
       this.asyncQueue,
@@ -493,11 +492,11 @@ export function enqueueListen(
   options: ListenOptions,
   observer: PartialObserver<ViewSnapshot>
 ): Unsubscribe {
-  const asyncObserver = new AsyncObserver(observer);
-  const listener = new QueryListener(query, asyncObserver, options);
+  const wrappedObserver = new AsyncObserver(observer);
+  const listener = new QueryListener(query, wrappedObserver, options);
   asyncQueue.enqueueAndForget(() => eventManger.listen(listener));
   return () => {
-    asyncObserver.mute();
+    wrappedObserver.mute();
     asyncQueue.enqueueAndForget(() => eventManger.unlisten(listener));
   };
 }
@@ -507,14 +506,14 @@ export function enqueueSnapshotsInSyncListen(
   eventManager: EventManager,
   observer: PartialObserver<void>
 ): Unsubscribe {
-  const asyncObserver = new AsyncObserver(observer);
+  const wrappedObserver = new AsyncObserver(observer);
   asyncQueue.enqueueAndForget(async () =>
-    eventManager.addSnapshotsInSyncListener(asyncObserver)
+    eventManager.addSnapshotsInSyncListener(wrappedObserver)
   );
   return () => {
-    asyncObserver.mute();
+    wrappedObserver.mute();
     asyncQueue.enqueueAndForget(async () =>
-      eventManager.removeSnapshotsInSyncListener(asyncObserver)
+      eventManager.removeSnapshotsInSyncListener(wrappedObserver)
     );
   };
 }

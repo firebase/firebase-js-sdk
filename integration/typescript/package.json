@@ -8,9 +8,9 @@
   },
   "devDependencies": {
     "firebase": "7.17.1",
-    "@babel/core": "7.10.4",
+    "@babel/core": "7.10.5",
     "@babel/preset-env": "7.10.4",
-    "@types/chai": "4.2.11",
+    "@types/chai": "4.2.12",
     "@types/mocha": "7.0.2",
     "chai": "4.2.0",
     "karma": "5.1.0",
