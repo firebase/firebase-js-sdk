@@ -96,11 +96,11 @@ describe('src/core/strategies/popup', () => {
 
   context('signInWithPopup', () => {
     it('completes the full flow', async () => {
-      const cred = new UserCredentialImpl(
-        testUser(auth, 'uid'),
-        null,
-        OperationType.SIGN_IN
-      );
+      const cred = new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.SIGN_IN
+      });
       idpStubs._signIn.returns(Promise.resolve(cred));
       const promise = signInWithPopup(auth, provider, resolver);
       iframeEvent({
@@ -110,11 +110,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('ignores events for another event id', async () => {
-      const cred = new UserCredentialImpl(
-        testUser(auth, 'uid'),
-        null,
-        OperationType.SIGN_IN
-      );
+      const cred = new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.SIGN_IN
+      });
       idpStubs._signIn.returns(Promise.resolve(cred));
       const promise = signInWithPopup(auth, provider, resolver);
       iframeEvent({
@@ -135,11 +135,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('does not call idp tasks if event is error', async () => {
-      const cred = new UserCredentialImpl(
-        testUser(auth, 'uid'),
-        null,
-        OperationType.SIGN_IN
-      );
+      const cred = new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.SIGN_IN
+      });
       idpStubs._signIn.returns(Promise.resolve(cred));
       const promise = signInWithPopup(auth, provider, resolver);
       iframeEvent({
@@ -159,11 +159,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('does not error if the poll timeout trips', async () => {
-      const cred = new UserCredentialImpl(
-        testUser(auth, 'uid'),
-        null,
-        OperationType.SIGN_IN
-      );
+      const cred = new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.SIGN_IN
+      });
       idpStubs._signIn.returns(Promise.resolve(cred));
       const promise = signInWithPopup(auth, provider, resolver);
       delay(() => {
@@ -177,11 +177,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('does error if the poll timeout and event timeout trip', async () => {
-      const cred = new UserCredentialImpl(
-        testUser(auth, 'uid'),
-        null,
-        OperationType.SIGN_IN
-      );
+      const cred = new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.SIGN_IN
+      });
       idpStubs._signIn.returns(Promise.resolve(cred));
       const promise = signInWithPopup(auth, provider, resolver);
       delay(() => {
@@ -219,11 +219,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('cancels the task if called consecutively', async () => {
-      const cred = new UserCredentialImpl(
-        testUser(auth, 'uid'),
-        null,
-        OperationType.SIGN_IN
-      );
+      const cred = new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.SIGN_IN
+      });
       idpStubs._signIn.returns(Promise.resolve(cred));
       const firstPromise = signInWithPopup(auth, provider, resolver);
       const secondPromise = signInWithPopup(auth, provider, resolver);
@@ -245,7 +245,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('completes the full flow', async () => {
-      const cred = new UserCredentialImpl(user, null, OperationType.LINK);
+      const cred = new UserCredentialImpl({
+        user,
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.LINK
+      });
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider, resolver);
       iframeEvent({
@@ -255,7 +259,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('ignores events for another event id', async () => {
-      const cred = new UserCredentialImpl(user, null, OperationType.LINK);
+      const cred = new UserCredentialImpl({
+        user,
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.LINK
+      });
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider, resolver);
       iframeEvent({
@@ -276,7 +284,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('does not call idp tasks if event is error', async () => {
-      const cred = new UserCredentialImpl(user, null, OperationType.LINK);
+      const cred = new UserCredentialImpl({
+        user,
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.LINK
+      });
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider, resolver);
       iframeEvent({
@@ -296,7 +308,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('does not error if the poll timeout trips', async () => {
-      const cred = new UserCredentialImpl(user, null, OperationType.LINK);
+      const cred = new UserCredentialImpl({
+        user,
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.LINK
+      });
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider, resolver);
       delay(() => {
@@ -310,7 +326,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('does error if the poll timeout and event timeout trip', async () => {
-      const cred = new UserCredentialImpl(user, null, OperationType.LINK);
+      const cred = new UserCredentialImpl({
+        user,
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.LINK
+      });
       idpStubs._link.returns(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider, resolver);
       delay(() => {
@@ -348,7 +368,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('cancels the task if called consecutively', async () => {
-      const cred = new UserCredentialImpl(user, null, OperationType.LINK);
+      const cred = new UserCredentialImpl({
+        user,
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.LINK
+      });
       idpStubs._link.returns(Promise.resolve(cred));
       const firstPromise = linkWithPopup(user, provider, resolver);
       const secondPromise = linkWithPopup(user, provider, resolver);
@@ -370,11 +394,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('completes the full flow', async () => {
-      const cred = new UserCredentialImpl(
+      const cred = new UserCredentialImpl({
         user,
-        null,
-        OperationType.REAUTHENTICATE
-      );
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.REAUTHENTICATE
+      });
       idpStubs._reauth.returns(Promise.resolve(cred));
       const promise = reauthenticateWithPopup(user, provider, resolver);
       iframeEvent({
@@ -384,11 +408,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('ignores events for another event id', async () => {
-      const cred = new UserCredentialImpl(
+      const cred = new UserCredentialImpl({
         user,
-        null,
-        OperationType.REAUTHENTICATE
-      );
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.REAUTHENTICATE
+      });
       idpStubs._reauth.returns(Promise.resolve(cred));
       const promise = reauthenticateWithPopup(user, provider, resolver);
       iframeEvent({
@@ -409,11 +433,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('does not call idp tasks if event is error', async () => {
-      const cred = new UserCredentialImpl(
+      const cred = new UserCredentialImpl({
         user,
-        null,
-        OperationType.REAUTHENTICATE
-      );
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.REAUTHENTICATE
+      });
       idpStubs._reauth.returns(Promise.resolve(cred));
       const promise = reauthenticateWithPopup(user, provider, resolver);
       iframeEvent({
@@ -433,11 +457,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('does not error if the poll timeout trips', async () => {
-      const cred = new UserCredentialImpl(
+      const cred = new UserCredentialImpl({
         user,
-        null,
-        OperationType.REAUTHENTICATE
-      );
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.REAUTHENTICATE
+      });
       idpStubs._reauth.returns(Promise.resolve(cred));
       const promise = reauthenticateWithPopup(user, provider, resolver);
       delay(() => {
@@ -451,11 +475,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('does error if the poll timeout and event timeout trip', async () => {
-      const cred = new UserCredentialImpl(
+      const cred = new UserCredentialImpl({
         user,
-        null,
-        OperationType.REAUTHENTICATE
-      );
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.REAUTHENTICATE
+      });
       idpStubs._reauth.returns(Promise.resolve(cred));
       const promise = reauthenticateWithPopup(user, provider, resolver);
       delay(() => {
@@ -493,11 +517,11 @@ describe('src/core/strategies/popup', () => {
     });
 
     it('cancels the task if called consecutively', async () => {
-      const cred = new UserCredentialImpl(
+      const cred = new UserCredentialImpl({
         user,
-        null,
-        OperationType.REAUTHENTICATE
-      );
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.REAUTHENTICATE
+      });
       idpStubs._reauth.returns(Promise.resolve(cred));
       const firstPromise = reauthenticateWithPopup(user, provider, resolver);
       const secondPromise = reauthenticateWithPopup(user, provider, resolver);
