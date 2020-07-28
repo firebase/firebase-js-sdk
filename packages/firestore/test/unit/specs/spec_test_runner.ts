@@ -25,7 +25,17 @@ import {
   Observer,
   QueryListener
 } from '../../../src/core/event_manager';
-import { canonifyQuery, Query, queryEquals } from '../../../src/core/query';
+import {
+  canonifyQuery,
+  LimitType,
+  newQueryForCollectionGroup,
+  Query,
+  queryEquals,
+  queryToTarget,
+  queryWithAddedFilter,
+  queryWithAddedOrderBy,
+  queryWithLimit
+} from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { SyncEngine } from '../../../src/core/sync_engine';
 import { TargetId } from '../../../src/core/types';
@@ -51,7 +61,6 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/object_value';
 import { Mutation } from '../../../src/model/mutation';
 import * as api from '../../../src/protos/firestore_proto_api';
-import { Datastore, newDatastore } from '../../../src/remote/datastore';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { RemoteStore } from '../../../src/remote/remote_store';
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
@@ -84,7 +93,6 @@ import {
   key,
   orderBy,
   patchMutation,
-  path,
   query,
   setMutation,
   stringFromBase64String,
@@ -109,12 +117,13 @@ import { PersistenceSettings } from '../../../src/core/firestore_client';
 import {
   EventAggregator,
   MockConnection,
-  MockIndexedDbComponentProvider,
   MockIndexedDbPersistence,
-  MockMemoryComponentProvider,
   MockMemoryPersistence,
   QueryEvent,
-  SharedWriteTracker
+  SharedWriteTracker,
+  MockMultiTabOfflineComponentProvider,
+  MockMemoryOfflineComponentProvider,
+  MockOnlineComponentProvider
 } from './spec_test_components';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { encodeBase64 } from '../../../src/platform/base64';
@@ -130,24 +139,29 @@ export function parseQuery(querySpec: string | SpecQuery): Query {
   if (typeof querySpec === 'string') {
     return query(querySpec);
   } else {
-    let query = new Query(path(querySpec.path), querySpec.collectionGroup);
+    let query1 = querySpec.collectionGroup
+      ? newQueryForCollectionGroup(querySpec.collectionGroup)
+      : query(querySpec.path);
     if (querySpec.limit) {
-      query =
+      query1 = queryWithLimit(
+        query1,
+        querySpec.limit,
         querySpec.limitType === 'LimitToFirst'
-          ? query.withLimitToFirst(querySpec.limit)
-          : query.withLimitToLast(querySpec.limit);
+          ? LimitType.First
+          : LimitType.Last
+      );
     }
     if (querySpec.filters) {
       querySpec.filters.forEach(([field, op, value]) => {
-        query = query.addFilter(filter(field, op, value));
+        query1 = queryWithAddedFilter(query1, filter(field, op, value));
       });
     }
     if (querySpec.orderBys) {
       querySpec.orderBys.forEach(([filter, direction]) => {
-        query = query.addOrderBy(orderBy(filter, direction));
+        query1 = queryWithAddedOrderBy(query1, orderBy(filter, direction));
       });
     }
-    return query;
+    return query1;
   }
 }
 
@@ -178,7 +192,6 @@ abstract class TestRunner {
   private networkEnabled = true;
 
   // Initialized asynchronously via start().
-  private datastore!: Datastore;
   private localStore!: LocalStore;
   private remoteStore!: RemoteStore;
   private persistence!: MockMemoryPersistence | MockIndexedDbPersistence;
@@ -233,33 +246,35 @@ abstract class TestRunner {
   }
 
   async start(): Promise<void> {
-    this.connection = new MockConnection(this.queue);
-    this.datastore = newDatastore(
-      this.connection,
-      new EmptyCredentialsProvider(),
-      this.serializer
-    );
+    const configuration = {
+      asyncQueue: this.queue,
+      databaseInfo: this.databaseInfo,
+      credentials: new EmptyCredentialsProvider(),
+      clientId: this.clientId,
+      initialUser: this.user,
+      maxConcurrentLimboResolutions:
+        this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER,
+      persistenceSettings: this.persistenceSettings
+    };
 
-    const componentProvider = await this.initializeComponentProvider(
-      {
-        asyncQueue: this.queue,
-        databaseInfo: this.databaseInfo,
-        datastore: this.datastore,
-        clientId: this.clientId,
-        initialUser: this.user,
-        maxConcurrentLimboResolutions:
-          this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER,
-        persistenceSettings: this.persistenceSettings
-      },
+    const onlineComponentProvider = new MockOnlineComponentProvider();
+    const offlineComponentProvider = await this.initializeOfflineComponentProvider(
+      onlineComponentProvider,
+      configuration,
       this.useGarbageCollection
     );
+    await onlineComponentProvider.initialize(
+      offlineComponentProvider,
+      configuration
+    );
 
-    this.sharedClientState = componentProvider.sharedClientState;
-    this.persistence = componentProvider.persistence;
-    this.localStore = componentProvider.localStore;
-    this.remoteStore = componentProvider.remoteStore;
-    this.syncEngine = componentProvider.syncEngine;
-    this.eventManager = componentProvider.eventManager;
+    this.sharedClientState = offlineComponentProvider.sharedClientState;
+    this.persistence = offlineComponentProvider.persistence;
+    this.localStore = offlineComponentProvider.localStore;
+    this.connection = onlineComponentProvider.connection;
+    this.remoteStore = onlineComponentProvider.remoteStore;
+    this.syncEngine = onlineComponentProvider.syncEngine;
+    this.eventManager = onlineComponentProvider.eventManager;
 
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
@@ -268,10 +283,13 @@ abstract class TestRunner {
     this.started = true;
   }
 
-  protected abstract initializeComponentProvider(
+  protected abstract initializeOfflineComponentProvider(
+    onlineComponentProvider: MockOnlineComponentProvider,
     configuration: ComponentConfiguration,
     gcEnabled: boolean
-  ): Promise<MockIndexedDbComponentProvider | MockMemoryComponentProvider>;
+  ): Promise<
+    MockMultiTabOfflineComponentProvider | MockMemoryOfflineComponentProvider
+  >;
 
   get isPrimaryClient(): boolean {
     return this.syncEngine.isPrimaryClient;
@@ -675,7 +693,8 @@ abstract class TestRunner {
     // Make sure to execute all writes that are currently queued. This allows us
     // to assert on the total number of requests sent before shutdown.
     await this.remoteStore.fillWritePipeline();
-    await this.syncEngine.disableNetwork();
+    this.persistence.setNetworkEnabled(false);
+    await this.remoteStore.disableNetwork();
   }
 
   private async doDrainQueue(): Promise<void> {
@@ -684,7 +703,8 @@ abstract class TestRunner {
 
   private async doEnableNetwork(): Promise<void> {
     this.networkEnabled = true;
-    await this.syncEngine.enableNetwork();
+    this.persistence.setNetworkEnabled(true);
+    await this.remoteStore.enableNetwork();
   }
 
   private async doShutdown(): Promise<void> {
@@ -952,7 +972,7 @@ abstract class TestRunner {
       const expectedTarget = toTarget(
         this.serializer,
         new TargetData(
-          parseQuery(expected.queries[0]).toTarget(),
+          queryToTarget(parseQuery(expected.queries[0])),
           targetId,
           TargetPurpose.Listen,
           ARBITRARY_SEQUENCE_NUMBER,
@@ -1064,11 +1084,12 @@ class MemoryTestRunner extends TestRunner {
     );
   }
 
-  protected async initializeComponentProvider(
+  protected async initializeOfflineComponentProvider(
+    onlineComponentProvider: MockOnlineComponentProvider,
     configuration: ComponentConfiguration,
     gcEnabled: boolean
-  ): Promise<MockMemoryComponentProvider> {
-    const componentProvider = new MockMemoryComponentProvider(gcEnabled);
+  ): Promise<MockMemoryOfflineComponentProvider> {
+    const componentProvider = new MockMemoryOfflineComponentProvider(gcEnabled);
     await componentProvider.initialize(configuration);
     return componentProvider;
   }
@@ -1098,16 +1119,18 @@ class IndexedDbTestRunner extends TestRunner {
     );
   }
 
-  protected async initializeComponentProvider(
+  protected async initializeOfflineComponentProvider(
+    onlineComponentProvider: MockOnlineComponentProvider,
     configuration: ComponentConfiguration,
     gcEnabled: boolean
-  ): Promise<MockIndexedDbComponentProvider> {
-    const componentProvider = new MockIndexedDbComponentProvider(
+  ): Promise<MockMultiTabOfflineComponentProvider> {
+    const offlineComponentProvider = new MockMultiTabOfflineComponentProvider(
       testWindow(this.sharedFakeWebStorage),
-      this.document
+      this.document,
+      onlineComponentProvider
     );
-    await componentProvider.initialize(configuration);
-    return componentProvider;
+    await offlineComponentProvider.initialize(configuration);
+    return offlineComponentProvider;
   }
 
   static destroyPersistence(): Promise<void> {

@@ -18,11 +18,11 @@
 /**
  * @fileoverview Documentation for the listOptions and listResult format
  */
-import { AuthWrapper } from './authwrapper';
 import { Location } from './location';
 import * as json from './json';
 import * as type from './type';
 import { ListResult } from '../list';
+import { StorageService } from '../service';
 
 /**
  * Represents the simplified object metadata returned by List API.
@@ -50,7 +50,7 @@ const PREFIXES_KEY = 'prefixes';
 const ITEMS_KEY = 'items';
 
 function fromBackendResponse(
-  authWrapper: AuthWrapper,
+  service: StorageService,
   bucket: string,
   resource: ListResultResponse
 ): ListResult {
@@ -62,7 +62,7 @@ function fromBackendResponse(
   if (resource[PREFIXES_KEY]) {
     for (const path of resource[PREFIXES_KEY]) {
       const pathWithoutTrailingSlash = path.replace(/\/$/, '');
-      const reference = authWrapper.makeStorageReference(
+      const reference = service.makeStorageReference(
         new Location(bucket, pathWithoutTrailingSlash)
       );
       listResult.prefixes.push(reference);
@@ -71,7 +71,7 @@ function fromBackendResponse(
 
   if (resource[ITEMS_KEY]) {
     for (const item of resource[ITEMS_KEY]) {
-      const reference = authWrapper.makeStorageReference(
+      const reference = service.makeStorageReference(
         new Location(bucket, item['name'])
       );
       listResult.items.push(reference);
@@ -81,7 +81,7 @@ function fromBackendResponse(
 }
 
 export function fromResponseString(
-  authWrapper: AuthWrapper,
+  service: StorageService,
   bucket: string,
   resourceString: string
 ): ListResult | null {
@@ -90,7 +90,7 @@ export function fromResponseString(
     return null;
   }
   const resource = (obj as unknown) as ListResultResponse;
-  return fromBackendResponse(authWrapper, bucket, resource);
+  return fromBackendResponse(service, bucket, resource);
 }
 
 export function listOptionsValidator(p: unknown): void {

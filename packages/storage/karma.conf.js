@@ -18,13 +18,12 @@
 const karma = require('karma');
 const path = require('path');
 const karmaBase = require('../../config/karma.base');
-
-const files = [`test/**/*`];
+const { argv } = require('yargs');
 
 module.exports = function (config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     // files to load into karma
-    files: files,
+    files: getTestFiles(argv),
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha']
@@ -33,4 +32,14 @@ module.exports = function (config) {
   config.set(karmaConfig);
 };
 
-module.exports.files = files;
+function getTestFiles(argv) {
+  if (argv.unit) {
+    return ['test/unit/*'];
+  } else if (argv.integration) {
+    return ['test/integration/*'];
+  } else {
+    return ['test/**/*'];
+  }
+}
+
+module.exports.files = getTestFiles(argv);

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/performance",
-  "version": "0.3.9",
+  "version": "0.3.10",
   "description": "Firebase performance for web",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -27,15 +27,15 @@
   },
   "dependencies": {
     "@firebase/logger": "0.2.6",
-    "@firebase/installations": "0.4.14",
-    "@firebase/util": "0.2.50",
+    "@firebase/installations": "0.4.15",
+    "@firebase/util": "0.3.0",
     "@firebase/performance-types": "0.0.13",
-    "@firebase/component": "0.1.16",
+    "@firebase/component": "0.1.17",
     "tslib": "^1.11.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "2.21.0",
+    "rollup": "2.23.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-typescript2": "0.27.1",
     "typescript": "3.9.6"

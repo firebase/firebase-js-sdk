@@ -3,15 +3,19 @@
   "version": "1.0.1",
   "private": true,
   "scripts": {
-    "build:deps": "cd ../../packages/firestore ; yarn build",
+    "build:deps": "lerna run --scope @firebase/'{app,firestore}' --include-dependencies build",
     "build:persistence": "INCLUDE_FIRESTORE_PERSISTENCE=true gulp compile-tests",
     "build:memory": "INCLUDE_FIRESTORE_PERSISTENCE=false gulp compile-tests",
     "test": "yarn build:memory; karma start --single-run; yarn build:persistence; karma start --single-run;",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "test:persistence": " yarn build:persistence; karma start --single-run",
+    "test:persistence:debug:": "yarn build:persistence; karma start --auto-watch --browsers Chrome",
     "test:memory": "yarn build:memory; karma start --single-run",
-    "test:debug:persistence": "yarn build:deps; yarn build:persistence; karma start --auto-watch --browsers Chrome",
-    "test:debug:memory": "yarn build:deps; yarn build:memory; karma start --single-run"
+    "test:memory:debug": "yarn build:memory; karma start --auto-watch --browsers Chrome"
+  },
+  "peerDependencies": {
+    "@firebase/app": "0.x",
+    "@firebase/firestore": "1.16.2"
   },
   "devDependencies": {
     "@types/mocha": "7.0.2",
@@ -26,7 +30,7 @@
     "mocha": "7.2.0",
     "ts-loader": "6.2.2",
     "typescript": "3.9.6",
-    "webpack": "4.43.0",
+    "webpack": "4.44.0",
     "webpack-stream": "5.2.1"
   }
 }

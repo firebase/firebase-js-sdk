@@ -1117,12 +1117,13 @@ declare namespace firebase {
    * // https://console.firebase.google.com
    * firebase.initializeApp({
    *   apiKey: "AIza....",                             // Auth / General Use
-   *   applicationId: "1:27992087142:web:ce....",      // General Use
+   *   appId: "1:27992087142:web:ce....",      // General Use
    *   projectId: "my-firebase-project",               // General Use
    *   authDomain: "YOUR_APP.firebaseapp.com",         // Auth with popup/redirect
    *   databaseURL: "https://YOUR_APP.firebaseio.com", // Realtime Database
    *   storageBucket: "YOUR_APP.appspot.com",          // Storage
-   *   messagingSenderId: "123456789"                  // Cloud Messaging
+   *   messagingSenderId: "123456789",                  // Cloud Messaging
+   *   measurementId: "G-12345"                        // Analytics
    * });
    * ```
    *
@@ -1132,7 +1133,7 @@ declare namespace firebase {
    * // Initialize another app
    * var otherApp = firebase.initializeApp({
    *   apiKey: "AIza....",
-   *   applicationId: "1:27992087142:web:ce....",
+   *   appId: "1:27992087142:web:ce....",
    *   projectId: "my-firebase-project",
    *   databaseURL: "https://<OTHER_DATABASE_NAME>.firebaseio.com",
    *   storageBucket: "<OTHER_STORAGE_BUCKET>.appspot.com"
@@ -5083,6 +5084,16 @@ declare namespace firebase.analytics {
     id?: string;
     name?: string;
   }
+
+  /**
+   * An async function that returns true if current browser context supports initialization of analytics module
+   * (`firebase.analytics()`).
+   *
+   * Returns false otherwise.
+   *
+   *
+   */
+  function isSupported(): Promise<boolean>;
 }
 
 declare namespace firebase.auth.Auth {

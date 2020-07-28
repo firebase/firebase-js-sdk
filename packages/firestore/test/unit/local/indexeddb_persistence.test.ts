@@ -18,6 +18,7 @@
 import * as chaiAsPromised from 'chai-as-promised';
 
 import { expect, use } from 'chai';
+import { queryToTarget } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
   decodeResourcePath,
@@ -794,7 +795,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
         const filteredQuery = query('collection', filter('foo', '==', 'bar'));
         const initialTargetData = new TargetData(
-          filteredQuery.toTarget(),
+          queryToTarget(filteredQuery),
           /* targetId= */ 2,
           TargetPurpose.Listen,
           /* sequenceNumber= */ 1

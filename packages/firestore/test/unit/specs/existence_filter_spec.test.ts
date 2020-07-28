@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../../../src/core/query';
+import { newQueryForPath } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
 import { deletedDoc, doc, query } from '../../util/helpers';
 
@@ -202,7 +202,7 @@ describeSpec('Existence Filters:', [], () => {
         .watchAcksFull(query1, 2000, doc1)
         .expectLimboDocs(doc2.key) // doc2 is now in limbo
         .watchRemoves(
-          Query.atPath(doc2.key.path),
+          newQueryForPath(doc2.key.path),
           new RpcError(Code.PERMISSION_DENIED, 'no')
         )
         .expectLimboDocs() // doc2 is no longer in limbo

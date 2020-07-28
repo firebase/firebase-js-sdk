@@ -17,8 +17,9 @@
 
 import {
   ComponentConfiguration,
-  MemoryComponentProvider,
-  MultiTabIndexedDbComponentProvider
+  MemoryOfflineComponentProvider,
+  OnlineComponentProvider,
+  MultiTabOfflineComponentProvider
 } from '../../../src/core/component_provider';
 import {
   GarbageCollectionScheduler,
@@ -61,6 +62,8 @@ import {
 } from '../../../src/local/shared_client_state';
 import { WindowLike } from '../../../src/util/types';
 import { newSerializer } from '../../../src/platform/serializer';
+import { Datastore, newDatastore } from '../../../src/remote/datastore';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
 
 /**
  * A test-only MemoryPersistence implementation that is able to inject
@@ -117,14 +120,32 @@ function failTransactionIfNeeded(
   }
 }
 
-export class MockIndexedDbComponentProvider extends MultiTabIndexedDbComponentProvider {
+export class MockOnlineComponentProvider extends OnlineComponentProvider {
+  connection!: MockConnection;
+
+  async loadConnection(cfg: ComponentConfiguration): Promise<Connection> {
+    this.connection = new MockConnection(cfg.asyncQueue);
+    return this.connection;
+  }
+
+  createDatastore(cfg: ComponentConfiguration): Datastore {
+    const serializer = new JsonProtoSerializer(
+      cfg.databaseInfo.databaseId,
+      /* useProto3Json= */ true
+    );
+    return newDatastore(cfg.credentials, serializer);
+  }
+}
+
+export class MockMultiTabOfflineComponentProvider extends MultiTabOfflineComponentProvider {
   persistence!: MockIndexedDbPersistence;
 
   constructor(
     private readonly window: WindowLike,
-    private readonly document: FakeDocument
+    private readonly document: FakeDocument,
+    onlineComponentProvider: OnlineComponentProvider
   ) {
-    super();
+    super(onlineComponentProvider);
   }
 
   createGarbageCollectionScheduler(
@@ -174,8 +195,9 @@ export class MockIndexedDbComponentProvider extends MultiTabIndexedDbComponentPr
   }
 }
 
-export class MockMemoryComponentProvider extends MemoryComponentProvider {
+export class MockMemoryOfflineComponentProvider extends MemoryOfflineComponentProvider {
   persistence!: MockMemoryPersistence;
+  connection!: MockConnection;
 
   constructor(private readonly gcEnabled: boolean) {
     super();

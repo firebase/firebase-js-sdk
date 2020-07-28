@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+import { LimitType, queryWithLimit } from '../../../src/core/query';
 import { View } from '../../../src/core/view';
 import { ChangeType } from '../../../src/core/view_snapshot';
 import { documentKeySet } from '../../../src/model/collections';
@@ -169,7 +170,11 @@ describe('View', () => {
 
   it('removes documents for query with limit', () => {
     // shallow ancestor query
-    const query1 = query('rooms/eros/messages').withLimitToFirst(2);
+    const query1 = queryWithLimit(
+      query('rooms/eros/messages'),
+      2,
+      LimitType.First
+    );
     const view = new View(query1, documentKeySet());
 
     const doc1 = doc('rooms/eros/messages/1', 0, { text: 'msg1' });
@@ -199,10 +204,11 @@ describe('View', () => {
 
   it("doesn't report changes for documents beyond limit of query", () => {
     // shallow ancestor query
-    const query1 = query(
-      'rooms/eros/messages',
-      orderBy('num')
-    ).withLimitToFirst(2);
+    const query1 = queryWithLimit(
+      query('rooms/eros/messages', orderBy('num')),
+      2,
+      LimitType.First
+    );
     const view = new View(query1, documentKeySet());
 
     const doc1 = doc('rooms/eros/messages/1', 0, { num: 1 });
@@ -340,7 +346,7 @@ describe('View', () => {
   });
 
   it('returns needsRefill on delete limit query', () => {
-    const query1 = query('rooms/eros/msgs').withLimitToFirst(2);
+    const query1 = queryWithLimit(query('rooms/eros/msgs'), 2, LimitType.First);
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
     const view = new View(query1, documentKeySet());
@@ -366,8 +372,10 @@ describe('View', () => {
   });
 
   it('returns needsRefill on reorder in limit query', () => {
-    const query1 = query('rooms/eros/msgs', orderBy('order')).withLimitToFirst(
-      2
+    const query1 = queryWithLimit(
+      query('rooms/eros/msgs', orderBy('order')),
+      2,
+      LimitType.First
     );
     const doc1 = doc('rooms/eros/msgs/0', 0, { order: 1 });
     let doc2 = doc('rooms/eros/msgs/1', 0, { order: 2 });
@@ -399,8 +407,10 @@ describe('View', () => {
   });
 
   it("doesn't need refill on reorder within limit", () => {
-    const query1 = query('rooms/eros/msgs', orderBy('order')).withLimitToFirst(
-      3
+    const query1 = queryWithLimit(
+      query('rooms/eros/msgs', orderBy('order')),
+      3,
+      LimitType.First
     );
     let doc1 = doc('rooms/eros/msgs/0', 0, { order: 1 });
     const doc2 = doc('rooms/eros/msgs/1', 0, { order: 2 });
@@ -428,8 +438,10 @@ describe('View', () => {
   });
 
   it("doesn't need refill on reorder after limit query", () => {
-    const query1 = query('rooms/eros/msgs', orderBy('order')).withLimitToFirst(
-      3
+    const query1 = queryWithLimit(
+      query('rooms/eros/msgs', orderBy('order')),
+      3,
+      LimitType.First
     );
     const doc1 = doc('rooms/eros/msgs/0', 0, { order: 1 });
     const doc2 = doc('rooms/eros/msgs/1', 0, { order: 2 });
@@ -457,7 +469,7 @@ describe('View', () => {
   });
 
   it("doesn't need refill for additions after the limit", () => {
-    const query1 = query('rooms/eros/msgs').withLimitToFirst(2);
+    const query1 = queryWithLimit(query('rooms/eros/msgs'), 2, LimitType.First);
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
     const view = new View(query1, documentKeySet());
@@ -479,8 +491,11 @@ describe('View', () => {
   });
 
   it("doesn't need refill for deletions when not near the limit", () => {
-    const query1 = query('rooms/eros/msgs').withLimitToFirst(20);
-
+    const query1 = queryWithLimit(
+      query('rooms/eros/msgs'),
+      20,
+      LimitType.First
+    );
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
     const view = new View(query1, documentKeySet());
@@ -500,7 +515,7 @@ describe('View', () => {
   });
 
   it('handles applying irrelevant docs', () => {
-    const query1 = query('rooms/eros/msgs').withLimitToFirst(2);
+    const query1 = queryWithLimit(query('rooms/eros/msgs'), 2, LimitType.First);
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
     const view = new View(query1, documentKeySet());

@@ -15,19 +15,22 @@
  * limitations under the License.
  */
 
-import { Query } from '../../../src/core/query';
+import {
+  newQueryForCollectionGroup,
+  newQueryForPath,
+  queryWithAddedFilter
+} from '../../../src/core/query';
 import { doc, filter, query } from '../../util/helpers';
 
 import { Document } from '../../../src/model/document';
 import { describeSpec, specTest } from './describe_spec';
 import { spec, SpecBuilder } from './spec_builder';
-import { ResourcePath } from '../../../src/model/path';
 
 // Helper to seed the cache with the specified docs by listening to each one.
 function specWithCachedDocs(...docs: Document[]): SpecBuilder {
   let builder = spec();
   for (const doc of docs) {
-    const query1 = Query.atPath(doc.key.path);
+    const query1 = newQueryForPath(doc.key.path);
     builder = builder
       .userListens(query1)
       .watchAcksFull(query1, 1000, doc)
@@ -38,8 +41,11 @@ function specWithCachedDocs(...docs: Document[]): SpecBuilder {
 
 describeSpec('Queries:', [], () => {
   specTest('Collection Group query', [], () => {
-    const cgQuery = new Query(ResourcePath.emptyPath(), 'cg');
-    const cgQueryWithFilter = cgQuery.addFilter(filter('val', '==', 1));
+    const cgQuery = newQueryForCollectionGroup('cg');
+    const cgQueryWithFilter = queryWithAddedFilter(
+      cgQuery,
+      filter('val', '==', 1)
+    );
     const docs = [
       doc('cg/1', 1000, { val: 1 }),
       doc('cg/2', 1000, { val: 2 }),
@@ -61,8 +67,11 @@ describeSpec('Queries:', [], () => {
   });
 
   specTest('Collection Group query with mutations', [], () => {
-    const cgQuery = new Query(ResourcePath.emptyPath(), 'cg');
-    const cgQueryWithFilter = cgQuery.addFilter(filter('val', '==', 1));
+    const cgQuery = newQueryForCollectionGroup('cg');
+    const cgQueryWithFilter = queryWithAddedFilter(
+      cgQuery,
+      filter('val', '==', 1)
+    );
     const cachedDocs = [
       doc('cg/1', 1000, { val: 1 }),
       doc('not-cg/nope', 1000, { val: 1 })
@@ -104,7 +113,10 @@ describeSpec('Queries:', [], () => {
     [],
     () => {
       const fullQuery = query('collection');
-      const filteredQuery = fullQuery.addFilter(filter('match', '==', true));
+      const filteredQuery = queryWithAddedFilter(
+        fullQuery,
+        filter('match', '==', true)
+      );
       const docA = doc('collection/a', 1000, { match: false });
       const docAv2Local = doc(
         'collection/a',
