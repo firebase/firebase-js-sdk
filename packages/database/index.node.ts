@@ -81,7 +81,11 @@ export function initStandalone(app: FirebaseApp, url: string, version: string) {
   );
 
   return {
-    instance: RepoManager.getInstance().databaseFromApp(app, authProvider, url),
+    instance: RepoManager.getInstance().databaseFromApp(
+      app,
+      authProvider,
+      url
+    ) as types.FirebaseDatabase,
     namespace: {
       Reference,
       Query,
