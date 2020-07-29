@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import resolve from '@rollup/plugin-node-resolve';
-import { terser } from "rollup-plugin-terser";
+import { terser } from 'rollup-plugin-terser';
 import strip from '@rollup/plugin-strip';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
