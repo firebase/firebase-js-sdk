@@ -18,6 +18,7 @@
 import * as externs from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
+import { SignInWithIdpResponse } from '../../api/authentication/idp';
 import { TaggedWithTokenResponse } from '../../model/id_token';
 import { UserCredential } from '../../model/user';
 import { OAuthCredential } from '../credentials/oauth';
@@ -59,14 +60,20 @@ export class GoogleAuthProvider extends OAuthProvider {
   private static credentialFromTaggedObject({
     _tokenResponse: tokenResponse
   }: TaggedWithTokenResponse): externs.OAuthCredential | null {
-    if (!tokenResponse || !('oauthAccessToken' in tokenResponse)) {
+    if (!tokenResponse) {
+      return null;
+    }
+
+    const {oauthIdToken, oauthAccessToken} = tokenResponse as SignInWithIdpResponse;
+    if (!oauthIdToken && !oauthAccessToken) {
+      // This could be an oauth 1 credential or a phone credential
       return null;
     }
 
     try {
       return GoogleAuthProvider.credential(
-        tokenResponse.idToken,
-        tokenResponse.oauthAccessToken
+        oauthIdToken,
+        oauthAccessToken,
       );
     } catch {
       return null;

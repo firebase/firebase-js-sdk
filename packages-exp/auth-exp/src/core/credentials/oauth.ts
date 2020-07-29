@@ -18,10 +18,7 @@
 import * as externs from '@firebase/auth-types-exp';
 import { querystring } from '@firebase/util';
 
-import {
-  signInWithIdp,
-  SignInWithIdpRequest
-} from '../../api/authentication/idp';
+import { signInWithIdp, SignInWithIdpRequest } from '../../api/authentication/idp';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
@@ -31,13 +28,20 @@ import { AuthCredential } from './';
 const IDP_REQUEST_URI = 'http://localhost';
 
 export interface OAuthCredentialParams {
+  // OAuth 2 uses either id token or access token
   idToken?: string | null;
   accessToken?: string | null;
+
+  // These fields are used with OAuth 1
   oauthToken?: string;
   secret?: string;
   oauthTokenSecret?: string;
+
+  // Nonce is only set if pendingToken is not present
   nonce?: string;
   pendingToken?: string;
+
+  // Utilities
   providerId: externs.ProviderId;
   signInMethod: externs.SignInMethod;
 }
@@ -111,48 +115,48 @@ export class OAuthCredential
   }
 
   _getIdTokenResponse(auth: Auth): Promise<IdTokenResponse> {
-    const request = this.makeRequest();
+    const request = this.buildRequest();
     return signInWithIdp(auth, request);
   }
 
   _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
-    const request = this.makeRequest();
+    const request = this.buildRequest();
     request.idToken = idToken;
     return signInWithIdp(auth, request);
   }
 
   _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
-    const request = this.makeRequest();
+    const request = this.buildRequest();
     request.autoCreate = false;
     return signInWithIdp(auth, request);
   }
 
-  private makeRequest(): SignInWithIdpRequest {
+  private buildRequest(): SignInWithIdpRequest {
     const request: SignInWithIdpRequest = {
       requestUri: IDP_REQUEST_URI,
       returnSecureToken: true,
       postBody: null
     };
 
-    const postBody: { [key: string]: string } = {};
-    if (this.idToken) {
-      postBody['id_token'] = this.idToken;
-    }
-    if (this.accessToken) {
-      postBody['access_token'] = this.accessToken;
-    }
-    if (this.secret) {
-      postBody['oauth_token_secret'] = this.secret;
-    }
-
-    postBody['providerId'] = this.providerId;
-    if (this.nonce && !this.pendingToken) {
-      postBody['nonce'] = this.nonce;
-    }
-
     if (this.pendingToken) {
       request.pendingToken = this.pendingToken;
     } else {
+      const postBody: Record<string, string> = {};
+      if (this.idToken) {
+        postBody['id_token'] = this.idToken;
+      }
+      if (this.accessToken) {
+        postBody['access_token'] = this.accessToken;
+      }
+      if (this.secret) {
+        postBody['oauth_token_secret'] = this.secret;
+      }
+
+      postBody['providerId'] = this.providerId;
+      if (this.nonce && !this.pendingToken) {
+        postBody['nonce'] = this.nonce;
+      }
+
       request.postBody = querystring(postBody);
     }
 

@@ -17,11 +17,7 @@
 
 import { expect } from 'chai';
 
-import {
-  OperationType,
-  ProviderId,
-  SignInMethod
-} from '@firebase/auth-types-exp';
+import { OperationType, ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
 import { testUser } from '../../../test/helpers/mock_auth';
@@ -46,7 +42,7 @@ describe('src/core/providers/google', () => {
       _tokenResponse: {
         ...TEST_ID_TOKEN_RESPONSE,
         oauthAccessToken: 'access-token',
-        idToken: 'id-token'
+        oauthIdToken: 'id-token'
       },
       operationType: OperationType.SIGN_IN
     });
@@ -64,7 +60,7 @@ describe('src/core/providers/google', () => {
     (error as TaggedWithTokenResponse)._tokenResponse = {
       ...TEST_ID_TOKEN_RESPONSE,
       oauthAccessToken: 'access-token',
-      idToken: 'id-token'
+      oauthIdToken: 'id-token'
     };
 
     const cred = GoogleAuthProvider.credentialFromError(error)!;
