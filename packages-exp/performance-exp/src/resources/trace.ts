@@ -15,24 +15,25 @@
  * limitations under the License.
  */
 
+import { PerformanceTrace } from '@firebase/performance-types-exp';
+
 import {
-  TRACE_START_MARK_PREFIX,
-  TRACE_STOP_MARK_PREFIX,
-  TRACE_MEASURE_PREFIX,
-  OOB_TRACE_PAGE_LOAD_PREFIX,
-  FIRST_PAINT_COUNTER_NAME,
   FIRST_CONTENTFUL_PAINT_COUNTER_NAME,
-  FIRST_INPUT_DELAY_COUNTER_NAME
+  FIRST_INPUT_DELAY_COUNTER_NAME,
+  FIRST_PAINT_COUNTER_NAME,
+  OOB_TRACE_PAGE_LOAD_PREFIX,
+  TRACE_MEASURE_PREFIX,
+  TRACE_START_MARK_PREFIX,
+  TRACE_STOP_MARK_PREFIX
 } from '../constants';
 import { Api } from '../services/api_service';
 import { logTrace } from '../services/perf_logger';
-import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
 import {
   isValidCustomAttributeName,
   isValidCustomAttributeValue
 } from '../utils/attributes_utils';
+import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
 import { isValidMetricName } from '../utils/metric_utils';
-import { PerformanceTrace } from '@firebase/performance-types';
 
 const enum TraceState {
   UNINITIALIZED = 1,
@@ -55,9 +56,10 @@ export class Trace implements PerformanceTrace {
   /**
    * @param name The name of the trace.
    * @param isAuto If the trace is auto-instrumented.
-   * @param traceMeasureName The name of the measure marker in user timing specification. This field
-   * is only set when the trace is built for logging when the user directly uses the user timing
-   * api (performance.mark and performance.measure).
+   * @param traceMeasureName The name of the measure marker in user timing
+   *     specification. This field
+   * is only set when the trace is built for logging when the user directly uses
+   * the user timing api (performance.mark and performance.measure).
    */
   constructor(
     readonly name: string,
@@ -72,8 +74,8 @@ export class Trace implements PerformanceTrace {
         `${TRACE_MEASURE_PREFIX}-${this.randomId}-${this.name}`;
 
       if (traceMeasureName) {
-        // For the case of direct user timing traces, no start stop will happen. The measure object
-        // is already available.
+        // For the case of direct user timing traces, no start stop will happen.
+        // The measure object is already available.
         this.calculateTraceMetrics();
       }
     }
@@ -93,8 +95,8 @@ export class Trace implements PerformanceTrace {
   }
 
   /**
-   * Stops the trace. The measurement of the duration of the trace stops at this point and trace
-   * is logged.
+   * Stops the trace. The measurement of the duration of the trace stops at this
+   * point and trace is logged.
    */
   stop(): void {
     if (this.state !== TraceState.RUNNING) {
@@ -114,11 +116,12 @@ export class Trace implements PerformanceTrace {
   }
 
   /**
-   * Records a trace with predetermined values. If this method is used a trace is created and logged
-   * directly. No need to use start and stop methods.
+   * Records a trace with predetermined values. If this method is used a trace
+   * is created and logged directly. No need to use start and stop methods.
    * @param startTime Trace start time since epoch in millisec
    * @param duration The duraction of the trace in millisec
-   * @param options An object which can optionally hold maps of custom metrics and custom attributes
+   * @param options An object which can optionally hold maps of custom metrics
+   *     and custom attributes
    */
   record(
     startTime: number,
@@ -144,8 +147,9 @@ export class Trace implements PerformanceTrace {
   }
 
   /**
-   * Increments a custom metric by a certain number or 1 if number not specified. Will create a new
-   * custom metric if one with the given name does not exist.
+   * Increments a custom metric by a certain number or 1 if number not
+   * specified. Will create a new custom metric if one with the given name does
+   * not exist.
    * @param counter Name of the custom metric
    * @param num Increment by value
    */
@@ -157,8 +161,8 @@ export class Trace implements PerformanceTrace {
   }
 
   /**
-   * Sets a custom metric to a specified value. Will create a new custom metric if one with the
-   * given name does not exist.
+   * Sets a custom metric to a specified value. Will create a new custom metric
+   * if one with the given name does not exist.
    * @param counter Name of the custom metric
    * @param num Set custom metric to this value
    */
@@ -173,8 +177,8 @@ export class Trace implements PerformanceTrace {
   }
 
   /**
-   * Returns the value of the custom metric by that name. If a custom metric with that name does
-   * not exist will return zero.
+   * Returns the value of the custom metric by that name. If a custom metric
+   * with that name does not exist will return zero.
    * @param counter
    */
   getMetric(counter: string): number {
@@ -234,8 +238,8 @@ export class Trace implements PerformanceTrace {
   }
 
   /**
-   * Calculates and assigns the duration and start time of the trace using the measure performance
-   * entry.
+   * Calculates and assigns the duration and start time of the trace using the
+   * measure performance entry.
    */
   private calculateTraceMetrics(): void {
     const perfMeasureEntries = this.api.getEntriesByName(this.traceMeasure);
@@ -249,9 +253,11 @@ export class Trace implements PerformanceTrace {
   }
 
   /**
-   * @param navigationTimings A single element array which contains the navigationTIming object of
+   * @param navigationTimings A single element array which contains the
+   *     navigationTIming object of
    * the page load
-   * @param paintTimings A array which contains paintTiming object of the page load
+   * @param paintTimings A array which contains paintTiming object of the page
+   *     load
    * @param firstInputDelay First input delay in millisec
    */
   static createOobTrace(

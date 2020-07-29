@@ -14,15 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { FirebaseApp } from '@firebase/app-types';
+import { FirebasePerformance } from '@firebase/performance-types-exp';
+
 import { Trace } from '../resources/trace';
+import { Api } from '../services/api_service';
+import { getInitializationPromise } from '../services/initialization_service';
 import { setupOobResources } from '../services/oob_resources_service';
 import { SettingsService } from '../services/settings_service';
-import { getInitializationPromise } from '../services/initialization_service';
-import { Api } from '../services/api_service';
-import { FirebaseApp } from '@firebase/app-types';
-import { FirebasePerformance } from '@firebase/performance-types';
-import { consoleLogger } from '../utils/console_logger';
 import { setupTransportService } from '../services/transport_service';
+import { consoleLogger } from '../utils/console_logger';
 
 export class PerformanceController implements FirebasePerformance {
   constructor(readonly app: FirebaseApp) {
