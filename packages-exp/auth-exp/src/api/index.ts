@@ -203,7 +203,7 @@ function makeTaggedError({name}: Auth, code: AuthErrorCode, response: PotentialR
     errorParams.phoneNumber = response.phoneNumber;
   }
 
-  const error = AUTH_ERROR_FACTORY.create(code, {appName: name});
+  const error = AUTH_ERROR_FACTORY.create(code, errorParams);
   (error as TaggedWithTokenResponse)._tokenResponse = response;
   return error;
 }

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
+import { assert, expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { SinonStub, stub, useFakeTimers } from 'sinon';
 
@@ -26,13 +26,7 @@ import { testAuth } from '../../test/helpers/mock_auth';
 import * as mockFetch from '../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../core/errors';
 import { Auth } from '../model/auth';
-import {
-  _performApiRequest,
-  DEFAULT_API_TIMEOUT_MS,
-  Endpoint,
-  HttpHeader,
-  HttpMethod
-} from './';
+import { _performApiRequest, DEFAULT_API_TIMEOUT_MS, Endpoint, HttpHeader, HttpMethod } from './';
 import { ServerError } from './errors';
 
 use(chaiAsPromised);
@@ -180,10 +174,10 @@ describe('api/_performApiRequest', () => {
         {
           error: {
             code: 400,
-            message: ServerError.EMAIL_EXISTS,
+            message: ServerError.EXPIRED_OOB_CODE,
             errors: [
               {
-                message: ServerError.EMAIL_EXISTS
+                message: ServerError.EXPIRED_OOB_CODE
               }
             ]
           }
@@ -196,7 +190,7 @@ describe('api/_performApiRequest', () => {
         Endpoint.SIGN_UP,
         request,
         {
-          [ServerError.EMAIL_EXISTS]: AuthErrorCode.ARGUMENT_ERROR
+          [ServerError.EXPIRED_OOB_CODE]: AuthErrorCode.ARGUMENT_ERROR
         }
       );
       await expect(promise).to.be.rejectedWith(
@@ -250,6 +244,88 @@ describe('api/_performApiRequest', () => {
         FirebaseError,
         'auth/network-request-failed'
       );
+    });
+  });
+
+  context('edgcase error mapping', () => {
+    beforeEach(mockFetch.setUp);
+    afterEach(mockFetch.tearDown);
+
+    it('should generate a need_conirmation error with the response', async () => {
+      mockEndpoint(Endpoint.SIGN_UP, {
+        needConfirmation: true,
+        idToken: 'id-token',
+      });
+      try {
+        await _performApiRequest<
+        typeof request,
+        typeof serverResponse
+      >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+        assert.fail('Call should have failed')
+      } catch (e) {
+        expect(e.code).to.eq(`auth/${AuthErrorCode.NEED_CONFIRMATION}`);
+        expect(e._tokenResponse).to.eql({
+          needConfirmation: true,
+        idToken: 'id-token',
+        });
+      }
+    });
+
+    it('should generate a credential already in use error', async () => {
+      const response = {
+        error: {
+          code: 400,
+          message: ServerError.FEDERATED_USER_ID_ALREADY_LINKED,
+          errors: [
+            {
+              message: ServerError.FEDERATED_USER_ID_ALREADY_LINKED
+            }
+          ]
+        }
+      };
+      mockEndpoint(Endpoint.SIGN_UP,
+        response,
+        400);
+      try {
+        await _performApiRequest<
+        typeof request,
+        typeof serverResponse
+      >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+        assert.fail('Call should have failed')
+      } catch (e) {
+        expect(e.code).to.eq(`auth/${AuthErrorCode.CREDENTIAL_ALREADY_IN_USE}`);
+        expect(e._tokenResponse).to.eql(response);
+      }
+    });
+
+    it('should pull out email and phone number', async () => {
+      const response = {
+        error: {
+          code: 400,
+          message: ServerError.EMAIL_EXISTS,
+          errors: [
+            {
+              message: ServerError.EMAIL_EXISTS
+            }
+          ]
+        },
+        email: 'email@test.com',
+        phoneNumber: '+1555-this-is-a-number',
+      };
+      mockEndpoint(Endpoint.SIGN_UP,
+        response,
+        400);
+      try {
+        await _performApiRequest<
+        typeof request,
+        typeof serverResponse
+      >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
+        assert.fail('Call should have failed')
+      } catch (e) {
+        expect(e.code).to.eq(`auth/${AuthErrorCode.EMAIL_EXISTS}`);
+        expect(e.email).to.eq('email@test.com');
+        expect(e.phoneNumber).to.eq('+1555-this-is-a-number');
+      }
     });
   });
 });
