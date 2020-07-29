@@ -195,9 +195,7 @@ export class FirestoreClient {
     });
 
     // Block the async queue until initialization is done
-    this.asyncQueue.enqueueAndForget(() => {
-      return this.initializationDone.promise;
-    });
+    this.asyncQueue.enqueueAndForget(() => this.initializationDone.promise);
 
     // Return only the result of enabling persistence. Note that this does not
     // need to await the completion of initializationDone because the result of
@@ -409,8 +407,8 @@ export class FirestoreClient {
     docKey: DocumentKey
   ): Promise<Document | null> {
     this.verifyNotTerminated();
-    await this.initializationDone;
-    return enqueueReadDocumentFromLocalCache(
+    await this.initializationDone.promise;
+    return enqueueReadDocumentFromCache(
       this.asyncQueue,
       this.localStore,
       docKey
@@ -419,8 +417,8 @@ export class FirestoreClient {
 
   async getDocumentsFromLocalCache(query: Query): Promise<ViewSnapshot> {
     this.verifyNotTerminated();
-    await this.initializationDone;
-    return enqueueExecuteQueryFromLocalCache(
+    await this.initializationDone.promise;
+    return enqueueExecuteQueryFromCache(
       this.asyncQueue,
       this.localStore,
       query
@@ -540,7 +538,7 @@ export function enqueueSnapshotsInSyncListen(
   };
 }
 
-export async function enqueueReadDocumentFromLocalCache(
+export async function enqueueReadDocumentFromCache(
   asyncQueue: AsyncQueue,
   localStore: LocalStore,
   docKey: DocumentKey
@@ -575,7 +573,7 @@ export async function enqueueReadDocumentFromLocalCache(
   return deferred.promise;
 }
 
-export async function enqueueExecuteQueryFromLocalCache(
+export async function enqueueExecuteQueryFromCache(
   asyncQueue: AsyncQueue,
   localStore: LocalStore,
   query: Query
