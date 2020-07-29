@@ -64,17 +64,17 @@ export class GoogleAuthProvider extends OAuthProvider {
       return null;
     }
 
-    const {oauthIdToken, oauthAccessToken} = tokenResponse as SignInWithIdpResponse;
+    const {
+      oauthIdToken,
+      oauthAccessToken
+    } = tokenResponse as SignInWithIdpResponse;
     if (!oauthIdToken && !oauthAccessToken) {
       // This could be an oauth 1 credential or a phone credential
       return null;
     }
 
     try {
-      return GoogleAuthProvider.credential(
-        oauthIdToken,
-        oauthAccessToken,
-      );
+      return GoogleAuthProvider.credential(oauthIdToken, oauthAccessToken);
     } catch {
       return null;
     }

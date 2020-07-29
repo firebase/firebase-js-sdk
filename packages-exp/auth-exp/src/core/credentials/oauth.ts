@@ -18,7 +18,10 @@
 import * as externs from '@firebase/auth-types-exp';
 import { querystring } from '@firebase/util';
 
-import { signInWithIdp, SignInWithIdpRequest } from '../../api/authentication/idp';
+import {
+  signInWithIdp,
+  SignInWithIdpRequest
+} from '../../api/authentication/idp';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
