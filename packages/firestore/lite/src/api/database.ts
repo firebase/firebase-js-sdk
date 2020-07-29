@@ -30,7 +30,6 @@ import {
 } from '../../../src/api/credentials';
 import { cast } from './util';
 import { removeComponents } from './components';
-import { debugAssert } from '../../../src/util/assert';
 
 /**
  * The root reference to the Firestore Lite database.
