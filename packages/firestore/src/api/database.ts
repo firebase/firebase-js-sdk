@@ -83,7 +83,6 @@ import { getLogLevel, logError, LogLevel, setLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
-
 import {
   CredentialsProvider,
   CredentialsSettings,
@@ -1234,9 +1233,9 @@ export class DocumentReference<T = firestore.DocumentData>
     validateBetweenNumberOfArgs('DocumentReference.get', arguments, 0, 1);
     validateGetOptions('DocumentReference.get', options);
 
+    const firestoreClient = this.firestore.ensureClientConfigured();
     if (options && options.source === 'cache') {
-      return this.firestore
-        .ensureClientConfigured()
+      return firestoreClient
         .getDocumentFromLocalCache(this._key)
         .then(
           doc =>
@@ -1250,11 +1249,9 @@ export class DocumentReference<T = firestore.DocumentData>
             )
         );
     } else {
-      return getDocViaSnapshotListener(
-        this._firestoreClient,
-        this._key,
-        options
-      ).then(snapshot => this._convertToDocSnapshot(snapshot));
+      return firestoreClient
+        .getDocumentViaSnapshotListener(this._key, options)
+        .then(snapshot => this._convertToDocSnapshot(snapshot));
     }
   }
 
@@ -1284,68 +1281,6 @@ export class DocumentReference<T = firestore.DocumentData>
       this._converter
     );
   }
-}
-
-/**
- * Retrieves a latency-compensated document from the backend via a
- * SnapshotListener.
- */
-export function getDocViaSnapshotListener(
-  firestoreClient: FirestoreClient,
-  key: DocumentKey,
-  options?: firestore.GetOptions
-): Promise<ViewSnapshot> {
-  const result = new Deferred<ViewSnapshot>();
-  const unlisten = firestoreClient.listen(
-    newQueryForPath(key.path),
-    {
-      includeMetadataChanges: true,
-      waitForSyncWhenOnline: true
-    },
-    {
-      next: (snap: ViewSnapshot) => {
-        // Remove query first before passing event to user to avoid
-        // user actions affecting the now stale query.
-        unlisten();
-
-        const exists = snap.docs.has(key);
-        if (!exists && snap.fromCache) {
-          // TODO(dimond): If we're online and the document doesn't
-          // exist then we resolve with a doc.exists set to false. If
-          // we're offline however, we reject the Promise in this
-          // case. Two options: 1) Cache the negative response from
-          // the server so we can deliver that even when you're
-          // offline 2) Actually reject the Promise in the online case
-          // if the document doesn't exist.
-          result.reject(
-            new FirestoreError(
-              Code.UNAVAILABLE,
-              'Failed to get document because the client is ' + 'offline.'
-            )
-          );
-        } else if (
-          exists &&
-          snap.fromCache &&
-          options &&
-          options.source === 'server'
-        ) {
-          result.reject(
-            new FirestoreError(
-              Code.UNAVAILABLE,
-              'Failed to get document from server. (However, this ' +
-                'document does exist in the local cache. Run again ' +
-                'without setting source to "server" to ' +
-                'retrieve the cached document.)'
-            )
-          );
-        } else {
-          result.resolve(snap);
-        }
-      },
-      error: e => result.reject(e)
-    }
-  );
-  return result.promise;
 }
 
 export class SnapshotMetadata implements firestore.SnapshotMetadata {
@@ -2170,54 +2105,12 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
     const firestoreClient = this.firestore.ensureClientConfigured();
     return (options && options.source === 'cache'
       ? firestoreClient.getDocumentsFromLocalCache(this._query)
-      : getDocsViaSnapshotListener(firestoreClient, this._query, options)
+      : firestoreClient.getDocumentsViaSnapshotListener(this._query, options)
     ).then(
       snap =>
         new QuerySnapshot(this.firestore, this._query, snap, this._converter)
     );
   }
-}
-
-/**
- * Retrieves a latency-compensated query snapshot from the backend via a
- * SnapshotListener.
- */
-export function getDocsViaSnapshotListener(
-  firestore: FirestoreClient,
-  query: InternalQuery,
-  options?: firestore.GetOptions
-): Promise<ViewSnapshot> {
-  const result = new Deferred<ViewSnapshot>();
-  const unlisten = firestore.listen(
-    query,
-    {
-      includeMetadataChanges: true,
-      waitForSyncWhenOnline: true
-    },
-    {
-      next: snapshot => {
-        // Remove query first before passing event to user to avoid
-        // user actions affecting the now stale query.
-        unlisten();
-
-        if (snapshot.fromCache && options && options.source === 'server') {
-          result.reject(
-            new FirestoreError(
-              Code.UNAVAILABLE,
-              'Failed to get documents from server. (However, these ' +
-                'documents may exist in the local cache. Run again ' +
-                'without setting source to "server" to ' +
-                'retrieve the cached documents.)'
-            )
-          );
-        } else {
-          result.resolve(snapshot);
-        }
-      },
-      error: e => result.reject(e)
-    }
-  );
-  return result.promise;
 }
 
 export class QuerySnapshot<T = firestore.DocumentData>

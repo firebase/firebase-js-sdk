@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { GetOptions } from '@firebase/firestore-types';
+
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
@@ -38,7 +40,7 @@ import { View } from './view';
 import { SharedClientState } from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
 import { DatabaseId, DatabaseInfo } from './database_info';
-import { Query } from './query';
+import { newQueryForPath, Query } from './query';
 import { Transaction } from './transaction';
 import { ViewSnapshot } from './view_snapshot';
 import {
@@ -48,6 +50,7 @@ import {
 } from './component_provider';
 import { PartialObserver, Unsubscribe } from '../api/observer';
 import { AsyncObserver } from '../util/async_observer';
+import { debugAssert } from '../util/assert';
 
 const LOG_TAG = 'FirestoreClient';
 const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -415,6 +418,20 @@ export class FirestoreClient {
     );
   }
 
+  async getDocumentViaSnapshotListener(
+    key: DocumentKey,
+    options?: GetOptions
+  ): Promise<ViewSnapshot> {
+    this.verifyNotTerminated();
+    await this.initializationDone.promise;
+    return enqueueReadDocumentViaSnapshotListener(
+      this.asyncQueue,
+      this.eventMgr,
+      key,
+      options
+    );
+  }
+
   async getDocumentsFromLocalCache(query: Query): Promise<ViewSnapshot> {
     this.verifyNotTerminated();
     await this.initializationDone.promise;
@@ -422,6 +439,20 @@ export class FirestoreClient {
       this.asyncQueue,
       this.localStore,
       query
+    );
+  }
+
+  async getDocumentsViaSnapshotListener(
+    query: Query,
+    options?: GetOptions
+  ): Promise<ViewSnapshot> {
+    this.verifyNotTerminated();
+    await this.initializationDone.promise;
+    return enqueueExecuteQueryViaSnapshotListener(
+      this.asyncQueue,
+      this.eventMgr,
+      query,
+      options
     );
   }
 
@@ -573,6 +604,75 @@ export async function enqueueReadDocumentFromCache(
   return deferred.promise;
 }
 
+/**
+ * Retrieves a latency-compensated document from the backend via a
+ * SnapshotListener.
+ */
+export function enqueueReadDocumentViaSnapshotListener(
+  asyncQueue: AsyncQueue,
+  eventManager: EventManager,
+  key: DocumentKey,
+  options?: GetOptions
+): Promise<ViewSnapshot> {
+  const result = new Deferred<ViewSnapshot>();
+  const unlisten = enqueueListen(
+    asyncQueue,
+    eventManager,
+    newQueryForPath(key.path),
+    {
+      includeMetadataChanges: true,
+      waitForSyncWhenOnline: true
+    },
+    {
+      next: (snap: ViewSnapshot) => {
+        // Remove query first before passing event to user to avoid
+        // user actions affecting the now stale query.
+        unlisten();
+
+        const exists = snap.docs.has(key);
+        if (!exists && snap.fromCache) {
+          // TODO(dimond): If we're online and the document doesn't
+          // exist then we resolve with a doc.exists set to false. If
+          // we're offline however, we reject the Promise in this
+          // case. Two options: 1) Cache the negative response from
+          // the server so we can deliver that even when you're
+          // offline 2) Actually reject the Promise in the online case
+          // if the document doesn't exist.
+          result.reject(
+            new FirestoreError(
+              Code.UNAVAILABLE,
+              'Failed to get document because the client is ' + 'offline.'
+            )
+          );
+        } else if (
+          exists &&
+          snap.fromCache &&
+          options &&
+          options.source === 'server'
+        ) {
+          result.reject(
+            new FirestoreError(
+              Code.UNAVAILABLE,
+              'Failed to get document from server. (However, this ' +
+                'document does exist in the local cache. Run again ' +
+                'without setting source to "server" to ' +
+                'retrieve the cached document.)'
+            )
+          );
+        } else {
+          debugAssert(
+            snap.docs.size <= 1,
+            'Expected zero or a single result on a document-only query'
+          );
+          result.resolve(snap);
+        }
+      },
+      error: e => result.reject(e)
+    }
+  );
+  return result.promise;
+}
+
 export async function enqueueExecuteQueryFromCache(
   asyncQueue: AsyncQueue,
   localStore: LocalStore,
@@ -601,4 +701,49 @@ export async function enqueueExecuteQueryFromCache(
     }
   });
   return deferred.promise;
+}
+
+/**
+ * Retrieves a latency-compensated query snapshot from the backend via a
+ * SnapshotListener.
+ */
+export function enqueueExecuteQueryViaSnapshotListener(
+  asyncQueue: AsyncQueue,
+  eventManager: EventManager,
+  query: Query,
+  options?: GetOptions
+): Promise<ViewSnapshot> {
+  const result = new Deferred<ViewSnapshot>();
+  const unlisten = enqueueListen(
+    asyncQueue,
+    eventManager,
+    query,
+    {
+      includeMetadataChanges: true,
+      waitForSyncWhenOnline: true
+    },
+    {
+      next: snapshot => {
+        // Remove query first before passing event to user to avoid
+        // user actions affecting the now stale query.
+        unlisten();
+
+        if (snapshot.fromCache && options && options.source === 'server') {
+          result.reject(
+            new FirestoreError(
+              Code.UNAVAILABLE,
+              'Failed to get documents from server. (However, these ' +
+                'documents may exist in the local cache. Run again ' +
+                'without setting source to "server" to ' +
+                'retrieve the cached documents.)'
+            )
+          );
+        } else {
+          result.resolve(snapshot);
+        }
+      },
+      error: e => result.reject(e)
+    }
+  );
+  return result.promise;
 }
