@@ -17,18 +17,13 @@
 
 import { FirebaseError, querystring } from '@firebase/util';
 
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
+import { AUTH_ERROR_FACTORY, AuthErrorCode, NamedErrorParams } from '../core/errors';
+import { fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { Auth } from '../model/auth';
-import { IdTokenResponse } from '../model/id_token';
-import {
-  JsonError,
-  SERVER_ERROR_MAP,
-  ServerError,
-  ServerErrorMap
-} from './errors';
-import { fail } from '../core/util/assert';
+import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';
+import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
 
 export enum HttpMethod {
   POST = 'POST',
@@ -121,11 +116,22 @@ export async function _performFetchWithErrorHandling<V>(
       fetchFn(),
       makeNetworkTimeout(auth.name)
     ]);
+
+    const json = await response.json();
+    if ('needConfirmation' in json) {
+      throw makeTaggedError(auth, AuthErrorCode.NEED_CONFIRMATION, json);
+    }
+
     if (response.ok) {
-      return response.json();
+      return json;
     } else {
-      const json: JsonError = await response.json();
       const serverErrorCode = json.error.message.split(' : ')[0] as ServerError;
+      if (serverErrorCode === ServerError.FEDERATED_USER_ID_ALREADY_LINKED) {
+        throw makeTaggedError(auth, AuthErrorCode.CREDENTIAL_ALREADY_IN_USE, json);
+      } else if (serverErrorCode === ServerError.EMAIL_EXISTS) {
+        throw makeTaggedError(auth, AuthErrorCode.EMAIL_EXISTS, json);
+      }
+
       const authError = errorMap[serverErrorCode];
       if (authError) {
         fail(auth.name, authError);
@@ -179,3 +185,26 @@ function makeNetworkTimeout<T>(appName: string): Promise<T> {
     }, DEFAULT_API_TIMEOUT_MS.get())
   );
 }
+
+interface PotentialResponse extends IdTokenResponse {
+  email?: string;
+  phoneNumber?: string;
+}
+
+function makeTaggedError({name}: Auth, code: AuthErrorCode, response: PotentialResponse): FirebaseError {
+  const errorParams: NamedErrorParams = {
+    appName: name,
+  };
+
+  if (response.email) {
+    errorParams.email = response.email;
+  }
+  if (response.phoneNumber) {
+    errorParams.phoneNumber = response.phoneNumber;
+  }
+
+  const error = AUTH_ERROR_FACTORY.create(code, {appName: name});
+  (error as TaggedWithTokenResponse)._tokenResponse = response;
+  return error;
+}
+
