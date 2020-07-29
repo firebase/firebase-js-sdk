@@ -1,5 +1,5 @@
 {
-  "name": "@firebase/performance-types",
+  "name": "@firebase/performance-types-exp",
   "version": "0.0.13",
   "description": "@firebase/performance Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -15,7 +15,7 @@
     "typescript": "3.9.6"
   },
   "repository": {
-    "directory": "packages/performance-types",
+    "directory": "packages/performance-types-exp",
     "type": "git",
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
