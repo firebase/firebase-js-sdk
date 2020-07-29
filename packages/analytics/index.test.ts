@@ -73,19 +73,24 @@ describe('FirebaseAnalytics instance tests', () => {
       measurementId: fakeMeasurementId
     });
     const installations = getFakeInstallations();
+    stubFetch(200, { measurementId: fakeMeasurementId });
     analyticsFactory(app, installations);
     expect(consoleStub.args[0][1]).to.include(fakeMeasurementId);
     consoleStub.restore();
+    fetchStub.restore();
   });
   it('Throws if creating an instance with already-used analytics ID', () => {
     const app = getFakeApp(fakeAppParams);
     const installations = getFakeInstallations();
     resetGlobalVars(false, { [fakeAppParams.appId]: Promise.resolve() });
+    stubFetch(200, { measurementId: fakeMeasurementId });
     expect(() => analyticsFactory(app, installations)).to.throw(
       'already exists'
     );
+    fetchStub.restore();
   });
-  describe('Standard app, page already has user gtag script', () => {
+  // eslint-disable-next-line no-restricted-properties
+  describe.only('Standard app, page already has user gtag script', () => {
     let app: FirebaseApp = {} as FirebaseApp;
     let fidDeferred: Deferred<void>;
     before(() => {
@@ -93,12 +98,8 @@ describe('FirebaseAnalytics instance tests', () => {
 
       app = getFakeApp(fakeAppParams);
       fidDeferred = new Deferred<void>();
-      const installations = getFakeInstallations('fid-1234', () =>
-        fidDeferred.resolve()
-      );
       window['gtag'] = gtagStub;
       window['dataLayer'] = [];
-      analyticsInstance = analyticsFactory(app, installations);
     });
     after(() => {
       delete window['gtag'];
@@ -108,11 +109,12 @@ describe('FirebaseAnalytics instance tests', () => {
     afterEach(() => {
       gtagStub.reset();
     });
-    it('Contains reference to parent app', () => {
-      expect(analyticsInstance.app).to.equal(app);
-    });
     it('Calls gtag correctly on logEvent (instance)', async () => {
+      const installations = getFakeInstallations('fid-1234', () =>
+        fidDeferred.resolve()
+      );
       stubFetch(200, { measurementId: fakeMeasurementId });
+      analyticsInstance = analyticsFactory(app, installations);
       analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
@@ -137,7 +139,6 @@ describe('FirebaseAnalytics instance tests', () => {
           currency: 'USD'
         }
       );
-      fetchStub.restore();
     });
     it('setCurrentScreen() method exists on instance', () => {
       expect(analyticsInstance.setCurrentScreen).to.be.instanceOf(Function);
@@ -152,6 +153,9 @@ describe('FirebaseAnalytics instance tests', () => {
       expect(analyticsInstance.setAnalyticsCollectionEnabled).to.be.instanceOf(
         Function
       );
+    });
+    it('Contains reference to parent app', () => {
+      expect(analyticsInstance.app).to.equal(app);
     });
   });
 
@@ -170,18 +174,19 @@ describe('FirebaseAnalytics instance tests', () => {
         dataLayerName: customDataLayerName,
         gtagName: customGtagName
       });
+      stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance = analyticsFactory(app, installations);
     });
     after(() => {
       delete window[customGtagName];
       delete window[customDataLayerName];
       removeGtagScript();
+      fetchStub.restore();
     });
     afterEach(() => {
       gtagStub.reset();
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
-      stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
