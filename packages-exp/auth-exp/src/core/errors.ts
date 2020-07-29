@@ -18,6 +18,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as externs from '@firebase/auth-types-exp';
 import { ErrorFactory, ErrorMap } from '@firebase/util';
+
 import { AppName } from '../model/auth';
 
 /*
@@ -328,6 +329,16 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
   [AuthErrorCode.WEB_STORAGE_UNSUPPORTED]:
     'This browser is not supported or 3rd party cookies and data may be disabled.'
 };
+
+export interface NamedErrorParams {
+  appName: AppName;
+  credential?: externs.AuthCredential;
+  email?: string;
+  phoneNumber?: string;
+  tenantId?: string;
+  user?: externs.User;
+  serverResponse?: object;
+}
 
 type AuthErrorParams = {
   [key in AuthErrorCode]: {
