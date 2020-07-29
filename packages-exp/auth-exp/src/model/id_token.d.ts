@@ -17,6 +17,8 @@
 
 import { ProviderId } from '@firebase/auth-types-exp';
 
+import { PhoneOrOauthTokenResponse } from '../api/authentication/mfa';
+
 /**
  * Raw encoded JWT
  */
@@ -79,4 +81,8 @@ export const enum IdTokenResponseKind {
   VerifyAssertion = 'identitytoolkit#VerifyAssertionResponse',
   VerifyCustomToken = 'identitytoolkit#VerifyCustomTokenResponse',
   VerifyPassword = 'identitytoolkit#VerifyPasswordResponse'
+}
+
+export interface TaggedWithTokenResponse {
+  _tokenResponse?: PhoneOrOauthTokenResponse;
 }
