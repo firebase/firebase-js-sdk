@@ -98,7 +98,7 @@ describe('FirebaseAnalytics methods', () => {
     expect(gtagStub).to.have.been.calledWith(
       GtagCommand.EVENT,
       EventName.ADD_TO_CART,
-      {}
+      undefined
     );
   });
 
