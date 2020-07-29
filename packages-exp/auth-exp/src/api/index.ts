@@ -17,7 +17,11 @@
 
 import { FirebaseError, querystring } from '@firebase/util';
 
-import { AUTH_ERROR_FACTORY, AuthErrorCode, NamedErrorParams } from '../core/errors';
+import {
+  AUTH_ERROR_FACTORY,
+  AuthErrorCode,
+  NamedErrorParams
+} from '../core/errors';
 import { fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { Auth } from '../model/auth';
@@ -127,7 +131,11 @@ export async function _performFetchWithErrorHandling<V>(
     } else {
       const serverErrorCode = json.error.message.split(' : ')[0] as ServerError;
       if (serverErrorCode === ServerError.FEDERATED_USER_ID_ALREADY_LINKED) {
-        throw makeTaggedError(auth, AuthErrorCode.CREDENTIAL_ALREADY_IN_USE, json);
+        throw makeTaggedError(
+          auth,
+          AuthErrorCode.CREDENTIAL_ALREADY_IN_USE,
+          json
+        );
       } else if (serverErrorCode === ServerError.EMAIL_EXISTS) {
         throw makeTaggedError(auth, AuthErrorCode.EMAIL_EXISTS, json);
       }
@@ -191,9 +199,13 @@ interface PotentialResponse extends IdTokenResponse {
   phoneNumber?: string;
 }
 
-function makeTaggedError({name}: Auth, code: AuthErrorCode, response: PotentialResponse): FirebaseError {
+function makeTaggedError(
+  { name }: Auth,
+  code: AuthErrorCode,
+  response: PotentialResponse
+): FirebaseError {
   const errorParams: NamedErrorParams = {
-    appName: name,
+    appName: name
   };
 
   if (response.email) {
@@ -207,4 +219,3 @@ function makeTaggedError({name}: Auth, code: AuthErrorCode, response: PotentialR
   (error as TaggedWithTokenResponse)._tokenResponse = response;
   return error;
 }
-

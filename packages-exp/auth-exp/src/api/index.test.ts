@@ -26,7 +26,13 @@ import { testAuth } from '../../test/helpers/mock_auth';
 import * as mockFetch from '../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../core/errors';
 import { Auth } from '../model/auth';
-import { _performApiRequest, DEFAULT_API_TIMEOUT_MS, Endpoint, HttpHeader, HttpMethod } from './';
+import {
+  _performApiRequest,
+  DEFAULT_API_TIMEOUT_MS,
+  Endpoint,
+  HttpHeader,
+  HttpMethod
+} from './';
 import { ServerError } from './errors';
 
 use(chaiAsPromised);
@@ -254,19 +260,21 @@ describe('api/_performApiRequest', () => {
     it('should generate a need_conirmation error with the response', async () => {
       mockEndpoint(Endpoint.SIGN_UP, {
         needConfirmation: true,
-        idToken: 'id-token',
+        idToken: 'id-token'
       });
       try {
-        await _performApiRequest<
-        typeof request,
-        typeof serverResponse
-      >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
-        assert.fail('Call should have failed')
+        await _performApiRequest<typeof request, typeof serverResponse>(
+          auth,
+          HttpMethod.POST,
+          Endpoint.SIGN_UP,
+          request
+        );
+        assert.fail('Call should have failed');
       } catch (e) {
         expect(e.code).to.eq(`auth/${AuthErrorCode.NEED_CONFIRMATION}`);
         expect(e._tokenResponse).to.eql({
           needConfirmation: true,
-        idToken: 'id-token',
+          idToken: 'id-token'
         });
       }
     });
@@ -283,15 +291,15 @@ describe('api/_performApiRequest', () => {
           ]
         }
       };
-      mockEndpoint(Endpoint.SIGN_UP,
-        response,
-        400);
+      mockEndpoint(Endpoint.SIGN_UP, response, 400);
       try {
-        await _performApiRequest<
-        typeof request,
-        typeof serverResponse
-      >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
-        assert.fail('Call should have failed')
+        await _performApiRequest<typeof request, typeof serverResponse>(
+          auth,
+          HttpMethod.POST,
+          Endpoint.SIGN_UP,
+          request
+        );
+        assert.fail('Call should have failed');
       } catch (e) {
         expect(e.code).to.eq(`auth/${AuthErrorCode.CREDENTIAL_ALREADY_IN_USE}`);
         expect(e._tokenResponse).to.eql(response);
@@ -310,17 +318,17 @@ describe('api/_performApiRequest', () => {
           ]
         },
         email: 'email@test.com',
-        phoneNumber: '+1555-this-is-a-number',
+        phoneNumber: '+1555-this-is-a-number'
       };
-      mockEndpoint(Endpoint.SIGN_UP,
-        response,
-        400);
+      mockEndpoint(Endpoint.SIGN_UP, response, 400);
       try {
-        await _performApiRequest<
-        typeof request,
-        typeof serverResponse
-      >(auth, HttpMethod.POST, Endpoint.SIGN_UP, request);
-        assert.fail('Call should have failed')
+        await _performApiRequest<typeof request, typeof serverResponse>(
+          auth,
+          HttpMethod.POST,
+          Endpoint.SIGN_UP,
+          request
+        );
+        assert.fail('Call should have failed');
       } catch (e) {
         expect(e.code).to.eq(`auth/${AuthErrorCode.EMAIL_EXISTS}`);
         expect(e.email).to.eq('email@test.com');

@@ -349,7 +349,7 @@ type AuthErrorParams = {
     tenantId?: string;
     user?: externs.User;
     serverResponse?: object;
-  }
+  };
 };
 
 export const AUTH_ERROR_FACTORY = new ErrorFactory<
