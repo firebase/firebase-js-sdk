@@ -489,7 +489,7 @@ export function enqueueNetworkEnabled(
   enabled: boolean
 ): Promise<void> {
   return asyncQueue.enqueue(() => {
-    persistence.setNetworkEnabled(true);
+    persistence.setNetworkEnabled(enabled);
     return enabled ? remoteStore.enableNetwork() : remoteStore.disableNetwork();
   });
 }
