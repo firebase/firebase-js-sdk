@@ -208,12 +208,10 @@ export class FirestoreClient {
   /** Enables the network connection and requeues all pending operations. */
   enableNetwork(): Promise<void> {
     this.verifyNotTerminated();
-    return enqueueNetworkEnabled(
-      this.asyncQueue,
-      this.remoteStore,
-      this.persistence,
-      /* enabled= */ true
-    );
+    return this.asyncQueue.enqueue(() => {
+      this.persistence.setNetworkEnabled(true);
+      return this.remoteStore.enableNetwork();
+    });
   }
 
   /**
@@ -353,12 +351,10 @@ export class FirestoreClient {
   /** Disables the network connection. Pending operations will not complete. */
   disableNetwork(): Promise<void> {
     this.verifyNotTerminated();
-    return enqueueNetworkEnabled(
-      this.asyncQueue,
-      this.remoteStore,
-      this.persistence,
-      /* enabled= */ false
-    );
+    return this.asyncQueue.enqueue(() => {
+      this.persistence.setNetworkEnabled(false);
+      return this.remoteStore.disableNetwork();
+    });
   }
 
   terminate(): Promise<void> {
@@ -386,50 +382,74 @@ export class FirestoreClient {
    */
   waitForPendingWrites(): Promise<void> {
     this.verifyNotTerminated();
-    return enqueueWaitForPendingWrites(this.asyncQueue, this.syncEngine);
+
+    const deferred = new Deferred<void>();
+    this.asyncQueue.enqueueAndForget(() => {
+      return this.syncEngine.registerPendingWritesCallback(deferred);
+    });
+    return deferred.promise;
   }
 
   listen(
     query: Query,
     options: ListenOptions,
     observer: Partial<Observer<ViewSnapshot>>
-  ): Unsubscribe {
+  ): () => void {
     this.verifyNotTerminated();
-    return enqueueListen(
-      this.asyncQueue,
-      this.eventMgr,
-      query,
-      options,
-      observer
+    const wrappedObserver = new AsyncObserver(observer);
+    const listener = new QueryListener(query, wrappedObserver, options);
+    this.asyncQueue.enqueueAndForget(() => this.eventMgr.listen(listener));
+    return () => {
+      wrappedObserver.mute();
+      this.asyncQueue.enqueueAndForget(() => this.eventMgr.unlisten(listener));
+    };
+  }
+
+  async getDocumentFromLocalCache(
+    docKey: DocumentKey
+  ): Promise<Document | null> {
+    this.verifyNotTerminated();
+    const deferred = new Deferred<Document | null>();
+    await this.asyncQueue.enqueue(() =>
+      readDocument(this.localStore, docKey, deferred)
     );
+    return deferred.promise;
   }
 
-  getDocumentFromLocalCache(docKey: DocumentKey): Promise<Document | null> {
+  async getDocumentsFromLocalCache(query: Query): Promise<ViewSnapshot> {
     this.verifyNotTerminated();
-    return enqueueReadDocument(this.asyncQueue, this.localStore, docKey);
-  }
-
-  getDocumentsFromLocalCache(query: Query): Promise<ViewSnapshot> {
-    this.verifyNotTerminated();
-    return enqueueExecuteQuery(this.asyncQueue, this.localStore, query);
+    const deferred = new Deferred<ViewSnapshot>();
+    await this.asyncQueue.enqueue(() =>
+      executeQuery(this.localStore, query, deferred)
+    );
+    return deferred.promise;
   }
 
   write(mutations: Mutation[]): Promise<void> {
     this.verifyNotTerminated();
-    return enqueueWrite(this.asyncQueue, this.syncEngine, mutations);
+    const deferred = new Deferred<void>();
+    this.asyncQueue.enqueueAndForget(() =>
+      this.syncEngine.write(mutations, deferred)
+    );
+    return deferred.promise;
   }
 
   databaseId(): DatabaseId {
     return this.databaseInfo.databaseId;
   }
 
-  addSnapshotsInSyncListener(observer: Partial<Observer<void>>): Unsubscribe {
+  addSnapshotsInSyncListener(observer: Partial<Observer<void>>): () => void {
     this.verifyNotTerminated();
-    return enqueueSnapshotsInSyncListen(
-      this.asyncQueue,
-      this.eventMgr,
-      observer
+    const wrappedObserver = new AsyncObserver(observer);
+    this.asyncQueue.enqueueAndForget(async () =>
+      this.eventMgr.addSnapshotsInSyncListener(wrappedObserver)
     );
+    return () => {
+      wrappedObserver.mute();
+      this.asyncQueue.enqueueAndForget(async () =>
+        this.eventMgr.removeSnapshotsInSyncListener(wrappedObserver)
+      );
+    };
   }
 
   get clientTerminated(): boolean {
@@ -518,40 +538,71 @@ export function enqueueSnapshotsInSyncListen(
   };
 }
 
+async function readDocument(
+  localStore: LocalStore,
+  docKey: DocumentKey,
+  deferred: Deferred<Document | null>
+): Promise<void> {
+  try {
+    const maybeDoc = await localStore.readDocument(docKey);
+    if (maybeDoc instanceof Document) {
+      deferred.resolve(maybeDoc);
+    } else if (maybeDoc instanceof NoDocument) {
+      deferred.resolve(null);
+    } else {
+      deferred.reject(
+        new FirestoreError(
+          Code.UNAVAILABLE,
+          'Failed to get document from cache. (However, this document may ' +
+            "exist on the server. Run again without setting 'source' in " +
+            'the GetOptions to attempt to retrieve the document from the ' +
+            'server.)'
+        )
+      );
+    }
+  } catch (e) {
+    const firestoreError = wrapInUserErrorIfRecoverable(
+      e,
+      `Failed to get document '${docKey} from cache`
+    );
+    deferred.reject(firestoreError);
+  }
+}
+
 export async function enqueueReadDocument(
   asyncQueue: AsyncQueue,
   localStore: LocalStore,
   docKey: DocumentKey
 ): Promise<Document | null> {
   const deferred = new Deferred<Document | null>();
-  await asyncQueue.enqueue(async () => {
-    try {
-      const maybeDoc = await localStore.readDocument(docKey);
-      if (maybeDoc instanceof Document) {
-        deferred.resolve(maybeDoc);
-      } else if (maybeDoc instanceof NoDocument) {
-        deferred.resolve(null);
-      } else {
-        deferred.reject(
-          new FirestoreError(
-            Code.UNAVAILABLE,
-            'Failed to get document from cache. (However, this document may ' +
-              "exist on the server. Run again without setting 'source' in " +
-              'the GetOptions to attempt to retrieve the document from the ' +
-              'server.)'
-          )
-        );
-      }
-    } catch (e) {
-      const firestoreError = wrapInUserErrorIfRecoverable(
-        e,
-        `Failed to get document '${docKey} from cache`
-      );
-      deferred.reject(firestoreError);
-    }
-  });
-
+  await asyncQueue.enqueue(() => readDocument(localStore, docKey, deferred));
   return deferred.promise;
+}
+
+async function executeQuery(
+  localStore: LocalStore,
+  query: Query,
+  deferred: Deferred<ViewSnapshot>
+): Promise<void> {
+  try {
+    const queryResult = await localStore.executeQuery(
+      query,
+      /* usePreviousResults= */ true
+    );
+    const view = new View(query, queryResult.remoteKeys);
+    const viewDocChanges = view.computeDocChanges(queryResult.documents);
+    const viewChange = view.applyChanges(
+      viewDocChanges,
+      /* updateLimboDocuments= */ false
+    );
+    deferred.resolve(viewChange.snapshot!);
+  } catch (e) {
+    const firestoreError = wrapInUserErrorIfRecoverable(
+      e,
+      `Failed to execute query '${query} against cache`
+    );
+    deferred.reject(firestoreError);
+  }
 }
 
 export async function enqueueExecuteQuery(
@@ -560,26 +611,6 @@ export async function enqueueExecuteQuery(
   query: Query
 ): Promise<ViewSnapshot> {
   const deferred = new Deferred<ViewSnapshot>();
-  await asyncQueue.enqueue(async () => {
-    try {
-      const queryResult = await localStore.executeQuery(
-        query,
-        /* usePreviousResults= */ true
-      );
-      const view = new View(query, queryResult.remoteKeys);
-      const viewDocChanges = view.computeDocChanges(queryResult.documents);
-      const viewChange = view.applyChanges(
-        viewDocChanges,
-        /* updateLimboDocuments= */ false
-      );
-      deferred.resolve(viewChange.snapshot!);
-    } catch (e) {
-      const firestoreError = wrapInUserErrorIfRecoverable(
-        e,
-        `Failed to execute query '${query} against cache`
-      );
-      deferred.reject(firestoreError);
-    }
-  });
+  await asyncQueue.enqueue(() => executeQuery(localStore, query, deferred));
   return deferred.promise;
 }
