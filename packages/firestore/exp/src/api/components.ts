@@ -16,127 +16,161 @@
  */
 
 import { Firestore } from './database';
-import { DatabaseInfo } from '../../../src/core/database_info';
-import {
-  FirestoreClient,
-  PersistenceSettings
-} from '../../../src/core/firestore_client';
+import { PersistenceSettings } from '../../../src/core/firestore_client';
 import { Code, FirestoreError } from '../../../src/util/error';
 import {
   MemoryOfflineComponentProvider,
   OfflineComponentProvider,
   OnlineComponentProvider
 } from '../../../src/core/component_provider';
-import { DEFAULT_HOST, DEFAULT_SSL } from '../../../lite/src/api/components';
+import { LocalStore } from '../../../src/local/local_store';
+import { Deferred } from '../../../src/util/promise';
 import { logDebug } from '../../../src/util/log';
-
+import { SyncEngine } from '../../../src/core/sync_engine';
+import { RemoteStore } from '../../../src/remote/remote_store';
+import { Persistence } from '../../../src/local/persistence';
+import { EventManager } from '../../../src/core/event_manager';
+import { debugAssert } from '../../../src/util/assert';
 export const LOG_TAG = 'ComponentProvider';
 
 // The components module manages the lifetime of dependencies of the Firestore
 // client. Dependencies can be lazily constructed and only one exists per
 // Firestore instance.
 
-/**
- * An instance map that ensures only one FirestoreClient exists per Firestore
- * instance.
- */
-const firestoreClientInstances = new Map<Firestore, Promise<FirestoreClient>>();
+// Instance maps that ensures only one offline component provider exists per
+// Firestore instance.
+const offlineComponentProviders = new Map<
+  Firestore,
+  Promise<OfflineComponentProvider>
+>();
+const onlineComponentProviders = new Map<
+  Firestore,
+  Promise<OnlineComponentProvider>
+>();
 
-/**
- * Returns the initialized and started FirestoreClient for the given Firestore
- * instance. If none exists, creates a new FirestoreClient with memory
- * persistence. Callers must invoke removeFirestoreClient() when the Firestore
- * instance is terminated.
- */
-export function getFirestoreClient(
+export async function setOfflineComponentProvider(
+  firestore: Firestore,
+  persistenceSettings: PersistenceSettings,
+  offlineComponentProvider: OfflineComponentProvider
+): Promise<void> {
+  debugAssert(
+    !onlineComponentProviders.has(firestore),
+    'The offline component ' +
+      'provider must be registered before the online component provider.'
+  );
+  const configuration = await firestore._getConfiguration();
+  configuration.persistenceSettings = persistenceSettings;
+
+  const offlineDeferred = new Deferred<OfflineComponentProvider>();
+  offlineComponentProviders.set(firestore, offlineDeferred.promise);
+
+  logDebug(LOG_TAG, 'Initializing OfflineComponentProvider');
+  await offlineComponentProvider.initialize(configuration);
+  firestore._setCredentialChangeListener(user =>
+    // TODO(firestorexp): This should be a retryable IndexedDB operation
+    firestore._queue.enqueueAndForget(() =>
+      offlineComponentProvider.localStore.handleUserChange(user)
+    )
+  );
+  // When a user calls clearPersistence() in one client, all other clients
+  // need to be terminated to allow the delete to succeed.
+  offlineComponentProvider.persistence.setDatabaseDeletedListener(() =>
+    firestore.delete()
+  );
+  offlineDeferred.resolve(offlineComponentProvider);
+}
+
+export async function setOnlineComponentProvider(
+  firestore: Firestore,
+  onlineComponentProvider: OnlineComponentProvider
+): Promise<void> {
+  const onlineDeferred = new Deferred<OnlineComponentProvider>();
+  onlineComponentProviders.set(firestore, onlineDeferred.promise);
+
+  logDebug(LOG_TAG, 'Initializing OnlineComponentProvider');
+  const configuration = await firestore._getConfiguration();
+  const offlineComponentProvider = await getOfflineComponentProvider(firestore);
+  await onlineComponentProvider.initialize(
+    offlineComponentProvider,
+    configuration
+  );
+  // The CredentialChangeListener of the online component provider takes
+  // precedence over the offline component provider.
+  firestore._setCredentialChangeListener(user =>
+    firestore._queue.enqueueAndForget(() =>
+      onlineComponentProvider.remoteStore.handleCredentialChange(user)
+    )
+  );
+  onlineDeferred.resolve(onlineComponentProvider);
+}
+
+function getOfflineComponentProvider(
   firestore: Firestore
-): Promise<FirestoreClient> {
+): Promise<OfflineComponentProvider> {
+  verifyNotTerminated(firestore);
+
+  if (!offlineComponentProviders.has(firestore)) {
+    logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    setOfflineComponentProvider(
+      firestore,
+      { durable: false },
+      new MemoryOfflineComponentProvider()
+    );
+  }
+  return offlineComponentProviders.get(firestore)!;
+}
+
+function getOnlineComponentProvider(
+  firestore: Firestore
+): Promise<OnlineComponentProvider> {
+  verifyNotTerminated(firestore);
+
+  if (!onlineComponentProviders.has(firestore)) {
+    logDebug(LOG_TAG, 'Using default OnlineComponentProvider');
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    setOnlineComponentProvider(firestore, new OnlineComponentProvider());
+  }
+  return onlineComponentProviders.get(firestore)!;
+}
+
+function verifyNotTerminated(firestore: Firestore): void {
   if (firestore._terminated) {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
       'The client has already been terminated.'
     );
   }
-  if (!firestoreClientInstances.has(firestore)) {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    initializeFirestoreClient(
-      firestore,
-      new MemoryOfflineComponentProvider(),
-      new OnlineComponentProvider(),
-      {
-        durable: false
-      }
-    );
-  }
-  return firestoreClientInstances.get(firestore)!;
 }
 
-/**
- * Creates a new FirestoreClient for the given Firestore instance. Throws if the
- * instance exists.
- *
- * @param firestore The Firestore instance for which to create the
- * FirestoreClient.
- * @param offlineComponentProvider Provider that returns all components required
- * for memory-only or IndexedDB persistence.
- * @param onlineComponentProvider Provider that returns all components required
- * for online support.
- * @param persistenceSettings Settings for the component provider.
- */
-export function initializeFirestoreClient(
-  firestore: Firestore,
-  offlineComponentProvider: OfflineComponentProvider,
-  onlineComponentProvider: OnlineComponentProvider,
-  persistenceSettings: PersistenceSettings
-): Promise<void> {
-  if (firestoreClientInstances.has(firestore)) {
-    throw new FirestoreError(
-      Code.FAILED_PRECONDITION,
-      'Firestore has already been started and persistence can no longer ' +
-        'be enabled. You can only enable persistence before calling ' +
-        'any other methods on a Firestore object.'
-    );
-  }
-  logDebug(LOG_TAG, 'Initializing FirestoreClient');
-  const settings = firestore._getSettings();
-  const databaseInfo = new DatabaseInfo(
-    firestore._databaseId,
-    firestore._persistenceKey,
-    settings.host ?? DEFAULT_HOST,
-    settings.ssl ?? DEFAULT_SSL,
-    /** forceLongPolling= */ false
+export function getSyncEngine(firestore: Firestore): Promise<SyncEngine> {
+  return getOnlineComponentProvider(firestore).then(
+    components => components.syncEngine
   );
-  const firestoreClient = new FirestoreClient(
-    firestore._credentials,
-    firestore._queue
-  );
-  const initializationPromise = firestoreClient.start(
-    databaseInfo,
-    offlineComponentProvider,
-    onlineComponentProvider,
-    persistenceSettings
-  );
-  firestoreClientInstances.set(
-    firestore,
-    initializationPromise.then(() => firestoreClient)
-  );
-  return initializationPromise;
 }
 
-/**
- * Removes and terminates the FirestoreClient for the given instance if it has
- * been started.
- */
-export async function removeFirestoreClient(
-  firestore: Firestore
-): Promise<void> {
-  const firestoreClientPromise = firestoreClientInstances.get(firestore);
-  if (firestoreClientPromise) {
-    firestoreClientInstances.delete(firestore);
-    return firestoreClientPromise.then(firestoreClient =>
-      firestoreClient.terminate()
-    );
-  }
+export function getRemoteStore(firestore: Firestore): Promise<RemoteStore> {
+  return getOnlineComponentProvider(firestore).then(
+    components => components.remoteStore
+  );
+}
+
+export function getEventManager(firestore: Firestore): Promise<EventManager> {
+  return getOnlineComponentProvider(firestore).then(
+    components => components.eventManager
+  );
+}
+
+export function getPersistence(firestore: Firestore): Promise<Persistence> {
+  return getOfflineComponentProvider(firestore).then(
+    components => components.persistence
+  );
+}
+
+export function getLocalStore(firestore: Firestore): Promise<LocalStore> {
+  return getOfflineComponentProvider(firestore).then(
+    provider => provider.localStore
+  );
 }
 
 /**
@@ -144,10 +178,21 @@ export async function removeFirestoreClient(
  * when the Firestore instance is terminated.
  */
 export async function removeComponents(firestore: Firestore): Promise<void> {
-  const firestoreClientPromise = firestoreClientInstances.get(firestore);
-  if (firestoreClientPromise) {
-    logDebug(LOG_TAG, 'Removing FirestoreClient');
-    firestoreClientInstances.delete(firestore);
-    return (await firestoreClientPromise).terminate();
+  const onlineComponentProviderPromise = onlineComponentProviders.get(
+    firestore
+  );
+  if (onlineComponentProviderPromise) {
+    logDebug(LOG_TAG, 'Removing OnlineComponentProvider');
+    onlineComponentProviders.delete(firestore);
+    await (await onlineComponentProviderPromise).terminate();
+  }
+
+  const offlineComponentProviderPromise = offlineComponentProviders.get(
+    firestore
+  );
+  if (offlineComponentProviderPromise) {
+    logDebug(LOG_TAG, 'Removing OfflineComponentProvider');
+    offlineComponentProviders.delete(firestore);
+    await (await offlineComponentProviderPromise).terminate();
   }
 }
