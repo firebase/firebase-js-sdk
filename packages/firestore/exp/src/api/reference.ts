@@ -63,8 +63,7 @@ export function getDoc<T>(
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
   return getFirestoreClient(firestore).then(async firestoreClient => {
-    const viewSnapshot = await firestoreClient.getDocumentFromLocalCache(
-      firestoreClient,
+    const viewSnapshot = await firestoreClient.getDocumentViaSnapshotListener(
       ref._key
     );
     return convertToDocSnapshot(firestore, ref, viewSnapshot);
