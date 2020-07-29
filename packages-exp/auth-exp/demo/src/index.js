@@ -55,6 +55,7 @@ import {
   verifyPasswordResetCode,
   getMultiFactorResolver,
   OAuthProvider,
+  GoogleAuthProvider,
   signInWithPopup,
   linkWithPopup,
   reauthenticateWithPopup,
@@ -1214,20 +1215,20 @@ function onPopupRedirectSamlProviderClick() {
  */
 function onPopupRedirectProviderClick(_event) {
   const providerId = $(event.currentTarget).data('provider');
-  const provider = null;
+  let provider = null;
   switch (providerId) {
-    //   case 'google.com':
-    //     provider = new GoogleAuthProvider();
-    //     break;
-    //   case 'facebook.com':
-    //     provider = new FacebookAuthProvider();
-    //     break;
-    //   case 'github.com':
-    //     provider = new GithubAuthProvider();
-    //     break;
-    //   case 'twitter.com':
-    //     provider = new TwitterAuthProvider();
-    //     break;
+    case 'google.com':
+      provider = new GoogleAuthProvider();
+      break;
+    // case 'facebook.com':
+    //   provider = new FacebookAuthProvider();
+    //   break;
+    // case 'github.com':
+    //   provider = new GithubAuthProvider();
+    //   break;
+    // case 'twitter.com':
+    //   provider = new TwitterAuthProvider();
+    //   break;
     default:
       return;
   }

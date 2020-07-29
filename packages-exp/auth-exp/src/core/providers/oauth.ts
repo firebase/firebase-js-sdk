@@ -17,7 +17,6 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { AuthErrorCode } from '../errors';
 import { debugFail } from '../util/assert';
 
 export type CustomParameters = Record<string, string>;
@@ -33,16 +32,7 @@ export class OAuthProvider implements externs.AuthProvider {
   private scopes: string[] = [];
   private customParameters: CustomParameters = {};
   constructor(readonly providerId: externs.ProviderId) {}
-  static credentialFromResult(
-    _userCredential: externs.UserCredential
-  ): externs.OAuthCredential | null {
-    debugFail('not implemented');
-  }
-  static credentialFromError(
-    _error: AuthErrorCode
-  ): externs.OAuthCredential | null {
-    debugFail('not implemented');
-  }
+
   static credentialFromJSON(_json: object): externs.OAuthCredential {
     debugFail('not implemented');
   }
