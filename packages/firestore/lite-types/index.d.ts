@@ -310,7 +310,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>>;
-export function getQuery<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
 export function addDoc<T>(
   reference: CollectionReference<T>,

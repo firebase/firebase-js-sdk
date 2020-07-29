@@ -31,9 +31,6 @@ import { debugAssert } from '../../../src/util/assert';
 import { cast } from '../../../lite/src/api/util';
 import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import {
-  addDocSnapshotListener,
-  addQuerySnapshotListener,
-  addSnapshotsInSyncListener,
   applyFirestoreDataConverter,
   getDocsViaSnapshotListener,
   getDocViaSnapshotListener,
@@ -59,13 +56,15 @@ import {
   PartialObserver,
   Unsubscribe
 } from '../../../src/api/observer';
+import { getFirestoreClient } from './components';
+import { newQueryForPath } from '../../../src/core/query';
 
 export function getDoc<T>(
   reference: firestore.DocumentReference<T>
 ): Promise<firestore.DocumentSnapshot<T>> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
-  return firestore._getFirestoreClient().then(async firestoreClient => {
+  return getFirestoreClient(firestore).then(async firestoreClient => {
     const viewSnapshot = await getDocViaSnapshotListener(
       firestoreClient,
       ref._key
@@ -81,7 +80,7 @@ export function getDocFromCache<T>(
 ): Promise<firestore.DocumentSnapshot<T>> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
-  return firestore._getFirestoreClient().then(async firestoreClient => {
+  return getFirestoreClient(firestore).then(async firestoreClient => {
     const doc = await firestoreClient.getDocumentFromLocalCache(ref._key);
     return new DocumentSnapshot(
       firestore,
@@ -101,7 +100,7 @@ export function getDocFromServer<T>(
 ): Promise<firestore.DocumentSnapshot<T>> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
-  return firestore._getFirestoreClient().then(async firestoreClient => {
+  return getFirestoreClient(firestore).then(async firestoreClient => {
     const viewSnapshot = await getDocViaSnapshotListener(
       firestoreClient,
       ref._key,
@@ -111,14 +110,14 @@ export function getDocFromServer<T>(
   });
 }
 
-export function getQuery<T>(
+export function getDocs<T>(
   query: firestore.Query<T>
 ): Promise<QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
   const firestore = cast<Firestore>(query.firestore, Firestore);
 
   validateHasExplicitOrderByForLimitToLast(internalQuery._query);
-  return firestore._getFirestoreClient().then(async firestoreClient => {
+  return getFirestoreClient(firestore).then(async firestoreClient => {
     const snapshot = await getDocsViaSnapshotListener(
       firestoreClient,
       internalQuery._query
@@ -127,12 +126,12 @@ export function getQuery<T>(
   });
 }
 
-export function getQueryFromCache<T>(
+export function getDocsFromCache<T>(
   query: firestore.Query<T>
 ): Promise<QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
   const firestore = cast<Firestore>(query.firestore, Firestore);
-  return firestore._getFirestoreClient().then(async firestoreClient => {
+  return getFirestoreClient(firestore).then(async firestoreClient => {
     const snapshot = await firestoreClient.getDocumentsFromLocalCache(
       internalQuery._query
     );
@@ -140,12 +139,12 @@ export function getQueryFromCache<T>(
   });
 }
 
-export function getQueryFromServer<T>(
+export function getDocsFromServer<T>(
   query: firestore.Query<T>
 ): Promise<QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
   const firestore = cast<Firestore>(query.firestore, Firestore);
-  return firestore._getFirestoreClient().then(async firestoreClient => {
+  return getFirestoreClient(firestore).then(async firestoreClient => {
     const snapshot = await getDocsViaSnapshotListener(
       firestoreClient,
       internalQuery._query,
@@ -187,11 +186,9 @@ export function setDoc<T>(
     options
   );
 
-  return firestore
-    ._getFirestoreClient()
-    .then(firestoreClient =>
-      firestoreClient.write(parsed.toMutations(ref._key, Precondition.none()))
-    );
+  return getFirestoreClient(firestore).then(firestoreClient =>
+    firestoreClient.write(parsed.toMutations(ref._key, Precondition.none()))
+  );
 }
 
 export function updateDoc(
@@ -236,13 +233,11 @@ export function updateDoc(
     );
   }
 
-  return firestore
-    ._getFirestoreClient()
-    .then(firestoreClient =>
-      firestoreClient.write(
-        parsed.toMutations(ref._key, Precondition.exists(true))
-      )
-    );
+  return getFirestoreClient(firestore).then(firestoreClient =>
+    firestoreClient.write(
+      parsed.toMutations(ref._key, Precondition.exists(true))
+    )
+  );
 }
 
 export function deleteDoc(
@@ -250,11 +245,9 @@ export function deleteDoc(
 ): Promise<void> {
   const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
   const firestore = cast(ref.firestore, Firestore);
-  return firestore
-    ._getFirestoreClient()
-    .then(firestoreClient =>
-      firestoreClient.write([new DeleteMutation(ref._key, Precondition.none())])
-    );
+  return getFirestoreClient(firestore).then(firestoreClient =>
+    firestoreClient.write([new DeleteMutation(ref._key, Precondition.none())])
+  );
 }
 
 export function addDoc<T>(
@@ -277,8 +270,7 @@ export function addDoc<T>(
     {}
   );
 
-  return firestore
-    ._getFirestoreClient()
+  return getFirestoreClient(firestore)
     .then(firestoreClient =>
       firestoreClient.write(
         parsed.toMutations(docRef._key, Precondition.exists(false))
@@ -375,7 +367,7 @@ export function onSnapshot<T>(
     args[currArg + 2] = userObserver.complete?.bind(userObserver);
   }
 
-  let asyncObserver: Promise<Unsubscribe>;
+  let asyncUnsubscribe: Promise<Unsubscribe>;
 
   if (ref instanceof DocumentReference) {
     const firestore = cast(ref.firestore, Firestore);
@@ -392,16 +384,13 @@ export function onSnapshot<T>(
       complete: args[currArg + 2] as CompleteFn
     };
 
-    asyncObserver = firestore
-      ._getFirestoreClient()
-      .then(firestoreClient =>
-        addDocSnapshotListener(
-          firestoreClient,
-          ref._key,
-          internalOptions,
-          observer
-        )
-      );
+    asyncUnsubscribe = getFirestoreClient(firestore).then(firestoreClient =>
+      firestoreClient.listen(
+        newQueryForPath(ref._key.path),
+        internalOptions,
+        observer
+      )
+    );
   } else {
     const query = cast<Query<T>>(ref, Query);
     const firestore = cast(query.firestore, Firestore);
@@ -420,23 +409,16 @@ export function onSnapshot<T>(
 
     validateHasExplicitOrderByForLimitToLast(query._query);
 
-    asyncObserver = firestore
-      ._getFirestoreClient()
-      .then(firestoreClient =>
-        addQuerySnapshotListener(
-          firestoreClient,
-          query._query,
-          internalOptions,
-          observer
-        )
-      );
+    asyncUnsubscribe = getFirestoreClient(firestore).then(firestoreClient =>
+      firestoreClient.listen(query._query, internalOptions, observer)
+    );
   }
 
   // TODO(firestorexp): Add test that verifies that we don't raise a snapshot if
   // unsubscribe is called before `asyncObserver` resolves.
   return () => {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    asyncObserver.then(unsubscribe => unsubscribe());
+    asyncUnsubscribe.then(unsubscribe => unsubscribe());
   };
 }
 
@@ -465,11 +447,11 @@ export function onSnapshotsInSync(
         next: arg as () => void
       };
 
-  const asyncObserver = firestoreImpl
-    ._getFirestoreClient()
-    .then(firestoreClient =>
-      addSnapshotsInSyncListener(firestoreClient, observer)
-    );
+  const asyncObserver = getFirestoreClient(
+    firestoreImpl
+  ).then(firestoreClient =>
+    firestoreClient.addSnapshotsInSyncListener(observer)
+  );
 
   // TODO(firestorexp): Add test that verifies that we don't raise a snapshot if
   // unsubscribe is called before `asyncObserver` resolves.

@@ -1,4 +1,13 @@
-# Unreleased
+# @firebase/performance
+
+## 0.3.10
+
+### Patch Changes
+
+- Updated dependencies [[`a87676b8`](https://github.com/firebase/firebase-js-sdk/commit/a87676b84b78ccc2f057a22eb947a5d13402949c)]:
+  - @firebase/util@0.3.0
+  - @firebase/component@0.1.17
+  - @firebase/installations@0.4.15
 
 ## 0.3.9
 
@@ -11,10 +20,10 @@
   - @firebase/installations@0.4.14
   - @firebase/logger@0.2.6
 
-# 0.3.0
+## 0.3.0
 
 - [changed] Updated internal performance event transport mechanism.
 
-# 0.2.30
+## 0.2.30
 
 - [changed] Internal transport protocol update from proto2 to proto3.

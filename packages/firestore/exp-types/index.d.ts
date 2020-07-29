@@ -373,11 +373,9 @@ export function getDocFromCache<T>(
 export function getDocFromServer<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>>;
-export function getQuery<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
-export function getQueryFromCache<T>(
-  query: Query<T>
-): Promise<QuerySnapshot<T>>;
-export function getQueryFromServer<T>(
+export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export function getDocsFromCache<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+export function getDocsFromServer<T>(
   query: Query<T>
 ): Promise<QuerySnapshot<T>>;
 

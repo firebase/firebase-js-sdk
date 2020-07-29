@@ -24,8 +24,9 @@ import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
-  ComponentProvider,
-  MemoryComponentProvider
+  MemoryOfflineComponentProvider,
+  OfflineComponentProvider,
+  OnlineComponentProvider
 } from '../core/component_provider';
 import { FirestoreClient, PersistenceSettings } from '../core/firestore_client';
 import {
@@ -59,7 +60,6 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { isServerTimestamp } from '../model/server_timestamps';
 import { refValue } from '../model/values';
 import { debugAssert, fail } from '../util/assert';
-import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import {
@@ -291,7 +291,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // underscore to discourage their use.
   readonly _databaseId: DatabaseId;
   private readonly _persistenceKey: string;
-  private readonly _componentProvider: ComponentProvider;
   private _credentials: CredentialsProvider;
   private readonly _firebaseApp: FirebaseApp | null = null;
   private _settings: FirestoreSettings;
@@ -316,7 +315,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   constructor(
     databaseIdOrApp: FirestoreDatabase | FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
-    componentProvider: ComponentProvider = new MemoryComponentProvider()
+    private _offlineComponentProvider: OfflineComponentProvider = new MemoryOfflineComponentProvider(),
+    private _onlineComponentProvider = new OnlineComponentProvider()
   ) {
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
@@ -341,7 +341,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._credentials = new EmptyCredentialsProvider();
     }
 
-    this._componentProvider = componentProvider;
     this._settings = new FirestoreSettings({});
   }
 
@@ -432,12 +431,16 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       }
     }
 
-    return this.configureClient(this._componentProvider, {
-      durable: true,
-      cacheSizeBytes: this._settings.cacheSizeBytes,
-      synchronizeTabs,
-      forceOwningTab: experimentalForceOwningTab
-    });
+    return this.configureClient(
+      this._offlineComponentProvider,
+      this._onlineComponentProvider,
+      {
+        durable: true,
+        cacheSizeBytes: this._settings.cacheSizeBytes,
+        synchronizeTabs,
+        forceOwningTab: experimentalForceOwningTab
+      }
+    );
   }
 
   async clearPersistence(): Promise<void> {
@@ -455,7 +458,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     const deferred = new Deferred<void>();
     this._queue.enqueueAndForgetEvenAfterShutdown(async () => {
       try {
-        await this._componentProvider.clearPersistence(
+        await this._offlineComponentProvider.clearPersistence(
           this._databaseId,
           this._persistenceKey
         );
@@ -488,8 +491,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     this.ensureClientConfigured();
 
     if (isPartialObserver(arg)) {
-      return addSnapshotsInSyncListener(
-        this._firestoreClient!,
+      return this._firestoreClient!.addSnapshotsInSyncListener(
         arg as PartialObserver<void>
       );
     } else {
@@ -497,7 +499,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       const observer: PartialObserver<void> = {
         next: arg as () => void
       };
-      return addSnapshotsInSyncListener(this._firestoreClient!, observer);
+      return this._firestoreClient!.addSnapshotsInSyncListener(observer);
     }
   }
 
@@ -505,9 +507,13 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.configureClient(new MemoryComponentProvider(), {
-        durable: false
-      });
+      this.configureClient(
+        new MemoryOfflineComponentProvider(),
+        new OnlineComponentProvider(),
+        {
+          durable: false
+        }
+      );
     }
     return this._firestoreClient as FirestoreClient;
   }
@@ -523,7 +529,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   private configureClient(
-    componentProvider: ComponentProvider,
+    offlineComponentProvider: OfflineComponentProvider,
+    onlineComponentProvider: OnlineComponentProvider,
     persistenceSettings: PersistenceSettings
   ): Promise<void> {
     debugAssert(!!this._settings.host, 'FirestoreSettings.host is not set');
@@ -539,7 +546,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     return this._firestoreClient.start(
       databaseInfo,
-      componentProvider,
+      offlineComponentProvider,
+      onlineComponentProvider,
       persistenceSettings
     );
   }
@@ -686,29 +694,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   _getSettings(): firestore.Settings {
     return this._settings;
   }
-}
-
-/** Registers the listener for onSnapshotsInSync() */
-export function addSnapshotsInSyncListener(
-  firestoreClient: FirestoreClient,
-  observer: PartialObserver<void>
-): Unsubscribe {
-  const errHandler = (err: Error): void => {
-    throw fail('Uncaught Error in onSnapshotsInSync');
-  };
-  const asyncObserver = new AsyncObserver<void>({
-    next: () => {
-      if (observer.next) {
-        observer.next();
-      }
-    },
-    error: errHandler
-  });
-  firestoreClient.addSnapshotsInSyncListener(asyncObserver);
-  return () => {
-    asyncObserver.mute();
-    firestoreClient.removeSnapshotsInSyncListener(asyncObserver);
-  };
 }
 
 /**
@@ -1185,7 +1170,7 @@ export class DocumentReference<T = firestore.DocumentData>
       1,
       4
     );
-    let options: firestore.SnapshotListenOptions = {
+    let options: ListenOptions = {
       includeMetadataChanges: false
     };
     let currArg = 0;
@@ -1250,9 +1235,8 @@ export class DocumentReference<T = firestore.DocumentData>
       complete: args[currArg + 2] as CompleteFn
     };
 
-    return addDocSnapshotListener(
-      this._firestoreClient,
-      this._key,
+    return this._firestoreClient.listen(
+      newQueryForPath(this._key.path),
       internalOptions,
       observer
     );
@@ -1314,40 +1298,6 @@ export class DocumentReference<T = firestore.DocumentData>
   }
 }
 
-/** Registers an internal snapshot listener for `ref`. */
-export function addDocSnapshotListener(
-  firestoreClient: FirestoreClient,
-  key: DocumentKey,
-  options: ListenOptions,
-  observer: PartialObserver<ViewSnapshot>
-): Unsubscribe {
-  let errHandler = (err: Error): void => {
-    console.error('Uncaught Error in onSnapshot:', err);
-  };
-  if (observer.error) {
-    errHandler = observer.error.bind(observer);
-  }
-
-  const asyncObserver = new AsyncObserver<ViewSnapshot>({
-    next: snapshot => {
-      if (observer.next) {
-        observer.next(snapshot);
-      }
-    },
-    error: errHandler
-  });
-  const internalListener = firestoreClient.listen(
-    newQueryForPath(key.path),
-    asyncObserver,
-    options
-  );
-
-  return () => {
-    asyncObserver.mute();
-    firestoreClient.unlisten(internalListener);
-  };
-}
-
 /**
  * Retrieves a latency-compensated document from the backend via a
  * SnapshotListener.
@@ -1358,9 +1308,8 @@ export function getDocViaSnapshotListener(
   options?: firestore.GetOptions
 ): Promise<ViewSnapshot> {
   const result = new Deferred<ViewSnapshot>();
-  const unlisten = addDocSnapshotListener(
-    firestoreClient,
-    key,
+  const unlisten = firestoreClient.listen(
+    newQueryForPath(key.path),
     {
       includeMetadataChanges: true,
       waitForSyncWhenOnline: true
@@ -2161,7 +2110,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
 
   onSnapshot(...args: unknown[]): Unsubscribe {
     validateBetweenNumberOfArgs('Query.onSnapshot', arguments, 1, 4);
-    let options: firestore.SnapshotListenOptions = {};
+    let options: ListenOptions = {};
     let currArg = 0;
     if (
       typeof args[currArg] === 'object' &&
@@ -2222,12 +2171,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
 
     validateHasExplicitOrderByForLimitToLast(this._query);
     const firestoreClient = this.firestore.ensureClientConfigured();
-    return addQuerySnapshotListener(
-      firestoreClient,
-      this._query,
-      options,
-      observer
-    );
+    return firestoreClient.listen(this._query, options, observer);
   }
 
   get(options?: firestore.GetOptions): Promise<firestore.QuerySnapshot<T>> {
@@ -2256,8 +2200,7 @@ export function getDocsViaSnapshotListener(
   options?: firestore.GetOptions
 ): Promise<ViewSnapshot> {
   const result = new Deferred<ViewSnapshot>();
-  const unlisten = addQuerySnapshotListener(
-    firestore,
+  const unlisten = firestore.listen(
     query,
     {
       includeMetadataChanges: true,
@@ -2287,35 +2230,6 @@ export function getDocsViaSnapshotListener(
     }
   );
   return result.promise;
-}
-
-/** Registers an internal snapshot listener for `query`. */
-export function addQuerySnapshotListener(
-  firestore: FirestoreClient,
-  query: InternalQuery,
-  options: ListenOptions,
-  observer: PartialObserver<ViewSnapshot>
-): Unsubscribe {
-  let errHandler = (err: Error): void => {
-    console.error('Uncaught Error in onSnapshot:', err);
-  };
-  if (observer.error) {
-    errHandler = observer.error.bind(observer);
-  }
-  const asyncObserver = new AsyncObserver<ViewSnapshot>({
-    next: (result: ViewSnapshot): void => {
-      if (observer.next) {
-        observer.next(result);
-      }
-    },
-    error: errHandler
-  });
-
-  const internalListener = firestore.listen(query, asyncObserver, options);
-  return (): void => {
-    asyncObserver.mute();
-    firestore.unlisten(internalListener);
-  };
 }
 
 export class QuerySnapshot<T = firestore.DocumentData>
