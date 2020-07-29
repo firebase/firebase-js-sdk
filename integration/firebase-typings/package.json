@@ -8,6 +8,6 @@
   },
   "devDependencies": {
     "firebase": "7.17.1",
-    "typescript": "3.9.6"
+    "typescript": "3.9.7"
   }
 }
