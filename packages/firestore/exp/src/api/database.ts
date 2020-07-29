@@ -175,8 +175,8 @@ export function enableIndexedDbPersistence(
   verifyNotInitialized(firestoreImpl);
 
   // `_getSettings()` freezes the client settings and prevents further changes
-  // to the components (as `verifyNotInitialized()` would not fail). Components
-  // can the be accessed via `getOfflineComponentProvider()` and
+  // to the components (as `verifyNotInitialized()` would fail). Components can
+  // then be accessed via `getOfflineComponentProvider()` and
   // `getOnlineComponentProvider()`
   const settings = firestoreImpl._getSettings();
 
@@ -202,8 +202,8 @@ export function enableMultiTabIndexedDbPersistence(
   const settings = firestoreImpl._getSettings();
 
   // `_getSettings()` freezes the client settings and prevents further changes
-  // to the components (as `verifyNotInitialized()` would not fail). Components
-  // can the be accessed via `getOfflineComponentProvider()` and
+  // to the components (as `verifyNotInitialized()` would fail). Components can
+  // then be accessed via `getOfflineComponentProvider()` and
   // `getOnlineComponentProvider()`
   const onlineComponentProvider = new OnlineComponentProvider();
   const offlineComponentProvider = new MultiTabOfflineComponentProvider(

@@ -37,7 +37,7 @@ export const LOG_TAG = 'ComponentProvider';
 // client. Dependencies can be lazily constructed and only one exists per
 // Firestore instance.
 
-// Instance maps that ensures only one offline component provider exists per
+// Instance maps that ensure that only one component provider exists per
 // Firestore instance.
 const offlineComponentProviders = new Map<
   Firestore,
@@ -55,8 +55,8 @@ export async function setOfflineComponentProvider(
 ): Promise<void> {
   debugAssert(
     !onlineComponentProviders.has(firestore),
-    'The offline component ' +
-      'provider must be registered before the online component provider.'
+    'The offline component provider must be registered before the online ' +
+      'component provider.'
   );
   const configuration = await firestore._getConfiguration();
   configuration.persistenceSettings = persistenceSettings;
