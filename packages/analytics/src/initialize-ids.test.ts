@@ -100,4 +100,19 @@ describe('initializeIds()', () => {
     );
     expect(measurementIdToAppId[fakeMeasurementId]).to.equal(fakeAppId);
   });
+  it('warns on local/fetched measurement ID mismatch', async () => {
+    stubFetch();
+    const consoleStub = stub(console, 'warn');
+    await initializeIds(
+      getFakeApp({ ...fakeAppParams, measurementId: 'old-measurement-id' }),
+      dynamicPromisesList,
+      measurementIdToAppId,
+      installations,
+      gtagStub
+    );
+    expect(consoleStub.args[0][1]).to.include(fakeMeasurementId);
+    expect(consoleStub.args[0][1]).to.include('old-measurement-id');
+    expect(consoleStub.args[0][1]).to.include('does not match');
+    consoleStub.restore();
+  });
 });

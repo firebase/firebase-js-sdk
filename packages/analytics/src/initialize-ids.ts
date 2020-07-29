@@ -53,6 +53,17 @@ export async function initializeIds(
   dynamicConfigPromise
     .then(config => {
       measurementIdToAppId[config.measurementId] = config.appId;
+      if (
+        app.options.measurementId &&
+        config.appId !== app.options.measurementId
+      ) {
+        logger.warn(
+          `Measurement ID in local firebase config (${app.options.measurementId})` +
+            ` does not match measurement ID fetched from server: ${config.measurementId}.` +
+            ` To avoid analytics events being sent to the wrong measurement ID, update the` +
+            ` measurement ID field in the local config or remove it.`
+        );
+      }
     })
     .catch(e => logger.error(e));
   // Add to list to track state of all dynamic config promises.
