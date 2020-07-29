@@ -32,9 +32,16 @@ export interface DataSnapshot {
   val(): any;
 }
 
-export class FirebaseDatabase {
-  private constructor();
+export interface Database {
+  app: FirebaseApp;
+  goOffline(): void;
+  goOnline(): void;
+  ref(path?: string | Reference): Reference;
+  refFromURL(url: string): Reference;
+}
 
+export class FirebaseDatabase implements Database {
+  private constructor();
   app: FirebaseApp;
   goOffline(): void;
   goOnline(): void;

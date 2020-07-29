@@ -85,7 +85,7 @@ export function initStandalone(app: FirebaseApp, url: string, version: string) {
       app,
       authProvider,
       url
-    ) as types.FirebaseDatabase,
+    ) as types.Database,
     namespace: {
       Reference,
       Query,
