@@ -104,13 +104,11 @@ describe('FirebaseAnalytics instance tests', () => {
       delete window['gtag'];
       delete window['dataLayer'];
       removeGtagScript();
-      fetchStub.restore();
     });
     afterEach(() => {
       gtagStub.reset();
     });
     it('Contains reference to parent app', () => {
-      stubFetch(200, {});
       expect(analyticsInstance.app).to.equal(app);
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
@@ -139,6 +137,7 @@ describe('FirebaseAnalytics instance tests', () => {
           currency: 'USD'
         }
       );
+      fetchStub.restore();
     });
     it('setCurrentScreen() method exists on instance', () => {
       expect(analyticsInstance.setCurrentScreen).to.be.instanceOf(Function);

@@ -55,7 +55,7 @@ export async function initializeIds(
       measurementIdToAppId[config.measurementId] = config.appId;
       if (
         app.options.measurementId &&
-        config.appId !== app.options.measurementId
+        config.measurementId !== app.options.measurementId
       ) {
         logger.warn(
           `Measurement ID in local firebase config (${app.options.measurementId})` +
