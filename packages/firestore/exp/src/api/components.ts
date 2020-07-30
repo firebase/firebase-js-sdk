@@ -30,7 +30,6 @@ import { SyncEngine } from '../../../src/core/sync_engine';
 import { RemoteStore } from '../../../src/remote/remote_store';
 import { Persistence } from '../../../src/local/persistence';
 import { EventManager } from '../../../src/core/event_manager';
-import { debugAssert } from '../../../src/util/assert';
 export const LOG_TAG = 'ComponentProvider';
 
 // The components module manages the lifetime of dependencies of the Firestore
