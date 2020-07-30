@@ -32,8 +32,6 @@ import { cast } from '../../../lite/src/api/util';
 import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import {
   applyFirestoreDataConverter,
-  getDocsViaSnapshotListener,
-  getDocViaSnapshotListener,
   SnapshotMetadata,
   validateHasExplicitOrderByForLimitToLast
 } from '../../../src/api/database';
@@ -65,8 +63,7 @@ export function getDoc<T>(
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
   return getFirestoreClient(firestore).then(async firestoreClient => {
-    const viewSnapshot = await getDocViaSnapshotListener(
-      firestoreClient,
+    const viewSnapshot = await firestoreClient.getDocumentViaSnapshotListener(
       ref._key
     );
     return convertToDocSnapshot(firestore, ref, viewSnapshot);
@@ -101,8 +98,7 @@ export function getDocFromServer<T>(
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
   return getFirestoreClient(firestore).then(async firestoreClient => {
-    const viewSnapshot = await getDocViaSnapshotListener(
-      firestoreClient,
+    const viewSnapshot = await firestoreClient.getDocumentViaSnapshotListener(
       ref._key,
       { source: 'server' }
     );
@@ -118,8 +114,7 @@ export function getDocs<T>(
 
   validateHasExplicitOrderByForLimitToLast(internalQuery._query);
   return getFirestoreClient(firestore).then(async firestoreClient => {
-    const snapshot = await getDocsViaSnapshotListener(
-      firestoreClient,
+    const snapshot = await firestoreClient.getDocumentsViaSnapshotListener(
       internalQuery._query
     );
     return new QuerySnapshot(firestore, internalQuery, snapshot);
@@ -145,8 +140,7 @@ export function getDocsFromServer<T>(
   const internalQuery = cast<Query<T>>(query, Query);
   const firestore = cast<Firestore>(query.firestore, Firestore);
   return getFirestoreClient(firestore).then(async firestoreClient => {
-    const snapshot = await getDocsViaSnapshotListener(
-      firestoreClient,
+    const snapshot = await firestoreClient.getDocumentsViaSnapshotListener(
       internalQuery._query,
       { source: 'server' }
     );
