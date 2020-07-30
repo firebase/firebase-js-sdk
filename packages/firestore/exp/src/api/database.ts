@@ -199,12 +199,13 @@ export function enableMultiTabIndexedDbPersistence(
 ): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
   verifyNotInitialized(firestoreImpl);
-  const settings = firestoreImpl._getSettings();
 
   // `_getSettings()` freezes the client settings and prevents further changes
   // to the components (as `verifyNotInitialized()` would fail). Components can
   // then be accessed via `getOfflineComponentProvider()` and
   // `getOnlineComponentProvider()`
+  const settings = firestoreImpl._getSettings();
+
   const onlineComponentProvider = new OnlineComponentProvider();
   const offlineComponentProvider = new MultiTabOfflineComponentProvider(
     onlineComponentProvider
@@ -274,7 +275,7 @@ export function enableNetwork(
       firestoreImpl._queue,
       remoteStore,
       persistence,
-      /* enabled=*/ true
+      /* enabled= */ true
     )
   );
 }
@@ -291,7 +292,7 @@ export function disableNetwork(
       firestoreImpl._queue,
       remoteStore,
       persistence,
-      /* enabled=*/ false
+      /* enabled= */ false
     )
   );
 }

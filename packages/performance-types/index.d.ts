@@ -63,7 +63,8 @@ export interface PerformanceTrace {
   ): void;
   /**
    * Adds to the value of a custom metric. If a custom metric with the provided name does not
-   * exist, it creates one with that name and the value equal to the given number.
+   * exist, it creates one with that name and the value equal to the given number. The value will be floored down to an
+   * integer.
    *
    * @param metricName The name of the custom metric.
    * @param num The number to be added to the value of the custom metric. If not provided, it
@@ -72,7 +73,8 @@ export interface PerformanceTrace {
   incrementMetric(metricName: string, num?: number): void;
   /**
    * Sets the value of the specified custom metric to the given number regardless of whether
-   * a metric with that name already exists on the trace instance or not.
+   * a metric with that name already exists on the trace instance or not. The value will be floored down to an
+   * integer.
    *
    * @param metricName Name of the custom metric.
    * @param num Value to of the custom metric.
