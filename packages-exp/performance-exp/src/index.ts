@@ -17,17 +17,22 @@
 
 import '@firebase/installations';
 
-import { FirebaseApp } from '@firebase/app-types';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import {
-  FirebasePerformance,
-  PerformanceSettings
+  PerformanceSettings,
+  FirebasePerformance
 } from '@firebase/performance-types-exp';
-
-import { PerformanceController } from './controllers/perf';
-import { setupApi } from './services/api_service';
-import { SettingsService } from './services/settings_service';
 import { ERROR_FACTORY, ErrorCode } from './utils/errors';
+import { setupApi } from './services/api_service';
+import { PerformanceController } from './controllers/perf';
+import { _registerComponent, _getProvider } from '@firebase/app-exp';
+import {
+  Provider,
+  InstanceFactory,
+  ComponentContainer,
+  Component,
+  ComponentType
+} from '@firebase/component';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
@@ -35,6 +40,19 @@ export function getPerformance(
   app: FirebaseApp,
   settings?: PerformanceSettings
 ): FirebasePerformance {
+  const provider: Provider<'performance'> = _getProvider(app, 'performance');
+  const perfInstance = provider.getImmediate();
+  perfInstance.init(settings);
+  return perfInstance;
+}
+
+const factory: InstanceFactory<'performance'> = (
+  container: ComponentContainer
+) => {
+  // Dependencies
+  const app = container.getProvider('app-exp').getImmediate();
+  const installations = container.getProvider('installations').getImmediate();
+
   if (app.name !== DEFAULT_ENTRY_NAME) {
     throw ERROR_FACTORY.create(ErrorCode.FB_NOT_DEFAULT);
   }
@@ -42,7 +60,18 @@ export function getPerformance(
     throw ERROR_FACTORY.create(ErrorCode.NO_WINDOW);
   }
   setupApi(window);
-  SettingsService.getInstance().firebaseAppInstance = app;
-  SettingsService.getInstance().installationsService = app.installations();
-  return new PerformanceController(app, settings);
+  return new PerformanceController(app, installations);
+};
+
+export function registerPerformance(): void {
+  const namespaceExports = {
+    Performance: PerformanceController
+  };
+  _registerComponent(
+    new Component('performance', factory, ComponentType.PUBLIC).setServiceProps(
+      namespaceExports
+    )
+  );
 }
+
+registerPerformance();
