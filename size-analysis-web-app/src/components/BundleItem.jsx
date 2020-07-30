@@ -6,7 +6,7 @@ class BundleItem extends Component {
         super(props);
         this.state = {
             moduleName: this.props.moduleName,
-            functions: this.props.functionName
+            symbols: this.props.symbolName
 
         }
         this.composeImportStatement = this.composeImportStatement.bind(this);
@@ -15,28 +15,28 @@ class BundleItem extends Component {
 
     }
     componentDidUpdate(prevProps) {
-        if (prevProps.functionName !== this.props.functionName) {
-            this.setState({ functions: this.props.functionName });
+        if (prevProps.symbolName !== this.props.symbolName) {
+            this.setState({ symbols: this.props.symbolName });
         }
         if (prevProps.moduleName !== this.props.moduleName) {
             this.setState({ moduleName: this.props.moduleName });
         }
 
     }
-    composeImportStatement(functionNames, moduleName) {
-        if (functionNames.size === 0) {
+    composeImportStatement(symbolNames, moduleName) {
+        if (symbolNames.size === 0) {
             return <p>import {TEXT.moduleRepresentation} from {moduleName}</p>;
         } else {
             return (
                 <div>
                     <p style={{ display: "inline" }}>import {'{'}</p>
                     <div>
-                        {Array.from(functionNames).map(functionName =>
-                            <div key={moduleName + functionName} style={{ display: "inline" }}>
+                        {Array.from(symbolNames).map(symbolName =>
+                            <div key={moduleName + symbolName} style={{ display: "inline" }}>
                                 <span
                                     className="badge badge-danger light-orange-btn"
-                                    onClick={() => { this.props.handleRemoveFunctionFromBundle(functionName, moduleName) }}>
-                                    {functionName}
+                                    onClick={() => { this.props.handleRemoveSymbolFromBundle(symbolName, moduleName) }}>
+                                    {symbolName}
                                 </span>
                                 {' '}
                             </div>
@@ -52,7 +52,7 @@ class BundleItem extends Component {
     render() {
         return (
             <li className="list-group-item d-flex justify-content-between align-items-center">
-                {this.composeImportStatement(this.props.functionName, this.props.moduleName)}
+                {this.composeImportStatement(this.props.symbolName, this.props.moduleName)}
                 <button
                     className="badge badge-danger light-orange-btn"
                     onClick={() => { this.props.handleRemoveModuleFromBundle(this.props.moduleName) }}>

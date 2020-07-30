@@ -17,25 +17,28 @@
 
 import * as functions from 'firebase-functions';
 import { execSync } from 'child_process';
-import * as fs from 'fs';
 import { resolve } from 'path';
+import {
+  packageInstalledDirectory,
+  userSelectedSymbolsBundleFile,
+  Report,
+  retrieveAllModuleLocation,
+  buildJsFileGivenUserSelectedSymbols,
+  calculateBinarySizeGivenBundleFile,
+  setUpPackageEnvironment,
+  generateExportedSymbolsListForModules,
+  generateBundleFileGivenCustomJsFile
+} from './functions-helper';
+
 import { extractDeclarations } from './analysis-helper';
 let cors = require('cors')({ origin: true });
-const pkgName: string = 'firebase';
-const packageInstalledDirectory: string = 'tmp-folder-size-analysis-web-app';
-const pkgRoot: string = `${packageInstalledDirectory}/node_modules/${pkgName}`;
-
-// Start writing Firebase Functions
-// https://firebase.google.com/docs/functions/typescript
 const versionFilter = new RegExp(/^\d+.\d*.\d+$/);
-export const helloWorld = functions.https.onRequest((request, response) => {
-  response.send('Hello from Firebase!');
-});
 
 export const retrieveFirebaseVersionFromNPM = functions.https.onRequest(
   (request, response) => {
     if (request.method !== 'GET') {
       response.status(405).end();
+      return;
     }
     cors(request, response, () => {
       try {
@@ -49,82 +52,116 @@ export const retrieveFirebaseVersionFromNPM = functions.https.onRequest(
         // keep versions that are of major.minor.patch format
         versionsArray = versionsArray.filter(each => versionFilter.test(each));
         versionsArray = versionsArray.reverse();
-        // return latest 10 published version of firebase
         response.set({
           'Content-Type': 'application/json'
         });
-        response.status(200).send(versionsArray.slice(0, 10));
+        response.status(200).send(versionsArray);
       } catch (error) {
         response.status(500).send(error);
       }
     });
   }
 );
-/**
- * This functions creates a package.json file programatically and installs the firebase package.
- */
-function setUpPackageEnvironment(firebaseVersionToBeInstalled: string): void {
-  try {
-    if (!fs.existsSync(packageInstalledDirectory)) {
-      fs.mkdirSync(packageInstalledDirectory);
-    }
-    const packageJsonContent: string = `{\"name\":\"size-analysis-firebase\",\"version\":\"0.1.0\",\"dependencies\":{\"typescript\":\"3.8.3\"},\"devDependencies\":{\"rollup\":\"2.21.0\",\"rollup-plugin-json\":\"4.0.0\",\"rollup-plugin-typescript2\":\"0.27.0\",\"${pkgName}\":\"${firebaseVersionToBeInstalled}\"}}`;
-    fs.writeFileSync(
-      `${packageInstalledDirectory}/package.json`,
-      packageJsonContent
-    );
-    execSync(`cd ${packageInstalledDirectory}; npm install; cd ..`);
-  } catch (error) {
-    throw error;
-  }
-}
-/**
- * This functions returns a list of module(under firebase scope) locations.
- */
-function retrieveAllModuleLocation(): string[] {
-  const moduleLocations: string[] = [];
-  try {
-    const pkgRootAbsolutedPath: string = resolve(`${pkgRoot}`);
-    const pkgJson = require(`${pkgRootAbsolutedPath}/package.json`);
-    const components = pkgJson.components;
-    for (const component of components) {
-      moduleLocations.push(`${pkgRootAbsolutedPath}/${component}`);
-    }
-    return moduleLocations;
-  } catch (error) {
-    throw error;
-  }
-}
+
 export const downloadPackageFromNPMGivenVersionAndReturnExportedSymbols = functions.https.onRequest(
   (request, response) => {
-    if (request.method !== 'POST') {
+    if (request.method !== 'POST' && request.method !== 'OPTIONS') {
       response.status(405).end();
+      return;
     }
-    if (
-      !request.get('Content-Type') ||
-      request.get('Content-Type')!.localeCompare('application/json') !== 0
-    ) {
-      // 415 Unsupported Media Type
-      response.status(415).send('requires application/json type');
-    }
+
     cors(request, response, () => {
+      if (
+        !request.get('Content-Type') ||
+        request.get('Content-Type')!.localeCompare('application/json') !== 0
+      ) {
+        // 415 Unsupported Media Type
+        response
+          .status(415)
+          .send('request body requires application/json type');
+        return;
+      }
+      if (!request.body.version) {
+        // 422 Unprocessable Entity
+        response.status(422).send('request body missing field: version');
+        return;
+      }
       const versionTobeInstalled = request.body.version;
       try {
         setUpPackageEnvironment(versionTobeInstalled);
         const allModuleLocations: string[] = retrieveAllModuleLocation();
-        console.log(allModuleLocations);
-        // extract declarations
-
-        response.status(200).send(allModuleLocations);
+        generateExportedSymbolsListForModules(allModuleLocations)
+          .then(exportedSymbolsListForModules => {
+            response.set({
+              'Content-Type': 'application/json'
+            });
+            response.status(200).send(exportedSymbolsListForModules);
+          })
+          .catch(error => {
+            response.status(500).send(error);
+          });
       } catch (error) {
         response.status(500).send(error);
       }
     });
   }
 );
+
 export const generateSizeAnalysisReportGivenCustomBundle = functions.https.onRequest(
   (request, response) => {
-    const customBundle = request.body;
-    response.send(`Hello from Firebase! ${customBundle}`);
+    if (request.method !== 'POST' && request.method !== 'OPTIONS') {
+      response.status(405).end();
+      return;
+    }
+    cors(request, response, () => {
+      if (
+        !request.get('Content-Type') ||
+        request.get('Content-Type')!.localeCompare('application/json') !== 0
+      ) {
+        // 415 Unsupported Media Type
+        response
+          .status(415)
+          .send('request body requires application/json type');
+        return;
+      }
+      if (!request.body.version) {
+        response.status(422).send('request body missing field: version');
+        return;
+      }
+      if (!request.body.symbols) {
+        response.status(422).send('request body missing field: symbols');
+        return;
+      }
+      try {
+        const versionTobeInstalled: string = request.body.version;
+
+        const userSelectedSymbolsFileContent = buildJsFileGivenUserSelectedSymbols(
+          request.body.symbols
+        );
+        setUpPackageEnvironment(versionTobeInstalled);
+
+        generateBundleFileGivenCustomJsFile(userSelectedSymbolsFileContent)
+          .then(customBundleFileContent => {
+            const sizeArray: number[] = calculateBinarySizeGivenBundleFile(
+              customBundleFileContent
+            );
+            const customBundleFilePath = resolve(
+              `${packageInstalledDirectory}/${userSelectedSymbolsBundleFile}`
+            );
+            const report: Report = {
+              dependencies: extractDeclarations(customBundleFilePath, null),
+              size: sizeArray[0],
+              sizeAfterGzip: sizeArray[1]
+            };
+
+            response.status(200).send(report);
+          })
+          .catch(error => {
+            response.status(500).send(error);
+          });
+      } catch (error) {
+        response.status(500).send(error);
+      }
+    });
   }
 );

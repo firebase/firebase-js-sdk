@@ -21,27 +21,27 @@ import pkg from './package.json';
 import json from 'rollup-plugin-json';
 
 const deps = Object.keys(
-    Object.assign({}, pkg.peerDependencies, pkg.dependencies)
+  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
 export default [
-    {
-        input: 'analysis-helper.ts',
-        output: [{ file: pkg.esm2017, format: 'es', sourcemap: true }],
-        plugins: [
-            typescriptPlugin({
-                typescript,
-                tsconfigOverride: {
-                    compilerOptions: {
-                        target: 'es2017',
-                        module: 'es2015'
-                    }
-                }
-            }),
-            json({
-                preferConst: true
-            })
-        ],
-        external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-    }
+  {
+    input: 'analysis-helper.ts',
+    output: [{ file: pkg.esm2017, format: 'es', sourcemap: true }],
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            target: 'es2017',
+            module: 'es2015'
+          }
+        }
+      }),
+      json({
+        preferConst: true
+      })
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
 ];

@@ -3,28 +3,34 @@ import ReactJson from 'react-json-view'
 import DropDown from './components/DropDown';
 import Module from './components/Module';
 import BundlePanel from './components/BundlePanel';
-import { SECTION, ENDPOINTS, API_ROOT_DEV, API_ROOT } from './constants';
-import { dropdownData, modules, sample_bundle } from './dummy-data';
+import { SECTION, ENDPOINTS, API_ROOT, TEXT } from './constants';
 import './App.css';
+
+
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       selectedVersion: "",
-      allModulesOfSelectedVersion: "",
+      allModulesOfSelectedVersion: [],
       currentBundle: new Map(),
       currentBundleReport: null,
-      dropDownData: []
+      dropDownData: [],
+      isDropDownLoaded: false,
+      areModulesLoaded: true,
+      isBundleOverviewLoaded: true
     }
     this.handleChange = this.handleChange.bind(this);
     this.onFirebaseVersionSelected = this.onFirebaseVersionSelected.bind(this);
     this.handleAddModuleToBundle = this.handleAddModuleToBundle.bind(this);
-    this.handleAddFunctionToBundle = this.handleAddFunctionToBundle.bind(this);
+    this.handleAddSymbolToBundle = this.handleAddSymbolToBundle.bind(this);
     this.handleUpdateBundle = this.handleUpdateBundle.bind(this);
     this.handleOnCalculateBundle = this.handleOnCalculateBundle.bind(this);
     this.handleRemoveModuleFromBundle = this.handleRemoveModuleFromBundle.bind(this);
-    this.handleRemoveFunctionFromBundle = this.handleRemoveFunctionFromBundle.bind(this);
+    this.handleRemoveSymbolFromBundle = this.handleRemoveSymbolFromBundle.bind(this);
     this.populateDropDownData = this.populateDropDownData.bind(this);
+    this.extractAllUserSelectedSymbolsFromCurrentModule = this.extractAllUserSelectedSymbolsFromCurrentModule.bind(this);
+
   }
 
   handleUpdateBundle(updatedBundle) {
@@ -37,14 +43,33 @@ class App extends Component {
     tmpCurrentBundle.delete(moduleNameTobeRemoved);
     this.handleUpdateBundle(tmpCurrentBundle);
   }
-  handleRemoveFunctionFromBundle(functionNameTobeRemoved, moduleName) {
+  handleRemoveSymbolFromBundle(symbolNameTobeRemoved, moduleName) {
     let tmpCurrentBundle = new Map(this.state.currentBundle);
-    tmpCurrentBundle.get(moduleName).delete(functionNameTobeRemoved);
+    tmpCurrentBundle.get(moduleName).delete(symbolNameTobeRemoved);
     if (tmpCurrentBundle.get(moduleName).size === 0) {
       tmpCurrentBundle.delete(moduleName);
     }
     this.handleUpdateBundle(tmpCurrentBundle);
 
+  }
+  extractAllUserSelectedSymbolsFromCurrentModule(moduleName, userSelectedSymbols) {
+    let module = this.state.allModulesOfSelectedVersion.filter(module => module.moduleName.localeCompare(moduleName) === 0);
+
+    const symbols = {
+      functions: [],
+      classes: [],
+      enums: [],
+      variables: []
+    };
+
+    if (module.length === 0) return symbols;
+    module = module[0];
+    if (userSelectedSymbols.size === 0) return module.symbols;
+    Object.keys(module.symbols).forEach(type => {
+      symbols[type] = module.symbols[type].filter(symbol => userSelectedSymbols.has(symbol));
+
+    });
+    return symbols;
   }
 
   handleAddModuleToBundle(moduleName) {
@@ -63,12 +88,12 @@ class App extends Component {
     });
 
   }
-  handleAddFunctionToBundle(functionName, moduleName) {
+  handleAddSymbolToBundle(symbolName, moduleName) {
     let tmpCurrentBundle = new Map(this.state.currentBundle);
     if (!tmpCurrentBundle.has(moduleName)) {
       tmpCurrentBundle.set(moduleName, new Set());
     }
-    tmpCurrentBundle.get(moduleName).add(functionName);
+    tmpCurrentBundle.get(moduleName).add(symbolName);
 
     this.setState({
       currentBundle: tmpCurrentBundle
@@ -87,15 +112,17 @@ class App extends Component {
 
   populateDropDownData() {
     fetch(`${API_ROOT}${ENDPOINTS.retrieveFirebaseVersionFromNPM}`, {
+      method: "GET",
       headers: {
         'Accept': 'application/json'
       },
-      method: "GET",
+
     })
       .then(res => res.json())
       .then(
         (result) => {
           this.setState(prevState => ({
+            isDropDownLoaded: true,
             dropDownData: [...prevState.dropDownData, ...result]
           }))
         },
@@ -108,20 +135,72 @@ class App extends Component {
   }
   handleOnCalculateBundle() {
     this.setState({
-      currentBundleReport: sample_bundle
+      isBundleOverviewLoaded: false,
+      currentBundleReport: null
     });
+    const requestBodySymbolsField = [];
 
+    for (const moduleName of this.state.currentBundle.keys()) {
+
+      requestBodySymbolsField.push({
+        moduleName: moduleName,
+        symbols: this.extractAllUserSelectedSymbolsFromCurrentModule(moduleName, this.state.currentBundle.get(moduleName))
+      });
+    }
+
+    const requestBody = {
+      version: this.state.selectedVersion,
+      symbols: requestBodySymbolsField
+    };
+    fetch(`${API_ROOT}${ENDPOINTS.generateSizeAnalysisReportGivenCustomBundle}`, {
+      method: "POST",
+      headers: {
+        'content-type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(requestBody),
+    })
+      .then(res => res.json())
+      .then(
+        (report) => {
+          this.setState({
+            isBundleOverviewLoaded: true,
+            currentBundleReport: report
+          });
+        },
+        (error) => {
+          console.log(error);
+        }
+      );
   }
   onFirebaseVersionSelected(e) {
 
     // retrieve the packages and get all the functions
     this.setState({
       [e.target.name]: e.target.value,
-      // allModulesOfSelectedVersion: modules[e.target.value]
-      allModulesOfSelectedVersion: modules["12.2.4"]
+      areModulesLoaded: false
     });
-
-
+    const requestBody = { version: e.target.value };
+    fetch(`${API_ROOT}${ENDPOINTS.downloadPackageFromNPMGivenVersionAndReturnExportedSymbols}`, {
+      method: "POST",
+      headers: {
+        'content-type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(requestBody),
+    })
+      .then(res => res.json())
+      .then(
+        (modules) => {
+          this.setState({
+            areModulesLoaded: true,
+            allModulesOfSelectedVersion: modules
+          });
+        },
+        (error) => {
+          console.log(error);
+        }
+      );
   }
   render() {
     const style = {
@@ -138,38 +217,55 @@ class App extends Component {
 
           </div>
           <div className="col-4">
-            <DropDown
-              listItems={this.state.dropDownData}
-              name="selectedVersion"
-              value={this.state.selectedVersion}
-              onChange={this.onFirebaseVersionSelected} />
+            {
+              this.state.isDropDownLoaded ?
+
+                <DropDown
+                  listItems={this.state.dropDownData}
+                  name="selectedVersion"
+                  value={this.state.selectedVersion}
+                  onChange={this.onFirebaseVersionSelected} /> :
+
+                <div className="text-center">
+                  <div className="spinner-border my-2 text" role="status">
+                  </div>
+                </div>
+            }
           </div>
         </div>
         <div className="row">
           <div className="col-4 preview" >
-            <div className="row">
-              {Object.keys(this.state.allModulesOfSelectedVersion).map(key =>
-                <Module
-                  key={key}
-                  index={key}
-                  name={key}
-                  handleAddFunctionToBundle={this.handleAddFunctionToBundle}
-                  handleAddModuleToBundle={this.handleAddModuleToBundle}
-                  handleRemoveFunctionFromBundle={this.handleRemoveFunctionFromBundle}
-                  handleRemoveModuleFromBundle={this.handleRemoveModuleFromBundle}
-                  bundle={this.state.currentBundle}
-                  module={this.state.allModulesOfSelectedVersion[key]}
 
-                />)}
+            {
+              this.state.areModulesLoaded ?
 
-            </div>
+                this.state.allModulesOfSelectedVersion.map(module =>
+                  <Module
+                    key={module.moduleName}
+                    index={module.moduleName}
+                    name={module.moduleName}
+                    handleAddSymbolToBundle={this.handleAddSymbolToBundle}
+                    handleAddModuleToBundle={this.handleAddModuleToBundle}
+                    handleRemoveSymbolFromBundle={this.handleRemoveSymbolFromBundle}
+                    handleRemoveModuleFromBundle={this.handleRemoveModuleFromBundle}
+                    bundle={this.state.currentBundle}
+                    module={module.symbols}
+
+                  />) :
+
+                <div className="text-center">
+                  <div className="spinner-border my-2 text" role="status">
+                  </div>
+                </div>
+            }
+
           </div>
 
           <div className="col-8" >
             <div className="row m-2">
               <BundlePanel
                 bundle={this.state.currentBundle}
-                handleRemoveFunctionFromBundle={this.handleRemoveFunctionFromBundle}
+                handleRemoveSymbolFromBundle={this.handleRemoveSymbolFromBundle}
                 handleRemoveModuleFromBundle={this.handleRemoveModuleFromBundle}
                 handleOnCalculateBundle={this.handleOnCalculateBundle}
               />
@@ -178,11 +274,31 @@ class App extends Component {
             <div className="row m-2">
               <div className="col bundle-overview">
                 {this.state.currentBundleReport ?
-                  <ReactJson
-                    src={this.state.currentBundleReport}
-                    displayDataTypes={false}
-                    style={style} />
-                  : <h2 className="text-center text-muted text">{SECTION.bundleOverview}</h2>}
+                  <div >
+                    <div className="row">
+                      <div className="col-6">
+                        <p className="text text-muted">{TEXT.sizePrompt}: {this.state.currentBundleReport.size} {TEXT.unit}</p>
+                      </div>
+                      <div className="col-6">
+                        <p className="text text-muted">{TEXT.sizeAfterGzipPrompt}: {this.state.currentBundleReport.sizeAfterGzip} {TEXT.unit}</p>
+                      </div>
+                    </div>
+                    <ReactJson
+                      src={this.state.currentBundleReport.dependencies}
+                      displayDataTypes={false}
+                      name="dependencies"
+                      collapsed={true}
+                      style={style} />
+                  </div>
+                  : this.state.isBundleOverviewLoaded ?
+                    <h2 className="text-center text-muted">{SECTION.bundleOverview}</h2> :
+
+                    <div className="text-center">
+                      <div className="spinner-border my-2" role="status">
+                      </div>
+                    </div>
+
+                }
               </div>
             </div>
 

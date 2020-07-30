@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Function from './Function';
+import Symbols from './Symbols';
 import { TEXT } from '../constants';
 class Module extends Component {
     constructor(props) {
@@ -8,9 +8,9 @@ class Module extends Component {
             currentBundle: this.props.bundle
 
         }
-        this.handleUpdateFunction = this.handleUpdateFunction.bind(this);
+        this.handleUpdateSymbol = this.handleUpdateSymbol.bind(this);
         this.handleUpdateModule = this.handleUpdateModule.bind(this);
-        this.isFunctionAdded = this.isFunctionAdded.bind(this);
+        this.isSymbolAdded = this.isSymbolAdded.bind(this);
         this.isModuleAdded = this.isModuleAdded.bind(this);
 
     }
@@ -24,8 +24,8 @@ class Module extends Component {
         }
 
     }
-    isFunctionAdded(functionName, moduleName) {
-        if (this.state.currentBundle.has(moduleName) && this.state.currentBundle.get(moduleName).has(functionName)) {
+    isSymbolAdded(symbolName, moduleName) {
+        if (this.state.currentBundle.has(moduleName) && this.state.currentBundle.get(moduleName).has(symbolName)) {
             return true;
         }
         return false;
@@ -36,11 +36,11 @@ class Module extends Component {
         }
         return false;
     }
-    handleUpdateFunction(functionName, moduleName) {
-        if (this.state.currentBundle.has(moduleName) && this.state.currentBundle.get(moduleName).has(functionName)) {
-            this.props.handleRemoveFunctionFromBundle(functionName, moduleName);
+    handleUpdateSymbol(symbolName, moduleName) {
+        if (this.state.currentBundle.has(moduleName) && this.state.currentBundle.get(moduleName).has(symbolName)) {
+            this.props.handleRemoveSymbolFromBundle(symbolName, moduleName);
         } else {
-            this.props.handleAddFunctionToBundle(functionName, moduleName);
+            this.props.handleAddSymbolToBundle(symbolName, moduleName);
         }
     }
     handleUpdateModule(moduleName) {
@@ -51,21 +51,23 @@ class Module extends Component {
         }
     }
     render() {
+        const collapsibleReference = this.props.index.replace("@", "").replace("/", "");
         return (
 
             <div className="container m-2">
+
                 <ul className="list-group">
                     <li
                         className="list-group-item d-flex justify-content-between align-items-center text list-item-module"
                         key={this.props.index}
                         data-toggle="collapse"
-                        data-target={"#" + this.props.index}
+                        data-target={"#" + collapsibleReference}
                         aria-expanded="false"
                         aria-controls={this.props.index}
                     >
                         {this.props.name}
                     </li>
-                    <div className="collapse" id={this.props.index}>
+                    <div className="collapse" id={collapsibleReference}>
                         <li
                             className="list-group-item d-flex justify-content-between align-items-center text list-item-module"
                             key={this.props.index + this.props.name}
@@ -77,14 +79,15 @@ class Module extends Component {
                                 {this.isModuleAdded(this.props.name) ? TEXT.deleteButtonText : TEXT.addButtonText}
                             </button>
                         </li>
-                        {this.props.module.map((value, key) =>
-                            <Function
-                                key={this.props.index + value}
-                                index={this.props.index + value}
+                        {Object.keys(this.props.module).map((type) =>
+                            <Symbols
+                                key={this.props.index + type}
+                                index={this.props.index + type}
                                 moduleName={this.props.name}
-                                name={value}
-                                isFunctionAdded={this.isFunctionAdded}
-                                handleUpdateFunction={this.handleUpdateFunction} />
+                                symbols={this.props.module[type]}
+                                isSymbolAdded={this.isSymbolAdded}
+                                handleUpdateSymbol={this.handleUpdateSymbol} />
+
                         )}
                     </div>
                 </ul>

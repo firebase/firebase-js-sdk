@@ -16,12 +16,18 @@ export const TEXT = {
     calculateBtnText: 'Calculate',
     addButtonText: '+',
     deleteButtonText: 'x',
-    moduleRepresentation: '*'
+    moduleRepresentation: '*',
+    sizePrompt: 'Size',
+    sizeAfterGzipPrompt: 'Size After Gzip',
+    unit: 'bytes'
 }
 
 export const ENDPOINTS = {
-    retrieveFirebaseVersionFromNPM: 'retrieveFirebaseVersionFromNPM'
+    retrieveFirebaseVersionFromNPM: 'retrieveFirebaseVersionFromNPM',
+    downloadPackageFromNPMGivenVersionAndReturnExportedSymbols: 'downloadPackageFromNPMGivenVersionAndReturnExportedSymbols',
+    generateSizeAnalysisReportGivenCustomBundle: 'generateSizeAnalysisReportGivenCustomBundle'
 }
-export const API_ROOT = 'https://us-central1-web-app-size-analysis.cloudfunctions.net/';
-export const API_ROOT_DEV = 'http://localhost:5001/web-app-size-analysis/us-central1/';
+
+//export const API_ROOT = 'https://us-central1-web-app-size-analysis.cloudfunctions.net/';
+export const API_ROOT = 'http://localhost:5001/web-app-size-analysis/us-central1/';
 

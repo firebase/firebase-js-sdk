@@ -29,11 +29,11 @@ class BundlePanel extends Component {
                     {Array.from(this.state.currentBundle.keys()).map(key =>
                         <BundleItem
 
-                            handleRemoveFunctionFromBundle={this.props.handleRemoveFunctionFromBundle}
+                            handleRemoveSymbolFromBundle={this.props.handleRemoveSymbolFromBundle}
                             handleRemoveModuleFromBundle={this.props.handleRemoveModuleFromBundle}
                             index={key} key={key}
                             moduleName={key}
-                            functionName={this.state.currentBundle.get(key)} />
+                            symbolName={this.state.currentBundle.get(key)} />
                     )}
                 </ul>
                 <button

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { TEXT } from '../constants';
-class Function extends Component {
+class Symbol extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -16,13 +16,13 @@ class Function extends Component {
 
             <li
                 className="list-group-item d-flex justify-content-between align-items-center text list-item-function"
-                onClick={() => { this.props.handleUpdateFunction(this.props.name, this.props.moduleName) }}
+                onClick={() => { this.props.handleUpdateSymbol(this.props.symbol, this.props.moduleName) }}
                 key={this.props.index}>
-                {this.props.name}
+                {this.props.symbol}
                 <button
                     className="badge badge-primary light-orange-btn"
                 >
-                    {this.props.isFunctionAdded(this.props.name, this.props.moduleName) ? TEXT.deleteButtonText : TEXT.addButtonText}
+                    {this.props.isSymbolAdded(this.props.symbol, this.props.moduleName) ? TEXT.deleteButtonText : TEXT.addButtonText}
                 </button>
             </li>
 
@@ -31,4 +31,4 @@ class Function extends Component {
     }
 }
 
-export default Function;
+export default Symbol;
