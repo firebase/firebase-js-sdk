@@ -53,22 +53,19 @@ export async function setOfflineComponentProvider(
   persistenceSettings: PersistenceSettings,
   offlineComponentProvider: OfflineComponentProvider
 ): Promise<void> {
-  debugAssert(
-    !onlineComponentProviders.has(firestore),
-    'The offline component provider must be registered before the online ' +
-      'component provider.'
-  );
-  const configuration = await firestore._getConfiguration();
-  configuration.persistenceSettings = persistenceSettings;
-
   const offlineDeferred = new Deferred<OfflineComponentProvider>();
   offlineComponentProviders.set(firestore, offlineDeferred.promise);
+
+  const configuration = await firestore._getConfiguration();
+  configuration.persistenceSettings = persistenceSettings;
 
   logDebug(LOG_TAG, 'Initializing OfflineComponentProvider');
   await offlineComponentProvider.initialize(configuration);
   firestore._setCredentialChangeListener(user =>
     // TODO(firestorexp): This should be a retryable IndexedDB operation
     firestore._queue.enqueueAndForget(() =>
+      // TODO(firestorexp): Make sure handleUserChange is a no-op if user
+      // didn't change
       offlineComponentProvider.localStore.handleUserChange(user)
     )
   );
@@ -87,9 +84,10 @@ export async function setOnlineComponentProvider(
   const onlineDeferred = new Deferred<OnlineComponentProvider>();
   onlineComponentProviders.set(firestore, onlineDeferred.promise);
 
-  logDebug(LOG_TAG, 'Initializing OnlineComponentProvider');
   const configuration = await firestore._getConfiguration();
   const offlineComponentProvider = await getOfflineComponentProvider(firestore);
+
+  logDebug(LOG_TAG, 'Initializing OnlineComponentProvider');
   await onlineComponentProvider.initialize(
     offlineComponentProvider,
     configuration
