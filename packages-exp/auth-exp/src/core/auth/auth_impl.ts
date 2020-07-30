@@ -28,9 +28,9 @@ import {
   Unsubscribe
 } from '@firebase/util';
 
-import { Auth, Dependencies } from '../../model/auth';
+import { Auth, Dependencies, AuthCore } from '../../model/auth';
 import { PopupRedirectResolver } from '../../model/popup_redirect';
-import { User } from '../../model/user';
+import { UserParameters, User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
 import {
@@ -42,23 +42,28 @@ import { assert } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion, ClientPlatform } from '../util/version';
+import { UserImpl } from '../user/user_impl';
 
 interface AsyncAction {
   (): Promise<void>;
+}
+
+export interface UserProvider<T extends User> {
+  new (params: UserParameters): T;
 }
 
 export const DEFAULT_TOKEN_API_HOST = 'securetoken.googleapis.com';
 export const DEFAULT_API_HOST = 'identitytoolkit.googleapis.com';
 export const DEFAULT_API_SCHEME = 'https';
 
-export class AuthImpl implements Auth {
-  currentUser: User | null = null;
+export class AuthImplCompat<T extends User> implements Auth {
+  currentUser: T | null = null;
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
   private redirectPersistenceManager?: PersistenceUserManager;
-  private authStateSubscription = new Subscription<User>(this);
-  private idTokenSubscription = new Subscription<User>(this);
-  private redirectUser: User | null = null;
+  private authStateSubscription = new Subscription<T>(this);
+  private idTokenSubscription = new Subscription<T>(this);
+  private redirectUser: T | null = null;
   _isInitialized = false;
   _popupRedirectResolver: PopupRedirectResolver | null = null;
 
@@ -72,7 +77,8 @@ export class AuthImpl implements Auth {
 
   constructor(
     public readonly name: string,
-    public readonly config: externs.Config
+    public readonly config: externs.Config,
+    private readonly _userProvider: UserProvider<T>
   ) {}
 
   _initializeWithPersistence(
@@ -96,8 +102,12 @@ export class AuthImpl implements Auth {
     });
   }
 
+  _createUser(params: UserParameters): T {
+    return new this._userProvider(params);
+  }
+
   private async initializeCurrentUser(): Promise<void> {
-    const storedUser = await this.assertedPersistence.getCurrentUser();
+    const storedUser = (await this.assertedPersistence.getCurrentUser()) as T | null;
     if (!storedUser) {
       return this.directlySetCurrentUser(storedUser);
     }
@@ -127,7 +137,7 @@ export class AuthImpl implements Auth {
     return this.reloadAndSetCurrentUserOrClear(storedUser);
   }
 
-  private async reloadAndSetCurrentUserOrClear(user: User): Promise<void> {
+  private async reloadAndSetCurrentUserOrClear(user: T): Promise<void> {
     try {
       await _reloadWithoutSaving(user);
     } catch (e) {
@@ -145,9 +155,9 @@ export class AuthImpl implements Auth {
     this.languageCode = _getUserLanguage();
   }
 
-  async updateCurrentUser(user: User | null): Promise<void> {
+  async updateCurrentUser(user: externs.User | null): Promise<void> {
     return this.queue(async () => {
-      await this.directlySetCurrentUser(user);
+      await this.directlySetCurrentUser(user as T | null);
       this.notifyAuthListeners();
     });
   }
@@ -156,14 +166,14 @@ export class AuthImpl implements Auth {
     return this.updateCurrentUser(null);
   }
 
-  setPersistence(persistence: externs.Persistence): Promise<void> {
+  _setPersistence(persistence: externs.Persistence): Promise<void> {
     return this.queue(async () => {
       await this.assertedPersistence.setPersistence(_getInstance(persistence));
     });
   }
 
-  onAuthStateChanged(
-    nextOrObserver: externs.NextOrObserver<User>,
+  _onAuthStateChanged(
+    nextOrObserver: externs.NextOrObserver<T>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
@@ -175,8 +185,8 @@ export class AuthImpl implements Auth {
     );
   }
 
-  onIdTokenChanged(
-    nextOrObserver: externs.NextOrObserver<User>,
+  _onIdTokenChanged(
+    nextOrObserver: externs.NextOrObserver<T>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
@@ -189,7 +199,7 @@ export class AuthImpl implements Auth {
   }
 
   async _setRedirectUser(
-    user: User | null,
+    user: T | null,
     popupRedirectResolver?: externs.PopupRedirectResolver
   ): Promise<void> {
     const redirectManager = await this.getOrInitRedirectPersistenceManager(
@@ -213,13 +223,13 @@ export class AuthImpl implements Auth {
         [_getInstance(resolver._redirectPersistence)],
         _REDIRECT_USER_KEY_NAME
       );
-      this.redirectUser = await this.redirectPersistenceManager.getCurrentUser();
+      this.redirectUser = (await this.redirectPersistenceManager.getCurrentUser()) as T;
     }
 
     return this.redirectPersistenceManager;
   }
 
-  async _redirectUserForId(id: string): Promise<User | null> {
+  async _redirectUserForId(id: string): Promise<T | null> {
     // Make sure we've cleared any pending ppersistence actions
     await this.queue(async () => {});
 
@@ -234,14 +244,14 @@ export class AuthImpl implements Auth {
     return null;
   }
 
-  async _persistUserIfCurrent(user: User): Promise<void> {
+  async _persistUserIfCurrent(user: T): Promise<void> {
     if (user === this.currentUser) {
       return this.queue(async () => this.directlySetCurrentUser(user));
     }
   }
 
   /** Notifies listeners only if the user is current */
-  _notifyListenersIfCurrent(user: User): void {
+  _notifyListenersIfCurrent(user: T): void {
     if (user === this.currentUser) {
       this.notifyAuthListeners();
     }
@@ -265,8 +275,8 @@ export class AuthImpl implements Auth {
   }
 
   private registerStateListener(
-    subscription: Subscription<User>,
-    nextOrObserver: externs.NextOrObserver<User>,
+    subscription: Subscription<T>,
+    nextOrObserver: externs.NextOrObserver<T>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
@@ -292,7 +302,7 @@ export class AuthImpl implements Auth {
    * should only be called from within a queued callback. This is necessary
    * because the queue shouldn't rely on another queued callback.
    */
-  private async directlySetCurrentUser(user: User | null): Promise<void> {
+  private async directlySetCurrentUser(user: T | null): Promise<void> {
     this.currentUser = user;
 
     if (user) {
@@ -313,6 +323,46 @@ export class AuthImpl implements Auth {
     assert(this.persistenceManager, this.name);
     return this.persistenceManager;
   }
+}
+
+/**
+ * This is the implementation we make public in the new SDK, note the changed interface on these methods
+ *
+ * Don't instantiate this class directly, use initializeAuth()
+ */
+export class AuthImpl extends AuthImplCompat<UserImpl> implements externs.Auth {
+  constructor(name: string, config: externs.Config) {
+    super(name, config, UserImpl);
+  }
+
+  onAuthStateChanged(
+    nextOrObserver: externs.NextOrObserver<externs.User>,
+    error?: ErrorFn,
+    completed?: CompleteFn
+  ): Unsubscribe {
+    return super._onAuthStateChanged(nextOrObserver, error, completed);
+  }
+
+  onIdTokenChanged(
+    nextOrObserver: externs.NextOrObserver<externs.User>,
+    error?: ErrorFn,
+    completed?: CompleteFn
+  ): Unsubscribe {
+    return super._onIdTokenChanged(nextOrObserver, error, completed);
+  }
+
+  setPersistence(persistence: externs.Persistence): Promise<void> {
+    return super._setPersistence(persistence);
+  }
+}
+
+/**
+ * Method to be used to cast down to our private implmentation of Auth
+ *
+ * @param auth Auth object passed in from developer
+ */
+export function _castAuth(auth: externs.Auth): Auth {
+  return (auth as unknown) as Auth;
 }
 
 export function initializeAuth(
@@ -354,7 +404,7 @@ class Subscription<T> {
     observer => (this.observer = observer)
   );
 
-  constructor(readonly auth: Auth) {}
+  constructor(readonly auth: AuthCore) {}
 
   get next(): NextFn<T | null> {
     assert(this.observer, this.auth.name);

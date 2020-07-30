@@ -16,8 +16,8 @@
  */
 
 import { Endpoint, HttpMethod, _performSignInRequest } from '..';
-import { Auth } from '../../model/auth';
 import { IdToken, IdTokenResponse } from '../../model/id_token';
+import { AuthCore } from '../../model/auth';
 
 export interface SignInWithIdpRequest {
   requestUri: string;
@@ -39,7 +39,7 @@ export interface SignInWithIdpResponse extends IdTokenResponse {
 }
 
 export async function signInWithIdp(
-  auth: Auth,
+  auth: AuthCore,
   request: SignInWithIdpRequest
 ): Promise<SignInWithIdpResponse> {
   return _performSignInRequest<SignInWithIdpRequest, SignInWithIdpResponse>(

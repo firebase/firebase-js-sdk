@@ -18,7 +18,6 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import * as api from '../../api/authentication/email_and_password';
-import { Auth } from '../../model/auth';
 import { ActionCodeURL } from '../action_code_url';
 import { EmailAuthProvider } from '../providers/email';
 import { _getCurrentUrl } from '../util/location';
@@ -38,14 +37,14 @@ export async function sendSignInLinkToEmail(
     setActionCodeSettingsOnRequest(request, actionCodeSettings);
   }
 
-  await api.sendSignInLinkToEmail(auth as Auth, request);
+  await api.sendSignInLinkToEmail(auth, request);
 }
 
 export function isSignInWithEmailLink(
   auth: externs.Auth,
   emailLink: string
 ): boolean {
-  const actionCodeUrl = ActionCodeURL.parseLink(auth as Auth, emailLink);
+  const actionCodeUrl = ActionCodeURL.parseLink(auth, emailLink);
   return actionCodeUrl?.operation === externs.Operation.EMAIL_SIGNIN;
 }
 
@@ -57,7 +56,7 @@ export async function signInWithEmailLink(
   return signInWithCredential(
     auth,
     EmailAuthProvider.credentialWithLink(
-      auth as Auth,
+      auth,
       email,
       emailLink || _getCurrentUrl()
     )

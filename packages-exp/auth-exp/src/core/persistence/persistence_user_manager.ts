@@ -16,11 +16,11 @@
  */
 
 import { ApiKey, AppName, Auth } from '../../model/auth';
-import { User } from '../../model/user';
 import { PersistedBlob, Persistence } from '../persistence';
-import { UserImpl } from '../user/user_impl';
 import { _getInstance } from '../util/instantiator';
 import { inMemoryPersistence } from './in_memory';
+import { User } from '../../model/user';
+import { UserImpl } from '../user/user_impl';
 
 export const _AUTH_USER_KEY_NAME = 'authUser';
 export const _REDIRECT_USER_KEY_NAME = 'redirectUser';

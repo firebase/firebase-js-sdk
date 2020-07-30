@@ -22,10 +22,9 @@ import { SinonStub, stub, useFakeTimers } from 'sinon';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../test/helpers/api/helper';
-import { testAuth } from '../../test/helpers/mock_auth';
+import { testAuth, TestAuth } from '../../test/helpers/mock_auth';
 import * as mockFetch from '../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../core/errors';
-import { Auth } from '../model/auth';
 import {
   _performApiRequest,
   DEFAULT_API_TIMEOUT_MS,
@@ -46,7 +45,7 @@ describe('api/_performApiRequest', () => {
     responseKey: 'response-value'
   };
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();

@@ -16,8 +16,8 @@
  */
 
 import { Endpoint, HttpMethod, _performSignInRequest } from '..';
-import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
+import { AuthCore } from '../../model/auth';
 
 export interface SignInWithCustomTokenRequest {
   token: string;
@@ -26,7 +26,7 @@ export interface SignInWithCustomTokenRequest {
 export interface SignInWithCustomTokenResponse extends IdTokenResponse {}
 
 export async function signInWithCustomToken(
-  auth: Auth,
+  auth: AuthCore,
   request: SignInWithCustomTokenRequest
 ): Promise<SignInWithCustomTokenResponse> {
   return _performSignInRequest<

@@ -26,10 +26,10 @@ import { FirebaseError } from '@firebase/util';
 import {
   TEST_AUTH_DOMAIN,
   TEST_KEY,
-  testAuth
+  testAuth,
+  TestAuth
 } from '../../../test/helpers/mock_auth';
 import { stubSingleTimeout } from '../../../test/helpers/timeout_stub';
-import { Auth } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';
 import * as gapiLoader from './gapi';
 import { _openIframe } from './iframe';
@@ -40,7 +40,7 @@ use(chaiAsPromised);
 type IframesCallback = (iframesLib: unknown) => Promise<unknown>;
 
 describe('src/platform_browser/iframe/iframe', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   let iframeSettings: Record<string, unknown>;
   let libraryLoadedCallback: IframesCallback;
 

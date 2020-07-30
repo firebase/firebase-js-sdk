@@ -24,11 +24,10 @@ import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { makeJWT } from '../../../test/helpers/jwt';
-import { testAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
-import { Auth } from '../../model/auth';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { StsTokenManager } from './token_manager';
 import { UserImpl } from './user_impl';
@@ -38,7 +37,7 @@ use(chaiAsPromised);
 use(sinonChai);
 
 describe('core/user/user_impl', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   let stsTokenManager: StsTokenManager;
 
   beforeEach(async () => {

@@ -6,7 +6,7 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
+  "module": "dist/index.esm5.js",
   "esm2017": "dist/index.esm2017.js",
   "react-native": "dist/index.rn.cjs.js",
   "files": [
@@ -16,7 +16,7 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
-    "build:deps": "lerna run --scope @firebase/'{app,auth-compat-exp}' --include-dependencies build",
+    "build:deps": "lerna run --scope @firebase/'{app,auth-types,auth-exp,auth-types-exp}' --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "yarn type-check && run-p lint test:browser test:node",
     "test:browser": "karma start --single-run",
@@ -25,10 +25,13 @@
     "prepare": "yarn build"
   },
   "peerDependencies": {
-    "@firebase/app-exp": "0.x",
-    "@firebase/app-types-exp": "0.x",
+    "@firebase/app": "0.x",
+    "@firebase/auth-types": "0.x",
     "@firebase/auth-exp": "0.x",
-    "@firebase/auth-types-exp": "0.x"
+    "@firebase/auth-types-exp": "0.x",
+    "@firebase/component": "0.x",
+    "@firebase/installations": "0.x",
+    "@firebase/util": "0.x"
   },
   "dependencies": {
     "tslib": "1.11.1"

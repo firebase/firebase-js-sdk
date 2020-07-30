@@ -173,7 +173,9 @@ export class EmailAuthProvider_Instance implements AuthProvider {
 
 export interface Error {
   code: string;
+  name: string;
   message: string;
+  stack?: string;
 }
 
 export interface AuthError extends Error {

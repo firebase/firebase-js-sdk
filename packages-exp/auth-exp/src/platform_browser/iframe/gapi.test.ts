@@ -22,8 +22,7 @@ import * as sinonChai from 'sinon-chai';
 
 import { FirebaseError } from '@firebase/util';
 
-import { testAuth } from '../../../test/helpers/mock_auth';
-import { Auth } from '../../model/auth';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import { AUTH_WINDOW } from '../auth_window';
 import * as js from '../load_js';
 import { _loadGapi, _resetLoader } from './gapi';
@@ -33,7 +32,7 @@ use(chaiAsPromised);
 
 describe('src/platform_browser/iframe/gapi', () => {
   let library: typeof gapi;
-  let auth: Auth;
+  let auth: TestAuth;
   function onJsLoad(globalLoadFnName: string): void {
     AUTH_WINDOW.gapi = library as typeof gapi;
     AUTH_WINDOW[globalLoadFnName]();

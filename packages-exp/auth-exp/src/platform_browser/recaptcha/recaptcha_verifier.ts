@@ -23,7 +23,7 @@ import { AuthErrorCode } from '../../core/errors';
 import { assert } from '../../core/util/assert';
 import { _isHttpOrHttps } from '../../core/util/location';
 import { ApplicationVerifier } from '../../model/application_verifier';
-import { Auth } from '../../model/auth';
+import { Auth, AuthCore } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';
 import { Parameters, Recaptcha } from './recaptcha';
 import {
@@ -44,7 +44,7 @@ export const RECAPTCHA_VERIFIER_TYPE = 'recaptcha';
 export class RecaptchaVerifier
   implements externs.RecaptchaVerifier, ApplicationVerifier {
   readonly type = RECAPTCHA_VERIFIER_TYPE;
-  private readonly auth: Auth;
+  private readonly auth: AuthCore;
   private readonly appName: string;
   private destroyed = false;
   private widgetId: number | null = null;
@@ -63,7 +63,7 @@ export class RecaptchaVerifier
     },
     auth?: externs.Auth | null
   ) {
-    this.auth = (auth || initializeAuth()) as Auth;
+    this.auth = auth || initializeAuth();
     this.appName = this.auth.name;
     this.isInvisible = this.parameters.size === 'invisible';
     const container =
