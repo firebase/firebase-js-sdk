@@ -45,7 +45,7 @@ export class PerformanceController implements FirebasePerformance {
     } else {
       consoleLogger.info(
         'Firebase Performance cannot start if the browser does not support ' +
-          'Fetch and Promise, or cookies are disabled.'
+          '"Fetch" and "Promise", or cookies are disabled.'
       );
     }
   }
