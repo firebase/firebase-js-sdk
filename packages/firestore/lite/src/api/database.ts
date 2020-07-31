@@ -42,6 +42,7 @@ import { Settings } from '../../';
 export const DEFAULT_HOST = 'firestore.googleapis.com';
 export const DEFAULT_SSL = true;
 export const DEFAULT_FORCE_LONG_POLLING = false; // Used by full SDK
+export const DEFAULT_AUTODETECT_LONG_POLLING = false; // Used by full SDK
 
 /**
  * The root reference to the Firestore Lite database.
@@ -107,7 +108,8 @@ export class Firestore
       /* persistenceKey= */ 'unsupported',
       host ?? DEFAULT_HOST,
       ssl ?? DEFAULT_SSL,
-      DEFAULT_FORCE_LONG_POLLING
+      DEFAULT_FORCE_LONG_POLLING,
+      DEFAULT_AUTODETECT_LONG_POLLING
     );
   }
 

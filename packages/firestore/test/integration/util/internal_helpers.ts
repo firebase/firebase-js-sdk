@@ -44,7 +44,8 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
     'persistenceKey',
     DEFAULT_SETTINGS.host!,
     !!DEFAULT_SETTINGS.ssl,
-    !!DEFAULT_SETTINGS.experimentalForceLongPolling
+    !!DEFAULT_SETTINGS.experimentalForceLongPolling,
+    /*experimentalAutodetectLongPolling=*/ true
   );
 }
 

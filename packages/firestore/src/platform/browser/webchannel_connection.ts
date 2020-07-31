@@ -74,12 +74,14 @@ export class WebChannelConnection implements Connection {
   private readonly databaseId: DatabaseId;
   private readonly baseUrl: string;
   private readonly forceLongPolling: boolean;
+  private readonly autodetectLongPolling: boolean;
 
   constructor(info: DatabaseInfo) {
     this.databaseId = info.databaseId;
     const proto = info.ssl ? 'https' : 'http';
     this.baseUrl = proto + '://' + info.host;
     this.forceLongPolling = info.forceLongPolling;
+    this.autodetectLongPolling = info.autodetectLongPolling;
   }
 
   /**
@@ -248,7 +250,8 @@ export class WebChannelConnection implements Connection {
         // timeouts to kick in if the request isn't working.
         forwardChannelRequestTimeoutMs: 10 * 60 * 1000
       },
-      forceLongPolling: this.forceLongPolling
+      forceLongPolling: this.forceLongPolling,
+      detectBufferingProxy: this.autodetectLongPolling
     };
 
     this.modifyHeadersForRequest(request.initMessageHeaders!, token);

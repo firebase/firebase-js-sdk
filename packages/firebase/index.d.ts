@@ -7735,14 +7735,26 @@ declare namespace firebase.firestore {
      * buffer traffic indefinitely. Use of this option will cause some
      * performance degradation though.
      *
-     * This setting may be removed in a future release. If you find yourself
-     * using it to work around a specific network reliability issue, please
-     * tell us about it in
-     * https://github.com/firebase/firebase-js-sdk/issues/1674.
+     * This setting cannot be used with experimentalAutodetectLongPolling and
+     * may be removed in a future release. If you find yourself using it to
+     * work around a specific network reliability issue, please tell us about
+     * it in https://github.com/firebase/firebase-js-sdk/issues/1674.
      *
      * @webonly
      */
     experimentalForceLongPolling?: boolean;
+
+    /**
+     * Configures the SDK's underlying transport (WebChannel) to automatically detect if
+     * long-polling should be used and also update as the networking conditions change. This is
+     * very similar to experimentalForceLongPolling but does automatic detection.
+     *
+     * This setting cannot be used with experimentalForceLongPolling and may be removed in a future
+     * release.
+     *
+     * @webonly
+     */
+    experimentalAutodetectLongPolling?: boolean;
 
     /**
      * Whether to skip nested properties that are set to `undefined` during

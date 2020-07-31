@@ -67,7 +67,8 @@ import {
   validateOptionNames,
   validatePositiveNumber,
   validateStringEnum,
-  valueDescription
+  valueDescription,
+  validateIsNotUsedTogether
 } from '../util/input_validation';
 import { getLogLevel, logError, LogLevel, setLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
@@ -108,6 +109,7 @@ const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
 const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = true;
 const DEFAULT_FORCE_LONG_POLLING = false;
+const DEFAULT_FORCE_AUTODETECT_LONG_POLLING = false;
 const DEFAULT_IGNORE_UNDEFINED_PROPERTIES = false;
 
 /**
@@ -153,6 +155,8 @@ class FirestoreSettings {
 
   readonly forceLongPolling: boolean;
 
+  readonly autodetectLongPolling: boolean;
+
   readonly ignoreUndefinedProperties: boolean;
 
   // Can be a google-auth-library or gapi client.
@@ -183,6 +187,7 @@ class FirestoreSettings {
       'timestampsInSnapshots',
       'cacheSizeBytes',
       'experimentalForceLongPolling',
+      'experimentalAutodetectLongPolling',
       'ignoreUndefinedProperties'
     ]);
 
@@ -256,6 +261,23 @@ class FirestoreSettings {
     );
     this.forceLongPolling =
       settings.experimentalForceLongPolling ?? DEFAULT_FORCE_LONG_POLLING;
+
+    validateNamedOptionalType(
+      'settings',
+      'boolean',
+      'experimentalAutodetectLongPolling',
+      settings.experimentalAutodetectLongPolling
+    );
+    this.autodetectLongPolling =
+      settings.experimentalAutodetectLongPolling ??
+      DEFAULT_FORCE_AUTODETECT_LONG_POLLING;
+
+    validateIsNotUsedTogether(
+      'experimentalForceLongPolling',
+      settings.experimentalForceLongPolling,
+      'experimentalAutodetectLongPolling',
+      settings.experimentalAutodetectLongPolling
+    );
   }
 
   isEqual(other: FirestoreSettings): boolean {
@@ -266,6 +288,7 @@ class FirestoreSettings {
       this.credentials === other.credentials &&
       this.cacheSizeBytes === other.cacheSizeBytes &&
       this.forceLongPolling === other.forceLongPolling &&
+      this.autodetectLongPolling === other.autodetectLongPolling &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties
     );
   }
@@ -501,7 +524,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._persistenceKey,
       this._settings.host,
       this._settings.ssl,
-      this._settings.forceLongPolling
+      this._settings.forceLongPolling,
+      this._settings.autodetectLongPolling
     );
   }
 
