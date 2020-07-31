@@ -17,7 +17,8 @@
 
 // This file is only used under ts-node.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/random_bytes`);
+const platform = require(`./${process.env.TEST_PLATFORM ??
+  'node'}/random_bytes`);
 
 /**
  * Generates `nBytes` of random bytes.
@@ -25,5 +26,5 @@ const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/random_bytes`
  * If `nBytes < 0` , an error will be thrown.
  */
 export function randomBytes(nBytes: number): Uint8Array {
-    return platform.randomBytes(nBytes);
+  return platform.randomBytes(nBytes);
 }

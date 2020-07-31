@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-/** Return the Platform-specific serializer monitor. */
 import { JsonProtoSerializer } from '../../remote/serializer';
 import { DatabaseId } from '../../core/database_info';
 

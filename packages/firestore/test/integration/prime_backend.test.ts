@@ -27,7 +27,7 @@ const PRIMING_TIMEOUT_MS = 45000;
 
 before(
   'Prime backend by waiting for a write to show up in the watch stream',
-  function (): Promise<void> {
+  function(): Promise<void> {
     this.timeout(PRIMING_TIMEOUT_MS);
 
     return withTestDoc(/*persistence=*/ false, async doc => {

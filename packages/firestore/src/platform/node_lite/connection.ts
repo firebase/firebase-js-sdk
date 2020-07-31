@@ -17,9 +17,9 @@
 
 import * as nodeFetch from 'node-fetch';
 
-import {FetchConnection} from "../browser_lite/fetch_connection";
-import {DatabaseInfo} from "../../core/database_info";
-import {Connection} from "../../remote/connection";
+import { FetchConnection } from '../browser_lite/fetch_connection';
+import { DatabaseInfo } from '../../core/database_info';
+import { Connection } from '../../remote/connection';
 
 export { newConnectivityMonitor } from '../browser/connection';
 

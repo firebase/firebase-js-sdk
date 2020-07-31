@@ -130,13 +130,13 @@ export class WebChannelConnection extends RestConnection {
             default:
               fail(
                 'RPC "' +
-                rpcName +
-                '" failed with unanticipated ' +
-                'webchannel error ' +
-                xhr.getLastErrorCode() +
-                ': ' +
-                xhr.getLastError() +
-                ', giving up.'
+                  rpcName +
+                  '" failed with unanticipated ' +
+                  'webchannel error ' +
+                  xhr.getLastErrorCode() +
+                  ': ' +
+                  xhr.getLastError() +
+                  ', giving up.'
               );
           }
         } finally {
@@ -148,7 +148,7 @@ export class WebChannelConnection extends RestConnection {
       xhr.send(url, 'POST', requestString, headers, XHR_TIMEOUT_SECS);
     });
   }
-  
+
   openStream<Req, Resp>(
     rpcName: string,
     token: Token | null

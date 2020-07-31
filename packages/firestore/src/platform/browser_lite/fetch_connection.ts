@@ -18,13 +18,24 @@
 import { Token } from '../../api/credentials';
 import { Stream } from '../../remote/connection';
 import { mapCodeFromHttpStatus } from '../../remote/rpc_error';
-import { FirestoreError } from '../../util/error'; 
+import { FirestoreError } from '../../util/error';
 import { StringMap } from '../../util/types';
 import { RestConnection } from '../../remote/rest_connection';
-import {DatabaseInfo} from "../../core/database_info";
+import { DatabaseInfo } from '../../core/database_info';
 
+/**
+ * A Rest-based connection that relies on the native HTTP stack
+ * (e.g. `fetch` or a polyfill).
+ */
 export class FetchConnection extends RestConnection {
-  constructor(databaseInfo: DatabaseInfo, private readonly fetchImpl: typeof fetch) {
+  /**
+   * @param databaseInfo The connection info.
+   * @param fetchImpl `fetch` or a Polyfill that implements the fetch API.
+   */
+  constructor(
+    databaseInfo: DatabaseInfo,
+    private readonly fetchImpl: typeof fetch
+  ) {
     super(databaseInfo);
   }
 
@@ -56,14 +67,14 @@ export class FetchConnection extends RestConnection {
         'Request failed with error: ' + err.statusText
       );
     }
-    
+
     if (!response.ok) {
       throw new FirestoreError(
         mapCodeFromHttpStatus(response.status),
         'Request failed with error: ' + response.statusText
       );
     }
-    
+
     return response.json();
   }
 }

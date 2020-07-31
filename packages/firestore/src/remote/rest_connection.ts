@@ -27,9 +27,9 @@ import { Indexable } from '../util/misc';
 
 const LOG_TAG = 'RestConnection';
 
-/** 
- * Maps RPC names to the corresponding REST endpoint name. 
- * 
+/**
+ * Maps RPC names to the corresponding REST endpoint name.
+ *
  * We use array notation to avoid mangling.
  */
 const RPC_NAME_URL_MAPPING: StringMap = {};
@@ -92,7 +92,15 @@ export abstract class RestConnection implements Connection {
         return response;
       },
       (err: FirestoreError) => {
-        logWarn(LOG_TAG, `${rpcName} failed with error: `, err.message, 'url: ', url, 'request:', req);
+        logWarn(
+          LOG_TAG,
+          `${rpcName} failed with error: `,
+          err.message,
+          'url: ',
+          url,
+          'request:',
+          req
+        );
         throw err;
       }
     );
@@ -107,7 +115,7 @@ export abstract class RestConnection implements Connection {
     // can just use the normal invoke() method.
     return this.invokeRPC<Req, Resp[]>(rpcName, request, token);
   }
-  
+
   abstract openStream<Req, Resp>(
     rpcName: string,
     token: Token | null

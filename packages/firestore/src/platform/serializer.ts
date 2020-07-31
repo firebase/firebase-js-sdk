@@ -14,13 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {DatabaseId} from "../core/database_info";
-import {JsonProtoSerializer} from "../remote/serializer";
+import { DatabaseId } from '../core/database_info';
+import { JsonProtoSerializer } from '../remote/serializer';
 
 // This file is only used under ts-node.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/serializer`);
 
 export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
-    return platform.newSerializer(databaseId);
+  return platform.newSerializer(databaseId);
 }

@@ -111,7 +111,10 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('browser_lite')), ...browserPlugins],
+    plugins: [
+      alias(util.generateAliasConfig('browser_lite')),
+      ...browserPlugins
+    ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false

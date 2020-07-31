@@ -125,8 +125,10 @@ describe('RestConnection', () => {
   });
 
   it('returns error', () => {
-    const error =  new FirestoreError(Code.UNKNOWN, 'Test exception');
+    const error = new FirestoreError(Code.UNKNOWN, 'Test exception');
     connection.nextResponse = Promise.reject(error);
-    return expect(connection.invokeRPC('RunQuery', {}, null)).to.be.eventually.rejectedWith(error);
+    return expect(
+      connection.invokeRPC('RunQuery', {}, null)
+    ).to.be.eventually.rejectedWith(error);
   });
 });

@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ConnectivityMonitor} from "../remote/connectivity_monitor";
-import {DatabaseInfo} from "../core/database_info";
-import {Connection} from "../remote/connection";
+import { ConnectivityMonitor } from '../remote/connectivity_monitor';
+import { DatabaseInfo } from '../core/database_info';
+import { Connection } from '../remote/connection';
 
 // This file is only used under ts-node.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
