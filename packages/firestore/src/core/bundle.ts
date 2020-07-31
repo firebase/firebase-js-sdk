@@ -180,11 +180,9 @@ export class BundleLoader {
     this.progress.bytesLoaded += element.byteLength;
 
     let documentsLoaded = this.progress.documentsLoaded;
-    let loadedNamedQuery = false;
 
     if (element.payload.namedQuery) {
       this.queries.push(element.payload.namedQuery);
-      loadedNamedQuery = true;
     } else if (element.payload.documentMetadata) {
       this.documents.push({ metadata: element.payload.documentMetadata });
       if (!element.payload.documentMetadata.exists) {
@@ -202,7 +200,7 @@ export class BundleLoader {
       ++documentsLoaded;
     }
 
-    if (loadedNamedQuery || documentsLoaded !== this.progress.documentsLoaded) {
+    if (documentsLoaded !== this.progress.documentsLoaded) {
       this.progress.documentsLoaded = documentsLoaded;
       return { ...this.progress };
     }

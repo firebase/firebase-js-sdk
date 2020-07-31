@@ -30,6 +30,8 @@ import { TestBundleBuilder } from '../../unit/util/bundle_data';
 import { newTextEncoder } from '../../../src/platform/serializer';
 import { collectionReference } from '../../util/api_helpers';
 
+// TODO(b/162594908): Move this to api/ instead of api_internal.
+
 export const encoder = newTextEncoder();
 
 function verifySuccessProgress(p: firestore.LoadBundleTaskProgress): void {
@@ -132,14 +134,12 @@ apiDescribe('Bundles', (persistence: boolean) => {
       });
 
       expect(completeCalled).to.be.true;
-      expect(progressEvents.length).to.equal(6);
+      expect(progressEvents.length).to.equal(4);
       verifyInProgress(progressEvents[0], 0);
-      verifyInProgress(progressEvents[1], 0);
-      verifyInProgress(progressEvents[2], 0);
-      verifyInProgress(progressEvents[3], 1);
-      verifyInProgress(progressEvents[4], 2);
-      verifySuccessProgress(progressEvents[5]);
-      expect(fulfillProgress!).to.deep.equal(progressEvents[5]);
+      verifyInProgress(progressEvents[1], 1);
+      verifyInProgress(progressEvents[2], 2);
+      verifySuccessProgress(progressEvents[3]);
+      expect(fulfillProgress!).to.deep.equal(progressEvents[3]);
 
       // Read from cache. These documents do not exist in backend, so they can
       // only be read from cache.

@@ -49,7 +49,7 @@ import {
   SCHEMA_VERSION,
   SchemaConverter
 } from '../../../src/local/indexeddb_schema';
-import { getNamedQuery, LocalStore } from '../../../src/local/local_store';
+import { LocalStore } from '../../../src/local/local_store';
 import {
   ClientId,
   SharedClientState
@@ -378,13 +378,7 @@ abstract class TestRunner {
 
     const querySpec = listenSpec.query;
     const query = parseQuery(querySpec);
-    if (listenSpec.fromName) {
-      const savedQuery = await getNamedQuery(
-        this.localStore,
-        listenSpec.fromName
-      );
-      expect(queryEquals(query, savedQuery!.query)).to.be.true;
-    }
+
     const aggregator = new EventAggregator(query, e => {
       if (e.error) {
         targetFailed = true;
@@ -1376,7 +1370,6 @@ export interface SpecStep {
 export interface SpecUserListen {
   targetId: TargetId;
   query: string | SpecQuery;
-  fromName?: string;
 }
 
 /** [<target-id>, <query-path>] */

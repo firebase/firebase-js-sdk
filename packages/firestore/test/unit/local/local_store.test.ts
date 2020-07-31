@@ -21,7 +21,13 @@ import { expect } from 'chai';
 import { FieldValue } from '../../../src/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
-import { Query, queryToTarget } from '../../../src/core/query';
+import {
+  LimitType,
+  Query,
+  queryEquals,
+  queryToTarget,
+  queryWithLimit
+} from '../../../src/core/query';
 import { Target } from '../../../src/core/target';
 import { BatchId, TargetId } from '../../../src/core/types';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
@@ -29,11 +35,13 @@ import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   applyBundleDocuments,
+  getNamedQuery,
   hasNewerBundle,
   LocalStore,
   LocalWriteResult,
-  saveBundle,
   newLocalStore,
+  saveBundle,
+  saveNamedQuery,
   synchronizeLastDocumentChangeReadTime
 } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
@@ -63,6 +71,8 @@ import {
 import { debugAssert } from '../../../src/util/assert';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
+  bundledDocuments,
+  bundleMetadata,
   byteStringFromString,
   deletedDoc,
   deleteMutation,
@@ -74,25 +84,25 @@ import {
   key,
   localViewChanges,
   mapAsArray,
+  namedQuery,
   noChangeEvent,
+  orderBy,
   patchMutation,
   query,
   setMutation,
-  bundledDocuments,
   TestBundledDocuments,
   TestSnapshotVersion,
   transformMutation,
   unknownDoc,
-  version,
-  bundleMetadata
+  version
 } from '../../util/helpers';
 
 import { CountingQueryEngine, QueryEngineType } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
-import { ByteString } from '../../../src/util/byte_string';
-import { BundledDocuments } from '../../../src/core/bundle';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
-import { BundleMetadata } from '../../../src/protos/firestore_bundle_proto';
+import { ByteString } from '../../../src/util/byte_string';
+import { BundledDocuments, NamedQuery } from '../../../src/core/bundle';
+import * as bundleProto from '../../../src/protos/firestore_bundle_proto';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;
@@ -127,6 +137,7 @@ class LocalStoreTester {
       | RemoteEvent
       | LocalViewChanges
       | TestBundledDocuments
+      | bundleProto.NamedQuery
   ): LocalStoreTester {
     if (op instanceof Mutation) {
       return this.afterMutations([op]);
@@ -136,8 +147,10 @@ class LocalStoreTester {
       return this.afterViewChanges(op);
     } else if (op instanceof RemoteEvent) {
       return this.afterRemoteEvent(op);
-    } else {
+    } else if (op instanceof TestBundledDocuments) {
       return this.afterBundleDocuments(op.documents);
+    } else {
+      return this.afterNamedQuery(op);
     }
   }
 
@@ -178,6 +191,15 @@ class LocalStoreTester {
       .then((result: MaybeDocumentMap) => {
         this.lastChanges = result;
       });
+    return this;
+  }
+
+  afterNamedQuery(namedQuery: bundleProto.NamedQuery): LocalStoreTester {
+    this.prepareNextStep();
+
+    this.promiseChain = this.promiseChain.then(() =>
+      saveNamedQuery(this.localStore, namedQuery)
+    );
     return this;
   }
 
@@ -411,7 +433,7 @@ class LocalStoreTester {
   }
 
   toHaveNewerBundle(
-    metadata: BundleMetadata,
+    metadata: bundleProto.BundleMetadata,
     expected: boolean
   ): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
@@ -422,7 +444,19 @@ class LocalStoreTester {
     return this;
   }
 
-  afterSavingBundle(metadata: BundleMetadata): LocalStoreTester {
+  toHaveNamedQuery(namedQuery: NamedQuery): LocalStoreTester {
+    this.promiseChain = this.promiseChain.then(() => {
+      return getNamedQuery(this.localStore, namedQuery.name).then(actual => {
+        expect(!!actual).to.be.true;
+        expect(actual!.name).to.equal(namedQuery.name);
+        expect(namedQuery.readTime.isEqual(actual!.readTime)).to.be.true;
+        expect(queryEquals(actual!.query, namedQuery.query)).to.be.true;
+      });
+    });
+    return this;
+  }
+
+  afterSavingBundle(metadata: bundleProto.BundleMetadata): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() =>
       saveBundle(this.localStore, metadata)
     );
@@ -1651,6 +1685,40 @@ function genericLocalStoreTests(
       .toHaveNewerBundle(bundleMetadata('test', 2), false)
       .afterSavingBundle(bundleMetadata('test', 2))
       .toHaveNewerBundle(bundleMetadata('test', 1), true)
+      .finish();
+  });
+
+  it('handles saving and loading named queries', async () => {
+    return expectLocalStore()
+      .after(namedQuery('test', query('coll'), 'FIRST', SnapshotVersion.min()))
+      .toHaveNamedQuery({
+        name: 'test',
+        query: query('coll'),
+        readTime: SnapshotVersion.min()
+      })
+      .finish();
+  });
+
+  it('handles saving and loading limit to last queries', async () => {
+    const now = Timestamp.now();
+    return expectLocalStore()
+      .after(
+        namedQuery(
+          'test',
+          queryWithLimit(query('coll', orderBy('sort')), 5, LimitType.First),
+          'LAST',
+          SnapshotVersion.fromTimestamp(now)
+        )
+      )
+      .toHaveNamedQuery({
+        name: 'test',
+        query: queryWithLimit(
+          query('coll', orderBy('sort')),
+          5,
+          LimitType.Last
+        ),
+        readTime: SnapshotVersion.fromTimestamp(now)
+      })
       .finish();
   });
 

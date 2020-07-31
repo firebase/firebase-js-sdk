@@ -369,17 +369,6 @@ export class SpecBuilder {
     return this;
   }
 
-  userListensToNamedQuery(
-    name: string,
-    query: Query,
-    readFrom: TestSnapshotVersion
-  ): this {
-    // Note we do not call this.nextStep() here because we reuse userListens().
-    this.userListens(query, readFrom);
-    this.currentStep!.userListen!.fromName = name;
-    return this;
-  }
-
   // PORTING NOTE: Only used by web multi-tab tests.
   becomeHidden(): this {
     this.nextStep();

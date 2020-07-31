@@ -292,29 +292,6 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
     );
   });
 
-  specTest('Bundles query can be loaded and resumed.', [], () => {
-    const query1 = query('collection');
-    const docA = doc('collection/a', 100, { key: 'a' });
-    const bundleString1 = bundleWithDocumentAndQuery(
-      {
-        key: docA.key,
-        readTime: 500,
-        createTime: 250,
-        updateTime: 500,
-        content: { value: 'b' }
-      },
-      { name: 'bundled-query', readTime: 400, query: query1 }
-    );
-
-    return spec()
-      .loadBundle(bundleString1)
-      .userListensToNamedQuery('bundled-query', query1, 400)
-      .expectEvents(query1, {
-        added: [doc('collection/a', 500, { value: 'b' })],
-        fromCache: true
-      });
-  });
-
   specTest('Bundles query can be resumed from same query.', [], () => {
     const query1 = query('collection');
     const docA = doc('collection/a', 100, { key: 'a' });
@@ -372,7 +349,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
           .loadBundle(bundleString1)
           // Read named query from loaded bundle by primary.
           .client(1)
-          .userListensToNamedQuery('bundled-query', query1, 400)
+          .userListens(query1, 400)
           .expectEvents(query1, {
             added: [doc('collection/a', 500, { value: 'b' })],
             fromCache: true
@@ -386,7 +363,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
           .userUnlistens(query1)
           // Read named query from loaded bundle by secondary.
           .client(0)
-          .userListensToNamedQuery('bundled-query', query2, 560)
+          .userListens(query2, 560)
           .expectEvents(query2, {
             added: [doc('collection/a', 550, { value: 'c' })],
             fromCache: true

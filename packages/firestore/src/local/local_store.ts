@@ -918,7 +918,7 @@ class LocalStoreImpl implements LocalStore {
           // compared and updated if `readTime` is newer.
           // TODO(mcg): freshen last accessed date?
           if (readTime && cached.snapshotVersion.compareTo(readTime) < 0) {
-            targetData = cached.withSnapshotVersion(readTime);
+            targetData = cached.withReadTime(readTime);
             return this.targetCache
               .updateTargetData(txn, targetData)
               .next(() => targetData);

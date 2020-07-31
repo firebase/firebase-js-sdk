@@ -44,13 +44,14 @@ import { cast } from '../../../lite/src/api/util';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
-import { CACHE_SIZE_UNLIMITED, Query } from '../../../src/api/database';
+import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import {
   indexedDbStoragePrefix,
   indexedDbClearPersistence
 } from '../../../src/local/indexeddb_persistence';
 import { LoadBundleTask } from '../../../src/api/bundle';
+import { Query } from '../../../lite';
 
 /**
  * The root reference to the Firestore database and the entry point for the
@@ -322,7 +323,5 @@ export async function namedQuery(
     return null;
   }
 
-  // TODO(wuandy): make this work with exp build.
-  return null;
-  // return new Query(namedQuery.query, firestoreImpl, null, namedQuery.readTime);
+  return new Query(firestoreImpl, null, namedQuery.query, namedQuery.readTime);
 }

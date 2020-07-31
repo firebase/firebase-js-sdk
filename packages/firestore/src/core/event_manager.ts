@@ -23,7 +23,6 @@ import { SyncEngine, SyncEngineListener } from './sync_engine';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
-import { SnapshotVersion } from './snapshot_version';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being

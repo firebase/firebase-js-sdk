@@ -112,7 +112,6 @@ import {
 import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import { SnapshotVersion } from '../core/snapshot_version';
 import { LoadBundleTask } from './bundle';
 
 // settings() defaults:
