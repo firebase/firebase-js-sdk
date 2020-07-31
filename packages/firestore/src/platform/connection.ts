@@ -15,13 +15,23 @@
  * limitations under the License.
  */
 
+// This file is only used in when the client is run under ts-node
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { _components } from '@firebase/app-exp';
+
 import { isNode, isReactNative } from '@firebase/util';
-import * as node from './node/connection';
-import * as rn from './rn/connection';
-import * as browser from './browser/connection';
 import { ConnectivityMonitor } from '../remote/connectivity_monitor';
 import { DatabaseInfo } from '../core/database_info';
 import { Connection } from '../remote/connection';
+import * as node from './node/connection';
+import * as nodeLite from './node_lite/connection';
+import * as rn from './rn/connection';
+import * as browser from './browser/connection';
+import * as browserLite from './browser_lite/connection';
+
+function isLite(): boolean {
+  return _components.has('firestore/lite');
+}
 
 export function newConnectivityMonitor(): ConnectivityMonitor {
   if (isNode()) {
@@ -35,10 +45,14 @@ export function newConnectivityMonitor(): ConnectivityMonitor {
 
 export function newConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
   if (isNode()) {
-    return node.newConnection(databaseInfo);
+    return isLite()
+      ? nodeLite.newConnection(databaseInfo)
+      : node.newConnection(databaseInfo);
   } else if (isReactNative()) {
     return rn.newConnection(databaseInfo);
   } else {
-    return browser.newConnection(databaseInfo);
+    return isLite()
+      ? browserLite.newConnection(databaseInfo)
+      : browser.newConnection(databaseInfo);
   }
 }
