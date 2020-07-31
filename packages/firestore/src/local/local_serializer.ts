@@ -280,10 +280,7 @@ function isDocumentQuery(dbQuery: DbQuery): dbQuery is api.DocumentsTarget {
 }
 
 /** Encodes a DbBundle to a Bundle. */
-export function fromDbBundle(
-  serializer: LocalSerializer,
-  dbBundle: DbBundle
-): Bundle {
+export function fromDbBundle(dbBundle: DbBundle): Bundle {
   return {
     id: dbBundle.bundleId,
     createTime: fromDbTimestamp(dbBundle.createTime),
@@ -292,10 +289,7 @@ export function fromDbBundle(
 }
 
 /** Encodes a BundleMetadata to a DbBundle. */
-export function toDbBundle(
-  serializer: LocalSerializer,
-  metadata: bundleProto.BundleMetadata
-): DbBundle {
+export function toDbBundle(metadata: bundleProto.BundleMetadata): DbBundle {
   return {
     bundleId: metadata.id!,
     createTime: toDbTimestamp(fromVersion(metadata.createTime!)),
@@ -304,22 +298,16 @@ export function toDbBundle(
 }
 
 /** Encodes a DbNamedQuery to a NamedQuery. */
-export function fromDbNamedQuery(
-  serializer: LocalSerializer,
-  dbNamedQuery: DbNamedQuery
-): NamedQuery {
+export function fromDbNamedQuery(dbNamedQuery: DbNamedQuery): NamedQuery {
   return {
     name: dbNamedQuery.name,
-    query: fromBundledQuery(serializer, dbNamedQuery.bundledQuery),
+    query: fromBundledQuery(dbNamedQuery.bundledQuery),
     readTime: fromDbTimestamp(dbNamedQuery.readTime)
   };
 }
 
 /** Encodes a NamedQuery from a bundle proto to a DbNamedQuery. */
-export function toDbNamedQuery(
-  serializer: LocalSerializer,
-  query: bundleProto.NamedQuery
-): DbNamedQuery {
+export function toDbNamedQuery(query: bundleProto.NamedQuery): DbNamedQuery {
   return {
     name: query.name!,
     readTime: toDbTimestamp(fromVersion(query.readTime!)),
@@ -334,7 +322,6 @@ export function toDbNamedQuery(
  * including features exists only in SDKs (for example: limit-to-last).
  */
 export function fromBundledQuery(
-  serializer: LocalSerializer,
   bundledQuery: bundleProto.BundledQuery
 ): Query {
   const query = convertQueryTargetToQuery({
@@ -353,19 +340,17 @@ export function fromBundledQuery(
 
 /** Encodes a NamedQuery proto object to a NamedQuery model object. */
 export function fromProtoNamedQuery(
-  serializer: LocalSerializer,
   namedQuery: bundleProto.NamedQuery
 ): NamedQuery {
   return {
     name: namedQuery.name!,
-    query: fromBundledQuery(serializer, namedQuery.bundledQuery!),
+    query: fromBundledQuery(namedQuery.bundledQuery!),
     readTime: fromVersion(namedQuery.readTime!)
   };
 }
 
 /** Encodes a BundleMetadata proto object to a Bundle model object. */
 export function fromBundleMetadata(
-  serializer: LocalSerializer,
   metadata: bundleProto.BundleMetadata
 ): Bundle {
   return {

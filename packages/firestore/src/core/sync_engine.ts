@@ -174,11 +174,8 @@ export interface SyncEngine extends RemoteSyncer {
    * Initiates the new listen, resolves promise when listen enqueued to the
    * server. All the subsequent view snapshots or errors are sent to the
    * subscribed handlers. Returns the initial snapshot.
-   *
-   * @param {SnapshotVersion} readFrom If provided, it tells the backend to
-   * only return deltas from this snapshot version on.
    */
-  listen(query: Query, readFrom?: SnapshotVersion): Promise<ViewSnapshot>;
+  listen(query: Query): Promise<ViewSnapshot>;
 
   /** Stops listening to the query. */
   unlisten(query: Query): Promise<void>;
@@ -320,10 +317,7 @@ class SyncEngineImpl implements SyncEngine {
     this.syncEngineListener = syncEngineListener;
   }
 
-  async listen(
-    query: Query,
-    readFrom?: SnapshotVersion
-  ): Promise<ViewSnapshot> {
+  async listen(query: Query): Promise<ViewSnapshot> {
     this.assertSubscribed('listen()');
 
     let targetId;
@@ -342,8 +336,7 @@ class SyncEngineImpl implements SyncEngine {
       viewSnapshot = queryView.view.computeInitialSnapshot();
     } else {
       const targetData = await this.localStore.allocateTarget(
-        queryToTarget(query),
-        readFrom
+        queryToTarget(query)
       );
 
       const status = this.sharedClientState.addLocalQueryTarget(

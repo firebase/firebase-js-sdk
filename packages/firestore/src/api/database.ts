@@ -512,7 +512,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       return null;
     }
 
-    return new Query(namedQuery.query, this, null, namedQuery.readTime);
+    return new Query(namedQuery.query, this, null);
   }
 
   ensureClientConfigured(): FirestoreClient {
@@ -1936,8 +1936,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   constructor(
     public _query: InternalQuery,
     readonly firestore: Firestore,
-    protected readonly _converter: firestore.FirestoreDataConverter<T> | null,
-    private _readTime?: SnapshotVersion
+    protected readonly _converter: firestore.FirestoreDataConverter<T> | null
   ) {}
 
   where(
@@ -2236,7 +2235,6 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
       firestoreClient,
       this._query,
       {
-        readFrom: this._readTime,
         includeMetadataChanges: options.includeMetadataChanges
       },
       observer

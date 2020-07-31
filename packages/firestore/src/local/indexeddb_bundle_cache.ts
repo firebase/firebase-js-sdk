@@ -47,7 +47,7 @@ export class IndexedDbBundleCache implements BundleCache {
       .get(bundleId)
       .next(bundle => {
         if (bundle) {
-          return fromDbBundle(this.serializer, bundle);
+          return fromDbBundle(bundle);
         }
         return undefined;
       });
@@ -57,9 +57,7 @@ export class IndexedDbBundleCache implements BundleCache {
     transaction: PersistenceTransaction,
     bundleMetadata: bundleProto.BundleMetadata
   ): PersistencePromise<void> {
-    return bundlesStore(transaction).put(
-      toDbBundle(this.serializer, bundleMetadata)
-    );
+    return bundlesStore(transaction).put(toDbBundle(bundleMetadata));
   }
 
   getNamedQuery(
@@ -70,7 +68,7 @@ export class IndexedDbBundleCache implements BundleCache {
       .get(queryName)
       .next(query => {
         if (query) {
-          return fromDbNamedQuery(this.serializer, query);
+          return fromDbNamedQuery(query);
         }
         return undefined;
       });
@@ -80,9 +78,7 @@ export class IndexedDbBundleCache implements BundleCache {
     transaction: PersistenceTransaction,
     query: bundleProto.NamedQuery
   ): PersistencePromise<void> {
-    return namedQueriesStore(transaction).put(
-      toDbNamedQuery(this.serializer, query)
-    );
+    return namedQueriesStore(transaction).put(toDbNamedQuery(query));
   }
 }
 

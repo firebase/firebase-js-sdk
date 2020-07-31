@@ -385,9 +385,7 @@ export class FirestoreClient {
   ): QueryListener {
     this.verifyNotTerminated();
     const listener = new QueryListener(query, observer, options);
-    this.asyncQueue.enqueueAndForget(() =>
-      this.eventMgr.listen(listener, options.readFrom)
-    );
+    this.asyncQueue.enqueueAndForget(() => this.eventMgr.listen(listener));
     return listener;
   }
 

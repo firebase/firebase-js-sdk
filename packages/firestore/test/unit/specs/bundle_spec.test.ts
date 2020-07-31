@@ -315,6 +315,29 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
       });
   });
 
+  specTest('Bundles query can be resumed from same query.', [], () => {
+    const query1 = query('collection');
+    const docA = doc('collection/a', 100, { key: 'a' });
+    const bundleString1 = bundleWithDocumentAndQuery(
+      {
+        key: docA.key,
+        readTime: 500,
+        createTime: 250,
+        updateTime: 500,
+        content: { value: 'b' }
+      },
+      { name: 'bundled-query', readTime: 400, query: query1 }
+    );
+
+    return spec()
+      .loadBundle(bundleString1)
+      .userListens(query1, 400)
+      .expectEvents(query1, {
+        added: [doc('collection/a', 500, { value: 'b' })],
+        fromCache: true
+      });
+  });
+
   specTest(
     'Bundles query can be loaded and resumed from different tabs',
     ['multi-client'],

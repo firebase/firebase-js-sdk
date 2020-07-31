@@ -61,10 +61,7 @@ export class EventManager implements SyncEngineListener {
     this.syncEngine.subscribe(this);
   }
 
-  async listen(
-    listener: QueryListener,
-    readFrom?: SnapshotVersion
-  ): Promise<void> {
+  async listen(listener: QueryListener): Promise<void> {
     const query = listener.query;
     let firstListen = false;
 
@@ -76,7 +73,7 @@ export class EventManager implements SyncEngineListener {
 
     if (firstListen) {
       try {
-        queryInfo.viewSnap = await this.syncEngine.listen(query, readFrom);
+        queryInfo.viewSnap = await this.syncEngine.listen(query);
       } catch (e) {
         const firestoreError = wrapInUserErrorIfRecoverable(
           e,
@@ -200,16 +197,6 @@ export interface ListenOptions {
    * offline.
    */
   readonly waitForSyncWhenOnline?: boolean;
-
-  /**
-   * Tells the backend whether the client already has the query results up to
-   * a point in time, and the backend will only send deltas from that point
-   * on if applicable (for example, backend might already lose track of this
-   * particular query, and has to restart and send everything anyways).
-   *
-   * When not set, backend simply assumes the client does not have anything.
-   */
-  readFrom?: SnapshotVersion | undefined;
 }
 
 /**

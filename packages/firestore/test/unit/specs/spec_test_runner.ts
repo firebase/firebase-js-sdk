@@ -378,14 +378,12 @@ abstract class TestRunner {
 
     const querySpec = listenSpec.query;
     const query = parseQuery(querySpec);
-    let readFrom: SnapshotVersion;
     if (listenSpec.fromName) {
       const savedQuery = await getNamedQuery(
         this.localStore,
         listenSpec.fromName
       );
       expect(queryEquals(query, savedQuery!.query)).to.be.true;
-      readFrom = savedQuery!.readTime;
     }
     const aggregator = new EventAggregator(query, e => {
       if (e.error) {
@@ -401,9 +399,7 @@ abstract class TestRunner {
     const queryListener = new QueryListener(query, aggregator, options);
     this.queryListeners.set(query, queryListener);
 
-    await this.queue.enqueue(() =>
-      this.eventManager.listen(queryListener, readFrom)
-    );
+    await this.queue.enqueue(() => this.eventManager.listen(queryListener));
 
     if (targetFailed) {
       expect(this.persistence.injectFailures).contains('Allocate target');
