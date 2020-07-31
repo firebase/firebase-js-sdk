@@ -24,7 +24,7 @@
     "gendeps:exp": "../../scripts/exp/extract-deps.sh --types ./exp-types/index.d.ts --bundle ./dist/exp/tmp.js --output ./exp/dependencies.json",
     "pregendeps:lite": "node scripts/build-bundle.js --input ./lite/index.ts --output ./dist/lite/tmp.js",
     "gendeps:lite": "../../scripts/exp/extract-deps.sh --types ./lite-types/index.d.ts --bundle ./dist/lite/tmp.js --output ./lite/dependencies.json",
-    "test:lite": "node ./scripts/run-tests.js --emulator --main=lite/index.ts  'lite/test/**/*.test.ts'",
+    "test:lite": "node ./scripts/run-tests.js --emulator  --platform node_lite --main=lite/index.ts 'lite/test/**/*.test.ts'",
     "test:lite:browser": "karma start --single-run --lite",
     "test:lite:browser:debug": "karma start --single-run --lite --auto-watch",
     "test:exp": "node ./scripts/run-tests.js --emulator --main=exp/index.ts test/integration/api/*.test.ts",

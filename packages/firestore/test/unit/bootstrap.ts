@@ -22,6 +22,8 @@
  * https://github.com/webpack-contrib/karma-webpack#alternative-usage
  */
 
+process.env.TEST_PLATFORM = 'browser';
+
 // 'context()' definition requires additional dependency on webpack-env package.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const testsContext = (require as any).context(

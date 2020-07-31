@@ -15,41 +15,21 @@
  * limitations under the License.
  */
 
-import { isNode, isReactNative } from '@firebase/util';
-
-import * as node from './node/base64';
-import * as rn from './rn/base64';
-import * as browser from './browser/base64';
+// This file is only used under ts-node.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const platform = require(`${process.env.TEST_PLATFORM}/base64`);
 
 /** Converts a Base64 encoded string to a binary string. */
 export function decodeBase64(encoded: string): string {
-  if (isNode()) {
-    return node.decodeBase64(encoded);
-  } else if (isReactNative()) {
-    return rn.decodeBase64(encoded);
-  } else {
-    return browser.decodeBase64(encoded);
-  }
+  return platform.decodeBase64(encoded);
 }
 
 /** Converts a binary string to a Base64 encoded string. */
 export function encodeBase64(raw: string): string {
-  if (isNode()) {
-    return node.encodeBase64(raw);
-  } else if (isReactNative()) {
-    return rn.encodeBase64(raw);
-  } else {
-    return browser.encodeBase64(raw);
-  }
+  return platform.encodeBase64(raw);
 }
 
 /** True if and only if the Base64 conversion functions are available. */
 export function isBase64Available(): boolean {
-  if (isNode()) {
-    return node.isBase64Available();
-  } else if (isReactNative()) {
-    return rn.isBase64Available();
-  } else {
-    return browser.isBase64Available();
-  }
+  return platform.isBase64Available();
 }

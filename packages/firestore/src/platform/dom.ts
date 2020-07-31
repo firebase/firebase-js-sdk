@@ -15,29 +15,16 @@
  * limitations under the License.
  */
 
-import { isNode, isReactNative } from '@firebase/util';
-import * as node from './node/dom';
-import * as rn from './rn/dom';
-import * as browser from './browser/dom';
+// This file is only used under ts-node.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const platform = require(`${process.env.TEST_PLATFORM}/base64`);
 
 /** The Platform's 'window' implementation or null if not available. */
 export function getWindow(): Window | null {
-  if (isNode()) {
-    return node.getWindow();
-  } else if (isReactNative()) {
-    return rn.getWindow();
-  } else {
-    return browser.getWindow();
-  }
+  return platform.getWindow();
 }
 
 /** The Platform's 'document' implementation or null if not available. */
 export function getDocument(): Document | null {
-  if (isNode()) {
-    return node.getDocument();
-  } else if (isReactNative()) {
-    return rn.getDocument();
-  } else {
-    return browser.getDocument();
-  }
+  return platform.getDocument();
 }
