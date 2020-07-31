@@ -53,7 +53,7 @@ import { AsyncObserver } from '../util/async_observer';
 import { debugAssert } from '../util/assert';
 
 const LOG_TAG = 'FirestoreClient';
-const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
+export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
