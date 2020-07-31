@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+// Introducing a no-op change that allows me to make a PR in GitHub.
+// 1
+
 import * as firestore from '@firebase/firestore-types';
 
 import * as api from '../protos/firestore_proto_api';
