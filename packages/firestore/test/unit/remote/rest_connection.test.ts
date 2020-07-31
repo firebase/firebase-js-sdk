@@ -22,7 +22,6 @@ import { RestConnection } from '../../../src/remote/rest_connection';
 import { Token } from '../../../src/api/credentials';
 import { StringMap } from '../../../src/util/types';
 import { Code, FirestoreError } from '../../../src/util/error';
-import { fail } from '../../../src/util/assert';
 import { User } from '../../../src/auth/user';
 import { SDK_VERSION } from '../../../src/core/version';
 import { Indexable } from '../../../src/util/misc';
