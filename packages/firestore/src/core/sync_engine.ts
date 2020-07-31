@@ -17,6 +17,7 @@
 
 import { User } from '../auth/user';
 import {
+  applyRemoteEvent as localStoreApplyRemoteEvent,
   getNewDocumentChanges,
   getCachedTarget,
   ignoreIfPrimaryLeaseLoss,
@@ -47,7 +48,6 @@ import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
-
 import { ClientId, SharedClientState } from '../local/shared_client_state';
 import { QueryTargetState } from '../local/shared_client_state_syncer';
 import { SortedSet } from '../util/sorted_set';
@@ -470,7 +470,10 @@ class SyncEngineImpl implements SyncEngine {
   async applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
     this.assertSubscribed('applyRemoteEvent()');
     try {
-      const changes = await this.localStore.applyRemoteEvent(remoteEvent);
+      const changes = await localStoreApplyRemoteEvent(
+        this.localStore,
+        remoteEvent
+      );
       // Update `receivedDocument` as appropriate for any limbo targets.
       remoteEvent.targetChanges.forEach((targetChange, targetId) => {
         const limboResolution = this.activeLimboResolutionsByTarget.get(

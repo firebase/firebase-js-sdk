@@ -28,6 +28,7 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
+  applyRemoteEvent,
   LocalStore,
   LocalWriteResult,
   newLocalStore,
@@ -145,9 +146,7 @@ class LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain
-      .then(() => {
-        return this.localStore.applyRemoteEvent(remoteEvent);
-      })
+      .then(() => applyRemoteEvent(this.localStore, remoteEvent))
       .then((result: MaybeDocumentMap) => {
         this.lastChanges = result;
       });
@@ -1105,10 +1104,12 @@ function genericLocalStoreTests(
     const query1 = query('foo');
     const targetData = await localStore.allocateTarget(queryToTarget(query1));
     expect(targetData.targetId).to.equal(2);
-    await localStore.applyRemoteEvent(
+    await applyRemoteEvent(
+      localStore,
       docAddedRemoteEvent(doc('foo/baz', 10, { a: 'b' }), [2], [])
     );
-    await localStore.applyRemoteEvent(
+    await applyRemoteEvent(
+      localStore,
       docUpdateRemoteEvent(doc('foo/bar', 20, { a: 'b' }), [2], [])
     );
     await localStore.localWrite([setMutation('foo/bonk', { a: 'b' })]);
@@ -1179,7 +1180,7 @@ function genericLocalStoreTests(
     });
     aggregator.handleTargetChange(watchChange);
     const remoteEvent = aggregator.createRemoteEvent(version(1000));
-    await localStore.applyRemoteEvent(remoteEvent);
+    await applyRemoteEvent(localStore, remoteEvent);
 
     // Stop listening so that the query should become inactive (but persistent)
     await localStore.releaseTarget(
@@ -1212,7 +1213,7 @@ function genericLocalStoreTests(
       });
       aggregator1.handleTargetChange(watchChange1);
       const remoteEvent1 = aggregator1.createRemoteEvent(version(1000));
-      await localStore.applyRemoteEvent(remoteEvent1);
+      await applyRemoteEvent(localStore, remoteEvent1);
 
       const watchChange2 = new WatchTargetChange(
         WatchTargetChangeState.Current,
@@ -1225,7 +1226,7 @@ function genericLocalStoreTests(
       });
       aggregator2.handleTargetChange(watchChange2);
       const remoteEvent2 = aggregator2.createRemoteEvent(version(2000));
-      await localStore.applyRemoteEvent(remoteEvent2);
+      await applyRemoteEvent(localStore, remoteEvent2);
 
       // Stop listening so that the query should become inactive (but persistent)
       await localStore.releaseTarget(
@@ -1586,7 +1587,8 @@ function genericLocalStoreTests(
     const targetData = await localStore.allocateTarget(target);
 
     // Advance the query snapshot
-    await localStore.applyRemoteEvent(
+    await applyRemoteEvent(
+      localStore,
       noChangeEvent(
         /* targetId= */ targetData.targetId,
         /* snapshotVersion= */ 10,

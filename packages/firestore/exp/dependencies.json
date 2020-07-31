@@ -1005,6 +1005,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -1180,6 +1181,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -1367,7 +1369,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 220962
+        "sizeInBytes": 221118
     },
     "arrayRemove": {
         "dependencies": {
@@ -1714,6 +1716,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -1869,6 +1872,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -2037,7 +2041,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 203350
+        "sizeInBytes": 203506
     },
     "deleteField": {
         "dependencies": {
@@ -2093,6 +2097,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -2249,6 +2254,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -2415,7 +2421,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 202968
+        "sizeInBytes": 203124
     },
     "doc": {
         "dependencies": {
@@ -2887,7 +2893,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 209084
+        "sizeInBytes": 205890
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -2904,6 +2910,7 @@
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
                 "applyPrimaryState",
+                "applyRemoteEvent",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTargetState",
@@ -3133,6 +3140,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -3355,7 +3363,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 307194
+        "sizeInBytes": 307350
     },
     "enableNetwork": {
         "dependencies": {
@@ -3369,6 +3377,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -3525,6 +3534,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -3691,7 +3701,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 202965
+        "sizeInBytes": 203121
     },
     "endAt": {
         "dependencies": {
@@ -3951,6 +3961,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -4119,6 +4130,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -4306,7 +4318,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 219316
+        "sizeInBytes": 219472
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4563,7 +4575,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 134557
+        "sizeInBytes": 131419
     },
     "getDocFromServer": {
         "dependencies": {
@@ -4577,6 +4589,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -4745,6 +4758,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -4932,7 +4946,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 219372
+        "sizeInBytes": 219528
     },
     "getDocs": {
         "dependencies": {
@@ -4946,6 +4960,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -5115,6 +5130,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -5305,7 +5321,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 221879
+        "sizeInBytes": 222035
     },
     "getDocsFromCache": {
         "dependencies": {
@@ -5574,7 +5590,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 146808
+        "sizeInBytes": 143670
     },
     "getDocsFromServer": {
         "dependencies": {
@@ -5588,6 +5604,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -5757,6 +5774,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -5946,7 +5964,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 221617
+        "sizeInBytes": 221773
     },
     "getFirestore": {
         "dependencies": {
@@ -6179,6 +6197,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -6350,6 +6369,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -6540,7 +6560,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 222962
+        "sizeInBytes": 223118
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -6554,6 +6574,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -6711,6 +6732,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -6878,7 +6900,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 203814
+        "sizeInBytes": 203970
     },
     "orderBy": {
         "dependencies": {
@@ -7427,6 +7449,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -7602,6 +7625,7 @@
                 "setDoc",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -7786,7 +7810,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 219244
+        "sizeInBytes": 219400
     },
     "setLogLevel": {
         "dependencies": {
@@ -8256,6 +8280,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -8432,6 +8457,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -8619,7 +8645,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 220743
+        "sizeInBytes": 220899
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -8633,6 +8659,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -8787,6 +8814,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -8954,7 +8982,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 202757
+        "sizeInBytes": 202913
     },
     "where": {
         "dependencies": {
@@ -9112,6 +9140,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -9289,6 +9318,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -9479,6 +9509,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 224410
+        "sizeInBytes": 224566
     }
 }

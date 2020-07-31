@@ -74,6 +74,15 @@ import { isIndexedDbTransactionError } from './simple_db';
 
 const LOG_TAG = 'LocalStore';
 
+/**
+ * The maximum time to leave a resume token buffered without writing it out.
+ * This value is arbitrary: it's long enough to avoid several writes
+ * (possibly indefinitely if updates come more frequently than this) but
+ * short enough that restarting after crashing will still have a pretty
+ * recent resume token.
+ */
+const RESUME_TOKEN_MAX_AGE_MICROS = 5 * 60 * 1e6;
+
 /** The result of a write to the local store. */
 export interface LocalWriteResult {
   batchId: BatchId;
@@ -197,16 +206,6 @@ export interface LocalStore {
   getLastRemoteSnapshotVersion(): Promise<SnapshotVersion>;
 
   /**
-   * Update the "ground-state" (remote) documents. We assume that the remote
-   * event reflects any write batches that have been acknowledged or rejected
-   * (i.e. we do not re-apply local mutations to updates from this event).
-   *
-   * LocalDocuments are re-calculated if there are remaining mutations in the
-   * queue.
-   */
-  applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap>;
-
-  /**
    * Notify local store of the changed views to locally pin documents.
    */
   notifyLocalViewChanges(viewChanges: LocalViewChanges[]): Promise<void>;
@@ -280,15 +279,6 @@ export interface LocalStore {
  * functions, such that they are tree-shakeable.
  */
 class LocalStoreImpl implements LocalStore {
-  /**
-   * The maximum time to leave a resume token buffered without writing it out.
-   * This value is arbitrary: it's long enough to avoid several writes
-   * (possibly indefinitely if updates come more frequently than this) but
-   * short enough that restarting after crashing will still have a pretty
-   * recent resume token.
-   */
-  private static readonly RESUME_TOKEN_MAX_AGE_MICROS = 5 * 60 * 1e6;
-
   /**
    * The set of all mutations that have been sent but not yet been applied to
    * the backend.
@@ -540,219 +530,6 @@ class LocalStoreImpl implements LocalStore {
       'readonly',
       txn => this.targetCache.getLastRemoteSnapshotVersion(txn)
     );
-  }
-
-  applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
-    const remoteVersion = remoteEvent.snapshotVersion;
-    let newTargetDataByTargetMap = this.targetDataByTarget;
-
-    return this.persistence
-      .runTransaction('Apply remote event', 'readwrite-primary', txn => {
-        const documentBuffer = this.remoteDocuments.newChangeBuffer({
-          trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
-        });
-
-        // Reset newTargetDataByTargetMap in case this transaction gets re-run.
-        newTargetDataByTargetMap = this.targetDataByTarget;
-
-        const promises = [] as Array<PersistencePromise<void>>;
-        remoteEvent.targetChanges.forEach((change, targetId) => {
-          const oldTargetData = newTargetDataByTargetMap.get(targetId);
-          if (!oldTargetData) {
-            return;
-          }
-
-          // Only update the remote keys if the target is still active. This
-          // ensures that we can persist the updated target data along with
-          // the updated assignment.
-          promises.push(
-            this.targetCache
-              .removeMatchingKeys(txn, change.removedDocuments, targetId)
-              .next(() => {
-                return this.targetCache.addMatchingKeys(
-                  txn,
-                  change.addedDocuments,
-                  targetId
-                );
-              })
-          );
-
-          const resumeToken = change.resumeToken;
-          // Update the resume token if the change includes one.
-          if (resumeToken.approximateByteSize() > 0) {
-            const newTargetData = oldTargetData
-              .withResumeToken(resumeToken, remoteVersion)
-              .withSequenceNumber(txn.currentSequenceNumber);
-            newTargetDataByTargetMap = newTargetDataByTargetMap.insert(
-              targetId,
-              newTargetData
-            );
-
-            // Update the target data if there are target changes (or if
-            // sufficient time has passed since the last update).
-            if (
-              LocalStoreImpl.shouldPersistTargetData(
-                oldTargetData,
-                newTargetData,
-                change
-              )
-            ) {
-              promises.push(
-                this.targetCache.updateTargetData(txn, newTargetData)
-              );
-            }
-          }
-        });
-
-        let changedDocs = maybeDocumentMap();
-        let updatedKeys = documentKeySet();
-        remoteEvent.documentUpdates.forEach((key, doc) => {
-          updatedKeys = updatedKeys.add(key);
-        });
-
-        // Each loop iteration only affects its "own" doc, so it's safe to get all the remote
-        // documents in advance in a single call.
-        promises.push(
-          documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
-            remoteEvent.documentUpdates.forEach((key, doc) => {
-              const existingDoc = existingDocs.get(key);
-
-              // Note: The order of the steps below is important, since we want
-              // to ensure that rejected limbo resolutions (which fabricate
-              // NoDocuments with SnapshotVersion.min()) never add documents to
-              // cache.
-              if (
-                doc instanceof NoDocument &&
-                doc.version.isEqual(SnapshotVersion.min())
-              ) {
-                // NoDocuments with SnapshotVersion.min() are used in manufactured
-                // events. We remove these documents from cache since we lost
-                // access.
-                documentBuffer.removeEntry(key, remoteVersion);
-                changedDocs = changedDocs.insert(key, doc);
-              } else if (
-                existingDoc == null ||
-                doc.version.compareTo(existingDoc.version) > 0 ||
-                (doc.version.compareTo(existingDoc.version) === 0 &&
-                  existingDoc.hasPendingWrites)
-              ) {
-                debugAssert(
-                  !SnapshotVersion.min().isEqual(remoteVersion),
-                  'Cannot add a document when the remote version is zero'
-                );
-                documentBuffer.addEntry(doc, remoteVersion);
-                changedDocs = changedDocs.insert(key, doc);
-              } else {
-                logDebug(
-                  LOG_TAG,
-                  'Ignoring outdated watch update for ',
-                  key,
-                  '. Current version:',
-                  existingDoc.version,
-                  ' Watch version:',
-                  doc.version
-                );
-              }
-
-              if (remoteEvent.resolvedLimboDocuments.has(key)) {
-                promises.push(
-                  this.persistence.referenceDelegate.updateLimboDocument(
-                    txn,
-                    key
-                  )
-                );
-              }
-            });
-          })
-        );
-
-        // HACK: The only reason we allow a null snapshot version is so that we
-        // can synthesize remote events when we get permission denied errors while
-        // trying to resolve the state of a locally cached document that is in
-        // limbo.
-        if (!remoteVersion.isEqual(SnapshotVersion.min())) {
-          const updateRemoteVersion = this.targetCache
-            .getLastRemoteSnapshotVersion(txn)
-            .next(lastRemoteSnapshotVersion => {
-              debugAssert(
-                remoteVersion.compareTo(lastRemoteSnapshotVersion) >= 0,
-                'Watch stream reverted to previous snapshot?? ' +
-                  remoteVersion +
-                  ' < ' +
-                  lastRemoteSnapshotVersion
-              );
-              return this.targetCache.setTargetsMetadata(
-                txn,
-                txn.currentSequenceNumber,
-                remoteVersion
-              );
-            });
-          promises.push(updateRemoteVersion);
-        }
-
-        return PersistencePromise.waitFor(promises)
-          .next(() => documentBuffer.apply(txn))
-          .next(() => {
-            return this.localDocuments.getLocalViewOfDocuments(
-              txn,
-              changedDocs
-            );
-          });
-      })
-      .then(changedDocs => {
-        this.targetDataByTarget = newTargetDataByTargetMap;
-        return changedDocs;
-      });
-  }
-
-  /**
-   * Returns true if the newTargetData should be persisted during an update of
-   * an active target. TargetData should always be persisted when a target is
-   * being released and should not call this function.
-   *
-   * While the target is active, TargetData updates can be omitted when nothing
-   * about the target has changed except metadata like the resume token or
-   * snapshot version. Occasionally it's worth the extra write to prevent these
-   * values from getting too stale after a crash, but this doesn't have to be
-   * too frequent.
-   */
-  private static shouldPersistTargetData(
-    oldTargetData: TargetData,
-    newTargetData: TargetData,
-    change: TargetChange
-  ): boolean {
-    hardAssert(
-      newTargetData.resumeToken.approximateByteSize() > 0,
-      'Attempted to persist target data with no resume token'
-    );
-
-    // Always persist target data if we don't already have a resume token.
-    if (oldTargetData.resumeToken.approximateByteSize() === 0) {
-      return true;
-    }
-
-    // Don't allow resume token changes to be buffered indefinitely. This
-    // allows us to be reasonably up-to-date after a crash and avoids needing
-    // to loop over all active queries on shutdown. Especially in the browser
-    // we may not get time to do anything interesting while the current tab is
-    // closing.
-    const timeDelta =
-      newTargetData.snapshotVersion.toMicroseconds() -
-      oldTargetData.snapshotVersion.toMicroseconds();
-    if (timeDelta >= this.RESUME_TOKEN_MAX_AGE_MICROS) {
-      return true;
-    }
-
-    // Otherwise if the only thing that has changed about a target is its resume
-    // token it's not worth persisting. Note that the RemoteStore keeps an
-    // in-memory view of the currently active targets which includes the current
-    // resume token, so stream failure or user changes will still use an
-    // up-to-date resume token regardless of what we do here.
-    const changes =
-      change.addedDocuments.size +
-      change.modifiedDocuments.size +
-      change.removedDocuments.size;
-    return changes > 0;
   }
 
   async notifyLocalViewChanges(viewChanges: LocalViewChanges[]): Promise<void> {
@@ -1200,4 +977,223 @@ export async function ignoreIfPrimaryLeaseLoss(
   } else {
     throw err;
   }
+}
+
+/**
+ * Update the "ground-state" (remote) documents. We assume that the remote
+ * event reflects any write batches that have been acknowledged or rejected
+ * (i.e. we do not re-apply local mutations to updates from this event).
+ *
+ * LocalDocuments are re-calculated if there are remaining mutations in the
+ * queue.
+ */
+export function applyRemoteEvent(
+  localStore: LocalStore,
+  remoteEvent: RemoteEvent
+): Promise<MaybeDocumentMap> {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  const remoteVersion = remoteEvent.snapshotVersion;
+  let newTargetDataByTargetMap = localStoreImpl.targetDataByTarget;
+
+  return localStoreImpl.persistence
+    .runTransaction('Apply remote event', 'readwrite-primary', txn => {
+      const documentBuffer = localStoreImpl.remoteDocuments.newChangeBuffer({
+        trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
+      });
+
+      // Reset newTargetDataByTargetMap in case this transaction gets re-run.
+      newTargetDataByTargetMap = localStoreImpl.targetDataByTarget;
+
+      const promises = [] as Array<PersistencePromise<void>>;
+      remoteEvent.targetChanges.forEach((change, targetId) => {
+        const oldTargetData = newTargetDataByTargetMap.get(targetId);
+        if (!oldTargetData) {
+          return;
+        }
+
+        // Only update the remote keys if the target is still active. This
+        // ensures that we can persist the updated target data along with
+        // the updated assignment.
+        promises.push(
+          localStoreImpl.targetCache
+            .removeMatchingKeys(txn, change.removedDocuments, targetId)
+            .next(() => {
+              return localStoreImpl.targetCache.addMatchingKeys(
+                txn,
+                change.addedDocuments,
+                targetId
+              );
+            })
+        );
+
+        const resumeToken = change.resumeToken;
+        // Update the resume token if the change includes one.
+        if (resumeToken.approximateByteSize() > 0) {
+          const newTargetData = oldTargetData
+            .withResumeToken(resumeToken, remoteVersion)
+            .withSequenceNumber(txn.currentSequenceNumber);
+          newTargetDataByTargetMap = newTargetDataByTargetMap.insert(
+            targetId,
+            newTargetData
+          );
+
+          // Update the target data if there are target changes (or if
+          // sufficient time has passed since the last update).
+          if (shouldPersistTargetData(oldTargetData, newTargetData, change)) {
+            promises.push(
+              localStoreImpl.targetCache.updateTargetData(txn, newTargetData)
+            );
+          }
+        }
+      });
+
+      let changedDocs = maybeDocumentMap();
+      let updatedKeys = documentKeySet();
+      remoteEvent.documentUpdates.forEach((key, doc) => {
+        updatedKeys = updatedKeys.add(key);
+      });
+
+      // Each loop iteration only affects its "own" doc, so it's safe to get all the remote
+      // documents in advance in a single call.
+      promises.push(
+        documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
+          remoteEvent.documentUpdates.forEach((key, doc) => {
+            const existingDoc = existingDocs.get(key);
+
+            // Note: The order of the steps below is important, since we want
+            // to ensure that rejected limbo resolutions (which fabricate
+            // NoDocuments with SnapshotVersion.min()) never add documents to
+            // cache.
+            if (
+              doc instanceof NoDocument &&
+              doc.version.isEqual(SnapshotVersion.min())
+            ) {
+              // NoDocuments with SnapshotVersion.min() are used in manufactured
+              // events. We remove these documents from cache since we lost
+              // access.
+              documentBuffer.removeEntry(key, remoteVersion);
+              changedDocs = changedDocs.insert(key, doc);
+            } else if (
+              existingDoc == null ||
+              doc.version.compareTo(existingDoc.version) > 0 ||
+              (doc.version.compareTo(existingDoc.version) === 0 &&
+                existingDoc.hasPendingWrites)
+            ) {
+              debugAssert(
+                !SnapshotVersion.min().isEqual(remoteVersion),
+                'Cannot add a document when the remote version is zero'
+              );
+              documentBuffer.addEntry(doc, remoteVersion);
+              changedDocs = changedDocs.insert(key, doc);
+            } else {
+              logDebug(
+                LOG_TAG,
+                'Ignoring outdated watch update for ',
+                key,
+                '. Current version:',
+                existingDoc.version,
+                ' Watch version:',
+                doc.version
+              );
+            }
+
+            if (remoteEvent.resolvedLimboDocuments.has(key)) {
+              promises.push(
+                localStoreImpl.persistence.referenceDelegate.updateLimboDocument(
+                  txn,
+                  key
+                )
+              );
+            }
+          });
+        })
+      );
+
+      // HACK: The only reason we allow a null snapshot version is so that we
+      // can synthesize remote events when we get permission denied errors while
+      // trying to resolve the state of a locally cached document that is in
+      // limbo.
+      if (!remoteVersion.isEqual(SnapshotVersion.min())) {
+        const updateRemoteVersion = localStoreImpl.targetCache
+          .getLastRemoteSnapshotVersion(txn)
+          .next(lastRemoteSnapshotVersion => {
+            debugAssert(
+              remoteVersion.compareTo(lastRemoteSnapshotVersion) >= 0,
+              'Watch stream reverted to previous snapshot?? ' +
+                remoteVersion +
+                ' < ' +
+                lastRemoteSnapshotVersion
+            );
+            return localStoreImpl.targetCache.setTargetsMetadata(
+              txn,
+              txn.currentSequenceNumber,
+              remoteVersion
+            );
+          });
+        promises.push(updateRemoteVersion);
+      }
+
+      return PersistencePromise.waitFor(promises)
+        .next(() => documentBuffer.apply(txn))
+        .next(() => {
+          return localStoreImpl.localDocuments.getLocalViewOfDocuments(
+            txn,
+            changedDocs
+          );
+        });
+    })
+    .then(changedDocs => {
+      localStoreImpl.targetDataByTarget = newTargetDataByTargetMap;
+      return changedDocs;
+    });
+}
+
+/**
+ * Returns true if the newTargetData should be persisted during an update of
+ * an active target. TargetData should always be persisted when a target is
+ * being released and should not call this function.
+ *
+ * While the target is active, TargetData updates can be omitted when nothing
+ * about the target has changed except metadata like the resume token or
+ * snapshot version. Occasionally it's worth the extra write to prevent these
+ * values from getting too stale after a crash, but this doesn't have to be
+ * too frequent.
+ */
+function shouldPersistTargetData(
+  oldTargetData: TargetData,
+  newTargetData: TargetData,
+  change: TargetChange
+): boolean {
+  hardAssert(
+    newTargetData.resumeToken.approximateByteSize() > 0,
+    'Attempted to persist target data with no resume token'
+  );
+
+  // Always persist target data if we don't already have a resume token.
+  if (oldTargetData.resumeToken.approximateByteSize() === 0) {
+    return true;
+  }
+
+  // Don't allow resume token changes to be buffered indefinitely. This
+  // allows us to be reasonably up-to-date after a crash and avoids needing
+  // to loop over all active queries on shutdown. Especially in the browser
+  // we may not get time to do anything interesting while the current tab is
+  // closing.
+  const timeDelta =
+    newTargetData.snapshotVersion.toMicroseconds() -
+    oldTargetData.snapshotVersion.toMicroseconds();
+  if (timeDelta >= RESUME_TOKEN_MAX_AGE_MICROS) {
+    return true;
+  }
+
+  // Otherwise if the only thing that has changed about a target is its resume
+  // token it's not worth persisting. Note that the RemoteStore keeps an
+  // in-memory view of the currently active targets which includes the current
+  // resume token, so stream failure or user changes will still use an
+  // up-to-date resume token regardless of what we do here.
+  const changes =
+    change.addedDocuments.size +
+    change.modifiedDocuments.size +
+    change.removedDocuments.size;
+  return changes > 0;
 }
