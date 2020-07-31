@@ -17,8 +17,9 @@
 
 // This file is only used under ts-node.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const platform = require(`./${process.env.TEST_PLATFORM ??
-  'node'}/random_bytes`);
+const platform = require(`./${
+  process.env.TEST_PLATFORM ?? 'node'
+}/random_bytes`);
 
 /**
  * Generates `nBytes` of random bytes.

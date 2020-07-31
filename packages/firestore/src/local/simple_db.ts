@@ -218,10 +218,7 @@ export class SimpleDb {
   static getIOSVersion(ua: string): number {
     const iOSVersionRegex = ua.match(/i(?:phone|pad|pod) os ([\d_]+)/i);
     const version = iOSVersionRegex
-      ? iOSVersionRegex[1]
-          .split('_')
-          .slice(0, 2)
-          .join('.')
+      ? iOSVersionRegex[1].split('_').slice(0, 2).join('.')
       : '-1';
     return Number(version);
   }
@@ -231,10 +228,7 @@ export class SimpleDb {
   static getAndroidVersion(ua: string): number {
     const androidVersionRegex = ua.match(/Android ([\d.]+)/i);
     const version = androidVersionRegex
-      ? androidVersionRegex[1]
-          .split('.')
-          .slice(0, 2)
-          .join('.')
+      ? androidVersionRegex[1].split('.').slice(0, 2).join('.')
       : '-1';
     return Number(version);
   }

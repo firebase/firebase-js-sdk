@@ -48,10 +48,7 @@ apiDescribe('Cursors', (persistence: boolean) => {
         .then(docs => {
           expect(toDataArray(docs)).to.deep.equal([{ v: 'a' }, { v: 'b' }]);
           const lastDoc = docs.docs[docs.docs.length - 1];
-          return coll
-            .limit(3)
-            .startAfter(lastDoc)
-            .get();
+          return coll.limit(3).startAfter(lastDoc).get();
         })
         .then(docs => {
           expect(toDataArray(docs)).to.deep.equal([
@@ -60,18 +57,12 @@ apiDescribe('Cursors', (persistence: boolean) => {
             { v: 'e' }
           ]);
           const lastDoc = docs.docs[docs.docs.length - 1];
-          return coll
-            .limit(1)
-            .startAfter(lastDoc)
-            .get();
+          return coll.limit(1).startAfter(lastDoc).get();
         })
         .then(docs => {
           expect(toDataArray(docs)).to.deep.equal([{ v: 'f' }]);
           const lastDoc = docs.docs[docs.docs.length - 1];
-          return coll
-            .limit(3)
-            .startAfter(lastDoc)
-            .get();
+          return coll.limit(3).startAfter(lastDoc).get();
         })
         .then(docs => {
           expect(toDataArray(docs)).to.deep.equal([]);
