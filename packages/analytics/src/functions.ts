@@ -66,11 +66,10 @@ export async function setCurrentScreen(
     gtagFunction(GtagCommand.SET, { 'screen_name': screenName });
     return Promise.resolve();
   } else {
-    return initializationPromise.then(measurementId => {
-      gtagFunction(GtagCommand.CONFIG, measurementId, {
-        update: true,
-        'screen_name': screenName
-      });
+    const measurementId = await initializationPromise;
+    gtagFunction(GtagCommand.CONFIG, measurementId, {
+      update: true,
+      'screen_name': screenName
     });
   }
 }
@@ -91,11 +90,10 @@ export async function setUserId(
     gtagFunction(GtagCommand.SET, { 'user_id': id });
     return Promise.resolve();
   } else {
-    return initializationPromise.then(measurementId => {
-      gtagFunction(GtagCommand.CONFIG, measurementId, {
-        update: true,
-        'user_id': id
-      });
+    const measurementId = await initializationPromise;
+    gtagFunction(GtagCommand.CONFIG, measurementId, {
+      update: true,
+      'user_id': id
     });
   }
 }
@@ -121,11 +119,10 @@ export async function setUserProperties(
     gtagFunction(GtagCommand.SET, flatProperties);
     return Promise.resolve();
   } else {
-    return initializationPromise.then(measurementId => {
-      gtagFunction(GtagCommand.CONFIG, measurementId, {
-        update: true,
-        'user_properties': properties
-      });
+    const measurementId = await initializationPromise;
+    gtagFunction(GtagCommand.CONFIG, measurementId, {
+      update: true,
+      'user_properties': properties
     });
   }
 }
@@ -139,7 +136,6 @@ export async function setAnalyticsCollectionEnabled(
   initializationPromise: Promise<string>,
   enabled: boolean
 ): Promise<void> {
-  return initializationPromise.then(measurementId => {
-    window[`ga-disable-${measurementId}`] = !enabled;
-  });
+  const measurementId = await initializationPromise;
+  window[`ga-disable-${measurementId}`] = !enabled;
 }
