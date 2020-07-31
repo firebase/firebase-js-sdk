@@ -2233,9 +2233,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
     return addQuerySnapshotListener(
       firestoreClient,
       this._query,
-      {
-        includeMetadataChanges: options.includeMetadataChanges
-      },
+      options,
       observer
     );
   }

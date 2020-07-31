@@ -81,7 +81,6 @@ import {
 import { newSerializer } from '../../../src/platform/serializer';
 import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
 import { Code, FirestoreError } from '../../../src/util/error';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
 
 /**
  * A reference to a particular document in a collection in the database.
@@ -121,14 +120,13 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   constructor(
     readonly firestore: Firestore,
     readonly converter: firestore.FirestoreDataConverter<T> | null,
-    readonly _query: InternalQuery,
-    readonly _readFrom?: SnapshotVersion
+    readonly _query: InternalQuery
   ) {}
 
   withConverter<U>(
     converter: firestore.FirestoreDataConverter<U>
   ): firestore.Query<U> {
-    return new Query<U>(this.firestore, converter, this._query, this._readFrom);
+    return new Query<U>(this.firestore, converter, this._query);
   }
 }
 
