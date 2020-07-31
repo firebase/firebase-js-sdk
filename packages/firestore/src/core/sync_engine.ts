@@ -23,7 +23,8 @@ import {
   LocalStore,
   getActiveClientsFromPersistence,
   lookupMutationDocuments,
-  removeCachedMutationBatchMetadata
+  removeCachedMutationBatchMetadata,
+  lsApplyRemoteEvent
 } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
@@ -38,7 +39,7 @@ import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatchResult } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
-import { RemoteStore } from '../remote/remote_store';
+import { RemoteStore, rsListen, rsUnlisten } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
@@ -162,16 +163,6 @@ export interface SyncEngine extends RemoteSyncer {
   subscribe(syncEngineListener: SyncEngineListener): void;
 
   /**
-   * Initiates the new listen, resolves promise when listen enqueued to the
-   * server. All the subsequent view snapshots or errors are sent to the
-   * subscribed handlers. Returns the initial snapshot.
-   */
-  listen(query: Query): Promise<ViewSnapshot>;
-
-  /** Stops listening to the query. */
-  unlisten(query: Query): Promise<void>;
-
-  /**
    * Initiates the write of local mutation batch which involves adding the
    * writes to the mutation queue, notifying the remote store about new
    * mutations and raising events for any changes this write caused.
@@ -252,7 +243,7 @@ class SyncEngineImpl implements SyncEngine {
    * The keys of documents that are in limbo for which we haven't yet started a
    * limbo resolution query.
    */
-  private enqueuedLimboResolutions: DocumentKey[] = [];
+  enqueuedLimboResolutions: DocumentKey[] = [];
   /**
    * Keeps track of the target ID for each document that is in limbo with an
    * active target.
@@ -272,7 +263,7 @@ class SyncEngineImpl implements SyncEngine {
   };
   /** Stores user callbacks waiting for all pending writes to be acknowledged. */
   private pendingWritesCallbacks = new Map<BatchId, Array<Deferred<void>>>();
-  private limboTargetIdGenerator = TargetIdGenerator.forSyncEngine();
+  limboTargetIdGenerator = TargetIdGenerator.forSyncEngine();
 
   private onlineState = OnlineState.Unknown;
 
@@ -288,7 +279,7 @@ class SyncEngineImpl implements SyncEngine {
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
     public sharedClientState: SharedClientState,
     private currentUser: User,
-    private maxConcurrentLimboResolutions: number
+    public maxConcurrentLimboResolutions: number
   ) {}
 
   get isPrimaryClient(): boolean {
@@ -306,45 +297,6 @@ class SyncEngineImpl implements SyncEngine {
     );
 
     this.syncEngineListener = syncEngineListener;
-  }
-
-  async listen(query: Query): Promise<ViewSnapshot> {
-    this.assertSubscribed('listen()');
-
-    let targetId;
-    let viewSnapshot;
-
-    const queryView = this.queryViewsByQuery.get(query);
-    if (queryView) {
-      // PORTING NOTE: With Multi-Tab Web, it is possible that a query view
-      // already exists when EventManager calls us for the first time. This
-      // happens when the primary tab is already listening to this query on
-      // behalf of another tab and the user of the primary also starts listening
-      // to the query. EventManager will not have an assigned target ID in this
-      // case and calls `listen` to obtain this ID.
-      targetId = queryView.targetId;
-      this.sharedClientState.addLocalQueryTarget(targetId);
-      viewSnapshot = queryView.view.computeInitialSnapshot();
-    } else {
-      const targetData = await this.localStore.allocateTarget(
-        queryToTarget(query)
-      );
-
-      const status = this.sharedClientState.addLocalQueryTarget(
-        targetData.targetId
-      );
-      targetId = targetData.targetId;
-      viewSnapshot = await this.initializeViewAndComputeSnapshot(
-        query,
-        targetId,
-        status === 'current'
-      );
-      if (this.isPrimaryClient) {
-        this.remoteStore.listen(targetData);
-      }
-    }
-
-    return viewSnapshot;
   }
 
   /**
@@ -387,56 +339,6 @@ class SyncEngineImpl implements SyncEngine {
     }
     return viewChange.snapshot!;
   }
-
-  async unlisten(query: Query): Promise<void> {
-    this.assertSubscribed('unlisten()');
-
-    const queryView = this.queryViewsByQuery.get(query)!;
-    debugAssert(
-      !!queryView,
-      'Trying to unlisten on query not found:' + stringifyQuery(query)
-    );
-
-    // Only clean up the query view and target if this is the only query mapped
-    // to the target.
-    const queries = this.queriesByTarget.get(queryView.targetId)!;
-    if (queries.length > 1) {
-      this.queriesByTarget.set(
-        queryView.targetId,
-        queries.filter(q => !queryEquals(q, query))
-      );
-      this.queryViewsByQuery.delete(query);
-      return;
-    }
-
-    // No other queries are mapped to the target, clean up the query and the target.
-    if (this.isPrimaryClient) {
-      // We need to remove the local query target first to allow us to verify
-      // whether any other client is still interested in this target.
-      this.sharedClientState.removeLocalQueryTarget(queryView.targetId);
-      const targetRemainsActive = this.sharedClientState.isActiveQueryTarget(
-        queryView.targetId
-      );
-
-      if (!targetRemainsActive) {
-        await this.localStore
-          .releaseTarget(queryView.targetId, /*keepPersistedTargetData=*/ false)
-          .then(() => {
-            this.sharedClientState.clearQueryState(queryView.targetId);
-            this.remoteStore.unlisten(queryView.targetId);
-            this.removeAndCleanupTarget(queryView.targetId);
-          })
-          .catch(ignoreIfPrimaryLeaseLoss);
-      }
-    } else {
-      this.removeAndCleanupTarget(queryView.targetId);
-      await this.localStore.releaseTarget(
-        queryView.targetId,
-        /*keepPersistedTargetData=*/ true
-      );
-    }
-  }
-
   async write(batch: Mutation[], userCallback: Deferred<void>): Promise<void> {
     this.assertSubscribed('write()');
 
@@ -465,49 +367,6 @@ class SyncEngineImpl implements SyncEngine {
       updateFunction,
       deferred
     ).run();
-  }
-
-  async applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
-    this.assertSubscribed('applyRemoteEvent()');
-    try {
-      const changes = await this.localStore.applyRemoteEvent(remoteEvent);
-      // Update `receivedDocument` as appropriate for any limbo targets.
-      remoteEvent.targetChanges.forEach((targetChange, targetId) => {
-        const limboResolution = this.activeLimboResolutionsByTarget.get(
-          targetId
-        );
-        if (limboResolution) {
-          // Since this is a limbo resolution lookup, it's for a single document
-          // and it could be added, modified, or removed, but not a combination.
-          hardAssert(
-            targetChange.addedDocuments.size +
-              targetChange.modifiedDocuments.size +
-              targetChange.removedDocuments.size <=
-              1,
-            'Limbo resolution for single document contains multiple changes.'
-          );
-          if (targetChange.addedDocuments.size > 0) {
-            limboResolution.receivedDocument = true;
-          } else if (targetChange.modifiedDocuments.size > 0) {
-            hardAssert(
-              limboResolution.receivedDocument,
-              'Received change for limbo target document without add.'
-            );
-          } else if (targetChange.removedDocuments.size > 0) {
-            hardAssert(
-              limboResolution.receivedDocument,
-              'Received remove for limbo target document without add.'
-            );
-            limboResolution.receivedDocument = false;
-          } else {
-            // This was probably just a CURRENT targetChange or similar.
-          }
-        }
-      });
-      await this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
-    } catch (error) {
-      await ignoreIfPrimaryLeaseLoss(error);
-    }
   }
 
   applyOnlineStateChange(
@@ -540,58 +399,6 @@ class SyncEngineImpl implements SyncEngine {
       if (this.isPrimaryClient) {
         this.sharedClientState.setOnlineState(onlineState);
       }
-    }
-  }
-
-  async rejectListen(targetId: TargetId, err: FirestoreError): Promise<void> {
-    this.assertSubscribed('rejectListens()');
-
-    // PORTING NOTE: Multi-tab only.
-    this.sharedClientState.updateQueryState(targetId, 'rejected', err);
-
-    const limboResolution = this.activeLimboResolutionsByTarget.get(targetId);
-    const limboKey = limboResolution && limboResolution.key;
-    if (limboKey) {
-      // TODO(klimt): We really only should do the following on permission
-      // denied errors, but we don't have the cause code here.
-
-      // It's a limbo doc. Create a synthetic event saying it was deleted.
-      // This is kind of a hack. Ideally, we would have a method in the local
-      // store to purge a document. However, it would be tricky to keep all of
-      // the local store's invariants with another method.
-      let documentUpdates = new SortedMap<DocumentKey, MaybeDocument>(
-        DocumentKey.comparator
-      );
-      documentUpdates = documentUpdates.insert(
-        limboKey,
-        new NoDocument(limboKey, SnapshotVersion.min())
-      );
-      const resolvedLimboDocuments = documentKeySet().add(limboKey);
-      const event = new RemoteEvent(
-        SnapshotVersion.min(),
-        /* targetChanges= */ new Map<TargetId, TargetChange>(),
-        /* targetMismatches= */ new SortedSet<TargetId>(primitiveComparator),
-        documentUpdates,
-        resolvedLimboDocuments
-      );
-
-      await this.applyRemoteEvent(event);
-
-      // Since this query failed, we won't want to manually unlisten to it.
-      // We only remove it from bookkeeping after we successfully applied the
-      // RemoteEvent. If `applyRemoteEvent()` throws, we want to re-listen to
-      // this query when the RemoteStore restarts the Watch stream, which should
-      // re-trigger the target failure.
-      this.activeLimboTargetsByKey = this.activeLimboTargetsByKey.remove(
-        limboKey
-      );
-      this.activeLimboResolutionsByTarget.delete(targetId);
-      this.pumpEnqueuedLimboResolutions();
-    } else {
-      await this.localStore
-        .releaseTarget(targetId, /* keepPersistedTargetData */ false)
-        .then(() => this.removeAndCleanupTarget(targetId, err))
-        .catch(ignoreIfPrimaryLeaseLoss);
     }
   }
 
@@ -761,92 +568,43 @@ class SyncEngineImpl implements SyncEngine {
         const isReferenced = this.limboDocumentRefs.containsKey(limboKey);
         if (!isReferenced) {
           // We removed the last reference for this key
-          this.removeLimboTarget(limboKey);
+          //  this.removeLimboTarget(limboKey);
         }
       });
     }
-  }
-
-  private removeLimboTarget(key: DocumentKey): void {
-    // It's possible that the target already got removed because the query failed. In that case,
-    // the key won't exist in `limboTargetsByKey`. Only do the cleanup if we still have the target.
-    const limboTargetId = this.activeLimboTargetsByKey.get(key);
-    if (limboTargetId === null) {
-      // This target already got removed, because the query failed.
-      return;
-    }
-
-    this.remoteStore.unlisten(limboTargetId);
-    this.activeLimboTargetsByKey = this.activeLimboTargetsByKey.remove(key);
-    this.activeLimboResolutionsByTarget.delete(limboTargetId);
-    this.pumpEnqueuedLimboResolutions();
   }
 
   updateTrackedLimbos(
     targetId: TargetId,
     limboChanges: LimboDocumentChange[]
   ): void {
-    for (const limboChange of limboChanges) {
-      if (limboChange instanceof AddedLimboDocument) {
-        this.limboDocumentRefs.addReference(limboChange.key, targetId);
-        this.trackLimboChange(limboChange);
-      } else if (limboChange instanceof RemovedLimboDocument) {
-        logDebug(LOG_TAG, 'Document no longer in limbo: ' + limboChange.key);
-        this.limboDocumentRefs.removeReference(limboChange.key, targetId);
-        const isReferenced = this.limboDocumentRefs.containsKey(
-          limboChange.key
-        );
-        if (!isReferenced) {
-          // We removed the last reference for this key
-          this.removeLimboTarget(limboChange.key);
-        }
-      } else {
-        fail('Unknown limbo change: ' + JSON.stringify(limboChange));
-      }
-    }
+    // for (const limboChange of limboChanges) {
+    //   if (limboChange instanceof AddedLimboDocument) {
+    //     this.limboDocumentRefs.addReference(limboChange.key, targetId);
+    //     this.trackLimboChange(limboChange);
+    //   } else if (limboChange instanceof RemovedLimboDocument) {
+    //     logDebug(LOG_TAG, 'Document no longer in limbo: ' + limboChange.key);
+    //     this.limboDocumentRefs.removeReference(limboChange.key, targetId);
+    //     const isReferenced = this.limboDocumentRefs.containsKey(
+    //       limboChange.key
+    //     );
+    //     if (!isReferenced) {
+    //       // We removed the last reference for this key
+    //       this.removeLimboTarget(limboChange.key);
+    //     }
+    //   } else {
+    //     fail('Unknown limbo change: ' + JSON.stringify(limboChange));
+    //   }
+    // }
   }
 
   private trackLimboChange(limboChange: AddedLimboDocument): void {
-    const key = limboChange.key;
-    if (!this.activeLimboTargetsByKey.get(key)) {
-      logDebug(LOG_TAG, 'New document in limbo: ' + key);
-      this.enqueuedLimboResolutions.push(key);
-      this.pumpEnqueuedLimboResolutions();
-    }
-  }
-
-  /**
-   * Starts listens for documents in limbo that are enqueued for resolution,
-   * subject to a maximum number of concurrent resolutions.
-   *
-   * Without bounding the number of concurrent resolutions, the server can fail
-   * with "resource exhausted" errors which can lead to pathological client
-   * behavior as seen in https://github.com/firebase/firebase-js-sdk/issues/2683.
-   */
-  private pumpEnqueuedLimboResolutions(): void {
-    while (
-      this.enqueuedLimboResolutions.length > 0 &&
-      this.activeLimboTargetsByKey.size < this.maxConcurrentLimboResolutions
-    ) {
-      const key = this.enqueuedLimboResolutions.shift()!;
-      const limboTargetId = this.limboTargetIdGenerator.next();
-      this.activeLimboResolutionsByTarget.set(
-        limboTargetId,
-        new LimboResolution(key)
-      );
-      this.activeLimboTargetsByKey = this.activeLimboTargetsByKey.insert(
-        key,
-        limboTargetId
-      );
-      this.remoteStore.listen(
-        new TargetData(
-          queryToTarget(newQueryForPath(key.path)),
-          limboTargetId,
-          TargetPurpose.LimboResolution,
-          ListenSequence.INVALID
-        )
-      );
-    }
+    // const key = limboChange.key;
+    // if (!this.activeLimboTargetsByKey.get(key)) {
+    //   logDebug(LOG_TAG, 'New document in limbo: ' + key);
+    //   this.enqueuedLimboResolutions.push(key);
+    //   this.pumpEnqueuedLimboResolutions();
+    // }
   }
 
   // Visible for testing
@@ -1092,7 +850,7 @@ export async function applyPrimaryState(
     syncEngineImpl._isPrimaryClient = true;
     await syncEngineImpl.remoteStore.applyPrimaryState(true);
     for (const targetData of activeQueries) {
-      syncEngineImpl.remoteStore.listen(targetData);
+      rsListen(syncEngineImpl.remoteStore, targetData);
     }
   } else if (isPrimary === false && syncEngineImpl._isPrimaryClient !== false) {
     const activeTargets: TargetId[] = [];
@@ -1110,7 +868,7 @@ export async function applyPrimaryState(
           );
         });
       }
-      syncEngineImpl.remoteStore.unlisten(targetId);
+      rsUnlisten(syncEngineImpl.remoteStore, targetId);
     });
     await p;
 
@@ -1129,7 +887,7 @@ export async function applyPrimaryState(
 function resetLimboDocuments(syncEngine: SyncEngine): void {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   syncEngineImpl.activeLimboResolutionsByTarget.forEach((_, targetId) => {
-    syncEngineImpl.remoteStore.unlisten(targetId);
+    rsUnlisten(syncEngineImpl.remoteStore, targetId);
   });
   syncEngineImpl.limboDocumentRefs.removeAllReferences();
   syncEngineImpl.activeLimboResolutionsByTarget = new Map<
@@ -1313,7 +1071,7 @@ export async function applyActiveTargetsChange(
       targetData.targetId,
       /*current=*/ false
     );
-    syncEngineImpl.remoteStore.listen(targetData);
+    rsListen(syncEngineImpl.remoteStore, targetData);
   }
 
   for (const targetId of removed) {
@@ -1327,9 +1085,271 @@ export async function applyActiveTargetsChange(
     await syncEngineImpl.localStore
       .releaseTarget(targetId, /* keepPersistedTargetData */ false)
       .then(() => {
-        syncEngineImpl.remoteStore.unlisten(targetId);
+        rsUnlisten(syncEngineImpl.remoteStore, targetId);
         syncEngineImpl.removeAndCleanupTarget(targetId);
       })
       .catch(ignoreIfPrimaryLeaseLoss);
+  }
+}
+
+/**
+ * Initiates the new listen, resolves promise when listen enqueued to the
+ * server. All the subsequent view snapshots or errors are sent to the
+ * subscribed handlers. Returns the initial snapshot.
+ */
+export async function listen(syncEngine: SyncEngine, query: Query) {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  syncEngineImpl.assertSubscribed('listen()');
+
+  let targetId;
+  let viewSnapshot;
+
+  const queryView = syncEngineImpl.queryViewsByQuery.get(query);
+  if (queryView) {
+    // PORTING NOTE: With Multi-Tab Web, it is possible that a query view
+    // already exists when EventManager calls us for the first time. This
+    // happens when the primary tab is already listening to this query on
+    // behalf of another tab and the user of the primary also starts listening
+    // to the query. EventManager will not have an assigned target ID in this
+    // case and calls `listen` to obtain this ID.
+    targetId = queryView.targetId;
+    syncEngineImpl.sharedClientState.addLocalQueryTarget(targetId);
+    viewSnapshot = queryView.view.computeInitialSnapshot();
+  } else {
+    const targetData = await syncEngineImpl.localStore.allocateTarget(
+      queryToTarget(query)
+    );
+
+    const status = syncEngineImpl.sharedClientState.addLocalQueryTarget(
+      targetData.targetId
+    );
+    targetId = targetData.targetId;
+    viewSnapshot = await syncEngineImpl.initializeViewAndComputeSnapshot(
+      query,
+      targetId,
+      status === 'current'
+    );
+    if (syncEngineImpl.isPrimaryClient) {
+      rsListen(syncEngineImpl.remoteStore, targetData);
+    }
+  }
+
+  return viewSnapshot;
+}
+
+export async function applyRemoteEvent(
+  syncEngine: RemoteSyncer,
+  remoteEvent: RemoteEvent
+): Promise<void> {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  syncEngineImpl.assertSubscribed('applyRemoteEvent()');
+  try {
+    const changes = await lsApplyRemoteEvent(
+      syncEngineImpl.localStore,
+      remoteEvent
+    );
+    // Update `receivedDocument` as appropriate for any limbo targets.
+    remoteEvent.targetChanges.forEach((targetChange, targetId) => {
+      const limboResolution = syncEngineImpl.activeLimboResolutionsByTarget.get(
+        targetId
+      );
+      if (limboResolution) {
+        // Since this is a limbo resolution lookup, it's for a single document
+        // and it could be added, modified, or removed, but not a combination.
+        hardAssert(
+          targetChange.addedDocuments.size +
+            targetChange.modifiedDocuments.size +
+            targetChange.removedDocuments.size <=
+            1,
+          'Limbo resolution for single document contains multiple changes.'
+        );
+        if (targetChange.addedDocuments.size > 0) {
+          limboResolution.receivedDocument = true;
+        } else if (targetChange.modifiedDocuments.size > 0) {
+          hardAssert(
+            limboResolution.receivedDocument,
+            'Received change for limbo target document without add.'
+          );
+        } else if (targetChange.removedDocuments.size > 0) {
+          hardAssert(
+            limboResolution.receivedDocument,
+            'Received remove for limbo target document without add.'
+          );
+          limboResolution.receivedDocument = false;
+        } else {
+          // This was probably just a CURRENT targetChange or similar.
+        }
+      }
+    });
+    await syncEngineImpl.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
+  } catch (error) {
+    await ignoreIfPrimaryLeaseLoss(error);
+  }
+}
+
+export async function rejectListen(
+  syncEngine: RemoteSyncer,
+  targetId: TargetId,
+  err: FirestoreError
+): Promise<void> {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  syncEngineImpl.assertSubscribed('rejectListens()');
+
+  // PORTING NOTE: Multi-tab only.
+  syncEngineImpl.sharedClientState.updateQueryState(targetId, 'rejected', err);
+
+  const limboResolution = syncEngineImpl.activeLimboResolutionsByTarget.get(
+    targetId
+  );
+  const limboKey = limboResolution && limboResolution.key;
+  if (limboKey) {
+    // TODO(klimt): We really only should do the following on permission
+    // denied errors, but we don't have the cause code here.
+
+    // It's a limbo doc. Create a synthetic event saying it was deleted.
+    // This is kind of a hack. Ideally, we would have a method in the local
+    // store to purge a document. However, it would be tricky to keep all of
+    // the local store's invariants with another method.
+    let documentUpdates = new SortedMap<DocumentKey, MaybeDocument>(
+      DocumentKey.comparator
+    );
+    documentUpdates = documentUpdates.insert(
+      limboKey,
+      new NoDocument(limboKey, SnapshotVersion.min())
+    );
+    const resolvedLimboDocuments = documentKeySet().add(limboKey);
+    const event = new RemoteEvent(
+      SnapshotVersion.min(),
+      /* targetChanges= */ new Map<TargetId, TargetChange>(),
+      /* targetMismatches= */ new SortedSet<TargetId>(primitiveComparator),
+      documentUpdates,
+      resolvedLimboDocuments
+    );
+
+    await applyRemoteEvent(syncEngineImpl, event);
+
+    // Since this query failed, we won't want to manually unlisten to it.
+    // We only remove it from bookkeeping after we successfully applied the
+    // RemoteEvent. If `applyRemoteEvent()` throws, we want to re-listen to
+    // this query when the RemoteStore restarts the Watch stream, which should
+    // re-trigger the target failure.
+    syncEngineImpl.activeLimboTargetsByKey = syncEngineImpl.activeLimboTargetsByKey.remove(
+      limboKey
+    );
+    syncEngineImpl.activeLimboResolutionsByTarget.delete(targetId);
+    pumpEnqueuedLimboResolutions(syncEngineImpl);
+  } else {
+    await syncEngineImpl.localStore
+      .releaseTarget(targetId, /* keepPersistedTargetData */ false)
+      .then(() => syncEngineImpl.removeAndCleanupTarget(targetId, err))
+      .catch(ignoreIfPrimaryLeaseLoss);
+  }
+}
+
+function removeLimboTarget(syncEngine: SyncEngine, key: DocumentKey): void {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  // It's possible that the target already got removed because the query failed. In that case,
+  // the key won't exist in `limboTargetsByKey`. Only do the cleanup if we still have the target.
+  const limboTargetId = syncEngineImpl.activeLimboTargetsByKey.get(key);
+  if (limboTargetId === null) {
+    // This target already got removed, because the query failed.
+    return;
+  }
+
+  rsUnlisten(syncEngineImpl.remoteStore, limboTargetId);
+  syncEngineImpl.activeLimboTargetsByKey = syncEngineImpl.activeLimboTargetsByKey.remove(
+    key
+  );
+  syncEngineImpl.activeLimboResolutionsByTarget.delete(limboTargetId);
+  pumpEnqueuedLimboResolutions(syncEngineImpl);
+}
+
+/**
+ * Starts listens for documents in limbo that are enqueued for resolution,
+ * subject to a maximum number of concurrent resolutions.
+ *
+ * Without bounding the number of concurrent resolutions, the server can fail
+ * with "resource exhausted" errors which can lead to pathological client
+ * behavior as seen in https://github.com/firebase/firebase-js-sdk/issues/2683.
+ */
+export function pumpEnqueuedLimboResolutions(syncEngine: SyncEngine): void {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  while (
+    syncEngineImpl.enqueuedLimboResolutions.length > 0 &&
+    syncEngineImpl.activeLimboTargetsByKey.size <
+      syncEngineImpl.maxConcurrentLimboResolutions
+  ) {
+    const key = syncEngineImpl.enqueuedLimboResolutions.shift()!;
+    const limboTargetId = syncEngineImpl.limboTargetIdGenerator.next();
+    syncEngineImpl.activeLimboResolutionsByTarget.set(
+      limboTargetId,
+      new LimboResolution(key)
+    );
+    syncEngineImpl.activeLimboTargetsByKey = syncEngineImpl.activeLimboTargetsByKey.insert(
+      key,
+      limboTargetId
+    );
+    rsListen(
+      syncEngineImpl.remoteStore,
+      new TargetData(
+        queryToTarget(newQueryForPath(key.path)),
+        limboTargetId,
+        TargetPurpose.LimboResolution,
+        ListenSequence.INVALID
+      )
+    );
+  }
+}
+
+export async function unlisten(
+  syncEngine: SyncEngineImpl,
+  query: Query
+): Promise<void> {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  syncEngineImpl.assertSubscribed('unlisten()');
+
+  const queryView = syncEngineImpl.queryViewsByQuery.get(query)!;
+  debugAssert(
+    !!queryView,
+    'Trying to unlisten on query not found:' + stringifyQuery(query)
+  );
+
+  // Only clean up the query view and target if this is the only query mapped
+  // to the target.
+  const queries = syncEngineImpl.queriesByTarget.get(queryView.targetId)!;
+  if (queries.length > 1) {
+    syncEngineImpl.queriesByTarget.set(
+      queryView.targetId,
+      queries.filter(q => !queryEquals(q, query))
+    );
+    syncEngineImpl.queryViewsByQuery.delete(query);
+    return;
+  }
+
+  // No other queries are mapped to the target, clean up the query and the target.
+  if (syncEngineImpl.isPrimaryClient) {
+    // We need to remove the local query target first to allow us to verify
+    // whether any other client is still interested in this target.
+    syncEngineImpl.sharedClientState.removeLocalQueryTarget(queryView.targetId);
+    const targetRemainsActive = syncEngineImpl.sharedClientState.isActiveQueryTarget(
+      queryView.targetId
+    );
+
+    if (!targetRemainsActive) {
+      await syncEngineImpl.localStore
+        .releaseTarget(queryView.targetId, /*keepPersistedTargetData=*/ false)
+        .then(() => {
+          syncEngineImpl.sharedClientState.clearQueryState(queryView.targetId);
+          rsUnlisten(syncEngineImpl.remoteStore, queryView.targetId);
+          syncEngineImpl.removeAndCleanupTarget(queryView.targetId);
+        })
+        .catch(ignoreIfPrimaryLeaseLoss);
+    }
+  } else {
+    syncEngineImpl.removeAndCleanupTarget(queryView.targetId);
+    await syncEngineImpl.localStore.releaseTarget(
+      queryView.targetId,
+      /*keepPersistedTargetData=*/ true
+    );
   }
 }

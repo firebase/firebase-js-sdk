@@ -28,25 +28,6 @@ import { User } from '../auth/user';
  */
 export interface RemoteSyncer {
   /**
-   * Applies one remote event to the sync engine, notifying any views of the
-   * changes, and releasing any pending mutation batches that would become
-   * visible because of the snapshot version the remote event contains.
-   */
-  applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void>;
-
-  /**
-   * Rejects the listen for the given targetID. This can be triggered by the
-   * backend for any active target.
-   *
-   * @param targetId The targetID corresponds to one previously initiated by the
-   * user as part of TargetData passed to listen() on RemoteStore.
-   * @param error A description of the condition that has forced the rejection.
-   * Nearly always this will be an indication that the user is no longer
-   * authorized to see the data matching the target.
-   */
-  rejectListen(targetId: TargetId, error: FirestoreError): Promise<void>;
-
-  /**
    * Applies the result of a successful write of a mutation batch to the sync
    * engine, emitting snapshots in any views that the mutation applies to, and
    * removing the batch from the mutation queue.

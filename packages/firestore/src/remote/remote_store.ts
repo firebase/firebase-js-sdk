@@ -56,6 +56,7 @@ import {
 import { ByteString } from '../util/byte_string';
 import { isIndexedDbTransactionError } from '../local/simple_db';
 import { User } from '../auth/user';
+import { applyRemoteEvent, rejectListen } from '../core/sync_engine';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -126,12 +127,12 @@ export class RemoteStore implements TargetMetadataProvider {
    * to the server. The targets removed with unlistens are removed eagerly
    * without waiting for confirmation from the listen stream.
    */
-  private listenTargets = new Map<TargetId, TargetData>();
+  listenTargets = new Map<TargetId, TargetData>();
 
   private connectivityMonitor: ConnectivityMonitor;
-  private watchStream: PersistentListenStream;
+  watchStream?: PersistentListenStream;
   private writeStream: PersistentWriteStream;
-  private watchChangeAggregator: WatchChangeAggregator | null = null;
+  watchChangeAggregator: WatchChangeAggregator | null = null;
 
   /**
    * A set of reasons for why the RemoteStore may be offline. If empty, the
@@ -139,16 +140,16 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private offlineCauses = new Set<OfflineCause>();
 
-  private onlineStateTracker: OnlineStateTracker;
+  onlineStateTracker: OnlineStateTracker;
 
   constructor(
     /**
      * The local store, used to fill the write pipeline with outbound mutations.
      */
-    private localStore: LocalStore,
+    public localStore: LocalStore,
     /** The client-side proxy for interacting with the backend. */
-    private datastore: Datastore,
-    private asyncQueue: AsyncQueue,
+    public datastore: Datastore,
+    readonly asyncQueue: AsyncQueue,
     onlineStateHandler: (onlineState: OnlineState) => void,
     connectivityMonitor: ConnectivityMonitor
   ) {
@@ -172,13 +173,6 @@ export class RemoteStore implements TargetMetadataProvider {
       asyncQueue,
       onlineStateHandler
     );
-
-    // Create streams (but note they're not started yet).
-    this.watchStream = newPersistentWatchStream(this.datastore, asyncQueue, {
-      onOpen: this.onWatchStreamOpen.bind(this),
-      onClose: this.onWatchStreamClose.bind(this),
-      onWatchChange: this.onWatchStreamChange.bind(this)
-    });
 
     this.writeStream = newPersistentWriteStream(this.datastore, asyncQueue, {
       onOpen: this.onWriteStreamOpen.bind(this),
@@ -210,11 +204,11 @@ export class RemoteStore implements TargetMetadataProvider {
 
   private async enableNetworkInternal(): Promise<void> {
     if (this.canUseNetwork()) {
-      if (this.shouldStartWatchStream()) {
-        this.startWatchStream();
-      } else {
-        this.onlineStateTracker.set(OnlineState.Unknown);
-      }
+      // if (this.shouldStartWatchStream()) {
+      //   this.startWatchStream();
+      // } else {
+      //   this.onlineStateTracker.set(OnlineState.Unknown);
+      // }
 
       // This will start the write stream if necessary.
       await this.fillWritePipeline();
@@ -235,7 +229,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
   private async disableNetworkInternal(): Promise<void> {
     await this.writeStream.stop();
-    await this.watchStream.stop();
+    //await this.watchStream.stop();
 
     if (this.writePipeline.length > 0) {
       logDebug(
@@ -259,53 +253,6 @@ export class RemoteStore implements TargetMetadataProvider {
     this.onlineStateTracker.set(OnlineState.Unknown);
   }
 
-  /**
-   * Starts new listen for the given target. Uses resume token if provided. It
-   * is a no-op if the target of given `TargetData` is already being listened to.
-   */
-  listen(targetData: TargetData): void {
-    if (this.listenTargets.has(targetData.targetId)) {
-      return;
-    }
-
-    // Mark this as something the client is currently listening for.
-    this.listenTargets.set(targetData.targetId, targetData);
-
-    if (this.shouldStartWatchStream()) {
-      // The listen will be sent in onWatchStreamOpen
-      this.startWatchStream();
-    } else if (this.watchStream.isOpen()) {
-      this.sendWatchRequest(targetData);
-    }
-  }
-
-  /**
-   * Removes the listen from server. It is a no-op if the given target id is
-   * not being listened to.
-   */
-  unlisten(targetId: TargetId): void {
-    debugAssert(
-      this.listenTargets.has(targetId),
-      `unlisten called on target no currently watched: ${targetId}`
-    );
-
-    this.listenTargets.delete(targetId);
-    if (this.watchStream.isOpen()) {
-      this.sendUnwatchRequest(targetId);
-    }
-
-    if (this.listenTargets.size === 0) {
-      if (this.watchStream.isOpen()) {
-        this.watchStream.markIdle();
-      } else if (this.canUseNetwork()) {
-        // Revert to OnlineState.Unknown if the watch stream is not open and we
-        // have no listeners, since without any listens to send we cannot
-        // confirm if the stream is healthy and upgrade to OnlineState.Online.
-        this.onlineStateTracker.set(OnlineState.Unknown);
-      }
-    }
-  }
-
   /** {@link TargetMetadataProvider.getTargetDataForTarget} */
   getTargetDataForTarget(targetId: TargetId): TargetData | null {
     return this.listenTargets.get(targetId) || null;
@@ -316,140 +263,12 @@ export class RemoteStore implements TargetMetadataProvider {
     return this.syncEngine.getRemoteKeysForTarget(targetId);
   }
 
-  /**
-   * We need to increment the the expected number of pending responses we're due
-   * from watch so we wait for the ack to process any messages from this target.
-   */
-  private sendWatchRequest(targetData: TargetData): void {
-    this.watchChangeAggregator!.recordPendingTargetRequest(targetData.targetId);
-    this.watchStream.watch(targetData);
-  }
-
-  /**
-   * We need to increment the expected number of pending responses we're due
-   * from watch so we wait for the removal on the server before we process any
-   * messages from this target.
-   */
-  private sendUnwatchRequest(targetId: TargetId): void {
-    this.watchChangeAggregator!.recordPendingTargetRequest(targetId);
-    this.watchStream.unwatch(targetId);
-  }
-
-  private startWatchStream(): void {
-    debugAssert(
-      this.shouldStartWatchStream(),
-      'startWatchStream() called when shouldStartWatchStream() is false.'
-    );
-
-    this.watchChangeAggregator = new WatchChangeAggregator(this);
-    this.watchStream.start();
-    this.onlineStateTracker.handleWatchStreamStart();
-  }
-
-  /**
-   * Returns whether the watch stream should be started because it's necessary
-   * and has not yet been started.
-   */
-  private shouldStartWatchStream(): boolean {
-    return (
-      this.canUseNetwork() &&
-      !this.watchStream.isStarted() &&
-      this.listenTargets.size > 0
-    );
-  }
-
   canUseNetwork(): boolean {
     return this.offlineCauses.size === 0;
   }
 
   private cleanUpWatchStreamState(): void {
     this.watchChangeAggregator = null;
-  }
-
-  private async onWatchStreamOpen(): Promise<void> {
-    this.listenTargets.forEach((targetData, targetId) => {
-      this.sendWatchRequest(targetData);
-    });
-  }
-
-  private async onWatchStreamClose(error?: FirestoreError): Promise<void> {
-    if (error === undefined) {
-      // Graceful stop (due to stop() or idle timeout). Make sure that's
-      // desirable.
-      debugAssert(
-        !this.shouldStartWatchStream(),
-        'Watch stream was stopped gracefully while still needed.'
-      );
-    }
-
-    this.cleanUpWatchStreamState();
-
-    // If we still need the watch stream, retry the connection.
-    if (this.shouldStartWatchStream()) {
-      this.onlineStateTracker.handleWatchStreamFailure(error!);
-
-      this.startWatchStream();
-    } else {
-      // No need to restart watch stream because there are no active targets.
-      // The online state is set to unknown because there is no active attempt
-      // at establishing a connection
-      this.onlineStateTracker.set(OnlineState.Unknown);
-    }
-  }
-
-  private async onWatchStreamChange(
-    watchChange: WatchChange,
-    snapshotVersion: SnapshotVersion
-  ): Promise<void> {
-    // Mark the client as online since we got a message from the server
-    this.onlineStateTracker.set(OnlineState.Online);
-
-    if (
-      watchChange instanceof WatchTargetChange &&
-      watchChange.state === WatchTargetChangeState.Removed &&
-      watchChange.cause
-    ) {
-      // There was an error on a target, don't wait for a consistent snapshot
-      // to raise events
-      try {
-        await this.handleTargetError(watchChange);
-      } catch (e) {
-        logDebug(
-          LOG_TAG,
-          'Failed to remove targets %s: %s ',
-          watchChange.targetIds.join(','),
-          e
-        );
-        await this.disableNetworkUntilRecovery(e);
-      }
-      return;
-    }
-
-    if (watchChange instanceof DocumentWatchChange) {
-      this.watchChangeAggregator!.handleDocumentChange(watchChange);
-    } else if (watchChange instanceof ExistenceFilterChange) {
-      this.watchChangeAggregator!.handleExistenceFilter(watchChange);
-    } else {
-      debugAssert(
-        watchChange instanceof WatchTargetChange,
-        'Expected watchChange to be an instance of WatchTargetChange'
-      );
-      this.watchChangeAggregator!.handleTargetChange(watchChange);
-    }
-
-    if (!snapshotVersion.isEqual(SnapshotVersion.min())) {
-      try {
-        const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
-        if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
-          // We have received a target change with a global snapshot if the snapshot
-          // version is not equal to SnapshotVersion.min().
-          await this.raiseWatchSnapshot(snapshotVersion);
-        }
-      } catch (e) {
-        logDebug(LOG_TAG, 'Failed to raise snapshot:', e);
-        await this.disableNetworkUntilRecovery(e);
-      }
-    }
   }
 
   /**
@@ -461,7 +280,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * The returned Promise is resolved once the network is disabled and before
    * any retry attempt.
    */
-  private async disableNetworkUntilRecovery(
+  async disableNetworkUntilRecovery(
     e: FirestoreError,
     op?: () => Promise<unknown>
   ): Promise<void> {
@@ -501,91 +320,6 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private executeWithRecovery(op: () => Promise<void>): Promise<void> {
     return op().catch(e => this.disableNetworkUntilRecovery(e, op));
-  }
-
-  /**
-   * Takes a batch of changes from the Datastore, repackages them as a
-   * RemoteEvent, and passes that on to the listener, which is typically the
-   * SyncEngine.
-   */
-  private raiseWatchSnapshot(snapshotVersion: SnapshotVersion): Promise<void> {
-    debugAssert(
-      !snapshotVersion.isEqual(SnapshotVersion.min()),
-      "Can't raise event for unknown SnapshotVersion"
-    );
-    const remoteEvent = this.watchChangeAggregator!.createRemoteEvent(
-      snapshotVersion
-    );
-
-    // Update in-memory resume tokens. LocalStore will update the
-    // persistent view of these when applying the completed RemoteEvent.
-    remoteEvent.targetChanges.forEach((change, targetId) => {
-      if (change.resumeToken.approximateByteSize() > 0) {
-        const targetData = this.listenTargets.get(targetId);
-        // A watched target might have been removed already.
-        if (targetData) {
-          this.listenTargets.set(
-            targetId,
-            targetData.withResumeToken(change.resumeToken, snapshotVersion)
-          );
-        }
-      }
-    });
-
-    // Re-establish listens for the targets that have been invalidated by
-    // existence filter mismatches.
-    remoteEvent.targetMismatches.forEach(targetId => {
-      const targetData = this.listenTargets.get(targetId);
-      if (!targetData) {
-        // A watched target might have been removed already.
-        return;
-      }
-
-      // Clear the resume token for the target, since we're in a known mismatch
-      // state.
-      this.listenTargets.set(
-        targetId,
-        targetData.withResumeToken(
-          ByteString.EMPTY_BYTE_STRING,
-          targetData.snapshotVersion
-        )
-      );
-
-      // Cause a hard reset by unwatching and rewatching immediately, but
-      // deliberately don't send a resume token so that we get a full update.
-      this.sendUnwatchRequest(targetId);
-
-      // Mark the target we send as being on behalf of an existence filter
-      // mismatch, but don't actually retain that in listenTargets. This ensures
-      // that we flag the first re-listen this way without impacting future
-      // listens of this target (that might happen e.g. on reconnect).
-      const requestTargetData = new TargetData(
-        targetData.target,
-        targetId,
-        TargetPurpose.ExistenceFilterMismatch,
-        targetData.sequenceNumber
-      );
-      this.sendWatchRequest(requestTargetData);
-    });
-
-    // Finally raise remote event
-    return this.syncEngine.applyRemoteEvent(remoteEvent);
-  }
-
-  /** Handles an error on a target */
-  private async handleTargetError(
-    watchChange: WatchTargetChange
-  ): Promise<void> {
-    debugAssert(!!watchChange.cause, 'Handling target error without a cause');
-    const error = watchChange.cause!;
-    for (const targetId of watchChange.targetIds) {
-      // A watched target might have been removed already.
-      if (this.listenTargets.has(targetId)) {
-        await this.syncEngine.rejectListen(targetId, error);
-        this.listenTargets.delete(targetId);
-        this.watchChangeAggregator!.removeTarget(targetId);
-      }
-    }
   }
 
   /**
@@ -765,7 +499,7 @@ export class RemoteStore implements TargetMetadataProvider {
     await this.disableNetworkInternal();
     this.onlineStateTracker.set(OnlineState.Unknown);
     this.writeStream.inhibitBackoff();
-    this.watchStream.inhibitBackoff();
+    //this.watchStream.inhibitBackoff();
     this.offlineCauses.delete(OfflineCause.ConnectivityChange);
     await this.enableNetworkInternal();
   }
@@ -798,6 +532,290 @@ export class RemoteStore implements TargetMetadataProvider {
       this.offlineCauses.add(OfflineCause.IsSecondary);
       await this.disableNetworkInternal();
       this.onlineStateTracker.set(OnlineState.Unknown);
+    }
+  }
+}
+
+export function rsListen(remoteStore: RemoteStore, targetData: TargetData) {
+  if (!remoteStore.watchStream) {
+    remoteStore.watchStream = newPersistentWatchStream(
+      remoteStore.datastore,
+      remoteStore.asyncQueue,
+      {
+        onOpen: () => onWatchStreamOpen(remoteStore),
+        onClose: (err?: FirestoreError) => onWatchStreamClose(remoteStore, err),
+        onWatchChange: (watchChange: WatchChange, snapshot: SnapshotVersion) =>
+          onWatchStreamChange(remoteStore, watchChange, snapshot)
+      }
+    );
+  }
+  if (remoteStore.listenTargets.has(targetData.targetId)) {
+    return;
+  }
+
+  // Mark this as something the client is currently listening for.
+  remoteStore.listenTargets.set(targetData.targetId, targetData);
+
+  if (shouldStartWatchStream(remoteStore)) {
+    // The listen will be sent in onWatchStreamOpen
+    startWatchStream(remoteStore);
+  } else if (remoteStore.watchStream.isOpen()) {
+    sendWatchRequest(remoteStore, targetData);
+  }
+}
+
+async function onWatchStreamOpen(remoteStore: RemoteStore): Promise<void> {
+  remoteStore.listenTargets.forEach((targetData, targetId) => {
+    sendWatchRequest(remoteStore, targetData);
+  });
+}
+
+/**
+ * We need to increment the the expected number of pending responses we're due
+ * from watch so we wait for the ack to process any messages from this target.
+ */
+function sendWatchRequest(
+  remoteStore: RemoteStore,
+  targetData: TargetData
+): void {
+  remoteStore.watchChangeAggregator!.recordPendingTargetRequest(
+    targetData.targetId
+  );
+  remoteStore.watchStream!.watch(targetData);
+}
+
+/**
+ * We need to increment the expected number of pending responses we're due
+ * from watch so we wait for the removal on the server before we process any
+ * messages from this target.
+ */
+function sendUnwatchRequest(
+  remoteStore: RemoteStore,
+  targetId: TargetId
+): void {
+  remoteStore.watchChangeAggregator!.recordPendingTargetRequest(targetId);
+  remoteStore.watchStream!.unwatch(targetId);
+}
+
+function startWatchStream(remoteStore: RemoteStore): void {
+  debugAssert(
+    shouldStartWatchStream(remoteStore),
+    'startWatchStream() called when shouldStartWatchStream() is false.'
+  );
+
+  remoteStore.watchChangeAggregator = new WatchChangeAggregator(remoteStore);
+  remoteStore.watchStream!.start();
+  remoteStore.onlineStateTracker.handleWatchStreamStart();
+}
+
+/**
+ * Returns whether the watch stream should be started because it's necessary
+ * and has not yet been started.
+ */
+function shouldStartWatchStream(remoteStore: RemoteStore): boolean {
+  return (
+    remoteStore.canUseNetwork() &&
+    !remoteStore.watchStream!.isStarted() &&
+    remoteStore.listenTargets.size > 0
+  );
+}
+
+async function onWatchStreamClose(
+  remoteStore: RemoteStore,
+  error?: FirestoreError
+): Promise<void> {
+  if (error === undefined) {
+    // Graceful stop (due to stop() or idle timeout). Make sure that's
+    // desirable.
+    debugAssert(
+      !shouldStartWatchStream(remoteStore),
+      'Watch stream was stopped gracefully while still needed.'
+    );
+  }
+
+  //cleanUpWatchStreamState(remoteStore);
+
+  // If we still need the watch stream, retry the connection.
+  if (shouldStartWatchStream(remoteStore)) {
+    remoteStore.onlineStateTracker.handleWatchStreamFailure(error!);
+
+    startWatchStream(remoteStore);
+  } else {
+    // No need to restart watch stream because there are no active targets.
+    // The online state is set to unknown because there is no active attempt
+    // at establishing a connection
+    remoteStore.onlineStateTracker.set(OnlineState.Unknown);
+  }
+}
+
+async function onWatchStreamChange(
+  remoteStore: RemoteStore,
+  watchChange: WatchChange,
+  snapshotVersion: SnapshotVersion
+): Promise<void> {
+  // Mark the client as online since we got a message from the server
+  remoteStore.onlineStateTracker.set(OnlineState.Online);
+
+  if (
+    watchChange instanceof WatchTargetChange &&
+    watchChange.state === WatchTargetChangeState.Removed &&
+    watchChange.cause
+  ) {
+    // There was an error on a target, don't wait for a consistent snapshot
+    // to raise events
+    try {
+      await handleTargetError(remoteStore, watchChange);
+    } catch (e) {
+      logDebug(
+        LOG_TAG,
+        'Failed to remove targets %s: %s ',
+        watchChange.targetIds.join(','),
+        e
+      );
+      await remoteStore.disableNetworkUntilRecovery(e);
+    }
+    return;
+  }
+
+  if (watchChange instanceof DocumentWatchChange) {
+    remoteStore.watchChangeAggregator!.handleDocumentChange(watchChange);
+  } else if (watchChange instanceof ExistenceFilterChange) {
+    remoteStore.watchChangeAggregator!.handleExistenceFilter(watchChange);
+  } else {
+    debugAssert(
+      watchChange instanceof WatchTargetChange,
+      'Expected watchChange to be an instance of WatchTargetChange'
+    );
+    remoteStore.watchChangeAggregator!.handleTargetChange(watchChange);
+  }
+
+  if (!snapshotVersion.isEqual(SnapshotVersion.min())) {
+    try {
+      const lastRemoteSnapshotVersion = await remoteStore.localStore.getLastRemoteSnapshotVersion();
+      if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
+        // We have received a target change with a global snapshot if the snapshot
+        // version is not equal to SnapshotVersion.min().
+        await raiseWatchSnapshot(remoteStore, snapshotVersion);
+      }
+    } catch (e) {
+      logDebug(LOG_TAG, 'Failed to raise snapshot:', e);
+      await remoteStore.disableNetworkUntilRecovery(e);
+    }
+  }
+}
+
+/**
+ * Takes a batch of changes from the Datastore, repackages them as a
+ * RemoteEvent, and passes that on to the listener, which is typically the
+ * SyncEngine.
+ */
+function raiseWatchSnapshot(
+  remoteStore: RemoteStore,
+  snapshotVersion: SnapshotVersion
+): Promise<void> {
+  debugAssert(
+    !snapshotVersion.isEqual(SnapshotVersion.min()),
+    "Can't raise event for unknown SnapshotVersion"
+  );
+  const remoteEvent = remoteStore.watchChangeAggregator!.createRemoteEvent(
+    snapshotVersion
+  );
+
+  // Update in-memory resume tokens. LocalStore will update the
+  // persistent view of these when applying the completed RemoteEvent.
+  remoteEvent.targetChanges.forEach((change, targetId) => {
+    if (change.resumeToken.approximateByteSize() > 0) {
+      const targetData = remoteStore.listenTargets.get(targetId);
+      // A watched target might have been removed already.
+      if (targetData) {
+        remoteStore.listenTargets.set(
+          targetId,
+          targetData.withResumeToken(change.resumeToken, snapshotVersion)
+        );
+      }
+    }
+  });
+
+  // Re-establish listens for the targets that have been invalidated by
+  // existence filter mismatches.
+  remoteEvent.targetMismatches.forEach(targetId => {
+    const targetData = remoteStore.listenTargets.get(targetId);
+    if (!targetData) {
+      // A watched target might have been removed already.
+      return;
+    }
+
+    // Clear the resume token for the target, since we're in a known mismatch
+    // state.
+    remoteStore.listenTargets.set(
+      targetId,
+      targetData.withResumeToken(
+        ByteString.EMPTY_BYTE_STRING,
+        targetData.snapshotVersion
+      )
+    );
+
+    // Cause a hard reset by unwatching and rewatching immediately, but
+    // deliberately don't send a resume token so that we get a full update.
+    sendUnwatchRequest(remoteStore, targetId);
+
+    // Mark the target we send as being on behalf of an existence filter
+    // mismatch, but don't actually retain that in listenTargets. This ensures
+    // that we flag the first re-listen this way without impacting future
+    // listens of this target (that might happen e.g. on reconnect).
+    const requestTargetData = new TargetData(
+      targetData.target,
+      targetId,
+      TargetPurpose.ExistenceFilterMismatch,
+      targetData.sequenceNumber
+    );
+    sendWatchRequest(remoteStore, requestTargetData);
+  });
+
+  // Finally raise remote event
+  return applyRemoteEvent(remoteStore.syncEngine, remoteEvent);
+}
+
+/** Handles an error on a target */
+async function handleTargetError(
+  remoteStore: RemoteStore,
+  watchChange: WatchTargetChange
+): Promise<void> {
+  debugAssert(!!watchChange.cause, 'Handling target error without a cause');
+  const error = watchChange.cause!;
+  for (const targetId of watchChange.targetIds) {
+    // A watched target might have been removed already.
+    if (remoteStore.listenTargets.has(targetId)) {
+      await rejectListen(remoteStore.syncEngine, targetId, error);
+      remoteStore.listenTargets.delete(targetId);
+      remoteStore.watchChangeAggregator!.removeTarget(targetId);
+    }
+  }
+}
+
+/**
+ * Removes the listen from server. It is a no-op if the given target id is
+ * not being listened to.
+ */
+export function rsUnlisten(remoteStore: RemoteStore, targetId: TargetId): void {
+  debugAssert(
+    remoteStore.listenTargets.has(targetId),
+    `unlisten called on target no currently watched: ${targetId}`
+  );
+
+  remoteStore.listenTargets.delete(targetId);
+  if (remoteStore.watchStream!.isOpen()) {
+    sendUnwatchRequest(remoteStore, targetId);
+  }
+
+  if (remoteStore.listenTargets.size === 0) {
+    if (remoteStore.watchStream!.isOpen()) {
+      remoteStore.watchStream!.markIdle();
+    } else if (remoteStore.canUseNetwork()) {
+      // Revert to OnlineState.Unknown if the watch stream is not open and we
+      // have no listeners, since without any listens to send we cannot
+      // confirm if the stream is healthy and upgrade to OnlineState.Online.
+      remoteStore.onlineStateTracker.set(OnlineState.Unknown);
     }
   }
 }
