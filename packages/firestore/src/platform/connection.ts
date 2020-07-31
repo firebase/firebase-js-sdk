@@ -20,7 +20,7 @@ import {Connection} from "../remote/connection";
 
 // This file is only used under ts-node.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const platform = require(`${process.env.TEST_PLATFORM}/base64`);
+const platform = require(`./${process.env.TEST_PLATFORM}/connection`);
 
 export function newConnectivityMonitor(): ConnectivityMonitor {
   return platform.newConnectivityMonitor();

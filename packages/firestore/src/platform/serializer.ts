@@ -19,7 +19,7 @@ import {JsonProtoSerializer} from "../remote/serializer";
 
 // This file is only used under ts-node.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const platform = require(`${process.env.TEST_PLATFORM}/serializer`);
+const platform = require(`./${process.env.TEST_PLATFORM}/serializer`);
 
 export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
     return platform.newSerializer(databaseId);

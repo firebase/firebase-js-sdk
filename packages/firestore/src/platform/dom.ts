@@ -17,7 +17,7 @@
 
 // This file is only used under ts-node.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const platform = require(`${process.env.TEST_PLATFORM}/base64`);
+const platform = require(`./${process.env.TEST_PLATFORM}/dom`);
 
 /** The Platform's 'window' implementation or null if not available. */
 export function getWindow(): Window | null {
