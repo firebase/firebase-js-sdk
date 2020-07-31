@@ -89,8 +89,7 @@ describe('FirebaseAnalytics instance tests', () => {
     );
     fetchStub.restore();
   });
-  // eslint-disable-next-line no-restricted-properties
-  describe.only('Standard app, page already has user gtag script', () => {
+  describe('Standard app, page already has user gtag script', () => {
     let app: FirebaseApp = {} as FirebaseApp;
     let fidDeferred: Deferred<void>;
     before(() => {
