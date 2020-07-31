@@ -20,12 +20,13 @@ import {Connection} from "../remote/connection";
 
 // This file is only used under ts-node.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const platform = require(`./${process.env.TEST_PLATFORM}/connection`);
+const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/connection`);
 
 export function newConnectivityMonitor(): ConnectivityMonitor {
   return platform.newConnectivityMonitor();
 }
 
+// TODO(firestorexp): This doesn't need to return a Promise
 export function newConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
   return platform.newConnection(databaseInfo);
 }

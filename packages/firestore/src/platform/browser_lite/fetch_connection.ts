@@ -13,16 +13,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ */import * as nodeFetch from 'node-fetch';
 
 import { Token } from '../../api/credentials';
 import { Stream } from '../../remote/connection';
 import { mapCodeFromHttpStatus } from '../../remote/rpc_error';
-import { FirestoreError } from '../../util/error';
+import { FirestoreError } from '../../util/error'; 
 import { StringMap } from '../../util/types';
 import { RestConnection } from '../../remote/rest_connection';
+import {DatabaseInfo} from "../../core/database_info";
 
 export class FetchConnection extends RestConnection {
+  constructor(databaseInfo: DatabaseInfo, private readonly fetchImpl: typeof fetch) {
+    super(databaseInfo);
+  }
+
   openStream<Req, Resp>(
     rpcName: string,
     token: Token | null
@@ -40,7 +45,7 @@ export class FetchConnection extends RestConnection {
     let response: Response;
 
     try {
-      response = await fetch(url, {
+      response = await this.fetchImpl(url, {
         method: 'POST',
         headers,
         body: requestJson
@@ -51,7 +56,14 @@ export class FetchConnection extends RestConnection {
         'Request failed with error: ' + err.statusText
       );
     }
-
-    return JSON.parse(await response.text());
+    
+    if (!response.ok) {
+      throw new FirestoreError(
+        mapCodeFromHttpStatus(response.status),
+        'Request failed with error: ' + response.statusText
+      );
+    }
+    
+    return response.json();
   }
 }

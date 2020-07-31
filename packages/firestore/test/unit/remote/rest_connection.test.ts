@@ -125,15 +125,9 @@ describe('RestConnection', () => {
     expect(response).to.deep.equal({ response: true });
   });
 
-  it('returns error', async () => {
-    connection.nextResponse = Promise.reject(
-      new FirestoreError(Code.UNKNOWN, 'Test exception')
-    );
-    try {
-      await connection.invokeRPC('RunQuery', {}, null);
-      fail();
-    } catch (e) {
-      expect(e.code).to.equal(Code.UNKNOWN);
-    }
+  it('returns error', () => {
+    const error =  new FirestoreError(Code.UNKNOWN, 'Test exception');
+    connection.nextResponse = Promise.reject(error);
+    return expect(connection.invokeRPC('RunQuery', {}, null)).to.be.eventually.rejectedWith(error);
   });
 });

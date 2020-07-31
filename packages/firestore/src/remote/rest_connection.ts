@@ -92,7 +92,7 @@ export abstract class RestConnection implements Connection {
         return response;
       },
       (err: FirestoreError) => {
-        logWarn(LOG_TAG, `${rpcName} failed with error: `, err.message, 'url : ', url, 'request :', req);
+        logWarn(LOG_TAG, `${rpcName} failed with error: `, err.message, 'url: ', url, 'request:', req);
         throw err;
       }
     );

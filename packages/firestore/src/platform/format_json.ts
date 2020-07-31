@@ -17,7 +17,7 @@
 
 // This file is only used under ts-node.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const platform = require(`./${process.env.TEST_PLATFORM}/format_json`);
+const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/format_json`);
 
 /** Formats an object as a JSON string, suitable for logging. */
 export function formatJSON(value: unknown): string {

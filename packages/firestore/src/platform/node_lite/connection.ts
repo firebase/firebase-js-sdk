@@ -15,13 +15,18 @@
  * limitations under the License.
  */
 
-import { DatabaseInfo } from '../../core/database_info';
-import { Connection } from '../../remote/connection';
-import { HttpConnection } from './http_connection';
+import * as nodeFetch from 'node-fetch';
+
+import {FetchConnection} from "../browser_lite/fetch_connection";
+import {DatabaseInfo} from "../../core/database_info";
+import {Connection} from "../../remote/connection";
 
 export { newConnectivityMonitor } from '../browser/connection';
 
 /** Initializes the HTTP connection for the REST API. */
 export function newConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
-  return Promise.resolve(new HttpConnection(databaseInfo));
+  // node-fetch is meant to be API compatible with `fetch`, but its type don't
+  // match 100%.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return Promise.resolve(new FetchConnection(databaseInfo, nodeFetch as any));
 }
