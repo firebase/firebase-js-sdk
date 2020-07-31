@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import firebase from '../util/firebase_export';
+import * as firebaseExport from '../util/firebase_export';
 import {
   apiDescribe,
   toDataArray,
@@ -28,8 +28,8 @@ import {
 } from '../util/helpers';
 import { Timestamp as TimestampInstance } from '@firebase/firestore-types';
 
-const Timestamp = firebase.firestore!.Timestamp;
-const FieldPath = firebase.firestore!.FieldPath;
+const Timestamp = firebaseExport.Timestamp;
+const FieldPath = firebaseExport.FieldPath;
 
 apiDescribe('Cursors', (persistence: boolean) => {
   it('can page through items', () => {

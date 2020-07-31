@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
+import * as firestore from '../../../exp-types';
 
 import { DocumentKey } from '../../../src/model/document_key';
 import { Document } from '../../../src/model/document';
@@ -63,7 +63,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     return super.exists();
   }
 
-  data(options: firestore.SnapshotOptions = {}): T | undefined {
+  data(options?: firestore.SnapshotOptions): T | undefined {
     if (!this._document) {
       return undefined;
     } else if (this._converter) {
@@ -81,9 +81,13 @@ export class DocumentSnapshot<T = firestore.DocumentData>
       const userDataWriter = new UserDataWriter(
         this._firestoreImpl._databaseId,
         /* timestampsInSnapshots= */ true,
-        options.serverTimestamps || DEFAULT_SERVER_TIMESTAMP_BEHAVIOR,
+        options?.serverTimestamps || DEFAULT_SERVER_TIMESTAMP_BEHAVIOR,
         key =>
-          new DocumentReference(this._firestore, key, /* converter= */ null)
+          new DocumentReference(
+            this._firestore,
+            /* converter= */ null,
+            key.path
+          )
       );
       return userDataWriter.convertValue(this._document.toProto()) as T;
     }
@@ -102,7 +106,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
           this._firestoreImpl._databaseId,
           /* timestampsInSnapshots= */ true,
           options.serverTimestamps || DEFAULT_SERVER_TIMESTAMP_BEHAVIOR,
-          key => new DocumentReference(this._firestore, key, this._converter)
+          key =>
+            new DocumentReference(this._firestore, this._converter, key.path)
         );
         return userDataWriter.convertValue(value);
       }
@@ -205,7 +210,7 @@ export class QuerySnapshot<T = firestore.DocumentData>
       doc.key,
       doc,
       new SnapshotMetadata(hasPendingWrites, fromCache),
-      this.query._converter
+      this.query.converter
     );
   }
 }

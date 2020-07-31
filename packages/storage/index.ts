@@ -22,7 +22,7 @@ import { TaskEvent, TaskState } from './src/implementation/taskenums';
 
 import { XhrIoPool } from './src/implementation/xhriopool';
 import { Reference } from './src/reference';
-import { Service } from './src/service';
+import { StorageService } from './src/service';
 import * as types from '@firebase/storage-types';
 import {
   Component,
@@ -45,7 +45,7 @@ function factory(
   const app = container.getProvider('app').getImmediate();
   const authProvider = container.getProvider('auth-internal');
 
-  return (new Service(
+  return (new StorageService(
     app,
     authProvider,
     new XhrIoPool(),
@@ -59,7 +59,7 @@ export function registerStorage(instance: _FirebaseNamespace): void {
     TaskState,
     TaskEvent,
     StringFormat,
-    Storage: Service,
+    Storage: StorageService,
     Reference
   };
   instance.INTERNAL.registerComponent(

@@ -12,4 +12,5 @@
 |  [FirebaseAppConfig](./app-types.firebaseappconfig.md) |  |
 |  [FirebaseOptions](./app-types.firebaseoptions.md) |  |
 |  [PlatformLoggerService](./app-types.platformloggerservice.md) |  |
+|  [VersionService](./app-types.versionservice.md) |  |
 

@@ -15,6 +15,6 @@ export interface FirebaseAppConfig
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [automaticDataCollectionEnabled](./app-types.firebaseappconfig.automaticdatacollectionenabled.md) | <code>boolean</code> |  |
-|  [name](./app-types.firebaseappconfig.name.md) | <code>string</code> |  |
+|  [automaticDataCollectionEnabled](./app-types.firebaseappconfig.automaticdatacollectionenabled.md) | boolean |  |
+|  [name](./app-types.firebaseappconfig.name.md) | string |  |
 
