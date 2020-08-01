@@ -33,6 +33,8 @@ import { ByteString } from '../util/byte_string';
  * (changes to the actual documents).
  */
 export class RemoteEvent {
+  // TODO(mrschmidt): TargetChange now contains targetId, we can drop the map
+  // make it an array.
   constructor(
     /**
      * The snapshot version this event brings us up to, or MIN if not set.
@@ -97,6 +99,7 @@ export class RemoteEvent {
  */
 export class TargetChange {
   constructor(
+    readonly targetId: TargetId,
     /**
      * An opaque, server-assigned token that allows watching a query to be resumed
      * after disconnecting without retransmitting all the data that matches the
@@ -137,6 +140,7 @@ export class TargetChange {
     current: boolean
   ): TargetChange {
     return new TargetChange(
+      targetId,
       ByteString.EMPTY_BYTE_STRING,
       current,
       documentKeySet(),

@@ -61,6 +61,7 @@ export interface ViewDocumentChanges {
 }
 
 export interface ViewChange {
+  targetId?: number;
   snapshot?: ViewSnapshot;
   limboChanges: LimboDocumentChange[];
 }
@@ -318,7 +319,7 @@ export class View {
 
     if (changes.length === 0 && !syncStateChanged) {
       // no changes
-      return { limboChanges };
+      return { targetId: targetChange?.targetId, limboChanges };
     } else {
       const snap: ViewSnapshot = new ViewSnapshot(
         this.query,
@@ -331,6 +332,7 @@ export class View {
         /* excludesMetadataChanges= */ false
       );
       return {
+        targetId: targetChange?.targetId,
         snapshot: snap,
         limboChanges
       };

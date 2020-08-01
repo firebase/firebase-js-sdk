@@ -174,7 +174,7 @@ class TargetState {
    * To reset the document changes after raising this snapshot, call
    * `clearPendingChanges()`.
    */
-  toTargetChange(): TargetChange {
+  toTargetChange(targetId: TargetId): TargetChange {
     let addedDocuments = documentKeySet();
     let modifiedDocuments = documentKeySet();
     let removedDocuments = documentKeySet();
@@ -196,6 +196,7 @@ class TargetState {
     });
 
     return new TargetChange(
+      targetId,
       this._resumeToken,
       this._current,
       addedDocuments,
@@ -454,7 +455,7 @@ export class WatchChangeAggregator {
         }
 
         if (targetState.hasPendingChanges) {
-          targetChanges.set(targetId, targetState.toTargetChange());
+          targetChanges.set(targetId, targetState.toTargetChange(targetId));
           targetState.clearPendingChanges();
         }
       }
@@ -581,7 +582,7 @@ export class WatchChangeAggregator {
    */
   private getCurrentDocumentCountForTarget(targetId: TargetId): number {
     const targetState = this.ensureTargetState(targetId);
-    const targetChange = targetState.toTargetChange();
+    const targetChange = targetState.toTargetChange(targetId);
     return (
       this.metadataProvider.getRemoteKeysForTarget(targetId).size +
       targetChange.addedDocuments.size -

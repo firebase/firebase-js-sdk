@@ -19,7 +19,12 @@ import { debugAssert } from '../util/assert';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
-import { SyncEngine, SyncEngineListener } from './sync_engine';
+import {
+  SyncEngine,
+  SyncEngineListener,
+  listen,
+  unlisten
+} from './sync_engine';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
@@ -72,7 +77,7 @@ export class EventManager implements SyncEngineListener {
 
     if (firstListen) {
       try {
-        queryInfo.viewSnap = await this.syncEngine.listen(query);
+        queryInfo.viewSnap = await listen(this.syncEngine, query);
       } catch (e) {
         const firestoreError = wrapInUserErrorIfRecoverable(
           e,
@@ -116,7 +121,7 @@ export class EventManager implements SyncEngineListener {
 
     if (lastListen) {
       this.queries.delete(query);
-      return this.syncEngine.unlisten(query);
+      return unlisten(this.syncEngine, query);
     }
   }
 

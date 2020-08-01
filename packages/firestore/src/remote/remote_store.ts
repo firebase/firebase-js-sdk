@@ -56,6 +56,11 @@ import {
 import { ByteString } from '../util/byte_string';
 import { isIndexedDbTransactionError } from '../local/simple_db';
 import { User } from '../auth/user';
+import {
+  applyRemoteEvent,
+  rejectListen,
+  getRemoteKeysForTarget
+} from '../core/sync_engine';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -313,7 +318,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
   /** {@link TargetMetadataProvider.getRemoteKeysForTarget} */
   getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet {
-    return this.syncEngine.getRemoteKeysForTarget(targetId);
+    return getRemoteKeysForTarget(this.syncEngine, targetId);
   }
 
   /**
@@ -569,7 +574,7 @@ export class RemoteStore implements TargetMetadataProvider {
     });
 
     // Finally raise remote event
-    return this.syncEngine.applyRemoteEvent(remoteEvent);
+    return applyRemoteEvent(this.syncEngine, remoteEvent);
   }
 
   /** Handles an error on a target */
@@ -581,7 +586,7 @@ export class RemoteStore implements TargetMetadataProvider {
     for (const targetId of watchChange.targetIds) {
       // A watched target might have been removed already.
       if (this.listenTargets.has(targetId)) {
-        await this.syncEngine.rejectListen(targetId, error);
+        await rejectListen(this.syncEngine, targetId, error);
         this.listenTargets.delete(targetId);
         this.watchChangeAggregator!.removeTarget(targetId);
       }
