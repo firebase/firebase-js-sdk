@@ -39,7 +39,11 @@ export const enum ErrorCode {
   REPORT_REDIRECTION_ERROR = 'Please enable at least one of --output or --ci flag for report redirection!'
 }
 export const enum Warning {
-  MODULE_NOT_RESOLVED = 'module can not be resolved to actual location'
+  MODULE_NOT_RESOLVED = 'module can not be resolved to its actual location'
+}
+interface External {
+  moduleName: string;
+  symbols: string[];
 }
 
 /** Contains a list of members by type. */
@@ -48,7 +52,7 @@ export interface MemberList {
   functions: string[];
   variables: string[];
   enums: string[];
-  externals: object[];
+  externals: External[];
 }
 /** Contains the dependencies and the size of their code for a single export. */
 export interface ExportData {
@@ -89,16 +93,16 @@ export async function extractDependenciesAndSize(
   map: Map<string, string>
 ): Promise<ExportData> {
   const input = tmp.fileSync().name + '.js';
-  const fullyResolvedOutput = tmp.fileSync().name + '.js';
+  const externalDepsResolvedOutput = tmp.fileSync().name + '.js';
   const externalDepsNotResolvedOutput = tmp.fileSync().name + '.js';
 
-  const beforeContent = `export { ${exportName} } from '${path.resolve(
+  const exportStatement = `export { ${exportName} } from '${path.resolve(
     jsBundle
   )}';`;
-  fs.writeFileSync(input, beforeContent);
+  fs.writeFileSync(input, exportStatement);
 
   // Run Rollup on the JavaScript above to produce a tree-shaken build
-  const fullyResolvedBundle = await rollup.rollup({
+  const externalDepsResolvedBundle = await rollup.rollup({
     input,
     plugins: [
       resolve({
@@ -107,11 +111,14 @@ export async function extractDependenciesAndSize(
       commonjs()
     ]
   });
-  await fullyResolvedBundle.write({ file: fullyResolvedOutput, format: 'es' });
-  const minimizedBundle = await rollup.rollup({
+  await externalDepsResolvedBundle.write({
+    file: externalDepsResolvedOutput,
+    format: 'es'
+  });
+  const externalDepsNotResolvedBundle = await rollup.rollup({
     input
   });
-  await minimizedBundle.write({
+  await externalDepsNotResolvedBundle.write({
     file: externalDepsNotResolvedOutput,
     format: 'es'
   });
@@ -119,22 +126,22 @@ export async function extractDependenciesAndSize(
     externalDepsNotResolvedOutput,
     map
   );
-  const externals: object = extractExternalDependencies(
+  const externals: External[] = extractExternalDependencies(
     externalDepsNotResolvedOutput
   );
-  dependencies.externals.push(externals);
+  dependencies.externals.push(...externals);
 
-  const afterContentFullyResolved = fs.readFileSync(
-    fullyResolvedOutput,
+  const externalDepsResolvedOutputContent = fs.readFileSync(
+    externalDepsResolvedOutput,
     'utf-8'
   );
   // Extract size of minified build
-  const afterContentMinimized = fs.readFileSync(
+  const externalDepsNotResolvedOutputContent = fs.readFileSync(
     externalDepsNotResolvedOutput,
     'utf-8'
   );
-  const codeFullyResolved: terser.MinifyOutput = terser.minify(
-    afterContentFullyResolved,
+  const externalDepsResolvedOutputContentMinimized: terser.MinifyOutput = terser.minify(
+    externalDepsResolvedOutputContent,
     {
       output: {
         comments: false
@@ -143,8 +150,8 @@ export async function extractDependenciesAndSize(
       compress: false
     }
   );
-  const codeMinimized: terser.MinifyOutput = terser.minify(
-    afterContentMinimized,
+  const externalDepsNotResolvedOutputContentMinimized: terser.MinifyOutput = terser.minify(
+    externalDepsNotResolvedOutputContent,
     {
       output: {
         comments: false
@@ -156,12 +163,15 @@ export async function extractDependenciesAndSize(
 
   fs.unlinkSync(input);
   fs.unlinkSync(externalDepsNotResolvedOutput);
-  fs.unlinkSync(fullyResolvedOutput);
+  fs.unlinkSync(externalDepsResolvedOutput);
   return {
     dependencies,
-    sizeInBytes: Buffer.byteLength(codeMinimized.code!, 'utf-8'),
+    sizeInBytes: Buffer.byteLength(
+      externalDepsNotResolvedOutputContentMinimized.code!,
+      'utf-8'
+    ),
     sizeInBytesWithExternalDeps: Buffer.byteLength(
-      codeFullyResolved.code!,
+      externalDepsResolvedOutputContentMinimized.code!,
       'utf-8'
     )
   };
@@ -203,11 +213,18 @@ export function extractDeclarations(
     enums: [],
     externals: []
   };
-  // define a map here which is used to handle export statements like "export {LogLevel}".
+  // define a map here which is used to handle export statements that have no from clause.
   // As there is no from clause in such export statements, we retrieve symbol location by parsing the corresponding import
   // statements. We store the symbol and its defined location as key value pairs in the map.
-  const symbolLocation: Map<string, string> = new Map();
-
+  const importSymbolCurrentNameToModuleLocation: Map<
+    string,
+    string
+  > = new Map();
+  const importSymbolCurrentNameToOriginalName: Map<string, string> = new Map(); // key: current name value: original name
+  const importModuleLocationToExportedSymbolsList: Map<
+    string,
+    MemberList
+  > = new Map(); // key: module location, value: a list of all exported symbols of the module
   ts.forEachChild(sourceFile, node => {
     if (ts.isFunctionDeclaration(node)) {
       declarations.functions.push(node.name!.text);
@@ -240,15 +257,28 @@ export function extractDeclarations(
       if (symbol && symbol.valueDeclaration) {
         const importFilePath = symbol.valueDeclaration.getSourceFile().fileName;
         // import { a, b } from '@firebase/dummy-exp'
+        // import {a as A, b as B} from '@firebase/dummy-exp'
         if (
           node.importClause.namedBindings &&
           ts.isNamedImports(node.importClause.namedBindings)
         ) {
           node.importClause.namedBindings.elements.forEach(each => {
-            const symbolName: string = each.name.getText(sourceFile);
-            symbolLocation.set(symbolName, importFilePath);
+            const symbolName: string = each.name.getText(sourceFile); // import symbol current name
+            importSymbolCurrentNameToModuleLocation.set(
+              symbolName,
+              importFilePath
+            );
+            // if imported symbols are renamed, insert an entry to importSymbolCurrentNameToOriginalName Map
+            // with key the current name, value the original name
+            if (each.propertyName) {
+              importSymbolCurrentNameToOriginalName.set(
+                symbolName,
+                each.propertyName.getText(sourceFile)
+              );
+            }
           });
-          // import * as fs from 'fs'
+
+          // import * as fs from 'fs
         } else if (
           node.importClause.namedBindings &&
           ts.isNamespaceImport(node.importClause.namedBindings)
@@ -256,14 +286,18 @@ export function extractDeclarations(
           const symbolName: string = node.importClause.namedBindings.name.getText(
             sourceFile
           );
-          symbolLocation.set(symbolName, importFilePath);
+          declarations.variables.push(symbolName);
+
           // import a from '@firebase/dummy-exp'
         } else if (
           node.importClause.name &&
           ts.isIdentifier(node.importClause.name)
         ) {
           const symbolName: string = node.importClause.name.getText(sourceFile);
-          symbolLocation.set(symbolName, importFilePath);
+          importSymbolCurrentNameToModuleLocation.set(
+            symbolName,
+            importFilePath
+          );
         }
       }
     }
@@ -291,11 +325,16 @@ export function extractDeclarations(
       } else {
         // export {LogLevel};
         // exclusively handles named export statements that has no from clause.
-        handleExportStatementsWithoutFromClause(
+        const reExportsWithoutFromClause: MemberList = handleExportStatementsWithoutFromClause(
           node,
-          symbolLocation,
-          declarations
+          importSymbolCurrentNameToModuleLocation,
+          importSymbolCurrentNameToOriginalName,
+          importModuleLocationToExportedSymbolsList
         );
+        // concatenate re-exported MemberList with MemberList of the dts file
+        for (const key of Object.keys(declarations)) {
+          declarations[key].push(...reExportsWithoutFromClause[key]);
+        }
       }
     }
   });
@@ -348,8 +387,12 @@ function handleExportStatementsWithFromClause(
     node.exportClause.elements.forEach(exportSpecifier => {
       declarations.variables.push(exportSpecifier.name.escapedText.toString());
     });
-  } else {
-    console.log(`${moduleName}: ${Warning.MODULE_NOT_RESOLVED}`);
+  }
+  // handles the case when exporting * from a module whose location can't be resolved
+  else {
+    console.log(
+      `export statement: export * from ${moduleName}: ${Warning.MODULE_NOT_RESOLVED}`
+    );
   }
 
   return declarations;
@@ -397,8 +440,10 @@ function extractSymbolsFromNamedExportStatement(
 }
 /**
  * @param node compiler representation of a named export statement
- * @param symbolLocation a map with module name as key and the resolved module location as value. (map is populated by parsing import statements)
- * @param declarations a collection of symbols extracted from current file of context (either a dts file or a js file).
+ * @param importSymbolCurrentNameToModuleLocation a map with imported symbol current name as key and the resolved module location as value. (map is populated by parsing import statements)
+ * @param importSymbolCurrentNameToOriginalName as imported symbols can be renamed, this map stores imported symbols current name and original name as key value pairs.
+ * @param importModuleLocationToExportedSymbolsList a map that maps module location to a list of its exported symbols.
+ *
  * This function exclusively handles named export statements that has no from clause, i.e: statements like export {LogLevel};
  * first case : import then export
  * example: import {a} from '...'; export {a}
@@ -411,21 +456,69 @@ function extractSymbolsFromNamedExportStatement(
  */
 function handleExportStatementsWithoutFromClause(
   node: ts.ExportDeclaration,
-  symbolLocation: Map<string, string>,
-  declarations: MemberList
-): void {
+  importSymbolCurrentNameToModuleLocation: Map<string, string>,
+  importSymbolCurrentNameToOriginalName: Map<string, string>,
+  importModuleLocationToExportedSymbolsList: Map<string, MemberList>
+): MemberList {
+  const declarations: MemberList = {
+    functions: [],
+    classes: [],
+    variables: [],
+    enums: [],
+    externals: []
+  };
   if (node.exportClause && ts.isNamedExports(node.exportClause)) {
     node.exportClause.elements.forEach(exportSpecifier => {
-      // export symbol could be renamed, we retrieve its current/renamed name
-      const exportedSymbolCurrentName = exportSpecifier.name.escapedText.toString();
+      // export symbol could be renamed, we retrieve both its current/renamed name and original name
+      const exportSymbolCurrentName = exportSpecifier.name.escapedText.toString();
+      const exportSymbolOriginalName = extractOriginalSymbolName(
+        exportSpecifier
+      );
       // handles import then exports
-      // import {a, b} from '...'
-      // export {a,b};
-      if (symbolLocation.has(exportedSymbolCurrentName)) {
-        const reExportedSymbols = extractDeclarations(
-          symbolLocation.get(exportedSymbolCurrentName)
+      // import {a as A , b as B} from '...'
+      // export {A as AA , B as BB };
+      if (
+        importSymbolCurrentNameToModuleLocation.has(exportSymbolOriginalName)
+      ) {
+        const moduleLocation: string = importSymbolCurrentNameToModuleLocation.get(
+          exportSymbolOriginalName
         );
-        filterAllBy(reExportedSymbols, [exportedSymbolCurrentName]);
+        let reExportedSymbols: MemberList = null;
+        if (importModuleLocationToExportedSymbolsList.has(moduleLocation)) {
+          reExportedSymbols = copyOf(
+            importModuleLocationToExportedSymbolsList.get(moduleLocation)
+          );
+        } else {
+          reExportedSymbols = extractDeclarations(
+            importSymbolCurrentNameToModuleLocation.get(
+              exportSymbolOriginalName
+            )
+          );
+          importModuleLocationToExportedSymbolsList.set(
+            moduleLocation,
+            copyOf(reExportedSymbols)
+          );
+        }
+
+        let nameToBeReplaced = exportSymbolOriginalName;
+        // if current exported symbol is renamed in import clause. then we retrieve its original name from
+        // importSymbolCurrentNameToOriginalName map
+        if (
+          importSymbolCurrentNameToOriginalName.has(exportSymbolOriginalName)
+        ) {
+          nameToBeReplaced = importSymbolCurrentNameToOriginalName.get(
+            exportSymbolOriginalName
+          );
+        }
+
+        filterAllBy(reExportedSymbols, [nameToBeReplaced]);
+        // replace with new name
+        replaceAll(
+          reExportedSymbols,
+          nameToBeReplaced,
+          exportSymbolCurrentName
+        );
+
         // concatenate re-exported MemberList with MemberList of the dts file
         for (const key of Object.keys(declarations)) {
           declarations[key].push(...reExportedSymbols[key]);
@@ -437,21 +530,36 @@ function handleExportStatementsWithoutFromClause(
       // function a() {};
       // export {a};
       else {
-        const exportedSymbolOriginalName: string = extractOriginalSymbolName(
-          exportSpecifier
-        );
         if (isExportRenamed(exportSpecifier)) {
           replaceAll(
             declarations,
-            exportedSymbolOriginalName,
-            exportedSymbolCurrentName
+            exportSymbolOriginalName,
+            exportSymbolCurrentName
           );
         }
       }
     });
   }
+  return declarations;
 }
-
+/**
+ * This functions returns a copy of source MemberList. It deep copies the functions, classes, variables field, and
+ * shallow copies externals field.
+ * @param source source MeberList to make a copy of
+ */
+function copyOf(source: MemberList): MemberList {
+  const target: MemberList = {
+    functions: [],
+    classes: [],
+    variables: [],
+    enums: [],
+    externals: []
+  };
+  for (const key of Object.keys(source)) {
+    target[key] = [...source[key]];
+  }
+  return target;
+}
 /**
  * To Make sure symbols of every category are unique.
  */
@@ -564,10 +672,7 @@ export function writeReportToDirectory(
   ) {
     throw new Error(ErrorCode.OUTPUT_DIRECTORY_REQUIRED);
   }
-  if (!fs.existsSync(directoryPath)) {
-    fs.mkdirSync(directoryPath, { recursive: true });
-  }
-  fs.writeFileSync(`${directoryPath}/${fileName}`, report);
+  writeReportToFile(report, `${directoryPath}/${fileName}`);
 }
 
 /**
@@ -576,7 +681,7 @@ export function writeReportToDirectory(
  */
 export function extractExternalDependencies(
   minimizedBundleFile: string
-): object {
+): External[] {
   const program = ts.createProgram([minimizedBundleFile], { allowJs: true });
 
   const sourceFile = program.getSourceFile(minimizedBundleFile);
@@ -584,12 +689,12 @@ export function extractExternalDependencies(
     throw new Error(`${ErrorCode.FILE_PARSING_ERROR} ${minimizedBundleFile}`);
   }
 
-  const externals = {};
+  const externalsMap: Map<string, string[]> = new Map();
   ts.forEachChild(sourceFile, node => {
     if (ts.isImportDeclaration(node) && node.importClause) {
       const moduleName: string = node.moduleSpecifier.getText(sourceFile);
-      if (!externals.hasOwnProperty(moduleName)) {
-        externals[moduleName] = [];
+      if (!externalsMap.has(moduleName)) {
+        externalsMap.set(moduleName, []);
       }
 
       //import {a, b } from '@firebase/dummy-exp';
@@ -601,9 +706,11 @@ export function extractExternalDependencies(
         node.importClause.namedBindings.elements.forEach(each => {
           // if imported symbol is renamed, we want its original name which is stored in propertyName
           if (each.propertyName) {
-            externals[moduleName].push(each.propertyName.getText(sourceFile));
+            externalsMap
+              .get(moduleName)
+              .push(each.propertyName.getText(sourceFile));
           } else {
-            externals[moduleName].push(each.name.getText(sourceFile));
+            externalsMap.get(moduleName).push(each.name.getText(sourceFile));
           }
         });
         // import * as fs from 'fs'
@@ -611,15 +718,24 @@ export function extractExternalDependencies(
         node.importClause.namedBindings &&
         ts.isNamespaceImport(node.importClause.namedBindings)
       ) {
-        externals[moduleName].push('*');
+        externalsMap.get(moduleName).push('*');
         // import a from '@firebase/dummy-exp'
       } else if (
         node.importClause.name &&
         ts.isIdentifier(node.importClause.name)
       ) {
-        externals[moduleName].push(node.importClause.name.getText(sourceFile));
+        externalsMap.get(moduleName).push('default export');
       }
     }
+  });
+  const externals: External[] = [];
+
+  externalsMap.forEach((value, key) => {
+    const external: External = {
+      moduleName: key,
+      symbols: value
+    };
+    externals.push(external);
   });
 
   return externals;

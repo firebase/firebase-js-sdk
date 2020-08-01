@@ -19,7 +19,8 @@ import { initializeApp } from '@firebase/app-exp';
 
 import * as firestore from '../../lite-types';
 
-import { initializeFirestore, doc, collection, setDoc } from '..';
+import { initializeFirestore } from '../src/api/database';
+import { doc, collection, setDoc } from '../src/api/reference';
 import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS

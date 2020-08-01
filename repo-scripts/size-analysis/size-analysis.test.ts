@@ -66,10 +66,10 @@ describe('extractDeclarations', () => {
     expect(extractedDeclarations.variables).to.include.members([
       'basicVarDeclarationExportFar',
       'basicVarStatementExportFar',
-      'reExportVarStatmentExportFar'
-      // 'basicVarDeclarationExportBar',
-      // 'basicVarStatementExportBar',
-      // 'reExportVarStatmentExportBar'
+      'reExportVarStatmentExportFar',
+      'basicVarDeclarationExportBar',
+      'basicVarStatementExportBar',
+      'reExportVarStatmentExportBar'
     ]);
   });
 
@@ -100,12 +100,12 @@ describe('extractDeclarations', () => {
       'basicFuncExportVarDependenciesFar',
       'basicFuncExportFuncDependenciesFar',
       'basicFuncExportEnumDependenciesFar',
-      'basicFuncExternalDependenciesFar'
-      // 'basicFuncExportNoDependenciesBar',
-      // 'basicFuncExportVarDependenciesBar',
-      // 'basicFuncExportFuncDependenciesBar',
-      // 'basicFuncExportEnumDependenciesBar',
-      // 'basicFuncExternalDependenciesBar'
+      'basicFuncExternalDependenciesFar',
+      'basicFuncExportNoDependenciesBar',
+      'basicFuncExportVarDependenciesBar',
+      'basicFuncExportFuncDependenciesBar',
+      'basicFuncExportEnumDependenciesBar',
+      'basicFuncExternalDependenciesBar'
     ]);
   });
 
@@ -129,8 +129,8 @@ describe('extractDeclarations', () => {
 
   it('test re-exported class extractions from same module', () => {
     expect(extractedDeclarations.classes).to.include.members([
-      'BasicClassExportFar'
-      //'BasicClassExportBar'
+      'BasicClassExportFar',
+      'BasicClassExportBar'
     ]);
   });
 
@@ -140,13 +140,26 @@ describe('extractDeclarations', () => {
 
   it('test re-exported enum extractions from same module', () => {
     expect(extractedDeclarations.enums).to.include.members([
-      'BasicEnumExportFar'
-      //'BasicEnumExportBar'
+      'BasicEnumExportFar',
+      'BasicEnumExportBar'
     ]);
   });
+  // import {LogLevel as LogLevel1} from '@firebase/logger';
+  // export {LogLevel1 as LogLevel2};
+  it('test renamed import then renamed export', () => {
+    expect(extractedDeclarations.enums).to.include.members(['LogLevel2']);
+  });
 
-  it('test re-exported enum extractions from firebase external module', () => {
-    expect(extractedDeclarations.enums).to.include.members(['LogLevel']);
+  //import { Logger } from "@firebase/logger";
+  // export { Logger as Logger1 };
+  it('test import then renamed export', () => {
+    expect(extractedDeclarations.classes).to.include.members(['Logger1']);
+  });
+
+  //import { setLogLevel } from "@firebase/logger";
+  // export { setLogLevel };
+  it('test import then export', () => {
+    expect(extractedDeclarations.functions).to.include.members(['setLogLevel']);
   });
 });
 

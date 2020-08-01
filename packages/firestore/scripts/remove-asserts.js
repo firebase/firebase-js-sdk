@@ -14,12 +14,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
-exports.__esModule = true;
+ */ exports.__esModule = true;
 exports.removeAsserts = void 0;
-// eslint-disable-next-line import/no-extraneous-dependencies
 var ts = require('typescript');
-// Location of file that includes the asserts
 var ASSERT_LOCATION = 'packages/firestore/src/util/assert.ts';
 function removeAsserts(program) {
   var removeAsserts = new RemoveAsserts(program.getTypeChecker());
@@ -30,11 +27,7 @@ function removeAsserts(program) {
   };
 }
 exports.removeAsserts = removeAsserts;
-/**
- * Transformer that removes all "debugAssert" statements from the SDK and
- * removes the custom message for fail() and hardAssert().
- */
-var RemoveAsserts = /** @class */ (function () {
+var RemoveAsserts = (function () {
   function RemoveAsserts(typeChecker) {
     this.typeChecker = typeChecker;
   }
@@ -66,19 +59,11 @@ var RemoveAsserts = /** @class */ (function () {
           if (method === 'debugAssert') {
             updatedNode = ts.createEmptyStatement();
           } else if (method === 'hardAssert') {
-            // Remove the log message but keep the assertion
-            updatedNode = ts.createCall(
-              declaration.name,
-              /*typeArgs*/ undefined,
-              [node.arguments[0]]
-            );
+            updatedNode = ts.createCall(declaration.name, undefined, [
+              node.arguments[0]
+            ]);
           } else if (method === 'fail') {
-            // Remove the log message
-            updatedNode = ts.createCall(
-              declaration.name,
-              /*typeArgs*/ undefined,
-              []
-            );
+            updatedNode = ts.createCall(declaration.name, undefined, []);
           }
         }
       }

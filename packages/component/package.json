@@ -1,6 +1,6 @@
 {
   "name": "@firebase/component",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "Firebase Component Platform",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -22,14 +22,14 @@
     "prepare": "yarn build"
   },
   "dependencies": {
-    "@firebase/util": "0.2.50",
+    "@firebase/util": "0.3.0",
     "tslib": "^1.11.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "2.21.0",
+    "rollup": "2.23.0",
     "rollup-plugin-typescript2": "0.27.1",
-    "typescript": "3.9.6"
+    "typescript": "3.9.7"
   },
   "repository": {
     "directory": "packages/component",
