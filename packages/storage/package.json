@@ -34,9 +34,9 @@
   },
   "devDependencies": {
     "@firebase/auth": "0.x",
-    "rollup": "2.21.0",
+    "rollup": "2.23.0",
     "rollup-plugin-typescript2": "0.27.1",
-    "typescript": "3.9.6"
+    "typescript": "3.9.7"
   },
   "repository": {
     "directory": "packages/storage",

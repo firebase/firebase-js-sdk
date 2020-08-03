@@ -36,9 +36,9 @@
   "devDependencies": {
     "@firebase/app": "0.6.9",
     "@firebase/app-types": "0.6.1",
-    "rollup": "2.21.0",
+    "rollup": "2.23.0",
     "rollup-plugin-typescript2": "0.27.1",
-    "typescript": "3.9.6"
+    "typescript": "3.9.7"
   },
   "repository": {
     "directory": "packages/database",

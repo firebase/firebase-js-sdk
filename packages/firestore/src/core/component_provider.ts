@@ -90,6 +90,8 @@ export interface OfflineComponentProvider {
 
   initialize(cfg: ComponentConfiguration): Promise<void>;
 
+  terminate(): Promise<void>;
+
   clearPersistence(
     databaseId: DatabaseId,
     persistenceKey: string
@@ -141,6 +143,14 @@ export class MemoryOfflineComponentProvider
 
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
     return new MemorySharedClientState();
+  }
+
+  async terminate(): Promise<void> {
+    if (this.gcScheduler) {
+      this.gcScheduler.stop();
+    }
+    await this.sharedClientState.shutdown();
+    await this.persistence.shutdown();
   }
 
   clearPersistence(
@@ -376,5 +386,9 @@ export class OnlineComponentProvider {
       !cfg.persistenceSettings.durable ||
         !cfg.persistenceSettings.synchronizeTabs
     );
+  }
+
+  terminate(): Promise<void> {
+    return this.remoteStore.shutdown();
   }
 }

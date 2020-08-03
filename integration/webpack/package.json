@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "firebase": "7.17.1",
-    "@babel/core": "7.10.4",
+    "@babel/core": "7.10.5",
     "@babel/preset-env": "7.10.4",
     "chai": "4.2.0",
     "karma": "5.1.0",
@@ -20,7 +20,7 @@
     "karma-sauce-launcher": "1.2.0",
     "karma-spec-reporter": "0.0.32",
     "mocha": "7.2.0",
-    "webpack": "4.43.0",
+    "webpack": "4.44.0",
     "webpack-cli": "3.3.12"
   }
 }

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { GetOptions } from '@firebase/firestore-types';
+
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
@@ -35,21 +37,23 @@ import {
 } from './event_manager';
 import { SyncEngine } from './sync_engine';
 import { View } from './view';
-
 import { SharedClientState } from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
 import { DatabaseId, DatabaseInfo } from './database_info';
-import { Query } from './query';
+import { newQueryForPath, Query } from './query';
 import { Transaction } from './transaction';
 import { ViewSnapshot } from './view_snapshot';
 import {
-  OnlineComponentProvider,
   MemoryOfflineComponentProvider,
-  OfflineComponentProvider
+  OfflineComponentProvider,
+  OnlineComponentProvider
 } from './component_provider';
+import { PartialObserver, Unsubscribe } from '../api/observer';
+import { AsyncObserver } from '../util/async_observer';
+import { debugAssert } from '../util/assert';
 
 const LOG_TAG = 'FirestoreClient';
-const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
+export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
@@ -91,6 +95,15 @@ export class FirestoreClient {
   private sharedClientState!: SharedClientState;
 
   private readonly clientId = AutoId.newId();
+
+  // We defer our initialization until we get the current user from
+  // setChangeListener(). We block the async queue until we got the initial
+  // user and the initialization is completed. This will prevent any scheduled
+  // work from happening before initialization is completed.
+  //
+  // If initializationDone resolved then the FirestoreClient is in a usable
+  // state.
+  private readonly initializationDone = new Deferred<void>();
 
   constructor(
     private credentials: CredentialsProvider,
@@ -155,15 +168,6 @@ export class FirestoreClient {
 
     this.databaseInfo = databaseInfo;
 
-    // We defer our initialization until we get the current user from
-    // setChangeListener(). We block the async queue until we got the initial
-    // user and the initialization is completed. This will prevent any scheduled
-    // work from happening before initialization is completed.
-    //
-    // If initializationDone resolved then the FirestoreClient is in a usable
-    // state.
-    const initializationDone = new Deferred<void>();
-
     // If usePersistence is true, certain classes of errors while starting are
     // recoverable but only by falling back to persistence disabled.
     //
@@ -185,7 +189,7 @@ export class FirestoreClient {
           persistenceSettings,
           user,
           persistenceResult
-        ).then(initializationDone.resolve, initializationDone.reject);
+        ).then(this.initializationDone.resolve, this.initializationDone.reject);
       } else {
         this.asyncQueue.enqueueRetryable(() =>
           this.remoteStore.handleCredentialChange(user)
@@ -194,9 +198,7 @@ export class FirestoreClient {
     });
 
     // Block the async queue until initialization is done
-    this.asyncQueue.enqueueAndForget(() => {
-      return initializationDone.promise;
-    });
+    this.asyncQueue.enqueueAndForget(() => this.initializationDone.promise);
 
     // Return only the result of enabling persistence. Note that this does not
     // need to await the completion of initializationDone because the result of
@@ -391,86 +393,67 @@ export class FirestoreClient {
 
   listen(
     query: Query,
-    observer: Observer<ViewSnapshot>,
-    options: ListenOptions
-  ): QueryListener {
+    options: ListenOptions,
+    observer: Partial<Observer<ViewSnapshot>>
+  ): () => void {
     this.verifyNotTerminated();
-    const listener = new QueryListener(query, observer, options);
+    const wrappedObserver = new AsyncObserver(observer);
+    const listener = new QueryListener(query, wrappedObserver, options);
     this.asyncQueue.enqueueAndForget(() => this.eventMgr.listen(listener));
-    return listener;
-  }
-
-  unlisten(listener: QueryListener): void {
-    // Checks for termination but does not raise error, allowing unlisten after
-    // termination to be a no-op.
-    if (this.clientTerminated) {
-      return;
-    }
-    this.asyncQueue.enqueueAndForget(() => {
-      return this.eventMgr.unlisten(listener);
-    });
+    return () => {
+      wrappedObserver.mute();
+      this.asyncQueue.enqueueAndForget(() => this.eventMgr.unlisten(listener));
+    };
   }
 
   async getDocumentFromLocalCache(
     docKey: DocumentKey
   ): Promise<Document | null> {
     this.verifyNotTerminated();
-    const deferred = new Deferred<Document | null>();
-    await this.asyncQueue.enqueue(async () => {
-      try {
-        const maybeDoc = await this.localStore.readDocument(docKey);
-        if (maybeDoc instanceof Document) {
-          deferred.resolve(maybeDoc);
-        } else if (maybeDoc instanceof NoDocument) {
-          deferred.resolve(null);
-        } else {
-          deferred.reject(
-            new FirestoreError(
-              Code.UNAVAILABLE,
-              'Failed to get document from cache. (However, this document may ' +
-                "exist on the server. Run again without setting 'source' in " +
-                'the GetOptions to attempt to retrieve the document from the ' +
-                'server.)'
-            )
-          );
-        }
-      } catch (e) {
-        const firestoreError = wrapInUserErrorIfRecoverable(
-          e,
-          `Failed to get document '${docKey} from cache`
-        );
-        deferred.reject(firestoreError);
-      }
-    });
+    await this.initializationDone.promise;
+    return enqueueReadDocumentFromCache(
+      this.asyncQueue,
+      this.localStore,
+      docKey
+    );
+  }
 
-    return deferred.promise;
+  async getDocumentViaSnapshotListener(
+    key: DocumentKey,
+    options?: GetOptions
+  ): Promise<ViewSnapshot> {
+    this.verifyNotTerminated();
+    await this.initializationDone.promise;
+    return enqueueReadDocumentViaSnapshotListener(
+      this.asyncQueue,
+      this.eventMgr,
+      key,
+      options
+    );
   }
 
   async getDocumentsFromLocalCache(query: Query): Promise<ViewSnapshot> {
     this.verifyNotTerminated();
-    const deferred = new Deferred<ViewSnapshot>();
-    await this.asyncQueue.enqueue(async () => {
-      try {
-        const queryResult = await this.localStore.executeQuery(
-          query,
-          /* usePreviousResults= */ true
-        );
-        const view = new View(query, queryResult.remoteKeys);
-        const viewDocChanges = view.computeDocChanges(queryResult.documents);
-        const viewChange = view.applyChanges(
-          viewDocChanges,
-          /* updateLimboDocuments= */ false
-        );
-        deferred.resolve(viewChange.snapshot!);
-      } catch (e) {
-        const firestoreError = wrapInUserErrorIfRecoverable(
-          e,
-          `Failed to execute query '${query} against cache`
-        );
-        deferred.reject(firestoreError);
-      }
-    });
-    return deferred.promise;
+    await this.initializationDone.promise;
+    return enqueueExecuteQueryFromCache(
+      this.asyncQueue,
+      this.localStore,
+      query
+    );
+  }
+
+  async getDocumentsViaSnapshotListener(
+    query: Query,
+    options?: GetOptions
+  ): Promise<ViewSnapshot> {
+    this.verifyNotTerminated();
+    await this.initializationDone.promise;
+    return enqueueExecuteQueryViaSnapshotListener(
+      this.asyncQueue,
+      this.eventMgr,
+      query,
+      options
+    );
   }
 
   write(mutations: Mutation[]): Promise<void> {
@@ -486,24 +469,18 @@ export class FirestoreClient {
     return this.databaseInfo.databaseId;
   }
 
-  addSnapshotsInSyncListener(observer: Observer<void>): void {
+  addSnapshotsInSyncListener(observer: Partial<Observer<void>>): () => void {
     this.verifyNotTerminated();
-    this.asyncQueue.enqueueAndForget(() => {
-      this.eventMgr.addSnapshotsInSyncListener(observer);
-      return Promise.resolve();
-    });
-  }
-
-  removeSnapshotsInSyncListener(observer: Observer<void>): void {
-    // Checks for shutdown but does not raise error, allowing remove after
-    // shutdown to be a no-op.
-    if (this.clientTerminated) {
-      return;
-    }
-    this.asyncQueue.enqueueAndForget(() => {
-      this.eventMgr.removeSnapshotsInSyncListener(observer);
-      return Promise.resolve();
-    });
+    const wrappedObserver = new AsyncObserver(observer);
+    this.asyncQueue.enqueueAndForget(async () =>
+      this.eventMgr.addSnapshotsInSyncListener(wrappedObserver)
+    );
+    return () => {
+      wrappedObserver.mute();
+      this.asyncQueue.enqueueAndForget(async () =>
+        this.eventMgr.removeSnapshotsInSyncListener(wrappedObserver)
+      );
+    };
   }
 
   get clientTerminated(): boolean {
@@ -524,4 +501,249 @@ export class FirestoreClient {
     });
     return deferred.promise;
   }
+}
+
+export function enqueueWrite(
+  asyncQueue: AsyncQueue,
+  syncEngine: SyncEngine,
+  mutations: Mutation[]
+): Promise<void> {
+  const deferred = new Deferred<void>();
+  asyncQueue.enqueueAndForget(() => syncEngine.write(mutations, deferred));
+  return deferred.promise;
+}
+
+export function enqueueNetworkEnabled(
+  asyncQueue: AsyncQueue,
+  remoteStore: RemoteStore,
+  persistence: Persistence,
+  enabled: boolean
+): Promise<void> {
+  return asyncQueue.enqueue(() => {
+    persistence.setNetworkEnabled(enabled);
+    return enabled ? remoteStore.enableNetwork() : remoteStore.disableNetwork();
+  });
+}
+
+export function enqueueWaitForPendingWrites(
+  asyncQueue: AsyncQueue,
+  syncEngine: SyncEngine
+): Promise<void> {
+  const deferred = new Deferred<void>();
+  asyncQueue.enqueueAndForget(() => {
+    return syncEngine.registerPendingWritesCallback(deferred);
+  });
+  return deferred.promise;
+}
+
+export function enqueueListen(
+  asyncQueue: AsyncQueue,
+  eventManger: EventManager,
+  query: Query,
+  options: ListenOptions,
+  observer: PartialObserver<ViewSnapshot>
+): Unsubscribe {
+  const wrappedObserver = new AsyncObserver(observer);
+  const listener = new QueryListener(query, wrappedObserver, options);
+  asyncQueue.enqueueAndForget(() => eventManger.listen(listener));
+  return () => {
+    wrappedObserver.mute();
+    asyncQueue.enqueueAndForget(() => eventManger.unlisten(listener));
+  };
+}
+
+export function enqueueSnapshotsInSyncListen(
+  asyncQueue: AsyncQueue,
+  eventManager: EventManager,
+  observer: PartialObserver<void>
+): Unsubscribe {
+  const wrappedObserver = new AsyncObserver(observer);
+  asyncQueue.enqueueAndForget(async () =>
+    eventManager.addSnapshotsInSyncListener(wrappedObserver)
+  );
+  return () => {
+    wrappedObserver.mute();
+    asyncQueue.enqueueAndForget(async () =>
+      eventManager.removeSnapshotsInSyncListener(wrappedObserver)
+    );
+  };
+}
+
+export async function enqueueReadDocumentFromCache(
+  asyncQueue: AsyncQueue,
+  localStore: LocalStore,
+  docKey: DocumentKey
+): Promise<Document | null> {
+  const deferred = new Deferred<Document | null>();
+  await asyncQueue.enqueue(async () => {
+    try {
+      const maybeDoc = await localStore.readDocument(docKey);
+      if (maybeDoc instanceof Document) {
+        deferred.resolve(maybeDoc);
+      } else if (maybeDoc instanceof NoDocument) {
+        deferred.resolve(null);
+      } else {
+        deferred.reject(
+          new FirestoreError(
+            Code.UNAVAILABLE,
+            'Failed to get document from cache. (However, this document may ' +
+              "exist on the server. Run again without setting 'source' in " +
+              'the GetOptions to attempt to retrieve the document from the ' +
+              'server.)'
+          )
+        );
+      }
+    } catch (e) {
+      const firestoreError = wrapInUserErrorIfRecoverable(
+        e,
+        `Failed to get document '${docKey} from cache`
+      );
+      deferred.reject(firestoreError);
+    }
+  });
+  return deferred.promise;
+}
+
+/**
+ * Retrieves a latency-compensated document from the backend via a
+ * SnapshotListener.
+ */
+export function enqueueReadDocumentViaSnapshotListener(
+  asyncQueue: AsyncQueue,
+  eventManager: EventManager,
+  key: DocumentKey,
+  options?: GetOptions
+): Promise<ViewSnapshot> {
+  const result = new Deferred<ViewSnapshot>();
+  const unlisten = enqueueListen(
+    asyncQueue,
+    eventManager,
+    newQueryForPath(key.path),
+    {
+      includeMetadataChanges: true,
+      waitForSyncWhenOnline: true
+    },
+    {
+      next: (snap: ViewSnapshot) => {
+        // Remove query first before passing event to user to avoid
+        // user actions affecting the now stale query.
+        unlisten();
+
+        const exists = snap.docs.has(key);
+        if (!exists && snap.fromCache) {
+          // TODO(dimond): If we're online and the document doesn't
+          // exist then we resolve with a doc.exists set to false. If
+          // we're offline however, we reject the Promise in this
+          // case. Two options: 1) Cache the negative response from
+          // the server so we can deliver that even when you're
+          // offline 2) Actually reject the Promise in the online case
+          // if the document doesn't exist.
+          result.reject(
+            new FirestoreError(
+              Code.UNAVAILABLE,
+              'Failed to get document because the client is ' + 'offline.'
+            )
+          );
+        } else if (
+          exists &&
+          snap.fromCache &&
+          options &&
+          options.source === 'server'
+        ) {
+          result.reject(
+            new FirestoreError(
+              Code.UNAVAILABLE,
+              'Failed to get document from server. (However, this ' +
+                'document does exist in the local cache. Run again ' +
+                'without setting source to "server" to ' +
+                'retrieve the cached document.)'
+            )
+          );
+        } else {
+          debugAssert(
+            snap.docs.size <= 1,
+            'Expected zero or a single result on a document-only query'
+          );
+          result.resolve(snap);
+        }
+      },
+      error: e => result.reject(e)
+    }
+  );
+  return result.promise;
+}
+
+export async function enqueueExecuteQueryFromCache(
+  asyncQueue: AsyncQueue,
+  localStore: LocalStore,
+  query: Query
+): Promise<ViewSnapshot> {
+  const deferred = new Deferred<ViewSnapshot>();
+  await asyncQueue.enqueue(async () => {
+    try {
+      const queryResult = await localStore.executeQuery(
+        query,
+        /* usePreviousResults= */ true
+      );
+      const view = new View(query, queryResult.remoteKeys);
+      const viewDocChanges = view.computeDocChanges(queryResult.documents);
+      const viewChange = view.applyChanges(
+        viewDocChanges,
+        /* updateLimboDocuments= */ false
+      );
+      deferred.resolve(viewChange.snapshot!);
+    } catch (e) {
+      const firestoreError = wrapInUserErrorIfRecoverable(
+        e,
+        `Failed to execute query '${query} against cache`
+      );
+      deferred.reject(firestoreError);
+    }
+  });
+  return deferred.promise;
+}
+
+/**
+ * Retrieves a latency-compensated query snapshot from the backend via a
+ * SnapshotListener.
+ */
+export function enqueueExecuteQueryViaSnapshotListener(
+  asyncQueue: AsyncQueue,
+  eventManager: EventManager,
+  query: Query,
+  options?: GetOptions
+): Promise<ViewSnapshot> {
+  const result = new Deferred<ViewSnapshot>();
+  const unlisten = enqueueListen(
+    asyncQueue,
+    eventManager,
+    query,
+    {
+      includeMetadataChanges: true,
+      waitForSyncWhenOnline: true
+    },
+    {
+      next: snapshot => {
+        // Remove query first before passing event to user to avoid
+        // user actions affecting the now stale query.
+        unlisten();
+
+        if (snapshot.fromCache && options && options.source === 'server') {
+          result.reject(
+            new FirestoreError(
+              Code.UNAVAILABLE,
+              'Failed to get documents from server. (However, these ' +
+                'documents may exist in the local cache. Run again ' +
+                'without setting source to "server" to ' +
+                'retrieve the cached documents.)'
+            )
+          );
+        } else {
+          result.resolve(snapshot);
+        }
+      },
+      error: e => result.reject(e)
+    }
+  );
+  return result.promise;
 }
