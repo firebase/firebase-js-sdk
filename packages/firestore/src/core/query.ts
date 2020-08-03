@@ -699,9 +699,12 @@ export function canonifyFilter(filter: Filter): string {
 }
 
 export function filterEquals(f1: Filter, f2: Filter): boolean {
+  debugAssert(
+    f1 instanceof FieldFilter && f2 instanceof FieldFilter,
+    'Only FieldFilters can be compared'
+  );
+
   return (
-    f1 instanceof FieldFilter &&
-    f2 instanceof FieldFilter &&
     f1.op === f2.op &&
     f1.field.isEqual(f2.field) &&
     valueEquals(f1.value, f2.value)

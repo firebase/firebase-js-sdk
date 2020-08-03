@@ -1701,57 +1701,53 @@ function validateDisjunctiveFilterElements(
 }
 
 function validateNewFilter(query: InternalQuery, filter: Filter): void {
-  if (filter instanceof FieldFilter) {
-    const arrayOps = [Operator.ARRAY_CONTAINS, Operator.ARRAY_CONTAINS_ANY];
-    const disjunctiveOps = [Operator.IN, Operator.ARRAY_CONTAINS_ANY];
-    const isArrayOp = arrayOps.indexOf(filter.op) >= 0;
-    const isDisjunctiveOp = disjunctiveOps.indexOf(filter.op) >= 0;
+  debugAssert(filter instanceof FieldFilter, 'Only FieldFilters are supported');
 
-    if (filter.isInequality()) {
-      const existingField = query.getInequalityFilterField();
-      if (existingField !== null && !existingField.isEqual(filter.field)) {
+  const arrayOps = [Operator.ARRAY_CONTAINS, Operator.ARRAY_CONTAINS_ANY];
+  const disjunctiveOps = [Operator.IN, Operator.ARRAY_CONTAINS_ANY];
+  const isArrayOp = arrayOps.indexOf(filter.op) >= 0;
+  const isDisjunctiveOp = disjunctiveOps.indexOf(filter.op) >= 0;
+
+  if (filter.isInequality()) {
+    const existingField = query.getInequalityFilterField();
+    if (existingField !== null && !existingField.isEqual(filter.field)) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Invalid query. All where filters with an inequality' +
+          ' (<, <=, >, or >=) must be on the same field. But you have' +
+          ` inequality filters on '${existingField.toString()}'` +
+          ` and '${filter.field.toString()}'`
+      );
+    }
+
+    const firstOrderByField = query.getFirstOrderByField();
+    if (firstOrderByField !== null) {
+      validateOrderByAndInequalityMatch(query, filter.field, firstOrderByField);
+    }
+  } else if (isDisjunctiveOp || isArrayOp) {
+    // You can have at most 1 disjunctive filter and 1 array filter. Check if
+    // the new filter conflicts with an existing one.
+    let conflictingOp: Operator | null = null;
+    if (isDisjunctiveOp) {
+      conflictingOp = query.findFilterOperator(disjunctiveOps);
+    }
+    if (conflictingOp === null && isArrayOp) {
+      conflictingOp = query.findFilterOperator(arrayOps);
+    }
+    if (conflictingOp !== null) {
+      // We special case when it's a duplicate op to give a slightly clearer error message.
+      if (conflictingOp === filter.op) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          'Invalid query. All where filters with an inequality' +
-            ' (<, <=, >, or >=) must be on the same field. But you have' +
-            ` inequality filters on '${existingField.toString()}'` +
-            ` and '${filter.field.toString()}'`
+          'Invalid query. You cannot use more than one ' +
+            `'${filter.op.toString()}' filter.`
         );
-      }
-
-      const firstOrderByField = query.getFirstOrderByField();
-      if (firstOrderByField !== null) {
-        validateOrderByAndInequalityMatch(
-          query,
-          filter.field,
-          firstOrderByField
+      } else {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `Invalid query. You cannot use '${filter.op.toString()}' filters ` +
+            `with '${conflictingOp.toString()}' filters.`
         );
-      }
-    } else if (isDisjunctiveOp || isArrayOp) {
-      // You can have at most 1 disjunctive filter and 1 array filter. Check if
-      // the new filter conflicts with an existing one.
-      let conflictingOp: Operator | null = null;
-      if (isDisjunctiveOp) {
-        conflictingOp = query.findFilterOperator(disjunctiveOps);
-      }
-      if (conflictingOp === null && isArrayOp) {
-        conflictingOp = query.findFilterOperator(arrayOps);
-      }
-      if (conflictingOp !== null) {
-        // We special case when it's a duplicate op to give a slightly clearer error message.
-        if (conflictingOp === filter.op) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            'Invalid query. You cannot use more than one ' +
-              `'${filter.op.toString()}' filter.`
-          );
-        } else {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            `Invalid query. You cannot use '${filter.op.toString()}' filters ` +
-              `with '${conflictingOp.toString()}' filters.`
-          );
-        }
       }
     }
   }
