@@ -53,7 +53,7 @@ const ERRORS: ErrorMap<AnalyticsError> = {
   [AnalyticsError.COOKIES_NOT_ENABLED]:
     'Cookies are not enabled in this browser environment. Analytics requires cookies to be enabled.',
   [AnalyticsError.INVALID_ANALYTICS_CONTEXT]:
-    'Analytics module is not supported in browser extensions environemnt.'
+    'Firebase Analytics is not supported in browser extensions.'
 };
 
 interface ErrorParams {
