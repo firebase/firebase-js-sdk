@@ -35,10 +35,10 @@ jobs:
       with:
         issue-number: ${{github.event.number}}
         body: |
-          ### Changeset File Check
-          This PR modifies files in the following packages but they have not
-          been included in the changeset file:
+          ### Changeset File Check :warning:
+          Warning: This PR modifies files in the following packages but they have not been included in the changeset file:
           ${{steps.check-changeset.outputs.MISSING_PACKAGES}}
+          Make sure this was intentional.
     - name: Update comment (missing packages)
       if: ${{steps.fc.outputs.comment-id}}
       uses: peter-evans/create-or-update-comment@v1
@@ -46,10 +46,10 @@ jobs:
         comment-id: ${{steps.fc.outputs.comment-id}}
         edit-mode: replace
         body: |
-          ### Changeset File Check
-          This PR modifies files in the following packages but they have not
-          been included in the changeset file:
+          ### Changeset File Check :warning:
+          Warning: This PR modifies files in the following packages but they have not been included in the changeset file:
           ${{steps.check-changeset.outputs.MISSING_PACKAGES}}
+          Make sure this was intentional.
     - name: Update comment (no missing packages)
       if: ${{steps.fc.outputs.comment-id && !steps.check-changeset.outputs.MISSING_PACKAGES}}
       uses: peter-evans/create-or-update-comment@v1
@@ -57,5 +57,5 @@ jobs:
         comment-id: ${{steps.fc.outputs.comment-id}}
         edit-mode: replace
         body: |
-          ### Changeset File Check
-          :white_check_mark: No modified packages are missing from the changeset file.
+          ### Changeset File Check :white_check_mark:
+          No modified packages are missing from the changeset file.
