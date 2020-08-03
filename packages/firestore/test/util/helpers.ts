@@ -35,9 +35,13 @@ import {
   Direction,
   FieldFilter,
   Filter,
+  newQueryForPath,
   Operator,
   OrderBy,
-  Query
+  Query,
+  queryToTarget,
+  queryWithAddedFilter,
+  queryWithAddedOrderBy
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
 import { TargetId } from '../../src/core/types';
@@ -98,6 +102,7 @@ import { Timestamp } from '../../src/api/timestamp';
 import { DocumentReference } from '../../src/api/database';
 import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
+import { TEST_DATABASE_ID } from '../unit/local/persistence_test_helpers';
 
 /* eslint-disable no-restricted-globals */
 
@@ -105,7 +110,7 @@ export type TestSnapshotVersion = number;
 
 export function testUserDataWriter(): UserDataWriter {
   return new UserDataWriter(
-    new DatabaseId('test-project'),
+    TEST_DATABASE_ID,
     /* timestampsInSnapshots= */ false,
     'none',
     key => new DocumentReference(key, FIRESTORE, /* converter= */ null)
@@ -113,12 +118,11 @@ export function testUserDataWriter(): UserDataWriter {
 }
 
 export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
-  const databaseId = new DatabaseId('test-project');
   return new UserDataReader(
-    databaseId,
+    TEST_DATABASE_ID,
     /* ignoreUndefinedProperties= */ false,
     useProto3Json !== undefined
-      ? new JsonProtoSerializer(databaseId, useProto3Json)
+      ? new JsonProtoSerializer(TEST_DATABASE_ID, useProto3Json)
       : undefined
   );
 }
@@ -299,12 +303,12 @@ export function query(
   resourcePath: string,
   ...constraints: Array<OrderBy | Filter>
 ): Query {
-  let q = Query.atPath(path(resourcePath));
+  let q = newQueryForPath(path(resourcePath));
   for (const constraint of constraints) {
     if (constraint instanceof Filter) {
-      q = q.addFilter(constraint);
+      q = queryWithAddedFilter(q, constraint);
     } else {
-      q = q.addOrderBy(constraint);
+      q = queryWithAddedOrderBy(q, constraint);
     }
   }
   return q;
@@ -318,7 +322,7 @@ export function targetData(
   // Arbitrary value.
   const sequenceNumber = 0;
   return new TargetData(
-    query(path).toTarget(),
+    queryToTarget(query(path)),
     targetId,
     queryPurpose,
     sequenceNumber

@@ -22,7 +22,7 @@ import { expect, use } from 'chai';
 
 import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
-import firebase from '../util/firebase_export';
+import * as firebaseExport from '../util/firebase_export';
 import {
   apiDescribe,
   withTestCollection,
@@ -33,13 +33,13 @@ import {
 } from '../util/helpers';
 import { DEFAULT_SETTINGS } from '../util/settings';
 
-// tslint:disable:no-floating-promises
-
 use(chaiAsPromised);
 
-const Timestamp = firebase.firestore!.Timestamp;
-const FieldPath = firebase.firestore!.FieldPath;
-const FieldValue = firebase.firestore!.FieldValue;
+const newTestFirestore = firebaseExport.newTestFirestore;
+const usesFunctionalApi = firebaseExport.usesFunctionalApi;
+const Timestamp = firebaseExport.Timestamp;
+const FieldPath = firebaseExport.FieldPath;
+const FieldValue = firebaseExport.FieldValue;
 
 const MEMORY_ONLY_BUILD =
   typeof process !== 'undefined' &&
@@ -1077,8 +1077,8 @@ apiDescribe('Database', (persistence: boolean) => {
         const options = app.options;
 
         await app.delete();
-        const app2 = firebase.initializeApp(options, name);
-        const firestore2 = firebase.firestore!(app2);
+
+        const firestore2 = newTestFirestore(options.projectId, name);
         await firestore2.enablePersistence();
         const docRef2 = firestore2.doc(docRef.path);
         const docSnap2 = await docRef2.get({ source: 'cache' });
@@ -1100,8 +1100,7 @@ apiDescribe('Database', (persistence: boolean) => {
 
         await app.delete();
         await firestore.clearPersistence();
-        const app2 = firebase.initializeApp(options, name);
-        const firestore2 = firebase.firestore!(app2);
+        const firestore2 = newTestFirestore(options.projectId, name);
         await firestore2.enablePersistence();
         const docRef2 = firestore2.doc(docRef.path);
         await expect(
@@ -1122,8 +1121,7 @@ apiDescribe('Database', (persistence: boolean) => {
         const options = app.options;
 
         await app.delete();
-        const app2 = firebase.initializeApp(options, name);
-        const firestore2 = firebase.firestore!(app2);
+        const firestore2 = newTestFirestore(options.projectId, name);
         await firestore2.clearPersistence();
         await firestore2.enablePersistence();
         const docRef2 = firestore2.doc(docRef.path);
@@ -1140,12 +1138,18 @@ apiDescribe('Database', (persistence: boolean) => {
     async () => {
       await withTestDoc(persistence, async docRef => {
         const firestore = docRef.firestore;
-        await expect(
-          firestore.clearPersistence()
-        ).to.eventually.be.rejectedWith(
+        const expectedError =
           'Persistence can only be cleared before a Firestore instance is ' +
-            'initialized or after it is terminated.'
-        );
+          'initialized or after it is terminated.';
+        if (usesFunctionalApi()) {
+          // The modular API throws an exception rather than rejecting the
+          // Promise, which matches our overall handling of API call violations.
+          expect(() => firestore.clearPersistence()).to.throw(expectedError);
+        } else {
+          await expect(
+            firestore.clearPersistence()
+          ).to.eventually.be.rejectedWith(expectedError);
+        }
       });
     }
   );
@@ -1189,7 +1193,10 @@ apiDescribe('Database', (persistence: boolean) => {
       const firestore = docRef.firestore;
       await firestore.terminate();
 
-      const newFirestore = firebase.firestore!(firestore.app);
+      const newFirestore = newTestFirestore(
+        firestore.app.options.projectId,
+        firestore.app
+      );
       expect(newFirestore).to.not.equal(firestore);
 
       // New instance functions.

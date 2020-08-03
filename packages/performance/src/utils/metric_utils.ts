@@ -21,6 +21,7 @@ import {
   FIRST_INPUT_DELAY_COUNTER_NAME,
   OOB_TRACE_PAGE_LOAD_PREFIX
 } from '../constants';
+import { consoleLogger } from '../utils/console_logger';
 
 const MAX_METRIC_NAME_LENGTH = 100;
 const RESERVED_AUTO_PREFIX = '_';
@@ -44,4 +45,20 @@ export function isValidMetricName(name: string, traceName?: string): boolean {
       oobMetrics.indexOf(name) > -1) ||
     !name.startsWith(RESERVED_AUTO_PREFIX)
   );
+}
+
+/**
+ * Converts the provided value to an integer value to be used in case of a metric.
+ * @param providedValue Provided number value of the metric that needs to be converted to an integer.
+ *
+ * @returns Converted integer number to be set for the metric.
+ */
+export function convertMetricValueToInteger(providedValue: number): number {
+  const valueAsInteger: number = Math.floor(providedValue);
+  if (valueAsInteger < providedValue) {
+    consoleLogger.info(
+      `Metric value should be an Integer, setting the value as : ${valueAsInteger}.`
+    );
+  }
+  return valueAsInteger;
 }

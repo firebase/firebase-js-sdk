@@ -57,13 +57,21 @@ export interface FirebaseOptions {
 export interface _FirebaseService {
   // (undocumented)
   app: FirebaseApp;
-   delete(): Promise<void>;
+  delete(): Promise<void>;
 }
 
 // @public (undocumented)
 export interface PlatformLoggerService {
   // (undocumented)
   getPlatformInfoString(): string;
+}
+
+// @public (undocumented)
+export interface VersionService {
+  // (undocumented)
+  library: string;
+  // (undocumented)
+  version: string;
 }
 
 

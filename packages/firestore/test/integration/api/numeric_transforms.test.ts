@@ -19,13 +19,10 @@ import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { EventsAccumulator } from '../util/events_accumulator';
-import firebase from '../util/firebase_export';
+import * as firebaseExport from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
 
-// tslint:disable:no-floating-promises
-
-// tslint:disable-next-line:variable-name Type alias can be capitalized.
-const FieldValue = firebase.firestore!.FieldValue;
+const FieldValue = firebaseExport.FieldValue;
 
 const DOUBLE_EPSILON = 0.000001;
 

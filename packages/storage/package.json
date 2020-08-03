@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage",
-  "version": "0.3.38",
+  "version": "0.3.41",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -15,15 +15,17 @@
     "dev": "rollup -c -w",
     "test": "run-p test:browser lint",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "test:browser:unit": "karma start --single-run --unit",
+    "test:browser:integration": "karma start --single-run --integration",
     "test:browser": "karma start --single-run",
     "prepare": "yarn build",
     "prettier": "prettier --write 'src/**/*.ts' 'test/**/*.ts'"
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/storage-types": "0.3.12",
-    "@firebase/util": "0.2.50",
-    "@firebase/component": "0.1.16",
+    "@firebase/storage-types": "0.3.13",
+    "@firebase/util": "0.3.0",
+    "@firebase/component": "0.1.17",
     "tslib": "^1.11.1"
   },
   "peerDependencies": {
@@ -31,9 +33,10 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "rollup": "2.21.0",
+    "@firebase/auth": "0.x",
+    "rollup": "2.23.0",
     "rollup-plugin-typescript2": "0.27.1",
-    "typescript": "3.9.6"
+    "typescript": "3.9.7"
   },
   "repository": {
     "directory": "packages/storage",

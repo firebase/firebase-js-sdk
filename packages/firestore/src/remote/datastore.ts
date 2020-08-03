@@ -20,7 +20,7 @@ import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
-import { debugCast, hardAssert } from '../util/assert';
+import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { Connection } from './connection';
 import {
@@ -39,17 +39,16 @@ import {
   WriteStreamListener
 } from './persistent_stream';
 import { AsyncQueue } from '../util/async_queue';
-import { Query } from '../core/query';
+import { Query, queryToTarget } from '../core/query';
 
 /**
  * Datastore and its related methods are a wrapper around the external Google
  * Cloud Datastore grpc API, which provides an interface that is more convenient
  * for the rest of the client SDK architecture to consume.
  */
-export class Datastore {
-  // Make sure that the structural type of `Datastore` is unique.
-  // See https://github.com/microsoft/TypeScript/issues/5451
-  private _ = undefined;
+export abstract class Datastore {
+  abstract start(connection: Connection): void;
+  abstract termiate(): Promise<void>;
 }
 
 /**
@@ -57,17 +56,18 @@ export class Datastore {
  * consumption.
  */
 class DatastoreImpl extends Datastore {
+  connection!: Connection;
   terminated = false;
 
   constructor(
-    readonly connection: Connection,
     readonly credentials: CredentialsProvider,
     readonly serializer: JsonProtoSerializer
   ) {
     super();
   }
 
-  private verifyNotTerminated(): void {
+  verifyInitialized(): void {
+    debugAssert(!!this.connection, 'Datastore.start() not called');
     if (this.terminated) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
@@ -76,9 +76,14 @@ class DatastoreImpl extends Datastore {
     }
   }
 
+  start(connection: Connection): void {
+    debugAssert(!this.connection, 'Datastore.start() already called');
+    this.connection = connection;
+  }
+
   /** Gets an auth token and invokes the provided RPC. */
   invokeRPC<Req, Resp>(rpcName: string, request: Req): Promise<Resp> {
-    this.verifyNotTerminated();
+    this.verifyInitialized();
     return this.credentials
       .getToken()
       .then(token => {
@@ -97,7 +102,7 @@ class DatastoreImpl extends Datastore {
     rpcName: string,
     request: Req
   ): Promise<Resp[]> {
-    this.verifyNotTerminated();
+    this.verifyInitialized();
     return this.credentials
       .getToken()
       .then(token => {
@@ -114,14 +119,19 @@ class DatastoreImpl extends Datastore {
         throw error;
       });
   }
+
+  async termiate(): Promise<void> {
+    this.terminated = false;
+  }
 }
 
+// TODO(firestorexp): Make sure there is only one Datastore instance per
+// firestore-exp client.
 export function newDatastore(
-  connection: Connection,
   credentials: CredentialsProvider,
   serializer: JsonProtoSerializer
 ): Datastore {
-  return new DatastoreImpl(connection, credentials, serializer);
+  return new DatastoreImpl(credentials, serializer);
 }
 
 export async function invokeCommitRpc(
@@ -171,7 +181,7 @@ export async function invokeRunQueryRpc(
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const { structuredQuery, parent } = toQueryTarget(
     datastoreImpl.serializer,
-    query.toTarget()
+    queryToTarget(query)
   );
   const params = {
     database: getEncodedDatabaseId(datastoreImpl.serializer),
@@ -200,6 +210,7 @@ export function newPersistentWriteStream(
   listener: WriteStreamListener
 ): PersistentWriteStream {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
+  datastoreImpl.verifyInitialized();
   return new PersistentWriteStream(
     queue,
     datastoreImpl.connection,
@@ -215,6 +226,7 @@ export function newPersistentWatchStream(
   listener: WatchStreamListener
 ): PersistentListenStream {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
+  datastoreImpl.verifyInitialized();
   return new PersistentListenStream(
     queue,
     datastoreImpl.connection,
@@ -222,9 +234,4 @@ export function newPersistentWatchStream(
     datastoreImpl.serializer,
     listener
   );
-}
-
-export function terminateDatastore(datastore: Datastore): void {
-  const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  datastoreImpl.terminated = true;
 }

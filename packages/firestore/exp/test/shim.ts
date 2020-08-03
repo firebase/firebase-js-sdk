@@ -15,8 +15,11 @@
  * limitations under the License.
  */
 
+import { FirebaseApp as FirebaseAppLegacy } from '@firebase/app-types';
+import { FirebaseApp as FirebaseAppExp } from '@firebase/app-types-exp';
+import { deleteApp } from '@firebase/app-exp';
 import * as legacy from '@firebase/firestore-types';
-import * as exp from '../';
+import * as exp from '../../exp-types';
 
 import {
   addDoc,
@@ -37,14 +40,15 @@ import {
   getDoc,
   getDocFromCache,
   getDocFromServer,
-  getQuery,
-  getQueryFromCache,
-  getQueryFromServer,
+  getDocs,
+  getDocsFromCache,
+  getDocsFromServer,
   increment,
   initializeFirestore,
   onSnapshot,
   onSnapshotsInSync,
   parent,
+  query,
   queryEqual,
   refEqual,
   runTransaction,
@@ -54,13 +58,21 @@ import {
   terminate,
   updateDoc,
   waitForPendingWrites,
-  writeBatch
-} from '../../exp/index.node';
+  writeBatch,
+  endAt,
+  endBefore,
+  startAfter,
+  startAt,
+  limitToLast,
+  limit,
+  orderBy,
+  where
+} from '../../exp/index';
 import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
 import { isPartialObserver, PartialObserver } from '../../src/api/observer';
 import { isPlainObject } from '../../src/util/input_validation';
 
-export { GeoPoint, Blob, Timestamp } from '../index.node';
+export { GeoPoint, Blob, Timestamp } from '../index';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -68,13 +80,26 @@ export { GeoPoint, Blob, Timestamp } from '../index.node';
 // of the experimental SDK. This shim is used to run integration tests against
 // both SDK versions.
 
+export class FirebaseApp implements FirebaseAppLegacy {
+  constructor(readonly _delegate: FirebaseAppExp) {}
+
+  name = this._delegate.name;
+  options = this._delegate.options;
+  automaticDataCollectionEnabled = this._delegate
+    .automaticDataCollectionEnabled;
+
+  delete(): Promise<void> {
+    return deleteApp(this._delegate);
+  }
+}
+
 export class FirebaseFirestore implements legacy.FirebaseFirestore {
   constructor(private readonly _delegate: exp.FirebaseFirestore) {}
 
-  app = this._delegate.app;
+  app = new FirebaseApp(this._delegate.app);
 
   settings(settings: legacy.Settings): void {
-    initializeFirestore(this.app, settings);
+    initializeFirestore(this.app._delegate, settings);
   }
 
   enablePersistence(settings?: legacy.PersistenceSettings): Promise<void> {
@@ -84,22 +109,25 @@ export class FirebaseFirestore implements legacy.FirebaseFirestore {
   }
 
   collection(collectionPath: string): CollectionReference<legacy.DocumentData> {
-    return new CollectionReference(collection(this._delegate, collectionPath));
+    return new CollectionReference(
+      this,
+      collection(this._delegate, collectionPath)
+    );
   }
 
   doc(documentPath: string): DocumentReference<legacy.DocumentData> {
-    return new DocumentReference(doc(this._delegate, documentPath));
+    return new DocumentReference(this, doc(this._delegate, documentPath));
   }
 
   collectionGroup(collectionId: string): Query<legacy.DocumentData> {
-    return new Query(collectionGroup(this._delegate, collectionId));
+    return new Query(this, collectionGroup(this._delegate, collectionId));
   }
 
   runTransaction<T>(
     updateFunction: (transaction: legacy.Transaction) => Promise<T>
   ): Promise<T> {
     return runTransaction(this._delegate, t =>
-      updateFunction(new Transaction(t))
+      updateFunction(new Transaction(this, t))
     );
   }
 
@@ -143,12 +171,15 @@ export class FirebaseFirestore implements legacy.FirebaseFirestore {
 }
 
 export class Transaction implements legacy.Transaction {
-  constructor(private readonly _delegate: exp.Transaction) {}
+  constructor(
+    private readonly _firestore: FirebaseFirestore,
+    private readonly _delegate: exp.Transaction
+  ) {}
 
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     return this._delegate
       .get(documentRef._delegate)
-      .then(result => new DocumentSnapshot(result));
+      .then(result => new DocumentSnapshot(this._firestore, result));
   }
 
   set<T>(
@@ -258,20 +289,25 @@ export class WriteBatch implements legacy.WriteBatch {
 
 export class DocumentReference<T = legacy.DocumentData>
   implements legacy.DocumentReference<T> {
-  constructor(readonly _delegate: exp.DocumentReference<T>) {}
+  constructor(
+    readonly firestore: FirebaseFirestore,
+    readonly _delegate: exp.DocumentReference<T>
+  ) {}
 
   readonly id = this._delegate.id;
-  readonly firestore = new FirebaseFirestore(this._delegate.firestore);
   readonly path = this._delegate.path;
 
   get parent(): legacy.CollectionReference<T> {
-    return new CollectionReference<T>(parent(this._delegate));
+    return new CollectionReference<T>(this.firestore, parent(this._delegate));
   }
 
   collection(
     collectionPath: string
   ): legacy.CollectionReference<legacy.DocumentData> {
-    return new CollectionReference(collection(this._delegate, collectionPath));
+    return new CollectionReference(
+      this.firestore,
+      collection(this._delegate, collectionPath)
+    );
   }
 
   isEqual(other: DocumentReference<T>): boolean {
@@ -322,7 +358,7 @@ export class DocumentReference<T = legacy.DocumentData>
     } else {
       snap = getDoc(this._delegate);
     }
-    return snap.then(result => new DocumentSnapshot(result));
+    return snap.then(result => new DocumentSnapshot(this.firestore, result));
   }
 
   onSnapshot(observer: {
@@ -353,7 +389,7 @@ export class DocumentReference<T = legacy.DocumentData>
     const options = extractSnapshotOptions(args);
     const observer = wrapObserver<DocumentSnapshot<T>, exp.DocumentSnapshot<T>>(
       args,
-      snap => new DocumentSnapshot(snap)
+      snap => new DocumentSnapshot(this.firestore, snap)
     );
     return onSnapshot(this._delegate, options, observer);
   }
@@ -362,6 +398,7 @@ export class DocumentReference<T = legacy.DocumentData>
     converter: legacy.FirestoreDataConverter<U>
   ): DocumentReference<U> {
     return new DocumentReference<U>(
+      this.firestore,
       this._delegate.withConverter(
         converter as UntypedFirestoreDataConverter<U>
       )
@@ -371,9 +408,12 @@ export class DocumentReference<T = legacy.DocumentData>
 
 export class DocumentSnapshot<T = legacy.DocumentData>
   implements legacy.DocumentSnapshot<T> {
-  constructor(readonly _delegate: exp.DocumentSnapshot<T>) {}
+  constructor(
+    private readonly _firestore: FirebaseFirestore,
+    readonly _delegate: exp.DocumentSnapshot<T>
+  ) {}
 
-  readonly ref = new DocumentReference<T>(this._delegate.ref);
+  readonly ref = new DocumentReference<T>(this._firestore, this._delegate.ref);
   readonly id = this._delegate.id;
   readonly metadata = this._delegate.metadata;
 
@@ -397,8 +437,11 @@ export class DocumentSnapshot<T = legacy.DocumentData>
 export class QueryDocumentSnapshot<T = legacy.DocumentData>
   extends DocumentSnapshot<T>
   implements legacy.QueryDocumentSnapshot<T> {
-  constructor(readonly _delegate: exp.QueryDocumentSnapshot<T>) {
-    super(_delegate);
+  constructor(
+    firestore: FirebaseFirestore,
+    readonly _delegate: exp.QueryDocumentSnapshot<T>
+  ) {
+    super(firestore, _delegate);
   }
 
   data(options?: legacy.SnapshotOptions): T {
@@ -407,9 +450,10 @@ export class QueryDocumentSnapshot<T = legacy.DocumentData>
 }
 
 export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
-  constructor(readonly _delegate: exp.Query<T>) {}
-
-  readonly firestore = new FirebaseFirestore(this._delegate.firestore);
+  constructor(
+    readonly firestore: FirebaseFirestore,
+    readonly _delegate: exp.Query<T>
+  ) {}
 
   where(
     fieldPath: string | FieldPath,
@@ -417,7 +461,8 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
     value: any
   ): Query<T> {
     return new Query<T>(
-      this._delegate.where(unwrap(fieldPath), opStr, unwrap(value))
+      this.firestore,
+      query(this._delegate, where(unwrap(fieldPath), opStr, unwrap(value)))
     );
   }
 
@@ -426,48 +471,45 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
     directionStr?: legacy.OrderByDirection
   ): Query<T> {
     return new Query<T>(
-      this._delegate.orderBy(unwrap(fieldPath), directionStr)
+      this.firestore,
+      query(this._delegate, orderBy(unwrap(fieldPath), directionStr))
     );
   }
 
-  limit(limit: number): Query<T> {
-    return new Query<T>(this._delegate.limit(limit));
+  limit(n: number): Query<T> {
+    return new Query<T>(this.firestore, query(this._delegate, limit(n)));
   }
 
-  limitToLast(limit: number): Query<T> {
-    return new Query<T>(this._delegate.limitToLast(limit));
+  limitToLast(n: number): Query<T> {
+    return new Query<T>(this.firestore, query(this._delegate, limitToLast(n)));
   }
 
   startAt(...args: any[]): Query<T> {
-    if (args[0] instanceof DocumentSnapshot) {
-      return new Query(this._delegate.startAt(args[0]._delegate));
-    } else {
-      return new Query(this._delegate.startAt(...unwrap(args)));
-    }
+    return new Query(
+      this.firestore,
+      query(this._delegate, startAt(...unwrap(args)))
+    );
   }
 
   startAfter(...args: any[]): Query<T> {
-    if (args[0] instanceof DocumentSnapshot) {
-      return new Query(this._delegate.startAfter(args[0]._delegate));
-    } else {
-      return new Query(this._delegate.startAfter(...unwrap(args)));
-    }
+    return new Query(
+      this.firestore,
+      query(this._delegate, startAfter(...unwrap(args)))
+    );
   }
 
   endBefore(...args: any[]): Query<T> {
-    if (args[0] instanceof DocumentSnapshot) {
-      return new Query(this._delegate.endBefore(args[0]._delegate));
-    } else {
-      return new Query(this._delegate.endBefore(...unwrap(args)));
-    }
+    return new Query(
+      this.firestore,
+      query(this._delegate, endBefore(...unwrap(args)))
+    );
   }
 
   endAt(...args: any[]): Query<T> {
-    if (args[0] instanceof DocumentSnapshot) {
-      return new Query(this._delegate.endAt(args[0]._delegate));
-    } else {
-      return new Query(this._delegate.endAt(...unwrap(args)));
-    }
+    return new Query(
+      this.firestore,
+      query(this._delegate, endAt(...unwrap(args)))
+    );
   }
 
   isEqual(other: legacy.Query<T>): boolean {
@@ -477,13 +519,13 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
   get(options?: legacy.GetOptions): Promise<QuerySnapshot<T>> {
     let query: Promise<exp.QuerySnapshot<T>>;
     if (options?.source === 'cache') {
-      query = getQueryFromCache(this._delegate);
+      query = getDocsFromCache(this._delegate);
     } else if (options?.source === 'server') {
-      query = getQueryFromServer(this._delegate);
+      query = getDocsFromServer(this._delegate);
     } else {
-      query = getQuery(this._delegate);
+      query = getDocs(this._delegate);
     }
-    return query.then(result => new QuerySnapshot(result));
+    return query.then(result => new QuerySnapshot(this.firestore, result));
   }
 
   onSnapshot(observer: {
@@ -514,13 +556,14 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
     const options = extractSnapshotOptions(args);
     const observer = wrapObserver<QuerySnapshot<T>, exp.QuerySnapshot<T>>(
       args,
-      snap => new QuerySnapshot(snap)
+      snap => new QuerySnapshot(this.firestore, snap)
     );
     return onSnapshot(this._delegate, options, observer);
   }
 
   withConverter<U>(converter: legacy.FirestoreDataConverter<U>): Query<U> {
     return new Query<U>(
+      this.firestore,
       this._delegate.withConverter(
         converter as UntypedFirestoreDataConverter<U>
       )
@@ -530,21 +573,26 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
 
 export class QuerySnapshot<T = legacy.DocumentData>
   implements legacy.QuerySnapshot<T> {
-  constructor(readonly _delegate: exp.QuerySnapshot<T>) {}
+  constructor(
+    readonly _firestore: FirebaseFirestore,
+    readonly _delegate: exp.QuerySnapshot<T>
+  ) {}
 
-  readonly query = new Query(this._delegate.query);
+  readonly query = new Query(this._firestore, this._delegate.query);
   readonly metadata = this._delegate.metadata;
   readonly size = this._delegate.size;
   readonly empty = this._delegate.empty;
 
   get docs(): Array<QueryDocumentSnapshot<T>> {
-    return this._delegate.docs.map(doc => new QueryDocumentSnapshot<T>(doc));
+    return this._delegate.docs.map(
+      doc => new QueryDocumentSnapshot<T>(this._firestore, doc)
+    );
   }
 
   docChanges(options?: legacy.SnapshotListenOptions): Array<DocumentChange<T>> {
     return this._delegate
       .docChanges(options)
-      .map(docChange => new DocumentChange<T>(docChange));
+      .map(docChange => new DocumentChange<T>(this._firestore, docChange));
   }
 
   forEach(
@@ -552,7 +600,10 @@ export class QuerySnapshot<T = legacy.DocumentData>
     thisArg?: any
   ): void {
     this._delegate.forEach(snapshot => {
-      callback.call(thisArg, new QueryDocumentSnapshot(snapshot));
+      callback.call(
+        thisArg,
+        new QueryDocumentSnapshot(this._firestore, snapshot)
+      );
     });
   }
 
@@ -563,17 +614,26 @@ export class QuerySnapshot<T = legacy.DocumentData>
 
 export class DocumentChange<T = legacy.DocumentData>
   implements legacy.DocumentChange<T> {
-  constructor(private readonly _delegate: exp.DocumentChange<T>) {}
+  constructor(
+    private readonly _firestore: FirebaseFirestore,
+    private readonly _delegate: exp.DocumentChange<T>
+  ) {}
   readonly type = this._delegate.type;
-  readonly doc = new QueryDocumentSnapshot<T>(this._delegate.doc);
+  readonly doc = new QueryDocumentSnapshot<T>(
+    this._firestore,
+    this._delegate.doc
+  );
   readonly oldIndex = this._delegate.oldIndex;
   readonly newIndex = this._delegate.oldIndex;
 }
 
 export class CollectionReference<T = legacy.DocumentData> extends Query<T>
   implements legacy.CollectionReference<T> {
-  constructor(readonly _delegate: exp.CollectionReference<T>) {
-    super(_delegate);
+  constructor(
+    firestore: FirebaseFirestore,
+    readonly _delegate: exp.CollectionReference<T>
+  ) {
+    super(firestore, _delegate);
   }
 
   readonly id = this._delegate.id;
@@ -581,20 +641,25 @@ export class CollectionReference<T = legacy.DocumentData> extends Query<T>
 
   get parent(): DocumentReference<legacy.DocumentData> | null {
     const docRef = parent(this._delegate);
-    return docRef ? new DocumentReference<legacy.DocumentData>(docRef) : null;
+    return docRef
+      ? new DocumentReference<legacy.DocumentData>(this.firestore, docRef)
+      : null;
   }
 
   doc(documentPath?: string): DocumentReference<T> {
     if (documentPath !== undefined) {
-      return new DocumentReference<T>(doc(this._delegate, documentPath));
+      return new DocumentReference<T>(
+        this.firestore,
+        doc(this._delegate, documentPath)
+      );
     } else {
-      return new DocumentReference<T>(doc(this._delegate));
+      return new DocumentReference<T>(this.firestore, doc(this._delegate));
     }
   }
 
   add(data: T): Promise<DocumentReference<T>> {
     return addDoc(this._delegate, unwrap(data)).then(
-      docRef => new DocumentReference(docRef)
+      docRef => new DocumentReference(this.firestore, docRef)
     );
   }
 
@@ -606,6 +671,7 @@ export class CollectionReference<T = legacy.DocumentData> extends Query<T>
     converter: legacy.FirestoreDataConverter<U>
   ): CollectionReference<U> {
     return new CollectionReference<U>(
+      this.firestore,
       this._delegate.withConverter(
         converter as UntypedFirestoreDataConverter<U>
       )
@@ -671,7 +737,9 @@ function wrap(value: any): any {
   } else if (value instanceof FieldPathExp) {
     return new FieldPath(...value._internalPath.toArray());
   } else if (value instanceof DocumentReferenceExp) {
-    return new DocumentReference(value);
+    // TODO(mrschmidt): Ideally, we should use an existing instance of
+    // FirebaseFirestore here rather than instantiating a new instance
+    return new DocumentReference(new FirebaseFirestore(value.firestore), value);
   } else if (isPlainObject(value)) {
     const obj: any = {};
     for (const key in value) {
@@ -697,6 +765,10 @@ function unwrap(value: any): any {
   } else if (value instanceof FieldValue) {
     return value._delegate;
   } else if (value instanceof DocumentReference) {
+    return value._delegate;
+  } else if (value instanceof DocumentSnapshot) {
+    return value._delegate;
+  } else if (value instanceof QueryDocumentSnapshot) {
     return value._delegate;
   } else if (isPlainObject(value)) {
     const obj: any = {};

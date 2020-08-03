@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
+import * as firestore from '../../../lite-types';
 
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
@@ -31,11 +31,22 @@ import {
 import {
   Bound,
   Direction,
+  LimitType,
+  newQueryForCollectionGroup,
+  newQueryForPath,
   Operator,
   Query as InternalQuery,
-  queryEquals
+  queryEquals,
+  queryWithAddedFilter,
+  queryWithAddedOrderBy,
+  queryWithEndAt,
+  queryWithLimit,
+  queryWithStartAt
 } from '../../../src/core/query';
-import { ResourcePath } from '../../../src/model/path';
+import {
+  FieldPath as InternalFieldPath,
+  ResourcePath
+} from '../../../src/model/path';
 import { AutoId } from '../../../src/util/misc';
 import {
   DocumentSnapshot,
@@ -52,7 +63,10 @@ import { hardAssert } from '../../../src/util/assert';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
 import {
   applyFirestoreDataConverter,
-  BaseQuery,
+  newQueryBoundFromDocument,
+  newQueryBoundFromFields,
+  newQueryFilter,
+  newQueryOrderBy,
   validateHasExplicitOrderByForLimitToLast
 } from '../../../src/api/database';
 import { FieldPath } from './field_path';
@@ -67,6 +81,7 @@ import {
 import { newSerializer } from '../../../src/platform/serializer';
 import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
 import { Code, FirestoreError } from '../../../src/util/error';
+import { getDatastore } from './components';
 
 /**
  * A reference to a particular document in a collection in the database.
@@ -74,194 +89,289 @@ import { Code, FirestoreError } from '../../../src/util/error';
 export class DocumentReference<T = firestore.DocumentData>
   extends DocumentKeyReference<T>
   implements firestore.DocumentReference<T> {
+  readonly type = 'document';
+
   constructor(
     readonly firestore: Firestore,
-    key: DocumentKey,
-    readonly _converter: firestore.FirestoreDataConverter<T> | null
+    readonly converter: firestore.FirestoreDataConverter<T> | null,
+    readonly _path: ResourcePath
   ) {
-    super(firestore._databaseId, key, _converter);
+    super(firestore._databaseId, new DocumentKey(_path), converter);
   }
 
   get id(): string {
-    return this._key.path.lastSegment();
+    return this._path.lastSegment();
   }
 
   get path(): string {
-    return this._key.path.canonicalString();
+    return this._path.canonicalString();
   }
 
   withConverter<U>(
     converter: firestore.FirestoreDataConverter<U>
   ): firestore.DocumentReference<U> {
-    return new DocumentReference<U>(this.firestore, this._key, converter);
+    return new DocumentReference<U>(this.firestore, converter, this._path);
   }
 }
 
-export class Query<T = firestore.DocumentData> extends BaseQuery
-  implements firestore.Query<T> {
+export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
+  readonly type: 'query' | 'collection' = 'query';
+
   // This is the lite version of the Query class in the main SDK.
   constructor(
     readonly firestore: Firestore,
-    readonly _query: InternalQuery,
-    readonly _converter: firestore.FirestoreDataConverter<T> | null
-  ) {
-    super(firestore._databaseId, newUserDataReader(firestore), _query);
-  }
-
-  where(
-    fieldPath: string | firestore.FieldPath,
-    opStr: firestore.WhereFilterOp,
-    value: unknown
-  ): firestore.Query<T> {
-    // TODO(firestorelite): Consider validating the enum strings (note that
-    // TypeScript does not support passing invalid values).
-    const op = opStr as Operator;
-
-    const field = fieldPathFromArgument('Query.where', fieldPath);
-    const filter = this.createFilter(field, op, value);
-    return new Query(
-      this.firestore,
-      this._query.addFilter(filter),
-      this._converter
-    );
-  }
-
-  orderBy(
-    field: string | ExternalFieldPath,
-    directionStr: firestore.OrderByDirection = 'asc'
-  ): firestore.Query<T> {
-    // TODO(firestorelite): Consider validating the enum strings (note that
-    // TypeScript does not support passing invalid values).
-    const direction = directionStr as Direction;
-
-    const fieldPath = fieldPathFromArgument('Query.orderBy', field);
-    const orderBy = this.createOrderBy(fieldPath, direction);
-    return new Query(
-      this.firestore,
-      this._query.addOrderBy(orderBy),
-      this._converter
-    );
-  }
-
-  limit(n: number): firestore.Query<T> {
-    validatePositiveNumber('Query.limit', 1, n);
-    return new Query(
-      this.firestore,
-      this._query.withLimitToFirst(n),
-      this._converter
-    );
-  }
-
-  limitToLast(n: number): firestore.Query<T> {
-    validatePositiveNumber('Query.limitToLast', 1, n);
-    return new Query(
-      this.firestore,
-      this._query.withLimitToLast(n),
-      this._converter
-    );
-  }
-
-  // TODO(firestiorelite): Consider making the Query methods tree-shakeable
-  // (`Query.startAt()` would become `startAt(query)`).
-  startAt(
-    docOrField: unknown | firestore.DocumentSnapshot<unknown>,
-    ...fields: unknown[]
-  ): firestore.Query<T> {
-    const bound = this.boundFromDocOrFields(
-      'Query.startAt',
-      docOrField,
-      fields,
-      /*before=*/ true
-    );
-    return new Query(
-      this.firestore,
-      this._query.withStartAt(bound),
-      this._converter
-    );
-  }
-
-  startAfter(
-    docOrField: unknown | firestore.DocumentSnapshot<unknown>,
-    ...fields: unknown[]
-  ): firestore.Query<T> {
-    const bound = this.boundFromDocOrFields(
-      'Query.startAfter',
-      docOrField,
-      fields,
-      /*before=*/ false
-    );
-    return new Query(
-      this.firestore,
-      this._query.withStartAt(bound),
-      this._converter
-    );
-  }
-
-  endBefore(
-    docOrField: unknown | firestore.DocumentSnapshot<unknown>,
-    ...fields: unknown[]
-  ): firestore.Query<T> {
-    const bound = this.boundFromDocOrFields(
-      'Query.endBefore',
-      docOrField,
-      fields,
-      /*before=*/ true
-    );
-    return new Query(
-      this.firestore,
-      this._query.withEndAt(bound),
-      this._converter
-    );
-  }
-
-  endAt(
-    docOrField: unknown | firestore.DocumentSnapshot<unknown>,
-    ...fields: unknown[]
-  ): firestore.Query<T> {
-    const bound = this.boundFromDocOrFields(
-      'Query.endAt',
-      docOrField,
-      fields,
-      /*before=*/ false
-    );
-    return new Query(
-      this.firestore,
-      this._query.withEndAt(bound),
-      this._converter
-    );
-  }
-
-  /** Helper function to create a bound from a document or fields */
-  private boundFromDocOrFields(
-    methodName: string,
-    docOrField: unknown | firestore.DocumentSnapshot<T>,
-    fields: unknown[],
-    before: boolean
-  ): Bound {
-    if (docOrField instanceof DocumentSnapshot) {
-      validateExactNumberOfArgs(methodName, [docOrField, ...fields], 1);
-      return this.boundFromDocument(methodName, docOrField._document, before);
-    } else {
-      const allFields = [docOrField].concat(fields);
-      return this.boundFromFields(methodName, allFields, before);
-    }
-  }
+    readonly converter: firestore.FirestoreDataConverter<T> | null,
+    readonly _query: InternalQuery
+  ) {}
 
   withConverter<U>(
     converter: firestore.FirestoreDataConverter<U>
   ): firestore.Query<U> {
-    return new Query<U>(this.firestore, this._query, converter);
+    return new Query<U>(this.firestore, converter, this._query);
+  }
+}
+
+export abstract class QueryConstraint implements firestore.QueryConstraint {
+  abstract readonly type: firestore.QueryConstraintType;
+
+  /**
+   * Takes the provided Query and returns a copy of the Query with this
+   * QueryConstraint applied.
+   */
+  abstract apply<T>(query: Query<T>): Query<T>;
+}
+
+export function query<T>(
+  query: firestore.Query<T>,
+  ...queryConstraints: QueryConstraint[]
+): Query<T> {
+  let queryImpl = cast<Query<T>>(query, Query);
+  for (const constraint of queryConstraints) {
+    queryImpl = constraint.apply(queryImpl);
+  }
+  return queryImpl;
+}
+
+class QueryFilterConstraint extends QueryConstraint {
+  readonly type = 'where';
+
+  constructor(
+    private readonly _field: InternalFieldPath,
+    private _op: Operator,
+    private _value: unknown
+  ) {
+    super();
+  }
+
+  apply<T>(query: Query<T>): Query<T> {
+    const reader = newUserDataReader(query.firestore);
+    const filter = newQueryFilter(
+      query._query,
+      'where',
+      reader,
+      query.firestore._databaseId,
+      this._field,
+      this._op,
+      this._value
+    );
+    return new Query(
+      query.firestore,
+      query.converter,
+      queryWithAddedFilter(query._query, filter)
+    );
+  }
+}
+
+export function where(
+  fieldPath: string | firestore.FieldPath,
+  opStr: firestore.WhereFilterOp,
+  value: unknown
+): QueryConstraint {
+  // TODO(firestorelite): Consider validating the enum strings (note that
+  // TypeScript does not support passing invalid values).
+  const op = opStr as Operator;
+  const field = fieldPathFromArgument('where', fieldPath);
+  return new QueryFilterConstraint(field, op, value);
+}
+
+class QueryOrderByConstraint extends QueryConstraint {
+  readonly type = 'orderBy';
+
+  constructor(
+    private readonly _field: InternalFieldPath,
+    private _direction: Direction
+  ) {
+    super();
+  }
+
+  apply<T>(query: Query<T>): Query<T> {
+    const orderBy = newQueryOrderBy(query._query, this._field, this._direction);
+    return new Query(
+      query.firestore,
+      query.converter,
+      queryWithAddedOrderBy(query._query, orderBy)
+    );
+  }
+}
+
+export function orderBy(
+  field: string | ExternalFieldPath,
+  directionStr: firestore.OrderByDirection = 'asc'
+): QueryConstraint {
+  // TODO(firestorelite): Consider validating the enum strings (note that
+  // TypeScript does not support passing invalid values).
+  const direction = directionStr as Direction;
+  const fieldPath = fieldPathFromArgument('orderBy', field);
+  return new QueryOrderByConstraint(fieldPath, direction);
+}
+
+class QueryLimitConstraint extends QueryConstraint {
+  constructor(
+    readonly type: 'limit' | 'limitToLast',
+    private readonly _limit: number,
+    private readonly _limitType: LimitType
+  ) {
+    super();
+  }
+
+  apply<T>(query: Query<T>): Query<T> {
+    return new Query(
+      query.firestore,
+      query.converter,
+      queryWithLimit(query._query, this._limit, this._limitType)
+    );
+  }
+}
+
+export function limit(n: number): QueryConstraint {
+  validatePositiveNumber('limit', 1, n);
+  return new QueryLimitConstraint('limit', n, LimitType.First);
+}
+
+export function limitToLast(n: number): QueryConstraint {
+  validatePositiveNumber('limitToLast', 1, n);
+  return new QueryLimitConstraint('limitToLast', n, LimitType.Last);
+}
+
+class QueryStartAtConstraint extends QueryConstraint {
+  constructor(
+    readonly type: 'startAt' | 'startAfter',
+    private readonly _docOrFields: Array<
+      unknown | firestore.DocumentSnapshot<unknown>
+    >,
+    private readonly _before: boolean
+  ) {
+    super();
+  }
+
+  apply<T>(query: Query<T>): Query<T> {
+    const bound = newQueryBoundFromDocOrFields(
+      query,
+      this.type,
+      this._docOrFields,
+      this._before
+    );
+    return new Query(
+      query.firestore,
+      query.converter,
+      queryWithStartAt(query._query, bound)
+    );
+  }
+}
+
+export function startAt(
+  ...docOrFields: Array<unknown | firestore.DocumentSnapshot<unknown>>
+): QueryConstraint {
+  return new QueryStartAtConstraint('startAt', docOrFields, /*before=*/ true);
+}
+
+export function startAfter(
+  ...docOrFields: Array<unknown | firestore.DocumentSnapshot<unknown>>
+): QueryConstraint {
+  return new QueryStartAtConstraint(
+    'startAfter',
+    docOrFields,
+    /*before=*/ false
+  );
+}
+
+class QueryEndAtConstraint extends QueryConstraint {
+  constructor(
+    readonly type: 'endBefore' | 'endAt',
+    private readonly _docOrFields: Array<
+      unknown | firestore.DocumentSnapshot<unknown>
+    >,
+    private readonly _before: boolean
+  ) {
+    super();
+  }
+
+  apply<T>(query: Query<T>): Query<T> {
+    const bound = newQueryBoundFromDocOrFields(
+      query,
+      this.type,
+      this._docOrFields,
+      this._before
+    );
+    return new Query(
+      query.firestore,
+      query.converter,
+      queryWithEndAt(query._query, bound)
+    );
+  }
+}
+
+export function endBefore(
+  ...docOrFields: Array<unknown | firestore.DocumentSnapshot<unknown>>
+): QueryConstraint {
+  return new QueryEndAtConstraint('endBefore', docOrFields, /*before=*/ true);
+}
+
+export function endAt(
+  ...docOrFields: Array<unknown | firestore.DocumentSnapshot<unknown>>
+): QueryConstraint {
+  return new QueryEndAtConstraint('endAt', docOrFields, /*before=*/ false);
+}
+
+/** Helper function to create a bound from a document or fields */
+function newQueryBoundFromDocOrFields<T>(
+  query: Query,
+  methodName: string,
+  docOrFields: Array<unknown | firestore.DocumentSnapshot<T>>,
+  before: boolean
+): Bound {
+  if (docOrFields[0] instanceof DocumentSnapshot) {
+    validateExactNumberOfArgs(methodName, docOrFields, 1);
+    return newQueryBoundFromDocument(
+      query._query,
+      query.firestore._databaseId,
+      methodName,
+      docOrFields[0]._document,
+      before
+    );
+  } else {
+    const reader = newUserDataReader(query.firestore);
+    return newQueryBoundFromFields(
+      query._query,
+      query.firestore._databaseId,
+      reader,
+      methodName,
+      docOrFields,
+      before
+    );
   }
 }
 
 export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   implements firestore.CollectionReference<T> {
+  readonly type = 'collection';
+
   constructor(
     readonly firestore: Firestore,
     readonly _path: ResourcePath,
-    readonly _converter: firestore.FirestoreDataConverter<T> | null
+    converter: firestore.FirestoreDataConverter<T> | null
   ) {
-    super(firestore, InternalQuery.atPath(_path), _converter);
+    super(firestore, converter, newQueryForPath(_path));
   }
 
   get id(): string {
@@ -284,24 +394,42 @@ export function collection(
   collectionPath: string
 ): CollectionReference<firestore.DocumentData>;
 export function collection(
+  reference: firestore.CollectionReference<unknown>,
+  collectionPath: string
+): CollectionReference<firestore.DocumentData>;
+export function collection(
   reference: firestore.DocumentReference,
   collectionPath: string
 ): CollectionReference<firestore.DocumentData>;
 export function collection(
-  parent: firestore.FirebaseFirestore | firestore.DocumentReference<unknown>,
+  parent:
+    | firestore.FirebaseFirestore
+    | firestore.DocumentReference<unknown>
+    | firestore.CollectionReference<unknown>,
   relativePath: string
 ): CollectionReference<firestore.DocumentData> {
   validateArgType('collection', 'non-empty string', 2, relativePath);
-  const path = ResourcePath.fromString(relativePath);
   if (parent instanceof Firestore) {
-    validateCollectionPath(path);
-    return new CollectionReference(parent, path, /* converter= */ null);
+    const absolutePath = ResourcePath.fromString(relativePath);
+    validateCollectionPath(absolutePath);
+    return new CollectionReference(parent, absolutePath, /* converter= */ null);
   } else {
-    const doc = cast(parent, DocumentReference);
-    const absolutePath = doc._key.path.child(path);
+    if (
+      !(parent instanceof DocumentReference) &&
+      !(parent instanceof CollectionReference)
+    ) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Expected first argument to collection() to be a CollectionReference, ' +
+          'a DocumentReference or FirebaseFirestore'
+      );
+    }
+    const absolutePath = ResourcePath.fromString(parent.path).child(
+      ResourcePath.fromString(relativePath)
+    );
     validateCollectionPath(absolutePath);
     return new CollectionReference(
-      doc.firestore,
+      parent.firestore,
       absolutePath,
       /* converter= */ null
     );
@@ -327,8 +455,8 @@ export function collectionGroup(
 
   return new Query(
     firestoreClient,
-    new InternalQuery(ResourcePath.emptyPath(), collectionId),
-    /* converter= */ null
+    /* converter= */ null,
+    newQueryForCollectionGroup(collectionId)
   );
 }
 
@@ -340,8 +468,15 @@ export function doc<T>(
   reference: firestore.CollectionReference<T>,
   documentPath?: string
 ): DocumentReference<T>;
+export function doc(
+  reference: firestore.DocumentReference<unknown>,
+  documentPath: string
+): DocumentReference<firestore.DocumentData>;
 export function doc<T>(
-  parent: firestore.FirebaseFirestore | firestore.CollectionReference<T>,
+  parent:
+    | firestore.FirebaseFirestore
+    | firestore.CollectionReference<T>
+    | firestore.DocumentReference<unknown>,
   relativePath?: string
 ): DocumentReference {
   // We allow omission of 'pathString' but explicitly prohibit passing in both
@@ -350,22 +485,30 @@ export function doc<T>(
     relativePath = AutoId.newId();
   }
   validateArgType('doc', 'non-empty string', 2, relativePath);
-  const path = ResourcePath.fromString(relativePath!);
+
   if (parent instanceof Firestore) {
-    validateDocumentPath(path);
-    return new DocumentReference(
-      parent,
-      new DocumentKey(path),
-      /* converter= */ null
-    );
+    const absolutePath = ResourcePath.fromString(relativePath!);
+    validateDocumentPath(absolutePath);
+    return new DocumentReference(parent, /* converter= */ null, absolutePath);
   } else {
-    const coll = cast(parent, CollectionReference);
-    const absolutePath = coll._path.child(path);
+    if (
+      !(parent instanceof DocumentReference) &&
+      !(parent instanceof CollectionReference)
+    ) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Expected first argument to collection() to be a CollectionReference, ' +
+          'a DocumentReference or FirebaseFirestore'
+      );
+    }
+    const absolutePath = parent._path.child(
+      ResourcePath.fromString(relativePath!)
+    );
     validateDocumentPath(absolutePath);
     return new DocumentReference(
-      coll.firestore,
-      new DocumentKey(absolutePath),
-      coll._converter
+      parent.firestore,
+      parent instanceof CollectionReference ? parent.converter : null,
+      absolutePath
     );
   }
 }
@@ -386,8 +529,8 @@ export function parent<T>(
     } else {
       return new DocumentReference(
         child.firestore,
-        new DocumentKey(parentPath),
-        /* converter= */ null
+        /* converter= */ null,
+        parentPath
       );
     }
   } else {
@@ -404,7 +547,7 @@ export function getDoc<T>(
   reference: firestore.DocumentReference<T>
 ): Promise<firestore.DocumentSnapshot<T>> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
-  return ref.firestore._getDatastore().then(async datastore => {
+  return getDatastore(ref.firestore).then(async datastore => {
     const result = await invokeBatchGetDocumentsRpc(datastore, [ref._key]);
     hardAssert(result.length === 1, 'Expected a single document result');
     const maybeDocument = result[0];
@@ -417,13 +560,12 @@ export function getDoc<T>(
   });
 }
 
-// TODO(firestorelite): Consider renaming to getDocs
-export function getQuery<T>(
+export function getDocs<T>(
   query: firestore.Query<T>
 ): Promise<firestore.QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
   validateHasExplicitOrderByForLimitToLast(internalQuery._query);
-  return internalQuery.firestore._getDatastore().then(async datastore => {
+  return getDatastore(internalQuery.firestore).then(async datastore => {
     const result = await invokeRunQueryRpc(datastore, internalQuery._query);
     const docs = result.map(
       doc =>
@@ -431,7 +573,7 @@ export function getQuery<T>(
           internalQuery.firestore,
           doc.key,
           doc,
-          internalQuery._converter
+          internalQuery.converter
         )
     );
 
@@ -477,14 +619,12 @@ export function setDoc<T>(
     options
   );
 
-  return ref.firestore
-    ._getDatastore()
-    .then(datastore =>
-      invokeCommitRpc(
-        datastore,
-        parsed.toMutations(ref._key, Precondition.none())
-      )
-    );
+  return getDatastore(ref.firestore).then(datastore =>
+    invokeCommitRpc(
+      datastore,
+      parsed.toMutations(ref._key, Precondition.none())
+    )
+  );
 }
 
 export function updateDoc(
@@ -528,27 +668,23 @@ export function updateDoc(
     );
   }
 
-  return ref.firestore
-    ._getDatastore()
-    .then(datastore =>
-      invokeCommitRpc(
-        datastore,
-        parsed.toMutations(ref._key, Precondition.exists(true))
-      )
-    );
+  return getDatastore(ref.firestore).then(datastore =>
+    invokeCommitRpc(
+      datastore,
+      parsed.toMutations(ref._key, Precondition.exists(true))
+    )
+  );
 }
 
 export function deleteDoc(
   reference: firestore.DocumentReference
 ): Promise<void> {
   const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
-  return ref.firestore
-    ._getDatastore()
-    .then(datastore =>
-      invokeCommitRpc(datastore, [
-        new DeleteMutation(ref._key, Precondition.none())
-      ])
-    );
+  return getDatastore(ref.firestore).then(datastore =>
+    invokeCommitRpc(datastore, [
+      new DeleteMutation(ref._key, Precondition.none())
+    ])
+  );
 }
 
 export function addDoc<T>(
@@ -558,7 +694,7 @@ export function addDoc<T>(
   const collRef = cast<CollectionReference<T>>(reference, CollectionReference);
   const docRef = doc(collRef);
 
-  const convertedValue = applyFirestoreDataConverter(collRef._converter, data);
+  const convertedValue = applyFirestoreDataConverter(collRef.converter, data);
 
   const dataReader = newUserDataReader(collRef.firestore);
   const parsed = parseSetData(
@@ -570,8 +706,7 @@ export function addDoc<T>(
     {}
   );
 
-  return collRef.firestore
-    ._getDatastore()
+  return getDatastore(collRef.firestore)
     .then(datastore =>
       invokeCommitRpc(
         datastore,
@@ -593,7 +728,7 @@ export function refEqual<T>(
     return (
       left.firestore === right.firestore &&
       left.path === right.path &&
-      left._converter === right._converter
+      left.converter === right.converter
     );
   }
   return false;
@@ -607,7 +742,7 @@ export function queryEqual<T>(
     return (
       left.firestore === right.firestore &&
       queryEquals(left._query, right._query) &&
-      left._converter === right._converter
+      left.converter === right.converter
     );
   }
   return false;

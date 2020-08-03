@@ -21,10 +21,11 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import typescript from 'typescript';
 import { terser } from 'rollup-plugin-terser';
-import { resolveNodeExterns, resolveBrowserExterns } from './rollup.shared';
 
 import pkg from './package.json';
 import memoryPkg from './memory/package.json';
+
+const util = require('./rollup.shared');
 
 // This file defines the second rollup pipeline and transpiles the ES2017 SDK
 // into ES5 code. By splitting the build process into two independent build
@@ -65,7 +66,7 @@ const browserBuilds = [
     input: pkg.esm2017,
     output: { file: pkg.module, format: 'es', sourcemap: true },
     plugins: browserPlugins,
-    external: resolveBrowserExterns
+    external: util.resolveBrowserExterns
   },
   {
     input: path.resolve('./memory', memoryPkg.esm2017),
@@ -75,13 +76,13 @@ const browserBuilds = [
       sourcemap: true
     },
     plugins: browserPlugins,
-    external: resolveBrowserExterns
+    external: util.resolveBrowserExterns
   },
   {
     input: pkg.esm2017,
     output: { file: pkg.browser, format: 'cjs', sourcemap: true },
     plugins: browserPlugins,
-    external: resolveBrowserExterns
+    external: util.resolveBrowserExterns
   },
   {
     input: path.resolve('./memory', memoryPkg.esm2017),
@@ -91,7 +92,7 @@ const browserBuilds = [
       sourcemap: true
     },
     plugins: browserPlugins,
-    external: resolveBrowserExterns
+    external: util.resolveBrowserExterns
   }
 ];
 
@@ -100,7 +101,7 @@ const nodeBuilds = [
     input: pkg['main-esm2017'],
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: nodePlugins,
-    external: resolveNodeExterns
+    external: util.resolveNodeExterns
   },
   {
     input: path.resolve('./memory', memoryPkg['main-esm2017']),
@@ -112,7 +113,7 @@ const nodeBuilds = [
       }
     ],
     plugins: nodePlugins,
-    external: resolveNodeExterns
+    external: util.resolveNodeExterns
   }
 ];
 

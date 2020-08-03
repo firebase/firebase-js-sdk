@@ -18,9 +18,9 @@ export declare function setLogLevel(logLevel: LogLevel): void;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  logLevel | <code>LogLevel</code> |  |
+|  logLevel | LogLevel |  |
 
 <b>Returns:</b>
 
-`void`
+void
 
