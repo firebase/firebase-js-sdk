@@ -32,7 +32,6 @@ jobs:
     - name: Create comment (missing packages)
       if: ${{!steps.fc.outputs.comment-id && steps.check-changeset.outputs.MISSING_PACKAGES}}
       uses: peter-evans/create-or-update-comment@v1
-      id: cc
       with:
         issue-number: ${{github.event.number}}
         body: |
@@ -43,7 +42,6 @@ jobs:
     - name: Update comment (missing packages)
       if: ${{steps.fc.outputs.comment-id}}
       uses: peter-evans/create-or-update-comment@v1
-      id: uc
       with:
         comment-id: ${{steps.fc.outputs.comment-id}}
         edit-mode: replace
@@ -55,7 +53,6 @@ jobs:
     - name: Update comment (no missing packages)
       if: ${{steps.fc.outputs.comment-id && !steps.check-changeset.outputs.MISSING_PACKAGES}}
       uses: peter-evans/create-or-update-comment@v1
-      id: uc
       with:
         comment-id: ${{steps.fc.outputs.comment-id}}
         edit-mode: replace
