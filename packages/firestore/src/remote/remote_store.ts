@@ -756,10 +756,6 @@ export class RemoteStore implements TargetMetadataProvider {
     }
   }
 
-  createTransaction(): Transaction {
-    return new Transaction(this.datastore);
-  }
-
   private async restartNetwork(): Promise<void> {
     this.offlineCauses.add(OfflineCause.ConnectivityChange);
     await this.disableNetworkInternal();

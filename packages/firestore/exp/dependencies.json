@@ -1073,9 +1073,6 @@
                 "formatPlural",
                 "fromBytes",
                 "fromDotSeparatedString",
-                "fromFound",
-                "fromMaybeDocument",
-                "fromMissing",
                 "fromName",
                 "fromResourceName",
                 "fromRpcStatus",
@@ -1099,8 +1096,6 @@
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
-                "invokeBatchGetDocumentsRpc",
-                "invokeCommitRpc",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -1352,8 +1347,6 @@
                 "TargetImpl",
                 "TargetState",
                 "Timestamp",
-                "Transaction",
-                "TransactionRunner",
                 "TransformMutation",
                 "TransformOperation",
                 "UnknownDocument",
@@ -1367,7 +1360,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 220962
+        "sizeInBytes": 215256
     },
     "arrayRemove": {
         "dependencies": {
@@ -1775,9 +1768,6 @@
                 "forEach",
                 "formatJSON",
                 "fromBytes",
-                "fromFound",
-                "fromMaybeDocument",
-                "fromMissing",
                 "fromName",
                 "fromResourceName",
                 "fromRpcStatus",
@@ -1800,8 +1790,6 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
-                "invokeBatchGetDocumentsRpc",
-                "invokeCommitRpc",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -2023,8 +2011,6 @@
                 "TargetImpl",
                 "TargetState",
                 "Timestamp",
-                "Transaction",
-                "TransactionRunner",
                 "TransformMutation",
                 "TransformOperation",
                 "UnknownDocument",
@@ -2037,7 +2023,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 203350
+        "sizeInBytes": 197644
     },
     "deleteField": {
         "dependencies": {
@@ -2154,9 +2140,6 @@
                 "forEach",
                 "formatJSON",
                 "fromBytes",
-                "fromFound",
-                "fromMaybeDocument",
-                "fromMissing",
                 "fromName",
                 "fromResourceName",
                 "fromRpcStatus",
@@ -2180,8 +2163,6 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
-                "invokeBatchGetDocumentsRpc",
-                "invokeCommitRpc",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -2401,8 +2382,6 @@
                 "TargetImpl",
                 "TargetState",
                 "Timestamp",
-                "Transaction",
-                "TransactionRunner",
                 "TransformMutation",
                 "TransformOperation",
                 "UnknownDocument",
@@ -2415,7 +2394,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 202968
+        "sizeInBytes": 197262
     },
     "doc": {
         "dependencies": {
@@ -2887,7 +2866,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 209084
+        "sizeInBytes": 209028
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -3006,10 +2985,7 @@
                 "fromFieldPathReference",
                 "fromFieldTransform",
                 "fromFilter",
-                "fromFound",
                 "fromInt32Proto",
-                "fromMaybeDocument",
-                "fromMissing",
                 "fromMutation",
                 "fromName",
                 "fromOperatorName",
@@ -3048,8 +3024,6 @@
                 "immediateSuccessor",
                 "indexedDbClearPersistence",
                 "indexedDbStoragePrefix",
-                "invokeBatchGetDocumentsRpc",
-                "invokeCommitRpc",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -3340,8 +3314,6 @@
                 "TargetImpl",
                 "TargetState",
                 "Timestamp",
-                "Transaction",
-                "TransactionRunner",
                 "TransformMutation",
                 "TransformOperation",
                 "UnknownDocument",
@@ -3355,7 +3327,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 307194
+        "sizeInBytes": 301488
     },
     "enableNetwork": {
         "dependencies": {
@@ -3430,9 +3402,6 @@
                 "forEach",
                 "formatJSON",
                 "fromBytes",
-                "fromFound",
-                "fromMaybeDocument",
-                "fromMissing",
                 "fromName",
                 "fromResourceName",
                 "fromRpcStatus",
@@ -3456,8 +3425,6 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
-                "invokeBatchGetDocumentsRpc",
-                "invokeCommitRpc",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -3677,8 +3644,6 @@
                 "TargetImpl",
                 "TargetState",
                 "Timestamp",
-                "Transaction",
-                "TransactionRunner",
                 "TransformMutation",
                 "TransformOperation",
                 "UnknownDocument",
@@ -3691,7 +3656,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 202965
+        "sizeInBytes": 197259
     },
     "endAt": {
         "dependencies": {
@@ -4020,9 +3985,6 @@
                 "formatPlural",
                 "fromBytes",
                 "fromDotSeparatedString",
-                "fromFound",
-                "fromMaybeDocument",
-                "fromMissing",
                 "fromName",
                 "fromResourceName",
                 "fromRpcStatus",
@@ -4048,8 +4010,6 @@
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
-                "invokeBatchGetDocumentsRpc",
-                "invokeCommitRpc",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -4291,8 +4251,6 @@
                 "TargetImpl",
                 "TargetState",
                 "Timestamp",
-                "Transaction",
-                "TransactionRunner",
                 "TransformMutation",
                 "TransformOperation",
                 "UnknownDocument",
@@ -4306,7 +4264,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 219316
+        "sizeInBytes": 213610
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4646,9 +4604,6 @@
                 "formatPlural",
                 "fromBytes",
                 "fromDotSeparatedString",
-                "fromFound",
-                "fromMaybeDocument",
-                "fromMissing",
                 "fromName",
                 "fromResourceName",
                 "fromRpcStatus",
@@ -4674,8 +4629,6 @@
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
-                "invokeBatchGetDocumentsRpc",
-                "invokeCommitRpc",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -4917,8 +4870,6 @@
                 "TargetImpl",
                 "TargetState",
                 "Timestamp",
-                "Transaction",
-                "TransactionRunner",
                 "TransformMutation",
                 "TransformOperation",
                 "UnknownDocument",
@@ -4932,7 +4883,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 219372
+        "sizeInBytes": 213666
     },
     "getDocs": {
         "dependencies": {
@@ -5015,9 +4966,6 @@
                 "formatPlural",
                 "fromBytes",
                 "fromDotSeparatedString",
-                "fromFound",
-                "fromMaybeDocument",
-                "fromMissing",
                 "fromName",
                 "fromResourceName",
                 "fromRpcStatus",
@@ -5043,8 +4991,6 @@
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
-                "invokeBatchGetDocumentsRpc",
-                "invokeCommitRpc",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -5290,8 +5236,6 @@
                 "TargetImpl",
                 "TargetState",
                 "Timestamp",
-                "Transaction",
-                "TransactionRunner",
                 "TransformMutation",
                 "TransformOperation",
                 "UnknownDocument",
@@ -5305,7 +5249,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 221879
+        "sizeInBytes": 216173
     },
     "getDocsFromCache": {
         "dependencies": {
@@ -5657,9 +5601,6 @@
                 "formatPlural",
                 "fromBytes",
                 "fromDotSeparatedString",
-                "fromFound",
-                "fromMaybeDocument",
-                "fromMissing",
                 "fromName",
                 "fromResourceName",
                 "fromRpcStatus",
@@ -5685,8 +5626,6 @@
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
-                "invokeBatchGetDocumentsRpc",
-                "invokeCommitRpc",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -5931,8 +5870,6 @@
                 "TargetImpl",
                 "TargetState",
                 "Timestamp",
-                "Transaction",
-                "TransactionRunner",
                 "TransformMutation",
                 "TransformOperation",
                 "UnknownDocument",
@@ -5946,7 +5883,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 221617
+        "sizeInBytes": 215911
     },
     "getFirestore": {
         "dependencies": {
@@ -6248,9 +6185,6 @@
                 "formatPlural",
                 "fromBytes",
                 "fromDotSeparatedString",
-                "fromFound",
-                "fromMaybeDocument",
-                "fromMissing",
                 "fromName",
                 "fromResourceName",
                 "fromRpcStatus",
@@ -6276,8 +6210,6 @@
                 "ignoreIfPrimaryLeaseLoss",
                 "implementsAnyMethods",
                 "invalidClassError",
-                "invokeBatchGetDocumentsRpc",
-                "invokeCommitRpc",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -6525,8 +6457,6 @@
                 "TargetImpl",
                 "TargetState",
                 "Timestamp",
-                "Transaction",
-                "TransactionRunner",
                 "TransformMutation",
                 "TransformOperation",
                 "UnknownDocument",
@@ -6540,7 +6470,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 222962
+        "sizeInBytes": 217256
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -6614,9 +6544,6 @@
                 "forEach",
                 "formatJSON",
                 "fromBytes",
-                "fromFound",
-                "fromMaybeDocument",
-                "fromMissing",
                 "fromName",
                 "fromResourceName",
                 "fromRpcStatus",
@@ -6640,8 +6567,6 @@
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "implementsAnyMethods",
-                "invokeBatchGetDocumentsRpc",
-                "invokeCommitRpc",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -6864,8 +6789,6 @@
                 "TargetImpl",
                 "TargetState",
                 "Timestamp",
-                "Transaction",
-                "TransactionRunner",
                 "TransformMutation",
                 "TransformOperation",
                 "UnknownDocument",
@@ -6878,7 +6801,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 203814
+        "sizeInBytes": 198108
     },
     "orderBy": {
         "dependencies": {
@@ -7494,9 +7417,6 @@
                 "formatPlural",
                 "fromBytes",
                 "fromDotSeparatedString",
-                "fromFound",
-                "fromMaybeDocument",
-                "fromMissing",
                 "fromName",
                 "fromResourceName",
                 "fromRpcStatus",
@@ -7520,8 +7440,6 @@
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
-                "invokeBatchGetDocumentsRpc",
-                "invokeCommitRpc",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -7771,8 +7689,6 @@
                 "TargetImpl",
                 "TargetState",
                 "Timestamp",
-                "Transaction",
-                "TransactionRunner",
                 "TransformMutation",
                 "TransformOperation",
                 "UnknownDocument",
@@ -7786,7 +7702,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 219244
+        "sizeInBytes": 213538
     },
     "setLogLevel": {
         "dependencies": {
@@ -8324,9 +8240,6 @@
                 "formatPlural",
                 "fromBytes",
                 "fromDotSeparatedString",
-                "fromFound",
-                "fromMaybeDocument",
-                "fromMissing",
                 "fromName",
                 "fromResourceName",
                 "fromRpcStatus",
@@ -8350,8 +8263,6 @@
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
-                "invokeBatchGetDocumentsRpc",
-                "invokeCommitRpc",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -8604,8 +8515,6 @@
                 "TargetImpl",
                 "TargetState",
                 "Timestamp",
-                "Transaction",
-                "TransactionRunner",
                 "TransformMutation",
                 "TransformOperation",
                 "UnknownDocument",
@@ -8619,7 +8528,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 220743
+        "sizeInBytes": 215037
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -8693,9 +8602,6 @@
                 "forEach",
                 "formatJSON",
                 "fromBytes",
-                "fromFound",
-                "fromMaybeDocument",
-                "fromMissing",
                 "fromName",
                 "fromResourceName",
                 "fromRpcStatus",
@@ -8718,8 +8624,6 @@
                 "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
-                "invokeBatchGetDocumentsRpc",
-                "invokeCommitRpc",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -8940,8 +8844,6 @@
                 "TargetImpl",
                 "TargetState",
                 "Timestamp",
-                "Transaction",
-                "TransactionRunner",
                 "TransformMutation",
                 "TransformOperation",
                 "UnknownDocument",
@@ -8954,7 +8856,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 202757
+        "sizeInBytes": 197051
     },
     "where": {
         "dependencies": {
@@ -9180,9 +9082,6 @@
                 "formatPlural",
                 "fromBytes",
                 "fromDotSeparatedString",
-                "fromFound",
-                "fromMaybeDocument",
-                "fromMissing",
                 "fromName",
                 "fromResourceName",
                 "fromRpcStatus",
@@ -9206,8 +9105,6 @@
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
-                "invokeBatchGetDocumentsRpc",
-                "invokeCommitRpc",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -9463,8 +9360,6 @@
                 "TargetImpl",
                 "TargetState",
                 "Timestamp",
-                "Transaction",
-                "TransactionRunner",
                 "TransformMutation",
                 "TransformOperation",
                 "UnknownDocument",
@@ -9479,6 +9374,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 224410
+        "sizeInBytes": 218704
     }
 }
