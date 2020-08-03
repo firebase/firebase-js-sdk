@@ -134,8 +134,12 @@ export class Firestore extends LiteFirestore
     debugAssert(!this._terminated, 'Cannot invoke _terminate() more than once');
     return this._queue.enqueueAndInitiateShutdown(async () => {
       await super._terminate();
-      this._credentials.removeChangeListener();
       await removeComponents(this);
+
+      // `removeChangeListener` must be called after shutting down the
+      // RemoteStore as it will prevent the RemoteStore from retrieving
+      // auth tokens.
+      this._credentials.removeChangeListener();
     });
   }
 }

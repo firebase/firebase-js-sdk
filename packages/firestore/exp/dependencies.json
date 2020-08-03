@@ -1013,7 +1013,6 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -1232,8 +1231,6 @@
             ],
             "classes": [
                 "AddedLimboDocument",
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -1263,22 +1260,17 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
-                "InFilter",
                 "IndexFreeQueryEngine",
                 "JsonProtoSerializer",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "LimboResolution",
@@ -1360,7 +1352,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 215256
+        "sizeInBytes": 212435
     },
     "arrayRemove": {
         "dependencies": {
@@ -1715,7 +1707,6 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "asNumber",
                 "assertPresent",
                 "binaryStringFromUint8Array",
@@ -1905,8 +1896,6 @@
             ],
             "classes": [
                 "AddedLimboDocument",
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -1933,20 +1922,15 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldMask",
                 "FieldPath",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GrpcConnection",
-                "InFilter",
                 "IndexFreeQueryEngine",
                 "JsonProtoSerializer",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "LimboResolution",
@@ -2023,7 +2007,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 197644
+        "sizeInBytes": 194823
     },
     "deleteField": {
         "dependencies": {
@@ -2087,7 +2071,6 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "asNumber",
                 "assertPresent",
                 "binaryStringFromUint8Array",
@@ -2278,8 +2261,6 @@
             ],
             "classes": [
                 "AddedLimboDocument",
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -2304,20 +2285,15 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldMask",
                 "FieldPath",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GrpcConnection",
-                "InFilter",
                 "IndexFreeQueryEngine",
                 "JsonProtoSerializer",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "LimboResolution",
@@ -2394,7 +2370,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 197262
+        "sizeInBytes": 194441
     },
     "doc": {
         "dependencies": {
@@ -2866,7 +2842,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 209028
+        "sizeInBytes": 208911
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -3327,7 +3303,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 301488
+        "sizeInBytes": 301371
     },
     "enableNetwork": {
         "dependencies": {
@@ -3349,7 +3325,6 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "asNumber",
                 "assertPresent",
                 "binaryStringFromUint8Array",
@@ -3540,8 +3515,6 @@
             ],
             "classes": [
                 "AddedLimboDocument",
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -3566,20 +3539,15 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldMask",
                 "FieldPath",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GrpcConnection",
-                "InFilter",
                 "IndexFreeQueryEngine",
                 "JsonProtoSerializer",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "LimboResolution",
@@ -3656,7 +3624,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 197259
+        "sizeInBytes": 194438
     },
     "endAt": {
         "dependencies": {
@@ -3924,7 +3892,6 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -4133,8 +4100,6 @@
             ],
             "classes": [
                 "AddedLimboDocument",
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncObserver",
@@ -4166,23 +4131,18 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
-                "InFilter",
                 "IndexFreeQueryEngine",
                 "JsonProtoSerializer",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "LimboResolution",
@@ -4264,7 +4224,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 213610
+        "sizeInBytes": 210789
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4286,7 +4246,6 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "asNumber",
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
@@ -4357,10 +4316,8 @@
                 "isIndexedDbTransactionError",
                 "isInteger",
                 "isMapValue",
-                "isNanValue",
                 "isNegativeZero",
                 "isNullOrUndefined",
-                "isNullValue",
                 "isNumber",
                 "isPlainObject",
                 "isServerTimestamp",
@@ -4427,8 +4384,6 @@
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -4450,21 +4405,16 @@
                 "DocumentSnapshot",
                 "DocumentSnapshot$1",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GeoPoint",
-                "InFilter",
                 "IndexFreeQueryEngine",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "ListenSequence",
@@ -4521,7 +4471,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 134557
+        "sizeInBytes": 131638
     },
     "getDocFromServer": {
         "dependencies": {
@@ -4543,7 +4493,6 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -4752,8 +4701,6 @@
             ],
             "classes": [
                 "AddedLimboDocument",
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncObserver",
@@ -4785,23 +4732,18 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
-                "InFilter",
                 "IndexFreeQueryEngine",
                 "JsonProtoSerializer",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "LimboResolution",
@@ -4883,7 +4825,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 213666
+        "sizeInBytes": 210845
     },
     "getDocs": {
         "dependencies": {
@@ -4905,7 +4847,6 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -5116,8 +5057,6 @@
             ],
             "classes": [
                 "AddedLimboDocument",
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncObserver",
@@ -5149,23 +5088,18 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
-                "InFilter",
                 "IndexFreeQueryEngine",
                 "JsonProtoSerializer",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "LimboResolution",
@@ -5249,7 +5183,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 216173
+        "sizeInBytes": 213352
     },
     "getDocsFromCache": {
         "dependencies": {
@@ -5271,7 +5205,6 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "asNumber",
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
@@ -5344,10 +5277,8 @@
                 "isIndexedDbTransactionError",
                 "isInteger",
                 "isMapValue",
-                "isNanValue",
                 "isNegativeZero",
                 "isNullOrUndefined",
-                "isNullValue",
                 "isNumber",
                 "isPlainObject",
                 "isServerTimestamp",
@@ -5417,8 +5348,6 @@
             ],
             "classes": [
                 "AddedLimboDocument",
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -5442,21 +5371,16 @@
                 "DocumentSnapshot",
                 "DocumentSnapshot$1",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GeoPoint",
-                "InFilter",
                 "IndexFreeQueryEngine",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "ListenSequence",
@@ -5518,7 +5442,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 146808
+        "sizeInBytes": 143889
     },
     "getDocsFromServer": {
         "dependencies": {
@@ -5540,7 +5464,6 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -5750,8 +5673,6 @@
             ],
             "classes": [
                 "AddedLimboDocument",
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncObserver",
@@ -5783,23 +5704,18 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
-                "InFilter",
                 "IndexFreeQueryEngine",
                 "JsonProtoSerializer",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "LimboResolution",
@@ -5883,7 +5799,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 215911
+        "sizeInBytes": 213090
     },
     "getFirestore": {
         "dependencies": {
@@ -6124,7 +6040,6 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -6337,8 +6252,6 @@
             ],
             "classes": [
                 "AddedLimboDocument",
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncObserver",
@@ -6370,23 +6283,18 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
-                "InFilter",
                 "IndexFreeQueryEngine",
                 "JsonProtoSerializer",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "LimboResolution",
@@ -6470,7 +6378,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 217256
+        "sizeInBytes": 214435
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -6492,7 +6400,6 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "asNumber",
                 "assertPresent",
                 "binaryStringFromUint8Array",
@@ -6684,8 +6591,6 @@
             ],
             "classes": [
                 "AddedLimboDocument",
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncObserver",
@@ -6711,20 +6616,15 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldMask",
                 "FieldPath",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GrpcConnection",
-                "InFilter",
                 "IndexFreeQueryEngine",
                 "JsonProtoSerializer",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "LimboResolution",
@@ -6801,7 +6701,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 198108
+        "sizeInBytes": 195287
     },
     "orderBy": {
         "dependencies": {
@@ -6965,18 +6865,10 @@
             "functions": [
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "boundEquals",
                 "cast",
-                "compareArrays",
-                "compareBlobs",
-                "compareGeoPoints",
-                "compareMaps",
-                "compareNumbers",
-                "compareReferences",
-                "compareTimestamps",
                 "decodeBase64",
                 "encodeBase64",
                 "fail",
@@ -6987,12 +6879,9 @@
                 "getMessageOrStack",
                 "getWindow",
                 "hardAssert",
-                "isArray",
                 "isIndexedDbTransactionError",
-                "isNanValue",
                 "isNegativeZero",
                 "isNullOrUndefined",
-                "isNullValue",
                 "isServerTimestamp",
                 "logDebug",
                 "logError",
@@ -7017,12 +6906,9 @@
                 "timestampEquals",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
-                "valueCompare",
                 "valueEquals"
             ],
             "classes": [
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "AsyncQueue",
                 "AutoId",
                 "BasePath",
@@ -7032,30 +6918,23 @@
                 "DatabaseInfo",
                 "Deferred",
                 "DelayedOperation",
-                "DocumentKey",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldPath",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
-                "InFilter",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "OAuthToken",
                 "OrderBy",
                 "Query",
                 "QueryImpl",
-                "ResourcePath",
                 "TargetImpl",
                 "Timestamp",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 40888
+        "sizeInBytes": 33485
     },
     "refEqual": {
         "dependencies": {
@@ -7358,7 +7237,6 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -7576,8 +7454,6 @@
             ],
             "classes": [
                 "AddedLimboDocument",
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -7606,22 +7482,17 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
-                "InFilter",
                 "IndexFreeQueryEngine",
                 "JsonProtoSerializer",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "LimboResolution",
@@ -7702,7 +7573,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 213538
+        "sizeInBytes": 210717
     },
     "setLogLevel": {
         "dependencies": {
@@ -7747,20 +7618,12 @@
             "functions": [
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "boundEquals",
                 "cast",
                 "changesFromSnapshot",
-                "compareArrays",
-                "compareBlobs",
-                "compareGeoPoints",
-                "compareMaps",
-                "compareNumbers",
-                "compareReferences",
-                "compareTimestamps",
                 "createError",
                 "decodeBase64",
                 "encodeBase64",
@@ -7780,12 +7643,9 @@
                 "getWindow",
                 "hardAssert",
                 "invalidClassError",
-                "isArray",
                 "isIndexedDbTransactionError",
-                "isNanValue",
                 "isNegativeZero",
                 "isNullOrUndefined",
-                "isNullValue",
                 "isPlainObject",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -7820,13 +7680,10 @@
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
                 "validateType",
-                "valueCompare",
                 "valueDescription",
                 "valueEquals"
             ],
             "classes": [
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "AsyncQueue",
                 "AutoId",
                 "BaseFieldPath",
@@ -7844,19 +7701,14 @@
                 "DocumentSnapshot",
                 "DocumentSnapshot$1",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GeoPoint",
-                "InFilter",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "OAuthToken",
                 "OrderBy",
                 "Query",
@@ -7873,7 +7725,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 57219
+        "sizeInBytes": 50917
     },
     "startAfter": {
         "dependencies": {
@@ -8180,7 +8032,6 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -8400,8 +8251,6 @@
             ],
             "classes": [
                 "AddedLimboDocument",
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -8431,23 +8280,18 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
-                "InFilter",
                 "IndexFreeQueryEngine",
                 "JsonProtoSerializer",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "LimboResolution",
@@ -8528,7 +8372,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 215037
+        "sizeInBytes": 212216
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -8550,7 +8394,6 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "asNumber",
                 "assertPresent",
                 "binaryStringFromUint8Array",
@@ -8740,8 +8583,6 @@
             ],
             "classes": [
                 "AddedLimboDocument",
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -8766,20 +8607,15 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldMask",
                 "FieldPath",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GrpcConnection",
-                "InFilter",
                 "IndexFreeQueryEngine",
                 "JsonProtoSerializer",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "LimboResolution",
@@ -8856,7 +8692,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 197051
+        "sizeInBytes": 194230
     },
     "where": {
         "dependencies": {
@@ -8999,7 +8835,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 58576
+        "sizeInBytes": 58541
     },
     "writeBatch": {
         "dependencies": {
@@ -9022,7 +8858,6 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
-                "arrayValueContains",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -9244,8 +9079,6 @@
             ],
             "classes": [
                 "AddedLimboDocument",
-                "ArrayContainsAnyFilter",
-                "ArrayContainsFilter",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -9275,23 +9108,18 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldFilter",
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
-                "Filter",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
-                "InFilter",
                 "IndexFreeQueryEngine",
                 "JsonProtoSerializer",
-                "KeyFieldFilter",
-                "KeyFieldInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "LimboResolution",
@@ -9374,6 +9202,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 218704
+        "sizeInBytes": 215883
     }
 }
