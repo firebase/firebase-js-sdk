@@ -24,10 +24,10 @@ import {
   PerformanceSettings
 } from '@firebase/performance-types-exp';
 
-import { PerformanceController } from './src/controllers/perf';
-import { setupApi } from './src/services/api_service';
-import { SettingsService } from './src/services/settings_service';
-import { ERROR_FACTORY, ErrorCode } from './src/utils/errors';
+import { PerformanceController } from './controllers/perf';
+import { setupApi } from './services/api_service';
+import { SettingsService } from './services/settings_service';
+import { ERROR_FACTORY, ErrorCode } from './utils/errors';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
