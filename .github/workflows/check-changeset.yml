@@ -27,7 +27,7 @@ jobs:
       uses: peter-evans/create-or-update-comment@v1
       id: couc
       with:
-        issue-number: 1
+        issue-number: ${{github.event.number}}
         body: |
           Changeset warning: This PR modifies files in the following packages but they have not
           been included in the changeset file: ${{env.MISSING_PACKAGES}}
