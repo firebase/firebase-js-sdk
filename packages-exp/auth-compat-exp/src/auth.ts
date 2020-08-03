@@ -120,13 +120,9 @@ export class Auth extends AuthImplCompat<User> implements compat.FirebaseAuth {
     }
     return convertCredential(Promise.resolve(credential));
   }
-  // languageCode: string | null;
-  //       settings: AuthSettings;
   onAuthStateChanged(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    nextOrObserver: Observer<any> | ((a: compat.User | null) => any),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    error?: (error: compat.Error) => any,
+    nextOrObserver: Observer<unknown> | ((a: compat.User | null) => unknown),
+    error?: (error: compat.Error) => unknown,
     completed?: Unsubscribe
   ): Unsubscribe {
     return super._onAuthStateChanged(
@@ -136,10 +132,8 @@ export class Auth extends AuthImplCompat<User> implements compat.FirebaseAuth {
     );
   }
   onIdTokenChanged(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    nextOrObserver: Observer<any> | ((a: compat.User | null) => any),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    error?: (error: compat.Error) => any,
+    nextOrObserver: Observer<unknown> | ((a: compat.User | null) => unknown),
+    error?: (error: compat.Error) => unknown,
     completed?: Unsubscribe
   ): Unsubscribe {
     return super._onIdTokenChanged(
