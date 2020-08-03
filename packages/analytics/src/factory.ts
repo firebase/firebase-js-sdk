@@ -41,7 +41,10 @@ import { FirebaseInstallations } from '@firebase/installations-types';
 import {
   isIndexedDBAvailable,
   validateIndexedDBOpenable,
-  areCookiesEnabled
+  areCookiesEnabled,
+  isBrowser,
+  ErrorFactory,
+  isBrowserExtension
 } from '@firebase/util';
 
 /**
@@ -122,6 +125,9 @@ export function factory(
   app: FirebaseApp,
   installations: FirebaseInstallations
 ): FirebaseAnalytics {
+  if (isBrowserExtension()) {
+    throw ERROR_FACTORY.create(AnalyticsError.INVALID_ANALYTICS_CONTEXT);
+  }
   if (!areCookiesEnabled()) {
     throw ERROR_FACTORY.create(AnalyticsError.COOKIES_NOT_ENABLED);
   }
