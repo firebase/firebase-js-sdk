@@ -64,46 +64,22 @@ describe('RestConnection', () => {
   );
   const connection = new TestRestConnection(testDatabaseInfo);
 
-  it('url uses project ID and database ID', async () => {
-    await connection.invokeRPC('Commit', '{}', null);
-    expect(connection.lastUrl).to.equal(
-      'http://example.com/v1/projects/testproject/' +
-        'databases/(default)/documents:commit'
-    );
-  });
-
-  it('url uses parent when provided', async () => {
+  it('url uses from path', async () => {
     await connection.invokeRPC(
-      'RunQuery',
-      {
-        parent: 'projects/testproject/databases/(default)/documents/coll'
-      },
+      'Commit',
+      'projects/testproject/databases/(default)/documents',
+      {},
       null
     );
     expect(connection.lastUrl).to.equal(
-      'http://example.com/v1/projects/testproject/' +
-        'databases/(default)/documents/coll:runQuery'
+      'http://example.com/v1/projects/testproject/databases/(default)/documents:commit'
     );
-  });
-
-  it('drops parent and database from request', async () => {
-    await connection.invokeRPC(
-      'RunQuery',
-      {
-        foo: 'bar',
-        database: 'projects/testproject/databases/(default)/documents',
-        parent: 'projects/testproject/databases/(default)/documents/coll'
-      },
-      null
-    );
-    expect(connection.lastRequestBody).to.deep.equal({
-      foo: 'bar'
-    });
   });
 
   it('merges headers', async () => {
     await connection.invokeRPC(
       'RunQuery',
+      'projects/testproject/databases/(default)/documents/foo',
       {},
       {
         user: User.UNAUTHENTICATED,
@@ -120,7 +96,12 @@ describe('RestConnection', () => {
 
   it('returns success', async () => {
     connection.nextResponse = Promise.resolve({ response: true });
-    const response = await connection.invokeRPC('RunQuery', {}, null);
+    const response = await connection.invokeRPC(
+      'RunQuery',
+      'projects/testproject/databases/(default)/documents/coll',
+      {},
+      null
+    );
     expect(response).to.deep.equal({ response: true });
   });
 
@@ -128,7 +109,12 @@ describe('RestConnection', () => {
     const error = new FirestoreError(Code.UNKNOWN, 'Test exception');
     connection.nextResponse = Promise.reject(error);
     return expect(
-      connection.invokeRPC('RunQuery', {}, null)
+      connection.invokeRPC(
+        'RunQuery',
+        'projects/testproject/databases/(default)/documents/coll',
+        {},
+        null
+      )
     ).to.be.eventually.rejectedWith(error);
   });
 });

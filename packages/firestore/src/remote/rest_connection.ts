@@ -23,7 +23,6 @@ import { logDebug, logWarn } from '../util/log';
 import { FirestoreError } from '../util/error';
 import { StringMap } from '../util/types';
 import { debugAssert } from '../util/assert';
-import { Indexable } from '../util/misc';
 
 const LOG_TAG = 'RestConnection';
 
@@ -64,29 +63,17 @@ export abstract class RestConnection implements Connection {
 
   invokeRPC<Req, Resp>(
     rpcName: string,
+    path: string,
     req: Req,
     token: Token | null
   ): Promise<Resp> {
-    const url = this.makeUrl(rpcName, req);
-
-    // The database and/or parent field is already encoded in URL. Specifying it
-    // again in the body is not necessary in production, and will cause
-    // duplicate field errors in the Firestore Emulator. Let's remove it.
-    const jsonObj = ({ ...req } as unknown) as Indexable;
-    delete jsonObj.parent;
-    delete jsonObj.database;
-
-    logDebug(LOG_TAG, 'Sending: ', url, jsonObj);
+    const url = this.makeUrl(rpcName, path);
+    logDebug(LOG_TAG, 'Sending: ', url, req);
 
     const headers = {};
     this.modifyHeadersForRequest(headers, token);
 
-    return this.performRPCRequest<Indexable, Resp>(
-      rpcName,
-      url,
-      headers,
-      jsonObj
-    ).then(
+    return this.performRPCRequest<Req, Resp>(rpcName, url, headers, req).then(
       response => {
         logDebug(LOG_TAG, 'Received: ', response);
         return response;
@@ -95,7 +82,7 @@ export abstract class RestConnection implements Connection {
         logWarn(
           LOG_TAG,
           `${rpcName} failed with error: `,
-          err.message,
+          err,
           'url: ',
           url,
           'request:',
@@ -108,12 +95,13 @@ export abstract class RestConnection implements Connection {
 
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
+    path: string,
     request: Req,
     token: Token | null
   ): Promise<Resp[]> {
     // The REST API automatically aggregates all of the streamed results, so we
     // can just use the normal invoke() method.
-    return this.invokeRPC<Req, Resp[]>(rpcName, request, token);
+    return this.invokeRPC<Req, Resp[]>(rpcName, path, request, token);
   }
 
   abstract openStream<Req, Resp>(
@@ -156,13 +144,12 @@ export abstract class RestConnection implements Connection {
     body: Req
   ): Promise<Resp>;
 
-  private makeUrl<Req>(rpcName: string, req: Req): string {
+  private makeUrl<Req>(rpcName: string, path: string): string {
     const urlRpcName = RPC_NAME_URL_MAPPING[rpcName];
     debugAssert(
       urlRpcName !== undefined,
       'Unknown REST mapping for: ' + rpcName
     );
-    const path = ((req as unknown) as Indexable).parent || this.databaseRoot;
     return `${this.baseUrl}/${RPC_URL_VERSION}/${path}:${urlRpcName}`;
   }
 }

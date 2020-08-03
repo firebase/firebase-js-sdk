@@ -23,5 +23,5 @@ export { newConnectivityMonitor } from '../browser/connection';
 
 /** Initializes the HTTP connection for the REST API. */
 export function newConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
-  return Promise.resolve(new FetchConnection(databaseInfo, fetch));
+  return Promise.resolve(new FetchConnection(databaseInfo, fetch.bind(null)));
 }
