@@ -28,8 +28,9 @@ jobs:
       id: fc
       with:
         issue-number: ${{github.event.number}}
-        comment-author: github-actions
         body-includes: Changeset Warning
+    - name: Show found comment ID
+      run: echo ${{steps.fc.outputs.comment-id}}
     - name: Create comment
       if: ${{!steps.fc.outputs.comment-id}}
       uses: peter-evans/create-or-update-comment@v1

@@ -91,7 +91,9 @@ async function main() {
         // + `intentional:\n${missingPackages.join('\n')}`));
         // process.exit(1);
         console.log(
-          `::set-env name=MISSING_PACKAGES::"${missingPackages.join(', ')}"`
+          `::set-env name=MISSING_PACKAGES::${missingPackages
+            .map(pkg => `- ${pkg}`)
+            .join('\n')}`
         );
       }
       process.exit();
