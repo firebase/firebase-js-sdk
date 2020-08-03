@@ -22,7 +22,7 @@ jobs:
       run: yarn ts-node-script scripts/check_changeset.ts
       id: check-changeset
     - name: Read output
-      run: echo $MISSING_PACKAGES
+      run: echo ${{steps.check-changeset.outputs.MISSING_PACKAGES}}
     - name: Find Comment
       uses: peter-evans/find-comment@v1
       id: fc
@@ -41,15 +41,16 @@ jobs:
           ### Changeset Warning
           This PR modifies files in the following packages but they have not
           been included in the changeset file:
-          ${{env.MISSING_PACKAGES}}
+          ${{steps.check-changeset.outputs.MISSING_PACKAGES}}
     - name: Update comment
       if: ${{steps.fc.outputs.comment-id}}
       uses: peter-evans/create-or-update-comment@v1
       id: uc
       with:
         comment-id: ${{steps.fc.outputs.comment-id}}
+        edit-mode: replace
         body: |
           ### Changeset Warning
           This PR modifies files in the following packages but they have not
           been included in the changeset file:
-          ${{env.MISSING_PACKAGES}}
+          ${{steps.check-changeset.outputs.MISSING_PACKAGES}}
