@@ -37,7 +37,7 @@ jobs:
       with:
         issue-number: ${{github.event.number}}
         body: |
-          ###Changeset Warning
+          ### Changeset Warning
           This PR modifies files in the following packages but they have not
           been included in the changeset file:
           ${{env.MISSING_PACKAGES}}
@@ -48,7 +48,7 @@ jobs:
       with:
         comment-id: ${{steps.fc.outputs.comment-id}}
         body: |
-          ###Changeset Warning
+          ### Changeset Warning
           This PR modifies files in the following packages but they have not
           been included in the changeset file:
           ${{env.MISSING_PACKAGES}}
