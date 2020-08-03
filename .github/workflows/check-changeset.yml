@@ -1,0 +1,25 @@
+name: Check Changeset
+
+on: pull_request
+
+jobs:
+  check_changeset:
+    name: Check changeset vs changed files
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Checkout
+      run: |
+        git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
+    - name: Set up Node (10)
+      uses: actions/setup-node@v1
+      with:
+        node-version: 10.x
+    - name: Yarn install
+      run: yarn
+    - name: Run changeset script
+      run: yarn ts-node-script scripts/check_changeset.ts
+      id: check-changeset
+    - name: Read output
+      run: echo env.MISSING_PACKAGES

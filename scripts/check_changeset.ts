@@ -85,7 +85,16 @@ async function main() {
       const missingPackages = changedPackages.filter(
         changedPkg => !changesetPackages.includes(changedPkg)
       );
-      console.log(missingPackages);
+      if (missingPackages.length > 0) {
+        // console.warn(chalk.yellow(`Warning: The following packages were `
+        // + `changed but not added to the changeset file, make sure this was `
+        // + `intentional:\n${missingPackages.join('\n')}`));
+        // process.exit(1);
+        console.log(
+          `::set-env name=MISSING_PACKAGES::${missingPackages.join(',')}`
+        );
+      }
+      process.exit();
     }
   } catch (e) {
     console.error(chalk`{red ${e}}`);
