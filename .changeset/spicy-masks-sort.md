@@ -1,5 +1,6 @@
 ---
+"@firebase/firebase": patch
 "@firebase/analytics": patch 
 ---
 
-Browser Extension Check for Analytics Module
+Added Browser Extension check for Firebase Analytics. analytics.isSupported() will now return Promise<false> for extension environments. 
