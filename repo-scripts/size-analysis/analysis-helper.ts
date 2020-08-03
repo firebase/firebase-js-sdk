@@ -211,6 +211,7 @@ export function extractDeclarations(
     enums: [],
     externals: []
   };
+  const namespaceImportSet: Set<string> = new Set();
   // define a map here which is used to handle export statements that have no from clause.
   // As there is no from clause in such export statements, we retrieve symbol location by parsing the corresponding import
   // statements. We store the symbol and its defined location as key value pairs in the map.
@@ -284,7 +285,7 @@ export function extractDeclarations(
           const symbolName: string = node.importClause.namedBindings.name.getText(
             sourceFile
           );
-          declarations.variables.push(symbolName);
+          namespaceImportSet.add(symbolName);
 
           // import a from '@firebase/dummy-exp'
         } else if (
@@ -327,7 +328,8 @@ export function extractDeclarations(
           node,
           importSymbolCurrentNameToModuleLocation,
           importSymbolCurrentNameToOriginalName,
-          importModuleLocationToExportedSymbolsList
+          importModuleLocationToExportedSymbolsList,
+          namespaceImportSet
         );
         // concatenate re-exported MemberList with MemberList of the dts file
         for (const key of Object.keys(declarations)) {
@@ -456,7 +458,8 @@ function handleExportStatementsWithoutFromClause(
   node: ts.ExportDeclaration,
   importSymbolCurrentNameToModuleLocation: Map<string, string>,
   importSymbolCurrentNameToOriginalName: Map<string, string>,
-  importModuleLocationToExportedSymbolsList: Map<string, MemberList>
+  importModuleLocationToExportedSymbolsList: Map<string, MemberList>,
+  namespaceImportSymbolSet: Set<string>
 ): MemberList {
   const declarations: MemberList = {
     functions: [],
@@ -472,10 +475,19 @@ function handleExportStatementsWithoutFromClause(
       const exportSymbolOriginalName = extractOriginalSymbolName(
         exportSpecifier
       );
+      // import * as fs from 'fs';  export {fs};
+      if (namespaceImportSymbolSet.has(exportSymbolOriginalName)) {
+        declarations.variables.push(exportSymbolOriginalName);
+        replaceAll(
+          declarations,
+          exportSymbolOriginalName,
+          exportSymbolCurrentName
+        );
+      }
       // handles import then exports
       // import {a as A , b as B} from '...'
       // export {A as AA , B as BB };
-      if (
+      else if (
         importSymbolCurrentNameToModuleLocation.has(exportSymbolOriginalName)
       ) {
         const moduleLocation: string = importSymbolCurrentNameToModuleLocation.get(

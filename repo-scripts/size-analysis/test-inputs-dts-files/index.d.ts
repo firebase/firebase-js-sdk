@@ -69,3 +69,7 @@ export { foo as foo2 };
 export { LogLevel1 as LogLevel2 };
 export { Logger as Logger1 };
 export { setLogLevel };
+import * as fs from 'fs';
+export { fs as fs1 };
+import * as tmp from 'tmp';
+export declare const aVar: tmp.FileOptions;

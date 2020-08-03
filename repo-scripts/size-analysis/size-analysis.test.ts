@@ -161,6 +161,16 @@ describe('extractDeclarations', () => {
   it('test import then export', () => {
     expect(extractedDeclarations.functions).to.include.members(['setLogLevel']);
   });
+
+  // import * as fs from 'fs'
+  // import * as tmp from 'tmp'
+  // export declare const aVar: tmp.FileOptions;
+  // export { fs as fs1 };
+  it('test namespace export', () => {
+    expect(extractedDeclarations.variables).to.include.members(['fs1']);
+    expect(extractedDeclarations.variables).to.not.include.members(['tmp']);
+    expect(extractedDeclarations.variables).to.include.members(['aVar']);
+  });
 });
 
 describe('test dedup helper function', () => {
