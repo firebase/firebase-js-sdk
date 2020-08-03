@@ -23,11 +23,32 @@ jobs:
       id: check-changeset
     - name: Read output
       run: echo $MISSING_PACKAGES
+    - name: Find Comment
+      uses: peter-evans/find-comment@v1
+      id: fc
+      with:
+        issue-number: ${{github.event.number}}
+        comment-author: github-actions
+        body-includes: Changeset Warning
     - name: Create comment
+      if: ${{!steps.fc.outputs.comment-id}}
       uses: peter-evans/create-or-update-comment@v1
       id: couc
       with:
         issue-number: ${{github.event.number}}
         body: |
-          Changeset warning: This PR modifies files in the following packages but they have not
-          been included in the changeset file: ${{env.MISSING_PACKAGES}}
+          ###Changeset Warning
+          This PR modifies files in the following packages but they have not
+          been included in the changeset file:
+          ${{env.MISSING_PACKAGES}}
+    - name: Update comment
+      if: ${{steps.fc.outputs.comment-id}}
+      uses: peter-evans/create-or-update-comment@v1
+      id: couc
+      with:
+        comment-id: ${{steps.fc.outputs.comment-id}}
+        body: |
+          ###Changeset Warning
+          This PR modifies files in the following packages but they have not
+          been included in the changeset file:
+          ${{env.MISSING_PACKAGES}}
