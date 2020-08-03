@@ -35,7 +35,8 @@ import { ERROR_FACTORY, AnalyticsError } from './src/errors';
 import {
   isIndexedDBAvailable,
   validateIndexedDBOpenable,
-  areCookiesEnabled
+  areCookiesEnabled,
+  isBrowserExtension
 } from '@firebase/util';
 import { name, version } from './package.json';
 
@@ -110,19 +111,25 @@ declare module '@firebase/app-types' {
 }
 
 /**
- * this is a public static method provided to users that wraps three different checks:
+ * this is a public static method provided to users that wraps four different checks:
  *
+ * 1. check if it's not a browser extension environment.
  * 1. check if cookie is enabled in current browser.
- * 2. check if IndexedDB is supported by the browser environment.
- * 3. check if the current browser context is valid for using IndexedDB.
+ * 3. check if IndexedDB is supported by the browser environment.
+ * 4. check if the current browser context is valid for using IndexedDB.
+ *
  */
 async function isSupported(): Promise<boolean> {
+  if (isBrowserExtension()) {
+    return false;
+  }
   if (!areCookiesEnabled()) {
     return false;
   }
   if (!isIndexedDBAvailable()) {
     return false;
   }
+
   try {
     const isDBOpenable: boolean = await validateIndexedDBOpenable();
     return isDBOpenable;
