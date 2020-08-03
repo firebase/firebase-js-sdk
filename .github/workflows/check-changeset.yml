@@ -28,21 +28,19 @@ jobs:
       id: fc
       with:
         issue-number: ${{github.event.number}}
-        body-includes: Changeset Warning
-    - name: Show found comment ID
-      run: echo ${{steps.fc.outputs.comment-id}}
-    - name: Create comment
-      if: ${{!steps.fc.outputs.comment-id}}
+        body-includes: Changeset File Check
+    - name: Create comment (missing packages)
+      if: ${{!steps.fc.outputs.comment-id && steps.check-changeset.outputs.MISSING_PACKAGES}}
       uses: peter-evans/create-or-update-comment@v1
       id: cc
       with:
         issue-number: ${{github.event.number}}
         body: |
-          ### Changeset Warning
+          ### Changeset File Check
           This PR modifies files in the following packages but they have not
           been included in the changeset file:
           ${{steps.check-changeset.outputs.MISSING_PACKAGES}}
-    - name: Update comment
+    - name: Update comment (missing packages)
       if: ${{steps.fc.outputs.comment-id}}
       uses: peter-evans/create-or-update-comment@v1
       id: uc
@@ -50,7 +48,17 @@ jobs:
         comment-id: ${{steps.fc.outputs.comment-id}}
         edit-mode: replace
         body: |
-          ### Changeset Warning
+          ### Changeset File Check
           This PR modifies files in the following packages but they have not
           been included in the changeset file:
           ${{steps.check-changeset.outputs.MISSING_PACKAGES}}
+    - name: Update comment (no missing packages)
+      if: ${{steps.fc.outputs.comment-id && !steps.check-changeset.outputs.MISSING_PACKAGES}}
+      uses: peter-evans/create-or-update-comment@v1
+      id: uc
+      with:
+        comment-id: ${{steps.fc.outputs.comment-id}}
+        edit-mode: replace
+        body: |
+          ### Changeset File Check
+          :white_check_mark: No modified packages are missing from the changeset file.
