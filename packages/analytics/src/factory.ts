@@ -42,8 +42,6 @@ import {
   isIndexedDBAvailable,
   validateIndexedDBOpenable,
   areCookiesEnabled,
-  isBrowser,
-  ErrorFactory,
   isBrowserExtension
 } from '@firebase/util';
 
