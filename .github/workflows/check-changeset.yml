@@ -23,3 +23,11 @@ jobs:
       id: check-changeset
     - name: Read output
       run: echo $MISSING_PACKAGES
+    - name: Create comment
+      uses: peter-evans/create-or-update-comment@v1
+      id: couc
+      with:
+        issue-number: 1
+        body: |
+          Changeset warning: This PR modifies files in the following packages but they have not
+          been included in the changeset file: ${{env.MISSING_PACKAGES}}
