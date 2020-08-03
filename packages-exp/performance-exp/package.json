@@ -26,6 +26,7 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
+    "@firebase/app-exp": "0.0.800",
     "@firebase/logger": "0.2.6",
     "@firebase/installations": "0.4.15",
     "@firebase/util": "0.3.0",

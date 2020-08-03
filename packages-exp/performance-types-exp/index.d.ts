@@ -35,6 +35,18 @@ export interface FirebasePerformance {
   dataCollectionEnabled: boolean;
 }
 
+/**
+ * This interface is for internal use only, and not exported for Firebase
+ * Performance Users.
+ */
+export interface FirebasePerformanceInternal extends FirebasePerformance {
+  /**
+   * Initializes the Performance behaviour, following the settings provided
+   * (or defaults if the settings aren't provided).
+   */
+  init(settings?: PerformanceSettings): void;
+}
+
 export interface PerformanceTrace {
   /**
    * Starts the timing for the trace instance.
@@ -118,6 +130,6 @@ export interface PerformanceTrace {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'performance': FirebasePerformance;
+    'performance': FirebasePerformanceInternal;
   }
 }
