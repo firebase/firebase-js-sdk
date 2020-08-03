@@ -23,6 +23,7 @@ import * as terser from 'terser';
 import * as ts from 'typescript';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
+import { deepCopy } from '@firebase/util';
 
 const TYPINGS: string = 'typings';
 const BUNDLE: string = 'esm2017';
@@ -37,9 +38,6 @@ export const enum ErrorCode {
   INPUT_BUNDLE_FILE_DOES_NOT_EXIST = 'Input bundle file does not exist!',
   FILE_PARSING_ERROR = 'Failed to parse js file!',
   REPORT_REDIRECTION_ERROR = 'Please enable at least one of --output or --ci flag for report redirection!'
-}
-export const enum Warning {
-  MODULE_NOT_RESOLVED = 'module can not be resolved to its actual location'
 }
 interface External {
   moduleName: string;
@@ -278,7 +276,7 @@ export function extractDeclarations(
             }
           });
 
-          // import * as fs from 'fs
+          // import * as fs from 'fs'
         } else if (
           node.importClause.namedBindings &&
           ts.isNamespaceImport(node.importClause.namedBindings)
@@ -391,7 +389,7 @@ function handleExportStatementsWithFromClause(
   // handles the case when exporting * from a module whose location can't be resolved
   else {
     console.log(
-      `export statement: export * from ${moduleName}: ${Warning.MODULE_NOT_RESOLVED}`
+      `The public API extraction of ${moduleName} is not complete, because it re-exports from ${moduleName} using * export but we couldn't resolve ${moduleName}`
     );
   }
 
@@ -485,7 +483,7 @@ function handleExportStatementsWithoutFromClause(
         );
         let reExportedSymbols: MemberList = null;
         if (importModuleLocationToExportedSymbolsList.has(moduleLocation)) {
-          reExportedSymbols = copyOf(
+          reExportedSymbols = deepCopy(
             importModuleLocationToExportedSymbolsList.get(moduleLocation)
           );
         } else {
@@ -496,7 +494,7 @@ function handleExportStatementsWithoutFromClause(
           );
           importModuleLocationToExportedSymbolsList.set(
             moduleLocation,
-            copyOf(reExportedSymbols)
+            deepCopy(reExportedSymbols)
           );
         }
 
@@ -542,24 +540,7 @@ function handleExportStatementsWithoutFromClause(
   }
   return declarations;
 }
-/**
- * This functions returns a copy of source MemberList. It deep copies the functions, classes, variables field, and
- * shallow copies externals field.
- * @param source source MeberList to make a copy of
- */
-function copyOf(source: MemberList): MemberList {
-  const target: MemberList = {
-    functions: [],
-    classes: [],
-    variables: [],
-    enums: [],
-    externals: []
-  };
-  for (const key of Object.keys(source)) {
-    target[key] = [...source[key]];
-  }
-  return target;
-}
+
 /**
  * To Make sure symbols of every category are unique.
  */
