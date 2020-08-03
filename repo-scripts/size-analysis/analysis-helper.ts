@@ -186,7 +186,7 @@ export async function extractDependenciesAndSize(
  * FunctionDeclaration: export function aFunc(): string {...};
  * ClassDeclaration: export class aClass {};
  * EnumDeclaration: export enum aEnum {};
- * VariableDeclaration: export let aVariable: string;
+ * VariableDeclaration: export let aVariable: string; import * as tmp from 'tmp'; export declare const aVar: tmp.someType.
  * VariableStatement: export const aVarStatement: string = "string"; export const { a, b } = { a: 'a', b: 'b' };
  * ExportDeclaration:
  *      named exports: export {foo, bar} from '...'; export {foo as foo1, bar} from '...'; export {LogLevel};
@@ -443,13 +443,17 @@ function extractSymbolsFromNamedExportStatement(
  * @param importSymbolCurrentNameToModuleLocation a map with imported symbol current name as key and the resolved module location as value. (map is populated by parsing import statements)
  * @param importSymbolCurrentNameToOriginalName as imported symbols can be renamed, this map stores imported symbols current name and original name as key value pairs.
  * @param importModuleLocationToExportedSymbolsList a map that maps module location to a list of its exported symbols.
- *
+ * @param namespaceImportSymbolSet a set of namespace import symbols.
  * This function exclusively handles named export statements that has no from clause, i.e: statements like export {LogLevel};
- * first case : import then export
+ * first case: namespace export
+ * example: import * as fs from 'fs'; export {fs};
+ * The function checks if namespaceImportSymbolSet has a namespace import symbol that of the same name, append the symbol to declarations.variables if exists.
+ *
+ * second case: import then export
  * example: import {a} from '...'; export {a}
  * The function retrieves the location where the exported symbol is defined from the corresponding import statements.
  *
- * second case: declare first then export
+ * third case: declare first then export
  * examples: declare const apps: Map<string, number>; export { apps };
  * function foo(){} ; export {foo as bar};
  * The function parses export clause of the statement and replaces symbol with its current name (if the symbol is renamed) from the declaration argument.
@@ -550,6 +554,7 @@ function handleExportStatementsWithoutFromClause(
       }
     });
   }
+
   return declarations;
 }
 
