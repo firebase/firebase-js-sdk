@@ -15,16 +15,10 @@
  * limitations under the License.
  */
 
-// This file is only used under ts-node.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/dom`);
+/** Return the Platform-specific serializer monitor. */
+import { JsonProtoSerializer } from '../../remote/serializer';
+import { DatabaseId } from '../../core/database_info';
 
-/** The Platform's 'window' implementation or null if not available. */
-export function getWindow(): Window | null {
-  return platform.getWindow();
-}
-
-/** The Platform's 'document' implementation or null if not available. */
-export function getDocument(): Document | null {
-  return platform.getDocument();
+export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
+  return new JsonProtoSerializer(databaseId, /* useProto3Json= */ true);
 }

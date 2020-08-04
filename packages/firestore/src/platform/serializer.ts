@@ -14,20 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { isNode, isReactNative } from '@firebase/util';
-import * as node from './node/serializer';
-import * as rn from './rn/serializer';
-import * as browser from './browser/serializer';
 import { DatabaseId } from '../core/database_info';
 import { JsonProtoSerializer } from '../remote/serializer';
 
+// This file is only used under ts-node.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/serializer`);
+
 export function newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
-  if (isNode()) {
-    return node.newSerializer(databaseId);
-  } else if (isReactNative()) {
-    return rn.newSerializer(databaseId);
-  } else {
-    return browser.newSerializer(databaseId);
-  }
+  return platform.newSerializer(databaseId);
 }
