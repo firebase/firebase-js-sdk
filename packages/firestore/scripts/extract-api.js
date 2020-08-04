@@ -14,10 +14,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
-exports.__esModule = true;
+ */ exports.__esModule = true;
 exports.extractPublicIdentifiers = void 0;
-// eslint-disable-next-line import/no-extraneous-dependencies
 var ts = require('typescript');
 var fs = require('fs');
 function extractIdentifiersFromNodeAndChildren(node, symbols) {
@@ -28,7 +26,6 @@ function extractIdentifiersFromNodeAndChildren(node, symbols) {
     return extractIdentifiersFromNodeAndChildren(childNode, symbols);
   });
 }
-/** Generates the "d.ts" content for `fileName`. */
 function extractTypeDeclaration(fileName) {
   var result;
   var compilerOptions = { declaration: true, emitDeclarationOnly: true };
@@ -40,14 +37,10 @@ function extractTypeDeclaration(fileName) {
   program.emit();
   return result;
 }
-/**
- * Traverses TypeScript type definition files and returns the list of referenced
- * identifiers.
- */
 function extractPublicIdentifiers(filePaths) {
   var publicIdentifiers = new Set();
   var _loop_1 = function (filePath) {
-    var contents = fs.readFileSync(filePath, { encoding: 'UTF-8' });
+    var contents = fs.readFileSync(filePath, { encoding: 'utf-8' });
     var sourceFile = ts.createSourceFile(
       filePath,
       contents,

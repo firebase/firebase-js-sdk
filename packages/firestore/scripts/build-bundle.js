@@ -14,8 +14,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
-var __awaiter =
+ */ var __awaiter =
   (this && this.__awaiter) ||
   function (thisArg, _arguments, P, generator) {
     function adopt(value) {
@@ -65,7 +64,7 @@ var __generator =
       t,
       g;
     return (
-      (g = { next: verb(0), 'throw': verb(1), 'return': verb(2) }),
+      (g = { next: verb(0), throw: verb(1), return: verb(2) }),
       typeof Symbol === 'function' &&
         (g[Symbol.iterator] = function () {
           return this;
@@ -154,7 +153,7 @@ var rollup_1 = require('rollup');
 var typescriptPlugin = require('rollup-plugin-typescript2');
 var alias = require('@rollup/plugin-alias');
 var json = require('rollup-plugin-json');
-var rollup_shared_1 = require('../rollup.shared');
+var util = require('../rollup.shared');
 var argv = yargs.options({
   input: {
     type: 'string',
@@ -167,13 +166,6 @@ var argv = yargs.options({
     desc: 'The location for the transpiled JavaScript bundle'
   }
 }).argv;
-/**
- * Builds an ESM bundle for the Typescript file at `index` and writes it the
- * file located at `output`.
- *
- * This is used in the `gendeps` build and does not minify or mangle property
- * names.
- */
 function buildBundle(input, output) {
   return __awaiter(this, void 0, void 0, function () {
     var bundle;
@@ -181,30 +173,26 @@ function buildBundle(input, output) {
       switch (_a.label) {
         case 0:
           return [
-            4 /*yield*/,
+            4,
             rollup_1.rollup({
               input: input,
               plugins: [
-                alias(rollup_shared_1.generateAliasConfig('node')),
+                alias(util.generateAliasConfig('node')),
                 typescriptPlugin({
-                  tsconfigOverride: {
-                    compilerOptions: {
-                      target: 'es2017'
-                    }
-                  },
-                  transformers: rollup_shared_1.removeAssertTransformer
+                  tsconfigOverride: { compilerOptions: { target: 'es2017' } },
+                  transformers: [util.removeAssertTransformer]
                 }),
                 json({ preferConst: true })
               ],
-              external: rollup_shared_1.resolveNodeExterns
+              external: util.resolveNodeExterns
             })
           ];
         case 1:
           bundle = _a.sent();
-          return [4 /*yield*/, bundle.write({ file: output, format: 'es' })];
+          return [4, bundle.write({ file: output, format: 'es' })];
         case 2:
           _a.sent();
-          return [2 /*return*/];
+          return [2];
       }
     });
   });

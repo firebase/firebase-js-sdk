@@ -48,6 +48,7 @@ import { Query, queryToTarget } from '../core/query';
  */
 export abstract class Datastore {
   abstract start(connection: Connection): void;
+  abstract termiate(): Promise<void>;
 }
 
 /**
@@ -117,6 +118,10 @@ class DatastoreImpl extends Datastore {
         }
         throw error;
       });
+  }
+
+  async termiate(): Promise<void> {
+    this.terminated = false;
   }
 }
 
@@ -229,9 +234,4 @@ export function newPersistentWatchStream(
     datastoreImpl.serializer,
     listener
   );
-}
-
-export function terminateDatastore(datastore: Datastore): void {
-  const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  datastoreImpl.terminated = true;
 }

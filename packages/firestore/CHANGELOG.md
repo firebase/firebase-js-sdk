@@ -1,4 +1,12 @@
-# Unreleased
+# @firebase/firestore
+
+## 1.16.2
+
+### Patch Changes
+
+- Updated dependencies [[`a87676b8`](https://github.com/firebase/firebase-js-sdk/commit/a87676b84b78ccc2f057a22eb947a5d13402949c)]:
+  - @firebase/util@0.3.0
+  - @firebase/component@0.1.17
 
 ## 1.16.1
 
@@ -31,8 +39,11 @@
 * [fixed] Fixed an issue that may have prevented the client from connecting
   to the backend immediately after a user signed in.
 
-# Released
+## 1.15.0
 
+- [feature] Added an `experimentalForceOwningTab` setting that can be used to
+  enable persistence in environments without LocalStorage, which allows
+  persistence to be used in Web Workers (#983).
 - [changed] All known failure cases for Indexed-related crashes have now been
   addressed. Instead of crashing the client, IndexedDB failures will result
   in rejected operations (e.g. rejected Writes or errored Query listeners).
@@ -44,24 +55,32 @@
   If you continue to see Indexed-related crashes, we appreciate feedback
   (https://github.com/firebase/firebase-js-sdk/issues/2755).
 
+## 1.14.6
+
 - [fixed] Fixed an issue that could cause Firestore to temporarily go
   offline when a Window visibility event occurred.
 - [feature] Added support for calling `FirebaseFiresore.settings` with
   `{ ignoreUndefinedProperties: true }`. When set, Firestore ignores
   undefined properties inside objects rather than rejecting the API call.
+
+## 1.14.4
+
 - [fixed] Fixed a regression introduced in v7.14.2 that incorrectly applied
   a `FieldValue.increment` in combination with `set({...}, {merge: true})`.
+
+## 1.14.3
+
 - [fixed] Firestore now rejects `onSnapshot()` listeners if they cannot be
   registered in IndexedDB. Previously, these errors crashed the client.
+
+## 1.14.2
+
 - [fixed] Firestore now rejects write operations if they cannot be persisted
   in IndexedDB. Previously, these errors crashed the client.
 - [fixed] Fixed a source of IndexedDB-related crashes for tabs that receive
   multi-tab notifications while the file system is locked.
-- [feature] Added an `experimentalForceOwningTab` setting that can be used to
-  enable persistence in environments without LocalStorage, which allows
-  persistence to be used in Web Workers (#983).
 
-# 1.10.2
+## 1.10.2
 
 - [fixed] Temporarily reverted the use of window.crypto to generate document
   IDs to address compatibility issues with IE 11, WebWorkers, and React Native.
@@ -72,12 +91,12 @@
   `DocumentSnapshot.getData()` and `DocumentSnapshot.toObject()` will see
   the biggest improvement.
 
-# 1.10.1
+## 1.10.1
 
 - [fixed] Fixed an issue where the number value `-0.0` would lose its sign when
   stored in Firestore.
 
-# 1.10.0
+## 1.10.0
 
 - [feature] Implemented `Timestamp.valueOf()` so that `Timestamp` objects can be
   compared for relative ordering using the JavaScript arithmetic comparison
@@ -89,7 +108,7 @@
 - [fixed] Fixed an issue where `CollectionReference.add()` would reject
   custom types when using `withConverter()` (#2606).
 
-# 1.9.3
+## 1.9.3
 
 - [fixed] Fixed an issue where auth credentials were not respected in some
   Firefox or Chrome extensions. (#1491)
@@ -97,19 +116,19 @@
   transaction must also be written. This requirement has been removed, and
   you can now read a document in transaction without writing to it.
 
-# 1.9.2
+## 1.9.2
 
 - [fixed] Fixed an issue where auth credentials were not respected in certain
   browser environments (Electron 7, IE11 in trusted zone, UWP apps). (#1491)
 
-# 1.9.0
+## 1.9.0
 
 - [feature] Added support for storing and retrieving custom types in Firestore.
   Added support for strongly typed collections, documents, and
   queries. You can now use `withConverter()` to supply a custom data
   converter that will convert between Firestore data and your custom type.
 
-# 1.8.0
+## 1.8.0
 
 - [changed] Improved the performance of repeatedly executed queries when
   persistence is enabled. Recently executed queries should see dramatic
@@ -117,7 +136,7 @@
   is inactive. Queries that use the `limit()` API may not always benefit,
   depending on the accumulated changes.
 
-# 1.7.0
+## 1.7.0
 
 - [changed] The client can now recover if certain periodic IndexedDB operations
   fail.
@@ -128,19 +147,19 @@
 - [feature] Added `Query.limitToLast(n: number)` , which returns the last
   `n` documents as the result.
 
-# 1.6.3
+## 1.6.3
 
 - [changed] Improved iOS 13 support by eliminating an additional crash in our
   IndexedDB persistence layer.
 
-# 1.6.2
+## 1.6.2
 
 - [changed] Fixed a crash on iOS 13 that occurred when persistence was enabled
   in a background tab (#2232).
 - [fixed] Fixed an issue in the interaction with the Firestore Emulator that
   caused requests with timestamps to fail.
 
-# 1.6.0
+## 1.6.0
 
 - [feature] Added a `Firestore.onSnapshotsInSync()` method that notifies you
   when all your snapshot listeners are in sync with each other.
@@ -148,7 +167,7 @@
   crash the client if the field was not present in the local copy of the
   document.
 
-# 1.5.0
+## 1.5.0
 
 - [feature] Added a `Firestore.waitForPendingWrites()` method that
   allows users to wait until all pending writes are acknowledged by the
@@ -162,32 +181,32 @@
 - [fixed] Fixed a race condition between authenticating and initializing
   Firestore that could result in initial writes to the database being dropped.
 
-# 1.4.10
+## 1.4.10
 
 - [changed] Transactions now perform exponential backoff before retrying.
   This means transactions on highly contended documents are more likely to
   succeed.
 
-# 1.4.6
+## 1.4.6
 
 - [changed] Transactions are now more flexible. Some sequences of operations
   that were previously incorrectly disallowed are now allowed. For example,
   after reading a document that doesn't exist, you can now set it multiple
   times successfully in a transaction.
 
-# 1.4.5
+## 1.4.5
 
 - [fixed] Fixed an issue where query results were temporarily missing
   documents that previously had not matched but had been updated to now
   match the query (https://github.com/firebase/firebase-android-sdk/issues/155).
 
-# 1.4.4
+## 1.4.4
 
 - [fixed] Fixed an internal assertion that was triggered when an update
   with a `FieldValue.serverTimestamp()` and an update with a
   `FieldValue.increment()` were pending for the same document.
 
-# 1.4.0
+## 1.4.0
 
 - [changed] Added logging and a custom error message to help users hitting
   https://bugs.webkit.org/show_bug.cgi?id=197050 (a bug in iOS 12.2 causing
@@ -195,18 +214,18 @@
 - [fixed] Fixed an issue for environments missing `window.addEventListener`,
   such as in React Native with Expo (#1824).
 
-# 1.3.5
+## 1.3.5
 
 - [feature] Added `clearPersistence()`, which clears the persistent storage
   including pending writes and cached documents. This is intended to help
   write reliable tests (#449).
 
-# 1.3.3
+## 1.3.3
 
 - [changed] Firestore now recovers more quickly after network connectivity
   changes (airplane mode, Wi-Fi availability, etc.).
 
-# 1.3.0
+## 1.3.0
 
 - [changed] Deprecated the `experimentalTabSynchronization` setting in favor of
   `synchronizeTabs`. If you use multi-tab synchronization, it is recommended
@@ -215,13 +234,13 @@
 - [feature] You can now query across all collections in your database with a
   given collection ID using the `FirebaseFirestore.collectionGroup()` method.
 
-# 1.1.4
+## 1.1.4
 
 - [feature] Added an `experimentalForceLongPolling` setting that that can be
   used to work around proxies that prevent the Firestore client from connecting
   to the Firestore backend.
 
-# 1.1.1
+## 1.1.1
 
 - [changed] Increased a connection timeout that could lead to large writes
   perputually retrying without ever succeeding (#1447).
@@ -231,7 +250,7 @@
 - [fixed] Fixed an issue where transactions in a Node.JS app could be sent
   without auth credentials, leading to Permission Denied errors.
 
-# 1.1.0
+## 1.1.0
 
 - [feature] Added `FieldValue.increment()`, which can be used in `update()`
   and `set(..., {merge:true})` to increment or decrement numeric field
@@ -241,17 +260,17 @@
   in this release. Once you upgrade, you will not be able to use an older version
   of the Firestore SDK with persistence enabled.
 
-# 1.0.5
+## 1.0.5
 
 - [changed] Improved performance when querying over documents that contain
   subcollections.
 
-# 1.0.4
+## 1.0.4
 
 - [fixed] Fixed an uncaught promise error occurring when `enablePersistence()`
   was called in a second tab (#1531).
 
-# 1.0.0
+## 1.0.0
 
 - [changed] The `timestampsInSnapshots` setting is now enabled by default.
   Timestamp fields that read from a `DocumentSnapshot` are now returned as
@@ -263,17 +282,17 @@
   a write has been sent to the server but before it has been received on
   a listener.
 
-# 0.9.2
+## 0.9.2
 
 - [fixed] Fixed a regression introduced in 5.7.0 that caused apps using
   experimentalTabSynchronization to hit an exception for "Failed to obtain
   primary lease for action 'Collect garbage'".
 
-# 0.9.1
+## 0.9.1
 
 - [changed] Added a custom error for schema downgrades.
 
-# 0.9.0
+## 0.9.0
 
 - [changed] Removed eval()-based fallback for JSON parsing, allowing SDK to
   be used in environments that prohibit eval().
@@ -286,20 +305,20 @@
   1 MB. The garbage collection process can be disabled entirely by setting
   `cacheSizeBytes` to `CACHE_SIZE_UNLIMITED`.
 
-# 0.8.3
+## 0.8.3
 
 - [fixed] Fixed an issue that prevented query synchronization between multiple
   tabs.
 
-# 0.8.2
+## 0.8.2
 
 - [fixed] Fixed an issue where native ES6 module loading was not working.
 
-# 0.8.1
+## 0.8.1
 
 - [fixed] Fixed an issue where typings are created in the wrong location.
 
-# 0.8.0
+## 0.8.0
 
 - [feature] Access to offline persistence is no longer limited to a single tab.
   You can opt into this new experimental mode by invoking `enablePersistence()`
@@ -313,7 +332,7 @@
   to `set(..., { merge: true })`.
 - [changed] Improved argument validation for several API methods.
 
-# 0.7.3
+## 0.7.3
 
 - [changed] Changed the internal handling for locally updated documents that
   haven't yet been read back from Firestore. This can lead to slight behavior
@@ -322,12 +341,12 @@
   that are known to lag behind the server version. Instead, we buffer these
   events until the client has caught up with the server.
 
-# 0.7.2
+## 0.7.2
 
 - [fixed] Fixed a regression that prevented use of Firestore on ReactNative's
   Expo platform (#1138).
 
-# 0.7.0
+## 0.7.0
 
 - [fixed] Fixed `get({source: 'cache'})` to be able to return nonexistent
   documents from cache.
@@ -339,13 +358,13 @@
   take effect until you did a full sign-out and sign-in.
   (firebase/firebase-ios-sdk#1499)
 
-# 0.6.1
+## 0.6.1
 
 - [changed] Improved how Firestore handles idle queries to reduce the cost of
   re-listening within 30 minutes.
 - [changed] Improved offline performance with many outstanding writes.
 
-# 0.6.0
+## 0.6.0
 
 - [fixed] Fixed an issue where queries returned fewer results than they should,
   caused by documents that were cached as deleted when they should not have
@@ -358,7 +377,7 @@
 - [feature] Added `'array-contains'` query operator for use with `.where()` to
   find documents where an array field contains a specific element.
 
-# 0.5.0
+## 0.5.0
 
 - [changed] Merged the `includeQueryMetadataChanges` and
   `includeDocumentMetadataChanges` options passed to `Query.onSnapshot()` into
@@ -370,12 +389,12 @@
 - [feature] Added new `{ mergeFields: (string|FieldPath)[] }` option to `set()`
   which allows merging of a reduced subset of fields.
 
-# 0.4.1
+## 0.4.1
 
 - [fixed] Fixed a regression in Firebase JS release 4.13.0 regarding the
   loading of proto files, causing Node.JS support to break.
 
-# 0.4.0
+## 0.4.0
 
 - [feature] Added a new `Timestamp` class to represent timestamp fields,
   currently supporting up to microsecond precision. It can be passed to API
@@ -390,7 +409,7 @@
   cache only (by passing { source: 'cache' }), or attempt server and fall back
   to the cache (which was the only option previously, and is now the default).
 
-# 0.3.7
+## 0.3.7
 
 - [fixed] Fixed a regression in the Firebase JS release 4.11.0 that could
   cause get() requests made while offline to be delayed by up to 10
@@ -403,7 +422,7 @@
   an error of "Attempted to schedule multiple operations with timer id
   listen_stream_connection_backoff".
 
-# 0.3.5
+## 0.3.5
 
 - [changed] If the SDK's attempt to connect to the Cloud Firestore backend
   neither succeeds nor fails within 10 seconds, the SDK will consider itself
@@ -413,13 +432,13 @@
   could result in a "Mutation batchIDs must be acknowledged in order" assertion
   crash.
 
-# 0.3.2
+## 0.3.2
 
 - [fixed] Fixed a regression in Firebase JS release 4.9.0 that could in certain
   cases result in an "OnlineState should not affect limbo documents." assertion
   crash when the client loses its network connection.
 
-# 0.3.1
+## 0.3.1
 
 - [changed] Snapshot listeners (with the `includeMetadataChanges` option
   enabled) now receive an event with `snapshot.metadata.fromCache` set to
@@ -443,7 +462,7 @@
   backend." message will be logged when we get a resource-exhausted
   error from the backend.
 
-# v0.2.1
+## v0.2.1
 
 - [feature] Added Node.js support for Cloud Firestore (with the exception of
   the offline persistence feature).
@@ -451,24 +470,24 @@
   normal HTTP headers to avoid an extra CORS preflight request when initiating
   streams / RPCs.
 
-# v0.1.4
+## v0.1.4
 
 - [changed] Network streams are automatically closed after 60 seconds of
   idleness.
 - [changed] We no longer log 'RPC failed' messages for expected failures.
 
-# v0.1.2
+## v0.1.2
 
 - [changed] We now support `FieldValue.delete()` sentinels in `set()` calls
   with `{merge:true}`.
 - [fixed] Fixed validation of nested arrays to allow indirect nesting
 
-# v0.1.1
+## v0.1.1
 
 - [fixed] Fixed an issue causing exceptions when trying to use
   `firebase.firestore.FieldPath.documentId()` in an `orderBy()` or `where()`
   clause in a query.
 
-# v0.1.0
+## v0.1.0
 
 - Initial public release.

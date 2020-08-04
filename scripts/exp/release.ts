@@ -17,17 +17,17 @@
 
 import { spawn, exec } from 'child-process-promise';
 import ora from 'ora';
-import { projectRoot } from '../utils';
+import { projectRoot, readPackageJson } from '../utils';
 import simpleGit from 'simple-git/promise';
 
 import { mapWorkspaceToPackages } from '../release/utils/workspace';
 import { inc } from 'semver';
-import { readFile as _readFile, writeFile as _writeFile } from 'fs';
+import { writeFile as _writeFile } from 'fs';
 import { promisify } from 'util';
 import chalk from 'chalk';
 import Listr from 'listr';
+import { prepare as prepareFirestoreForRelease } from './prepare-firestore-for-exp-release';
 
-const readFile = promisify(_readFile);
 const writeFile = promisify(_writeFile);
 const git = simpleGit(projectRoot);
 const FIREBASE_UMBRELLA_PACKAGE_NAME = 'firebase-exp';
@@ -40,6 +40,11 @@ async function publishExpPackages() {
     console.log('Welcome to the Firebase Exp Packages release CLI!');
 
     /**
+     * Update fields in package.json and stuff
+     */
+    await prepareFirestoreForRelease();
+
+    /**
      * build packages
      */
     await buildPackages();
@@ -48,6 +53,8 @@ async function publishExpPackages() {
     const packagePaths = await mapWorkspaceToPackages([
       `${projectRoot}/packages-exp/*`
     ]);
+
+    packagePaths.push(`${projectRoot}/packages/firestore`);
 
     /**
      * It does 2 things:
@@ -96,11 +103,69 @@ async function publishExpPackages() {
   }
 }
 
+/**
+ * The order of build is important
+ */
 async function buildPackages() {
   const spinner = ora(' Building Packages').start();
-  await spawn('yarn', ['build:exp:release'], {
-    cwd: projectRoot
-  });
+
+  // Build dependencies
+  await spawn(
+    'yarn',
+    [
+      'lerna',
+      'run',
+      '--scope',
+      // We replace `@firebase/app-exp` with `@firebase/app` during compilation, so we need to
+      // compile @firebase/app to make rollup happy though it's not an actual dependency.
+      '@firebase/app',
+      '--scope',
+      '@firebase/util',
+      '--scope',
+      '@firebase/component',
+      '--scope',
+      '@firebase/logger',
+      '--scope',
+      '@firebase/webchannel-wrapper',
+      'build'
+    ],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
+  // Build exp packages except for firebase-exp
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/*-exp', 'build:release'],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
+  // Build exp packages developed in place
+  // Firestore
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/firestore', 'build:exp:release'],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
+  // Build firebase-exp
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', 'firebase-exp', 'build:release'],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
   spinner.stopAndPersist({
     symbol: '✅'
   });
@@ -209,18 +274,22 @@ async function updatePackageJsons(
 
       // update dep version and remove -exp in dep names
       // don't care about devDependencies because they are irrelavant when using the package
-      const dependencies = packageJson.dependencies || {};
-      const newDependenciesObj: { [key: string]: string } = {};
-      for (const d of Object.keys(dependencies)) {
-        const dNextVersion = versions.get(d);
-        const nameWithoutExp = removeExpInPackageName(d);
-        if (!dNextVersion) {
-          newDependenciesObj[nameWithoutExp] = dependencies[d];
-        } else {
-          newDependenciesObj[nameWithoutExp] = dNextVersion;
+      const depTypes = ['dependencies', 'peerDependencies'];
+
+      for (const depType of depTypes) {
+        const dependencies = packageJson[depType] || {};
+        const newDependenciesObj: { [key: string]: string } = {};
+        for (const d of Object.keys(dependencies)) {
+          const dNextVersion = versions.get(d);
+          const nameWithoutExp = removeExpInPackageName(d);
+          if (!dNextVersion) {
+            newDependenciesObj[nameWithoutExp] = dependencies[d];
+          } else {
+            newDependenciesObj[nameWithoutExp] = dNextVersion;
+          }
         }
+        packageJson[depType] = newDependenciesObj;
       }
-      packageJson.dependencies = newDependenciesObj;
     }
 
     // set private to false
@@ -264,14 +333,6 @@ function removeExpInPackageName(name: string) {
   }
 
   return `${captures[1]}${captures[2]}`;
-}
-
-async function readPackageJson(packagePath: string) {
-  /**
-   * Can't require here because require caches the file
-   * in memory, so it may not contain the updates that are made by e.g. git commands
-   */
-  return JSON.parse(await readFile(`${packagePath}/package.json`, 'utf8'));
 }
 
 async function getCurrentSha() {
