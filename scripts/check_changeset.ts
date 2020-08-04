@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-const { resolve } = require('path');
-const { spawn, exec } = require('child-process-promise');
-const chalk = require('chalk');
-const simpleGit = require('simple-git/promise');
-const fs = require('mz/fs');
+import { resolve } from 'path';
+import chalk from 'chalk';
+import simpleGit from 'simple-git/promise';
+import fs from 'mz/fs';
 
 const root = resolve(__dirname, '..');
 const git = simpleGit(root);
@@ -34,7 +33,7 @@ async function getDiffData(): Promise<{
   const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
   const changedFiles = diff.split('\n');
   let changesetFile = '';
-  const changedPackagesMap: { [key: string]: boolean } = {};
+  const changedPackagesMap = new Set();
   for (const filename of changedFiles) {
     // Check for an existing .changeset
     const changesetMatch = filename.match(/^\.changeset\/[a-zA-Z-]+\.md/);
@@ -51,7 +50,7 @@ async function getDiffData(): Promise<{
       ));
       if (changedPackage) {
         // Add the package itself.
-        changedPackagesMap[changedPackage.name] = true;
+        changedPackagesMap.add(changedPackage.name);
       }
     }
   }
@@ -86,10 +85,11 @@ async function main() {
         changedPkg => !changesetPackages.includes(changedPkg)
       );
       if (missingPackages.length > 0) {
-        // console.warn(chalk.yellow(`Warning: The following packages were `
-        // + `changed but not added to the changeset file, make sure this was `
-        // + `intentional:\n${missingPackages.join('\n')}`));
-        // process.exit(1);
+        /**
+         * Sets Github Actions output for a step. Pass missing package list to next
+         * step. See:
+         * https://github.com/actions/toolkit/blob/master/docs/commands.md#set-outputs
+         */
         console.log(
           `::set-output name=MISSING_PACKAGES::${missingPackages
             .map(pkg => `- ${pkg}`)

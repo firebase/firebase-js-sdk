@@ -2503,6 +2503,13 @@
   resolved "https://registry.npmjs.org/@types/mocha/-/mocha-7.0.2.tgz#b17f16cf933597e10d6d78eae3251e692ce8b0ce"
   integrity sha512-ZvO2tAcjmMi8V/5Z3JsyofMe3hasRcaw88cto5etSVMwVQfeivGAlEYmaQgceUSVYFofVjT+ioHsATjdWcFt1w==
 
+"@types/mz@2.7.1":
+  version "2.7.1"
+  resolved "https://registry.npmjs.org/@types/mz/-/mz-2.7.1.tgz#1ac1d69b039c8b3cbe603972b5c12d3167a84f58"
+  integrity sha512-H86h7KmRDVs9UeSiQvtUeVhS+WYpJSYSsZrRvNYpGWGiytEqxwEtvgRnINESQtCgnojIH2wS2WgaMTJP0firBw==
+  dependencies:
+    "@types/node" "*"
+
 "@types/node-fetch@2.5.7":
   version "2.5.7"
   resolved "https://registry.npmjs.org/@types/node-fetch/-/node-fetch-2.5.7.tgz#20a2afffa882ab04d44ca786449a276f9f6bbf3c"
