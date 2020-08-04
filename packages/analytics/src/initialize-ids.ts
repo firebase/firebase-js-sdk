@@ -60,7 +60,8 @@ export async function initializeIds(
         logger.warn(
           `The measurement ID in the local Firebase config (${app.options.measurementId})` +
             ` does not match the measurement ID fetched from the server (${config.measurementId}).` +
-            ` To avoid analytics events being sent to the wrong measurement ID, update the` +
+            ` To ensure analytics events are always sent to the correct Analytics property,` +
+            ` update the` +
             ` measurement ID field in the local config or remove it from the local config.`
         );
       }
