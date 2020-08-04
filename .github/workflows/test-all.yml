@@ -1,6 +1,8 @@
 name: Test All Packages
 
 on: push
+env:
+  NO_UPDATE_NOTIFIER: true
 
 jobs:
   test:
@@ -21,28 +23,18 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
-      env:
-        NO_UPDATE_NOTIFIER: true
     - name: yarn build
       run: yarn build
-      env:
-        NO_UPDATE_NOTIFIER: true
     - name: Run unit tests
       run: xvfb-run yarn test:ci
-      env:
-        NO_UPDATE_NOTIFIER: true
     - name: Generate coverage file
       run: yarn ci:coverage
-      env:
-        NO_UPDATE_NOTIFIER: true
     - name: Run coverage
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         path-to-lcov: ./lcov-all.info
       continue-on-error: true
-      env:
-        NO_UPDATE_NOTIFIER: true
   deploy:
     name: Canary Deploy
     runs-on: ubuntu-latest
