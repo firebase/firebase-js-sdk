@@ -58,10 +58,10 @@ const ERRORS: ErrorMap<AnalyticsError> = {
   [AnalyticsError.CONFIG_FETCH_FAILED]:
     'Dynamic config fetch failed: [{$httpStatus}] {$responseMessage}',
   [AnalyticsError.NO_API_KEY]:
-    '"apiKey" field is empty in Firebase config. Firebase Analytics requires this field to' +
+    'The "apiKey" field is empty in the local Firebase config. Firebase Analytics requires this field to' +
     'contain a valid API key.',
   [AnalyticsError.NO_APP_ID]:
-    '"appId" field is empty in Firebase config. Firebase Analytics requires this field to' +
+    'The "appId" field is empty in the local Firebase config. Firebase Analytics requires this field to' +
     'contain a valid app ID.',
   [AnalyticsError.INDEXED_DB_UNSUPPORTED]:
     'IndexedDB is not supported by current browswer',
