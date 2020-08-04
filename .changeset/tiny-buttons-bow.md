@@ -1,0 +1,5 @@
+---
+'@firebase/app': patch
+---
+
+TEst
