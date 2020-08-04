@@ -16,6 +16,7 @@
  */
 
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
+import { PerformanceController } from '../controllers/perf';
 
 declare global {
   interface Window {
@@ -118,7 +119,8 @@ export class Api {
 
   setupObserver(
     entryType: EntryType,
-    callback: (entry: PerformanceEntry) => void
+    perfApp: PerformanceController,
+    callback: (perfApp: PerformanceController, entry: PerformanceEntry) => void
   ): void {
     if (!this.PerformanceObserver) {
       return;
@@ -126,7 +128,7 @@ export class Api {
     const observer = new this.PerformanceObserver(list => {
       for (const entry of list.getEntries()) {
         // `entry` is a PerformanceEntry instance.
-        callback(entry);
+        callback(perfApp, entry);
       }
     });
 

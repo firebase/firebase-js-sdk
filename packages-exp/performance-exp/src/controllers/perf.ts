@@ -53,7 +53,10 @@ export class PerformanceController implements FirebasePerformanceInternal {
 
     if (Api.getInstance().requiredApisAvailable()) {
       setupTransportService();
-      getInitializationPromise().then(setupOobResources, setupOobResources);
+      getInitializationPromise(this).then(
+        () => setupOobResources(this),
+        () => setupOobResources(this)
+      );
     } else {
       consoleLogger.info(
         'Firebase Performance cannot start if the browser does not support ' +

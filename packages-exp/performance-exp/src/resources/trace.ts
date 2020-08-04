@@ -37,6 +37,7 @@ import {
   convertMetricValueToInteger,
   isValidMetricName
 } from '../utils/metric_utils';
+import { PerformanceController } from '../controllers/perf';
 
 const enum TraceState {
   UNINITIALIZED = 1,
@@ -65,6 +66,7 @@ export class Trace implements PerformanceTrace {
    * the user timing api (performance.mark and performance.measure).
    */
   constructor(
+    readonly performance: PerformanceController,
     readonly name: string,
     readonly isAuto = false,
     traceMeasureName?: string
@@ -266,6 +268,7 @@ export class Trace implements PerformanceTrace {
    * @param firstInputDelay First input delay in millisec
    */
   static createOobTrace(
+    performance: PerformanceController,
     navigationTimings: PerformanceNavigationTiming[],
     paintTimings: PerformanceEntry[],
     firstInputDelay?: number
@@ -274,7 +277,11 @@ export class Trace implements PerformanceTrace {
     if (!route) {
       return;
     }
-    const trace = new Trace(OOB_TRACE_PAGE_LOAD_PREFIX + route, true);
+    const trace = new Trace(
+      performance,
+      OOB_TRACE_PAGE_LOAD_PREFIX + route,
+      true
+    );
     const timeOriginUs = Math.floor(Api.getInstance().getTimeOrigin() * 1000);
     trace.setStartTime(timeOriginUs);
 
@@ -328,8 +335,11 @@ export class Trace implements PerformanceTrace {
     logTrace(trace);
   }
 
-  static createUserTimingTrace(measureName: string): void {
-    const trace = new Trace(measureName, false, measureName);
+  static createUserTimingTrace(
+    performance: PerformanceController,
+    measureName: string
+  ): void {
+    const trace = new Trace(performance, measureName, false, measureName);
     logTrace(trace);
   }
 }

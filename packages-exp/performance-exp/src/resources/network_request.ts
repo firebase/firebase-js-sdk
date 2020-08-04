@@ -17,6 +17,7 @@
 
 import { Api } from '../services/api_service';
 import { logNetworkRequest } from '../services/perf_logger';
+import { PerformanceController } from '../controllers/perf';
 
 // The order of values of this enum should not be changed.
 export const enum HttpMethod {
@@ -34,6 +35,7 @@ export const enum HttpMethod {
 
 // Durations are in microseconds.
 export interface NetworkRequest {
+  performance: PerformanceController;
   url: string;
   httpMethod?: HttpMethod;
   requestPayloadBytes?: number;
@@ -46,7 +48,10 @@ export interface NetworkRequest {
   timeToResponseCompletedUs?: number;
 }
 
-export function createNetworkRequestEntry(entry: PerformanceEntry): void {
+export function createNetworkRequestEntry(
+  performance: PerformanceController,
+  entry: PerformanceEntry
+): void {
   const performanceEntry = entry as PerformanceResourceTiming;
   if (!performanceEntry || performanceEntry.responseStart === undefined) {
     return;
@@ -66,6 +71,7 @@ export function createNetworkRequestEntry(entry: PerformanceEntry): void {
   // Remove the query params from logged network request url.
   const url = performanceEntry.name && performanceEntry.name.split('?')[0];
   const networkRequest: NetworkRequest = {
+    performance,
     url,
     responsePayloadBytes: performanceEntry.transferSize,
     startTimeUs,

@@ -19,7 +19,7 @@ import { getIid } from './iid_service';
 import { NetworkRequest } from '../resources/network_request';
 import { Trace } from '../resources/trace';
 import { Api } from './api_service';
-import { SettingsService } from './settings_service';
+import { SettingsService, getAppId } from './settings_service';
 import {
   getServiceWorkerStatus,
   getVisibilityState,
@@ -32,6 +32,7 @@ import {
 } from './initialization_service';
 import { transportHandler } from './transport_service';
 import { SDK_VERSION } from '../constants';
+import { FirebaseApp } from '@firebase/app-types-exp';
 
 const enum ResourceType {
   NetworkRequest,
@@ -131,7 +132,7 @@ export function logTrace(trace: Trace): void {
   } else {
     // Custom traces can be used before the initialization but logging
     // should wait until after.
-    getInitializationPromise().then(
+    getInitializationPromise(trace.performance).then(
       () => sendTraceLog(trace),
       () => sendTraceLog(trace)
     );
@@ -197,7 +198,7 @@ function serializeNetworkRequest(networkRequest: NetworkRequest): string {
     time_to_response_completed_us: networkRequest.timeToResponseCompletedUs
   };
   const perfMetric: PerfNetworkLog = {
-    application_info: getApplicationInfo(),
+    application_info: getApplicationInfo(networkRequest.performance.app),
     network_request_metric: networkRequestMetric
   };
   return JSON.stringify(perfMetric);
@@ -220,15 +221,15 @@ function serializeTrace(trace: Trace): string {
   }
 
   const perfMetric: PerfTraceLog = {
-    application_info: getApplicationInfo(),
+    application_info: getApplicationInfo(trace.performance.app),
     trace_metric: traceMetric
   };
   return JSON.stringify(perfMetric);
 }
 
-function getApplicationInfo(): ApplicationInfo {
+function getApplicationInfo(firebaseApp: FirebaseApp): ApplicationInfo {
   return {
-    google_app_id: SettingsService.getInstance().getAppId(),
+    google_app_id: getAppId(firebaseApp),
     app_instance_id: getIid(),
     web_app_info: {
       sdk_version: SDK_VERSION,

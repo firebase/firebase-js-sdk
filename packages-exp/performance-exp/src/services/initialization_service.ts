@@ -18,6 +18,7 @@
 import { getIidPromise } from './iid_service';
 import { getConfig } from './remote_config_service';
 import { Api } from './api_service';
+import { PerformanceController } from '../controllers/perf';
 
 const enum InitializationStatus {
   notInitialized = 1,
@@ -29,10 +30,12 @@ let initializationStatus = InitializationStatus.notInitialized;
 
 let initializationPromise: Promise<void> | undefined;
 
-export function getInitializationPromise(): Promise<void> {
+export function getInitializationPromise(
+  performance: PerformanceController
+): Promise<void> {
   initializationStatus = InitializationStatus.initializationPending;
 
-  initializationPromise = initializationPromise || initializePerf();
+  initializationPromise = initializationPromise || initializePerf(performance);
 
   return initializationPromise;
 }
@@ -41,10 +44,10 @@ export function isPerfInitialized(): boolean {
   return initializationStatus === InitializationStatus.initialized;
 }
 
-function initializePerf(): Promise<void> {
+function initializePerf(performance: PerformanceController): Promise<void> {
   return getDocumentReadyComplete()
-    .then(() => getIidPromise())
-    .then(iid => getConfig(iid))
+    .then(() => getIidPromise(performance.installations))
+    .then(iid => getConfig(performance, iid))
     .then(
       () => changeInitializationStatus(),
       () => changeInitializationStatus()

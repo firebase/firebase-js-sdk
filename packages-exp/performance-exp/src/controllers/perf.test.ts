@@ -17,7 +17,7 @@
 
 import '../../test/setup';
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 
