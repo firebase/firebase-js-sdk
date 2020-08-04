@@ -85,7 +85,7 @@ describe('generateAuthTokenRequest', () => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `${INTERNAL_AUTH_VERSION} refreshToken`,
-        'x-goog-api-key': 'apiKey',
+        'x-goog-api-key': 'AIzaSyabcdefghijklmnopqrstuvwxyz1234567',
         'x-firebase-client': 'a/1.2.3 b/2.3.4'
       });
       const expectedBody = {

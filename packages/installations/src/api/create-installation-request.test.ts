@@ -83,7 +83,7 @@ describe('createInstallationRequest', () => {
       const expectedHeaders = new Headers({
         'Content-Type': 'application/json',
         Accept: 'application/json',
-        'x-goog-api-key': 'apiKey'
+        'x-goog-api-key': 'AIzaSyabcdefghijklmnopqrstuvwxyz1234567'
       });
       const expectedBody = {
         fid: FID,

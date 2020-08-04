@@ -27,7 +27,7 @@ describe('extractAppConfig', () => {
     const firebaseApp = getFakeApp();
     const expected: AppConfig = {
       appName: 'appName',
-      apiKey: 'apiKey',
+      apiKey: 'AIzaSyabcdefghijklmnopqrstuvwxyz1234567',
       projectId: 'projectId',
       appId: '1:777777777777:web:d93b5ca1475efe57'
     };

@@ -19,6 +19,10 @@ import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
 import { FirebaseError } from '@firebase/util';
 import { AppConfig } from '../interfaces/app-config';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import {
+  isValidAppIdFormat,
+  isValidApiKeyFormat
+} from '../util/precondition-checks';
 
 export function extractAppConfig(app: FirebaseApp): AppConfig {
   if (!app || !app.options) {
@@ -40,6 +44,14 @@ export function extractAppConfig(app: FirebaseApp): AppConfig {
     if (!app.options[keyName]) {
       throw getMissingValueError(keyName);
     }
+  }
+
+  if (!isValidAppIdFormat(app.options.appId!)) {
+    throw ERROR_FACTORY.create(ErrorCode.INVALID_APP_ID_FORMAT);
+  }
+
+  if (!isValidApiKeyFormat(app.options.apiKey!)) {
+    throw ERROR_FACTORY.create(ErrorCode.INVALID_API_KEY_FORMAT);
   }
 
   return {

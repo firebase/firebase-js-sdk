@@ -65,7 +65,7 @@ describe('deleteInstallationRequest', () => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `${INTERNAL_AUTH_VERSION} refreshToken`,
-        'x-goog-api-key': 'apiKey'
+        'x-goog-api-key': 'AIzaSyabcdefghijklmnopqrstuvwxyz1234567'
       });
       const expectedRequest: RequestInit = {
         method: 'DELETE',

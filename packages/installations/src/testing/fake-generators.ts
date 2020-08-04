@@ -29,7 +29,7 @@ export function getFakeApp(): FirebaseApp {
   return {
     name: 'appName',
     options: {
-      apiKey: 'apiKey',
+      apiKey: 'AIzaSyabcdefghijklmnopqrstuvwxyz1234567',
       projectId: 'projectId',
       authDomain: 'authDomain',
       messagingSenderId: 'messagingSenderId',
