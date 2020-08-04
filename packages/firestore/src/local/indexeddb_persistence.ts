@@ -294,6 +294,9 @@ export class IndexedDbPersistence implements Persistence {
     debugAssert(!this.started, 'IndexedDbPersistence double-started!');
     debugAssert(this.window !== null, "Expected 'window' to be defined");
 
+    // NOTE: This is expected to fail sometimes (in the case of another tab 
+    // already having the persistence lock), so it's the first thing we should 
+    // do.
     return this.updateClientMetadataAndTryBecomePrimary()
       .then(() => {
         if (!this.isPrimary && !this.allowTabSynchronization) {
