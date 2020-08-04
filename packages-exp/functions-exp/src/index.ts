@@ -23,3 +23,5 @@ export * from './api';
 
 registerFunctions();
 registerVersion(name, version);
+
+export const tmpVarForTesting: string = 'tmp';
