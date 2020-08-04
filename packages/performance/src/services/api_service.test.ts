@@ -54,37 +54,63 @@ describe('Firebase Performance > api_service', () => {
     api = Api.getInstance();
   });
   describe('requiredApisAvailable', () => {
+    it('call logger when fetch is not available', () => {
+      stub(consoleLogger, 'info');
+      stub(window, 'fetch').value(null);
+      return api.requiredApisAvailable().then(isAvailable => {
+        expect(consoleLogger.info).to.be.called;
+        expect(isAvailable).to.be.false;
+      });
+    });
     it('call logger when navigator is not available', () => {
       stub(consoleLogger, 'info');
+      stub(window, 'fetch').returns(Promise.resolve(new Response('{}')));
       stub(api, 'navigator').value(null);
-      return api.requiredApisAvailable().then(() => {
+      return api.requiredApisAvailable().then(isAvailable => {
         expect(consoleLogger.info).to.be.called;
+        expect(isAvailable).to.be.false;
       });
     });
     it('call logger when cookie is not enabled', () => {
       stub(consoleLogger, 'info');
+      stub(window, 'fetch').returns(Promise.resolve(new Response('{}')));
       stub(api.navigator, 'cookieEnabled').value(false);
-      return api.requiredApisAvailable().then(() => {
+      return api.requiredApisAvailable().then(isAvailable => {
         expect(consoleLogger.info).to.be.called;
+        expect(isAvailable).to.be.false;
       });
     });
 
     it('call logger when isIndexedDBAvailable returns false', () => {
       stub(consoleLogger, 'info');
+      stub(window, 'fetch').returns(Promise.resolve(new Response('{}')));
       stub(FirebaseUtil, 'isIndexedDBAvailable').returns(false);
-      stub(api.navigator, 'cookieEnabled').value(true);
-      return api.requiredApisAvailable().then(() => {
+      return api.requiredApisAvailable().then(isAvailable => {
         expect(consoleLogger.info).to.be.called;
+        expect(isAvailable).to.be.false;
       });
     });
 
     it('call logger when validateIndexedDBOpenable throws an exception', () => {
       stub(consoleLogger, 'info');
+      stub(window, 'fetch').returns(Promise.resolve(new Response('{}')));
       stub(FirebaseUtil, 'isIndexedDBAvailable').returns(true);
       stub(FirebaseUtil, 'validateIndexedDBOpenable').throws();
-      stub(api.navigator, 'cookieEnabled').value(true);
-      return api.requiredApisAvailable().then(() => {
-        expect(consoleLogger.info).to.to.be.called;
+      return api.requiredApisAvailable().then(isAvailable => {
+        expect(consoleLogger.info).to.be.called;
+        expect(isAvailable).to.be.false;
+      });
+    });
+    it('logger not called when function returns true', () => {
+      stub(consoleLogger, 'info');
+      stub(window, 'fetch').returns(Promise.resolve(new Response('{}')));
+      stub(FirebaseUtil, 'isIndexedDBAvailable').returns(true);
+      stub(FirebaseUtil, 'validateIndexedDBOpenable').returns(
+        Promise.resolve(true)
+      );
+      return api.requiredApisAvailable().then(isAvailable => {
+        expect(consoleLogger.info).to.not.be.called;
+        expect(isAvailable).to.be.true;
       });
     });
   });
