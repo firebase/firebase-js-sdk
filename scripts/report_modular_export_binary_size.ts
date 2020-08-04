@@ -24,7 +24,6 @@ import { execSync } from 'child_process';
 import * as https from 'https';
 import { mapWorkspaceToPackages } from './release/utils/workspace';
 import { projectRoot } from './utils';
-import { Request } from 'express';
 
 interface RequestBody {
   log: string;
@@ -70,7 +69,7 @@ async function generateReport(): Promise<RequestBody> {
 function constructRequestPath(): string {
   const repo = process.env.GITHUB_REPOSITORY;
   const commit = process.env.GITHUB_SHA;
-  let path = `/repos/${repo}/commits/${commit}/reports`;
+  let path = `/repos/${repo}/commits/${commit}/size_analysis`;
   if (process.env.GITHUB_EVENT_NAME === 'pull_request') {
     const pullRequestNumber = process.env.GITHUB_PULL_REQUEST_NUMBER;
     const pullRequestBaseSha = process.env.GITHUB_PULL_REQUEST_BASE_SHA;
