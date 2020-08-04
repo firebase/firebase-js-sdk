@@ -290,45 +290,44 @@ export class IndexedDbPersistence implements Persistence {
    *
    * @return {Promise<void>} Whether persistence was enabled.
    */
-  async start(): Promise<void> {
+  start(): Promise<void> {
     debugAssert(!this.started, 'IndexedDbPersistence double-started!');
     debugAssert(this.window !== null, "Expected 'window' to be defined");
 
-    try {
-      await this.simpleDb.ensureDb();
+    return this.updateClientMetadataAndTryBecomePrimary()
+      .then(() => {
+        if (!this.isPrimary && !this.allowTabSynchronization) {
+          // Fail `start()` if `synchronizeTabs` is disabled and we cannot
+          // obtain the primary lease.
+          throw new FirestoreError(
+            Code.FAILED_PRECONDITION,
+            PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG
+          );
+        }
+        this.attachVisibilityHandler();
+        this.attachWindowUnloadHook();
 
-      // NOTE: This is expected to fail sometimes (in the case of another tab already
-      // having the persistence lock), so it's the first thing we should do.
-      await this.updateClientMetadataAndTryBecomePrimary();
+        this.scheduleClientMetadataAndPrimaryLeaseRefreshes();
 
-      if (!this.isPrimary && !this.allowTabSynchronization) {
-        // Fail `start()` if `synchronizeTabs` is disabled and we cannot
-        // obtain the primary lease.
-        throw new FirestoreError(
-          Code.FAILED_PRECONDITION,
-          PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG
+        return this.runTransaction(
+          'getHighestListenSequenceNumber',
+          'readonly',
+          txn => this.targetCache.getHighestSequenceNumber(txn)
         );
-      }
-      this.attachVisibilityHandler();
-      this.attachWindowUnloadHook();
-
-      this.scheduleClientMetadataAndPrimaryLeaseRefreshes();
-
-      const highestListenSequenceNumber = await this.runTransaction(
-        'getHighestListenSequenceNumber',
-        'readonly',
-        txn => this.targetCache.getHighestSequenceNumber(txn)
-      );
-
-      this.listenSequence = new ListenSequence(
-        highestListenSequenceNumber,
-        this.sequenceNumberSyncer
-      );
-
-      this._started = true;
-    } finally {
-      this.simpleDb.close();
-    }
+      })
+      .then(highestListenSequenceNumber => {
+        this.listenSequence = new ListenSequence(
+          highestListenSequenceNumber,
+          this.sequenceNumberSyncer
+        );
+      })
+      .then(() => {
+        this._started = true;
+      })
+      .catch(reason => {
+        this.simpleDb && this.simpleDb.close();
+        return Promise.reject(reason);
+      });
   }
 
   /**
