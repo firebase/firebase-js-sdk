@@ -28,8 +28,6 @@ import { name, version } from './package.json';
 
 import './register-module';
 
-//test
-
 /**
  * Registers the main Firestore build with the components framework.
  * Persistence can be enabled via `firebase.firestore().enablePersistence()`.
