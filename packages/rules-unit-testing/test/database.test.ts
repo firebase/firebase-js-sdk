@@ -99,15 +99,32 @@ describe('Testing Module Tests', function () {
     expect(claims).to.deep.equal({ uid: auth.uid, iat: 0, sub: auth.uid });
   });
 
-  it('initializeAdminApp() sets the access token to "owner"', async function () {
-    const app = firebase.initializeAdminApp({ projectId: 'foo' });
-    const authInternal = ((app as unknown) as _FirebaseApp).container
-      .getProvider('auth-internal')
-      .getImmediate();
+  it('initializeAdminApp() has admin access', async function () {
+    await firebase.loadFirestoreRules({
+      projectId: 'foo',
+      rules: `service cloud.firestore {
+        match /databases/{db}/documents/{doc=**} {
+          allow read, write: if false;
+        }
+      }`
+    });
 
-    const token = await authInternal.getToken();
-    expect(token).to.have.keys('accessToken');
-    expect(token!.accessToken).to.be.string('owner');
+    await firebase.loadDatabaseRules({
+      databaseName: 'foo',
+      rules: '{ "rules": {".read": false, ".write": false} }'
+    });
+
+    const app = firebase.initializeAdminApp({
+      projectId: 'foo',
+      databaseName: 'foo'
+    });
+
+    await firebase.assertSucceeds(
+      app.firestore().doc('/foo/bar').set({ hello: 'world' })
+    );
+    await firebase.assertSucceeds(
+      app.database().ref().child('/foo/bar').set({ hello: 'world' })
+    );
   });
 
   it('loadDatabaseRules() throws if no databaseName or rules', async function () {
