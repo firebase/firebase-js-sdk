@@ -72,7 +72,8 @@ export function newTestFirestore(): Firestore {
       database: '(default)'
     },
     new Provider('auth-internal', new ComponentContainer('default')),
-    new MultiTabIndexedDbComponentProvider()
+    offlineComponentProvider,
+    onlineComponentProvider
   );
 }
 
