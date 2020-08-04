@@ -50,7 +50,7 @@ export function extractPublicIdentifiers(filePaths: string[]): Set<string> {
   const publicIdentifiers = new Set<string>();
 
   for (const filePath of filePaths) {
-    const contents = fs.readFileSync(filePath, { encoding: 'utf-8' });
+    const contents = fs.readFileSync(filePath, { encoding: 'UTF-8' });
     let sourceFile = ts.createSourceFile(
       filePath,
       contents,
