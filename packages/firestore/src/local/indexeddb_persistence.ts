@@ -191,10 +191,7 @@ export class IndexedDbPersistence implements Persistence {
     }
   }
 
-  // Technically `simpleDb` should be `| undefined` because it is
-  // initialized asynchronously by start(), but that would be more misleading
-  // than useful.
-  private simpleDb!: SimpleDb;
+  private simpleDb: SimpleDb;
 
   private listenSequence: ListenSequence | null = null;
 
@@ -259,6 +256,11 @@ export class IndexedDbPersistence implements Persistence {
     this.referenceDelegate = new IndexedDbLruDelegate(this, lruParams);
     this.dbName = persistenceKey + MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
+    this.simpleDb = new SimpleDb(
+      this.dbName,
+      SCHEMA_VERSION,
+      new SchemaConverter(this.serializer)
+    );
     this.targetCache = new IndexedDbTargetCache(
       this.referenceDelegate,
       this.serializer
@@ -288,54 +290,45 @@ export class IndexedDbPersistence implements Persistence {
    *
    * @return {Promise<void>} Whether persistence was enabled.
    */
-  start(): Promise<void> {
+  async start(): Promise<void> {
     debugAssert(!this.started, 'IndexedDbPersistence double-started!');
     debugAssert(this.window !== null, "Expected 'window' to be defined");
 
-    return SimpleDb.openOrCreate(
-      this.dbName,
-      SCHEMA_VERSION,
-      new SchemaConverter(this.serializer)
-    )
-      .then(db => {
-        this.simpleDb = db;
-        // NOTE: This is expected to fail sometimes (in the case of another tab already
-        // having the persistence lock), so it's the first thing we should do.
-        return this.updateClientMetadataAndTryBecomePrimary();
-      })
-      .then(() => {
-        if (!this.isPrimary && !this.allowTabSynchronization) {
-          // Fail `start()` if `synchronizeTabs` is disabled and we cannot
-          // obtain the primary lease.
-          throw new FirestoreError(
-            Code.FAILED_PRECONDITION,
-            PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG
-          );
-        }
-        this.attachVisibilityHandler();
-        this.attachWindowUnloadHook();
+    try {
+      await this.simpleDb.ensureDb();
 
-        this.scheduleClientMetadataAndPrimaryLeaseRefreshes();
+      // NOTE: This is expected to fail sometimes (in the case of another tab already
+      // having the persistence lock), so it's the first thing we should do.
+      await this.updateClientMetadataAndTryBecomePrimary();
 
-        return this.runTransaction(
-          'getHighestListenSequenceNumber',
-          'readonly',
-          txn => this.targetCache.getHighestSequenceNumber(txn)
+      if (!this.isPrimary && !this.allowTabSynchronization) {
+        // Fail `start()` if `synchronizeTabs` is disabled and we cannot
+        // obtain the primary lease.
+        throw new FirestoreError(
+          Code.FAILED_PRECONDITION,
+          PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG
         );
-      })
-      .then(highestListenSequenceNumber => {
-        this.listenSequence = new ListenSequence(
-          highestListenSequenceNumber,
-          this.sequenceNumberSyncer
-        );
-      })
-      .then(() => {
-        this._started = true;
-      })
-      .catch(reason => {
-        this.simpleDb && this.simpleDb.close();
-        return Promise.reject(reason);
-      });
+      }
+      this.attachVisibilityHandler();
+      this.attachWindowUnloadHook();
+
+      this.scheduleClientMetadataAndPrimaryLeaseRefreshes();
+
+      const highestListenSequenceNumber = await this.runTransaction(
+        'getHighestListenSequenceNumber',
+        'readonly',
+        txn => this.targetCache.getHighestSequenceNumber(txn)
+      );
+
+      this.listenSequence = new ListenSequence(
+        highestListenSequenceNumber,
+        this.sequenceNumberSyncer
+      );
+
+      this._started = true;
+    } finally {
+      this.simpleDb.close();
+    }
   }
 
   /**
