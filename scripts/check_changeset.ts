@@ -27,13 +27,13 @@ const git = simpleGit(root);
  * Identify modified packages.
  */
 async function getDiffData(): Promise<{
-  changedPackages: string[];
+  changedPackages: Set<string>;
   changesetFile: string;
 } | null> {
   const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
   const changedFiles = diff.split('\n');
   let changesetFile = '';
-  const changedPackagesMap = new Set();
+  const changedPackages = new Set<string>();
   for (const filename of changedFiles) {
     // Check for an existing .changeset
     const changesetMatch = filename.match(/^\.changeset\/[a-zA-Z-]+\.md/);
@@ -50,14 +50,14 @@ async function getDiffData(): Promise<{
       ));
       if (changedPackage) {
         // Add the package itself.
-        changedPackagesMap.add(changedPackage.name);
+        changedPackages.add(changedPackage.name);
       }
     }
   }
-  if (!changesetFile || Object.keys(changedPackagesMap).length === 0) {
+  if (!changesetFile || changedPackages.size === 0) {
     return null;
   }
-  return { changedPackages: Object.keys(changedPackagesMap), changesetFile };
+  return { changedPackages, changesetFile };
 }
 
 async function parseChangesetFile(changesetFile: string) {
@@ -81,7 +81,7 @@ async function main() {
     } else {
       const { changedPackages, changesetFile } = diffData;
       const changesetPackages = await parseChangesetFile(changesetFile);
-      const missingPackages = changedPackages.filter(
+      const missingPackages = [...changedPackages].filter(
         changedPkg => !changesetPackages.includes(changedPkg)
       );
       if (missingPackages.length > 0) {
