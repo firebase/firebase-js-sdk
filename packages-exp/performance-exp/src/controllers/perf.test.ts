@@ -15,15 +15,17 @@
  * limitations under the License.
  */
 
+import '../../test/setup';
+
+import { FirebaseApp } from '@firebase/app-types';
 import { expect } from 'chai';
 import { stub } from 'sinon';
+
 import { PerformanceController } from '../controllers/perf';
-import { Trace } from '../resources/trace';
 import { Api, setupApi } from '../services/api_service';
-import { FirebaseApp } from '@firebase/app-types';
 import * as initializationService from '../services/initialization_service';
+import { SettingsService } from '../services/settings_service';
 import { consoleLogger } from '../utils/console_logger';
-import '../../test/setup';
 
 describe('Firebase Performance Test', () => {
   setupApi(window);
@@ -54,58 +56,65 @@ describe('Firebase Performance Test', () => {
     });
   });
 
-  describe('#trace', () => {
-    it('creates a custom trace', () => {
-      const controller = new PerformanceController(fakeFirebaseApp);
-      const myTrace = controller.trace('myTrace');
+  describe('#settings', () => {
+    it('applies the settings if provided', async () => {
+      const settings = {
+        instrumentationEnabled: false,
+        dataCollectionEnabled: false
+      };
 
-      expect(myTrace).to.be.instanceOf(Trace);
-    });
+      const controller = new PerformanceController(fakeFirebaseApp, settings);
 
-    it('custom trace has the correct name', () => {
-      const controller = new PerformanceController(fakeFirebaseApp);
-      const myTrace = controller.trace('myTrace');
-
-      expect(myTrace.name).is.equal('myTrace');
-    });
-
-    it('custom trace is not auto', () => {
-      const controller = new PerformanceController(fakeFirebaseApp);
-      const myTrace = controller.trace('myTrace');
-
-      expect(myTrace.isAuto).is.equal(false);
-    });
-  });
-
-  describe('#instrumentationEnabled', () => {
-    it('sets instrumentationEnabled to enabled', async () => {
-      const controller = new PerformanceController(fakeFirebaseApp);
-
-      controller.instrumentationEnabled = true;
-      expect(controller.instrumentationEnabled).is.equal(true);
-    });
-
-    it('sets instrumentationEnabled to disabled', async () => {
-      const controller = new PerformanceController(fakeFirebaseApp);
-
-      controller.instrumentationEnabled = false;
       expect(controller.instrumentationEnabled).is.equal(false);
-    });
-  });
-
-  describe('#dataCollectionEnabled', () => {
-    it('sets dataCollectionEnabled to enabled', async () => {
-      const controller = new PerformanceController(fakeFirebaseApp);
-
-      controller.dataCollectionEnabled = true;
-      expect(controller.dataCollectionEnabled).is.equal(true);
-    });
-
-    it('sets dataCollectionEnabled to disabled', () => {
-      const controller = new PerformanceController(fakeFirebaseApp);
-
-      controller.dataCollectionEnabled = false;
       expect(controller.dataCollectionEnabled).is.equal(false);
+    });
+
+    it('uses defaults when settings are not provided', async () => {
+      const expectedInstrumentationEnabled = SettingsService.getInstance()
+        .instrumentationEnabled;
+      const expectedDataCollectionEnabled = SettingsService.getInstance()
+        .dataCollectionEnabled;
+
+      const controller = new PerformanceController(fakeFirebaseApp);
+
+      expect(controller.instrumentationEnabled).is.equal(
+        expectedInstrumentationEnabled
+      );
+      expect(controller.dataCollectionEnabled).is.equal(
+        expectedDataCollectionEnabled
+      );
+    });
+
+    describe('#instrumentationEnabled', () => {
+      it('sets instrumentationEnabled to enabled', async () => {
+        const controller = new PerformanceController(fakeFirebaseApp);
+
+        controller.instrumentationEnabled = true;
+        expect(controller.instrumentationEnabled).is.equal(true);
+      });
+
+      it('sets instrumentationEnabled to disabled', async () => {
+        const controller = new PerformanceController(fakeFirebaseApp);
+
+        controller.instrumentationEnabled = false;
+        expect(controller.instrumentationEnabled).is.equal(false);
+      });
+    });
+
+    describe('#dataCollectionEnabled', () => {
+      it('sets dataCollectionEnabled to enabled', async () => {
+        const controller = new PerformanceController(fakeFirebaseApp);
+
+        controller.dataCollectionEnabled = true;
+        expect(controller.dataCollectionEnabled).is.equal(true);
+      });
+
+      it('sets dataCollectionEnabled to disabled', () => {
+        const controller = new PerformanceController(fakeFirebaseApp);
+
+        controller.dataCollectionEnabled = false;
+        expect(controller.dataCollectionEnabled).is.equal(false);
+      });
     });
   });
 });
