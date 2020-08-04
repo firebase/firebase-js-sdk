@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebasePerformance } from '@firebase/performance-types-exp';
+import {
+  FirebasePerformance,
+  PerformanceSettings
+} from '@firebase/performance-types-exp';
 
-import { Trace } from '../resources/trace';
 import { Api } from '../services/api_service';
 import { getInitializationPromise } from '../services/initialization_service';
 import { setupOobResources } from '../services/oob_resources_service';
@@ -26,19 +28,26 @@ import { setupTransportService } from '../services/transport_service';
 import { consoleLogger } from '../utils/console_logger';
 
 export class PerformanceController implements FirebasePerformance {
-  constructor(readonly app: FirebaseApp) {
+  constructor(
+    readonly app: FirebaseApp,
+    readonly settings?: PerformanceSettings
+  ) {
+    if (settings?.dataCollectionEnabled !== undefined) {
+      this.dataCollectionEnabled = settings.dataCollectionEnabled;
+    }
+    if (settings?.instrumentationEnabled !== undefined) {
+      this.instrumentationEnabled = settings.instrumentationEnabled;
+    }
+
     if (Api.getInstance().requiredApisAvailable()) {
       setupTransportService();
       getInitializationPromise().then(setupOobResources, setupOobResources);
     } else {
       consoleLogger.info(
-        'Firebase Performance cannot start if browser does not support fetch and Promise or cookie is disabled.'
+        'Firebase Performance cannot start if the browser does not support ' +
+          '"Fetch" and "Promise", or cookies are disabled.'
       );
     }
-  }
-
-  trace(name: string): Trace {
-    return new Trace(name);
   }
 
   set instrumentationEnabled(val: boolean) {
