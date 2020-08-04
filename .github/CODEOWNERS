@@ -59,6 +59,7 @@ packages/auth  @bojeil-google @avolkovi @samhorlbeck @scottcrossen @firebase/jss
 packages/auth-types  @bojeil-google @avolkovi @samhorlbeck @scottcrossen @firebase/jssdk-global-approvers
 
 # Testing Code
+packages/testing  @avolkovi @samhorlbeck @scottcrossen @yuchenshi @firebase/jssdk-global-approvers
 packages/rules-unit-testing  @avolkovi @samhorlbeck @scottcrossen @yuchenshi @firebase/jssdk-global-approvers
 
 # RxFire Code
