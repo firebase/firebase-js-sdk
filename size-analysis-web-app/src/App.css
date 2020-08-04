@@ -19,6 +19,8 @@
 .bundle-overview {
     background-color: #FFFFFF;
     height: 48vh;
+    overflow: scroll;
+
 
 }
 .bundle-item {
