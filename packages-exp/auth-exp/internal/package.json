@@ -1,0 +1,9 @@
+{
+  "name": "@firebase/auth-exp/internal",
+  "description": "An internal version of the Auth SDK for use in the compatibility layer",
+  "main": "../dist/internal/index.node.cjs.js",
+  "module": "../dist/internal/index.browser.esm.js",
+  "browser": "../dist/internal/index.browser.esm.js",
+  "typings": "../dist/internal/internal/index.d.ts",
+  "private": true
+}

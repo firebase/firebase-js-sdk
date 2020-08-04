@@ -16,18 +16,24 @@
  */
 
 import json from 'rollup-plugin-json';
+import resolve from 'rollup-plugin-node-resolve';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+const deps = [
+ '@firebase/app',
+ '@firebase/component',
+ '@firebase/installations'
+]
 
 /**
  * Common plugins for all builds
  */
-const commonPlugins = [json()];
+const commonPlugins = [
+  json(),
+  resolve()
+];
 
 /**
  * ES5 Builds
@@ -60,18 +66,6 @@ const es5Builds = [
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-  /**
-   * React Native Builds
-   */
-  {
-    input: 'index.rn.ts',
-    output: [{ file: pkg['react-native'], format: 'cjs', sourcemap: true }],
-    plugins: es5BuildPlugins,
-    external: id =>
-      [...deps, 'react-native'].some(
-        dep => id === dep || id.startsWith(`${dep}/`)
-      )
   }
 ];
 

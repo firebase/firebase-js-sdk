@@ -15,30 +15,28 @@
  * limitations under the License.
  */
 
-import * as impl from '@firebase/auth-exp';
-import { UserImpl } from '@firebase/auth-exp/src/core/user/user_impl';
-import { UserParameters } from '@firebase/auth-exp/src/model/user';
+import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import * as externs from '@firebase/auth-types-exp';
 import '@firebase/installations';
 import {
-  convertComfirmationResult,
+  convertConfirmationResult,
   convertCredential
 } from './user_credential';
 
-export class User extends UserImpl implements compat.User {
+export class User extends impl.UserImpl implements compat.User {
   readonly multiFactor: compat.MultiFactorUser;
 
-  constructor(params: UserParameters) {
+  constructor(params: impl.UserParameters) {
     super(params);
     this.multiFactor = impl.multiFactor(this);
   }
 
   getIdTokenResult(forceRefresh?: boolean): Promise<compat.IdTokenResult> {
-    return impl.getIdTokenResult(this, forceRefresh);
+    return super.getIdTokenResult(forceRefresh);
   }
   getIdToken(forceRefresh?: boolean): Promise<string> {
-    return impl.getIdToken(this, forceRefresh);
+    return super.getIdToken(forceRefresh);
   }
   linkAndRetrieveDataWithCredential(
     credential: compat.AuthCredential
@@ -56,7 +54,7 @@ export class User extends UserImpl implements compat.User {
     phoneNumber: string,
     applicationVerifier: compat.ApplicationVerifier
   ): Promise<compat.ConfirmationResult> {
-    return convertComfirmationResult(
+    return convertConfirmationResult(
       impl.linkWithPhoneNumber(this, phoneNumber, applicationVerifier)
     );
   }
@@ -97,7 +95,7 @@ export class User extends UserImpl implements compat.User {
     phoneNumber: string,
     applicationVerifier: compat.ApplicationVerifier
   ): Promise<compat.ConfirmationResult> {
-    return convertComfirmationResult(
+    return convertConfirmationResult(
       impl.reauthenticateWithPhoneNumber(this, phoneNumber, applicationVerifier)
     );
   }

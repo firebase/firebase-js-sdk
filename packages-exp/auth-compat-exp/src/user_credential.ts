@@ -15,16 +15,14 @@
  * limitations under the License.
  */
 
-import * as impl from '@firebase/auth-exp';
-import { SignInWithIdpResponse } from '@firebase/auth-exp/src/api/authentication/idp';
-import { UserCredential } from '@firebase/auth-exp/src/model/user';
+import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import * as externs from '@firebase/auth-types-exp';
 import '@firebase/installations';
 import { User } from './user';
 
 function credentialFromResponse(
-  userCredential: UserCredential
+  userCredential: impl.UserCredential
 ): externs.AuthCredential | null {
   const { providerId, _tokenResponse } = userCredential;
   if (!_tokenResponse) {
@@ -57,7 +55,7 @@ function credentialFromResponse(
         oauthTokenSecret,
         pendingToken,
         nonce
-      } = _tokenResponse as SignInWithIdpResponse;
+      } = _tokenResponse as impl.SignInWithIdpResponse;
       if (
         !oauthAccessToken &&
         !oauthTokenSecret &&
@@ -98,12 +96,12 @@ export async function convertCredential(
 
   return {
     operationType,
-    credential: credentialFromResponse(credential as UserCredential),
+    credential: credentialFromResponse(credential as impl.UserCredential),
     user: user as User
   };
 }
 
-export async function convertComfirmationResult(
+export async function convertConfirmationResult(
   confirmationResultPromise: Promise<externs.ConfirmationResult>
 ): Promise<compat.ConfirmationResult> {
   const { verificationId, confirm } = await confirmationResultPromise;

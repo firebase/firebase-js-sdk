@@ -16,51 +16,37 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import * as impl from '@firebase/auth-exp';
-import {
-  AuthImplCompat,
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST
-} from '@firebase/auth-exp/src/core/auth/auth_impl';
-import { AuthErrorCode } from '@firebase/auth-exp/src/core/errors';
-import { Persistence as persistenceImpl } from '@firebase/auth-exp/src/core/persistence';
-import { assert, fail } from '@firebase/auth-exp/src/core/util/assert';
-import { _getInstance } from '@firebase/auth-exp/src/core/util/instantiator';
-import {
-  ClientPlatform,
-  _getClientVersion
-} from '@firebase/auth-exp/src/core/util/version';
+import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import * as externs from '@firebase/auth-types-exp';
 import '@firebase/installations';
 import { Observer, Unsubscribe, ErrorFn } from '@firebase/util';
 import { User } from './user';
 import {
-  convertComfirmationResult,
+  convertConfirmationResult,
   convertCredential
 } from './user_credential';
 
-export class Auth extends AuthImplCompat<User> implements compat.FirebaseAuth {
+export class Auth extends impl.AuthImplCompat<User> implements compat.FirebaseAuth {
   readonly app: FirebaseApp;
 
   constructor(app: FirebaseApp) {
     const { apiKey, authDomain } = app.options;
 
     // TODO(avolkovi): Implement proper persistence fallback
-    const hierarchy = [impl.indexedDBLocalPersistence].map<persistenceImpl>(
-      _getInstance
+    const hierarchy = [impl.indexedDBLocalPersistence].map<impl.Persistence>(
+      impl._getInstance
     );
 
     // TODO: platform needs to be determined using heuristics
-    assert(apiKey, app.name, AuthErrorCode.INVALID_API_KEY);
+    impl.assertFn(apiKey, app.name, impl.AuthErrorCode.INVALID_API_KEY);
     const config: externs.Config = {
       apiKey,
       authDomain,
-      apiHost: DEFAULT_API_HOST,
-      tokenApiHost: DEFAULT_TOKEN_API_HOST,
-      apiScheme: DEFAULT_API_SCHEME,
-      sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
+      apiHost: impl.DEFAULT_API_HOST,
+      tokenApiHost: impl.DEFAULT_TOKEN_API_HOST,
+      apiScheme: impl.DEFAULT_API_SCHEME,
+      sdkClientVersion: impl._getClientVersion(impl.ClientPlatform.BROWSER)
     };
 
     super(app.name, config, User);
@@ -168,19 +154,19 @@ export class Auth extends AuthImplCompat<User> implements compat.FirebaseAuth {
       persistenceCompat: string
     ): externs.Persistence {
       switch (persistenceCompat) {
-        case compat.FirebaseAuth.Persistence.LOCAL:
+        case 'LOCAL':
           return impl.browserLocalPersistence;
-        case compat.FirebaseAuth.Persistence.SESSION:
+        case 'SESSION':
           return impl.browserSessionPersistence;
-        case compat.FirebaseAuth.Persistence.NONE:
+        case 'NONE':
           return impl.inMemoryPersistence;
         default:
-          fail(auth.name, AuthErrorCode.ARGUMENT_ERROR);
+          return impl.fail(auth.name, impl.AuthErrorCode.ARGUMENT_ERROR);
       }
     }
 
     return super._setPersistence(
-      _getInstance(convertPersistence(this._asExtern(), persistence))
+      impl._getInstance(convertPersistence(this._asExtern(), persistence))
     );
   }
 
@@ -227,7 +213,7 @@ export class Auth extends AuthImplCompat<User> implements compat.FirebaseAuth {
     phoneNumber: string,
     applicationVerifier: compat.ApplicationVerifier
   ): Promise<compat.ConfirmationResult> {
-    return convertComfirmationResult(
+    return convertConfirmationResult(
       impl.signInWithPhoneNumber(
         this._asExtern(),
         phoneNumber,
