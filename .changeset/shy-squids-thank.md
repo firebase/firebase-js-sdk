@@ -1,0 +1,5 @@
+---
+'@firebase/firestore': patch
+---
+
+Test

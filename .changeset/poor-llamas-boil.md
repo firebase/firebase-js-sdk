@@ -1,5 +1,0 @@
----
-'@firebase/analytics': patch
----
-
-Test

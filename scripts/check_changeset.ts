@@ -61,6 +61,10 @@ async function getDiffData(): Promise<{
 }
 
 async function parseChangesetFile(changesetFile: string) {
+  const fileExists = await fs.exists(changesetFile);
+  if (!fileExists) {
+    process.exit();
+  }
   const fileText: string = await fs.readFile(changesetFile, 'utf8');
   const fileParts = fileText.split('---\n');
   const packageLines = fileParts[1].split('\n');
