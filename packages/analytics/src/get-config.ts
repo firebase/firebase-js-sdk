@@ -190,9 +190,9 @@ async function attemptFetchDynamicConfigWithRetry(
   } catch (e) {
     if (measurementId) {
       logger.warn(
-        `Timed out fetching this Firebase app's measurement id from the server.` +
-          ` Falling back to measurement id ${measurementId}` +
-          ` provided in "measurementId" field. [${e.message}]`
+        `Timed out fetching this Firebase app's measurement ID from the server.` +
+          ` Falling back to the measurement ID ${measurementId}` +
+          ` provided in the "measurementId" field in the local Firebase config. [${e.message}]`
       );
       return { appId, measurementId };
     }
@@ -211,9 +211,9 @@ async function attemptFetchDynamicConfigWithRetry(
       retryData.deleteThrottleMetadata(appId);
       if (measurementId) {
         logger.warn(
-          `Failed to fetch this Firebase app's measurement id from the server.` +
-            ` Falling back to measurement id ${measurementId}` +
-            ` provided in "measurementId" field. [${e.message}]`
+          `Failed to fetch this Firebase app's measurement ID from the server.` +
+            ` Falling back to the measurement ID ${measurementId}` +
+            ` provided in the "measurementId" field in the local Firebase config. [${e.message}]`
         );
         return { appId, measurementId };
       } else {

@@ -170,9 +170,9 @@ export function factory(
   if (!app.options.apiKey) {
     if (app.options.measurementId) {
       logger.warn(
-        `"apiKey" field is empty in Firebase config. This is needed to fetch the latest` +
-          ` measurement id for this Firebase app. Falling back to measurement id ${app.options.measurementId}` +
-          ` provided in "measurementId" field.`
+        `The "apiKey" field is empty in the local Firebase config. This is needed to fetch the latest` +
+          ` measurement ID for this Firebase app. Falling back to the measurement ID ${app.options.measurementId}` +
+          ` provided in the "measurementId" field in the local Firebase config.`
       );
     } else {
       throw ERROR_FACTORY.create(AnalyticsError.NO_API_KEY);
