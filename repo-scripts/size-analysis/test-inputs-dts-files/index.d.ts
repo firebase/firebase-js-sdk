@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { LogLevel } from '@firebase/logger';
+import { LogLevel as LogLevel1, Logger, setLogLevel } from '@firebase/logger';
 export * from './bar';
 export {
   BasicEnumExportFar,
@@ -47,7 +47,7 @@ export declare function basicFuncExportNoDependencies(): string;
 export declare function basicFuncExportVarDependencies(): string;
 export declare function basicFuncExportFuncDependencies(): string;
 export declare function basicFuncExportEnumDependencies(): BasicEnumExport;
-export declare function basicFuncExternalDependencies(): LogLevel;
+export declare function basicFuncExternalDependencies(): LogLevel1;
 export declare function basicUniqueFunc(
   x: Array<{
     suit: string;
@@ -66,4 +66,10 @@ declare class Foo {}
 export { Foo as Foo1 };
 declare function foo(x: string): string;
 export { foo as foo2 };
-export { LogLevel } from '@firebase/logger';
+export { LogLevel1 as LogLevel2 };
+export { Logger as Logger1 };
+export { setLogLevel };
+import * as fs from 'fs';
+export { fs as fs1 };
+import * as tmp from 'tmp';
+export declare const aVar: tmp.FileOptions;

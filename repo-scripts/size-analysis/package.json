@@ -24,10 +24,13 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@firebase/logger": "0.2.5",
+    "@firebase/util": "0.3.0",
     "mocha-logger": "1.0.6",
     "rollup": "2.21.0",
     "rollup-plugin-json": "4.0.0",
-    "rollup-plugin-typescript2": "0.27.0"
+    "rollup-plugin-typescript2": "0.27.0",
+    "@rollup/plugin-commonjs": "13.0.0",
+    "@rollup/plugin-node-resolve": "8.1.0"
   },
   "repository": {
     "directory": "packages/template",
