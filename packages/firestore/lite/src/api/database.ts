@@ -30,7 +30,6 @@ import {
 } from '../../../src/api/credentials';
 import { cast } from './util';
 import { removeComponents } from './components';
-import { debugAssert } from '../../../src/util/assert';
 
 /**
  * The root reference to the Firestore Lite database.
@@ -111,7 +110,6 @@ export class Firestore
    * Only ever called once.
    */
   protected _terminate(): Promise<void> {
-    debugAssert(!this._terminated, 'Cannot invoke _terminate() more than once');
     return removeComponents(this);
   }
 
