@@ -15,16 +15,4 @@
  * limitations under the License.
  */
 
-// This file is only used under ts-node.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/dom`);
-
-/** The Platform's 'window' implementation or null if not available. */
-export function getWindow(): Window | null {
-  return platform.getWindow();
-}
-
-/** The Platform's 'document' implementation or null if not available. */
-export function getDocument(): Document | null {
-  return platform.getDocument();
-}
+export * from '../rn/dom';

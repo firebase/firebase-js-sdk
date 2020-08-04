@@ -14,19 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ConnectivityMonitor } from '../remote/connectivity_monitor';
-import { DatabaseInfo } from '../core/database_info';
-import { Connection } from '../remote/connection';
 
-// This file is only used under ts-node.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const platform = require(`./${process.env.TEST_PLATFORM ?? 'node'}/connection`);
+import * as nodeFetch from 'node-fetch';
 
-export function newConnectivityMonitor(): ConnectivityMonitor {
-  return platform.newConnectivityMonitor();
-}
+import { FetchConnection } from '../browser_lite/fetch_connection';
+import { DatabaseInfo } from '../../core/database_info';
+import { Connection } from '../../remote/connection';
 
-// TODO(firestorexp): This doesn't need to return a Promise
+export { newConnectivityMonitor } from '../browser/connection';
+
+/** Initializes the HTTP connection for the REST API. */
 export function newConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
-  return platform.newConnection(databaseInfo);
+  // node-fetch is meant to be API compatible with `fetch`, but its type don't
+  // match 100%.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return Promise.resolve(new FetchConnection(databaseInfo, nodeFetch as any));
 }

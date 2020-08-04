@@ -86,9 +86,10 @@ module.exports = {
     new webpack.NormalModuleReplacementPlugin(
       FIRESTORE_PLATFORM_RE,
       resource => {
+        const targetPlatform = process.env.TEST_PLATFORM || 'browser';
         resource.request = resource.request.replace(
           FIRESTORE_PLATFORM_RE,
-          '$1/platform/browser/$2.ts'
+          `$1/platform/${targetPlatform}/$2.ts`
         );
       }
     ),
