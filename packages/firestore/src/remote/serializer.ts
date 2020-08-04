@@ -982,11 +982,11 @@ function toFilter(filters: Filter[]): api.Filter | undefined {
     return;
   }
   const protos = filters.map(filter => {
-    if (filter instanceof FieldFilter) {
-      return toUnaryOrFieldFilter(filter);
-    } else {
-      return fail('Unrecognized filter: ' + JSON.stringify(filter));
-    }
+    debugAssert(
+      filter instanceof FieldFilter,
+      'Only FieldFilters are supported'
+    );
+    return toUnaryOrFieldFilter(filter);
   });
   if (protos.length === 1) {
     return protos[0];
