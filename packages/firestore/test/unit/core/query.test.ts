@@ -239,6 +239,18 @@ describe('Query', () => {
     });
     expect(queryMatches(query1, document)).to.be.true;
 
+    // Null match.
+    document = doc('collection/1', 0, {
+      zip: null
+    });
+    expect(queryMatches(query1, document)).to.be.true;
+
+    // NaN match.
+    document = doc('collection/1', 0, {
+      zip: Number.NaN
+    });
+    expect(queryMatches(query1, document)).to.be.true;
+
     // Direct match.
     document = doc('collection/1', 0, { zip: 12345 });
     expect(queryMatches(query1, document)).to.be.false;

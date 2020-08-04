@@ -1458,7 +1458,7 @@ export function newQueryFilter(
       dataReader,
       methodName,
       value,
-      op === Operator.IN || op === Operator.NOT_IN
+      /* allowArrays= */ op === Operator.IN || op === Operator.NOT_IN
     );
   }
   const filter = FieldFilter.create(fieldPath, op, fieldValue);
