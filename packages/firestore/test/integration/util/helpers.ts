@@ -19,7 +19,8 @@ import * as firestore from '@firebase/firestore-types';
 import {
   ALT_PROJECT_ID,
   DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS
+  DEFAULT_SETTINGS,
+  USE_EMULATOR
 } from './settings';
 import * as firebaseExport from './firebase_export';
 
@@ -275,4 +276,18 @@ export function withTestCollectionSettings(
       });
     }
   );
+}
+
+// TODO(ne-queries): This exists just so we don't have to do the cast
+// repeatedly. Once we expose '!=' publicly we can remove it and
+// just use 'array-contains-any' in all the tests.
+export const notEqualOp = '!=' as firestore.WhereFilterOp;
+
+// TODO(ne-queries): This exists just so we don't have to do the cast
+// repeatedly. Once we expose 'not-in' publicly we can remove it and just use 'in'
+// in all the tests.
+export const notInOp = 'not-in' as firestore.WhereFilterOp;
+
+export function isRunningAgainstEmulator(): boolean {
+  return USE_EMULATOR;
 }

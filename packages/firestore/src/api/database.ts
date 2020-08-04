@@ -1436,7 +1436,7 @@ export function newQueryFilter(
         `Invalid Query. You can't perform '${op}' ` +
           'queries on FieldPath.documentId().'
       );
-    } else if (op === Operator.IN) {
+    } else if (op === Operator.IN || op === Operator.NOT_IN) {
       validateDisjunctiveFilterElements(value, op);
       const referenceList: api.Value[] = [];
       for (const arrayValue of value as api.Value[]) {
@@ -1447,14 +1447,18 @@ export function newQueryFilter(
       fieldValue = parseDocumentIdValue(databaseId, query, value);
     }
   } else {
-    if (op === Operator.IN || op === Operator.ARRAY_CONTAINS_ANY) {
+    if (
+      op === Operator.IN ||
+      op === Operator.NOT_IN ||
+      op === Operator.ARRAY_CONTAINS_ANY
+    ) {
       validateDisjunctiveFilterElements(value, op);
     }
     fieldValue = parseQueryValue(
       dataReader,
       methodName,
       value,
-      op === Operator.IN
+      op === Operator.IN || op === Operator.NOT_IN
     );
   }
   const filter = FieldFilter.create(fieldPath, op, fieldValue);
@@ -1684,14 +1688,17 @@ function validateDisjunctiveFilterElements(
         'maximum of 10 elements in the value array.'
     );
   }
-  if (value.indexOf(null) >= 0) {
+  if (value.indexOf(null) >= 0 && operator !== Operator.NOT_IN) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
       `Invalid Query. '${operator.toString()}' filters cannot contain 'null' ` +
         'in the value array.'
     );
   }
-  if (value.filter(element => Number.isNaN(element)).length > 0) {
+  if (
+    value.filter(element => Number.isNaN(element)).length > 0 &&
+    operator !== Operator.NOT_IN
+  ) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
       `Invalid Query. '${operator.toString()}' filters cannot contain 'NaN' ` +
@@ -1700,13 +1707,40 @@ function validateDisjunctiveFilterElements(
   }
 }
 
+function conflictingOps(op: Operator): Operator[] {
+  switch (op) {
+    case Operator.NOT_EQUAL:
+      return [Operator.NOT_IN, Operator.NOT_EQUAL];
+    case Operator.ARRAY_CONTAINS:
+      return [
+        Operator.ARRAY_CONTAINS,
+        Operator.ARRAY_CONTAINS_ANY,
+        Operator.NOT_IN
+      ];
+    case Operator.IN:
+      return [Operator.ARRAY_CONTAINS_ANY, Operator.IN, Operator.NOT_IN];
+    case Operator.ARRAY_CONTAINS_ANY:
+      return [
+        Operator.ARRAY_CONTAINS,
+        Operator.ARRAY_CONTAINS_ANY,
+        Operator.IN,
+        Operator.NOT_IN
+      ];
+    case Operator.NOT_IN:
+      return [
+        Operator.ARRAY_CONTAINS,
+        Operator.ARRAY_CONTAINS_ANY,
+        Operator.IN,
+        Operator.NOT_IN,
+        Operator.NOT_EQUAL
+      ];
+    default:
+      return [];
+  }
+}
+
 function validateNewFilter(query: InternalQuery, filter: Filter): void {
   debugAssert(filter instanceof FieldFilter, 'Only FieldFilters are supported');
-
-  const arrayOps = [Operator.ARRAY_CONTAINS, Operator.ARRAY_CONTAINS_ANY];
-  const disjunctiveOps = [Operator.IN, Operator.ARRAY_CONTAINS_ANY];
-  const isArrayOp = arrayOps.indexOf(filter.op) >= 0;
-  const isDisjunctiveOp = disjunctiveOps.indexOf(filter.op) >= 0;
 
   if (filter.isInequality()) {
     const existingField = query.getInequalityFilterField();
@@ -1724,31 +1758,23 @@ function validateNewFilter(query: InternalQuery, filter: Filter): void {
     if (firstOrderByField !== null) {
       validateOrderByAndInequalityMatch(query, filter.field, firstOrderByField);
     }
-  } else if (isDisjunctiveOp || isArrayOp) {
-    // You can have at most 1 disjunctive filter and 1 array filter. Check if
-    // the new filter conflicts with an existing one.
-    let conflictingOp: Operator | null = null;
-    if (isDisjunctiveOp) {
-      conflictingOp = query.findFilterOperator(disjunctiveOps);
-    }
-    if (conflictingOp === null && isArrayOp) {
-      conflictingOp = query.findFilterOperator(arrayOps);
-    }
-    if (conflictingOp !== null) {
-      // We special case when it's a duplicate op to give a slightly clearer error message.
-      if (conflictingOp === filter.op) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          'Invalid query. You cannot use more than one ' +
-            `'${filter.op.toString()}' filter.`
-        );
-      } else {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `Invalid query. You cannot use '${filter.op.toString()}' filters ` +
-            `with '${conflictingOp.toString()}' filters.`
-        );
-      }
+  }
+
+  const conflictingOp = query.findFilterOperator(conflictingOps(filter.op));
+  if (conflictingOp !== null) {
+    // We special case when it's a duplicate op to give a slightly clearer error message.
+    if (conflictingOp === filter.op) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Invalid query. You cannot use more than one ' +
+          `'${filter.op.toString()}' filter.`
+      );
+    } else {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid query. You cannot use '${filter.op.toString()}' filters ` +
+          `with '${conflictingOp.toString()}' filters.`
+      );
     }
   }
 }
@@ -1806,18 +1832,25 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
     validateExactNumberOfArgs('Query.where', arguments, 3);
     validateDefined('Query.where', 3, value);
 
-    // Enumerated from the WhereFilterOp type in index.d.ts.
-    const whereFilterOpEnums = [
-      Operator.LESS_THAN,
-      Operator.LESS_THAN_OR_EQUAL,
-      Operator.EQUAL,
-      Operator.GREATER_THAN_OR_EQUAL,
-      Operator.GREATER_THAN,
-      Operator.ARRAY_CONTAINS,
-      Operator.IN,
-      Operator.ARRAY_CONTAINS_ANY
-    ];
-    const op = validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
+    // TODO(ne-queries): Add 'not-in' and '!=' to validation.
+    let op: Operator;
+    if ((opStr as unknown) === 'not-in' || (opStr as unknown) === '!=') {
+      op = opStr as Operator;
+    } else {
+      // Enumerated from the WhereFilterOp type in index.d.ts.
+      const whereFilterOpEnums = [
+        Operator.LESS_THAN,
+        Operator.LESS_THAN_OR_EQUAL,
+        Operator.EQUAL,
+        Operator.GREATER_THAN_OR_EQUAL,
+        Operator.GREATER_THAN,
+        Operator.ARRAY_CONTAINS,
+        Operator.IN,
+        Operator.ARRAY_CONTAINS_ANY
+      ];
+      op = validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
+    }
+
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const filter = newQueryFilter(
       this._query,

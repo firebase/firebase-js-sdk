@@ -566,10 +566,12 @@ export const enum Operator {
   LESS_THAN = '<',
   LESS_THAN_OR_EQUAL = '<=',
   EQUAL = '==',
+  NOT_EQUAL = '!=',
   GREATER_THAN = '>',
   GREATER_THAN_OR_EQUAL = '>=',
   ARRAY_CONTAINS = 'array-contains',
   IN = 'in',
+  NOT_IN = 'not-in',
   ARRAY_CONTAINS_ANY = 'array-contains-any'
 }
 
@@ -587,16 +589,8 @@ export class FieldFilter extends Filter {
    */
   static create(field: FieldPath, op: Operator, value: api.Value): FieldFilter {
     if (field.isKeyField()) {
-      if (op === Operator.IN) {
-        debugAssert(
-          isArray(value),
-          'Comparing on key with IN, but filter value not an ArrayValue'
-        );
-        debugAssert(
-          (value.arrayValue.values || []).every(elem => isReferenceValue(elem)),
-          'Comparing on key with IN, but an array value was not a RefValue'
-        );
-        return new KeyFieldInFilter(field, value);
+      if (op === Operator.IN || op === Operator.NOT_IN) {
+        return this.createKeyFieldInFilter(field, op, value);
       } else {
         debugAssert(
           isReferenceValue(value),
@@ -609,7 +603,8 @@ export class FieldFilter extends Filter {
         return new KeyFieldFilter(field, op, value);
       }
     } else if (isNullValue(value)) {
-      if (op !== Operator.EQUAL) {
+      if (op !== Operator.EQUAL && op !== Operator.NOT_EQUAL) {
+        // TODO(ne-queries): Update error message to include != comparison.
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           'Invalid query. Null supports only equality comparisons.'
@@ -617,7 +612,8 @@ export class FieldFilter extends Filter {
       }
       return new FieldFilter(field, op, value);
     } else if (isNanValue(value)) {
-      if (op !== Operator.EQUAL) {
+      if (op !== Operator.EQUAL && op !== Operator.NOT_EQUAL) {
+        // TODO(ne-queries): Update error message to include != comparison.
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           'Invalid query. NaN supports only equality comparisons.'
@@ -632,6 +628,12 @@ export class FieldFilter extends Filter {
         'IN filter has invalid value: ' + value.toString()
       );
       return new InFilter(field, value);
+    } else if (op === Operator.NOT_IN) {
+      debugAssert(
+        isArray(value),
+        'NOT_IN filter has invalid value: ' + value.toString()
+      );
+      return new NotInFilter(field, value);
     } else if (op === Operator.ARRAY_CONTAINS_ANY) {
       debugAssert(
         isArray(value),
@@ -643,8 +645,40 @@ export class FieldFilter extends Filter {
     }
   }
 
+  private static createKeyFieldInFilter(
+    field: FieldPath,
+    op: Operator,
+    value: api.Value
+  ): FieldFilter {
+    debugAssert(
+      op === Operator.IN || op === Operator.NOT_IN,
+      'createKeyFieldInFilter requires an IN or NOT_IN operator'
+    );
+    debugAssert(
+      isArray(value),
+      `Comparing on key with ${op.toString()}` +
+        ', but filter value not an ArrayValue'
+    );
+    debugAssert(
+      (value.arrayValue.values || []).every(elem => isReferenceValue(elem)),
+      `Comparing on key with ${op.toString()}` +
+        ', but an array value was not a RefValue'
+    );
+
+    return op === Operator.IN
+      ? new KeyFieldInFilter(field, value)
+      : new KeyFieldNotInFilter(field, value);
+  }
+
   matches(doc: Document): boolean {
     const other = doc.field(this.field);
+    // Types do not have to match in NOT_EQUAL filters.
+    if (this.op === Operator.NOT_EQUAL) {
+      return (
+        other !== null &&
+        this.matchesComparison(valueCompare(other!, this.value))
+      );
+    }
 
     // Only compare types with matching backend order (such as double and int).
     return (
@@ -662,6 +696,8 @@ export class FieldFilter extends Filter {
         return comparison <= 0;
       case Operator.EQUAL:
         return comparison === 0;
+      case Operator.NOT_EQUAL:
+        return comparison !== 0;
       case Operator.GREATER_THAN:
         return comparison > 0;
       case Operator.GREATER_THAN_OR_EQUAL:
@@ -677,7 +713,8 @@ export class FieldFilter extends Filter {
         Operator.LESS_THAN,
         Operator.LESS_THAN_OR_EQUAL,
         Operator.GREATER_THAN,
-        Operator.GREATER_THAN_OR_EQUAL
+        Operator.GREATER_THAN_OR_EQUAL,
+        Operator.NOT_EQUAL
       ].indexOf(this.op) >= 0
     );
   }
@@ -762,6 +799,27 @@ export class KeyFieldInFilter extends FieldFilter {
   }
 }
 
+/** Filter that matches on key fields not present within an array. */
+export class KeyFieldNotInFilter extends FieldFilter {
+  private readonly keys: DocumentKey[];
+
+  constructor(field: FieldPath, value: api.Value) {
+    super(field, Operator.NOT_IN, value);
+    debugAssert(isArray(value), 'KeyFieldNotInFilter expects an ArrayValue');
+    this.keys = (value.arrayValue.values || []).map(v => {
+      debugAssert(
+        isReferenceValue(v),
+        'Comparing on key with NOT_IN, but an array value was not a ReferenceValue'
+      );
+      return DocumentKey.fromName(v.referenceValue);
+    });
+  }
+
+  matches(doc: Document): boolean {
+    return !this.keys.some(key => key.isEqual(doc.key));
+  }
+}
+
 /** A Filter that implements the array-contains operator. */
 export class ArrayContainsFilter extends FieldFilter {
   constructor(field: FieldPath, value: api.Value) {
@@ -784,6 +842,19 @@ export class InFilter extends FieldFilter {
   matches(doc: Document): boolean {
     const other = doc.field(this.field);
     return other !== null && arrayValueContains(this.value.arrayValue!, other);
+  }
+}
+
+/** A Filter that implements the not-in operator. */
+export class NotInFilter extends FieldFilter {
+  constructor(field: FieldPath, value: api.Value) {
+    super(field, Operator.NOT_IN, value);
+    debugAssert(isArray(value), 'NotInFilter expects an ArrayValue');
+  }
+
+  matches(doc: Document): boolean {
+    const other = doc.field(this.field);
+    return other !== null && !arrayValueContains(this.value.arrayValue!, other);
   }
 }
 
