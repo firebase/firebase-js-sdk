@@ -79,7 +79,7 @@ describeSpec('Persistence:', [], () => {
       .watchAcksFull(query1, 1000, doc1)
       .expectEvents(query1, { added: [doc1] })
       .restart()
-      .userListens(query1, 'resume-token-1000')
+      .userListens(query1, { resumeToken: 'resume-token-1000' })
       .expectEvents(query1, { added: [doc1], fromCache: true });
   });
 
@@ -94,7 +94,7 @@ describeSpec('Persistence:', [], () => {
         .expectEvents(query1, { added: [doc1] })
         // Normally this would clear the cached remote documents.
         .userUnlistens(query1)
-        .userListens(query1, 'resume-token-1000')
+        .userListens(query1, { resumeToken: 'resume-token-1000' })
         .expectEvents(query1, { added: [doc1], fromCache: true })
     );
   });

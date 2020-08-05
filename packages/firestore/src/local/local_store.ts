@@ -78,6 +78,7 @@ import { BundleConverter, BundledDocuments, NamedQuery } from '../core/bundle';
 import { BundleCache } from './bundle_cache';
 import { fromVersion, JsonProtoSerializer } from '../remote/serializer';
 import { fromBundledQuery } from './local_serializer';
+import { ByteString } from '../util/byte_string';
 
 const LOG_TAG = 'LocalStore';
 
@@ -1375,8 +1376,10 @@ export async function saveNamedQuery(
   query: bundleProto.NamedQuery
 ): Promise<void> {
   // Allocate a target for the named query such that it can be resumed
-  // from associated read time if users use it to listen. It will be
-  // removed through GC as an ordinary query.
+  // from associated read time if users use it to listen.
+  // NOTE: this also means if no corresponding target exists, the new target
+  // will remain active and will not get collected, unless users happen to
+  // unlisten the query somehow.
   const allocated = await localStore.allocateTarget(
     queryToTarget(fromBundledQuery(query.bundledQuery!))
   );
@@ -1389,7 +1392,10 @@ export async function saveNamedQuery(
       let updateReadTime = PersistencePromise.resolve();
       const readTime = fromVersion(query.readTime!);
       if (allocated.snapshotVersion.compareTo(readTime) < 0) {
-        const newTargetData = allocated.withReadTime(readTime);
+        const newTargetData = allocated.withResumeToken(
+          ByteString.EMPTY_BYTE_STRING,
+          readTime
+        );
         updateReadTime = localStoreImpl.targetCache.updateTargetData(
           transaction,
           newTargetData

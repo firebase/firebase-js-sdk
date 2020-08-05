@@ -990,7 +990,10 @@ abstract class TestRunner {
           SnapshotVersion.min()
         );
       } else {
-        targetData = targetData.withReadTime(version(expected.readTime!));
+        targetData = targetData.withResumeToken(
+          ByteString.EMPTY_BYTE_STRING,
+          version(expected.readTime!)
+        );
       }
       const expectedTarget = toTarget(this.serializer, targetData);
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);

@@ -256,8 +256,7 @@ export class SpecBuilder {
 
   userListens(
     query: Query,
-    resumeFrom?: string,
-    readTime?: TestSnapshotVersion
+    resume?: { resumeToken?: string; readTime?: TestSnapshotVersion }
   ): this {
     this.nextStep();
 
@@ -277,7 +276,12 @@ export class SpecBuilder {
       }
 
       this.queryMapping.set(target, targetId);
-      this.addQueryToActiveTargets(targetId, query, resumeFrom, readTime);
+      this.addQueryToActiveTargets(
+        targetId,
+        query,
+        resume?.resumeToken,
+        resume?.readTime
+      );
       this.currentStep = {
         userListen: { targetId, query: SpecBuilder.queryToSpec(query) },
         expectedState: { activeTargets: { ...this.activeTargets } }
@@ -876,8 +880,7 @@ export class SpecBuilder {
   /** Registers a query that is active in another tab. */
   expectListen(
     query: Query,
-    resumeToken?: string,
-    readTime?: TestSnapshotVersion
+    resume?: { resumeToken?: string; readTime?: TestSnapshotVersion }
   ): this {
     this.assertStep('Expectations require previous step');
 
@@ -885,7 +888,12 @@ export class SpecBuilder {
     const targetId = this.queryIdGenerator.cachedId(target);
     this.queryMapping.set(target, targetId);
 
-    this.addQueryToActiveTargets(targetId, query, resumeToken, readTime);
+    this.addQueryToActiveTargets(
+      targetId,
+      query,
+      resume?.resumeToken,
+      resume?.readTime
+    );
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};

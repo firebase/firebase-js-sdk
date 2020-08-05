@@ -69,19 +69,6 @@ export class TargetData {
     readonly resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING
   ) {}
 
-  /** Creates a new target data instance with an updated read time. */
-  withReadTime(version: SnapshotVersion): TargetData {
-    return new TargetData(
-      this.target,
-      this.targetId,
-      this.purpose,
-      this.sequenceNumber,
-      version,
-      this.lastLimboFreeSnapshotVersion,
-      this.resumeToken
-    );
-  }
-
   /** Creates a new target data instance with an updated sequence number. */
   withSequenceNumber(sequenceNumber: number): TargetData {
     return new TargetData(

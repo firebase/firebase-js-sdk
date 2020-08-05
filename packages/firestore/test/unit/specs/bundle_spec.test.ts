@@ -307,7 +307,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
 
     return spec()
       .loadBundle(bundleString1)
-      .userListens(query1, /* resumeFrom */ '', 400)
+      .userListens(query1, { readTime: 400 })
       .expectEvents(query1, {
         added: [doc('collection/a', 500, { value: 'b' })],
         fromCache: true
@@ -348,7 +348,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
           .loadBundle(bundleString1)
           // Read named query from loaded bundle by primary.
           .client(1)
-          .userListens(query1, /* resumeFrom */ '', 400)
+          .userListens(query1, { readTime: 400 })
           .expectEvents(query1, {
             added: [doc('collection/a', 500, { value: 'b' })],
             fromCache: true
@@ -361,9 +361,9 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
           })
           // Read named query from loaded bundle by secondary.
           .client(0)
-          .expectListen(query1, '', 400)
+          .expectListen(query1, { readTime: 400 })
           .expectActiveTargets({ query: query1, readTime: 400 })
-          .userListens(query2, /* resumeFrom */ '', 560)
+          .userListens(query2, { readTime: 560 })
           .expectEvents(query2, {
             added: [doc('collection/a', 550, { value: 'c' })],
             fromCache: true

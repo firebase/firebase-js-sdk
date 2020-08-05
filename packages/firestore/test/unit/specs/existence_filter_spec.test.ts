@@ -74,7 +74,7 @@ describeSpec('Existence Filters:', [], () => {
         .watchAcksFull(query1, 1000, doc1)
         .expectEvents(query1, { added: [doc1] })
         .userUnlistens(query1)
-        .userListens(query1, 'resume-token-1000')
+        .userListens(query1, { resumeToken: 'resume-token-1000' })
         .expectEvents(query1, { added: [doc1], fromCache: true })
         // The empty existence filter is ignored since Watch hasn't ACKed the
         // target
