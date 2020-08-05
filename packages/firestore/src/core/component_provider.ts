@@ -345,17 +345,13 @@ export class OnlineComponentProvider {
     await this.remoteStore.applyPrimaryState(this.syncEngine.isPrimaryClient);
   }
 
-  protected loadConnection(cfg: ComponentConfiguration): Connection {
-    return newConnection(cfg.databaseInfo);
-  }
-
   createEventManager(cfg: ComponentConfiguration): EventManager {
     return new EventManager(this.syncEngine);
   }
 
   createDatastore(cfg: ComponentConfiguration): Datastore {
     const serializer = newSerializer(cfg.databaseInfo.databaseId);
-    const connection = this.loadConnection(cfg);
+    const connection = newConnection(cfg.databaseInfo);
     return newDatastore(cfg.credentials, connection, serializer);
   }
 
