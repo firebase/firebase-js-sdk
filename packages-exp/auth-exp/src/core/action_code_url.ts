@@ -17,6 +17,7 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from './errors';
+import { AuthCore } from '../model/auth';
 
 /**
  * Enums for fields in URL query string.
@@ -71,7 +72,7 @@ export class ActionCodeURL implements externs.ActionCodeURL {
   readonly operation: externs.Operation;
   readonly tenantId: string | null;
 
-  constructor(auth: externs.Auth, actionLink: string) {
+  constructor(auth: AuthCore, actionLink: string) {
     const uri = new URL(actionLink);
     const apiKey = uri.searchParams.get(QueryField.API_KEY);
     const code = uri.searchParams.get(QueryField.CODE);

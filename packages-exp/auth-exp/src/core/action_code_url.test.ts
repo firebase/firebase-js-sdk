@@ -19,12 +19,11 @@ import { expect } from 'chai';
 
 import { Operation } from '@firebase/auth-types-exp';
 
-import { testAuth } from '../../test/helpers/mock_auth';
-import { Auth } from '../model/auth';
+import { testAuth, TestAuth } from '../../test/helpers/mock_auth';
 import { ActionCodeURL } from './action_code_url';
 
 describe('core/action_code_url', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   beforeEach(async () => {
     auth = await testAuth();
   });

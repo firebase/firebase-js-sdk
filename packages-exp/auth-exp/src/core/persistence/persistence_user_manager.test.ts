@@ -20,8 +20,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { testAuth, testUser } from '../../../test/helpers/mock_auth';
-import { Auth } from '../../model/auth';
+import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import { UserImpl } from '../user/user_impl';
 import { _getInstance } from '../util/instantiator';
 import { Persistence, PersistenceType } from './';
@@ -51,7 +50,7 @@ function makePersistence(
 }
 
 describe('core/persistence/persistence_user_manager', () => {
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();

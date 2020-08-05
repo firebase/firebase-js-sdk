@@ -17,7 +17,7 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { MultiFactorAssertion } from '.';
-import { Auth } from '../../model/auth';
+import { AuthCore } from '../../model/auth';
 import { finalizeEnrollPhoneMfa } from '../../api/account_management/mfa';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import {
@@ -28,14 +28,14 @@ import {
 export class PhoneMultiFactorAssertion extends MultiFactorAssertion
   implements externs.PhoneMultiFactorAssertion {
   private constructor(
-    private readonly auth: Auth,
+    private readonly auth: AuthCore,
     private readonly credential: PhoneAuthCredential
   ) {
     super(credential.providerId);
   }
 
   static _fromCredential(
-    auth: Auth,
+    auth: AuthCore,
     credential: PhoneAuthCredential
   ): PhoneMultiFactorAssertion {
     return new PhoneMultiFactorAssertion(auth, credential);
@@ -69,7 +69,7 @@ export class PhoneMultiFactorGenerator
     credential: externs.PhoneAuthCredential
   ): externs.PhoneMultiFactorAssertion {
     return PhoneMultiFactorAssertion._fromCredential(
-      auth as Auth,
+      auth,
       credential as PhoneAuthCredential
     );
   }

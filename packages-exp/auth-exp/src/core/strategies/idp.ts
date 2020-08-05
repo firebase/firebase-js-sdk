@@ -22,14 +22,14 @@ import {
   SignInWithIdpRequest
 } from '../../api/authentication/idp';
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
-import { Auth } from '../../model/auth';
+import { AuthCore, Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User, UserCredential } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { _link as _linkUser } from '../user/link_unlink';
 import { _reauthenticate } from '../user/reauthenticate';
 import { assert, debugFail } from '../util/assert';
-import { signInWithCredential } from './credential';
+import { _signInWithCredential } from './credential';
 
 export interface IdpTaskParams {
   auth: Auth;
@@ -52,15 +52,15 @@ class IdpCredential implements AuthCredential {
 
   constructor(readonly params: IdpTaskParams) {}
 
-  _getIdTokenResponse(auth: Auth): Promise<PhoneOrOauthTokenResponse> {
+  _getIdTokenResponse(auth: AuthCore): Promise<PhoneOrOauthTokenResponse> {
     return signInWithIdp(auth, this._buildIdpRequest());
   }
 
-  _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
+  _linkToIdToken(auth: AuthCore, idToken: string): Promise<IdTokenResponse> {
     return signInWithIdp(auth, this._buildIdpRequest(idToken));
   }
 
-  _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
+  _getReauthenticationResolver(auth: AuthCore): Promise<IdTokenResponse> {
     return signInWithIdp(auth, this._buildIdpRequest());
   }
 
@@ -91,7 +91,7 @@ class IdpCredential implements AuthCredential {
 }
 
 export function _signIn(params: IdpTaskParams): Promise<UserCredential> {
-  return signInWithCredential(
+  return _signInWithCredential(
     params.auth,
     new IdpCredential(params)
   ) as Promise<UserCredential>;

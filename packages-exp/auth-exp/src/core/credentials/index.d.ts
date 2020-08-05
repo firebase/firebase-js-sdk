@@ -18,13 +18,13 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
-import { Auth } from '../../model/auth';
+import { AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 
 export abstract class AuthCredential extends externs.AuthCredential {
   static fromJSON(json: object | string): AuthCredential | null;
 
-  _getIdTokenResponse(auth: Auth): Promise<PhoneOrOauthTokenResponse>;
-  _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse>;
-  _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse>;
+  _getIdTokenResponse(auth: AuthCore): Promise<PhoneOrOauthTokenResponse>;
+  _linkToIdToken(auth: AuthCore, idToken: string): Promise<IdTokenResponse>;
+  _getReauthenticationResolver(auth: AuthCore): Promise<IdTokenResponse>;
 }

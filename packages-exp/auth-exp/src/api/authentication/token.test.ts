@@ -21,16 +21,15 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { FirebaseError, querystringDecode } from '@firebase/util';
 
 import { HttpHeader } from '../';
-import { testAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
-import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { _ENDPOINT, requestStsToken } from './token';
 
 use(chaiAsPromised);
 
 describe('requestStsToken', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   let endpoint: string;
 
   beforeEach(async () => {

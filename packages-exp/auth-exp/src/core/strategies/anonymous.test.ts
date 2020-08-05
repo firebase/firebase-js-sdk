@@ -20,15 +20,14 @@ import { expect } from 'chai';
 import { OperationType } from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
-import { Auth } from '../../model/auth';
 import { signInAnonymously } from './anonymous';
 
 describe('core/strategies/anonymous', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   const serverUser: APIUserInfo = {
     localId: 'local-id'
   };

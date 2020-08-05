@@ -26,5 +26,7 @@ import { AsyncStorage } from 'react-native';
 
 import { getReactNativePersistence } from '@firebase/auth-exp/src/core/persistence/react_native';
 
+export * from './index';
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const reactNativeLocalPersistence = getReactNativePersistence(AsyncStorage);

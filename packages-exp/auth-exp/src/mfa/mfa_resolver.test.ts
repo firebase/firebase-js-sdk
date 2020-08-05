@@ -22,7 +22,7 @@ import { OperationType, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../test/helpers/api/helper';
-import { testAuth, testUser } from '../../test/helpers/mock_auth';
+import { testAuth, testUser, TestAuth } from '../../test/helpers/mock_auth';
 import * as mockFetch from '../../test/helpers/mock_fetch';
 import { Endpoint } from '../api';
 import { APIUserInfo } from '../api/account_management/account';
@@ -30,7 +30,6 @@ import { AuthCredential } from '../core/credentials';
 import { PhoneAuthCredential } from '../core/credentials/phone';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { EmailAuthProvider } from '../core/providers/email';
-import { Auth } from '../model/auth';
 import { User, UserCredential } from '../model/user';
 import { MultiFactorAssertion } from './assertions';
 import { PhoneMultiFactorAssertion } from './assertions/phone';
@@ -40,7 +39,7 @@ import { getMultiFactorResolver, MultiFactorResolver } from './mfa_resolver';
 use(chaiAsPromised);
 
 describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   let underlyingError: FirebaseError;
   let error: MultiFactorError;
   let primaryFactorCredential: AuthCredential;

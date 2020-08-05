@@ -18,9 +18,9 @@
 import { Operation } from '@firebase/auth-types-exp';
 
 import { Endpoint, HttpMethod, _performApiRequest } from '..';
-import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { MfaEnrollment } from './mfa';
+import { AuthCore } from '../../model/auth';
 
 export interface ResetPasswordRequest {
   oobCode: string;
@@ -35,7 +35,7 @@ export interface ResetPasswordResponse {
 }
 
 export async function resetPassword(
-  auth: Auth,
+  auth: AuthCore,
   request: ResetPasswordRequest
 ): Promise<ResetPasswordResponse> {
   return _performApiRequest<ResetPasswordRequest, ResetPasswordResponse>(
@@ -55,7 +55,7 @@ export interface UpdateEmailPasswordRequest {
 export interface UpdateEmailPasswordResponse extends IdTokenResponse {}
 
 export async function updateEmailPassword(
-  auth: Auth,
+  auth: AuthCore,
   request: UpdateEmailPasswordRequest
 ): Promise<UpdateEmailPasswordResponse> {
   return _performApiRequest<
@@ -71,7 +71,7 @@ export interface ApplyActionCodeRequest {
 export interface ApplyActionCodeResponse {}
 
 export async function applyActionCode(
-  auth: Auth,
+  auth: AuthCore,
   request: ApplyActionCodeRequest
 ): Promise<ApplyActionCodeResponse> {
   return _performApiRequest<ApplyActionCodeRequest, ApplyActionCodeResponse>(

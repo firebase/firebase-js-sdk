@@ -20,7 +20,7 @@
 import { querystring } from '@firebase/util';
 
 import { _performFetchWithErrorHandling, HttpMethod } from '../';
-import { Auth } from '../../model/auth';
+import { AuthCore } from '../../model/auth';
 
 export const _ENDPOINT = 'v1/token';
 const GRANT_TYPE = 'refresh_token';
@@ -39,7 +39,7 @@ export interface RequestStsTokenResponse {
 }
 
 export async function requestStsToken(
-  auth: Auth,
+  auth: AuthCore,
   refreshToken: string
 ): Promise<RequestStsTokenResponse> {
   const response = await _performFetchWithErrorHandling<

@@ -16,8 +16,8 @@
  */
 
 import { Endpoint, HttpMethod, _performSignInRequest } from '..';
-import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
+import { AuthCore } from '../../model/auth';
 
 export interface SignUpRequest {
   returnSecureToken?: boolean;
@@ -31,7 +31,7 @@ export interface SignUpResponse extends IdTokenResponse {
 }
 
 export async function signUp(
-  auth: Auth,
+  auth: AuthCore,
   request: SignUpRequest
 ): Promise<SignUpResponse> {
   return _performSignInRequest<SignUpRequest, SignUpResponse>(

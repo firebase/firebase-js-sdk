@@ -21,8 +21,7 @@ import { startEnrollPhoneMfa } from '../../api/account_management/mfa';
 import { startSignInPhoneMfa } from '../../api/authentication/mfa';
 import { sendPhoneVerificationCode } from '../../api/authentication/sms';
 import { ApplicationVerifier } from '../../model/application_verifier';
-import { Auth } from '../../model/auth';
-import { User } from '../../model/user';
+import { AuthCore } from '../../model/auth';
 import { RECAPTCHA_VERIFIER_TYPE } from '../../platform_browser/recaptcha/recaptcha_verifier';
 import { PhoneAuthCredential } from '../credentials/phone';
 import { AuthErrorCode } from '../errors';
@@ -37,6 +36,7 @@ import {
   MultiFactorSession,
   MultiFactorSessionType
 } from '../../mfa/mfa_session';
+import { User } from '../../model/user';
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<externs.UserCredential>;
@@ -63,7 +63,7 @@ export async function signInWithPhoneNumber(
   appVerifier: externs.ApplicationVerifier
 ): Promise<externs.ConfirmationResult> {
   const verificationId = await _verifyPhoneNumber(
-    auth as Auth,
+    auth,
     phoneNumber,
     appVerifier as ApplicationVerifier
   );
@@ -110,7 +110,7 @@ export async function reauthenticateWithPhoneNumber(
  *  is sent.
  */
 export async function _verifyPhoneNumber(
-  auth: Auth,
+  auth: AuthCore,
   options: externs.PhoneInfoOptions | string,
   verifier: ApplicationVerifier
 ): Promise<string> {

@@ -23,9 +23,8 @@ import { FirebaseError } from '@firebase/util';
 
 import { Endpoint, HttpHeader } from '../';
 import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
-import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import {
   linkWithPhoneNumber,
@@ -42,7 +41,7 @@ describe('api/authentication/sendPhoneVerificationCode', () => {
     recaptchaToken: 'captchad'
   };
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -101,7 +100,7 @@ describe('api/authentication/signInWithPhoneNumber', () => {
     code: 'my-code'
   };
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -168,7 +167,7 @@ describe('api/authentication/linkWithPhoneNumber', () => {
     code: 'my-code'
   };
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -234,7 +233,7 @@ describe('api/authentication/verifyPhoneNumberForExisting', () => {
     code: 'my-code'
   };
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();

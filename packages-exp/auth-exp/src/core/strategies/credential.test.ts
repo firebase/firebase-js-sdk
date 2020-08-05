@@ -28,14 +28,13 @@ import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { makeJWT } from '../../../test/helpers/jwt';
-import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import { MockAuthCredential } from '../../../test/helpers/mock_auth_credential';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { IdTokenMfaResponse } from '../../api/authentication/mfa';
 import { MultiFactorError } from '../../mfa/mfa_error';
-import { Auth } from '../../model/auth';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { User, UserCredential } from '../../model/user';
 import { AuthCredential } from '../credentials';
@@ -70,7 +69,7 @@ describe('core/strategies/credential', () => {
   };
 
   let authCredential: AuthCredential;
-  let auth: Auth;
+  let auth: TestAuth;
   let getAccountInfoEndpoint: mockFetch.Route;
   let user: User;
 
