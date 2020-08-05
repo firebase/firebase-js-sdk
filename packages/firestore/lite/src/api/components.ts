@@ -84,6 +84,6 @@ export async function removeComponents(firestore: Firestore): Promise<void> {
   if (datastorePromise) {
     logDebug(LOG_TAG, 'Removing Datastore');
     datastoreInstances.delete(firestore);
-    return (await datastorePromise).termiate();
+    return (await datastorePromise).terminate();
   }
 }
