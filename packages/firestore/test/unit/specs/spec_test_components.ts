@@ -121,14 +121,16 @@ function failTransactionIfNeeded(
 }
 
 export class MockOnlineComponentProvider extends OnlineComponentProvider {
-  connection!: MockConnection;
+  constructor(private readonly connection: MockConnection) {
+    super();
+  }
   
   createDatastore(cfg: ComponentConfiguration): Datastore {
     const serializer = new JsonProtoSerializer(
       cfg.databaseInfo.databaseId,
       /* useProto3Json= */ true
     );
-    return newDatastore(cfg.credentials, new MockConnection(cfg.asyncQueue), serializer);
+    return newDatastore(cfg.credentials, this.connection, serializer);
   }
 }
 
