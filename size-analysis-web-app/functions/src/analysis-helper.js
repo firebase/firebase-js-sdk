@@ -27,8 +27,8 @@ import {
   isStringLiteral,
   isNamedExports
 } from 'typescript';
-import { resolve as resolveRollup } from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
+import { resolve as resolveRollup } from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
 import { deepCopy } from '@firebase/util';
 
 /**

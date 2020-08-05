@@ -19,13 +19,13 @@ import { execSync } from 'child_process';
 import * as fs from 'fs';
 import { resolve as pathResolve, basename } from 'path';
 import { rollup } from 'rollup';
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-const virtual = require('@rollup/plugin-virtual');
+import resolve from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
 import { minify, MinifyOutput } from 'terser';
 import { extractDeclarations } from './analysis-helper';
 import { sync } from 'gzip-size';
 export const pkgName: string = 'firebase';
+const userSelectedSymbolFile = 'selected-symbols.js';
 export const userSelectedSymbolsBundleFile: string =
   'selected-symbols-bundle.js';
 export const packageInstalledDirectory: string =
@@ -174,19 +174,24 @@ export async function generateBundleFileGivenCustomJsFile(
     const absolutePathToUserSelectedSymbolsBundleFile = pathResolve(
       `${packageInstalledDirectory}/${userSelectedSymbolsBundleFile}`
     );
+    const absolutePathToUserSelectedSymbolsJsFile = pathResolve(
+      `${packageInstalledDirectory}/${userSelectedSymbolFile}`
+    );
+    fs.writeFileSync(
+      absolutePathToUserSelectedSymbolsJsFile,
+      userSelectedSymbolsJsFileContent
+    );
 
     const bundle = await rollup({
-      input: 'entry',
+      input: absolutePathToUserSelectedSymbolsJsFile,
       plugins: [
-        virtual({
-          entry: userSelectedSymbolsJsFileContent
-        }),
         resolve({
           mainFields: ['esm2017', 'module', 'main']
         }),
         commonjs()
       ]
     });
+
     const { output } = await bundle.generate({ format: 'es' });
     await bundle.write({
       file: absolutePathToUserSelectedSymbolsBundleFile,
