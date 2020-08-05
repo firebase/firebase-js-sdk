@@ -111,16 +111,9 @@ export function logTrace(trace: Trace): void {
     return;
   }
   // Do not log if required apis are not available.
-  Api.getInstance()
-    .requiredApisAvailable()
-    .then(isAvailable => {
-      if (!isAvailable) {
-        return;
-      }
-    })
-    .catch(() => {
-      return;
-    });
+  if (!Api.getInstance().requiredApisAvailable()) {
+    return;
+  }
 
   // Only log the page load auto traces if page is visible.
   if (trace.isAuto && getVisibilityState() !== VisibilityState.VISIBLE) {

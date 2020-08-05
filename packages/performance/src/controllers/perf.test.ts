@@ -22,6 +22,8 @@ import { Trace } from '../resources/trace';
 import { Api, setupApi } from '../services/api_service';
 import { FirebaseApp } from '@firebase/app-types';
 import * as initializationService from '../services/initialization_service';
+import * as FirebaseUtil from '@firebase/util';
+import { consoleLogger } from '../utils/console_logger';
 import '../../test/setup';
 
 describe('Firebase Performance Test', () => {
@@ -43,12 +45,29 @@ describe('Firebase Performance Test', () => {
 
   describe('#constructor', () => {
     it('does not initialize performance if the required apis are not available', () => {
-      stub(Api.prototype, 'requiredApisAvailable').returns(
+      stub(Api.prototype, 'requiredApisAvailable').returns(false);
+      stub(initializationService, 'getInitializationPromise');
+      new PerformanceController(fakeFirebaseApp);
+      expect(initializationService.getInitializationPromise).not.be.called;
+    });
+    it('does not initialize performance if validateIndexedDBOpenable return false', () => {
+      stub(Api.prototype, 'requiredApisAvailable').returns(true);
+      stub(FirebaseUtil, 'validateIndexedDBOpenable').returns(
         Promise.resolve(false)
       );
       stub(initializationService, 'getInitializationPromise');
       new PerformanceController(fakeFirebaseApp);
       expect(initializationService.getInitializationPromise).not.be.called;
+    });
+
+    it('does not initialize performance if validateIndexedDBOpenable throws an error', () => {
+      stub(Api.prototype, 'requiredApisAvailable').returns(true);
+      stub(FirebaseUtil, 'validateIndexedDBOpenable').throws();
+      stub(initializationService, 'getInitializationPromise');
+      stub(consoleLogger, 'info');
+      new PerformanceController(fakeFirebaseApp);
+      expect(initializationService.getInitializationPromise).not.be.called;
+      expect(consoleLogger.info).to.be.called;
     });
   });
 

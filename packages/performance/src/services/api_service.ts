@@ -16,10 +16,7 @@
  */
 
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
-import {
-  isIndexedDBAvailable,
-  validateIndexedDBOpenable
-} from '@firebase/util';
+import { isIndexedDBAvailable } from '@firebase/util';
 import { consoleLogger } from '../utils/console_logger';
 declare global {
   interface Window {
@@ -113,7 +110,7 @@ export class Api {
     );
   }
 
-  async requiredApisAvailable(): Promise<boolean> {
+  requiredApisAvailable(): boolean {
     if (
       !fetch ||
       !Promise ||
@@ -130,13 +127,7 @@ export class Api {
       consoleLogger.info('IndexedDB is not supported by current browswer');
       return false;
     }
-    try {
-      await validateIndexedDBOpenable();
-      return true;
-    } catch (error) {
-      consoleLogger.info(`Environment doesn't support IndexedDB: ${error}`);
-      return false;
-    }
+    return true;
   }
 
   setupObserver(

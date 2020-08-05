@@ -113,9 +113,7 @@ describe('Performance Monitoring > perf_logger', () => {
     });
 
     it('does not log an event if cookies are disabled in the browser', () => {
-      stub(Api.prototype, 'requiredApisAvailable').returns(
-        Promise.resolve(false)
-      );
+      stub(Api.prototype, 'requiredApisAvailable').returns(false);
       stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
       const trace = new Trace(TRACE_NAME);
       trace.record(START_TIME, DURATION);

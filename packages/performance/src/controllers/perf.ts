@@ -22,17 +22,26 @@ import { Api } from '../services/api_service';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebasePerformance } from '@firebase/performance-types';
 import { setupTransportService } from '../services/transport_service';
+import { validateIndexedDBOpenable } from '@firebase/util';
+import { consoleLogger } from '../utils/console_logger';
 export class PerformanceController implements FirebasePerformance {
   constructor(readonly app: FirebaseApp) {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    Api.getInstance()
-      .requiredApisAvailable()
-      .then(isAvailable => {
-        if (isAvailable) {
-          setupTransportService();
-          getInitializationPromise().then(setupOobResources, setupOobResources);
-        }
-      });
+    if (Api.getInstance().requiredApisAvailable()) {
+      validateIndexedDBOpenable()
+        .then(isAvailable => {
+          if (isAvailable) {
+            setupTransportService();
+            getInitializationPromise().then(
+              setupOobResources,
+              setupOobResources
+            );
+          }
+        })
+        .catch(error => {
+          consoleLogger.info(`Environment doesn't support IndexedDB: ${error}`);
+        });
+    }
   }
 
   trace(name: string): Trace {
