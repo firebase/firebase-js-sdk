@@ -61,7 +61,6 @@ import { newConnection, newConnectivityMonitor } from '../platform/connection';
 import { newSerializer } from '../platform/serializer';
 import { getDocument, getWindow } from '../platform/dom';
 import { CredentialsProvider } from '../api/credentials';
-import { Connection } from '../remote/connection';
 
 const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
   'You are using the memory-only build of Firestore. Persistence support is ' +
