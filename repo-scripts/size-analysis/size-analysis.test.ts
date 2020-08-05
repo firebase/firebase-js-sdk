@@ -372,6 +372,7 @@ describe('test writeReportToFile helper function', () => {
     fs.unlinkSync(aPathToFile);
   });
   after(() => {
+    fs.rmdirSync('a-dir/a-sub-dir');
     fs.rmdirSync('a-dir', { recursive: true });
   });
 });
@@ -395,6 +396,7 @@ describe('test writeReportToDirectory helper function', () => {
   });
   after(() => {
     fs.unlinkSync(`${resolve('./a-dir/a-sub-dir')}/a-file`);
+    fs.rmdirSync('a-dir/a-sub-dir');
     fs.rmdirSync('a-dir', { recursive: true });
   });
 });
