@@ -16,8 +16,8 @@
  */
 
 import { _performSignInRequest, Endpoint, HttpMethod } from '../';
-import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
+import { AuthCore } from '../../model/auth';
 
 export interface SignInWithEmailLinkRequest {
   email: string;
@@ -30,7 +30,7 @@ export interface SignInWithEmailLinkResponse extends IdTokenResponse {
 }
 
 export async function signInWithEmailLink(
-  auth: Auth,
+  auth: AuthCore,
   request: SignInWithEmailLinkRequest
 ): Promise<SignInWithEmailLinkResponse> {
   return _performSignInRequest<
@@ -45,7 +45,7 @@ export interface SignInWithEmailLinkForLinkingRequest
 }
 
 export async function signInWithEmailLinkForLinking(
-  auth: Auth,
+  auth: AuthCore,
   request: SignInWithEmailLinkForLinkingRequest
 ): Promise<SignInWithEmailLinkResponse> {
   return _performSignInRequest<

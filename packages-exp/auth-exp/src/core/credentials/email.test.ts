@@ -21,17 +21,16 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
-import { Auth } from '../../model/auth';
 import { EmailAuthCredential } from './email';
 
 use(chaiAsPromised);
 
 describe('core/credentials/email', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   let apiMock: mockFetch.Route;
   const serverUser: APIUserInfo = {
     localId: 'local-id'

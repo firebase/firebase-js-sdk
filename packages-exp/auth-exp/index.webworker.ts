@@ -17,6 +17,7 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import { CompleteFn, ErrorFn, Unsubscribe } from '@firebase/util';
+import { Auth } from './src/model/auth';
 
 // core/auth
 export { initializeAuth } from './src/core/auth/auth_impl';
@@ -46,6 +47,12 @@ export function onAuthStateChanged(
 }
 export function useDeviceLanguage(auth: externs.Auth): void {
   auth.useDeviceLanguage();
+}
+export function updateCurrentUser(
+  auth: externs.Auth,
+  user: externs.User | null
+): Promise<void> {
+  return auth.updateCurrentUser(user);
 }
 export function signOut(auth: externs.Auth): Promise<void> {
   return auth.signOut();

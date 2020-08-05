@@ -22,7 +22,7 @@ import {
 } from '../api/account_management/mfa';
 import { AuthErrorCode } from '../core/errors';
 import { fail } from '../core/util/assert';
-import { Auth } from '../model/auth';
+import { AuthCore } from '../model/auth';
 
 export abstract class MultiFactorInfo implements externs.MultiFactorInfo {
   readonly uid: string;
@@ -39,7 +39,7 @@ export abstract class MultiFactorInfo implements externs.MultiFactorInfo {
   }
 
   static _fromServerResponse(
-    auth: Auth,
+    auth: AuthCore,
     enrollment: MfaEnrollment
   ): MultiFactorInfo {
     if ('phoneInfo' in enrollment) {
@@ -58,7 +58,7 @@ export class PhoneMultiFactorInfo extends MultiFactorInfo {
   }
 
   static _fromServerResponse(
-    _auth: Auth,
+    _auth: AuthCore,
     enrollment: MfaEnrollment
   ): PhoneMultiFactorInfo {
     return new PhoneMultiFactorInfo(enrollment);

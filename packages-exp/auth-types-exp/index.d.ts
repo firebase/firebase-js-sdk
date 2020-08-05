@@ -136,6 +136,7 @@ export interface Auth {
     completed?: CompleteFn
   ): Unsubscribe;
   readonly currentUser: User | null;
+  updateCurrentUser(user: User | null): Promise<void>;
   useDeviceLanguage(): void;
   signOut(): Promise<void>;
 }
@@ -156,8 +157,8 @@ export interface IdTokenResult {
   authTime: string;
   expirationTime: string;
   issuedAtTime: string;
-  signInProvider: ProviderId | null;
-  signInSecondFactor: ProviderId | null;
+  signInProvider: string | null;
+  signInSecondFactor: string | null;
   token: string;
   claims: ParsedToken;
 }
@@ -198,7 +199,6 @@ export interface ActionCodeSettings {
   handleCodeInApp?: boolean;
   iOS?: {
     bundleId: string;
-    appStoreId: string;
   };
   url: string;
   dynamicLinkDomain?: string;

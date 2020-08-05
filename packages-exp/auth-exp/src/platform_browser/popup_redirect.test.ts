@@ -27,12 +27,12 @@ import { FirebaseError } from '@firebase/util';
 import {
   TEST_AUTH_DOMAIN,
   TEST_KEY,
-  testAuth
+  testAuth,
+  TestAuth
 } from '../../test/helpers/mock_auth';
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { OAuthProvider } from '../core/providers/oauth';
 import { SingletonInstantiator } from '../core/util/instantiator';
-import { Auth } from '../model/auth';
 import {
   AuthEvent,
   AuthEventType,
@@ -48,7 +48,7 @@ use(sinonChai);
 
 describe('src/platform_browser/popup_redirect', () => {
   let resolver: PopupRedirectResolver;
-  let auth: Auth;
+  let auth: TestAuth;
   let onIframeMessage: (event: GapiAuthEvent) => Promise<void>;
 
   beforeEach(async () => {

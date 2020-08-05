@@ -19,7 +19,7 @@ import { querystring } from '@firebase/util';
 
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
 import { Delay } from '../../core/util/delay';
-import { Auth } from '../../model/auth';
+import { Auth, AuthCore } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';
 import * as jsHelpers from '../load_js';
 import { Recaptcha } from './recaptcha';
@@ -32,7 +32,7 @@ const NETWORK_TIMEOUT_DELAY = new Delay(30000, 60000);
 const RECAPTCHA_BASE = 'https://www.google.com/recaptcha/api.js?';
 
 export interface ReCaptchaLoader {
-  load(auth: Auth, hl?: string): Promise<Recaptcha>;
+  load(auth: AuthCore, hl?: string): Promise<Recaptcha>;
   clearedOneInstance(): void;
 }
 
@@ -44,7 +44,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
   private counter = 0;
   private readonly librarySeparatelyLoaded = !!AUTH_WINDOW.grecaptcha;
 
-  load(auth: Auth, hl = ''): Promise<Recaptcha> {
+  load(auth: AuthCore, hl = ''): Promise<Recaptcha> {
     if (this.shouldResolveImmediately(hl)) {
       return Promise.resolve(AUTH_WINDOW.grecaptcha!);
     }

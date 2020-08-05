@@ -29,7 +29,6 @@ export function setActionCodeSettingsOnRequest(
 
   if (actionCodeSettings.iOS) {
     request.iosBundleId = actionCodeSettings.iOS.bundleId;
-    request.iosAppStoreId = actionCodeSettings.iOS.appStoreId;
   }
 
   if (actionCodeSettings.android) {

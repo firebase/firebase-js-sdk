@@ -23,17 +23,16 @@ import { OperationType } from '@firebase/auth-types-exp';
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
 import { makeJWT } from '../../../test/helpers/jwt';
-import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
-import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import * as idpTasks from './idp';
 
 use(chaiAsPromised);
 
 describe('src/core/strategies/idb', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   let user: User;
   let signInEndpoint: fetch.Route;
 
