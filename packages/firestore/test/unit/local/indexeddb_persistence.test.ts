@@ -1225,6 +1225,8 @@ describe('IndexedDb', () => {
   it('can re-open after close', async () => {
     return withDb(2, async db => {
       db.close();
+      // Running a new IndexedDB transaction should re-open the database and not
+      // throw.
       await db.runTransaction('readwrite', V1_STORES, () =>
         PersistencePromise.resolve()
       );
