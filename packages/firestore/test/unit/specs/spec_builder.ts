@@ -73,7 +73,8 @@ export interface LimboMap {
 
 export interface ActiveTargetSpec {
   queries: SpecQuery[];
-  resumeToken: string | TestSnapshotVersion;
+  resumeToken?: string;
+  readTime?: TestSnapshotVersion;
 }
 
 export interface ActiveTargetMap {
@@ -253,7 +254,11 @@ export class SpecBuilder {
     return this;
   }
 
-  userListens(query: Query, resumeFrom?: string | TestSnapshotVersion): this {
+  userListens(
+    query: Query,
+    resumeFrom?: string,
+    readTime?: TestSnapshotVersion
+  ): this {
     this.nextStep();
 
     const target = queryToTarget(query);
@@ -272,7 +277,7 @@ export class SpecBuilder {
       }
 
       this.queryMapping.set(target, targetId);
-      this.addQueryToActiveTargets(targetId, query, resumeFrom);
+      this.addQueryToActiveTargets(targetId, query, resumeFrom, readTime);
       this.currentStep = {
         userListen: { targetId, query: SpecBuilder.queryToSpec(query) },
         expectedState: { activeTargets: { ...this.activeTargets } }
@@ -493,13 +498,22 @@ export class SpecBuilder {
 
   /** Overrides the currently expected set of active targets. */
   expectActiveTargets(
-    ...targets: Array<{ query: Query; resumeToken?: string }>
+    ...targets: Array<{
+      query: Query;
+      resumeToken?: string;
+      readTime?: TestSnapshotVersion;
+    }>
   ): this {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
     this.clientState.activeTargets = {};
-    targets.forEach(({ query, resumeToken }) => {
-      this.addQueryToActiveTargets(this.getTargetId(query), query, resumeToken);
+    targets.forEach(({ query, resumeToken, readTime }) => {
+      this.addQueryToActiveTargets(
+        this.getTargetId(query),
+        query,
+        resumeToken,
+        readTime
+      );
     });
     currentStep.expectedState = currentStep.expectedState || {};
     currentStep.expectedState.activeTargets = { ...this.activeTargets };
@@ -860,14 +874,18 @@ export class SpecBuilder {
   }
 
   /** Registers a query that is active in another tab. */
-  expectListen(query: Query, resumeToken?: string): this {
+  expectListen(
+    query: Query,
+    resumeToken?: string,
+    readTime?: TestSnapshotVersion
+  ): this {
     this.assertStep('Expectations require previous step');
 
     const target = queryToTarget(query);
     const targetId = this.queryIdGenerator.cachedId(target);
     this.queryMapping.set(target, targetId);
 
-    this.addQueryToActiveTargets(targetId, query, resumeToken);
+    this.addQueryToActiveTargets(targetId, query, resumeToken, readTime);
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
@@ -1029,7 +1047,8 @@ export class SpecBuilder {
   private addQueryToActiveTargets(
     targetId: number,
     query: Query,
-    resumeToken?: string | TestSnapshotVersion
+    resumeToken?: string,
+    readTime?: TestSnapshotVersion
   ): void {
     if (this.activeTargets[targetId]) {
       const activeQueries = this.activeTargets[targetId].queries;
@@ -1041,18 +1060,21 @@ export class SpecBuilder {
         // `query` is not added yet.
         this.activeTargets[targetId] = {
           queries: [SpecBuilder.queryToSpec(query), ...activeQueries],
-          resumeToken: resumeToken || ''
+          resumeToken: resumeToken || '',
+          readTime
         };
       } else {
         this.activeTargets[targetId] = {
           queries: activeQueries,
-          resumeToken: resumeToken || ''
+          resumeToken: resumeToken || '',
+          readTime
         };
       }
     } else {
       this.activeTargets[targetId] = {
         queries: [SpecBuilder.queryToSpec(query)],
-        resumeToken: resumeToken || ''
+        resumeToken: resumeToken || '',
+        readTime
       };
     }
   }

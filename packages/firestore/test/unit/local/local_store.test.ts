@@ -447,7 +447,7 @@ class LocalStoreTester {
   toHaveNamedQuery(namedQuery: NamedQuery): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
       return getNamedQuery(this.localStore, namedQuery.name).then(actual => {
-        expect(!!actual).to.be.true;
+        expect(actual).to.exist;
         expect(actual!.name).to.equal(namedQuery.name);
         expect(namedQuery.readTime.isEqual(actual!.readTime)).to.be.true;
         expect(queryEquals(actual!.query, namedQuery.query)).to.be.true;
@@ -1690,9 +1690,16 @@ function genericLocalStoreTests(
 
   it('handles saving and loading named queries', async () => {
     return expectLocalStore()
-      .after(namedQuery('test', query('coll'), 'FIRST', SnapshotVersion.min()))
+      .after(
+        namedQuery(
+          'testQueryName',
+          query('coll'),
+          /* limitType */ 'FIRST',
+          SnapshotVersion.min()
+        )
+      )
       .toHaveNamedQuery({
-        name: 'test',
+        name: 'testQueryName',
         query: query('coll'),
         readTime: SnapshotVersion.min()
       })
@@ -1704,14 +1711,14 @@ function genericLocalStoreTests(
     return expectLocalStore()
       .after(
         namedQuery(
-          'test',
+          'testQueryName',
           queryWithLimit(query('coll', orderBy('sort')), 5, LimitType.First),
-          'LAST',
+          /* limitType */ 'LAST',
           SnapshotVersion.fromTimestamp(now)
         )
       )
       .toHaveNamedQuery({
-        name: 'test',
+        name: 'testQueryName',
         query: queryWithLimit(
           query('coll', orderBy('sort')),
           5,

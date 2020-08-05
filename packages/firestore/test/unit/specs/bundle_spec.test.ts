@@ -62,8 +62,7 @@ function bundleWithDocumentAndQuery(
     builder.addNamedQuery(
       testQuery.name,
       toVersion(JSON_SERIALIZER, version(testQuery.readTime)),
-      testQuery.query,
-      testQuery.limitType
+      testQuery.query
     );
   }
 
@@ -308,7 +307,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
 
     return spec()
       .loadBundle(bundleString1)
-      .userListens(query1, 400)
+      .userListens(query1, /* resumeFrom */ '', 400)
       .expectEvents(query1, {
         added: [doc('collection/a', 500, { value: 'b' })],
         fromCache: true
@@ -349,7 +348,7 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
           .loadBundle(bundleString1)
           // Read named query from loaded bundle by primary.
           .client(1)
-          .userListens(query1, 400)
+          .userListens(query1, /* resumeFrom */ '', 400)
           .expectEvents(query1, {
             added: [doc('collection/a', 500, { value: 'b' })],
             fromCache: true
@@ -360,10 +359,11 @@ describeSpec('Bundles:', ['no-ios', 'no-android'], () => {
             modified: [doc('collection/a', 550, { value: 'c' })],
             fromCache: true
           })
-          .userUnlistens(query1)
           // Read named query from loaded bundle by secondary.
           .client(0)
-          .userListens(query2, 560)
+          .expectListen(query1, '', 400)
+          .expectActiveTargets({ query: query1, readTime: 400 })
+          .userListens(query2, /* resumeFrom */ '', 560)
           .expectEvents(query2, {
             added: [doc('collection/a', 550, { value: 'c' })],
             fromCache: true

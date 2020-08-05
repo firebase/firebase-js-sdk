@@ -984,16 +984,13 @@ abstract class TestRunner {
         TargetPurpose.Listen,
         ARBITRARY_SEQUENCE_NUMBER
       );
-      if (typeof expected.resumeToken === 'string') {
+      if (expected.resumeToken && expected.resumeToken !== '') {
         targetData = targetData.withResumeToken(
           byteStringFromString(expected.resumeToken),
           SnapshotVersion.min()
         );
       } else {
-        targetData = targetData.withResumeToken(
-          byteStringFromString(''),
-          version(expected.resumeToken)
-        );
+        targetData = targetData.withReadTime(version(expected.readTime!));
       }
       const expectedTarget = toTarget(this.serializer, targetData);
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);

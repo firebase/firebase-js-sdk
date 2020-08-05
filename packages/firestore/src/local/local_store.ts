@@ -237,20 +237,16 @@ export interface LocalStore {
    * they don't get GC'd. A target must be allocated in the local store before
    * the store can be used to manage its view.
    *
-   * @param {SnapshotVersion} readTime The snapshot version the allocated target
+   * @param {SnapshotVersion} readFrom The snapshot version the allocated target
    * should resume from, unless the existing `TargetData` has an even newer
    * version.
-   * @param {PersistenceTransaction} txn The transaction to use if allocation is
-   * part of an existing transaction. A new transaction is created if this is
-   * absent.
    *
    * Allocating an already allocated `Target` will return the existing `TargetData`
    * for that `Target`.
    */
   allocateTarget(
     target: Target,
-    readTime?: SnapshotVersion,
-    txn?: PersistenceTransaction
+    readFrom?: SnapshotVersion
   ): Promise<TargetData>;
 
   /**
@@ -902,82 +898,52 @@ class LocalStoreImpl implements LocalStore {
     });
   }
 
-  _allocateOperation(
-    txn: PersistenceTransaction,
-    target: Target,
-    readTime?: SnapshotVersion
-  ): PersistencePromise<TargetData> {
-    let targetData: TargetData;
-    return this.targetCache
-      .getTargetData(txn, target)
-      .next((cached: TargetData | null) => {
-        if (cached) {
-          // This target has been listened to previously, so reuse the
-          // previous targetID if no `readTime` is provided.
-          // If `readTime` is provided, the cached target data needs to be
-          // compared and updated if `readTime` is newer.
-          // TODO(mcg): freshen last accessed date?
-          if (readTime && cached.snapshotVersion.compareTo(readTime) < 0) {
-            targetData = cached.withReadTime(readTime);
-            return this.targetCache
-              .updateTargetData(txn, targetData)
-              .next(() => targetData);
-          }
-          targetData = cached;
-          return PersistencePromise.resolve(targetData);
-        } else {
-          return this.targetCache.allocateTargetId(txn).next(targetId => {
-            targetData = new TargetData(
-              target,
-              targetId,
-              TargetPurpose.Listen,
-              txn.currentSequenceNumber,
-              readTime
-            );
-            return this.targetCache
-              .addTargetData(txn, targetData)
-              .next(() => targetData);
+  allocateTarget(target: Target): Promise<TargetData> {
+    return this.persistence
+      .runTransaction('Allocate target', 'readwrite', txn => {
+        let targetData: TargetData;
+        return this.targetCache
+          .getTargetData(txn, target)
+          .next((cached: TargetData | null) => {
+            if (cached) {
+              // TODO(mcg): freshen last accessed date?
+              targetData = cached;
+              return PersistencePromise.resolve(targetData);
+            } else {
+              return this.targetCache.allocateTargetId(txn).next(targetId => {
+                targetData = new TargetData(
+                  target,
+                  targetId,
+                  TargetPurpose.Listen,
+                  txn.currentSequenceNumber
+                );
+                return this.targetCache
+                  .addTargetData(txn, targetData)
+                  .next(() => targetData);
+              });
+            }
           });
-        }
-      });
-  }
-
-  allocateTarget(
-    target: Target,
-    readTime?: SnapshotVersion,
-    txn?: PersistenceTransaction
-  ): Promise<TargetData> {
-    let allocateOperation: Promise<TargetData>;
-    if (txn) {
-      allocateOperation = this._allocateOperation(
-        txn,
-        target,
-        readTime
-      ).toPromise();
-    } else {
-      allocateOperation = this.persistence.runTransaction(
-        'Allocate target',
-        'readwrite',
-        txn => this._allocateOperation(txn, target, readTime)
-      );
-    }
-    return allocateOperation.then(targetData => {
-      // If Multi-Tab is enabled, the existing target data may be newer than
-      // the in-memory data
-      const cachedTargetData = this.targetDataByTarget.get(targetData.targetId);
-      if (
-        cachedTargetData === null ||
-        targetData.snapshotVersion.compareTo(cachedTargetData.snapshotVersion) >
-          0
-      ) {
-        this.targetDataByTarget = this.targetDataByTarget.insert(
-          targetData.targetId,
-          targetData
+      })
+      .then(targetData => {
+        // If Multi-Tab is enabled, the existing target data may be newer than
+        // the in-memory data
+        const cachedTargetData = this.targetDataByTarget.get(
+          targetData.targetId
         );
-        this.targetIdByTarget.set(target, targetData.targetId);
-      }
-      return targetData;
-    });
+        if (
+          cachedTargetData === null ||
+          targetData.snapshotVersion.compareTo(
+            cachedTargetData.snapshotVersion
+          ) > 0
+        ) {
+          this.targetDataByTarget = this.targetDataByTarget.insert(
+            targetData.targetId,
+            targetData
+          );
+          this.targetIdByTarget.set(target, targetData.targetId);
+        }
+        return targetData;
+      });
   }
 
   getTargetData(
@@ -1411,22 +1377,34 @@ export function getNamedQuery(
 /**
  * Saves the given `NamedQuery` to local persistence.
  */
-export function saveNamedQuery(
+export async function saveNamedQuery(
   localStore: LocalStore,
   query: bundleProto.NamedQuery
 ): Promise<void> {
+  // Allocate a target for the named query such that it can be resumed
+  // from associated read time if users use it to listen. It will be
+  // removed through GC as an ordinary query.
+  const allocated = await localStore.allocateTarget(
+    queryToTarget(fromBundledQuery(query.bundledQuery!))
+  );
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence.runTransaction(
     'Save named query',
     'readwrite',
     transaction => {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      localStore.allocateTarget(
-        queryToTarget(fromBundledQuery(query.bundledQuery!)),
-        fromVersion(query.readTime!),
-        transaction
+      // Update allocated target's read time, if the bundle's read time is newer.
+      let updateReadTime = PersistencePromise.resolve();
+      const readTime = fromVersion(query.readTime!);
+      if (allocated.snapshotVersion.compareTo(readTime) < 0) {
+        const newTargetData = allocated.withReadTime(readTime);
+        updateReadTime = localStoreImpl.targetCache.updateTargetData(
+          transaction,
+          newTargetData
+        );
+      }
+      return updateReadTime.next(() =>
+        localStoreImpl.bundleCache.saveNamedQuery(transaction, query)
       );
-      return localStoreImpl.bundleCache.saveNamedQuery(transaction, query);
     }
   );
 }

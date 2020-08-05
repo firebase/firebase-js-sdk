@@ -80,8 +80,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
       (collectionReference('coll-1')
         .orderBy('bar', 'desc')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .limit(1) as any)._query,
-      'LAST'
+        .limitToLast(1) as any)._query
     );
 
     builder.addDocumentMetadata(a, { seconds: 1000, nanos: 9999 }, true);

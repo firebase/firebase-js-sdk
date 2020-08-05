@@ -323,5 +323,5 @@ export async function namedQuery(
     return null;
   }
 
-  return new Query(firestoreImpl, null, namedQuery.query, namedQuery.readTime);
+  return new Query(firestoreImpl, null, namedQuery.query);
 }

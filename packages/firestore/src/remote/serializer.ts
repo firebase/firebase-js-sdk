@@ -973,6 +973,8 @@ export function toTarget(
 
   result.targetId = targetData.targetId;
 
+  // TODO(wuandy): We should consider remove resume token since we can always
+  // use readtime.
   if (targetData.resumeToken.approximateByteSize() > 0) {
     result.resumeToken = toBytes(serializer, targetData.resumeToken);
   } else if (targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0) {
