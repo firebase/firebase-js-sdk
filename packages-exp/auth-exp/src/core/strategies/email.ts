@@ -22,10 +22,10 @@ import {
   CreateAuthUriRequest
 } from '../../api/authentication/create_auth_uri';
 import * as api from '../../api/authentication/email_and_password';
-import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { _getCurrentUrl, _isHttpOrHttps } from '../util/location';
 import { setActionCodeSettingsOnRequest } from './action_code_settings';
+import { _castAuth } from '../auth/auth_impl';
 
 export async function fetchSignInMethodsForEmail(
   auth: externs.Auth,
@@ -40,7 +40,7 @@ export async function fetchSignInMethodsForEmail(
     continueUri
   };
 
-  const { signinMethods } = await createAuthUri(auth as Auth, request);
+  const { signinMethods } = await createAuthUri(auth, request);
 
   return signinMethods || [];
 }

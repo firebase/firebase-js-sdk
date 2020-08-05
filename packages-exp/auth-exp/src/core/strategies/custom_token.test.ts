@@ -21,11 +21,10 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { OperationType } from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
-import { Auth } from '../../model/auth';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { UserCredential } from '../../model/user';
 import { signInWithCustomToken } from './custom_token';
@@ -53,7 +52,7 @@ describe('core/strategies/signInWithCustomToken', () => {
     kind: IdTokenResponseKind.CreateAuthUri
   };
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();

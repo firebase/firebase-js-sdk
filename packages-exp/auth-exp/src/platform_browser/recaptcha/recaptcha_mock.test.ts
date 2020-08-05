@@ -22,9 +22,8 @@ import * as sinonChai from 'sinon-chai';
 
 import { FirebaseError } from '@firebase/util';
 
-import { testAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import { stubTimeouts, TimerMap } from '../../../test/helpers/timeout_stub';
-import { Auth } from '../../model/auth';
 import {
   _EXPIRATION_TIME_MS,
   _SOLVE_TIME_MS,
@@ -39,7 +38,7 @@ use(chaiAsPromised);
 
 describe('platform-browser/recaptcha/recaptcha_mock', () => {
   let container: HTMLElement;
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     container = document.createElement('div');

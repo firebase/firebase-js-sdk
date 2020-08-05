@@ -21,10 +21,9 @@ import * as sinon from 'sinon';
 
 import { FirebaseError } from '@firebase/util';
 
-import { testAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { _ENDPOINT } from '../../api/authentication/token';
-import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { StsTokenManager, TOKEN_REFRESH_BUFFER_MS } from './token_manager';
 
@@ -33,7 +32,7 @@ use(chaiAsPromised);
 describe('core/user/token_manager', () => {
   let stsTokenManager: StsTokenManager;
   let now: number;
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();

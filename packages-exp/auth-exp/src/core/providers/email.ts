@@ -17,7 +17,6 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { Auth } from '../../model/auth';
 import { ActionCodeURL } from '../action_code_url';
 import { EmailAuthCredential } from '../credentials/email';
 import { AuthErrorCode } from '../errors';
@@ -35,7 +34,7 @@ export class EmailAuthProvider implements externs.EmailAuthProvider {
   }
 
   static credentialWithLink(
-    auth: Auth,
+    auth: externs.Auth,
     email: string,
     emailLink: string
   ): EmailAuthCredential {

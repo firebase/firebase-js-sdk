@@ -16,7 +16,6 @@
  */
 
 import { Endpoint, HttpMethod, _performApiRequest } from '..';
-import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { SignInWithIdpResponse } from './idp';
 import {
@@ -24,6 +23,7 @@ import {
   SignInWithPhoneNumberResponse
 } from './sms';
 import { MfaEnrollment } from '../account_management/mfa';
+import { AuthCore } from '../../model/auth';
 
 export interface FinalizeMfaResponse {
   idToken: string;
@@ -51,7 +51,7 @@ export interface StartPhoneMfaSignInResponse {
 }
 
 export function startSignInPhoneMfa(
-  auth: Auth,
+  auth: AuthCore,
   request: Omit<StartPhoneMfaSignInRequest, 'tenantId'>
 ): Promise<StartPhoneMfaSignInResponse> {
   return _performApiRequest<
@@ -72,7 +72,7 @@ export interface FinalizePhoneMfaSignInRequest {
 export interface FinalizePhoneMfaSignInResponse extends FinalizeMfaResponse {}
 
 export function finalizeSignInPhoneMfa(
-  auth: Auth,
+  auth: AuthCore,
   request: Omit<FinalizePhoneMfaSignInRequest, 'tenantId'>
 ): Promise<FinalizePhoneMfaSignInResponse> {
   return _performApiRequest<

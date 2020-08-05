@@ -23,26 +23,14 @@ import {
   deleteAccount
 } from '../../api/account_management/account';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
-import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import { User } from '../../model/user';
+import { User, UserParameters } from '../../model/user';
 import { PersistedBlob } from '../persistence';
-import { assert } from '../util/assert';
+import { assert, debugFail } from '../util/assert';
 import { getIdTokenResult } from './id_token_result';
 import { reload, _reloadWithoutSaving } from './reload';
 import { StsTokenManager } from './token_manager';
-
-export interface UserParameters {
-  uid: string;
-  auth: Auth;
-  stsTokenManager: StsTokenManager;
-
-  displayName?: string;
-  email?: string;
-  phoneNumber?: string;
-  photoURL?: string;
-  isAnonymous?: boolean;
-}
+import { Auth } from '../../model/auth';
 
 function assertStringOrUndefined(
   assertion: unknown,
@@ -176,6 +164,10 @@ export class UserImpl implements User {
     };
   }
 
+  toJSON(): object {
+    return debugFail('not implemented');
+  }
+
   get refreshToken(): string {
     return this.stsTokenManager.refreshToken || '';
   }
@@ -194,7 +186,7 @@ export class UserImpl implements User {
     assert(uid && plainObjectTokenManager, auth.name);
 
     const stsTokenManager = StsTokenManager.fromPlainObject(
-      auth.name,
+      this.name,
       plainObjectTokenManager as PersistedBlob
     );
 
@@ -204,7 +196,7 @@ export class UserImpl implements User {
     assertStringOrUndefined(phoneNumber, auth.name);
     assertStringOrUndefined(photoURL, auth.name);
     assertStringOrUndefined(_redirectEventId, auth.name);
-    const user = new UserImpl({
+    const user = auth._createUser({
       uid,
       auth,
       stsTokenManager,
@@ -234,7 +226,7 @@ export class UserImpl implements User {
     stsTokenManager.updateFromServerResponse(idTokenResponse);
 
     // Initialize the Firebase Auth user.
-    const user = new UserImpl({
+    const user = auth._createUser({
       uid: idTokenResponse.localId,
       auth,
       stsTokenManager,

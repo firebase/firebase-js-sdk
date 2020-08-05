@@ -17,7 +17,6 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import { FinalizeMfaResponse } from '../api/authentication/mfa';
-import { Auth } from '../model/auth';
 import { UserCredential } from '../model/user';
 import { AuthErrorCode } from '../core/errors';
 import { UserCredentialImpl } from '../core/user/user_credential_impl';
@@ -26,12 +25,13 @@ import { MultiFactorAssertion } from './assertions';
 import { MultiFactorError } from './mfa_error';
 import { MultiFactorInfo } from './mfa_info';
 import { MultiFactorSession } from './mfa_session';
+import { _castAuth } from '../core/auth/auth_impl';
 
 export class MultiFactorResolver implements externs.MultiFactorResolver {
   readonly session: MultiFactorSession;
 
   private constructor(
-    readonly auth: Auth,
+    readonly auth: externs.Auth,
     mfaPendingCredential: string,
     readonly hints: MultiFactorInfo[],
     private readonly signInResolver: (
@@ -43,7 +43,10 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
     );
   }
 
-  static _fromError(auth: Auth, error: MultiFactorError): MultiFactorResolver {
+  static _fromError(
+    auth: externs.Auth,
+    error: MultiFactorError
+  ): MultiFactorResolver {
     const hints = (error.serverResponse.mfaInfo || []).map(enrollment =>
       MultiFactorInfo._fromServerResponse(auth, enrollment)
     );
@@ -68,7 +71,7 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
         switch (error.operationType) {
           case externs.OperationType.SIGN_IN:
             const userCredential = await UserCredentialImpl._fromIdTokenResponse(
-              auth,
+              _castAuth(auth),
               error.credential,
               error.operationType,
               idTokenResponse
@@ -111,5 +114,5 @@ export function getMultiFactorResolver(
     AuthErrorCode.ARGUMENT_ERROR
   );
 
-  return MultiFactorResolver._fromError(auth as Auth, error);
+  return MultiFactorResolver._fromError(auth, error);
 }

@@ -19,15 +19,14 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
-import { Auth } from '../../model/auth';
 import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_verifier';
 import { PhoneAuthProvider } from './phone';
 
 describe('core/providers/phone', () => {
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     fetch.setUp();

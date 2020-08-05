@@ -18,7 +18,7 @@
 import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 
 import { signUp } from '../../api/authentication/sign_up';
-import { Auth } from '../../model/auth';
+import { AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { debugFail } from '../util/assert';
 import { AuthCredential } from './';
@@ -35,17 +35,17 @@ export class AnonymousCredential implements AuthCredential {
     debugFail('Method not implemented');
   }
 
-  async _getIdTokenResponse(auth: Auth): Promise<IdTokenResponse> {
+  async _getIdTokenResponse(auth: AuthCore): Promise<IdTokenResponse> {
     return signUp(auth, {
       returnSecureToken: true
     });
   }
 
-  async _linkToIdToken(_auth: Auth, _idToken: string): Promise<never> {
+  async _linkToIdToken(_auth: AuthCore, _idToken: string): Promise<never> {
     debugFail("Can't link to an anonymous credential");
   }
 
-  _getReauthenticationResolver(_auth: Auth): Promise<never> {
+  _getReauthenticationResolver(_auth: AuthCore): Promise<never> {
     debugFail('Method not implemented.');
   }
 }

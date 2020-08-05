@@ -159,7 +159,7 @@ describe('core/user/reload', () => {
     user.auth.currentUser = user;
 
     const cb = sinon.stub();
-    user.auth.onIdTokenChanged(cb);
+    user.auth._onIdTokenChanged(cb);
 
     await reload(user);
     expect(cb).to.have.been.calledWith(user);
