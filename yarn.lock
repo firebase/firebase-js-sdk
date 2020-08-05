@@ -1200,6 +1200,11 @@
     unique-filename "^1.1.1"
     which "^1.3.1"
 
+"@firebase/logger@0.2.5":
+  version "0.2.5"
+  resolved "https://registry.npmjs.org/@firebase/logger/-/logger-0.2.5.tgz#bac27bfef32b36e3ecc4b9a5018e9441cb4765e6"
+  integrity sha512-qqw3m0tWs/qrg7axTZG/QZq24DIMdSY6dGoWuBn08ddq7+GLF5HiqkRj71XznYeUUbfRq5W9C/PSFnN4JxX+WA==
+
 "@google-cloud/paginator@^2.0.0":
   version "2.0.3"
   resolved "https://registry.npmjs.org/@google-cloud/paginator/-/paginator-2.0.3.tgz#c7987ad05d1c3ebcef554381be80e9e8da4e4882"
