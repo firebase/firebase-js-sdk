@@ -18,30 +18,34 @@ import * as externs from '@firebase/auth-types-exp';
 import { debugFail } from '../../core/util/assert';
 import { MultiFactorSession, MultiFactorSessionType } from '../mfa_session';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
+import { AuthCore } from '../../model/auth';
 
 export abstract class MultiFactorAssertion
   implements externs.MultiFactorAssertion {
   protected constructor(readonly factorId: externs.ProviderId) {}
 
   _process(
+    auth: AuthCore,
     session: MultiFactorSession,
     displayName?: string | null
   ): Promise<FinalizeMfaResponse> {
     switch (session.type) {
       case MultiFactorSessionType.ENROLL:
-        return this._finalizeEnroll(session.credential, displayName);
+        return this._finalizeEnroll(auth, session.credential, displayName);
       case MultiFactorSessionType.SIGN_IN:
-        return this._finalizeSignIn(session.credential);
+        return this._finalizeSignIn(auth, session.credential);
       default:
         return debugFail('unexpected MultiFactorSessionType');
     }
   }
 
   abstract _finalizeEnroll(
+    auth: AuthCore,
     idToken: string,
     displayName?: string | null
   ): Promise<FinalizeMfaResponse>;
   abstract _finalizeSignIn(
+    auth: AuthCore,
     mfaPendingCredential: string
   ): Promise<FinalizeMfaResponse>;
 }

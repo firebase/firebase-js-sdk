@@ -44,7 +44,6 @@ export const RECAPTCHA_VERIFIER_TYPE = 'recaptcha';
 export class RecaptchaVerifier
   implements externs.RecaptchaVerifier, ApplicationVerifier {
   readonly type = RECAPTCHA_VERIFIER_TYPE;
-  private readonly auth: AuthCore;
   private readonly appName: string;
   private destroyed = false;
   private widgetId: number | null = null;
@@ -61,11 +60,15 @@ export class RecaptchaVerifier
     private readonly parameters: Parameters = {
       ...DEFAULT_PARAMS
     },
-    auth?: externs.Auth | null
+    private readonly auth: AuthCore = initializeAuth()
   ) {
-    this.auth = auth || initializeAuth();
     this.appName = this.auth.name;
     this.isInvisible = this.parameters.size === 'invisible';
+    assert(
+      typeof document !== 'undefined',
+      this.appName,
+      AuthErrorCode.OPERATION_NOT_SUPPORTED
+    );
     const container =
       typeof containerOrId === 'string'
         ? document.getElementById(containerOrId)
@@ -155,7 +158,6 @@ export class RecaptchaVerifier
       this.appName,
       AuthErrorCode.ARGUMENT_ERROR
     );
-    assert(document, this.appName, AuthErrorCode.OPERATION_NOT_SUPPORTED);
     assert(
       this.isInvisible || !this.container.hasChildNodes(),
       this.appName,

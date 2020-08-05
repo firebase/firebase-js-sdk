@@ -26,6 +26,7 @@ import {
   convertConfirmationResult,
   convertCredential
 } from './user_credential';
+import { _isPopupRedirectSupported } from './platform';
 
 export class Auth extends impl.AuthImplCompat<User>
   implements compat.FirebaseAuth {
@@ -89,6 +90,9 @@ export class Auth extends impl.AuthImplCompat<User>
       impl.createUserWithEmailAndPassword(this._asExtern(), email, password)
     );
   }
+  fetchProvidersForEmail(email: string): Promise<string[]> {
+    return this.fetchSignInMethodsForEmail(email);
+  }
   fetchSignInMethodsForEmail(email: string): Promise<string[]> {
     return impl.fetchSignInMethodsForEmail(this._asExtern(), email);
   }
@@ -96,6 +100,11 @@ export class Auth extends impl.AuthImplCompat<User>
     return impl.isSignInWithEmailLink(this._asExtern(), emailLink);
   }
   async getRedirectResult(): Promise<compat.UserCredential> {
+    impl.assertFn(
+      _isPopupRedirectSupported(),
+      this.app.name,
+      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED
+    );
     const credential = await impl.getRedirectResult(
       this._asExtern(),
       impl.browserPopupRedirectResolver
@@ -168,7 +177,7 @@ export class Auth extends impl.AuthImplCompat<User>
     }
 
     return super._setPersistence(
-      impl._getInstance(convertPersistence(this._asExtern(), persistence))
+      convertPersistence(this._asExtern(), persistence)
     );
   }
 
@@ -231,19 +240,29 @@ export class Auth extends impl.AuthImplCompat<User>
       )
     );
   }
-  signInWithPopup(
+  async signInWithPopup(
     provider: compat.AuthProvider
   ): Promise<compat.UserCredential> {
+    impl.assertFn(
+      _isPopupRedirectSupported(),
+      this.app.name,
+      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED
+    );
     return convertCredential(
       this._asExtern(),
       impl.signInWithPopup(
         this._asExtern(),
         provider as externs.AuthProvider,
-        impl.browserLocalPersistence
+        impl.browserPopupRedirectResolver
       )
     );
   }
-  signInWithRedirect(provider: compat.AuthProvider): Promise<void> {
+  async signInWithRedirect(provider: compat.AuthProvider): Promise<void> {
+    impl.assertFn(
+      _isPopupRedirectSupported(),
+      this.app.name,
+      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED
+    );
     return impl.signInWithRedirect(
       this._asExtern(),
       provider as externs.AuthProvider,

@@ -37,5 +37,7 @@ export {
 
 export { ClientPlatform, _getClientVersion } from '../src/core/util/version';
 
+export { _generateEventId } from '../src/core/util/event_id';
+
 export { fail } from '../src/core/util/assert';
 export const assertFn: typeof assert = assert;

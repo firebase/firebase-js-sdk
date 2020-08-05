@@ -637,10 +637,7 @@ function onFinalizeEnrollWithPhoneMultiFactor() {
     verificationId,
     verificationCode
   );
-  const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(
-    auth,
-    credential
-  );
+  const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(credential);
   const displayName = $('#enroll-mfa-phone-display-name').val() || undefined;
 
   multiFactor(activeUser())
@@ -1152,7 +1149,7 @@ function onFinalizeSignInWithPhoneMultiFactor(event) {
     return;
   }
   const cred = PhoneAuthProvider.credential(verificationId, code);
-  const assertion = PhoneMultiFactorGenerator.assertion(auth, cred);
+  const assertion = PhoneMultiFactorGenerator.assertion(cred);
   multiFactorErrorResolver.resolveSignIn(assertion).then(userCredential => {
     onAuthUserCredentialSuccess(userCredential);
     $('#multiFactorModal').modal('hide');
@@ -1245,35 +1242,33 @@ function onPopupRedirectProviderClick(_event) {
  *     sign in.
  */
 function signInWithPopupRedirect(provider) {
-  const glob = {
-    signInWithPopup,
-    linkWithPopup,
-    reauthenticateWithPopup,
-    signInWithRedirect,
-    linkWithRedirect,
-    reauthenticateWithRedirect
-  };
   let action = $('input[name=popup-redirect-action]:checked').val();
   let type = $('input[name=popup-redirect-type]:checked').val();
   let method = null;
   let inst = null;
 
-  if (action == 'link' || action == 'reauthenticate') {
-    if (!activeUser()) {
-      alertError('No user logged in.');
-      return;
-    }
-    inst = activeUser();
-    method = action + 'With';
-  } else {
-    inst = auth;
-    method = 'signInWith';
+  switch (action) {
+    case 'link':
+      if (!activeUser()) {
+        alertError('No user logged in.');
+        return;
+      }
+      inst = activeUser();
+      method = type === 'popup' ? linkWithPopup : linkWithRedirect;
+      break;
+    case 'reauthenticate':
+      if (!activeUser()) {
+        alertError('No user logged in.');
+        return;
+      }
+      inst = activeUser();
+      method =
+        type === 'popup' ? reauthenticateWithPopup : reauthenticateWithRedirect;
+      break;
+    default:
+      method = type === 'popup' ? signInWithPopup : signInWithRedirect;
   }
-  if (type === 'popup') {
-    method += 'Popup';
-  } else {
-    method += 'Redirect';
-  }
+
   // Get custom OAuth parameters.
   const customParameters = {};
   // For each entry.
@@ -1309,23 +1304,16 @@ function signInWithPopupRedirect(provider) {
   console.log('Provider:');
   console.log(provider);
   if (type == 'popup') {
-    glob[method](inst, provider, browserPopupRedirectResolver).then(
-      response => {
-        console.log('Popup response:');
-        console.log(response);
-        alertSuccess(
-          action + ' with ' + provider['providerId'] + ' successful!'
-        );
-        logAdditionalUserInfo(response);
-        onAuthSuccess(activeUser());
-      },
-      onAuthError
-    );
+    method(inst, provider, browserPopupRedirectResolver).then(response => {
+      console.log('Popup response:');
+      console.log(response);
+      alertSuccess(action + ' with ' + provider['providerId'] + ' successful!');
+      logAdditionalUserInfo(response);
+      onAuthSuccess(activeUser());
+    }, onAuthError);
   } else {
     try {
-      glob[method](inst, provider, browserPopupRedirectResolver).catch(
-        onAuthError
-      );
+      method(inst, provider, browserPopupRedirectResolver).catch(onAuthError);
     } catch (error) {
       console.log('Error while calling ' + method);
       console.error(error);
@@ -1374,7 +1362,7 @@ function onGetRedirectResult() {
  * @param {!Object} response
  */
 function logAdditionalUserInfo(response) {
-  if (response.additionalUserInfo) {
+  if (response?.additionalUserInfo) {
     if (response.additionalUserInfo.username) {
       log(
         response.additionalUserInfo['providerId'] +
@@ -1591,17 +1579,22 @@ function onRunWebWorkTests() {
     alertError('Error: Web workers are not supported in the current browser!');
     return;
   }
-  // auth.signInWithPopup(new GoogleAuthProvider()).then(
-  //   (result) => {
-  webWorker.postMessage({
-    type: 'RUN_TESTS'
-    // googleIdToken: result.credential.idToken
-  });
-  //   },
-  //   error => {
-  //     alertError('Error code: ' + error.code + ' message: ' + error.message);
-  //   }
-  // );
+  signInWithPopup(
+    auth,
+    new GoogleAuthProvider(),
+    browserPopupRedirectResolver
+  ).then(
+    result => {
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      webWorker.postMessage({
+        type: 'RUN_TESTS',
+        googleIdToken: credential.idToken
+      });
+    },
+    error => {
+      alertError('Error code: ' + error.code + ' message: ' + error.message);
+    }
+  );
 }
 
 /** Runs service worker tests if supported. */
@@ -1612,6 +1605,18 @@ function onRunServiceWorkTests() {
     },
     (jqXHR, _textStatus, _errorThrown) => {
       alertError(jqXHR.status + ': ' + JSON.stringify(jqXHR.responseJSON));
+    }
+  );
+}
+
+/** Copy current user of auth to tempAuth. */
+function onCopyActiveUser() {
+  tempAuth.updateCurrentUser(activeUser()).then(
+    () => {
+      alertSuccess('Copied active user to temp Auth');
+    },
+    error => {
+      alertError('Error: ' + error.code);
     }
   );
 }
@@ -1651,11 +1656,17 @@ function initApp() {
     popupRedirectResolver: browserPopupRedirectResolver
   });
 
-  // tempApp = initializeApp({
-  //   'apiKey': config['apiKey'],
-  //   'authDomain': config['authDomain']
-  // }, auth['name'] + '-temp');
-  // tempAuth = initializeApp(tempApp);
+  tempApp = initializeApp(
+    {
+      apiKey: config.apiKey,
+      authDomain: config.authDomain
+    },
+    `${auth.name}-temp`
+  );
+  tempAuth = initializeAuth(tempApp, {
+    persistence: inMemoryPersistence,
+    popupRedirectResolver: browserPopupRedirectResolver
+  });
 
   // Listen to reCAPTCHA config togglers.
   initRecaptchaToggle(size => {
@@ -1696,6 +1707,15 @@ function initApp() {
       }
       // Check Database Auth access.
       checkDatabaseAuthAccess();
+    });
+  }
+
+  if (tempAuth.onAuthStateChanged) {
+    tempAuth.onAuthStateChanged(user => {
+      if (user) {
+        log('user state change on temp Auth detect: ' + JSON.stringify(user));
+        alertSuccess('user state change on temp Auth detect: ' + user.uid);
+      }
     });
   }
 
@@ -1902,7 +1922,7 @@ function initApp() {
 
   $('#run-web-worker-tests').click(onRunWebWorkTests);
   $('#run-service-worker-tests').click(onRunServiceWorkTests);
-  // $('#copy-active-user').click(onCopyActiveUser);
+  $('#copy-active-user').click(onCopyActiveUser);
   $('#copy-last-user').click(onCopyLastUser);
 
   $('#apply-auth-settings-change').click(onApplyAuthSettingsChange);
