@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import json from 'rollup-plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
@@ -24,9 +25,15 @@ const deps = Object.keys(
 );
 
 /**
+ * Common plugins for all builds
+ */
+const commonPlugins = [json()];
+
+/**
  * ES5 Builds
  */
 const es5BuildPlugins = [
+  ...commonPlugins,
   typescriptPlugin({
     typescript
   })
@@ -40,7 +47,7 @@ const es5Builds = [
     input: 'index.ts',
     output: [
       { file: pkg.browser, format: 'cjs', sourcemap: true },
-      { file: pkg.module, format: 'es', sourcemap: true }
+      { file: pkg.module, format: 'esm', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -72,6 +79,7 @@ const es5Builds = [
  * ES2017 Builds
  */
 const es2017BuildPlugins = [
+  ...commonPlugins,
   typescriptPlugin({
     typescript,
     tsconfigOverride: {

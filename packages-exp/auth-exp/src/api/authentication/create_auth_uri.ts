@@ -16,7 +16,7 @@
  */
 
 import { Endpoint, HttpMethod, _performApiRequest } from '..';
-import { Auth } from '../../model/auth';
+import { AuthCore } from '../../model/auth';
 
 export interface CreateAuthUriRequest {
   identifier: string;
@@ -28,7 +28,7 @@ export interface CreateAuthUriResponse {
 }
 
 export async function createAuthUri(
-  auth: Auth,
+  auth: AuthCore,
   request: CreateAuthUriRequest
 ): Promise<CreateAuthUriResponse> {
   return _performApiRequest<CreateAuthUriRequest, CreateAuthUriResponse>(

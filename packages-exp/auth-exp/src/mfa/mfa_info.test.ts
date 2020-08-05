@@ -21,15 +21,14 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { testAuth } from '../../test/helpers/mock_auth';
+import { testAuth, TestAuth } from '../../test/helpers/mock_auth';
 import { PhoneMfaEnrollment } from '../api/account_management/mfa';
-import { Auth } from '../model/auth';
 import { MultiFactorInfo } from './mfa_info';
 
 use(chaiAsPromised);
 
 describe('core/mfa/mfa_info/MultiFactorInfo', () => {
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();

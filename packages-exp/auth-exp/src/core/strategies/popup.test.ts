@@ -29,10 +29,9 @@ import { FirebaseError } from '@firebase/util';
 
 import { delay } from '../../../test/helpers/delay';
 import { BASE_AUTH_EVENT } from '../../../test/helpers/iframe_event';
-import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import { makeMockPopupRedirectResolver } from '../../../test/helpers/mock_popup_redirect_resolver';
 import { stubTimeouts, TimerMap } from '../../../test/helpers/timeout_stub';
-import { Auth } from '../../model/auth';
 import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { AuthEventManager } from '../auth/auth_event_manager';
@@ -62,7 +61,7 @@ describe('src/core/strategies/popup', () => {
   let eventManager: AuthEventManager;
   let authPopup: AuthPopup;
   let underlyingWindow: { closed: boolean };
-  let auth: Auth;
+  let auth: TestAuth;
   let idpStubs: sinon.SinonStubbedInstance<typeof idpTasks>;
   let pendingTimeouts: TimerMap;
 

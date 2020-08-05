@@ -23,9 +23,8 @@ import { FirebaseError } from '@firebase/util';
 
 import { Endpoint, HttpHeader } from '../';
 import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
-import { Auth } from '../../model/auth';
 import { ServerError } from '../errors';
 import { deleteAccount, deleteLinkedAccounts, getAccountInfo } from './account';
 
@@ -36,7 +35,7 @@ describe('api/account_management/deleteAccount', () => {
     idToken: 'id-token'
   };
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -90,7 +89,7 @@ describe('api/account_management/deleteLinkedAccounts', () => {
     deleteProvider: [ProviderId.GOOGLE]
   };
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -152,7 +151,7 @@ describe('api/account_management/getAccountInfo', () => {
     idToken: 'id-token'
   };
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();

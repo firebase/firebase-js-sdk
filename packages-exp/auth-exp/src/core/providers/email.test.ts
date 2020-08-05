@@ -22,14 +22,13 @@ import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { FirebaseError } from '@firebase/util';
 
-import { testAuth } from '../../../test/helpers/mock_auth';
-import { Auth } from '../../model/auth';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import { EmailAuthProvider } from './email';
 
 use(chaiAsPromised);
 
 describe('core/providers/email', () => {
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();

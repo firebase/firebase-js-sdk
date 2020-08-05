@@ -20,7 +20,7 @@ import { querystring } from '@firebase/util';
 
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
 import { Delay } from '../../core/util/delay';
-import { Auth } from '../../model/auth';
+import { AuthCore } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';
 import * as gapiLoader from './gapi';
 
@@ -34,7 +34,7 @@ const IFRAME_ATTRIBUTES = {
   }
 };
 
-function getIframeUrl(auth: Auth): string {
+function getIframeUrl(auth: AuthCore): string {
   const url = `https://${auth.config.authDomain!}/__/auth/iframe`;
 
   const params = {
@@ -48,7 +48,9 @@ function getIframeUrl(auth: Auth): string {
   return `${url}?${querystring(params).slice(1)}`;
 }
 
-export async function _openIframe(auth: Auth): Promise<gapi.iframes.Iframe> {
+export async function _openIframe(
+  auth: AuthCore
+): Promise<gapi.iframes.Iframe> {
   const context = await gapiLoader._loadGapi(auth);
   return context.open(
     {

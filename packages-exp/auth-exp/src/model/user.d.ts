@@ -23,13 +23,25 @@ import { FinalizeMfaResponse } from '../api/authentication/mfa';
 import { PersistedBlob } from '../core/persistence';
 import { Auth } from './auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from './id_token';
+import { StsTokenManager } from '../core/user/token_manager';
 
 type MutableUserInfo = {
   -readonly [K in keyof externs.UserInfo]: externs.UserInfo[K];
 };
 
-export interface User extends externs.User {
+export interface UserParameters {
   uid: string;
+  auth: Auth;
+  stsTokenManager: StsTokenManager;
+
+  displayName?: string;
+  email?: string;
+  phoneNumber?: string;
+  photoURL?: string;
+  isAnonymous?: boolean;
+}
+
+export interface User extends externs.User {
   displayName: string | null;
   email: string | null;
   phoneNumber: string | null;
@@ -43,6 +55,7 @@ export interface User extends externs.User {
   providerData: MutableUserInfo[];
   metadata: externs.UserMetadata;
 
+  stsTokenManager: StsTokenManager;
   _redirectEventId?: string;
 
   _updateTokensIfNecessary(
@@ -57,6 +70,7 @@ export interface User extends externs.User {
   getIdTokenResult(forceRefresh?: boolean): Promise<externs.IdTokenResult>;
   reload(): Promise<void>;
   delete(): Promise<void>;
+  toJSON(): object;
   toPlainObject(): PersistedBlob;
 }
 

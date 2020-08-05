@@ -44,7 +44,8 @@ import {
   DEFAULT_API_HOST,
   DEFAULT_API_SCHEME,
   DEFAULT_TOKEN_API_HOST,
-  initializeAuth
+  initializeAuth,
+  _castAuth
 } from './auth_impl';
 
 use(sinonChai);
@@ -60,14 +61,14 @@ const FAKE_APP: FirebaseApp = {
 };
 
 describe('core/auth/auth_impl', () => {
-  let auth: Auth;
+  let auth: externs.Auth;
   let persistenceStub: sinon.SinonStubbedInstance<Persistence>;
 
   beforeEach(() => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
     auth = initializeAuth(FAKE_APP, {
       persistence: inMemoryPersistence
-    }) as Auth;
+    });
   });
 
   afterEach(sinon.restore);
@@ -149,8 +150,8 @@ describe('core/auth/auth_impl', () => {
 
     it('immediately calls authStateChange if initialization finished', done => {
       const user = testUser(auth, 'uid');
-      auth.currentUser = user;
-      auth._isInitialized = true;
+      _castAuth(auth).currentUser = user;
+      _castAuth(auth)._isInitialized = true;
       auth.onAuthStateChanged(user => {
         expect(user).to.eq(user);
         done();
@@ -159,8 +160,8 @@ describe('core/auth/auth_impl', () => {
 
     it('immediately calls idTokenChange if initialization finished', done => {
       const user = testUser(auth, 'uid');
-      auth.currentUser = user;
-      auth._isInitialized = true;
+      _castAuth(auth).currentUser = user;
+      _castAuth(auth)._isInitialized = true;
       auth.onIdTokenChanged(user => {
         expect(user).to.eq(user);
         done();
@@ -168,7 +169,7 @@ describe('core/auth/auth_impl', () => {
     });
 
     it('immediate callback is done async', () => {
-      auth._isInitialized = true;
+      _castAuth(auth)._isInitialized = true;
       let callbackCalled = false;
       auth.onIdTokenChanged(() => {
         callbackCalled = true;
@@ -306,7 +307,7 @@ describe('core/auth/initializeAuth', () => {
     async function initAndWait(
       persistence: externs.Persistence | externs.Persistence[],
       popupRedirectResolver?: externs.PopupRedirectResolver
-    ): Promise<Auth> {
+    ): Promise<externs.Auth> {
       const auth = initializeAuth(FAKE_APP, {
         persistence,
         popupRedirectResolver
@@ -314,7 +315,7 @@ describe('core/auth/initializeAuth', () => {
       // Auth initializes async. We can make sure the initialization is
       // flushed by awaiting a method on the queue.
       await auth.setPersistence(inMemoryPersistence);
-      return auth as Auth;
+      return auth;
     }
 
     it('converts single persistence to array', async () => {

@@ -24,12 +24,11 @@ import { OperationType } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
-import { Auth } from '../../model/auth';
 import { UserCredential } from '../../model/user';
 import {
   isSignInWithEmailLink,
@@ -43,7 +42,7 @@ use(sinonChai);
 describe('core/strategies/sendSignInLinkToEmail', () => {
   const email = 'foo@bar.com';
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -89,8 +88,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       await sendSignInLinkToEmail(auth, email, {
         handleCodeInApp: true,
         iOS: {
-          bundleId: 'my-bundle',
-          appStoreId: 'my-appstore-id'
+          bundleId: 'my-bundle'
         },
         url: 'my-url',
         dynamicLinkDomain: 'fdl-domain'
@@ -102,8 +100,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
         canHandleCodeInApp: true,
-        iosBundleId: 'my-bundle',
-        iosAppStoreId: 'my-appstore-id'
+        iosBundleId: 'my-bundle'
       });
     });
   });
@@ -138,7 +135,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
 });
 
 describe('core/strategies/isSignInWithEmailLink', () => {
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -202,7 +199,7 @@ describe('core/strategies/isSignInWithEmailLink', () => {
 });
 
 describe('core/strategies/email_and_password/signInWithEmailLink', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   const serverUser: APIUserInfo = {
     localId: 'local-id'
   };

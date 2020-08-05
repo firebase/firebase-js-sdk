@@ -22,7 +22,6 @@ import {
   AuthEventType,
   PopupRedirectResolver
 } from '../../model/popup_redirect';
-import { User } from '../../model/user';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { assert, debugAssert } from '../util/assert';
 import { Delay } from '../util/delay';
@@ -30,21 +29,22 @@ import { _generateEventId } from '../util/event_id';
 import { _getInstance } from '../util/instantiator';
 import { AuthPopup } from '../util/popup';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
+import { _castAuth } from '../auth/auth_impl';
+import { User } from '../../model/user';
 
 // The event timeout is the same on mobile and desktop, no need for Delay.
 export const _AUTH_EVENT_TIMEOUT = 2020;
 export const _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
 
 export async function signInWithPopup(
-  authExtern: externs.Auth,
+  auth: externs.Auth,
   provider: externs.AuthProvider,
   resolverExtern: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
-  const auth = authExtern as Auth;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
   const action = new PopupOperation(
-    auth,
+    _castAuth(auth),
     AuthEventType.SIGN_IN_VIA_POPUP,
     provider,
     resolver
