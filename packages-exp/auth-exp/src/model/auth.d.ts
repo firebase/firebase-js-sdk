@@ -19,24 +19,40 @@ import * as externs from '@firebase/auth-types-exp';
 import { CompleteFn, ErrorFn, Unsubscribe } from '@firebase/util';
 
 import { PopupRedirectResolver } from './popup_redirect';
-import { User } from './user';
+import { UserParameters, User } from './user';
 
 export type AppName = string;
 export type ApiKey = string;
 export type AuthDomain = string;
 
-export interface Auth extends externs.Auth {
-  currentUser: User | null;
+/**
+ * Core implementation of the Auth object, the signatures here should match across both legacy
+ * and modern implementations
+ */
+export interface AuthCore {
   readonly name: AppName;
-  _isInitialized: boolean;
+  readonly config: externs.Config;
+  languageCode: string | null;
+  tenantId: string | null;
+  readonly settings: externs.AuthSettings;
 
+  useDeviceLanguage(): void;
+  signOut(): Promise<void>;
+}
+
+export interface Auth extends AuthCore {
+  currentUser: User | null;
+  _isInitialized: boolean;
   updateCurrentUser(user: User | null): Promise<void>;
-  onAuthStateChanged(
+
+  _createUser(params: UserParameters): User;
+  _setPersistence(persistence: externs.Persistence): void;
+  _onAuthStateChanged(
     nextOrObserver: externs.NextOrObserver<User>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
-  onIdTokenChanged(
+  _onIdTokenChanged(
     nextOrObserver: externs.NextOrObserver<User>,
     error?: ErrorFn,
     completed?: CompleteFn

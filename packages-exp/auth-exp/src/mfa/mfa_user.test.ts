@@ -21,14 +21,13 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { ProviderId } from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../test/helpers/api/helper';
-import { testAuth, testUser } from '../../test/helpers/mock_auth';
+import { testAuth, testUser, TestAuth } from '../../test/helpers/mock_auth';
 import * as mockFetch from '../../test/helpers/mock_fetch';
 import { Endpoint } from '../api';
 import { APIUserInfo } from '../api/account_management/account';
 import { FinalizeMfaResponse } from '../api/authentication/mfa';
 import { ServerError } from '../api/errors';
 import { PhoneAuthProvider } from '../core/providers/phone';
-import { Auth } from '../model/auth';
 import { User } from '../model/user';
 import { PhoneMultiFactorAssertion } from './assertions/phone';
 import { MultiFactorInfo } from './mfa_info';
@@ -38,7 +37,7 @@ import { multiFactor, MultiFactorUser } from './mfa_user';
 use(chaiAsPromised);
 
 describe('core/mfa/mfa_user/MultiFactorUser', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   let mfaUser: MultiFactorUser;
 
   beforeEach(async () => {
@@ -227,7 +226,7 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
 });
 
 describe('core/mfa/mfa_user/multiFactor', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   let user: User;
 
   beforeEach(async () => {

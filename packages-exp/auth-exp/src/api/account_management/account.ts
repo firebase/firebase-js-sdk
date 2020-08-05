@@ -16,15 +16,15 @@
  */
 
 import { Endpoint, HttpMethod, _performApiRequest } from '../';
-import { Auth } from '../../model/auth';
 import { MfaEnrollment } from './mfa';
+import { AuthCore } from '../../model/auth';
 
 export interface DeleteAccountRequest {
   idToken: string;
 }
 
 export async function deleteAccount(
-  auth: Auth,
+  auth: AuthCore,
   request: DeleteAccountRequest
 ): Promise<void> {
   return _performApiRequest<DeleteAccountRequest, void>(
@@ -54,7 +54,7 @@ export interface DeleteLinkedAccountsResponse {
 }
 
 export async function deleteLinkedAccounts(
-  auth: Auth,
+  auth: AuthCore,
   request: DeleteLinkedAccountsRequest
 ): Promise<DeleteLinkedAccountsResponse> {
   return _performApiRequest<
@@ -87,7 +87,7 @@ export interface GetAccountInfoResponse {
 }
 
 export async function getAccountInfo(
-  auth: Auth,
+  auth: AuthCore,
   request: GetAccountInfoRequest
 ): Promise<GetAccountInfoResponse> {
   return _performApiRequest<GetAccountInfoRequest, GetAccountInfoResponse>(

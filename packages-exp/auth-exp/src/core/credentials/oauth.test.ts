@@ -21,11 +21,10 @@ import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
-import { testAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { SignInWithIdpRequest } from '../../api/authentication/idp';
-import { Auth } from '../../model/auth';
 import { OAuthCredential, OAuthCredentialParams } from './oauth';
 
 const BASE_PARAMS: OAuthCredentialParams = {
@@ -34,7 +33,7 @@ const BASE_PARAMS: OAuthCredentialParams = {
 };
 
 describe('src/core/credentials/oauth', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   let signInWithIdp: fetch.Route;
 
   beforeEach(async () => {

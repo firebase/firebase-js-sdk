@@ -25,13 +25,12 @@ import { AuthCredential } from '../credentials';
 import { _assertLinkedStatus, _link } from '../user/link_unlink';
 import { _reauthenticate } from '../user/reauthenticate';
 import { UserCredentialImpl } from '../user/user_credential_impl';
+import { _castAuth } from '../auth/auth_impl';
 
-export async function signInWithCredential(
-  authExtern: externs.Auth,
-  credentialExtern: externs.AuthCredential
+export async function _signInWithCredential(
+  auth: Auth,
+  credential: AuthCredential
 ): Promise<UserCredential> {
-  const auth = authExtern as Auth;
-  const credential = credentialExtern as AuthCredential;
   const operationType = OperationType.SIGN_IN;
   const response = await _processCredentialSavingMfaContextIfNecessary(
     auth,
@@ -46,6 +45,13 @@ export async function signInWithCredential(
   );
   await auth.updateCurrentUser(userCredential.user);
   return userCredential;
+}
+
+export async function signInWithCredential(
+  auth: externs.Auth,
+  credential: externs.AuthCredential
+): Promise<externs.UserCredential> {
+  return _signInWithCredential(_castAuth(auth), credential as AuthCredential);
 }
 
 export async function linkWithCredential(

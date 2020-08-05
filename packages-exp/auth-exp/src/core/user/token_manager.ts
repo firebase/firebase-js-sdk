@@ -16,12 +16,12 @@
  */
 
 import { requestStsToken } from '../../api/authentication/token';
-import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
 import { assert } from '../util/assert';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
+import { AuthCore } from '../../model/auth';
 
 /**
  * The number of milliseconds before the official expiration time of a token
@@ -57,7 +57,7 @@ export class StsTokenManager {
     );
   }
 
-  async getToken(auth: Auth, forceRefresh = false): Promise<Tokens | null> {
+  async getToken(auth: AuthCore, forceRefresh = false): Promise<Tokens | null> {
     if (!forceRefresh && this.accessToken && !this.isExpired) {
       return {
         accessToken: this.accessToken,
@@ -96,7 +96,7 @@ export class StsTokenManager {
     };
   }
 
-  private async refresh(auth: Auth, oldToken: string): Promise<void> {
+  private async refresh(auth: AuthCore, oldToken: string): Promise<void> {
     const { accessToken, refreshToken, expiresIn } = await requestStsToken(
       auth,
       oldToken

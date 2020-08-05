@@ -17,7 +17,6 @@
 
 import { FirebaseError } from '@firebase/util';
 
-import { Auth } from '../../model/auth';
 import {
   AuthEvent,
   AuthEventConsumer,
@@ -29,6 +28,7 @@ import { User, UserCredential } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { debugAssert, fail } from '../util/assert';
 import { _link, _reauth, _signIn, IdpTask, IdpTaskParams } from './idp';
+import { Auth } from '../../model/auth';
 
 interface PendingPromise {
   resolve: (cred: UserCredential | null) => void;

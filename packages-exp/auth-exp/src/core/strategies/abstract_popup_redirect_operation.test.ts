@@ -26,9 +26,8 @@ import { FirebaseError } from '@firebase/util';
 import { delay } from '../../../test/helpers/delay';
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
 import { authEvent, BASE_AUTH_EVENT } from '../../../test/helpers/iframe_event';
-import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import { makeMockPopupRedirectResolver } from '../../../test/helpers/mock_popup_redirect_resolver';
-import { Auth } from '../../model/auth';
 import {
   AuthEvent,
   AuthEventType,
@@ -59,7 +58,7 @@ class WrapperOperation extends AbstractPopupRedirectOperation {
 }
 
 describe('src/core/strategies/abstract_popup_redirect_operation', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   let resolver: PopupRedirectResolver;
   let eventManager: EventManager;
   let idpStubs: sinon.SinonStubbedInstance<typeof idp>;

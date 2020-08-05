@@ -21,12 +21,12 @@ import * as account from '../../api/account_management/email_and_password';
 import * as authentication from '../../api/authentication/email_and_password';
 import { signUp } from '../../api/authentication/sign_up';
 import { MultiFactorInfo } from '../../mfa/mfa_info';
-import { Auth } from '../../model/auth';
 import { EmailAuthProvider } from '../providers/email';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { assert } from '../util/assert';
 import { setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
+import { _castAuth } from '../auth/auth_impl';
 
 export async function sendPasswordResetEmail(
   auth: externs.Auth,
@@ -41,7 +41,7 @@ export async function sendPasswordResetEmail(
     setActionCodeSettingsOnRequest(request, actionCodeSettings);
   }
 
-  await authentication.sendPasswordResetEmail(auth as Auth, request);
+  await authentication.sendPasswordResetEmail(auth, request);
 }
 
 export async function confirmPasswordReset(
@@ -49,7 +49,7 @@ export async function confirmPasswordReset(
   oobCode: string,
   newPassword: string
 ): Promise<void> {
-  await account.resetPassword(auth as Auth, {
+  await account.resetPassword(auth, {
     oobCode,
     newPassword
   });
@@ -60,14 +60,14 @@ export async function applyActionCode(
   auth: externs.Auth,
   oobCode: string
 ): Promise<void> {
-  await account.applyActionCode(auth as Auth, { oobCode });
+  await account.applyActionCode(auth, { oobCode });
 }
 
 export async function checkActionCode(
   auth: externs.Auth,
   oobCode: string
 ): Promise<externs.ActionCodeInfo> {
-  const response = await account.resetPassword(auth as Auth, { oobCode });
+  const response = await account.resetPassword(auth, { oobCode });
 
   // Email could be empty only if the request type is EMAIL_SIGNIN or
   // VERIFY_AND_CHANGE_EMAIL.
@@ -94,7 +94,7 @@ export async function checkActionCode(
   let multiFactorInfo: MultiFactorInfo | null = null;
   if (response.mfaInfo) {
     multiFactorInfo = MultiFactorInfo._fromServerResponse(
-      auth as Auth,
+      auth,
       response.mfaInfo
     );
   }
@@ -125,12 +125,10 @@ export async function verifyPasswordResetCode(
 }
 
 export async function createUserWithEmailAndPassword(
-  authExtern: externs.Auth,
+  auth: externs.Auth,
   email: string,
   password: string
 ): Promise<externs.UserCredential> {
-  const auth = authExtern as Auth;
-
   const response = await signUp(auth, {
     returnSecureToken: true,
     email,
@@ -138,7 +136,7 @@ export async function createUserWithEmailAndPassword(
   });
 
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
-    auth,
+    _castAuth(auth),
     EmailAuthProvider.credential(email, password),
     externs.OperationType.SIGN_IN,
     response
