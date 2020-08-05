@@ -53,8 +53,7 @@ export interface Observer<T> {
  */
 export class EventManager implements SyncEngineListener {
   queries = new ObjectMap<Query, QueryListenersInfo>(
-    q => canonifyQuery(q),
-    queryEquals
+    q => "",() => true
   );
 
   onlineState = OnlineState.Unknown;
@@ -325,7 +324,7 @@ export async function listen(
     } catch (e) {
       const firestoreError = wrapInUserErrorIfRecoverable(
         e,
-        `Initialization of query '${stringifyQuery(listener.query)}' failed`
+        `Initialization of query failed`
       );
       listener.onError(firestoreError);
       return;

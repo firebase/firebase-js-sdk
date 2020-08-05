@@ -126,7 +126,7 @@ export class MemoryOfflineComponentProvider
   createLocalStore(cfg: ComponentConfiguration): LocalStore {
     return newLocalStore(
       this.persistence,
-      new IndexFreeQueryEngine(),
+      null as any,
       cfg.initialUser
     );
   }

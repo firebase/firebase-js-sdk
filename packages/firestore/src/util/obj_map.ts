@@ -17,6 +17,7 @@
 
 import { forEach, isEmpty } from './obj';
 
+
 type Entry<K, V> = [K, V];
 
 /**

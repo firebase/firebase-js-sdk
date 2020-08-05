@@ -162,8 +162,8 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
         continue;
       }
       if (
-        maybeDocument instanceof Document &&
-        queryMatches(query, maybeDocument)
+        maybeDocument instanceof Document// &&
+     //   queryMatches(query, maybeDocument)
       ) {
         results = results.insert(maybeDocument.key, maybeDocument);
       }

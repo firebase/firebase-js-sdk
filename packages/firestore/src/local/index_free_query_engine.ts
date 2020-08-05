@@ -108,8 +108,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
           logDebug(
             'IndexFreeQueryEngine',
             'Re-using previous result from %s to execute query: %s',
-            lastLimboFreeSnapshotVersion.toString(),
-            stringifyQuery(query)
+            lastLimboFreeSnapshotVersion.toString()
           );
         }
 
@@ -200,8 +199,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
     if (getLogLevel() <= LogLevel.DEBUG) {
       logDebug(
         'IndexFreeQueryEngine',
-        'Using full collection scan to execute query:',
-        stringifyQuery(query)
+        'Using full collection scan to execute query:'
       );
     }
 

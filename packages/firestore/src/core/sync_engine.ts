@@ -216,8 +216,7 @@ class SyncEngineImpl implements SyncEngine {
     | null = null;
 
   queryViewsByQuery = new ObjectMap<Query, QueryView>(
-    q => canonifyQuery(q),
-    queryEquals
+    q => "",() => true
   );
   queriesByTarget = new Map<TargetId, Query[]>();
   /**
@@ -496,7 +495,7 @@ class SyncEngineImpl implements SyncEngine {
         const queryView = this.queryViewsByQuery.get(query);
         debugAssert(
           !!queryView,
-          `No query view found for ${stringifyQuery(query)}`
+          `No query view found for`
         );
         keySet = keySet.unionWith(queryView.view.syncedDocuments);
       }
