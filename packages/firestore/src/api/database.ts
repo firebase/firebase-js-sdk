@@ -1709,37 +1709,35 @@ function validateDisjunctiveFilterElements(
 /**
  * Given an operator, returns the set of operators that cannot be used with it.
  *
+ * Operators in a query must adhere to the following set of rules:
+ * 1. Only one array operator is allowed.
+ * 2. Only one disjunctive operator is allowed.
+ * 3. NOT_EQUAL cannot be used with another NOT_EQUAL operator.
+ * 4. NOT_IN cannot be used with array, disjunctive, or NOT_EQUAL operators.
+ *
  * Array operators: ARRAY_CONTAINS, ARRAY_CONTAINS_ANY
  * Disjunctive operators: IN, ARRAY_CONTAINS_ANY, NOT_IN
  */
 function conflictingOps(op: Operator): Operator[] {
   switch (op) {
     case Operator.NOT_EQUAL:
-      // No other NOT_EQUAL or NOT_IN operator can be used with NOT_EQUAL.
       return [Operator.NOT_EQUAL, Operator.NOT_IN];
     case Operator.ARRAY_CONTAINS:
       return [
-        // Only 1 ARRAY operator can be used.
         Operator.ARRAY_CONTAINS,
         Operator.ARRAY_CONTAINS_ANY,
-        // NOT_IN cannot be used with any array operators.
         Operator.NOT_IN
       ];
     case Operator.IN:
-      // Only one disjunctive operator can be used.
       return [Operator.ARRAY_CONTAINS_ANY, Operator.IN, Operator.NOT_IN];
     case Operator.ARRAY_CONTAINS_ANY:
       return [
-        // Only one ARRAY operator can be used.
         Operator.ARRAY_CONTAINS,
-        // Only one disjunctive operator can be used.
         Operator.ARRAY_CONTAINS_ANY,
         Operator.IN,
         Operator.NOT_IN
       ];
     case Operator.NOT_IN:
-      // NOT_IN cannot be used with another array, disjunctive, or NOT_EQUAL
-      // operator.
       return [
         Operator.ARRAY_CONTAINS,
         Operator.ARRAY_CONTAINS_ANY,
