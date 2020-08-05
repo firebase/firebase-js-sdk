@@ -54,9 +54,9 @@ export function withTestDatastore(
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
   const connection = newConnection(databaseInfo);
-    const serializer = newSerializer(databaseInfo.databaseId);
-    const datastore = newDatastore(credentialsProvider, connection, serializer);
-    return fn(datastore);
+  const serializer = newSerializer(databaseInfo.databaseId);
+  const datastore = newDatastore(credentialsProvider, connection, serializer);
+  return fn(datastore);
 }
 
 export class MockCredentialsProvider extends EmptyCredentialsProvider {

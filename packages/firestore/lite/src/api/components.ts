@@ -61,11 +61,15 @@ export function getDatastore(firestore: Firestore): Datastore {
       settings.ssl ?? DEFAULT_SSL,
       /* forceLongPolling= */ false
     );
-    
+
     const connection = newConnection(databaseInfo);
-      const serializer = newSerializer(databaseInfo.databaseId);
-      const datastore = newDatastore(firestore._credentials, connection, serializer);
-      
+    const serializer = newSerializer(databaseInfo.databaseId);
+    const datastore = newDatastore(
+      firestore._credentials,
+      connection,
+      serializer
+    );
+
     datastoreInstances.set(firestore, datastore);
   }
   return datastoreInstances.get(firestore)!;
