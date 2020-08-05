@@ -12,25 +12,23 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "dev": "rollup -c -w",
     "test": "yarn type-check && TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha **/*.test.ts --config ../../config/mocharc.node.js",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
-    "type-check": "tsc -p . --noEmit",
-    "prepare": "yarn build"
+    "type-check": "tsc -p . --noEmit"
   },
   "dependencies": {
-    "typescript": "3.8.3"
+    "typescript": "3.9.7",
+    "rollup": "2.23.0",
+    "rollup-plugin-json": "4.0.0",
+    "rollup-plugin-replace": "2.2.0",
+    "rollup-plugin-typescript2": "0.27.1",
+    "rollup-plugin-commonjs": "10.1.0",
+    "rollup-plugin-node-resolve": "5.2.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/logger": "0.2.5",
-    "@firebase/util": "0.3.0",
-    "mocha-logger": "1.0.6",
-    "rollup": "2.21.0",
-    "rollup-plugin-json": "4.0.0",
-    "rollup-plugin-typescript2": "0.27.0",
-    "@rollup/plugin-commonjs": "13.0.0",
-    "@rollup/plugin-node-resolve": "8.1.0"
+    "@firebase/logger": "0.2.6",
+    "@firebase/util": "0.3.0"
   },
   "repository": {
     "directory": "packages/template",

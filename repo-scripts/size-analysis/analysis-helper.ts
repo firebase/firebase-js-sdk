@@ -37,7 +37,7 @@ export const enum ErrorCode {
   FILE_PARSING_ERROR = 'Failed to parse js file!',
   REPORT_REDIRECTION_ERROR = 'Please enable at least one of --output or --ci flag for report redirection!'
 }
-interface External {
+export interface External {
   moduleName: string;
   symbols: string[];
 }
@@ -331,17 +331,14 @@ export function extractDeclarations(
       } else {
         // export {LogLevel};
         // exclusively handles named export statements that has no from clause.
-        const reExportsWithoutFromClause: MemberList = handleExportStatementsWithoutFromClause(
+        handleExportStatementsWithoutFromClause(
           node,
           importSymbolCurrentNameToModuleLocation,
           importSymbolCurrentNameToOriginalName,
           importModuleLocationToExportedSymbolsList,
-          namespaceImportSet
+          namespaceImportSet,
+          declarations
         );
-        // concatenate re-exported MemberList with MemberList of the dts file
-        for (const key of Object.keys(declarations)) {
-          declarations[key].push(...reExportsWithoutFromClause[key]);
-        }
       }
     }
   });
@@ -453,6 +450,7 @@ function extractSymbolsFromNamedExportStatement(
  * @param importSymbolCurrentNameToOriginalName as imported symbols can be renamed, this map stores imported symbols current name and original name as key value pairs.
  * @param importModuleLocationToExportedSymbolsList a map that maps module location to a list of its exported symbols.
  * @param namespaceImportSymbolSet a set of namespace import symbols.
+ * @param parentDeclarations a list of exported symbols extracted from the module so far
  * This function exclusively handles named export statements that has no from clause, i.e: statements like export {LogLevel};
  * first case: namespace export
  * example: import * as fs from 'fs'; export {fs};
@@ -472,15 +470,9 @@ function handleExportStatementsWithoutFromClause(
   importSymbolCurrentNameToModuleLocation: Map<string, string>,
   importSymbolCurrentNameToOriginalName: Map<string, string>,
   importModuleLocationToExportedSymbolsList: Map<string, MemberList>,
-  namespaceImportSymbolSet: Set<string>
-): MemberList {
-  const declarations: MemberList = {
-    functions: [],
-    classes: [],
-    variables: [],
-    enums: [],
-    externals: []
-  };
+  namespaceImportSymbolSet: Set<string>,
+  parentDeclarations: MemberList
+): void {
   if (node.exportClause && ts.isNamedExports(node.exportClause)) {
     node.exportClause.elements.forEach(exportSpecifier => {
       // export symbol could be renamed, we retrieve both its current/renamed name and original name
@@ -490,9 +482,9 @@ function handleExportStatementsWithoutFromClause(
       );
       // import * as fs from 'fs';  export {fs};
       if (namespaceImportSymbolSet.has(exportSymbolOriginalName)) {
-        declarations.variables.push(exportSymbolOriginalName);
+        parentDeclarations.variables.push(exportSymbolOriginalName);
         replaceAll(
-          declarations,
+          parentDeclarations,
           exportSymbolOriginalName,
           exportSymbolCurrentName
         );
@@ -543,21 +535,19 @@ function handleExportStatementsWithoutFromClause(
         );
 
         // concatenate re-exported MemberList with MemberList of the dts file
-        for (const key of Object.keys(declarations)) {
-          if (Array.isArray(declarations[key])) {
-            declarations[key].push(...reExportedSymbols[key]);
-          }
+        for (const key of Object.keys(parentDeclarations)) {
+          parentDeclarations[key].push(...reExportedSymbols[key]);
         }
       }
       // handles declare first then export
       // declare const apps: Map<string, number>;
-      // export { apps };
+      // export { apps as apps1};
       // function a() {};
       // export {a};
       else {
         if (isExportRenamed(exportSpecifier)) {
           replaceAll(
-            declarations,
+            parentDeclarations,
             exportSymbolOriginalName,
             exportSymbolCurrentName
           );
@@ -565,8 +555,6 @@ function handleExportStatementsWithoutFromClause(
       }
     });
   }
-
-  return declarations;
 }
 
 /**
