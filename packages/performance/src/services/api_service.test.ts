@@ -55,6 +55,7 @@ describe('Firebase Performance > api_service', () => {
   });
   describe('requiredApisAvailable', () => {
     it('call logger when fetch is not available', () => {
+      expect(window.Promise).to.exist;
       stub(consoleLogger, 'info');
       stub(window, 'fetch').value(null);
       return api.requiredApisAvailable().then(isAvailable => {
@@ -63,6 +64,7 @@ describe('Firebase Performance > api_service', () => {
       });
     });
     it('call logger when navigator is not available', () => {
+      expect(window.Promise).to.exist;
       stub(consoleLogger, 'info');
       stub(window, 'fetch').returns(Promise.resolve(new Response('{}')));
       stub(api, 'navigator').value(null);
@@ -72,6 +74,7 @@ describe('Firebase Performance > api_service', () => {
       });
     });
     it('call logger when cookie is not enabled', () => {
+      expect(window.Promise).to.exist;
       stub(consoleLogger, 'info');
       stub(window, 'fetch').returns(Promise.resolve(new Response('{}')));
       stub(api.navigator, 'cookieEnabled').value(false);
@@ -82,6 +85,7 @@ describe('Firebase Performance > api_service', () => {
     });
 
     it('call logger when isIndexedDBAvailable returns false', () => {
+      expect(window.Promise).to.exist;
       stub(consoleLogger, 'info');
       stub(window, 'fetch').returns(Promise.resolve(new Response('{}')));
       stub(FirebaseUtil, 'isIndexedDBAvailable').returns(false);
@@ -92,6 +96,7 @@ describe('Firebase Performance > api_service', () => {
     });
 
     it('call logger when validateIndexedDBOpenable throws an exception', () => {
+      expect(window.Promise).to.exist;
       stub(consoleLogger, 'info');
       stub(window, 'fetch').returns(Promise.resolve(new Response('{}')));
       stub(FirebaseUtil, 'isIndexedDBAvailable').returns(true);
@@ -102,12 +107,14 @@ describe('Firebase Performance > api_service', () => {
       });
     });
     it('logger not called when function returns true', () => {
+      expect(window.Promise).to.exist;
       stub(consoleLogger, 'info');
       stub(window, 'fetch').returns(Promise.resolve(new Response('{}')));
       stub(FirebaseUtil, 'isIndexedDBAvailable').returns(true);
       stub(FirebaseUtil, 'validateIndexedDBOpenable').returns(
         Promise.resolve(true)
       );
+
       return api.requiredApisAvailable().then(isAvailable => {
         expect(consoleLogger.info).to.not.be.called;
         expect(isAvailable).to.be.true;
