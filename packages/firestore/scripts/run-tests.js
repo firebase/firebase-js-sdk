@@ -20,7 +20,6 @@ var path_1 = require('path');
 var child_process_promise_1 = require('child-process-promise');
 var argv = yargs.options({
   main: { type: 'string', demandOption: true },
-  platform: { type: 'string', default: 'node' },
   emulator: { type: 'boolean' },
   persistence: { type: 'boolean' }
 }).argv;
@@ -28,7 +27,6 @@ var nyc = path_1.resolve(__dirname, '../../../node_modules/.bin/nyc');
 var mocha = path_1.resolve(__dirname, '../../../node_modules/.bin/mocha');
 process.env.TS_NODE_CACHE = 'NO';
 process.env.TS_NODE_COMPILER_OPTIONS = '{"module":"commonjs"}';
-process.env.TEST_PLATFORM = argv.platform;
 var args = [
   mocha,
   '--require',
