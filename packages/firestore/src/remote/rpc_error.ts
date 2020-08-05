@@ -231,7 +231,12 @@ export function mapRpcCodeFromCode(code: Code | undefined): number {
  * @returns The equivalent Code. Unknown status codes are mapped to
  *     Code.UNKNOWN.
  */
-export function mapCodeFromHttpStatus(status: number): Code {
+export function mapCodeFromHttpStatus(status?: number): Code {
+  if (status === undefined) {
+    logError('RPC_ERROR', 'HTTP error has no status');
+    return Code.UNKNOWN;
+  }
+
   // The canonical error codes for Google APIs [1] specify mapping onto HTTP
   // status codes but the mapping is not bijective. In each case of ambiguity
   // this function chooses a primary error.
@@ -243,9 +248,9 @@ export function mapCodeFromHttpStatus(status: number): Code {
       return Code.OK;
 
     case 400: // Bad Request
-      return Code.INVALID_ARGUMENT;
+      return Code.FAILED_PRECONDITION;
     // Other possibilities based on the forward mapping
-    // return Code.FAILED_PRECONDITION;
+    // return Code.INVALID_ARGUMENT;
     // return Code.OUT_OF_RANGE;
 
     case 401: // Unauthorized

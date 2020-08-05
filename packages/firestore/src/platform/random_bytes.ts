@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-import { isNode, isReactNative } from '@firebase/util';
-import * as node from './node/random_bytes';
-import * as rn from './rn/random_bytes';
-import * as browser from './browser/random_bytes';
+// This file is only used under ts-node.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const platform = require(`./${
+  process.env.TEST_PLATFORM ?? 'node'
+}/random_bytes`);
 
 /**
  * Generates `nBytes` of random bytes.
@@ -26,11 +27,5 @@ import * as browser from './browser/random_bytes';
  * If `nBytes < 0` , an error will be thrown.
  */
 export function randomBytes(nBytes: number): Uint8Array {
-  if (isNode()) {
-    return node.randomBytes(nBytes);
-  } else if (isReactNative()) {
-    return rn.randomBytes(nBytes);
-  } else {
-    return browser.randomBytes(nBytes);
-  }
+  return platform.randomBytes(nBytes);
 }
