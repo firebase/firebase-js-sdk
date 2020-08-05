@@ -26,6 +26,7 @@ import {
   writeReportToFile,
   ErrorCode,
   writeReportToDirectory,
+  External,
   extractExternalDependencies
 } from './analysis-helper';
 
@@ -49,7 +50,7 @@ describe('extractDeclarations', () => {
   });
   // function foo() { }
   // export { foo as foo2 };
-  it('test declare then export ', () => {
+  it('test declare then export', () => {
     expect(extractedDeclarations.functions).to.include.members(['foo2']);
     expect(extractedDeclarations.classes).to.include.members(['Foo1']);
   });
@@ -61,12 +62,15 @@ describe('extractDeclarations', () => {
       'reExportVarStatmentExport'
     ]);
   });
-
-  it('test re-exported variable extractions from same module', () => {
+  it('test re-exported variable extractions from same module - named re-exports', () => {
     expect(extractedDeclarations.variables).to.include.members([
       'basicVarDeclarationExportFar',
       'basicVarStatementExportFar',
-      'reExportVarStatmentExportFar',
+      'reExportVarStatmentExportFar'
+    ]);
+  });
+  it('test re-exported variable extractions from same module - * re-exports', () => {
+    expect(extractedDeclarations.variables).to.include.members([
       'basicVarDeclarationExportBar',
       'basicVarStatementExportBar',
       'reExportVarStatmentExportBar'
@@ -94,13 +98,18 @@ describe('extractDeclarations', () => {
     ).to.equal(1);
   });
 
-  it('test re-exported function extractions from same module', () => {
+  it('test re-exported function extractions from same module - named re-exports', () => {
     expect(extractedDeclarations.functions).to.include.members([
       'basicFuncExportNoDependenciesFar',
       'basicFuncExportVarDependenciesFar',
       'basicFuncExportFuncDependenciesFar',
       'basicFuncExportEnumDependenciesFar',
-      'basicFuncExternalDependenciesFar',
+      'basicFuncExternalDependenciesFar'
+    ]);
+  });
+
+  it('test re-exported function extractions from same module - * re-exports', () => {
+    expect(extractedDeclarations.functions).to.include.members([
       'basicFuncExportNoDependenciesBar',
       'basicFuncExportVarDependenciesBar',
       'basicFuncExportFuncDependenciesBar',
@@ -127,9 +136,13 @@ describe('extractDeclarations', () => {
     ]);
   });
 
-  it('test re-exported class extractions from same module', () => {
+  it('test re-exported class extractions from same module - named re-exports', () => {
     expect(extractedDeclarations.classes).to.include.members([
-      'BasicClassExportFar',
+      'BasicClassExportFar'
+    ]);
+  });
+  it('test re-exported class extractions from same module - * re-exports', () => {
+    expect(extractedDeclarations.classes).to.include.members([
       'BasicClassExportBar'
     ]);
   });
@@ -138,9 +151,13 @@ describe('extractDeclarations', () => {
     expect(extractedDeclarations.enums).to.include.members(['BasicEnumExport']);
   });
 
-  it('test re-exported enum extractions from same module', () => {
+  it('test re-exported enum extractions from same module - named re-exports', () => {
     expect(extractedDeclarations.enums).to.include.members([
-      'BasicEnumExportFar',
+      'BasicEnumExportFar'
+    ]);
+  });
+  it('test re-exported enum extractions from same module - * re-exports', () => {
+    expect(extractedDeclarations.enums).to.include.members([
       'BasicEnumExportBar'
     ]);
   });
@@ -385,17 +402,30 @@ describe('test writeReportToDirectory helper function', () => {
 describe('test extractExternalDependencies helper function', () => {
   it('should correctly extract all symbols listed in import statements', () => {
     const assortedImports: string = resolve('./test-inputs/assortedImports.js');
-    const externals: object = extractExternalDependencies(assortedImports);
-    expect(externals).to.not.have.property("'@firebase/logger'");
-    expect(externals).to.have.property("'./bar'");
-    expect(externals["'./bar'"]).to.have.members([
+    const externals: External[] = extractExternalDependencies(assortedImports);
+    const barFilter: External[] = externals.filter(
+      each => each.moduleName.localeCompare("'./bar'") === 0
+    );
+    expect(barFilter.length).to.equal(1);
+    expect(barFilter[0].symbols).to.have.members([
       'basicFuncExternalDependenciesBar',
       'basicFuncExportEnumDependenciesBar',
       'BasicClassExportBar' // extract original name if renamed
     ]);
-    expect(externals).to.have.property("'fs'");
-    expect(externals["'fs'"]).to.have.members(['*']); // namespace export
-    expect(externals).to.have.property("'../package.json'");
-    expect(externals["'../package.json'"]).to.have.members(['version']);
+    const loggerFilter: External[] = externals.filter(
+      each => each.moduleName.localeCompare("'@firebase/logger'") === 0
+    );
+    expect(loggerFilter.length).to.equal(0);
+
+    const fsFilter: External[] = externals.filter(
+      each => each.moduleName.localeCompare("'fs'") === 0
+    );
+    expect(fsFilter.length).to.equal(1);
+    expect(fsFilter[0].symbols).to.have.members(['*']); // namespace export
+    const pkgJsonFilter: External[] = externals.filter(
+      each => each.moduleName.localeCompare("'../package.json'") === 0
+    );
+    expect(pkgJsonFilter.length).to.equal(1);
+    expect(pkgJsonFilter[0].symbols).to.have.members(['version']);
   });
 });
