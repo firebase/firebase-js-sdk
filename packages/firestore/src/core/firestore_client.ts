@@ -37,7 +37,7 @@ import {
   listen,
   unlisten
 } from './event_manager';
-import { SyncEngine } from './sync_engine';
+import { SyncEngine, write } from './sync_engine';
 import { View } from './view';
 import { SharedClientState } from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
@@ -466,7 +466,7 @@ export class FirestoreClient {
     this.verifyNotTerminated();
     const deferred = new Deferred<void>();
     this.asyncQueue.enqueueAndForget(() =>
-      this.syncEngine.write(mutations, deferred)
+      write(this.syncEngine, mutations, deferred)
     );
     return deferred.promise;
   }
@@ -535,7 +535,7 @@ export function enqueueWrite(
   mutations: Mutation[]
 ): Promise<void> {
   const deferred = new Deferred<void>();
-  asyncQueue.enqueueAndForget(() => syncEngine.write(mutations, deferred));
+  asyncQueue.enqueueAndForget(() => write(syncEngine, mutations, deferred));
   return deferred.promise;
 }
 

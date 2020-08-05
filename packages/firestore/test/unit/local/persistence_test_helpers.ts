@@ -16,7 +16,7 @@
  */
 
 import { User } from '../../../src/auth/user';
-import { DatabaseId } from '../../../src/core/database_info';
+import {DatabaseId, DatabaseInfo} from '../../../src/core/database_info';
 import { SequenceNumberSyncer } from '../../../src/core/listen_sequence';
 import {
   BatchId,
@@ -47,6 +47,7 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import { AutoId } from '../../../src/util/misc';
 import { WindowLike } from '../../../src/util/types';
 import { getDocument, getWindow } from '../../../src/platform/dom';
+import {DEFAULT_HOST, DEFAULT_SSL} from "../../../lite/src/api/components";
 
 /* eslint-disable no-restricted-globals */
 
@@ -59,6 +60,10 @@ export const MOCK_SEQUENCE_NUMBER_SYNCER: SequenceNumberSyncer = {
 export const TEST_PROJECT = 'test-project';
 export const TEST_DATABASE_ID = new DatabaseId(TEST_PROJECT);
 export const TEST_PERSISTENCE_KEY = '[PersistenceTestHelpers]';
+export const TEST_DATABASE_INFO = new DatabaseInfo(
+  TEST_DATABASE_ID,TEST_PERSISTENCE_KEY, DEFAULT_HOST, DEFAULT_SSL, /* forceLongPolling= */ false
+);
+
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
 export const TEST_PERSISTENCE_PREFIX = indexedDbStoragePrefix(

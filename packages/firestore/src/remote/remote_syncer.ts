@@ -15,10 +15,8 @@
  * limitations under the License.
  */
 
-import { BatchId, TargetId } from '../core/types';
+import { TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
-import { MutationBatchResult } from '../model/mutation_batch';
-import { FirestoreError } from '../util/error';
 import { User } from '../auth/user';
 
 /**
@@ -26,19 +24,6 @@ import { User } from '../auth/user';
  * a cooperating synchronization engine.
  */
 export interface RemoteSyncer {
-  /**
-   * Applies the result of a successful write of a mutation batch to the sync
-   * engine, emitting snapshots in any views that the mutation applies to, and
-   * removing the batch from the mutation queue.
-   */
-  applySuccessfulWrite(result: MutationBatchResult): Promise<void>;
-
-  /**
-   * Rejects the batch, removing the batch from the mutation queue, recomputing
-   * the local view of any documents affected by the batch and then, emitting
-   * snapshots with the reverted value.
-   */
-  rejectFailedWrite(batchId: BatchId, error: FirestoreError): Promise<void>;
 
   /**
    * Returns the set of remote document keys for the given target ID. This list

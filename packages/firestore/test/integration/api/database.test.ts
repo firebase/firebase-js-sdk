@@ -1012,7 +1012,7 @@ apiDescribe('Database', (persistence: boolean) => {
   it('can queue writes while offline', () => {
     return withTestDoc(persistence, docRef => {
       const firestore = docRef.firestore;
-
+      
       return firestore
         .disableNetwork()
         .then(() => {
