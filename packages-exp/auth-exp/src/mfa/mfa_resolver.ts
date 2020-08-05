@@ -31,7 +31,6 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
   readonly session: MultiFactorSession;
 
   private constructor(
-    readonly auth: externs.Auth,
     mfaPendingCredential: string,
     readonly hints: MultiFactorInfo[],
     private readonly signInResolver: (
@@ -52,7 +51,6 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
     );
 
     return new MultiFactorResolver(
-      auth,
       error.serverResponse.mfaPendingCredential,
       hints,
       async (mfaResponse: FinalizeMfaResponse): Promise<UserCredential> => {

@@ -27,7 +27,8 @@ import {
   convertCredential
 } from './user_credential';
 
-export class Auth extends impl.AuthImplCompat<User> implements compat.FirebaseAuth {
+export class Auth extends impl.AuthImplCompat<User>
+  implements compat.FirebaseAuth {
   readonly app: FirebaseApp;
 
   constructor(app: FirebaseApp) {
@@ -84,6 +85,7 @@ export class Auth extends impl.AuthImplCompat<User> implements compat.FirebaseAu
     password: string
   ): Promise<compat.UserCredential> {
     return convertCredential(
+      this._asExtern(),
       impl.createUserWithEmailAndPassword(this._asExtern(), email, password)
     );
   }
@@ -104,7 +106,7 @@ export class Auth extends impl.AuthImplCompat<User> implements compat.FirebaseAu
         user: null
       };
     }
-    return convertCredential(Promise.resolve(credential));
+    return convertCredential(this._asExtern(), Promise.resolve(credential));
   }
   onAuthStateChanged(
     nextOrObserver: Observer<unknown> | ((a: compat.User | null) => unknown),
@@ -176,12 +178,16 @@ export class Auth extends impl.AuthImplCompat<User> implements compat.FirebaseAu
     return this.signInWithCredential(credential);
   }
   signInAnonymously(): Promise<compat.UserCredential> {
-    return convertCredential(impl.signInAnonymously(this._asExtern()));
+    return convertCredential(
+      this._asExtern(),
+      impl.signInAnonymously(this._asExtern())
+    );
   }
   signInWithCredential(
     credential: compat.AuthCredential
   ): Promise<compat.UserCredential> {
     return convertCredential(
+      this._asExtern(),
       impl.signInWithCredential(
         this._asExtern(),
         credential as externs.AuthCredential
@@ -190,6 +196,7 @@ export class Auth extends impl.AuthImplCompat<User> implements compat.FirebaseAu
   }
   signInWithCustomToken(token: string): Promise<compat.UserCredential> {
     return convertCredential(
+      this._asExtern(),
       impl.signInWithCustomToken(this._asExtern(), token)
     );
   }
@@ -198,6 +205,7 @@ export class Auth extends impl.AuthImplCompat<User> implements compat.FirebaseAu
     password: string
   ): Promise<compat.UserCredential> {
     return convertCredential(
+      this._asExtern(),
       impl.signInWithEmailAndPassword(this._asExtern(), email, password)
     );
   }
@@ -206,6 +214,7 @@ export class Auth extends impl.AuthImplCompat<User> implements compat.FirebaseAu
     emailLink?: string
   ): Promise<compat.UserCredential> {
     return convertCredential(
+      this._asExtern(),
       impl.signInWithEmailLink(this._asExtern(), email, emailLink)
     );
   }
@@ -214,6 +223,7 @@ export class Auth extends impl.AuthImplCompat<User> implements compat.FirebaseAu
     applicationVerifier: compat.ApplicationVerifier
   ): Promise<compat.ConfirmationResult> {
     return convertConfirmationResult(
+      this._asExtern(),
       impl.signInWithPhoneNumber(
         this._asExtern(),
         phoneNumber,
@@ -225,6 +235,7 @@ export class Auth extends impl.AuthImplCompat<User> implements compat.FirebaseAu
     provider: compat.AuthProvider
   ): Promise<compat.UserCredential> {
     return convertCredential(
+      this._asExtern(),
       impl.signInWithPopup(
         this._asExtern(),
         provider as externs.AuthProvider,

@@ -16,6 +16,7 @@
  */
 
 import firebase from '@firebase/app';
+import * as impl from '@firebase/auth-exp/internal';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import * as externs from '@firebase/auth-types-exp';
 import {
@@ -24,8 +25,11 @@ import {
   InstantiationMode
 } from '@firebase/component';
 import '@firebase/installations';
-import { name, version } from './package.json';
+import { version } from './package.json';
 import { Auth } from './src/auth';
+import { RecaptchaVerifier } from './src/recaptcha_verifier';
+import { EmailAuthProvider } from './src/email_auth_provider';
+import { PhoneMultiFactorGenerator } from './src/phone_multi_factor_generator';
 
 const AUTH_TYPE = 'auth';
 
@@ -53,17 +57,17 @@ function registerAuth(instance: _FirebaseNamespace): void {
             VERIFY_AND_CHANGE_EMAIL: externs.Operation.VERIFY_AND_CHANGE_EMAIL,
             VERIFY_EMAIL: externs.Operation.VERIFY_EMAIL
           }
-        }
-        // TODO(avolkovi): Expose the other top level properties
-        //   EmailAuthProvider,
-        //   FacebookAuthProvider,
-        //   GithubAuthProvider,
-        //   GoogleAuthProvider,
-        //   OAuthProvider,
+        },
+        EmailAuthProvider,
+        FacebookAuthProvider: impl.FacebookAuthProvider,
+        GithubAuthProvider: impl.GithubAuthProvider,
+        GoogleAuthProvider: impl.GoogleAuthProvider,
+        OAuthProvider: impl.OAuthProvider,
         //   SAMLAuthProvider,
-        //   PhoneAuthProvider,
-        //   RecaptchaVerifier,
-        //   TwitterAuthProvider,
+        PhoneAuthProvider: impl.PhoneAuthProvider,
+        PhoneMultiFactorGenerator,
+        RecaptchaVerifier,
+        TwitterAuthProvider: impl.TwitterAuthProvider
         //   Auth: {
         //     Persistence
         //   }
@@ -74,7 +78,7 @@ function registerAuth(instance: _FirebaseNamespace): void {
       .setMultipleInstances(false)
   );
 
-  instance.registerVersion(name, version);
+  instance.registerVersion('auth', version);
 }
 
 registerAuth(firebase as _FirebaseNamespace);

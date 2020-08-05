@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import resolve from '@rollup/plugin-node-resolve';
-import { terser } from 'rollup-plugin-terser';
 import strip from '@rollup/plugin-strip';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
@@ -41,6 +40,7 @@ const workerPlugins = [
     tsconfigOverride: {
       compilerOptions: {
         declaration: false,
+        target: 'es2017',
         lib: [
           // TODO: remove this
           'dom',
@@ -48,11 +48,6 @@ const workerPlugins = [
           'webworker'
         ]
       }
-    }
-  }),
-  terser({
-    output: {
-      comments: false
     }
   })
 ];
@@ -68,11 +63,6 @@ const es5Builds = [
       ...commonPlugins,
       resolve({
         mainFields: ['module', 'main']
-      }),
-      terser({
-        output: {
-          comments: false
-        }
       })
     ]
   },

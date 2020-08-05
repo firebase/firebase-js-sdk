@@ -24,12 +24,12 @@ const browserDeps = Object.keys(
 const nodeDeps = [...browserDeps, 'util', 'path'];
 
 /** Resolves the external dependencies for the browser build. */
-exports.resolveBrowserExterns = function (id) {
+exports.resolveBrowserExterns = function(id) {
   return browserDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
 };
 
 /** Resolves the external dependencies for the Node build. */
-exports.resolveNodeExterns = function (id) {
+exports.resolveNodeExterns = function(id) {
   return nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
 };
 

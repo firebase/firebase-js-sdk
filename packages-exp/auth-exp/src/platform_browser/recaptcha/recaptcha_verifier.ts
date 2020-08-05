@@ -24,7 +24,7 @@ import { assert } from '../../core/util/assert';
 import { _isHttpOrHttps } from '../../core/util/location';
 import { ApplicationVerifier } from '../../model/application_verifier';
 import { Auth, AuthCore } from '../../model/auth';
-import { AUTH_WINDOW } from '../auth_window';
+import { _window } from '../auth_window';
 import { Parameters, Recaptcha } from './recaptcha';
 import {
   MockReCaptchaLoaderImpl,
@@ -171,7 +171,7 @@ export class RecaptchaVerifier
       if (typeof existing === 'function') {
         existing(token);
       } else if (typeof existing === 'string') {
-        const globalFunc = AUTH_WINDOW[existing];
+        const globalFunc = _window()[existing];
         if (typeof globalFunc === 'function') {
           globalFunc(token);
         }
@@ -224,8 +224,8 @@ export class RecaptchaVerifier
 
 function isWorker(): boolean {
   return (
-    typeof AUTH_WINDOW['WorkerGlobalScope'] !== 'undefined' &&
-    typeof AUTH_WINDOW['importScripts'] === 'function'
+    typeof _window()['WorkerGlobalScope'] !== 'undefined' &&
+    typeof _window()['importScripts'] === 'function'
   );
 }
 

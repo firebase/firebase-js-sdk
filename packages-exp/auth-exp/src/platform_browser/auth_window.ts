@@ -37,8 +37,14 @@ export type AuthWindow = {
   [callback: string]: (...args: unknown[]) => void;
 };
 
-export const AUTH_WINDOW = (window as unknown) as AuthWindow;
+/**
+ * Lazy accessor for window, since the compat layer won't tree shake this out,
+ * we need to make sure not to mess with window unless we have to
+ */
+export function _window(): AuthWindow {
+  return (window as unknown) as AuthWindow;
+}
 
 export function _setWindowLocation(url: string): void {
-  AUTH_WINDOW.location.href = url;
+  _window().location.href = url;
 }

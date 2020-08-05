@@ -47,6 +47,7 @@ export class User extends impl.UserImpl implements compat.User {
     credential: compat.AuthCredential
   ): Promise<compat.UserCredential> {
     return convertCredential(
+      this.auth,
       impl.linkWithCredential(this, credential as externs.AuthCredential)
     );
   }
@@ -55,6 +56,7 @@ export class User extends impl.UserImpl implements compat.User {
     applicationVerifier: compat.ApplicationVerifier
   ): Promise<compat.ConfirmationResult> {
     return convertConfirmationResult(
+      this.auth,
       impl.linkWithPhoneNumber(this, phoneNumber, applicationVerifier)
     );
   }
@@ -62,6 +64,7 @@ export class User extends impl.UserImpl implements compat.User {
     provider: compat.AuthProvider
   ): Promise<compat.UserCredential> {
     return convertCredential(
+      this.auth,
       impl.linkWithPopup(
         this,
         provider as externs.AuthProvider,
@@ -85,6 +88,7 @@ export class User extends impl.UserImpl implements compat.User {
     credential: compat.AuthCredential
   ): Promise<compat.UserCredential> {
     return convertCredential(
+      this.auth,
       impl.reauthenticateWithCredential(
         this,
         credential as externs.AuthCredential
@@ -96,6 +100,7 @@ export class User extends impl.UserImpl implements compat.User {
     applicationVerifier: compat.ApplicationVerifier
   ): Promise<compat.ConfirmationResult> {
     return convertConfirmationResult(
+      this.auth,
       impl.reauthenticateWithPhoneNumber(this, phoneNumber, applicationVerifier)
     );
   }
@@ -103,6 +108,7 @@ export class User extends impl.UserImpl implements compat.User {
     provider: compat.AuthProvider
   ): Promise<compat.UserCredential> {
     return convertCredential(
+      this.auth,
       impl.reauthenticateWithPopup(
         this,
         provider as externs.AuthProvider,

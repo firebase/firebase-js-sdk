@@ -89,7 +89,4 @@ const umdBuilds = [
   }
 ];
 
-export default [
-  ...umdBuilds
-];
-
+export default [...umdBuilds];

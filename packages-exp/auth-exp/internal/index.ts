@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-
-export * from "../index";
+export * from '../index';
 
 import { assert } from '../src/core/util/assert';
 
@@ -33,10 +32,7 @@ export {
   DEFAULT_TOKEN_API_HOST
 } from '../src/core/auth/auth_impl';
 
-export {
-  ClientPlatform,
-  _getClientVersion
-} from '../src/core/util/version';
+export { ClientPlatform, _getClientVersion } from '../src/core/util/version';
 
 export { fail } from '../src/core/util/assert';
 export const assertFn: typeof assert = assert;

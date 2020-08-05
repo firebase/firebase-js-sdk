@@ -1,4 +1,4 @@
-# Firebase-Auth for web - Auth Demo (Auth Next)
+# Firebase-Auth for web - Auth Demo (Auth Compatibility Layer)
 
 ## Prerequisite
 
@@ -15,7 +15,7 @@ Run:
 
 ```bash
 git clone https://github.com/firebase/firebase-js-sdk.git
-cd firebase-js-sdk/packages-exp/auth-exp/demo
+cd firebase-js-sdk/packages-exp/auth-compat-exp/demo
 ```
 
 This will clone the repository in the current directory.
@@ -30,15 +30,22 @@ firebase use --add
 Select the project you have created in the prerequisite, and type in `default` or
 any other name as the alias to use for this project.
 
-Copy `src/sample-config.js` to `src/config.js`:
+Copy `public/sample-config.js` to `public/config.js`:
 
 ```bash
-cp src/sample-config.js src/config.js
+cp public/sample-config.js public/config.js
 ```
 
 Then copy and paste the Web snippet config found in the console (either by clicking "Add Firebase to
 your web app" button in your Project overview, or clicking the "Web setup" button in the Auth page)
 in the `config.js` file.
+
+In the `functions` folder you'll need to install the admin SDK:
+
+```bash
+cd functions
+yarn install
+```
 
 ## Deploy
 
@@ -47,9 +54,15 @@ Before deploying, you may need to build the auth-exp package:
 yarn build:deps
 ```
 
-This can take some time, and you only need to do it if you've modified the auth-exp package.
+You'll also need to build a fully resolved firebase-app.js and firebase-auth.js from auth-compat-exp:
 
-To run the app locally, simply issue the following command in the `auth-exp/demo` directory:
+```bash
+yarn build
+```
+
+This can take some time, and you only need to do it if you've modified the auth-exp or auth-compta-exp packages.
+
+To run the app locally, simply issue the following command in the `auth-compat-exp/demo` directory:
 
 ```bash
 yarn run demo

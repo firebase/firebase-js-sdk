@@ -20,6 +20,7 @@ import * as compat from '@firebase/auth-types';
 import * as externs from '@firebase/auth-types-exp';
 import '@firebase/installations';
 import { User } from './user';
+import { FirebaseError } from '@firebase/util';
 
 function credentialFromResponse(
   userCredential: impl.UserCredential
@@ -89,9 +90,18 @@ function credentialFromResponse(
 }
 
 export async function convertCredential(
+  auth: externs.Auth,
   credentialPromise: Promise<externs.UserCredential>
 ): Promise<compat.UserCredential> {
-  const credential = await credentialPromise;
+  let credential: externs.UserCredential;
+  try {
+    credential = await credentialPromise;
+  } catch (e) {
+    if (e.code === 'auth/multi-factor-auth-required') {
+      e.resolver = impl.getMultiFactorResolver(auth, e);
+    }
+    throw e;
+  }
   const { operationType, user } = await credential;
 
   return {
@@ -102,12 +112,13 @@ export async function convertCredential(
 }
 
 export async function convertConfirmationResult(
+  auth: externs.Auth,
   confirmationResultPromise: Promise<externs.ConfirmationResult>
 ): Promise<compat.ConfirmationResult> {
   const { verificationId, confirm } = await confirmationResultPromise;
   return {
     verificationId,
     confirm: (verificationCode: string) =>
-      convertCredential(confirm(verificationCode))
+      convertCredential(auth, confirm(verificationCode))
   };
 }

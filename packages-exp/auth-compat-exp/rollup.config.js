@@ -22,18 +22,15 @@ import typescript from 'typescript';
 import pkg from './package.json';
 
 const deps = [
- '@firebase/app',
- '@firebase/component',
- '@firebase/installations'
-]
+  '@firebase/app',
+  '@firebase/component',
+  '@firebase/installations'
+];
 
 /**
  * Common plugins for all builds
  */
-const commonPlugins = [
-  json(),
-  resolve()
-];
+const commonPlugins = [json(), resolve()];
 
 /**
  * ES5 Builds

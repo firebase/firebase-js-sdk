@@ -24,7 +24,7 @@ import { FirebaseError } from '@firebase/util';
 
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import { stubSingleTimeout } from '../../../test/helpers/timeout_stub';
-import { AUTH_WINDOW } from '../auth_window';
+import { _window } from '../auth_window';
 import * as jsHelpers from '../load_js';
 import {
   _JSLOAD_CALLBACK,
@@ -46,7 +46,7 @@ describe('platform-browser/recaptcha/recaptcha_loader', () => {
 
   afterEach(() => {
     sinon.restore();
-    delete AUTH_WINDOW.grecaptcha;
+    delete _window().grecaptcha;
   });
 
   describe('MockLoader', () => {
@@ -97,15 +97,15 @@ describe('platform-browser/recaptcha/recaptcha_loader', () => {
 
     context('on js load callback', () => {
       function spoofJsLoad(): void {
-        AUTH_WINDOW[_JSLOAD_CALLBACK]();
+        _window()[_JSLOAD_CALLBACK]();
       }
 
       it('clears the network timeout', () => {
-        sinon.spy(AUTH_WINDOW, 'clearTimeout');
+        sinon.spy(_window(), 'clearTimeout');
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         loader.load(auth);
         spoofJsLoad();
-        expect(AUTH_WINDOW.clearTimeout).to.have.been.calledWith(
+        expect(_window().clearTimeout).to.have.been.calledWith(
           networkTimeoutId
         );
       });
@@ -123,24 +123,24 @@ describe('platform-browser/recaptcha/recaptcha_loader', () => {
         const promise = loader.load(auth);
         const mockRecaptcha = new MockReCaptcha(auth);
         const oldRenderMethod = mockRecaptcha.render;
-        AUTH_WINDOW.grecaptcha = mockRecaptcha;
+        _window().grecaptcha = mockRecaptcha;
         spoofJsLoad();
         expect((await promise).render).not.to.eq(oldRenderMethod);
       });
 
       it('returns immediately if the new language code matches the old', async () => {
         const promise = loader.load(auth);
-        AUTH_WINDOW.grecaptcha = new MockReCaptcha(auth);
+        _window().grecaptcha = new MockReCaptcha(auth);
         spoofJsLoad();
         await promise;
         // Notice no call to spoofJsLoad..
-        expect(await loader.load(auth)).to.eq(AUTH_WINDOW.grecaptcha);
+        expect(await loader.load(auth)).to.eq(_window().grecaptcha);
       });
 
       it('returns immediately if grecaptcha is already set on window', async () => {
-        AUTH_WINDOW.grecaptcha = new MockReCaptcha(auth);
+        _window().grecaptcha = new MockReCaptcha(auth);
         const loader = new ReCaptchaLoaderImpl();
-        expect(await loader.load(auth)).to.eq(AUTH_WINDOW.grecaptcha);
+        expect(await loader.load(auth)).to.eq(_window().grecaptcha);
       });
     });
   });

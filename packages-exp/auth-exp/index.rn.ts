@@ -27,4 +27,6 @@ import { AsyncStorage } from 'react-native';
 
 export * from './index';
 
-export const reactNativeLocalPersistence = getReactNativePersistence(AsyncStorage);
+export const reactNativeLocalPersistence = getReactNativePersistence(
+  AsyncStorage
+);

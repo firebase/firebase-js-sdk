@@ -30,7 +30,7 @@ import {
   TestAuth
 } from '../../../test/helpers/mock_auth';
 import { stubSingleTimeout } from '../../../test/helpers/timeout_stub';
-import { AUTH_WINDOW } from '../auth_window';
+import { _window } from '../auth_window';
 import * as gapiLoader from './gapi';
 import { _openIframe } from './iframe';
 
@@ -45,7 +45,7 @@ describe('src/platform_browser/iframe/iframe', () => {
   let libraryLoadedCallback: IframesCallback;
 
   beforeEach(async () => {
-    AUTH_WINDOW.gapi = ({
+    _window().gapi = ({
       iframes: {
         CROSS_ORIGIN_IFRAMES_FILTER: 'cross-origin-filter'
       }
@@ -98,7 +98,7 @@ describe('src/platform_browser/iframe/iframe', () => {
         restyle: () => {},
         ping: () => {}
       } as unknown) as gapi.iframes.Iframe);
-      clearTimeoutStub = sinon.stub(AUTH_WINDOW, 'clearTimeout');
+      clearTimeoutStub = sinon.stub(_window(), 'clearTimeout');
     });
 
     it('restyles the iframe to prevent hideOnLeave', async () => {
