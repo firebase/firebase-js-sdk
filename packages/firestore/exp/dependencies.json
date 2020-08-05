@@ -50,7 +50,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 21617
+        "sizeInBytes": 21621
     },
     "CollectionReference": {
         "dependencies": {
@@ -92,7 +92,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18846
+        "sizeInBytes": 18850
     },
     "DocumentReference": {
         "dependencies": {
@@ -134,7 +134,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 20218
+        "sizeInBytes": 20222
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -219,7 +219,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 39632
+        "sizeInBytes": 39636
     },
     "FieldPath": {
         "dependencies": {
@@ -269,7 +269,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23290
+        "sizeInBytes": 23294
     },
     "FieldValue": {
         "dependencies": {
@@ -308,7 +308,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16920
+        "sizeInBytes": 16924
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -345,7 +345,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16829
+        "sizeInBytes": 16833
     },
     "GeoPoint": {
         "dependencies": {
@@ -391,7 +391,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19681
+        "sizeInBytes": 19685
     },
     "Query": {
         "dependencies": {
@@ -429,7 +429,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17022
+        "sizeInBytes": 17026
     },
     "QueryConstraint": {
         "dependencies": {
@@ -467,7 +467,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16835
+        "sizeInBytes": 16839
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -552,7 +552,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 39642
+        "sizeInBytes": 39646
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -641,7 +641,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 42273
+        "sizeInBytes": 42277
     },
     "SnapshotMetadata": {
         "dependencies": {
@@ -679,7 +679,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17044
+        "sizeInBytes": 17048
     },
     "Timestamp": {
         "dependencies": {
@@ -717,7 +717,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18363
+        "sizeInBytes": 18367
     },
     "Transaction": {
         "dependencies": {
@@ -859,7 +859,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 63158
+        "sizeInBytes": 63162
     },
     "WriteBatch": {
         "dependencies": {
@@ -989,7 +989,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 55895
+        "sizeInBytes": 55899
     },
     "addDoc": {
         "dependencies": {
@@ -1124,6 +1124,7 @@
                 "newPersistentWriteStream",
                 "newQueryComparator",
                 "newQueryForPath",
+                "newRemoteStore",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -1291,7 +1292,7 @@
                 "QueryImpl",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
-                "RemoteStore",
+                "RemoteStoreImpl",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
@@ -1316,7 +1317,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 173713
+        "sizeInBytes": 174256
     },
     "arrayRemove": {
         "dependencies": {
@@ -1405,7 +1406,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 36187
+        "sizeInBytes": 36191
     },
     "arrayUnion": {
         "dependencies": {
@@ -1494,7 +1495,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 36179
+        "sizeInBytes": 36183
     },
     "clearIndexedDbPersistence": {
         "dependencies": {
@@ -1543,7 +1544,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 29944
+        "sizeInBytes": 29948
     },
     "collection": {
         "dependencies": {
@@ -1598,7 +1599,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 24925
+        "sizeInBytes": 24929
     },
     "collectionGroup": {
         "dependencies": {
@@ -1649,7 +1650,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23310
+        "sizeInBytes": 23314
     },
     "deleteDoc": {
         "dependencies": {
@@ -1769,6 +1770,7 @@
                 "newLocalStore",
                 "newPersistentWriteStream",
                 "newQueryComparator",
+                "newRemoteStore",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -1910,7 +1912,7 @@
                 "QueryImpl",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
-                "RemoteStore",
+                "RemoteStoreImpl",
                 "ResourcePath",
                 "ServerTimestampTransform",
                 "SetMutation",
@@ -1933,7 +1935,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 155921
+        "sizeInBytes": 156464
     },
     "deleteField": {
         "dependencies": {
@@ -1975,7 +1977,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17886
+        "sizeInBytes": 17890
     },
     "disableNetwork": {
         "dependencies": {
@@ -2079,6 +2081,7 @@
                 "newDatastore",
                 "newLocalStore",
                 "newQueryComparator",
+                "newRemoteStore",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -2196,7 +2199,7 @@
                 "QueryImpl",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
-                "RemoteStore",
+                "RemoteStoreImpl",
                 "ResourcePath",
                 "ServerTimestampTransform",
                 "SetMutation",
@@ -2218,7 +2221,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 140225
+        "sizeInBytes": 140427
     },
     "doc": {
         "dependencies": {
@@ -2273,7 +2276,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 24976
+        "sizeInBytes": 24980
     },
     "documentId": {
         "dependencies": {
@@ -2324,11 +2327,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23340
+        "sizeInBytes": 23344
     },
     "enableIndexedDbPersistence": {
         "dependencies": {
             "functions": [
+                "addToWritePipeline",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
@@ -2340,6 +2344,7 @@
                 "applyPatchMutationToRemoteDocument",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
+                "applySuccessfulWrite",
                 "applyTransformMutationToLocalView",
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
@@ -2353,6 +2358,7 @@
                 "blobEquals",
                 "boundEquals",
                 "bufferEntryComparator",
+                "canAddToWritePipeline",
                 "canonicalId",
                 "canonifyArray",
                 "canonifyBound",
@@ -2361,6 +2367,7 @@
                 "canonifyGeoPoint",
                 "canonifyMap",
                 "canonifyOrderBy",
+                "canonifyQuery",
                 "canonifyReference",
                 "canonifyTarget",
                 "canonifyTimestamp",
@@ -2382,6 +2389,7 @@
                 "computeTransformOperationBaseValue",
                 "createClientMetadataStore",
                 "createDocumentGlobalStore",
+                "createMetadata",
                 "createMutationQueue",
                 "createPrimaryClientStore",
                 "createQueryCache",
@@ -2398,6 +2406,7 @@
                 "documentMap",
                 "documentMutationsStore",
                 "documentTargetStore",
+                "documentVersionMap",
                 "dropQueryCache",
                 "dropRemoteDocumentChangesStore",
                 "enableIndexedDbPersistence",
@@ -2405,12 +2414,14 @@
                 "encodeResourcePath",
                 "encodeSegment",
                 "encodeSeparator",
+                "ensureWriteStream",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
                 "extractTransformMutationBaseValue",
                 "fail",
                 "fieldTransformEquals",
+                "fillWritePipeline",
                 "filterEquals",
                 "forEach",
                 "formatJSON",
@@ -2441,15 +2452,20 @@
                 "fromTimestamp",
                 "fromUnaryFilter",
                 "fromVersion",
+                "fromWriteResult",
+                "fromWriteResults",
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getDocument",
+                "getEncodedDatabaseId",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
+                "getOfflineComponentProvider",
                 "getPostMutationVersion",
                 "getWindow",
                 "globalTargetStore",
+                "handleWriteError",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "immediateSuccessor",
@@ -2470,23 +2486,35 @@
                 "isNullOrUndefined",
                 "isNullValue",
                 "isNumber",
+                "isPermanentError",
+                "isPermanentWriteError",
                 "isServerTimestamp",
                 "isValidResourceName",
+                "loadProtos",
                 "localTransformResults",
                 "logDebug",
                 "logError",
+                "logWarn",
+                "mapCodeFromRpcCode",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "mutationQueueContainsKey",
                 "mutationQueuesContainKey",
                 "mutationQueuesStore",
                 "mutationsStore",
+                "newConnection",
+                "newConnectivityMonitor",
+                "newDatastore",
                 "newLocalStore",
+                "newPersistentWriteStream",
                 "newQuery",
                 "newQueryComparator",
                 "newQueryForPath",
+                "newRemoteStore",
                 "newSerializer",
+                "newSyncEngine",
                 "newTarget",
+                "nodePromise",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
@@ -2494,12 +2522,17 @@
                 "numberEquals",
                 "objectEquals",
                 "objectSize",
+                "onMutationResult",
+                "onWriteHandshakeComplete",
+                "onWriteStreamClose",
+                "onWriteStreamOpen",
                 "orderByEquals",
                 "patchDocument",
                 "patchObject",
                 "preconditionIsValidForDocument",
                 "primaryClientStore",
                 "primitiveComparator",
+                "queryEquals",
                 "queryMatches",
                 "queryMatchesBounds",
                 "queryMatchesFilters",
@@ -2509,6 +2542,7 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
+                "rejectFailedWrite",
                 "remoteDocumentsStore",
                 "removeComponents",
                 "removeComponents$1",
@@ -2520,7 +2554,10 @@
                 "serverTimestamp",
                 "serverTransformResults",
                 "setOfflineComponentProvider",
+                "setOnlineComponentProvider",
+                "shouldStartWriteStream",
                 "sortsBeforeDocument",
+                "startWriteStream",
                 "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyQuery",
@@ -2567,6 +2604,8 @@
                 "valueCompare",
                 "valueEquals",
                 "verifyNotInitialized",
+                "verifyNotTerminated",
+                "wrapInUserErrorIfRecoverable",
                 "wrapRequest",
                 "writeEmptyTargetGlobalEntry",
                 "writeSentinelKey"
@@ -2583,6 +2622,8 @@
                 "ByteString",
                 "DatabaseId",
                 "DatabaseInfo",
+                "Datastore",
+                "DatastoreImpl",
                 "DbClientMetadata",
                 "DbCollectionParent",
                 "DbDocumentMutation",
@@ -2603,6 +2644,7 @@
                 "DocReference",
                 "Document",
                 "DocumentKey",
+                "EventManager",
                 "ExponentialBackoff",
                 "FieldFilter",
                 "FieldMask",
@@ -2613,6 +2655,7 @@
                 "Firestore",
                 "Firestore$1",
                 "FirestoreError",
+                "GrpcConnection",
                 "InFilter",
                 "IndexFreeQueryEngine",
                 "IndexedDbIndexManager",
@@ -2635,6 +2678,7 @@
                 "LocalDocumentsView",
                 "LocalSerializer",
                 "LocalStoreImpl",
+                "LocalViewChanges",
                 "LruGarbageCollector",
                 "LruParams",
                 "LruScheduler",
@@ -2651,20 +2695,28 @@
                 "MemoryTransaction",
                 "Mutation",
                 "MutationBatch",
+                "MutationBatchResult",
+                "MutationResult",
                 "NoDocument",
+                "NoopConnectivityMonitor",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
                 "ObjectMap",
                 "ObjectValue",
                 "ObjectValueBuilder",
+                "OnlineComponentProvider",
+                "OnlineStateTracker",
                 "OrderBy",
                 "PatchMutation",
                 "PersistencePromise",
                 "PersistenceTransaction",
+                "PersistentStream",
+                "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
+                "RemoteStoreImpl",
                 "ResourcePath",
                 "RollingSequenceNumberBuffer",
                 "SchemaConverter",
@@ -2678,6 +2730,8 @@
                 "SortedMapIterator",
                 "SortedSet",
                 "SortedSetIterator",
+                "StreamBridge",
+                "SyncEngineImpl",
                 "TargetData",
                 "TargetIdGenerator",
                 "TargetImpl",
@@ -2690,7 +2744,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 208911
+        "sizeInBytes": 243046
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -2880,7 +2934,7 @@
                 "isSafeInteger",
                 "isServerTimestamp",
                 "isValidResourceName",
-                "listen",
+                "listen$1",
                 "loadProtos",
                 "localTransformResults",
                 "logDebug",
@@ -2903,6 +2957,7 @@
                 "newQuery",
                 "newQueryComparator",
                 "newQueryForPath",
+                "newRemoteStore",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -3015,7 +3070,7 @@
                 "transformOperationEquals",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
-                "unlisten",
+                "unlisten$1",
                 "updateTrackedLimbos",
                 "upgradeMutationBatchSchemaAndMigrateData",
                 "valueCompare",
@@ -3148,7 +3203,7 @@
                 "RemoteClientState",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
-                "RemoteStore",
+                "RemoteStoreImpl",
                 "RemovedLimboDocument",
                 "ResourcePath",
                 "RollingSequenceNumberBuffer",
@@ -3185,7 +3240,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 301752
+        "sizeInBytes": 302768
     },
     "enableNetwork": {
         "dependencies": {
@@ -3289,6 +3344,7 @@
                 "newDatastore",
                 "newLocalStore",
                 "newQueryComparator",
+                "newRemoteStore",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -3406,7 +3462,7 @@
                 "QueryImpl",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
-                "RemoteStore",
+                "RemoteStoreImpl",
                 "ResourcePath",
                 "ServerTimestampTransform",
                 "SetMutation",
@@ -3428,7 +3484,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 140222
+        "sizeInBytes": 140424
     },
     "endAt": {
         "dependencies": {
@@ -3551,7 +3607,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53186
+        "sizeInBytes": 53190
     },
     "endBefore": {
         "dependencies": {
@@ -3674,7 +3730,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53197
+        "sizeInBytes": 53201
     },
     "getDoc": {
         "dependencies": {
@@ -3819,6 +3875,7 @@
                 "newPersistentWatchStream",
                 "newQueryComparator",
                 "newQueryForPath",
+                "newRemoteStore",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -4004,7 +4061,7 @@
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
-                "RemoteStore",
+                "RemoteStoreImpl",
                 "RemovedLimboDocument",
                 "ResourcePath",
                 "ServerTimestampTransform",
@@ -4035,7 +4092,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 203504
+        "sizeInBytes": 204100
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4282,7 +4339,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 131638
+        "sizeInBytes": 131642
     },
     "getDocFromServer": {
         "dependencies": {
@@ -4427,6 +4484,7 @@
                 "newPersistentWatchStream",
                 "newQueryComparator",
                 "newQueryForPath",
+                "newRemoteStore",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -4612,7 +4670,7 @@
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
-                "RemoteStore",
+                "RemoteStoreImpl",
                 "RemovedLimboDocument",
                 "ResourcePath",
                 "ServerTimestampTransform",
@@ -4643,7 +4701,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 203560
+        "sizeInBytes": 204156
     },
     "getDocs": {
         "dependencies": {
@@ -4788,6 +4846,7 @@
                 "newPersistentWatchStream",
                 "newQueryComparator",
                 "newQueryForPath",
+                "newRemoteStore",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -4977,7 +5036,7 @@
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
-                "RemoteStore",
+                "RemoteStoreImpl",
                 "RemovedLimboDocument",
                 "ResourcePath",
                 "ServerTimestampTransform",
@@ -5008,7 +5067,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 206067
+        "sizeInBytes": 206663
     },
     "getDocsFromCache": {
         "dependencies": {
@@ -5267,7 +5326,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 143889
+        "sizeInBytes": 143893
     },
     "getDocsFromServer": {
         "dependencies": {
@@ -5412,6 +5471,7 @@
                 "newPersistentWatchStream",
                 "newQueryComparator",
                 "newQueryForPath",
+                "newRemoteStore",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -5600,7 +5660,7 @@
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
-                "RemoteStore",
+                "RemoteStoreImpl",
                 "RemovedLimboDocument",
                 "ResourcePath",
                 "ServerTimestampTransform",
@@ -5631,7 +5691,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 205805
+        "sizeInBytes": 206401
     },
     "getFirestore": {
         "dependencies": {
@@ -5669,7 +5729,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16905
+        "sizeInBytes": 16909
     },
     "increment": {
         "dependencies": {
@@ -5719,7 +5779,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18751
+        "sizeInBytes": 18755
     },
     "initializeFirestore": {
         "dependencies": {
@@ -5758,7 +5818,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18209
+        "sizeInBytes": 18213
     },
     "limit": {
         "dependencies": {
@@ -5804,7 +5864,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19336
+        "sizeInBytes": 19340
     },
     "limitToLast": {
         "dependencies": {
@@ -5850,7 +5910,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19360
+        "sizeInBytes": 19364
     },
     "onSnapshot": {
         "dependencies": {
@@ -5996,6 +6056,7 @@
                 "newPersistentWatchStream",
                 "newQueryComparator",
                 "newQueryForPath",
+                "newRemoteStore",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -6186,7 +6247,7 @@
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
-                "RemoteStore",
+                "RemoteStoreImpl",
                 "RemovedLimboDocument",
                 "ResourcePath",
                 "ServerTimestampTransform",
@@ -6217,7 +6278,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 207150
+        "sizeInBytes": 207746
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -6321,6 +6382,7 @@
                 "newDatastore",
                 "newLocalStore",
                 "newQueryComparator",
+                "newRemoteStore",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -6440,7 +6502,7 @@
                 "QueryImpl",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
-                "RemoteStore",
+                "RemoteStoreImpl",
                 "ResourcePath",
                 "ServerTimestampTransform",
                 "SetMutation",
@@ -6462,7 +6524,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 141071
+        "sizeInBytes": 141273
     },
     "orderBy": {
         "dependencies": {
@@ -6530,7 +6592,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 28981
+        "sizeInBytes": 28985
     },
     "parent": {
         "dependencies": {
@@ -6579,7 +6641,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22986
+        "sizeInBytes": 22990
     },
     "query": {
         "dependencies": {
@@ -6619,7 +6681,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17603
+        "sizeInBytes": 17607
     },
     "queryEqual": {
         "dependencies": {
@@ -6695,7 +6757,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 33485
+        "sizeInBytes": 33489
     },
     "refEqual": {
         "dependencies": {
@@ -6743,7 +6805,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22533
+        "sizeInBytes": 22537
     },
     "runTransaction": {
         "dependencies": {
@@ -6930,7 +6992,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 82179
+        "sizeInBytes": 82183
     },
     "serverTimestamp": {
         "dependencies": {
@@ -6975,7 +7037,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17897
+        "sizeInBytes": 17901
     },
     "setDoc": {
         "dependencies": {
@@ -7107,6 +7169,7 @@
                 "newLocalStore",
                 "newPersistentWriteStream",
                 "newQueryComparator",
+                "newRemoteStore",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -7272,7 +7335,7 @@
                 "QueryImpl",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
-                "RemoteStore",
+                "RemoteStoreImpl",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
@@ -7297,7 +7360,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 171937
+        "sizeInBytes": 172480
     },
     "setLogLevel": {
         "dependencies": {
@@ -7335,7 +7398,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16871
+        "sizeInBytes": 16875
     },
     "snapshotEqual": {
         "dependencies": {
@@ -7449,7 +7512,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 50917
+        "sizeInBytes": 50921
     },
     "startAfter": {
         "dependencies": {
@@ -7572,7 +7635,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53207
+        "sizeInBytes": 53211
     },
     "startAt": {
         "dependencies": {
@@ -7695,7 +7758,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53197
+        "sizeInBytes": 53201
     },
     "terminate": {
         "dependencies": {
@@ -7734,7 +7797,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17401
+        "sizeInBytes": 17405
     },
     "updateDoc": {
         "dependencies": {
@@ -7866,6 +7929,7 @@
                 "newLocalStore",
                 "newPersistentWriteStream",
                 "newQueryComparator",
+                "newRemoteStore",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -8034,7 +8098,7 @@
                 "QueryImpl",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
-                "RemoteStore",
+                "RemoteStoreImpl",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
@@ -8059,7 +8123,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 173436
+        "sizeInBytes": 173979
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -8161,6 +8225,7 @@
                 "newDatastore",
                 "newLocalStore",
                 "newQueryComparator",
+                "newRemoteStore",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -8279,7 +8344,7 @@
                 "QueryImpl",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
-                "RemoteStore",
+                "RemoteStoreImpl",
                 "ResourcePath",
                 "ServerTimestampTransform",
                 "SetMutation",
@@ -8301,7 +8366,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 140014
+        "sizeInBytes": 140216
     },
     "where": {
         "dependencies": {
@@ -8444,7 +8509,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 58541
+        "sizeInBytes": 58545
     },
     "writeBatch": {
         "dependencies": {
@@ -8577,6 +8642,7 @@
                 "newLocalStore",
                 "newPersistentWriteStream",
                 "newQueryComparator",
+                "newRemoteStore",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -8748,7 +8814,7 @@
                 "QueryImpl",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
-                "RemoteStore",
+                "RemoteStoreImpl",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
@@ -8774,6 +8840,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 177103
+        "sizeInBytes": 177646
     }
 }

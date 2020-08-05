@@ -24,7 +24,7 @@ import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { RemoteStore } from '../remote/remote_store';
+import {fillWritePipeline, RemoteStore} from '../remote/remote_store';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
@@ -281,6 +281,8 @@ export class FirestoreClient {
         await this.terminate();
       });
 
+      await fillWritePipeline(this.remoteStore);
+      
       persistenceResult.resolve();
     } catch (error) {
       // Regardless of whether or not the retry succeeds, from an user

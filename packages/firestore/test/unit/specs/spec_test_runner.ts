@@ -281,6 +281,8 @@ abstract class TestRunner {
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
     });
+    
+    await fillWritePipeline(this.remoteStore);
 
     this.started = true;
   }

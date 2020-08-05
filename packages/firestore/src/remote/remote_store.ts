@@ -502,6 +502,7 @@ export function listen(remoteStore: RemoteStore, targetData: TargetData): void {
  */
 export function unlisten(remoteStore: RemoteStore, targetId: TargetId): void {
   const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
+  const watchStream = ensureWatchStream(remoteStoreImpl);
 
   debugAssert(
     remoteStoreImpl.listenTargets.has(targetId),
@@ -509,13 +510,13 @@ export function unlisten(remoteStore: RemoteStore, targetId: TargetId): void {
   );
 
   remoteStoreImpl.listenTargets.delete(targetId);
-  if (ensureWatchStream(remoteStoreImpl).isOpen()) {
+  if (watchStream.isOpen()) {
     sendUnwatchRequest(remoteStoreImpl, targetId);
   }
 
   if (remoteStoreImpl.listenTargets.size === 0) {
-    if (ensureWatchStream(remoteStoreImpl).isOpen()) {
-      ensureWatchStream(remoteStoreImpl).markIdle();
+    if (watchStream.isOpen()) {
+      watchStream.markIdle();
     } else if (remoteStoreImpl.canUseNetwork()) {
       // Revert to OnlineState.Unknown if the watch stream is not open and we
       // have no listeners, since without any listens to send we cannot
@@ -589,11 +590,12 @@ function addToWritePipeline(
   );
   remoteStoreImpl.writePipeline.push(batch);
 
+  const writeStream = ensureWriteStream(remoteStoreImpl);
   if (
-    ensureWriteStream(remoteStoreImpl).isOpen() &&
-    ensureWriteStream(remoteStoreImpl).handshakeComplete
+    writeStream.isOpen() &&
+    writeStream.handshakeComplete
   ) {
-    ensureWriteStream(remoteStoreImpl).writeMutations(batch.mutations);
+    writeStream.writeMutations(batch.mutations);
   }
 }
 
@@ -620,9 +622,10 @@ async function onWriteStreamOpen(remoteStoreImpl: RemoteStoreImpl): Promise<void
 async function onWriteHandshakeComplete(
   remoteStoreImpl: RemoteStoreImpl
 ): Promise<void> {
+  const writeStream = ensureWriteStream(remoteStoreImpl);
   // Send the write pipeline now that the stream is established.
   for (const batch of remoteStoreImpl.writePipeline) {
-    ensureWriteStream(remoteStoreImpl).writeMutations(batch.mutations);
+    writeStream.writeMutations(batch.mutations);
   }
 }
 
@@ -899,9 +902,7 @@ export async function fillWritePipeline(
   remoteStore: RemoteStore
 ): Promise<void> {
   const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
-  
-  // Ensure initialization of the Write stream and its callbacks.
-  ensureWriteStream(remoteStoreImpl);
+  const writeStream = ensureWriteStream(remoteStoreImpl);
   
   let lastBatchIdRetrieved =
     remoteStoreImpl.writePipeline.length > 0
@@ -916,7 +917,7 @@ export async function fillWritePipeline(
 
       if (batch === null) {
         if (remoteStoreImpl.writePipeline.length === 0) {
-          ensureWriteStream(remoteStoreImpl).markIdle();
+          writeStream.markIdle();
         }
         break;
       } else {
