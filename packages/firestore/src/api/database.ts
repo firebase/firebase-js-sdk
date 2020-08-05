@@ -1667,7 +1667,7 @@ function parseDocumentIdValue(
 }
 
 /**
- * Validates that the value passed into a disjunctrive filter satisfies all
+ * Validates that the value passed into a disjunctive filter satisfies all
  * array requirements.
  */
 function validateDisjunctiveFilterElements(
@@ -1688,45 +1688,58 @@ function validateDisjunctiveFilterElements(
         'maximum of 10 elements in the value array.'
     );
   }
-  if (value.indexOf(null) >= 0 && operator !== Operator.NOT_IN) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid Query. '${operator.toString()}' filters cannot contain 'null' ` +
-        'in the value array.'
-    );
-  }
-  if (
-    value.filter(element => Number.isNaN(element)).length > 0 &&
-    operator !== Operator.NOT_IN
-  ) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid Query. '${operator.toString()}' filters cannot contain 'NaN' ` +
-        'in the value array.'
-    );
+  if (operator === Operator.IN || operator === Operator.ARRAY_CONTAINS_ANY) {
+    if (value.indexOf(null) >= 0) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid Query. '${operator.toString()}' filters cannot contain 'null' ` +
+          'in the value array.'
+      );
+    }
+    if (value.filter(element => Number.isNaN(element)).length > 0) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid Query. '${operator.toString()}' filters cannot contain 'NaN' ` +
+          'in the value array.'
+      );
+    }
   }
 }
 
+/**
+ * Given an operator, returns the set of operators that cannot be used with it.
+ *
+ * Array operators: ARRAY_CONTAINS, ARRAY_CONTAINS_ANY
+ * Disjunctive operators: IN, ARRAY_CONTAINS_ANY, NOT_IN
+ */
 function conflictingOps(op: Operator): Operator[] {
   switch (op) {
     case Operator.NOT_EQUAL:
-      return [Operator.NOT_IN, Operator.NOT_EQUAL];
+      // No other NOT_EQUAL or NOT_IN operator can be used with NOT_EQUAL.
+      return [Operator.NOT_EQUAL, Operator.NOT_IN];
     case Operator.ARRAY_CONTAINS:
       return [
+        // Only 1 ARRAY operator can be used.
         Operator.ARRAY_CONTAINS,
         Operator.ARRAY_CONTAINS_ANY,
+        // NOT_IN cannot be used with any array operators.
         Operator.NOT_IN
       ];
     case Operator.IN:
+      // Only one disjunctive operator can be used.
       return [Operator.ARRAY_CONTAINS_ANY, Operator.IN, Operator.NOT_IN];
     case Operator.ARRAY_CONTAINS_ANY:
       return [
+        // Only one ARRAY operator can be used.
         Operator.ARRAY_CONTAINS,
+        // Only one disjunctive operator can be used.
         Operator.ARRAY_CONTAINS_ANY,
         Operator.IN,
         Operator.NOT_IN
       ];
     case Operator.NOT_IN:
+      // NOT_IN cannot be used with another array, disjunctive, or NOT_EQUAL
+      // operator.
       return [
         Operator.ARRAY_CONTAINS,
         Operator.ARRAY_CONTAINS_ANY,
@@ -1762,7 +1775,7 @@ function validateNewFilter(query: InternalQuery, filter: Filter): void {
 
   const conflictingOp = query.findFilterOperator(conflictingOps(filter.op));
   if (conflictingOp !== null) {
-    // We special case when it's a duplicate op to give a slightly clearer error message.
+    // Special case when it's a duplicate op to give a slightly clearer error message.
     if (conflictingOp === filter.op) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,

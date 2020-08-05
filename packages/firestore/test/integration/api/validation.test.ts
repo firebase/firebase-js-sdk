@@ -1216,14 +1216,14 @@ apiDescribe('Validation:', (persistence: boolean) => {
       );
     });
 
-    validationIt(persistence, 'with != and NOT_IN filters fail', db => {
+    validationIt(persistence, 'with != and not-in filters fail', db => {
       expect(() =>
         db
           .collection('test')
           .where('foo', notInOp, [2, 3])
           .where('foo', notEqualOp, 4)
       ).to.throw(
-        "Invalid query. You cannot use '!=' filters with " + "'not-in' filters."
+        "Invalid query. You cannot use '!=' filters with 'not-in' filters."
       );
 
       expect(() =>
@@ -1232,7 +1232,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .where('foo', notEqualOp, 4)
           .where('foo', notInOp, [2, 3])
       ).to.throw(
-        "Invalid query. You cannot use 'not-in' filters with " + "'!=' filters."
+        "Invalid query. You cannot use 'not-in' filters with '!=' filters."
       );
     });
 
@@ -1309,7 +1309,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .where('foo', notInOp, [2, 3])
           .where('foo', 'in', [2, 3])
       ).to.throw(
-        "Invalid query. You cannot use 'in' filters with " + "'not-in' filters."
+        "Invalid query. You cannot use 'in' filters with 'not-in' filters."
       );
 
       expect(() =>
@@ -1318,7 +1318,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .where('foo', 'in', [2, 3])
           .where('foo', notInOp, [2, 3])
       ).to.throw(
-        "Invalid query. You cannot use 'not-in' filters with " + "'in' filters."
+        "Invalid query. You cannot use 'not-in' filters with 'in' filters."
       );
 
       // This is redundant with the above tests, but makes sure our validation
@@ -1330,8 +1330,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .where('foo', 'array-contains', 1)
           .where('foo', 'array-contains-any', [2])
       ).to.throw(
-        "Invalid query. You cannot use 'array-contains-any' filters with " +
-          "'in' filters."
+        "Invalid query. You cannot use 'array-contains-any' filters with 'in' filters."
       );
 
       expect(() =>

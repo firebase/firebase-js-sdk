@@ -647,13 +647,9 @@ export class FieldFilter extends Filter {
 
   private static createKeyFieldInFilter(
     field: FieldPath,
-    op: Operator,
+    op: Operator.IN | Operator.NOT_IN,
     value: api.Value
   ): FieldFilter {
-    debugAssert(
-      op === Operator.IN || op === Operator.NOT_IN,
-      'createKeyFieldInFilter requires an IN or NOT_IN operator'
-    );
     debugAssert(
       isArray(value),
       `Comparing on key with ${op.toString()}` +
@@ -784,14 +780,7 @@ export class KeyFieldInFilter extends FieldFilter {
 
   constructor(field: FieldPath, value: api.Value) {
     super(field, Operator.IN, value);
-    debugAssert(isArray(value), 'KeyFieldInFilter expects an ArrayValue');
-    this.keys = (value.arrayValue.values || []).map(v => {
-      debugAssert(
-        isReferenceValue(v),
-        'Comparing on key with IN, but an array value was not a ReferenceValue'
-      );
-      return DocumentKey.fromName(v.referenceValue);
-    });
+    this.keys = extractDocumentKeysFromArrayValue(Operator.IN, value);
   }
 
   matches(doc: Document): boolean {
@@ -805,19 +794,30 @@ export class KeyFieldNotInFilter extends FieldFilter {
 
   constructor(field: FieldPath, value: api.Value) {
     super(field, Operator.NOT_IN, value);
-    debugAssert(isArray(value), 'KeyFieldNotInFilter expects an ArrayValue');
-    this.keys = (value.arrayValue.values || []).map(v => {
-      debugAssert(
-        isReferenceValue(v),
-        'Comparing on key with NOT_IN, but an array value was not a ReferenceValue'
-      );
-      return DocumentKey.fromName(v.referenceValue);
-    });
+    this.keys = extractDocumentKeysFromArrayValue(Operator.NOT_IN, value);
   }
 
   matches(doc: Document): boolean {
     return !this.keys.some(key => key.isEqual(doc.key));
   }
+}
+
+function extractDocumentKeysFromArrayValue(
+  op: Operator.IN | Operator.NOT_IN,
+  value: api.Value
+): DocumentKey[] {
+  debugAssert(
+    isArray(value),
+    'KeyFieldInFilter/KeyFieldNotInFilter expects an ArrayValue'
+  );
+  return (value.arrayValue?.values || []).map(v => {
+    debugAssert(
+      isReferenceValue(v),
+      `Comparing on key with ${op.toString()}, but an array value was not ` +
+        `a ReferenceValue`
+    );
+    return DocumentKey.fromName(v.referenceValue);
+  });
 }
 
 /** A Filter that implements the array-contains operator. */

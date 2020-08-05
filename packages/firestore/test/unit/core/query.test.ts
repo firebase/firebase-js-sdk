@@ -218,7 +218,7 @@ describe('Query', () => {
     expect(queryMatches(query1, document)).to.be.true;
   });
 
-  it('matches NOT_IN filters', () => {
+  it('matches not-in filters', () => {
     const query1 = query('collection', filter('zip', 'not-in', [12345]));
 
     // No match.
@@ -260,7 +260,7 @@ describe('Query', () => {
     expect(queryMatches(query1, document)).to.be.false;
   });
 
-  it('matches NOT_IN filters with object values', () => {
+  it('matches not-in filters with object values', () => {
     const query1 = query('collection', filter('zip', 'not-in', [{ a: [42] }]));
 
     // Containing object in array.
