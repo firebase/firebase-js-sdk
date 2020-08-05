@@ -68,7 +68,7 @@ export function runTransaction<T>(
   updateFunction: (transaction: firestore.Transaction) => Promise<T>
 ): Promise<T> {
   const firestoreClient = cast(firestore, Firestore);
-  return getDatastore(firestoreClient).then(async datastore => {
+  const datastore =getDatastore(firestoreClient);
     const deferred = new Deferred<T>();
     new TransactionRunner<T>(
       new AsyncQueue(),
@@ -78,5 +78,4 @@ export function runTransaction<T>(
       deferred
     ).run();
     return deferred.promise;
-  });
 }

@@ -329,9 +329,6 @@ export class OnlineComponentProvider {
     this.localStore = offlineComponentProvider.localStore;
     this.sharedClientState = offlineComponentProvider.sharedClientState;
     this.datastore = this.createDatastore(cfg);
-    const connection = await this.loadConnection(cfg);
-    this.datastore.start(connection);
-
     this.remoteStore = this.createRemoteStore(cfg);
     this.syncEngine = this.createSyncEngine(cfg);
     this.eventManager = this.createEventManager(cfg);
@@ -348,7 +345,7 @@ export class OnlineComponentProvider {
     await this.remoteStore.applyPrimaryState(this.syncEngine.isPrimaryClient);
   }
 
-  protected loadConnection(cfg: ComponentConfiguration): Promise<Connection> {
+  protected loadConnection(cfg: ComponentConfiguration): Connection {
     return newConnection(cfg.databaseInfo);
   }
 
@@ -358,7 +355,8 @@ export class OnlineComponentProvider {
 
   createDatastore(cfg: ComponentConfiguration): Datastore {
     const serializer = newSerializer(cfg.databaseInfo.databaseId);
-    return newDatastore(cfg.credentials, serializer);
+    const connection = this.loadConnection(cfg);
+    return newDatastore(cfg.credentials, connection, serializer);
   }
 
   createRemoteStore(cfg: ComponentConfiguration): RemoteStore {
