@@ -379,7 +379,6 @@ export class OnlineComponentProvider {
     return newSyncEngine(
       this.localStore,
       this.remoteStore,
-      this.datastore,
       this.sharedClientState,
       cfg.initialUser,
       cfg.maxConcurrentLimboResolutions,
