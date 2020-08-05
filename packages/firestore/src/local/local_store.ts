@@ -237,17 +237,10 @@ export interface LocalStore {
    * they don't get GC'd. A target must be allocated in the local store before
    * the store can be used to manage its view.
    *
-   * @param {SnapshotVersion} readFrom The snapshot version the allocated target
-   * should resume from, unless the existing `TargetData` has an even newer
-   * version.
-   *
    * Allocating an already allocated `Target` will return the existing `TargetData`
    * for that `Target`.
    */
-  allocateTarget(
-    target: Target,
-    readFrom?: SnapshotVersion
-  ): Promise<TargetData>;
+  allocateTarget(target: Target): Promise<TargetData>;
 
   /**
    * Returns the TargetData as seen by the LocalStore, including updates that may
