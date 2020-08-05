@@ -21,20 +21,19 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { ProviderId } from '@firebase/auth-types-exp';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { PhoneAuthProvider } from '../../core/providers/phone';
-import { Auth } from '../../model/auth';
 import { MultiFactorSession } from '../mfa_session';
 import { PhoneMultiFactorAssertion, PhoneMultiFactorGenerator } from './phone';
 
 use(chaiAsPromised);
 
 describe('core/mfa/phone/PhoneMultiFactorAssertion', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   let credential: PhoneAuthCredential;
   let assertion: PhoneMultiFactorAssertion;
   let session: MultiFactorSession;
@@ -126,7 +125,7 @@ describe('core/mfa/phone/PhoneMultiFactorAssertion', () => {
 
 describe('core/mfa/phone/PhoneMultiFactorGenerator', () => {
   describe('.assertion', () => {
-    let auth: Auth;
+    let auth: TestAuth;
     let credential: PhoneAuthCredential;
 
     beforeEach(async () => {

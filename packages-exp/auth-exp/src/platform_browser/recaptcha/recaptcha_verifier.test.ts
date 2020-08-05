@@ -23,10 +23,9 @@ import * as sinonChai from 'sinon-chai';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
-import { Auth } from '../../model/auth';
 import { AUTH_WINDOW } from '../auth_window';
 import { Parameters, Recaptcha } from './recaptcha';
 import { _JSLOAD_CALLBACK, ReCaptchaLoader } from './recaptcha_loader';
@@ -37,7 +36,7 @@ use(chaiAsPromised);
 use(sinonChai);
 
 describe('platform_browser/recaptcha/recaptcha_verifier.ts', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   let container: HTMLElement;
   let verifier: RecaptchaVerifier;
   let parameters: Parameters;

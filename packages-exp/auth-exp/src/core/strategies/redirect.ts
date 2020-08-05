@@ -23,18 +23,18 @@ import {
   AuthEventType,
   PopupRedirectResolver
 } from '../../model/popup_redirect';
-import { User, UserCredential } from '../../model/user';
+import { UserCredential, User } from '../../model/user';
 import { _assertLinkedStatus } from '../user/link_unlink';
 import { _generateEventId } from '../util/event_id';
 import { _getInstance } from '../util/instantiator';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
+import { _castAuth } from '../auth/auth_impl';
 
 export async function signInWithRedirect(
-  authExtern: externs.Auth,
+  auth: externs.Auth,
   provider: externs.AuthProvider,
   resolverExtern: externs.PopupRedirectResolver
 ): Promise<never> {
-  const auth = authExtern as Auth;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
   return resolver._openRedirect(
@@ -83,14 +83,14 @@ export async function getRedirectResult(
   authExtern: externs.Auth,
   resolverExtern: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential | null> {
-  const auth = authExtern as Auth;
+  const auth = _castAuth(authExtern);
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
   const action = new RedirectAction(auth, resolver);
   const result = await action.execute();
 
   if (result) {
     delete result.user._redirectEventId;
-    await auth._persistUserIfCurrent(result.user);
+    await auth._persistUserIfCurrent(result.user as User);
     await auth._setRedirectUser(null, resolverExtern);
   }
 

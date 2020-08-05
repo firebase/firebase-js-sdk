@@ -18,11 +18,11 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
-import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User, UserCredential } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { UserImpl } from './user_impl';
+import { Auth } from '../../model/auth';
 
 interface UserCredentialParams {
   readonly user: User;

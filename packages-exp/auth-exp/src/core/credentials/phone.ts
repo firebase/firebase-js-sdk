@@ -24,7 +24,7 @@ import {
   SignInWithPhoneNumberRequest,
   verifyPhoneNumberForExisting
 } from '../../api/authentication/sms';
-import { Auth } from '../../model/auth';
+import { AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthCredential } from './';
 
@@ -56,18 +56,18 @@ export class PhoneAuthCredential
     return new PhoneAuthCredential({ phoneNumber, temporaryProof });
   }
 
-  _getIdTokenResponse(auth: Auth): Promise<PhoneOrOauthTokenResponse> {
+  _getIdTokenResponse(auth: AuthCore): Promise<PhoneOrOauthTokenResponse> {
     return signInWithPhoneNumber(auth, this._makeVerificationRequest());
   }
 
-  _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
+  _linkToIdToken(auth: AuthCore, idToken: string): Promise<IdTokenResponse> {
     return linkWithPhoneNumber(auth, {
       idToken,
       ...this._makeVerificationRequest()
     });
   }
 
-  _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
+  _getReauthenticationResolver(auth: AuthCore): Promise<IdTokenResponse> {
     return verifyPhoneNumberForExisting(auth, this._makeVerificationRequest());
   }
 

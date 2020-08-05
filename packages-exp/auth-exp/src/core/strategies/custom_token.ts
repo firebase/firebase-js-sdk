@@ -18,18 +18,18 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { signInWithCustomToken as getIdTokenResponse } from '../../api/authentication/custom_token';
-import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { UserCredentialImpl } from '../user/user_credential_impl';
+import { _castAuth } from '../auth/auth_impl';
 
 export async function signInWithCustomToken(
   authExtern: externs.Auth,
   customToken: string
 ): Promise<externs.UserCredential> {
-  const auth = authExtern as Auth;
-  const response: IdTokenResponse = await getIdTokenResponse(auth, {
+  const response: IdTokenResponse = await getIdTokenResponse(authExtern, {
     token: customToken
   });
+  const auth = _castAuth(authExtern);
   const cred = await UserCredentialImpl._fromIdTokenResponse(
     auth,
     null,

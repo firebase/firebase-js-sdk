@@ -23,12 +23,11 @@ import { Operation, OperationType } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
-import { Auth } from '../../model/auth';
 import { UserCredential } from '../../model/user';
 import {
   applyActionCode,
@@ -46,7 +45,7 @@ use(sinonChai);
 describe('core/strategies/sendPasswordResetEmail', () => {
   const email = 'foo@bar.com';
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -92,8 +91,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       await sendPasswordResetEmail(auth, email, {
         handleCodeInApp: true,
         iOS: {
-          bundleId: 'my-bundle',
-          appStoreId: 'my-appstore-id'
+          bundleId: 'my-bundle'
         },
         url: 'my-url',
         dynamicLinkDomain: 'fdl-domain'
@@ -105,8 +103,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
         canHandleCodeInApp: true,
-        iosBundleId: 'my-bundle',
-        iosAppStoreId: 'my-appstore-id'
+        iosBundleId: 'my-bundle'
       });
     });
   });
@@ -144,7 +141,7 @@ describe('core/strategies/confirmPasswordReset', () => {
   const oobCode = 'oob-code';
   const newPassword = 'new-password';
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -189,7 +186,7 @@ describe('core/strategies/confirmPasswordReset', () => {
 describe('core/strategies/applyActionCode', () => {
   const oobCode = 'oob-code';
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -230,7 +227,7 @@ describe('core/strategies/checkActionCode', () => {
   const email = 'foo@bar.com';
   const newEmail = 'new@email.com';
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -312,7 +309,7 @@ describe('core/strategies/verifyPasswordResetCode', () => {
   const oobCode = 'oob-code';
   const email = 'foo@bar.com';
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -365,7 +362,7 @@ describe('core/strategies/verifyPasswordResetCode', () => {
 });
 
 describe('core/strategies/email_and_password/createUserWithEmailAndPassword', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   const serverUser: APIUserInfo = {
     localId: 'local-id'
   };
@@ -408,7 +405,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
 });
 
 describe('core/strategies/email_and_password/signInWithEmailAndPassword', () => {
-  let auth: Auth;
+  let auth: TestAuth;
   const serverUser: APIUserInfo = {
     localId: 'local-id'
   };

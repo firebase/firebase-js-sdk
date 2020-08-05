@@ -24,11 +24,10 @@ import { Operation, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
-import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import * as location from '../util/location';
 import {
@@ -44,7 +43,7 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
   const email = 'foo@bar.com';
   const expectedSignInMethods = [ProviderId.PASSWORD, ProviderId.GOOGLE];
 
-  let auth: Auth;
+  let auth: TestAuth;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -113,7 +112,7 @@ describe('core/strategies/sendEmailVerification', () => {
   const email = 'foo@bar.com';
   const idToken = 'access-token';
   let user: User;
-  let auth: Auth;
+  let auth: TestAuth;
   let reloadStub: SinonStub;
 
   beforeEach(async () => {
@@ -167,8 +166,7 @@ describe('core/strategies/sendEmailVerification', () => {
       await sendEmailVerification(user, {
         handleCodeInApp: true,
         iOS: {
-          bundleId: 'my-bundle',
-          appStoreId: 'my-appstore-id'
+          bundleId: 'my-bundle'
         },
         url: 'my-url',
         dynamicLinkDomain: 'fdl-domain'
@@ -180,8 +178,7 @@ describe('core/strategies/sendEmailVerification', () => {
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
         canHandleCodeInApp: true,
-        iosBundleId: 'my-bundle',
-        iosAppStoreId: 'my-appstore-id'
+        iosBundleId: 'my-bundle'
       });
     });
   });
@@ -221,7 +218,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
   const newEmail = 'newemail@bar.com';
   const idToken = 'access-token';
   let user: User;
-  let auth: Auth;
+  let auth: TestAuth;
   let reloadStub: SinonStub;
 
   beforeEach(async () => {
@@ -277,8 +274,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
       await verifyBeforeUpdateEmail(user, newEmail, {
         handleCodeInApp: true,
         iOS: {
-          bundleId: 'my-bundle',
-          appStoreId: 'my-appstore-id'
+          bundleId: 'my-bundle'
         },
         url: 'my-url',
         dynamicLinkDomain: 'fdl-domain'
@@ -291,8 +287,7 @@ describe('core/strategies/verifyBeforeUpdateEmail', () => {
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
         canHandleCodeInApp: true,
-        iosBundleId: 'my-bundle',
-        iosAppStoreId: 'my-appstore-id'
+        iosBundleId: 'my-bundle'
       });
     });
   });
