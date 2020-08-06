@@ -32,7 +32,7 @@ import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { EmailAuthProvider } from '../core/providers/email';
 import { User, UserCredential } from '../model/user';
 import { MultiFactorAssertion } from './assertions';
-import { PhoneMultiFactorAssertion } from './assertions/phone';
+import { PhoneMultiFactorAssertion } from '../platform_browser/mfa/assertions/phone';
 import { MultiFactorError } from './mfa_error';
 import { getMultiFactorResolver, MultiFactorResolver } from './mfa_resolver';
 

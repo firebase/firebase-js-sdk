@@ -22,9 +22,11 @@
  * just use index.ts
  */
 
+import { registerVersion } from '@firebase/app-exp';
 import { AsyncStorage } from 'react-native';
+import { name, version } from './package.json';
 import { _initializeAuthForClientPlatform } from './src/core/auth/auth_impl';
-import { getReactNativePersistence } from './src/core/persistence/react_native';
+import { getReactNativePersistence } from './src/platform_react_native/persistence/react_native';
 import { ClientPlatform } from './src/core/util/version';
 
 // Core functionality shared by all clients
@@ -37,3 +39,5 @@ export const reactNativeLocalPersistence = getReactNativePersistence(
 export const initializeAuth = _initializeAuthForClientPlatform(
   ClientPlatform.REACT_NATIVE
 );
+
+registerVersion(name, version, 'rn');

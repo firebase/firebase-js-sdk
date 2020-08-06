@@ -22,14 +22,14 @@ import {
   AuthEventType,
   PopupRedirectResolver
 } from '../../model/popup_redirect';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
-import { assert, debugAssert } from '../util/assert';
-import { Delay } from '../util/delay';
-import { _generateEventId } from '../util/event_id';
-import { _getInstance } from '../util/instantiator';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
+import { assert, debugAssert } from '../../core/util/assert';
+import { Delay } from '../../core/util/delay';
+import { _generateEventId } from '../../core/util/event_id';
+import { _getInstance } from '../../core/util/instantiator';
 import { AuthPopup } from '../util/popup';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
-import { _castAuth } from '../auth/auth_impl';
+import { _castAuth } from '../../core/auth/auth_impl';
 import { User } from '../../model/user';
 
 // The event timeout is the same on mobile and desktop, no need for Delay.

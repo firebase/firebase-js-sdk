@@ -37,15 +37,15 @@ import {
   PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { User } from '../../model/user';
-import { AuthEventManager } from '../auth/auth_event_manager';
-import { AuthErrorCode } from '../errors';
-import { Persistence } from '../persistence';
-import { InMemoryPersistence } from '../persistence/in_memory';
-import { OAuthProvider } from '../providers/oauth';
-import * as link from '../user/link_unlink';
-import { UserCredentialImpl } from '../user/user_credential_impl';
-import { _getInstance } from '../util/instantiator';
-import * as idpTasks from './idp';
+import { AuthEventManager } from '../../core/auth/auth_event_manager';
+import { AuthErrorCode } from '../../core/errors';
+import { Persistence } from '../../core/persistence';
+import { InMemoryPersistence } from '../../core/persistence/in_memory';
+import { OAuthProvider } from '../../core/providers/oauth';
+import * as link from '../../core/user/link_unlink';
+import { UserCredentialImpl } from '../../core/user/user_credential_impl';
+import { _getInstance } from '../../core/util/instantiator';
+import * as idpTasks from '../../core/strategies/idp';
 import {
   _clearOutcomes,
   getRedirectResult,

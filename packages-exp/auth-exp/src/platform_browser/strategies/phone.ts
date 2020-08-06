@@ -22,21 +22,21 @@ import { startSignInPhoneMfa } from '../../api/authentication/mfa';
 import { sendPhoneVerificationCode } from '../../api/authentication/sms';
 import { ApplicationVerifier } from '../../model/application_verifier';
 import { AuthCore } from '../../model/auth';
-import { RECAPTCHA_VERIFIER_TYPE } from '../../platform_browser/recaptcha/recaptcha_verifier';
-import { PhoneAuthCredential } from '../credentials/phone';
-import { AuthErrorCode } from '../errors';
-import { _assertLinkedStatus, _link } from '../user/link_unlink';
-import { assert } from '../util/assert';
+import { PhoneAuthCredential } from '../../core/credentials/phone';
+import { AuthErrorCode } from '../../core/errors';
+import { _assertLinkedStatus, _link } from '../../core/user/link_unlink';
+import { assert } from '../../core/util/assert';
 import {
   linkWithCredential,
   reauthenticateWithCredential,
   signInWithCredential
-} from './credential';
+} from '../../core/strategies/credential';
 import {
   MultiFactorSession,
   MultiFactorSessionType
 } from '../../mfa/mfa_session';
 import { User } from '../../model/user';
+import { RECAPTCHA_VERIFIER_TYPE } from '../recaptcha/recaptcha_verifier';
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<externs.UserCredential>;

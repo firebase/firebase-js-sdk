@@ -15,37 +15,21 @@
  * limitations under the License.
  */
 
+import { FirebaseApp } from '@firebase/app-types-exp';
+import * as externs from '@firebase/auth-types-exp';
+import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-
-import { FirebaseApp } from '@firebase/app-types-exp';
-import * as externs from '@firebase/auth-types-exp';
-import { FirebaseError } from '@firebase/util';
-
 import { testUser } from '../../../test/helpers/mock_auth';
 import { User } from '../../model/user';
-import { browserPopupRedirectResolver } from '../../platform_browser/popup_redirect';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
-import {
-  browserLocalPersistence,
-  browserSessionPersistence
-} from '../persistence/browser';
 import { inMemoryPersistence } from '../persistence/in_memory';
-import { PersistenceUserManager } from '../persistence/persistence_user_manager';
-import * as reload from '../user/reload';
 import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
-import { _getClientVersion, ClientPlatform } from '../util/version';
-import {
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST,
-  _castAuth,
-  _initializeAuthForClientPlatform
-} from './auth_impl';
+import { ClientPlatform } from '../util/version';
+import { _castAuth, _initializeAuthForClientPlatform } from './auth_impl';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -123,24 +107,6 @@ describe('core/auth/auth_impl', () => {
       await auth.signOut();
       expect(persistenceStub.remove).to.have.been.called;
       expect(auth.currentUser).to.be.null;
-    });
-  });
-
-  describe('#setPersistence', () => {
-    it('swaps underlying persistence', async () => {
-      const newPersistence = browserLocalPersistence;
-      const newStub = sinon.stub(_getInstance<Persistence>(newPersistence));
-      persistenceStub.get.returns(
-        Promise.resolve(testUser(auth, 'test').toPlainObject())
-      );
-
-      await auth.setPersistence(newPersistence);
-      expect(persistenceStub.get).to.have.been.called;
-      expect(persistenceStub.remove).to.have.been.called;
-      expect(newStub.set).to.have.been.calledWith(
-        sinon.match.any,
-        testUser(auth, 'test').toPlainObject()
-      );
     });
   });
 
@@ -283,176 +249,6 @@ describe('core/auth/auth_impl', () => {
         await auth.updateCurrentUser(user);
         expect(cb1).to.have.been.calledWith(user);
         expect(cb2).to.have.been.calledWith(user);
-      });
-    });
-  });
-});
-
-describe('core/auth/initializeAuth', () => {
-  afterEach(sinon.restore);
-
-  it('throws an API error if key not provided', () => {
-    expect(() =>
-      initializeAuth({
-        ...FAKE_APP,
-        options: {} // apiKey is missing
-      })
-    ).to.throw(
-      FirebaseError,
-      'Firebase: Your API key is invalid, please check you have copied it correctly. (auth/invalid-api-key).'
-    );
-  });
-
-  describe('persistence manager creation', () => {
-    let createManagerStub: sinon.SinonSpy;
-    let reloadStub: sinon.SinonStub;
-
-    beforeEach(() => {
-      createManagerStub = sinon.spy(PersistenceUserManager, 'create');
-      reloadStub = sinon
-        .stub(reload, '_reloadWithoutSaving')
-        .returns(Promise.resolve());
-    });
-
-    async function initAndWait(
-      persistence: externs.Persistence | externs.Persistence[],
-      popupRedirectResolver?: externs.PopupRedirectResolver
-    ): Promise<externs.Auth> {
-      const auth = initializeAuth(FAKE_APP, {
-        persistence,
-        popupRedirectResolver
-      });
-      // Auth initializes async. We can make sure the initialization is
-      // flushed by awaiting a method on the queue.
-      await auth.setPersistence(inMemoryPersistence);
-      return auth;
-    }
-
-    it('converts single persistence to array', async () => {
-      const auth = await initAndWait(inMemoryPersistence);
-      expect(createManagerStub).to.have.been.calledWith(auth, [
-        _getInstance(inMemoryPersistence)
-      ]);
-    });
-
-    it('pulls the user from storage', async () => {
-      sinon
-        .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
-        .returns(Promise.resolve(testUser({}, 'uid').toPlainObject()));
-      const auth = await initAndWait(inMemoryPersistence);
-      expect(auth.currentUser!.uid).to.eq('uid');
-    });
-
-    it('calls create with the persistence in order', async () => {
-      const auth = await initAndWait([
-        inMemoryPersistence,
-        browserLocalPersistence
-      ]);
-      expect(createManagerStub).to.have.been.calledWith(auth, [
-        _getInstance(inMemoryPersistence),
-        _getInstance(browserLocalPersistence)
-      ]);
-    });
-
-    it('does not reload redirect users', async () => {
-      const user = testUser({}, 'uid');
-      user._redirectEventId = 'event-id';
-      sinon
-        .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
-        .returns(Promise.resolve(user.toPlainObject()));
-      sinon
-        .stub(_getInstance<Persistence>(browserSessionPersistence), 'get')
-        .returns(Promise.resolve(user.toPlainObject()));
-      await initAndWait(inMemoryPersistence);
-      expect(reload._reloadWithoutSaving).not.to.have.been.called;
-    });
-
-    it('reloads non-redirect users', async () => {
-      sinon
-        .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
-        .returns(Promise.resolve(testUser({}, 'uid').toPlainObject()));
-      sinon
-        .stub(_getInstance<Persistence>(browserSessionPersistence), 'get')
-        .returns(Promise.resolve(null));
-
-      await initAndWait(inMemoryPersistence);
-      expect(reload._reloadWithoutSaving).to.have.been.called;
-    });
-
-    it('Does not reload if the event ids match', async () => {
-      const user = testUser({}, 'uid');
-      user._redirectEventId = 'event-id';
-
-      sinon
-        .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
-        .returns(Promise.resolve(user.toPlainObject()));
-      sinon
-        .stub(_getInstance<Persistence>(browserSessionPersistence), 'get')
-        .returns(Promise.resolve(user.toPlainObject()));
-
-      await initAndWait(inMemoryPersistence, browserPopupRedirectResolver);
-      expect(reload._reloadWithoutSaving).not.to.have.been.called;
-    });
-
-    it('Reloads if the event ids do not match', async () => {
-      const user = testUser({}, 'uid');
-      user._redirectEventId = 'event-id';
-
-      sinon
-        .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
-        .returns(Promise.resolve(user.toPlainObject()));
-
-      user._redirectEventId = 'some-other-id';
-      sinon
-        .stub(_getInstance<Persistence>(browserSessionPersistence), 'get')
-        .returns(Promise.resolve(user.toPlainObject()));
-
-      await initAndWait(inMemoryPersistence, browserPopupRedirectResolver);
-      expect(reload._reloadWithoutSaving).to.have.been.called;
-    });
-
-    it('Nulls out the current user if reload fails', async () => {
-      const stub = sinon.stub(_getInstance<Persistence>(inMemoryPersistence));
-      stub.get.returns(Promise.resolve(testUser({}, 'uid').toPlainObject()));
-      stub.remove.returns(Promise.resolve());
-      reloadStub.returns(
-        Promise.reject(
-          AUTH_ERROR_FACTORY.create(AuthErrorCode.TOKEN_EXPIRED, {
-            appName: 'app'
-          })
-        )
-      );
-
-      await initAndWait(inMemoryPersistence);
-      expect(stub.remove).to.have.been.called;
-    });
-
-    it('Keeps current user if reload fails with network error', async () => {
-      const stub = sinon.stub(_getInstance<Persistence>(inMemoryPersistence));
-      stub.get.returns(Promise.resolve(testUser({}, 'uid').toPlainObject()));
-      stub.remove.returns(Promise.resolve());
-      reloadStub.returns(
-        Promise.reject(
-          AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
-            appName: 'app'
-          })
-        )
-      );
-
-      await initAndWait(inMemoryPersistence);
-      expect(stub.remove).not.to.have.been.called;
-    });
-
-    it('sets auth name and config', async () => {
-      const auth = await initAndWait(inMemoryPersistence);
-      expect(auth.name).to.eq(FAKE_APP.name);
-      expect(auth.config).to.eql({
-        apiKey: FAKE_APP.options.apiKey,
-        authDomain: FAKE_APP.options.authDomain,
-        apiHost: DEFAULT_API_HOST,
-        apiScheme: DEFAULT_API_SCHEME,
-        tokenApiHost: DEFAULT_TOKEN_API_HOST,
-        sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
       });
     });
   });
