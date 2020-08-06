@@ -55,7 +55,6 @@ describe('core/strategies/credential', () => {
     email: 'email',
     emailVerified: true,
     phoneNumber: 'phone-number',
-    tenantId: 'tenant-id',
     createdAt: 123,
     lastLoginAt: 456
   };
@@ -100,7 +99,6 @@ describe('core/strategies/credential', () => {
       );
       expect((rest as UserCredential)._tokenResponse).to.eq(idTokenResponse);
       expect(user.uid).to.eq('local-id');
-      expect(user.tenantId).to.eq('tenant-id');
       expect(user.displayName).to.eq('display-name');
       expect(operationType).to.eq(OperationType.SIGN_IN);
     });

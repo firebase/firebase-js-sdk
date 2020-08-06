@@ -89,7 +89,7 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
         'verification-id',
         'verification-code'
       );
-      assertion = PhoneMultiFactorAssertion._fromCredential(auth, credential);
+      assertion = PhoneMultiFactorAssertion._fromCredential(credential);
 
       finalizeMfaEnrollmentMock = mockEndpoint(
         Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT,

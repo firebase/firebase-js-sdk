@@ -16,7 +16,6 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { FinalizeMfaResponse } from '../api/authentication/mfa';
 import { UserCredential } from '../model/user';
 import { AuthErrorCode } from '../core/errors';
 import { UserCredentialImpl } from '../core/user/user_credential_impl';
@@ -28,19 +27,13 @@ import { MultiFactorSession } from './mfa_session';
 import { _castAuth } from '../core/auth/auth_impl';
 
 export class MultiFactorResolver implements externs.MultiFactorResolver {
-  readonly session: MultiFactorSession;
-
   private constructor(
-    mfaPendingCredential: string,
+    readonly session: MultiFactorSession,
     readonly hints: MultiFactorInfo[],
     private readonly signInResolver: (
-      response: FinalizeMfaResponse
+      assertion: MultiFactorAssertion
     ) => Promise<UserCredential>
-  ) {
-    this.session = MultiFactorSession._fromMfaPendingCredential(
-      mfaPendingCredential
-    );
-  }
+  ) {}
 
   static _fromError(
     auth: externs.Auth,
@@ -50,10 +43,15 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
       MultiFactorInfo._fromServerResponse(auth, enrollment)
     );
 
+    const session = MultiFactorSession._fromMfaPendingCredential(
+      error.serverResponse.mfaPendingCredential
+    );
+
     return new MultiFactorResolver(
-      error.serverResponse.mfaPendingCredential,
+      session,
       hints,
-      async (mfaResponse: FinalizeMfaResponse): Promise<UserCredential> => {
+      async (assertion: MultiFactorAssertion): Promise<UserCredential> => {
+        const mfaResponse = await assertion._process(auth, session);
         // Clear out the unneeded fields from the old login response
         delete error.serverResponse.mfaInfo;
         delete error.serverResponse.mfaPendingCredential;
@@ -94,8 +92,7 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
     assertionExtern: externs.MultiFactorAssertion
   ): Promise<externs.UserCredential> {
     const assertion = assertionExtern as MultiFactorAssertion;
-    const finalizeMfaResponse = await assertion._process(this.session);
-    return this.signInResolver(finalizeMfaResponse);
+    return this.signInResolver(assertion);
   }
 }
 

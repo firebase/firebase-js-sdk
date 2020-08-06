@@ -50,7 +50,7 @@ describe('core/mfa/phone/PhoneMultiFactorAssertion', () => {
       'verification-id',
       'verification-code'
     );
-    assertion = PhoneMultiFactorAssertion._fromCredential(auth, credential);
+    assertion = PhoneMultiFactorAssertion._fromCredential(credential);
   });
   afterEach(mockFetch.tearDown);
 
@@ -64,7 +64,7 @@ describe('core/mfa/phone/PhoneMultiFactorAssertion', () => {
         Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT,
         serverResponse
       );
-      const response = await assertion._process(session);
+      const response = await assertion._process(auth, session);
       expect(response).to.eql(serverResponse);
       expect(mock.calls[0].request).to.eql({
         idToken: 'enrollment-id-token',
@@ -82,7 +82,11 @@ describe('core/mfa/phone/PhoneMultiFactorAssertion', () => {
           Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT,
           serverResponse
         );
-        const response = await assertion._process(session, 'display-name');
+        const response = await assertion._process(
+          auth,
+          session,
+          'display-name'
+        );
         expect(response).to.eql(serverResponse);
         expect(mock.calls[0].request).to.eql({
           idToken: 'enrollment-id-token',
@@ -109,7 +113,7 @@ describe('core/mfa/phone/PhoneMultiFactorAssertion', () => {
         Endpoint.FINALIZE_PHONE_MFA_SIGN_IN,
         serverResponse
       );
-      const response = await assertion._process(session);
+      const response = await assertion._process(auth, session);
       expect(response).to.eql(serverResponse);
       expect(mock.calls[0].request).to.eql({
         mfaPendingCredential: 'mfa-pending-credential',
@@ -125,11 +129,9 @@ describe('core/mfa/phone/PhoneMultiFactorAssertion', () => {
 
 describe('core/mfa/phone/PhoneMultiFactorGenerator', () => {
   describe('.assertion', () => {
-    let auth: TestAuth;
     let credential: PhoneAuthCredential;
 
     beforeEach(async () => {
-      auth = await testAuth();
       credential = PhoneAuthProvider.credential(
         'verification-id',
         'verification-code'
@@ -137,7 +139,7 @@ describe('core/mfa/phone/PhoneMultiFactorGenerator', () => {
     });
 
     it('can be used to create an assertion', () => {
-      const assertion = PhoneMultiFactorGenerator.assertion(auth, credential);
+      const assertion = PhoneMultiFactorGenerator.assertion(credential);
       expect(assertion.factorId).to.eq(ProviderId.PHONE);
     });
   });

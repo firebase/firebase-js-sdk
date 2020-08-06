@@ -32,15 +32,15 @@ firebase.initializeApp(config);
  * @return {!Promise<?string>} The promise that resolves with an ID token if
  *     available. Otherwise, the promise resolves with null.
  */
-var getIdToken = function() {
-  return new Promise(function(resolve, reject) {
-    firebase.auth().onAuthStateChanged(function(user) {
+var getIdToken = function () {
+  return new Promise(function (resolve, reject) {
+    firebase.auth().onAuthStateChanged(function (user) {
       if (user) {
         user.getIdToken().then(
-          function(idToken) {
+          function (idToken) {
             resolve(idToken);
           },
-          function(error) {
+          function (error) {
             resolve(null);
           }
         );
@@ -48,7 +48,7 @@ var getIdToken = function() {
         resolve(null);
       }
     });
-  }).catch(function(error) {
+  }).catch(function (error) {
     console.log(error);
   });
 };
@@ -60,7 +60,7 @@ var getIdToken = function() {
  * @return {!Promise<void>} A promise that resolves when all tests run
  *     successfully.
  */
-var runWorkerTests = function(googleIdToken) {
+var runWorkerTests = function (googleIdToken) {
   var inMemoryPersistence = firebase.auth.Auth.Persistence.NONE;
   var expectedDisplayName = 'Test User';
   var oauthCredential = firebase.auth.GoogleAuthProvider.credential(
@@ -77,86 +77,86 @@ var runWorkerTests = function(googleIdToken) {
   return firebase
     .auth()
     .setPersistence(inMemoryPersistence)
-    .then(function() {
+    .then(function () {
       firebase.auth().useDeviceLanguage();
       return firebase.auth().signInAnonymously();
     })
-    .then(function(result) {
+    .then(function (result) {
       if (!result.user.uid) {
         throw new Error('signInAnonymously unexpectedly failed!');
       }
       return result.user.updateProfile({ displayName: expectedDisplayName });
     })
-    .then(function() {
+    .then(function () {
       if (firebase.auth().currentUser.displayName != expectedDisplayName) {
         throw new Error('Profile update failed!');
       }
       return firebase.auth().currentUser.delete();
     })
-    .then(function() {
+    .then(function () {
       if (firebase.auth().currentUser) {
         throw new Error('currentUser.delete unexpectedly failed!');
       }
       return firebase.auth().createUserWithEmailAndPassword(email, pass);
     })
-    .then(function(result) {
+    .then(function (result) {
       if (result.user.email != email) {
         throw new Error('createUserWithEmailAndPassword unexpectedly failed!');
       }
       return firebase.auth().fetchProvidersForEmail(email);
     })
-    .then(function(providers) {
+    .then(function (providers) {
       if (providers.length == 0 || providers[0] != 'password') {
         throw new Error('fetchProvidersForEmail failed!');
       }
       return firebase.auth().signInWithEmailAndPassword(email, pass);
     })
-    .then(function(result) {
+    .then(function (result) {
       if (result.user.email != email) {
         throw new Error('signInWithEmailAndPassword unexpectedly failed!');
       }
       return result.user.delete();
     })
-    .then(function() {
+    .then(function () {
       return firebase
         .auth()
         .signInWithPopup(provider)
-        .catch(function(error) {
+        .catch(function (error) {
           if (error.code != OPERATION_NOT_SUPPORTED_CODE) {
             throw error;
           }
         });
     })
-    .then(function() {
+    .then(function () {
       return firebase
         .auth()
         .signInWithRedirect(provider)
-        .catch(function(error) {
+        .catch(function (error) {
           if (error.code != OPERATION_NOT_SUPPORTED_CODE) {
             throw error;
           }
         });
     })
-    .then(function() {
+    .then(function () {
       return Promise.resolve()
-        .then(function() {
+        .then(function () {
           return new firebase.auth.RecaptchaVerifier('id');
         })
-        .then(function() {
+        .then(function () {
           throw new Error(
             'RecaptchaVerifer instantiation succeeded unexpectedly!'
           );
         })
-        .catch(function(error) {
+        .catch(function (error) {
           if (error.code != OPERATION_NOT_SUPPORTED_CODE) {
             throw error;
           }
         });
     })
-    .then(function() {
+    .then(function () {
       return firebase.auth().signInWithCredential(oauthCredential);
     })
-    .then(function(result) {
+    .then(function (result) {
       if (
         !result.user ||
         !result.user.uid ||
@@ -167,7 +167,7 @@ var runWorkerTests = function(googleIdToken) {
       }
       return firebase.auth().signOut();
     })
-    .then(function() {
+    .then(function () {
       if (firebase.auth().currentUser) {
         throw new Error('signOut unexpectedly failed!');
       }
@@ -178,12 +178,12 @@ var runWorkerTests = function(googleIdToken) {
  * Handles the incoming message from the main script.
  * @param {!Object} e The message event received.
  */
-self.onmessage = function(e) {
+self.onmessage = function (e) {
   if (e.data && e.data.type) {
     var result = { type: e.data.type };
     switch (e.data.type) {
       case 'GET_USER_INFO':
-        getIdToken().then(function(idToken) {
+        getIdToken().then(function (idToken) {
           result.idToken = idToken;
           result.uid =
             firebase.auth().currentUser && firebase.auth().currentUser.uid;
@@ -192,11 +192,11 @@ self.onmessage = function(e) {
         break;
       case 'RUN_TESTS':
         runWorkerTests(e.data.googleIdToken)
-          .then(function() {
+          .then(function () {
             result.status = 'success';
             self.postMessage(result);
           })
-          .catch(function(error) {
+          .catch(function (error) {
             result.status = 'failure';
             // DataCloneError when postMessaging in IE11 and 10.
             result.error = error.code ? error : error.message;
