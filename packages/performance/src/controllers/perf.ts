@@ -26,7 +26,6 @@ import { validateIndexedDBOpenable } from '@firebase/util';
 import { consoleLogger } from '../utils/console_logger';
 export class PerformanceController implements FirebasePerformance {
   constructor(readonly app: FirebaseApp) {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     if (Api.getInstance().requiredApisAvailable()) {
       validateIndexedDBOpenable()
         .then(isAvailable => {

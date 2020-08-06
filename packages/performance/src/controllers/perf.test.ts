@@ -50,24 +50,33 @@ describe('Firebase Performance Test', () => {
       new PerformanceController(fakeFirebaseApp);
       expect(initializationService.getInitializationPromise).not.be.called;
     });
-    it('does not initialize performance if validateIndexedDBOpenable return false', () => {
+    it('does not initialize performance if validateIndexedDBOpenable return false', async () => {
       stub(Api.prototype, 'requiredApisAvailable').returns(true);
-      stub(FirebaseUtil, 'validateIndexedDBOpenable').returns(
-        Promise.resolve(false)
-      );
+      const validateStub = stub(
+        FirebaseUtil,
+        'validateIndexedDBOpenable'
+      ).resolves(false);
       stub(initializationService, 'getInitializationPromise');
       new PerformanceController(fakeFirebaseApp);
+      await validateStub;
       expect(initializationService.getInitializationPromise).not.be.called;
     });
 
-    it('does not initialize performance if validateIndexedDBOpenable throws an error', () => {
+    it('does not initialize performance if validateIndexedDBOpenable throws an error', async () => {
       stub(Api.prototype, 'requiredApisAvailable').returns(true);
-      stub(FirebaseUtil, 'validateIndexedDBOpenable').throws();
+      const validateStub = stub(
+        FirebaseUtil,
+        'validateIndexedDBOpenable'
+      ).rejects();
+
       stub(initializationService, 'getInitializationPromise');
       stub(consoleLogger, 'info');
       new PerformanceController(fakeFirebaseApp);
-      expect(initializationService.getInitializationPromise).not.be.called;
-      expect(consoleLogger.info).to.be.called;
+      try {
+        await validateStub;
+        expect(initializationService.getInitializationPromise).not.be.called;
+        expect(consoleLogger.info).be.called;
+      } catch (ignored) {}
     });
   });
 
