@@ -1,0 +1,60 @@
+{
+  "name": "@firebase/app-compat",
+  "version": "0.0.800",
+  "description": "The primary entrypoint to the Firebase JS SDK",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.node.cjs.js",
+  "browser": "dist/cjs/index.js",
+  "module": "dist/esm5/index.js",
+  "react-native": "dist/index.rn.cjs.js",
+  "esm2017": "dist/esm2017/index.js",
+  "lite": "dist/index.lite.js",
+  "lite-esm2017": "dist/index.lite.esm2017.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "yarn type-check && run-p lint test:browser test:node",
+    "type-check": "tsc -p . --noEmit",
+    "test:browser": "karma start --single-run",
+    "test:browser:debug": "karma start --browsers Chrome --auto-watch",
+    "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* src/**/*.test.ts --opts ../../config/mocha.node.opts",
+    "prepare": "yarn build"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@firebase/app-types": "0.5.2",
+    "@firebase/util": "0.2.41",
+    "@firebase/logger": "0.1.36",
+    "@firebase/component": "0.1.6",
+    "tslib": "1.11.1",
+    "dom-storage": "2.1.0",
+    "xmlhttprequest": "1.8.0"
+  },
+  "devDependencies": {
+    "rollup": "1.32.1",
+    "rollup-plugin-json": "4.0.0",
+    "rollup-plugin-replace": "2.2.0",
+    "rollup-plugin-typescript2": "0.26.0",
+    "typescript": "3.8.3"
+  },
+  "repository": {
+    "directory": "packages/app",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "typings": "dist/packages/app/index.d.ts",
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reportDir": "./coverage/node"
+  }
+}
