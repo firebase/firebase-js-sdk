@@ -17,6 +17,7 @@
 
 import json from 'rollup-plugin-json';
 import resolve from 'rollup-plugin-node-resolve';
+import { uglify } from 'rollup-plugin-uglify';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
@@ -63,6 +64,43 @@ const es5Builds = [
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  /**
+   * UMD build
+   */
+  {
+    input: `./index.ts`,
+    output: {
+      compact: true,
+      file: `dist/firebase-auth.js`,
+      format: 'umd',
+      sourcemap: true,
+      extend: true,
+      name: 'firebase',
+      globals: {
+        '@firebase/app': 'firebase'
+      },
+      /**
+       * use iife to avoid below error in the old Safari browser
+       * SyntaxError: Functions cannot be declared in a nested block in strict mode
+       * https://github.com/firebase/firebase-js-sdk/issues/1228
+       *
+       */
+      intro: `
+          try {
+            (function() {`,
+      outro: `
+          }).apply(this, arguments);
+        } catch(err) {
+            console.error(err);
+            throw new Error(
+              'Cannot instantiate firebase-auth.js - ' +
+              'be sure to load firebase-app.js first.'
+            );
+          }`
+    },
+    plugins: [...es5BuildPlugins, uglify()],
+    external: ['@firebase/app']
   }
 ];
 

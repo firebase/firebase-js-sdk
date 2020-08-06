@@ -18,12 +18,11 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { getRecaptchaParams } from '../../api/authentication/recaptcha';
-import { initializeAuth } from '../../core/auth/auth_impl';
 import { AuthErrorCode } from '../../core/errors';
 import { assert } from '../../core/util/assert';
 import { _isHttpOrHttps } from '../../core/util/location';
 import { ApplicationVerifier } from '../../model/application_verifier';
-import { Auth, AuthCore } from '../../model/auth';
+import { AuthCore } from '../../model/auth';
 import { _window } from '../auth_window';
 import { Parameters, Recaptcha } from './recaptcha';
 import {
@@ -44,7 +43,6 @@ export const RECAPTCHA_VERIFIER_TYPE = 'recaptcha';
 export class RecaptchaVerifier
   implements externs.RecaptchaVerifier, ApplicationVerifier {
   readonly type = RECAPTCHA_VERIFIER_TYPE;
-  private readonly auth: AuthCore;
   private readonly appName: string;
   private destroyed = false;
   private widgetId: number | null = null;
@@ -61,11 +59,15 @@ export class RecaptchaVerifier
     private readonly parameters: Parameters = {
       ...DEFAULT_PARAMS
     },
-    auth?: externs.Auth | null
+    private readonly auth: AuthCore
   ) {
-    this.auth = auth || initializeAuth();
     this.appName = this.auth.name;
     this.isInvisible = this.parameters.size === 'invisible';
+    assert(
+      typeof document !== 'undefined',
+      this.appName,
+      AuthErrorCode.OPERATION_NOT_SUPPORTED
+    );
     const container =
       typeof containerOrId === 'string'
         ? document.getElementById(containerOrId)
@@ -155,7 +157,6 @@ export class RecaptchaVerifier
       this.appName,
       AuthErrorCode.ARGUMENT_ERROR
     );
-    assert(document, this.appName, AuthErrorCode.OPERATION_NOT_SUPPORTED);
     assert(
       this.isInvisible || !this.container.hasChildNodes(),
       this.appName,

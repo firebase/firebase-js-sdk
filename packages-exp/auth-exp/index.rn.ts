@@ -22,11 +22,18 @@
  * just use index.ts
  */
 
-import { getReactNativePersistence } from './src/core/persistence/react_native';
 import { AsyncStorage } from 'react-native';
+import { _initializeAuthForClientPlatform } from './src/core/auth/auth_impl';
+import { getReactNativePersistence } from './src/core/persistence/react_native';
+import { ClientPlatform } from './src/core/util/version';
 
-export * from './index';
+// Core functionality shared by all clients
+export * from './src';
 
 export const reactNativeLocalPersistence = getReactNativePersistence(
   AsyncStorage
+);
+
+export const initializeAuth = _initializeAuthForClientPlatform(
+  ClientPlatform.REACT_NATIVE
 );
