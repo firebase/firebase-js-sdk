@@ -18,7 +18,9 @@
 export function getTestModuleDtsFilePath(): string {
   return `${__dirname}/test-inputs/dist/index.d.ts`;
 }
-
-export function getJSbundlePath(): string {
+export function getSubsetExportsBundleFilePath(): string {
+  return `${__dirname}/test-inputs/dist/subsetExportsBundle.js`;
+}
+export function getAssortedImportsJsFilePath(): string {
   return `${__dirname}/test-inputs/dist/assortedImports.js`;
 }

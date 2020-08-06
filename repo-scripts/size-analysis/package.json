@@ -12,7 +12,7 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "pretest": "tsc -p test/test-inputs",
+    "pretest": "tsc -p test/test-inputs && rollup -c",
     "test": "yarn type-check && TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha **/*.test.ts --config ../../config/mocharc.node.js",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
     "type-check": "tsc -p . --noEmit"

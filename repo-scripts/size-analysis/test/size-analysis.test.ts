@@ -27,14 +27,19 @@ import {
   ErrorCode,
   writeReportToDirectory,
   External,
-  extractExternalDependencies
+  extractExternalDependencies,
+  buildMap
 } from '../analysis-helper';
 
-import { getTestModuleDtsFilePath, getJSbundlePath } from './utils';
+import {
+  getTestModuleDtsFilePath,
+  getAssortedImportsJsFilePath,
+  getSubsetExportsBundleFilePath
+} from './utils';
 import * as fs from 'fs';
 import { resolve } from 'path';
 
-describe('extractDeclarations', () => {
+describe('extractDeclarations on .d.ts file', () => {
   let testModuleDtsFile: string;
   let extractedDeclarations: MemberList;
   before(() => {
@@ -187,6 +192,54 @@ describe('extractDeclarations', () => {
     expect(extractedDeclarations.variables).to.include.members(['fs1']);
     expect(extractedDeclarations.variables).to.not.include.members(['tmp']);
     expect(extractedDeclarations.variables).to.include.members(['aVar']);
+  });
+});
+describe('extractDeclarations on js bundle file', () => {
+  let subsetExportsBundleFile: string;
+  let extractedDeclarations: MemberList;
+  before(() => {
+    const testModuleDtsFile: string = getTestModuleDtsFilePath();
+    const map: Map<string, string> = buildMap(
+      extractDeclarations(testModuleDtsFile)
+    );
+    subsetExportsBundleFile = getSubsetExportsBundleFilePath();
+    extractedDeclarations = extractDeclarations(subsetExportsBundleFile, map);
+  });
+  it('test variable extractions', () => {
+    const variablesArray = ['aVar', 'fs1'];
+    variablesArray.sort();
+    expect(extractedDeclarations.variables).to.have.members(variablesArray);
+  });
+
+  it('test functions extractions', () => {
+    const functionsArray = [
+      'tar',
+      'tarr1',
+      'basicFuncExportEnumDependencies',
+      'd1',
+      'd2',
+      'd3',
+      'basicFuncExportFuncDependenciesBar'
+    ];
+    functionsArray.sort();
+    expect(extractedDeclarations.functions).to.have.members(functionsArray);
+  });
+
+  it('test enums extractions', () => {
+    const enumsArray = [
+      'BasicEnumExport',
+      'LogLevel2',
+      'BasicEnumExportBar',
+      'BasicEnumExportFar'
+    ];
+    enumsArray.sort();
+    expect(extractedDeclarations.enums).to.have.members(enumsArray);
+  });
+
+  it('test classes extractions', () => {
+    const classesArray = ['Logger1'];
+    classesArray.sort();
+    expect(extractedDeclarations.classes).to.have.members(classesArray);
   });
 });
 
@@ -403,7 +456,7 @@ describe('test writeReportToDirectory helper function', () => {
 
 describe('test extractExternalDependencies helper function', () => {
   it('should correctly extract all symbols listed in import statements', () => {
-    const assortedImports: string = getJSbundlePath();
+    const assortedImports: string = getAssortedImportsJsFilePath();
     const externals: External[] = extractExternalDependencies(assortedImports);
     const barFilter: External[] = externals.filter(
       each => each.moduleName.localeCompare("'./bar'") === 0
@@ -424,5 +477,11 @@ describe('test extractExternalDependencies helper function', () => {
     );
     expect(fsFilter.length).to.equal(1);
     expect(fsFilter[0].symbols).to.have.members(['*']); // namespace export
+
+    const defaultExportFilter: External[] = externals.filter(
+      each => each.moduleName.localeCompare("'@firebase/app'") === 0
+    );
+    expect(defaultExportFilter.length).to.equal(1);
+    expect(defaultExportFilter[0].symbols).to.have.members(['default export']); // default export
   });
 });

@@ -15,18 +15,12 @@
  * limitations under the License.
  */
 
-import '@firebase/logger';
-import * as fs from 'fs';
-import {
-  basicFuncExportEnumDependenciesBar,
-  basicFuncExternalDependenciesBar
-} from './bar';
-import { BasicClassExportBar as BasicClassExportBarRenamed } from './bar';
-import defaultExport from '@firebase/app';
-console.log(
-  fs,
-  basicFuncExportEnumDependenciesBar,
-  basicFuncExternalDependenciesBar,
-  BasicClassExportBarRenamed,
-  defaultExport
-);
+export {
+  aVar,
+  LogLevel2,
+  Logger1,
+  tarr1,
+  fs1,
+  basicFuncExportEnumDependencies,
+  basicFuncExportFuncDependenciesBar
+} from './index';
