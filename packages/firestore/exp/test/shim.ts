@@ -46,6 +46,7 @@ import {
   increment,
   initializeFirestore,
   loadBundle,
+  namedQuery,
   onSnapshot,
   onSnapshotsInSync,
   parent,
@@ -171,6 +172,12 @@ export class FirebaseFirestore implements legacy.FirebaseFirestore {
     bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
   ): legacy.LoadBundleTask {
     return loadBundle(this._delegate, bundleData)!;
+  }
+
+  async namedQuery(name: string): Promise<legacy.Query | null> {
+    return namedQuery(this._delegate, name).then(query => {
+      return query ? new Query(this, query) : null;
+    });
   }
 
   INTERNAL = {

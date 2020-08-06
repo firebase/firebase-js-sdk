@@ -975,6 +975,14 @@ export function toTarget(
 
   if (targetData.resumeToken.approximateByteSize() > 0) {
     result.resumeToken = toBytes(serializer, targetData.resumeToken);
+  } else if (targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0) {
+    // TODO(wuandy): Consider removing above check because it is most likely true.
+    // Right now, many tests depend on this behaviour though (leaving min() out
+    // of serialization).
+    result.readTime = toTimestamp(
+      serializer,
+      targetData.snapshotVersion.toTimestamp()
+    );
   }
 
   return result;

@@ -51,6 +51,7 @@ import {
   indexedDbClearPersistence
 } from '../../../src/local/indexeddb_persistence';
 import { LoadBundleTask } from '../../../src/api/bundle';
+import { Query } from '../../../lite';
 
 /**
  * The root reference to the Firestore database and the entry point for the
@@ -309,4 +310,18 @@ export function loadBundle(
   });
 
   return resultTask;
+}
+
+export async function namedQuery(
+  firestore: firestore.FirebaseFirestore,
+  name: string
+): Promise<firestore.Query | null> {
+  const firestoreImpl = cast(firestore, Firestore);
+  const client = await firestoreImpl._getFirestoreClient();
+  const namedQuery = await client.getNamedQuery(name);
+  if (!namedQuery) {
+    return null;
+  }
+
+  return new Query(firestoreImpl, null, namedQuery.query);
 }

@@ -345,7 +345,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     query?: QueryTarget;
     documents?: DocumentsTarget;
     resumeToken?: string | Uint8Array;
-    readTime?: string;
+    readTime?: Timestamp;
     targetId?: number;
     once?: boolean;
   }

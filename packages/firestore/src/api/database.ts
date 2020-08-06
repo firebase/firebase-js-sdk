@@ -504,6 +504,16 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return resultTask;
   }
 
+  async namedQuery(name: string): Promise<firestore.Query | null> {
+    this.ensureClientConfigured();
+    const namedQuery = await this._firestoreClient!.getNamedQuery(name);
+    if (!namedQuery) {
+      return null;
+    }
+
+    return new Query(namedQuery.query, this, null);
+  }
+
   ensureClientConfigured(): FirestoreClient {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.

@@ -30,7 +30,7 @@ export interface BundledQuery {
 }
 
 /** LimitType enum. */
-type LimitType = 'FIRST' | 'LAST';
+export type LimitType = 'FIRST' | 'LAST';
 
 /** Properties of a NamedQuery. */
 export interface NamedQuery {

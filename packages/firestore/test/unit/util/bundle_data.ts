@@ -15,18 +15,28 @@
  * limitations under the License.
  */
 import {
-  BundledQuery,
-  BundleElement
+  BundleElement,
+  LimitType as BundleLimitType
 } from '../../../src/protos/firestore_bundle_proto';
 import { DatabaseId } from '../../../src/core/database_info';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { Value } from '../../../src/protos/firestore_proto_api';
-import { JsonProtoSerializer, toName } from '../../../src/remote/serializer';
+import {
+  JsonProtoSerializer,
+  toName,
+  toQueryTarget
+} from '../../../src/remote/serializer';
 import { DocumentKey } from '../../../src/model/document_key';
 import {
   newSerializer,
   newTextEncoder
 } from '../../../src/platform/serializer';
+import {
+  LimitType,
+  Query,
+  queryToTarget,
+  queryWithLimit
+} from '../../../src/core/query';
 
 export const encoder = newTextEncoder();
 
@@ -73,14 +83,34 @@ export class TestBundleBuilder {
     });
     return this;
   }
+
   addNamedQuery(
     name: string,
     readTime: api.Timestamp,
-    bundledQuery: BundledQuery
+    query: Query
   ): TestBundleBuilder {
-    this.elements.push({ namedQuery: { name, readTime, bundledQuery } });
+    let bundledLimitType: BundleLimitType | undefined = !!query.limit
+      ? 'FIRST'
+      : undefined;
+    if (query.limitType === LimitType.Last) {
+      query = queryWithLimit(query, query.limit!, LimitType.First);
+      bundledLimitType = 'LAST';
+    }
+    const queryTarget = toQueryTarget(this.serializer, queryToTarget(query));
+    this.elements.push({
+      namedQuery: {
+        name,
+        readTime,
+        bundledQuery: {
+          parent: queryTarget.parent,
+          structuredQuery: queryTarget.structuredQuery,
+          limitType: bundledLimitType
+        }
+      }
+    });
     return this;
   }
+
   getMetadataElement(
     id: string,
     createTime: api.Timestamp,

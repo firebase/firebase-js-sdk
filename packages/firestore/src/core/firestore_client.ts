@@ -17,7 +17,7 @@
 
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
-import { LocalStore } from '../local/local_store';
+import { getNamedQuery, LocalStore } from '../local/local_store';
 import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -50,6 +50,7 @@ import { BundleReader } from '../util/bundle_reader';
 import { LoadBundleTask } from '../api/bundle';
 import { newTextEncoder } from '../platform/serializer';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
+import { NamedQuery } from './bundle';
 
 const LOG_TAG = 'FirestoreClient';
 const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -532,5 +533,10 @@ export class FirestoreClient {
         logWarn(LOG_TAG, `Loading bundle failed with ${e}`);
       });
     });
+  }
+
+  getNamedQuery(queryName: string): Promise<NamedQuery | undefined> {
+    this.verifyNotTerminated();
+    return getNamedQuery(this.localStore, queryName);
   }
 }

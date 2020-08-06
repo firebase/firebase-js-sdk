@@ -43,10 +43,7 @@ export class MemoryBundleCache implements BundleCache {
     transaction: PersistenceTransaction,
     bundleMetadata: bundleProto.BundleMetadata
   ): PersistencePromise<void> {
-    this.bundles.set(
-      bundleMetadata.id!,
-      fromBundleMetadata(this.serializer, bundleMetadata)
-    );
+    this.bundles.set(bundleMetadata.id!, fromBundleMetadata(bundleMetadata));
     return PersistencePromise.resolve();
   }
 
@@ -61,10 +58,7 @@ export class MemoryBundleCache implements BundleCache {
     transaction: PersistenceTransaction,
     query: bundleProto.NamedQuery
   ): PersistencePromise<void> {
-    this.namedQueries.set(
-      query.name!,
-      fromProtoNamedQuery(this.serializer, query)
-    );
+    this.namedQueries.set(query.name!, fromProtoNamedQuery(query));
     return PersistencePromise.resolve();
   }
 }
