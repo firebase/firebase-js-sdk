@@ -372,36 +372,40 @@ export function _castAuth(auth: externs.Auth): Auth {
   return (auth as unknown) as Auth;
 }
 
-export function initializeAuth(
-  app: FirebaseApp = getApp(),
-  deps?: Dependencies
-): externs.Auth {
-  const persistence = deps?.persistence || [];
-  const hierarchy = (Array.isArray(persistence)
-    ? persistence
-    : [persistence]
-  ).map<Persistence>(_getInstance);
-  const { apiKey, authDomain } = app.options;
+export function _initializeAuthForClientPlatform(
+  clientPlatform: ClientPlatform
+) {
+  return function (
+    app: FirebaseApp = getApp(),
+    deps?: Dependencies
+  ): externs.Auth {
+    const persistence = deps?.persistence || [];
+    const hierarchy = (Array.isArray(persistence)
+      ? persistence
+      : [persistence]
+    ).map<Persistence>(_getInstance);
+    const { apiKey, authDomain } = app.options;
 
-  // TODO: platform needs to be determined using heuristics
-  assert(apiKey, app.name, AuthErrorCode.INVALID_API_KEY);
-  const config: externs.Config = {
-    apiKey,
-    authDomain,
-    apiHost: DEFAULT_API_HOST,
-    tokenApiHost: DEFAULT_TOKEN_API_HOST,
-    apiScheme: DEFAULT_API_SCHEME,
-    sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
+    // TODO: platform needs to be determined using heuristics
+    assert(apiKey, app.name, AuthErrorCode.INVALID_API_KEY);
+    const config: externs.Config = {
+      apiKey,
+      authDomain,
+      apiHost: DEFAULT_API_HOST,
+      tokenApiHost: DEFAULT_TOKEN_API_HOST,
+      apiScheme: DEFAULT_API_SCHEME,
+      sdkClientVersion: _getClientVersion(clientPlatform)
+    };
+
+    const auth = new AuthImpl(app.name, config);
+
+    // This promise is intended to float; auth initialization happens in the
+    // background, meanwhile the auth object may be used by the app.
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    auth._initializeWithPersistence(hierarchy, deps?.popupRedirectResolver);
+
+    return auth;
   };
-
-  const auth = new AuthImpl(app.name, config);
-
-  // This promise is intended to float; auth initialization happens in the
-  // background, meanwhile the auth object may be used by the app.
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  auth._initializeWithPersistence(hierarchy, deps?.popupRedirectResolver);
-
-  return auth;
 }
 
 /** Helper class to wrap subscriber logic */

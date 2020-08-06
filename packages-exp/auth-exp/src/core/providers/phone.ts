@@ -23,7 +23,6 @@ import { SignInWithPhoneNumberResponse } from '../../api/authentication/sms';
 import { ApplicationVerifier } from '../../model/application_verifier';
 import { AuthCore } from '../../model/auth';
 import { UserCredential } from '../../model/user';
-import { initializeAuth } from '../auth/auth_impl';
 import { PhoneAuthCredential } from '../credentials/phone';
 import { AuthErrorCode } from '../errors';
 import { _verifyPhoneNumber } from '../strategies/phone';
@@ -33,12 +32,9 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
   static readonly PROVIDER_ID = externs.ProviderId.PHONE;
   static readonly PHONE_SIGN_IN_METHOD = externs.SignInMethod.PHONE;
 
-  private readonly auth: AuthCore;
   readonly providerId = PhoneAuthProvider.PROVIDER_ID;
 
-  constructor(auth?: externs.Auth | null) {
-    this.auth = auth || initializeAuth();
-  }
+  constructor(private readonly auth: AuthCore) {}
 
   verifyPhoneNumber(
     phoneOptions: externs.PhoneInfoOptions | string,

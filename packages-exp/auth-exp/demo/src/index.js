@@ -140,9 +140,7 @@ function refreshUserData() {
       ) {
         photoURL = photoURL + '?sz=' + $('img.profile-image').height();
       }
-      $('img.profile-image')
-        .attr('src', photoURL)
-        .show();
+      $('img.profile-image').attr('src', photoURL).show();
     } else {
       $('img.profile-image').hide();
     }
@@ -215,10 +213,7 @@ function showMultiFactorStatus(activeUser) {
   const enrolledFactors = (mfaUser && mfaUser.enrolledFactors) || [];
   const $listGroup = $('#user-info .dropdown-menu.enrolled-second-factors');
   // Hide the drop down menu initially.
-  $listGroup
-    .empty()
-    .parent()
-    .hide();
+  $listGroup.empty().parent().hide();
   if (enrolledFactors.length) {
     // If enrolled factors are available, show the drop down menu.
     $listGroup.parent().show();
@@ -233,7 +228,7 @@ function showMultiFactorStatus(activeUser) {
         e.stopPropagation();
       },
       // On delete click unenroll the selected factor.
-      function(e) {
+      function (e) {
         e.preventDefault();
         // Get the corresponding second factor index.
         const index = parseInt($(this).attr('data-index'), 10);
@@ -903,7 +898,7 @@ function onSendEmailVerification() {
  */
 function onApplyActionCode() {
   var code = $('#email-verification-code').val();
-  applyActionCode(auth, code).then(function() {
+  applyActionCode(auth, code).then(function () {
     alertSuccess('Email successfully verified!');
     refreshUserData();
   }, onAuthError);
@@ -1003,7 +998,7 @@ function handleMultiFactorSignIn(resolver) {
     multiFactorErrorResolver.hints,
     // On row click, select the corresponding second factor to complete
     // sign-in with.
-    function(e) {
+    function (e) {
       e.preventDefault();
       // Remove all other active entries.
       $listGroup.find('a').removeClass('active');
@@ -1177,13 +1172,11 @@ function onPopupRedirectAddCustomParam(_event) {
   // Create jQuery node.
   const $node = $(html);
   // Add button click event listener to remove item.
-  $node.find('button').on('click', function(e) {
+  $node.find('button').on('click', function (e) {
     // Remove button click event listener.
     $(this).off('click');
     // Get row container and remove it.
-    $(this)
-      .closest('form.customParamItem')
-      .remove();
+    $(this).closest('form.customParamItem').remove();
     e.preventDefault();
   });
   // Append constructed row to parameter list container.
@@ -1272,15 +1265,11 @@ function signInWithPopupRedirect(provider) {
   // Get custom OAuth parameters.
   const customParameters = {};
   // For each entry.
-  $('form.customParamItem').each(function(_index) {
+  $('form.customParamItem').each(function (_index) {
     // Get parameter key.
-    const key = $(this)
-      .find('input.customParamKey')
-      .val();
+    const key = $(this).find('input.customParamKey').val();
     // Get parameter value.
-    const value = $(this)
-      .find('input.customParamValue')
-      .val();
+    const value = $(this).find('input.customParamValue').val();
     // Save to list if valid.
     if (key && value) {
       customParameters[key] = value;
@@ -1335,7 +1324,7 @@ function onAuthUserCredentialSuccess(result) {
  * Displays redirect result.
  */
 function onGetRedirectResult() {
-  getRedirectResult(auth, browserPopupRedirectResolver).then(function(
+  getRedirectResult(auth, browserPopupRedirectResolver).then(function (
     response
   ) {
     log('Redirect results:');
@@ -1731,15 +1720,13 @@ function initApp() {
   function initRecaptchaToggle(callback) {
     // Listen to recaptcha config togglers.
     const $recaptchaConfigTogglers = $('.toggleRecaptcha');
-    $recaptchaConfigTogglers.click(function(e) {
+    $recaptchaConfigTogglers.click(function (e) {
       // Remove currently active option.
       $recaptchaConfigTogglers.removeClass('active');
       // Set currently selected option.
       $(this).addClass('active');
       // Get the current reCAPTCHA setting label.
-      const size = $(e.target)
-        .text()
-        .toLowerCase();
+      const size = $(e.target).text().toLowerCase();
       callback(size);
     });
   }
@@ -1764,7 +1751,7 @@ function initApp() {
      * Handles the incoming message from the web worker.
      * @param {!Object} e The message event received.
      */
-    webWorker.onmessage = function(e) {
+    webWorker.onmessage = function (e) {
       console.log('User data passed through web worker: ', e.data);
       switch (e.data.type) {
         case 'GET_USER_INFO':
@@ -1800,7 +1787,7 @@ function initApp() {
   }
 
   // We check for redirect result to refresh user's data.
-  getRedirectResult(auth, browserPopupRedirectResolver).then(function(
+  getRedirectResult(auth, browserPopupRedirectResolver).then(function (
     response
   ) {
     refreshUserData();

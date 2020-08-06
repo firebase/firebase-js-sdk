@@ -16,7 +16,6 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { FinalizeMfaResponse } from '../api/authentication/mfa';
 import { UserCredential } from '../model/user';
 import { AuthErrorCode } from '../core/errors';
 import { UserCredentialImpl } from '../core/user/user_credential_impl';

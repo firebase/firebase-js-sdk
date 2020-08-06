@@ -129,11 +129,9 @@ describe('core/mfa/phone/PhoneMultiFactorAssertion', () => {
 
 describe('core/mfa/phone/PhoneMultiFactorGenerator', () => {
   describe('.assertion', () => {
-    let auth: TestAuth;
     let credential: PhoneAuthCredential;
 
     beforeEach(async () => {
-      auth = await testAuth();
       credential = PhoneAuthProvider.credential(
         'verification-id',
         'verification-code'

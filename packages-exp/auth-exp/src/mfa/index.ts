@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,6 @@
  * limitations under the License.
  */
 
-import { _initializeAuthForClientPlatform } from './src/core/auth/auth_impl';
-import { ClientPlatform } from './src/core/util/version';
-
-// Core functionality shared by all clients
-export * from './src';
-
-export const initializeAuth = _initializeAuthForClientPlatform(
-  ClientPlatform.WORKER
-);
+export { PhoneMultiFactorGenerator } from './assertions/phone';
+export { getMultiFactorResolver } from './mfa_resolver';
+export { multiFactor } from './mfa_user';

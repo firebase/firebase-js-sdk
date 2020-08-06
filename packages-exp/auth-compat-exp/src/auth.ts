@@ -26,7 +26,7 @@ import {
   convertConfirmationResult,
   convertCredential
 } from './user_credential';
-import { _isPopupRedirectSupported } from './platform';
+import { _isPopupRedirectSupported, _getClientPlatform } from './platform';
 
 export class Auth extends impl.AuthImplCompat<User>
   implements compat.FirebaseAuth {
@@ -48,7 +48,7 @@ export class Auth extends impl.AuthImplCompat<User>
       apiHost: impl.DEFAULT_API_HOST,
       tokenApiHost: impl.DEFAULT_TOKEN_API_HOST,
       apiScheme: impl.DEFAULT_API_SCHEME,
-      sdkClientVersion: impl._getClientVersion(impl.ClientPlatform.BROWSER)
+      sdkClientVersion: impl._getClientVersion(_getClientPlatform())
     };
 
     super(app.name, config, User);
