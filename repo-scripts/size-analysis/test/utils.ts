@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
-import { projectRoot } from '../../scripts/utils';
+export function getTestModuleDtsFilePath(): string {
+  return `${__dirname}/test-inputs/dist/index.d.ts`;
+}
 
-export function retrieveTestModuleDtsFile(): string {
-  return `${projectRoot}/repo-scripts/size-analysis/test-inputs-dts-files/index.d.ts`;
+export function getJSbundlePath(): string {
+  return `${__dirname}/test-inputs/dist/assortedImports.js`;
 }

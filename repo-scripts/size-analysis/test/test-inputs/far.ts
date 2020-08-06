@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { name } from '../package.json';
 import { LogLevel } from '@firebase/logger';
 
 export let basicVarDeclarationExportFar: string;

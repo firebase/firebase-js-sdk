@@ -14,8 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { LogLevel } from '@firebase/logger';
-import { license } from '../package.json';
+import { LogLevel as LogLevel1, Logger, setLogLevel } from '@firebase/logger';
+import * as fs from 'fs';
+export { fs as fs1 };
+import * as tmp from 'tmp';
+export const aVar: tmp.FileOptions = {};
 // wildcard export
 export * from './bar';
 // named export
@@ -34,7 +37,7 @@ export {
 } from './far';
 export let basicVarDeclarationExport: string;
 export const basicVarStatementExport = 'basicVarStatementExport';
-export const reExportVarStatmentExport = license;
+export const reExportVarStatmentExport = LogLevel1;
 
 export enum BasicEnumExport {
   DEBUG = 0,
@@ -71,8 +74,8 @@ export function basicFuncExportEnumDependencies(): BasicEnumExport {
   return BasicEnumExport.DEBUG;
 }
 
-export function basicFuncExternalDependencies(): LogLevel {
-  return LogLevel.WARN;
+export function basicFuncExternalDependencies(): LogLevel1 {
+  return LogLevel1.WARN;
 }
 
 export function basicUniqueFunc(
@@ -105,6 +108,12 @@ function foo(x: string): string {
 }
 export { foo as foo2 };
 
+export {};
+
 export { tar as tarr, tar1 as tarr1 } from './tar';
 // re-export from firebase external module
-export { LogLevel } from '@firebase/logger';
+export { LogLevel1 as LogLevel2 };
+
+export { Logger as Logger1 };
+
+export { setLogLevel };

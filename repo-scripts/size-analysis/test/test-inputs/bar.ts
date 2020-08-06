@@ -14,12 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { version } from '../package.json';
 import { LogLevel } from '@firebase/logger';
 
 export let basicVarDeclarationExportBar: string;
 export const basicVarStatementExportBar = 'basicVarStatementExportBar';
-export const reExportVarStatmentExportBar = version;
+export const reExportVarStatmentExportBar = LogLevel;
 
 export enum BasicEnumExportBar {
   DEBUG = 0,
