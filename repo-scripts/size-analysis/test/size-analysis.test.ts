@@ -28,9 +28,9 @@ import {
   writeReportToDirectory,
   External,
   extractExternalDependencies
-} from './analysis-helper';
+} from '../analysis-helper';
 
-import { retrieveTestModuleDtsFile } from './test-utils';
+import { getTestModuleDtsFilePath, getJSbundlePath } from './utils';
 import * as fs from 'fs';
 import { resolve } from 'path';
 
@@ -38,7 +38,7 @@ describe('extractDeclarations', () => {
   let testModuleDtsFile: string;
   let extractedDeclarations: MemberList;
   before(() => {
-    testModuleDtsFile = retrieveTestModuleDtsFile();
+    testModuleDtsFile = getTestModuleDtsFilePath();
     extractedDeclarations = extractDeclarations(testModuleDtsFile);
   });
   // export {tar as tarr, tar1 as tarr1} from '..'
@@ -403,7 +403,7 @@ describe('test writeReportToDirectory helper function', () => {
 
 describe('test extractExternalDependencies helper function', () => {
   it('should correctly extract all symbols listed in import statements', () => {
-    const assortedImports: string = resolve('./test-inputs/assortedImports.js');
+    const assortedImports: string = getJSbundlePath();
     const externals: External[] = extractExternalDependencies(assortedImports);
     const barFilter: External[] = externals.filter(
       each => each.moduleName.localeCompare("'./bar'") === 0
@@ -424,10 +424,5 @@ describe('test extractExternalDependencies helper function', () => {
     );
     expect(fsFilter.length).to.equal(1);
     expect(fsFilter[0].symbols).to.have.members(['*']); // namespace export
-    const pkgJsonFilter: External[] = externals.filter(
-      each => each.moduleName.localeCompare("'../package.json'") === 0
-    );
-    expect(pkgJsonFilter.length).to.equal(1);
-    expect(pkgJsonFilter[0].symbols).to.have.members(['version']);
   });
 });
