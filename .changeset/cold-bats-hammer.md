@@ -1,5 +1,5 @@
 ---
-'@firebase/rules-unit-testing': minor
+'@firebase/rules-unit-testing': major
 ---
 
 Release `@firebase/rules-unit-testing` to replace the `@firebase/testing` package. The new
