@@ -20,7 +20,7 @@ import { querystring } from '@firebase/util';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
 import { Delay } from '../../core/util/delay';
 import { Auth, AuthCore } from '../../model/auth';
-import { AUTH_WINDOW } from '../auth_window';
+import { _window } from '../auth_window';
 import * as jsHelpers from '../load_js';
 import { Recaptcha } from './recaptcha';
 import { MockReCaptcha } from './recaptcha_mock';
@@ -42,14 +42,14 @@ export interface ReCaptchaLoader {
 export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
   private hostLanguage = '';
   private counter = 0;
-  private readonly librarySeparatelyLoaded = !!AUTH_WINDOW.grecaptcha;
+  private readonly librarySeparatelyLoaded = !!_window().grecaptcha;
 
   load(auth: AuthCore, hl = ''): Promise<Recaptcha> {
     if (this.shouldResolveImmediately(hl)) {
-      return Promise.resolve(AUTH_WINDOW.grecaptcha!);
+      return Promise.resolve(_window().grecaptcha!);
     }
     return new Promise<Recaptcha>((resolve, reject) => {
-      const networkTimeout = AUTH_WINDOW.setTimeout(() => {
+      const networkTimeout = _window().setTimeout(() => {
         reject(
           AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
             appName: auth.name
@@ -57,11 +57,11 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
         );
       }, NETWORK_TIMEOUT_DELAY.get());
 
-      AUTH_WINDOW[_JSLOAD_CALLBACK] = () => {
-        AUTH_WINDOW.clearTimeout(networkTimeout);
-        delete AUTH_WINDOW[_JSLOAD_CALLBACK];
+      _window()[_JSLOAD_CALLBACK] = () => {
+        _window().clearTimeout(networkTimeout);
+        delete _window()[_JSLOAD_CALLBACK];
 
-        const recaptcha = AUTH_WINDOW.grecaptcha;
+        const recaptcha = _window().grecaptcha;
 
         if (!recaptcha) {
           reject(
@@ -115,7 +115,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
     // In cases (2) and (3), we _can't_ reload as it would break the recaptchas
     // that are already in the page
     return (
-      !!AUTH_WINDOW.grecaptcha &&
+      !!_window().grecaptcha &&
       (hl === this.hostLanguage ||
         this.counter > 0 ||
         this.librarySeparatelyLoaded)

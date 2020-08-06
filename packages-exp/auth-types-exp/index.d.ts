@@ -356,7 +356,6 @@ export interface MultiFactorInfo {
  * https://firebase.google.com/docs/reference/js/firebase.auth.multifactorresolver
  */
 export abstract class MultiFactorResolver {
-  auth: Auth;
   hints: MultiFactorInfo[];
   session: MultiFactorSession;
   resolveSignIn(assertion: MultiFactorAssertion): Promise<UserCredential>;

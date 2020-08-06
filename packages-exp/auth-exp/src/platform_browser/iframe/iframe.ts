@@ -21,7 +21,7 @@ import { querystring } from '@firebase/util';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
 import { Delay } from '../../core/util/delay';
 import { AuthCore } from '../../model/auth';
-import { AUTH_WINDOW } from '../auth_window';
+import { _window } from '../auth_window';
 import * as gapiLoader from './gapi';
 
 const PING_TIMEOUT = new Delay(5000, 15000);
@@ -56,8 +56,7 @@ export async function _openIframe(
     {
       where: document.body,
       url: getIframeUrl(auth),
-      messageHandlersFilter:
-        AUTH_WINDOW.gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER,
+      messageHandlersFilter: _window().gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER,
       attributes: IFRAME_ATTRIBUTES,
       dontclear: true
     },
@@ -76,12 +75,12 @@ export async function _openIframe(
         );
         // Confirm iframe is correctly loaded.
         // To fallback on failure, set a timeout.
-        const networkErrorTimer = AUTH_WINDOW.setTimeout(() => {
+        const networkErrorTimer = _window().setTimeout(() => {
           reject(networkError);
         }, PING_TIMEOUT.get());
         // Clear timer and resolve pending iframe ready promise.
         function clearTimerAndResolve(): void {
-          AUTH_WINDOW.clearTimeout(networkErrorTimer);
+          _window().clearTimeout(networkErrorTimer);
           resolve(iframe);
         }
         // This returns an IThenable. However the reject part does not call

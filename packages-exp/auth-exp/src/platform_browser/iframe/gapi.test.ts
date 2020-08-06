@@ -23,7 +23,7 @@ import * as sinonChai from 'sinon-chai';
 import { FirebaseError } from '@firebase/util';
 
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
-import { AUTH_WINDOW } from '../auth_window';
+import { _window } from '../auth_window';
 import * as js from '../load_js';
 import { _loadGapi, _resetLoader } from './gapi';
 
@@ -34,8 +34,8 @@ describe('src/platform_browser/iframe/gapi', () => {
   let library: typeof gapi;
   let auth: TestAuth;
   function onJsLoad(globalLoadFnName: string): void {
-    AUTH_WINDOW.gapi = library as typeof gapi;
-    AUTH_WINDOW[globalLoadFnName]();
+    _window().gapi = library as typeof gapi;
+    _window()[globalLoadFnName]();
   }
 
   beforeEach(async () => {
@@ -63,7 +63,7 @@ describe('src/platform_browser/iframe/gapi', () => {
 
   afterEach(() => {
     sinon.restore();
-    delete AUTH_WINDOW.gapi;
+    delete _window().gapi;
     _resetLoader();
   });
 
@@ -76,7 +76,7 @@ describe('src/platform_browser/iframe/gapi', () => {
   });
 
   it('resets the gapi.load state', async () => {
-    AUTH_WINDOW.___jsl = {
+    _window().___jsl = {
       H: {
         something: {
           r: ['requested'],
@@ -91,13 +91,13 @@ describe('src/platform_browser/iframe/gapi', () => {
     await _loadGapi(auth);
 
     // Expect deep equality, but *not* pointer equality
-    expect(AUTH_WINDOW.___jsl.H.something.r).to.eql(
-      AUTH_WINDOW.___jsl.H.something.L
+    expect(_window().___jsl!.H.something.r).to.eql(
+      _window().___jsl!.H.something.L
     );
-    expect(AUTH_WINDOW.___jsl.H.something.r).not.to.eq(
-      AUTH_WINDOW.___jsl.H.something.L
+    expect(_window().___jsl!.H.something.r).not.to.eq(
+      _window().___jsl!.H.something.L
     );
-    expect(AUTH_WINDOW.___jsl.CP).to.eql([null, null, null, null]);
+    expect(_window().___jsl!.CP).to.eql([null, null, null, null]);
   });
 
   it('returns the cached object without reloading', async () => {
