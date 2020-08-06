@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+/**
+ * This interface is intended only for use by @firebase/auth-compat-exp, do not use directly
+ */
 export * from '../index';
 
 import { assert } from '../src/core/util/assert';

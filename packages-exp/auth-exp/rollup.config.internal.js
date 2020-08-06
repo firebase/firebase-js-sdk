@@ -27,18 +27,14 @@ const util = require('./rollup.shared');
 
 const nodePlugins = [
   typescriptPlugin({
-    typescript,
-    clean: true,
-    abortOnError: false
+    typescript
   }),
   json()
 ];
 
 const browserPlugins = [
   typescriptPlugin({
-    typescript,
-    clean: true,
-    abortOnError: false
+    typescript
   }),
   json()
 ];

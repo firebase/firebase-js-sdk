@@ -27,10 +27,6 @@ const plugins = [
   resolveModule(),
   typescriptPlugin({
     typescript,
-    compilerOptions: {
-      allowJs: true,
-      target: 'es5'
-    },
     include: ['../**/*.ts']
   }),
   json(),
