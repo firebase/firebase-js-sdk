@@ -52,7 +52,7 @@ export interface MemberList {
 }
 /** Contains the dependencies and the size of their code for a single export. */
 export interface ExportData {
-  symbol: string;
+  name: string;
   classes: string[];
   functions: string[];
   variables: string[];
@@ -63,7 +63,7 @@ export interface ExportData {
 }
 
 export interface Report {
-  module: string;
+  name: string;
   symbols: ExportData[];
 }
 /**
@@ -148,7 +148,7 @@ export async function extractDependenciesAndSize(
   fs.unlinkSync(externalDepsNotResolvedOutput);
   fs.unlinkSync(externalDepsResolvedOutput);
   const exportData: ExportData = {
-    symbol: '',
+    name: '',
     classes: null,
     functions: null,
     variables: null,
@@ -157,7 +157,7 @@ export async function extractDependenciesAndSize(
     sizeInBytes: 0,
     sizeInBytesWithExternalDeps: 0
   };
-  exportData.symbol = exportName;
+  exportData.name = exportName;
   for (const key of Object.keys(dependencies)) {
     exportData[key] = dependencies[key];
   }
@@ -742,7 +742,6 @@ export function extractExternalDependencies(
     };
     externals.push(external);
   });
-
   return externals;
 }
 
@@ -804,7 +803,7 @@ function retrieveBundleFileLocation(pkgJson: string): string {
  * This function creates a map from a MemberList object which maps symbol names (key) listed
  * to its type (value)
  */
-function buildMap(api: MemberList): Map<string, string> {
+export function buildMap(api: MemberList): Map<string, string> {
   const map: Map<string, string> = new Map();
   for (const type of Object.keys(api)) {
     if (Array.isArray(api[type])) {
@@ -867,7 +866,7 @@ export async function buildJsonReport(
   map: Map<string, string>
 ): Promise<Report> {
   const result: Report = {
-    module: moduleName,
+    name: moduleName,
     symbols: []
   };
 
