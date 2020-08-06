@@ -684,8 +684,6 @@ export class IndexedDbPersistence implements Persistence {
       return this.releasePrimaryLeaseIfHeld(txn).next(() =>
         this.removeClientMetadata(txn)
       );
-    }).catch(e => {
-      logDebug(LOG_TAG, 'Proceeding with shutdown despite failure: ', e);
     });
     this.simpleDb.close();
 

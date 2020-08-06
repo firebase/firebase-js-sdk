@@ -272,32 +272,17 @@ export class AsyncQueue {
   }
 
   /**
-   * Regardless if the queue has initialized shutdown, adds a new operation to the
-   * queue.
+   * Initialize the shutdown of this queue. Once this method is called, the
+   * only possible way to request running an operation is through
+   * `enqueueAndForgetEvenAfterShutdown`.
    */
-  private enqueueEvenAfterShutdown<T extends unknown>(
-    op: () => Promise<T>
-  ): Promise<T> {
-    this.verifyNotFailed();
-    return this.enqueueInternal(op);
-  }
-
-  /**
-   * Adds a new operation to the queue and initialize the shut down of this queue.
-   * Returns a promise that will be resolved when the promise returned by the new
-   * operation is (with its value).
-   * Once this method is called, the only possible way to request running an operation
-   * is through `enqueueAndForgetEvenAfterShutdown`.
-   */
-  async enqueueAndInitiateShutdown(op: () => Promise<void>): Promise<void> {
-    this.verifyNotFailed();
+  initiateShutdown(): void {
     if (!this._isShuttingDown) {
       this._isShuttingDown = true;
       const window = getWindow();
       if (window) {
         window.removeEventListener('visibilitychange', this.visibilityHandler);
       }
-      await this.enqueueEvenAfterShutdown(op);
     }
   }
 

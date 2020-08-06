@@ -397,8 +397,8 @@ describe('AsyncQueue', () => {
 
     // After this call, only operations requested via
     // `enqueueAndForgetEvenAfterShutdown` gets executed.
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    queue.enqueueAndInitiateShutdown(() => doStep(2));
+    queue.initiateShutdown();
+    queue.enqueueAndForgetEvenAfterShutdown(() => doStep(2));
     queue.enqueueAndForget(() => doStep(3));
     queue.enqueueAndForgetEvenAfterShutdown(() => doStep(4));
 
