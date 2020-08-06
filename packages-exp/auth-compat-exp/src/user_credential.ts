@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
-import * as impl from '@firebase/auth-exp';
-import { SignInWithIdpResponse } from '@firebase/auth-exp/src/api/authentication/idp';
-import { UserCredential } from '@firebase/auth-exp/src/model/user';
+import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import * as externs from '@firebase/auth-types-exp';
 import '@firebase/installations';
 import { User } from './user';
+import { FirebaseError } from '@firebase/util';
 
 function credentialFromResponse(
-  userCredential: UserCredential
+  userCredential: impl.UserCredential
 ): externs.AuthCredential | null {
   const { providerId, _tokenResponse } = userCredential;
   if (!_tokenResponse) {
@@ -57,7 +56,7 @@ function credentialFromResponse(
         oauthTokenSecret,
         pendingToken,
         nonce
-      } = _tokenResponse as SignInWithIdpResponse;
+      } = _tokenResponse as impl.SignInWithIdpResponse;
       if (
         !oauthAccessToken &&
         !oauthTokenSecret &&
@@ -91,25 +90,35 @@ function credentialFromResponse(
 }
 
 export async function convertCredential(
+  auth: externs.Auth,
   credentialPromise: Promise<externs.UserCredential>
 ): Promise<compat.UserCredential> {
-  const credential = await credentialPromise;
+  let credential: externs.UserCredential;
+  try {
+    credential = await credentialPromise;
+  } catch (e) {
+    if (e.code === 'auth/multi-factor-auth-required') {
+      e.resolver = impl.getMultiFactorResolver(auth, e);
+    }
+    throw e;
+  }
   const { operationType, user } = await credential;
 
   return {
     operationType,
-    credential: credentialFromResponse(credential as UserCredential),
+    credential: credentialFromResponse(credential as impl.UserCredential),
     user: user as User
   };
 }
 
-export async function convertComfirmationResult(
+export async function convertConfirmationResult(
+  auth: externs.Auth,
   confirmationResultPromise: Promise<externs.ConfirmationResult>
 ): Promise<compat.ConfirmationResult> {
   const { verificationId, confirm } = await confirmationResultPromise;
   return {
     verificationId,
     confirm: (verificationCode: string) =>
-      convertCredential(confirm(verificationCode))
+      convertCredential(auth, confirm(verificationCode))
   };
 }
