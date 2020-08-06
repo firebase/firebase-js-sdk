@@ -140,9 +140,7 @@ function refreshUserData() {
       ) {
         photoURL = photoURL + '?sz=' + $('img.profile-image').height();
       }
-      $('img.profile-image')
-        .attr('src', photoURL)
-        .show();
+      $('img.profile-image').attr('src', photoURL).show();
     } else {
       $('img.profile-image').hide();
     }
@@ -215,10 +213,7 @@ function showMultiFactorStatus(activeUser) {
   const enrolledFactors = (mfaUser && mfaUser.enrolledFactors) || [];
   const $listGroup = $('#user-info .dropdown-menu.enrolled-second-factors');
   // Hide the drop down menu initially.
-  $listGroup
-    .empty()
-    .parent()
-    .hide();
+  $listGroup.empty().parent().hide();
   if (enrolledFactors.length) {
     // If enrolled factors are available, show the drop down menu.
     $listGroup.parent().show();
@@ -233,7 +228,7 @@ function showMultiFactorStatus(activeUser) {
         e.stopPropagation();
       },
       // On delete click unenroll the selected factor.
-      function(e) {
+      function (e) {
         e.preventDefault();
         // Get the corresponding second factor index.
         const index = parseInt($(this).attr('data-index'), 10);
@@ -637,10 +632,7 @@ function onFinalizeEnrollWithPhoneMultiFactor() {
     verificationId,
     verificationCode
   );
-  const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(
-    auth,
-    credential
-  );
+  const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(credential);
   const displayName = $('#enroll-mfa-phone-display-name').val() || undefined;
 
   multiFactor(activeUser())
@@ -906,7 +898,7 @@ function onSendEmailVerification() {
  */
 function onApplyActionCode() {
   var code = $('#email-verification-code').val();
-  applyActionCode(auth, code).then(function() {
+  applyActionCode(auth, code).then(function () {
     alertSuccess('Email successfully verified!');
     refreshUserData();
   }, onAuthError);
@@ -1006,7 +998,7 @@ function handleMultiFactorSignIn(resolver) {
     multiFactorErrorResolver.hints,
     // On row click, select the corresponding second factor to complete
     // sign-in with.
-    function(e) {
+    function (e) {
       e.preventDefault();
       // Remove all other active entries.
       $listGroup.find('a').removeClass('active');
@@ -1152,7 +1144,7 @@ function onFinalizeSignInWithPhoneMultiFactor(event) {
     return;
   }
   const cred = PhoneAuthProvider.credential(verificationId, code);
-  const assertion = PhoneMultiFactorGenerator.assertion(auth, cred);
+  const assertion = PhoneMultiFactorGenerator.assertion(cred);
   multiFactorErrorResolver.resolveSignIn(assertion).then(userCredential => {
     onAuthUserCredentialSuccess(userCredential);
     $('#multiFactorModal').modal('hide');
@@ -1180,13 +1172,11 @@ function onPopupRedirectAddCustomParam(_event) {
   // Create jQuery node.
   const $node = $(html);
   // Add button click event listener to remove item.
-  $node.find('button').on('click', function(e) {
+  $node.find('button').on('click', function (e) {
     // Remove button click event listener.
     $(this).off('click');
     // Get row container and remove it.
-    $(this)
-      .closest('form.customParamItem')
-      .remove();
+    $(this).closest('form.customParamItem').remove();
     e.preventDefault();
   });
   // Append constructed row to parameter list container.
@@ -1245,47 +1235,41 @@ function onPopupRedirectProviderClick(_event) {
  *     sign in.
  */
 function signInWithPopupRedirect(provider) {
-  const glob = {
-    signInWithPopup,
-    linkWithPopup,
-    reauthenticateWithPopup,
-    signInWithRedirect,
-    linkWithRedirect,
-    reauthenticateWithRedirect
-  };
   let action = $('input[name=popup-redirect-action]:checked').val();
   let type = $('input[name=popup-redirect-type]:checked').val();
   let method = null;
   let inst = null;
 
-  if (action == 'link' || action == 'reauthenticate') {
-    if (!activeUser()) {
-      alertError('No user logged in.');
-      return;
-    }
-    inst = activeUser();
-    method = action + 'With';
-  } else {
-    inst = auth;
-    method = 'signInWith';
+  switch (action) {
+    case 'link':
+      if (!activeUser()) {
+        alertError('No user logged in.');
+        return;
+      }
+      inst = activeUser();
+      method = type === 'popup' ? linkWithPopup : linkWithRedirect;
+      break;
+    case 'reauthenticate':
+      if (!activeUser()) {
+        alertError('No user logged in.');
+        return;
+      }
+      inst = activeUser();
+      method =
+        type === 'popup' ? reauthenticateWithPopup : reauthenticateWithRedirect;
+      break;
+    default:
+      method = type === 'popup' ? signInWithPopup : signInWithRedirect;
   }
-  if (type === 'popup') {
-    method += 'Popup';
-  } else {
-    method += 'Redirect';
-  }
+
   // Get custom OAuth parameters.
   const customParameters = {};
   // For each entry.
-  $('form.customParamItem').each(function(_index) {
+  $('form.customParamItem').each(function (_index) {
     // Get parameter key.
-    const key = $(this)
-      .find('input.customParamKey')
-      .val();
+    const key = $(this).find('input.customParamKey').val();
     // Get parameter value.
-    const value = $(this)
-      .find('input.customParamValue')
-      .val();
+    const value = $(this).find('input.customParamValue').val();
     // Save to list if valid.
     if (key && value) {
       customParameters[key] = value;
@@ -1309,23 +1293,16 @@ function signInWithPopupRedirect(provider) {
   console.log('Provider:');
   console.log(provider);
   if (type == 'popup') {
-    glob[method](inst, provider, browserPopupRedirectResolver).then(
-      response => {
-        console.log('Popup response:');
-        console.log(response);
-        alertSuccess(
-          action + ' with ' + provider['providerId'] + ' successful!'
-        );
-        logAdditionalUserInfo(response);
-        onAuthSuccess(activeUser());
-      },
-      onAuthError
-    );
+    method(inst, provider, browserPopupRedirectResolver).then(response => {
+      console.log('Popup response:');
+      console.log(response);
+      alertSuccess(action + ' with ' + provider['providerId'] + ' successful!');
+      logAdditionalUserInfo(response);
+      onAuthSuccess(activeUser());
+    }, onAuthError);
   } else {
     try {
-      glob[method](inst, provider, browserPopupRedirectResolver).catch(
-        onAuthError
-      );
+      method(inst, provider, browserPopupRedirectResolver).catch(onAuthError);
     } catch (error) {
       console.log('Error while calling ' + method);
       console.error(error);
@@ -1347,7 +1324,7 @@ function onAuthUserCredentialSuccess(result) {
  * Displays redirect result.
  */
 function onGetRedirectResult() {
-  getRedirectResult(auth, browserPopupRedirectResolver).then(function(
+  getRedirectResult(auth, browserPopupRedirectResolver).then(function (
     response
   ) {
     log('Redirect results:');
@@ -1374,7 +1351,7 @@ function onGetRedirectResult() {
  * @param {!Object} response
  */
 function logAdditionalUserInfo(response) {
-  if (response.additionalUserInfo) {
+  if (response?.additionalUserInfo) {
     if (response.additionalUserInfo.username) {
       log(
         response.additionalUserInfo['providerId'] +
@@ -1591,17 +1568,22 @@ function onRunWebWorkTests() {
     alertError('Error: Web workers are not supported in the current browser!');
     return;
   }
-  // auth.signInWithPopup(new GoogleAuthProvider()).then(
-  //   (result) => {
-  webWorker.postMessage({
-    type: 'RUN_TESTS'
-    // googleIdToken: result.credential.idToken
-  });
-  //   },
-  //   error => {
-  //     alertError('Error code: ' + error.code + ' message: ' + error.message);
-  //   }
-  // );
+  signInWithPopup(
+    auth,
+    new GoogleAuthProvider(),
+    browserPopupRedirectResolver
+  ).then(
+    result => {
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      webWorker.postMessage({
+        type: 'RUN_TESTS',
+        googleIdToken: credential.idToken
+      });
+    },
+    error => {
+      alertError('Error code: ' + error.code + ' message: ' + error.message);
+    }
+  );
 }
 
 /** Runs service worker tests if supported. */
@@ -1612,6 +1594,18 @@ function onRunServiceWorkTests() {
     },
     (jqXHR, _textStatus, _errorThrown) => {
       alertError(jqXHR.status + ': ' + JSON.stringify(jqXHR.responseJSON));
+    }
+  );
+}
+
+/** Copy current user of auth to tempAuth. */
+function onCopyActiveUser() {
+  tempAuth.updateCurrentUser(activeUser()).then(
+    () => {
+      alertSuccess('Copied active user to temp Auth');
+    },
+    error => {
+      alertError('Error: ' + error.code);
     }
   );
 }
@@ -1651,11 +1645,17 @@ function initApp() {
     popupRedirectResolver: browserPopupRedirectResolver
   });
 
-  // tempApp = initializeApp({
-  //   'apiKey': config['apiKey'],
-  //   'authDomain': config['authDomain']
-  // }, auth['name'] + '-temp');
-  // tempAuth = initializeApp(tempApp);
+  tempApp = initializeApp(
+    {
+      apiKey: config.apiKey,
+      authDomain: config.authDomain
+    },
+    `${auth.name}-temp`
+  );
+  tempAuth = initializeAuth(tempApp, {
+    persistence: inMemoryPersistence,
+    popupRedirectResolver: browserPopupRedirectResolver
+  });
 
   // Listen to reCAPTCHA config togglers.
   initRecaptchaToggle(size => {
@@ -1699,6 +1699,15 @@ function initApp() {
     });
   }
 
+  if (tempAuth.onAuthStateChanged) {
+    tempAuth.onAuthStateChanged(user => {
+      if (user) {
+        log('user state change on temp Auth detect: ' + JSON.stringify(user));
+        alertSuccess('user state change on temp Auth detect: ' + user.uid);
+      }
+    });
+  }
+
   /**
    * @fileoverview Utilities for Auth test app features.
    */
@@ -1711,15 +1720,13 @@ function initApp() {
   function initRecaptchaToggle(callback) {
     // Listen to recaptcha config togglers.
     const $recaptchaConfigTogglers = $('.toggleRecaptcha');
-    $recaptchaConfigTogglers.click(function(e) {
+    $recaptchaConfigTogglers.click(function (e) {
       // Remove currently active option.
       $recaptchaConfigTogglers.removeClass('active');
       // Set currently selected option.
       $(this).addClass('active');
       // Get the current reCAPTCHA setting label.
-      const size = $(e.target)
-        .text()
-        .toLowerCase();
+      const size = $(e.target).text().toLowerCase();
       callback(size);
     });
   }
@@ -1744,7 +1751,7 @@ function initApp() {
      * Handles the incoming message from the web worker.
      * @param {!Object} e The message event received.
      */
-    webWorker.onmessage = function(e) {
+    webWorker.onmessage = function (e) {
       console.log('User data passed through web worker: ', e.data);
       switch (e.data.type) {
         case 'GET_USER_INFO':
@@ -1780,7 +1787,7 @@ function initApp() {
   }
 
   // We check for redirect result to refresh user's data.
-  getRedirectResult(auth, browserPopupRedirectResolver).then(function(
+  getRedirectResult(auth, browserPopupRedirectResolver).then(function (
     response
   ) {
     refreshUserData();
@@ -1902,7 +1909,7 @@ function initApp() {
 
   $('#run-web-worker-tests').click(onRunWebWorkTests);
   $('#run-service-worker-tests').click(onRunServiceWorkTests);
-  // $('#copy-active-user').click(onCopyActiveUser);
+  $('#copy-active-user').click(onCopyActiveUser);
   $('#copy-last-user').click(onCopyLastUser);
 
   $('#apply-auth-settings-change').click(onApplyAuthSettingsChange);

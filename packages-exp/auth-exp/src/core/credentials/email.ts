@@ -26,12 +26,11 @@ import {
 import { AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
-import { EmailAuthProvider } from '../providers/email';
 import { fail } from '../util/assert';
 import { AuthCredential } from './';
 
 export class EmailAuthCredential implements AuthCredential {
-  readonly providerId = EmailAuthProvider.PROVIDER_ID;
+  readonly providerId = externs.ProviderId.PASSWORD;
 
   private constructor(
     readonly email: string,
@@ -46,7 +45,7 @@ export class EmailAuthCredential implements AuthCredential {
     return new EmailAuthCredential(
       email,
       password,
-      EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD
+      externs.SignInMethod.EMAIL_PASSWORD
     );
   }
 
@@ -57,7 +56,7 @@ export class EmailAuthCredential implements AuthCredential {
     return new EmailAuthCredential(
       email,
       oobCode,
-      EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD
+      externs.SignInMethod.EMAIL_LINK
     );
   }
 
@@ -72,13 +71,9 @@ export class EmailAuthCredential implements AuthCredential {
   static fromJSON(json: object | string): EmailAuthCredential | null {
     const obj = typeof json === 'string' ? JSON.parse(json) : json;
     if (obj?.email && obj?.password) {
-      if (
-        obj.signInMethod === EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD
-      ) {
+      if (obj.signInMethod === externs.SignInMethod.EMAIL_PASSWORD) {
         return this._fromEmailAndPassword(obj.email, obj.password);
-      } else if (
-        obj.signInMethod === EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD
-      ) {
+      } else if (obj.signInMethod === externs.SignInMethod.EMAIL_LINK) {
         return this._fromEmailAndCode(obj.email, obj.password);
       }
     }
@@ -87,13 +82,13 @@ export class EmailAuthCredential implements AuthCredential {
 
   async _getIdTokenResponse(auth: AuthCore): Promise<IdTokenResponse> {
     switch (this.signInMethod) {
-      case EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD:
+      case externs.SignInMethod.EMAIL_PASSWORD:
         return signInWithPassword(auth, {
           returnSecureToken: true,
           email: this.email,
           password: this.password
         });
-      case EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD:
+      case externs.SignInMethod.EMAIL_LINK:
         return signInWithEmailLink(auth, {
           email: this.email,
           oobCode: this.password
@@ -108,14 +103,14 @@ export class EmailAuthCredential implements AuthCredential {
     idToken: string
   ): Promise<IdTokenResponse> {
     switch (this.signInMethod) {
-      case EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD:
+      case externs.SignInMethod.EMAIL_PASSWORD:
         return updateEmailPassword(auth, {
           idToken,
           returnSecureToken: true,
           email: this.email,
           password: this.password
         });
-      case EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD:
+      case externs.SignInMethod.EMAIL_LINK:
         return signInWithEmailLinkForLinking(auth, {
           idToken,
           email: this.email,

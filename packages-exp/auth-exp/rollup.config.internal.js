@@ -19,7 +19,6 @@ import path from 'path';
 import json from 'rollup-plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import { terser } from 'rollup-plugin-terser';
 
 import pkg from './internal/package.json';
 

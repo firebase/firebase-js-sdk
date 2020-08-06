@@ -33,8 +33,8 @@ var recaptchaSize = 'normal';
 // Fix for IE8 when developer's console is not opened.
 if (!window.console) {
   window.console = {
-    log: function() {},
-    error: function() {}
+    log: function () {},
+    error: function () {}
   };
 }
 
@@ -113,9 +113,9 @@ function alertMessage_(message, cssClass) {
     $('#alert-messages').prepend(alertBox);
   }
   alertBox.fadeIn({
-    complete: function() {
-      setTimeout(function() {
-        alertBox.slideUp(400, function() {
+    complete: function () {
+      setTimeout(function () {
+        alertBox.slideUp(400, function () {
           // On completion, remove the alert element from the DOM.
           alertBox.remove();
         });
@@ -181,9 +181,7 @@ function refreshUserData() {
       ) {
         photoURL = photoURL + '?sz=' + $('img.profile-image').height();
       }
-      $('img.profile-image')
-        .attr('src', photoURL)
-        .show();
+      $('img.profile-image').attr('src', photoURL).show();
     } else {
       $('img.profile-image').hide();
     }
@@ -256,10 +254,7 @@ function showMultiFactorStatus(activeUser) {
     (activeUser.multiFactor && activeUser.multiFactor.enrolledFactors) || [];
   var $listGroup = $('#user-info .dropdown-menu.enrolled-second-factors');
   // Hide the drop down menu initially.
-  $listGroup
-    .empty()
-    .parent()
-    .hide();
+  $listGroup.empty().parent().hide();
   if (enrolledFactors.length) {
     // If enrolled factors are available, show the drop down menu.
     $listGroup.parent().show();
@@ -269,12 +264,12 @@ function showMultiFactorStatus(activeUser) {
       enrolledFactors,
       // On row click, do nothing. This is needed to prevent the drop down
       // menu from closing.
-      function(e) {
+      function (e) {
         e.preventDefault();
         e.stopPropagation();
       },
       // On delete click unenroll the selected factor.
-      function(e) {
+      function (e) {
         e.preventDefault();
         // Get the corresponding second factor index.
         var index = parseInt($(this).attr('data-index'), 10);
@@ -284,7 +279,7 @@ function showMultiFactorStatus(activeUser) {
         var label = info && (info.displayName || info.uid);
         if (label) {
           $('#enrolled-factors-drop-down').removeClass('open');
-          activeUser.multiFactor.unenroll(info).then(function() {
+          activeUser.multiFactor.unenroll(info).then(function () {
             refreshUserData();
             alertSuccess('Multi-factor successfully unenrolled.');
           }, onAuthError);
@@ -356,11 +351,11 @@ function onSetPersistence() {
   var type = $('#persistence-type').val();
   try {
     auth.setPersistence(type).then(
-      function() {
+      function () {
         log('Persistence state change to "' + type + '".');
         alertSuccess('Persistence state change to "' + type + '".');
       },
-      function(error) {
+      function (error) {
         alertError('Error: ' + error.code);
       }
     );
@@ -431,7 +426,7 @@ function onReauthenticateWithEmailLink() {
   );
   activeUser()
     .reauthenticateWithCredential(credential)
-    .then(function(result) {
+    .then(function (result) {
       logAdditionalUserInfo(result);
       refreshUserData();
       alertSuccess('User reauthenticated!');
@@ -514,12 +509,12 @@ function onSignInVerifyPhoneNumber() {
   // Initialize a reCAPTCHA application verifier.
   makeApplicationVerifier('signin-verify-phone-number');
   provider.verifyPhoneNumber(phoneNumber, applicationVerifier).then(
-    function(verificationId) {
+    function (verificationId) {
       clearApplicationVerifier();
       $('#signin-phone-verification-id').val(verificationId);
       alertSuccess('Phone verification sent!');
     },
-    function(error) {
+    function (error) {
       clearApplicationVerifier();
       onAuthError(error);
     }
@@ -551,12 +546,12 @@ function onLinkReauthVerifyPhoneNumber() {
   // Initialize a reCAPTCHA application verifier.
   makeApplicationVerifier('link-reauth-verify-phone-number');
   provider.verifyPhoneNumber(phoneNumber, applicationVerifier).then(
-    function(verificationId) {
+    function (verificationId) {
       clearApplicationVerifier();
       $('#link-reauth-phone-verification-id').val(verificationId);
       alertSuccess('Phone verification sent!');
     },
-    function(error) {
+    function (error) {
       clearApplicationVerifier();
       onAuthError(error);
     }
@@ -579,7 +574,7 @@ function onUpdateConfirmPhoneVerification() {
   );
   activeUser()
     .updatePhoneNumber(credential)
-    .then(function() {
+    .then(function () {
       refreshUserData();
       alertSuccess('Phone number updated!');
     }, onAuthError);
@@ -610,7 +605,7 @@ function onReauthConfirmPhoneVerification() {
   );
   activeUser()
     .reauthenticateWithCredential(credential)
-    .then(function(result) {
+    .then(function (result) {
       logAdditionalUserInfo(result);
       refreshUserData();
       alertSuccess('User reauthenticated!');
@@ -633,7 +628,7 @@ function onStartEnrollWithPhoneMultiFactor() {
   makeApplicationVerifier('enroll-mfa-verify-phone-number');
   activeUser()
     .multiFactor.getSession()
-    .then(function(multiFactorSession) {
+    .then(function (multiFactorSession) {
       var phoneInfoOptions = {
         'phoneNumber': phoneNumber,
         'session': multiFactorSession
@@ -641,12 +636,12 @@ function onStartEnrollWithPhoneMultiFactor() {
       return provider.verifyPhoneNumber(phoneInfoOptions, applicationVerifier);
     })
     .then(
-      function(verificationId) {
+      function (verificationId) {
         clearApplicationVerifier();
         $('#enroll-mfa-phone-verification-id').val(verificationId);
         alertSuccess('Phone verification sent!');
       },
-      function(error) {
+      function (error) {
         clearApplicationVerifier();
         onAuthError(error);
       }
@@ -673,7 +668,7 @@ function onFinalizeEnrollWithPhoneMultiFactor() {
 
   activeUser()
     .multiFactor.enroll(multiFactorAssertion, displayName)
-    .then(function() {
+    .then(function () {
       refreshUserData();
       alertSuccess('Phone number enrolled!');
     }, onAuthError);
@@ -691,7 +686,7 @@ function signInOrLinkCredential(credential) {
     }
     activeUser()
       .linkWithCredential(credential)
-      .then(function(result) {
+      .then(function (result) {
         logAdditionalUserInfo(result);
         refreshUserData();
         alertSuccess('Provider linked!');
@@ -746,7 +741,7 @@ function onChangeEmail() {
   var email = $('#changed-email').val();
   activeUser()
     .updateEmail(email)
-    .then(function() {
+    .then(function () {
       refreshUserData();
       alertSuccess('Email changed!');
     }, onAuthError);
@@ -759,7 +754,7 @@ function onChangePassword() {
   var password = $('#changed-password').val();
   activeUser()
     .updatePassword(password)
-    .then(function() {
+    .then(function () {
       refreshUserData();
       alertSuccess('Password changed!');
     }, onAuthError);
@@ -776,7 +771,7 @@ function onUpdateProfile() {
       'displayName': displayName,
       'photoURL': photoURL
     })
-    .then(function() {
+    .then(function () {
       refreshUserData();
       alertSuccess('Profile updated!');
     }, onAuthError);
@@ -787,7 +782,7 @@ function onUpdateProfile() {
  */
 function onSendSignInLinkToEmail() {
   var email = $('#sign-in-with-email-link-email').val();
-  auth.sendSignInLinkToEmail(email, getActionCodeSettings()).then(function() {
+  auth.sendSignInLinkToEmail(email, getActionCodeSettings()).then(function () {
     alertSuccess('Email sent!');
   }, onAuthError);
 }
@@ -802,7 +797,7 @@ function onSendSignInLinkToEmailCurrentUrl() {
     'handleCodeInApp': true
   };
 
-  auth.sendSignInLinkToEmail(email, actionCodeSettings).then(function() {
+  auth.sendSignInLinkToEmail(email, actionCodeSettings).then(function () {
     if ('localStorage' in window && window['localStorage'] !== null) {
       window.localStorage.setItem(
         'emailForSignIn',
@@ -822,7 +817,7 @@ function onSendSignInLinkToEmailCurrentUrl() {
  */
 function onSendLinkEmailLink() {
   var email = $('#link-with-email-link-email').val();
-  auth.sendSignInLinkToEmail(email, getActionCodeSettings()).then(function() {
+  auth.sendSignInLinkToEmail(email, getActionCodeSettings()).then(function () {
     alertSuccess('Email sent!');
   }, onAuthError);
 }
@@ -832,7 +827,7 @@ function onSendLinkEmailLink() {
  */
 function onSendPasswordResetEmail() {
   var email = $('#password-reset-email').val();
-  auth.sendPasswordResetEmail(email, getActionCodeSettings()).then(function() {
+  auth.sendPasswordResetEmail(email, getActionCodeSettings()).then(function () {
     alertSuccess('Email sent!');
   }, onAuthError);
 }
@@ -842,7 +837,7 @@ function onSendPasswordResetEmail() {
  */
 function onVerifyPasswordResetCode() {
   var code = $('#password-reset-code').val();
-  auth.verifyPasswordResetCode(code).then(function() {
+  auth.verifyPasswordResetCode(code).then(function () {
     alertSuccess('Password reset code is valid!');
   }, onAuthError);
 }
@@ -853,7 +848,7 @@ function onVerifyPasswordResetCode() {
 function onConfirmPasswordReset() {
   var code = $('#password-reset-code').val();
   var password = $('#password-reset-password').val();
-  auth.confirmPasswordReset(code, password).then(function() {
+  auth.confirmPasswordReset(code, password).then(function () {
     alertSuccess('Password has been changed!');
   }, onAuthError);
 }
@@ -863,7 +858,7 @@ function onConfirmPasswordReset() {
  */
 function onFetchSignInMethodsForEmail() {
   var email = $('#fetch-sign-in-methods-email').val();
-  auth.fetchSignInMethodsForEmail(email).then(function(signInMethods) {
+  auth.fetchSignInMethodsForEmail(email).then(function (signInMethods) {
     log('Sign in methods for ' + email + ' :');
     log(signInMethods);
     if (signInMethods.length == 0) {
@@ -924,7 +919,7 @@ function onUnlinkProvider() {
   var providerId = $('#unlinked-provider-id').val();
   activeUser()
     .unlink(providerId)
-    .then(function(user) {
+    .then(function (user) {
       alertSuccess('Provider unlinked from user.');
       refreshUserData();
     }, onAuthError);
@@ -936,7 +931,7 @@ function onUnlinkProvider() {
 function onSendEmailVerification() {
   activeUser()
     .sendEmailVerification(getActionCodeSettings())
-    .then(function() {
+    .then(function () {
       alertSuccess('Email verification sent!');
     }, onAuthError);
 }
@@ -946,7 +941,7 @@ function onSendEmailVerification() {
  */
 function onApplyActionCode() {
   var code = $('#email-verification-code').val();
-  auth.applyActionCode(code).then(function() {
+  auth.applyActionCode(code).then(function () {
     alertSuccess('Email successfully verified!');
     refreshUserData();
   }, onAuthError);
@@ -965,13 +960,13 @@ function getIdToken(forceRefresh) {
   if (activeUser().getIdToken) {
     activeUser()
       .getIdToken(forceRefresh)
-      .then(alertSuccess, function() {
+      .then(alertSuccess, function () {
         log('No token');
       });
   } else {
     activeUser()
       .getToken(forceRefresh)
-      .then(alertSuccess, function() {
+      .then(alertSuccess, function () {
         log('No token');
       });
   }
@@ -989,7 +984,7 @@ function getIdTokenResult(forceRefresh) {
   }
   activeUser()
     .getIdTokenResult(forceRefresh)
-    .then(function(idTokenResult) {
+    .then(function (idTokenResult) {
       alertSuccess(JSON.stringify(idTokenResult));
     }, onAuthError);
 }
@@ -1046,7 +1041,7 @@ function handleMultiFactorSignIn(resolver) {
     multiFactorErrorResolver.hints,
     // On row click, select the corresponding second factor to complete
     // sign-in with.
-    function(e) {
+    function (e) {
       e.preventDefault();
       // Remove all other active entries.
       $listGroup.find('a').removeClass('active');
@@ -1078,7 +1073,7 @@ function handleMultiFactorSignIn(resolver) {
 function showMultiFactors($listGroup, multiFactorInfo, onClick, onDelete) {
   // Append entry to list.
   $listGroup.empty();
-  $.each(multiFactorInfo, function(i) {
+  $.each(multiFactorInfo, function (i) {
     // Append entry to list.
     var info = multiFactorInfo[i];
     var displayName = info.displayName || 'N/A';
@@ -1168,12 +1163,12 @@ function onStartSignInWithPhoneMultiFactor(event) {
     session: multiFactorErrorResolver.session
   };
   provider.verifyPhoneNumber(signInRequest, applicationVerifier).then(
-    function(verificationId) {
+    function (verificationId) {
       clearApplicationVerifier();
       $('#multi-factor-sign-in-verification-id').val(verificationId);
       alertSuccess('Phone verification sent!');
     },
-    function(error) {
+    function (error) {
       clearApplicationVerifier();
       onAuthError(error);
     }
@@ -1195,7 +1190,7 @@ function onFinalizeSignInWithPhoneMultiFactor(event) {
   var assertion = firebase.auth.PhoneMultiFactorGenerator.assertion(cred);
   multiFactorErrorResolver
     .resolveSignIn(assertion)
-    .then(function(userCredential) {
+    .then(function (userCredential) {
       onAuthUserCredentialSuccess(userCredential);
       $('#multiFactorModal').modal('hide');
     }, onAuthError);
@@ -1222,13 +1217,11 @@ function onPopupRedirectAddCustomParam(event) {
   // Create jQuery node.
   var $node = $(html);
   // Add button click event listener to remove item.
-  $node.find('button').on('click', function(e) {
+  $node.find('button').on('click', function (e) {
     // Remove button click event listener.
     $(this).off('click');
     // Get row container and remove it.
-    $(this)
-      .closest('form.customParamItem')
-      .remove();
+    $(this).closest('form.customParamItem').remove();
     e.preventDefault();
   });
   // Append constructed row to parameter list container.
@@ -1309,15 +1302,11 @@ function signInWithPopupRedirect(provider) {
   // Get custom OAuth parameters.
   var customParameters = {};
   // For each entry.
-  $('form.customParamItem').each(function(index) {
+  $('form.customParamItem').each(function (index) {
     // Get parameter key.
-    var key = $(this)
-      .find('input.customParamKey')
-      .val();
+    var key = $(this).find('input.customParamKey').val();
     // Get parameter value.
-    var value = $(this)
-      .find('input.customParamValue')
-      .val();
+    var value = $(this).find('input.customParamValue').val();
     // Save to list if valid.
     if (key && value) {
       customParameters[key] = value;
@@ -1341,7 +1330,7 @@ function signInWithPopupRedirect(provider) {
   console.log('Provider:');
   console.log(provider);
   if (type == 'popup') {
-    inst[method](provider).then(function(response) {
+    inst[method](provider).then(function (response) {
       console.log('Popup response:');
       console.log(response);
       alertSuccess(action + ' with ' + provider['providerId'] + ' successful!');
@@ -1372,7 +1361,7 @@ function onAuthUserCredentialSuccess(result) {
  * Displays redirect result.
  */
 function onGetRedirectResult() {
-  auth.getRedirectResult().then(function(response) {
+  auth.getRedirectResult().then(function (response) {
     log('Redirect results:');
     if (response.credential) {
       log('Credential:');
@@ -1427,7 +1416,7 @@ function logAdditionalUserInfo(response) {
 function onDelete() {
   activeUser()
     ['delete']()
-    .then(function() {
+    .then(function () {
       log('User successfully deleted.');
       alertSuccess('User successfully deleted.');
       refreshUserData();
@@ -1528,14 +1517,14 @@ function checkDatabaseAuthAccess() {
         .set({
           'test': randomString
         })
-        .then(function() {
+        .then(function () {
           alertError(
             'Error: Unauthenticated write to Database node ' +
               dbPath +
               ' unexpectedly succeeded!'
           );
         })
-        .catch(function(error) {
+        .catch(function (error) {
           errMessage = error.message.toLowerCase();
           // Permission denied error should be thrown.
           if (errMessage.indexOf('permission_denied') == -1) {
@@ -1544,14 +1533,14 @@ function checkDatabaseAuthAccess() {
           }
           dbRef
             .once('value')
-            .then(function() {
+            .then(function () {
               alertError(
                 'Error: Unauthenticated read to Database node ' +
                   dbPath +
                   ' unexpectedly succeeded!'
               );
             })
-            .catch(function(error) {
+            .catch(function (error) {
               errMessage = error.message.toLowerCase();
               // Permission denied error should be thrown.
               if (errMessage.indexOf('permission_denied') == -1) {
@@ -1573,10 +1562,10 @@ function checkDatabaseAuthAccess() {
         .set({
           'test': randomString
         })
-        .then(function() {
+        .then(function () {
           return dbRef.once('value');
         })
-        .then(function(snapshot) {
+        .then(function (snapshot) {
           if (snapshot.val().test === randomString) {
             // read/write successful.
             log(
@@ -1592,7 +1581,7 @@ function checkDatabaseAuthAccess() {
           // Clean up: clear that node's content.
           return dbRef.remove();
         })
-        .catch(function(error) {
+        .catch(function (error) {
           alertError('Error: ' + error.code);
         });
     }
@@ -1605,12 +1594,12 @@ function onRunWebWorkTests() {
     alertError('Error: Web workers are not supported in the current browser!');
     return;
   }
-  var onError = function(error) {
+  var onError = function (error) {
     alertError('Error code: ' + error.code + ' message: ' + error.message);
   };
   auth
     .signInWithPopup(new firebase.auth.GoogleAuthProvider())
-    .then(function(result) {
+    .then(function (result) {
       runWebWorkerTests(result.credential.idToken);
     }, onError);
 }
@@ -1618,10 +1607,10 @@ function onRunWebWorkTests() {
 /** Runs service worker tests if supported. */
 function onRunServiceWorkTests() {
   $.ajax('/checkIfAuthenticated').then(
-    function(data, textStatus, jqXHR) {
+    function (data, textStatus, jqXHR) {
       alertSuccess('User authenticated: ' + data.uid);
     },
-    function(jqXHR, textStatus, errorThrown) {
+    function (jqXHR, textStatus, errorThrown) {
       alertError(jqXHR.status + ': ' + JSON.stringify(jqXHR.responseJSON));
     }
   );
@@ -1630,10 +1619,10 @@ function onRunServiceWorkTests() {
 /** Copy current user of auth to tempAuth. */
 function onCopyActiveUser() {
   tempAuth.updateCurrentUser(activeUser()).then(
-    function() {
+    function () {
       alertSuccess('Copied active user to temp Auth');
     },
-    function(error) {
+    function (error) {
       alertError('Error: ' + error.code);
     }
   );
@@ -1643,10 +1632,10 @@ function onCopyActiveUser() {
 function onCopyLastUser() {
   // If last user is null, NULL_USER error will be thrown.
   auth.updateCurrentUser(lastUser).then(
-    function() {
+    function () {
       alertSuccess('Copied last user to Auth');
     },
-    function(error) {
+    function (error) {
       alertError('Error: ' + error.code);
     }
   );
@@ -1681,7 +1670,7 @@ function initApp() {
   tempAuth = tempApp.auth();
 
   // Listen to reCAPTCHA config togglers.
-  initRecaptchaToggle(function(size) {
+  initRecaptchaToggle(function (size) {
     clearApplicationVerifier();
     recaptchaSize = size;
   });
@@ -1693,14 +1682,14 @@ function initApp() {
 
   // Allows to login the user if previously logged in.
   if (auth.onIdTokenChanged) {
-    auth.onIdTokenChanged(function(user) {
+    auth.onIdTokenChanged(function (user) {
       refreshUserData();
       if (user) {
         user.getIdTokenResult(false).then(
-          function(idTokenResult) {
+          function (idTokenResult) {
             log(JSON.stringify(idTokenResult));
           },
-          function() {
+          function () {
             log('No token.');
           }
         );
@@ -1711,7 +1700,7 @@ function initApp() {
   }
 
   if (auth.onAuthStateChanged) {
-    auth.onAuthStateChanged(function(user) {
+    auth.onAuthStateChanged(function (user) {
       if (user) {
         log('user state change detected: ' + user.uid);
       } else {
@@ -1723,7 +1712,7 @@ function initApp() {
   }
 
   if (tempAuth.onAuthStateChanged) {
-    tempAuth.onAuthStateChanged(function(user) {
+    tempAuth.onAuthStateChanged(function (user) {
       if (user) {
         log('user state change on temp Auth detect: ' + JSON.stringify(user));
         alertSuccess('user state change on temp Auth detect: ' + user.uid);
@@ -1732,7 +1721,7 @@ function initApp() {
   }
 
   // We check for redirect result to refresh user's data.
-  auth.getRedirectResult().then(function(response) {
+  auth.getRedirectResult().then(function (response) {
     refreshUserData();
     logAdditionalUserInfo(response);
   }, onAuthError);
@@ -1741,7 +1730,7 @@ function initApp() {
   $('[data-toggle="tooltip"]').tooltip();
 
   // Auto submit the choose library type form.
-  $('#library-form').on('change', 'input.library-option', function() {
+  $('#library-form').on('change', 'input.library-option', function () {
     $('#library-form').submit();
   });
 
@@ -1749,12 +1738,12 @@ function initApp() {
   $('.clear-logs').click(clearLogs);
 
   // Disables JS forms.
-  $('form.no-submit').on('submit', function() {
+  $('form.no-submit').on('submit', function () {
     return false;
   });
 
   // Keeps track of the current tab opened.
-  $('#tab-menu a').click(function(event) {
+  $('#tab-menu a').click(function (event) {
     currentTab = $(event.currentTarget).attr('href');
   });
 
@@ -1775,7 +1764,7 @@ function initApp() {
   );
   // On enter click in verification code, complete phone sign-in. This prevents
   // reCAPTCHA from being re-rendered (default behavior on enter).
-  $('#signin-phone-verification-code').keypress(function(e) {
+  $('#signin-phone-verification-code').keypress(function (e) {
     if (e.which == 13) {
       onSignInConfirmPhoneVerification();
       e.preventDefault();
@@ -1813,7 +1802,7 @@ function initApp() {
   );
   // On enter click in verification code, complete phone sign-in. This prevents
   // reCAPTCHA from being re-rendered (default behavior on enter).
-  $('#link-reauth-phone-verification-code').keypress(function(e) {
+  $('#link-reauth-phone-verification-code').keypress(function (e) {
     if (e.which == 13) {
       // User first option option as default.
       onUpdateConfirmPhoneVerification();
