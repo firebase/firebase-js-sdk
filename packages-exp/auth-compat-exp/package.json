@@ -6,9 +6,8 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.cjs.js",
-  "module": "dist/index.esm5.js",
+  "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "react-native": "dist/index.rn.cjs.js",
   "files": [
     "dist"
   ],
@@ -16,7 +15,7 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
-    "build:deps": "lerna run --scope @firebase/'{app,auth-types,auth-exp,auth-types-exp}' --include-dependencies build",
+    "build:deps": "lerna run --scope @firebase/'{app,auth-exp}' --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "yarn type-check && run-p lint test:browser test:node",
     "test:browser": "karma start --single-run",
@@ -38,11 +37,12 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@firebase/app-exp": "0.x",
+    "@firebase/auth-exp": "0.x",
     "rollup": "1.32.1",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-replace": "2.2.0",
-    "rollup-plugin-typescript2": "0.26.0",
-    "typescript": "3.8.3"
+    "rollup-plugin-typescript2": "0.26.0"
   },
   "repository": {
     "directory": "packages-exp/auth-compat-exp",

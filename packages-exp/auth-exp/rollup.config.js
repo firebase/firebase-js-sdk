@@ -88,6 +88,18 @@ const es5Builds = [
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  /**
+   * React Native Builds
+   */
+  {
+    input: 'index.rn.ts',
+    output: [{ file: pkg['react-native'], format: 'cjs', sourcemap: true }],
+    plugins: es5BuildPlugins,
+    external: id =>
+      [...deps, 'react-native'].some(
+        dep => id === dep || id.startsWith(`${dep}/`)
+      )
   }
 ];
 
