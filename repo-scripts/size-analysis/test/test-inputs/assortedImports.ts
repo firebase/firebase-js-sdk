@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { version } from '../package.json';
 import '@firebase/logger';
 import * as fs from 'fs';
 import {
@@ -23,3 +22,11 @@ import {
   basicFuncExternalDependenciesBar
 } from './bar';
 import { BasicClassExportBar as BasicClassExportBarRenamed } from './bar';
+import defaultExport from '@firebase/app';
+console.log(
+  fs,
+  basicFuncExportEnumDependenciesBar,
+  basicFuncExternalDependenciesBar,
+  BasicClassExportBarRenamed,
+  defaultExport
+);

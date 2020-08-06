@@ -15,8 +15,12 @@
  * limitations under the License.
  */
 
-import { projectRoot } from '../../scripts/utils';
-
-export function retrieveTestModuleDtsFile(): string {
-  return `${projectRoot}/repo-scripts/size-analysis/test-inputs-dts-files/index.d.ts`;
-}
+export {
+  aVar,
+  LogLevel2,
+  Logger1,
+  tarr1,
+  fs1,
+  basicFuncExportEnumDependencies,
+  basicFuncExportFuncDependenciesBar
+} from './index';

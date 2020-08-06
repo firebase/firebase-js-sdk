@@ -742,7 +742,6 @@ export function extractExternalDependencies(
     };
     externals.push(external);
   });
-
   return externals;
 }
 
@@ -804,7 +803,7 @@ function retrieveBundleFileLocation(pkgJson: string): string {
  * This function creates a map from a MemberList object which maps symbol names (key) listed
  * to its type (value)
  */
-function buildMap(api: MemberList): Map<string, string> {
+export function buildMap(api: MemberList): Map<string, string> {
   const map: Map<string, string> = new Map();
   for (const type of Object.keys(api)) {
     if (Array.isArray(api[type])) {
