@@ -51,6 +51,8 @@ import {
 import { PartialObserver, Unsubscribe } from '../api/observer';
 import { AsyncObserver } from '../util/async_observer';
 import { debugAssert } from '../util/assert';
+import { TransactionRunner } from './transaction_runner';
+import { Datastore } from '../remote/datastore';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -87,6 +89,7 @@ export class FirestoreClient {
   private eventMgr!: EventManager;
   private persistence!: Persistence;
   private localStore!: LocalStore;
+  private datastore!: Datastore;
   private remoteStore!: RemoteStore;
   private syncEngine!: SyncEngine;
   private gcScheduler!: GarbageCollectionScheduler | null;
@@ -265,6 +268,7 @@ export class FirestoreClient {
       this.sharedClientState = offlineComponentProvider.sharedClientState;
       this.localStore = offlineComponentProvider.localStore;
       this.gcScheduler = offlineComponentProvider.gcScheduler;
+      this.datastore = onlineComponentProvider.datastore;
       this.remoteStore = onlineComponentProvider.remoteStore;
       this.syncEngine = onlineComponentProvider.syncEngine;
       this.eventMgr = onlineComponentProvider.eventManager;
@@ -490,13 +494,33 @@ export class FirestoreClient {
     return this.asyncQueue.isShuttingDown;
   }
 
+  /**
+   * Takes an updateFunction in which a set of reads and writes can be performed
+   * atomically. In the updateFunction, the client can read and write values
+   * using the supplied transaction object. After the updateFunction, all
+   * changes will be committed. If a retryable error occurs (ex: some other
+   * client has changed any of the data referenced), then the updateFunction
+   * will be called again after a backoff. If the updateFunction still fails
+   * after all retries, then the transaction will be rejected.
+   *
+   * The transaction object passed to the updateFunction contains methods for
+   * accessing documents and collections. Unlike other datastore access, data
+   * accessed with the transaction will not reflect local changes that have not
+   * been committed. For this reason, it is required that all reads are
+   * performed before any writes. Transactions must be performed while online.
+   */
   transaction<T>(
     updateFunction: (transaction: Transaction) => Promise<T>
   ): Promise<T> {
     this.verifyNotTerminated();
     const deferred = new Deferred<T>();
     this.asyncQueue.enqueueAndForget(() => {
-      this.syncEngine.runTransaction(this.asyncQueue, updateFunction, deferred);
+      new TransactionRunner<T>(
+        this.asyncQueue,
+        this.datastore,
+        updateFunction,
+        deferred
+      ).run();
       return Promise.resolve();
     });
     return deferred.promise;

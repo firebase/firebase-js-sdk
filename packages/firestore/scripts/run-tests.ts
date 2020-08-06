@@ -24,6 +24,10 @@ const argv = yargs.options({
     type: 'string',
     demandOption: true
   },
+  platform: {
+    type: 'string',
+    default: 'node'
+  },
   emulator: {
     type: 'boolean'
   },
@@ -37,6 +41,7 @@ const mocha = resolve(__dirname, '../../../node_modules/.bin/mocha');
 
 process.env.TS_NODE_CACHE = 'NO';
 process.env.TS_NODE_COMPILER_OPTIONS = '{"module":"commonjs"}';
+process.env.TEST_PLATFORM = argv.platform;
 
 let args = [
   mocha,
