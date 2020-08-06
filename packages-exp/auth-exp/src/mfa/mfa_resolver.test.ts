@@ -46,6 +46,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
 
   beforeEach(async () => {
     auth = await testAuth();
+    auth.tenantId = 'tenant-id';
     primaryFactorCredential = EmailAuthProvider.credential(
       'email',
       'password'
@@ -79,7 +80,6 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
         'verification-code'
       );
       assertion = PhoneMultiFactorAssertion._fromCredential(
-        auth,
         secondFactorCredential
       );
     });

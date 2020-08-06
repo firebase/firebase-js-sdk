@@ -25,7 +25,6 @@ import * as externs from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { testUser } from '../../../test/helpers/mock_auth';
-import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { browserPopupRedirectResolver } from '../../platform_browser/popup_redirect';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
@@ -44,8 +43,8 @@ import {
   DEFAULT_API_HOST,
   DEFAULT_API_SCHEME,
   DEFAULT_TOKEN_API_HOST,
-  initializeAuth,
-  _castAuth
+  _castAuth,
+  _initializeAuthForClientPlatform
 } from './auth_impl';
 
 use(sinonChai);
@@ -59,6 +58,8 @@ const FAKE_APP: FirebaseApp = {
   },
   automaticDataCollectionEnabled: false
 };
+
+const initializeAuth = _initializeAuthForClientPlatform(ClientPlatform.BROWSER);
 
 describe('core/auth/auth_impl', () => {
   let auth: externs.Auth;
@@ -104,6 +105,15 @@ describe('core/auth/auth_impl', () => {
     it('setting to null triggers a remove call', async () => {
       await auth.updateCurrentUser(null);
       expect(persistenceStub.remove).to.have.been.called;
+    });
+
+    it('should throw an error if the user is from a different tenant', async () => {
+      const user = testUser(auth, 'uid');
+      user.tenantId = 'other-tenant-id';
+      await expect(auth.updateCurrentUser(user)).to.be.rejectedWith(
+        FirebaseError,
+        '(auth/tenant-id-mismatch)'
+      );
     });
   });
 

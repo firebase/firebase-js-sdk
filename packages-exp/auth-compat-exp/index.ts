@@ -29,7 +29,6 @@ import { version } from './package.json';
 import { Auth } from './src/auth';
 import { RecaptchaVerifier } from './src/recaptcha_verifier';
 import { EmailAuthProvider } from './src/email_auth_provider';
-import { PhoneMultiFactorGenerator } from './src/phone_multi_factor_generator';
 
 const AUTH_TYPE = 'auth';
 
@@ -65,12 +64,16 @@ function registerAuth(instance: _FirebaseNamespace): void {
         OAuthProvider: impl.OAuthProvider,
         //   SAMLAuthProvider,
         PhoneAuthProvider: impl.PhoneAuthProvider,
-        PhoneMultiFactorGenerator,
+        PhoneMultiFactorGenerator: impl.PhoneMultiFactorGenerator,
         RecaptchaVerifier,
-        TwitterAuthProvider: impl.TwitterAuthProvider
-        //   Auth: {
-        //     Persistence
-        //   }
+        TwitterAuthProvider: impl.TwitterAuthProvider,
+        Auth: {
+          Persistence: {
+            LOCAL: 'LOCAL',
+            NONE: 'NONE',
+            SESSION: 'SESSION'
+          }
+        }
         //   'AuthCredential': fireauth.AuthCredential,
         //   'Error': fireauth.AuthError
       })

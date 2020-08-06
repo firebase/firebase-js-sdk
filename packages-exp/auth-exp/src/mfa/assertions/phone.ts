@@ -27,33 +27,33 @@ import {
 
 export class PhoneMultiFactorAssertion extends MultiFactorAssertion
   implements externs.PhoneMultiFactorAssertion {
-  private constructor(
-    private readonly auth: AuthCore,
-    private readonly credential: PhoneAuthCredential
-  ) {
+  private constructor(private readonly credential: PhoneAuthCredential) {
     super(credential.providerId);
   }
 
   static _fromCredential(
-    auth: AuthCore,
     credential: PhoneAuthCredential
   ): PhoneMultiFactorAssertion {
-    return new PhoneMultiFactorAssertion(auth, credential);
+    return new PhoneMultiFactorAssertion(credential);
   }
 
   _finalizeEnroll(
+    auth: AuthCore,
     idToken: string,
     displayName?: string | null
   ): Promise<FinalizeMfaResponse> {
-    return finalizeEnrollPhoneMfa(this.auth, {
+    return finalizeEnrollPhoneMfa(auth, {
       idToken,
       displayName,
       phoneVerificationInfo: this.credential._makeVerificationRequest()
     });
   }
 
-  _finalizeSignIn(mfaPendingCredential: string): Promise<FinalizeMfaResponse> {
-    return finalizeSignInPhoneMfa(this.auth, {
+  _finalizeSignIn(
+    auth: AuthCore,
+    mfaPendingCredential: string
+  ): Promise<FinalizeMfaResponse> {
+    return finalizeSignInPhoneMfa(auth, {
       mfaPendingCredential,
       phoneVerificationInfo: this.credential._makeVerificationRequest()
     });
@@ -65,11 +65,9 @@ export class PhoneMultiFactorGenerator
   private constructor() {}
 
   static assertion(
-    auth: externs.Auth,
     credential: externs.PhoneAuthCredential
   ): externs.PhoneMultiFactorAssertion {
     return PhoneMultiFactorAssertion._fromCredential(
-      auth,
       credential as PhoneAuthCredential
     );
   }

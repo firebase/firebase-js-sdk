@@ -18,9 +18,11 @@ import { initializeApp } from '@firebase/app-exp';
 import {
   createUserWithEmailAndPassword,
   fetchSignInMethodsForEmail,
+  GoogleAuthProvider,
   initializeAuth,
   inMemoryPersistence,
   signInAnonymously,
+  signInWithCredential,
   signInWithEmailAndPassword,
   updateProfile
 } from '@firebase/auth-exp';
@@ -68,14 +70,9 @@ function getIdToken(): Promise<string | null> {
  * @return {!Promise<void>} A promise that resolves when all tests run
  *     successfully.
  */
-async function runWorkerTests(_googleIdToken: OAuthCredential): Promise<void> {
+async function runWorkerTests(googleIdToken: string): Promise<void> {
   const expectedDisplayName = 'Test User';
-  // TODO: uncomment this
-  // const oauthCredential = GoogleAuthProvider.credential(
-  //     googleIdToken);
-  // const provider = new GoogleAuthProvider();
-  const OPERATION_NOT_SUPPORTED_CODE =
-    'auth/operation-not-supported-in-this-environment';
+  const oauthCredential = GoogleAuthProvider.credential(googleIdToken);
   const email =
     'user' +
     Math.floor(Math.random() * 10000000000).toString() +
@@ -107,47 +104,16 @@ async function runWorkerTests(_googleIdToken: OAuthCredential): Promise<void> {
     throw new Error('signInWithEmailAndPassword unexpectedly failed!');
   }
   await credential.user.delete();
-  try {
-    // TODO: uncomment this
-    // await signInWithPopup(auth, provider);
-  } catch (error) {
-    if (error.code !== OPERATION_NOT_SUPPORTED_CODE) {
-      throw error;
-    }
+  const userCredential = await signInWithCredential(auth, oauthCredential);
+  if (!userCredential.user || !userCredential.user.uid) {
+    throw new Error('signInWithCredential unexpectedly failed!');
   }
-  try {
-    // TODO: uncomment this
-    // await signInWithRedirect(auth, provider);
-  } catch (error) {
-    if (error.code !== OPERATION_NOT_SUPPORTED_CODE) {
-      throw error;
-    }
+  const googleCredential = GoogleAuthProvider.credentialFromResult(
+    userCredential
+  );
+  if (!googleCredential) {
+    throw new Error('signInWithCredential unexpectedly failed!');
   }
-  // This test is now invalid because of strong typing...
-  // Promise.resolve()
-  // .then(() => {
-  //   return new RecaptchaVerifier('id');
-  // })
-  // .then(() => {
-  //   throw new Error(
-  //     'RecaptchaVerifer instantiation succeeded unexpectedly!'
-  //   );
-  // })
-  // .catch(error => {
-  //   if (error.code !== OPERATION_NOT_SUPPORTED_CODE) {
-  //     throw error;
-  //   }
-  // });
-  // TODO: uncomment this
-  // credential = await signInWithCredential(auth, oauthCredential);
-  // if (
-  //   !credential.user ||
-  //   !credential.user.uid ||
-  //   !credential.credential ||
-  //   !credential.additionalUserInfo
-  // ) {
-  //   throw new Error('signInWithCredential unexpectedly failed!');
-  // }
   await auth.signOut();
   if (auth.currentUser) {
     throw new Error('signOut unexpectedly failed!');
