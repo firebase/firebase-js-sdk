@@ -21,25 +21,14 @@ import {
   isBrowserExtension,
   isReactNative,
   isNode,
-  isIE
+  isIE,
+  isIndexedDBAvailable
 } from '@firebase/util';
 
 declare global {
   interface Document {
     documentMode?: number;
   }
-}
-
-// TODO(avolkovi): Remove this after rebase and use the version in @firebase/util
-/**
- * This method checks if indexedDB is supported by current browser
- * @return true if indexedDB is supported by current browser
- */
-export function isIndexedDBAvailable(): boolean {
-  if (!('indexedDB' in window) || indexedDB === null) {
-    return false;
-  }
-  return true;
 }
 
 function _getCurrentScheme(): string | null {
