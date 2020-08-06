@@ -44,13 +44,12 @@ export function assert(
   }
 }
 
-type TypeExpectation = Function|string|MapType;
+type TypeExpectation = Function | string | MapType;
 
-interface MapType extends Record<string, TypeExpectation|Optional> {}
+interface MapType extends Record<string, TypeExpectation | Optional> {}
 
 class Optional {
-  constructor(readonly type: TypeExpectation) {
-  }
+  constructor(readonly type: TypeExpectation) {}
 }
 
 export function opt(type: TypeExpectation): Optional {
@@ -62,29 +61,29 @@ export function opt(type: TypeExpectation): Optional {
  * a class, a string (representing a "typeof" call), or a record map of name
  * to type. Furthermore, the opt() function can be used to mark a field as
  * optional. For example:
- * 
+ *
  * function foo(auth: Auth, profile: {displayName?: string}, update = false) {
  *   assertTypes(arguments, [AuthImpl, {displayName: opt('string')}, opt('boolean')]);
  * }
- * 
+ *
  * opt() can be used for any type:
  * function foo(auth?: Auth) {
  *   assertTypes(arguments, [opt(AuthImpl)]);
  * }
- * 
+ *
  * The string types can be or'd together, and you can use "null" as well (note
  * that typeof null === 'object'; this is an edge case). For example:
- * 
+ *
  * function foo(profile: {displayName?: string | null}) {
  *   assertTypes(arguments, [{displayName: opt('string|null')}]);
  * }
- * 
- * @param args 
- * @param expected 
+ *
+ * @param args
+ * @param expected
  */
 export function assertTypes(
   args: Omit<IArguments, 'callee'>,
-  ...expected: Array<TypeExpectation|Optional>
+  ...expected: Array<TypeExpectation | Optional>
 ): void {
   if (args.length > expected.length) {
     fail('TODO', AuthErrorCode.ARGUMENT_ERROR);
@@ -108,18 +107,24 @@ export function assertTypes(
       if (expect.includes('null') && arg === null) {
         continue;
       }
-      
+
       const required = expect.split('|');
-      assert(required.includes(typeof arg), 'TODO', AuthErrorCode.ARGUMENT_ERROR);
+      assert(
+        required.includes(typeof arg),
+        'TODO',
+        AuthErrorCode.ARGUMENT_ERROR
+      );
     } else if (typeof expect === 'object') {
       // Recursively check record arguments
       const record = arg as Record<string, unknown>;
       const map = expect as MapType;
       const keys = Object.keys(expect);
 
-      assertTypes(keys.map(k => record[k]), ...keys.map(k => map[k]));
-    }
-    else {
+      assertTypes(
+        keys.map(k => record[k]),
+        ...keys.map(k => map[k])
+      );
+    } else {
       assert(arg instanceof expect, 'app', AuthErrorCode.ARGUMENT_ERROR);
     }
   }
