@@ -15,8 +15,11 @@
  * limitations under the License.
  */
 
-// Core functionality shared by all browser based clients
-export * from './index.webworker';
+import { _initializeAuthForClientPlatform } from './src/core/auth/auth_impl';
+import { ClientPlatform } from './src/core/util/version';
+
+// Core functionality shared by all clients
+export * from './src';
 
 // Additional DOM dependend functionality
 
@@ -48,3 +51,7 @@ export {
 // platform_browser
 export { RecaptchaVerifier } from './src/platform_browser/recaptcha/recaptcha_verifier';
 export { browserPopupRedirectResolver } from './src/platform_browser/popup_redirect';
+
+export const initializeAuth = _initializeAuthForClientPlatform(
+  ClientPlatform.BROWSER
+);

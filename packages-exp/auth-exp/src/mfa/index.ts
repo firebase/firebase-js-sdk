@@ -15,20 +15,6 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
-import * as impl from '@firebase/auth-exp/internal';
-import * as compat from '@firebase/auth-types';
-import * as externs from '@firebase/auth-types-exp';
-
-export class PhoneMultiFactorGenerator
-  implements compat.PhoneMultiFactorGenerator {
-  static assertion(
-    credential: compat.PhoneAuthCredential
-  ): compat.PhoneMultiFactorAssertion {
-    // TODO: support multiple app instances
-    return impl.PhoneMultiFactorGenerator.assertion(
-      (firebase.auth!() as unknown) as externs.Auth,
-      credential as externs.PhoneAuthCredential
-    );
-  }
-}
+export { PhoneMultiFactorGenerator } from './assertions/phone';
+export { getMultiFactorResolver } from './mfa_resolver';
+export { multiFactor } from './mfa_user';
