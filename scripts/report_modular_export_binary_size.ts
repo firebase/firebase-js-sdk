@@ -55,6 +55,7 @@ async function generateReport(): Promise<RequestBody> {
     const reports: Report[] = await generateReportForModules(
       allModulesLocation
     );
+
     for (const report of reports) {
       requestBody.modules.push(report);
     }
