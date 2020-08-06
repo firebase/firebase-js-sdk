@@ -1,1 +1,0 @@
-export { getApps} from '@firebase/app';
