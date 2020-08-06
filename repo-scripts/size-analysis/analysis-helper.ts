@@ -58,8 +58,8 @@ export interface ExportData {
   variables: string[];
   enums: string[];
   externals: object;
-  sizeInBytes: number;
-  sizeInBytesWithExternalDeps: number;
+  size: number;
+  sizeWithExtDeps: number;
 }
 
 export interface Report {
@@ -154,19 +154,19 @@ export async function extractDependenciesAndSize(
     variables: null,
     enums: null,
     externals: null,
-    sizeInBytes: 0,
-    sizeInBytesWithExternalDeps: 0
+    size: 0,
+    sizeWithExtDeps: 0
   };
   exportData.name = exportName;
   for (const key of Object.keys(dependencies)) {
     exportData[key] = dependencies[key];
   }
   exportData.externals = serializeExternalField(dependencies.externals);
-  exportData.sizeInBytes = Buffer.byteLength(
+  exportData.size = Buffer.byteLength(
     externalDepsNotResolvedOutputContentMinimized.code!,
     'utf-8'
   );
-  exportData.sizeInBytesWithExternalDeps = Buffer.byteLength(
+  exportData.sizeWithExtDeps = Buffer.byteLength(
     externalDepsResolvedOutputContentMinimized.code!,
     'utf-8'
   );
@@ -773,6 +773,7 @@ export async function generateReportForModule(
       dtsFile,
       bundleFile
     );
+
     return jsonReport;
   }
   return null;
