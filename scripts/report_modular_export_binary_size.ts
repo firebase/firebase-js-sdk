@@ -47,7 +47,7 @@ async function generateReport(): Promise<RequestBody> {
 
     allModulesLocation = allModulesLocation.filter(path => {
       const json = require(`${path}/package.json`);
-      return json.name.startsWith('@');
+      return json.name.startsWith('@firebase');
     });
     const reports: Report[] = await generateReportForModules(
       allModulesLocation
@@ -120,7 +120,6 @@ function upload(report: RequestBody): void {
 
 async function main(): Promise<void> {
   const report: RequestBody = await generateReport();
-  console.log(report);
   upload(report);
 }
 main();
