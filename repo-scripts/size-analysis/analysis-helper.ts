@@ -178,6 +178,7 @@ function serializeExternalField(externals: External[]): object {
   for (const external of externals) {
     serializedExternals[external.moduleName] = external.symbols;
   }
+
   return serializedExternals;
 }
 /**
@@ -737,7 +738,7 @@ export function extractExternalDependencies(
 
   externalsMap.forEach((value, key) => {
     const external: External = {
-      moduleName: key,
+      moduleName: key.replace(/'/g, ''),
       symbols: value
     };
     externals.push(external);
