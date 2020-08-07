@@ -101,7 +101,9 @@ async function getChangedPackages() {
     );
     for (const matchingSpecialPath of matchingSpecialPaths) {
       for (const targetPackage of specialPaths[matchingSpecialPath]) {
-        changedPackages[targetPackage] = 'dependency';
+        if (!changedPackages[targetPackage]) {
+          changedPackages[targetPackage] = 'dependency';
+        }
       }
     }
     // Check for changed files inside package dirs.
