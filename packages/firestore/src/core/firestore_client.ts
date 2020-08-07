@@ -363,9 +363,9 @@ export class FirestoreClient {
   }
 
   terminate(): Promise<void> {
-    this.asyncQueue.initiateShutdown();
+    this.asyncQueue.enterRestrictedMode();
     const deferred = new Deferred();
-    this.asyncQueue.enqueueAndForgetEvenAfterShutdown(async () => {
+    this.asyncQueue.enqueueAndForgetEvenWhileRestricted(async () => {
       try {
         // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
         if (this.gcScheduler) {

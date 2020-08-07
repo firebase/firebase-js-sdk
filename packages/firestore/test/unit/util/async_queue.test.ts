@@ -397,10 +397,10 @@ describe('AsyncQueue', () => {
 
     // After this call, only operations requested via
     // `enqueueAndForgetEvenAfterShutdown` gets executed.
-    queue.initiateShutdown();
-    queue.enqueueAndForgetEvenAfterShutdown(() => doStep(2));
+    queue.enterRestrictedMode();
+    queue.enqueueAndForgetEvenWhileRestricted(() => doStep(2));
     queue.enqueueAndForget(() => doStep(3));
-    queue.enqueueAndForgetEvenAfterShutdown(() => doStep(4));
+    queue.enqueueAndForgetEvenWhileRestricted(() => doStep(4));
 
     await queue.drain();
     expect(completedSteps).to.deep.equal([1, 2, 4]);

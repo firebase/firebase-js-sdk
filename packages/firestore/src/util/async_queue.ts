@@ -263,7 +263,7 @@ export class AsyncQueue {
    * Regardless if the queue has initialized shutdown, adds a new operation to the
    * queue without waiting for it to complete (i.e. we ignore the Promise result).
    */
-  enqueueAndForgetEvenAfterShutdown<T extends unknown>(
+  enqueueAndForgetEvenWhileRestricted<T extends unknown>(
     op: () => Promise<T>
   ): void {
     this.verifyNotFailed();
@@ -274,9 +274,9 @@ export class AsyncQueue {
   /**
    * Initialize the shutdown of this queue. Once this method is called, the
    * only possible way to request running an operation is through
-   * `enqueueAndForgetEvenAfterShutdown`.
+   * `enqueueEvenWhileRestricted()`.
    */
-  initiateShutdown(): void {
+  enterRestrictedMode(): void {
     if (!this._isShuttingDown) {
       this._isShuttingDown = true;
       const window = getWindow();

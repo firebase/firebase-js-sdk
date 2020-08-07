@@ -133,9 +133,9 @@ export class Firestore extends LiteFirestore
   }
 
   _terminate(): Promise<void> {
-    this._queue.initiateShutdown();
+    this._queue.enterRestrictedMode();
     const deferred = new Deferred();
-    this._queue.enqueueAndForgetEvenAfterShutdown(async () => {
+    this._queue.enqueueAndForgetEvenWhileRestricted(async () => {
       try {
         await super._terminate();
         await removeComponents(this);
@@ -256,7 +256,7 @@ export function clearIndexedDbPersistence(
   }
 
   const deferred = new Deferred<void>();
-  firestoreImpl._queue.enqueueAndForgetEvenAfterShutdown(async () => {
+  firestoreImpl._queue.enqueueAndForgetEvenWhileRestricted(async () => {
     try {
       await indexedDbClearPersistence(
         indexedDbStoragePrefix(

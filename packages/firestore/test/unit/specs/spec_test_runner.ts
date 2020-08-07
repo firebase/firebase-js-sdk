@@ -296,9 +296,9 @@ abstract class TestRunner {
   }
 
   async shutdown(): Promise<void> {
-    this.queue.initiateShutdown();
+    this.queue.enterRestrictedMode();
     const deferred = new Deferred();
-    this.queue.enqueueAndForgetEvenAfterShutdown(async () => {
+    this.queue.enqueueAndForgetEvenWhileRestricted(async () => {
       if (this.started) {
         await this.doShutdown();
       }
