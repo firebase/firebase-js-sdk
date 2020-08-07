@@ -8,10 +8,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Checkout
-      run: |
-        git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
+    - name: Checkout Repo
+      uses: actions/checkout@master
+      with:
+        # This makes Actions fetch all Git history so run-changed script can diff properly.
+        fetch-depth: 0
     - name: Set up Node (10)
       uses: actions/setup-node@v1
       with:
