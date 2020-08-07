@@ -47,12 +47,12 @@ const fullTestTriggerFiles = [
 /**
  * Always run tests in these paths.
  */
-const alwaysRunTestPaths = [
+const alwaysRunTestPackages = [
   // These tests are very fast.
-  'integration/browserify',
-  'integration/firebase-typings',
-  'integration/typescript',
-  'integration/webpack'
+  'firebase-browserify-test',
+  'firebase-package-typings-test',
+  'firebase-typescript-test',
+  'firebase-webpack-test'
 ];
 
 /**
@@ -60,18 +60,18 @@ const alwaysRunTestPaths = [
  */
 const specialPaths = {
   'scripts/emulator-testing/emulators/firestore-emulator.ts': [
-    'packages/firestore'
+    '@firebase/firestore'
   ],
   'scripts/emulator-testing/emulators/database-emulator.ts': [
-    'packages/database'
+    '@firebase/database'
   ],
   'scripts/emulator-testing/emulators/emulator.ts': [
-    'packages/firestore',
-    'packages/database'
+    '@firebase/firestore',
+    '@firebase/database'
   ],
-  'scripts/emulator-testing/firestore-test-runner.ts': ['packages/firestore'],
-  'scripts/emulator-testing/database-test-runner.ts': ['packages/database'],
-  'packages/firestore': ['integration/firestore']
+  'scripts/emulator-testing/firestore-test-runner.ts': ['@firebase/firestore'],
+  'scripts/emulator-testing/database-test-runner.ts': ['@firebase/database'],
+  'packages/firestore': ['firebase-firestore-integration-test']
 };
 
 /**
@@ -110,7 +110,7 @@ async function getChangedPackages() {
       const changedPackage = require(resolve(root, match[1], 'package.json'));
       if (changedPackage) {
         // Add the package itself.
-        changedPackages[match[1]] = 'direct';
+        changedPackages[changedPackage.name] = 'direct';
         // Add packages that depend on it.
         for (const package in depGraph) {
           if (depGraph[package].includes(changedPackage.name)) {
@@ -121,9 +121,8 @@ async function getChangedPackages() {
                 'package.json'
               ));
               if (depPkgJson) {
-                const depPath = depData.location.replace(`${root}/`, '');
-                if (!changedPackages[depPath]) {
-                  changedPackages[depPath] = 'dependency';
+                if (!changedPackages[depPkgJson.name]) {
+                  changedPackages[depPkgJson.name] = 'dependency';
                 }
               }
             }
@@ -149,18 +148,18 @@ async function getChangedPackages() {
  * Runs `yarn test` in all dirs in pathList.
  * @param {Array<string>} pathList
  */
-async function runTests(pathList) {
-  if (!pathList) return;
-  for (const testPath of pathList) {
-    try {
-      await spawn('yarn', ['--cwd', testPath, testCommand], {
-        stdio: 'inherit'
-      });
-    } catch (e) {
-      throw new Error(`Error running "yarn ${testCommand}" in ${testPath}.`);
-    }
-  }
-}
+// async function runTests(pathList) {
+//   if (!pathList) return;
+//   for (const testPath of pathList) {
+//     try {
+//       await spawn('yarn', ['--cwd', testPath, testCommand], {
+//         stdio: 'inherit'
+//       });
+//     } catch (e) {
+//       throw new Error(`Error running "yarn ${testCommand}" in ${testPath}.`);
+//     }
+//   }
+// }
 
 async function main() {
   try {
@@ -171,22 +170,32 @@ async function main() {
       });
     } else {
       console.log(chalk`{blue Running tests in:}`);
-      for (const filename of alwaysRunTestPaths) {
+      for (const packageName of alwaysRunTestPackages) {
         // array
-        console.log(chalk`{green ${filename} (always runs)}`);
+        console.log(chalk`{green ${packageName} (always runs)}`);
       }
-      for (const filename in changedPackages) {
+      for (const packageName in changedPackages) {
         // obj
-        if (changedPackages[filename] === 'direct') {
-          console.log(chalk`{yellow ${filename} (contains modified files)}`);
+        if (changedPackages[packageName] === 'direct') {
+          console.log(chalk`{yellow ${packageName} (contains modified files)}`);
         } else {
-          console.log(chalk`{yellow ${filename} (depends on modified files)}`);
+          console.log(
+            chalk`{yellow ${packageName} (depends on modified files)}`
+          );
         }
       }
 
       changedPackages['packages/app'] = 'direct';
-      await runTests(alwaysRunTestPaths);
-      await runTests(Object.keys(changedPackages));
+      let lernaCmds = ['lerna', 'run'];
+      const packagesToRun = alwaysRunTestPackages.concat(
+        Object.keys(changedPackages)
+      );
+      for (const packageToRun of packagesToRun) {
+        lernaCmds.push('--scope');
+        lernaCmds.push(packageToRun);
+      }
+      lernaCmds.push(testCommand);
+      await spawn('npx', lernaCmds, { stdio: 'inherit' });
     }
   } catch (e) {
     console.error(chalk`{red ${e}}`);
