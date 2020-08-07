@@ -44,13 +44,10 @@ async function generateReport(): Promise<RequestBody> {
     let allModulesLocation: string[] = await mapWorkspaceToPackages([
       `${projectRoot}/packages-exp/*`
     ]);
-    const moduleOfInterest: string[] = [
-      '@firebase/app-exp',
-      '@firebase/functions-exp'
-    ];
+
     allModulesLocation = allModulesLocation.filter(path => {
       const json = require(`${path}/package.json`);
-      return moduleOfInterest.includes(json.name);
+      return json.name.startsWith('@');
     });
     const reports: Report[] = await generateReportForModules(
       allModulesLocation

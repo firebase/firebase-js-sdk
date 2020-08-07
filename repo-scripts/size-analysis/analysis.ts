@@ -112,7 +112,7 @@ async function main(): Promise<void> {
       for (const report of reports) {
         writeReportToDirectory(
           report,
-          `${basename(report.module)}-dependencies.json`,
+          `${basename(report.name)}-dependencies.json`,
           resolve(argv.output)
         );
       }
