@@ -37,5 +37,3 @@ export function registerFirestore(): void {
   );
   registerVersion('firestore-lite', version, 'node');
 }
-
-registerFirestore();
