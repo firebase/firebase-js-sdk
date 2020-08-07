@@ -36,43 +36,16 @@ const es5BuildPlugins = [
 
 const es5Builds = [
   {
-    input: {
-      index: 'index.ts',
-      next: 'src/next/index.ts',
-      'next/internal': 'src/next/internal.ts'
-    },
+    input: 'src/index.ts',
     output: [
-      { dir: 'dist/cjs', format: 'cjs', sourcemap: true },
-      { dir: 'dist/esm5', format: 'es', sourcemap: true }
+      { file: pkg.main, format: 'cjs', sourcemap: true },
+      { file: pkg.module, format: 'es', sourcemap: true }
     ],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
-    input: 'index.node.ts',
-    output: {
-      file: pkg.main,
-      format: 'cjs',
-      sourcemap: true
-    },
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-  {
-    input: 'index.rn.ts',
-    output: {
-      file: pkg['react-native'],
-      format: 'cjs',
-      sourcemap: true
-    },
-    plugins: es5BuildPlugins,
-    external: id =>
-      [...deps, 'react-native'].some(
-        dep => id === dep || id.startsWith(`${dep}/`)
-      )
-  },
-  {
-    input: 'index.lite.ts',
+    input: 'src/index.lite.ts',
     output: {
       file: pkg.lite,
       format: 'es',
@@ -105,13 +78,9 @@ const es2017Builds = [
    *  Browser Builds
    */
   {
-    input: {
-      index: 'index.ts',
-      next: 'src/next/index.ts',
-      'next/internal': 'src/next/internal.ts'
-    },
+    input: 'src/index.ts',
     output: {
-      dir: 'dist/esm2017',
+      file: pkg.esm2017,
       format: 'es',
       sourcemap: true
     },
@@ -119,7 +88,7 @@ const es2017Builds = [
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
-    input: 'index.lite.ts',
+    input: 'src/index.lite.ts',
     output: {
       file: pkg['lite-esm2017'],
       format: 'es',

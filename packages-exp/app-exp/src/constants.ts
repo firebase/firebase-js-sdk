@@ -28,6 +28,11 @@ import { name as storageName } from '../../../packages/storage/package.json';
 import { name as firestoreName } from '../../../packages/firestore/package.json';
 import { name as packageName } from '../../../packages-exp/firebase-exp/package.json';
 
+/**
+ * The default app name
+ *
+ * @internal
+ */
 export const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
 export const PLATFORM_LOG_STRING = {
