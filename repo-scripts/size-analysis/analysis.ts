@@ -77,7 +77,7 @@ const argv = yargs
  * Throw INVALID_FLAG_COMBINATION error if neither case fulfill.
  */
 async function main(): Promise<void> {
-  if (!argv.output && !argv.ci) {
+  if (!argv.output) {
     throw new Error(ErrorCode.REPORT_REDIRECTION_ERROR);
   }
   // check if it's an adhoc run
