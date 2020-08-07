@@ -144,23 +144,6 @@ async function getChangedPackages() {
   }
 }
 
-/**
- * Runs `yarn test` in all dirs in pathList.
- * @param {Array<string>} pathList
- */
-// async function runTests(pathList) {
-//   if (!pathList) return;
-//   for (const testPath of pathList) {
-//     try {
-//       await spawn('yarn', ['--cwd', testPath, testCommand], {
-//         stdio: 'inherit'
-//       });
-//     } catch (e) {
-//       throw new Error(`Error running "yarn ${testCommand}" in ${testPath}.`);
-//     }
-//   }
-// }
-
 async function main() {
   try {
     const { testAll, changedPackages = {} } = await getChangedPackages();
@@ -186,7 +169,7 @@ async function main() {
       }
 
       changedPackages['packages/app'] = 'direct';
-      let lernaCmds = ['lerna', 'run'];
+      let lernaCmds = ['lerna', 'run', '--concurrency', '4', '--stream'];
       const packagesToRun = alwaysRunTestPackages.concat(
         Object.keys(changedPackages)
       );
@@ -195,7 +178,8 @@ async function main() {
         lernaCmds.push(packageToRun);
       }
       lernaCmds.push(testCommand);
-      await spawn('npx', lernaCmds, { stdio: 'inherit' });
+      await spawn('npx', lernaCmds, { stdio: 'inherit', cwd: root });
+      process.exit();
     }
   } catch (e) {
     console.error(chalk`{red ${e}}`);
