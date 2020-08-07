@@ -49,7 +49,6 @@ async function generateReport(): Promise<RequestBody> {
       const json = require(`${path}/package.json`);
       return json.name.startsWith('@firebase');
     });
-    console.log(allModulesLocation);
     const reports: Report[] = await generateReportForModules(
       allModulesLocation
     );
