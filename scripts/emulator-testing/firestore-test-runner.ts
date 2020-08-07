@@ -36,17 +36,9 @@ function runTest(port: number, projectId: string, withPersistence: boolean) {
   // ready in Firestore emulator.
   // Use `prod` to allow test runner's env variable overrides to work.
   if (withPersistence) {
-    return Promise.all([
-      spawn('yarn', ['test:node:persistence:prod'], options),
-      spawn('yarn', ['test:exp:persistence:prod'], options),
-      spawn('yarn', ['test:lite:prod'], options)
-    ]);
+    return spawn('yarn', ['test:node:persistence:prod'], options);
   } else {
-    return Promise.all([
-      spawn('yarn', ['test:node:prod'], options),
-      spawn('yarn', ['test:exp:prod'], options),
-      spawn('yarn', ['test:lite:prod'], options)
-    ]);
+    return spawn('yarn', ['test:node:prod'], options);
   }
 }
 
