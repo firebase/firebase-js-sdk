@@ -118,8 +118,8 @@ export class FirebaseAppImpl implements FirebaseApp {
     name: string,
     instanceIdentifier: string = _DEFAULT_ENTRY_NAME
   ): void {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.app.container
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .getProvider(name as any)
       .clearInstance(instanceIdentifier);
   }
