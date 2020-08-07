@@ -105,15 +105,10 @@ describe('SimpleDb', () => {
     );
   }
 
-  beforeEach(() => {
-    return SimpleDb.delete(dbName)
-      .then(() => {
-        return SimpleDb.openOrCreate(dbName, 1, new TestSchemaConverter());
-      })
-      .then(simpleDb => {
-        db = simpleDb;
-        return writeTestData();
-      });
+  beforeEach(async () => {
+    await SimpleDb.delete(dbName);
+    db = new SimpleDb(dbName, 1, new TestSchemaConverter());
+    await writeTestData();
   });
 
   afterEach(() => db.close());
