@@ -29,6 +29,7 @@
     "test:lite:browser": "karma start --single-run --lite",
     "test:lite:browser:debug": "karma start --single-run --lite --auto-watch",
     "test:exp": "node ./scripts/run-tests.js --emulator --main=exp/index.ts test/integration/api/*.test.ts",
+    "test:exp:prod": "node ./scripts/run-tests.js --main=exp/index.ts test/integration/api/*.test.ts",
     "test:exp:persistence": "node ./scripts/run-tests.js --emulator --persistence --main=exp/index.ts test/integration/api/*.test.ts",
     "test:exp:persistence:prod": "node ./scripts/run-tests.js --persistence --main=exp/index.ts test/integration/api/*.test.ts",
     "test:exp:browser": "karma start --single-run --exp",
