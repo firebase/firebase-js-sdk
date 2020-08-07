@@ -21,7 +21,7 @@ import { logDebug, logError } from './log';
 import { Deferred } from './promise';
 import { ExponentialBackoff } from '../remote/backoff';
 import { isIndexedDbTransactionError } from '../local/simple_db';
-import { getWindow } from '../platform/dom';
+import { getDocument } from '../platform/dom';
 
 const LOG_TAG = 'AsyncQueue';
 
@@ -235,12 +235,22 @@ export class AsyncQueue {
   // Visibility handler that triggers an immediate retry of all retryable
   // operations. Meant to speed up recovery when we regain file system access
   // after page comes into foreground.
-  private visibilityHandler = (): void => this.backoff.skipBackoff();
+  private visibilityHandler: () => void = () => {
+    const document = getDocument();
+    if (document) {
+      logDebug(
+        LOG_TAG,
+        'Visibility state changed to  ',
+        document.visibilityState
+      );
+    }
+    this.backoff.skipBackoff();
+  };
 
   constructor() {
-    const window = getWindow();
-    if (window && typeof window.addEventListener === 'function') {
-      window.addEventListener('visibilitychange', this.visibilityHandler);
+    const document = getDocument();
+    if (document && typeof document.addEventListener === 'function') {
+      document.addEventListener('visibilitychange', this.visibilityHandler);
     }
   }
 
@@ -293,9 +303,12 @@ export class AsyncQueue {
     this.verifyNotFailed();
     if (!this._isShuttingDown) {
       this._isShuttingDown = true;
-      const window = getWindow();
-      if (window) {
-        window.removeEventListener('visibilitychange', this.visibilityHandler);
+      const document = getDocument();
+      if (document && typeof document.removeEventListener === 'function') {
+        document.removeEventListener(
+          'visibilitychange',
+          this.visibilityHandler
+        );
       }
       await this.enqueueEvenAfterShutdown(op);
     }
