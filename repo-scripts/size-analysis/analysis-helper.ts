@@ -749,8 +749,6 @@ export function extractExternalDependencies(
 /**
  * This function generates a binary size report for the given module specified by the moduleLocation argument.
  * @param moduleLocation a path to location of a firebase module
- * @param outputDirectory a path to a directory where the reports will be written under.
- * @param writeFiles when true, will write reports to designated directory specified by outputDirectory.
  */
 export async function generateReportForModule(
   moduleLocation: string
@@ -887,9 +885,15 @@ export async function buildJsonReport(
   }
   return result;
 }
-
+/**
+ *
+ * This function generates a report from given dts file.
+ * @param name a name to be displayed on the report. a module name if for a firebase module; a random name if for adhoc analysis.
+ * @param dtsFile absolute path to the definition file of interest.
+ * @param bundleFile absolute path to the bundle file of the given definition file.
+ */
 export async function generateReport(
-  moduleName: string,
+  name: string,
   dtsFile: string,
   bundleFile: string
 ): Promise<Report> {
@@ -904,16 +908,13 @@ export async function generateReport(
 
   const publicAPI = extractDeclarations(resolvedDtsFile);
   const map: Map<string, string> = buildMap(publicAPI);
-  return buildJsonReport(moduleName, publicAPI, bundleFile, map);
+  return buildJsonReport(name, publicAPI, bundleFile, map);
 }
 
 /**
  * This function recursively generates a binary size report for every module listed in moduleLocations array.
  *
  * @param moduleLocations an array of strings where each is a path to location of a firebase module
- * @param outputDirectory a path to a directory where the reports will be written under.
- * @param writeFiles when true, will write reports to designated directory specified by outputDirectory.
- *
  *
  */
 export async function generateReportForModules(
