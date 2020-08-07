@@ -38,12 +38,11 @@ async function runTest(port: number, projectId: string, withPersistence: boolean
   if (withPersistence) {
     await spawn('yarn', ['test:node:persistence:prod'], options);
     await spawn('yarn', ['test:exp:persistence:prod'], options);
-    await spawn('yarn', ['test:lite:prod'], options);
   } else {
     await spawn('yarn', ['test:node:prod'], options);
-    await spawn('yarn', ['test:exp:persistence:prod'], options);
-    await spawn('yarn', ['test:lite:prod'], options);
+    await spawn('yarn', ['test:exp:prod'], options);
   }
+  await spawn('yarn', ['test:lite:prod'], options);
 }
 
 async function run(): Promise<void> {
