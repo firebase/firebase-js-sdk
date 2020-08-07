@@ -23,7 +23,7 @@ import * as freePortFinder from 'find-free-port';
 
 import { FirestoreEmulator } from './emulators/firestore-emulator';
 
-function runTest(port: number, projectId: string, withPersistence: boolean) {
+async function runTest(port: number, projectId: string, withPersistence: boolean) {
   const options = {
     cwd: path.resolve(__dirname, '../../packages/firestore'),
     env: Object.assign({}, process.env, {
@@ -36,9 +36,13 @@ function runTest(port: number, projectId: string, withPersistence: boolean) {
   // ready in Firestore emulator.
   // Use `prod` to allow test runner's env variable overrides to work.
   if (withPersistence) {
-    return spawn('yarn', ['test:node:persistence:prod'], options);
+    await spawn('yarn', ['test:node:persistence:prod'], options);
+    await spawn('yarn', ['test:exp:persistence:prod'], options);
+    await spawn('yarn', ['test:lite:prod'], options);
   } else {
-    return spawn('yarn', ['test:node:prod'], options);
+    await spawn('yarn', ['test:node:prod'], options);
+    await spawn('yarn', ['test:exp:persistence:prod'], options);
+    await spawn('yarn', ['test:lite:prod'], options);
   }
 }
 
