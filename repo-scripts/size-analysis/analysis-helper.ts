@@ -114,7 +114,8 @@ export async function extractDependenciesAndSize(
     format: 'es'
   });
   const externalDepsNotResolvedBundle = await rollup.rollup({
-    input
+    input,
+    external: id => id.startsWith('@firebase') // exclude all firebase dependencies
   });
   await externalDepsNotResolvedBundle.write({
     file: externalDepsNotResolvedOutput,
