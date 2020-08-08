@@ -1,5 +1,5 @@
 ---
-"@firebase/firebase": patch
+"firebase": patch
 "@firebase/analytics": patch 
 ---
 
