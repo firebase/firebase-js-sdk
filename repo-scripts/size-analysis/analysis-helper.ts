@@ -145,7 +145,7 @@ export async function extractDependenciesAndSize(
       output: {
         comments: false
       },
-      mangle: true,
+      mangle: { toplevel: true },
       compress: false
     }
   );
@@ -155,7 +155,7 @@ export async function extractDependenciesAndSize(
       output: {
         comments: false
       },
-      mangle: true,
+      mangle: { toplevel: true },
       compress: false
     }
   );
