@@ -1,5 +1,12 @@
 # @firebase/testing
 
+## 0.20.10
+
+### Patch Changes
+
+- Updated dependencies []:
+  - firebase@7.17.2
+
 ## 0.20.9
 
 ### Patch Changes
