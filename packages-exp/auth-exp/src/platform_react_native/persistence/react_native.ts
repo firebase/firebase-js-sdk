@@ -22,7 +22,7 @@ import {
   PersistenceType,
   PersistenceValue,
   STORAGE_AVAILABLE_KEY
-} from './';
+} from '../../core/persistence';
 
 /**
  * Returns a persistence class that wraps AsyncStorage imported from

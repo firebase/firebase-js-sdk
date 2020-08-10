@@ -24,11 +24,11 @@ import {
   PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { UserCredential, User } from '../../model/user';
-import { _assertLinkedStatus } from '../user/link_unlink';
-import { _generateEventId } from '../util/event_id';
-import { _getInstance } from '../util/instantiator';
+import { _assertLinkedStatus } from '../../core/user/link_unlink';
+import { _generateEventId } from '../../core/util/event_id';
+import { _getInstance } from '../../core/util/instantiator';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
-import { _castAuth } from '../auth/auth_impl';
+import { _castAuth } from '../../core/auth/auth_impl';
 
 export async function signInWithRedirect(
   auth: externs.Auth,

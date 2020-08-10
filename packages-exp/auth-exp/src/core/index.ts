@@ -59,7 +59,6 @@ export { OAuthCredential } from './credentials/oauth';
 
 // persistence
 export { inMemoryPersistence } from './persistence/in_memory';
-export { indexedDBLocalPersistence } from './persistence/indexed_db';
 
 // providers
 export { EmailAuthProvider } from './providers/email';
@@ -67,7 +66,6 @@ export { FacebookAuthProvider } from './providers/facebook';
 export { GoogleAuthProvider } from './providers/google';
 export { GithubAuthProvider } from './providers/github';
 export { OAuthProvider } from './providers/oauth';
-export { PhoneAuthProvider } from './providers/phone';
 export { TwitterAuthProvider } from './providers/twitter';
 
 // strategies

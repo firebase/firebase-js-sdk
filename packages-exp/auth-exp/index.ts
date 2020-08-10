@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { registerVersion } from '@firebase/app-exp';
+import { name, version } from './package.json';
 import { _initializeAuthForClientPlatform } from './src/core/auth/auth_impl';
 import { ClientPlatform } from './src/core/util/version';
 
@@ -23,35 +25,43 @@ export * from './src';
 
 // Additional DOM dependend functionality
 
-// core/persistence
+// persistence
 export {
   browserLocalPersistence,
   browserSessionPersistence
-} from './src/core/persistence/browser';
+} from './src/platform_browser/persistence/browser';
+export { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
-// core/strategies
+// providers
+export { PhoneAuthProvider } from './src/platform_browser/providers/phone';
+
+// strategies
 export {
   signInWithPhoneNumber,
   linkWithPhoneNumber,
   reauthenticateWithPhoneNumber,
   updatePhoneNumber
-} from './src/core/strategies/phone';
+} from './src/platform_browser/strategies/phone';
 export {
   signInWithPopup,
   linkWithPopup,
   reauthenticateWithPopup
-} from './src/core/strategies/popup';
+} from './src/platform_browser/strategies/popup';
 export {
   signInWithRedirect,
   linkWithRedirect,
   reauthenticateWithRedirect,
   getRedirectResult
-} from './src/core/strategies/redirect';
+} from './src/platform_browser/strategies/redirect';
 
-// platform_browser
 export { RecaptchaVerifier } from './src/platform_browser/recaptcha/recaptcha_verifier';
 export { browserPopupRedirectResolver } from './src/platform_browser/popup_redirect';
+
+// MFA
+export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
 
 export const initializeAuth = _initializeAuthForClientPlatform(
   ClientPlatform.BROWSER
 );
+
+registerVersion(name, version);

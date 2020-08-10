@@ -22,8 +22,20 @@
  * just use index.browser.ts
  */
 
+import * as fetchImpl from 'node-fetch';
+
+import { registerVersion } from '@firebase/app-exp';
+import { name, version } from './package.json';
 import { _initializeAuthForClientPlatform } from './src/core/auth/auth_impl';
 import { ClientPlatform } from './src/core/util/version';
+import { FetchProvider } from './src/core/util/fetch_provider';
+
+// Initialize the fetch polyfill, the types are slightly off so just cast and hope for the best
+FetchProvider.initialize(
+  (fetchImpl.default as unknown) as typeof fetch,
+  (fetchImpl.Headers as unknown) as typeof Headers,
+  (fetchImpl.Response as unknown) as typeof Response
+);
 
 // Core functionality shared by all clients
 export * from './src';
@@ -31,3 +43,5 @@ export * from './src';
 export const initializeAuth = _initializeAuthForClientPlatform(
   ClientPlatform.NODE
 );
+
+registerVersion(name, version, 'node');

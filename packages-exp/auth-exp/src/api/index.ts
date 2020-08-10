@@ -27,6 +27,7 @@ import { AuthCore } from '../model/auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';
 import { ServerError, ServerErrorMap, SERVER_ERROR_MAP } from './errors';
+import { FetchProvider } from '../core/util/fetch_provider';
 
 export enum HttpMethod {
   POST = 'POST',
@@ -88,7 +89,7 @@ export async function _performApiRequest<T, V>(
       ...params
     }).slice(1);
 
-    const headers = new Headers();
+    const headers = new (FetchProvider.headers())();
     headers.set(HttpHeader.CONTENT_TYPE, 'application/json');
     headers.set(HttpHeader.X_CLIENT_VERSION, auth.config.sdkClientVersion);
 
@@ -96,7 +97,7 @@ export async function _performApiRequest<T, V>(
       headers.set(HttpHeader.X_FIREBASE_LOCALE, auth.languageCode);
     }
 
-    return fetch(
+    return FetchProvider.fetch()(
       `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${query}`,
       {
         method,
