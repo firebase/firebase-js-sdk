@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
-import './register';
+import { registerFirestore } from './register';
+
+registerFirestore();
 
 export { FieldPath, documentId } from '../lite/src/api/field_path';
 
