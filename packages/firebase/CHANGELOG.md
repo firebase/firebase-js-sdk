@@ -1,5 +1,13 @@
 # firebase
 
+## 7.17.2
+
+### Patch Changes
+
+- Updated dependencies [[`ef348fed`](https://github.com/firebase/firebase-js-sdk/commit/ef348fed291338351706a697cbb9fb17a9d06ff4)]:
+  - @firebase/database@0.6.10
+  - @firebase/firestore@1.16.3
+
 ## 7.17.1
 
 ### Patch Changes
