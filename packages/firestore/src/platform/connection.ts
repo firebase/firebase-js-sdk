@@ -26,7 +26,6 @@ export function newConnectivityMonitor(): ConnectivityMonitor {
   return platform.newConnectivityMonitor();
 }
 
-// TODO(firestorexp): This doesn't need to return a Promise
-export function newConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
+export function newConnection(databaseInfo: DatabaseInfo): Connection {
   return platform.newConnection(databaseInfo);
 }
