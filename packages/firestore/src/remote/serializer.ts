@@ -96,8 +96,10 @@ const OPERATORS = (() => {
   ops[Operator.GREATER_THAN] = 'GREATER_THAN';
   ops[Operator.GREATER_THAN_OR_EQUAL] = 'GREATER_THAN_OR_EQUAL';
   ops[Operator.EQUAL] = 'EQUAL';
+  ops[Operator.NOT_EQUAL] = 'NOT_EQUAL';
   ops[Operator.ARRAY_CONTAINS] = 'ARRAY_CONTAINS';
   ops[Operator.IN] = 'IN';
+  ops[Operator.NOT_IN] = 'NOT_IN';
   ops[Operator.ARRAY_CONTAINS_ANY] = 'ARRAY_CONTAINS_ANY';
   return ops;
 })();
@@ -985,11 +987,11 @@ function toFilter(filters: Filter[]): api.Filter | undefined {
     return;
   }
   const protos = filters.map(filter => {
-    if (filter instanceof FieldFilter) {
-      return toUnaryOrFieldFilter(filter);
-    } else {
-      return fail('Unrecognized filter: ' + JSON.stringify(filter));
-    }
+    debugAssert(
+      filter instanceof FieldFilter,
+      'Only FieldFilters are supported'
+    );
+    return toUnaryOrFieldFilter(filter);
   });
   if (protos.length === 1) {
     return protos[0];
@@ -1065,6 +1067,8 @@ export function fromOperatorName(op: api.FieldFilterOp): Operator {
   switch (op) {
     case 'EQUAL':
       return Operator.EQUAL;
+    case 'NOT_EQUAL':
+      return Operator.NOT_EQUAL;
     case 'GREATER_THAN':
       return Operator.GREATER_THAN;
     case 'GREATER_THAN_OR_EQUAL':
@@ -1077,6 +1081,8 @@ export function fromOperatorName(op: api.FieldFilterOp): Operator {
       return Operator.ARRAY_CONTAINS;
     case 'IN':
       return Operator.IN;
+    case 'NOT_IN':
+      return Operator.NOT_IN;
     case 'ARRAY_CONTAINS_ANY':
       return Operator.ARRAY_CONTAINS_ANY;
     case 'OPERATOR_UNSPECIFIED':
@@ -1137,6 +1143,22 @@ export function toUnaryOrFieldFilter(filter: FieldFilter): api.Filter {
         }
       };
     }
+  } else if (filter.op === Operator.NOT_EQUAL) {
+    if (isNanValue(filter.value)) {
+      return {
+        unaryFilter: {
+          field: toFieldPathReference(filter.field),
+          op: 'IS_NOT_NAN'
+        }
+      };
+    } else if (isNullValue(filter.value)) {
+      return {
+        unaryFilter: {
+          field: toFieldPathReference(filter.field),
+          op: 'IS_NOT_NULL'
+        }
+      };
+    }
   }
   return {
     fieldFilter: {
@@ -1157,6 +1179,16 @@ export function fromUnaryFilter(filter: api.Filter): Filter {
     case 'IS_NULL':
       const nullField = fromFieldPathReference(filter.unaryFilter!.field!);
       return FieldFilter.create(nullField, Operator.EQUAL, {
+        nullValue: 'NULL_VALUE'
+      });
+    case 'IS_NOT_NAN':
+      const notNanField = fromFieldPathReference(filter.unaryFilter!.field!);
+      return FieldFilter.create(notNanField, Operator.NOT_EQUAL, {
+        doubleValue: NaN
+      });
+    case 'IS_NOT_NULL':
+      const notNullField = fromFieldPathReference(filter.unaryFilter!.field!);
+      return FieldFilter.create(notNullField, Operator.NOT_EQUAL, {
         nullValue: 'NULL_VALUE'
       });
     case 'OPERATOR_UNSPECIFIED':

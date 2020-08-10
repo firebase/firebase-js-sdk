@@ -1,5 +1,22 @@
 # Unreleased
 
+## 0.6.10
+
+### Patch Changes
+
+- [`ef348fed`](https://github.com/firebase/firebase-js-sdk/commit/ef348fed291338351706a697cbb9fb17a9d06ff4) [#3511](https://github.com/firebase/firebase-js-sdk/pull/3511) - Added interface `Database` which is implemented by `FirebaseDatabase`. This allows consumer SDKs (such as the Firebase Admin SDK) to export the database types as an interface.
+
+- Updated dependencies [[`ef348fed`](https://github.com/firebase/firebase-js-sdk/commit/ef348fed291338351706a697cbb9fb17a9d06ff4)]:
+  - @firebase/database-types@0.5.2
+
+## 0.6.9
+
+### Patch Changes
+
+- Updated dependencies [[`a87676b8`](https://github.com/firebase/firebase-js-sdk/commit/a87676b84b78ccc2f057a22eb947a5d13402949c)]:
+  - @firebase/util@0.3.0
+  - @firebase/component@0.1.17
+
 ## 0.6.8
 
 ### Patch Changes
@@ -22,23 +39,26 @@
   without transactions.
 - [fixed] Fixed Realtime Database URL parsing bug to support domains with more than 3 components.
 
-# Released
+## 0.5.6
 
 - [fixed] Fixed an issue that caused large numeric values with leading zeros to
   not always be sorted correctly.
+
+## 0.5.3
+
 - [changed] Internal cleanup to Node.JS support.
 
-# 6.4.0
+## 0.5.0
 
 - [fixed] Fixed an issue that caused `.info/serverTimeOffset` events not to fire (#2043).
 - [changed] Treat `ns` url query parameter as the default Realtime Database
   namespace name.
 
-# 6.3.4
+## 0.4.11
 
 - [fixed] Fixed an issue where multi-byte UTF-8 characters would not be written correctly when using `firebase.js` or `firebase-database.js` (#2035).
 
-# 6.0.0
+## 0.4.0
 
 - [changed] Improved consistency between the type annotations for `Query.on`/`Reference.on`,
   `Query.off`/`Reference.off` and `Query.once`/`Reference.once` (#1188, #1204).

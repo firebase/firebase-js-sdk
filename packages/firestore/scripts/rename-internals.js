@@ -14,18 +14,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
-exports.__esModule = true;
+ */ exports.__esModule = true;
 exports.renameInternals = void 0;
-// eslint-disable-next-line import/no-extraneous-dependencies
 var ts = require('typescript');
-// `undefined` is treated as an identifier by TSC, but not part of any externs.
 var blacklist = ['undefined'];
-/**
- * Processes TypeScript source files and renames all identifiers that do not
- * reference the public API.
- */
-var RenameInternals = /** @class */ (function () {
+var RenameInternals = (function () {
   function RenameInternals(publicApi, prefix) {
     this.publicApi = publicApi;
     this.prefix = prefix;
@@ -57,10 +50,6 @@ var RenameInternals = /** @class */ (function () {
   return RenameInternals;
 })();
 var DEFAULT_PREFIX = '_';
-/**
- * A TypeScript transformer that minifies existing source files. All identifiers
- * are minified unless listed in `config.publicIdentifiers`.
- */
 function renameInternals(program, config) {
   var _a;
   var prefix =

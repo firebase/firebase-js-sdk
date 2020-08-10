@@ -40,9 +40,9 @@ import {
   getDoc,
   getDocFromCache,
   getDocFromServer,
-  getQuery,
-  getQueryFromCache,
-  getQueryFromServer,
+  getDocs,
+  getDocsFromCache,
+  getDocsFromServer,
   increment,
   initializeFirestore,
   loadBundle,
@@ -527,11 +527,11 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
   get(options?: legacy.GetOptions): Promise<QuerySnapshot<T>> {
     let query: Promise<exp.QuerySnapshot<T>>;
     if (options?.source === 'cache') {
-      query = getQueryFromCache(this._delegate);
+      query = getDocsFromCache(this._delegate);
     } else if (options?.source === 'server') {
-      query = getQueryFromServer(this._delegate);
+      query = getDocsFromServer(this._delegate);
     } else {
-      query = getQuery(this._delegate);
+      query = getDocs(this._delegate);
     }
     return query.then(result => new QuerySnapshot(this.firestore, result));
   }

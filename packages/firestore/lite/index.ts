@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-import { registerVersion, _registerComponent } from '@firebase/app-exp';
-import { Firestore } from './src/api/database';
-import { version } from '../package.json';
-import { Component, ComponentType } from '@firebase/component';
+import { registerFirestore } from './register';
+
+registerFirestore();
 
 export {
   Firestore as FirebaseFirestore,
@@ -37,7 +36,7 @@ export {
   doc,
   parent,
   getDoc,
-  getQuery,
+  getDocs,
   deleteDoc,
   setDoc,
   updateDoc,
@@ -86,22 +85,3 @@ export { Blob } from '../src/api/blob';
 export { GeoPoint } from '../src/api/geo_point';
 
 export { Timestamp } from '../src/api/timestamp';
-
-export function registerFirestore(): void {
-  _registerComponent(
-    new Component(
-      'firestore/lite',
-      container => {
-        const app = container.getProvider('app-exp').getImmediate()!;
-        return ((app, auth) => new Firestore(app, auth))(
-          app,
-          container.getProvider('auth-internal')
-        );
-      },
-      ComponentType.PUBLIC
-    )
-  );
-  registerVersion('firestore-lite', version, 'node');
-}
-
-registerFirestore();

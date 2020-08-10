@@ -1,7 +1,7 @@
 {
   "name": "firebase-firestore-integration-test",
   "version": "1.0.1",
-  "private": true, 
+  "private": true,
   "scripts": {
     "build:deps": "lerna run --scope @firebase/'{app,firestore}' --include-dependencies build",
     "build:persistence": "INCLUDE_FIRESTORE_PERSISTENCE=true gulp compile-tests",
@@ -15,22 +15,22 @@
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
-    "@firebase/firestore": "0.x"
+    "@firebase/firestore": "1.16.3"
   },
   "devDependencies": {
     "@types/mocha": "7.0.2",
     "gulp": "4.0.2",
     "gulp-filter": "6.0.0",
     "gulp-replace": "1.0.0",
-    "karma": "5.1.0",
+    "karma": "5.1.1",
     "karma-chrome-launcher": "3.1.0",
     "karma-firefox-launcher": "1.3.0",
     "karma-mocha": "2.0.1",
     "karma-spec-reporter": "0.0.32",
     "mocha": "7.2.0",
     "ts-loader": "6.2.2",
-    "typescript": "3.9.6",
-    "webpack": "4.43.0",
+    "typescript": "3.9.7",
+    "webpack": "4.44.1",
     "webpack-stream": "5.2.1"
   }
 }

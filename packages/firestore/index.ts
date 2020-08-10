@@ -19,7 +19,10 @@ import firebase from '@firebase/app';
 import { FirebaseNamespace } from '@firebase/app-types';
 
 import { Firestore } from './src/api/database';
-import { MultiTabIndexedDbComponentProvider } from './src/core/component_provider';
+import {
+  MultiTabOfflineComponentProvider,
+  OnlineComponentProvider
+} from './src/core/component_provider';
 import { configureForFirebase } from './src/config';
 import { name, version } from './package.json';
 
@@ -30,11 +33,18 @@ import './register-module';
  * Persistence can be enabled via `firebase.firestore().enablePersistence()`.
  */
 export function registerFirestore(instance: FirebaseNamespace): void {
-  configureForFirebase(
-    instance,
-    (app, auth) =>
-      new Firestore(app, auth, new MultiTabIndexedDbComponentProvider())
-  );
+  configureForFirebase(instance, (app, auth) => {
+    const onlineComponentProvider = new OnlineComponentProvider();
+    const offlineComponentProvider = new MultiTabOfflineComponentProvider(
+      onlineComponentProvider
+    );
+    return new Firestore(
+      app,
+      auth,
+      offlineComponentProvider,
+      onlineComponentProvider
+    );
+  });
   instance.registerVersion(name, version);
 }
 

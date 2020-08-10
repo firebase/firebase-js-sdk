@@ -16,10 +16,10 @@
  */
 
 // Rather than pull these in from other protos, we just alias them to any.
-/* 
+/*
    eslint-disable
-   camelcase, @typescript-eslint/no-explicit-any, 
-   @typescript-eslint/interface-name-prefix,  @typescript-eslint/class-name-casing 
+   camelcase, @typescript-eslint/no-explicit-any,
+   @typescript-eslint/interface-name-prefix,  @typescript-eslint/class-name-casing
 */
 export declare type ApiClientHookFactory = any;
 export declare type PromiseRequestService = any;
@@ -44,9 +44,11 @@ export declare type FieldFilterOp =
   | 'GREATER_THAN'
   | 'GREATER_THAN_OR_EQUAL'
   | 'EQUAL'
+  | 'NOT_EQUAL'
   | 'ARRAY_CONTAINS'
   | 'IN'
-  | 'ARRAY_CONTAINS_ANY';
+  | 'ARRAY_CONTAINS_ANY'
+  | 'NOT_IN';
 export interface IFieldFilterOpEnum {
   OPERATOR_UNSPECIFIED: FieldFilterOp;
   LESS_THAN: FieldFilterOp;
@@ -54,9 +56,11 @@ export interface IFieldFilterOpEnum {
   GREATER_THAN: FieldFilterOp;
   GREATER_THAN_OR_EQUAL: FieldFilterOp;
   EQUAL: FieldFilterOp;
+  NOT_EQUAL: FieldFilterOp;
   ARRAY_CONTAINS: FieldFilterOp;
   IN: FieldFilterOp;
   ARRAY_CONTAINS_ANY: FieldFilterOp;
+  NOT_IN: FieldFilterOp;
   values(): FieldFilterOp[];
 }
 export declare const FieldFilterOpEnum: IFieldFilterOpEnum;
@@ -122,11 +126,15 @@ export declare const TargetChangeTargetChangeTypeEnum: ITargetChangeTargetChange
 export declare type UnaryFilterOp =
   | 'OPERATOR_UNSPECIFIED'
   | 'IS_NAN'
-  | 'IS_NULL';
+  | 'IS_NULL'
+  | 'IS_NOT_NAN'
+  | 'IS_NOT_NULL';
 export interface IUnaryFilterOpEnum {
   OPERATOR_UNSPECIFIED: UnaryFilterOp;
   IS_NAN: UnaryFilterOp;
   IS_NULL: UnaryFilterOp;
+  IS_NOT_NAN: UnaryFilterOp;
+  IS_NOT_NULL: UnaryFilterOp;
   values(): UnaryFilterOp[];
 }
 export declare const UnaryFilterOpEnum: IUnaryFilterOpEnum;

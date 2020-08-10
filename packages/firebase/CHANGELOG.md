@@ -1,5 +1,51 @@
 # firebase
 
+## 7.17.2
+
+### Patch Changes
+
+- Updated dependencies [[`ef348fed`](https://github.com/firebase/firebase-js-sdk/commit/ef348fed291338351706a697cbb9fb17a9d06ff4)]:
+  - @firebase/database@0.6.10
+  - @firebase/firestore@1.16.3
+
+## 7.17.1
+
+### Patch Changes
+
+- [`a87676b8`](https://github.com/firebase/firebase-js-sdk/commit/a87676b84b78ccc2f057a22eb947a5d13402949c) [#3472](https://github.com/firebase/firebase-js-sdk/pull/3472) - - Fix an error where an analytics PR included a change to `@firebase/util`, but
+  the util package was not properly included in the changeset for a patch bump.
+
+  - `@firebase/util` adds environment check methods `isIndexedDBAvailable`
+    `validateIndexedDBOpenable`, and `areCookiesEnabled`.
+
+- Updated dependencies [[`a87676b8`](https://github.com/firebase/firebase-js-sdk/commit/a87676b84b78ccc2f057a22eb947a5d13402949c)]:
+  - @firebase/analytics@0.4.1
+  - @firebase/util@0.3.0
+  - @firebase/app@0.6.9
+  - @firebase/database@0.6.9
+  - @firebase/firestore@1.16.2
+  - @firebase/installations@0.4.15
+  - @firebase/messaging@0.6.21
+  - @firebase/performance@0.3.10
+  - @firebase/remote-config@0.1.26
+  - @firebase/storage@0.3.41
+  - @firebase/functions@0.4.49
+
+## 7.17.0
+
+### Minor Changes
+
+- [`02419ce8`](https://github.com/firebase/firebase-js-sdk/commit/02419ce8470141f012d9ce425a6a4a4aa912e480) [#3165](https://github.com/firebase/firebase-js-sdk/pull/3165) - Issue 2393 fix - analytics module
+
+  - Added a public method `isSupported` to Analytics module which returns true if current browser context supports initialization of analytics module.
+  - Added runtime checks to Analytics module that validate if cookie is enabled in current browser and if current browser environment supports indexedDB functionalities.
+
+### Patch Changes
+
+- Updated dependencies [[`02419ce8`](https://github.com/firebase/firebase-js-sdk/commit/02419ce8470141f012d9ce425a6a4a4aa912e480), [`ee33ebf7`](https://github.com/firebase/firebase-js-sdk/commit/ee33ebf726b1dc31ab4817e7a1923f7b2757e17c)]:
+  - @firebase/analytics@0.4.0
+  - @firebase/storage@0.3.40
+
 ## 7.16.1
 
 ### Patch Changes

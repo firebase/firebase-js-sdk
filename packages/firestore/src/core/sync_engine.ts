@@ -67,7 +67,6 @@ import {
 import { SnapshotVersion } from './snapshot_version';
 import { Target } from './target';
 import { TargetIdGenerator } from './target_id_generator';
-import { Transaction } from './transaction';
 import {
   BatchId,
   MutationBatchState,
@@ -84,8 +83,7 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
-import { TransactionRunner } from './transaction_runner';
+import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { BundleReader } from '../util/bundle_reader';
 import {
   BundleLoader,
@@ -191,29 +189,6 @@ export interface SyncEngine extends RemoteSyncer {
    * backend (or failed locally for any other reason).
    */
   write(batch: Mutation[], userCallback: Deferred<void>): Promise<void>;
-
-  /**
-   * Takes an updateFunction in which a set of reads and writes can be performed
-   * atomically. In the updateFunction, the client can read and write values
-   * using the supplied transaction object. After the updateFunction, all
-   * changes will be committed. If a retryable error occurs (ex: some other
-   * client has changed any of the data referenced), then the updateFunction
-   * will be called again after a backoff. If the updateFunction still fails
-   * after all retries, then the transaction will be rejected.
-   *
-   * The transaction object passed to the updateFunction contains methods for
-   * accessing documents and collections. Unlike other datastore access, data
-   * accessed with the transaction will not reflect local changes that have not
-   * been committed. For this reason, it is required that all reads are
-   * performed before any writes. Transactions must be performed while online.
-   *
-   * The Deferred input is resolved when the transaction is fully committed.
-   */
-  runTransaction<T>(
-    asyncQueue: AsyncQueue,
-    updateFunction: (transaction: Transaction) => Promise<T>,
-    deferred: Deferred<T>
-  ): void;
 
   /**
    * Applies an OnlineState change to the sync engine and notifies any views of
@@ -461,19 +436,6 @@ class SyncEngineImpl implements SyncEngine {
       const error = wrapInUserErrorIfRecoverable(e, `Failed to persist write`);
       userCallback.reject(error);
     }
-  }
-
-  runTransaction<T>(
-    asyncQueue: AsyncQueue,
-    updateFunction: (transaction: Transaction) => Promise<T>,
-    deferred: Deferred<T>
-  ): void {
-    new TransactionRunner<T>(
-      asyncQueue,
-      this.datastore,
-      updateFunction,
-      deferred
-    ).run();
   }
 
   async applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {

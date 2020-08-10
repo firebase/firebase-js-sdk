@@ -26,7 +26,10 @@ import {
   Query,
   QuerySnapshot
 } from '../../src/api/database';
-import { MultiTabIndexedDbComponentProvider } from '../../src/core/component_provider';
+import {
+  MultiTabOfflineComponentProvider,
+  OnlineComponentProvider
+} from '../../src/core/component_provider';
 import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
   ChangeType,
@@ -41,6 +44,10 @@ import { doc, key, path as pathFrom } from './helpers';
 import { Provider, ComponentContainer } from '@firebase/component';
 import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
 
+const onlineComponentProvider = new OnlineComponentProvider();
+const offlineComponentProvider = new MultiTabOfflineComponentProvider(
+  onlineComponentProvider
+);
 /**
  * A mock Firestore. Will not work for integration test.
  */
@@ -50,7 +57,8 @@ export const FIRESTORE = new Firestore(
     database: '(default)'
   },
   new Provider('auth-internal', new ComponentContainer('default')),
-  new MultiTabIndexedDbComponentProvider()
+  offlineComponentProvider,
+  onlineComponentProvider
 );
 
 export function firestore(): Firestore {

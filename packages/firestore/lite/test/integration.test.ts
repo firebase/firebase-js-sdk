@@ -52,7 +52,7 @@ import {
   refEqual,
   queryEqual,
   collectionGroup,
-  getQuery,
+  getDocs,
   orderBy,
   startAfter,
   query,
@@ -109,9 +109,13 @@ describe('Firestore', () => {
       { apiKey: 'fake-api-key', projectId: 'test-project' },
       'test-app-initializeFirestore-twice'
     );
-    initializeFirestore(app, { host: 'localhost', ssl: false });
+    const db = initializeFirestore(app, {});
+
+    // Start the client.
+    writeBatch(db);
+
     expect(() => {
-      initializeFirestore(app, { host: 'localhost', ssl: false });
+      initializeFirestore(app, {});
     }).to.throw(
       'Firestore has already been started and its settings can no longer be changed.'
     );
@@ -132,9 +136,13 @@ describe('Firestore', () => {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     terminate(firestore);
 
-    return expect(
-      getDoc(doc(firestore, 'coll/doc'))
-    ).to.be.eventually.rejectedWith('The client has already been terminated.');
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      getDoc(doc(firestore, 'coll/doc'));
+      expect.fail();
+    } catch (e) {
+      expect(e.message).to.equal('The client has already been terminated.');
+    }
   });
 
   it('can call terminate() multiple times', () => {
@@ -373,7 +381,7 @@ describe('WriteBatch', () => {
       batch.set(doc(coll), { doc: 2 });
       await batch.commit();
 
-      // TODO(firestorelite): Verify collection contents once getQuery is added
+      // TODO(firestorelite): Verify collection contents once getDocs is added
     });
   });
 
@@ -780,14 +788,14 @@ describe('Query', () => {
 
   it('supports default query', () => {
     return withTestCollectionAndInitialData([{ foo: 1 }], async collRef => {
-      const result = await getQuery(collRef);
+      const result = await getDocs(collRef);
       verifyResults(result, { foo: 1 });
     });
   });
 
   it('supports empty results', () => {
     return withTestCollectionAndInitialData([], async collRef => {
-      const result = await getQuery(collRef);
+      const result = await getDocs(collRef);
       verifyResults(result);
     });
   });
@@ -797,7 +805,7 @@ describe('Query', () => {
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
         const query1 = query(collRef, where('foo', '==', 1));
-        const result = await getQuery(query1);
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 1 });
       }
     );
@@ -808,7 +816,7 @@ describe('Query', () => {
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
         const query1 = query(collRef, where(new FieldPath('foo'), '==', 1));
-        const result = await getQuery(query1);
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 1 });
       }
     );
@@ -819,7 +827,7 @@ describe('Query', () => {
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
         const query1 = query(collRef, orderBy('foo'));
-        const result = await getQuery(query1);
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 1 }, { foo: 2 });
       }
     );
@@ -830,7 +838,7 @@ describe('Query', () => {
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
         const query1 = query(collRef, orderBy('foo', 'asc'));
-        const result = await getQuery(query1);
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 1 }, { foo: 2 });
       }
     );
@@ -841,7 +849,7 @@ describe('Query', () => {
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
         const query1 = query(collRef, orderBy('foo', 'desc'));
-        const result = await getQuery(query1);
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 2 }, { foo: 1 });
       }
     );
@@ -852,7 +860,7 @@ describe('Query', () => {
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
         const query1 = query(collRef, orderBy('foo'), limit(1));
-        const result = await getQuery(query1);
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 1 });
       }
     );
@@ -863,7 +871,7 @@ describe('Query', () => {
       [{ foo: 1 }, { foo: 2 }, { foo: 3 }],
       async collRef => {
         const query1 = query(collRef, orderBy('foo'), limitToLast(2));
-        const result = await getQuery(query1);
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 2 }, { foo: 3 });
       }
     );
@@ -874,7 +882,7 @@ describe('Query', () => {
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
         const query1 = query(collRef, orderBy('foo'), startAt(2));
-        const result = await getQuery(query1);
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 2 });
       }
     );
@@ -885,7 +893,7 @@ describe('Query', () => {
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
         const query1 = query(collRef, orderBy('foo'), startAfter(1));
-        const result = await getQuery(query1);
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 2 });
       }
     );
@@ -896,7 +904,7 @@ describe('Query', () => {
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
         const query1 = query(collRef, orderBy('foo'), endAt(1));
-        const result = await getQuery(query1);
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 1 });
       }
     );
@@ -907,7 +915,7 @@ describe('Query', () => {
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
         const query1 = query(collRef, orderBy('foo'), endBefore(2));
-        const result = await getQuery(query1);
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 1 });
       }
     );
@@ -918,12 +926,12 @@ describe('Query', () => {
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
         let query1 = query(collRef, orderBy('foo'), limit(1));
-        let result = await getQuery(query1);
+        let result = await getDocs(query1);
         verifyResults(result, { foo: 1 });
 
         // Pass the document snapshot from the previous result
         query1 = query(query1, startAfter(result.docs[0]));
-        result = await getQuery(query1);
+        result = await getDocs(query1);
         verifyResults(result, { foo: 2 });
       }
     );
@@ -945,7 +953,7 @@ describe('Query', () => {
       await setDoc(barDoc, { bar: 1 });
 
       const query1 = collectionGroup(collRef.firestore, collectionGroupId);
-      const result = await getQuery(query1);
+      const result = await getDocs(query1);
 
       verifyResults(result, { bar: 1 }, { foo: 1 });
     });
@@ -1028,16 +1036,16 @@ describe('equality', () => {
         const query1b = query(collRef, limit(10));
         const query2 = query(collRef, limit(100));
 
-        const snap1a = await getQuery(query1a);
-        const snap1b = await getQuery(query1b);
-        const snap2 = await getQuery(query2);
+        const snap1a = await getDocs(query1a);
+        const snap1b = await getDocs(query1b);
+        const snap2 = await getDocs(query2);
 
         expect(snapshotEqual(snap1a, snap1b)).to.be.true;
         expect(snapshotEqual(snap1a, snap2)).to.be.false;
 
         // Re-run the query with an additional result.
         await addDoc(collRef, { foo: 3 });
-        const snap1c = await getQuery(query1a);
+        const snap1c = await getDocs(query1a);
         expect(snapshotEqual(snap1a, snap1c)).to.be.false;
       }
     );
@@ -1047,14 +1055,14 @@ describe('equality', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const snap1a = await getQuery(collRef);
-        const snap1b = await getQuery(collRef);
+        const snap1a = await getDocs(collRef);
+        const snap1b = await getDocs(collRef);
         expect(snapshotEqual(snap1a.docs[0], snap1b.docs[0])).to.be.true;
         expect(snapshotEqual(snap1a.docs[0], snap1a.docs[0])).to.be.true;
 
         // Modify the document and obtain the snapshot again.
         await updateDoc(snap1a.docs[0].ref, { foo: 3 });
-        const snap3 = await getQuery(collRef);
+        const snap3 = await getDocs(collRef);
         expect(snapshotEqual(snap1a.docs[0], snap3.docs[0])).to.be.false;
       }
     );
@@ -1088,7 +1096,7 @@ describe('withConverter() support', () => {
     return withTestCollection(async coll => {
       coll = coll.withConverter(postConverter);
       await setDoc(doc(coll, 'post1'), new Post('post1', 'author1'));
-      const posts = await getQuery(coll);
+      const posts = await getDocs(coll);
       expect(posts.size).to.equal(1);
       expect(posts.docs[0].data()!.byline()).to.equal('post1, by author1');
     });
