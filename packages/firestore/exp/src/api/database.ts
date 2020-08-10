@@ -48,6 +48,7 @@ import {
 import { LoadBundleTask } from '../../../src/api/bundle';
 import { Query } from '../../../lite';
 import {
+  getLocalStore,
   getPersistence,
   getRemoteStore,
   getSyncEngine,
@@ -63,6 +64,7 @@ import { User } from '../../../src/auth/user';
 import { CredentialChangeListener } from '../../../src/api/credentials';
 import { logDebug } from '../../../src/util/log';
 import { debugAssert } from '../../../src/util/assert';
+import { getNamedQuery } from '../../../src/local/local_store';
 
 const LOG_TAG = 'Firestore';
 
@@ -342,11 +344,12 @@ export async function namedQuery(
   name: string
 ): Promise<firestore.Query | null> {
   const firestoreImpl = cast(firestore, Firestore);
-  const client = await firestoreImpl._getFirestoreClient();
-  const namedQuery = await client.getNamedQuery(name);
+  const localStore = await getLocalStore(firestoreImpl);
+  const namedQuery = await getNamedQuery(localStore, name);
   if (!namedQuery) {
     return null;
   }
 
+  // @ts-ignore
   return new Query(firestoreImpl, null, namedQuery.query);
 }
