@@ -20,13 +20,19 @@ import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import * as externs from '@firebase/auth-types-exp';
 import '@firebase/installations';
-import { Observer, Unsubscribe, ErrorFn } from '@firebase/util';
+import {
+  Observer,
+  Unsubscribe,
+  ErrorFn,
+  isIndexedDBAvailable
+} from '@firebase/util';
 import { User } from './user';
 import {
   convertConfirmationResult,
   convertCredential
 } from './user_credential';
 import { _isPopupRedirectSupported, _getClientPlatform } from './platform';
+import { Persistence, _validatePersistenceArgument } from './persistence';
 
 export class Auth extends impl.AuthImplCompat<User>
   implements compat.FirebaseAuth {
@@ -164,12 +170,15 @@ export class Auth extends impl.AuthImplCompat<User>
       auth: externs.Auth,
       persistenceCompat: string
     ): externs.Persistence {
+      _validatePersistenceArgument(auth, persistence);
       switch (persistenceCompat) {
-        case 'LOCAL':
-          return impl.browserLocalPersistence;
-        case 'SESSION':
+        case Persistence.SESSION:
           return impl.browserSessionPersistence;
-        case 'NONE':
+        case Persistence.LOCAL:
+          return isIndexedDBAvailable()
+            ? impl.indexedDBLocalPersistence
+            : impl.browserLocalPersistence;
+        case Persistence.NONE:
           return impl.inMemoryPersistence;
         default:
           return impl.fail(auth.name, impl.AuthErrorCode.ARGUMENT_ERROR);
