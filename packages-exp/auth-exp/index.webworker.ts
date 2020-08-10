@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { registerVersion } from '@firebase/app-exp';
+import { name, version } from './package.json';
 import { _initializeAuthForClientPlatform } from './src/core/auth/auth_impl';
 import { ClientPlatform } from './src/core/util/version';
 
@@ -24,3 +26,5 @@ export * from './src';
 export const initializeAuth = _initializeAuthForClientPlatform(
   ClientPlatform.WORKER
 );
+
+registerVersion(name, version, 'webworker');

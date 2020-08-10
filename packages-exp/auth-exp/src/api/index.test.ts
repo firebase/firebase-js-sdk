@@ -17,7 +17,7 @@
 
 import { assert, expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { SinonStub, stub, useFakeTimers } from 'sinon';
+import { useFakeTimers } from 'sinon';
 
 import { FirebaseError } from '@firebase/util';
 
@@ -207,19 +207,11 @@ describe('api/_performApiRequest', () => {
   });
 
   context('with network issues', () => {
-    let fetchStub: SinonStub;
-
-    beforeEach(() => {
-      fetchStub = stub(self, 'fetch');
-    });
-
-    afterEach(() => {
-      fetchStub.restore();
-    });
+    afterEach(mockFetch.tearDown);
 
     it('should handle timeouts', async () => {
       const clock = useFakeTimers();
-      fetchStub.callsFake(() => {
+      mockFetch.setUpWithOverride(() => {
         return new Promise<never>(() => null);
       });
       const promise = _performApiRequest<typeof request, never>(
@@ -234,7 +226,7 @@ describe('api/_performApiRequest', () => {
     });
 
     it('should handle network failure', async () => {
-      fetchStub.callsFake(() => {
+      mockFetch.setUpWithOverride(() => {
         return new Promise<never>((_, reject) =>
           reject(new Error('network error'))
         );

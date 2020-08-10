@@ -34,12 +34,12 @@ import {
   EventManager,
   PopupRedirectResolver
 } from '../../model/popup_redirect';
-import { AuthEventManager } from '../auth/auth_event_manager';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
-import { UserCredentialImpl } from '../user/user_credential_impl';
-import { _getInstance } from '../util/instantiator';
+import { AuthEventManager } from '../../core/auth/auth_event_manager';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
+import { UserCredentialImpl } from '../../core/user/user_credential_impl';
+import { _getInstance } from '../../core/util/instantiator';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
-import * as idp from './idp';
+import * as idp from '../../core/strategies/idp';
 
 use(sinonChai);
 use(chaiAsPromised);

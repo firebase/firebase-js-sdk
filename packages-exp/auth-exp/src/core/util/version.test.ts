@@ -18,29 +18,40 @@
 import { SDK_VERSION } from '@firebase/app-exp';
 import { expect } from 'chai';
 import { ClientPlatform, _getClientVersion } from './version';
+import { isNode } from '@firebase/util';
 
 describe('core/util/_getClientVersion', () => {
-  context('browser', () => {
-    it('should set the correct version', () => {
-      expect(_getClientVersion(ClientPlatform.BROWSER)).to.eq(
-        `Chrome/JsCore/${SDK_VERSION}/FirebaseCore-web`
-      );
+  if (isNode()) {
+    context('node', () => {
+      it('should set the correct version', () => {
+        expect(_getClientVersion(ClientPlatform.NODE)).to.eq(
+          `Node/JsCore/${SDK_VERSION}/FirebaseCore-web`
+        );
+      });
     });
-  });
+  } else {
+    context('browser', () => {
+      it('should set the correct version', () => {
+        expect(_getClientVersion(ClientPlatform.BROWSER)).to.eq(
+          `Chrome/JsCore/${SDK_VERSION}/FirebaseCore-web`
+        );
+      });
+    });
 
-  context('worker', () => {
-    it('should set the correct version', () => {
-      expect(_getClientVersion(ClientPlatform.WORKER)).to.eq(
-        `Chrome-Worker/JsCore/${SDK_VERSION}/FirebaseCore-web`
-      );
+    context('worker', () => {
+      it('should set the correct version', () => {
+        expect(_getClientVersion(ClientPlatform.WORKER)).to.eq(
+          `Chrome-Worker/JsCore/${SDK_VERSION}/FirebaseCore-web`
+        );
+      });
     });
-  });
 
-  context('React Native', () => {
-    it('should set the correct version', () => {
-      expect(_getClientVersion(ClientPlatform.REACT_NATIVE)).to.eq(
-        `ReactNative/JsCore/${SDK_VERSION}/FirebaseCore-web`
-      );
+    context('React Native', () => {
+      it('should set the correct version', () => {
+        expect(_getClientVersion(ClientPlatform.REACT_NATIVE)).to.eq(
+          `ReactNative/JsCore/${SDK_VERSION}/FirebaseCore-web`
+        );
+      });
     });
-  });
+  }
 });
