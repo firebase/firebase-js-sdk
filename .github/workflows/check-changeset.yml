@@ -8,10 +8,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Checkout
-      run: |
-        git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
+    - name: Checkout Repo
+      uses: actions/checkout@master
+      with:
+        # This makes Actions fetch all Git history so check_changeset script can diff properly.
     - name: Set up Node (10)
       uses: actions/setup-node@v1
       with:
@@ -44,7 +44,7 @@ jobs:
       if: ${{steps.fc.outputs.comment-id}}
       uses: peter-evans/create-or-update-comment@v1
       with:
-        comment-id: ${{steps.fc.outputs.comment-id}}
+        comment-id: ${{steps.fc.outputs.comment-id}} && steps.check-changeset.outputs.MISSING_PACKAGES}}
         edit-mode: replace
         body: |
           ### Changeset File Check :warning:
