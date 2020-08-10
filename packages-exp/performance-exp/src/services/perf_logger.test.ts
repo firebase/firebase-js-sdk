@@ -76,7 +76,7 @@ describe('Performance Monitoring > perf_logger', () => {
   } as unknown) as FirebaseApp;
 
   const fakeInstallations = ({} as unknown) as FirebaseInstallations;
-  const performance = new PerformanceController(
+  const performanceController = new PerformanceController(
     fakeFirebaseApp,
     fakeInstallations
   );
@@ -109,7 +109,7 @@ describe('Performance Monitoring > perf_logger', () => {
       stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logTraceAfterSampling = true;
-      const trace = new Trace(performance, TRACE_NAME);
+      const trace = new Trace(performanceController, TRACE_NAME);
       trace.putAttribute('attr', 'val');
       trace.putMetric('counter1', 3);
       trace.record(START_TIME, DURATION);
@@ -124,7 +124,7 @@ describe('Performance Monitoring > perf_logger', () => {
     it('does not log an event if cookies are disabled in the browser', () => {
       stub(Api.prototype, 'requiredApisAvailable').returns(false);
       stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
-      const trace = new Trace(performance, TRACE_NAME);
+      const trace = new Trace(performanceController, TRACE_NAME);
       trace.record(START_TIME, DURATION);
       clock.tick(1);
 
@@ -147,7 +147,7 @@ describe('Performance Monitoring > perf_logger', () => {
       stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logTraceAfterSampling = true;
-      const trace = new Trace(performance, TRACE_NAME);
+      const trace = new Trace(performanceController, TRACE_NAME);
       for (let i = 1; i <= 32; i++) {
         trace.putMetric('counter' + i, i);
       }
@@ -171,7 +171,7 @@ describe('Performance Monitoring > perf_logger', () => {
       stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logTraceAfterSampling = true;
-      const trace = new Trace(performance, TRACE_NAME);
+      const trace = new Trace(performanceController, TRACE_NAME);
       for (let i = 1; i <= 5; i++) {
         trace.putAttribute('attr' + i, 'val' + i);
       }
@@ -245,7 +245,12 @@ describe('Performance Monitoring > perf_logger', () => {
         firstContentfulPaint
       ];
 
-      Trace.createOobTrace(performance, navigationTimings, paintTimings, 90);
+      Trace.createOobTrace(
+        performanceController,
+        navigationTimings,
+        paintTimings,
+        90
+      );
       clock.tick(1);
 
       expect(addToQueueStub).to.be.called;
@@ -303,7 +308,10 @@ describe('Performance Monitoring > perf_logger', () => {
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logNetworkAfterSampling = true;
       // Calls logNetworkRequest under the hood.
-      createNetworkRequestEntry(performance, RESOURCE_PERFORMANCE_ENTRY);
+      createNetworkRequestEntry(
+        performanceController,
+        RESOURCE_PERFORMANCE_ENTRY
+      );
       clock.tick(1);
 
       expect(addToQueueStub).to.be.called;
@@ -343,7 +351,10 @@ describe('Performance Monitoring > perf_logger', () => {
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logNetworkAfterSampling = true;
       // Calls logNetworkRequest under the hood.
-      createNetworkRequestEntry(performance, CC_NETWORK_PERFORMANCE_ENTRY);
+      createNetworkRequestEntry(
+        performanceController,
+        CC_NETWORK_PERFORMANCE_ENTRY
+      );
       clock.tick(1);
 
       expect(addToQueueStub).not.called;
@@ -383,7 +394,10 @@ describe('Performance Monitoring > perf_logger', () => {
       SettingsService.getInstance().loggingEnabled = true;
       SettingsService.getInstance().logNetworkAfterSampling = true;
       // Calls logNetworkRequest under the hood.
-      createNetworkRequestEntry(performance, FL_NETWORK_PERFORMANCE_ENTRY);
+      createNetworkRequestEntry(
+        performanceController,
+        FL_NETWORK_PERFORMANCE_ENTRY
+      );
       clock.tick(1);
 
       expect(addToQueueStub).not.called;

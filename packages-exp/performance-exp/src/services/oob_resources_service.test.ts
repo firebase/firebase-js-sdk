@@ -119,7 +119,7 @@ describe('Firebase Performance > oob_resources_service', () => {
   } as unknown) as FirebaseApp;
 
   const fakeInstallations = ({} as unknown) as FirebaseInstallations;
-  const performance = new PerformanceController(
+  const performanceController = new PerformanceController(
     fakeFirebaseApp,
     fakeInstallations
   );
@@ -147,35 +147,35 @@ describe('Firebase Performance > oob_resources_service', () => {
   describe('setupOobResources', () => {
     it('does not start if there is no iid', () => {
       getIidStub.returns(undefined);
-      setupOobResources(performance);
+      setupOobResources(performanceController);
 
       expect(apiGetInstanceSpy).not.to.be.called;
     });
 
     it('sets up network request collection', () => {
       getIidStub.returns(MOCK_ID);
-      setupOobResources(performance);
+      setupOobResources(performanceController);
       clock.tick(1);
 
       expect(apiGetInstanceSpy).to.be.called;
       expect(getEntriesByTypeStub).to.be.calledWith('resource');
       expect(setupObserverStub).to.be.calledWithExactly(
         'resource',
-        performance,
+        performanceController,
         createNetworkRequestEntry
       );
     });
 
     it('sets up page load trace collection', () => {
       getIidStub.returns(MOCK_ID);
-      setupOobResources(performance);
+      setupOobResources(performanceController);
       clock.tick(1);
 
       expect(apiGetInstanceSpy).to.be.called;
       expect(getEntriesByTypeStub).to.be.calledWith('navigation');
       expect(getEntriesByTypeStub).to.be.calledWith('paint');
       expect(createOobTraceStub).to.be.calledWithExactly(
-        performance,
+        performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY]
       );
@@ -186,14 +186,14 @@ describe('Firebase Performance > oob_resources_service', () => {
       const api = Api.getInstance();
       //@ts-ignore Assignment to read-only property.
       api.onFirstInputDelay = stub();
-      setupOobResources(performance);
+      setupOobResources(performanceController);
       clock.tick(1);
 
       expect(api.onFirstInputDelay).to.be.called;
       expect(createOobTraceStub).not.to.be.called;
       clock.tick(5000);
       expect(createOobTraceStub).to.be.calledWithExactly(
-        performance,
+        performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY]
       );
@@ -210,12 +210,12 @@ describe('Firebase Performance > oob_resources_service', () => {
       api.onFirstInputDelay = (cb: FirstInputDelayCallback) => {
         firstInputDelayCallback = cb;
       };
-      setupOobResources(performance);
+      setupOobResources(performanceController);
       clock.tick(1);
       firstInputDelayCallback(FIRST_INPUT_DELAY);
 
       expect(createOobTraceStub).to.be.calledWithExactly(
-        performance,
+        performanceController,
         [NAVIGATION_PERFORMANCE_ENTRY],
         [PAINT_PERFORMANCE_ENTRY],
         FIRST_INPUT_DELAY
@@ -224,7 +224,7 @@ describe('Firebase Performance > oob_resources_service', () => {
 
     it('sets up user timing traces', () => {
       getIidStub.returns(MOCK_ID);
-      setupOobResources(performance);
+      setupOobResources(performanceController);
       clock.tick(1);
 
       expect(apiGetInstanceSpy).to.be.called;

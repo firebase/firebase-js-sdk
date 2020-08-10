@@ -44,14 +44,14 @@ describe('Firebase Performance > trace', () => {
   } as unknown) as FirebaseApp;
 
   const fakeInstallations = ({} as unknown) as FirebaseInstallations;
-  const performance = new PerformanceController(
+  const performanceController = new PerformanceController(
     fakeFirebaseApp,
     fakeInstallations
   );
 
   let trace: Trace;
   const createTrace = (): Trace => {
-    return new Trace(performance, 'test');
+    return new Trace(performanceController, 'test');
   };
 
   beforeEach(() => {

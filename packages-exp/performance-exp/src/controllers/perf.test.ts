@@ -52,11 +52,11 @@ describe('Firebase Performance Test', () => {
       stub(Api.prototype, 'requiredApisAvailable').returns(false);
       stub(initializationService, 'getInitializationPromise');
       stub(consoleLogger, 'info');
-      const performance = new PerformanceController(
+      const performanceController = new PerformanceController(
         fakeFirebaseApp,
         fakeInstallations
       );
-      performance.init();
+      performanceController.init();
 
       expect(initializationService.getInitializationPromise).not.be.called;
       expect(consoleLogger.info).be.called;

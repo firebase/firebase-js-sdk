@@ -132,7 +132,7 @@ export function logTrace(trace: Trace): void {
   } else {
     // Custom traces can be used before the initialization but logging
     // should wait until after.
-    getInitializationPromise(trace.performance).then(
+    getInitializationPromise(trace.performanceController).then(
       () => sendTraceLog(trace),
       () => sendTraceLog(trace)
     );
@@ -198,7 +198,9 @@ function serializeNetworkRequest(networkRequest: NetworkRequest): string {
     time_to_response_completed_us: networkRequest.timeToResponseCompletedUs
   };
   const perfMetric: PerfNetworkLog = {
-    application_info: getApplicationInfo(networkRequest.performance.app),
+    application_info: getApplicationInfo(
+      networkRequest.performanceController.app
+    ),
     network_request_metric: networkRequestMetric
   };
   return JSON.stringify(perfMetric);
@@ -221,7 +223,7 @@ function serializeTrace(trace: Trace): string {
   }
 
   const perfMetric: PerfTraceLog = {
-    application_info: getApplicationInfo(trace.performance.app),
+    application_info: getApplicationInfo(trace.performanceController.app),
     trace_metric: traceMetric
   };
   return JSON.stringify(perfMetric);

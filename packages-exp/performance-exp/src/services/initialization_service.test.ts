@@ -51,7 +51,7 @@ describe('Firebase Perofmrance > initialization_service', () => {
     getId,
     getToken
   } as unknown) as FirebaseInstallations;
-  const performance = new PerformanceController(
+  const performanceController = new PerformanceController(
     fakeFirebaseApp,
     fakeInstallations
   );
@@ -69,7 +69,7 @@ describe('Firebase Perofmrance > initialization_service', () => {
   it('changes initialization status after initialization is done', async () => {
     getId.resolves(IID);
     getToken.resolves(AUTH_TOKEN);
-    await getInitializationPromise(performance);
+    await getInitializationPromise(performanceController);
 
     expect(isPerfInitialized()).to.be.true;
   });
@@ -78,7 +78,7 @@ describe('Firebase Perofmrance > initialization_service', () => {
     getId.resolves(IID);
     getToken.resolves(AUTH_TOKEN);
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    getInitializationPromise(performance);
+    getInitializationPromise(performanceController);
 
     expect(isPerfInitialized()).to.be.false;
   });

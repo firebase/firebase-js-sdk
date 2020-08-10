@@ -35,7 +35,7 @@ export const enum HttpMethod {
 
 // Durations are in microseconds.
 export interface NetworkRequest {
-  performance: PerformanceController;
+  performanceController: PerformanceController;
   url: string;
   httpMethod?: HttpMethod;
   requestPayloadBytes?: number;
@@ -49,7 +49,7 @@ export interface NetworkRequest {
 }
 
 export function createNetworkRequestEntry(
-  performance: PerformanceController,
+  performanceController: PerformanceController,
   entry: PerformanceEntry
 ): void {
   const performanceEntry = entry as PerformanceResourceTiming;
@@ -71,7 +71,7 @@ export function createNetworkRequestEntry(
   // Remove the query params from logged network request url.
   const url = performanceEntry.name && performanceEntry.name.split('?')[0];
   const networkRequest: NetworkRequest = {
-    performance,
+    performanceController,
     url,
     responsePayloadBytes: performanceEntry.transferSize,
     startTimeUs,

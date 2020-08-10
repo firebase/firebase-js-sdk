@@ -56,7 +56,7 @@ describe('Performance Monitoring > remote_config_service', () => {
   } as unknown) as FirebaseApp;
 
   const fakeInstallations = ({} as unknown) as FirebaseInstallations;
-  const performance = new PerformanceController(
+  const performanceController = new PerformanceController(
     fakeFirebaseApp,
     fakeInstallations
   );
@@ -134,7 +134,7 @@ describe('Performance Monitoring > remote_config_service', () => {
         config: STRINGIFIED_CONFIG
       });
 
-      await getConfig(performance, IID);
+      await getConfig(performanceController, IID);
 
       expect(getItemStub).to.be.called;
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
@@ -160,7 +160,7 @@ describe('Performance Monitoring > remote_config_service', () => {
         config: STRINGIFIED_CONFIG
       });
 
-      await getConfig(performance, IID);
+      await getConfig(performanceController, IID);
 
       expect(fetchStub).not.to.be.called;
     });
@@ -174,7 +174,7 @@ describe('Performance Monitoring > remote_config_service', () => {
         { reject: false, value: new Response(STRINGIFIED_CONFIG) }
       );
 
-      await getConfig(performance, IID);
+      await getConfig(performanceController, IID);
 
       expect(getItemStub).to.be.calledOnce;
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
@@ -203,7 +203,7 @@ describe('Performance Monitoring > remote_config_service', () => {
         { reject: true }
       );
 
-      await getConfig(performance, IID);
+      await getConfig(performanceController, IID);
 
       expect(SettingsService.getInstance().loggingEnabled).to.equal(false);
     });
@@ -224,7 +224,7 @@ describe('Performance Monitoring > remote_config_service', () => {
         { reject: false, value: new Response(STRINGIFIED_PARTIAL_CONFIG) }
       );
 
-      await getConfig(performance, IID);
+      await getConfig(performanceController, IID);
 
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
     });
@@ -241,7 +241,7 @@ describe('Performance Monitoring > remote_config_service', () => {
         },
         { reject: false, value: new Response(STRINGIFIED_PARTIAL_CONFIG) }
       );
-      await getConfig(performance, IID);
+      await getConfig(performanceController, IID);
 
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
     });
@@ -263,7 +263,7 @@ describe('Performance Monitoring > remote_config_service', () => {
         { reject: false, value: new Response(STRINGIFIED_CONFIG) }
       );
 
-      await getConfig(performance, IID);
+      await getConfig(performanceController, IID);
 
       expect(getItemStub).to.be.calledOnce;
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;

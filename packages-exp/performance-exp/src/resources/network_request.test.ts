@@ -34,7 +34,7 @@ describe('Firebase Performance > network_request', () => {
   } as unknown) as FirebaseApp;
 
   const fakeInstallations = ({} as unknown) as FirebaseInstallations;
-  const performance = new PerformanceController(
+  const performanceController = new PerformanceController(
     fakeFirebaseApp,
     fakeInstallations
   );
@@ -59,7 +59,7 @@ describe('Firebase Performance > network_request', () => {
       } as unknown) as PerformanceResourceTiming;
 
       const EXPECTED_NETWORK_REQUEST = {
-        performance,
+        performanceController,
         url: 'http://some.test.website.com',
         responsePayloadBytes: 500,
         startTimeUs: 1528523489152135,
@@ -67,7 +67,7 @@ describe('Firebase Performance > network_request', () => {
         timeToResponseCompletedUs: 8200
       };
 
-      createNetworkRequestEntry(performance, PERFORMANCE_ENTRY);
+      createNetworkRequestEntry(performanceController, PERFORMANCE_ENTRY);
 
       expect(
         (perfLogger.logNetworkRequest as any).calledWith(
@@ -84,7 +84,7 @@ describe('Firebase Performance > network_request', () => {
         responseEnd: 1645360.832443
       } as unknown) as PerformanceResourceTiming;
 
-      createNetworkRequestEntry(performance, PERFORMANCE_ENTRY);
+      createNetworkRequestEntry(performanceController, PERFORMANCE_ENTRY);
 
       expect(perfLogger.logNetworkRequest).to.not.have.been.called;
     });

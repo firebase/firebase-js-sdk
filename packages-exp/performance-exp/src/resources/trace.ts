@@ -66,7 +66,7 @@ export class Trace implements PerformanceTrace {
    * the user timing api (performance.mark and performance.measure).
    */
   constructor(
-    readonly performance: PerformanceController,
+    readonly performanceController: PerformanceController,
     readonly name: string,
     readonly isAuto = false,
     traceMeasureName?: string

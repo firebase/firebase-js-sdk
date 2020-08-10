@@ -31,11 +31,12 @@ let initializationStatus = InitializationStatus.notInitialized;
 let initializationPromise: Promise<void> | undefined;
 
 export function getInitializationPromise(
-  performance: PerformanceController
+  performanceController: PerformanceController
 ): Promise<void> {
   initializationStatus = InitializationStatus.initializationPending;
 
-  initializationPromise = initializationPromise || initializePerf(performance);
+  initializationPromise =
+    initializationPromise || initializePerf(performanceController);
 
   return initializationPromise;
 }
@@ -44,10 +45,12 @@ export function isPerfInitialized(): boolean {
   return initializationStatus === InitializationStatus.initialized;
 }
 
-function initializePerf(performance: PerformanceController): Promise<void> {
+function initializePerf(
+  performanceController: PerformanceController
+): Promise<void> {
   return getDocumentReadyComplete()
-    .then(() => getIidPromise(performance.installations))
-    .then(iid => getConfig(performance, iid))
+    .then(() => getIidPromise(performanceController.installations))
+    .then(iid => getConfig(performanceController, iid))
     .then(
       () => changeInitializationStatus(),
       () => changeInitializationStatus()

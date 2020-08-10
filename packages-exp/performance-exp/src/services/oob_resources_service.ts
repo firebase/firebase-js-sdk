@@ -35,16 +35,22 @@ export function setupOobResources(performance: PerformanceController): void {
   setTimeout(() => setupUserTimingTraces(performance), 0);
 }
 
-function setupNetworkRequests(performance: PerformanceController): void {
+function setupNetworkRequests(
+  performanceController: PerformanceController
+): void {
   const api = Api.getInstance();
   const resources = api.getEntriesByType('resource');
   for (const resource of resources) {
-    createNetworkRequestEntry(performance, resource);
+    createNetworkRequestEntry(performanceController, resource);
   }
-  api.setupObserver('resource', performance, createNetworkRequestEntry);
+  api.setupObserver(
+    'resource',
+    performanceController,
+    createNetworkRequestEntry
+  );
 }
 
-function setupOobTraces(performance: PerformanceController): void {
+function setupOobTraces(performanceController: PerformanceController): void {
   const api = Api.getInstance();
   const navigationTimings = api.getEntriesByType(
     'navigation'
@@ -56,33 +62,48 @@ function setupOobTraces(performance: PerformanceController): void {
     // If the fid call back is not called for certain time, continue without it.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let timeoutId: any = setTimeout(() => {
-      Trace.createOobTrace(performance, navigationTimings, paintTimings);
+      Trace.createOobTrace(
+        performanceController,
+        navigationTimings,
+        paintTimings
+      );
       timeoutId = undefined;
     }, FID_WAIT_TIME_MS);
     api.onFirstInputDelay((fid: number) => {
       if (timeoutId) {
         clearTimeout(timeoutId);
-        Trace.createOobTrace(performance, navigationTimings, paintTimings, fid);
+        Trace.createOobTrace(
+          performanceController,
+          navigationTimings,
+          paintTimings,
+          fid
+        );
       }
     });
   } else {
-    Trace.createOobTrace(performance, navigationTimings, paintTimings);
+    Trace.createOobTrace(
+      performanceController,
+      navigationTimings,
+      paintTimings
+    );
   }
 }
 
-function setupUserTimingTraces(performance: PerformanceController): void {
+function setupUserTimingTraces(
+  performanceController: PerformanceController
+): void {
   const api = Api.getInstance();
   // Run through the measure performance entries collected up to this point.
   const measures = api.getEntriesByType('measure');
   for (const measure of measures) {
-    createUserTimingTrace(performance, measure);
+    createUserTimingTrace(performanceController, measure);
   }
   // Setup an observer to capture the measures from this point on.
-  api.setupObserver('measure', performance, createUserTimingTrace);
+  api.setupObserver('measure', performanceController, createUserTimingTrace);
 }
 
 function createUserTimingTrace(
-  performance: PerformanceController,
+  performanceController: PerformanceController,
   measure: PerformanceEntry
 ): void {
   const measureName = measure.name;
@@ -93,5 +114,5 @@ function createUserTimingTrace(
   ) {
     return;
   }
-  Trace.createUserTimingTrace(performance, measureName);
+  Trace.createUserTimingTrace(performanceController, measureName);
 }

@@ -71,7 +71,7 @@ interface RemoteConfigResponse {
 const FIS_AUTH_PREFIX = 'FIREBASE_INSTALLATIONS_AUTH';
 
 export function getConfig(
-  performance: PerformanceController,
+  performanceController: PerformanceController,
   iid: string
 ): Promise<void> {
   const config = getStoredConfig();
@@ -80,7 +80,7 @@ export function getConfig(
     return Promise.resolve();
   }
 
-  return getRemoteConfig(performance, iid)
+  return getRemoteConfig(performanceController, iid)
     .then(processConfig)
     .then(
       config => storeConfig(config),
@@ -131,15 +131,15 @@ const COULD_NOT_GET_CONFIG_MSG =
   'Could not fetch config, will use default configs';
 
 function getRemoteConfig(
-  performance: PerformanceController,
+  performanceController: PerformanceController,
   iid: string
 ): Promise<RemoteConfigResponse | undefined> {
   // Perf needs auth token only to retrieve remote config.
-  return getAuthTokenPromise(performance.installations)
+  return getAuthTokenPromise(performanceController.installations)
     .then(authToken => {
-      const projectId = getProjectId(performance.app);
+      const projectId = getProjectId(performanceController.app);
       const configEndPoint = `https://firebaseremoteconfig.googleapis.com/v1/projects/${projectId}/namespaces/fireperf:fetch?key=${getApiKey(
-        performance.app
+        performanceController.app
       )}`;
       const request = new Request(configEndPoint, {
         method: 'POST',
@@ -148,7 +148,7 @@ function getRemoteConfig(
         body: JSON.stringify({
           app_instance_id: iid,
           app_instance_id_token: authToken,
-          app_id: getAppId(performance.app),
+          app_id: getAppId(performanceController.app),
           app_version: SDK_VERSION,
           sdk_version: REMOTE_CONFIG_SDK_VERSION
         })
