@@ -21,33 +21,30 @@ import { _isHttpOrHttps } from './location';
 /**
  * Determine whether the browser is working online
  */
-export function _isOnline(
-  navigatorOnline: NavigatorOnLine = navigator
-): boolean {
+export function _isOnline(): boolean {
   if (
-    navigatorOnline &&
-    typeof navigatorOnline.onLine === 'boolean' &&
+    typeof navigator !== 'undefined' &&
+    navigator &&
+    'onLine' in navigator &&
+    typeof navigator.onLine === 'boolean' &&
     // Apply only for traditional web apps and Chrome extensions.
     // This is especially true for Cordova apps which have unreliable
     // navigator.onLine behavior unless cordova-plugin-network-information is
     // installed which overwrites the native navigator.onLine value and
     // defines navigator.connection.
-    (_isHttpOrHttps() ||
-      isBrowserExtension() ||
-      'connection' in navigatorOnline)
+    (_isHttpOrHttps() || isBrowserExtension() || 'connection' in navigator)
   ) {
-    return navigatorOnline.onLine;
+    return navigator.onLine;
   }
   // If we can't determine the state, assume it is online.
   return true;
 }
 
-export function _getUserLanguage(
-  navigatorLanguage: NavigatorLanguage = navigator
-): string | null {
-  if (!navigatorLanguage) {
+export function _getUserLanguage(): string | null {
+  if (typeof navigator === 'undefined') {
     return null;
   }
+  const navigatorLanguage: NavigatorLanguage = navigator;
   return (
     // Most reliable, but only supported in Chrome/Firefox.
     (navigatorLanguage.languages && navigatorLanguage.languages[0]) ||

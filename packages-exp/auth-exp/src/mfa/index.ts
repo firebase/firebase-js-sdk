@@ -15,6 +15,5 @@
  * limitations under the License.
  */
 
-export { PhoneMultiFactorGenerator } from './assertions/phone';
 export { getMultiFactorResolver } from './mfa_resolver';
 export { multiFactor } from './mfa_user';

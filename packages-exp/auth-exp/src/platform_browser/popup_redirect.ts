@@ -21,12 +21,12 @@ import { isEmpty, querystring } from '@firebase/util';
 
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
-import { browserSessionPersistence } from '../core/persistence/browser';
+import { browserSessionPersistence } from './persistence/browser';
 import { OAuthProvider } from '../core/providers/oauth';
 import { assert, debugAssert } from '../core/util/assert';
 import { _generateEventId } from '../core/util/event_id';
 import { _getCurrentUrl } from '../core/util/location';
-import { _open, AuthPopup } from '../core/util/popup';
+import { _open, AuthPopup } from './util/popup';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
   AuthEventType,

@@ -18,7 +18,7 @@
 import * as externs from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { AuthPopup } from '../core/util/popup';
+import { AuthPopup } from '../platform_browser/util/popup';
 import { AuthCore } from './auth';
 
 export const enum EventFilter {

@@ -23,7 +23,7 @@ import {
   PersistenceType,
   PersistenceValue,
   STORAGE_AVAILABLE_KEY
-} from './';
+} from '../../core/persistence/';
 
 export const DB_NAME = 'firebaseLocalStorageDb';
 const DB_VERSION = 1;

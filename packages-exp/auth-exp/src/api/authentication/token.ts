@@ -21,6 +21,7 @@ import { querystring } from '@firebase/util';
 
 import { _performFetchWithErrorHandling, HttpMethod } from '../';
 import { AuthCore } from '../../model/auth';
+import { FetchProvider } from '../../core/util/fetch_provider';
 
 export const _ENDPOINT = 'v1/token';
 const GRANT_TYPE = 'refresh_token';
@@ -52,7 +53,7 @@ export async function requestStsToken(
     const { apiScheme, tokenApiHost, apiKey, sdkClientVersion } = auth.config;
     const url = `${apiScheme}://${tokenApiHost}/${_ENDPOINT}`;
 
-    return fetch(`${url}?key=${apiKey}`, {
+    return FetchProvider.fetch()(`${url}?key=${apiKey}`, {
       method: HttpMethod.POST,
       headers: {
         'X-Client-Version': sdkClientVersion,

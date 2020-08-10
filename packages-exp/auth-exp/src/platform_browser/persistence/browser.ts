@@ -22,7 +22,7 @@ import {
   PersistenceType,
   PersistenceValue,
   STORAGE_AVAILABLE_KEY
-} from './';
+} from '../../core/persistence';
 
 // There are two different browser persistence types: local and session.
 // Both have the same implementation but use a different underlying storage

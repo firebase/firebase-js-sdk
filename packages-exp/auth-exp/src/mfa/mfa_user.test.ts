@@ -27,14 +27,34 @@ import { Endpoint } from '../api';
 import { APIUserInfo } from '../api/account_management/account';
 import { FinalizeMfaResponse } from '../api/authentication/mfa';
 import { ServerError } from '../api/errors';
-import { PhoneAuthProvider } from '../core/providers/phone';
 import { User } from '../model/user';
-import { PhoneMultiFactorAssertion } from './assertions/phone';
 import { MultiFactorInfo } from './mfa_info';
 import { MultiFactorSession, MultiFactorSessionType } from './mfa_session';
 import { multiFactor, MultiFactorUser } from './mfa_user';
+import { MultiFactorAssertion } from './assertions';
+import { AuthCore } from '../model/auth';
 
 use(chaiAsPromised);
+
+class MockMultiFactorAssertion extends MultiFactorAssertion {
+  constructor(readonly response: FinalizeMfaResponse) {
+    super(ProviderId.PHONE);
+  }
+
+  async _finalizeEnroll(
+    _auth: AuthCore,
+    _idToken: string,
+    _displayName?: string | null
+  ): Promise<FinalizeMfaResponse> {
+    return this.response;
+  }
+  async _finalizeSignIn(
+    _auth: AuthCore,
+    _mfaPendingCredential: string
+  ): Promise<FinalizeMfaResponse> {
+    return this.response;
+  }
+}
 
 describe('core/mfa/mfa_user/MultiFactorUser', () => {
   let auth: TestAuth;
@@ -57,8 +77,7 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
   });
 
   describe('enroll', () => {
-    let finalizeMfaEnrollmentMock: mockFetch.Route;
-    let assertion: PhoneMultiFactorAssertion;
+    let assertion: MultiFactorAssertion;
 
     const serverUser: APIUserInfo = {
       localId: 'local-id',
@@ -85,32 +104,10 @@ describe('core/mfa/mfa_user/MultiFactorUser', () => {
     };
 
     beforeEach(() => {
-      const credential = PhoneAuthProvider.credential(
-        'verification-id',
-        'verification-code'
-      );
-      assertion = PhoneMultiFactorAssertion._fromCredential(credential);
-
-      finalizeMfaEnrollmentMock = mockEndpoint(
-        Endpoint.FINALIZE_PHONE_MFA_ENROLLMENT,
-        serverResponse
-      );
+      assertion = new MockMultiFactorAssertion(serverResponse);
 
       mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
         users: [serverUser]
-      });
-    });
-
-    it('should finalize the enrollment flow', async () => {
-      await mfaUser.enroll(assertion);
-
-      expect(finalizeMfaEnrollmentMock.calls[0].request).to.eql({
-        idToken: 'access-token',
-        tenantId: auth.tenantId,
-        phoneVerificationInfo: {
-          code: 'verification-code',
-          sessionInfo: 'verification-id'
-        }
       });
     });
 

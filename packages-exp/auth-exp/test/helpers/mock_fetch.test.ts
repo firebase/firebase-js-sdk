@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 import * as mockFetch from './mock_fetch';
+import { FetchProvider } from '../../src/core/util/fetch_provider';
 
 async function fetchJson(path: string, req?: object): Promise<object> {
   const body = req
@@ -33,7 +34,7 @@ async function fetchJson(path: string, req?: object): Promise<object> {
     ...body
   };
 
-  const response = await fetch(path, request);
+  const response = await FetchProvider.fetch()(path, request);
   return response.json();
 }
 
@@ -52,7 +53,7 @@ describe('mock fetch utility', () => {
 
     it('passes through the status of the mock', async () => {
       mockFetch.mock('/not-ok', {}, 500);
-      expect((await fetch('/not-ok')).status).to.equal(500);
+      expect((await FetchProvider.fetch()('/not-ok')).status).to.equal(500);
     });
 
     it('records calls to the mock', async () => {
@@ -64,7 +65,7 @@ describe('mock fetch utility', () => {
       const mock = mockFetch.mock('/word', {});
       await fetchJson('/word', someRequest);
       await fetchJson('/word', { a: 'b' });
-      await fetch('/word');
+      await FetchProvider.fetch()('/word');
 
       expect(mock.calls.length).to.equal(3);
       expect(mock.calls[0].request).to.eql(someRequest);
@@ -76,14 +77,14 @@ describe('mock fetch utility', () => {
   describe('route rejection', () => {
     it('if the route is not in the map', () => {
       mockFetch.mock('/test', {});
-      expect(() => fetch('/not-test')).to.throw(
+      expect(() => FetchProvider.fetch()('/not-test')).to.throw(
         'Unknown route being requested: /not-test'
       );
     });
 
     it('if call is not a string', () => {
       mockFetch.mock('/blah', {});
-      expect(() => fetch(new Request({} as any))).to.throw(
+      expect(() => FetchProvider.fetch()(new Request({} as any))).to.throw(
         'URL passed to fetch was not a string'
       );
     });
@@ -103,7 +104,7 @@ describe('mock fetch utility (no setUp/tearDown)', () => {
     expect(await fetchJson('/test')).to.eql({ first: 'first' });
     mockFetch.tearDown();
     mockFetch.setUp();
-    expect(() => fetch('/test')).to.throw(
+    expect(() => FetchProvider.fetch()('/test')).to.throw(
       'Unknown route being requested: /test'
     );
     mockFetch.tearDown();

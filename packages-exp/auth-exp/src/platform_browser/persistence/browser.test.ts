@@ -19,8 +19,12 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 
 import { testUser } from '../../../test/helpers/mock_auth';
-import { _getInstance } from '../util/instantiator';
-import { PersistedBlob, Persistence, PersistenceType } from './';
+import { _getInstance } from '../../core/util/instantiator';
+import {
+  PersistedBlob,
+  Persistence,
+  PersistenceType
+} from '../../core/persistence';
 import { browserLocalPersistence, browserSessionPersistence } from './browser';
 
 describe('core/persistence/browser', () => {
