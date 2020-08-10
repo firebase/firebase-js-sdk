@@ -89,7 +89,7 @@ function _isLocalStorageNotSynchronized(ua: string = getUA()): boolean {
 }
 
 /** @return {boolean} Whether web storage is supported. */
-function _isWebStorageSupported(): boolean {
+export function _isWebStorageSupported(): boolean {
   try {
     const storage = self.localStorage;
     const key = impl._generateEventId();
@@ -122,7 +122,7 @@ function _isWebStorageSupported(): boolean {
  * @param {?Object=} global The optional global scope.
  * @return {boolean} Whether current environment is a worker.
  */
-function _isWorker(): boolean {
+export function _isWorker(): boolean {
   // WorkerGlobalScope only defined in worker environment.
   return (
     typeof global !== 'undefined' &&
