@@ -19,13 +19,12 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import {
-  linkWithPhoneNumber,
-  signInWithPhoneNumber,
-  SignInWithPhoneNumberRequest,
-  verifyPhoneNumberForExisting
+    linkWithPhoneNumber, signInWithPhoneNumber, SignInWithPhoneNumberRequest,
+    verifyPhoneNumberForExisting
 } from '../../api/authentication/sms';
 import { AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
+import { assertTypes } from '../util/assert';
 import { AuthCredential } from './';
 
 export interface PhoneAuthCredentialParameters {
@@ -35,12 +34,14 @@ export interface PhoneAuthCredentialParameters {
   temporaryProof?: string;
 }
 
-export class PhoneAuthCredential
-  implements AuthCredential, externs.PhoneAuthCredential {
+export class PhoneAuthCredential extends AuthCredential
+  implements externs.PhoneAuthCredential {
   readonly providerId = externs.ProviderId.PHONE;
   readonly signInMethod = externs.SignInMethod.PHONE;
 
-  private constructor(private readonly params: PhoneAuthCredentialParameters) {}
+  private constructor(private readonly params: PhoneAuthCredentialParameters) {
+    super();
+  }
 
   static _fromVerification(
     verificationId: string,
@@ -109,6 +110,7 @@ export class PhoneAuthCredential
   }
 
   static fromJSON(json: object | string): PhoneAuthCredential | null {
+    assertTypes(arguments, 'object|string');
     if (typeof json === 'string') {
       json = JSON.parse(json);
     }

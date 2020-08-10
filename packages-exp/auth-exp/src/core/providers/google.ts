@@ -22,6 +22,7 @@ import { SignInWithIdpResponse } from '../../api/authentication/idp';
 import { TaggedWithTokenResponse } from '../../model/id_token';
 import { UserCredential } from '../../model/user';
 import { OAuthCredential } from '../credentials/oauth';
+import { assertTypes, opt } from '../util/assert';
 import { OAuthProvider } from './oauth';
 
 export class GoogleAuthProvider extends OAuthProvider {
@@ -33,6 +34,7 @@ export class GoogleAuthProvider extends OAuthProvider {
     idToken?: string | null,
     accessToken?: string | null
   ): externs.OAuthCredential {
+    assertTypes(arguments, opt('string|null'), opt('string|null'));
     return OAuthCredential._fromParams({
       providerId: GoogleAuthProvider.PROVIDER_ID,
       signInMethod: GoogleAuthProvider.GOOGLE_SIGN_IN_METHOD,
@@ -44,6 +46,7 @@ export class GoogleAuthProvider extends OAuthProvider {
   static credentialFromResult(
     userCredential: externs.UserCredential
   ): externs.OAuthCredential | null {
+    assertTypes(arguments, {_tokenResponse: 'object'});
     return GoogleAuthProvider.credentialFromTaggedObject(
       userCredential as UserCredential
     );
@@ -52,6 +55,7 @@ export class GoogleAuthProvider extends OAuthProvider {
   static credentialFromError(
     error: FirebaseError
   ): externs.OAuthCredential | null {
+    assertTypes(arguments, {_tokenResponse: 'object'});
     return GoogleAuthProvider.credentialFromTaggedObject(
       error as TaggedWithTokenResponse
     );

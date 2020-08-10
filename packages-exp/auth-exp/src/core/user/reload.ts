@@ -17,12 +17,10 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import {
-  getAccountInfo,
-  ProviderUserInfo
-} from '../../api/account_management/account';
+import { getAccountInfo, ProviderUserInfo } from '../../api/account_management/account';
 import { User } from '../../model/user';
-import { assert } from '../util/assert';
+import { assert, assertTypes } from '../util/assert';
+import { UserImpl } from './user_impl';
 
 export async function _reloadWithoutSaving(user: User): Promise<void> {
   const auth = user.auth;
@@ -57,6 +55,7 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
 }
 
 export async function reload(externUser: externs.User): Promise<void> {
+  assertTypes([externUser], UserImpl);
   const user: User = externUser as User;
   await _reloadWithoutSaving(user);
 

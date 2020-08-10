@@ -21,11 +21,13 @@ import { OperationType, UserCredential } from '@firebase/auth-types-exp';
 import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
+import { _castAuth, AuthImplCompat } from '../auth/auth_impl';
 import { AuthCredential } from '../credentials';
 import { _assertLinkedStatus, _link } from '../user/link_unlink';
 import { _reauthenticate } from '../user/reauthenticate';
 import { UserCredentialImpl } from '../user/user_credential_impl';
-import { _castAuth } from '../auth/auth_impl';
+import { UserImpl } from '../user/user_impl';
+import { assertTypes } from '../util/assert';
 
 export async function _signInWithCredential(
   auth: Auth,
@@ -51,6 +53,7 @@ export async function signInWithCredential(
   auth: externs.Auth,
   credential: externs.AuthCredential
 ): Promise<externs.UserCredential> {
+  assertTypes([auth, credential], AuthImplCompat, AuthCredential);
   return _signInWithCredential(_castAuth(auth), credential as AuthCredential);
 }
 
@@ -58,6 +61,7 @@ export async function linkWithCredential(
   userExtern: externs.User,
   credentialExtern: externs.AuthCredential
 ): Promise<UserCredential> {
+  assertTypes([userExtern, credentialExtern], UserImpl, AuthCredential);
   const user = userExtern as User;
   const credential = credentialExtern as AuthCredential;
 
@@ -70,6 +74,7 @@ export async function reauthenticateWithCredential(
   userExtern: externs.User,
   credentialExtern: externs.AuthCredential
 ): Promise<externs.UserCredential> {
+  assertTypes([userExtern, credentialExtern], UserImpl, AuthCredential);
   const credential = credentialExtern as AuthCredential;
   const user = userExtern as User;
 

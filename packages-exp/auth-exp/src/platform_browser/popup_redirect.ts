@@ -21,22 +21,18 @@ import { isEmpty, querystring } from '@firebase/util';
 
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
-import { browserSessionPersistence } from './persistence/browser';
 import { OAuthProvider } from '../core/providers/oauth';
 import { assert, debugAssert } from '../core/util/assert';
 import { _generateEventId } from '../core/util/event_id';
 import { _getCurrentUrl } from '../core/util/location';
-import { _open, AuthPopup } from './util/popup';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
-  AuthEventType,
-  EventManager,
-  GapiAuthEvent,
-  GapiOutcome,
-  PopupRedirectResolver
+    AuthEventType, EventManager, GapiAuthEvent, GapiOutcome, PopupRedirectResolver
 } from '../model/popup_redirect';
 import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';
+import { browserSessionPersistence } from './persistence/browser';
+import { _open, AuthPopup } from './util/popup';
 
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
@@ -48,7 +44,7 @@ interface ManagerOrPromise {
   promise?: Promise<EventManager>;
 }
 
-class BrowserPopupRedirectResolver implements PopupRedirectResolver {
+export class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   private readonly eventManagers: Record<string, ManagerOrPromise> = {};
 
   readonly _redirectPersistence = browserSessionPersistence;

@@ -21,6 +21,7 @@ import { FirebaseError } from '@firebase/util';
 import { TaggedWithTokenResponse } from '../../model/id_token';
 import { UserCredential } from '../../model/user';
 import { OAuthCredential } from '../credentials/oauth';
+import { assertTypes } from '../util/assert';
 import { OAuthProvider } from './oauth';
 
 export class GithubAuthProvider extends OAuthProvider {
@@ -29,6 +30,7 @@ export class GithubAuthProvider extends OAuthProvider {
   readonly providerId = GithubAuthProvider.PROVIDER_ID;
 
   static credential(accessToken: string): externs.OAuthCredential {
+    assertTypes(arguments, 'string');
     return OAuthCredential._fromParams({
       providerId: GithubAuthProvider.PROVIDER_ID,
       signInMethod: GithubAuthProvider.GITHUB_SIGN_IN_METHOD,
@@ -39,6 +41,7 @@ export class GithubAuthProvider extends OAuthProvider {
   static credentialFromResult(
     userCredential: externs.UserCredential
   ): externs.OAuthCredential | null {
+    assertTypes(arguments, {_tokenResponse: 'object'});
     return GithubAuthProvider.credentialFromTaggedObject(
       userCredential as UserCredential
     );
@@ -47,6 +50,7 @@ export class GithubAuthProvider extends OAuthProvider {
   static credentialFromError(
     error: FirebaseError
   ): externs.OAuthCredential | null {
+    assertTypes(arguments, {_tokenResponse: 'object'});
     return GithubAuthProvider.credentialFromTaggedObject(
       error as TaggedWithTokenResponse
     );

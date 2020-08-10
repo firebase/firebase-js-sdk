@@ -16,8 +16,11 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { AuthErrorCode, AUTH_ERROR_FACTORY } from './errors';
+
 import { AuthCore } from '../model/auth';
+import { AuthImplCompat } from './auth/auth_impl';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from './errors';
+import { assertTypes } from './util/assert';
 
 /**
  * Enums for fields in URL query string.
@@ -108,5 +111,6 @@ export function parseActionCodeURL(
   auth: externs.Auth,
   link: string
 ): externs.ActionCodeURL | null {
+  assertTypes(arguments, AuthImplCompat, 'string');
   return ActionCodeURL.parseLink(auth, link);
 }

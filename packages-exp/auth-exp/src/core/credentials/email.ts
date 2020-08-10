@@ -20,23 +20,24 @@ import * as externs from '@firebase/auth-types-exp';
 import { updateEmailPassword } from '../../api/account_management/email_and_password';
 import { signInWithPassword } from '../../api/authentication/email_and_password';
 import {
-  signInWithEmailLink,
-  signInWithEmailLinkForLinking
+    signInWithEmailLink, signInWithEmailLinkForLinking
 } from '../../api/authentication/email_link';
 import { AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
-import { fail } from '../util/assert';
+import { assertTypes, fail } from '../util/assert';
 import { AuthCredential } from './';
 
-export class EmailAuthCredential implements AuthCredential {
+export class EmailAuthCredential extends AuthCredential {
   readonly providerId = externs.ProviderId.PASSWORD;
 
   private constructor(
     readonly email: string,
     readonly password: string,
     readonly signInMethod: externs.SignInMethod
-  ) {}
+  ) {
+    super();
+  }
 
   static _fromEmailAndPassword(
     email: string,
@@ -69,6 +70,7 @@ export class EmailAuthCredential implements AuthCredential {
   }
 
   static fromJSON(json: object | string): EmailAuthCredential | null {
+    assertTypes(arguments, 'object|string');
     const obj = typeof json === 'string' ? JSON.parse(json) : json;
     if (obj?.email && obj?.password) {
       if (obj.signInMethod === externs.SignInMethod.EMAIL_PASSWORD) {

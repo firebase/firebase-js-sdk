@@ -18,19 +18,17 @@
 import * as externs from '@firebase/auth-types-exp';
 import { NextFn } from '@firebase/util';
 
-import {
-  APIUserInfo,
-  deleteAccount
-} from '../../api/account_management/account';
+import { APIUserInfo, deleteAccount } from '../../api/account_management/account';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
+import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User, UserParameters } from '../../model/user';
+import { AuthImplCompat } from '../auth/auth_impl';
 import { PersistedBlob } from '../persistence';
-import { assert, debugFail } from '../util/assert';
+import { assert, assertTypes, debugFail, opt } from '../util/assert';
 import { getIdTokenResult } from './id_token_result';
-import { reload, _reloadWithoutSaving } from './reload';
+import { _reloadWithoutSaving, reload } from './reload';
 import { StsTokenManager } from './token_manager';
-import { Auth } from '../../model/auth';
 
 function assertStringOrUndefined(
   assertion: unknown,
@@ -75,6 +73,7 @@ export class UserImpl implements User {
   }
 
   async getIdToken(forceRefresh?: boolean): Promise<string> {
+    assertTypes([forceRefresh], opt('boolean'));
     const tokens = await this.stsTokenManager.getToken(this.auth, forceRefresh);
     assert(tokens, this.auth.name);
 
@@ -89,6 +88,7 @@ export class UserImpl implements User {
   }
 
   getIdTokenResult(forceRefresh?: boolean): Promise<externs.IdTokenResult> {
+    assertTypes([forceRefresh], opt('boolean'));
     return getIdTokenResult(this, forceRefresh);
   }
 
@@ -173,6 +173,7 @@ export class UserImpl implements User {
   }
 
   static fromPlainObject(auth: Auth, object: PersistedBlob): User {
+    assertTypes(arguments, AuthImplCompat, 'object');
     const {
       uid,
       stsTokenManager: plainObjectTokenManager,

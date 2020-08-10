@@ -17,20 +17,20 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { Auth } from '../../model/auth';
-import {
-  AuthEventType,
-  PopupRedirectResolver
-} from '../../model/popup_redirect';
+import { _castAuth, AuthImplCompat } from '../../core/auth/auth_impl';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
-import { assert, debugAssert } from '../../core/util/assert';
+import { OAuthProvider } from '../../core/providers/oauth';
+import { UserImpl } from '../../core/user/user_impl';
+import { assert, assertTypes, debugAssert } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
 import { _generateEventId } from '../../core/util/event_id';
 import { _getInstance } from '../../core/util/instantiator';
+import { Auth } from '../../model/auth';
+import { AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import { User } from '../../model/user';
+import { BrowserPopupRedirectResolver } from '../popup_redirect';
 import { AuthPopup } from '../util/popup';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
-import { _castAuth } from '../../core/auth/auth_impl';
-import { User } from '../../model/user';
 
 // The event timeout is the same on mobile and desktop, no need for Delay.
 export const _AUTH_EVENT_TIMEOUT = 2020;
@@ -42,6 +42,7 @@ export async function signInWithPopup(
   resolverExtern: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
+  assertTypes([auth, provider, resolver], AuthImplCompat, OAuthProvider, BrowserPopupRedirectResolver);
 
   const action = new PopupOperation(
     _castAuth(auth),
@@ -59,6 +60,7 @@ export async function reauthenticateWithPopup(
 ): Promise<externs.UserCredential> {
   const user = userExtern as User;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
+  assertTypes([userExtern, provider, resolver], UserImpl, OAuthProvider, BrowserPopupRedirectResolver);
 
   const action = new PopupOperation(
     user.auth,
@@ -77,6 +79,7 @@ export async function linkWithPopup(
 ): Promise<externs.UserCredential> {
   const user = userExtern as User;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
+  assertTypes([userExtern, provider, resolver], UserImpl, OAuthProvider, BrowserPopupRedirectResolver);
 
   const action = new PopupOperation(
     user.auth,

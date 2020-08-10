@@ -20,13 +20,16 @@ import * as externs from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { SignInWithPhoneNumberResponse } from '../../api/authentication/sms';
-import { ApplicationVerifier } from '../../model/application_verifier';
-import { AuthCore } from '../../model/auth';
-import { UserCredential } from '../../model/user';
+import { AuthImplCompat } from '../../core/auth/auth_impl';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { AuthErrorCode } from '../../core/errors';
+import { assert, assertTypes, debugFail, fail } from '../../core/util/assert';
+import { ApplicationVerifier } from '../../model/application_verifier';
+import { AuthCore } from '../../model/auth';
+import { TaggedWithTokenResponse } from '../../model/id_token';
+import { UserCredential } from '../../model/user';
+import { RecaptchaVerifier } from '../recaptcha/recaptcha_verifier';
 import { _verifyPhoneNumber } from '../strategies/phone';
-import { assert, debugFail, fail } from '../../core/util/assert';
 
 export class PhoneAuthProvider implements externs.PhoneAuthProvider {
   static readonly PROVIDER_ID = externs.ProviderId.PHONE;
@@ -34,12 +37,15 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
 
   readonly providerId = PhoneAuthProvider.PROVIDER_ID;
 
-  constructor(private readonly auth: AuthCore) {}
+  constructor(private readonly auth: AuthCore) {
+    assertTypes(arguments, AuthImplCompat)
+  }
 
   verifyPhoneNumber(
     phoneOptions: externs.PhoneInfoOptions | string,
     applicationVerifier: externs.ApplicationVerifier
   ): Promise<string> {
+    assertTypes(arguments, 'string|object', RecaptchaVerifier);
     return _verifyPhoneNumber(
       this.auth,
       phoneOptions,
@@ -51,6 +57,7 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
     verificationId: string,
     verificationCode: string
   ): PhoneAuthCredential {
+    assertTypes(arguments, 'string', 'string');
     return PhoneAuthCredential._fromVerification(
       verificationId,
       verificationCode
@@ -60,16 +67,22 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
   static credentialFromResult(
     userCredential: externs.UserCredential
   ): externs.AuthCredential | null {
-    const credential = userCredential as UserCredential;
-    assert(
-      credential._tokenResponse,
-      credential.user.auth.name,
-      AuthErrorCode.ARGUMENT_ERROR
-    );
+    assertTypes(arguments, {_tokenResponse: 'object'});
+    return PhoneAuthProvider.credentialFromTaggedObject(userCredential as TaggedWithTokenResponse);
+  }
+
+  static credentialFromError(
+    error: FirebaseError
+  ): externs.AuthCredential | null {
+    assertTypes(arguments, {_tokenResponse: 'object'});
+    return PhoneAuthProvider.credentialFromTaggedObject(error as TaggedWithTokenResponse);
+  }
+
+  private static credentialFromTaggedObject(result: TaggedWithTokenResponse): externs.AuthCredential|null {
     const {
       phoneNumber,
       temporaryProof
-    } = credential._tokenResponse as SignInWithPhoneNumberResponse;
+    } = result._tokenResponse as SignInWithPhoneNumberResponse;
     if (phoneNumber && temporaryProof) {
       return PhoneAuthCredential._fromTokenResponse(
         phoneNumber,
@@ -77,14 +90,7 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
       );
     }
 
-    fail(credential.user.auth.name, AuthErrorCode.ARGUMENT_ERROR);
-  }
-
-  static _credentialFromError(
-    error: FirebaseError
-  ): externs.AuthCredential | null {
-    void error;
-    return debugFail('not implemented');
+    return null;
   }
 
   static _credentialFromJSON(json: string | object): externs.AuthCredential {

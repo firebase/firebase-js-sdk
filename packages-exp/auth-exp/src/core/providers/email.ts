@@ -18,9 +18,10 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { ActionCodeURL } from '../action_code_url';
+import { AuthImplCompat } from '../auth/auth_impl';
 import { EmailAuthCredential } from '../credentials/email';
 import { AuthErrorCode } from '../errors';
-import { assert } from '../util/assert';
+import { assert, assertTypes } from '../util/assert';
 
 export class EmailAuthProvider implements externs.EmailAuthProvider {
   static readonly PROVIDER_ID = externs.ProviderId.PASSWORD;
@@ -30,6 +31,7 @@ export class EmailAuthProvider implements externs.EmailAuthProvider {
   readonly providerId = EmailAuthProvider.PROVIDER_ID;
 
   static credential(email: string, password: string): EmailAuthCredential {
+    assertTypes(arguments, 'string', 'string');
     return EmailAuthCredential._fromEmailAndPassword(email, password);
   }
 
@@ -38,6 +40,7 @@ export class EmailAuthProvider implements externs.EmailAuthProvider {
     email: string,
     emailLink: string
   ): EmailAuthCredential {
+    assertTypes(arguments, AuthImplCompat, 'string', 'string');
     const actionCodeUrl = ActionCodeURL.parseLink(auth, emailLink);
     assert(actionCodeUrl, auth.name, AuthErrorCode.ARGUMENT_ERROR);
 

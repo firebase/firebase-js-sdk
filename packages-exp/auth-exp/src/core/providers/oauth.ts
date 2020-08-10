@@ -17,7 +17,7 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { debugFail } from '../util/assert';
+import { assertTypes, debugFail } from '../util/assert';
 
 export type CustomParameters = Record<string, string>;
 
@@ -42,6 +42,7 @@ export class OAuthProvider implements externs.AuthProvider {
   }
 
   setDefaultLanguage(languageCode: string | null): void {
+    assertTypes(arguments, 'string|null');
     this.defaultLanguageCode = languageCode;
   }
 
@@ -57,6 +58,7 @@ export class OAuthProvider implements externs.AuthProvider {
   }
 
   addScope(scope: string): externs.AuthProvider {
+    assertTypes(arguments, 'string');
     // If not already added, add scope to list.
     if (!this.scopes.includes(scope)) {
       this.scopes.push(scope);

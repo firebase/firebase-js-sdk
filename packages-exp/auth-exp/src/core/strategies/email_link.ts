@@ -19,7 +19,9 @@ import * as externs from '@firebase/auth-types-exp';
 
 import * as api from '../../api/authentication/email_and_password';
 import { ActionCodeURL } from '../action_code_url';
+import { AuthImplCompat } from '../auth/auth_impl';
 import { EmailAuthProvider } from '../providers/email';
+import { assertTypes, opt } from '../util/assert';
 import { _getCurrentUrl } from '../util/location';
 import { setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
@@ -29,6 +31,7 @@ export async function sendSignInLinkToEmail(
   email: string,
   actionCodeSettings?: externs.ActionCodeSettings
 ): Promise<void> {
+  assertTypes([auth, email, actionCodeSettings], AuthImplCompat, 'string', opt('object'));
   const request: api.EmailSignInRequest = {
     requestType: externs.Operation.EMAIL_SIGNIN,
     email
@@ -44,6 +47,7 @@ export function isSignInWithEmailLink(
   auth: externs.Auth,
   emailLink: string
 ): boolean {
+  assertTypes(arguments, AuthImplCompat, 'string');
   const actionCodeUrl = ActionCodeURL.parseLink(auth, emailLink);
   return actionCodeUrl?.operation === externs.Operation.EMAIL_SIGNIN;
 }
@@ -53,6 +57,7 @@ export async function signInWithEmailLink(
   email: string,
   emailLink?: string
 ): Promise<externs.UserCredential> {
+  assertTypes([auth, email, emailLink], AuthImplCompat, 'string', opt('string'));
   return signInWithCredential(
     auth,
     EmailAuthProvider.credentialWithLink(

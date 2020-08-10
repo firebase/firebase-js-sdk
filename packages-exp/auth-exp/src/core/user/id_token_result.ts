@@ -19,13 +19,15 @@ import * as externs from '@firebase/auth-types-exp';
 import { base64Decode } from '@firebase/util';
 
 import { User } from '../../model/user';
-import { assert } from '../util/assert';
+import { assert, assertTypes, opt } from '../util/assert';
 import { _logError } from '../util/log';
+import { UserImpl } from './user_impl';
 
 export function getIdToken(
   user: externs.User,
   forceRefresh = false
 ): Promise<string> {
+  assertTypes(arguments, UserImpl, opt('boolean'));
   return user.getIdToken(forceRefresh);
 }
 
@@ -33,6 +35,7 @@ export async function getIdTokenResult(
   externUser: externs.User,
   forceRefresh = false
 ): Promise<externs.IdTokenResult> {
+  assertTypes([externUser, forceRefresh], UserImpl, opt('boolean'));
   const user = externUser as User;
   const token = await user.getIdToken(forceRefresh);
   const claims = _parseToken(token);

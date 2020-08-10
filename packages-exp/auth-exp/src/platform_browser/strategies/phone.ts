@@ -20,23 +20,20 @@ import * as externs from '@firebase/auth-types-exp';
 import { startEnrollPhoneMfa } from '../../api/account_management/mfa';
 import { startSignInPhoneMfa } from '../../api/authentication/mfa';
 import { sendPhoneVerificationCode } from '../../api/authentication/sms';
-import { ApplicationVerifier } from '../../model/application_verifier';
-import { AuthCore } from '../../model/auth';
+import { AuthImplCompat } from '../../core/auth/auth_impl';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { AuthErrorCode } from '../../core/errors';
-import { _assertLinkedStatus, _link } from '../../core/user/link_unlink';
-import { assert } from '../../core/util/assert';
 import {
-  linkWithCredential,
-  reauthenticateWithCredential,
-  signInWithCredential
+    linkWithCredential, reauthenticateWithCredential, signInWithCredential
 } from '../../core/strategies/credential';
-import {
-  MultiFactorSession,
-  MultiFactorSessionType
-} from '../../mfa/mfa_session';
+import { _assertLinkedStatus, _link } from '../../core/user/link_unlink';
+import { UserImpl } from '../../core/user/user_impl';
+import { assert, assertTypes } from '../../core/util/assert';
+import { MultiFactorSession, MultiFactorSessionType } from '../../mfa/mfa_session';
+import { ApplicationVerifier } from '../../model/application_verifier';
+import { AuthCore } from '../../model/auth';
 import { User } from '../../model/user';
-import { RECAPTCHA_VERIFIER_TYPE } from '../recaptcha/recaptcha_verifier';
+import { RECAPTCHA_VERIFIER_TYPE, RecaptchaVerifier } from '../recaptcha/recaptcha_verifier';
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<externs.UserCredential>;
@@ -49,6 +46,7 @@ class ConfirmationResult implements externs.ConfirmationResult {
   ) {}
 
   confirm(verificationCode: string): Promise<externs.UserCredential> {
+    assertTypes(arguments, 'string');
     const authCredential = PhoneAuthCredential._fromVerification(
       this.verificationId,
       verificationCode
@@ -62,6 +60,7 @@ export async function signInWithPhoneNumber(
   phoneNumber: string,
   appVerifier: externs.ApplicationVerifier
 ): Promise<externs.ConfirmationResult> {
+  assertTypes([auth, phoneNumber, appVerifier], AuthImplCompat, 'string', RecaptchaVerifier);
   const verificationId = await _verifyPhoneNumber(
     auth,
     phoneNumber,
@@ -77,6 +76,7 @@ export async function linkWithPhoneNumber(
   phoneNumber: string,
   appVerifier: externs.ApplicationVerifier
 ): Promise<externs.ConfirmationResult> {
+  assertTypes([userExtern, phoneNumber, appVerifier], UserImpl, 'string', RecaptchaVerifier);
   const user = userExtern as User;
   await _assertLinkedStatus(false, user, externs.ProviderId.PHONE);
   const verificationId = await _verifyPhoneNumber(
@@ -94,6 +94,7 @@ export async function reauthenticateWithPhoneNumber(
   phoneNumber: string,
   appVerifier: externs.ApplicationVerifier
 ): Promise<externs.ConfirmationResult> {
+  assertTypes([userExtern, phoneNumber, appVerifier], UserImpl, 'string', RecaptchaVerifier);
   const user = userExtern as User;
   const verificationId = await _verifyPhoneNumber(
     user.auth,
@@ -182,5 +183,6 @@ export async function updatePhoneNumber(
   user: externs.User,
   credential: externs.PhoneAuthCredential
 ): Promise<void> {
+  assertTypes([user, credential], UserImpl, PhoneAuthCredential);
   await _link(user as User, credential as PhoneAuthCredential);
 }

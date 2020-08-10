@@ -23,7 +23,7 @@ import { IdTokenResponse } from '../../model/id_token';
 import { debugFail } from '../util/assert';
 import { AuthCredential } from './';
 
-export class AnonymousCredential implements AuthCredential {
+export class AnonymousCredential extends AuthCredential {
   providerId = ProviderId.ANONYMOUS;
   signInMethod = SignInMethod.ANONYMOUS;
 

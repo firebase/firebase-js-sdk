@@ -21,10 +21,11 @@ import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import { AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 
-export abstract class AuthCredential extends externs.AuthCredential {
-  static fromJSON(json: object | string): AuthCredential | null;
-
-  _getIdTokenResponse(auth: AuthCore): Promise<PhoneOrOauthTokenResponse>;
-  _linkToIdToken(auth: AuthCore, idToken: string): Promise<IdTokenResponse>;
-  _getReauthenticationResolver(auth: AuthCore): Promise<IdTokenResponse>;
+export abstract class AuthCredential implements externs.AuthCredential {
+  abstract readonly providerId: externs.ProviderId;
+  abstract readonly signInMethod: externs.SignInMethod;
+  abstract toJSON(): object;
+  abstract _getIdTokenResponse(auth: AuthCore): Promise<PhoneOrOauthTokenResponse>;
+  abstract _linkToIdToken(auth: AuthCore, idToken: string): Promise<IdTokenResponse>;
+  abstract _getReauthenticationResolver(auth: AuthCore): Promise<IdTokenResponse>;
 }

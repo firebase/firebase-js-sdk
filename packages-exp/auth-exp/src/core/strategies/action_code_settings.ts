@@ -18,11 +18,13 @@
 import { ActionCodeSettings } from '@firebase/auth-types-exp';
 
 import { GetOobCodeRequest } from '../../api/authentication/email_and_password';
+import { assertTypes, opt } from '../util/assert';
 
 export function setActionCodeSettingsOnRequest(
   request: GetOobCodeRequest,
   actionCodeSettings: ActionCodeSettings
 ): void {
+  assertTypes([actionCodeSettings], ACTION_CODE_SETTINGS_TYPE);
   request.continueUrl = actionCodeSettings.url;
   request.dynamicLinkDomain = actionCodeSettings.dynamicLinkDomain;
   request.canHandleCodeInApp = actionCodeSettings.handleCodeInApp;
@@ -38,3 +40,17 @@ export function setActionCodeSettingsOnRequest(
     request.androidPackageName = actionCodeSettings.android.packageName;
   }
 }
+
+const ACTION_CODE_SETTINGS_TYPE = {
+  android: opt({
+    installApp: opt('boolean'),
+    minimumVersion: opt('string'),
+    packageName: 'string',
+  }),
+  handleCodeInApp: opt('boolean'),
+  iOS: opt({
+    bundleId: 'string',
+  }),
+  url: 'string',
+  dynamicLinkDomain: opt('string'),
+};

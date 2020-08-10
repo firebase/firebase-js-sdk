@@ -17,20 +17,20 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import {
-  createAuthUri,
-  CreateAuthUriRequest
-} from '../../api/authentication/create_auth_uri';
+import { createAuthUri, CreateAuthUriRequest } from '../../api/authentication/create_auth_uri';
 import * as api from '../../api/authentication/email_and_password';
 import { User } from '../../model/user';
+import { _castAuth, AuthImplCompat } from '../auth/auth_impl';
+import { UserImpl } from '../user/user_impl';
+import { assertTypes, opt } from '../util/assert';
 import { _getCurrentUrl, _isHttpOrHttps } from '../util/location';
 import { setActionCodeSettingsOnRequest } from './action_code_settings';
-import { _castAuth } from '../auth/auth_impl';
 
 export async function fetchSignInMethodsForEmail(
   auth: externs.Auth,
   email: string
 ): Promise<string[]> {
+  assertTypes([auth, email], AuthImplCompat, 'string');
   // createAuthUri returns an error if continue URI is not http or https.
   // For environments like Cordova, Chrome extensions, native frameworks, file
   // systems, etc, use http://localhost as continue URL.
@@ -49,6 +49,7 @@ export async function sendEmailVerification(
   userExtern: externs.User,
   actionCodeSettings?: externs.ActionCodeSettings | null
 ): Promise<void> {
+  assertTypes([userExtern, actionCodeSettings], UserImpl, opt('object|null'));
   const user = userExtern as User;
   const idToken = await user.getIdToken();
   const request: api.VerifyEmailRequest = {
@@ -71,6 +72,7 @@ export async function verifyBeforeUpdateEmail(
   newEmail: string,
   actionCodeSettings?: externs.ActionCodeSettings | null
 ): Promise<void> {
+  assertTypes([userExtern, newEmail, actionCodeSettings], UserImpl, 'string', opt('object|null'));
   const user = userExtern as User;
   const idToken = await user.getIdToken();
   const request: api.VerifyAndChangeEmailRequest = {

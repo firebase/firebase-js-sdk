@@ -22,11 +22,13 @@ import { AuthCredential } from '../../src/core/credentials';
 import { Auth } from '../../src/model/auth';
 import { IdTokenResponse } from '../../src/model/id_token';
 
-export class MockAuthCredential implements AuthCredential {
+export class MockAuthCredential extends AuthCredential {
   constructor(
     readonly providerId: ProviderId,
     readonly signInMethod: SignInMethod
-  ) {}
+  ) {
+    super();
+  }
 
   toJSON(): object {
     throw new Error('Method not implemented.');

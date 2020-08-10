@@ -16,12 +16,14 @@
  */
 import * as externs from '@firebase/auth-types-exp';
 
-import { User } from '../model/user';
-import { MultiFactorSession } from './mfa_session';
-import { MultiFactorAssertion } from './assertions';
 import { withdrawMfa } from '../api/account_management/mfa';
 import { AuthErrorCode } from '../core/errors';
+import { UserImpl } from '../core/user/user_impl';
+import { assert, assertTypes, opt } from '../core/util/assert';
+import { User } from '../model/user';
+import { MultiFactorAssertion } from './assertions';
 import { MultiFactorInfo } from './mfa_info';
+import { MultiFactorSession } from './mfa_session';
 
 export class MultiFactorUser implements externs.MultiFactorUser {
   enrolledFactors: externs.MultiFactorInfo[] = [];
@@ -48,6 +50,7 @@ export class MultiFactorUser implements externs.MultiFactorUser {
     assertionExtern: externs.MultiFactorAssertion,
     displayName?: string | null
   ): Promise<void> {
+    assertTypes([assertionExtern, displayName], MultiFactorAssertion, opt('string|null'));
     const assertion = assertionExtern as MultiFactorAssertion;
     const session = (await this.getSession()) as MultiFactorSession;
     const finalizeMfaResponse = await assertion._process(
@@ -67,6 +70,7 @@ export class MultiFactorUser implements externs.MultiFactorUser {
   async unenroll(infoOrUid: externs.MultiFactorInfo | string): Promise<void> {
     const mfaEnrollmentId =
       typeof infoOrUid === 'string' ? infoOrUid : infoOrUid.uid;
+    assert(typeof mfaEnrollmentId === 'string', this.user.auth.name, AuthErrorCode.ARGUMENT_ERROR);
     const idToken = await this.user.getIdToken();
     const idTokenResponse = await withdrawMfa(this.user.auth, {
       idToken,
@@ -97,6 +101,7 @@ const multiFactorUserCache = new WeakMap<
 >();
 
 export function multiFactor(user: externs.User): externs.MultiFactorUser {
+  assertTypes(arguments, UserImpl);
   if (!multiFactorUserCache.has(user)) {
     multiFactorUserCache.set(user, MultiFactorUser._fromUser(user as User));
   }

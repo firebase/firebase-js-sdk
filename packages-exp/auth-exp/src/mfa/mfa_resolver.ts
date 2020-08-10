@@ -16,15 +16,16 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { UserCredential } from '../model/user';
+
+import { _castAuth, AuthImplCompat } from '../core/auth/auth_impl';
 import { AuthErrorCode } from '../core/errors';
 import { UserCredentialImpl } from '../core/user/user_credential_impl';
-import { assert, fail } from '../core/util/assert';
+import { assert, assertTypes, fail } from '../core/util/assert';
+import { UserCredential } from '../model/user';
 import { MultiFactorAssertion } from './assertions';
 import { MultiFactorError } from './mfa_error';
 import { MultiFactorInfo } from './mfa_info';
 import { MultiFactorSession } from './mfa_session';
-import { _castAuth } from '../core/auth/auth_impl';
 
 export class MultiFactorResolver implements externs.MultiFactorResolver {
   private constructor(
@@ -91,6 +92,7 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
   async resolveSignIn(
     assertionExtern: externs.MultiFactorAssertion
   ): Promise<externs.UserCredential> {
+    assertTypes([assertionExtern], MultiFactorAssertion);
     const assertion = assertionExtern as MultiFactorAssertion;
     return this.signInResolver(assertion);
   }
@@ -100,6 +102,7 @@ export function getMultiFactorResolver(
   auth: externs.Auth,
   errorExtern: externs.MultiFactorError
 ): externs.MultiFactorResolver {
+  assertTypes(arguments, AuthImplCompat, MultiFactorError);
   const error = errorExtern as MultiFactorError;
   assert(error.operationType, auth.name, AuthErrorCode.ARGUMENT_ERROR);
   assert(error.credential, auth.name, AuthErrorCode.ARGUMENT_ERROR);

@@ -21,18 +21,19 @@ import * as account from '../../api/account_management/email_and_password';
 import * as authentication from '../../api/authentication/email_and_password';
 import { signUp } from '../../api/authentication/sign_up';
 import { MultiFactorInfo } from '../../mfa/mfa_info';
+import { _castAuth, AuthImplCompat } from '../auth/auth_impl';
 import { EmailAuthProvider } from '../providers/email';
 import { UserCredentialImpl } from '../user/user_credential_impl';
-import { assert } from '../util/assert';
+import { assert, assertTypes, opt } from '../util/assert';
 import { setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
-import { _castAuth } from '../auth/auth_impl';
 
 export async function sendPasswordResetEmail(
   auth: externs.Auth,
   email: string,
   actionCodeSettings?: externs.ActionCodeSettings
 ): Promise<void> {
+  assertTypes([auth, email, actionCodeSettings], AuthImplCompat, 'string', opt('object|null'));
   const request: authentication.PasswordResetRequest = {
     requestType: externs.Operation.PASSWORD_RESET,
     email
@@ -49,6 +50,7 @@ export async function confirmPasswordReset(
   oobCode: string,
   newPassword: string
 ): Promise<void> {
+  assertTypes([auth, oobCode, newPassword], AuthImplCompat, 'string', 'string');
   await account.resetPassword(auth, {
     oobCode,
     newPassword
@@ -60,6 +62,7 @@ export async function applyActionCode(
   auth: externs.Auth,
   oobCode: string
 ): Promise<void> {
+  assertTypes([auth, oobCode], AuthImplCompat, 'string');
   await account.applyActionCode(auth, { oobCode });
 }
 
@@ -67,6 +70,7 @@ export async function checkActionCode(
   auth: externs.Auth,
   oobCode: string
 ): Promise<externs.ActionCodeInfo> {
+  assertTypes([auth, oobCode], AuthImplCompat, 'string');
   const response = await account.resetPassword(auth, { oobCode });
 
   // Email could be empty only if the request type is EMAIL_SIGNIN or
@@ -119,6 +123,7 @@ export async function verifyPasswordResetCode(
   auth: externs.Auth,
   code: string
 ): Promise<string> {
+  assertTypes([auth, code], AuthImplCompat, 'string');
   const { data } = await checkActionCode(auth, code);
   // Email should always be present since a code was sent to it
   return data.email!;
@@ -129,6 +134,7 @@ export async function createUserWithEmailAndPassword(
   email: string,
   password: string
 ): Promise<externs.UserCredential> {
+  assertTypes([auth, email, password], AuthImplCompat, 'string', 'string');
   const response = await signUp(auth, {
     returnSecureToken: true,
     email,
@@ -151,6 +157,7 @@ export function signInWithEmailAndPassword(
   email: string,
   password: string
 ): Promise<externs.UserCredential> {
+  assertTypes([auth, email, password], AuthImplCompat, 'string', 'string');
   return signInWithCredential(
     auth,
     EmailAuthProvider.credential(email, password)

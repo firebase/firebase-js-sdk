@@ -16,14 +16,12 @@
  */
 import * as externs from '@firebase/auth-types-exp';
 
+import { finalizeEnrollPhoneMfa } from '../../../api/account_management/mfa';
+import { FinalizeMfaResponse, finalizeSignInPhoneMfa } from '../../../api/authentication/mfa';
+import { PhoneAuthCredential } from '../../../core/credentials/phone';
+import { assertTypes } from '../../../core/util/assert';
 import { MultiFactorAssertion } from '../../../mfa/assertions';
 import { AuthCore } from '../../../model/auth';
-import { finalizeEnrollPhoneMfa } from '../../../api/account_management/mfa';
-import { PhoneAuthCredential } from '../../../core/credentials/phone';
-import {
-  finalizeSignInPhoneMfa,
-  FinalizeMfaResponse
-} from '../../../api/authentication/mfa';
 
 export class PhoneMultiFactorAssertion extends MultiFactorAssertion
   implements externs.PhoneMultiFactorAssertion {
@@ -67,6 +65,7 @@ export class PhoneMultiFactorGenerator
   static assertion(
     credential: externs.PhoneAuthCredential
   ): externs.PhoneMultiFactorAssertion {
+    assertTypes(arguments, PhoneAuthCredential);
     return PhoneMultiFactorAssertion._fromCredential(
       credential as PhoneAuthCredential
     );

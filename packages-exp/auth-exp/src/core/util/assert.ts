@@ -49,11 +49,15 @@ type TypeExpectation = Function | string | MapType;
 interface MapType extends Record<string, TypeExpectation | Optional> {}
 
 class Optional {
-  constructor(readonly type: TypeExpectation) {}
+  constructor(readonly type: TypeExpectation, readonly nullable = false) {}
 }
 
 export function opt(type: TypeExpectation): Optional {
   return new Optional(type);
+}
+
+export function nullable(type: TypeExpectation): Optional {
+  return new Optional(type, true);
 }
 
 /**
@@ -96,7 +100,8 @@ export function assertTypes(
     if (expect instanceof Optional) {
       // If the arg is undefined, then it matches "optional" and we can move to
       // the next arg
-      if (typeof arg === 'undefined') {
+      if (typeof arg === 'undefined' && !expect.nullable ||
+      arg === null && expect.nullable) {
         continue;
       }
       expect = expect.type;

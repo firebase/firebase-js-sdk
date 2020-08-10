@@ -18,8 +18,9 @@
 import { Persistence, PopupRedirectResolver } from '@firebase/auth-types-exp';
 
 import { AuthEventManager } from '../../src/core/auth/auth_event_manager';
-import { AuthPopup } from '../../src/platform_browser/util/popup';
 import { EventManager } from '../../src/model/popup_redirect';
+import { BrowserPopupRedirectResolver } from '../../src/platform_browser/popup_redirect';
+import { AuthPopup } from '../../src/platform_browser/util/popup';
 
 /**
  * Generates a PopupRedirectResolver that can be used by the oauth methods.
@@ -29,7 +30,7 @@ export function makeMockPopupRedirectResolver(
   eventManager?: EventManager,
   authPopup?: AuthPopup
 ): PopupRedirectResolver {
-  return class implements PopupRedirectResolver {
+  return class extends BrowserPopupRedirectResolver {
     async _initialize(): Promise<EventManager> {
       return eventManager || new AuthEventManager('test-app');
     }
@@ -38,8 +39,8 @@ export function makeMockPopupRedirectResolver(
       return authPopup || new AuthPopup(null);
     }
 
-    async _openRedirect(): Promise<void> {}
+    _openRedirect(): Promise<never> {return new Promise(resolve => resolve())}
 
-    _redirectPersistence?: Persistence;
+    _redirectPersistence!: Persistence;
   };
 }

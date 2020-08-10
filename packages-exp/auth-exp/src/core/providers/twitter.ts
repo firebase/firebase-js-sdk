@@ -39,6 +39,7 @@ import { SignInWithIdpResponse } from '../../api/authentication/idp';
 import { TaggedWithTokenResponse } from '../../model/id_token';
 import { UserCredential } from '../../model/user';
 import { OAuthCredential } from '../credentials/oauth';
+import { assertTypes } from '../util/assert';
 import { OAuthProvider } from './oauth';
 
 export class TwitterAuthProvider extends OAuthProvider {
@@ -47,6 +48,7 @@ export class TwitterAuthProvider extends OAuthProvider {
   readonly providerId = TwitterAuthProvider.PROVIDER_ID;
 
   static credential(token: string, secret: string): externs.OAuthCredential {
+    assertTypes(arguments, 'string', 'string');
     return OAuthCredential._fromParams({
       providerId: TwitterAuthProvider.PROVIDER_ID,
       signInMethod: TwitterAuthProvider.TWITTER_SIGN_IN_METHOD,
@@ -58,6 +60,7 @@ export class TwitterAuthProvider extends OAuthProvider {
   static credentialFromResult(
     userCredential: externs.UserCredential
   ): externs.OAuthCredential | null {
+    assertTypes(arguments, {_tokenResponse: 'object'});
     return TwitterAuthProvider.credentialFromTaggedObject(
       userCredential as UserCredential
     );
@@ -66,6 +69,7 @@ export class TwitterAuthProvider extends OAuthProvider {
   static credentialFromError(
     error: FirebaseError
   ): externs.OAuthCredential | null {
+    assertTypes(arguments, {_tokenResponse: 'object'});
     return TwitterAuthProvider.credentialFromTaggedObject(
       error as TaggedWithTokenResponse
     );

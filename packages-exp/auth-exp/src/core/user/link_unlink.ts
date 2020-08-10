@@ -19,13 +19,14 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { deleteLinkedAccounts } from '../../api/account_management/account';
 import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
+import { User, UserCredential } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { AuthErrorCode } from '../errors';
-import { assert } from '../util/assert';
+import { assert, assertTypes } from '../util/assert';
 import { providerDataAsNames } from '../util/providers';
 import { _reloadWithoutSaving } from './reload';
 import { UserCredentialImpl } from './user_credential_impl';
-import { User, UserCredential } from '../../model/user';
+import { UserImpl } from './user_impl';
 
 /**
  *  This is the externally visible unlink function
@@ -34,6 +35,7 @@ export async function unlink(
   userExtern: externs.User,
   providerId: externs.ProviderId
 ): Promise<externs.User> {
+  assertTypes([userExtern, providerId], UserImpl, 'string');
   const user = userExtern as User;
   await _assertLinkedStatus(true, user, providerId);
   const { providerUserInfo } = await deleteLinkedAccounts(user.auth, {

@@ -17,18 +17,18 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { Auth } from '../../model/auth';
-import {
-  AuthEvent,
-  AuthEventType,
-  PopupRedirectResolver
-} from '../../model/popup_redirect';
-import { UserCredential, User } from '../../model/user';
+import { _castAuth, AuthImplCompat } from '../../core/auth/auth_impl';
+import { OAuthProvider } from '../../core/providers/oauth';
 import { _assertLinkedStatus } from '../../core/user/link_unlink';
+import { UserImpl } from '../../core/user/user_impl';
+import { assertTypes } from '../../core/util/assert';
 import { _generateEventId } from '../../core/util/event_id';
 import { _getInstance } from '../../core/util/instantiator';
+import { Auth } from '../../model/auth';
+import { AuthEvent, AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import { User, UserCredential } from '../../model/user';
+import { BrowserPopupRedirectResolver } from '../popup_redirect';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
-import { _castAuth } from '../../core/auth/auth_impl';
 
 export async function signInWithRedirect(
   auth: externs.Auth,
@@ -36,6 +36,7 @@ export async function signInWithRedirect(
   resolverExtern: externs.PopupRedirectResolver
 ): Promise<never> {
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
+  assertTypes([auth, provider, resolver], AuthImplCompat, OAuthProvider, BrowserPopupRedirectResolver);
 
   return resolver._openRedirect(
     auth,
@@ -51,6 +52,7 @@ export async function reauthenticateWithRedirect(
 ): Promise<never> {
   const user = userExtern as User;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
+  assertTypes([userExtern, provider, resolver], UserImpl, OAuthProvider, BrowserPopupRedirectResolver);
 
   const eventId = await prepareUserForRedirect(user.auth, user);
   return resolver._openRedirect(
@@ -68,6 +70,7 @@ export async function linkWithRedirect(
 ): Promise<never> {
   const user = userExtern as User;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
+  assertTypes([userExtern, provider, resolver], UserImpl, OAuthProvider, BrowserPopupRedirectResolver);
 
   await _assertLinkedStatus(false, user, provider.providerId);
   const eventId = await prepareUserForRedirect(user.auth, user);

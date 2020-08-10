@@ -18,14 +18,11 @@
 import * as externs from '@firebase/auth-types-exp';
 import { querystring } from '@firebase/util';
 
-import {
-  signInWithIdp,
-  SignInWithIdpRequest
-} from '../../api/authentication/idp';
+import { signInWithIdp, SignInWithIdpRequest } from '../../api/authentication/idp';
 import { AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
-import { fail } from '../util/assert';
+import { assertTypes, fail } from '../util/assert';
 import { AuthCredential } from './';
 
 const IDP_REQUEST_URI = 'http://localhost';
@@ -49,8 +46,8 @@ export interface OAuthCredentialParams {
   signInMethod: externs.SignInMethod;
 }
 
-export class OAuthCredential
-  implements externs.OAuthCredential, AuthCredential {
+export class OAuthCredential extends AuthCredential
+  implements externs.OAuthCredential {
   idToken?: string;
   accessToken?: string;
   secret?: string;
@@ -60,7 +57,9 @@ export class OAuthCredential
   private constructor(
     readonly providerId: externs.ProviderId,
     readonly signInMethod: externs.SignInMethod
-  ) {}
+  ) {
+    super();
+  }
 
   static _fromParams(params: OAuthCredentialParams): OAuthCredential {
     const cred = new OAuthCredential(params.providerId, params.signInMethod);
@@ -107,6 +106,7 @@ export class OAuthCredential
   }
 
   static fromJSON(obj: object): externs.OAuthCredential | null {
+    assertTypes(arguments, 'object');
     const { providerId, signInMethod, ...rest }: Partial<OAuthCredential> = obj;
     if (!providerId || !signInMethod) {
       return null;
