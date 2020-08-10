@@ -29,6 +29,7 @@ import { version } from './package.json';
 import { Auth } from './src/auth';
 import { RecaptchaVerifier } from './src/recaptcha_verifier';
 import { EmailAuthProvider } from './src/email_auth_provider';
+import { Persistence } from './src/persistence';
 
 const AUTH_TYPE = 'auth';
 
@@ -68,11 +69,7 @@ function registerAuth(instance: _FirebaseNamespace): void {
         RecaptchaVerifier,
         TwitterAuthProvider: impl.TwitterAuthProvider,
         Auth: {
-          Persistence: {
-            LOCAL: 'LOCAL',
-            NONE: 'NONE',
-            SESSION: 'SESSION'
-          }
+          Persistence
         }
         //   'AuthCredential': fireauth.AuthCredential,
         //   'Error': fireauth.AuthError
