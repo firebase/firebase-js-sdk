@@ -46,11 +46,6 @@ import {
 } from '@firebase/util';
 import { initializeIds } from './initialize-ids';
 import { logger } from './logger';
-import {
-  isIndexedDBAvailable,
-  validateIndexedDBOpenable,
-  areCookiesEnabled
-} from '@firebase/util';
 
 /**
  * Maps appId to full initialization promise. Wrapped gtag calls must wait on
