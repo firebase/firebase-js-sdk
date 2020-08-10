@@ -350,6 +350,6 @@ export async function namedQuery(
     return null;
   }
 
-  // @ts-ignore
-  return new Query(firestoreImpl, null, namedQuery.query);
+  return null;
+  // return new Query(firestoreImpl, null, namedQuery.query);
 }

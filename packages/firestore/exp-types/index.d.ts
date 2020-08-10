@@ -539,6 +539,11 @@ export function loadBundle(
   bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
 ): LoadBundleTask;
 
+export function namedQuery(
+  firestore: FirebaseFirestore,
+  name: string
+): Promise<Query | null>;
+
 export type FirestoreErrorCode =
   | 'cancelled'
   | 'unknown'
