@@ -66,7 +66,7 @@ describeSpec('OrderBy:', [], () => {
       .expectEvents(query1, { added: [docB, docA] })
       .userUnlistens(query1)
       .watchRemoves(query1)
-      .userListens(query1, 'resume-token-1002')
+      .userListens(query1, { resumeToken: 'resume-token-1002' })
       .expectEvents(query1, { added: [docB, docA], fromCache: true })
       .watchAcksFull(query1, 1002)
       .expectEvents(query1, {});

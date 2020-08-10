@@ -101,6 +101,8 @@ import {
   JsonProtoSerializer,
   toDocument,
   toName,
+  toQueryTarget,
+  toTimestamp,
   toVersion
 } from '../../src/remote/serializer';
 import { Timestamp } from '../../src/api/timestamp';
@@ -112,7 +114,7 @@ import {
   TEST_DATABASE_ID
 } from '../unit/local/persistence_test_helpers';
 import { BundledDocuments } from '../../src/core/bundle';
-import { BundleMetadata } from '../../src/protos/firestore_bundle_proto';
+import * as bundleProto from '../../src/protos/firestore_bundle_proto';
 
 /* eslint-disable no-restricted-globals */
 
@@ -460,13 +462,31 @@ export function bundledDocuments(
   return new TestBundledDocuments(result);
 }
 
+export function namedQuery(
+  name: string,
+  query: Query,
+  limitType: bundleProto.LimitType,
+  readTime: SnapshotVersion
+): bundleProto.NamedQuery {
+  return {
+    name,
+    readTime: toTimestamp(JSON_SERIALIZER, readTime.toTimestamp()),
+    bundledQuery: {
+      parent: toQueryTarget(JSON_SERIALIZER, queryToTarget(query)).parent,
+      limitType,
+      structuredQuery: toQueryTarget(JSON_SERIALIZER, queryToTarget(query))
+        .structuredQuery
+    }
+  };
+}
+
 export function bundleMetadata(
   id: string,
   createTime: TestSnapshotVersion,
   version = 1,
   totalDocuments = 1,
   totalBytes = 1000
-): BundleMetadata {
+): bundleProto.BundleMetadata {
   return {
     id,
     createTime: { seconds: createTime, nanos: 0 },

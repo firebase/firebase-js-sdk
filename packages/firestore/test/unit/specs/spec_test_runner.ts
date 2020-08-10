@@ -388,8 +388,9 @@ abstract class TestRunner {
   private async doListen(listenSpec: SpecUserListen): Promise<void> {
     let targetFailed = false;
 
-    const querySpec = listenSpec[1];
+    const querySpec = listenSpec.query;
     const query = parseQuery(querySpec);
+
     const aggregator = new EventAggregator(query, e => {
       if (e.error) {
         targetFailed = true;
@@ -989,18 +990,24 @@ abstract class TestRunner {
       // TODO(mcg): populate the purpose of the target once it's possible to
       // encode that in the spec tests. For now, hard-code that it's a listen
       // despite the fact that it's not always the right value.
-      const expectedTarget = toTarget(
-        this.serializer,
-        new TargetData(
-          queryToTarget(parseQuery(expected.queries[0])),
-          targetId,
-          TargetPurpose.Listen,
-          ARBITRARY_SEQUENCE_NUMBER,
-          SnapshotVersion.min(),
-          SnapshotVersion.min(),
-          byteStringFromString(expected.resumeToken)
-        )
+      let targetData = new TargetData(
+        queryToTarget(parseQuery(expected.queries[0])),
+        targetId,
+        TargetPurpose.Listen,
+        ARBITRARY_SEQUENCE_NUMBER
       );
+      if (expected.resumeToken && expected.resumeToken !== '') {
+        targetData = targetData.withResumeToken(
+          byteStringFromString(expected.resumeToken),
+          SnapshotVersion.min()
+        );
+      } else {
+        targetData = targetData.withResumeToken(
+          ByteString.EMPTY_BYTE_STRING,
+          version(expected.readTime!)
+        );
+      }
+      const expectedTarget = toTarget(this.serializer, targetData);
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
       expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
@@ -1375,8 +1382,10 @@ export interface SpecStep {
   expectedSnapshotsInSyncEvents?: number;
 }
 
-/** [<target-id>, <query-path>] */
-export type SpecUserListen = [TargetId, string | SpecQuery];
+export interface SpecUserListen {
+  targetId: TargetId;
+  query: string | SpecQuery;
+}
 
 /** [<target-id>, <query-path>] */
 export type SpecUserUnlisten = [TargetId, string | SpecQuery];
