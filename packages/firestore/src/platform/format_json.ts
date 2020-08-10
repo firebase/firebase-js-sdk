@@ -15,18 +15,13 @@
  * limitations under the License.
  */
 
-import { isNode, isReactNative } from '@firebase/util';
-import * as node from './node/format_json';
-import * as rn from './rn/format_json';
-import * as browser from './browser/format_json';
+// This file is only used under ts-node.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const platform = require(`./${
+  process.env.TEST_PLATFORM ?? 'node'
+}/format_json`);
 
 /** Formats an object as a JSON string, suitable for logging. */
 export function formatJSON(value: unknown): string {
-  if (isNode()) {
-    return node.formatJSON(value);
-  } else if (isReactNative()) {
-    return rn.formatJSON(value);
-  } else {
-    return browser.formatJSON(value);
-  }
+  return platform.formatJSON(value);
 }

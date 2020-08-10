@@ -25,7 +25,8 @@ export const enum AnalyticsError {
   INTEROP_COMPONENT_REG_FAILED = 'interop-component-reg-failed',
   INDEXED_DB_UNSUPPORTED = 'indexedDB-unsupported',
   INVALID_INDEXED_DB_CONTEXT = 'invalid-indexedDB-context',
-  COOKIES_NOT_ENABLED = 'cookies-not-enabled'
+  COOKIES_NOT_ENABLED = 'cookies-not-enabled',
+  INVALID_ANALYTICS_CONTEXT = 'invalid-analytics-context'
 }
 
 const ERRORS: ErrorMap<AnalyticsError> = {
@@ -50,7 +51,9 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     'Wrap initialization of analytics in analytics.isSupported() ' +
     'to prevent initialization in unsupported environments',
   [AnalyticsError.COOKIES_NOT_ENABLED]:
-    'Cookies are not enabled in this browser environment. Analytics requires cookies to be enabled.'
+    'Cookies are not enabled in this browser environment. Analytics requires cookies to be enabled.',
+  [AnalyticsError.INVALID_ANALYTICS_CONTEXT]:
+    'Firebase Analytics is not supported in browser extensions.'
 };
 
 interface ErrorParams {
