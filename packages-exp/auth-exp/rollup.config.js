@@ -17,6 +17,7 @@
 
 import strip from '@rollup/plugin-strip';
 import typescriptPlugin from 'rollup-plugin-typescript2';
+import json from 'rollup-plugin-json';
 import typescript from 'typescript';
 import pkg from './package.json';
 
@@ -28,6 +29,7 @@ const deps = Object.keys(
  * Common plugins for all builds
  */
 const commonPlugins = [
+  json(),
   strip({
     functions: ['debugAssert.*']
   })

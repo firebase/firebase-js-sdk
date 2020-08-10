@@ -34,13 +34,13 @@ import { makeMockPopupRedirectResolver } from '../../../test/helpers/mock_popup_
 import { stubTimeouts, TimerMap } from '../../../test/helpers/timeout_stub';
 import { AuthEvent, AuthEventType } from '../../model/popup_redirect';
 import { User } from '../../model/user';
-import { AuthEventManager } from '../auth/auth_event_manager';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
-import { OAuthProvider } from '../providers/oauth';
-import { UserCredentialImpl } from '../user/user_credential_impl';
-import * as eid from '../util/event_id';
+import { AuthEventManager } from '../../core/auth/auth_event_manager';
+import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
+import { OAuthProvider } from '../../core/providers/oauth';
+import { UserCredentialImpl } from '../../core/user/user_credential_impl';
+import * as eid from '../../core/util/event_id';
 import { AuthPopup } from '../util/popup';
-import * as idpTasks from './idp';
+import * as idpTasks from '../../core/strategies/idp';
 import {
   _AUTH_EVENT_TIMEOUT,
   _POLL_WINDOW_CLOSE_TIMEOUT,

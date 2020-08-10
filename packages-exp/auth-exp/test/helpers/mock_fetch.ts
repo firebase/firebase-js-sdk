@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import { SinonStub, stub } from 'sinon';
-
 import { HttpHeader } from '../../src/api';
+import { FetchProvider } from '../../src/core/util/fetch_provider';
 
 export interface Call {
   request?: object | string;
@@ -31,8 +30,8 @@ export interface Route {
   calls: Call[];
 }
 
-let fetchStub: SinonStub | null = null;
-let routes = new Map<string, Route>();
+let fetchImpl: typeof fetch | null;
+const routes = new Map<string, Route>();
 
 // Using a constant rather than a function to enforce the type matches fetch()
 const fakeFetch: typeof fetch = (input: RequestInfo, request?: RequestInit) => {
@@ -48,7 +47,7 @@ const fakeFetch: typeof fetch = (input: RequestInfo, request?: RequestInit) => {
   // Bang-assertion is fine since we check for routes.has() above
   const { response, status, calls } = routes.get(input)!;
 
-  const headers = new Headers(request?.headers);
+  const headers = new (FetchProvider.headers())(request?.headers);
   const requestBody =
     request?.body && headers.get(HttpHeader.CONTENT_TYPE) === 'application/json'
       ? JSON.parse(request.body as string)
@@ -60,24 +59,29 @@ const fakeFetch: typeof fetch = (input: RequestInfo, request?: RequestInit) => {
     headers
   });
 
-  const blob = new Blob([JSON.stringify(response)]);
   return Promise.resolve(
-    new Response(blob, {
+    new (FetchProvider.response())(JSON.stringify(response), {
       status
     })
   );
 };
 
+export function setUpWithOverride(fetchOverride: typeof fetch): void {
+  if (fetchImpl) {
+    throw new Error('Mock fetch is already set up.');
+  }
+  fetchImpl = FetchProvider.fetch();
+  FetchProvider.initialize(fetchOverride);
+}
+
 export function setUp(): void {
-  fetchStub = stub(self, 'fetch');
-  fetchStub.callsFake(fakeFetch);
+  return setUpWithOverride(fakeFetch);
 }
 
 export function mock(url: string, response: object, status = 200): Route {
-  if (!fetchStub) {
+  if (!fetchImpl) {
     throw new Error('Mock fetch is not set up. Call setUp() first');
   }
-
   const route: Route = {
     response,
     status,
@@ -89,7 +93,10 @@ export function mock(url: string, response: object, status = 200): Route {
 }
 
 export function tearDown(): void {
-  fetchStub?.restore();
-  fetchStub = null;
-  routes = new Map();
+  if (!fetchImpl) {
+    throw new Error('Mock fetch is not set up. Call setUp() first');
+  }
+  FetchProvider.initialize(fetchImpl);
+  fetchImpl = null;
+  routes.clear();
 }

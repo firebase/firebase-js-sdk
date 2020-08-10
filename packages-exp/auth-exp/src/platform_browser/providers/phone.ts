@@ -23,10 +23,10 @@ import { SignInWithPhoneNumberResponse } from '../../api/authentication/sms';
 import { ApplicationVerifier } from '../../model/application_verifier';
 import { AuthCore } from '../../model/auth';
 import { UserCredential } from '../../model/user';
-import { PhoneAuthCredential } from '../credentials/phone';
-import { AuthErrorCode } from '../errors';
+import { PhoneAuthCredential } from '../../core/credentials/phone';
+import { AuthErrorCode } from '../../core/errors';
 import { _verifyPhoneNumber } from '../strategies/phone';
-import { assert, debugFail, fail } from '../util/assert';
+import { assert, debugFail, fail } from '../../core/util/assert';
 
 export class PhoneAuthProvider implements externs.PhoneAuthProvider {
   static readonly PROVIDER_ID = externs.ProviderId.PHONE;

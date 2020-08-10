@@ -21,7 +21,7 @@ import { restore, SinonStub, stub } from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import { Operation, ProviderId } from '@firebase/auth-types-exp';
-import { FirebaseError } from '@firebase/util';
+import { FirebaseError, isNode } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
@@ -29,7 +29,6 @@ import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
 import { User } from '../../model/user';
-import * as location from '../util/location';
 import {
   fetchSignInMethodsForEmail,
   sendEmailVerification,
@@ -52,31 +51,22 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
 
   afterEach(mockFetch.tearDown);
 
-  it('should return the sign in methods', async () => {
-    const mock = mockEndpoint(Endpoint.CREATE_AUTH_URI, {
-      signinMethods: expectedSignInMethods
+  if (isNode()) {
+    context('node', () => {
+      it('should use localhost for the continueUri', async () => {
+        const mock = mockEndpoint(Endpoint.CREATE_AUTH_URI, {
+          signinMethods: expectedSignInMethods
+        });
+        const response = await fetchSignInMethodsForEmail(auth, email);
+        expect(response).to.eql(expectedSignInMethods);
+        expect(mock.calls[0].request).to.eql({
+          identifier: email,
+          continueUri: 'http://localhost'
+        });
+      });
     });
-    const response = await fetchSignInMethodsForEmail(auth, email);
-    expect(response).to.eql(expectedSignInMethods);
-    expect(mock.calls[0].request).to.eql({
-      identifier: email,
-      continueUri: location._getCurrentUrl()
-    });
-  });
-
-  context('on non standard platforms', () => {
-    let locationStub: SinonStub;
-
-    beforeEach(() => {
-      locationStub = stub(location, '_isHttpOrHttps');
-      locationStub.callsFake(() => false);
-    });
-
-    afterEach(() => {
-      locationStub.restore();
-    });
-
-    it('should use localhost for the continueUri', async () => {
+  } else {
+    it('should return the sign in methods', async () => {
       const mock = mockEndpoint(Endpoint.CREATE_AUTH_URI, {
         signinMethods: expectedSignInMethods
       });
@@ -84,10 +74,10 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
       expect(response).to.eql(expectedSignInMethods);
       expect(mock.calls[0].request).to.eql({
         identifier: email,
-        continueUri: 'http://localhost'
+        continueUri: 'http://localhost:8089/context.html'
       });
     });
-  });
+  }
 
   it('should surface errors', async () => {
     const mock = mockEndpoint(

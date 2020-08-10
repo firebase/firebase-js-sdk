@@ -16,7 +16,6 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-
 import { getRecaptchaParams } from '../../api/authentication/recaptcha';
 import { AuthErrorCode } from '../../core/errors';
 import { assert } from '../../core/util/assert';
@@ -31,14 +30,14 @@ import {
   ReCaptchaLoaderImpl
 } from './recaptcha_loader';
 
+export const RECAPTCHA_VERIFIER_TYPE = 'recaptcha';
+
 const DEFAULT_PARAMS: Parameters = {
   theme: 'light',
   type: 'image'
 };
 
 type TokenCallback = (token: string) => void;
-
-export const RECAPTCHA_VERIFIER_TYPE = 'recaptcha';
 
 export class RecaptchaVerifier
   implements externs.RecaptchaVerifier, ApplicationVerifier {

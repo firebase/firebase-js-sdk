@@ -20,14 +20,14 @@ import * as chaiAsPromised from 'chai-as-promised';
 
 import { ProviderId } from '@firebase/auth-types-exp';
 
-import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
-import * as mockFetch from '../../../test/helpers/mock_fetch';
-import { Endpoint } from '../../api';
-import { FinalizeMfaResponse } from '../../api/authentication/mfa';
-import { PhoneAuthCredential } from '../../core/credentials/phone';
-import { PhoneAuthProvider } from '../../core/providers/phone';
-import { MultiFactorSession } from '../mfa_session';
+import { mockEndpoint } from '../../../../test/helpers/api/helper';
+import { testAuth, TestAuth } from '../../../../test/helpers/mock_auth';
+import * as mockFetch from '../../../../test/helpers/mock_fetch';
+import { Endpoint } from '../../../api';
+import { FinalizeMfaResponse } from '../../../api/authentication/mfa';
+import { PhoneAuthCredential } from '../../../core/credentials/phone';
+import { PhoneAuthProvider } from '../../providers/phone';
+import { MultiFactorSession } from '../../../mfa/mfa_session';
 import { PhoneMultiFactorAssertion, PhoneMultiFactorGenerator } from './phone';
 
 use(chaiAsPromised);
