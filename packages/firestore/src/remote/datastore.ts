@@ -47,7 +47,7 @@ import { Query, queryToTarget } from '../core/query';
  * for the rest of the client SDK architecture to consume.
  */
 export abstract class Datastore {
-  abstract terminate(): Promise<void>;
+  abstract terminate(): void;
 }
 
 /**
@@ -125,7 +125,7 @@ class DatastoreImpl extends Datastore {
       });
   }
 
-  async terminate(): Promise<void> {
+  terminate(): void {
     this.terminated = false;
   }
 }

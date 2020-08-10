@@ -258,8 +258,10 @@ abstract class TestRunner {
     };
 
     this.connection = new MockConnection(this.queue);
-    
-    const onlineComponentProvider = new MockOnlineComponentProvider(this.connection);
+
+    const onlineComponentProvider = new MockOnlineComponentProvider(
+      this.connection
+    );
     const offlineComponentProvider = await this.initializeOfflineComponentProvider(
       onlineComponentProvider,
       configuration,

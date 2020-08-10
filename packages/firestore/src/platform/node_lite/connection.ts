@@ -25,7 +25,7 @@ export { newConnectivityMonitor } from '../browser/connection';
 
 /** Initializes the HTTP connection for the REST API. */
 export function newConnection(databaseInfo: DatabaseInfo): Connection {
-  // node-fetch is meant to be API compatible with `fetch`, but its type don't
+  // node-fetch is meant to be API compatible with `fetch`, but its type doesn't
   // match 100%.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return new FetchConnection(databaseInfo, nodeFetch as any);

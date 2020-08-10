@@ -79,11 +79,11 @@ export function getDatastore(firestore: Firestore): Datastore {
  * Removes all components associated with the provided instance. Must be called
  * when the Firestore instance is terminated.
  */
-export async function removeComponents(firestore: Firestore): Promise<void> {
-  const datastorePromise = await datastoreInstances.get(firestore);
-  if (datastorePromise) {
+export function removeComponents(firestore: Firestore): void {
+  const datastore = datastoreInstances.get(firestore);
+  if (datastore) {
     logDebug(LOG_TAG, 'Removing Datastore');
     datastoreInstances.delete(firestore);
-    return (await datastorePromise).terminate();
+    datastore.terminate();
   }
 }

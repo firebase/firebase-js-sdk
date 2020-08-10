@@ -124,7 +124,7 @@ export class MockOnlineComponentProvider extends OnlineComponentProvider {
   constructor(private readonly connection: MockConnection) {
     super();
   }
-  
+
   createDatastore(cfg: ComponentConfiguration): Datastore {
     const serializer = new JsonProtoSerializer(
       cfg.databaseInfo.databaseId,
