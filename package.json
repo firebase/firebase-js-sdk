@@ -18,7 +18,8 @@
     "functions",
     "realtime",
     "storage",
-    "performance"
+    "performance",
+    "dummy"
   ],
   "scripts": {
     "dev": "lerna run --parallel --scope @firebase/* --scope firebase --scope rxfire dev",
