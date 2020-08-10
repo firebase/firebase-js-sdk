@@ -1,14 +1,12 @@
 {
   "name": "@firebase/webchannel-wrapper",
-  "version": "0.2.41",
+  "version": "0.3.0",
   "description": "A wrapper of the webchannel packages from closure-library for use outside of a closure compiled application",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "dev": "watch 'yarn build' src",
     "build": "gulp",
