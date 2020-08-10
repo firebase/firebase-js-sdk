@@ -36,8 +36,7 @@ export const enum ErrorCode {
   INPUT_FILE_DOES_NOT_EXIST = 'Input file does not exist!',
   INPUT_DTS_FILE_DOES_NOT_EXIST = 'Input dts file does not exist!',
   INPUT_BUNDLE_FILE_DOES_NOT_EXIST = 'Input bundle file does not exist!',
-  FILE_PARSING_ERROR = 'Failed to parse js file!',
-  REPORT_REDIRECTION_ERROR = 'Please enable --output flag for report redirection!'
+  FILE_PARSING_ERROR = 'Failed to parse js file!'
 }
 export interface External {
   moduleName: string;
