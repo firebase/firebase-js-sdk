@@ -17,7 +17,10 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { createAuthUri, CreateAuthUriRequest } from '../../api/authentication/create_auth_uri';
+import {
+  createAuthUri,
+  CreateAuthUriRequest
+} from '../../api/authentication/create_auth_uri';
 import * as api from '../../api/authentication/email_and_password';
 import { User } from '../../model/user';
 import { _castAuth, AuthImplCompat } from '../auth/auth_impl';
@@ -72,7 +75,12 @@ export async function verifyBeforeUpdateEmail(
   newEmail: string,
   actionCodeSettings?: externs.ActionCodeSettings | null
 ): Promise<void> {
-  assertTypes([userExtern, newEmail, actionCodeSettings], UserImpl, 'string', opt('object|null'));
+  assertTypes(
+    [userExtern, newEmail, actionCodeSettings],
+    UserImpl,
+    'string',
+    opt('object|null')
+  );
   const user = userExtern as User;
   const idToken = await user.getIdToken();
   const request: api.VerifyAndChangeEmailRequest = {

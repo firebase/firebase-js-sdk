@@ -100,8 +100,10 @@ export function assertTypes(
     if (expect instanceof Optional) {
       // If the arg is undefined, then it matches "optional" and we can move to
       // the next arg
-      if (typeof arg === 'undefined' && !expect.nullable ||
-      arg === null && expect.nullable) {
+      if (
+        (typeof arg === 'undefined' && !expect.nullable) ||
+        (arg === null && expect.nullable)
+      ) {
         continue;
       }
       expect = expect.type;

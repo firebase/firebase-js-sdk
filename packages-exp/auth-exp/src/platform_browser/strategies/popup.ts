@@ -26,7 +26,10 @@ import { Delay } from '../../core/util/delay';
 import { _generateEventId } from '../../core/util/event_id';
 import { _getInstance } from '../../core/util/instantiator';
 import { Auth } from '../../model/auth';
-import { AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import {
+  AuthEventType,
+  PopupRedirectResolver
+} from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { BrowserPopupRedirectResolver } from '../popup_redirect';
 import { AuthPopup } from '../util/popup';
@@ -42,7 +45,12 @@ export async function signInWithPopup(
   resolverExtern: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
-  assertTypes([auth, provider, resolver], AuthImplCompat, OAuthProvider, BrowserPopupRedirectResolver);
+  assertTypes(
+    [auth, provider, resolver],
+    AuthImplCompat,
+    OAuthProvider,
+    BrowserPopupRedirectResolver
+  );
 
   const action = new PopupOperation(
     _castAuth(auth),
@@ -60,7 +68,12 @@ export async function reauthenticateWithPopup(
 ): Promise<externs.UserCredential> {
   const user = userExtern as User;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
-  assertTypes([userExtern, provider, resolver], UserImpl, OAuthProvider, BrowserPopupRedirectResolver);
+  assertTypes(
+    [userExtern, provider, resolver],
+    UserImpl,
+    OAuthProvider,
+    BrowserPopupRedirectResolver
+  );
 
   const action = new PopupOperation(
     user.auth,
@@ -79,7 +92,12 @@ export async function linkWithPopup(
 ): Promise<externs.UserCredential> {
   const user = userExtern as User;
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
-  assertTypes([userExtern, provider, resolver], UserImpl, OAuthProvider, BrowserPopupRedirectResolver);
+  assertTypes(
+    [userExtern, provider, resolver],
+    UserImpl,
+    OAuthProvider,
+    BrowserPopupRedirectResolver
+  );
 
   const action = new PopupOperation(
     user.auth,

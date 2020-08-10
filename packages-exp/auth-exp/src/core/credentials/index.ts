@@ -25,7 +25,14 @@ export abstract class AuthCredential implements externs.AuthCredential {
   abstract readonly providerId: externs.ProviderId;
   abstract readonly signInMethod: externs.SignInMethod;
   abstract toJSON(): object;
-  abstract _getIdTokenResponse(auth: AuthCore): Promise<PhoneOrOauthTokenResponse>;
-  abstract _linkToIdToken(auth: AuthCore, idToken: string): Promise<IdTokenResponse>;
-  abstract _getReauthenticationResolver(auth: AuthCore): Promise<IdTokenResponse>;
+  abstract _getIdTokenResponse(
+    auth: AuthCore
+  ): Promise<PhoneOrOauthTokenResponse>;
+  abstract _linkToIdToken(
+    auth: AuthCore,
+    idToken: string
+  ): Promise<IdTokenResponse>;
+  abstract _getReauthenticationResolver(
+    auth: AuthCore
+  ): Promise<IdTokenResponse>;
 }

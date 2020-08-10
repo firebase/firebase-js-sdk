@@ -38,7 +38,7 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
   readonly providerId = PhoneAuthProvider.PROVIDER_ID;
 
   constructor(private readonly auth: AuthCore) {
-    assertTypes(arguments, AuthImplCompat)
+    assertTypes(arguments, AuthImplCompat);
   }
 
   verifyPhoneNumber(
@@ -67,18 +67,24 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
   static credentialFromResult(
     userCredential: externs.UserCredential
   ): externs.AuthCredential | null {
-    assertTypes(arguments, {_tokenResponse: 'object'});
-    return PhoneAuthProvider.credentialFromTaggedObject(userCredential as TaggedWithTokenResponse);
+    assertTypes(arguments, { _tokenResponse: 'object' });
+    return PhoneAuthProvider.credentialFromTaggedObject(
+      userCredential as TaggedWithTokenResponse
+    );
   }
 
   static credentialFromError(
     error: FirebaseError
   ): externs.AuthCredential | null {
-    assertTypes(arguments, {_tokenResponse: 'object'});
-    return PhoneAuthProvider.credentialFromTaggedObject(error as TaggedWithTokenResponse);
+    assertTypes(arguments, { _tokenResponse: 'object' });
+    return PhoneAuthProvider.credentialFromTaggedObject(
+      error as TaggedWithTokenResponse
+    );
   }
 
-  private static credentialFromTaggedObject(result: TaggedWithTokenResponse): externs.AuthCredential|null {
+  private static credentialFromTaggedObject(
+    result: TaggedWithTokenResponse
+  ): externs.AuthCredential | null {
     const {
       phoneNumber,
       temporaryProof

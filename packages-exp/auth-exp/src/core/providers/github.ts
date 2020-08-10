@@ -41,7 +41,7 @@ export class GithubAuthProvider extends OAuthProvider {
   static credentialFromResult(
     userCredential: externs.UserCredential
   ): externs.OAuthCredential | null {
-    assertTypes(arguments, {_tokenResponse: 'object'});
+    assertTypes(arguments, { _tokenResponse: 'object' });
     return GithubAuthProvider.credentialFromTaggedObject(
       userCredential as UserCredential
     );
@@ -50,7 +50,7 @@ export class GithubAuthProvider extends OAuthProvider {
   static credentialFromError(
     error: FirebaseError
   ): externs.OAuthCredential | null {
-    assertTypes(arguments, {_tokenResponse: 'object'});
+    assertTypes(arguments, { _tokenResponse: 'object' });
     return GithubAuthProvider.credentialFromTaggedObject(
       error as TaggedWithTokenResponse
     );

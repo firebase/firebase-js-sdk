@@ -39,7 +39,9 @@ export function makeMockPopupRedirectResolver(
       return authPopup || new AuthPopup(null);
     }
 
-    _openRedirect(): Promise<never> {return new Promise(resolve => resolve())}
+    _openRedirect(): Promise<never> {
+      return new Promise(resolve => resolve());
+    }
 
     _redirectPersistence!: Persistence;
   };

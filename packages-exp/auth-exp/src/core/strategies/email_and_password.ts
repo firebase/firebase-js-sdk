@@ -33,7 +33,12 @@ export async function sendPasswordResetEmail(
   email: string,
   actionCodeSettings?: externs.ActionCodeSettings
 ): Promise<void> {
-  assertTypes([auth, email, actionCodeSettings], AuthImplCompat, 'string', opt('object|null'));
+  assertTypes(
+    [auth, email, actionCodeSettings],
+    AuthImplCompat,
+    'string',
+    opt('object|null')
+  );
   const request: authentication.PasswordResetRequest = {
     requestType: externs.Operation.PASSWORD_RESET,
     email

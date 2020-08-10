@@ -18,7 +18,8 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import {
-    updateEmailPassword as apiUpdateEmailPassword, UpdateEmailPasswordRequest
+  updateEmailPassword as apiUpdateEmailPassword,
+  UpdateEmailPasswordRequest
 } from '../../api/account_management/email_and_password';
 import { updateProfile as apiUpdateProfile } from '../../api/account_management/profile';
 import { User } from '../../model/user';
@@ -35,7 +36,12 @@ export async function updateProfile(
   externUser: externs.User,
   { displayName, photoURL: photoUrl }: Profile
 ): Promise<void> {
-  assertTypes([externUser, displayName, photoUrl], UserImpl, opt('string|null'), opt('string|null'));
+  assertTypes(
+    [externUser, displayName, photoUrl],
+    UserImpl,
+    opt('string|null'),
+    opt('string|null')
+  );
   if (displayName === undefined && photoUrl === undefined) {
     return;
   }

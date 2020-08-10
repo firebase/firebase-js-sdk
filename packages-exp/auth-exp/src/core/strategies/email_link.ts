@@ -31,7 +31,12 @@ export async function sendSignInLinkToEmail(
   email: string,
   actionCodeSettings?: externs.ActionCodeSettings
 ): Promise<void> {
-  assertTypes([auth, email, actionCodeSettings], AuthImplCompat, 'string', opt('object'));
+  assertTypes(
+    [auth, email, actionCodeSettings],
+    AuthImplCompat,
+    'string',
+    opt('object')
+  );
   const request: api.EmailSignInRequest = {
     requestType: externs.Operation.EMAIL_SIGNIN,
     email
@@ -57,7 +62,12 @@ export async function signInWithEmailLink(
   email: string,
   emailLink?: string
 ): Promise<externs.UserCredential> {
-  assertTypes([auth, email, emailLink], AuthImplCompat, 'string', opt('string'));
+  assertTypes(
+    [auth, email, emailLink],
+    AuthImplCompat,
+    'string',
+    opt('string')
+  );
   return signInWithCredential(
     auth,
     EmailAuthProvider.credentialWithLink(

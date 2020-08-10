@@ -24,16 +24,24 @@ import { AuthImplCompat } from '../../core/auth/auth_impl';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { AuthErrorCode } from '../../core/errors';
 import {
-    linkWithCredential, reauthenticateWithCredential, signInWithCredential
+  linkWithCredential,
+  reauthenticateWithCredential,
+  signInWithCredential
 } from '../../core/strategies/credential';
 import { _assertLinkedStatus, _link } from '../../core/user/link_unlink';
 import { UserImpl } from '../../core/user/user_impl';
 import { assert, assertTypes } from '../../core/util/assert';
-import { MultiFactorSession, MultiFactorSessionType } from '../../mfa/mfa_session';
+import {
+  MultiFactorSession,
+  MultiFactorSessionType
+} from '../../mfa/mfa_session';
 import { ApplicationVerifier } from '../../model/application_verifier';
 import { AuthCore } from '../../model/auth';
 import { User } from '../../model/user';
-import { RECAPTCHA_VERIFIER_TYPE, RecaptchaVerifier } from '../recaptcha/recaptcha_verifier';
+import {
+  RECAPTCHA_VERIFIER_TYPE,
+  RecaptchaVerifier
+} from '../recaptcha/recaptcha_verifier';
 
 interface OnConfirmationCallback {
   (credential: PhoneAuthCredential): Promise<externs.UserCredential>;
@@ -60,7 +68,12 @@ export async function signInWithPhoneNumber(
   phoneNumber: string,
   appVerifier: externs.ApplicationVerifier
 ): Promise<externs.ConfirmationResult> {
-  assertTypes([auth, phoneNumber, appVerifier], AuthImplCompat, 'string', RecaptchaVerifier);
+  assertTypes(
+    [auth, phoneNumber, appVerifier],
+    AuthImplCompat,
+    'string',
+    RecaptchaVerifier
+  );
   const verificationId = await _verifyPhoneNumber(
     auth,
     phoneNumber,
@@ -76,7 +89,12 @@ export async function linkWithPhoneNumber(
   phoneNumber: string,
   appVerifier: externs.ApplicationVerifier
 ): Promise<externs.ConfirmationResult> {
-  assertTypes([userExtern, phoneNumber, appVerifier], UserImpl, 'string', RecaptchaVerifier);
+  assertTypes(
+    [userExtern, phoneNumber, appVerifier],
+    UserImpl,
+    'string',
+    RecaptchaVerifier
+  );
   const user = userExtern as User;
   await _assertLinkedStatus(false, user, externs.ProviderId.PHONE);
   const verificationId = await _verifyPhoneNumber(
@@ -94,7 +112,12 @@ export async function reauthenticateWithPhoneNumber(
   phoneNumber: string,
   appVerifier: externs.ApplicationVerifier
 ): Promise<externs.ConfirmationResult> {
-  assertTypes([userExtern, phoneNumber, appVerifier], UserImpl, 'string', RecaptchaVerifier);
+  assertTypes(
+    [userExtern, phoneNumber, appVerifier],
+    UserImpl,
+    'string',
+    RecaptchaVerifier
+  );
   const user = userExtern as User;
   const verificationId = await _verifyPhoneNumber(
     user.auth,

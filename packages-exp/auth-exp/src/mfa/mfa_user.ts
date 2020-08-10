@@ -50,7 +50,11 @@ export class MultiFactorUser implements externs.MultiFactorUser {
     assertionExtern: externs.MultiFactorAssertion,
     displayName?: string | null
   ): Promise<void> {
-    assertTypes([assertionExtern, displayName], MultiFactorAssertion, opt('string|null'));
+    assertTypes(
+      [assertionExtern, displayName],
+      MultiFactorAssertion,
+      opt('string|null')
+    );
     const assertion = assertionExtern as MultiFactorAssertion;
     const session = (await this.getSession()) as MultiFactorSession;
     const finalizeMfaResponse = await assertion._process(
@@ -70,7 +74,11 @@ export class MultiFactorUser implements externs.MultiFactorUser {
   async unenroll(infoOrUid: externs.MultiFactorInfo | string): Promise<void> {
     const mfaEnrollmentId =
       typeof infoOrUid === 'string' ? infoOrUid : infoOrUid.uid;
-    assert(typeof mfaEnrollmentId === 'string', this.user.auth.name, AuthErrorCode.ARGUMENT_ERROR);
+    assert(
+      typeof mfaEnrollmentId === 'string',
+      this.user.auth.name,
+      AuthErrorCode.ARGUMENT_ERROR
+    );
     const idToken = await this.user.getIdToken();
     const idTokenResponse = await withdrawMfa(this.user.auth, {
       idToken,

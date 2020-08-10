@@ -45,12 +45,12 @@ const ACTION_CODE_SETTINGS_TYPE = {
   android: opt({
     installApp: opt('boolean'),
     minimumVersion: opt('string'),
-    packageName: 'string',
+    packageName: 'string'
   }),
   handleCodeInApp: opt('boolean'),
   iOS: opt({
-    bundleId: 'string',
+    bundleId: 'string'
   }),
   url: 'string',
-  dynamicLinkDomain: opt('string'),
+  dynamicLinkDomain: opt('string')
 };
