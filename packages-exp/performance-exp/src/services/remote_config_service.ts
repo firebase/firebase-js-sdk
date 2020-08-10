@@ -25,13 +25,9 @@ import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
 
 import { Api } from './api_service';
 import { getAuthTokenPromise } from './iid_service';
-import {
-  SettingsService,
-  getProjectId,
-  getApiKey,
-  getAppId
-} from './settings_service';
+import { SettingsService } from './settings_service';
 import { PerformanceController } from '../controllers/perf';
+import { getProjectId, getApiKey, getAppId } from '../utils/app_utils';
 
 const REMOTE_CONFIG_SDK_VERSION = '0.0.1';
 

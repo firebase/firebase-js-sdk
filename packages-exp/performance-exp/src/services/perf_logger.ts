@@ -19,7 +19,7 @@ import { getIid } from './iid_service';
 import { NetworkRequest } from '../resources/network_request';
 import { Trace } from '../resources/trace';
 import { Api } from './api_service';
-import { SettingsService, getAppId } from './settings_service';
+import { SettingsService } from './settings_service';
 import {
   getServiceWorkerStatus,
   getVisibilityState,
@@ -33,6 +33,7 @@ import {
 import { transportHandler } from './transport_service';
 import { SDK_VERSION } from '../constants';
 import { FirebaseApp } from '@firebase/app-types-exp';
+import { getAppId } from '../utils/app_utils';
 
 const enum ResourceType {
   NetworkRequest,
