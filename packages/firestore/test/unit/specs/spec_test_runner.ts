@@ -1550,7 +1550,7 @@ export interface StateExpectation {
 }
 
 async function clearCurrentPrimaryLease(): Promise<void> {
-  const db = await SimpleDb.openOrCreate(
+  const db = new SimpleDb(
     INDEXEDDB_TEST_DATABASE_NAME,
     SCHEMA_VERSION,
     new SchemaConverter(TEST_SERIALIZER)
