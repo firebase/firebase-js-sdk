@@ -307,17 +307,8 @@ export function setLogLevel(logLevel: LogLevel): void {
 export { LogLevel } from '@firebase/logger';
 
 // tmp for testing
-export function aFunctionThatOnlyBaseHas(
-  logLevel: LogLevel,
-  logCallback: LogCallback | null,
-  options?: LogOptions
-): void {
-  setLogLevelImpl(logLevel);
-  if (logCallback !== null && typeof logCallback !== 'function') {
-    throw ERROR_FACTORY.create(AppError.INVALID_LOG_ARGUMENT, {
-      appName: name
-    });
-  }
-  console.log(_apps);
-  setUserLogHandler(logCallback, options);
+export function aFunctionThatOnlyBaseHas(): string {
+  const aString: string = 'aString';
+  console.log(aString);
+  return aString;
 }
