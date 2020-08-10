@@ -14,11 +14,18 @@ import { LogOptions } from '@firebase/logger';
 import { Name } from '@firebase/component';
 import { Provider } from '@firebase/component';
 
+// @public (undocumented)
+export class AClassThatOnlyBaseHas {
+}
+
 // @internal (undocumented)
 export function _addComponent(app: FirebaseApp, component: Component): void;
 
 // @internal (undocumented)
 export function _addOrOverwriteComponent(app: FirebaseApp, component: Component): void;
+
+// @public (undocumented)
+export function aFunctionThatOnlyBaseHas(logLevel: LogLevel, logCallback: LogCallback | null, options?: LogOptions): void;
 
 // @internal (undocumented)
 export const _apps: Map<string, FirebaseApp>;
