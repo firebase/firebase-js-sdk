@@ -93,7 +93,8 @@ exports.manglePrivatePropertiesOptions = {
   },
   mangle: {
     properties: {
-      regex: /^__PRIVATE_/
+      regex: /^__PRIVATE_/,
+      reserved: ['do']
     }
   }
 };
