@@ -1,6 +1,6 @@
 {
   "name": "@firebase/messaging-types",
-  "version": "0.4.5",
+  "version": "0.5.0",
   "description": "@firebase/messaging Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
