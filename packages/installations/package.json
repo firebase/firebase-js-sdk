@@ -44,8 +44,6 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/app": "^0.6.7",
-    "@firebase/component": "0.1.15",
     "@firebase/installations-types": "0.3.4",
     "@firebase/util": "0.2.50",
     "@firebase/component": "0.1.16",

@@ -288,7 +288,7 @@ describe('SwController', () => {
       const bgMessageHandlerSpy = spy();
       const showNotificationSpy = spy(self.registration, 'showNotification');
 
-      swController.setBackgroundMessageHandler(bgMessageHandlerSpy);
+      swController.onBackgroundMessage(bgMessageHandlerSpy);
 
       await callEventListener(
         makeEvent('push', {

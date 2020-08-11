@@ -86,6 +86,8 @@ export class SwController implements FirebaseMessaging, FirebaseService {
    * must be shown. The callback will be given the data from the push message.
    */
   setBackgroundMessageHandler(callback: BgMessageHandler): void {
+    this.isOnBackgroundMessageUsed = false;
+
     if (!callback || typeof callback !== 'function') {
       throw ERROR_FACTORY.create(ErrorCode.INVALID_BG_HANDLER);
     }
@@ -173,7 +175,7 @@ export class SwController implements FirebaseMessaging, FirebaseService {
     if (!internalPayload) {
       console.debug(
         TAG +
-          'failed to get parse MessagePayload from the PushEvent. Skip handling the push.'
+          'failed to get parsed MessagePayload from the PushEvent. Skip handling the push.'
       );
       return;
     }
@@ -191,6 +193,8 @@ export class SwController implements FirebaseMessaging, FirebaseService {
       isNotificationShown = true;
     }
 
+    // MessagePayload is only passed to `onBackgroundMessage`. Skip passing MessagePayload for
+    // the legacy `setBackgroundMessageHandler` to preserve the SDK behaviors.
     if (
       isNotificationShown === true &&
       this.isOnBackgroundMessageUsed === false

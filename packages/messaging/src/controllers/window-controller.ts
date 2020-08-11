@@ -120,15 +120,9 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
   }
 
   async updateVapidKey(vapidKey?: string | undefined): Promise<void> {
-    if (!!this.vapidKey && !!vapidKey && this.vapidKey !== vapidKey) {
+    if (!!vapidKey) {
       this.vapidKey = vapidKey;
-    }
-
-    if (!this.vapidKey && !!vapidKey) {
-      this.vapidKey = vapidKey;
-    }
-
-    if (!this.vapidKey && !vapidKey) {
+    } else if (!this.vapidKey) {
       this.vapidKey = DEFAULT_VAPID_KEY;
     }
   }

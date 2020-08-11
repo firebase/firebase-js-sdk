@@ -5,6 +5,6 @@
 ---
 
 Add `getToken(options:{serviceWorkerRegistration, vapidKey})`,`onBackgroundMessage`.
-Deprecate `setBackgroundHandler`, `onTokenRefresh`, `useVapidKey`, `useServiceWorker`, `getToken`.
+Deprecate `setBackgroundMessageHandler`, `onTokenRefresh`, `useVapidKey`, `useServiceWorker`, `getToken`.
 
 Add Typing `MessagePayload`, `NotificationPayload`, `FcmOptions`.
