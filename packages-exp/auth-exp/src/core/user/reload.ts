@@ -82,11 +82,11 @@ function extractProviderData(
 ): externs.UserInfo[] {
   return providers.map(({ providerId, ...provider }) => {
     return {
+      providerId,
       uid: provider.rawId || '',
       displayName: provider.displayName || null,
       email: provider.email || null,
       phoneNumber: provider.phoneNumber || null,
-      providerId: providerId as externs.ProviderId,
       photoURL: provider.photoUrl || null
     };
   });

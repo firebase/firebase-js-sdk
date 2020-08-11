@@ -70,8 +70,8 @@ function registerAuth(instance: _FirebaseNamespace): void {
         TwitterAuthProvider: impl.TwitterAuthProvider,
         Auth: {
           Persistence
-        }
-        //   'AuthCredential': fireauth.AuthCredential,
+        },
+        AuthCredential: impl.AuthCredential
         //   'Error': fireauth.AuthError
       })
       .setInstantiationMode(InstantiationMode.LAZY)

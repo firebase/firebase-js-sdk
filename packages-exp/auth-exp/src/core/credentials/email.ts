@@ -29,14 +29,15 @@ import { AuthErrorCode } from '../errors';
 import { fail } from '../util/assert';
 import { AuthCredential } from './';
 
-export class EmailAuthCredential implements AuthCredential {
-  readonly providerId = externs.ProviderId.PASSWORD;
-
+export class EmailAuthCredential extends AuthCredential
+  implements externs.AuthCredential {
   private constructor(
     readonly email: string,
     readonly password: string,
-    readonly signInMethod: externs.SignInMethod
-  ) {}
+    signInMethod: externs.SignInMethod
+  ) {
+    super(externs.ProviderId.PASSWORD, signInMethod);
+  }
 
   static _fromEmailAndPassword(
     email: string,

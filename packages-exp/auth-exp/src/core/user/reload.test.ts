@@ -163,6 +163,6 @@ describe('core/user/reload', () => {
 
     await reload(user);
     expect(cb).to.have.been.calledWith(user);
-    expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toPlainObject());
+    expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
   });
 });

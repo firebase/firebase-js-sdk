@@ -53,7 +53,7 @@ export class PersistenceUserManager {
   }
 
   setCurrentUser(user: User): Promise<void> {
-    return this.persistence.set(this.fullUserKey, user.toPlainObject());
+    return this.persistence.set(this.fullUserKey, user.toJSON());
   }
 
   async getCurrentUser(): Promise<User | null> {

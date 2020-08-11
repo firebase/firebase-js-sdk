@@ -247,8 +247,8 @@ export abstract class RecaptchaVerifier implements ApplicationVerifier {
 export abstract class AuthCredential {
   static fromJSON(json: object | string): AuthCredential | null;
 
-  readonly providerId: ProviderId;
-  readonly signInMethod: SignInMethod;
+  readonly providerId: string;
+  readonly signInMethod: string;
   toJSON(): object;
 }
 
@@ -275,7 +275,7 @@ export abstract class PhoneAuthCredential extends AuthCredential {
  * https://firebase.google.com/docs/reference/js/firebase.auth.AuthProvider
  */
 export interface AuthProvider {
-  readonly providerId: ProviderId;
+  readonly providerId: string;
 }
 
 /**
@@ -332,7 +332,7 @@ export interface ConfirmationResult {
  * https://firebase.google.com/docs/reference/js/firebase.auth.multifactorassertion
  */
 export interface MultiFactorAssertion {
-  readonly factorId: ProviderId;
+  readonly factorId: string;
 }
 
 /**
@@ -438,6 +438,7 @@ export interface User extends UserInfo {
   getIdToken(forceRefresh?: boolean): Promise<string>;
   getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
   reload(): Promise<void>;
+  toJSON(): object;
 }
 
 /**
@@ -457,7 +458,7 @@ export interface UserInfo {
   readonly email: string | null;
   readonly phoneNumber: string | null;
   readonly photoURL: string | null;
-  readonly providerId: ProviderId;
+  readonly providerId: string;
   readonly uid: string;
 }
 

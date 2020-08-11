@@ -23,10 +23,10 @@ import {
   SignInWithIdpRequest
 } from '../../api/authentication/idp';
 import { AuthCore } from '../../model/auth';
-import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { fail } from '../util/assert';
 import { AuthCredential } from './';
+import { IdTokenResponse } from '../../model/id_token';
 
 const IDP_REQUEST_URI = 'http://localhost';
 
@@ -45,22 +45,17 @@ export interface OAuthCredentialParams {
   pendingToken?: string;
 
   // Utilities
-  providerId: externs.ProviderId;
-  signInMethod: externs.SignInMethod;
+  providerId: string;
+  signInMethod: string;
 }
 
-export class OAuthCredential
-  implements externs.OAuthCredential, AuthCredential {
+export class OAuthCredential extends AuthCredential
+  implements externs.OAuthCredential {
   idToken?: string;
   accessToken?: string;
   secret?: string;
   nonce?: string;
   private pendingToken: string | null = null;
-
-  private constructor(
-    readonly providerId: externs.ProviderId,
-    readonly signInMethod: externs.SignInMethod
-  ) {}
 
   static _fromParams(params: OAuthCredentialParams): OAuthCredential {
     const cred = new OAuthCredential(params.providerId, params.signInMethod);
@@ -106,7 +101,8 @@ export class OAuthCredential
     };
   }
 
-  static fromJSON(obj: object): externs.OAuthCredential | null {
+  static fromJSON(json: string | object): OAuthCredential | null {
+    const obj = typeof json === 'string' ? JSON.parse(json) : json;
     const { providerId, signInMethod, ...rest }: Partial<OAuthCredential> = obj;
     if (!providerId || !signInMethod) {
       return null;

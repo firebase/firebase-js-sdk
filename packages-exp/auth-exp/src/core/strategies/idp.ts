@@ -16,19 +16,18 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-
 import {
   signInWithIdp,
   SignInWithIdpRequest
 } from '../../api/authentication/idp';
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
-import { AuthCore, Auth } from '../../model/auth';
+import { Auth, AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User, UserCredential } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { _link as _linkUser } from '../user/link_unlink';
 import { _reauthenticate } from '../user/reauthenticate';
-import { assert, debugFail } from '../util/assert';
+import { assert } from '../util/assert';
 import { _signInWithCredential } from './credential';
 
 export interface IdpTaskParams {
@@ -46,11 +45,10 @@ export type IdpTask = (params: IdpTaskParams) => Promise<UserCredential>;
 /**
  * Private implementation, not for public export
  */
-class IdpCredential implements AuthCredential {
-  providerId = externs.ProviderId.CUSTOM;
-  signInMethod = externs.SignInMethod.ANONYMOUS; // Unused, should we have an IDP one here?
-
-  constructor(readonly params: IdpTaskParams) {}
+class IdpCredential extends AuthCredential {
+  constructor(readonly params: IdpTaskParams) {
+    super(externs.ProviderId.CUSTOM, externs.ProviderId.CUSTOM);
+  }
 
   _getIdTokenResponse(auth: AuthCore): Promise<PhoneOrOauthTokenResponse> {
     return signInWithIdp(auth, this._buildIdpRequest());
@@ -79,14 +77,6 @@ class IdpCredential implements AuthCredential {
     }
 
     return request;
-  }
-
-  toJSON(): object {
-    debugFail('Method not implemented.');
-  }
-
-  static fromJSON(_json: object | string): AuthCredential | null {
-    return debugFail('not implemented');
   }
 }
 

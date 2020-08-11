@@ -22,11 +22,11 @@ import { MultiFactorSession, MultiFactorSessionType } from './mfa_session';
 use(chaiAsPromised);
 
 describe('core/mfa/mfa_session/MultiFactorSession', () => {
-  describe('toPlainObject', () => {
+  describe('toJSON', () => {
     context('ENROLL', () => {
       it('should serialize correctly', () => {
         const mfaSession = MultiFactorSession._fromIdtoken('id-token');
-        expect(mfaSession.toPlainObject()).to.eql({
+        expect(mfaSession.toJSON()).to.eql({
           multiFactorSession: { idToken: 'id-token' }
         });
       });
@@ -37,7 +37,7 @@ describe('core/mfa/mfa_session/MultiFactorSession', () => {
         const mfaSession = MultiFactorSession._fromMfaPendingCredential(
           'mfa-pending-credential'
         );
-        expect(mfaSession.toPlainObject()).to.eql({
+        expect(mfaSession.toJSON()).to.eql({
           multiFactorSession: { pendingCredential: 'mfa-pending-credential' }
         });
       });

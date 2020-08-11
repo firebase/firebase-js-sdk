@@ -16,16 +16,14 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-
-import { AnonymousProvider } from '../providers/anonymous';
-import { UserCredentialImpl } from '../user/user_credential_impl';
-import { signInWithCredential } from './credential';
+import { signUp } from '../../api/authentication/sign_up';
 import { User } from '../../model/user';
+import { UserCredentialImpl } from '../user/user_credential_impl';
+import { _castAuth } from '../auth/auth_impl';
 
 export async function signInAnonymously(
   auth: externs.Auth
 ): Promise<externs.UserCredential> {
-  const credential = AnonymousProvider.credential();
   if (auth.currentUser?.isAnonymous) {
     // If an anonymous user is already signed in, no need to sign them in again.
     return new UserCredentialImpl({
@@ -34,5 +32,15 @@ export async function signInAnonymously(
       operationType: externs.OperationType.SIGN_IN
     });
   }
-  return signInWithCredential(auth, credential);
+  const response = await signUp(auth, {
+    returnSecureToken: true
+  });
+  const userCredential = await UserCredentialImpl._fromIdTokenResponse(
+    _castAuth(auth),
+    externs.OperationType.SIGN_IN,
+    response,
+    true
+  );
+  await auth.updateCurrentUser(userCredential.user);
+  return userCredential;
 }

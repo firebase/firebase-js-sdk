@@ -68,7 +68,6 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
           case externs.OperationType.SIGN_IN:
             const userCredential = await UserCredentialImpl._fromIdTokenResponse(
               _castAuth(auth),
-              error.credential,
               error.operationType,
               idTokenResponse
             );

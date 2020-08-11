@@ -176,7 +176,7 @@ describe('core/user/token_manager', () => {
 
     it('throws if refresh token is not a string', () => {
       expect(() =>
-        StsTokenManager.fromPlainObject('app', {
+        StsTokenManager.fromJSON('app', {
           refreshToken: 45,
           accessToken: 't',
           expirationTime: 3
@@ -186,7 +186,7 @@ describe('core/user/token_manager', () => {
 
     it('throws if access token is not a string', () => {
       expect(() =>
-        StsTokenManager.fromPlainObject('app', {
+        StsTokenManager.fromJSON('app', {
           refreshToken: 't',
           accessToken: 45,
           expirationTime: 3
@@ -196,7 +196,7 @@ describe('core/user/token_manager', () => {
 
     it('throws if expiration time is not a number', () => {
       expect(() =>
-        StsTokenManager.fromPlainObject('app', {
+        StsTokenManager.fromJSON('app', {
           refreshToken: 't',
           accessToken: 't',
           expirationTime: 'lol'
@@ -205,7 +205,7 @@ describe('core/user/token_manager', () => {
     });
 
     it('builds an object correctly', () => {
-      const manager = StsTokenManager.fromPlainObject('app', {
+      const manager = StsTokenManager.fromJSON('app', {
         refreshToken: 'r',
         accessToken: 'a',
         expirationTime: 45

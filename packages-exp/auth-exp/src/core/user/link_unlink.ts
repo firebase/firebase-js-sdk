@@ -75,7 +75,7 @@ export async function _link(
 export async function _assertLinkedStatus(
   expected: boolean,
   user: User,
-  provider: externs.ProviderId
+  provider: string
 ): Promise<void> {
   await _reloadWithoutSaving(user);
   const providerIds = providerDataAsNames(user.providerData);

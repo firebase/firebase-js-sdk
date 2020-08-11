@@ -137,7 +137,6 @@ export async function createUserWithEmailAndPassword(
 
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
     _castAuth(auth),
-    EmailAuthProvider.credential(email, password),
     externs.OperationType.SIGN_IN,
     response
   );

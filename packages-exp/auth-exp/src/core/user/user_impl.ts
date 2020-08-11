@@ -26,7 +26,7 @@ import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { IdTokenResponse } from '../../model/id_token';
 import { User, UserParameters } from '../../model/user';
 import { PersistedBlob } from '../persistence';
-import { assert, debugFail } from '../util/assert';
+import { assert } from '../util/assert';
 import { getIdTokenResult } from './id_token_result';
 import { reload, _reloadWithoutSaving } from './reload';
 import { StsTokenManager } from './token_manager';
@@ -152,20 +152,28 @@ export class UserImpl implements User {
     return this.auth.signOut();
   }
 
-  toPlainObject(): PersistedBlob {
+  toJSON(): PersistedBlob {
     return {
       uid: this.uid,
-      stsTokenManager: this.stsTokenManager.toPlainObject(),
       displayName: this.displayName || undefined,
+      photoURL: this.photoURL || undefined,
       email: this.email || undefined,
+      emailVerified: this.emailVerified,
       phoneNumber: this.phoneNumber || undefined,
-      photoURL: this.phoneNumber || undefined,
-      _redirectEventId: this._redirectEventId
+      isAnonymous: this.isAnonymous,
+      tenantId: this.tenantId,
+      providerData: this.providerData.map(userInfo =>
+        Object.assign({}, userInfo)
+      ),
+      apiKey: this.auth.config.apiKey,
+      appName: this.auth.name,
+      authDomain: this.auth.config.authDomain,
+      stsTokenManager: this.stsTokenManager.toJSON(),
+      // Redirect event ID must be maintained in case there is a pending
+      // redirect event.
+      _redirectEventId: this._redirectEventId,
+      ...this.metadata
     };
-  }
-
-  toJSON(): object {
-    return debugFail('not implemented');
   }
 
   get refreshToken(): string {
@@ -185,7 +193,7 @@ export class UserImpl implements User {
 
     assert(uid && plainObjectTokenManager, auth.name);
 
-    const stsTokenManager = StsTokenManager.fromPlainObject(
+    const stsTokenManager = StsTokenManager.fromJSON(
       this.name,
       plainObjectTokenManager as PersistedBlob
     );

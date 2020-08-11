@@ -70,8 +70,7 @@ export interface User extends externs.User {
   getIdTokenResult(forceRefresh?: boolean): Promise<externs.IdTokenResult>;
   reload(): Promise<void>;
   delete(): Promise<void>;
-  toJSON(): object;
-  toPlainObject(): PersistedBlob;
+  toJSON(): PersistedBlob;
 }
 
 export interface UserCredential

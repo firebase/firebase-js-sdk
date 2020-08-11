@@ -44,9 +44,7 @@ export async function getIdTokenResult(
   const firebase =
     typeof claims.firebase === 'object' ? claims.firebase : undefined;
 
-  const signInProvider: externs.ProviderId | undefined = firebase?.[
-    'sign_in_provider'
-  ] as externs.ProviderId;
+  const signInProvider: string | undefined = firebase?.['sign_in_provider'];
 
   return {
     claims,
@@ -61,8 +59,7 @@ export async function getIdTokenResult(
       secondsStringToMilliseconds(claims.exp)
     ),
     signInProvider: signInProvider || null,
-    signInSecondFactor:
-      (firebase?.['sign_in_second_factor'] as externs.ProviderId) || null
+    signInSecondFactor: firebase?.['sign_in_second_factor'] || null
   };
 }
 
