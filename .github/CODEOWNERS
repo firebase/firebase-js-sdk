@@ -85,4 +85,4 @@ packages/firebase/index.d.ts @firebase/firebase-techwriters @firebase/jssdk-glob
 scripts/docgen/content-sources/ @firebase/firebase-techwriters @firebase/jssdk-global-approvers
 
 # Changeset
-.changeset @firebase/firebase-techwriters firebase-techwriters @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers
+.changeset @firebase/firebase-techwriters @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers
