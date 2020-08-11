@@ -20,6 +20,7 @@ import json from 'rollup-plugin-json';
 import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
+import sourcemaps from 'rollup-plugin-sourcemaps';
 import { terser } from 'rollup-plugin-terser';
 import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
@@ -32,14 +33,14 @@ const nodePlugins = [
     typescript,
     tsconfigOverride: {
       compilerOptions: {
-        target: 'es5'
+        target: 'es2017'
       }
     },
     clean: true,
     abortOnError: false,
     transformers: [util.removeAssertTransformer, importPathTransformer]
   }),
-  json()
+  json({ preferConst: true })
 ];
 
 const browserPlugins = [
@@ -62,15 +63,41 @@ const browserPlugins = [
 ];
 
 const allBuilds = [
-  // Node build
+  // Node ESM build
   {
     input: './lite/index.ts',
     output: {
+      file: path.resolve('./lite', pkg['main-esm']),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [alias(util.generateAliasConfig('node_lite')), ...nodePlugins],
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Node UMD build
+  {
+    input: path.resolve('./lite', pkg['main-esm']),
+    output: {
       file: path.resolve('./lite', pkg.main),
       format: 'umd',
-      name: 'firebase.firestore'
+      name: 'firebase.firestore',
+      sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('node')), ...nodePlugins],
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        compilerOptions: {
+          allowJs: true,
+          target: 'es5'
+        },
+        include: ['dist/lite/*.js']
+      }),
+      json(),
+      sourcemaps()
+    ],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
@@ -81,9 +108,13 @@ const allBuilds = [
     input: './lite/index.ts',
     output: {
       file: path.resolve('./lite', pkg.browser),
-      format: 'es'
+      format: 'es',
+      sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins],
+    plugins: [
+      alias(util.generateAliasConfig('browser_lite')),
+      ...browserPlugins
+    ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
@@ -94,9 +125,10 @@ const allBuilds = [
     input: './lite/index.ts',
     output: {
       file: path.resolve('./lite', pkg['react-native']),
-      format: 'es'
+      format: 'es',
+      sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('rn')), ...browserPlugins],
+    plugins: [alias(util.generateAliasConfig('rn_lite')), ...browserPlugins],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false

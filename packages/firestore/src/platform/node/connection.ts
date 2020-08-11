@@ -23,9 +23,9 @@ import { Connection } from '../../remote/connection';
 import { NoopConnectivityMonitor } from '../../remote/connectivity_monitor_noop';
 
 /** Loads the GRPC stack */
-export function newConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
+export function newConnection(databaseInfo: DatabaseInfo): Connection {
   const protos = loadProtos();
-  return Promise.resolve(new GrpcConnection(protos, databaseInfo));
+  return new GrpcConnection(protos, databaseInfo);
 }
 
 /** Return the Platform-specific connectivity monitor. */

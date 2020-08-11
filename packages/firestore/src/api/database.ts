@@ -24,9 +24,9 @@ import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
-  OnlineComponentProvider,
   MemoryOfflineComponentProvider,
-  OfflineComponentProvider
+  OfflineComponentProvider,
+  OnlineComponentProvider
 } from '../core/component_provider';
 import { FirestoreClient, PersistenceSettings } from '../core/firestore_client';
 import {
@@ -60,7 +60,6 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { isServerTimestamp } from '../model/server_timestamps';
 import { refValue } from '../model/values';
 import { debugAssert, fail } from '../util/assert';
-import { AsyncObserver } from '../util/async_observer';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import {
@@ -84,7 +83,6 @@ import { getLogLevel, logError, LogLevel, setLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
-
 import {
   CredentialsProvider,
   CredentialsSettings,
@@ -485,8 +483,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     this.ensureClientConfigured();
 
     if (isPartialObserver(arg)) {
-      return addSnapshotsInSyncListener(
-        this._firestoreClient!,
+      return this._firestoreClient!.addSnapshotsInSyncListener(
         arg as PartialObserver<void>
       );
     } else {
@@ -494,7 +491,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       const observer: PartialObserver<void> = {
         next: arg as () => void
       };
-      return addSnapshotsInSyncListener(this._firestoreClient!, observer);
+      return this._firestoreClient!.addSnapshotsInSyncListener(observer);
     }
   }
 
@@ -684,29 +681,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   _areTimestampsInSnapshotsEnabled(): boolean {
     return this._settings.timestampsInSnapshots;
   }
-}
-
-/** Registers the listener for onSnapshotsInSync() */
-export function addSnapshotsInSyncListener(
-  firestoreClient: FirestoreClient,
-  observer: PartialObserver<void>
-): Unsubscribe {
-  const errHandler = (err: Error): void => {
-    throw fail('Uncaught Error in onSnapshotsInSync');
-  };
-  const asyncObserver = new AsyncObserver<void>({
-    next: () => {
-      if (observer.next) {
-        observer.next();
-      }
-    },
-    error: errHandler
-  });
-  firestoreClient.addSnapshotsInSyncListener(asyncObserver);
-  return () => {
-    asyncObserver.mute();
-    firestoreClient.removeSnapshotsInSyncListener(asyncObserver);
-  };
 }
 
 /**
@@ -1183,7 +1157,7 @@ export class DocumentReference<T = firestore.DocumentData>
       1,
       4
     );
-    let options: firestore.SnapshotListenOptions = {
+    let options: ListenOptions = {
       includeMetadataChanges: false
     };
     let currArg = 0;
@@ -1248,9 +1222,8 @@ export class DocumentReference<T = firestore.DocumentData>
       complete: args[currArg + 2] as CompleteFn
     };
 
-    return addDocSnapshotListener(
-      this._firestoreClient,
-      this._key,
+    return this._firestoreClient.listen(
+      newQueryForPath(this._key.path),
       internalOptions,
       observer
     );
@@ -1260,9 +1233,9 @@ export class DocumentReference<T = firestore.DocumentData>
     validateBetweenNumberOfArgs('DocumentReference.get', arguments, 0, 1);
     validateGetOptions('DocumentReference.get', options);
 
+    const firestoreClient = this.firestore.ensureClientConfigured();
     if (options && options.source === 'cache') {
-      return this.firestore
-        .ensureClientConfigured()
+      return firestoreClient
         .getDocumentFromLocalCache(this._key)
         .then(
           doc =>
@@ -1276,11 +1249,9 @@ export class DocumentReference<T = firestore.DocumentData>
             )
         );
     } else {
-      return getDocViaSnapshotListener(
-        this._firestoreClient,
-        this._key,
-        options
-      ).then(snapshot => this._convertToDocSnapshot(snapshot));
+      return firestoreClient
+        .getDocumentViaSnapshotListener(this._key, options)
+        .then(snapshot => this._convertToDocSnapshot(snapshot));
     }
   }
 
@@ -1310,103 +1281,6 @@ export class DocumentReference<T = firestore.DocumentData>
       this._converter
     );
   }
-}
-
-/** Registers an internal snapshot listener for `ref`. */
-export function addDocSnapshotListener(
-  firestoreClient: FirestoreClient,
-  key: DocumentKey,
-  options: ListenOptions,
-  observer: PartialObserver<ViewSnapshot>
-): Unsubscribe {
-  let errHandler = (err: Error): void => {
-    console.error('Uncaught Error in onSnapshot:', err);
-  };
-  if (observer.error) {
-    errHandler = observer.error.bind(observer);
-  }
-
-  const asyncObserver = new AsyncObserver<ViewSnapshot>({
-    next: snapshot => {
-      if (observer.next) {
-        observer.next(snapshot);
-      }
-    },
-    error: errHandler
-  });
-  const internalListener = firestoreClient.listen(
-    newQueryForPath(key.path),
-    asyncObserver,
-    options
-  );
-
-  return () => {
-    asyncObserver.mute();
-    firestoreClient.unlisten(internalListener);
-  };
-}
-
-/**
- * Retrieves a latency-compensated document from the backend via a
- * SnapshotListener.
- */
-export function getDocViaSnapshotListener(
-  firestoreClient: FirestoreClient,
-  key: DocumentKey,
-  options?: firestore.GetOptions
-): Promise<ViewSnapshot> {
-  const result = new Deferred<ViewSnapshot>();
-  const unlisten = addDocSnapshotListener(
-    firestoreClient,
-    key,
-    {
-      includeMetadataChanges: true,
-      waitForSyncWhenOnline: true
-    },
-    {
-      next: (snap: ViewSnapshot) => {
-        // Remove query first before passing event to user to avoid
-        // user actions affecting the now stale query.
-        unlisten();
-
-        const exists = snap.docs.has(key);
-        if (!exists && snap.fromCache) {
-          // TODO(dimond): If we're online and the document doesn't
-          // exist then we resolve with a doc.exists set to false. If
-          // we're offline however, we reject the Promise in this
-          // case. Two options: 1) Cache the negative response from
-          // the server so we can deliver that even when you're
-          // offline 2) Actually reject the Promise in the online case
-          // if the document doesn't exist.
-          result.reject(
-            new FirestoreError(
-              Code.UNAVAILABLE,
-              'Failed to get document because the client is ' + 'offline.'
-            )
-          );
-        } else if (
-          exists &&
-          snap.fromCache &&
-          options &&
-          options.source === 'server'
-        ) {
-          result.reject(
-            new FirestoreError(
-              Code.UNAVAILABLE,
-              'Failed to get document from server. (However, this ' +
-                'document does exist in the local cache. Run again ' +
-                'without setting source to "server" to ' +
-                'retrieve the cached document.)'
-            )
-          );
-        } else {
-          result.resolve(snap);
-        }
-      },
-      error: e => result.reject(e)
-    }
-  );
-  return result.promise;
 }
 
 export class SnapshotMetadata implements firestore.SnapshotMetadata {
@@ -1562,7 +1436,7 @@ export function newQueryFilter(
         `Invalid Query. You can't perform '${op}' ` +
           'queries on FieldPath.documentId().'
       );
-    } else if (op === Operator.IN) {
+    } else if (op === Operator.IN || op === Operator.NOT_IN) {
       validateDisjunctiveFilterElements(value, op);
       const referenceList: api.Value[] = [];
       for (const arrayValue of value as api.Value[]) {
@@ -1573,14 +1447,18 @@ export function newQueryFilter(
       fieldValue = parseDocumentIdValue(databaseId, query, value);
     }
   } else {
-    if (op === Operator.IN || op === Operator.ARRAY_CONTAINS_ANY) {
+    if (
+      op === Operator.IN ||
+      op === Operator.NOT_IN ||
+      op === Operator.ARRAY_CONTAINS_ANY
+    ) {
       validateDisjunctiveFilterElements(value, op);
     }
     fieldValue = parseQueryValue(
       dataReader,
       methodName,
       value,
-      op === Operator.IN
+      /* allowArrays= */ op === Operator.IN || op === Operator.NOT_IN
     );
   }
   const filter = FieldFilter.create(fieldPath, op, fieldValue);
@@ -1789,7 +1667,7 @@ function parseDocumentIdValue(
 }
 
 /**
- * Validates that the value passed into a disjunctrive filter satisfies all
+ * Validates that the value passed into a disjunctive filter satisfies all
  * array requirements.
  */
 function validateDisjunctiveFilterElements(
@@ -1810,75 +1688,104 @@ function validateDisjunctiveFilterElements(
         'maximum of 10 elements in the value array.'
     );
   }
-  if (value.indexOf(null) >= 0) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid Query. '${operator.toString()}' filters cannot contain 'null' ` +
-        'in the value array.'
-    );
+  if (operator === Operator.IN || operator === Operator.ARRAY_CONTAINS_ANY) {
+    if (value.indexOf(null) >= 0) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid Query. '${operator.toString()}' filters cannot contain 'null' ` +
+          'in the value array.'
+      );
+    }
+    if (value.filter(element => Number.isNaN(element)).length > 0) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid Query. '${operator.toString()}' filters cannot contain 'NaN' ` +
+          'in the value array.'
+      );
+    }
   }
-  if (value.filter(element => Number.isNaN(element)).length > 0) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid Query. '${operator.toString()}' filters cannot contain 'NaN' ` +
-        'in the value array.'
-    );
+}
+
+/**
+ * Given an operator, returns the set of operators that cannot be used with it.
+ *
+ * Operators in a query must adhere to the following set of rules:
+ * 1. Only one array operator is allowed.
+ * 2. Only one disjunctive operator is allowed.
+ * 3. NOT_EQUAL cannot be used with another NOT_EQUAL operator.
+ * 4. NOT_IN cannot be used with array, disjunctive, or NOT_EQUAL operators.
+ *
+ * Array operators: ARRAY_CONTAINS, ARRAY_CONTAINS_ANY
+ * Disjunctive operators: IN, ARRAY_CONTAINS_ANY, NOT_IN
+ */
+function conflictingOps(op: Operator): Operator[] {
+  switch (op) {
+    case Operator.NOT_EQUAL:
+      return [Operator.NOT_EQUAL, Operator.NOT_IN];
+    case Operator.ARRAY_CONTAINS:
+      return [
+        Operator.ARRAY_CONTAINS,
+        Operator.ARRAY_CONTAINS_ANY,
+        Operator.NOT_IN
+      ];
+    case Operator.IN:
+      return [Operator.ARRAY_CONTAINS_ANY, Operator.IN, Operator.NOT_IN];
+    case Operator.ARRAY_CONTAINS_ANY:
+      return [
+        Operator.ARRAY_CONTAINS,
+        Operator.ARRAY_CONTAINS_ANY,
+        Operator.IN,
+        Operator.NOT_IN
+      ];
+    case Operator.NOT_IN:
+      return [
+        Operator.ARRAY_CONTAINS,
+        Operator.ARRAY_CONTAINS_ANY,
+        Operator.IN,
+        Operator.NOT_IN,
+        Operator.NOT_EQUAL
+      ];
+    default:
+      return [];
   }
 }
 
 function validateNewFilter(query: InternalQuery, filter: Filter): void {
-  if (filter instanceof FieldFilter) {
-    const arrayOps = [Operator.ARRAY_CONTAINS, Operator.ARRAY_CONTAINS_ANY];
-    const disjunctiveOps = [Operator.IN, Operator.ARRAY_CONTAINS_ANY];
-    const isArrayOp = arrayOps.indexOf(filter.op) >= 0;
-    const isDisjunctiveOp = disjunctiveOps.indexOf(filter.op) >= 0;
+  debugAssert(filter instanceof FieldFilter, 'Only FieldFilters are supported');
 
-    if (filter.isInequality()) {
-      const existingField = query.getInequalityFilterField();
-      if (existingField !== null && !existingField.isEqual(filter.field)) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          'Invalid query. All where filters with an inequality' +
-            ' (<, <=, >, or >=) must be on the same field. But you have' +
-            ` inequality filters on '${existingField.toString()}'` +
-            ` and '${filter.field.toString()}'`
-        );
-      }
+  if (filter.isInequality()) {
+    const existingField = query.getInequalityFilterField();
+    if (existingField !== null && !existingField.isEqual(filter.field)) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Invalid query. All where filters with an inequality' +
+          ' (<, <=, >, or >=) must be on the same field. But you have' +
+          ` inequality filters on '${existingField.toString()}'` +
+          ` and '${filter.field.toString()}'`
+      );
+    }
 
-      const firstOrderByField = query.getFirstOrderByField();
-      if (firstOrderByField !== null) {
-        validateOrderByAndInequalityMatch(
-          query,
-          filter.field,
-          firstOrderByField
-        );
-      }
-    } else if (isDisjunctiveOp || isArrayOp) {
-      // You can have at most 1 disjunctive filter and 1 array filter. Check if
-      // the new filter conflicts with an existing one.
-      let conflictingOp: Operator | null = null;
-      if (isDisjunctiveOp) {
-        conflictingOp = query.findFilterOperator(disjunctiveOps);
-      }
-      if (conflictingOp === null && isArrayOp) {
-        conflictingOp = query.findFilterOperator(arrayOps);
-      }
-      if (conflictingOp !== null) {
-        // We special case when it's a duplicate op to give a slightly clearer error message.
-        if (conflictingOp === filter.op) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            'Invalid query. You cannot use more than one ' +
-              `'${filter.op.toString()}' filter.`
-          );
-        } else {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            `Invalid query. You cannot use '${filter.op.toString()}' filters ` +
-              `with '${conflictingOp.toString()}' filters.`
-          );
-        }
-      }
+    const firstOrderByField = query.getFirstOrderByField();
+    if (firstOrderByField !== null) {
+      validateOrderByAndInequalityMatch(query, filter.field, firstOrderByField);
+    }
+  }
+
+  const conflictingOp = query.findFilterOperator(conflictingOps(filter.op));
+  if (conflictingOp !== null) {
+    // Special case when it's a duplicate op to give a slightly clearer error message.
+    if (conflictingOp === filter.op) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Invalid query. You cannot use more than one ' +
+          `'${filter.op.toString()}' filter.`
+      );
+    } else {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid query. You cannot use '${filter.op.toString()}' filters ` +
+          `with '${conflictingOp.toString()}' filters.`
+      );
     }
   }
 }
@@ -1936,18 +1843,25 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
     validateExactNumberOfArgs('Query.where', arguments, 3);
     validateDefined('Query.where', 3, value);
 
-    // Enumerated from the WhereFilterOp type in index.d.ts.
-    const whereFilterOpEnums = [
-      Operator.LESS_THAN,
-      Operator.LESS_THAN_OR_EQUAL,
-      Operator.EQUAL,
-      Operator.GREATER_THAN_OR_EQUAL,
-      Operator.GREATER_THAN,
-      Operator.ARRAY_CONTAINS,
-      Operator.IN,
-      Operator.ARRAY_CONTAINS_ANY
-    ];
-    const op = validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
+    // TODO(ne-queries): Add 'not-in' and '!=' to validation.
+    let op: Operator;
+    if ((opStr as unknown) === 'not-in' || (opStr as unknown) === '!=') {
+      op = opStr as Operator;
+    } else {
+      // Enumerated from the WhereFilterOp type in index.d.ts.
+      const whereFilterOpEnums = [
+        Operator.LESS_THAN,
+        Operator.LESS_THAN_OR_EQUAL,
+        Operator.EQUAL,
+        Operator.GREATER_THAN_OR_EQUAL,
+        Operator.GREATER_THAN,
+        Operator.ARRAY_CONTAINS,
+        Operator.IN,
+        Operator.ARRAY_CONTAINS_ANY
+      ];
+      op = validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
+    }
+
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const filter = newQueryFilter(
       this._query,
@@ -2159,7 +2073,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
 
   onSnapshot(...args: unknown[]): Unsubscribe {
     validateBetweenNumberOfArgs('Query.onSnapshot', arguments, 1, 4);
-    let options: firestore.SnapshotListenOptions = {};
+    let options: ListenOptions = {};
     let currArg = 0;
     if (
       typeof args[currArg] === 'object' &&
@@ -2220,12 +2134,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
 
     validateHasExplicitOrderByForLimitToLast(this._query);
     const firestoreClient = this.firestore.ensureClientConfigured();
-    return addQuerySnapshotListener(
-      firestoreClient,
-      this._query,
-      options,
-      observer
-    );
+    return firestoreClient.listen(this._query, options, observer);
   }
 
   get(options?: firestore.GetOptions): Promise<firestore.QuerySnapshot<T>> {
@@ -2236,84 +2145,12 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
     const firestoreClient = this.firestore.ensureClientConfigured();
     return (options && options.source === 'cache'
       ? firestoreClient.getDocumentsFromLocalCache(this._query)
-      : getDocsViaSnapshotListener(firestoreClient, this._query, options)
+      : firestoreClient.getDocumentsViaSnapshotListener(this._query, options)
     ).then(
       snap =>
         new QuerySnapshot(this.firestore, this._query, snap, this._converter)
     );
   }
-}
-
-/**
- * Retrieves a latency-compensated query snapshot from the backend via a
- * SnapshotListener.
- */
-export function getDocsViaSnapshotListener(
-  firestore: FirestoreClient,
-  query: InternalQuery,
-  options?: firestore.GetOptions
-): Promise<ViewSnapshot> {
-  const result = new Deferred<ViewSnapshot>();
-  const unlisten = addQuerySnapshotListener(
-    firestore,
-    query,
-    {
-      includeMetadataChanges: true,
-      waitForSyncWhenOnline: true
-    },
-    {
-      next: snapshot => {
-        // Remove query first before passing event to user to avoid
-        // user actions affecting the now stale query.
-        unlisten();
-
-        if (snapshot.fromCache && options && options.source === 'server') {
-          result.reject(
-            new FirestoreError(
-              Code.UNAVAILABLE,
-              'Failed to get documents from server. (However, these ' +
-                'documents may exist in the local cache. Run again ' +
-                'without setting source to "server" to ' +
-                'retrieve the cached documents.)'
-            )
-          );
-        } else {
-          result.resolve(snapshot);
-        }
-      },
-      error: e => result.reject(e)
-    }
-  );
-  return result.promise;
-}
-
-/** Registers an internal snapshot listener for `query`. */
-export function addQuerySnapshotListener(
-  firestore: FirestoreClient,
-  query: InternalQuery,
-  options: ListenOptions,
-  observer: PartialObserver<ViewSnapshot>
-): Unsubscribe {
-  let errHandler = (err: Error): void => {
-    console.error('Uncaught Error in onSnapshot:', err);
-  };
-  if (observer.error) {
-    errHandler = observer.error.bind(observer);
-  }
-  const asyncObserver = new AsyncObserver<ViewSnapshot>({
-    next: (result: ViewSnapshot): void => {
-      if (observer.next) {
-        observer.next(result);
-      }
-    },
-    error: errHandler
-  });
-
-  const internalListener = firestore.listen(query, asyncObserver, options);
-  return (): void => {
-    asyncObserver.mute();
-    firestore.unlisten(internalListener);
-  };
 }
 
 export class QuerySnapshot<T = firestore.DocumentData>

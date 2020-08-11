@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "7.17.1",
+  "version": "7.17.2",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -48,8 +48,8 @@
     "@firebase/app": "0.6.9",
     "@firebase/app-types": "0.6.1",
     "@firebase/auth": "0.14.9",
-    "@firebase/database": "0.6.9",
-    "@firebase/firestore": "1.16.2",
+    "@firebase/database": "0.6.10",
+    "@firebase/firestore": "1.16.3",
     "@firebase/functions": "0.4.49",
     "@firebase/installations": "0.4.15",
     "@firebase/messaging": "0.6.21",
@@ -69,7 +69,7 @@
     "rollup-plugin-terser": "6.1.0",
     "rollup-plugin-typescript2": "0.27.1",
     "rollup-plugin-uglify": "6.0.4",
-    "typescript": "3.9.6"
+    "typescript": "3.9.7"
   },
   "typings": "index.d.ts",
   "components": [
