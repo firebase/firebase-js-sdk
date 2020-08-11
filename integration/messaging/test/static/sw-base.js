@@ -16,6 +16,7 @@
  */
 
 importScripts('../constants.js');
+importScripts('../helpers.js');
 
 // HEAD targets served through express
 importScripts('/firebase-app.js');
@@ -27,45 +28,10 @@ const messaging = firebase.messaging();
 messaging.setBackgroundMessageHandler(payload => {
   console.log(
     TAG +
-      'a background message is received: ' +
+      'a background message is received in the background handler hook: ' +
       JSON.stringify(payload) +
       '. Storing it into idb for tests to read...'
   );
 
   addPayloadToDb(payload);
 });
-
-async function addPayloadToDb(payload) {
-  const dbOpenReq = indexedDB.open(TEST_DB);
-
-  dbOpenReq.onupgradeneeded = () => {
-    const db = dbOpenReq.result;
-
-    // store creation is a synchronized call
-    console.log('creating object store...');
-    db.createObjectStore(BACKGROUND_MESSAGES_OBJECT_STORE, {
-      keyPath: BACKGROUND_MESSAGES_OBJECT_STORE_PRIMARY_KEY
-    });
-  };
-
-  dbOpenReq.onsuccess = () => {
-    const db = dbOpenReq.result;
-
-    addPayloadToDbInternal(db, {
-      ...payload,
-      // ndx is required as the primary key of the store. It doesn't have any other testing purpose
-      ndx: BACKGROUND_MESSAGES_OBJECT_STORE_DEFAULT_NDX
-    });
-  };
-}
-
-async function addPayloadToDbInternal(db, payload) {
-  // onsuccess might race with onupgradeneeded. Consequently causing " object stores was not found" error. Therefore, wait briefly for db.createObjectStore to complete
-  const delay = ms => new Promise(res => setTimeout(res, ms));
-  await delay(/* milliseconds= */ 30000);
-
-  tx = db.transaction(BACKGROUND_MESSAGES_OBJECT_STORE, 'readwrite');
-
-  console.log('adding message payload to db: ' + JSON.stringify(payload));
-  addReq = tx.objectStore(BACKGROUND_MESSAGES_OBJECT_STORE).add(payload);
-}

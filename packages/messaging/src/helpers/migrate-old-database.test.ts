@@ -15,18 +15,20 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import '../testing/setup';
-import { openDb } from 'idb';
+
 import {
-  migrateOldDatabase,
   V2TokenDetails,
   V3TokenDetails,
-  V4TokenDetails
+  V4TokenDetails,
+  migrateOldDatabase
 } from './migrate-old-database';
+
 import { FakePushSubscription } from '../testing/fakes/service-worker';
-import { getFakeTokenDetails } from '../testing/fakes/token-details';
 import { base64ToArray } from './array-base64-translator';
+import { expect } from 'chai';
+import { getFakeTokenDetails } from '../testing/fakes/token-details';
+import { openDb } from 'idb';
 
 describe('migrateOldDb', () => {
   it("does nothing if old DB didn't exist", async () => {
