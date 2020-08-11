@@ -5,7 +5,8 @@
   "packages": [
     "packages/*",
     "packages-exp/*",
-    "integration/*"
+    "integration/*",
+    "repo-scripts/*"
   ],
   "useWorkspaces": true
 }
