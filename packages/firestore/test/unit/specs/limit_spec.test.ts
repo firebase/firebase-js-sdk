@@ -15,15 +15,14 @@
  * limitations under the License.
  */
 
-import { Query } from '../../../src/core/query';
-import { deletedDoc, doc, filter, orderBy, path } from '../../util/helpers';
-
+import { LimitType, queryWithLimit } from '../../../src/core/query';
+import { deletedDoc, doc, filter, orderBy, query } from '../../util/helpers';
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 
 describeSpec('Limits:', [], () => {
   specTest('Documents in limit are replaced by remote event', [], () => {
-    const query1 = Query.atPath(path('collection')).withLimitToFirst(2);
+    const query1 = queryWithLimit(query('collection'), 2, LimitType.First);
     const doc1 = doc('collection/a', 1000, { key: 'a' });
     const doc2 = doc('collection/b', 1002, { key: 'b' });
     const doc3 = doc('collection/c', 1001, { key: 'c' });
@@ -46,7 +45,7 @@ describeSpec('Limits:', [], () => {
     "Documents outside of limit don't raise hasPendingWrites",
     [],
     () => {
-      const query1 = Query.atPath(path('collection')).withLimitToFirst(2);
+      const query1 = queryWithLimit(query('collection'), 2, LimitType.First);
       const doc1 = doc('collection/a', 1000, { key: 'a' });
       const doc2 = doc('collection/b', 1000, { key: 'b' });
 
@@ -68,27 +67,27 @@ describeSpec('Limits:', [], () => {
   );
 
   specTest('Deleted Document in limbo in full limit query', [], () => {
-    const query = Query.atPath(path('collection')).withLimitToFirst(2);
+    const query1 = queryWithLimit(query('collection'), 2, LimitType.First);
     const doc1 = doc('collection/a', 1000, { key: 'a' });
     const doc2 = doc('collection/b', 1001, { key: 'b' });
     const doc3 = doc('collection/c', 1002, { key: 'c' });
     return (
       spec()
-        .userListens(query)
-        .watchAcksFull(query, 1002, doc1, doc2)
-        .expectEvents(query, {
+        .userListens(query1)
+        .watchAcksFull(query1, 1002, doc1, doc2)
+        .expectEvents(query1, {
           added: [doc1, doc2]
         })
-        .watchResets(query)
-        .watchSends({ affects: [query] }, doc2, doc3)
-        .watchCurrents(query, 'resume-token-' + 2000)
+        .watchResets(query1)
+        .watchSends({ affects: [query1] }, doc2, doc3)
+        .watchCurrents(query1, 'resume-token-' + 2000)
         .watchSnapshots(2000)
         .expectLimboDocs(doc1.key)
         // Limbo document causes query to be "inconsistent"
-        .expectEvents(query, { fromCache: true })
+        .expectEvents(query1, { fromCache: true })
         .ackLimbo(2000, deletedDoc('collection/a', 2000))
         .expectLimboDocs()
-        .expectEvents(query, {
+        .expectEvents(query1, {
           added: [doc3],
           removed: [doc1]
         })
@@ -96,7 +95,7 @@ describeSpec('Limits:', [], () => {
   });
 
   specTest('Documents in limit can handle removed messages', [], () => {
-    const query1 = Query.atPath(path('collection')).withLimitToFirst(2);
+    const query1 = queryWithLimit(query('collection'), 2, LimitType.First);
     const doc1 = doc('collection/a', 1000, { key: 'a' });
     const doc2 = doc('collection/b', 1002, { key: 'b' });
     const doc3 = doc('collection/c', 1001, { key: 'c' });
@@ -123,8 +122,8 @@ describeSpec('Limits:', [], () => {
     'Documents in limit are can handle removed messages for only one of many query',
     [],
     () => {
-      const query1 = Query.atPath(path('collection')).withLimitToFirst(2);
-      const query2 = Query.atPath(path('collection')).withLimitToFirst(3);
+      const query1 = queryWithLimit(query('collection'), 2, LimitType.First);
+      const query2 = queryWithLimit(query('collection'), 3, LimitType.First);
       const doc1 = doc('collection/a', 1000, { key: 'a' });
       const doc2 = doc('collection/b', 1002, { key: 'b' });
       const doc3 = doc('collection/c', 1001, { key: 'c' });
@@ -159,12 +158,8 @@ describeSpec('Limits:', [], () => {
     // This test verifies that our Query handling backfills a limit query from
     // cache even if the backend has not told us that an existing
     // RemoteDocument is within the limit.
-    const fullQuery = Query.atPath(path('collection')).addFilter(
-      filter('matches', '==', true)
-    );
-    const limitQuery = Query.atPath(path('collection'))
-      .addFilter(filter('matches', '==', true))
-      .withLimitToFirst(2);
+    const fullQuery = query('collection', filter('matches', '==', true));
+    const limitQuery = queryWithLimit(fullQuery, 2, LimitType.First);
     const doc1 = doc('collection/a', 1001, { matches: true });
     const doc2 = doc('collection/b', 1002, { matches: true });
     const doc3 = doc('collection/c', 1000, { matches: true });
@@ -190,12 +185,8 @@ describeSpec('Limits:', [], () => {
     () => {
       // Verify that views for limit queries are re-filled even if the initial
       // snapshot does not contain the requested number of results.
-      const fullQuery = Query.atPath(path('collection')).addFilter(
-        filter('matches', '==', true)
-      );
-      const limitQuery = Query.atPath(path('collection'))
-        .addFilter(filter('matches', '==', true))
-        .withLimitToFirst(2);
+      const fullQuery = query('collection', filter('matches', '==', true));
+      const limitQuery = queryWithLimit(fullQuery, 2, LimitType.First);
       const doc1 = doc('collection/a', 1001, { matches: true });
       const doc2 = doc('collection/b', 1002, { matches: true });
       const doc3 = doc('collection/c', 1003, { matches: true });
@@ -224,10 +215,12 @@ describeSpec('Limits:', [], () => {
       // Verify that views for limit queries contain the correct set of documents
       // even if a previously matching document receives a latency-compensate update
       // that makes it sort below an older document.
-      const fullQuery = Query.atPath(path('collection'));
-      const limitQuery = Query.atPath(path('collection'))
-        .addOrderBy(orderBy('pos'))
-        .withLimitToFirst(2);
+      const fullQuery = query('collection');
+      const limitQuery = queryWithLimit(
+        query('collection', orderBy('pos')),
+        2,
+        LimitType.First
+      );
       const doc1 = doc('collection/a', 1001, { pos: 1 });
       const doc2 = doc('collection/b', 1002, { pos: 2 });
       const doc3 = doc('collection/c', 1003, { pos: 3 });
@@ -257,10 +250,12 @@ describeSpec('Limits:', [], () => {
       // Verify that views for limit queries contain the correct set of documents
       // even if a previously matching document receives an update from the backend
       // that makes it sort below an older document.
-      const fullQuery = Query.atPath(path('collection'));
-      const limitQuery = Query.atPath(path('collection'))
-        .addOrderBy(orderBy('pos'))
-        .withLimitToFirst(2);
+      const fullQuery = query('collection');
+      const limitQuery = queryWithLimit(
+        query('collection', orderBy('pos')),
+        2,
+        LimitType.First
+      );
       const doc1 = doc('collection/a', 1001, { pos: 1 });
       const doc1Edited = doc('collection/a', 1005, { pos: 4 });
       const doc2 = doc('collection/b', 1002, { pos: 2 });
@@ -294,12 +289,12 @@ describeSpec('Limits:', [], () => {
       // This test verifies that views for limit queries are updated even
       // when documents are deleted while the query is inactive.
 
-      const limitQuery = Query.atPath(path('collection'))
-        .addOrderBy(orderBy('a'))
-        .withLimitToFirst(1);
-      const fullQuery = Query.atPath(path('collection')).addOrderBy(
-        orderBy('a')
+      const limitQuery = queryWithLimit(
+        query('collection', orderBy('a')),
+        1,
+        LimitType.First
       );
+      const fullQuery = query('collection', orderBy('a'));
 
       const firstDocument = doc('collection/a', 1001, { a: 1 });
       const firstDocumentDeleted = deletedDoc('collection/a', 1003);
@@ -370,10 +365,12 @@ describeSpec('Limits:', [], () => {
     // This test verifies that a resumed limit query will not contain documents
     // that fell out of the limit while the query was inactive.
 
-    const limitQuery = Query.atPath(path('collection'))
-      .addOrderBy(orderBy('a'))
-      .withLimitToFirst(1);
-    const fullQuery = Query.atPath(path('collection')).addOrderBy(orderBy('a'));
+    const limitQuery = queryWithLimit(
+      query('collection', orderBy('a')),
+      1,
+      LimitType.First
+    );
+    const fullQuery = query('collection', orderBy('a'));
 
     const firstDocument = doc('collection/a', 2001, { a: 1 });
     const firstDocumentUpdated = doc('collection/a', 2003, { a: 3 });
@@ -412,8 +409,8 @@ describeSpec('Limits:', [], () => {
   });
 
   specTest('Multiple docs in limbo in full limit query', [], () => {
-    const query1 = Query.atPath(path('collection')).withLimitToFirst(2);
-    const query2 = Query.atPath(path('collection'));
+    const query1 = queryWithLimit(query('collection'), 2, LimitType.First);
+    const query2 = query('collection');
     const docA = doc('collection/a', 1000, { key: 'a' });
     const docB = doc('collection/b', 1001, { key: 'b' });
     const docC = doc('collection/c', 1002, { key: 'c' });
@@ -504,7 +501,7 @@ describeSpec('Limits:', [], () => {
     'Limit query is refilled by primary client',
     ['multi-client'],
     () => {
-      const query1 = Query.atPath(path('collection')).withLimitToFirst(2);
+      const query1 = queryWithLimit(query('collection'), 2, LimitType.First);
       const doc1 = doc('collection/a', 1000, { key: 'a' });
       const doc2 = doc('collection/b', 1002, { key: 'b' });
       const doc3 = doc('collection/c', 1001, { key: 'c' });
@@ -535,7 +532,7 @@ describeSpec('Limits:', [], () => {
     'Limit query includes write from secondary client ',
     ['multi-client'],
     () => {
-      const query1 = Query.atPath(path('collection')).withLimitToFirst(2);
+      const query1 = queryWithLimit(query('collection'), 2, LimitType.First);
       const doc1 = doc('collection/a', 1003, { key: 'a' });
       const doc1Local = doc(
         'collection/a',

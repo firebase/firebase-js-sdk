@@ -32,7 +32,6 @@ import {
 } from './constants';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { logger } from './logger';
-
 /**
  * Initialize the analytics instance in gtag.js by calling config command with fid.
  *
@@ -184,7 +183,7 @@ export function wrapOrCreateGtag(
   wrappedGtag: Gtag;
 } {
   // Create a basic core gtag function
-  let gtagCore: Gtag = function(..._args: unknown[]) {
+  let gtagCore: Gtag = function (..._args: unknown[]) {
     // Must push IArguments object, not an array.
     (window[dataLayerName] as DataLayer).push(arguments);
   };

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database-types",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "@firebase/database Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -23,6 +23,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "typescript": "3.8.3"
+    "typescript": "3.9.7"
   }
 }

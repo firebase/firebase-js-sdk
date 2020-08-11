@@ -24,9 +24,11 @@ import {
   FieldFilter,
   Filter,
   LimitType,
+  newQuery,
+  newQueryForPath,
   Operator,
   OrderBy,
-  Query
+  queryToTarget
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { isDocumentTarget, Target } from '../core/target';
@@ -93,8 +95,10 @@ const OPERATORS = (() => {
   ops[Operator.GREATER_THAN] = 'GREATER_THAN';
   ops[Operator.GREATER_THAN_OR_EQUAL] = 'GREATER_THAN_OR_EQUAL';
   ops[Operator.EQUAL] = 'EQUAL';
+  ops[Operator.NOT_EQUAL] = 'NOT_EQUAL';
   ops[Operator.ARRAY_CONTAINS] = 'ARRAY_CONTAINS';
   ops[Operator.IN] = 'IN';
+  ops[Operator.NOT_IN] = 'NOT_IN';
   ops[Operator.ARRAY_CONTAINS_ANY] = 'ARRAY_CONTAINS_ANY';
   return ops;
 })();
@@ -348,7 +352,7 @@ function fromQueryPath(name: string): ResourcePath {
   // ability to read the v1beta1 form for compatibility with queries persisted
   // in the local target cache.
   if (resourceName.length === 4) {
-    return ResourcePath.EMPTY_PATH;
+    return ResourcePath.emptyPath();
   }
   return extractLocalPathFromResourceName(resourceName);
 }
@@ -774,7 +778,7 @@ function fromFieldTransform(
       proto.setToServerValue === 'REQUEST_TIME',
       'Unknown server value transform proto: ' + JSON.stringify(proto)
     );
-    transform = ServerTimestampTransform.instance;
+    transform = new ServerTimestampTransform();
   } else if ('appendMissingElements' in proto) {
     const values = proto.appendMissingElements!.values || [];
     transform = new ArrayUnionTransformOperation(values);
@@ -809,7 +813,7 @@ export function fromDocumentsTarget(
     'DocumentsTarget contained other than 1 document: ' + count
   );
   const name = documentsTarget.documents![0];
-  return Query.atPath(fromQueryPath(name)).toTarget();
+  return queryToTarget(newQueryForPath(fromQueryPath(name)));
 }
 
 export function toQueryTarget(
@@ -909,16 +913,18 @@ export function fromQueryTarget(target: api.QueryTarget): Target {
     endAt = fromCursor(query.endAt);
   }
 
-  return new Query(
-    path,
-    collectionGroup,
-    orderBy,
-    filterBy,
-    limit,
-    LimitType.First,
-    startAt,
-    endAt
-  ).toTarget();
+  return queryToTarget(
+    newQuery(
+      path,
+      collectionGroup,
+      orderBy,
+      filterBy,
+      limit,
+      LimitType.First,
+      startAt,
+      endAt
+    )
+  );
 }
 
 export function toListenRequestLabels(
@@ -978,11 +984,11 @@ function toFilter(filters: Filter[]): api.Filter | undefined {
     return;
   }
   const protos = filters.map(filter => {
-    if (filter instanceof FieldFilter) {
-      return toUnaryOrFieldFilter(filter);
-    } else {
-      return fail('Unrecognized filter: ' + JSON.stringify(filter));
-    }
+    debugAssert(
+      filter instanceof FieldFilter,
+      'Only FieldFilters are supported'
+    );
+    return toUnaryOrFieldFilter(filter);
   });
   if (protos.length === 1) {
     return protos[0];
@@ -1058,6 +1064,8 @@ export function fromOperatorName(op: api.FieldFilterOp): Operator {
   switch (op) {
     case 'EQUAL':
       return Operator.EQUAL;
+    case 'NOT_EQUAL':
+      return Operator.NOT_EQUAL;
     case 'GREATER_THAN':
       return Operator.GREATER_THAN;
     case 'GREATER_THAN_OR_EQUAL':
@@ -1070,6 +1078,8 @@ export function fromOperatorName(op: api.FieldFilterOp): Operator {
       return Operator.ARRAY_CONTAINS;
     case 'IN':
       return Operator.IN;
+    case 'NOT_IN':
+      return Operator.NOT_IN;
     case 'ARRAY_CONTAINS_ANY':
       return Operator.ARRAY_CONTAINS_ANY;
     case 'OPERATOR_UNSPECIFIED':
@@ -1130,6 +1140,22 @@ export function toUnaryOrFieldFilter(filter: FieldFilter): api.Filter {
         }
       };
     }
+  } else if (filter.op === Operator.NOT_EQUAL) {
+    if (isNanValue(filter.value)) {
+      return {
+        unaryFilter: {
+          field: toFieldPathReference(filter.field),
+          op: 'IS_NOT_NAN'
+        }
+      };
+    } else if (isNullValue(filter.value)) {
+      return {
+        unaryFilter: {
+          field: toFieldPathReference(filter.field),
+          op: 'IS_NOT_NULL'
+        }
+      };
+    }
   }
   return {
     fieldFilter: {
@@ -1150,6 +1176,16 @@ export function fromUnaryFilter(filter: api.Filter): Filter {
     case 'IS_NULL':
       const nullField = fromFieldPathReference(filter.unaryFilter!.field!);
       return FieldFilter.create(nullField, Operator.EQUAL, {
+        nullValue: 'NULL_VALUE'
+      });
+    case 'IS_NOT_NAN':
+      const notNanField = fromFieldPathReference(filter.unaryFilter!.field!);
+      return FieldFilter.create(notNanField, Operator.NOT_EQUAL, {
+        doubleValue: NaN
+      });
+    case 'IS_NOT_NULL':
+      const notNullField = fromFieldPathReference(filter.unaryFilter!.field!);
+      return FieldFilter.create(notNullField, Operator.NOT_EQUAL, {
         nullValue: 'NULL_VALUE'
       });
     case 'OPERATOR_UNSPECIFIED':

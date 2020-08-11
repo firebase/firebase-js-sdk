@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,12 @@
 const karma = require('karma');
 const path = require('path');
 const karmaBase = require('../../config/karma.base');
+const { argv } = require('yargs');
 
-const files = [`test/**/*`];
-
-module.exports = function(config) {
+module.exports = function (config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     // files to load into karma
-    files: files,
+    files: getTestFiles(argv),
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha']
@@ -33,4 +32,14 @@ module.exports = function(config) {
   config.set(karmaConfig);
 };
 
-module.exports.files = files;
+function getTestFiles(argv) {
+  if (argv.unit) {
+    return ['test/unit/*'];
+  } else if (argv.integration) {
+    return ['test/integration/*'];
+  } else {
+    return ['test/**/*'];
+  }
+}
+
+module.exports.files = getTestFiles(argv);

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
+import * as firestore from '../../../lite-types';
 
 import { Firestore } from './database';
 import { DocumentReference, queryEqual } from './reference';
@@ -25,7 +25,10 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { Document } from '../../../src/model/document';
 import { UserDataWriter } from '../../../src/api/user_data_writer';
 import { FieldPath as InternalFieldPath } from '../../../src/model/path';
-import { fieldPathFromDotSeparatedString } from '../../../src/api/user_data_reader';
+import {
+  fieldPathFromDotSeparatedString,
+  UntypedFirestoreDataConverter
+} from '../../../src/api/user_data_reader';
 import { arrayEquals } from '../../../src/util/misc';
 
 export class DocumentSnapshot<T = firestore.DocumentData>
@@ -39,7 +42,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     public _firestore: Firestore,
     public _key: DocumentKey,
     public _document: Document | null,
-    public _converter: firestore.FirestoreDataConverter<T> | null
+    public _converter: UntypedFirestoreDataConverter<T> | null
   ) {}
 
   get id(): string {
@@ -49,8 +52,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
   get ref(): firestore.DocumentReference<T> {
     return new DocumentReference<T>(
       this._firestore,
-      this._key,
-      this._converter
+      this._converter,
+      this._key.path
     );
   }
 
@@ -77,7 +80,11 @@ export class DocumentSnapshot<T = firestore.DocumentData>
         /* timestampsInSnapshots= */ true,
         /* serverTimestampBehavior=*/ 'none',
         key =>
-          new DocumentReference(this._firestore, key, /* converter= */ null)
+          new DocumentReference(
+            this._firestore,
+            /* converter= */ null,
+            key.path
+          )
       );
       return userDataWriter.convertValue(this._document.toProto()) as T;
     }
@@ -93,7 +100,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
           this._firestore._databaseId,
           /* timestampsInSnapshots= */ true,
           /* serverTimestampBehavior=*/ 'none',
-          key => new DocumentReference(this._firestore, key, this._converter)
+          key =>
+            new DocumentReference(this._firestore, this._converter, key.path)
         );
         return userDataWriter.convertValue(value);
       }

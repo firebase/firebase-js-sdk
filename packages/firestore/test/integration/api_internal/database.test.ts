@@ -24,7 +24,6 @@ import { SimpleDb } from '../../../src/local/simple_db';
 import { User } from '../../../src/auth/user';
 import { withMockCredentialProviderTestDb } from '../util/internal_helpers';
 
-// tslint:disable:no-floating-promises
 use(chaiAsPromised);
 
 apiDescribe('Database (with internal API)', (persistence: boolean) => {

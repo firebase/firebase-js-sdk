@@ -26,16 +26,16 @@ const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 const TEST_SUITE_TIMEOUT_MS = 100000;
 const TEST_DOMAIN = 'valid-vapid-key';
 
-describe('Firebase Messaging Integration Tests > get and delete token', function() {
+describe('Firebase Messaging Integration Tests > get and delete token', function () {
   this.timeout(TEST_SUITE_TIMEOUT_MS);
   this.retries(3);
   let globalWebDriver;
 
-  before(async function() {
+  before(async function () {
     await testServer.start();
   });
 
-  after(async function() {
+  after(async function () {
     await testServer.stop();
   });
 
@@ -46,8 +46,8 @@ describe('Firebase Messaging Integration Tests > get and delete token', function
       return;
     }
 
-    describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${TEST_DOMAIN}`, function() {
-      before(async function() {
+    describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${TEST_DOMAIN}`, function () {
+      before(async function () {
         // Use one webDriver per browser instead of one per test to speed up test.
         globalWebDriver = createPermittedWebDriver(
           /* browser= */ assistantBrowser.getId()
@@ -58,15 +58,15 @@ describe('Firebase Messaging Integration Tests > get and delete token', function
         );
       });
 
-      after(async function() {
+      after(async function () {
         await seleniumAssistant.killWebDriver(globalWebDriver);
       });
 
-      afterEach(async function() {
+      afterEach(async function () {
         await clearAppForTest(globalWebDriver);
       });
 
-      it(`Test app can delete a valid token`, async function() {
+      it(`Test app can delete a valid token`, async function () {
         const token = await retrieveToken(globalWebDriver);
         expect(token).to.exist;
         try {

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-const stringToByteArray = function(str: string): number[] {
+const stringToByteArray = function (str: string): number[] {
   // TODO(user): Use native implementations if/when available
   const out: number[] = [];
   let p = 0;
@@ -52,7 +52,7 @@ const stringToByteArray = function(str: string): number[] {
  * @param bytes Array of numbers representing characters.
  * @return Stringification of the array.
  */
-const byteArrayToString = function(bytes: number[]): string {
+const byteArrayToString = function (bytes: number[]): string {
   // TODO(user): Use native implementations if/when available
   const out: string[] = [];
   let pos = 0,
@@ -336,7 +336,7 @@ export const base64: Base64 = {
 /**
  * URL-safe base64 encoding
  */
-export const base64Encode = function(str: string): string {
+export const base64Encode = function (str: string): string {
   const utf8Bytes = stringToByteArray(str);
   return base64.encodeByteArray(utf8Bytes, true);
 };
@@ -350,7 +350,7 @@ export const base64Encode = function(str: string): string {
  * @param str To be decoded
  * @return Decoded result, if possible
  */
-export const base64Decode = function(str: string): string | null {
+export const base64Decode = function (str: string): string | null {
   try {
     return base64.decodeString(str, true);
   } catch (e) {

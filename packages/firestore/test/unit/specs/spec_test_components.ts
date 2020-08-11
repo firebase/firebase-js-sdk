@@ -17,8 +17,9 @@
 
 import {
   ComponentConfiguration,
-  IndexedDbComponentProvider,
-  MemoryComponentProvider
+  MemoryOfflineComponentProvider,
+  OnlineComponentProvider,
+  MultiTabOfflineComponentProvider
 } from '../../../src/core/component_provider';
 import {
   GarbageCollectionScheduler,
@@ -26,7 +27,10 @@ import {
   PersistenceTransaction,
   PersistenceTransactionMode
 } from '../../../src/local/persistence';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import {
+  indexedDbStoragePrefix,
+  IndexedDbPersistence
+} from '../../../src/local/indexeddb_persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { IndexedDbTransactionError } from '../../../src/local/simple_db';
 import { debugAssert, fail } from '../../../src/util/assert';
@@ -58,6 +62,8 @@ import {
 } from '../../../src/local/shared_client_state';
 import { WindowLike } from '../../../src/util/types';
 import { newSerializer } from '../../../src/platform/serializer';
+import { Datastore, newDatastore } from '../../../src/remote/datastore';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
 
 /**
  * A test-only MemoryPersistence implementation that is able to inject
@@ -114,14 +120,29 @@ function failTransactionIfNeeded(
   }
 }
 
-export class MockIndexedDbComponentProvider extends IndexedDbComponentProvider {
+export class MockOnlineComponentProvider extends OnlineComponentProvider {
+  constructor(private readonly connection: MockConnection) {
+    super();
+  }
+
+  createDatastore(cfg: ComponentConfiguration): Datastore {
+    const serializer = new JsonProtoSerializer(
+      cfg.databaseInfo.databaseId,
+      /* useProto3Json= */ true
+    );
+    return newDatastore(cfg.credentials, this.connection, serializer);
+  }
+}
+
+export class MockMultiTabOfflineComponentProvider extends MultiTabOfflineComponentProvider {
   persistence!: MockIndexedDbPersistence;
 
   constructor(
     private readonly window: WindowLike,
-    private readonly document: FakeDocument
+    private readonly document: FakeDocument,
+    onlineComponentProvider: OnlineComponentProvider
   ) {
-    super();
+    super(onlineComponentProvider);
   }
 
   createGarbageCollectionScheduler(
@@ -131,8 +152,9 @@ export class MockIndexedDbComponentProvider extends IndexedDbComponentProvider {
   }
 
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      cfg.databaseInfo
+    const persistenceKey = indexedDbStoragePrefix(
+      cfg.databaseInfo.databaseId,
+      cfg.databaseInfo.persistenceKey
     );
     return new WebStorageSharedClientState(
       this.window,
@@ -149,8 +171,9 @@ export class MockIndexedDbComponentProvider extends IndexedDbComponentProvider {
       'Can only start durable persistence'
     );
 
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      cfg.databaseInfo
+    const persistenceKey = indexedDbStoragePrefix(
+      cfg.databaseInfo.databaseId,
+      cfg.databaseInfo.persistenceKey
     );
     const serializer = newSerializer(cfg.databaseInfo.databaseId);
 
@@ -169,8 +192,9 @@ export class MockIndexedDbComponentProvider extends IndexedDbComponentProvider {
   }
 }
 
-export class MockMemoryComponentProvider extends MemoryComponentProvider {
+export class MockMemoryOfflineComponentProvider extends MemoryOfflineComponentProvider {
   persistence!: MockMemoryPersistence;
+  connection!: MockConnection;
 
   constructor(private readonly gcEnabled: boolean) {
     super();

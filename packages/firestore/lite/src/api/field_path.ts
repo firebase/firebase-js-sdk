@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../index';
+import * as firestore from '../../../lite-types';
 
 import { BaseFieldPath } from '../../../src/api/field_path';
 import { cast } from './util';

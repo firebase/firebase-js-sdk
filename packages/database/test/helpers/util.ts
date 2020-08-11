@@ -161,7 +161,7 @@ export function getFreshRepoFromReference(ref) {
 // Little helpers to get the currently cached snapshot / value.
 export function getSnap(path) {
   let snap;
-  const callback = function(snapshot) {
+  const callback = function (snapshot) {
     snap = snapshot;
   };
   path.once('value', callback);

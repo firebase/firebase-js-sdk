@@ -1,14 +1,12 @@
 {
   "name": "@firebase/logger",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "A logger package for use in the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -24,9 +22,9 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "2.7.6",
-    "rollup-plugin-typescript2": "0.27.0",
-    "typescript": "3.8.3"
+    "rollup": "2.23.0",
+    "rollup-plugin-typescript2": "0.27.1",
+    "typescript": "3.9.7"
   },
   "repository": {
     "directory": "packages/logger",

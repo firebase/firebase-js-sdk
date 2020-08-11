@@ -17,10 +17,10 @@
 
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
-import firebase from '../util/firebase_export';
+import * as firebaseExport from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
 
-const FieldPath = firebase.firestore!.FieldPath;
+const FieldPath = firebaseExport.FieldPath;
 
 const apiDescribe = integrationHelpers.apiDescribe;
 apiDescribe('Database transactions', (persistence: boolean) => {
@@ -207,10 +207,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     return integrationHelpers.withTestDb(persistence, async db => {
       const tt = new TransactionTester(db);
 
-      await tt
-        .withExistingDoc()
-        .run(get, delete1, delete1)
-        .expectNoDoc();
+      await tt.withExistingDoc().run(get, delete1, delete1).expectNoDoc();
       await tt
         .withExistingDoc()
         .run(get, delete1, update2)
@@ -220,10 +217,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .run(get, delete1, set2)
         .expectDoc({ foo: 'bar2' });
 
-      await tt
-        .withExistingDoc()
-        .run(get, update1, delete1)
-        .expectNoDoc();
+      await tt.withExistingDoc().run(get, update1, delete1).expectNoDoc();
       await tt
         .withExistingDoc()
         .run(get, update1, update2)
@@ -233,10 +227,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .run(get, update1, set2)
         .expectDoc({ foo: 'bar2' });
 
-      await tt
-        .withExistingDoc()
-        .run(get, set1, delete1)
-        .expectNoDoc();
+      await tt.withExistingDoc().run(get, set1, delete1).expectNoDoc();
       await tt
         .withExistingDoc()
         .run(get, set1, update2)
@@ -252,10 +243,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     return integrationHelpers.withTestDb(persistence, async db => {
       const tt = new TransactionTester(db);
 
-      await tt
-        .withNonexistentDoc()
-        .run(get, delete1, delete1)
-        .expectNoDoc();
+      await tt.withNonexistentDoc().run(get, delete1, delete1).expectNoDoc();
       await tt
         .withNonexistentDoc()
         .run(get, delete1, update2)
@@ -278,10 +266,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .run(get, update1, set1)
         .expectError('invalid-argument');
 
-      await tt
-        .withNonexistentDoc()
-        .run(get, set1, delete1)
-        .expectNoDoc();
+      await tt.withNonexistentDoc().run(get, set1, delete1).expectNoDoc();
       await tt
         .withNonexistentDoc()
         .run(get, set1, update2)
@@ -297,44 +282,23 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     return integrationHelpers.withTestDb(persistence, async db => {
       const tt = new TransactionTester(db);
 
-      await tt
-        .withExistingDoc()
-        .run(delete1, delete1)
-        .expectNoDoc();
+      await tt.withExistingDoc().run(delete1, delete1).expectNoDoc();
       await tt
         .withExistingDoc()
         .run(delete1, update2)
         .expectError('invalid-argument');
-      await tt
-        .withExistingDoc()
-        .run(delete1, set2)
-        .expectDoc({ foo: 'bar2' });
+      await tt.withExistingDoc().run(delete1, set2).expectDoc({ foo: 'bar2' });
 
-      await tt
-        .withExistingDoc()
-        .run(update1, delete1)
-        .expectNoDoc();
+      await tt.withExistingDoc().run(update1, delete1).expectNoDoc();
       await tt
         .withExistingDoc()
         .run(update1, update2)
         .expectDoc({ foo: 'bar2' });
-      await tt
-        .withExistingDoc()
-        .run(update1, set2)
-        .expectDoc({ foo: 'bar2' });
+      await tt.withExistingDoc().run(update1, set2).expectDoc({ foo: 'bar2' });
 
-      await tt
-        .withExistingDoc()
-        .run(set1, delete1)
-        .expectNoDoc();
-      await tt
-        .withExistingDoc()
-        .run(set1, update2)
-        .expectDoc({ foo: 'bar2' });
-      await tt
-        .withExistingDoc()
-        .run(set1, set2)
-        .expectDoc({ foo: 'bar2' });
+      await tt.withExistingDoc().run(set1, delete1).expectNoDoc();
+      await tt.withExistingDoc().run(set1, update2).expectDoc({ foo: 'bar2' });
+      await tt.withExistingDoc().run(set1, set2).expectDoc({ foo: 'bar2' });
     });
   });
 
@@ -342,10 +306,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     return integrationHelpers.withTestDb(persistence, async db => {
       const tt = new TransactionTester(db);
 
-      await tt
-        .withNonexistentDoc()
-        .run(delete1, delete1)
-        .expectNoDoc();
+      await tt.withNonexistentDoc().run(delete1, delete1).expectNoDoc();
       await tt
         .withNonexistentDoc()
         .run(delete1, update2)
@@ -363,23 +324,14 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .withNonexistentDoc()
         .run(update1, update2)
         .expectError('not-found');
-      await tt
-        .withNonexistentDoc()
-        .run(update1, set1)
-        .expectError('not-found');
+      await tt.withNonexistentDoc().run(update1, set1).expectError('not-found');
 
-      await tt
-        .withNonexistentDoc()
-        .run(set1, delete1)
-        .expectNoDoc();
+      await tt.withNonexistentDoc().run(set1, delete1).expectNoDoc();
       await tt
         .withNonexistentDoc()
         .run(set1, update2)
         .expectDoc({ foo: 'bar2' });
-      await tt
-        .withNonexistentDoc()
-        .run(set1, set2)
-        .expectDoc({ foo: 'bar2' });
+      await tt.withNonexistentDoc().run(set1, set2).expectDoc({ foo: 'bar2' });
     });
   });
 

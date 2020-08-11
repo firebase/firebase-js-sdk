@@ -46,7 +46,7 @@
  * @return {!firebase.database.Database} The default Database service if no app
  *   is provided or the Database service associated with the provided app.
  */
-firebase.database = function(app) {};
+firebase.database = function (app) {};
 
 /**
  * Gets the {@link firebase.database.Database `Database`} service for the
@@ -59,7 +59,7 @@ firebase.database = function(app) {};
  *
  * @return {!firebase.database.Database}
  */
-firebase.app.App.prototype.database = function() {};
+firebase.app.App.prototype.database = function () {};
 
 /**
  * The Firebase Database service interface.
@@ -75,7 +75,7 @@ firebase.app.App.prototype.database = function() {};
  *
  * @interface
  */
-firebase.database.Database = function() {};
+firebase.database.Database = function () {};
 
 /**
  * Logs debugging information to the console.
@@ -104,7 +104,7 @@ firebase.database.Database = function() {};
  * @param {boolean=} persistent Remembers the logging state between page
  *   refreshes if `true`.
  */
-firebase.database.enableLogging = function(logger, persistent) {};
+firebase.database.enableLogging = function (logger, persistent) {};
 
 /**
  * @namespace
@@ -160,7 +160,7 @@ firebase.database.Database.prototype.app;
  *   pointing to the provided path. Otherwise, a `Reference` pointing to the
  *   root of the Database.
  */
-firebase.database.Database.prototype.ref = function(path) {};
+firebase.database.Database.prototype.ref = function (path) {};
 
 /**
  * Returns a `Reference` representing the location in the Database
@@ -185,7 +185,7 @@ firebase.database.Database.prototype.ref = function(path) {};
  * @return {!firebase.database.Reference} A `Reference` pointing to the provided
  *   Firebase URL.
  */
-firebase.database.Database.prototype.refFromURL = function(url) {};
+firebase.database.Database.prototype.refFromURL = function (url) {};
 
 /**
  * Disconnects from the server (all Database operations will be completed
@@ -209,7 +209,7 @@ firebase.database.Database.prototype.refFromURL = function(url) {};
  * @example
  * firebase.database().goOffline();
  */
-firebase.database.Database.prototype.goOffline = function() {};
+firebase.database.Database.prototype.goOffline = function () {};
 
 /**
  * Reconnects to the server and synchronizes the offline Database state
@@ -223,7 +223,7 @@ firebase.database.Database.prototype.goOffline = function() {};
  * @example
  * firebase.database().goOnline();
  */
-firebase.database.Database.prototype.goOnline = function() {};
+firebase.database.Database.prototype.goOnline = function () {};
 
 /**
  * A `Reference` represents a specific location in your Database and can be used
@@ -241,7 +241,7 @@ firebase.database.Database.prototype.goOnline = function() {};
  * @interface
  * @extends {firebase.database.Query}
  */
-firebase.database.Reference = function() {};
+firebase.database.Reference = function () {};
 
 /**
  * The last part of the `Reference`'s path.
@@ -283,7 +283,7 @@ firebase.database.Reference.prototype.key;
  *   location.
  * @return {!firebase.database.Reference} The specified child location.
  */
-firebase.database.Reference.prototype.child = function(path) {};
+firebase.database.Reference.prototype.child = function (path) {};
 
 /**
  * The parent location of a `Reference`.
@@ -380,7 +380,7 @@ firebase.database.Reference.prototype.path;
  *   complete.
  * @return {!firebase.Promise<void>} Resolves when write to server is complete.
  */
-firebase.database.Reference.prototype.set = function(value, onComplete) {};
+firebase.database.Reference.prototype.set = function (value, onComplete) {};
 
 /**
  * Writes multiple values to the Database at once.
@@ -426,7 +426,7 @@ firebase.database.Reference.prototype.set = function(value, onComplete) {};
  *   complete.
  * @return {!firebase.Promise<void>} Resolves when update on server is complete.
  */
-firebase.database.Reference.prototype.update = function(values, onComplete) {};
+firebase.database.Reference.prototype.update = function (values, onComplete) {};
 
 /**
  * Writes data the Database location. Like `set()` but also specifies the
@@ -443,7 +443,7 @@ firebase.database.Reference.prototype.update = function(values, onComplete) {};
  * @param {function(?Error)=} onComplete
  * @return {!firebase.Promise<void>}
  */
-firebase.database.Reference.prototype.setWithPriority = function(
+firebase.database.Reference.prototype.setWithPriority = function (
   newVal,
   newPriority,
   onComplete
@@ -474,7 +474,7 @@ firebase.database.Reference.prototype.setWithPriority = function(
  *   complete.
  * @return {!firebase.Promise<void>} Resolves when remove on server is complete.
  */
-firebase.database.Reference.prototype.remove = function(onComplete) {};
+firebase.database.Reference.prototype.remove = function (onComplete) {};
 
 /**
  * Atomically modifies the data at this location.
@@ -562,7 +562,7 @@ firebase.database.Reference.prototype.remove = function(onComplete) {};
  * }>} Returns a Promise that can optionally be used instead of the onComplete
  *   callback to handle success and failure.
  */
-firebase.database.Reference.prototype.transaction = function(
+firebase.database.Reference.prototype.transaction = function (
   transactionUpdate,
   onComplete,
   applyLocally
@@ -581,7 +581,7 @@ firebase.database.Reference.prototype.transaction = function(
  * @param {function(?Error)} onComplete
  * @return {!firebase.Promise<void>}
  */
-firebase.database.Reference.prototype.setPriority = function(
+firebase.database.Reference.prototype.setPriority = function (
   priority,
   onComplete
 ) {};
@@ -591,7 +591,7 @@ firebase.database.Reference.prototype.setPriority = function(
  * @extends {firebase.database.Reference}
  * @extends {firebase.Thenable<void>}
  */
-firebase.database.ThenableReference = function() {};
+firebase.database.ThenableReference = function () {};
 
 /**
  * Generates a new child location using a unique key and returns its
@@ -637,7 +637,7 @@ firebase.database.ThenableReference = function() {};
  *   `Reference`; resolves when write is complete, but can be used immediately
  *   as the `Reference` to the child location.
  */
-firebase.database.Reference.prototype.push = function(value, onComplete) {};
+firebase.database.Reference.prototype.push = function (value, onComplete) {};
 
 /**
  * Returns an `OnDisconnect` object - see
@@ -648,7 +648,7 @@ firebase.database.Reference.prototype.push = function(value, onComplete) {};
  *
  * @return {!firebase.database.OnDisconnect}
  */
-firebase.database.Reference.prototype.onDisconnect = function() {};
+firebase.database.Reference.prototype.onDisconnect = function () {};
 
 /**
  * A `Query` sorts and filters the data at a Database location so only a subset
@@ -669,7 +669,7 @@ firebase.database.Reference.prototype.onDisconnect = function() {};
  *
  * @interface
  */
-firebase.database.Query = function() {};
+firebase.database.Query = function () {};
 
 /**
  * Returns a `Reference` to the `Query`'s location.
@@ -713,7 +713,7 @@ firebase.database.Query.prototype.ref;
  * @return {boolean} Whether or not the current and provided queries are
  *   equivalent.
  */
-firebase.database.Query.prototype.isEqual = function(other) {};
+firebase.database.Query.prototype.isEqual = function (other) {};
 
 /**
  * Listens for data changes at a particular location.
@@ -817,7 +817,7 @@ firebase.database.Query.prototype.isEqual = function(other) {};
  *   you want to pass an inline function to `on()` but store the callback
  *   function for later passing to `off()`.
  */
-firebase.database.Query.prototype.on = function(
+firebase.database.Query.prototype.on = function (
   eventType,
   callback,
   cancelCallbackOrContext,
@@ -862,7 +862,7 @@ firebase.database.Query.prototype.on = function(
  *   callback function that was passed to `on()`.
  * @param {Object=} context The context that was passed to `on()`.
  */
-firebase.database.Query.prototype.off = function(
+firebase.database.Query.prototype.off = function (
   eventType,
   callback,
   context
@@ -900,7 +900,7 @@ firebase.database.Query.prototype.off = function(
  *   when calling your callback(s).
  * @return {!firebase.Promise<*>}
  */
-firebase.database.Query.prototype.once = function(
+firebase.database.Query.prototype.once = function (
   eventType,
   successCallback,
   failureCallbackOrContext,
@@ -940,7 +940,7 @@ firebase.database.Query.prototype.once = function(
  * @param {number} limit The maximum number of nodes to include in this query.
  * @return {!firebase.database.Query}
  */
-firebase.database.Query.prototype.limitToFirst = function(limit) {};
+firebase.database.Query.prototype.limitToFirst = function (limit) {};
 
 /**
  * Generates a new `Query` object limited to the last specific number of
@@ -973,7 +973,7 @@ firebase.database.Query.prototype.limitToFirst = function(limit) {};
  * @param {number} limit The maximum number of nodes to include in this query.
  * @return {!firebase.database.Query}
  */
-firebase.database.Query.prototype.limitToLast = function(limit) {};
+firebase.database.Query.prototype.limitToLast = function (limit) {};
 
 /**
  * Generates a new `Query` object ordered by the specified child key.
@@ -1001,7 +1001,7 @@ firebase.database.Query.prototype.limitToLast = function(limit) {};
  * @param {string} path
  * @return {!firebase.database.Query}
  */
-firebase.database.Query.prototype.orderByChild = function(path) {};
+firebase.database.Query.prototype.orderByChild = function (path) {};
 
 /**
  * Generates a new `Query` object ordered by key.
@@ -1021,7 +1021,7 @@ firebase.database.Query.prototype.orderByChild = function(path) {};
  *
  * @return {!firebase.database.Query}
  */
-firebase.database.Query.prototype.orderByKey = function() {};
+firebase.database.Query.prototype.orderByKey = function () {};
 
 /**
  * Generates a new `Query` object ordered by priority.
@@ -1034,7 +1034,7 @@ firebase.database.Query.prototype.orderByKey = function() {};
  *
  * @return {!firebase.database.Query}
  */
-firebase.database.Query.prototype.orderByPriority = function() {};
+firebase.database.Query.prototype.orderByPriority = function () {};
 
 /**
  * Generates a new `Query` object ordered by value.
@@ -1057,7 +1057,7 @@ firebase.database.Query.prototype.orderByPriority = function() {};
  *
  * @return {!firebase.database.Query}
  */
-firebase.database.Query.prototype.orderByValue = function() {};
+firebase.database.Query.prototype.orderByValue = function () {};
 
 /**
  * Creates a `Query` with the specified starting point.
@@ -1091,7 +1091,7 @@ firebase.database.Query.prototype.orderByValue = function() {};
  *   if ordering by child, value, or priority.
  * @return {!firebase.database.Query}
  */
-firebase.database.Query.prototype.startAt = function(value, key) {};
+firebase.database.Query.prototype.startAt = function (value, key) {};
 
 /**
  * Creates a `Query` with the specified ending point.
@@ -1126,7 +1126,7 @@ firebase.database.Query.prototype.startAt = function(value, key) {};
  *   child, value, or priority.
  * @return {!firebase.database.Query}
  */
-firebase.database.Query.prototype.endAt = function(value, key) {};
+firebase.database.Query.prototype.endAt = function (value, key) {};
 
 /**
  * Creates a `Query` that includes children that match the specified value.
@@ -1160,7 +1160,7 @@ firebase.database.Query.prototype.endAt = function(value, key) {};
  *   child, value, or priority.
  * @return {!firebase.database.Query}
  */
-firebase.database.Query.prototype.equalTo = function(value, key) {};
+firebase.database.Query.prototype.equalTo = function (value, key) {};
 
 /**
  * Gets the absolute URL for this location.
@@ -1189,14 +1189,14 @@ firebase.database.Query.prototype.equalTo = function(value, key) {};
  * @return {string} The absolute URL for this location.
  * @override
  */
-firebase.database.Query.prototype.toString = function() {};
+firebase.database.Query.prototype.toString = function () {};
 
 /**
  * Returns a JSON-serializable representation of this object.
  *
  * @return {!Object} A JSON-serializable representation of this object.
  */
-firebase.database.Query.prototype.toJSON = function() {};
+firebase.database.Query.prototype.toJSON = function () {};
 
 /**
  * A `DataSnapshot` contains data from a Database location.
@@ -1214,7 +1214,7 @@ firebase.database.Query.prototype.toJSON = function() {};
  *
  * @interface
  */
-firebase.database.DataSnapshot = function() {};
+firebase.database.DataSnapshot = function () {};
 
 /**
  * Extracts a JavaScript value from a `DataSnapshot`.
@@ -1249,7 +1249,7 @@ firebase.database.DataSnapshot = function() {};
  * @return {*} The DataSnapshot's contents as a JavaScript value (Object,
  *   Array, string, number, boolean, or `null`).
  */
-firebase.database.DataSnapshot.prototype.val = function() {};
+firebase.database.DataSnapshot.prototype.val = function () {};
 
 /**
  * Exports the entire contents of the DataSnapshot as a JavaScript object.
@@ -1260,7 +1260,7 @@ firebase.database.DataSnapshot.prototype.val = function() {};
  * @return {*} The DataSnapshot's contents as a JavaScript value (Object,
  *   Array, string, number, boolean, or `null`).
  */
-firebase.database.DataSnapshot.prototype.exportVal = function() {};
+firebase.database.DataSnapshot.prototype.exportVal = function () {};
 
 /**
  * Returns true if this `DataSnapshot` contains any data. It is slightly more
@@ -1287,7 +1287,7 @@ firebase.database.DataSnapshot.prototype.exportVal = function() {};
  *
  * @return {boolean}
  */
-firebase.database.DataSnapshot.prototype.exists = function() {};
+firebase.database.DataSnapshot.prototype.exists = function () {};
 
 /**
  * Gets another `DataSnapshot` for the location at the specified relative path.
@@ -1321,7 +1321,7 @@ firebase.database.DataSnapshot.prototype.exists = function() {};
  * @param {string} path A relative path to the location of child data.
  * @return {!firebase.database.DataSnapshot}
  */
-firebase.database.DataSnapshot.prototype.child = function(path) {};
+firebase.database.DataSnapshot.prototype.child = function (path) {};
 
 /**
  * Returns true if the specified child path has (non-null) data.
@@ -1347,7 +1347,7 @@ firebase.database.DataSnapshot.prototype.child = function(path) {};
  * @return {boolean} `true` if data exists at the specified child path; else
  *  `false`.
  */
-firebase.database.DataSnapshot.prototype.hasChild = function(path) {};
+firebase.database.DataSnapshot.prototype.hasChild = function (path) {};
 
 /**
  * Gets the priority value of the data in this `DataSnapshot`.
@@ -1360,7 +1360,7 @@ firebase.database.DataSnapshot.prototype.hasChild = function(path) {};
  *
  * @return {string|number|null}
  */
-firebase.database.DataSnapshot.prototype.getPriority = function() {};
+firebase.database.DataSnapshot.prototype.getPriority = function () {};
 
 /**
  * Enumerates the top-level children in the `DataSnapshot`.
@@ -1426,7 +1426,7 @@ firebase.database.DataSnapshot.prototype.getPriority = function() {};
  * @return {boolean} true if enumeration was canceled due to your callback
  *   returning true.
  */
-firebase.database.DataSnapshot.prototype.forEach = function(action) {};
+firebase.database.DataSnapshot.prototype.forEach = function (action) {};
 
 /**
  * Returns whether or not the `DataSnapshot` has any non-`null` child
@@ -1457,7 +1457,7 @@ firebase.database.DataSnapshot.prototype.forEach = function(action) {};
  *
  * @return {boolean} true if this snapshot has any children; else false.
  */
-firebase.database.DataSnapshot.prototype.hasChildren = function() {};
+firebase.database.DataSnapshot.prototype.hasChildren = function () {};
 
 /**
  * The key (last part of the path) of the location of this `DataSnapshot`.
@@ -1517,7 +1517,7 @@ firebase.database.DataSnapshot.prototype.key;
  *
  * @return {number}
  */
-firebase.database.DataSnapshot.prototype.numChildren = function() {};
+firebase.database.DataSnapshot.prototype.numChildren = function () {};
 
 /**
  * The `Reference` for the location that generated this `DataSnapshot`.
@@ -1531,7 +1531,7 @@ firebase.database.DataSnapshot.prototype.ref;
  *
  * @return {?Object} A JSON-serializable representation of this object.
  */
-firebase.database.DataSnapshot.prototype.toJSON = function() {};
+firebase.database.DataSnapshot.prototype.toJSON = function () {};
 
 /**
  * The `onDisconnect` class allows you to write or clear data when your client
@@ -1556,7 +1556,7 @@ firebase.database.DataSnapshot.prototype.toJSON = function() {};
  *
  * @interface
  */
-firebase.database.OnDisconnect = function() {};
+firebase.database.OnDisconnect = function () {};
 
 /**
  * Cancels all previously queued `onDisconnect()` set or update events for this
@@ -1579,7 +1579,7 @@ firebase.database.OnDisconnect = function() {};
  * @return {!firebase.Promise<void>} Resolves when synchronization to the server
  *   is complete.
  */
-firebase.database.OnDisconnect.prototype.cancel = function(onComplete) {};
+firebase.database.OnDisconnect.prototype.cancel = function (onComplete) {};
 
 /**
  * Ensures the data at this location is deleted when the client is disconnected
@@ -1592,7 +1592,7 @@ firebase.database.OnDisconnect.prototype.cancel = function(onComplete) {};
  * @return {!firebase.Promise<void>} Resolves when synchronization to the server
  *   is complete.
  */
-firebase.database.OnDisconnect.prototype.remove = function(onComplete) {};
+firebase.database.OnDisconnect.prototype.remove = function (onComplete) {};
 
 /**
  * Ensures the data at this location is set to the specified value when the
@@ -1623,7 +1623,7 @@ firebase.database.OnDisconnect.prototype.remove = function(onComplete) {};
  * @return {!firebase.Promise<void>} Resolves when synchronization to the
  *   Database is complete.
  */
-firebase.database.OnDisconnect.prototype.set = function(value, onComplete) {};
+firebase.database.OnDisconnect.prototype.set = function (value, onComplete) {};
 
 /**
  * Ensures the data at this location is set to the specified value and priority
@@ -1635,7 +1635,7 @@ firebase.database.OnDisconnect.prototype.set = function(value, onComplete) {};
  * @param {function(?Error)=} onComplete
  * @return {!firebase.Promise<void>}
  */
-firebase.database.OnDisconnect.prototype.setWithPriority = function(
+firebase.database.OnDisconnect.prototype.setWithPriority = function (
   value,
   priority,
   onComplete
@@ -1676,7 +1676,7 @@ firebase.database.OnDisconnect.prototype.setWithPriority = function(
  * @return {!firebase.Promise<void>} Resolves when synchronization to the
  *   Database is complete.
  */
-firebase.database.OnDisconnect.prototype.update = function(
+firebase.database.OnDisconnect.prototype.update = function (
   values,
   onComplete
 ) {};

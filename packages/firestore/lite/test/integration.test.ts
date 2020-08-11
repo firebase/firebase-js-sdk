@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../index';
+import * as firestore from '../../lite-types';
 
 import { initializeApp } from '@firebase/app-exp';
 import { expect, use } from 'chai';
@@ -28,6 +28,9 @@ import {
   terminate
 } from '../src/api/database';
 import {
+  Post,
+  postConverter,
+  postConverterMerge,
   withTestCollection,
   withTestCollectionAndInitialData,
   withTestDb,
@@ -49,17 +52,17 @@ import {
   refEqual,
   queryEqual,
   collectionGroup,
-  getQuery
+  getDocs,
+  orderBy,
+  startAfter,
+  query,
+  limit,
+  endAt,
+  endBefore,
+  startAt,
+  limitToLast,
+  where
 } from '../src/api/reference';
-import { FieldPath } from '../src/api/field_path';
-import {
-  DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS
-} from '../../test/integration/util/settings';
-import { writeBatch } from '../src/api/write_batch';
-import { runTransaction } from '../src/api/transaction';
-import { expectEqual, expectNotEqual } from '../../test/util/helpers';
-import { snapshotEqual } from '../src/api/snapshot';
 import {
   FieldValue,
   deleteField,
@@ -68,6 +71,15 @@ import {
   arrayUnion,
   arrayRemove
 } from '../src/api/field_value';
+import { FieldPath } from '../src/api/field_path';
+import { writeBatch } from '../src/api/write_batch';
+import { runTransaction } from '../src/api/transaction';
+import { snapshotEqual } from '../src/api/snapshot';
+import {
+  DEFAULT_PROJECT_ID,
+  DEFAULT_SETTINGS
+} from '../../test/integration/util/settings';
+import { expectEqual, expectNotEqual } from '../../test/util/helpers';
 import { Timestamp } from '../../src/api/timestamp';
 
 use(chaiAsPromised);
@@ -97,9 +109,13 @@ describe('Firestore', () => {
       { apiKey: 'fake-api-key', projectId: 'test-project' },
       'test-app-initializeFirestore-twice'
     );
-    initializeFirestore(app, { host: 'localhost', ssl: false });
+    const db = initializeFirestore(app, {});
+
+    // Start the client.
+    writeBatch(db);
+
     expect(() => {
-      initializeFirestore(app, { host: 'localhost', ssl: false });
+      initializeFirestore(app, {});
     }).to.throw(
       'Firestore has already been started and its settings can no longer be changed.'
     );
@@ -120,9 +136,13 @@ describe('Firestore', () => {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     terminate(firestore);
 
-    return expect(
-      getDoc(doc(firestore, 'coll/doc'))
-    ).to.be.eventually.rejectedWith('The client has already been terminated.');
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      getDoc(doc(firestore, 'coll/doc'));
+      expect.fail();
+    } catch (e) {
+      expect(e.message).to.equal('The client has already been terminated.');
+    }
   });
 
   it('can call terminate() multiple times', () => {
@@ -140,7 +160,7 @@ describe('Firestore', () => {
 });
 
 describe('doc', () => {
-  it('can provide name', () => {
+  it('can be used relative to Firestore root', () => {
     return withTestDb(db => {
       const result = doc(db, 'coll/doc');
       expect(result).to.be.an.instanceOf(DocumentReference);
@@ -149,16 +169,37 @@ describe('doc', () => {
     });
   });
 
+  it('can be used relative to collection', () => {
+    return withTestDb(db => {
+      const result = doc(collection(db, 'coll'), 'doc');
+      expect(result).to.be.an.instanceOf(DocumentReference);
+      expect(result.id).to.equal('doc');
+      expect(result.path).to.equal('coll/doc');
+    });
+  });
+
+  it('can be relative to doc', () => {
+    return withTestDb(db => {
+      const result = doc(doc(db, 'coll/doc'), 'subcoll/subdoc');
+      expect(result).to.be.an.instanceOf(DocumentReference);
+      expect(result.id).to.equal('subdoc');
+      expect(result.path).to.equal('coll/doc/subcoll/subdoc');
+    });
+  });
+
   it('validates path', () => {
     return withTestDb(db => {
       expect(() => doc(db, 'coll')).to.throw(
-        'Invalid document path (coll). Path points to a collection.'
+        'Invalid document reference. Document references must have an even ' +
+          'number of segments, but coll has 1.'
       );
       expect(() => doc(db, '')).to.throw(
-        'Function doc() requires its second argument to be of type non-empty string, but it was: ""'
+        'Function doc() requires its second argument to be of type non-empty ' +
+          'string, but it was: ""'
       );
       expect(() => doc(collection(db, 'coll'), 'doc/coll')).to.throw(
-        'Invalid document path (coll/doc/coll). Path points to a collection.'
+        'Invalid document reference. Document references must have an even ' +
+          'number of segments, but coll/doc/coll has 3.'
       );
       expect(() => doc(db, 'coll//doc')).to.throw(
         'Invalid path (coll//doc). Paths must not contain // in them.'
@@ -176,9 +217,27 @@ describe('doc', () => {
 });
 
 describe('collection', () => {
-  it('can provide name', () => {
+  it('can be used relative to Firestore root', () => {
     return withTestDb(db => {
       const result = collection(db, 'coll/doc/subcoll');
+      expect(result).to.be.an.instanceOf(CollectionReference);
+      expect(result.id).to.equal('subcoll');
+      expect(result.path).to.equal('coll/doc/subcoll');
+    });
+  });
+
+  it('can be used relative to collection', () => {
+    return withTestDb(db => {
+      const result = collection(collection(db, 'coll'), 'doc/subcoll');
+      expect(result).to.be.an.instanceOf(CollectionReference);
+      expect(result.id).to.equal('subcoll');
+      expect(result.path).to.equal('coll/doc/subcoll');
+    });
+  });
+
+  it('can be used relative to doc', () => {
+    return withTestDb(db => {
+      const result = collection(doc(db, 'coll/doc'), 'subcoll');
       expect(result).to.be.an.instanceOf(CollectionReference);
       expect(result.id).to.equal('subcoll');
       expect(result.path).to.equal('coll/doc/subcoll');
@@ -188,15 +247,18 @@ describe('collection', () => {
   it('validates path', () => {
     return withTestDb(db => {
       expect(() => collection(db, 'coll/doc')).to.throw(
-        'Invalid collection path (coll/doc). Path points to a document.'
+        'Invalid collection reference. Collection references must have an odd ' +
+          'number of segments, but coll/doc has 2.'
       );
       // TODO(firestorelite): Explore returning a more helpful message
       // (e.g. "Empty document paths are not supported.")
       expect(() => collection(doc(db, 'coll/doc'), '')).to.throw(
-        'Function doc() requires its second argument to be of type non-empty string, but it was: ""'
+        'Function collection() requires its second argument to be of type ' +
+          'non-empty string, but it was: ""'
       );
       expect(() => collection(doc(db, 'coll/doc'), 'coll/doc')).to.throw(
-        'Invalid collection path (coll/doc/coll/doc). Path points to a document.'
+        'Invalid collection reference. Collection references must have an odd ' +
+          'number of segments, but coll/doc/coll/doc has 4.'
       );
     });
   });
@@ -319,7 +381,7 @@ describe('WriteBatch', () => {
       batch.set(doc(coll), { doc: 2 });
       await batch.commit();
 
-      // TODO(firestorelite): Verify collection contents once getQuery is added
+      // TODO(firestorelite): Verify collection contents once getDocs is added
     });
   });
 
@@ -352,11 +414,12 @@ describe('Transaction', () => {
       data: T | Partial<T>,
       options?: firestore.SetOptions
     ): Promise<void> {
-      const args = Array.from(arguments);
       return runTransaction(ref.firestore, async transaction => {
-        // TODO(mrschmidt): Find a way to remove the `any` cast here
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (transaction.set as any).apply(transaction, args);
+        if (options) {
+          transaction.set(ref, data, options);
+        } else {
+          transaction.set(ref, data);
+        }
       });
     }
 
@@ -366,17 +429,24 @@ describe('Transaction', () => {
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {
-      const args = Array.from(arguments);
       return runTransaction(ref.firestore, async transaction => {
-        // TODO(mrschmidt): Find a way to remove the `any` cast here
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (transaction.update as any).apply(transaction, args);
+        if (value) {
+          transaction.update(
+            ref,
+            dataOrField as string | firestore.FieldPath,
+            value,
+            ...moreFieldsAndValues
+          );
+        } else {
+          transaction.update(ref, dataOrField as firestore.UpdateData);
+        }
       });
     }
   }
 
   genericMutationTests(
     new TransactionTester(),
+    /* testRunnerMayUseBackoff= */ true,
     /* validationUsesPromises= */ true
   );
 
@@ -426,7 +496,8 @@ describe('Transaction', () => {
 
 function genericMutationTests(
   op: MutationTester,
-  validationUsesPromises: boolean = false
+  testRunnerMayUseBackoff = false,
+  validationUsesPromises = false
 ): void {
   const setDoc = op.set;
   const updateDoc = op.update;
@@ -480,17 +551,41 @@ function genericMutationTests(
       });
     });
 
+    it('supports partials with merge', async () => {
+      return withTestDb(async db => {
+        const coll = collection(db, 'posts');
+        const ref = doc(coll, 'post').withConverter(postConverterMerge);
+        await setDoc(ref, new Post('walnut', 'author'));
+        await setDoc(ref, { title: 'olive' }, { merge: true });
+        const postDoc = await getDoc(ref);
+        expect(postDoc.get('title')).to.equal('olive');
+        expect(postDoc.get('author')).to.equal('author');
+      });
+    });
+
+    it('supports partials with mergeFields', async () => {
+      return withTestDb(async db => {
+        const coll = collection(db, 'posts');
+        const ref = doc(coll, 'post').withConverter(postConverterMerge);
+        await setDoc(ref, new Post('walnut', 'author'));
+        await setDoc(ref, { title: 'olive' }, { mergeFields: ['title'] });
+        const postDoc = await getDoc(ref);
+        expect(postDoc.get('title')).to.equal('olive');
+        expect(postDoc.get('author')).to.equal('author');
+      });
+    });
+
     it('throws when user input fails validation', () => {
       return withTestDoc(async docRef => {
         if (validationUsesPromises) {
           return expect(
             setDoc(docRef, { val: undefined })
           ).to.eventually.be.rejectedWith(
-            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         } else {
           expect(() => setDoc(docRef, { val: undefined })).to.throw(
-            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         }
       });
@@ -527,12 +622,18 @@ function genericMutationTests(
       });
     });
 
-    it('enforces that document exists', () => {
-      return withTestDoc(async docRef => {
-        await expect(updateDoc(docRef, { foo: 2, baz: 2 })).to.eventually.be
-          .rejected;
-      });
-    });
+    // The Transaction tests use backoff for updates that fail with failed
+    // preconditions. This leads to test timeouts.
+    // eslint-disable-next-line no-restricted-properties
+    (testRunnerMayUseBackoff ? it.skip : it)(
+      'enforces that document exists',
+      () => {
+        return withTestDoc(async docRef => {
+          await expect(updateDoc(docRef, { foo: 2, baz: 2 })).to.eventually.be
+            .rejected;
+        });
+      }
+    );
 
     it('throws when user input fails validation', () => {
       return withTestDoc(async docRef => {
@@ -540,11 +641,11 @@ function genericMutationTests(
           return expect(
             updateDoc(docRef, { val: undefined })
           ).to.eventually.be.rejectedWith(
-            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         } else {
           expect(() => updateDoc(docRef, { val: undefined })).to.throw(
-            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val\)/
+            /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         }
       });
@@ -564,7 +665,7 @@ describe('addDoc()', () => {
   it('throws when user input fails validation', () => {
     return withTestCollection(async collRef => {
       expect(() => addDoc(collRef, { val: undefined })).to.throw(
-        'Function addDoc() called with invalid data. Unsupported field value: undefined (found in field val)'
+        /Function addDoc\(\) called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
       );
     });
   });
@@ -687,14 +788,14 @@ describe('Query', () => {
 
   it('supports default query', () => {
     return withTestCollectionAndInitialData([{ foo: 1 }], async collRef => {
-      const result = await getQuery(collRef);
+      const result = await getDocs(collRef);
       verifyResults(result, { foo: 1 });
     });
   });
 
   it('supports empty results', () => {
     return withTestCollectionAndInitialData([], async collRef => {
-      const result = await getQuery(collRef);
+      const result = await getDocs(collRef);
       verifyResults(result);
     });
   });
@@ -703,8 +804,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.where('foo', '==', 1);
-        const result = await getQuery(query);
+        const query1 = query(collRef, where('foo', '==', 1));
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 1 });
       }
     );
@@ -714,8 +815,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.where(new FieldPath('foo'), '==', 1);
-        const result = await getQuery(query);
+        const query1 = query(collRef, where(new FieldPath('foo'), '==', 1));
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 1 });
       }
     );
@@ -725,8 +826,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.orderBy('foo');
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo'));
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 1 }, { foo: 2 });
       }
     );
@@ -736,8 +837,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.orderBy('foo', 'asc');
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo', 'asc'));
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 1 }, { foo: 2 });
       }
     );
@@ -747,8 +848,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.orderBy('foo', 'desc');
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo', 'desc'));
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 2 }, { foo: 1 });
       }
     );
@@ -758,8 +859,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.orderBy('foo').limit(1);
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo'), limit(1));
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 1 });
       }
     );
@@ -769,8 +870,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }, { foo: 3 }],
       async collRef => {
-        const query = collRef.orderBy('foo').limitToLast(2);
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo'), limitToLast(2));
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 2 }, { foo: 3 });
       }
     );
@@ -780,8 +881,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.orderBy('foo').startAt(2);
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo'), startAt(2));
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 2 });
       }
     );
@@ -791,8 +892,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.orderBy('foo').startAfter(1);
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo'), startAfter(1));
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 2 });
       }
     );
@@ -802,8 +903,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.orderBy('foo').endAt(1);
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo'), endAt(1));
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 1 });
       }
     );
@@ -813,8 +914,8 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query = collRef.orderBy('foo').endBefore(2);
-        const result = await getQuery(query);
+        const query1 = query(collRef, orderBy('foo'), endBefore(2));
+        const result = await getDocs(query1);
         verifyResults(result, { foo: 1 });
       }
     );
@@ -824,13 +925,13 @@ describe('Query', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        let query = collRef.orderBy('foo').limit(1);
-        let result = await getQuery(query);
+        let query1 = query(collRef, orderBy('foo'), limit(1));
+        let result = await getDocs(query1);
         verifyResults(result, { foo: 1 });
 
         // Pass the document snapshot from the previous result
-        query = query.startAfter(result.docs[0]);
-        result = await getQuery(query);
+        query1 = query(query1, startAfter(result.docs[0]));
+        result = await getDocs(query1);
         verifyResults(result, { foo: 2 });
       }
     );
@@ -851,8 +952,8 @@ describe('Query', () => {
       await setDoc(fooDoc, { foo: 1 });
       await setDoc(barDoc, { bar: 1 });
 
-      const query = collectionGroup(collRef.firestore, collectionGroupId);
-      const result = await getQuery(query);
+      const query1 = collectionGroup(collRef.firestore, collectionGroupId);
+      const result = await getDocs(query1);
 
       verifyResults(result, { bar: 1 }, { foo: 1 });
     });
@@ -881,7 +982,8 @@ describe('equality', () => {
       expect(refEqual(coll1a, coll2)).to.be.false;
 
       const coll1c = collection(firestore, 'a').withConverter({
-        toFirestore: data => data as firestore.DocumentData,
+        toFirestore: (data: firestore.DocumentData) =>
+          data as firestore.DocumentData,
         fromFirestore: snap => snap.data()
       });
       expect(refEqual(coll1a, coll1c)).to.be.false;
@@ -900,7 +1002,8 @@ describe('equality', () => {
       expect(refEqual(doc1a, doc2)).to.be.false;
 
       const doc1c = collection(firestore, 'a').withConverter({
-        toFirestore: data => data as firestore.DocumentData,
+        toFirestore: (data: firestore.DocumentData) =>
+          data as firestore.DocumentData,
         fromFirestore: snap => snap.data()
       });
       expect(refEqual(doc1a, doc1c)).to.be.false;
@@ -913,11 +1016,10 @@ describe('equality', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query1a = collRef.orderBy('foo');
-        const query1b = collRef.orderBy('foo', 'asc');
-        const query2 = collRef.orderBy('foo', 'desc');
-        // TODO(firestorelite): Should we allow `collectionRef(collRef, 'a/b')?
-        const query3 = collection(doc(collRef, 'a'), 'b').orderBy('foo');
+        const query1a = query(collRef, orderBy('foo'));
+        const query1b = query(collRef, orderBy('foo', 'asc'));
+        const query2 = query(collRef, orderBy('foo', 'desc'));
+        const query3 = query(collection(collRef, 'a/b'), orderBy('foo'));
 
         expect(queryEqual(query1a, query1b)).to.be.true;
         expect(queryEqual(query1a, query2)).to.be.false;
@@ -930,20 +1032,20 @@ describe('equality', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const query1a = collRef.limit(10);
-        const query1b = collRef.limit(10);
-        const query2 = collRef.limit(100);
+        const query1a = query(collRef, limit(10));
+        const query1b = query(collRef, limit(10));
+        const query2 = query(collRef, limit(100));
 
-        const snap1a = await getQuery(query1a);
-        const snap1b = await getQuery(query1b);
-        const snap2 = await getQuery(query2);
+        const snap1a = await getDocs(query1a);
+        const snap1b = await getDocs(query1b);
+        const snap2 = await getDocs(query2);
 
         expect(snapshotEqual(snap1a, snap1b)).to.be.true;
         expect(snapshotEqual(snap1a, snap2)).to.be.false;
 
         // Re-run the query with an additional result.
         await addDoc(collRef, { foo: 3 });
-        const snap1c = await getQuery(query1a);
+        const snap1c = await getDocs(query1a);
         expect(snapshotEqual(snap1a, snap1c)).to.be.false;
       }
     );
@@ -953,14 +1055,14 @@ describe('equality', () => {
     return withTestCollectionAndInitialData(
       [{ foo: 1 }, { foo: 2 }],
       async collRef => {
-        const snap1a = await getQuery(collRef);
-        const snap1b = await getQuery(collRef);
+        const snap1a = await getDocs(collRef);
+        const snap1b = await getDocs(collRef);
         expect(snapshotEqual(snap1a.docs[0], snap1b.docs[0])).to.be.true;
         expect(snapshotEqual(snap1a.docs[0], snap1a.docs[0])).to.be.true;
 
         // Modify the document and obtain the snapshot again.
         await updateDoc(snap1a.docs[0].ref, { foo: 3 });
-        const snap3 = await getQuery(collRef);
+        const snap3 = await getDocs(collRef);
         expect(snapshotEqual(snap1a.docs[0], snap3.docs[0])).to.be.false;
       }
     );
@@ -968,23 +1070,6 @@ describe('equality', () => {
 });
 
 describe('withConverter() support', () => {
-  class Post {
-    constructor(readonly title: string, readonly author: string) {}
-    byline(): string {
-      return this.title + ', by ' + this.author;
-    }
-  }
-
-  const postConverter = {
-    toFirestore(post: Post): firestore.DocumentData {
-      return { title: post.title, author: post.author };
-    },
-    fromFirestore(snapshot: firestore.QueryDocumentSnapshot): Post {
-      const data = snapshot.data();
-      return new Post(data.title, data.author);
-    }
-  };
-
   it('for DocumentReference.withConverter()', () => {
     return withTestDoc(async docRef => {
       docRef = docRef.withConverter(postConverter);
@@ -1011,9 +1096,19 @@ describe('withConverter() support', () => {
     return withTestCollection(async coll => {
       coll = coll.withConverter(postConverter);
       await setDoc(doc(coll, 'post1'), new Post('post1', 'author1'));
-      const posts = await getQuery(coll);
+      const posts = await getDocs(coll);
       expect(posts.size).to.equal(1);
       expect(posts.docs[0].data()!.byline()).to.equal('post1, by author1');
+    });
+  });
+
+  it('keeps the converter when calling parent() with a DocumentReference', () => {
+    return withTestDb(async db => {
+      const coll = doc(db, 'root/doc').withConverter(postConverter);
+      const typedColl = parent(coll)!;
+      expect(
+        refEqual(typedColl, collection(db, 'root').withConverter(postConverter))
+      ).to.be.true;
     });
   });
 
@@ -1043,6 +1138,21 @@ describe('withConverter() support', () => {
       const docRef = doc(db, 'some/doc').withConverter(postConverter);
       const docRef2 = doc(db, 'some/doc').withConverter(postConverter2);
       expect(refEqual(docRef, docRef2)).to.be.false;
+    });
+  });
+
+  it('requires the correct converter for Partial usage', async () => {
+    return withTestDb(async db => {
+      const coll = collection(db, 'posts');
+      const ref = doc(coll, 'post').withConverter(postConverter);
+      const batch = writeBatch(db);
+      expect(() =>
+        batch.set(ref, { title: 'olive' }, { merge: true })
+      ).to.throw(
+        'Function WriteBatch.set() called with invalid data ' +
+          '(via `toFirestore()`). Unsupported field value: undefined ' +
+          '(found in field author in document posts/post)'
+      );
     });
   });
 });

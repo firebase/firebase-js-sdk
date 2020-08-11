@@ -8,9 +8,7 @@
   "browser": "dist/index.esm5.js",
   "module": "dist/index.esm5.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -23,28 +21,28 @@
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.ts --config ../../config/mocharc.node.js",
     "type-check": "tsc -p . --noEmit",
-    "prepare": "rollup -c rollup.config.release.js",
+    "prepare": "rollup -c rollup.config.release.js && yarn api-report",
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
     "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc",
-    "typings:public": "node ./use_public_typings.js --public",
-    "typings:internal": "node ./use_public_typings.js"
+    "typings:public": "node ./use_typings.js --public",
+    "typings:internal": "node ./use_typings.js"
   },
   "dependencies": {
     "@firebase/app-types-exp": "0.0.800",
-    "@firebase/util": "0.2.49",
-    "@firebase/logger": "0.2.5",
-    "@firebase/component": "0.1.14",
+    "@firebase/util": "0.3.0",
+    "@firebase/logger": "0.2.6",
+    "@firebase/component": "0.1.17",
     "tslib": "^1.11.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "1.32.1",
+    "rollup": "2.23.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-replace": "2.2.0",
-    "rollup-plugin-typescript2": "0.27.0",
-    "typescript": "3.8.3"
+    "rollup-plugin-typescript2": "0.27.1",
+    "typescript": "3.9.7"
   },
   "repository": {
     "directory": "packages-exp/app-exp",

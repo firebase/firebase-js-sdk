@@ -21,6 +21,9 @@ import { Timestamp } from '../../../src/api/timestamp';
 import { Document, MaybeDocument } from '../../../src/model/document';
 import { serverTimestamp } from '../../../src/model/server_timestamps';
 import {
+  applyMutationToLocalView,
+  applyMutationToRemoteDocument,
+  extractMutationBaseValue,
   Mutation,
   MutationResult,
   Precondition
@@ -58,7 +61,7 @@ describe('Mutation', () => {
     const baseDoc = doc('collection/key', 0, docData);
 
     const set = setMutation('collection/key', { bar: 'bar-value' });
-    const setDoc = set.applyToLocalView(baseDoc, baseDoc, timestamp);
+    const setDoc = applyMutationToLocalView(set, baseDoc, baseDoc, timestamp);
     expect(setDoc).to.deep.equal(
       doc(
         'collection/key',
@@ -77,7 +80,12 @@ describe('Mutation', () => {
       'foo.bar': 'new-bar-value'
     });
 
-    const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
+    const patchedDoc = applyMutationToLocalView(
+      patch,
+      baseDoc,
+      baseDoc,
+      timestamp
+    );
     expect(patchedDoc).to.deep.equal(
       doc(
         'collection/key',
@@ -98,7 +106,12 @@ describe('Mutation', () => {
       Precondition.none()
     );
 
-    const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
+    const patchedDoc = applyMutationToLocalView(
+      patch,
+      baseDoc,
+      baseDoc,
+      timestamp
+    );
     expect(patchedDoc).to.deep.equal(
       doc(
         'collection/key',
@@ -119,7 +132,12 @@ describe('Mutation', () => {
       Precondition.none()
     );
 
-    const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
+    const patchedDoc = applyMutationToLocalView(
+      patch,
+      baseDoc,
+      baseDoc,
+      timestamp
+    );
     expect(patchedDoc).to.deep.equal(
       doc(
         'collection/key',
@@ -138,7 +156,12 @@ describe('Mutation', () => {
       'foo.bar': FieldValue.delete()
     });
 
-    const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
+    const patchedDoc = applyMutationToLocalView(
+      patch,
+      baseDoc,
+      baseDoc,
+      timestamp
+    );
     expect(patchedDoc).to.deep.equal(
       doc(
         'collection/key',
@@ -158,7 +181,12 @@ describe('Mutation', () => {
       'foo.bar': 'new-bar-value'
     });
 
-    const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
+    const patchedDoc = applyMutationToLocalView(
+      patch,
+      baseDoc,
+      baseDoc,
+      timestamp
+    );
     expect(patchedDoc).to.deep.equal(
       doc(
         'collection/key',
@@ -172,7 +200,12 @@ describe('Mutation', () => {
   it('patching a NoDocument yields a NoDocument', () => {
     const baseDoc = deletedDoc('collection/key', 0);
     const patch = patchMutation('collection/key', { foo: 'bar' });
-    const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
+    const patchedDoc = applyMutationToLocalView(
+      patch,
+      baseDoc,
+      baseDoc,
+      timestamp
+    );
     expect(patchedDoc).to.deep.equal(baseDoc);
   });
 
@@ -184,7 +217,8 @@ describe('Mutation', () => {
       'foo.bar': FieldValue.serverTimestamp()
     });
 
-    const transformedDoc = transform.applyToLocalView(
+    const transformedDoc = applyMutationToLocalView(
+      transform,
       baseDoc,
       baseDoc,
       timestamp
@@ -360,7 +394,8 @@ describe('Mutation', () => {
 
     for (const transformData of transforms) {
       const transform = transformMutation('collection/key', transformData);
-      transformedDoc = transform.applyToLocalView(
+      transformedDoc = applyMutationToLocalView(
+        transform,
         transformedDoc,
         transformedDoc,
         timestamp
@@ -389,7 +424,8 @@ describe('Mutation', () => {
         }
       }
     ]);
-    const transformedDoc = transform.applyToRemoteDocument(
+    const transformedDoc = applyMutationToRemoteDocument(
+      transform,
       baseDoc,
       mutationResult
     );
@@ -414,7 +450,8 @@ describe('Mutation', () => {
 
     // Server just sends null transform results for array operations.
     const mutationResult = new MutationResult(version(1), [null, null]);
-    const transformedDoc = transform.applyToRemoteDocument(
+    const transformedDoc = applyMutationToRemoteDocument(
+      transform,
       baseDoc,
       mutationResult
     );
@@ -500,7 +537,8 @@ describe('Mutation', () => {
     const mutationResult = new MutationResult(version(1), [
       { integerValue: 3 }
     ]);
-    const transformedDoc = transform.applyToRemoteDocument(
+    const transformedDoc = applyMutationToRemoteDocument(
+      transform,
       baseDoc,
       mutationResult
     );
@@ -514,7 +552,12 @@ describe('Mutation', () => {
     const baseDoc = doc('collection/key', 0, { foo: 'bar' });
 
     const mutation = deleteMutation('collection/key');
-    const result = mutation.applyToLocalView(baseDoc, baseDoc, Timestamp.now());
+    const result = applyMutationToLocalView(
+      mutation,
+      baseDoc,
+      baseDoc,
+      Timestamp.now()
+    );
     expect(result).to.deep.equal(deletedDoc('collection/key', 0));
   });
 
@@ -523,7 +566,7 @@ describe('Mutation', () => {
 
     const docSet = setMutation('collection/key', { foo: 'new-bar' });
     const setResult = mutationResult(4);
-    const setDoc = docSet.applyToRemoteDocument(baseDoc, setResult);
+    const setDoc = applyMutationToRemoteDocument(docSet, baseDoc, setResult);
     expect(setDoc).to.deep.equal(
       doc(
         'collection/key',
@@ -539,7 +582,7 @@ describe('Mutation', () => {
 
     const mutation = patchMutation('collection/key', { foo: 'new-bar' });
     const result = mutationResult(5);
-    const patchedDoc = mutation.applyToRemoteDocument(baseDoc, result);
+    const patchedDoc = applyMutationToRemoteDocument(mutation, baseDoc, result);
     expect(patchedDoc).to.deep.equal(
       doc(
         'collection/key',
@@ -558,7 +601,11 @@ describe('Mutation', () => {
     mutationResult: MutationResult,
     expected: MaybeDocument | null
   ): void {
-    const actual = mutation.applyToRemoteDocument(base, mutationResult);
+    const actual = applyMutationToRemoteDocument(
+      mutation,
+      base,
+      mutationResult
+    );
     expect(actual).to.deep.equal(expected);
   }
 
@@ -614,13 +661,13 @@ describe('Mutation', () => {
     const baseDoc = doc('collection/key', 0, data);
 
     const set = setMutation('collection/key', { foo: 'bar' });
-    expect(set.extractBaseValue(baseDoc)).to.be.null;
+    expect(extractMutationBaseValue(set, baseDoc)).to.be.null;
 
     const patch = patchMutation('collection/key', { foo: 'bar' });
-    expect(patch.extractBaseValue(baseDoc)).to.be.null;
+    expect(extractMutationBaseValue(patch, baseDoc)).to.be.null;
 
     const deleter = deleteMutation('collection/key');
-    expect(deleter.extractBaseValue(baseDoc)).to.be.null;
+    expect(extractMutationBaseValue(deleter, baseDoc)).to.be.null;
   });
 
   it('extracts null base value for ServerTimestamp', () => {
@@ -634,7 +681,7 @@ describe('Mutation', () => {
 
     // Server timestamps are idempotent and don't have base values.
     const transform = transformMutation('collection/key', allTransforms);
-    expect(transform.extractBaseValue(baseDoc)).to.be.null;
+    expect(extractMutationBaseValue(transform, baseDoc)).to.be.null;
   });
 
   it('extracts base value for increment', () => {
@@ -672,7 +719,7 @@ describe('Mutation', () => {
       missing: 0,
       nested: { double: 42.0, long: 42, text: 0, map: 0, missing: 0 }
     });
-    const actualBaseValue = transform.extractBaseValue(baseDoc);
+    const actualBaseValue = extractMutationBaseValue(transform, baseDoc);
 
     expect(expectedBaseValue.isEqual(actualBaseValue!)).to.be.true;
   });
@@ -683,12 +730,14 @@ describe('Mutation', () => {
     const increment = { sum: FieldValue.increment(1) };
     const transform = transformMutation('collection/key', increment);
 
-    let mutatedDoc = transform.applyToLocalView(
+    let mutatedDoc = applyMutationToLocalView(
+      transform,
       baseDoc,
       baseDoc,
       Timestamp.now()
     );
-    mutatedDoc = transform.applyToLocalView(
+    mutatedDoc = applyMutationToLocalView(
+      transform,
       mutatedDoc,
       baseDoc,
       Timestamp.now()

@@ -46,10 +46,7 @@ const LOG_TAG = 'Connection';
 // should use the Firebase version instead.
 const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${SDK_VERSION} grpc/${grpcVersion}`;
 
-function createMetadata(
-  databaseInfo: DatabaseInfo,
-  token: Token | null
-): Metadata {
+function createMetadata(databasePath: string, token: Token | null): Metadata {
   hardAssert(
     token === null || token.type === 'OAuth',
     'If provided, token must be OAuth'
@@ -66,11 +63,7 @@ function createMetadata(
   metadata.set('x-goog-api-client', X_GOOG_API_CLIENT_VALUE);
   // This header is used to improve routing and project isolation by the
   // backend.
-  metadata.set(
-    'google-cloud-resource-prefix',
-    `projects/${databaseInfo.databaseId.projectId}/` +
-      `databases/${databaseInfo.databaseId.database}`
-  );
+  metadata.set('google-cloud-resource-prefix', databasePath);
   return metadata;
 }
 
@@ -83,8 +76,9 @@ type GeneratedGrpcStub = any;
  * A Connection implemented by GRPC-Node.
  */
 export class GrpcConnection implements Connection {
+  private readonly databasePath: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private firestore: any;
+  private readonly firestore: any;
 
   // We cache stubs for the most-recently-used token.
   private cachedStub: GeneratedGrpcStub | null = null;
@@ -92,6 +86,7 @@ export class GrpcConnection implements Connection {
   constructor(protos: GrpcObject, private databaseInfo: DatabaseInfo) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.firestore = (protos as any)['google']['firestore']['v1'];
+    this.databasePath = `projects/${databaseInfo.databaseId.projectId}/databases/${databaseInfo.databaseId.database}`;
   }
 
   private ensureActiveStub(): GeneratedGrpcStub {
@@ -110,16 +105,18 @@ export class GrpcConnection implements Connection {
 
   invokeRPC<Req, Resp>(
     rpcName: string,
+    path: string,
     request: Req,
     token: Token | null
   ): Promise<Resp> {
     const stub = this.ensureActiveStub();
-    const metadata = createMetadata(this.databaseInfo, token);
+    const metadata = createMetadata(this.databasePath, token);
+    const jsonRequest = { database: this.databasePath, ...request };
 
     return nodePromise((callback: NodeCallback<Resp>) => {
       logDebug(LOG_TAG, `RPC '${rpcName}' invoked with request:`, request);
       return stub[rpcName](
-        request,
+        jsonRequest,
         metadata,
         (grpcError?: ServiceError, value?: Resp) => {
           if (grpcError) {
@@ -145,6 +142,7 @@ export class GrpcConnection implements Connection {
 
   invokeStreamingRPC<Req, Resp>(
     rpcName: string,
+    path: string,
     request: Req,
     token: Token | null
   ): Promise<Resp[]> {
@@ -157,8 +155,9 @@ export class GrpcConnection implements Connection {
       request
     );
     const stub = this.ensureActiveStub();
-    const metadata = createMetadata(this.databaseInfo, token);
-    const stream = stub[rpcName](request, metadata);
+    const metadata = createMetadata(this.databasePath, token);
+    const jsonRequest = { ...request, database: this.databasePath };
+    const stream = stub[rpcName](jsonRequest, metadata);
     stream.on('data', (response: Resp) => {
       logDebug(LOG_TAG, `RPC ${rpcName} received result:`, response);
       results.push(response);
@@ -182,7 +181,7 @@ export class GrpcConnection implements Connection {
     token: Token | null
   ): Stream<Req, Resp> {
     const stub = this.ensureActiveStub();
-    const metadata = createMetadata(this.databaseInfo, token);
+    const metadata = createMetadata(this.databasePath, token);
     const grpcStream = stub[rpcName](metadata);
 
     let closed = false;
@@ -230,15 +229,17 @@ export class GrpcConnection implements Connection {
     });
 
     grpcStream.on('error', (grpcError: ServiceError) => {
-      logWarn(
-        LOG_TAG,
-        'GRPC stream error. Code:',
-        grpcError.code,
-        'Message:',
-        grpcError.message
-      );
-      const code = mapCodeFromRpcCode(grpcError.code);
-      close(new FirestoreError(code, grpcError.message));
+      if (!closed) {
+        logWarn(
+          LOG_TAG,
+          'GRPC stream error. Code:',
+          grpcError.code,
+          'Message:',
+          grpcError.message
+        );
+        const code = mapCodeFromRpcCode(grpcError.code);
+        close(new FirestoreError(code, grpcError.message));
+      }
     });
 
     logDebug(LOG_TAG, 'Opening GRPC stream');

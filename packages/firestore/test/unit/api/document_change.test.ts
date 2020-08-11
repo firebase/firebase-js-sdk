@@ -19,7 +19,7 @@ import { expect } from 'chai';
 import {
   changesFromSnapshot,
   DocumentSnapshot,
-  Firestore
+  QueryDocumentSnapshot
 } from '../../../src/api/database';
 import { Query } from '../../../src/core/query';
 import { View } from '../../../src/core/view';
@@ -32,8 +32,9 @@ import {
   documentSetAsArray,
   key,
   orderBy,
-  path
+  query
 } from '../../util/helpers';
+import { firestore } from '../../util/api_helpers';
 
 describe('DocumentChange:', () => {
   function expectPositions(
@@ -54,10 +55,17 @@ describe('DocumentChange:', () => {
     const actual = documentSetAsArray(initialSnapshot.docs);
 
     const changes = changesFromSnapshot(
-      {} as Firestore,
-      true,
       updatedSnapshot,
-      /* converter= */ null
+      true,
+      (doc, fromCache, hasPendingWrite) =>
+        new QueryDocumentSnapshot(
+          firestore(),
+          doc.key,
+          doc,
+          fromCache,
+          hasPendingWrite,
+          /* converter= */ null
+        )
     );
 
     for (const change of changes) {
@@ -77,7 +85,7 @@ describe('DocumentChange:', () => {
   }
 
   it('positions are correct for additions', () => {
-    const query = Query.atPath(path('c'));
+    const query1 = query('c');
     const initialDocs = [
       doc('c/a', 1, {}),
       doc('c/c', 1, {}),
@@ -85,11 +93,11 @@ describe('DocumentChange:', () => {
     ];
     const updates = [doc('c/b', 2, {}), doc('c/d', 2, {})];
 
-    expectPositions(query, initialDocs, updates);
+    expectPositions(query1, initialDocs, updates);
   });
 
   it('positions are correct for deletions', () => {
-    const query = Query.atPath(path('c'));
+    const query1 = query('c');
     const initialDocs = [
       doc('c/a', 1, {}),
       doc('c/b', 1, {}),
@@ -97,11 +105,11 @@ describe('DocumentChange:', () => {
     ];
     const updates = [key('c/a'), key('c/c')];
 
-    expectPositions(query, initialDocs, updates);
+    expectPositions(query1, initialDocs, updates);
   });
 
   it('positions are correct for modifications', () => {
-    const query = Query.atPath(path('c'));
+    const query1 = query('c');
     const initialDocs = [
       doc('c/a', 1, { value: 'a-1' }),
       doc('c/b', 1, { value: 'b-1' }),
@@ -112,11 +120,11 @@ describe('DocumentChange:', () => {
       doc('c/c', 2, { value: 'c-2' })
     ];
 
-    expectPositions(query, initialDocs, updates);
+    expectPositions(query1, initialDocs, updates);
   });
 
   it('positions are correct for sort order changes', () => {
-    const query = Query.atPath(path('c')).addOrderBy(orderBy('sort'));
+    const query1 = query('c', orderBy('sort'));
     const initialDocs = [
       doc('c/a', 1, { sort: 10 }),
       doc('c/b', 1, { sort: 20 }),
@@ -130,11 +138,11 @@ describe('DocumentChange:', () => {
       doc('c/a', 2, { sort: 35 })
     ];
 
-    expectPositions(query, initialDocs, updates);
+    expectPositions(query1, initialDocs, updates);
   });
 
   it('positions are correct for randomly chosen examples', () => {
-    const query = Query.atPath(path('c')).addOrderBy(orderBy('sort'));
+    const query1 = query('c', orderBy('sort'));
     for (let run = 0; run < 100; run++) {
       const initialDocs: Document[] = [];
       const updates: Array<DocumentKey | Document> = [];
@@ -157,7 +165,7 @@ describe('DocumentChange:', () => {
         }
       }
 
-      expectPositions(query, initialDocs, updates);
+      expectPositions(query1, initialDocs, updates);
     }
   });
 });

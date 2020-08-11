@@ -53,9 +53,23 @@ module.exports = {
         '@typescript-eslint/no-explicit-any': 'error'
       }
     },
+    {
+      files: ['scripts/*.ts'],
+      rules: {
+        'import/no-extraneous-dependencies': 'off',
+        '@typescript-eslint/no-require-imports': 'off'
+      }
+    },
     // TODO(firestorelite): Remove this exception when app-exp is published
     {
       files: ['lite/**/*.ts'],
+      rules: {
+        'import/no-extraneous-dependencies': 'off'
+      }
+    },
+    // TODO(firestoreexp): Remove this exception when app-exp is published
+    {
+      files: ['exp/**/*.ts'],
       rules: {
         'import/no-extraneous-dependencies': 'off'
       }

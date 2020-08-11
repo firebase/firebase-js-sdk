@@ -1117,12 +1117,13 @@ declare namespace firebase {
    * // https://console.firebase.google.com
    * firebase.initializeApp({
    *   apiKey: "AIza....",                             // Auth / General Use
-   *   applicationId: "1:27992087142:web:ce....",      // General Use
+   *   appId: "1:27992087142:web:ce....",      // General Use
    *   projectId: "my-firebase-project",               // General Use
    *   authDomain: "YOUR_APP.firebaseapp.com",         // Auth with popup/redirect
    *   databaseURL: "https://YOUR_APP.firebaseio.com", // Realtime Database
    *   storageBucket: "YOUR_APP.appspot.com",          // Storage
-   *   messagingSenderId: "123456789"                  // Cloud Messaging
+   *   messagingSenderId: "123456789",                  // Cloud Messaging
+   *   measurementId: "G-12345"                        // Analytics
    * });
    * ```
    *
@@ -1132,7 +1133,7 @@ declare namespace firebase {
    * // Initialize another app
    * var otherApp = firebase.initializeApp({
    *   apiKey: "AIza....",
-   *   applicationId: "1:27992087142:web:ce....",
+   *   appId: "1:27992087142:web:ce....",
    *   projectId: "my-firebase-project",
    *   databaseURL: "https://<OTHER_DATABASE_NAME>.firebaseio.com",
    *   storageBucket: "<OTHER_STORAGE_BUCKET>.appspot.com"
@@ -5083,6 +5084,16 @@ declare namespace firebase.analytics {
     id?: string;
     name?: string;
   }
+
+  /**
+   * An async function that returns true if current browser context supports initialization of analytics module
+   * (`firebase.analytics()`).
+   *
+   * Returns false otherwise.
+   *
+   *
+   */
+  function isSupported(): Promise<boolean>;
 }
 
 declare namespace firebase.auth.Auth {
@@ -7579,7 +7590,7 @@ declare namespace firebase.storage {
     on(
       event: firebase.storage.TaskEvent,
       nextOrObserver?:
-        | firebase.Observer<UploadTaskSnapshot>
+        | Partial<firebase.Observer<UploadTaskSnapshot>>
         | null
         | ((a: UploadTaskSnapshot) => any),
       error?: ((a: Error) => any) | null,
@@ -7859,9 +7870,11 @@ declare namespace firebase.firestore {
     /**
      * Called by the Firestore SDK to convert a custom model object of type T
      * into a plain Javascript object (suitable for writing directly to the
-     * Firestore database).
+     * Firestore database). To use `set()` with `merge` and `mergeFields`,
+     * `toFirestore()` must be defined with `Partial<T>`.
      */
     toFirestore(modelObject: T): DocumentData;
+    toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
 
     /**
      * Called by the Firestore SDK to convert Firestore data into an object of
@@ -8310,9 +8323,20 @@ declare namespace firebase.firestore {
      */
     set<T>(
       documentRef: DocumentReference<T>,
-      data: T,
-      options?: SetOptions
+      data: Partial<T>,
+      options: SetOptions
     ): Transaction;
+
+    /**
+     * Writes to the document referred to by the provided `DocumentReference`.
+     * If the document does not exist yet, it will be created. If you pass
+     * `SetOptions`, the provided data can be merged into the existing document.
+     *
+     * @param documentRef A reference to the document to be set.
+     * @param data An object of the fields and values for the document.
+     * @return This `Transaction` instance. Used for chaining method calls.
+     */
+    set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
 
     /**
      * Updates fields in the document referred to by the provided
@@ -8384,9 +8408,20 @@ declare namespace firebase.firestore {
      */
     set<T>(
       documentRef: DocumentReference<T>,
-      data: T,
-      options?: SetOptions
+      data: Partial<T>,
+      options: SetOptions
     ): WriteBatch;
+
+    /**
+     * Writes to the document referred to by the provided `DocumentReference`.
+     * If the document does not exist yet, it will be created. If you pass
+     * `SetOptions`, the provided data can be merged into the existing document.
+     *
+     * @param documentRef A reference to the document to be set.
+     * @param data An object of the fields and values for the document.
+     * @return This `WriteBatch` instance. Used for chaining method calls.
+     */
+    set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
 
     /**
      * Updates fields in the document referred to by the provided
@@ -8566,7 +8601,18 @@ declare namespace firebase.firestore {
      * @return A Promise resolved once the data has been successfully written
      * to the backend (Note that it won't resolve while you're offline).
      */
-    set(data: T, options?: SetOptions): Promise<void>;
+    set(data: Partial<T>, options: SetOptions): Promise<void>;
+
+    /**
+     * Writes to the document referred to by this `DocumentReference`. If the
+     * document does not yet exist, it will be created. If you pass
+     * `SetOptions`, the provided data can be merged into an existing document.
+     *
+     * @param data A map of the fields and values for the document.
+     * @return A Promise resolved once the data has been successfully written
+     * to the backend (Note that it won't resolve while you're offline).
+     */
+    set(data: T): Promise<void>;
 
     /**
      * Updates fields in the document referred to by this `DocumentReference`.

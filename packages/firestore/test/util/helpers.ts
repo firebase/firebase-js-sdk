@@ -24,14 +24,24 @@ import { expect } from 'chai';
 import { Blob } from '../../src/api/blob';
 import { fromDotSeparatedString } from '../../src/api/field_path';
 import { UserDataWriter } from '../../src/api/user_data_writer';
-import { UserDataReader } from '../../src/api/user_data_reader';
+import {
+  parseQueryValue,
+  parseUpdateData,
+  UserDataReader
+} from '../../src/api/user_data_reader';
 import { DatabaseId } from '../../src/core/database_info';
 import {
   Bound,
   Direction,
   FieldFilter,
+  Filter,
+  newQueryForPath,
   Operator,
-  OrderBy
+  OrderBy,
+  Query,
+  queryToTarget,
+  queryWithAddedFilter,
+  queryWithAddedOrderBy
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
 import { TargetId } from '../../src/core/types';
@@ -84,7 +94,7 @@ import { primitiveComparator } from '../../src/util/misc';
 import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
-import { FIRESTORE, query } from './api_helpers';
+import { FIRESTORE } from './api_helpers';
 import { ByteString } from '../../src/util/byte_string';
 import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
@@ -92,6 +102,7 @@ import { Timestamp } from '../../src/api/timestamp';
 import { DocumentReference } from '../../src/api/database';
 import { DeleteFieldValueImpl } from '../../src/api/field_value';
 import { Code, FirestoreError } from '../../src/util/error';
+import { TEST_DATABASE_ID } from '../unit/local/persistence_test_helpers';
 
 /* eslint-disable no-restricted-globals */
 
@@ -99,7 +110,7 @@ export type TestSnapshotVersion = number;
 
 export function testUserDataWriter(): UserDataWriter {
   return new UserDataWriter(
-    new DatabaseId('test-project'),
+    TEST_DATABASE_ID,
     /* timestampsInSnapshots= */ false,
     'none',
     key => new DocumentReference(key, FIRESTORE, /* converter= */ null)
@@ -107,12 +118,11 @@ export function testUserDataWriter(): UserDataWriter {
 }
 
 export function testUserDataReader(useProto3Json?: boolean): UserDataReader {
-  const databaseId = new DatabaseId('test-project');
   return new UserDataReader(
-    databaseId,
+    TEST_DATABASE_ID,
     /* ignoreUndefinedProperties= */ false,
     useProto3Json !== undefined
-      ? new JsonProtoSerializer(databaseId, useProto3Json)
+      ? new JsonProtoSerializer(TEST_DATABASE_ID, useProto3Json)
       : undefined
   );
 }
@@ -163,7 +173,7 @@ export function wrap(value: unknown): api.Value {
   // HACK: We use parseQueryValue() since it accepts scalars as well as
   // arrays / objects, and our tests currently use wrap() pretty generically so
   // we don't know the intent.
-  return testUserDataReader().parseQueryValue('wrap', value);
+  return parseQueryValue(testUserDataReader(), 'wrap', value);
 }
 
 export function wrapObject(obj: JsonObject<unknown>): ObjectValue {
@@ -208,13 +218,7 @@ export function blob(...bytes: number[]): Blob {
 export function filter(path: string, op: string, value: unknown): FieldFilter {
   const dataValue = wrap(value);
   const operator = op as Operator;
-  const filter = FieldFilter.create(field(path), operator, dataValue);
-
-  if (filter instanceof FieldFilter) {
-    return filter;
-  } else {
-    return fail('Unrecognized filter: ' + JSON.stringify(filter));
-  }
+  return FieldFilter.create(field(path), operator, dataValue);
 }
 
 export function setMutation(
@@ -238,9 +242,15 @@ export function patchMutation(
       json[k] = new DeleteFieldValueImpl('FieldValue.delete');
     }
   });
-  const parsed = testUserDataReader().parseUpdateData('patchMutation', json);
+  const patchKey = key(keyStr);
+  const parsed = parseUpdateData(
+    testUserDataReader(),
+    'patchMutation',
+    patchKey,
+    json
+  );
   return new PatchMutation(
-    key(keyStr),
+    patchKey,
     parsed.data,
     parsed.fieldMask,
     precondition
@@ -261,11 +271,14 @@ export function transformMutation(
   keyStr: string,
   data: Dict<unknown>
 ): TransformMutation {
-  const result = testUserDataReader().parseUpdateData(
+  const transformKey = key(keyStr);
+  const result = parseUpdateData(
+    testUserDataReader(),
     'transformMutation()',
+    transformKey,
     data
   );
-  return new TransformMutation(key(keyStr), result.fieldTransforms);
+  return new TransformMutation(transformKey, result.fieldTransforms);
 }
 
 export function mutationResult(
@@ -286,6 +299,21 @@ export function bound(
   return new Bound(components, before);
 }
 
+export function query(
+  resourcePath: string,
+  ...constraints: Array<OrderBy | Filter>
+): Query {
+  let q = newQueryForPath(path(resourcePath));
+  for (const constraint of constraints) {
+    if (constraint instanceof Filter) {
+      q = queryWithAddedFilter(q, constraint);
+    } else {
+      q = queryWithAddedOrderBy(q, constraint);
+    }
+  }
+  return q;
+}
+
 export function targetData(
   targetId: TargetId,
   queryPurpose: TargetPurpose,
@@ -294,7 +322,7 @@ export function targetData(
   // Arbitrary value.
   const sequenceNumber = 0;
   return new TargetData(
-    query(path)._query.toTarget(),
+    queryToTarget(query(path)),
     targetId,
     queryPurpose,
     sequenceNumber
@@ -778,7 +806,8 @@ export function expectSetToEqual<T>(set: SortedSet<T>, arr: T[]): void {
  */
 export function expectEqualitySets<T>(
   elems: T[][],
-  equalityFn: (v1: T, v2: T) => boolean
+  equalityFn: (v1: T, v2: T) => boolean,
+  stringifyFn?: (v: T) => string
 ): void {
   for (let i = 0; i < elems.length; i++) {
     const currentElems = elems[i];
@@ -792,9 +821,9 @@ export function expectEqualitySets<T>(
           expect(equalityFn(elem, otherElem)).to.equal(
             expectedComparison,
             'Expected (' +
-              elem +
+              (stringifyFn ? stringifyFn(elem) : elem) +
               ').isEqual(' +
-              otherElem +
+              (stringifyFn ? stringifyFn(otherElem) : otherElem) +
               ').to.equal(' +
               expectedComparison +
               ')'

@@ -19,7 +19,7 @@ import { expect } from 'chai';
 import { Path } from '../src/core/util/Path';
 
 describe('Path Tests', () => {
-  const expectGreater = function(left, right) {
+  const expectGreater = function (left, right) {
     expect(
       Path.comparePaths(new Path(left), new Path(right))
     ).to.be.greaterThan(0);
@@ -28,7 +28,7 @@ describe('Path Tests', () => {
     );
   };
 
-  const expectEqual = function(left, right) {
+  const expectEqual = function (left, right) {
     expect(Path.comparePaths(new Path(left), new Path(right))).to.equal(0);
   };
 
@@ -65,51 +65,24 @@ describe('Path Tests', () => {
 
   it('popFront() returns the parent', () => {
     expect(new Path('/a/b/c').popFront().toString()).to.equal('/b/c');
+    expect(new Path('/a/b/c').popFront().popFront().toString()).to.equal('/c');
     expect(
-      new Path('/a/b/c')
-        .popFront()
-        .popFront()
-        .toString()
-    ).to.equal('/c');
-    expect(
-      new Path('/a/b/c')
-        .popFront()
-        .popFront()
-        .popFront()
-        .toString()
+      new Path('/a/b/c').popFront().popFront().popFront().toString()
     ).to.equal('/');
     expect(
-      new Path('/a/b/c')
-        .popFront()
-        .popFront()
-        .popFront()
-        .popFront()
-        .toString()
+      new Path('/a/b/c').popFront().popFront().popFront().popFront().toString()
     ).to.equal('/');
   });
 
   it('parent() returns the parent', () => {
     expect(new Path('/a/b/c').parent().toString()).to.equal('/a/b');
-    expect(
-      new Path('/a/b/c')
-        .parent()
-        .parent()
-        .toString()
-    ).to.equal('/a');
-    expect(
-      new Path('/a/b/c')
-        .parent()
-        .parent()
-        .parent()
-        .toString()
-    ).to.equal('/');
-    expect(
-      new Path('/a/b/c')
-        .parent()
-        .parent()
-        .parent()
-        .parent()
-    ).to.equal(null);
+    expect(new Path('/a/b/c').parent().parent().toString()).to.equal('/a');
+    expect(new Path('/a/b/c').parent().parent().parent().toString()).to.equal(
+      '/'
+    );
+    expect(new Path('/a/b/c').parent().parent().parent().parent()).to.equal(
+      null
+    );
   });
 
   it('comparePaths() works as expected', () => {
