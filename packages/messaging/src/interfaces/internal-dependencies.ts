@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseInstallations } from '@firebase/installations-types';
-import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
-import { Provider } from '@firebase/component';
 import { AppConfig } from './app-config';
+import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseInstallations } from '@firebase/installations-types';
+import { Provider } from '@firebase/component';
 
 export interface FirebaseInternalDependencies {
   app: FirebaseApp;
