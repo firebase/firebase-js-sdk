@@ -37,14 +37,14 @@ export const DEFAULT_SSL = true;
  * An instance map that ensures only one Datastore exists per Firestore
  * instance.
  */
-const datastoreInstances = new Map<Firestore, Promise<Datastore>>();
+const datastoreInstances = new Map<Firestore, Datastore>();
 
 /**
  * Returns an initialized and started Datastore for the given Firestore
  * instance. Callers must invoke removeDatastore() when the Firestore
  * instance is terminated.
  */
-export function getDatastore(firestore: Firestore): Promise<Datastore> {
+export function getDatastore(firestore: Firestore): Datastore {
   if (firestore._terminated) {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
@@ -61,13 +61,16 @@ export function getDatastore(firestore: Firestore): Promise<Datastore> {
       settings.ssl ?? DEFAULT_SSL,
       /* forceLongPolling= */ false
     );
-    const datastorePromise = newConnection(databaseInfo).then(connection => {
-      const serializer = newSerializer(databaseInfo.databaseId);
-      const datastore = newDatastore(firestore._credentials, serializer);
-      datastore.start(connection);
-      return datastore;
-    });
-    datastoreInstances.set(firestore, datastorePromise);
+
+    const connection = newConnection(databaseInfo);
+    const serializer = newSerializer(databaseInfo.databaseId);
+    const datastore = newDatastore(
+      firestore._credentials,
+      connection,
+      serializer
+    );
+
+    datastoreInstances.set(firestore, datastore);
   }
   return datastoreInstances.get(firestore)!;
 }
@@ -76,11 +79,11 @@ export function getDatastore(firestore: Firestore): Promise<Datastore> {
  * Removes all components associated with the provided instance. Must be called
  * when the Firestore instance is terminated.
  */
-export async function removeComponents(firestore: Firestore): Promise<void> {
-  const datastorePromise = await datastoreInstances.get(firestore);
-  if (datastorePromise) {
+export function removeComponents(firestore: Firestore): void {
+  const datastore = datastoreInstances.get(firestore);
+  if (datastore) {
     logDebug(LOG_TAG, 'Removing Datastore');
     datastoreInstances.delete(firestore);
-    return (await datastorePromise).termiate();
+    datastore.terminate();
   }
 }

@@ -121,11 +121,8 @@ function failTransactionIfNeeded(
 }
 
 export class MockOnlineComponentProvider extends OnlineComponentProvider {
-  connection!: MockConnection;
-
-  async loadConnection(cfg: ComponentConfiguration): Promise<Connection> {
-    this.connection = new MockConnection(cfg.asyncQueue);
-    return this.connection;
+  constructor(private readonly connection: MockConnection) {
+    super();
   }
 
   createDatastore(cfg: ComponentConfiguration): Datastore {
@@ -133,7 +130,7 @@ export class MockOnlineComponentProvider extends OnlineComponentProvider {
       cfg.databaseInfo.databaseId,
       /* useProto3Json= */ true
     );
-    return newDatastore(cfg.credentials, serializer);
+    return newDatastore(cfg.credentials, this.connection, serializer);
   }
 }
 
