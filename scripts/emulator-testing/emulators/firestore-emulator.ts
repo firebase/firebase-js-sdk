@@ -26,7 +26,7 @@ export class FirestoreEmulator extends Emulator {
       // Use locked version of emulator for test to be deterministic.
       // The latest version can be found from firestore emulator doc:
       // https://firebase.google.com/docs/firestore/security/test-rules-emulator
-      'https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.10.4.jar',
+      'https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.11.7.jar',
       port
     );
     this.projectId = projectId;
