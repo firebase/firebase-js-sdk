@@ -32,14 +32,13 @@
     "@firebase/util": "0.3.0"
   },
   "repository": {
-    "directory": "packages/template",
+    "directory": "repo-scripts/size-analysis",
     "type": "git",
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/repo-scripts/size-analysis/test-inputs/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"
