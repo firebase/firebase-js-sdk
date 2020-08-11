@@ -1,5 +1,5 @@
 {
-  "name": "size-analysis-firebase",
+  "name": "firebase-size-analysis",
   "version": "0.1.0",
   "private": true,
   "description": "A template package for new firebase packages",
