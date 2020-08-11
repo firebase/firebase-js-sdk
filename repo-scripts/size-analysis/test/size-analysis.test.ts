@@ -43,8 +43,10 @@ describe('extractDeclarations on .d.ts file', () => {
   let testModuleDtsFile: string;
   let extractedDeclarations: MemberList;
   before(() => {
+    const start = Date.now();
     testModuleDtsFile = getTestModuleDtsFilePath();
     extractedDeclarations = extractDeclarations(testModuleDtsFile);
+    console.log('extractDeclarations on .d.ts file took ', Date.now() - start);
   });
   // export {tar as tarr, tar1 as tarr1} from '..'
   it('test export rename', () => {
@@ -198,12 +200,17 @@ describe('extractDeclarations on js bundle file', () => {
   let subsetExportsBundleFile: string;
   let extractedDeclarations: MemberList;
   before(() => {
+    const start = Date.now();
     const testModuleDtsFile: string = getTestModuleDtsFilePath();
     const map: Map<string, string> = buildMap(
       extractDeclarations(testModuleDtsFile)
     );
     subsetExportsBundleFile = getSubsetExportsBundleFilePath();
     extractedDeclarations = extractDeclarations(subsetExportsBundleFile, map);
+    console.log(
+      'extractDeclarations on js bundle file took ',
+      Date.now() - start
+    );
   });
   it('test variable extractions', () => {
     const variablesArray = ['aVar', 'fs1'];
