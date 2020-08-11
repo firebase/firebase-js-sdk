@@ -77,6 +77,9 @@ describe('FirebaseAnalytics instance tests', () => {
       delete window['dataLayer'];
       removeGtagScript();
     });
+    afterEach(() => {
+      gtagStub.reset();
+    });
     it('Contains reference to parent app', () => {
       expect(analyticsInstance.app).to.equal(app);
     });
@@ -111,7 +114,6 @@ describe('FirebaseAnalytics instance tests', () => {
           currency: 'USD'
         }
       );
-      gtagStub.reset();
     });
     it('setCurrentScreen() method exists on instance', () => {
       expect(analyticsInstance.setCurrentScreen).to.be.instanceOf(Function);
@@ -151,8 +153,11 @@ describe('FirebaseAnalytics instance tests', () => {
       delete window[customDataLayerName];
       removeGtagScript();
     });
+    afterEach(() => {
+      gtagStub.reset();
+    });
     it('Calls gtag correctly on logEvent (instance)', async () => {
-      analyticsInstance.logEvent(EventName.ADD_SHIPPING_INFO, {
+      analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
       // Clear event stack of async FID call.
@@ -174,13 +179,12 @@ describe('FirebaseAnalytics instance tests', () => {
       await Promise.all(Object.values(initializedIdPromisesMap));
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.EVENT,
-        EventName.ADD_SHIPPING_INFO,
+        EventName.ADD_PAYMENT_INFO,
         {
           'send_to': 'abcd-efgh',
           currency: 'USD'
         }
       );
-      gtagStub.reset();
     });
   });
 
