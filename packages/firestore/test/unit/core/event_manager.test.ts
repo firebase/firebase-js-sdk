@@ -19,10 +19,10 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {
   EventManager,
-  listen,
+  eventManagerListen,
   ListenOptions,
   QueryListener,
-  unlisten
+  eventManagerUnlisten
 } from '../../../src/core/event_manager';
 import { Query } from '../../../src/core/query';
 import { OnlineState } from '../../../src/core/types';
@@ -100,16 +100,16 @@ describe('EventManager', () => {
 
     const eventManager = new EventManager(syncEngine);
 
-    await listen(eventManager, fakeListener1);
+    await eventManagerListen(eventManager, fakeListener1);
     expect(localStoreSpy.allocateTarget.callCount).to.equal(1);
 
-    await listen(eventManager, fakeListener2);
+    await eventManagerListen(eventManager, fakeListener2);
     expect(localStoreSpy.allocateTarget.callCount).to.equal(1);
 
-    await unlisten(eventManager, fakeListener2);
+    await eventManagerUnlisten(eventManager, fakeListener2);
     expect(localStoreSpy.releaseTarget.callCount).to.equal(0);
 
-    await unlisten(eventManager, fakeListener1);
+    await eventManagerUnlisten(eventManager, fakeListener1);
     expect(localStoreSpy.releaseTarget.callCount).to.equal(1);
   });
 
@@ -117,7 +117,7 @@ describe('EventManager', () => {
     const query1 = query('foo/bar');
     const fakeListener1 = fakeQueryListener(query1);
     const eventManager = new EventManager(syncEngine);
-    await unlisten(eventManager, fakeListener1);
+    await eventManagerUnlisten(eventManager, fakeListener1);
     expect(localStoreSpy.releaseTarget.callCount).to.equal(0);
   });
 
@@ -141,9 +141,9 @@ describe('EventManager', () => {
 
     const eventManager = new EventManager(syncEngine);
 
-    await listen(eventManager, fakeListener1);
-    await listen(eventManager, fakeListener2);
-    await listen(eventManager, fakeListener3);
+    await eventManagerListen(eventManager, fakeListener1);
+    await eventManagerListen(eventManager, fakeListener2);
+    await eventManagerListen(eventManager, fakeListener3);
     expect(localStoreSpy.allocateTarget.callCount).to.equal(2);
 
     // We expect one initial snapshot per query registration.
@@ -179,7 +179,7 @@ describe('EventManager', () => {
 
     const eventManager = new EventManager(syncEngine);
 
-    await listen(eventManager, fakeListener1);
+    await eventManagerListen(eventManager, fakeListener1);
     expect(events).to.deep.equal([OnlineState.Unknown]);
     eventManager.onOnlineStateChange(OnlineState.Online);
     expect(events).to.deep.equal([OnlineState.Unknown, OnlineState.Online]);

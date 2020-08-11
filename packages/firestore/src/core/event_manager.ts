@@ -22,8 +22,8 @@ import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
 import {
   SyncEngine,
   SyncEngineListener,
-  listen as syncEngineListen,
-  unlisten as syncEngineUnlisten
+  syncEngineListen,
+  syncEngineUnlisten
 } from './sync_engine';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
@@ -303,7 +303,7 @@ export class QueryListener {
   }
 }
 
-export async function listen(
+export async function eventManagerListen(
   eventManager: EventManager,
   listener: QueryListener
 ): Promise<void> {
@@ -350,7 +350,7 @@ export async function listen(
   }
 }
 
-export async function unlisten(
+export async function eventManagerUnlisten(
   eventManager: EventManager,
   listener: QueryListener
 ): Promise<void> {

@@ -11,7 +11,6 @@
                 "formatJSON",
                 "formatPlural",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isIndexedDbTransactionError",
@@ -50,7 +49,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 21617
+        "sizeInBytes": 21244
     },
     "CollectionReference": {
         "dependencies": {
@@ -59,7 +58,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "isNullOrUndefined",
@@ -92,7 +90,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18846
+        "sizeInBytes": 18473
     },
     "DocumentReference": {
         "dependencies": {
@@ -101,7 +99,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "logDebug",
@@ -134,7 +131,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 20218
+        "sizeInBytes": 19845
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -157,7 +154,6 @@
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isIndexedDbTransactionError",
@@ -219,7 +215,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 39632
+        "sizeInBytes": 39259
     },
     "FieldPath": {
         "dependencies": {
@@ -230,7 +226,6 @@
                 "formatJSON",
                 "formatPlural",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "isPlainObject",
@@ -269,7 +264,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23290
+        "sizeInBytes": 22917
     },
     "FieldValue": {
         "dependencies": {
@@ -278,7 +273,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "logDebug",
@@ -308,7 +302,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16920
+        "sizeInBytes": 16547
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -317,7 +311,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "logDebug",
@@ -345,7 +338,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16829
+        "sizeInBytes": 16456
     },
     "GeoPoint": {
         "dependencies": {
@@ -355,7 +348,6 @@
                 "formatJSON",
                 "formatPlural",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "isPlainObject",
@@ -391,7 +383,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19681
+        "sizeInBytes": 19308
     },
     "Query": {
         "dependencies": {
@@ -400,7 +392,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "logDebug",
@@ -429,7 +420,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17022
+        "sizeInBytes": 16649
     },
     "QueryConstraint": {
         "dependencies": {
@@ -438,7 +429,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "logDebug",
@@ -467,7 +457,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16835
+        "sizeInBytes": 16462
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -490,7 +480,6 @@
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isIndexedDbTransactionError",
@@ -552,7 +541,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 39642
+        "sizeInBytes": 39269
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -576,7 +565,6 @@
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isIndexedDbTransactionError",
@@ -641,7 +629,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 42273
+        "sizeInBytes": 41900
     },
     "SnapshotMetadata": {
         "dependencies": {
@@ -650,7 +638,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "logDebug",
@@ -679,7 +666,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17044
+        "sizeInBytes": 16671
     },
     "Timestamp": {
         "dependencies": {
@@ -688,7 +675,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "logDebug",
@@ -717,7 +703,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18363
+        "sizeInBytes": 17990
     },
     "Transaction": {
         "dependencies": {
@@ -747,7 +733,6 @@
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isEmpty",
@@ -859,7 +844,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 63158
+        "sizeInBytes": 62785
     },
     "WriteBatch": {
         "dependencies": {
@@ -887,7 +872,6 @@
                 "geoPointEquals",
                 "getLocalWriteTime",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isEmpty",
@@ -989,7 +973,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 55895
+        "sizeInBytes": 55522
     },
     "addDoc": {
         "dependencies": {
@@ -1091,7 +1075,6 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getSyncEngine",
-                "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
@@ -1348,7 +1331,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 198417
+        "sizeInBytes": 198444
     },
     "arrayRemove": {
         "dependencies": {
@@ -1367,7 +1350,6 @@
                 "formatPlural",
                 "fullyQualifiedPrefixPath",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isEmpty",
@@ -1437,7 +1419,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 36187
+        "sizeInBytes": 35814
     },
     "arrayUnion": {
         "dependencies": {
@@ -1456,7 +1438,6 @@
                 "formatPlural",
                 "fullyQualifiedPrefixPath",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isEmpty",
@@ -1526,7 +1507,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 36179
+        "sizeInBytes": 35806
     },
     "clearIndexedDbPersistence": {
         "dependencies": {
@@ -1538,7 +1519,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "indexedDbClearPersistence",
                 "indexedDbStoragePrefix",
@@ -1575,7 +1555,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 29944
+        "sizeInBytes": 29922
     },
     "collection": {
         "dependencies": {
@@ -1585,7 +1565,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "isNullOrUndefined",
@@ -1630,7 +1609,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 24925
+        "sizeInBytes": 24552
     },
     "collectionGroup": {
         "dependencies": {
@@ -1641,7 +1620,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "isNullOrUndefined",
@@ -1681,7 +1659,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23310
+        "sizeInBytes": 22937
     },
     "deleteDoc": {
         "dependencies": {
@@ -1774,7 +1752,6 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getSyncEngine",
-                "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "isArray",
@@ -1999,7 +1976,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 180805
+        "sizeInBytes": 180832
     },
     "deleteField": {
         "dependencies": {
@@ -2009,7 +1986,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "logDebug",
@@ -2041,7 +2017,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17886
+        "sizeInBytes": 17513
     },
     "disableNetwork": {
         "dependencies": {
@@ -2135,7 +2111,6 @@
                 "getPersistence",
                 "getPostMutationVersion",
                 "getRemoteStore",
-                "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "isArray",
@@ -2358,7 +2333,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 180423
+        "sizeInBytes": 180450
     },
     "doc": {
         "dependencies": {
@@ -2368,7 +2343,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "isNullOrUndefined",
@@ -2413,7 +2387,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 24976
+        "sizeInBytes": 24603
     },
     "documentId": {
         "dependencies": {
@@ -2425,7 +2399,6 @@
                 "formatJSON",
                 "formatPlural",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "isPlainObject",
@@ -2464,7 +2437,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23340
+        "sizeInBytes": 22967
     },
     "enableIndexedDbPersistence": {
         "dependencies": {
@@ -2545,6 +2518,7 @@
                 "encodeResourcePath",
                 "encodeSegment",
                 "encodeSeparator",
+                "extractDocumentKeysFromArrayValue",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -2768,6 +2742,7 @@
                 "JsonProtoSerializer",
                 "KeyFieldFilter",
                 "KeyFieldInFilter",
+                "KeyFieldNotInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "ListenSequence",
@@ -2792,6 +2767,7 @@
                 "Mutation",
                 "MutationBatch",
                 "NoDocument",
+                "NotInFilter",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
                 "ObjectMap",
@@ -2830,7 +2806,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 208911
+        "sizeInBytes": 210577
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -2927,6 +2903,7 @@
                 "encodeResourcePath",
                 "encodeSegment",
                 "encodeSeparator",
+                "extractDocumentKeysFromArrayValue",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -3209,6 +3186,7 @@
                 "JsonProtoSerializer",
                 "KeyFieldFilter",
                 "KeyFieldInFilter",
+                "KeyFieldNotInFilter",
                 "LLRBEmptyNode",
                 "LLRBNode",
                 "LimboResolution",
@@ -3240,6 +3218,7 @@
                 "MutationResult",
                 "NoDocument",
                 "NoopConnectivityMonitor",
+                "NotInFilter",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
                 "ObjectMap",
@@ -3299,7 +3278,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 299726
+        "sizeInBytes": 301494
     },
     "enableNetwork": {
         "dependencies": {
@@ -3393,7 +3372,6 @@
                 "getPersistence",
                 "getPostMutationVersion",
                 "getRemoteStore",
-                "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "isArray",
@@ -3616,7 +3594,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 180420
+        "sizeInBytes": 180447
     },
     "endAt": {
         "dependencies": {
@@ -3641,7 +3619,6 @@
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isCollectionGroupQuery",
@@ -3739,7 +3716,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53186
+        "sizeInBytes": 52813
     },
     "endBefore": {
         "dependencies": {
@@ -3764,7 +3741,6 @@
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isCollectionGroupQuery",
@@ -3862,7 +3838,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53197
+        "sizeInBytes": 52824
     },
     "getDoc": {
         "dependencies": {
@@ -3932,6 +3908,8 @@
                 "enqueueListen",
                 "enqueueReadDocumentViaSnapshotListener",
                 "errorMessage",
+                "eventManagerListen",
+                "eventManagerUnlisten",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -3967,7 +3945,6 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "initializeViewAndComputeSnapshot",
@@ -3991,8 +3968,6 @@
                 "isPlainObject",
                 "isServerTimestamp",
                 "isValidResourceName",
-                "listen",
-                "listen$1",
                 "loadProtos",
                 "localTransformResults",
                 "logDebug",
@@ -4053,6 +4028,8 @@
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineListen",
+                "syncEngineUnlisten",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -4089,8 +4066,6 @@
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
-                "unlisten",
-                "unlisten$1",
                 "updateTrackedLimbos",
                 "validateArgType",
                 "validateExactNumberOfArgs",
@@ -4229,7 +4204,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 212263
+        "sizeInBytes": 212367
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4310,7 +4285,6 @@
                 "getOfflineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isArray",
@@ -4476,7 +4450,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 131638
+        "sizeInBytes": 131265
     },
     "getDocFromServer": {
         "dependencies": {
@@ -4546,6 +4520,8 @@
                 "enqueueListen",
                 "enqueueReadDocumentViaSnapshotListener",
                 "errorMessage",
+                "eventManagerListen",
+                "eventManagerUnlisten",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -4581,7 +4557,6 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "initializeViewAndComputeSnapshot",
@@ -4605,8 +4580,6 @@
                 "isPlainObject",
                 "isServerTimestamp",
                 "isValidResourceName",
-                "listen",
-                "listen$1",
                 "loadProtos",
                 "localTransformResults",
                 "logDebug",
@@ -4667,6 +4640,8 @@
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineListen",
+                "syncEngineUnlisten",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -4703,8 +4678,6 @@
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
-                "unlisten",
-                "unlisten$1",
                 "updateTrackedLimbos",
                 "validateArgType",
                 "validateExactNumberOfArgs",
@@ -4843,7 +4816,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 212319
+        "sizeInBytes": 212423
     },
     "getDocs": {
         "dependencies": {
@@ -4913,6 +4886,8 @@
                 "enqueueExecuteQueryViaSnapshotListener",
                 "enqueueListen",
                 "errorMessage",
+                "eventManagerListen",
+                "eventManagerUnlisten",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -4948,7 +4923,6 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "initializeViewAndComputeSnapshot",
@@ -4972,8 +4946,6 @@
                 "isPlainObject",
                 "isServerTimestamp",
                 "isValidResourceName",
-                "listen",
-                "listen$1",
                 "loadProtos",
                 "localTransformResults",
                 "logDebug",
@@ -5035,6 +5007,8 @@
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineListen",
+                "syncEngineUnlisten",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -5071,8 +5045,6 @@
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
-                "unlisten",
-                "unlisten$1",
                 "updateTrackedLimbos",
                 "validateArgType",
                 "validateExactNumberOfArgs",
@@ -5214,7 +5186,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 214826
+        "sizeInBytes": 214930
     },
     "getDocsFromCache": {
         "dependencies": {
@@ -5297,7 +5269,6 @@
                 "getOfflineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isArray",
@@ -5473,7 +5444,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 143889
+        "sizeInBytes": 143516
     },
     "getDocsFromServer": {
         "dependencies": {
@@ -5543,6 +5514,8 @@
                 "enqueueExecuteQueryViaSnapshotListener",
                 "enqueueListen",
                 "errorMessage",
+                "eventManagerListen",
+                "eventManagerUnlisten",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -5578,7 +5551,6 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "initializeViewAndComputeSnapshot",
@@ -5602,8 +5574,6 @@
                 "isPlainObject",
                 "isServerTimestamp",
                 "isValidResourceName",
-                "listen",
-                "listen$1",
                 "loadProtos",
                 "localTransformResults",
                 "logDebug",
@@ -5665,6 +5635,8 @@
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineListen",
+                "syncEngineUnlisten",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -5701,8 +5673,6 @@
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
-                "unlisten",
-                "unlisten$1",
                 "updateTrackedLimbos",
                 "validateArgType",
                 "validateExactNumberOfArgs",
@@ -5843,7 +5813,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 214564
+        "sizeInBytes": 214668
     },
     "getFirestore": {
         "dependencies": {
@@ -5853,7 +5823,6 @@
                 "formatJSON",
                 "getFirestore",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "logDebug",
@@ -5881,7 +5850,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16905
+        "sizeInBytes": 16532
     },
     "increment": {
         "dependencies": {
@@ -5890,7 +5859,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "increment",
                 "isIndexedDbTransactionError",
@@ -5931,7 +5899,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18751
+        "sizeInBytes": 18378
     },
     "initializeFirestore": {
         "dependencies": {
@@ -5940,7 +5908,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "initializeFirestore",
                 "isIndexedDbTransactionError",
@@ -5970,7 +5937,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18209
+        "sizeInBytes": 17836
     },
     "limit": {
         "dependencies": {
@@ -5979,7 +5946,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "isNullOrUndefined",
@@ -6016,7 +5982,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19336
+        "sizeInBytes": 18963
     },
     "limitToLast": {
         "dependencies": {
@@ -6025,7 +5991,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "isNullOrUndefined",
@@ -6062,7 +6027,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19360
+        "sizeInBytes": 18987
     },
     "onSnapshot": {
         "dependencies": {
@@ -6132,6 +6097,8 @@
                 "encodeBase64",
                 "enqueueListen",
                 "errorMessage",
+                "eventManagerListen",
+                "eventManagerUnlisten",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -6166,7 +6133,6 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "implementsAnyMethods",
@@ -6192,8 +6158,6 @@
                 "isPlainObject",
                 "isServerTimestamp",
                 "isValidResourceName",
-                "listen",
-                "listen$1",
                 "loadProtos",
                 "localTransformResults",
                 "logDebug",
@@ -6256,6 +6220,8 @@
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineListen",
+                "syncEngineUnlisten",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -6292,8 +6258,6 @@
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
-                "unlisten",
-                "unlisten$1",
                 "updateTrackedLimbos",
                 "validateArgType",
                 "validateExactNumberOfArgs",
@@ -6435,7 +6399,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 215909
+        "sizeInBytes": 216013
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -6527,7 +6491,6 @@
                 "getOfflineComponentProvider",
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
-                "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "implementsAnyMethods",
@@ -6754,7 +6717,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 181269
+        "sizeInBytes": 181296
     },
     "orderBy": {
         "dependencies": {
@@ -6770,7 +6733,6 @@
                 "formatPlural",
                 "fromDotSeparatedString",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isIndexedDbTransactionError",
@@ -6822,7 +6784,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 28981
+        "sizeInBytes": 28608
     },
     "parent": {
         "dependencies": {
@@ -6832,7 +6794,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "isNullOrUndefined",
@@ -6871,7 +6832,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22986
+        "sizeInBytes": 22613
     },
     "query": {
         "dependencies": {
@@ -6881,7 +6842,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "logDebug",
@@ -6911,7 +6871,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17603
+        "sizeInBytes": 17230
     },
     "queryEqual": {
         "dependencies": {
@@ -6930,7 +6890,6 @@
                 "geoPointEquals",
                 "getLocalWriteTime",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "isNegativeZero",
@@ -6987,7 +6946,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 33485
+        "sizeInBytes": 33112
     },
     "refEqual": {
         "dependencies": {
@@ -6996,7 +6955,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "isNullOrUndefined",
@@ -7035,7 +6993,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22533
+        "sizeInBytes": 22160
     },
     "runTransaction": {
         "dependencies": {
@@ -7078,7 +7036,6 @@
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "invokeBatchGetDocumentsRpc",
@@ -7222,7 +7179,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 81911
+        "sizeInBytes": 81716
     },
     "serverTimestamp": {
         "dependencies": {
@@ -7231,7 +7188,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "logDebug",
@@ -7267,7 +7223,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17897
+        "sizeInBytes": 17524
     },
     "setDoc": {
         "dependencies": {
@@ -7367,7 +7323,6 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getSyncEngine",
-                "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
@@ -7622,7 +7577,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 196699
+        "sizeInBytes": 196726
     },
     "setLogLevel": {
         "dependencies": {
@@ -7631,7 +7586,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "logDebug",
@@ -7660,7 +7614,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16871
+        "sizeInBytes": 16498
     },
     "snapshotEqual": {
         "dependencies": {
@@ -7689,7 +7643,6 @@
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isIndexedDbTransactionError",
@@ -7774,7 +7727,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 50917
+        "sizeInBytes": 50544
     },
     "startAfter": {
         "dependencies": {
@@ -7798,7 +7751,6 @@
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isCollectionGroupQuery",
@@ -7897,7 +7849,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53207
+        "sizeInBytes": 52834
     },
     "startAt": {
         "dependencies": {
@@ -7921,7 +7873,6 @@
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "getPreviousValue",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isCollectionGroupQuery",
@@ -8020,7 +7971,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53197
+        "sizeInBytes": 52824
     },
     "terminate": {
         "dependencies": {
@@ -8030,7 +7981,6 @@
                 "fail",
                 "formatJSON",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "logDebug",
@@ -8059,7 +8009,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17401
+        "sizeInBytes": 17028
     },
     "updateDoc": {
         "dependencies": {
@@ -8159,7 +8109,6 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getSyncEngine",
-                "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
@@ -8417,7 +8366,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 198198
+        "sizeInBytes": 198225
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -8509,7 +8458,6 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getSyncEngine",
-                "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "isArray",
@@ -8733,7 +8681,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 180212
+        "sizeInBytes": 180239
     },
     "where": {
         "dependencies": {
@@ -8752,10 +8700,12 @@
                 "compareNumbers",
                 "compareReferences",
                 "compareTimestamps",
+                "conflictingOps",
                 "createError",
                 "decodeBase64",
                 "encodeBase64",
                 "errorMessage",
+                "extractDocumentKeysFromArrayValue",
                 "fail",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
@@ -8767,7 +8717,6 @@
                 "geoPointEquals",
                 "getLocalWriteTime",
                 "getMessageOrStack",
-                "getWindow",
                 "hardAssert",
                 "invalidClassError",
                 "isArray",
@@ -8862,6 +8811,8 @@
                 "JsonProtoSerializer",
                 "KeyFieldFilter",
                 "KeyFieldInFilter",
+                "KeyFieldNotInFilter",
+                "NotInFilter",
                 "OAuthToken",
                 "ParseContext",
                 "Query",
@@ -8876,7 +8827,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 58541
+        "sizeInBytes": 59239
     },
     "writeBatch": {
         "dependencies": {
@@ -8977,7 +8928,6 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getSyncEngine",
-                "getWindow",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
@@ -9239,6 +9189,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 201865
+        "sizeInBytes": 201892
     }
 }
