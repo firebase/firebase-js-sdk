@@ -136,14 +136,11 @@ export function isSafari(): boolean {
 }
 
 /**
- * This method checks if indexedDB is supported by current browser
- * @return true if indexedDB is supported by current browser
+ * This method checks if indexedDB is supported by current browser/service worker context
+ * @return true if indexedDB is supported by current browser/service worker context
  */
 export function isIndexedDBAvailable(): boolean {
-  if (!('indexedDB' in window) || indexedDB === null) {
-    return false;
-  }
-  return true;
+  return 'indexedDB' in self && indexedDB !== null;
 }
 
 /**
