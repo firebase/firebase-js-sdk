@@ -53,18 +53,9 @@ describe('EncodedResourcePath', () => {
 
   const dbName = 'resource-path-tests';
 
-  beforeEach(() => {
-    return SimpleDb.delete(dbName)
-      .then(() => {
-        return SimpleDb.openOrCreate(
-          dbName,
-          1,
-          new EncodedResourcePathSchemaConverter()
-        );
-      })
-      .then(simpleDb => {
-        db = simpleDb;
-      });
+  beforeEach(async () => {
+    await SimpleDb.delete(dbName);
+    db = new SimpleDb(dbName, 1, new EncodedResourcePathSchemaConverter());
   });
 
   afterEach(() => {
