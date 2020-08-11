@@ -77,9 +77,6 @@ describe('FirebaseAnalytics instance tests', () => {
       delete window['dataLayer'];
       removeGtagScript();
     });
-    afterEach(() => {
-      gtagStub.reset();
-    });
     it('Contains reference to parent app', () => {
       expect(analyticsInstance.app).to.equal(app);
     });
@@ -91,6 +88,7 @@ describe('FirebaseAnalytics instance tests', () => {
       // For IE: Need then() or else "expect" runs immediately on FID resolve
       // before the other statements in initializeGAId.
       await fidDeferred.promise.then();
+      console.log('callCount', gtagStub.callCount);
       expect(gtagStub).to.have.been.calledWith('js');
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.CONFIG,
@@ -113,6 +111,7 @@ describe('FirebaseAnalytics instance tests', () => {
           currency: 'USD'
         }
       );
+      gtagStub.reset();
     });
     it('setCurrentScreen() method exists on instance', () => {
       expect(analyticsInstance.setCurrentScreen).to.be.instanceOf(Function);
@@ -152,11 +151,8 @@ describe('FirebaseAnalytics instance tests', () => {
       delete window[customDataLayerName];
       removeGtagScript();
     });
-    afterEach(() => {
-      gtagStub.reset();
-    });
     it('Calls gtag correctly on logEvent (instance)', async () => {
-      analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
+      analyticsInstance.logEvent(EventName.ADD_SHIPPING_INFO, {
         currency: 'USD'
       });
       // Clear event stack of async FID call.
@@ -178,12 +174,13 @@ describe('FirebaseAnalytics instance tests', () => {
       await Promise.all(Object.values(initializedIdPromisesMap));
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.EVENT,
-        EventName.ADD_PAYMENT_INFO,
+        EventName.ADD_SHIPPING_INFO,
         {
           'send_to': 'abcd-efgh',
           currency: 'USD'
         }
       );
+      gtagStub.reset();
     });
   });
 
