@@ -1,6 +1,6 @@
 ---
 'firebase': minor
-'@firebase/messaging': minor,
+'@firebase/messaging': minor
 '@firebase/messaging-types': minor
 ---
 
