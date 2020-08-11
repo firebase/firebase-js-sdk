@@ -748,6 +748,30 @@ apiDescribe('Queries', (persistence: boolean) => {
     }
   );
 
+  // eslint-disable-next-line no-restricted-properties
+  (isRunningAgainstEmulator() ? it : it.skip)(
+    'can use != filters by document ID',
+    async () => {
+      const testDocs = {
+        aa: { key: 'aa' },
+        ab: { key: 'ab' },
+        ba: { key: 'ba' },
+        bb: { key: 'bb' }
+      };
+      await withTestCollection(persistence, testDocs, async coll => {
+        const snapshot = await coll
+          .where(FieldPath.documentId(), notEqualOp, 'aa')
+          .get();
+
+        expect(toDataArray(snapshot)).to.deep.equal([
+          { key: 'ab' },
+          { key: 'ba' },
+          { key: 'bb' }
+        ]);
+      });
+    }
+  );
+
   it('can use array-contains filters', async () => {
     const testDocs = {
       a: { array: [42] },
