@@ -680,12 +680,14 @@ export class IndexedDbPersistence implements Persistence {
     }
     this.detachVisibilityHandler();
     this.detachWindowUnloadHook();
-    await this.runTransaction('shutdown', 'readwrite', txn => {
-      return this.releasePrimaryLeaseIfHeld(txn).next(() =>
-        this.removeClientMetadata(txn)
-      );
-    });
-    this.simpleDb.close();
+    if (this.simpleDb.isOpen()) {
+      await this.runTransaction('shutdown', 'readwrite', txn => {
+         return this.releasePrimaryLeaseIfHeld(txn).next(() =>
+         this.removeClientMetadata(txn)
+         );
+      });
+      this.simpleDb.close();
+    }
 
     // Remove the entry marking the client as zombied from LocalStorage since
     // we successfully deleted its metadata from IndexedDb.
