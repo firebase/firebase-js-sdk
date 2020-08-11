@@ -47,6 +47,7 @@
     "prettier": "prettier --config .prettierrc --write '**/*.{ts,js}'",
     "lint": "lerna run --scope @firebase/* --scope rxfire lint",
     "size-report": "node scripts/report_binary_size.js",
+    "modular-export-size-report": "ts-node-script scripts/report_modular_export_binary_size.ts",
     "api-report": "lerna run --scope @firebase/*-exp api-report",
     "docgen:exp": "ts-node-script scripts/exp/docgen.ts",
     "postinstall": "yarn --cwd repo-scripts/changelog-generator build",

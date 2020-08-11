@@ -25,8 +25,6 @@ import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import { deepCopy } from '@firebase/util';
 
-const TYPINGS: string = 'typings';
-const BUNDLE: string = 'esm2017';
 export const enum ErrorCode {
   INVALID_FLAG_COMBINATION = 'Invalid command flag combinations!',
   BUNDLE_FILE_DOES_NOT_EXIST = 'Module does not have a bundle file!',
@@ -53,33 +51,20 @@ export interface MemberList {
 }
 /** Contains the dependencies and the size of their code for a single export. */
 export interface ExportData {
-  dependencies: MemberList;
-  sizeInBytes: number;
-  sizeInBytesWithExternalDeps: number;
+  name: string;
+  classes: string[];
+  functions: string[];
+  variables: string[];
+  enums: string[];
+  externals: object;
+  size: number;
+  sizeWithExtDeps: number;
 }
 
-/**
- * This functions builds a simple JS app that only depends on the provided
- * export. It then uses Rollup to gather all top-level classes and functions
- * that that the export depends on.
- *
- * @param exportName The name of the export to verify
- * @param jsBundle The file name of the source bundle that contains the export
- * @return A list of dependencies for the given export
- */
-export async function extractDependencies(
-  exportName: string,
-  jsBundle: string,
-  map: Map<string, string>
-): Promise<MemberList> {
-  const { dependencies } = await extractDependenciesAndSize(
-    exportName,
-    jsBundle,
-    map
-  );
-  return dependencies;
+export interface Report {
+  name: string;
+  symbols: ExportData[];
 }
-
 /**
  * Helper for extractDependencies that extracts the dependencies and the size
  * of the minified build.
@@ -162,19 +147,40 @@ export async function extractDependenciesAndSize(
   fs.unlinkSync(input);
   fs.unlinkSync(externalDepsNotResolvedOutput);
   fs.unlinkSync(externalDepsResolvedOutput);
-  return {
-    dependencies,
-    sizeInBytes: Buffer.byteLength(
-      externalDepsNotResolvedOutputContentMinimized.code!,
-      'utf-8'
-    ),
-    sizeInBytesWithExternalDeps: Buffer.byteLength(
-      externalDepsResolvedOutputContentMinimized.code!,
-      'utf-8'
-    )
+  const exportData: ExportData = {
+    name: '',
+    classes: null,
+    functions: null,
+    variables: null,
+    enums: null,
+    externals: null,
+    size: 0,
+    sizeWithExtDeps: 0
   };
+  exportData.name = exportName;
+  for (const key of Object.keys(dependencies)) {
+    exportData[key] = dependencies[key];
+  }
+  exportData.externals = serializeExternalField(dependencies.externals);
+  exportData.size = Buffer.byteLength(
+    externalDepsNotResolvedOutputContentMinimized.code!,
+    'utf-8'
+  );
+  exportData.sizeWithExtDeps = Buffer.byteLength(
+    externalDepsResolvedOutputContentMinimized.code!,
+    'utf-8'
+  );
+  return exportData;
 }
 
+function serializeExternalField(externals: External[]): object {
+  const serializedExternals: object = {};
+  for (const external of externals) {
+    serializedExternals[external.moduleName] = external.symbols;
+  }
+
+  return serializedExternals;
+}
 /**
  * Extracts all function, class and variable declarations using the TypeScript
  * compiler API.
@@ -634,7 +640,7 @@ function isExportRenamed(exportSpecifier: ts.ExportSpecifier): boolean {
  *
  * This functions writes generated json report(s) to a file
  */
-export function writeReportToFile(report: string, outputFile: string): void {
+export function writeReportToFile(report: Report, outputFile: string): void {
   if (fs.existsSync(outputFile) && !fs.lstatSync(outputFile).isFile()) {
     throw new Error(ErrorCode.OUTPUT_FILE_REQUIRED);
   }
@@ -643,14 +649,14 @@ export function writeReportToFile(report: string, outputFile: string): void {
   if (!fs.existsSync(directoryPath)) {
     fs.mkdirSync(directoryPath, { recursive: true });
   }
-  fs.writeFileSync(outputFile, report);
+  fs.writeFileSync(outputFile, JSON.stringify(report, null, 4));
 }
 /**
  *
  * This functions writes generated json report(s) to a file of given directory
  */
 export function writeReportToDirectory(
-  report: string,
+  report: Report,
   fileName: string,
   directoryPath: string
 ): void {
@@ -720,7 +726,7 @@ export function extractExternalDependencies(
 
   externalsMap.forEach((value, key) => {
     const external: External = {
-      moduleName: key,
+      moduleName: key.replace(/'/g, ''),
       symbols: value
     };
     externals.push(external);
@@ -731,33 +737,54 @@ export function extractExternalDependencies(
 /**
  * This function generates a binary size report for the given module specified by the moduleLocation argument.
  * @param moduleLocation a path to location of a firebase module
- * @param outputDirectory a path to a directory where the reports will be written under.
- * @param writeFiles when true, will write reports to designated directory specified by outputDirectory.
  */
 export async function generateReportForModule(
-  moduleLocation: string,
-  outputDirectory: string,
-  writeFiles: boolean
-): Promise<string> {
+  moduleLocation: string
+): Promise<Report> {
   const packageJsonPath = `${moduleLocation}/package.json`;
   if (!fs.existsSync(packageJsonPath)) {
-    return;
+    return null;
   }
   const packageJson = require(packageJsonPath);
   // to exclude <modules>-types modules
+  const TYPINGS: string = 'typings';
   if (packageJson[TYPINGS]) {
     const dtsFile = `${moduleLocation}/${packageJson[TYPINGS]}`;
-    if (!packageJson[BUNDLE]) {
+    const bundleLocation: string = retrieveBundleFileLocation(packageJson);
+    if (!bundleLocation) {
       throw new Error(ErrorCode.BUNDLE_FILE_DOES_NOT_EXIST);
     }
-    const bundleFile = `${moduleLocation}/${packageJson[BUNDLE]}`;
-    const json = await generateReport(dtsFile, bundleFile);
-    const fileName = `${path.basename(packageJson.name)}-dependency.json`;
-    if (writeFiles) {
-      writeReportToDirectory(json, fileName, path.resolve(outputDirectory));
-    }
-    return json;
+    const bundleFile = `${moduleLocation}/${bundleLocation}`;
+    const jsonReport: Report = await generateReport(
+      packageJson.name,
+      dtsFile,
+      bundleFile
+    );
+
+    return jsonReport;
   }
+  return null;
+}
+/**
+ *
+ * @param pkgJson package.json of the module.
+ *
+ * This function implements a fallback of locating module's budle file.
+ * It first looks at esm2017 field of package.json, then module field. Main
+ * field at the last.
+ *
+ */
+function retrieveBundleFileLocation(pkgJson: string): string {
+  if (pkgJson['esm2017']) {
+    return pkgJson['esm2017'];
+  }
+  if (pkgJson['module']) {
+    return pkgJson['module'];
+  }
+  if (pkgJson['main']) {
+    return pkgJson['main'];
+  }
+  return null;
 }
 /**
  *
@@ -777,34 +804,38 @@ export function buildMap(api: MemberList): Map<string, string> {
 /**
  * A recursive function that locates and generates reports for sub-modules
  */
-function traverseDirs(
+async function traverseDirs(
   moduleLocation: string,
-  outputDirectory: string,
-  writeFiles: boolean,
   executor,
   level: number,
   levelLimit: number
-): void {
+): Promise<Report[]> {
   if (level > levelLimit) {
-    return;
+    return null;
   }
 
-  executor(moduleLocation, outputDirectory, writeFiles);
+  const reports: Report[] = [];
+  const report: Report = await executor(moduleLocation);
+  if (report !== null) {
+    reports.push(report);
+  }
 
   for (const name of fs.readdirSync(moduleLocation)) {
     const p = `${moduleLocation}/${name}`;
 
     if (fs.lstatSync(p).isDirectory()) {
-      traverseDirs(
+      const subModuleReports: Report[] = await traverseDirs(
         p,
-        outputDirectory,
-        writeFiles,
         executor,
         level + 1,
         levelLimit
       );
+      if (subModuleReports !== null && subModuleReports.length !== 0) {
+        reports.push(...subModuleReports);
+      }
     }
   }
+  return reports;
 }
 
 /**
@@ -815,31 +846,43 @@ function traverseDirs(
  * @param map maps every symbol listed in publicApi to its type. eg: aVariable -> variable.
  */
 export async function buildJsonReport(
+  moduleName: string,
   publicApi: MemberList,
   jsFile: string,
   map: Map<string, string>
-): Promise<string> {
-  const result: { [key: string]: ExportData } = {};
+): Promise<Report> {
+  const result: Report = {
+    name: moduleName,
+    symbols: []
+  };
+
   for (const exp of publicApi.classes) {
-    result[exp] = await extractDependenciesAndSize(exp, jsFile, map);
+    result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
   }
   for (const exp of publicApi.functions) {
-    result[exp] = await extractDependenciesAndSize(exp, jsFile, map);
+    result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
   }
   for (const exp of publicApi.variables) {
-    result[exp] = await extractDependenciesAndSize(exp, jsFile, map);
+    result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
   }
 
   for (const exp of publicApi.enums) {
-    result[exp] = await extractDependenciesAndSize(exp, jsFile, map);
+    result.symbols.push(await extractDependenciesAndSize(exp, jsFile, map));
   }
-  return JSON.stringify(result, null, 4);
+  return result;
 }
-
+/**
+ *
+ * This function generates a report from given dts file.
+ * @param name a name to be displayed on the report. a module name if for a firebase module; a random name if for adhoc analysis.
+ * @param dtsFile absolute path to the definition file of interest.
+ * @param bundleFile absolute path to the bundle file of the given definition file.
+ */
 export async function generateReport(
+  name: string,
   dtsFile: string,
   bundleFile: string
-): Promise<string> {
+): Promise<Report> {
   const resolvedDtsFile = path.resolve(dtsFile);
   const resolvedBundleFile = path.resolve(bundleFile);
   if (!fs.existsSync(resolvedDtsFile)) {
@@ -848,35 +891,38 @@ export async function generateReport(
   if (!fs.existsSync(resolvedBundleFile)) {
     throw new Error(ErrorCode.INPUT_BUNDLE_FILE_DOES_NOT_EXIST);
   }
+
   const publicAPI = extractDeclarations(resolvedDtsFile);
   const map: Map<string, string> = buildMap(publicAPI);
-  return buildJsonReport(publicAPI, bundleFile, map);
+  return buildJsonReport(name, publicAPI, bundleFile, map);
 }
 
 /**
  * This function recursively generates a binary size report for every module listed in moduleLocations array.
  *
  * @param moduleLocations an array of strings where each is a path to location of a firebase module
- * @param outputDirectory a path to a directory where the reports will be written under.
- * @param writeFiles when true, will write reports to designated directory specified by outputDirectory.
- *
  *
  */
-export function generateReportForModules(
-  moduleLocations: string[],
-  outputDirectory: string,
-  writeFiles: boolean
-): void {
+export async function generateReportForModules(
+  moduleLocations: string[]
+): Promise<Report[]> {
+  const reportCollection: Report[] = [];
+
   for (const moduleLocation of moduleLocations) {
     // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
     // Currently we only traverse 1 level deep because we don't have any submodule deeper than that.
-    traverseDirs(
+    const reportsForModuleAndItsSubModule: Report[] = await traverseDirs(
       moduleLocation,
-      outputDirectory,
-      writeFiles,
       generateReportForModule,
       0,
       1
     );
+    if (
+      reportsForModuleAndItsSubModule !== null &&
+      reportsForModuleAndItsSubModule.length !== 0
+    ) {
+      reportCollection.push(...reportsForModuleAndItsSubModule);
+    }
   }
+  return reportCollection;
 }
