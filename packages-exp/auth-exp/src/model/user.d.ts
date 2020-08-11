@@ -39,6 +39,11 @@ export interface UserParameters {
   phoneNumber?: string;
   photoURL?: string;
   isAnonymous?: boolean;
+  emailVerified?: boolean;
+  tenantId?: string;
+
+  createdAt?: string;
+  lastLoginAt?: string;
 }
 
 export interface User extends externs.User {

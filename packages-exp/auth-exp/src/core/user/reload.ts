@@ -22,6 +22,7 @@ import {
   ProviderUserInfo
 } from '../../api/account_management/account';
 import { User } from '../../model/user';
+import { UserMetadata } from './user_impl';
 import { assert } from '../util/assert';
 
 export async function _reloadWithoutSaving(user: User): Promise<void> {
@@ -47,10 +48,10 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
     phoneNumber: coreAccount.phoneNumber || null,
     tenantId: coreAccount.tenantId || null,
     providerData: mergeProviderData(user.providerData, newProviderData),
-    metadata: {
-      creationTime: coreAccount.createdAt?.toString(),
-      lastSignInTime: coreAccount.lastLoginAt?.toString()
-    }
+    metadata: new UserMetadata(
+      coreAccount.createdAt?.toString(),
+      coreAccount.lastLoginAt?.toString()
+    )
   };
 
   Object.assign(user, updates);

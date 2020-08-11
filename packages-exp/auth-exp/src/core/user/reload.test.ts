@@ -31,6 +31,7 @@ import {
   ProviderUserInfo
 } from '../../api/account_management/account';
 import { _reloadWithoutSaving, reload } from './reload';
+import { UserMetadata } from './user_impl';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -89,9 +90,9 @@ describe('core/user/reload', () => {
     expect(user.emailVerified).to.be.true;
     expect(user.phoneNumber).to.eq('phone-number');
     expect(user.tenantId).to.eq('tenant-id');
-    expect(user.metadata).to.eql({
-      creationTime: '123',
-      lastSignInTime: '456'
+    expect((user.metadata as UserMetadata).toJSON()).to.eql({
+      createdAt: '123',
+      lastLoginAt: '456'
     });
   });
 

@@ -59,7 +59,7 @@ export class MultiFactorSession implements externs.MultiFactorSession {
     };
   }
 
-  static fromPlainObject(
+  static fromJSON(
     obj: Partial<SerializedMultiFactorSession>
   ): MultiFactorSession | null {
     if (obj?.multiFactorSession) {

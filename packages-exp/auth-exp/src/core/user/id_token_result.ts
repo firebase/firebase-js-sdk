@@ -21,6 +21,7 @@ import { base64Decode } from '@firebase/util';
 import { User } from '../../model/user';
 import { assert } from '../util/assert';
 import { _logError } from '../util/log';
+import { utcTimestampToDateString } from '../util/time';
 
 export function getIdToken(
   user: externs.User,
@@ -65,19 +66,6 @@ export async function getIdTokenResult(
 
 function secondsStringToMilliseconds(seconds: string): number {
   return Number(seconds) * 1000;
-}
-
-function utcTimestampToDateString(timestamp: string | number): string {
-  try {
-    const date = new Date(Number(timestamp));
-    if (!isNaN(date.getTime())) {
-      return date.toUTCString();
-    }
-  } catch {
-    // Do nothing, return null
-  }
-
-  return ''; // TODO(avolkovi): is this the right fallback?
 }
 
 export function _parseToken(token: string): externs.ParsedToken | null {

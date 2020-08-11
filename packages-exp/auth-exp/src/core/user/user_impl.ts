@@ -31,6 +31,7 @@ import { getIdTokenResult } from './id_token_result';
 import { reload, _reloadWithoutSaving } from './reload';
 import { StsTokenManager } from './token_manager';
 import { Auth } from '../../model/auth';
+import { utcTimestampToDateString } from '../util/time';
 
 function assertStringOrUndefined(
   assertion: unknown,
@@ -42,6 +43,26 @@ function assertStringOrUndefined(
   );
 }
 
+export class UserMetadata implements externs.UserMetadata {
+  readonly creationTime?: string;
+  readonly lastSignInTime?: string;
+
+  constructor(
+    private readonly createdAt?: string,
+    private readonly lastLoginAt?: string
+  ) {
+    this.lastSignInTime = utcTimestampToDateString(lastLoginAt);
+    this.creationTime = utcTimestampToDateString(createdAt);
+  }
+
+  toJSON(): object {
+    return {
+      createdAt: this.createdAt,
+      lastLoginAt: this.lastLoginAt
+    };
+  }
+}
+
 export class UserImpl implements User {
   // For the user object, provider is always Firebase.
   readonly providerId = externs.ProviderId.FIREBASE;
@@ -50,8 +71,9 @@ export class UserImpl implements User {
   uid: string;
   auth: Auth;
   emailVerified = false;
+  isAnonymous = false;
   tenantId = null;
-  metadata = {};
+  readonly metadata: UserMetadata;
   providerData = [];
 
   // Optional fields from UserInfo
@@ -59,7 +81,6 @@ export class UserImpl implements User {
   email: string | null;
   phoneNumber: string | null;
   photoURL: string | null;
-  isAnonymous: boolean = false;
 
   _redirectEventId?: string;
 
@@ -72,6 +93,7 @@ export class UserImpl implements User {
     this.phoneNumber = opt.phoneNumber || null;
     this.photoURL = opt.photoURL || null;
     this.isAnonymous = opt.isAnonymous || false;
+    this.metadata = new UserMetadata(opt.createdAt, opt.lastLoginAt);
   }
 
   async getIdToken(forceRefresh?: boolean): Promise<string> {
@@ -155,24 +177,21 @@ export class UserImpl implements User {
   toJSON(): PersistedBlob {
     return {
       uid: this.uid,
-      displayName: this.displayName || undefined,
-      photoURL: this.photoURL || undefined,
       email: this.email || undefined,
       emailVerified: this.emailVerified,
-      phoneNumber: this.phoneNumber || undefined,
+      displayName: this.displayName || undefined,
       isAnonymous: this.isAnonymous,
-      tenantId: this.tenantId,
+      photoURL: this.photoURL || undefined,
+      phoneNumber: this.phoneNumber || undefined,
+      tenantId: this.tenantId || undefined,
       providerData: this.providerData.map(userInfo =>
         Object.assign({}, userInfo)
       ),
-      apiKey: this.auth.config.apiKey,
-      appName: this.auth.name,
-      authDomain: this.auth.config.authDomain,
       stsTokenManager: this.stsTokenManager.toJSON(),
       // Redirect event ID must be maintained in case there is a pending
       // redirect event.
       _redirectEventId: this._redirectEventId,
-      ...this.metadata
+      ...this.metadata.toJSON()
     };
   }
 
@@ -180,15 +199,21 @@ export class UserImpl implements User {
     return this.stsTokenManager.refreshToken || '';
   }
 
-  static fromPlainObject(auth: Auth, object: PersistedBlob): User {
+  static _fromJSON(auth: Auth, object: PersistedBlob): User {
     const {
       uid,
-      stsTokenManager: plainObjectTokenManager,
-      displayName,
       email,
-      phoneNumber,
+      emailVerified,
+      displayName,
+      isAnonymous,
       photoURL,
-      _redirectEventId
+      phoneNumber,
+      tenantId,
+      providerData,
+      stsTokenManager: plainObjectTokenManager,
+      _redirectEventId,
+      createdAt,
+      lastLoginAt
     } = object;
 
     assert(uid && plainObjectTokenManager, auth.name);
@@ -201,18 +226,35 @@ export class UserImpl implements User {
     assert(typeof uid === 'string', auth.name);
     assertStringOrUndefined(displayName, auth.name);
     assertStringOrUndefined(email, auth.name);
+    assert(typeof emailVerified === 'boolean', auth.name);
+    assert(typeof isAnonymous === 'boolean', auth.name);
     assertStringOrUndefined(phoneNumber, auth.name);
     assertStringOrUndefined(photoURL, auth.name);
+    assertStringOrUndefined(tenantId, auth.name);
     assertStringOrUndefined(_redirectEventId, auth.name);
+    assertStringOrUndefined(createdAt, auth.name);
+    assertStringOrUndefined(lastLoginAt, auth.name);
     const user = auth._createUser({
       uid,
       auth,
-      stsTokenManager,
-      displayName,
       email,
+      emailVerified,
+      displayName,
+      isAnonymous,
+      photoURL,
       phoneNumber,
-      photoURL
+      tenantId,
+      stsTokenManager,
+      createdAt,
+      lastLoginAt
     });
+
+    if (providerData && Array.isArray(providerData)) {
+      user.providerData = providerData.map(userInfo =>
+        Object.assign({}, userInfo)
+      );
+    }
+
     if (_redirectEventId) {
       user._redirectEventId = _redirectEventId;
     }

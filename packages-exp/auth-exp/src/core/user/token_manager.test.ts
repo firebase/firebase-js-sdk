@@ -170,7 +170,7 @@ describe('core/user/token_manager', () => {
     });
   });
 
-  describe('.fromPlainObject', () => {
+  describe('.fromJSON', () => {
     const errorString =
       'Firebase: An internal AuthError has occurred. (auth/internal-error).';
 

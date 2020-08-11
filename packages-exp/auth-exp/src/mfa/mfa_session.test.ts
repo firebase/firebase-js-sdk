@@ -44,10 +44,10 @@ describe('core/mfa/mfa_session/MultiFactorSession', () => {
     });
   });
 
-  describe('fromPlainObject', () => {
+  describe('.fromJSON', () => {
     context('ENROLL', () => {
       it('should deserialize correctly', () => {
-        const mfaSession = MultiFactorSession.fromPlainObject({
+        const mfaSession = MultiFactorSession.fromJSON({
           multiFactorSession: { idToken: 'id-token' }
         });
         expect(mfaSession).to.be.instanceOf(MultiFactorSession);
@@ -58,7 +58,7 @@ describe('core/mfa/mfa_session/MultiFactorSession', () => {
 
     context('SIGN_IN', () => {
       it('should deserialize correctly', () => {
-        const mfaSession = MultiFactorSession.fromPlainObject({
+        const mfaSession = MultiFactorSession.fromJSON({
           multiFactorSession: { pendingCredential: 'mfa-pending-credential' }
         });
         expect(mfaSession).to.be.instanceOf(MultiFactorSession);
@@ -69,8 +69,8 @@ describe('core/mfa/mfa_session/MultiFactorSession', () => {
 
     context('invalid', () => {
       it('should return null', () => {
-        expect(MultiFactorSession.fromPlainObject({ multiFactorSession: {} }))
-          .to.be.null;
+        expect(MultiFactorSession.fromJSON({ multiFactorSession: {} })).to.be
+          .null;
       });
     });
   });

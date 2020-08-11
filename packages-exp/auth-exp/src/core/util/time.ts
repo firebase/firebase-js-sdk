@@ -15,7 +15,22 @@
  * limitations under the License.
  */
 
-export { AuthCredential } from './auth_credential';
-export { EmailAuthCredential } from './email';
-export { OAuthCredential } from './oauth';
-export { PhoneAuthCredential } from './phone';
+export function utcTimestampToDateString(
+  utcTimestamp?: string | number
+): string | undefined {
+  if (!utcTimestamp) {
+    return undefined;
+  }
+  try {
+    // Convert to date object.
+    const date = new Date(Number(utcTimestamp));
+    // Test date is valid.
+    if (!isNaN(date.getTime())) {
+      // Convert to UTC date string.
+      return date.toUTCString();
+    }
+  } catch (e) {
+    // Do nothing. null will be returned.
+  }
+  return undefined;
+}

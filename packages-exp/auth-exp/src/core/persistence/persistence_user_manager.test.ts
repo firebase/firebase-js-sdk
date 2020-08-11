@@ -134,7 +134,7 @@ describe('core/persistence/persistence_user_manager', () => {
 
     it('#getCurrentUser calls with instantiator', async () => {
       const rawObject = {};
-      const userImplStub = sinon.stub(UserImpl, 'fromPlainObject');
+      const userImplStub = sinon.stub(UserImpl, '_fromJSON');
       persistenceStub.get.returns(Promise.resolve(rawObject));
 
       await manager.getCurrentUser();
