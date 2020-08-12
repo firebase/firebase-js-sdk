@@ -135,7 +135,7 @@ export type ActionCodeSettings = {
 export type AdditionalUserInfo = {
   isNewUser: boolean;
   profile: Object | null;
-  providerId: string;
+  providerId: string | null;
   username?: string | null;
 };
 
