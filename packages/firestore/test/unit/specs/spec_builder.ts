@@ -436,10 +436,10 @@ export class SpecBuilder {
     return this;
   }
 
-  shutdown(options?: { expectFailure?: boolean }): this {
+  shutdown(): this {
     this.nextStep();
     this.currentStep = {
-      shutdown: options ?? true,
+      shutdown: true,
       expectedState: {
         activeTargets: {},
         activeLimboDocs: [],

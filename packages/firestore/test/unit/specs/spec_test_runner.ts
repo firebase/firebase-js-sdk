@@ -370,9 +370,7 @@ abstract class TestRunner {
     } else if ('restart' in step) {
       return this.doRestart();
     } else if ('shutdown' in step) {
-      return typeof step.shutdown === 'object'
-        ? this.doShutdown(step.shutdown)
-        : this.doShutdown();
+      return this.doShutdown();
     } else if ('applyClientState' in step) {
       // PORTING NOTE: Only used by web multi-tab tests.
       return this.doApplyClientState(step.applyClientState!);
@@ -716,22 +714,14 @@ abstract class TestRunner {
     await this.remoteStore.enableNetwork();
   }
 
-  private async doShutdown(options?: {
-    expectFailure?: boolean;
-  }): Promise<void> {
-    try {
-      await this.remoteStore.shutdown();
-      await this.sharedClientState.shutdown();
-      // We don't delete the persisted data here since multi-clients may still
-      // be accessing it. Instead, we manually remove it at the end of the
-      // test run.
-      await this.persistence.shutdown();
-      expect(options?.expectFailure).to.not.be.true;
-
-      this.started = false;
-    } catch (e) {
-      expect(options?.expectFailure).to.be.true;
-    }
+  private async doShutdown(): Promise<void> {
+    await this.remoteStore.shutdown();
+    await this.sharedClientState.shutdown();
+    // We don't delete the persisted data here since multi-clients may still
+    // be accessing it. Instead, we manually remove it at the end of the
+    // test run.
+    await this.persistence.shutdown();
+    this.started = false;
   }
 
   private async doClearPersistence(): Promise<void> {
@@ -1270,8 +1260,7 @@ export type PersistenceAction =
   | 'Get new document changes'
   | 'Synchronize last document change read time'
   | 'updateClientMetadataAndTryBecomePrimary'
-  | 'getHighestListenSequenceNumber'
-  | 'shutdown';
+  | 'getHighestListenSequenceNumber';
 
 /**
  * Union type for each step. The step consists of exactly one `field`
@@ -1351,7 +1340,7 @@ export interface SpecStep {
   restart?: true;
 
   /** Shut down the client and close it network connection. */
-  shutdown?: true | { expectFailure?: boolean };
+  shutdown?: true;
 
   /**
    * Optional list of expected events.

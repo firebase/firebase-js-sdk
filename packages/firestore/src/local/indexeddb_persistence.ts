@@ -75,7 +75,6 @@ import {
   SimpleDbTransaction
 } from './simple_db';
 import { DocumentLike, WindowLike } from '../util/types';
-import { ignoreIfPrimaryLeaseLoss } from './local_store';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -681,11 +680,22 @@ export class IndexedDbPersistence implements Persistence {
     }
     this.detachVisibilityHandler();
     this.detachWindowUnloadHook();
-    await this.runTransaction('shutdown', 'readwrite', txn =>
-      this.releasePrimaryLeaseIfHeld(txn).next(() =>
-        this.removeClientMetadata(txn)
-      )
-    ).catch(e => ignoreIfPrimaryLeaseLoss(e));
+
+    // Use `SimpleDb.runTransaction` directly to avoid failing if another tab
+    // has obtained the primary lease.
+    await this.simpleDb.runTransaction(
+      'readwrite',
+      [DbPrimaryClient.store, DbClientMetadata.store],
+      simpleDbTxn => {
+        const persistenceTransaction = new IndexedDbTransaction(
+          simpleDbTxn,
+          ListenSequence.INVALID
+        );
+        return this.releasePrimaryLeaseIfHeld(persistenceTransaction).next(() =>
+          this.removeClientMetadata(persistenceTransaction)
+        );
+      }
+    );
     this.simpleDb.close();
 
     // Remove the entry marking the client as zombied from LocalStorage since
