@@ -32,8 +32,6 @@ import { cast } from '../../../lite/src/api/util';
 import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import {
   applyFirestoreDataConverter,
-  getDocsViaSnapshotListener,
-  getDocViaSnapshotListener,
   SnapshotMetadata,
   validateHasExplicitOrderByForLimitToLast
 } from '../../../src/api/database';
@@ -56,7 +54,16 @@ import {
   PartialObserver,
   Unsubscribe
 } from '../../../src/api/observer';
-import { getFirestoreClient } from './components';
+import { getEventManager, getLocalStore, getSyncEngine } from './components';
+import {
+  enqueueListen,
+  enqueueWrite,
+  enqueueExecuteQueryViaSnapshotListener,
+  enqueueReadDocumentViaSnapshotListener,
+  enqueueReadDocumentFromCache,
+  enqueueExecuteQueryFromCache,
+  enqueueSnapshotsInSyncListen
+} from '../../../src/core/firestore_client';
 import { newQueryForPath } from '../../../src/core/query';
 
 export function getDoc<T>(
@@ -64,35 +71,35 @@ export function getDoc<T>(
 ): Promise<firestore.DocumentSnapshot<T>> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
-  return getFirestoreClient(firestore).then(async firestoreClient => {
-    const viewSnapshot = await getDocViaSnapshotListener(
-      firestoreClient,
+  return getEventManager(firestore).then(eventManager =>
+    enqueueReadDocumentViaSnapshotListener(
+      firestore._queue,
+      eventManager,
       ref._key
-    );
-    return convertToDocSnapshot(firestore, ref, viewSnapshot);
-  });
+    ).then(doc => convertToDocSnapshot(firestore, ref, doc))
+  );
 }
 
-// TODO(firestorexp): Make sure we don't include Datastore/RemoteStore in builds
-// that only include `getDocFromCache`.
 export function getDocFromCache<T>(
   reference: firestore.DocumentReference<T>
 ): Promise<firestore.DocumentSnapshot<T>> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
-  return getFirestoreClient(firestore).then(async firestoreClient => {
-    const doc = await firestoreClient.getDocumentFromLocalCache(ref._key);
-    return new DocumentSnapshot(
-      firestore,
-      ref._key,
-      doc,
-      new SnapshotMetadata(
-        doc instanceof Document ? doc.hasLocalMutations : false,
-        /* fromCache= */ true
-      ),
-      ref._converter
-    );
-  });
+  return getLocalStore(firestore).then(localStore =>
+    enqueueReadDocumentFromCache(firestore._queue, localStore, ref._key).then(
+      doc =>
+        new DocumentSnapshot(
+          firestore,
+          ref._key,
+          doc,
+          new SnapshotMetadata(
+            doc instanceof Document ? doc.hasLocalMutations : false,
+            /* fromCache= */ true
+          ),
+          ref._converter
+        )
+    )
+  );
 }
 
 export function getDocFromServer<T>(
@@ -100,14 +107,14 @@ export function getDocFromServer<T>(
 ): Promise<firestore.DocumentSnapshot<T>> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
-  return getFirestoreClient(firestore).then(async firestoreClient => {
-    const viewSnapshot = await getDocViaSnapshotListener(
-      firestoreClient,
+  return getEventManager(firestore).then(eventManager =>
+    enqueueReadDocumentViaSnapshotListener(
+      firestore._queue,
+      eventManager,
       ref._key,
       { source: 'server' }
-    );
-    return convertToDocSnapshot(firestore, ref, viewSnapshot);
-  });
+    ).then(viewSnapshot => convertToDocSnapshot(firestore, ref, viewSnapshot))
+  );
 }
 
 export function getDocs<T>(
@@ -117,13 +124,13 @@ export function getDocs<T>(
   const firestore = cast<Firestore>(query.firestore, Firestore);
 
   validateHasExplicitOrderByForLimitToLast(internalQuery._query);
-  return getFirestoreClient(firestore).then(async firestoreClient => {
-    const snapshot = await getDocsViaSnapshotListener(
-      firestoreClient,
+  return getEventManager(firestore).then(eventManager =>
+    enqueueExecuteQueryViaSnapshotListener(
+      firestore._queue,
+      eventManager,
       internalQuery._query
-    );
-    return new QuerySnapshot(firestore, internalQuery, snapshot);
-  });
+    ).then(snapshot => new QuerySnapshot(firestore, internalQuery, snapshot))
+  );
 }
 
 export function getDocsFromCache<T>(
@@ -131,12 +138,13 @@ export function getDocsFromCache<T>(
 ): Promise<QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
   const firestore = cast<Firestore>(query.firestore, Firestore);
-  return getFirestoreClient(firestore).then(async firestoreClient => {
-    const snapshot = await firestoreClient.getDocumentsFromLocalCache(
+  return getLocalStore(firestore).then(localStore =>
+    enqueueExecuteQueryFromCache(
+      firestore._queue,
+      localStore,
       internalQuery._query
-    );
-    return new QuerySnapshot(firestore, internalQuery, snapshot);
-  });
+    ).then(snapshot => new QuerySnapshot(firestore, internalQuery, snapshot))
+  );
 }
 
 export function getDocsFromServer<T>(
@@ -144,14 +152,14 @@ export function getDocsFromServer<T>(
 ): Promise<QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
   const firestore = cast<Firestore>(query.firestore, Firestore);
-  return getFirestoreClient(firestore).then(async firestoreClient => {
-    const snapshot = await getDocsViaSnapshotListener(
-      firestoreClient,
+  return getEventManager(firestore).then(eventManager =>
+    enqueueExecuteQueryViaSnapshotListener(
+      firestore._queue,
+      eventManager,
       internalQuery._query,
       { source: 'server' }
-    );
-    return new QuerySnapshot(firestore, internalQuery, snapshot);
-  });
+    ).then(snapshot => new QuerySnapshot(firestore, internalQuery, snapshot))
+  );
 }
 
 export function setDoc<T>(
@@ -186,8 +194,12 @@ export function setDoc<T>(
     options
   );
 
-  return getFirestoreClient(firestore).then(firestoreClient =>
-    firestoreClient.write(parsed.toMutations(ref._key, Precondition.none()))
+  return getSyncEngine(firestore).then(syncEngine =>
+    enqueueWrite(
+      firestore._queue,
+      syncEngine,
+      parsed.toMutations(ref._key, Precondition.none())
+    )
   );
 }
 
@@ -233,8 +245,10 @@ export function updateDoc(
     );
   }
 
-  return getFirestoreClient(firestore).then(firestoreClient =>
-    firestoreClient.write(
+  return getSyncEngine(firestore).then(syncEngine =>
+    enqueueWrite(
+      firestore._queue,
+      syncEngine,
       parsed.toMutations(ref._key, Precondition.exists(true))
     )
   );
@@ -245,8 +259,10 @@ export function deleteDoc(
 ): Promise<void> {
   const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
   const firestore = cast(ref.firestore, Firestore);
-  return getFirestoreClient(firestore).then(firestoreClient =>
-    firestoreClient.write([new DeleteMutation(ref._key, Precondition.none())])
+  return getSyncEngine(firestore).then(syncEngine =>
+    enqueueWrite(firestore._queue, syncEngine, [
+      new DeleteMutation(ref._key, Precondition.none())
+    ])
   );
 }
 
@@ -270,9 +286,11 @@ export function addDoc<T>(
     {}
   );
 
-  return getFirestoreClient(firestore)
-    .then(firestoreClient =>
-      firestoreClient.write(
+  return getSyncEngine(firestore)
+    .then(syncEngine =>
+      enqueueWrite(
+        firestore._queue,
+        syncEngine,
         parsed.toMutations(docRef._key, Precondition.exists(false))
       )
     )
@@ -384,8 +402,10 @@ export function onSnapshot<T>(
       complete: args[currArg + 2] as CompleteFn
     };
 
-    asyncUnsubscribe = getFirestoreClient(firestore).then(firestoreClient =>
-      firestoreClient.listen(
+    asyncUnsubscribe = getEventManager(firestore).then(eventManager =>
+      enqueueListen(
+        firestore._queue,
+        eventManager,
         newQueryForPath(ref._key.path),
         internalOptions,
         observer
@@ -409,8 +429,14 @@ export function onSnapshot<T>(
 
     validateHasExplicitOrderByForLimitToLast(query._query);
 
-    asyncUnsubscribe = getFirestoreClient(firestore).then(firestoreClient =>
-      firestoreClient.listen(query._query, internalOptions, observer)
+    asyncUnsubscribe = getEventManager(firestore).then(eventManager =>
+      enqueueListen(
+        firestore._queue,
+        eventManager,
+        query._query,
+        internalOptions,
+        observer
+      )
     );
   }
 
@@ -447,10 +473,8 @@ export function onSnapshotsInSync(
         next: arg as () => void
       };
 
-  const asyncObserver = getFirestoreClient(
-    firestoreImpl
-  ).then(firestoreClient =>
-    firestoreClient.addSnapshotsInSyncListener(observer)
+  const asyncObserver = getEventManager(firestoreImpl).then(eventManager =>
+    enqueueSnapshotsInSyncListen(firestoreImpl._queue, eventManager, observer)
   );
 
   // TODO(firestorexp): Add test that verifies that we don't raise a snapshot if

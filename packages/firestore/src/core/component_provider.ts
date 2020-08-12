@@ -61,7 +61,6 @@ import { newConnection, newConnectivityMonitor } from '../platform/connection';
 import { newSerializer } from '../platform/serializer';
 import { getDocument, getWindow } from '../platform/dom';
 import { CredentialsProvider } from '../api/credentials';
-import { Connection } from '../remote/connection';
 
 const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
   'You are using the memory-only build of Firestore. Persistence support is ' +
@@ -89,6 +88,8 @@ export interface OfflineComponentProvider {
   gcScheduler: GarbageCollectionScheduler | null;
 
   initialize(cfg: ComponentConfiguration): Promise<void>;
+
+  terminate(): Promise<void>;
 
   clearPersistence(
     databaseId: DatabaseId,
@@ -141,6 +142,14 @@ export class MemoryOfflineComponentProvider
 
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
     return new MemorySharedClientState();
+  }
+
+  async terminate(): Promise<void> {
+    if (this.gcScheduler) {
+      this.gcScheduler.stop();
+    }
+    await this.sharedClientState.shutdown();
+    await this.persistence.shutdown();
   }
 
   clearPersistence(
@@ -319,9 +328,6 @@ export class OnlineComponentProvider {
     this.localStore = offlineComponentProvider.localStore;
     this.sharedClientState = offlineComponentProvider.sharedClientState;
     this.datastore = this.createDatastore(cfg);
-    const connection = await this.loadConnection(cfg);
-    this.datastore.start(connection);
-
     this.remoteStore = this.createRemoteStore(cfg);
     this.syncEngine = this.createSyncEngine(cfg);
     this.eventManager = this.createEventManager(cfg);
@@ -338,17 +344,14 @@ export class OnlineComponentProvider {
     await this.remoteStore.applyPrimaryState(this.syncEngine.isPrimaryClient);
   }
 
-  protected loadConnection(cfg: ComponentConfiguration): Promise<Connection> {
-    return newConnection(cfg.databaseInfo);
-  }
-
   createEventManager(cfg: ComponentConfiguration): EventManager {
     return new EventManager(this.syncEngine);
   }
 
   createDatastore(cfg: ComponentConfiguration): Datastore {
     const serializer = newSerializer(cfg.databaseInfo.databaseId);
-    return newDatastore(cfg.credentials, serializer);
+    const connection = newConnection(cfg.databaseInfo);
+    return newDatastore(cfg.credentials, connection, serializer);
   }
 
   createRemoteStore(cfg: ComponentConfiguration): RemoteStore {
@@ -376,5 +379,9 @@ export class OnlineComponentProvider {
       !cfg.persistenceSettings.durable ||
         !cfg.persistenceSettings.synchronizeTabs
     );
+  }
+
+  terminate(): Promise<void> {
+    return this.remoteStore.shutdown();
   }
 }

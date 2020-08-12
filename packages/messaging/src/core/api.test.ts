@@ -15,22 +15,24 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { stub } from 'sinon';
 import '../testing/setup';
-import { Stub } from '../testing/sinon-types';
+
 import {
   ApiRequestBody,
+  requestDeleteToken,
   requestGetToken,
-  requestUpdateToken,
-  requestDeleteToken
+  requestUpdateToken
 } from './api';
-import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
-import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
-import { TokenDetails } from '../interfaces/token-details';
-import { getFakeTokenDetails } from '../testing/fakes/token-details';
+
 import { ENDPOINT } from '../util/constants';
+import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+import { Stub } from '../testing/sinon-types';
+import { TokenDetails } from '../interfaces/token-details';
 import { compareHeaders } from '../testing/compare-headers';
+import { expect } from 'chai';
+import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
+import { getFakeTokenDetails } from '../testing/fakes/token-details';
+import { stub } from 'sinon';
 
 describe('API', () => {
   let tokenDetails: TokenDetails;

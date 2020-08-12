@@ -547,8 +547,9 @@ export function getDoc<T>(
   reference: firestore.DocumentReference<T>
 ): Promise<firestore.DocumentSnapshot<T>> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
-  return getDatastore(ref.firestore).then(async datastore => {
-    const result = await invokeBatchGetDocumentsRpc(datastore, [ref._key]);
+
+  const datastore = getDatastore(ref.firestore);
+  return invokeBatchGetDocumentsRpc(datastore, [ref._key]).then(result => {
     hardAssert(result.length === 1, 'Expected a single document result');
     const maybeDocument = result[0];
     return new DocumentSnapshot<T>(
@@ -563,21 +564,22 @@ export function getDoc<T>(
 export function getDocs<T>(
   query: firestore.Query<T>
 ): Promise<firestore.QuerySnapshot<T>> {
-  const internalQuery = cast<Query<T>>(query, Query);
-  validateHasExplicitOrderByForLimitToLast(internalQuery._query);
-  return getDatastore(internalQuery.firestore).then(async datastore => {
-    const result = await invokeRunQueryRpc(datastore, internalQuery._query);
+  const queryImpl = cast<Query<T>>(query, Query);
+  validateHasExplicitOrderByForLimitToLast(queryImpl._query);
+
+  const datastore = getDatastore(queryImpl.firestore);
+  return invokeRunQueryRpc(datastore, queryImpl._query).then(result => {
     const docs = result.map(
       doc =>
         new QueryDocumentSnapshot<T>(
-          internalQuery.firestore,
+          queryImpl.firestore,
           doc.key,
           doc,
-          internalQuery.converter
+          queryImpl.converter
         )
     );
 
-    if (internalQuery._query.hasLimitToLast()) {
+    if (queryImpl._query.hasLimitToLast()) {
       // Limit to last queries reverse the orderBy constraint that was
       // specified by the user. As such, we need to reverse the order of the
       // results to return the documents in the expected order.
@@ -619,11 +621,10 @@ export function setDoc<T>(
     options
   );
 
-  return getDatastore(ref.firestore).then(datastore =>
-    invokeCommitRpc(
-      datastore,
-      parsed.toMutations(ref._key, Precondition.none())
-    )
+  const datastore = getDatastore(ref.firestore);
+  return invokeCommitRpc(
+    datastore,
+    parsed.toMutations(ref._key, Precondition.none())
   );
 }
 
@@ -668,11 +669,10 @@ export function updateDoc(
     );
   }
 
-  return getDatastore(ref.firestore).then(datastore =>
-    invokeCommitRpc(
-      datastore,
-      parsed.toMutations(ref._key, Precondition.exists(true))
-    )
+  const datastore = getDatastore(ref.firestore);
+  return invokeCommitRpc(
+    datastore,
+    parsed.toMutations(ref._key, Precondition.exists(true))
   );
 }
 
@@ -680,11 +680,10 @@ export function deleteDoc(
   reference: firestore.DocumentReference
 ): Promise<void> {
   const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
-  return getDatastore(ref.firestore).then(datastore =>
-    invokeCommitRpc(datastore, [
-      new DeleteMutation(ref._key, Precondition.none())
-    ])
-  );
+  const datastore = getDatastore(ref.firestore);
+  return invokeCommitRpc(datastore, [
+    new DeleteMutation(ref._key, Precondition.none())
+  ]);
 }
 
 export function addDoc<T>(
@@ -706,14 +705,11 @@ export function addDoc<T>(
     {}
   );
 
-  return getDatastore(collRef.firestore)
-    .then(datastore =>
-      invokeCommitRpc(
-        datastore,
-        parsed.toMutations(docRef._key, Precondition.exists(false))
-      )
-    )
-    .then(() => docRef);
+  const datastore = getDatastore(collRef.firestore);
+  return invokeCommitRpc(
+    datastore,
+    parsed.toMutations(docRef._key, Precondition.exists(false))
+  ).then(() => docRef);
 }
 
 export function refEqual<T>(

@@ -104,12 +104,12 @@ function genericLruGarbageCollectorTests(
   async function initializeTestResources(
     params: LruParams = LruParams.DEFAULT
   ): Promise<void> {
-    if (persistence && persistence.started) {
-      await queue.enqueue(async () => {
+    await queue.enqueue(async () => {
+      if (persistence && persistence.started) {
         await persistence.shutdown();
         await PersistenceTestHelpers.clearTestPersistence();
-      });
-    }
+      }
+    });
     lruParams = params;
     persistence = await newPersistence(params, queue);
     targetCache = persistence.getTargetCache();
