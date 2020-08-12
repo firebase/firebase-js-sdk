@@ -38,12 +38,12 @@ import { ANALYTICS_ID_FIELD } from './constants';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
-import {
-  isIndexedDBAvailable,
-  validateIndexedDBOpenable,
-  areCookiesEnabled,
-  isBrowserExtension
-} from '@firebase/util';
+// import {
+//   isIndexedDBAvailable,
+//   validateIndexedDBOpenable,
+//   areCookiesEnabled,
+//   isBrowserExtension
+// } from '@firebase/util';
 
 /**
  * Maps gaId to FID fetch promises.
