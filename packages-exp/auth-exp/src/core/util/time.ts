@@ -30,7 +30,7 @@ export function utcTimestampToDateString(
       return date.toUTCString();
     }
   } catch (e) {
-    // Do nothing. null will be returned.
+    // Do nothing. undefined will be returned.
   }
   return undefined;
 }

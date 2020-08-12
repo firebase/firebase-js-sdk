@@ -24,7 +24,7 @@ import {
 } from '../../api/account_management/account';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { IdTokenResponse } from '../../model/id_token';
-import { User, UserParameters } from '../../model/user';
+import { User, UserParameters, MutableUserInfo } from '../../model/user';
 import { PersistedBlob } from '../persistence';
 import { assert } from '../util/assert';
 import { getIdTokenResult } from './id_token_result';
@@ -50,8 +50,8 @@ export class UserMetadata implements externs.UserMetadata {
   readonly lastSignInTime?: string;
 
   constructor(
-    private readonly createdAt?: string,
-    private readonly lastLoginAt?: string
+    private readonly createdAt?: string | number,
+    private readonly lastLoginAt?: string | number
   ) {
     this.lastSignInTime = utcTimestampToDateString(lastLoginAt);
     this.creationTime = utcTimestampToDateString(createdAt);
@@ -76,7 +76,7 @@ export class UserImpl implements User {
   isAnonymous = false;
   tenantId = null;
   readonly metadata: UserMetadata;
-  providerData = [];
+  providerData: MutableUserInfo[] = [];
 
   // Optional fields from UserInfo
   displayName: string | null;
@@ -188,9 +188,7 @@ export class UserImpl implements User {
       photoURL: this.photoURL || undefined,
       phoneNumber: this.phoneNumber || undefined,
       tenantId: this.tenantId || undefined,
-      providerData: this.providerData.map(userInfo =>
-        Object.assign({}, userInfo)
-      ),
+      providerData: this.providerData.map(userInfo => ({ ...userInfo })),
       stsTokenManager: this.stsTokenManager.toJSON(),
       // Redirect event ID must be maintained in case there is a pending
       // redirect event.
@@ -262,9 +260,7 @@ export class UserImpl implements User {
     });
 
     if (providerData && Array.isArray(providerData)) {
-      user.providerData = providerData.map(userInfo =>
-        Object.assign({}, userInfo)
-      );
+      user.providerData = providerData.map(userInfo => ({ ...userInfo }));
     }
 
     if (_redirectEventId) {

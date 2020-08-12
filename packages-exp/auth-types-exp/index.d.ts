@@ -102,7 +102,6 @@ export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
 export interface AuthError extends FirebaseError {
   readonly appName: string;
 
-  readonly credential?: AuthCredential;
   readonly email?: string;
   readonly phoneNumber?: string;
   readonly tenantid?: string;
@@ -339,6 +338,7 @@ export interface MultiFactorAssertion {
  * https://firebase.google.com/docs/reference/js/firebase.auth.multifactorerror
  */
 export interface MultiFactorError extends AuthError {
+  readonly credential: AuthCredential;
   readonly operationType: OperationType;
 }
 

@@ -91,8 +91,8 @@ describe('core/user/reload', () => {
     expect(user.phoneNumber).to.eq('phone-number');
     expect(user.tenantId).to.eq('tenant-id');
     expect((user.metadata as UserMetadata).toJSON()).to.eql({
-      createdAt: '123',
-      lastLoginAt: '456'
+      createdAt: 123,
+      lastLoginAt: 456
     });
   });
 

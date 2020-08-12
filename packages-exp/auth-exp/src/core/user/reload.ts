@@ -52,8 +52,8 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
     tenantId: coreAccount.tenantId || null,
     providerData: mergeProviderData(user.providerData, newProviderData),
     metadata: new UserMetadata(
-      coreAccount.createdAt?.toString(),
-      coreAccount.lastLoginAt?.toString()
+      coreAccount.createdAt,
+      coreAccount.lastLoginAt
     )
   };
 
