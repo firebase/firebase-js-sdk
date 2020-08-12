@@ -474,7 +474,7 @@ export interface UserMetadata {
  */
 export interface AdditionalUserInfo {
   readonly isNewUser: boolean;
-  readonly profile?: UserProfile;
+  readonly profile: UserProfile | null;
   readonly providerId: ProviderId | null;
   readonly username?: string | null;
 }
