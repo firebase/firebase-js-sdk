@@ -716,7 +716,9 @@ abstract class TestRunner {
     await this.remoteStore.enableNetwork();
   }
 
-  private async doShutdown(options?: {expectFailure?: boolean}): Promise<void> {
+  private async doShutdown(options?: {
+    expectFailure?: boolean;
+  }): Promise<void> {
     try {
       await this.remoteStore.shutdown();
       await this.sharedClientState.shutdown();
@@ -725,7 +727,7 @@ abstract class TestRunner {
       // test run.
       await this.persistence.shutdown();
       expect(options?.expectFailure).to.not.be.true;
-      
+
       this.started = false;
     } catch (e) {
       expect(options?.expectFailure).to.be.true;

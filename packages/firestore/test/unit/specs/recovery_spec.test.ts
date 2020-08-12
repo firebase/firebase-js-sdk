@@ -840,7 +840,7 @@ describeSpec('Persistence Recovery', ['no-ios', 'no-android'], () => {
       })
       .userUnlistens(query1);
   });
-  
+
   specTest('Terminate (with recovery)', [], () => {
     return spec()
       .failDatabaseTransactions('shutdown')

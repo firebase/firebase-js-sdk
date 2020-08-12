@@ -1085,7 +1085,7 @@ apiDescribe('Database', (persistence: boolean) => {
       await db.terminate();
     });
   });
-  
+
   // eslint-disable-next-line no-restricted-properties
   (MEMORY_ONLY_BUILD ? it : it.skip)(
     'recovers when persistence is missing',

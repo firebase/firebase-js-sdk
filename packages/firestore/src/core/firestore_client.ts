@@ -375,7 +375,7 @@ export class FirestoreClient {
         await this.remoteStore.shutdown();
         await this.sharedClientState.shutdown();
         await this.persistence.shutdown();
-        
+
         // `removeChangeListener` must be called after shutting down the
         // RemoteStore as it will prevent the RemoteStore from retrieving
         // auth tokens.
