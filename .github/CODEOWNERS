@@ -65,8 +65,8 @@ packages/testing  @avolkovi @samhorlbeck @scottcrossen @yuchenshi @firebase/jssd
 packages/rxfire @davideast @jamesdaniels @firebase/jssdk-global-approvers
 
 # Installations
-packages/installations @andirayo @firebase/jssdk-global-approvers
-packages/installations-types @andirayo @firebase/jssdk-global-approvers
+packages/installations @andirayo @ChaoqunCHEN @firebase/jssdk-global-approvers
+packages/installations-types @andirayo @ChaoqunCHEN @firebase/jssdk-global-approvers
 
 # Performance Code
 packages/performance  @alikn @zijianjoy @firebase/jssdk-global-approvers
