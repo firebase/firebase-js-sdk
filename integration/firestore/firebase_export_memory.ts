@@ -29,7 +29,7 @@ export function newTestFirestore(
   settings?: firebase.firestore.Settings
 ): firebase.firestore.Firestore {
   if (nameOrApp === undefined) {
-    nameOrApp = 'test-app-minified-memory-' + appCount++;
+    nameOrApp = 'test-app-' + appCount++;
   }
   const app =
     typeof nameOrApp === 'string'

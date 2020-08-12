@@ -66,10 +66,11 @@ export function newTestFirestore(
   nameOrApp?: string | FirebaseApp | FirebaseAppShim,
   settings?: firestore.Settings
 ): firestore.FirebaseFirestore {
+  if (nameOrApp === undefined) {
+    nameOrApp = 'test-app-' + appCount++;
+  }
+
   if (usesFunctionalApi()) {
-    if (nameOrApp === undefined) {
-      nameOrApp = 'test-app-exp-' + appCount++;
-    }
     const app =
       typeof nameOrApp === 'string'
         ? initializeApp({ apiKey: 'fake-api-key', projectId }, nameOrApp)
@@ -79,9 +80,6 @@ export function newTestFirestore(
       : getFirestore(app);
     return new FirestoreShim(firestore);
   } else {
-    if (nameOrApp === undefined) {
-      nameOrApp = 'test-app-' + appCount++;
-    }
     const app =
       typeof nameOrApp === 'string'
         ? firebase.initializeApp(

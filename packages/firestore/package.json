@@ -36,7 +36,7 @@
     "test:exp:browser:debug": "karma start --single-run --exp --auto-watch",
     "test": "run-s lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js",
-    "test:all": "run-s test:browser test:lite:browser test:exp:browser test:travis test:minified",
+    "test:all": "run-p test:browser test:lite:browser test:exp:browser test:travis test:minified",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "node ./scripts/run-tests.js  --main=index.node.ts  --emulator 'test/{,!(browser)/**/}*.test.ts'",

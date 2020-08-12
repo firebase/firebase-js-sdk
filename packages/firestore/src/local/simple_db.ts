@@ -339,10 +339,6 @@ export class SimpleDb {
     }
   }
 
-  isOpen() : boolean {
-    return !!this.db;
-  }
-
   close(): void {
     if (this.db) {
       this.db.close();

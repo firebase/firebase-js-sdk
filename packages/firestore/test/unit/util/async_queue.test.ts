@@ -396,7 +396,7 @@ describe('AsyncQueue', () => {
     queue.enqueueAndForget(() => doStep(1));
 
     // After this call, only operations requested via
-    // `enqueueAndForgetEvenAfterShutdown` gets executed.
+    // `enqueueAndForgetEvenWhileRestricted` gets executed.
     queue.enterRestrictedMode();
     queue.enqueueAndForgetEvenWhileRestricted(() => doStep(2));
     queue.enqueueAndForget(() => doStep(3));
