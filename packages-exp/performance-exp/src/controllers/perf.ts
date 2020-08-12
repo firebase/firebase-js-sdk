@@ -17,7 +17,7 @@
 import { FirebaseApp } from '@firebase/app-types-exp';
 import {
   PerformanceSettings,
-  FirebasePerformanceInternal
+  FirebasePerformance
 } from '@firebase/performance-types-exp';
 
 import { Api } from '../services/api_service';
@@ -28,7 +28,7 @@ import { setupTransportService } from '../services/transport_service';
 import { consoleLogger } from '../utils/console_logger';
 import { FirebaseInstallations } from '@firebase/installations-types';
 
-export class PerformanceController implements FirebasePerformanceInternal {
+export class PerformanceController implements FirebasePerformance {
   constructor(
     readonly app: FirebaseApp,
     readonly installations: FirebaseInstallations
