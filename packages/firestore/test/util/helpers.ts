@@ -445,14 +445,16 @@ export class TestBundledDocuments {
 }
 
 export function bundledDocuments(
-  documents: MaybeDocument[]
+  documents: MaybeDocument[],
+  queryNames?: string[][]
 ): TestBundledDocuments {
-  const result = documents.map(d => {
+  const result = documents.map((d, index) => {
     return {
       metadata: {
         name: toName(JSON_SERIALIZER, d.key),
         readTime: toVersion(JSON_SERIALIZER, d.version),
-        exists: d instanceof Document
+        exists: d instanceof Document,
+        queries: queryNames ? queryNames[index] : undefined
       },
       document:
         d instanceof Document ? toDocument(JSON_SERIALIZER, d) : undefined
@@ -462,21 +464,32 @@ export function bundledDocuments(
   return new TestBundledDocuments(result);
 }
 
+export class TestNamedQuery {
+  constructor(
+    public namedQuery: bundleProto.NamedQuery,
+    public matchingDocuments: DocumentKeySet
+  ) {}
+}
+
 export function namedQuery(
   name: string,
   query: Query,
   limitType: bundleProto.LimitType,
-  readTime: SnapshotVersion
-): bundleProto.NamedQuery {
+  readTime: SnapshotVersion,
+  matchingDocuments: DocumentKeySet = documentKeySet()
+): TestNamedQuery {
   return {
-    name,
-    readTime: toTimestamp(JSON_SERIALIZER, readTime.toTimestamp()),
-    bundledQuery: {
-      parent: toQueryTarget(JSON_SERIALIZER, queryToTarget(query)).parent,
-      limitType,
-      structuredQuery: toQueryTarget(JSON_SERIALIZER, queryToTarget(query))
-        .structuredQuery
-    }
+    namedQuery: {
+      name,
+      readTime: toTimestamp(JSON_SERIALIZER, readTime.toTimestamp()),
+      bundledQuery: {
+        parent: toQueryTarget(JSON_SERIALIZER, queryToTarget(query)).parent,
+        limitType,
+        structuredQuery: toQueryTarget(JSON_SERIALIZER, queryToTarget(query))
+          .structuredQuery
+      }
+    },
+    matchingDocuments
   };
 }
 

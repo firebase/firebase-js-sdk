@@ -1249,6 +1249,11 @@ export async function ignoreIfPrimaryLeaseLoss(
   }
 }
 
+export interface ApplyBundleDocumentsResult {
+  changedDocuments: MaybeDocumentMap;
+  queryDocumentMap: Map<string, DocumentKeySet>;
+}
+
 /**
  * Applies the documents from a bundle to the "ground-state" (remote)
  * documents.
@@ -1259,11 +1264,12 @@ export async function ignoreIfPrimaryLeaseLoss(
 export function applyBundleDocuments(
   localStore: LocalStore,
   documents: BundledDocuments
-): Promise<MaybeDocumentMap> {
+): Promise<ApplyBundleDocumentsResult> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const bundleConverter = new BundleConverter(localStoreImpl.serializer);
   let documentMap = maybeDocumentMap();
   let versionMap = documentVersionMap();
+  const queryDocumentMap: Map<string, DocumentKeySet> = new Map();
   for (const bundleDoc of documents) {
     const documentKey = bundleConverter.toDocumentKey(bundleDoc.metadata.name!);
     documentMap = documentMap.insert(
@@ -1274,6 +1280,14 @@ export function applyBundleDocuments(
       documentKey,
       bundleConverter.toSnapshotVersion(bundleDoc.metadata.readTime!)
     );
+    if (bundleDoc.metadata.queries) {
+      for (const queryName of bundleDoc.metadata.queries) {
+        const documentKeys = (
+          queryDocumentMap.get(queryName) || documentKeySet()
+        ).add(documentKey);
+        queryDocumentMap.set(queryName, documentKeys);
+      }
+    }
   }
 
   const documentBuffer = localStoreImpl.remoteDocuments.newChangeBuffer({
@@ -1300,6 +1314,12 @@ export function applyBundleDocuments(
             txn,
             changedDocs
           );
+        })
+        .next(changedDocuments => {
+          return PersistencePromise.resolve({
+            changedDocuments,
+            queryDocumentMap
+          });
         });
     }
   );
@@ -1373,7 +1393,8 @@ export function getNamedQuery(
  */
 export async function saveNamedQuery(
   localStore: LocalStore,
-  query: bundleProto.NamedQuery
+  query: bundleProto.NamedQuery,
+  documents: DocumentKeySet = documentKeySet()
 ): Promise<void> {
   // Allocate a target for the named query such that it can be resumed
   // from associated read time if users use it to listen.
@@ -1400,10 +1421,22 @@ export async function saveNamedQuery(
           transaction,
           newTargetData
         );
+        localStoreImpl.targetDataByTarget = localStoreImpl.targetDataByTarget.insert(
+          newTargetData.targetId,
+          newTargetData
+        );
       }
-      return updateReadTime.next(() =>
-        localStoreImpl.bundleCache.saveNamedQuery(transaction, query)
-      );
+      return updateReadTime
+        .next(() =>
+          localStoreImpl.bundleCache.saveNamedQuery(transaction, query)
+        )
+        .next(() =>
+          localStoreImpl.targetCache.addMatchingKeys(
+            transaction,
+            documents,
+            allocated.targetId
+          )
+        );
     }
   );
 }

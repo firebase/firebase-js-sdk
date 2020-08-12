@@ -218,16 +218,17 @@ export class BundleLoader {
       'Bundled documents ends with a document metadata and missing document.'
     );
 
+    const result = await applyBundleDocuments(this.localStore, this.documents);
+
     for (const q of this.queries) {
-      await saveNamedQuery(this.localStore, q);
+      await saveNamedQuery(
+        this.localStore,
+        q,
+        result.queryDocumentMap.get(q.name!)
+      );
     }
 
-    const changedDocs = await applyBundleDocuments(
-      this.localStore,
-      this.documents
-    );
-
     this.progress.taskState = 'Success';
-    return new BundleLoadResult({ ...this.progress }, changedDocs);
+    return new BundleLoadResult({ ...this.progress }, result.changedDocuments);
   }
 }
