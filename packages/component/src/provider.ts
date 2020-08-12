@@ -174,11 +174,20 @@ export class Provider<T extends Name> {
       ...services
         .filter(service => 'INTERNAL' in service) // legacy services
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .map(service => (service as any).INTERNAL!.delete())
-      // ...services
-      //   .filter(service => 'delete' in service) // next services
-      //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      //   .map(service => (service as any).delete())
+        .map(service => (service as any).INTERNAL!.delete()),
+      ...services
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .filter(
+          service =>
+            'delete' in service &&
+            this.component &&
+            // TODO: remove !== 'app' when modular SDKs become official
+            // People call app.delete() to trigger provider.delete() for all registered components, so
+            // we don't call delete() on legacy FirebaseApp to avoid getting into a loop.
+            (this.component.name as any) !== 'app'
+        ) // modular services
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map(service => (service as any).delete())
     ]);
   }
 
