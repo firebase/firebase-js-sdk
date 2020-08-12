@@ -38,7 +38,7 @@ import * as yargs from 'yargs';
  *
  * -- inputBundleFile (optional): adhoc support. Specify a path to bundle file. Must enable -- inputDtsFile if this flag is specified.
  *
- * --output (optional): output directory or file where reports will be generated.
+ * --output (required): output directory or file where reports will be generated.
  *          specify a directory if module(s) are analyzed
  *          specify a file path if ad hoc analysis is to be performed
  *
@@ -64,6 +64,7 @@ const argv = yargs
     output: {
       type: 'string',
       alias: 'o',
+      required: true,
       desc:
         'The location where report(s) will be generated, a directory path if module(s) are analyzed; a file path if ad hoc analysis is to be performed'
     }
@@ -77,9 +78,6 @@ const argv = yargs
  * Throw INVALID_FLAG_COMBINATION error if neither case fulfill.
  */
 async function main(): Promise<void> {
-  if (!argv.output) {
-    throw new Error(ErrorCode.REPORT_REDIRECTION_ERROR);
-  }
   // check if it's an adhoc run
   // adhoc run report can only be redirected to files
   if (argv.inputDtsFile && argv.inputBundleFile && argv.output) {

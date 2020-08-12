@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 
-import { dbGet, dbSet, dbRemove } from '../helpers/idb-manager';
-import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
-import { TokenDetails, SubscriptionOptions } from '../interfaces/token-details';
-import { requestUpdateToken, requestGetToken, requestDeleteToken } from './api';
+import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { SubscriptionOptions, TokenDetails } from '../interfaces/token-details';
 import {
   arrayToBase64,
   base64ToArray
 } from '../helpers/array-base64-translator';
-import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { dbGet, dbRemove, dbSet } from '../helpers/idb-manager';
+import { requestDeleteToken, requestGetToken, requestUpdateToken } from './api';
+
+import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 
 /** UpdateRegistration will be called once every week. */
 const TOKEN_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -37,8 +38,8 @@ export async function getToken(
     throw ERROR_FACTORY.create(ErrorCode.PERMISSION_BLOCKED);
   }
 
-  // If a PushSubscription exists it's returned, otherwise a new subscription
-  // is generated and returned.
+  // If a PushSubscription exists it's returned, otherwise a new subscription is generated and
+  // returned.
   const pushSubscription = await getPushSubscription(swRegistration, vapidKey);
   const tokenDetails = await dbGet(firebaseDependencies);
 
@@ -83,8 +84,8 @@ export async function getToken(
 }
 
 /**
- * This method deletes the token from the database, unsubscribes the token from
- * FCM, and unregisters the push subscription if it exists.
+ * This method deletes the token from the database, unsubscribes the token from FCM, and unregisters
+ * the push subscription if it exists.
  */
 export async function deleteToken(
   firebaseDependencies: FirebaseInternalDependencies,

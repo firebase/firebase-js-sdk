@@ -110,7 +110,8 @@ export class Firestore
    * Only ever called once.
    */
   protected _terminate(): Promise<void> {
-    return removeComponents(this);
+    removeComponents(this);
+    return Promise.resolve();
   }
 
   // TODO(firestoreexp): `deleteApp()` should call the delete method above,

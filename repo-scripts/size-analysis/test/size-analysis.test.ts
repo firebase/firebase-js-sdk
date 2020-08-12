@@ -28,7 +28,8 @@ import {
   writeReportToDirectory,
   External,
   extractExternalDependencies,
-  buildMap
+  buildMap,
+  Report
 } from '../analysis-helper';
 
 import {
@@ -43,8 +44,10 @@ describe('extractDeclarations on .d.ts file', () => {
   let testModuleDtsFile: string;
   let extractedDeclarations: MemberList;
   before(() => {
+    const start = Date.now();
     testModuleDtsFile = getTestModuleDtsFilePath();
     extractedDeclarations = extractDeclarations(testModuleDtsFile);
+    console.log('extractDeclarations on .d.ts file took ', Date.now() - start);
   });
   // export {tar as tarr, tar1 as tarr1} from '..'
   it('test export rename', () => {
@@ -198,12 +201,17 @@ describe('extractDeclarations on js bundle file', () => {
   let subsetExportsBundleFile: string;
   let extractedDeclarations: MemberList;
   before(() => {
+    const start = Date.now();
     const testModuleDtsFile: string = getTestModuleDtsFilePath();
     const map: Map<string, string> = buildMap(
       extractDeclarations(testModuleDtsFile)
     );
     subsetExportsBundleFile = getSubsetExportsBundleFilePath();
     extractedDeclarations = extractDeclarations(subsetExportsBundleFile, map);
+    console.log(
+      'extractDeclarations on js bundle file took ',
+      Date.now() - start
+    );
   });
   it('test variable extractions', () => {
     const variablesArray = ['aVar', 'fs1'];
@@ -411,17 +419,25 @@ describe('test mapSymbolToType helper function', () => {
 });
 
 describe('test writeReportToFile helper function', () => {
+  let fileContent: Report;
+
+  before(() => {
+    fileContent = {
+      name: 'name',
+      symbols: []
+    };
+  });
   it('should throw error when given path exists and points to directory', () => {
     const aDir = resolve('./a-dir/a-sub-dir');
     fs.mkdirSync(aDir, { recursive: true });
-    expect(() => writeReportToFile('content', aDir)).to.throw(
+    expect(() => writeReportToFile(fileContent, aDir)).to.throw(
       ErrorCode.OUTPUT_FILE_REQUIRED
     );
   });
 
   it('should not throw error when given path does not pre-exist', () => {
     const aPathToFile = resolve('./a-dir/a-sub-dir/a-file');
-    expect(() => writeReportToFile('content', aPathToFile)).to.not.throw();
+    expect(() => writeReportToFile(fileContent, aPathToFile)).to.not.throw();
     fs.unlinkSync(aPathToFile);
   });
   after(() => {
@@ -431,21 +447,31 @@ describe('test writeReportToFile helper function', () => {
 });
 
 describe('test writeReportToDirectory helper function', () => {
+  let fileContent: Report;
+
+  before(() => {
+    fileContent = {
+      name: 'name',
+      symbols: []
+    };
+  });
   it('should throw error when given path exists and points to a file', () => {
     const aDir = resolve('./a-dir/a-sub-dir');
     fs.mkdirSync(aDir, { recursive: true });
     const aFile = `a-file`;
     const aPathToFile = `${aDir}/${aFile}`;
-    fs.writeFileSync(aPathToFile, 'content');
+    fs.writeFileSync(aPathToFile, fileContent);
     expect(() =>
-      writeReportToDirectory('content', aFile, aPathToFile)
+      writeReportToDirectory(fileContent, aFile, aPathToFile)
     ).to.throw(ErrorCode.OUTPUT_DIRECTORY_REQUIRED);
   });
 
   it('should not throw error when given path does not pre-exist', () => {
     const aDir = resolve('./a-dir/a-sub-dir');
     const aFile = `a-file`;
-    expect(() => writeReportToDirectory('content', aFile, aDir)).to.not.throw();
+    expect(() =>
+      writeReportToDirectory(fileContent, aFile, aDir)
+    ).to.not.throw();
   });
   after(() => {
     fs.unlinkSync(`${resolve('./a-dir/a-sub-dir')}/a-file`);
@@ -459,7 +485,7 @@ describe('test extractExternalDependencies helper function', () => {
     const assortedImports: string = getAssortedImportsJsFilePath();
     const externals: External[] = extractExternalDependencies(assortedImports);
     const barFilter: External[] = externals.filter(
-      each => each.moduleName.localeCompare("'./bar'") === 0
+      each => each.moduleName.localeCompare('./bar') === 0
     );
     expect(barFilter.length).to.equal(1);
     expect(barFilter[0].symbols).to.have.members([
@@ -468,18 +494,18 @@ describe('test extractExternalDependencies helper function', () => {
       'BasicClassExportBar' // extract original name if renamed
     ]);
     const loggerFilter: External[] = externals.filter(
-      each => each.moduleName.localeCompare("'@firebase/logger'") === 0
+      each => each.moduleName.localeCompare('@firebase/logger') === 0
     );
     expect(loggerFilter.length).to.equal(0);
 
     const fsFilter: External[] = externals.filter(
-      each => each.moduleName.localeCompare("'fs'") === 0
+      each => each.moduleName.localeCompare('fs') === 0
     );
     expect(fsFilter.length).to.equal(1);
     expect(fsFilter[0].symbols).to.have.members(['*']); // namespace export
 
     const defaultExportFilter: External[] = externals.filter(
-      each => each.moduleName.localeCompare("'@firebase/app'") === 0
+      each => each.moduleName.localeCompare('@firebase/app') === 0
     );
     expect(defaultExportFilter.length).to.equal(1);
     expect(defaultExportFilter[0].symbols).to.have.members(['default export']); // default export

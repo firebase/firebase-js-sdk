@@ -34,8 +34,7 @@ export const enum ErrorCode {
   INPUT_FILE_DOES_NOT_EXIST = 'Input file does not exist!',
   INPUT_DTS_FILE_DOES_NOT_EXIST = 'Input dts file does not exist!',
   INPUT_BUNDLE_FILE_DOES_NOT_EXIST = 'Input bundle file does not exist!',
-  FILE_PARSING_ERROR = 'Failed to parse js file!',
-  REPORT_REDIRECTION_ERROR = 'Please enable --output flag for report redirection!'
+  FILE_PARSING_ERROR = 'Failed to parse js file!'
 }
 export interface External {
   moduleName: string;
@@ -325,9 +324,7 @@ export function extractDeclarations(
           );
           // concatenate re-exported MemberList with MemberList of the dts file
           for (const key of Object.keys(declarations)) {
-            if (Array.isArray(declarations[key])) {
-              declarations[key].push(...reExportsWithFromClause[key]);
-            }
+            declarations[key].push(...reExportsWithFromClause[key]);
           }
         }
       } else {
@@ -352,9 +349,7 @@ export function extractDeclarations(
 
   //Sort to ensure stable output
   Object.values(declarations).map(each => {
-    if (Array.isArray(each)) {
-      each.sort();
-    }
+    each.sort();
   });
   return declarations;
 }
@@ -564,10 +559,8 @@ function handleExportStatementsWithoutFromClause(
  */
 export function dedup(memberList: MemberList): MemberList {
   for (const key of Object.keys(memberList)) {
-    if (Array.isArray(memberList[key])) {
-      const set: Set<string> = new Set(memberList[key]);
-      memberList[key] = Array.from(set);
-    }
+    const set: Set<string> = new Set(memberList[key]);
+    memberList[key] = Array.from(set);
   }
   return memberList;
 }
@@ -585,15 +578,13 @@ export function mapSymbolToType(
   };
 
   for (const key of Object.keys(memberList)) {
-    if (Array.isArray(memberList[key])) {
-      memberList[key].forEach(element => {
-        if (map.has(element)) {
-          newMemberList[map.get(element)].push(element);
-        } else {
-          newMemberList[key].push(element);
-        }
-      });
-    }
+    memberList[key].forEach(element => {
+      if (map.has(element)) {
+        newMemberList[map.get(element)].push(element);
+      } else {
+        newMemberList[key].push(element);
+      }
+    });
   }
   return newMemberList;
 }
@@ -611,9 +602,7 @@ function extractOriginalSymbolName(
 
 function filterAllBy(memberList: MemberList, keep: string[]): void {
   for (const key of Object.keys(memberList)) {
-    if (Array.isArray(memberList[key])) {
-      memberList[key] = memberList[key].filter(each => keep.includes(each));
-    }
+    memberList[key] = memberList[key].filter(each => keep.includes(each));
   }
 }
 
@@ -623,9 +612,7 @@ export function replaceAll(
   current: string
 ): void {
   for (const key of Object.keys(memberList)) {
-    if (Array.isArray(memberList[key])) {
-      memberList[key] = replaceWith(memberList[key], original, current);
-    }
+    memberList[key] = replaceWith(memberList[key], original, current);
   }
 }
 
@@ -807,11 +794,9 @@ function retrieveBundleFileLocation(pkgJson: string): string {
 export function buildMap(api: MemberList): Map<string, string> {
   const map: Map<string, string> = new Map();
   for (const type of Object.keys(api)) {
-    if (Array.isArray(api[type])) {
-      api[type].forEach(element => {
-        map.set(element, type);
-      });
-    }
+    api[type].forEach(element => {
+      map.set(element, type);
+    });
   }
   return map;
 }

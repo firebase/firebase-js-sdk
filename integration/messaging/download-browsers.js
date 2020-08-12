@@ -18,8 +18,9 @@
 const seleniumAssistant = require('selenium-assistant');
 
 console.log('Starting browser download - this may take some time.');
-// TODO: enable firefox testing once figure out how to give notification permission with SE webdriver.
-// TODO: Run the integration test against multiple major chrome versions to ensure backward compatibility
+// TODO: enable firefox testing once figure out how to give notification permission with SE
+// webdriver. TODO: Run the integration test against multiple major chrome versions to ensure
+// backward compatibility
 Promise.all([seleniumAssistant.downloadLocalBrowser('chrome', 'stable', 80)])
   .then(() => {
     console.log('Browser download complete.');
