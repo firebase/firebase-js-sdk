@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
-import { FirebaseInstallations } from '@firebase/installations-types';
 import {
-  FirebaseAnalyticsInternalName,
-  FirebaseAnalyticsInternal
+  FirebaseAnalyticsInternal,
+  FirebaseAnalyticsInternalName
 } from '@firebase/analytics-interop-types';
-import { Provider } from '@firebase/component';
+import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
+
+import { FirebaseInstallations } from '@firebase/installations-types';
 import { FirebaseInternalDependencies } from '../../interfaces/internal-dependencies';
+import { Provider } from '@firebase/component';
 import { extractAppConfig } from '../../helpers/extract-app-config';
 
 export function getFakeFirebaseDependencies(

@@ -17,7 +17,9 @@
 
 const fetch = require('node-fetch');
 const FCM_SEND_ENDPOINT = 'https://fcm.googleapis.com/fcm/send';
-// Rotatable fcm server key. It's generally a bad idea to expose server keys. The reason is to simplify testing process (no need to implement server side decryption of git secret). The justification is that a) this is a disposable test project b)  the key itself is rotatable.
+// Rotatable fcm server key. It's generally a bad idea to expose server keys. The reason is to
+// simplify testing process (no need to implement server side decryption of git secret). The
+// justification is that a) this is a disposable test project b)  the key itself is rotatable.
 const FCM_KEY =
   'AAAArtlRq60:APA91bHFulW1dBpIPbArYXPbFtO9M_a9ZNXhnj9hGArfGK55g8fv5s5Qset6984xRIrqhZ_3IlKcG9LgSk3DiTdHMDIOkxboNJquNK1SChC7J0ULTvHPg7t0V6AjR1UEA21DXI22BM5N';
 
