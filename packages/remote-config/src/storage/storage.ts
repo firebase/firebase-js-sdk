@@ -22,7 +22,6 @@ import {
 } from '../client/remote_config_fetch_client';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { FirebaseError } from '@firebase/util';
-import { ErrorFactory } from '@firebase/util';
 
 /**
  * Converts an error event associated with a {@link IDBRequest} to a {@link FirebaseError}.
