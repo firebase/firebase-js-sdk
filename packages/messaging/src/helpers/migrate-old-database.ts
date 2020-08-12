@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { openDb, deleteDb } from 'idb';
+import { deleteDb, openDb } from 'idb';
+
 import { TokenDetails } from '../interfaces/token-details';
 import { arrayToBase64 } from './array-base64-translator';
 
@@ -60,8 +61,8 @@ export interface V4TokenDetails {
 
 const OLD_DB_NAME = 'fcm_token_details_db';
 /**
- * The last DB version of 'fcm_token_details_db' was 4. This is one higher,
- * so that the upgrade callback is called for all versions of the old DB.
+ * The last DB version of 'fcm_token_details_db' was 4. This is one higher, so that the upgrade
+ * callback is called for all versions of the old DB.
  */
 const OLD_DB_VERSION = 5;
 const OLD_OBJECT_STORE_NAME = 'fcm_token_object_Store';
@@ -70,9 +71,8 @@ export async function migrateOldDatabase(
   senderId: string
 ): Promise<TokenDetails | null> {
   if ('databases' in indexedDB) {
-    // indexedDb.databases() is an IndexedDB v3 API
-    // and does not exist in all browsers.
-    // TODO: Remove typecast when it lands in TS types.
+    // indexedDb.databases() is an IndexedDB v3 API and does not exist in all browsers. TODO: Remove
+    // typecast when it lands in TS types.
     const databases = await (indexedDB as {
       databases(): Promise<Array<{ name: string; version: number }>>;
     }).databases();

@@ -9,6 +9,7 @@
       <env name="TS_NODE_COMPILER_OPTIONS" value="{&quot;module&quot;:&quot;commonjs&quot;}" />
       <env name="FIRESTORE_EMULATOR_PORT" value="8080" />
       <env name="FIRESTORE_EMULATOR_PROJECT_ID" value="xyz-abc-123" />
+      <env name="TEST_PLATFORM" value="node_lite" />
     </envs>
     <ui>bdd</ui>
     <extra-mocha-options>--require ts-node/register/type-check --require lite/index.ts --timeout 5000</extra-mocha-options>

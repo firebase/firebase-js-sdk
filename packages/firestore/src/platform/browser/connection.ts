@@ -23,8 +23,8 @@ import { BrowserConnectivityMonitor } from './connectivity_monitor';
 import { NoopConnectivityMonitor } from '../../remote/connectivity_monitor_noop';
 
 /** Initializes the WebChannelConnection for the browser. */
-export function newConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
-  return Promise.resolve(new WebChannelConnection(databaseInfo));
+export function newConnection(databaseInfo: DatabaseInfo): Connection {
+  return new WebChannelConnection(databaseInfo);
 }
 
 /** Return the Platform-specific connectivity monitor. */

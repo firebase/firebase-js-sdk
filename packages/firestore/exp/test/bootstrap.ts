@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import '../register';
-
+import { registerFirestore } from '../register';
+registerFirestore();
 /**
  * This will include all of the test files and compile them as needed
  *

@@ -1,6 +1,6 @@
 {
   "name": "firebase-exp",
-  "version": "0.800.3",
+  "version": "0.800.4",
   "private": true,
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -37,7 +37,7 @@
   "dependencies": {
     "@firebase/app-exp": "0.0.800",
     "@firebase/functions-exp": "0.0.800",
-    "@firebase/firestore": "1.16.2"
+    "@firebase/firestore": "1.16.3"
   },
   "devDependencies": {
     "rollup": "2.23.0",
