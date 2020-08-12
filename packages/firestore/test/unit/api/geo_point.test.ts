@@ -100,4 +100,19 @@ describe('GeoPoint', () => {
     expectNotEqual(new GeoPoint(1, 2), new GeoPoint(1, 1));
     expectNotEqual(new GeoPoint(1, 2), new GeoPoint(2, 1));
   });
+
+  it('serializes to JSON', () => {
+    expect(JSON.stringify(new GeoPoint(1, 2))).to.equal(
+      '{"latitude":1,"longitude":2}'
+    );
+    expect(JSON.stringify(new GeoPoint(0, 0))).to.equal(
+      '{"latitude":0,"longitude":0}'
+    );
+    expect(JSON.stringify(new GeoPoint(-0, -0))).to.equal(
+      '{"latitude":0,"longitude":0}'
+    );
+    expect(JSON.stringify(new GeoPoint(90, 180))).to.equal(
+      '{"latitude":90,"longitude":180}'
+    );
+  });
 });

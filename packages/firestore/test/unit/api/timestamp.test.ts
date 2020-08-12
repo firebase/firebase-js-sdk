@@ -132,4 +132,16 @@ describe('Timestamp', () => {
     expect(t1 > t2).to.be.false;
     expect(t1 >= t2).to.be.false;
   });
+
+  it('serializes to JSON', () => {
+    expect(JSON.stringify(new Timestamp(123, 456))).to.equal(
+      '{"seconds":123,"nanoseconds":456}'
+    );
+    expect(JSON.stringify(new Timestamp(0, 0))).to.equal(
+      '{"seconds":0,"nanoseconds":0}'
+    );
+    expect(JSON.stringify(new Timestamp(-123, 456))).to.equal(
+      '{"seconds":-123,"nanoseconds":456}'
+    );
+  });
 });
