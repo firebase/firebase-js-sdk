@@ -110,10 +110,6 @@ describe('GeoPoint', () => {
       latitude: 0,
       longitude: 0
     });
-    expect(new GeoPoint(-0, -0).toJSON()).to.deep.equal({
-      latitude: 0,
-      longitude: 0
-    });
     expect(new GeoPoint(90, 180).toJSON()).to.deep.equal({
       latitude: 90,
       longitude: 180
