@@ -102,17 +102,21 @@ describe('GeoPoint', () => {
   });
 
   it('serializes to JSON', () => {
-    expect(JSON.stringify(new GeoPoint(1, 2))).to.equal(
-      '{"latitude":1,"longitude":2}'
-    );
-    expect(JSON.stringify(new GeoPoint(0, 0))).to.equal(
-      '{"latitude":0,"longitude":0}'
-    );
-    expect(JSON.stringify(new GeoPoint(-0, -0))).to.equal(
-      '{"latitude":0,"longitude":0}'
-    );
-    expect(JSON.stringify(new GeoPoint(90, 180))).to.equal(
-      '{"latitude":90,"longitude":180}'
-    );
+    expect(new GeoPoint(1, 2).toJSON()).to.deep.equal({
+      latitude: 1,
+      longitude: 2
+    });
+    expect(new GeoPoint(0, 0).toJSON()).to.deep.equal({
+      latitude: 0,
+      longitude: 0
+    });
+    expect(new GeoPoint(-0, -0).toJSON()).to.deep.equal({
+      latitude: 0,
+      longitude: 0
+    });
+    expect(new GeoPoint(90, 180).toJSON()).to.deep.equal({
+      latitude: 90,
+      longitude: 180
+    });
   });
 });

@@ -134,14 +134,17 @@ describe('Timestamp', () => {
   });
 
   it('serializes to JSON', () => {
-    expect(JSON.stringify(new Timestamp(123, 456))).to.equal(
-      '{"seconds":123,"nanoseconds":456}'
-    );
-    expect(JSON.stringify(new Timestamp(0, 0))).to.equal(
-      '{"seconds":0,"nanoseconds":0}'
-    );
-    expect(JSON.stringify(new Timestamp(-123, 456))).to.equal(
-      '{"seconds":-123,"nanoseconds":456}'
-    );
+    expect(new Timestamp(123, 456).toJSON()).to.deep.equal({
+      seconds: 123,
+      nanoseconds: 456
+    });
+    expect(new Timestamp(0, 0).toJSON()).to.deep.equal({
+      seconds: 0,
+      nanoseconds: 0
+    });
+    expect(new Timestamp(-123, 456).toJSON()).to.deep.equal({
+      seconds: -123,
+      nanoseconds: 456
+    });
   });
 });
