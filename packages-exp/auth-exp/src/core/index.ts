@@ -107,6 +107,7 @@ export {
 } from './user/account_info';
 export { getIdToken, getIdTokenResult } from './user/id_token_result';
 export { unlink } from './user/link_unlink';
+export { getAdditionalUserInfo } from './user/additional_user_info';
 
 // Non-optional user methods.
 export { reload } from './user/reload';
