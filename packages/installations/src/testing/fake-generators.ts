@@ -24,18 +24,19 @@ import {
 import { extractAppConfig } from '../helpers/extract-app-config';
 import { AppConfig } from '../interfaces/app-config';
 import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
+import { TEST_API_KEY, TEST_APP_ID } from './test-constants';
 
 export function getFakeApp(): FirebaseApp {
   return {
     name: 'appName',
     options: {
-      apiKey: 'AIzaSyabcdefghijklmnopqrstuvwxyz1234567',
+      apiKey: TEST_API_KEY,
       projectId: 'projectId',
       authDomain: 'authDomain',
       messagingSenderId: 'messagingSenderId',
       databaseURL: 'databaseUrl',
       storageBucket: 'storageBucket',
-      appId: '1:777777777777:web:d93b5ca1475efe57'
+      appId: TEST_APP_ID
     },
     automaticDataCollectionEnabled: true,
     delete: async () => {},

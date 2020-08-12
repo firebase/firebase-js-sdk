@@ -21,15 +21,16 @@ import { AppConfig } from '../interfaces/app-config';
 import { getFakeApp } from '../testing/fake-generators';
 import '../testing/setup';
 import { extractAppConfig } from './extract-app-config';
+import { TEST_API_KEY, TEST_APP_ID } from '../testing/test-constants';
 
 describe('extractAppConfig', () => {
   it('returns AppConfig if the argument is a FirebaseApp object that includes an appId', () => {
     const firebaseApp = getFakeApp();
     const expected: AppConfig = {
       appName: 'appName',
-      apiKey: 'AIzaSyabcdefghijklmnopqrstuvwxyz1234567',
+      apiKey: TEST_API_KEY,
       projectId: 'projectId',
-      appId: '1:777777777777:web:d93b5ca1475efe57'
+      appId: TEST_APP_ID
     };
     expect(extractAppConfig(firebaseApp)).to.deep.equal(expected);
   });

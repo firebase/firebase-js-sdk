@@ -34,6 +34,7 @@ import {
 } from '../util/constants';
 import { ErrorResponse } from './common';
 import { createInstallationRequest } from './create-installation-request';
+import { TEST_API_KEY } from '../testing/test-constants';
 
 const FID = 'defenders-of-the-faith';
 
@@ -83,7 +84,7 @@ describe('createInstallationRequest', () => {
       const expectedHeaders = new Headers({
         'Content-Type': 'application/json',
         Accept: 'application/json',
-        'x-goog-api-key': 'AIzaSyabcdefghijklmnopqrstuvwxyz1234567'
+        'x-goog-api-key': TEST_API_KEY
       });
       const expectedBody = {
         fid: FID,
