@@ -47,8 +47,7 @@ import { Query, queryToTarget } from '../core/query';
  * for the rest of the client SDK architecture to consume.
  */
 export abstract class Datastore {
-  abstract start(connection: Connection): void;
-  abstract termiate(): Promise<void>;
+  abstract terminate(): void;
 }
 
 /**
@@ -56,11 +55,11 @@ export abstract class Datastore {
  * consumption.
  */
 class DatastoreImpl extends Datastore {
-  connection!: Connection;
   terminated = false;
 
   constructor(
     readonly credentials: CredentialsProvider,
+    readonly connection: Connection,
     readonly serializer: JsonProtoSerializer
   ) {
     super();
@@ -74,11 +73,6 @@ class DatastoreImpl extends Datastore {
         'The client has already been terminated.'
       );
     }
-  }
-
-  start(connection: Connection): void {
-    debugAssert(!this.connection, 'Datastore.start() already called');
-    this.connection = connection;
   }
 
   /** Gets an auth token and invokes the provided RPC. */
@@ -131,7 +125,7 @@ class DatastoreImpl extends Datastore {
       });
   }
 
-  async termiate(): Promise<void> {
+  terminate(): void {
     this.terminated = false;
   }
 }
@@ -140,9 +134,10 @@ class DatastoreImpl extends Datastore {
 // firestore-exp client.
 export function newDatastore(
   credentials: CredentialsProvider,
+  connection: Connection,
   serializer: JsonProtoSerializer
 ): Datastore {
-  return new DatastoreImpl(credentials, serializer);
+  return new DatastoreImpl(credentials, connection, serializer);
 }
 
 export async function invokeCommitRpc(
