@@ -47,7 +47,9 @@ export class Auth extends impl.AuthImplCompat<User>
     );
 
     // TODO: platform needs to be determined using heuristics
-    impl.assertFn(apiKey, app.name, impl.AuthErrorCode.INVALID_API_KEY);
+    impl.assertFn(apiKey, impl.AuthErrorCode.INVALID_API_KEY, {
+      appName: app.name
+    });
     const config: externs.Config = {
       apiKey,
       authDomain,
@@ -108,8 +110,8 @@ export class Auth extends impl.AuthImplCompat<User>
   async getRedirectResult(): Promise<compat.UserCredential> {
     impl.assertFn(
       _isPopupRedirectSupported(),
-      this.app.name,
-      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED
+      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED,
+      { appName: this.app.name }
     );
     const credential = await impl.getRedirectResult(
       this._asExtern(),
@@ -181,7 +183,9 @@ export class Auth extends impl.AuthImplCompat<User>
         case Persistence.NONE:
           return impl.inMemoryPersistence;
         default:
-          return impl.fail(auth.name, impl.AuthErrorCode.ARGUMENT_ERROR);
+          return impl.fail(impl.AuthErrorCode.ARGUMENT_ERROR, {
+            appName: auth.name
+          });
       }
     }
 
@@ -254,8 +258,8 @@ export class Auth extends impl.AuthImplCompat<User>
   ): Promise<compat.UserCredential> {
     impl.assertFn(
       _isPopupRedirectSupported(),
-      this.app.name,
-      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED
+      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED,
+      { appName: this.app.name }
     );
     return convertCredential(
       this._asExtern(),
@@ -269,8 +273,8 @@ export class Auth extends impl.AuthImplCompat<User>
   async signInWithRedirect(provider: compat.AuthProvider): Promise<void> {
     impl.assertFn(
       _isPopupRedirectSupported(),
-      this.app.name,
-      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED
+      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED,
+      { appName: this.app.name }
     );
     return impl.signInWithRedirect(
       this._asExtern(),

@@ -24,13 +24,15 @@ import {
 } from '../../api/account_management/account';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { IdTokenResponse } from '../../model/id_token';
-import { User, UserParameters } from '../../model/user';
+import { User, UserParameters, MutableUserInfo } from '../../model/user';
 import { PersistedBlob } from '../persistence';
-import { assert, debugFail } from '../util/assert';
+import { assert } from '../util/assert';
 import { getIdTokenResult } from './id_token_result';
 import { reload, _reloadWithoutSaving } from './reload';
 import { StsTokenManager } from './token_manager';
 import { Auth } from '../../model/auth';
+import { utcTimestampToDateString } from '../util/time';
+import { AuthErrorCode } from '../errors';
 
 function assertStringOrUndefined(
   assertion: unknown,
@@ -38,8 +40,29 @@ function assertStringOrUndefined(
 ): asserts assertion is string | undefined {
   assert(
     typeof assertion === 'string' || typeof assertion === 'undefined',
-    appName
+    AuthErrorCode.INTERNAL_ERROR,
+    { appName }
   );
+}
+
+export class UserMetadata implements externs.UserMetadata {
+  readonly creationTime?: string;
+  readonly lastSignInTime?: string;
+
+  constructor(
+    private readonly createdAt?: string | number,
+    private readonly lastLoginAt?: string | number
+  ) {
+    this.lastSignInTime = utcTimestampToDateString(lastLoginAt);
+    this.creationTime = utcTimestampToDateString(createdAt);
+  }
+
+  toJSON(): object {
+    return {
+      createdAt: this.createdAt,
+      lastLoginAt: this.lastLoginAt
+    };
+  }
 }
 
 export class UserImpl implements User {
@@ -50,16 +73,16 @@ export class UserImpl implements User {
   uid: string;
   auth: Auth;
   emailVerified = false;
+  isAnonymous = false;
   tenantId = null;
-  metadata = {};
-  providerData = [];
+  readonly metadata: UserMetadata;
+  providerData: MutableUserInfo[] = [];
 
   // Optional fields from UserInfo
   displayName: string | null;
   email: string | null;
   phoneNumber: string | null;
   photoURL: string | null;
-  isAnonymous: boolean = false;
 
   _redirectEventId?: string;
 
@@ -72,11 +95,12 @@ export class UserImpl implements User {
     this.phoneNumber = opt.phoneNumber || null;
     this.photoURL = opt.photoURL || null;
     this.isAnonymous = opt.isAnonymous || false;
+    this.metadata = new UserMetadata(opt.createdAt, opt.lastLoginAt);
   }
 
   async getIdToken(forceRefresh?: boolean): Promise<string> {
     const tokens = await this.stsTokenManager.getToken(this.auth, forceRefresh);
-    assert(tokens, this.auth.name);
+    assert(tokens, AuthErrorCode.INTERNAL_ERROR, { appName: this.auth.name });
 
     const { accessToken, wasRefreshed } = tokens;
 
@@ -101,7 +125,9 @@ export class UserImpl implements User {
 
   _onReload(callback: NextFn<APIUserInfo>): void {
     // There should only ever be one listener, and that is a single instance of MultiFactorUser
-    assert(!this.reloadListener, this.auth.name);
+    assert(!this.reloadListener, AuthErrorCode.INTERNAL_ERROR, {
+      appName: this.auth.name
+    });
     this.reloadListener = callback;
     if (this.reloadUserInfo) {
       this._notifyReloadListener(this.reloadUserInfo);
@@ -152,59 +178,91 @@ export class UserImpl implements User {
     return this.auth.signOut();
   }
 
-  toPlainObject(): PersistedBlob {
+  toJSON(): PersistedBlob {
     return {
       uid: this.uid,
-      stsTokenManager: this.stsTokenManager.toPlainObject(),
-      displayName: this.displayName || undefined,
       email: this.email || undefined,
+      emailVerified: this.emailVerified,
+      displayName: this.displayName || undefined,
+      isAnonymous: this.isAnonymous,
+      photoURL: this.photoURL || undefined,
       phoneNumber: this.phoneNumber || undefined,
-      photoURL: this.phoneNumber || undefined,
-      _redirectEventId: this._redirectEventId
+      tenantId: this.tenantId || undefined,
+      providerData: this.providerData.map(userInfo => ({ ...userInfo })),
+      stsTokenManager: this.stsTokenManager.toJSON(),
+      // Redirect event ID must be maintained in case there is a pending
+      // redirect event.
+      _redirectEventId: this._redirectEventId,
+      ...this.metadata.toJSON()
     };
-  }
-
-  toJSON(): object {
-    return debugFail('not implemented');
   }
 
   get refreshToken(): string {
     return this.stsTokenManager.refreshToken || '';
   }
 
-  static fromPlainObject(auth: Auth, object: PersistedBlob): User {
+  static _fromJSON(auth: Auth, object: PersistedBlob): User {
     const {
       uid,
-      stsTokenManager: plainObjectTokenManager,
-      displayName,
       email,
-      phoneNumber,
+      emailVerified,
+      displayName,
+      isAnonymous,
       photoURL,
-      _redirectEventId
+      phoneNumber,
+      tenantId,
+      providerData,
+      stsTokenManager: plainObjectTokenManager,
+      _redirectEventId,
+      createdAt,
+      lastLoginAt
     } = object;
 
-    assert(uid && plainObjectTokenManager, auth.name);
+    assert(uid && plainObjectTokenManager, AuthErrorCode.INTERNAL_ERROR, {
+      appName: auth.name
+    });
 
-    const stsTokenManager = StsTokenManager.fromPlainObject(
+    const stsTokenManager = StsTokenManager.fromJSON(
       this.name,
       plainObjectTokenManager as PersistedBlob
     );
 
-    assert(typeof uid === 'string', auth.name);
+    assert(typeof uid === 'string', AuthErrorCode.INTERNAL_ERROR, {
+      appName: auth.name
+    });
     assertStringOrUndefined(displayName, auth.name);
     assertStringOrUndefined(email, auth.name);
+    assert(typeof emailVerified === 'boolean', AuthErrorCode.INTERNAL_ERROR, {
+      appName: auth.name
+    });
+    assert(typeof isAnonymous === 'boolean', AuthErrorCode.INTERNAL_ERROR, {
+      appName: auth.name
+    });
     assertStringOrUndefined(phoneNumber, auth.name);
     assertStringOrUndefined(photoURL, auth.name);
+    assertStringOrUndefined(tenantId, auth.name);
     assertStringOrUndefined(_redirectEventId, auth.name);
+    assertStringOrUndefined(createdAt, auth.name);
+    assertStringOrUndefined(lastLoginAt, auth.name);
     const user = auth._createUser({
       uid,
       auth,
-      stsTokenManager,
-      displayName,
       email,
+      emailVerified,
+      displayName,
+      isAnonymous,
+      photoURL,
       phoneNumber,
-      photoURL
+      tenantId,
+      stsTokenManager,
+      createdAt,
+      lastLoginAt
     });
+
+    if (providerData && Array.isArray(providerData)) {
+      user.providerData = providerData.map(userInfo => ({ ...userInfo }));
+    }
+
     if (_redirectEventId) {
       user._redirectEventId = _redirectEventId;
     }

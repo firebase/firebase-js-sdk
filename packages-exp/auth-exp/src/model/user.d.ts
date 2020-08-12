@@ -39,6 +39,11 @@ export interface UserParameters {
   phoneNumber?: string;
   photoURL?: string;
   isAnonymous?: boolean;
+  emailVerified?: boolean;
+  tenantId?: string;
+
+  createdAt?: string;
+  lastLoginAt?: string;
 }
 
 export interface User extends externs.User {
@@ -70,8 +75,7 @@ export interface User extends externs.User {
   getIdTokenResult(forceRefresh?: boolean): Promise<externs.IdTokenResult>;
   reload(): Promise<void>;
   delete(): Promise<void>;
-  toJSON(): object;
-  toPlainObject(): PersistedBlob;
+  toJSON(): PersistedBlob;
 }
 
 export interface UserCredential

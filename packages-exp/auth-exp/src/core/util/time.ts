@@ -15,16 +15,22 @@
  * limitations under the License.
  */
 
-import * as externs from '@firebase/auth-types-exp';
-
-import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
-import { AuthCore } from '../../model/auth';
-import { IdTokenResponse } from '../../model/id_token';
-
-export abstract class AuthCredential extends externs.AuthCredential {
-  static fromJSON(json: object | string): AuthCredential | null;
-
-  _getIdTokenResponse(auth: AuthCore): Promise<PhoneOrOauthTokenResponse>;
-  _linkToIdToken(auth: AuthCore, idToken: string): Promise<IdTokenResponse>;
-  _getReauthenticationResolver(auth: AuthCore): Promise<IdTokenResponse>;
+export function utcTimestampToDateString(
+  utcTimestamp?: string | number
+): string | undefined {
+  if (!utcTimestamp) {
+    return undefined;
+  }
+  try {
+    // Convert to date object.
+    const date = new Date(Number(utcTimestamp));
+    // Test date is valid.
+    if (!isNaN(date.getTime())) {
+      // Convert to UTC date string.
+      return date.toUTCString();
+    }
+  } catch (e) {
+    // Do nothing. undefined will be returned.
+  }
+  return undefined;
 }

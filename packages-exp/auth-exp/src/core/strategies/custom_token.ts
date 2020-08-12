@@ -32,7 +32,6 @@ export async function signInWithCustomToken(
   const auth = _castAuth(authExtern);
   const cred = await UserCredentialImpl._fromIdTokenResponse(
     auth,
-    null,
     externs.OperationType.SIGN_IN,
     response
   );

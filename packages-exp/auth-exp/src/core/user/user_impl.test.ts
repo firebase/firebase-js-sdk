@@ -150,12 +150,12 @@ describe('core/user/user_impl', () => {
     });
   });
 
-  describe('.fromPlainObject', () => {
+  describe('.fromJSON', () => {
     const errorString =
       'Firebase: An internal AuthError has occurred. (auth/internal-error).';
 
     it('throws an error if uid is not present', () => {
-      expect(() => UserImpl.fromPlainObject(auth, { name: 'foo' })).to.throw(
+      expect(() => UserImpl._fromJSON(auth, { name: 'foo' })).to.throw(
         FirebaseError,
         errorString
       );
@@ -163,7 +163,7 @@ describe('core/user/user_impl', () => {
 
     it('throws if a key is not undefined or string', () => {
       expect(() =>
-        UserImpl.fromPlainObject(auth, { uid: 'foo', displayName: 3 })
+        UserImpl._fromJSON(auth, { uid: 'foo', displayName: 3 })
       ).to.throw(FirebaseError, errorString);
     });
 
@@ -178,10 +178,12 @@ describe('core/user/user_impl', () => {
         displayName: 'name',
         email: 'email',
         phoneNumber: 'number',
-        photoURL: 'photo'
+        photoURL: 'photo',
+        emailVerified: false,
+        isAnonymous: false
       };
 
-      const user = UserImpl.fromPlainObject(auth, params);
+      const user = UserImpl._fromJSON(auth, params);
       expect(user.uid).to.eq(params.uid);
       expect(user.displayName).to.eq(params.displayName);
       expect(user.email).to.eq(params.email);

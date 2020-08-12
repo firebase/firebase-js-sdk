@@ -83,7 +83,7 @@ export class MockWidget {
       typeof containerOrId === 'string'
         ? document.getElementById(containerOrId)
         : containerOrId;
-    assert(container, appName, AuthErrorCode.ARGUMENT_ERROR);
+    assert(container, AuthErrorCode.ARGUMENT_ERROR, { appName });
 
     this.container = container;
     this.isVisible = this.params.size !== 'invisible';

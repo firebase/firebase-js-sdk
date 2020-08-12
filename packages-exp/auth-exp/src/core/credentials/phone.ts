@@ -35,12 +35,11 @@ export interface PhoneAuthCredentialParameters {
   temporaryProof?: string;
 }
 
-export class PhoneAuthCredential
-  implements AuthCredential, externs.PhoneAuthCredential {
-  readonly providerId = externs.ProviderId.PHONE;
-  readonly signInMethod = externs.SignInMethod.PHONE;
-
-  private constructor(private readonly params: PhoneAuthCredentialParameters) {}
+export class PhoneAuthCredential extends AuthCredential
+  implements externs.PhoneAuthCredential {
+  private constructor(private readonly params: PhoneAuthCredentialParameters) {
+    super(externs.ProviderId.PHONE, externs.SignInMethod.PHONE);
+  }
 
   static _fromVerification(
     verificationId: string,

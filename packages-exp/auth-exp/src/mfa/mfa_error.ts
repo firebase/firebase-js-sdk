@@ -31,8 +31,6 @@ export class MultiFactorError extends FirebaseError
   readonly appName: string;
   readonly serverResponse: IdTokenMfaResponse;
 
-  readonly email?: string;
-  readonly phoneNumber?: string;
   readonly tenantId?: string;
 
   private constructor(
@@ -47,7 +45,7 @@ export class MultiFactorError extends FirebaseError
     Object.setPrototypeOf(this, MultiFactorError.prototype);
     this.appName = auth.name;
     this.code = error.code;
-    this.tenantid = auth.tenantId || undefined;
+    this.tenantid = auth.tenantId;
     this.serverResponse = error.serverResponse as IdTokenMfaResponse;
   }
 

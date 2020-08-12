@@ -29,11 +29,9 @@ export class RecaptchaVerifier extends impl.RecaptchaVerifier
     app: FirebaseApp = firebase.app()
   ) {
     // API key is required for web client RPC calls.
-    impl.assertFn(
-      app.options?.apiKey,
-      app.name,
-      impl.AuthErrorCode.INVALID_API_KEY
-    );
+    impl.assertFn(app.options?.apiKey, impl.AuthErrorCode.INVALID_API_KEY, {
+      appName: app.name
+    });
     super(container, parameters, (app.auth!() as unknown) as externs.Auth);
   }
 }
