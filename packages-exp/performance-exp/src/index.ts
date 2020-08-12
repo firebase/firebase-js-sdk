@@ -42,7 +42,7 @@ export function getPerformance(
 ): FirebasePerformance {
   const provider: Provider<'performance'> = _getProvider(app, 'performance');
   const perfInstance = provider.getImmediate();
-  perfInstance.init(settings);
+  perfInstance._init(settings);
   return perfInstance;
 }
 

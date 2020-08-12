@@ -43,7 +43,7 @@ export class PerformanceController implements FirebasePerformanceInternal {
    * desired settings, to ensure nothing is collected without the user's
    * consent.
    */
-  init(settings?: PerformanceSettings): void {
+  _init(settings?: PerformanceSettings): void {
     if (settings?.dataCollectionEnabled !== undefined) {
       this.dataCollectionEnabled = settings.dataCollectionEnabled;
     }

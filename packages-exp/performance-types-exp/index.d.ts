@@ -44,7 +44,7 @@ export interface FirebasePerformanceInternal extends FirebasePerformance {
    * Initializes the Performance behaviour, following the settings provided
    * (or defaults if the settings aren't provided).
    */
-  init(settings?: PerformanceSettings): void;
+  _init(settings?: PerformanceSettings): void;
 }
 
 export interface PerformanceTrace {

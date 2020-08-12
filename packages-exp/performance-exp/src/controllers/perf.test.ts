@@ -56,7 +56,7 @@ describe('Firebase Performance Test', () => {
         fakeFirebaseApp,
         fakeInstallations
       );
-      performanceController.init();
+      performanceController._init();
 
       expect(initializationService.getInitializationPromise).not.be.called;
       expect(consoleLogger.info).be.called;
@@ -74,7 +74,7 @@ describe('Firebase Performance Test', () => {
         fakeFirebaseApp,
         fakeInstallations
       );
-      performance.init(settings);
+      performance._init(settings);
 
       expect(performance.instrumentationEnabled).is.equal(false);
       expect(performance.dataCollectionEnabled).is.equal(false);
@@ -90,7 +90,7 @@ describe('Firebase Performance Test', () => {
         fakeFirebaseApp,
         fakeInstallations
       );
-      performance.init();
+      performance._init();
 
       expect(performance.instrumentationEnabled).is.equal(
         expectedInstrumentationEnabled
@@ -106,7 +106,7 @@ describe('Firebase Performance Test', () => {
           fakeFirebaseApp,
           fakeInstallations
         );
-        performance.init();
+        performance._init();
 
         performance.instrumentationEnabled = true;
         expect(performance.instrumentationEnabled).is.equal(true);
@@ -117,7 +117,7 @@ describe('Firebase Performance Test', () => {
           fakeFirebaseApp,
           fakeInstallations
         );
-        performance.init();
+        performance._init();
 
         performance.instrumentationEnabled = false;
         expect(performance.instrumentationEnabled).is.equal(false);
@@ -130,7 +130,7 @@ describe('Firebase Performance Test', () => {
           fakeFirebaseApp,
           fakeInstallations
         );
-        performance.init();
+        performance._init();
 
         performance.dataCollectionEnabled = true;
         expect(performance.dataCollectionEnabled).is.equal(true);
@@ -141,7 +141,7 @@ describe('Firebase Performance Test', () => {
           fakeFirebaseApp,
           fakeInstallations
         );
-        performance.init();
+        performance._init();
 
         performance.dataCollectionEnabled = false;
         expect(performance.dataCollectionEnabled).is.equal(false);
