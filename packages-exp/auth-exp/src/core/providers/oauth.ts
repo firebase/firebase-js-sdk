@@ -17,7 +17,10 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { debugFail } from '../util/assert';
+import { assert } from '../util/assert';
+import { AuthErrorCode } from '../errors';
+
+import { OAuthCredential } from '../credentials/oauth';
 
 export type CustomParameters = Record<string, string>;
 
@@ -31,14 +34,30 @@ export class OAuthProvider implements externs.AuthProvider {
   defaultLanguageCode: string | null = null;
   private scopes: string[] = [];
   private customParameters: CustomParameters = {};
-  constructor(readonly providerId: externs.ProviderId) {}
+  constructor(readonly providerId: string) {}
 
-  static credentialFromJSON(_json: object): externs.OAuthCredential {
-    debugFail('not implemented');
+  static credentialFromJSON(json: object | string): externs.OAuthCredential {
+    const obj = typeof json === 'string' ? JSON.parse(json) : json;
+    assert(
+      'providerId' in obj && 'signInMethod' in obj,
+      AuthErrorCode.ARGUMENT_ERROR,
+      {}
+    );
+    return OAuthCredential._fromParams(obj);
   }
 
-  credential(_params: CredentialParameters): externs.OAuthCredential {
-    debugFail('not implemented');
+  credential(params: CredentialParameters): externs.OAuthCredential {
+    assert(
+      params.idToken && params.accessToken,
+      AuthErrorCode.ARGUMENT_ERROR,
+      {}
+    );
+    // For OAuthCredential, sign in method is same as providerId.
+    return OAuthCredential._fromParams({
+      providerId: this.providerId,
+      signInMethod: this.providerId,
+      ...params
+    });
   }
 
   setDefaultLanguage(languageCode: string | null): void {

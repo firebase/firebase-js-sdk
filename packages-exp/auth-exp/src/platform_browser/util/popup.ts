@@ -100,7 +100,7 @@ export function _open(
   // about:blank getting sanitized causing browsers like IE/Edge to display
   // brief error message before redirecting to handler.
   const newWin = window.open(url || '', target, optionsString);
-  assert(newWin, appName, AuthErrorCode.POPUP_BLOCKED);
+  assert(newWin, AuthErrorCode.POPUP_BLOCKED, { appName });
 
   // Flaky on IE edge, encapsulate with a try and catch.
   try {

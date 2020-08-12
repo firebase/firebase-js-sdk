@@ -142,19 +142,19 @@ export async function _performFetchWithErrorHandling<V>(
 
       const authError = errorMap[serverErrorCode];
       if (authError) {
-        fail(auth.name, authError);
+        fail(authError, { appName: auth.name });
       } else {
         // TODO probably should handle improperly formatted errors as well
         // If you see this, add an entry to SERVER_ERROR_MAP for the corresponding error
         console.error(`Unexpected API error: ${json.error.message}`);
-        fail(auth.name, AuthErrorCode.INTERNAL_ERROR);
+        fail(AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
       }
     }
   } catch (e) {
     if (e instanceof FirebaseError) {
       throw e;
     }
-    fail(auth.name, AuthErrorCode.NETWORK_REQUEST_FAILED);
+    fail(AuthErrorCode.NETWORK_REQUEST_FAILED, { appName: auth.name });
   }
 }
 

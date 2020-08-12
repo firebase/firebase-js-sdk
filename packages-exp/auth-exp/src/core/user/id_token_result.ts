@@ -21,6 +21,8 @@ import { base64Decode } from '@firebase/util';
 import { User } from '../../model/user';
 import { assert } from '../util/assert';
 import { _logError } from '../util/log';
+import { utcTimestampToDateString } from '../util/time';
+import { AuthErrorCode } from '../errors';
 
 export function getIdToken(
   user: externs.User,
@@ -39,48 +41,33 @@ export async function getIdTokenResult(
 
   assert(
     claims && claims.exp && claims.auth_time && claims.iat,
-    user.auth.name
+    AuthErrorCode.INTERNAL_ERROR,
+    { appName: user.auth.name }
   );
   const firebase =
     typeof claims.firebase === 'object' ? claims.firebase : undefined;
 
-  const signInProvider: externs.ProviderId | undefined = firebase?.[
-    'sign_in_provider'
-  ] as externs.ProviderId;
+  const signInProvider: string | undefined = firebase?.['sign_in_provider'];
 
   return {
     claims,
     token,
     authTime: utcTimestampToDateString(
       secondsStringToMilliseconds(claims.auth_time)
-    ),
+    )!,
     issuedAtTime: utcTimestampToDateString(
       secondsStringToMilliseconds(claims.iat)
-    ),
+    )!,
     expirationTime: utcTimestampToDateString(
       secondsStringToMilliseconds(claims.exp)
-    ),
+    )!,
     signInProvider: signInProvider || null,
-    signInSecondFactor:
-      (firebase?.['sign_in_second_factor'] as externs.ProviderId) || null
+    signInSecondFactor: firebase?.['sign_in_second_factor'] || null
   };
 }
 
 function secondsStringToMilliseconds(seconds: string): number {
   return Number(seconds) * 1000;
-}
-
-function utcTimestampToDateString(timestamp: string | number): string {
-  try {
-    const date = new Date(Number(timestamp));
-    if (!isNaN(date.getTime())) {
-      return date.toUTCString();
-    }
-  } catch {
-    // Do nothing, return null
-  }
-
-  return ''; // TODO(avolkovi): is this the right fallback?
 }
 
 export function _parseToken(token: string): externs.ParsedToken | null {

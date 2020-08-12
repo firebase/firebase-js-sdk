@@ -19,7 +19,7 @@ import { requestStsToken } from '../../api/authentication/token';
 import { IdTokenResponse } from '../../model/id_token';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
-import { assert } from '../util/assert';
+import { assert, debugFail } from '../util/assert';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { AuthCore } from '../../model/auth';
 
@@ -88,14 +88,6 @@ export class StsTokenManager {
     this.refreshToken = null;
   }
 
-  toPlainObject(): object {
-    return {
-      refreshToken: this.refreshToken,
-      accessToken: this.accessToken,
-      expirationTime: this.expirationTime
-    };
-  }
-
   private async refresh(auth: AuthCore, oldToken: string): Promise<void> {
     const { accessToken, refreshToken, expiresIn } = await requestStsToken(
       auth,
@@ -116,30 +108,40 @@ export class StsTokenManager {
     }
   }
 
-  static fromPlainObject(
-    appName: string,
-    object: PersistedBlob
-  ): StsTokenManager {
+  static fromJSON(appName: string, object: PersistedBlob): StsTokenManager {
     const { refreshToken, accessToken, expirationTime } = object;
 
     const manager = new StsTokenManager();
     if (refreshToken) {
-      assert(typeof refreshToken === 'string', appName);
+      assert(typeof refreshToken === 'string', AuthErrorCode.INTERNAL_ERROR, {
+        appName
+      });
       manager.refreshToken = refreshToken;
     }
     if (accessToken) {
-      assert(typeof accessToken === 'string', appName);
+      assert(typeof accessToken === 'string', AuthErrorCode.INTERNAL_ERROR, {
+        appName
+      });
       manager.accessToken = accessToken;
     }
     if (expirationTime) {
-      assert(typeof expirationTime === 'number', appName);
+      assert(typeof expirationTime === 'number', AuthErrorCode.INTERNAL_ERROR, {
+        appName
+      });
       manager.expirationTime = expirationTime;
     }
     return manager;
   }
 
-  // TODO: There are a few more methods in here that need implemented:
-  //    # toPlainObject
-  //    # fromPlainObject
-  //    # (private) performRefresh
+  toJSON(): object {
+    return {
+      refreshToken: this.refreshToken,
+      accessToken: this.accessToken,
+      expirationTime: this.expirationTime
+    };
+  }
+
+  _performRefresh(): never {
+    return debugFail('not implemented');
+  }
 }

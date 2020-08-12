@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 
-import { testUser } from '../../../test/helpers/mock_auth';
+import { testUser, testAuth } from '../../../test/helpers/mock_auth';
 import { _getInstance } from '../../core/util/instantiator';
 import { Persistence, PersistenceType } from '../../core/persistence';
 import { indexedDBLocalPersistence } from './indexed_db';
@@ -41,12 +41,13 @@ describe('core/persistence/indexed_db', () => {
 
   it('should return blobified user value', async () => {
     const key = 'my-super-special-user';
-    const value = testUser({}, 'some-uid');
+    const auth = await testAuth();
+    const value = testUser(auth, 'some-uid');
 
     expect(await persistence.get(key)).to.be.null;
-    await persistence.set(key, value.toPlainObject());
+    await persistence.set(key, value.toJSON());
     const out = await persistence.get(key);
-    expect(out).to.eql(value.toPlainObject());
+    expect(out).to.eql(value.toJSON());
     await persistence.remove(key);
     expect(await persistence.get(key)).to.be.null;
   });

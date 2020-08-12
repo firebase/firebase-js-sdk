@@ -53,12 +53,12 @@ export class PersistenceUserManager {
   }
 
   setCurrentUser(user: User): Promise<void> {
-    return this.persistence.set(this.fullUserKey, user.toPlainObject());
+    return this.persistence.set(this.fullUserKey, user.toJSON());
   }
 
   async getCurrentUser(): Promise<User | null> {
     const blob = await this.persistence.get<PersistedBlob>(this.fullUserKey);
-    return blob ? UserImpl.fromPlainObject(this.auth, blob) : null;
+    return blob ? UserImpl._fromJSON(this.auth, blob) : null;
   }
 
   removeCurrentUser(): Promise<void> {

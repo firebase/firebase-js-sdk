@@ -20,6 +20,7 @@ import * as externs from '@firebase/auth-types-exp';
 import { ErrorFactory, ErrorMap } from '@firebase/util';
 
 import { AppName } from '../model/auth';
+import { IdTokenMfaResponse } from '../api/authentication/mfa';
 
 /*
  * Developer facing Firebase Auth error codes.
@@ -340,17 +341,27 @@ export interface NamedErrorParams {
   serverResponse?: object;
 }
 
-type AuthErrorParams = {
-  [key in AuthErrorCode]: {
+type GenericAuthErrorParams = {
+  [key in Exclude<
+    AuthErrorCode,
+    | AuthErrorCode.ARGUMENT_ERROR
+    | AuthErrorCode.INTERNAL_ERROR
+    | AuthErrorCode.MFA_REQUIRED
+  >]: {
     appName: AppName;
-    credential?: externs.AuthCredential;
     email?: string;
     phoneNumber?: string;
-    tenantId?: string;
-    user?: externs.User;
-    serverResponse?: object;
   };
 };
+
+export interface AuthErrorParams extends GenericAuthErrorParams {
+  [AuthErrorCode.ARGUMENT_ERROR]: { appName?: AppName };
+  [AuthErrorCode.INTERNAL_ERROR]: { appName?: AppName };
+  [AuthErrorCode.MFA_REQUIRED]: {
+    appName: AppName;
+    serverResponse: IdTokenMfaResponse;
+  };
+}
 
 export const AUTH_ERROR_FACTORY = new ErrorFactory<
   AuthErrorCode,

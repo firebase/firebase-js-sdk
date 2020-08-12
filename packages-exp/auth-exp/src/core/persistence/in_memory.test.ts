@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { testUser } from '../../../test/helpers/mock_auth';
+import { testUser, testAuth } from '../../../test/helpers/mock_auth';
 import { _getInstance } from '../util/instantiator';
 import { Persistence, PersistenceType } from './';
 import { inMemoryPersistence } from './in_memory';
@@ -38,11 +38,12 @@ describe('core/persistence/in_memory', () => {
 
   it('should work with user', async () => {
     const key = 'my-super-special-user';
-    const value = testUser({}, 'uid');
+    const auth = await testAuth();
+    const value = testUser(auth, 'uid');
 
     expect(await persistence.get(key)).to.be.null;
-    await persistence.set(key, value.toPlainObject());
-    expect(await persistence.get(key)).to.eql(value.toPlainObject());
+    await persistence.set(key, value.toJSON());
+    expect(await persistence.get(key)).to.eql(value.toJSON());
     expect(await persistence.get('other-key')).to.be.null;
     await persistence.remove(key);
     expect(await persistence.get(key)).to.be.null;

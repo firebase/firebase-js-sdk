@@ -24,7 +24,7 @@ import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { testUser } from '../../test/helpers/mock_auth';
+import { testUser, testAuth } from '../../test/helpers/mock_auth';
 import { browserPopupRedirectResolver } from './popup_redirect';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { Persistence } from '../core/persistence';
@@ -44,6 +44,7 @@ import {
   _castAuth,
   _initializeAuthForClientPlatform
 } from '../core/auth/auth_impl';
+import { Auth } from '../model/auth';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -60,14 +61,16 @@ const FAKE_APP: FirebaseApp = {
 const initializeAuth = _initializeAuthForClientPlatform(ClientPlatform.BROWSER);
 
 describe('core/auth/auth_impl', () => {
-  let auth: externs.Auth;
+  let auth: Auth;
   let persistenceStub: sinon.SinonStubbedInstance<Persistence>;
 
   beforeEach(() => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
-    auth = initializeAuth(FAKE_APP, {
-      persistence: inMemoryPersistence
-    });
+    auth = _castAuth(
+      initializeAuth(FAKE_APP, {
+        persistence: inMemoryPersistence
+      })
+    );
   });
 
   afterEach(sinon.restore);
@@ -77,15 +80,15 @@ describe('core/auth/auth_impl', () => {
       const newPersistence = browserLocalPersistence;
       const newStub = sinon.stub(_getInstance<Persistence>(newPersistence));
       persistenceStub.get.returns(
-        Promise.resolve(testUser(auth, 'test').toPlainObject())
+        Promise.resolve(testUser(auth, 'test').toJSON())
       );
 
-      await auth.setPersistence(newPersistence);
+      await auth._setPersistence(newPersistence);
       expect(persistenceStub.get).to.have.been.called;
       expect(persistenceStub.remove).to.have.been.called;
       expect(newStub.set).to.have.been.calledWith(
         sinon.match.any,
-        testUser(auth, 'test').toPlainObject()
+        testUser(auth, 'test').toJSON()
       );
     });
   });
@@ -109,8 +112,10 @@ describe('core/auth/initializeAuth', () => {
   describe('persistence manager creation', () => {
     let createManagerStub: sinon.SinonSpy;
     let reloadStub: sinon.SinonStub;
+    let oldAuth: Auth;
 
-    beforeEach(() => {
+    beforeEach(async () => {
+      oldAuth = await testAuth();
       createManagerStub = sinon.spy(PersistenceUserManager, 'create');
       reloadStub = sinon
         .stub(reload, '_reloadWithoutSaving')
@@ -141,7 +146,7 @@ describe('core/auth/initializeAuth', () => {
     it('pulls the user from storage', async () => {
       sinon
         .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
-        .returns(Promise.resolve(testUser({}, 'uid').toPlainObject()));
+        .returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
       const auth = await initAndWait(inMemoryPersistence);
       expect(auth.currentUser!.uid).to.eq('uid');
     });
@@ -158,14 +163,14 @@ describe('core/auth/initializeAuth', () => {
     });
 
     it('does not reload redirect users', async () => {
-      const user = testUser({}, 'uid');
+      const user = testUser(oldAuth, 'uid');
       user._redirectEventId = 'event-id';
       sinon
         .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
-        .returns(Promise.resolve(user.toPlainObject()));
+        .returns(Promise.resolve(user.toJSON()));
       sinon
         .stub(_getInstance<Persistence>(browserSessionPersistence), 'get')
-        .returns(Promise.resolve(user.toPlainObject()));
+        .returns(Promise.resolve(user.toJSON()));
       await initAndWait(inMemoryPersistence);
       expect(reload._reloadWithoutSaving).not.to.have.been.called;
     });
@@ -173,7 +178,7 @@ describe('core/auth/initializeAuth', () => {
     it('reloads non-redirect users', async () => {
       sinon
         .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
-        .returns(Promise.resolve(testUser({}, 'uid').toPlainObject()));
+        .returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
       sinon
         .stub(_getInstance<Persistence>(browserSessionPersistence), 'get')
         .returns(Promise.resolve(null));
@@ -183,32 +188,32 @@ describe('core/auth/initializeAuth', () => {
     });
 
     it('Does not reload if the event ids match', async () => {
-      const user = testUser({}, 'uid');
+      const user = testUser(oldAuth, 'uid');
       user._redirectEventId = 'event-id';
 
       sinon
         .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
-        .returns(Promise.resolve(user.toPlainObject()));
+        .returns(Promise.resolve(user.toJSON()));
       sinon
         .stub(_getInstance<Persistence>(browserSessionPersistence), 'get')
-        .returns(Promise.resolve(user.toPlainObject()));
+        .returns(Promise.resolve(user.toJSON()));
 
       await initAndWait(inMemoryPersistence, browserPopupRedirectResolver);
       expect(reload._reloadWithoutSaving).not.to.have.been.called;
     });
 
     it('Reloads if the event ids do not match', async () => {
-      const user = testUser({}, 'uid');
+      const user = testUser(oldAuth, 'uid');
       user._redirectEventId = 'event-id';
 
       sinon
         .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
-        .returns(Promise.resolve(user.toPlainObject()));
+        .returns(Promise.resolve(user.toJSON()));
 
       user._redirectEventId = 'some-other-id';
       sinon
         .stub(_getInstance<Persistence>(browserSessionPersistence), 'get')
-        .returns(Promise.resolve(user.toPlainObject()));
+        .returns(Promise.resolve(user.toJSON()));
 
       await initAndWait(inMemoryPersistence, browserPopupRedirectResolver);
       expect(reload._reloadWithoutSaving).to.have.been.called;
@@ -216,7 +221,7 @@ describe('core/auth/initializeAuth', () => {
 
     it('Nulls out the current user if reload fails', async () => {
       const stub = sinon.stub(_getInstance<Persistence>(inMemoryPersistence));
-      stub.get.returns(Promise.resolve(testUser({}, 'uid').toPlainObject()));
+      stub.get.returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
       stub.remove.returns(Promise.resolve());
       reloadStub.returns(
         Promise.reject(
@@ -232,7 +237,7 @@ describe('core/auth/initializeAuth', () => {
 
     it('Keeps current user if reload fails with network error', async () => {
       const stub = sinon.stub(_getInstance<Persistence>(inMemoryPersistence));
-      stub.get.returns(Promise.resolve(testUser({}, 'uid').toPlainObject()));
+      stub.get.returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
       stub.remove.returns(Promise.resolve());
       reloadStub.returns(
         Promise.reject(

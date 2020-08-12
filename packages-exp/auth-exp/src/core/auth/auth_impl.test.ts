@@ -16,7 +16,6 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types-exp';
-import * as externs from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
@@ -30,6 +29,7 @@ import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
 import { ClientPlatform } from '../util/version';
 import { _castAuth, _initializeAuthForClientPlatform } from './auth_impl';
+import { Auth } from '../../model/auth';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -46,14 +46,16 @@ const FAKE_APP: FirebaseApp = {
 const initializeAuth = _initializeAuthForClientPlatform(ClientPlatform.BROWSER);
 
 describe('core/auth/auth_impl', () => {
-  let auth: externs.Auth;
+  let auth: Auth;
   let persistenceStub: sinon.SinonStubbedInstance<Persistence>;
 
   beforeEach(() => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
-    auth = initializeAuth(FAKE_APP, {
-      persistence: inMemoryPersistence
-    });
+    auth = _castAuth(
+      initializeAuth(FAKE_APP, {
+        persistence: inMemoryPersistence
+      })
+    );
   });
 
   afterEach(sinon.restore);
@@ -81,7 +83,7 @@ describe('core/auth/auth_impl', () => {
       for (let i = 0; i < 10; i++) {
         expect(persistenceStub.set.getCall(i)).to.have.been.calledWith(
           sinon.match.any,
-          users[i].toPlainObject()
+          users[i].toJSON()
         );
       }
     });
@@ -126,9 +128,9 @@ describe('core/auth/auth_impl', () => {
 
     it('immediately calls authStateChange if initialization finished', done => {
       const user = testUser(auth, 'uid');
-      _castAuth(auth).currentUser = user;
-      _castAuth(auth)._isInitialized = true;
-      auth.onAuthStateChanged(user => {
+      auth.currentUser = user;
+      auth._isInitialized = true;
+      auth._onAuthStateChanged(user => {
         expect(user).to.eq(user);
         done();
       });
@@ -136,18 +138,18 @@ describe('core/auth/auth_impl', () => {
 
     it('immediately calls idTokenChange if initialization finished', done => {
       const user = testUser(auth, 'uid');
-      _castAuth(auth).currentUser = user;
-      _castAuth(auth)._isInitialized = true;
-      auth.onIdTokenChanged(user => {
+      auth.currentUser = user;
+      auth._isInitialized = true;
+      auth._onIdTokenChanged(user => {
         expect(user).to.eq(user);
         done();
       });
     });
 
     it('immediate callback is done async', () => {
-      _castAuth(auth)._isInitialized = true;
+      auth._isInitialized = true;
       let callbackCalled = false;
-      auth.onIdTokenChanged(() => {
+      auth._onIdTokenChanged(() => {
         callbackCalled = true;
       });
 
@@ -167,8 +169,8 @@ describe('core/auth/auth_impl', () => {
 
       context('initially currentUser is null', () => {
         beforeEach(async () => {
-          auth.onAuthStateChanged(authStateCallback);
-          auth.onIdTokenChanged(idTokenCallback);
+          auth._onAuthStateChanged(authStateCallback);
+          auth._onIdTokenChanged(idTokenCallback);
           await auth.updateCurrentUser(null);
           authStateCallback.resetHistory();
           idTokenCallback.resetHistory();
@@ -187,8 +189,8 @@ describe('core/auth/auth_impl', () => {
 
       context('initially currentUser is user', () => {
         beforeEach(async () => {
-          auth.onAuthStateChanged(authStateCallback);
-          auth.onIdTokenChanged(idTokenCallback);
+          auth._onAuthStateChanged(authStateCallback);
+          auth._onIdTokenChanged(idTokenCallback);
           await auth.updateCurrentUser(user);
           authStateCallback.resetHistory();
           idTokenCallback.resetHistory();
@@ -226,8 +228,8 @@ describe('core/auth/auth_impl', () => {
       it('onAuthStateChange works for multiple listeners', async () => {
         const cb1 = sinon.spy();
         const cb2 = sinon.spy();
-        auth.onAuthStateChanged(cb1);
-        auth.onAuthStateChanged(cb2);
+        auth._onAuthStateChanged(cb1);
+        auth._onAuthStateChanged(cb2);
         await auth.updateCurrentUser(null);
         cb1.resetHistory();
         cb2.resetHistory();
@@ -240,8 +242,8 @@ describe('core/auth/auth_impl', () => {
       it('onIdTokenChange works for multiple listeners', async () => {
         const cb1 = sinon.spy();
         const cb2 = sinon.spy();
-        auth.onIdTokenChanged(cb1);
-        auth.onIdTokenChanged(cb2);
+        auth._onIdTokenChanged(cb1);
+        auth._onIdTokenChanged(cb2);
         await auth.updateCurrentUser(null);
         cb1.resetHistory();
         cb2.resetHistory();

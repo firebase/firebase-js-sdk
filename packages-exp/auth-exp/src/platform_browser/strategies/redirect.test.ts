@@ -132,11 +132,11 @@ describe('src/core/strategies/redirect', () => {
       await linkWithRedirect(user, provider, resolver);
       expect(redirectPersistence.set).to.have.been.calledWith(
         'firebase:redirectUser:test-api-key:test-app',
-        user.toPlainObject()
+        user.toJSON()
       );
       expect(auth.persistenceLayer.set).to.have.been.calledWith(
         'firebase:authUser:test-api-key:test-app',
-        user.toPlainObject()
+        user.toJSON()
       );
       expect(typeof user._redirectEventId).to.eq('string');
     });
@@ -152,7 +152,7 @@ describe('src/core/strategies/redirect', () => {
       await linkWithRedirect(user, provider, resolver);
       expect(redirectPersistence.set).to.have.been.calledWith(
         'firebase:redirectUser:test-api-key:test-app',
-        user.toPlainObject()
+        user.toJSON()
       );
       expect(auth.persistenceLayer.set).not.to.have.been.called;
       expect(typeof user._redirectEventId).to.eq('string');
@@ -190,11 +190,11 @@ describe('src/core/strategies/redirect', () => {
       await reauthenticateWithRedirect(user, provider, resolver);
       expect(redirectPersistence.set).to.have.been.calledWith(
         'firebase:redirectUser:test-api-key:test-app',
-        user.toPlainObject()
+        user.toJSON()
       );
       expect(auth.persistenceLayer.set).to.have.been.calledWith(
         'firebase:authUser:test-api-key:test-app',
-        user.toPlainObject()
+        user.toJSON()
       );
       expect(typeof user._redirectEventId).to.eq('string');
     });
@@ -210,7 +210,7 @@ describe('src/core/strategies/redirect', () => {
       await reauthenticateWithRedirect(user, provider, resolver);
       expect(redirectPersistence.set).to.have.been.calledWith(
         'firebase:redirectUser:test-api-key:test-app',
-        user.toPlainObject()
+        user.toJSON()
       );
       expect(auth.persistenceLayer.set).not.to.have.been.called;
       expect(typeof user._redirectEventId).to.eq('string');
@@ -234,14 +234,15 @@ describe('src/core/strategies/redirect', () => {
         RedirectPersistence
       );
       const mainPersistence = new MockPersistenceLayer();
-      const user = testUser({}, 'uid');
+      const oldAuth = await testAuth();
+      const user = testUser(oldAuth, 'uid');
       user._redirectEventId = eventId;
       sinon
         .stub(redirectPersistence, 'get')
-        .returns(Promise.resolve(user.toPlainObject()));
+        .returns(Promise.resolve(user.toJSON()));
       sinon
         .stub(mainPersistence, 'get')
-        .returns(Promise.resolve(user.toPlainObject()));
+        .returns(Promise.resolve(user.toJSON()));
 
       auth = await testAuth(resolver, mainPersistence);
     }
