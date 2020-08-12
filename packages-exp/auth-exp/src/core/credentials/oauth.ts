@@ -83,7 +83,7 @@ export class OAuthCredential extends AuthCredential
       cred.accessToken = params.oauthToken;
       cred.secret = params.oauthTokenSecret;
     } else {
-      fail('todo', AuthErrorCode.ARGUMENT_ERROR);
+      fail(AuthErrorCode.ARGUMENT_ERROR, {});
     }
 
     return cred;

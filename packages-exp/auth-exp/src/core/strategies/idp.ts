@@ -29,6 +29,7 @@ import { _link as _linkUser } from '../user/link_unlink';
 import { _reauthenticate } from '../user/reauthenticate';
 import { assert } from '../util/assert';
 import { _signInWithCredential } from './credential';
+import { AuthErrorCode } from '../errors';
 
 export interface IdpTaskParams {
   auth: Auth;
@@ -89,12 +90,12 @@ export function _signIn(params: IdpTaskParams): Promise<UserCredential> {
 
 export function _reauth(params: IdpTaskParams): Promise<UserCredential> {
   const { auth, user } = params;
-  assert(user, auth.name);
+  assert(user, AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
   return _reauthenticate(user, new IdpCredential(params));
 }
 
 export async function _link(params: IdpTaskParams): Promise<UserCredential> {
   const { auth, user } = params;
-  assert(user, auth.name);
+  assert(user, AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
   return _linkUser(user, new IdpCredential(params));
 }

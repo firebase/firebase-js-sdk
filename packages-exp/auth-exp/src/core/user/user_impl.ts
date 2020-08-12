@@ -32,6 +32,7 @@ import { reload, _reloadWithoutSaving } from './reload';
 import { StsTokenManager } from './token_manager';
 import { Auth } from '../../model/auth';
 import { utcTimestampToDateString } from '../util/time';
+import { AuthErrorCode } from '../errors';
 
 function assertStringOrUndefined(
   assertion: unknown,
@@ -39,7 +40,8 @@ function assertStringOrUndefined(
 ): asserts assertion is string | undefined {
   assert(
     typeof assertion === 'string' || typeof assertion === 'undefined',
-    appName
+    AuthErrorCode.INTERNAL_ERROR,
+    { appName }
   );
 }
 
@@ -98,7 +100,7 @@ export class UserImpl implements User {
 
   async getIdToken(forceRefresh?: boolean): Promise<string> {
     const tokens = await this.stsTokenManager.getToken(this.auth, forceRefresh);
-    assert(tokens, this.auth.name);
+    assert(tokens, AuthErrorCode.INTERNAL_ERROR, { appName: this.auth.name });
 
     const { accessToken, wasRefreshed } = tokens;
 
@@ -123,7 +125,9 @@ export class UserImpl implements User {
 
   _onReload(callback: NextFn<APIUserInfo>): void {
     // There should only ever be one listener, and that is a single instance of MultiFactorUser
-    assert(!this.reloadListener, this.auth.name);
+    assert(!this.reloadListener, AuthErrorCode.INTERNAL_ERROR, {
+      appName: this.auth.name
+    });
     this.reloadListener = callback;
     if (this.reloadUserInfo) {
       this._notifyReloadListener(this.reloadUserInfo);
@@ -216,18 +220,26 @@ export class UserImpl implements User {
       lastLoginAt
     } = object;
 
-    assert(uid && plainObjectTokenManager, auth.name);
+    assert(uid && plainObjectTokenManager, AuthErrorCode.INTERNAL_ERROR, {
+      appName: auth.name
+    });
 
     const stsTokenManager = StsTokenManager.fromJSON(
       this.name,
       plainObjectTokenManager as PersistedBlob
     );
 
-    assert(typeof uid === 'string', auth.name);
+    assert(typeof uid === 'string', AuthErrorCode.INTERNAL_ERROR, {
+      appName: auth.name
+    });
     assertStringOrUndefined(displayName, auth.name);
     assertStringOrUndefined(email, auth.name);
-    assert(typeof emailVerified === 'boolean', auth.name);
-    assert(typeof isAnonymous === 'boolean', auth.name);
+    assert(typeof emailVerified === 'boolean', AuthErrorCode.INTERNAL_ERROR, {
+      appName: auth.name
+    });
+    assert(typeof isAnonymous === 'boolean', AuthErrorCode.INTERNAL_ERROR, {
+      appName: auth.name
+    });
     assertStringOrUndefined(phoneNumber, auth.name);
     assertStringOrUndefined(photoURL, auth.name);
     assertStringOrUndefined(tenantId, auth.name);

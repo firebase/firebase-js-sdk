@@ -24,13 +24,16 @@ import {
 import { User } from '../../model/user';
 import { UserMetadata } from './user_impl';
 import { assert } from '../util/assert';
+import { AuthErrorCode } from '../errors';
 
 export async function _reloadWithoutSaving(user: User): Promise<void> {
   const auth = user.auth;
   const idToken = await user.getIdToken();
   const response = await getAccountInfo(auth, { idToken });
 
-  assert(response?.users.length, auth.name);
+  assert(response?.users.length, AuthErrorCode.INTERNAL_ERROR, {
+    appName: auth.name
+  });
 
   const coreAccount = response.users[0];
 

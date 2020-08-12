@@ -74,14 +74,16 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
             await auth.updateCurrentUser(userCredential.user);
             return userCredential;
           case externs.OperationType.REAUTHENTICATE:
-            assert(error.user, auth.name);
+            assert(error.user, AuthErrorCode.INTERNAL_ERROR, {
+              appName: auth.name
+            });
             return UserCredentialImpl._forOperation(
               error.user,
               error.operationType,
               idTokenResponse
             );
           default:
-            fail(auth.name, AuthErrorCode.INTERNAL_ERROR);
+            fail(AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
         }
       }
     );
@@ -100,12 +102,16 @@ export function getMultiFactorResolver(
   errorExtern: externs.MultiFactorError
 ): externs.MultiFactorResolver {
   const error = errorExtern as MultiFactorError;
-  assert(error.operationType, auth.name, AuthErrorCode.ARGUMENT_ERROR);
-  assert(error.credential, auth.name, AuthErrorCode.ARGUMENT_ERROR);
+  assert(error.operationType, AuthErrorCode.ARGUMENT_ERROR, {
+    appName: auth.name
+  });
+  assert(error.credential, AuthErrorCode.ARGUMENT_ERROR, {
+    appName: auth.name
+  });
   assert(
     error.serverResponse?.mfaPendingCredential,
-    auth.name,
-    AuthErrorCode.ARGUMENT_ERROR
+    AuthErrorCode.ARGUMENT_ERROR,
+    { appName: auth.name }
   );
 
   return MultiFactorResolver._fromError(auth, error);

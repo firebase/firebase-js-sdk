@@ -116,7 +116,7 @@ class PopupOperation extends AbstractPopupRedirectOperation {
 
   async executeNotNull(): Promise<externs.UserCredential> {
     const result = await this.execute();
-    assert(result, this.auth.name);
+    assert(result, AuthErrorCode.INTERNAL_ERROR, { appName: this.auth.name });
     return result;
   }
 

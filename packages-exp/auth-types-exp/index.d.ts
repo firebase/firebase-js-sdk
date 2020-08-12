@@ -154,9 +154,9 @@ export interface Persistence {
  * https://firebase.google.com/docs/reference/js/firebase.auth.IDTokenResult
  */
 export interface IdTokenResult {
-  authTime?: string;
-  expirationTime?: string;
-  issuedAtTime?: string;
+  authTime: string;
+  expirationTime: string;
+  issuedAtTime: string;
   signInProvider: string | null;
   signInSecondFactor: string | null;
   token: string;

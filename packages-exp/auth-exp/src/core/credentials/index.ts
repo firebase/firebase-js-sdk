@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+/**
+ * This file is required due to the circular dependency from the parent class to its children
+ */
 export { AuthCredential } from './auth_credential';
 export { EmailAuthCredential } from './email';
 export { OAuthCredential } from './oauth';

@@ -36,16 +36,16 @@ export function _validatePersistenceArgument(
 ): void {
   assertFn(
     Object.values(Persistence).includes(persistence),
-    auth.name,
-    AuthErrorCode.INVALID_PERSISTENCE
+    AuthErrorCode.INVALID_PERSISTENCE,
+    { appName: auth.name }
   );
   // Validate if the specified type is supported in the current environment.
   if (isReactNative()) {
     // This is only supported in a browser.
     assertFn(
       persistence !== Persistence.SESSION,
-      auth.name,
-      AuthErrorCode.UNSUPPORTED_PERSISTENCE
+      AuthErrorCode.UNSUPPORTED_PERSISTENCE,
+      { appName: auth.name }
     );
     return;
   }
@@ -53,8 +53,8 @@ export function _validatePersistenceArgument(
     // Only none is supported in Node.js.
     assertFn(
       persistence === Persistence.NONE,
-      auth.name,
-      AuthErrorCode.UNSUPPORTED_PERSISTENCE
+      AuthErrorCode.UNSUPPORTED_PERSISTENCE,
+      { appName: auth.name }
     );
     return;
   }
@@ -64,15 +64,15 @@ export function _validatePersistenceArgument(
     assertFn(
       persistence === Persistence.NONE ||
         (persistence === Persistence.LOCAL && isIndexedDBAvailable()),
-      auth.name,
-      AuthErrorCode.UNSUPPORTED_PERSISTENCE
+      AuthErrorCode.UNSUPPORTED_PERSISTENCE,
+      { appName: auth.name }
     );
     return;
   }
   // This is restricted by what the browser supports.
   assertFn(
     persistence === Persistence.NONE || _isWebStorageSupported(),
-    auth.name,
-    AuthErrorCode.UNSUPPORTED_PERSISTENCE
+    AuthErrorCode.UNSUPPORTED_PERSISTENCE,
+    { appName: auth.name }
   );
 }

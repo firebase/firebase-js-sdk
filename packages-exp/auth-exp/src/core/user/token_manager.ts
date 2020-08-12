@@ -113,15 +113,21 @@ export class StsTokenManager {
 
     const manager = new StsTokenManager();
     if (refreshToken) {
-      assert(typeof refreshToken === 'string', appName);
+      assert(typeof refreshToken === 'string', AuthErrorCode.INTERNAL_ERROR, {
+        appName
+      });
       manager.refreshToken = refreshToken;
     }
     if (accessToken) {
-      assert(typeof accessToken === 'string', appName);
+      assert(typeof accessToken === 'string', AuthErrorCode.INTERNAL_ERROR, {
+        appName
+      });
       manager.accessToken = accessToken;
     }
     if (expirationTime) {
-      assert(typeof expirationTime === 'number', appName);
+      assert(typeof expirationTime === 'number', AuthErrorCode.INTERNAL_ERROR, {
+        appName
+      });
       manager.expirationTime = expirationTime;
     }
     return manager;

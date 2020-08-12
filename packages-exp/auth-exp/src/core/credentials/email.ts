@@ -34,7 +34,8 @@ export class EmailAuthCredential extends AuthCredential
   private constructor(
     readonly email: string,
     readonly password: string,
-    signInMethod: externs.SignInMethod
+    signInMethod: externs.SignInMethod,
+    readonly tenantId: string | null = null
   ) {
     super(externs.ProviderId.PASSWORD, signInMethod);
   }
@@ -52,12 +53,14 @@ export class EmailAuthCredential extends AuthCredential
 
   static _fromEmailAndCode(
     email: string,
-    oobCode: string
+    oobCode: string,
+    tenantId: string | null = null
   ): EmailAuthCredential {
     return new EmailAuthCredential(
       email,
       oobCode,
-      externs.SignInMethod.EMAIL_LINK
+      externs.SignInMethod.EMAIL_LINK,
+      tenantId
     );
   }
 
@@ -65,7 +68,8 @@ export class EmailAuthCredential extends AuthCredential
     return {
       email: this.email,
       password: this.password,
-      signInMethod: this.signInMethod
+      signInMethod: this.signInMethod,
+      tenantId: this.tenantId
     };
   }
 
@@ -75,7 +79,7 @@ export class EmailAuthCredential extends AuthCredential
       if (obj.signInMethod === externs.SignInMethod.EMAIL_PASSWORD) {
         return this._fromEmailAndPassword(obj.email, obj.password);
       } else if (obj.signInMethod === externs.SignInMethod.EMAIL_LINK) {
-        return this._fromEmailAndCode(obj.email, obj.password);
+        return this._fromEmailAndCode(obj.email, obj.password, obj.tenantId);
       }
     }
     return null;
@@ -95,7 +99,7 @@ export class EmailAuthCredential extends AuthCredential
           oobCode: this.password
         });
       default:
-        fail(auth.name, AuthErrorCode.INTERNAL_ERROR);
+        fail(AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
     }
   }
 
@@ -118,7 +122,7 @@ export class EmailAuthCredential extends AuthCredential
           oobCode: this.password
         });
       default:
-        fail(auth.name, AuthErrorCode.INTERNAL_ERROR);
+        fail(AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
     }
   }
 

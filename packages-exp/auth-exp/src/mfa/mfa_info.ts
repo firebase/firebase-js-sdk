@@ -45,7 +45,7 @@ export abstract class MultiFactorInfo implements externs.MultiFactorInfo {
     if ('phoneInfo' in enrollment) {
       return PhoneMultiFactorInfo._fromServerResponse(auth, enrollment);
     }
-    return fail(auth.name, AuthErrorCode.INTERNAL_ERROR);
+    return fail(AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
   }
 }
 

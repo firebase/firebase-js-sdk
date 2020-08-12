@@ -117,11 +117,9 @@ export class AuthImplCompat<T extends User> implements Auth {
       return this.reloadAndSetCurrentUserOrClear(storedUser);
     }
 
-    assert(
-      this._popupRedirectResolver,
-      this.name,
-      AuthErrorCode.ARGUMENT_ERROR
-    );
+    assert(this._popupRedirectResolver, AuthErrorCode.ARGUMENT_ERROR, {
+      appName: this.name
+    });
     await this.getOrInitRedirectPersistenceManager();
 
     // If the redirect user's event ID matches the current user's event ID,
@@ -159,8 +157,8 @@ export class AuthImplCompat<T extends User> implements Auth {
     if (user) {
       assert(
         this.tenantId === user.tenantId,
-        this.name,
-        AuthErrorCode.TENANT_ID_MISMATCH
+        AuthErrorCode.TENANT_ID_MISMATCH,
+        { appName: this.name }
       );
     }
     return this.queue(async () => {
@@ -224,7 +222,7 @@ export class AuthImplCompat<T extends User> implements Auth {
       const resolver: PopupRedirectResolver | null =
         (popupRedirectResolver && _getInstance(popupRedirectResolver)) ||
         this._popupRedirectResolver;
-      assert(resolver, this.name, AuthErrorCode.ARGUMENT_ERROR);
+      assert(resolver, AuthErrorCode.ARGUMENT_ERROR, { appName: this.name });
       this.redirectPersistenceManager = await PersistenceUserManager.create(
         this,
         [_getInstance(resolver._redirectPersistence)],
@@ -327,7 +325,9 @@ export class AuthImplCompat<T extends User> implements Auth {
   }
 
   private get assertedPersistence(): PersistenceUserManager {
-    assert(this.persistenceManager, this.name);
+    assert(this.persistenceManager, AuthErrorCode.INTERNAL_ERROR, {
+      appName: this.name
+    });
     return this.persistenceManager;
   }
 }
@@ -387,7 +387,7 @@ export function _initializeAuthForClientPlatform(
     const { apiKey, authDomain } = app.options;
 
     // TODO: platform needs to be determined using heuristics
-    assert(apiKey, app.name, AuthErrorCode.INVALID_API_KEY);
+    assert(apiKey, AuthErrorCode.INVALID_API_KEY, { appName: app.name });
     const config: externs.Config = {
       apiKey,
       authDomain,
@@ -418,7 +418,9 @@ class Subscription<T> {
   constructor(readonly auth: AuthCore) {}
 
   get next(): NextFn<T | null> {
-    assert(this.observer, this.auth.name);
+    assert(this.observer, AuthErrorCode.INTERNAL_ERROR, {
+      appName: this.auth.name
+    });
     return this.observer.next.bind(this.observer);
   }
 }

@@ -40,13 +40,18 @@ export class OAuthProvider implements externs.AuthProvider {
     const obj = typeof json === 'string' ? JSON.parse(json) : json;
     assert(
       'providerId' in obj && 'signInMethod' in obj,
-      AuthErrorCode.ARGUMENT_ERROR
+      AuthErrorCode.ARGUMENT_ERROR,
+      {}
     );
     return OAuthCredential._fromParams(obj);
   }
 
   credential(params: CredentialParameters): externs.OAuthCredential {
-    assert(params.idToken && params.accessToken, AuthErrorCode.ARGUMENT_ERROR);
+    assert(
+      params.idToken && params.accessToken,
+      AuthErrorCode.ARGUMENT_ERROR,
+      {}
+    );
     // For OAuthCredential, sign in method is same as providerId.
     return OAuthCredential._fromParams({
       providerId: this.providerId,

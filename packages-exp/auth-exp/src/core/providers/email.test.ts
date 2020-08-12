@@ -22,18 +22,11 @@ import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { FirebaseError } from '@firebase/util';
 
-import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import { EmailAuthProvider } from './email';
 
 use(chaiAsPromised);
 
 describe('core/providers/email', () => {
-  let auth: TestAuth;
-
-  beforeEach(async () => {
-    auth = await testAuth();
-  });
-
   describe('.credential', () => {
     it('should return an email & password credential', () => {
       const credential = EmailAuthProvider.credential(
@@ -58,7 +51,6 @@ describe('core/providers/email', () => {
         '&languageCode=en&state=bla';
 
       const credential = EmailAuthProvider.credentialWithLink(
-        auth,
         'some-email',
         actionLink
       );
@@ -72,26 +64,8 @@ describe('core/providers/email', () => {
       it('should throw an error', () => {
         const actionLink = 'https://www.example.com/finishSignIn?';
         expect(() =>
-          EmailAuthProvider.credentialWithLink(auth, 'some-email', actionLink)
+          EmailAuthProvider.credentialWithLink('some-email', actionLink)
         ).to.throw(FirebaseError, 'Firebase: Error (auth/argument-error)');
-      });
-    });
-
-    context('mismatched tenant ID', () => {
-      it('should throw an error', () => {
-        const continueUrl = 'https://www.example.com/path/to/file?a=1&b=2#c=3';
-        const actionLink =
-          'https://www.example.com/finishSignIn?' +
-          'oobCode=CODE&mode=signIn&apiKey=API_KEY&' +
-          'continueUrl=' +
-          encodeURIComponent(continueUrl) +
-          '&languageCode=en&tenantId=OTHER_TENANT_ID&state=bla';
-        expect(() =>
-          EmailAuthProvider.credentialWithLink(auth, 'some-email', actionLink)
-        ).to.throw(
-          FirebaseError,
-          "Firebase: The provided tenant ID does not match the Auth instance's tenant ID (auth/tenant-id-mismatch)."
-        );
       });
     });
   });
