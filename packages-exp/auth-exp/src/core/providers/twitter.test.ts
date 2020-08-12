@@ -41,7 +41,7 @@ import {
 } from '@firebase/auth-types-exp';
 
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
-import { testUser } from '../../../test/helpers/mock_auth';
+import { testUser, testAuth } from '../../../test/helpers/mock_auth';
 import { TaggedWithTokenResponse } from '../../model/id_token';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { UserCredentialImpl } from '../user/user_credential_impl';
@@ -56,9 +56,10 @@ describe('src/core/providers/twitter', () => {
     expect(cred.signInMethod).to.eq(SignInMethod.TWITTER);
   });
 
-  it('credentialFromResult creates the cred from a tagged result', () => {
+  it('credentialFromResult creates the cred from a tagged result', async () => {
+    const auth = await testAuth();
     const userCred = new UserCredentialImpl({
-      user: testUser({}, 'uid'),
+      user: testUser(auth, 'uid'),
       providerId: ProviderId.TWITTER,
       _tokenResponse: {
         ...TEST_ID_TOKEN_RESPONSE,

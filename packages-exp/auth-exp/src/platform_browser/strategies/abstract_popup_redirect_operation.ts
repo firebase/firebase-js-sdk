@@ -117,7 +117,7 @@ export abstract class AbstractPopupRedirectOperation
       case AuthEventType.REAUTH_VIA_REDIRECT:
         return _reauth;
       default:
-        fail(this.auth.name, AuthErrorCode.INTERNAL_ERROR);
+        fail(AuthErrorCode.INTERNAL_ERROR, { appName: this.auth.name });
     }
   }
 

@@ -22,7 +22,7 @@ import { AuthCore } from '../../model/auth';
 
 export abstract class MultiFactorAssertion
   implements externs.MultiFactorAssertion {
-  protected constructor(readonly factorId: externs.ProviderId) {}
+  protected constructor(readonly factorId: string) {}
 
   _process(
     auth: AuthCore,

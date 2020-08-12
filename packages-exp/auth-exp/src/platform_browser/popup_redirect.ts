@@ -136,8 +136,12 @@ function getRedirectUrl(
   authType: AuthEventType,
   eventId?: string
 ): string {
-  assert(auth.config.authDomain, auth.name, AuthErrorCode.MISSING_AUTH_DOMAIN);
-  assert(auth.config.apiKey, auth.name, AuthErrorCode.INVALID_API_KEY);
+  assert(auth.config.authDomain, AuthErrorCode.MISSING_AUTH_DOMAIN, {
+    appName: auth.name
+  });
+  assert(auth.config.apiKey, AuthErrorCode.INVALID_API_KEY, {
+    appName: auth.name
+  });
 
   const params: WidgetParams = {
     apiKey: auth.config.apiKey,

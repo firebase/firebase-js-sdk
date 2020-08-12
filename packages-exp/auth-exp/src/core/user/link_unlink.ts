@@ -75,7 +75,7 @@ export async function _link(
 export async function _assertLinkedStatus(
   expected: boolean,
   user: User,
-  provider: externs.ProviderId
+  provider: string
 ): Promise<void> {
   await _reloadWithoutSaving(user);
   const providerIds = providerDataAsNames(user.providerData);
@@ -84,5 +84,7 @@ export async function _assertLinkedStatus(
     expected === false
       ? AuthErrorCode.PROVIDER_ALREADY_LINKED
       : AuthErrorCode.NO_SUCH_PROVIDER;
-  assert(providerIds.has(provider) === expected, user.auth.name, code);
+  assert(providerIds.has(provider) === expected, code, {
+    appName: user.auth.name
+  });
 }

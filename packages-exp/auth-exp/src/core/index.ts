@@ -55,7 +55,10 @@ export function signOut(auth: externs.Auth): Promise<void> {
 }
 
 // credentials
+export { AuthCredential } from './credentials';
+export { EmailAuthCredential } from './credentials/email';
 export { OAuthCredential } from './credentials/oauth';
+export { PhoneAuthCredential } from './credentials/phone';
 
 // persistence
 export { inMemoryPersistence } from './persistence/in_memory';

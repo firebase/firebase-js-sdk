@@ -116,9 +116,7 @@ describe('core/user/link_unlink', () => {
           }
         ]);
 
-        expect(auth.persistenceLayer.lastObjectSet).to.eql(
-          user.toPlainObject()
-        );
+        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
         expect(user.phoneNumber).to.be.null;
       });
 
@@ -153,9 +151,7 @@ describe('core/user/link_unlink', () => {
           }
         ]);
 
-        expect(auth.persistenceLayer.lastObjectSet).to.eql(
-          user.toPlainObject()
-        );
+        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
       });
 
       it('calls the endpoint with the provider', async () => {

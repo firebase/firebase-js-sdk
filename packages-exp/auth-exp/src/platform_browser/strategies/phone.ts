@@ -117,15 +117,13 @@ export async function _verifyPhoneNumber(
   const recaptchaToken = await verifier.verify();
 
   try {
-    assert(
-      typeof recaptchaToken === 'string',
-      auth.name,
-      AuthErrorCode.ARGUMENT_ERROR
-    );
+    assert(typeof recaptchaToken === 'string', AuthErrorCode.ARGUMENT_ERROR, {
+      appName: auth.name
+    });
     assert(
       verifier.type === RECAPTCHA_VERIFIER_TYPE,
-      auth.name,
-      AuthErrorCode.ARGUMENT_ERROR
+      AuthErrorCode.ARGUMENT_ERROR,
+      { appName: auth.name }
     );
 
     let phoneInfoOptions: externs.PhoneInfoOptions;
@@ -142,7 +140,11 @@ export async function _verifyPhoneNumber(
       const session = phoneInfoOptions.session as MultiFactorSession;
 
       if ('phoneNumber' in phoneInfoOptions) {
-        assert(session.type === MultiFactorSessionType.ENROLL, auth.name);
+        assert(
+          session.type === MultiFactorSessionType.ENROLL,
+          AuthErrorCode.INTERNAL_ERROR,
+          { appName: auth.name }
+        );
         const response = await startEnrollPhoneMfa(auth, {
           idToken: session.credential,
           phoneEnrollmentInfo: {
@@ -152,11 +154,17 @@ export async function _verifyPhoneNumber(
         });
         return response.phoneSessionInfo.sessionInfo;
       } else {
-        assert(session.type === MultiFactorSessionType.SIGN_IN, auth.name);
+        assert(
+          session.type === MultiFactorSessionType.SIGN_IN,
+          AuthErrorCode.INTERNAL_ERROR,
+          { appName: auth.name }
+        );
         const mfaEnrollmentId =
           phoneInfoOptions.multiFactorHint?.uid ||
           phoneInfoOptions.multiFactorUid;
-        assert(mfaEnrollmentId, auth.name, AuthErrorCode.MISSING_MFA_INFO);
+        assert(mfaEnrollmentId, AuthErrorCode.MISSING_MFA_INFO, {
+          appName: auth.name
+        });
         const response = await startSignInPhoneMfa(auth, {
           mfaPendingCredential: session.credential,
           mfaEnrollmentId,

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { AUTH_ERROR_FACTORY, AuthErrorCode, AuthErrorParams } from '../errors';
 import { _logError } from './log';
 
 /**
@@ -24,8 +24,11 @@ import { _logError } from './log';
  * @param appName App name for tagging the error
  * @throws FirebaseError
  */
-export function fail(appName: string, errorCode: AuthErrorCode): never {
-  throw AUTH_ERROR_FACTORY.create(errorCode, { appName });
+export function fail<K extends AuthErrorCode>(
+  code: K,
+  ...data: K extends keyof AuthErrorParams ? [AuthErrorParams[K]] : []
+): never {
+  throw AUTH_ERROR_FACTORY.create(code, ...data);
 }
 
 /**
@@ -34,13 +37,13 @@ export function fail(appName: string, errorCode: AuthErrorCode): never {
  * @param assertion
  * @param appName
  */
-export function assert(
+export function assert<K extends AuthErrorCode>(
   assertion: unknown,
-  appName: string,
-  errorCode = AuthErrorCode.INTERNAL_ERROR
+  code: K,
+  ...data: K extends keyof AuthErrorParams ? [AuthErrorParams[K]] : []
 ): asserts assertion {
   if (!assertion) {
-    fail(appName, errorCode);
+    fail(code, ...data);
   }
 }
 
@@ -86,7 +89,7 @@ export function assertTypes(
   ...expected: Array<TypeExpectation | Optional>
 ): void {
   if (args.length > expected.length) {
-    fail('TODO', AuthErrorCode.ARGUMENT_ERROR);
+    fail(AuthErrorCode.ARGUMENT_ERROR, {});
   }
 
   for (let i = 0; i < expected.length; i++) {
@@ -109,11 +112,7 @@ export function assertTypes(
       }
 
       const required = expect.split('|');
-      assert(
-        required.includes(typeof arg),
-        'TODO',
-        AuthErrorCode.ARGUMENT_ERROR
-      );
+      assert(required.includes(typeof arg), AuthErrorCode.ARGUMENT_ERROR, {});
     } else if (typeof expect === 'object') {
       // Recursively check record arguments
       const record = arg as Record<string, unknown>;
@@ -125,7 +124,7 @@ export function assertTypes(
         ...keys.map(k => map[k])
       );
     } else {
-      assert(arg instanceof expect, 'app', AuthErrorCode.ARGUMENT_ERROR);
+      assert(arg instanceof expect, AuthErrorCode.ARGUMENT_ERROR, {});
     }
   }
 }

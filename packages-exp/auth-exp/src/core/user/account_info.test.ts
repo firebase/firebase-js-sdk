@@ -165,9 +165,7 @@ describe('core/user/profile', () => {
 
         await updateProfile(user, { displayName: 'd' });
         expect(idTokenChange).to.have.been.called;
-        expect(auth.persistenceLayer.lastObjectSet).to.eql(
-          user.toPlainObject()
-        );
+        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
       });
 
       it('does NOT trigger a token update if unnecessary', async () => {
@@ -179,9 +177,7 @@ describe('core/user/profile', () => {
 
         await updateProfile(user, { displayName: 'd' });
         expect(idTokenChange).not.to.have.been.called;
-        expect(auth.persistenceLayer.lastObjectSet).to.eql(
-          user.toPlainObject()
-        );
+        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
       });
     });
 
@@ -201,9 +197,7 @@ describe('core/user/profile', () => {
 
         await updatePassword(user, 'email@test.com');
         expect(idTokenChange).to.have.been.called;
-        expect(auth.persistenceLayer.lastObjectSet).to.eql(
-          user.toPlainObject()
-        );
+        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
       });
 
       it('does NOT trigger a token update if unnecessary', async () => {
@@ -215,9 +209,7 @@ describe('core/user/profile', () => {
 
         await updateEmail(user, 'email@test.com');
         expect(idTokenChange).not.to.have.been.called;
-        expect(auth.persistenceLayer.lastObjectSet).to.eql(
-          user.toPlainObject()
-        );
+        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
       });
     });
 
@@ -237,9 +229,7 @@ describe('core/user/profile', () => {
 
         await updatePassword(user, 'pass');
         expect(idTokenChange).to.have.been.called;
-        expect(auth.persistenceLayer.lastObjectSet).to.eql(
-          user.toPlainObject()
-        );
+        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
       });
 
       it('does NOT trigger a token update if unnecessary', async () => {
@@ -251,9 +241,7 @@ describe('core/user/profile', () => {
 
         await updatePassword(user, 'pass');
         expect(idTokenChange).not.to.have.been.called;
-        expect(auth.persistenceLayer.lastObjectSet).to.eql(
-          user.toPlainObject()
-        );
+        expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
       });
     });
   });

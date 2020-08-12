@@ -21,9 +21,7 @@ export enum PersistenceType {
   NONE = 'NONE'
 }
 
-export interface PersistedBlob {
-  [key: string]: unknown;
-}
+export type PersistedBlob = Record<string, unknown>;
 
 export interface Instantiator<T> {
   (blob: PersistedBlob): T;

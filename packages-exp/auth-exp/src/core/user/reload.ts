@@ -22,14 +22,18 @@ import {
   ProviderUserInfo
 } from '../../api/account_management/account';
 import { User } from '../../model/user';
+import { UserMetadata } from './user_impl';
 import { assert } from '../util/assert';
+import { AuthErrorCode } from '../errors';
 
 export async function _reloadWithoutSaving(user: User): Promise<void> {
   const auth = user.auth;
   const idToken = await user.getIdToken();
   const response = await getAccountInfo(auth, { idToken });
 
-  assert(response?.users.length, auth.name);
+  assert(response?.users.length, AuthErrorCode.INTERNAL_ERROR, {
+    appName: auth.name
+  });
 
   const coreAccount = response.users[0];
 
@@ -47,10 +51,10 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
     phoneNumber: coreAccount.phoneNumber || null,
     tenantId: coreAccount.tenantId || null,
     providerData: mergeProviderData(user.providerData, newProviderData),
-    metadata: {
-      creationTime: coreAccount.createdAt?.toString(),
-      lastSignInTime: coreAccount.lastLoginAt?.toString()
-    }
+    metadata: new UserMetadata(
+      coreAccount.createdAt,
+      coreAccount.lastLoginAt
+    )
   };
 
   Object.assign(user, updates);
@@ -82,11 +86,11 @@ function extractProviderData(
 ): externs.UserInfo[] {
   return providers.map(({ providerId, ...provider }) => {
     return {
+      providerId,
       uid: provider.rawId || '',
       displayName: provider.displayName || null,
       email: provider.email || null,
       phoneNumber: provider.phoneNumber || null,
-      providerId: providerId as externs.ProviderId,
       photoURL: provider.photoUrl || null
     };
   });

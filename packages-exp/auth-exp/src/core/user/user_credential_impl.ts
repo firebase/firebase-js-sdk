@@ -20,7 +20,6 @@ import * as externs from '@firebase/auth-types-exp';
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import { IdTokenResponse } from '../../model/id_token';
 import { User, UserCredential } from '../../model/user';
-import { AuthCredential } from '../credentials';
 import { UserImpl } from './user_impl';
 import { Auth } from '../../model/auth';
 
@@ -47,14 +46,14 @@ export class UserCredentialImpl
 
   static async _fromIdTokenResponse(
     auth: Auth,
-    credential: AuthCredential | null,
     operationType: externs.OperationType,
-    idTokenResponse: IdTokenResponse
+    idTokenResponse: IdTokenResponse,
+    isAnonymous: boolean = false
   ): Promise<UserCredential> {
     const user = await UserImpl._fromIdTokenResponse(
       auth,
       idTokenResponse,
-      credential?.providerId === externs.ProviderId.ANONYMOUS
+      isAnonymous
     );
     const providerId = providerIdForResponse(idTokenResponse);
     const userCred = new UserCredentialImpl({
@@ -63,8 +62,6 @@ export class UserCredentialImpl
       _tokenResponse: idTokenResponse,
       operationType
     });
-    // TODO: handle additional user info
-    // updateAdditionalUserInfoFromIdTokenResponse(userCred, idTokenResponse);
     return userCred;
   }
 
@@ -88,7 +85,7 @@ function providerIdForResponse(
   response: IdTokenResponse
 ): externs.ProviderId | null {
   if (response.providerId) {
-    return response.providerId as externs.ProviderId;
+    return response.providerId;
   }
 
   if ('phoneNumber' in response) {

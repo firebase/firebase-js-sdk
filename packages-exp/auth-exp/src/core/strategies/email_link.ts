@@ -23,6 +23,8 @@ import { EmailAuthProvider } from '../providers/email';
 import { _getCurrentUrl } from '../util/location';
 import { setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
+import { AuthErrorCode } from '../errors';
+import { assert } from '../util/assert';
 
 export async function sendSignInLinkToEmail(
   auth: externs.Auth,
@@ -44,7 +46,7 @@ export function isSignInWithEmailLink(
   auth: externs.Auth,
   emailLink: string
 ): boolean {
-  const actionCodeUrl = ActionCodeURL.parseLink(auth, emailLink);
+  const actionCodeUrl = ActionCodeURL.parseLink(emailLink);
   return actionCodeUrl?.operation === externs.Operation.EMAIL_SIGNIN;
 }
 
@@ -53,12 +55,16 @@ export async function signInWithEmailLink(
   email: string,
   emailLink?: string
 ): Promise<externs.UserCredential> {
-  return signInWithCredential(
-    auth,
-    EmailAuthProvider.credentialWithLink(
-      auth,
-      email,
-      emailLink || _getCurrentUrl()
-    )
+  const credential = EmailAuthProvider.credentialWithLink(
+    email,
+    emailLink || _getCurrentUrl()
   );
+  // Check if the tenant ID in the email link matches the tenant ID on Auth
+  // instance.
+  assert(
+    credential.tenantId === (auth.tenantId || null),
+    AuthErrorCode.TENANT_ID_MISMATCH,
+    { appName: auth.name }
+  );
+  return signInWithCredential(auth, credential);
 }
