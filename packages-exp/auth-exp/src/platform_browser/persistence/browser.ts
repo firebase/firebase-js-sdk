@@ -18,7 +18,10 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import {
-    Persistence, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY
+  Persistence,
+  PersistenceType,
+  PersistenceValue,
+  STORAGE_AVAILABLE_KEY
 } from '../../core/persistence';
 
 // There are two different browser persistence types: local and session.

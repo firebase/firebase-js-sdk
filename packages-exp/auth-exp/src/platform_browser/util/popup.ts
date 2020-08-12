@@ -19,7 +19,11 @@ import { getUA } from '@firebase/util';
 
 import { AuthErrorCode } from '../../core/errors';
 import { assert } from '../../core/util/assert';
-import { _isChromeIOS, _isFirefox, _isIOSStandalone } from '../../core/util/environment';
+import {
+  _isChromeIOS,
+  _isFirefox,
+  _isIOSStandalone
+} from '../../core/util/environment';
 
 const BASE_POPUP_OPTIONS = {
   location: 'yes',

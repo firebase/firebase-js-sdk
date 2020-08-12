@@ -22,7 +22,11 @@ import { _assertLinkedStatus } from '../../core/user/link_unlink';
 import { _generateEventId } from '../../core/util/event_id';
 import { _getInstance } from '../../core/util/instantiator';
 import { Auth } from '../../model/auth';
-import { AuthEvent, AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import {
+  AuthEvent,
+  AuthEventType,
+  PopupRedirectResolver
+} from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 

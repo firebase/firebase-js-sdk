@@ -27,7 +27,11 @@ import { _generateEventId } from '../core/util/event_id';
 import { _getCurrentUrl } from '../core/util/location';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
-    AuthEventType, EventManager, GapiAuthEvent, GapiOutcome, PopupRedirectResolver
+  AuthEventType,
+  EventManager,
+  GapiAuthEvent,
+  GapiOutcome,
+  PopupRedirectResolver
 } from '../model/popup_redirect';
 import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';
@@ -95,8 +99,8 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   private async initAndGetManager(auth: Auth): Promise<EventManager> {
     // TODO: Check shouldBeInitializedEarly (ifchandler.js)
     // TODO: Chech hasVolatileStorage -- matters for Cordova
-    // TODO: Need to ask the iframe if it has webstorage support 
-    
+    // TODO: Need to ask the iframe if it has webstorage support
+
     const iframe = await _openIframe(auth);
     const manager = new AuthEventManager(auth.name);
     iframe.register<GapiAuthEvent>(

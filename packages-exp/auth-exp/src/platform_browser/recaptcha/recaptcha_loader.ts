@@ -91,7 +91,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
         render: 'explicit',
         hl
       })}`;
-        
+
       jsHelpers._loadJS(url).catch(() => {
         clearTimeout(networkTimeout);
         // TODO: Need to write custom error message
