@@ -174,11 +174,11 @@ export class Provider<T extends Name> {
       ...services
         .filter(service => 'INTERNAL' in service) // legacy services
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .map(service => (service as any).INTERNAL!.delete()),
-      ...services
-        .filter(service => 'delete' in service) // next services
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .map(service => (service as any).delete())
+        .map(service => (service as any).INTERNAL!.delete())
+      // ...services
+      //   .filter(service => 'delete' in service) // next services
+      //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      //   .map(service => (service as any).delete())
     ]);
   }
 
