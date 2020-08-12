@@ -64,13 +64,8 @@ const factory: InstanceFactory<'performance'> = (
 };
 
 export function registerPerformance(): void {
-  const namespaceExports = {
-    Performance: PerformanceController
-  };
   _registerComponent(
-    new Component('performance', factory, ComponentType.PUBLIC).setServiceProps(
-      namespaceExports
-    )
+    new Component('performance', factory, ComponentType.PUBLIC)
   );
 }
 
