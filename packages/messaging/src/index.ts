@@ -15,23 +15,25 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
 import '@firebase/installations';
-import {
-  _FirebaseNamespace,
-  FirebaseService
-} from '@firebase/app-types/private';
-import { FirebaseMessaging } from '@firebase/messaging-types';
+
 import {
   Component,
-  ComponentType,
-  ComponentContainer
+  ComponentContainer,
+  ComponentType
 } from '@firebase/component';
-import { extractAppConfig } from './helpers/extract-app-config';
-import { FirebaseInternalDependencies } from './interfaces/internal-dependencies';
 import { ERROR_FACTORY, ErrorCode } from './util/errors';
-import { WindowController } from './controllers/window-controller';
+import {
+  FirebaseService,
+  _FirebaseNamespace
+} from '@firebase/app-types/private';
+
+import { FirebaseInternalDependencies } from './interfaces/internal-dependencies';
+import { FirebaseMessaging } from '@firebase/messaging-types';
 import { SwController } from './controllers/sw-controller';
+import { WindowController } from './controllers/window-controller';
+import { extractAppConfig } from './helpers/extract-app-config';
+import firebase from '@firebase/app';
 
 const MESSAGING_NAME = 'messaging';
 function factoryMethod(

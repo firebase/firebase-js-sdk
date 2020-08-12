@@ -15,16 +15,23 @@
  * limitations under the License.
  */
 
-import { MessagePayload } from './message-payload';
+importScripts('../constants.js');
+importScripts('../helpers.js');
 
-export enum MessageType {
-  PUSH_RECEIVED = 'push-received',
-  NOTIFICATION_CLICKED = 'notification-clicked'
-}
+// HEAD targets served through express
+importScripts('/firebase-app.js');
+importScripts('/firebase-messaging.js');
 
-export interface InternalMessage {
-  firebaseMessaging: {
-    type: MessageType;
-    payload: MessagePayload;
-  };
-}
+firebase.initializeApp(FIREBASE_CONFIG);
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage(payload => {
+  console.log(
+    TAG +
+      'a background message is received in the onBackgroundMessage hook: ' +
+      JSON.stringify(payload) +
+      '. Storing it into idb for tests to read...'
+  );
+
+  addPayloadToDb(payload);
+});

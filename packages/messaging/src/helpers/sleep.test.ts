@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { SinonFakeTimers, useFakeTimers } from 'sinon';
 import '../testing/setup';
+
+import { SinonFakeTimers, useFakeTimers } from 'sinon';
+
+import { expect } from 'chai';
 import { sleep } from './sleep';
 
 describe('sleep', () => {

@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
-import { FirebaseError } from '@firebase/util';
-import { AppConfig } from '../interfaces/app-config';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
+
+import { AppConfig } from '../interfaces/app-config';
+import { FirebaseError } from '@firebase/util';
 
 export function extractAppConfig(app: FirebaseApp): AppConfig {
   if (!app || !app.options) {
