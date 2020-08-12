@@ -22,6 +22,7 @@ import {
 } from '../client/remote_config_fetch_client';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { FirebaseError } from '@firebase/util';
+import { ErrorFactory } from '@firebase/util';
 
 /**
  * Converts an error event associated with a {@link IDBRequest} to a {@link FirebaseError}.
@@ -75,28 +76,36 @@ type ProjectNamespaceKeyFieldValue =
 // Visible for testing.
 export function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onerror = event => {
-      reject(toFirebaseError(event, ErrorCode.STORAGE_OPEN));
-    };
-    request.onsuccess = event => {
-      resolve((event.target as IDBOpenDBRequest).result);
-    };
-    request.onupgradeneeded = event => {
-      const db = (event.target as IDBOpenDBRequest).result;
+    try {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onerror = event => {
+        reject(toFirebaseError(event, ErrorCode.STORAGE_OPEN));
+      };
+      request.onsuccess = event => {
+        resolve((event.target as IDBOpenDBRequest).result);
+      };
+      request.onupgradeneeded = event => {
+        const db = (event.target as IDBOpenDBRequest).result;
 
-      // We don't use 'break' in this switch statement, the fall-through
-      // behavior is what we want, because if there are multiple versions between
-      // the old version and the current version, we want ALL the migrations
-      // that correspond to those versions to run, not only the last one.
-      // eslint-disable-next-line default-case
-      switch (event.oldVersion) {
-        case 0:
-          db.createObjectStore(APP_NAMESPACE_STORE, {
-            keyPath: 'compositeKey'
-          });
-      }
-    };
+        // We don't use 'break' in this switch statement, the fall-through
+        // behavior is what we want, because if there are multiple versions between
+        // the old version and the current version, we want ALL the migrations
+        // that correspond to those versions to run, not only the last one.
+        // eslint-disable-next-line default-case
+        switch (event.oldVersion) {
+          case 0:
+            db.createObjectStore(APP_NAMESPACE_STORE, {
+              keyPath: 'compositeKey'
+            });
+        }
+      };
+    } catch (error) {
+      reject(
+        ERROR_FACTORY.create(ErrorCode.STORAGE_OPEN, {
+          originalErrorMessage: error
+        })
+      );
+    }
   });
 }
 

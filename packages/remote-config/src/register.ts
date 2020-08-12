@@ -20,6 +20,9 @@ import {
   SDK_VERSION
 } from '@firebase/app';
 import {
+  isIndexedDBAvailable
+} from '@firebase/util';
+import {
   Component,
   ComponentType,
   ComponentContainer,
@@ -68,7 +71,10 @@ export function registerRemoteConfig(): void {
     if (typeof window === 'undefined') {
       throw ERROR_FACTORY.create(ErrorCode.REGISTRATION_WINDOW);
     }
-
+    // Guards against the SDK being used when indexedDB is not available.
+    if (!isIndexedDBAvailable()) {
+      throw ERROR_FACTORY.create(ErrorCode.INDEXED_DB_UNSUPPORTED);
+    }
     // Normalizes optional inputs.
     const { projectId, apiKey, appId } = app.options;
     if (!projectId) {
