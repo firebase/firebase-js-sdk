@@ -318,5 +318,5 @@ function d3(): string {
 // tmp for testing
 export function aFunctionThatOnlyBaseHas(logLevel: LogLevel): void {
   setLogLevelImpl(logLevel);
-  d1();
+  console.log(d1());
 }

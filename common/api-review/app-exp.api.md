@@ -25,7 +25,7 @@ export function _addComponent(app: FirebaseApp, component: Component): void;
 export function _addOrOverwriteComponent(app: FirebaseApp, component: Component): void;
 
 // @public (undocumented)
-export function aFunctionThatOnlyBaseHas(): string;
+export function aFunctionThatOnlyBaseHas(logLevel: LogLevel): void;
 
 // @internal (undocumented)
 export const _apps: Map<string, FirebaseApp>;
