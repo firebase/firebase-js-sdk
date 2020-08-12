@@ -91,7 +91,6 @@ describe('FirebaseAnalytics instance tests', () => {
       // For IE: Need then() or else "expect" runs immediately on FID resolve
       // before the other statements in initializeGAId.
       await fidDeferred.promise.then();
-      console.log('callCount', gtagStub.callCount);
       expect(gtagStub).to.have.been.calledWith('js');
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.CONFIG,
