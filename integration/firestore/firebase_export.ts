@@ -29,7 +29,7 @@ export function newTestFirestore(
   settings?: firebase.firestore.Settings
 ): firebase.firestore.Firestore {
   if (nameOrApp === undefined) {
-    nameOrApp = 'test-app-' + appCount++;
+    nameOrApp = 'test-app-minified-' + appCount++;
   }
   const app =
     typeof nameOrApp === 'string'
