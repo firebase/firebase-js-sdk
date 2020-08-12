@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import { use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { restore } from 'sinon';
 import * as sinonChai from 'sinon-chai';
+
 import { dbDelete } from '../helpers/idb-manager';
 import { deleteDb } from 'idb';
+import { restore } from 'sinon';
+import { use } from 'chai';
 
 use(chaiAsPromised);
 use(sinonChai);

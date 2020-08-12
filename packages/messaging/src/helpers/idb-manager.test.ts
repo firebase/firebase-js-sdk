@@ -15,16 +15,19 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { stub } from 'sinon';
 import '../testing/setup';
-import { TokenDetails } from '../interfaces/token-details';
-import { getFakeTokenDetails } from '../testing/fakes/token-details';
-import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
-import { dbSet, dbGet, dbRemove } from './idb-manager';
+
 import * as migrateOldDatabaseModule from './migrate-old-database';
-import { Stub } from '../testing/sinon-types';
+
+import { dbGet, dbRemove, dbSet } from './idb-manager';
+
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+import { Stub } from '../testing/sinon-types';
+import { TokenDetails } from '../interfaces/token-details';
+import { expect } from 'chai';
+import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
+import { getFakeTokenDetails } from '../testing/fakes/token-details';
+import { stub } from 'sinon';
 
 describe('idb manager', () => {
   let firebaseDependencies: FirebaseInternalDependencies;

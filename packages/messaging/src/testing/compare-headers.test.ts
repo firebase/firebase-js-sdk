@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
-import { AssertionError, expect } from 'chai';
 import '../testing/setup';
+
+import { AssertionError, expect } from 'chai';
+
 import { compareHeaders } from './compare-headers';
 
 describe('compareHeaders', () => {
