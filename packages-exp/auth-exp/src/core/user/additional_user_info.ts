@@ -14,20 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  AdditionalUserInfo,
-  UserProfile,
-  ProviderId
-} from '@firebase/auth-types-exp';
+
+import * as externs from '@firebase/auth-types-exp';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { _parseToken } from './id_token_result';
+import { UserCredential } from '../../model/user';
 
 /**
  * Parse the `AdditionalUserInfo` from the ID token response.
  */
 export function _fromIdTokenResponse(
-  idTokenResponse: IdTokenResponse
-): AdditionalUserInfo | null {
+  idTokenResponse?: IdTokenResponse
+): externs.AdditionalUserInfo | null {
+  if (!idTokenResponse) {
+    return null;
+  }
   const { providerId } = idTokenResponse;
   const profile = idTokenResponse.rawUserInfo
     ? JSON.parse(idTokenResponse.rawUserInfo)
@@ -41,8 +42,9 @@ export function _fromIdTokenResponse(
     ];
     if (signInProvider) {
       const filteredProviderId =
-        providerId !== ProviderId.ANONYMOUS && providerId !== ProviderId.CUSTOM
-          ? (signInProvider as ProviderId)
+        providerId !== externs.ProviderId.ANONYMOUS &&
+        providerId !== externs.ProviderId.CUSTOM
+          ? (signInProvider as externs.ProviderId)
           : null;
       // Uses generic class in accordance with the legacy SDK.
       return new GenericAdditionalUserInfo(isNewUser, filteredProviderId);
@@ -52,83 +54,82 @@ export function _fromIdTokenResponse(
     return null;
   }
   switch (providerId) {
-    case ProviderId.FACEBOOK:
+    case externs.ProviderId.FACEBOOK:
       return new FacebookAdditionalUserInfo(isNewUser, profile);
-    case ProviderId.GITHUB:
+    case externs.ProviderId.GITHUB:
       return new GithubAdditionalUserInfo(isNewUser, profile);
-    case ProviderId.GOOGLE:
+    case externs.ProviderId.GOOGLE:
       return new GoogleAdditionalUserInfo(isNewUser, profile);
-    case ProviderId.TWITTER:
+    case externs.ProviderId.TWITTER:
       return new TwitterAdditionalUserInfo(
         isNewUser,
         profile,
         idTokenResponse.screenName || null
       );
-    case ProviderId.CUSTOM:
-    case ProviderId.ANONYMOUS:
+    case externs.ProviderId.CUSTOM:
+    case externs.ProviderId.ANONYMOUS:
       return new GenericAdditionalUserInfo(isNewUser, null);
     default:
-      return new FederatedAdditionalUserInfo(isNewUser, providerId, profile);
+      return new GenericAdditionalUserInfo(isNewUser, providerId, profile);
   }
 }
 
-class GenericAdditionalUserInfo implements AdditionalUserInfo {
+class GenericAdditionalUserInfo implements externs.AdditionalUserInfo {
   constructor(
     readonly isNewUser: boolean,
-    readonly providerId: ProviderId | null
+    readonly providerId: externs.ProviderId | null,
+    readonly profile: externs.UserProfile = {}
   ) {}
 }
 
-class FederatedAdditionalUserInfo extends GenericAdditionalUserInfo {
+class FederatedAdditionalUserInfoWithUsername extends GenericAdditionalUserInfo {
   constructor(
     isNewUser: boolean,
-    providerId: ProviderId,
-    readonly profile: UserProfile
-  ) {
-    super(isNewUser, providerId);
-  }
-}
-
-class FederatedAdditionalUserInfoWithUsername extends FederatedAdditionalUserInfo {
-  constructor(
-    isNewUser: boolean,
-    providerId: ProviderId,
-    profile: UserProfile,
+    providerId: externs.ProviderId,
+    profile: externs.UserProfile,
     readonly username: string | null
   ) {
     super(isNewUser, providerId, profile);
   }
 }
 
-class FacebookAdditionalUserInfo extends FederatedAdditionalUserInfo {
-  constructor(isNewUser: boolean, profile: UserProfile) {
-    super(isNewUser, ProviderId.FACEBOOK, profile);
+class FacebookAdditionalUserInfo extends GenericAdditionalUserInfo {
+  constructor(isNewUser: boolean, profile: externs.UserProfile) {
+    super(isNewUser, externs.ProviderId.FACEBOOK, profile);
   }
 }
 
 class GithubAdditionalUserInfo extends FederatedAdditionalUserInfoWithUsername {
-  constructor(isNewUser: boolean, profile: UserProfile) {
+  constructor(isNewUser: boolean, profile: externs.UserProfile) {
     super(
       isNewUser,
-      ProviderId.GITHUB,
+      externs.ProviderId.GITHUB,
       profile,
       typeof profile?.login === 'string' ? profile?.login : null
     );
   }
 }
 
-class GoogleAdditionalUserInfo extends FederatedAdditionalUserInfo {
-  constructor(isNewUser: boolean, profile: UserProfile) {
-    super(isNewUser, ProviderId.GOOGLE, profile);
+class GoogleAdditionalUserInfo extends GenericAdditionalUserInfo {
+  constructor(isNewUser: boolean, profile: externs.UserProfile) {
+    super(isNewUser, externs.ProviderId.GOOGLE, profile);
   }
 }
 
 class TwitterAdditionalUserInfo extends FederatedAdditionalUserInfoWithUsername {
   constructor(
     isNewUser: boolean,
-    profile: UserProfile,
+    profile: externs.UserProfile,
     screenName: string | null
   ) {
-    super(isNewUser, ProviderId.TWITTER, profile, screenName);
+    super(isNewUser, externs.ProviderId.TWITTER, profile, screenName);
   }
+}
+
+export function getAdditionalUserInfo(
+  userCredential: externs.UserCredential
+): externs.AdditionalUserInfo | null {
+  return _fromIdTokenResponse(
+    (userCredential as UserCredential)._tokenResponse
+  );
 }
