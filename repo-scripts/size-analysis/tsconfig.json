@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "importHelpers": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "target": "es5",
+    "esModuleInterop": true,
+    "declaration": true
+  },
+  "exclude": [
+    "dist/**/*"
+  ]
+}
