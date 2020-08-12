@@ -19,7 +19,8 @@ export const TEXT = {
     moduleRepresentation: '*',
     sizePrompt: 'Size',
     sizeAfterGzipPrompt: 'Size After Gzip',
-    unit: 'bytes'
+    unit: 'bytes',
+    outdatedBadgeText: 'Outdated'
 }
 
 export const ENDPOINTS = {
