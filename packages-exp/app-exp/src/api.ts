@@ -305,18 +305,7 @@ export function setLogLevel(logLevel: LogLevel): void {
 }
 
 export { LogLevel } from '@firebase/logger';
-
-function d1(): string {
-  return d2() + d3();
-}
-function d2(): string {
-  return 'd2';
-}
-function d3(): string {
-  return 'd3';
-}
 // tmp for testing
 export function aFunctionThatOnlyBaseHas(logLevel: LogLevel): void {
   setLogLevelImpl(logLevel);
-  console.log(d1());
 }
