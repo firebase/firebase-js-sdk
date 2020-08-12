@@ -16,6 +16,7 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
+
 import { getRecaptchaParams } from '../../api/authentication/recaptcha';
 import { AuthErrorCode } from '../../core/errors';
 import { assert } from '../../core/util/assert';
@@ -24,11 +25,7 @@ import { ApplicationVerifier } from '../../model/application_verifier';
 import { AuthCore } from '../../model/auth';
 import { _window } from '../auth_window';
 import { Parameters, Recaptcha } from './recaptcha';
-import {
-  MockReCaptchaLoaderImpl,
-  ReCaptchaLoader,
-  ReCaptchaLoaderImpl
-} from './recaptcha_loader';
+import { MockReCaptchaLoaderImpl, ReCaptchaLoader, ReCaptchaLoaderImpl } from './recaptcha_loader';
 
 export const RECAPTCHA_VERIFIER_TYPE = 'recaptcha';
 
@@ -74,6 +71,8 @@ export class RecaptchaVerifier
     assert(container, this.appName, AuthErrorCode.ARGUMENT_ERROR);
 
     this.container = container;
+    
+    // TODO: Need expired-callback
     this.parameters.callback = this.makeTokenCallback(this.parameters.callback);
 
     this._recaptchaLoader = this.auth.settings.appVerificationDisabledForTesting
@@ -151,6 +150,8 @@ export class RecaptchaVerifier
   }
 
   private validateStartingState(): void {
+    // TODO: Need to write special messages
+    // TODO: (Compat) need to check dom is available
     assert(
       !this.parameters.sitekey,
       this.appName,
@@ -180,6 +181,7 @@ export class RecaptchaVerifier
   }
 
   private assertNotDestroyed(): void {
+    // TODO: Custom message
     assert(!this.destroyed, this.appName);
   }
 

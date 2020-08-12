@@ -18,7 +18,11 @@
 import { assertFn, AuthErrorCode } from '@firebase/auth-exp/internal';
 import * as externs from '@firebase/auth-types-exp';
 import { isIndexedDBAvailable, isNode, isReactNative } from '@firebase/util';
+
 import { _isWebStorageSupported, _isWorker } from './platform';
+
+// TODO: Need the hybrid indexedb
+// TODO: IE11, Edge need sync'd local storage check
 
 export const Persistence = {
   LOCAL: 'LOCAL',

@@ -19,13 +19,15 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { signInWithCustomToken as getIdTokenResponse } from '../../api/authentication/custom_token';
 import { IdTokenResponse } from '../../model/id_token';
+import { _castAuth, AuthImplCompat } from '../auth/auth_impl';
 import { UserCredentialImpl } from '../user/user_credential_impl';
-import { _castAuth } from '../auth/auth_impl';
+import { assertTypes } from '../util/assert';
 
 export async function signInWithCustomToken(
   authExtern: externs.Auth,
   customToken: string
 ): Promise<externs.UserCredential> {
+  assertTypes([authExtern, customToken], AuthImplCompat, 'string');
   const response: IdTokenResponse = await getIdTokenResponse(authExtern, {
     token: customToken
   });

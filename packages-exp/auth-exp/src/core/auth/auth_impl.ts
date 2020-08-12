@@ -19,30 +19,37 @@ import { getApp } from '@firebase/app-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 import {
-  CompleteFn,
-  createSubscribe,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Subscribe,
-  Unsubscribe
+    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
 } from '@firebase/util';
 
-import { Auth, Dependencies, AuthCore } from '../../model/auth';
+import { Auth, AuthCore, Dependencies } from '../../model/auth';
 import { PopupRedirectResolver } from '../../model/popup_redirect';
-import { UserParameters, User } from '../../model/user';
+import { User, UserParameters } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
 import {
-  _REDIRECT_USER_KEY_NAME,
-  PersistenceUserManager
+    _REDIRECT_USER_KEY_NAME, PersistenceUserManager
 } from '../persistence/persistence_user_manager';
 import { _reloadWithoutSaving } from '../user/reload';
+import { UserImpl } from '../user/user_impl';
 import { assert } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 import { _getClientVersion, ClientPlatform } from '../util/version';
-import { UserImpl } from '../user/user_impl';
+
+// TODO: Polyfill needs to know if it's deleted, we need to check if this
+//       needs a deleteAuth() function
+// TODO: INTERNAL.logFramework -- used by FireseUI
+// TODO: Need to do proactive refresh, keep an eye on internal subscribers
+// TODO: Need toJSON
+// TODO: Saving redirect persistence
+// TODO: Need to make sure there's not a weird state between getRedirectResult
+//       and some other sign in
+// TODO: Need to register listeners on the storage layers
+// TODO: Check if deleted while initializing
+// TODO: Check user invalidated event
+// TODO: getIdTokenInternal ? check w/ Firestore
+// TODO: Listeners care about last access token?
 
 interface AsyncAction {
   (): Promise<void>;
@@ -170,6 +177,7 @@ export class AuthImplCompat<T extends User> implements Auth {
   }
 
   async signOut(): Promise<void> {
+    // TODO: Clear redirect result
     return this.updateCurrentUser(null);
   }
 

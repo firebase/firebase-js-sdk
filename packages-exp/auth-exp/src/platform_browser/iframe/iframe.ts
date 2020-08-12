@@ -44,6 +44,8 @@ function getIframeUrl(auth: AuthCore): string {
   };
   // Can pass 'eid' as one of 'p' (production), 's' (staging), or 't' (test)
   // TODO: do we care about frameworks? pass them as fw=
+  // TODO: also endpoints
+  // Also c
 
   return `${url}?${querystring(params).slice(1)}`;
 }

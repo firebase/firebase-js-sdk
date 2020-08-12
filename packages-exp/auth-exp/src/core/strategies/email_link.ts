@@ -34,6 +34,7 @@ export async function sendSignInLinkToEmail(
     email
   };
   if (actionCodeSettings) {
+    // TODO: Add assertion for canHandleCodeInApp, has custom message
     setActionCodeSettingsOnRequest(request, actionCodeSettings);
   }
 

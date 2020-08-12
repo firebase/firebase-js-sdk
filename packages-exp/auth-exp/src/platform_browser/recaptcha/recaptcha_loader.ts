@@ -85,14 +85,16 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
         resolve(recaptcha);
       };
 
+      // TODO: Sanitize hl
       const url = `${RECAPTCHA_BASE}?${querystring({
         onload: _JSLOAD_CALLBACK,
         render: 'explicit',
         hl
       })}`;
-
+        
       jsHelpers._loadJS(url).catch(() => {
         clearTimeout(networkTimeout);
+        // TODO: Need to write custom error message
         reject(
           AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
             appName: auth.name

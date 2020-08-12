@@ -39,6 +39,7 @@ export class EmailAuthProvider implements externs.EmailAuthProvider {
     emailLink: string
   ): EmailAuthCredential {
     const actionCodeUrl = ActionCodeURL.parseLink(auth, emailLink);
+    // TODO: Custom message
     assert(actionCodeUrl, auth.name, AuthErrorCode.ARGUMENT_ERROR);
 
     // Check if the tenant ID in the email link matches the tenant ID on Auth

@@ -17,20 +17,17 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { Auth } from '../../model/auth';
-import {
-  AuthEventType,
-  PopupRedirectResolver
-} from '../../model/popup_redirect';
+import { _castAuth } from '../../core/auth/auth_impl';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
 import { assert, debugAssert } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
 import { _generateEventId } from '../../core/util/event_id';
 import { _getInstance } from '../../core/util/instantiator';
+import { Auth } from '../../model/auth';
+import { AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import { User } from '../../model/user';
 import { AuthPopup } from '../util/popup';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
-import { _castAuth } from '../../core/auth/auth_impl';
-import { User } from '../../model/user';
 
 // The event timeout is the same on mobile and desktop, no need for Delay.
 export const _AUTH_EVENT_TIMEOUT = 2020;
@@ -87,6 +84,8 @@ export async function linkWithPopup(
   );
   return action.executeNotNull();
 }
+
+// TODO: Check that the providers are instance of OAuthProvider
 
 /**
  * Popup event manager. Handles the popup's entire lifecycle; listens to auth

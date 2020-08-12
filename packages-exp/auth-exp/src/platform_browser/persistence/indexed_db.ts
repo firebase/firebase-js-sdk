@@ -18,11 +18,7 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import {
-  PersistedBlob,
-  Persistence,
-  PersistenceType,
-  PersistenceValue,
-  STORAGE_AVAILABLE_KEY
+    PersistedBlob, Persistence, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY
 } from '../../core/persistence/';
 
 export const DB_NAME = 'firebaseLocalStorageDb';
@@ -34,6 +30,11 @@ interface DBObject {
   [DB_DATA_KEYPATH]: string;
   value: PersistedBlob;
 }
+
+// TODO: Do the postmessage API to the service worker
+//         -- method called "notifySW_"
+// TODO: Store in a local map to avoid triggering false external events
+// TODO: pendingOpsTracker
 
 /**
  * Promise wrapper for IDBRequest
@@ -135,6 +136,7 @@ function deleteObject(db: IDBDatabase, key: string): Promise<void> {
   return new DBPromise<void>(request).toPromise();
 }
 
+// TODO: Need to add a _sync method
 class IndexedDBLocalPersistence implements Persistence {
   static type: 'LOCAL' = 'LOCAL';
 

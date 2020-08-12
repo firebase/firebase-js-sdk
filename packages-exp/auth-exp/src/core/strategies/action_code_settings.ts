@@ -23,10 +23,12 @@ export function setActionCodeSettingsOnRequest(
   request: GetOobCodeRequest,
   actionCodeSettings: ActionCodeSettings
 ): void {
+  // TODO: Missing continue URI, invalid continue URI
   request.continueUrl = actionCodeSettings.url;
   request.dynamicLinkDomain = actionCodeSettings.dynamicLinkDomain;
   request.canHandleCodeInApp = actionCodeSettings.handleCodeInApp;
 
+  // TODO: Do all the additional validation
   if (actionCodeSettings.iOS) {
     request.iosBundleId = actionCodeSettings.iOS.bundleId;
   }

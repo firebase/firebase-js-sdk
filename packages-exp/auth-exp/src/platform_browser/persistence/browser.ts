@@ -18,10 +18,7 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import {
-  Persistence,
-  PersistenceType,
-  PersistenceValue,
-  STORAGE_AVAILABLE_KEY
+    Persistence, PersistenceType, PersistenceValue, STORAGE_AVAILABLE_KEY
 } from '../../core/persistence';
 
 // There are two different browser persistence types: local and session.
@@ -34,6 +31,9 @@ import {
 interface BrowserPersistenceClass extends Persistence {
   storage: Storage;
 }
+
+// TODO: Register listeners for local storage
+// TODO: Polyfill for node local storage
 
 function isAvailable(this: BrowserPersistenceClass): Promise<boolean> {
   try {

@@ -16,12 +16,15 @@
  */
 
 import {
-  AuthEvent,
-  AuthEventConsumer,
-  AuthEventType,
-  EventManager
+    AuthEvent, AuthEventConsumer, AuthEventType, EventManager
 } from '../../model/popup_redirect';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+
+// TODO: Need to support Cordova which has volatile Storage
+// TODO: Cordova false positive and all that stuff
+// TODO: EVENT_DUPLICATION_CACHE_DURATION
+// TODO: Do proper error handling-- autheventmanager.js
+// TODO: Handle invalid auth event errors
 
 export class AuthEventManager implements EventManager {
   private readonly consumers: Set<AuthEventConsumer> = new Set();

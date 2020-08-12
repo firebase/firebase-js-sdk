@@ -21,22 +21,18 @@ import { isEmpty, querystring } from '@firebase/util';
 
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
-import { browserSessionPersistence } from './persistence/browser';
 import { OAuthProvider } from '../core/providers/oauth';
 import { assert, debugAssert } from '../core/util/assert';
 import { _generateEventId } from '../core/util/event_id';
 import { _getCurrentUrl } from '../core/util/location';
-import { _open, AuthPopup } from './util/popup';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
-  AuthEventType,
-  EventManager,
-  GapiAuthEvent,
-  GapiOutcome,
-  PopupRedirectResolver
+    AuthEventType, EventManager, GapiAuthEvent, GapiOutcome, PopupRedirectResolver
 } from '../model/popup_redirect';
 import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';
+import { browserSessionPersistence } from './persistence/browser';
+import { _open, AuthPopup } from './util/popup';
 
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
@@ -97,6 +93,10 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   }
 
   private async initAndGetManager(auth: Auth): Promise<EventManager> {
+    // TODO: Check shouldBeInitializedEarly (ifchandler.js)
+    // TODO: Chech hasVolatileStorage -- matters for Cordova
+    // TODO: Need to ask the iframe if it has webstorage support 
+    
     const iframe = await _openIframe(auth);
     const manager = new AuthEventManager(auth.name);
     iframe.register<GapiAuthEvent>(
@@ -159,6 +159,7 @@ function getRedirectUrl(
       params.scopes = scopes.join(',');
     }
     // TODO set additionalParams?
+    // Yes we should: specifically around custom providers
     // let additionalParams = provider.getAdditionalParams();
     // for (let key in additionalParams) {
     //   if (!params.hasOwnProperty(key)) {

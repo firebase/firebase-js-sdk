@@ -17,18 +17,17 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { Auth } from '../../model/auth';
-import {
-  AuthEvent,
-  AuthEventType,
-  PopupRedirectResolver
-} from '../../model/popup_redirect';
-import { UserCredential, User } from '../../model/user';
+import { _castAuth } from '../../core/auth/auth_impl';
 import { _assertLinkedStatus } from '../../core/user/link_unlink';
 import { _generateEventId } from '../../core/util/event_id';
 import { _getInstance } from '../../core/util/instantiator';
+import { Auth } from '../../model/auth';
+import { AuthEvent, AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import { User, UserCredential } from '../../model/user';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
-import { _castAuth } from '../../core/auth/auth_impl';
+
+// TODO: Check that the providers are instance of OAuthProvider
+// TODO: (Cordova) check unloadsOnRedirect
 
 export async function signInWithRedirect(
   auth: externs.Auth,

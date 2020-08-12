@@ -16,9 +16,12 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
+
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
-import { _parseToken } from './id_token_result';
 import { UserCredential } from '../../model/user';
+import { _parseToken } from './id_token_result';
+
+// TODO: Need toJSON
 
 /**
  * Parse the `AdditionalUserInfo` from the ID token response.

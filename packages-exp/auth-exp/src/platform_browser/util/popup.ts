@@ -19,11 +19,7 @@ import { getUA } from '@firebase/util';
 
 import { AuthErrorCode } from '../../core/errors';
 import { assert } from '../../core/util/assert';
-import {
-  _isChromeIOS,
-  _isFirefox,
-  _isIOSStandalone
-} from '../../core/util/environment';
+import { _isChromeIOS, _isFirefox, _isIOSStandalone } from '../../core/util/environment';
 
 const BASE_POPUP_OPTIONS = {
   location: 'yes',
@@ -109,6 +105,9 @@ export function _open(
 
   return new AuthPopup(newWin);
 }
+
+// TODO: Need to check all the runsInBackgroundStuff
+// TODO: Need to do an origin validation (getAuthorizedDomains)
 
 function openAsNewWindowIOS(url: string, target: string): void {
   const el = document.createElement('a');
