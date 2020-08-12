@@ -17,7 +17,6 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import { AuthErrorCode, AUTH_ERROR_FACTORY } from './errors';
-import { AuthCore } from '../model/auth';
 
 /**
  * Enums for fields in URL query string.
@@ -72,16 +71,14 @@ export class ActionCodeURL implements externs.ActionCodeURL {
   readonly operation: externs.Operation;
   readonly tenantId: string | null;
 
-  constructor(auth: AuthCore, actionLink: string) {
+  constructor(actionLink: string) {
     const uri = new URL(actionLink);
     const apiKey = uri.searchParams.get(QueryField.API_KEY);
     const code = uri.searchParams.get(QueryField.CODE);
     const operation = parseMode(uri.searchParams.get(QueryField.MODE));
     // Validate API key, code and mode.
     if (!apiKey || !code || !operation) {
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, {
-        appName: auth.name
-      });
+      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.ARGUMENT_ERROR, {});
     }
     this.apiKey = apiKey;
     this.operation = operation;
@@ -91,22 +88,16 @@ export class ActionCodeURL implements externs.ActionCodeURL {
     this.tenantId = uri.searchParams.get(QueryField.TENANT_ID);
   }
 
-  static parseLink(
-    auth: externs.Auth,
-    link: string
-  ): externs.ActionCodeURL | null {
+  static parseLink(link: string): externs.ActionCodeURL | null {
     const actionLink = parseDeepLink(link);
     try {
-      return new ActionCodeURL(auth, actionLink);
+      return new ActionCodeURL(actionLink);
     } catch {
       return null;
     }
   }
 }
 
-export function parseActionCodeURL(
-  auth: externs.Auth,
-  link: string
-): externs.ActionCodeURL | null {
-  return ActionCodeURL.parseLink(auth, link);
+export function parseActionCodeURL(link: string): externs.ActionCodeURL | null {
+  return ActionCodeURL.parseLink(link);
 }

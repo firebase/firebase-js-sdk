@@ -242,4 +242,19 @@ describe('core/strategies/email_and_password/signInWithEmailLink', () => {
     expect(user.uid).to.eq(serverUser.localId);
     expect(user.isAnonymous).to.be.false;
   });
+
+  context('mismatched tenant ID', () => {
+    it('should throw an error', async () => {
+      const continueUrl = 'https://www.example.com/path/to/file?a=1&b=2#c=3';
+      const actionLink =
+        'https://www.example.com/finishSignIn?' +
+        'oobCode=CODE&mode=signIn&apiKey=API_KEY&' +
+        'continueUrl=' +
+        encodeURIComponent(continueUrl) +
+        '&languageCode=en&tenantId=OTHER_TENANT_ID&state=bla';
+      await expect(
+        signInWithEmailLink(auth, 'some-email', actionLink)
+      ).to.be.rejectedWith(FirebaseError, 'auth/tenant-id-mismatch');
+    });
+  });
 });

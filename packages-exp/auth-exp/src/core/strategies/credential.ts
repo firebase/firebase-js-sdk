@@ -39,7 +39,6 @@ export async function _signInWithCredential(
   );
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
     auth,
-    credential,
     operationType,
     response
   );

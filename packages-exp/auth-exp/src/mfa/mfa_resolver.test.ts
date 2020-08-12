@@ -55,7 +55,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
       appName: auth.name,
       serverResponse: {
         localId: 'local-id',
-        expiresIn: 3600,
+        expiresIn: '3600',
         mfaPendingCredential: 'mfa-pending-credential',
         mfaInfo: [
           {
@@ -140,7 +140,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
           );
           expect(userCredential._tokenResponse).to.eql({
             localId: 'local-id',
-            expiresIn: 3600,
+            expiresIn: '3600',
             idToken: 'final-id-token',
             refreshToken: 'final-refresh-token'
           });
@@ -180,7 +180,7 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
           );
           expect(userCredential._tokenResponse).to.eql({
             localId: 'local-id',
-            expiresIn: 3600,
+            expiresIn: '3600',
             idToken: 'final-id-token',
             refreshToken: 'final-refresh-token'
           });

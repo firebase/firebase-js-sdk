@@ -28,7 +28,6 @@ import '@firebase/installations';
 import { version } from './package.json';
 import { Auth } from './src/auth';
 import { RecaptchaVerifier } from './src/recaptcha_verifier';
-import { EmailAuthProvider } from './src/email_auth_provider';
 import { Persistence } from './src/persistence';
 
 const AUTH_TYPE = 'auth';
@@ -58,7 +57,7 @@ function registerAuth(instance: _FirebaseNamespace): void {
             VERIFY_EMAIL: externs.Operation.VERIFY_EMAIL
           }
         },
-        EmailAuthProvider,
+        EmailAuthProvider: impl.EmailAuthProvider,
         FacebookAuthProvider: impl.FacebookAuthProvider,
         GithubAuthProvider: impl.GithubAuthProvider,
         GoogleAuthProvider: impl.GoogleAuthProvider,
@@ -70,8 +69,8 @@ function registerAuth(instance: _FirebaseNamespace): void {
         TwitterAuthProvider: impl.TwitterAuthProvider,
         Auth: {
           Persistence
-        }
-        //   'AuthCredential': fireauth.AuthCredential,
+        },
+        AuthCredential: impl.AuthCredential
         //   'Error': fireauth.AuthError
       })
       .setInstantiationMode(InstantiationMode.LAZY)

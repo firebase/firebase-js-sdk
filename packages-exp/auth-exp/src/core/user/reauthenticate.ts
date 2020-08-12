@@ -38,18 +38,18 @@ export async function _reauthenticate(
       credential,
       user
     );
-    assert(response.idToken, appName, AuthErrorCode.INTERNAL_ERROR);
+    assert(response.idToken, AuthErrorCode.INTERNAL_ERROR, { appName });
     const parsed = _parseToken(response.idToken);
-    assert(parsed, appName, AuthErrorCode.INTERNAL_ERROR);
+    assert(parsed, AuthErrorCode.INTERNAL_ERROR, { appName });
 
     const { sub: localId } = parsed;
-    assert(user.uid === localId, appName, AuthErrorCode.USER_MISMATCH);
+    assert(user.uid === localId, AuthErrorCode.USER_MISMATCH, { appName });
 
     return UserCredentialImpl._forOperation(user, operationType, response);
   } catch (e) {
     // Convert user deleted error into user mismatch
     if (e?.code === `auth/${AuthErrorCode.USER_DELETED}`) {
-      fail(appName, AuthErrorCode.USER_MISMATCH);
+      fail(AuthErrorCode.USER_MISMATCH, { appName });
     }
     throw e;
   }

@@ -36,8 +36,8 @@ export async function deleteAccount(
 }
 
 export interface ProviderUserInfo {
+  providerId: string;
   rawId?: string;
-  providerId?: string;
   email?: string;
   displayName?: string;
   photoUrl?: string;

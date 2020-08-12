@@ -47,7 +47,7 @@ export class MultiFactorSession implements externs.MultiFactorSession {
     );
   }
 
-  toPlainObject(): SerializedMultiFactorSession {
+  toJSON(): SerializedMultiFactorSession {
     const key =
       this.type === MultiFactorSessionType.ENROLL
         ? 'idToken'
@@ -59,7 +59,7 @@ export class MultiFactorSession implements externs.MultiFactorSession {
     };
   }
 
-  static fromPlainObject(
+  static fromJSON(
     obj: Partial<SerializedMultiFactorSession>
   ): MultiFactorSession | null {
     if (obj?.multiFactorSession) {

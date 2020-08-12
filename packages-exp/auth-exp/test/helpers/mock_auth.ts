@@ -69,7 +69,7 @@ export async function testAuth(
 }
 
 export function testUser(
-  auth: Auth | {},
+  auth: Auth,
   uid: string,
   email?: string,
   fakeTokens = false

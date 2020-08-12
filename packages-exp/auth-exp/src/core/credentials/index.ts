@@ -15,19 +15,10 @@
  * limitations under the License.
  */
 
-import { ProviderId, SignInMethod } from '@firebase/auth-types-exp';
-import { expect, use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
-import { AnonymousProvider } from './anonymous';
-
-use(chaiAsPromised);
-
-describe('core/providers/anonymous', () => {
-  describe('.credential', () => {
-    it('should return an anonymous credential', () => {
-      const credential = AnonymousProvider.credential();
-      expect(credential.providerId).to.eq(ProviderId.ANONYMOUS);
-      expect(credential.signInMethod).to.eq(SignInMethod.ANONYMOUS);
-    });
-  });
-});
+/**
+ * This file is required due to the circular dependency from the parent class to its children
+ */
+export { AuthCredential } from './auth_credential';
+export { EmailAuthCredential } from './email';
+export { OAuthCredential } from './oauth';
+export { PhoneAuthCredential } from './phone';

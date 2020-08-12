@@ -64,14 +64,14 @@ export class RecaptchaVerifier
     this.isInvisible = this.parameters.size === 'invisible';
     assert(
       typeof document !== 'undefined',
-      this.appName,
-      AuthErrorCode.OPERATION_NOT_SUPPORTED
+      AuthErrorCode.OPERATION_NOT_SUPPORTED,
+      { appName: this.appName }
     );
     const container =
       typeof containerOrId === 'string'
         ? document.getElementById(containerOrId)
         : containerOrId;
-    assert(container, this.appName, AuthErrorCode.ARGUMENT_ERROR);
+    assert(container, AuthErrorCode.ARGUMENT_ERROR, { appName: this.appName });
 
     this.container = container;
     this.parameters.callback = this.makeTokenCallback(this.parameters.callback);
@@ -151,15 +151,13 @@ export class RecaptchaVerifier
   }
 
   private validateStartingState(): void {
-    assert(
-      !this.parameters.sitekey,
-      this.appName,
-      AuthErrorCode.ARGUMENT_ERROR
-    );
+    assert(!this.parameters.sitekey, AuthErrorCode.ARGUMENT_ERROR, {
+      appName: this.appName
+    });
     assert(
       this.isInvisible || !this.container.hasChildNodes(),
-      this.appName,
-      AuthErrorCode.ARGUMENT_ERROR
+      AuthErrorCode.ARGUMENT_ERROR,
+      { appName: this.appName }
     );
   }
 
@@ -180,7 +178,9 @@ export class RecaptchaVerifier
   }
 
   private assertNotDestroyed(): void {
-    assert(!this.destroyed, this.appName);
+    assert(!this.destroyed, AuthErrorCode.INTERNAL_ERROR, {
+      appName: this.appName
+    });
   }
 
   private async makeRenderPromise(): Promise<number> {
@@ -203,7 +203,9 @@ export class RecaptchaVerifier
   }
 
   private async init(): Promise<void> {
-    assert(_isHttpOrHttps() && !isWorker(), this.appName);
+    assert(_isHttpOrHttps() && !isWorker(), AuthErrorCode.INTERNAL_ERROR, {
+      appName: this.appName
+    });
 
     await domReady();
     this.recaptcha = await this._recaptchaLoader.load(
@@ -212,12 +214,14 @@ export class RecaptchaVerifier
     );
 
     const siteKey = await getRecaptchaParams(this.auth);
-    assert(siteKey, this.appName);
+    assert(siteKey, AuthErrorCode.INTERNAL_ERROR, { appName: this.appName });
     this.parameters.sitekey = siteKey;
   }
 
   private getAssertedRecaptcha(): Recaptcha {
-    assert(this.recaptcha, this.appName);
+    assert(this.recaptcha, AuthErrorCode.INTERNAL_ERROR, {
+      appName: this.appName
+    });
     return this.recaptcha;
   }
 }
