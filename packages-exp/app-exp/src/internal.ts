@@ -127,6 +127,3 @@ export function _removeServiceInstance<T extends Name>(
 export function _clearComponents(): void {
   _components.clear();
 }
-
-// tmp for testing
-export class AClassThatOnlyBaseHas {}

@@ -31,9 +31,8 @@ interface RequestBody {
 }
 const runId: string = process.env.GITHUB_RUN_ID || 'local-run-id';
 
-// const METRICS_SERVICE_URL: string = process.env.METRICS_SERVICE_URL;
-const METRICS_SERVICE_URL: string =
-  'https://size-analysis-test-tv5rmd4a6q-uc.a.run.app';
+const METRICS_SERVICE_URL: string = process.env.METRICS_SERVICE_URL;
+//const METRICS_SERVICE_URL: string = 'https://size-analysis-test-tv5rmd4a6q-uc.a.run.app';
 
 async function generateReport(): Promise<RequestBody> {
   const requestBody: RequestBody = {
