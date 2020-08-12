@@ -181,9 +181,8 @@ export function writeBatch(
   firestore: firestore.FirebaseFirestore
 ): firestore.WriteBatch {
   const firestoreImpl = cast(firestore, Firestore);
+  const datastore = getDatastore(firestoreImpl);
   return new WriteBatch(firestoreImpl, writes =>
-    getDatastore(firestoreImpl).then(datastore =>
-      invokeCommitRpc(datastore, writes)
-    )
+    invokeCommitRpc(datastore, writes)
   );
 }

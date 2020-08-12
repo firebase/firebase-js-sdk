@@ -31,3 +31,4 @@ export const CONSOLE_CAMPAIGN_NAME = 'google.c.a.c_l';
 export const CONSOLE_CAMPAIGN_TIME = 'google.c.a.ts';
 /** Set to '1' if Analytics is enabled for the campaign */
 export const CONSOLE_CAMPAIGN_ANALYTICS_ENABLED = 'google.c.a.e';
+export const TAG = 'FirebaseMessaging: ';

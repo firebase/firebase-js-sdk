@@ -41,7 +41,7 @@ describe('Firebase Messaging Integration Tests > get and delete token', function
 
   const availableBrowsers = seleniumAssistant.getLocalBrowsers();
   availableBrowsers.forEach(assistantBrowser => {
-    //TODO: enable testing for firefox
+    // TODO: enable testing for firefox
     if (assistantBrowser.getId() !== 'chrome') {
       return;
     }

@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { AppConfig } from '../interfaces/app-config';
-import { getFakeApp } from '../testing/fakes/firebase-dependencies';
 import '../testing/setup';
-import { extractAppConfig } from './extract-app-config';
+
+import { AppConfig } from '../interfaces/app-config';
 import { FirebaseApp } from '@firebase/app-types';
+import { expect } from 'chai';
+import { extractAppConfig } from './extract-app-config';
+import { getFakeApp } from '../testing/fakes/firebase-dependencies';
 
 describe('extractAppConfig', () => {
   it('returns AppConfig if the argument is a FirebaseApp object that includes an appId', () => {
