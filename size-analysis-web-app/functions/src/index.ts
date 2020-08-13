@@ -34,8 +34,12 @@ import { extractDeclarations } from './analysis-helper';
 let cors = require('cors')({ origin: true });
 const versionFilter = new RegExp(/^\d+.\d*.\d+$/);
 
+export const helloWorld = functions.https.onRequest((request, response) => {
+  response.send('Hello from Firebase!');
+});
 export const retrieveFirebaseVersionFromNPM = functions.https.onRequest(
   (request, response) => {
+    console.log(request.method);
     console.time('retrieveFirebaseVersion');
     if (request.method !== 'GET') {
       response.status(405).end();
@@ -159,6 +163,9 @@ export const generateSizeAnalysisReportGivenCustomBundle = functions.https.onReq
               sizeAfterGzip: sizeArray[1]
             };
             console.timeEnd('generateBundle');
+            response.set({
+              'Content-Type': 'application/json'
+            });
             response.status(200).send(report);
           })
           .catch(error => {

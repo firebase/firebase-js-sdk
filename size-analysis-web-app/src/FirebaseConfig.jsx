@@ -1,13 +1,13 @@
 import firebase from '@firebase/app';
 import 'firebase/functions';
 export const firebaseConfig = {
-  apiKey: "AIzaSyAHVFTx8JcgKAIY22_tdXwwZHbi-txE03M",
-  authDomain: "web-app-size-analysis.firebaseapp.com",
-  databaseURL: "https://web-app-size-analysis.firebaseio.com",
-  projectId: "web-app-size-analysis",
-  storageBucket: "web-app-size-analysis.appspot.com",
-  messagingSenderId: "151230240052",
-  appId: "1:151230240052:web:d48ef603ef709809934161",
-  measurementId: "G-MFTZDGSG8M"
+  apiKey: "AIzaSyBEiEtQp-eIzG00a1EH_VdDK9jOJAx5huE",
+  authDomain: "fir-size-analysis.firebaseapp.com",
+  databaseURL: "https://fir-size-analysis.firebaseio.com",
+  projectId: "fir-size-analysis",
+  storageBucket: "fir-size-analysis.appspot.com",
+  messagingSenderId: "145514503728",
+  appId: "1:145514503728:web:f2cc9c3fa1ea1f42c4d7f5",
+  measurementId: "G-7R46YT0MK4"
 };
 const fire = firebase.initializeApp(firebaseConfig);

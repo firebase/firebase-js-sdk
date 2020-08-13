@@ -80,9 +80,6 @@ export function newTestFirestore(
       : getFirestore(app);
     return new FirestoreShim(firestore);
   } else {
-    if (nameOrApp === undefined) {
-      nameOrApp = 'test-app-' + appCount++;
-    }
     const app =
       typeof nameOrApp === 'string'
         ? firebase.initializeApp(

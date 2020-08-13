@@ -1,5 +1,5 @@
 {
   "projects": {
-    "default": "web-app-size-analysis"
+    "default": "fir-size-analysis"
   }
 }

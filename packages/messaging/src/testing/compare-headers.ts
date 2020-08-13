@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import '../testing/setup';
+
+import { expect } from 'chai';
 
 // Trick TS since it's set to target ES5.
 declare class HeadersWithEntries extends Headers {
   entries?(): Iterable<[string, string]>;
 }
 
-// Chai doesn't check if Headers objects contain the same entries,
-// so we need to do that manually.
+// Chai doesn't check if Headers objects contain the same entries, so we need to do that manually.
 export function compareHeaders(
   expectedHeaders: HeadersWithEntries,
   actualHeaders: HeadersWithEntries
