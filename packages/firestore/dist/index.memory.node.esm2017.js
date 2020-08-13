@@ -10,7 +10,7 @@ import 'protobufjs';
 import { version as version$2 } from '@grpc/grpc-js/package.json';
 import { Component } from '@firebase/component';
 
-var version = "7.17.2";
+const version = "7.17.2";
 
 /**
  * @license
@@ -15913,8 +15913,8 @@ function configureForFirebase(firebase, firestoreFactory) {
     }, "PUBLIC" /* PUBLIC */).setServiceProps(Object.assign({}, firestoreNamespace)));
 }
 
-var name = "@firebase/firestore";
-var version$1 = "1.16.3";
+const name = "@firebase/firestore";
+const version$1 = "1.16.3";
 
 /**
  * @license
