@@ -23,7 +23,7 @@ import { ClientPlatform } from './src/core/util/version';
 
 // Core functionality shared by all clients
 export * from './src';
-export {indexedDBLocalPersistence} from './src/platform_browser/persistence/indexed_db';
+export { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
 export const initializeAuth = _initializeAuthForClientPlatform(
   ClientPlatform.WORKER
