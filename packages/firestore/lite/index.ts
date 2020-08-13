@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
-import './register';
+import { registerFirestore } from './register';
+
+registerFirestore();
 
 export {
   Firestore as FirebaseFirestore,

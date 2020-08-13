@@ -61,8 +61,8 @@ class MessagingTestServer {
     });
   }
 
-  // Sometimes the server doesn't trigger the callback due to
-  // currently open sockets. So call close this._server
+  // Sometimes the server doesn't trigger the callback due to currently open sockets. So call close
+  // this._server
   async stop() {
     if (this._server) {
       this._server.close();
