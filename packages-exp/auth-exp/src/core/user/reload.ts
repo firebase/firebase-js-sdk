@@ -51,10 +51,7 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
     phoneNumber: coreAccount.phoneNumber || null,
     tenantId: coreAccount.tenantId || null,
     providerData: mergeProviderData(user.providerData, newProviderData),
-    metadata: new UserMetadata(
-      coreAccount.createdAt,
-      coreAccount.lastLoginAt
-    )
+    metadata: new UserMetadata(coreAccount.createdAt, coreAccount.lastLoginAt)
   };
 
   Object.assign(user, updates);
