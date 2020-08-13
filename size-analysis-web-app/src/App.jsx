@@ -15,6 +15,7 @@ class App extends Component {
       allModulesOfSelectedVersion: [],
       currentBundle: new Map(),
       currentBundleReport: null,
+      isCurrentBundleReportValid: false,
       dropDownData: [],
       isDropDownLoaded: false,
       areModulesLoaded: true,
@@ -35,6 +36,7 @@ class App extends Component {
 
   handleUpdateBundle(updatedBundle) {
     this.setState({
+      isCurrentBundleReportValid: false,
       currentBundle: updatedBundle
     })
   }
@@ -83,9 +85,8 @@ class App extends Component {
     else {
       tmpCurrentBundle.get(moduleName).clear();
     }
-    this.setState({
-      currentBundle: tmpCurrentBundle
-    });
+    this.handleUpdateBundle(tmpCurrentBundle);
+
 
   }
   handleAddSymbolToBundle(symbolName, moduleName) {
@@ -95,9 +96,7 @@ class App extends Component {
     }
     tmpCurrentBundle.get(moduleName).add(symbolName);
 
-    this.setState({
-      currentBundle: tmpCurrentBundle
-    });
+    this.handleUpdateBundle(tmpCurrentBundle);
 
   }
   handleChange(e) {
@@ -165,6 +164,7 @@ class App extends Component {
         (report) => {
           this.setState({
             isBundleOverviewLoaded: true,
+            isCurrentBundleReportValid: true,
             currentBundleReport: report
           });
         },
@@ -276,13 +276,18 @@ class App extends Component {
                 {this.state.currentBundleReport ?
                   <div >
                     <div className="row">
-                      <div className="col-6">
+                      <div className="col-4">
                         <p className="text text-muted">{TEXT.sizePrompt}: {this.state.currentBundleReport.size} {TEXT.unit}</p>
                       </div>
-                      <div className="col-6">
+                      <div className="col-4">
                         <p className="text text-muted">{TEXT.sizeAfterGzipPrompt}: {this.state.currentBundleReport.sizeAfterGzip} {TEXT.unit}</p>
                       </div>
+                      <div className="col-4">
+                        {this.state.isBundleOverviewLoaded && !this.state.isCurrentBundleReportValid ? <span className="badge badge-warning">{TEXT.outdatedBadgeText}</span> : null}
+                      </div>
                     </div>
+
+
                     <ReactJson
                       src={this.state.currentBundleReport.dependencies}
                       displayDataTypes={false}
