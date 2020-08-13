@@ -123,21 +123,21 @@ export function factory(
   app: FirebaseApp,
   installations: FirebaseInstallations
 ): FirebaseAnalytics {
-  // if (isBrowserExtension()) {
-  //   throw ERROR_FACTORY.create(AnalyticsError.INVALID_ANALYTICS_CONTEXT);
-  // }
-  // if (!areCookiesEnabled()) {
-  //   throw ERROR_FACTORY.create(AnalyticsError.COOKIES_NOT_ENABLED);
-  // }
-  // if (!isIndexedDBAvailable()) {
-  //   throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
-  // }
-  // // Async but non-blocking.
-  // validateIndexedDBOpenable().catch(error => {
-  //   throw ERROR_FACTORY.create(AnalyticsError.INVALID_INDEXED_DB_CONTEXT, {
-  //     errorInfo: error
-  //   });
-  // });
+  if (isBrowserExtension()) {
+    throw ERROR_FACTORY.create(AnalyticsError.INVALID_ANALYTICS_CONTEXT);
+  }
+  if (!areCookiesEnabled()) {
+    throw ERROR_FACTORY.create(AnalyticsError.COOKIES_NOT_ENABLED);
+  }
+  if (!isIndexedDBAvailable()) {
+    throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
+  }
+  // Async but non-blocking.
+  validateIndexedDBOpenable().catch(error => {
+    throw ERROR_FACTORY.create(AnalyticsError.INVALID_INDEXED_DB_CONTEXT, {
+      errorInfo: error
+    });
+  });
 
   const analyticsId = app.options[ANALYTICS_ID_FIELD];
   if (!analyticsId) {
