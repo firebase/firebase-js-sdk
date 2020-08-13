@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import {
   Observer,
   Unsubscribe,
@@ -24,16 +23,51 @@ import {
   CompleteFn
 } from '@firebase/util';
 
+// Currently supported fcm notification display parameters. Note that
+// {@link https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/notifications/NotificationOptions}
+// defines a full list of display notification parameters. This interface we only include what the
+// SEND API support for clarity.
+export interface NotificationPayload {
+  title?: string;
+  body?: string;
+  image?: string;
+}
+
+export interface FcmOptions {
+  link?: string;
+  analyticsLabel?: string;
+}
+
+export interface MessagePayload {
+  notification?: NotificationPayload;
+  data?: { [key: string]: string };
+  fcmOptions?: FcmOptions;
+  from: string;
+  collapseKey: string;
+}
+
 export interface FirebaseMessaging {
-  // TODO: remove the token parameter and just delete the token that matches
-  // this app if it exists.
-  deleteToken(token: string): Promise<boolean>;
-  getToken(): Promise<string>;
+  /** window controller */
+  deleteToken(): Promise<boolean>;
+  getToken(options?: {
+    vapidKey?: string;
+    serviceWorkerRegistration?: ServiceWorkerRegistration;
+  }): Promise<string>;
   onMessage(
     nextOrObserver: NextFn<any> | Observer<any>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
+
+  /** service worker controller */
+  onBackgroundMessage(
+    nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>,
+    error?: ErrorFn,
+    completed?: CompleteFn
+  ): Unsubscribe;
+
+  /** @deprecated */
+  deleteToken(token: string): Promise<boolean>;
   onTokenRefresh(
     nextOrObserver: NextFn<any> | Observer<any>,
     error?: ErrorFn,

@@ -18,7 +18,9 @@
     "@firebase/functions-exp",
     "@firebase/functions-types-exp",
     "firebase-exp",
-    "@firebase/app-compat"
+    "@firebase/app-compat",
+    "@firebase/changelog-generator",
+    "firebase-size-analysis"
   ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true,

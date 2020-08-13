@@ -65,8 +65,8 @@ packages/testing  @avolkovi @samhorlbeck @scottcrossen @yuchenshi @firebase/jssd
 packages/rxfire @davideast @jamesdaniels @firebase/jssdk-global-approvers
 
 # Installations
-packages/installations @andirayo @firebase/jssdk-global-approvers
-packages/installations-types @andirayo @firebase/jssdk-global-approvers
+packages/installations @andirayo @ChaoqunCHEN @firebase/jssdk-global-approvers
+packages/installations-types @andirayo @ChaoqunCHEN @firebase/jssdk-global-approvers
 
 # Performance Code
 packages/performance  @alikn @zijianjoy @firebase/jssdk-global-approvers
@@ -81,8 +81,8 @@ packages/remote-config @erikeldridge @firebase/jssdk-global-approvers
 packages/remote-config-types @erikeldridge @firebase/jssdk-global-approvers
 
 # Documentation Changes
-packages/firebase/index.d.ts @egilmorez @firebase/jssdk-global-approvers
-scripts/docgen/content-sources/ @egilmorez @firebase/jssdk-global-approvers
+packages/firebase/index.d.ts @firebase/firebase-techwriters @firebase/jssdk-global-approvers
+scripts/docgen/content-sources/ @firebase/firebase-techwriters @firebase/jssdk-global-approvers
 
 # Changeset
-.changeset @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers
+.changeset @firebase/firebase-techwriters @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers
