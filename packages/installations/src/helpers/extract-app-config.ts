@@ -47,11 +47,11 @@ export function extractAppConfig(app: FirebaseApp): AppConfig {
   }
 
   if (!isValidAppIdFormat(app.options.appId!)) {
-    throw ERROR_FACTORY.create(ErrorCode.INVALID_APP_ID_FORMAT);
+    throw ERROR_FACTORY.create(ErrorCode.APP_ID);
   }
 
   if (!isValidApiKeyFormat(app.options.apiKey!)) {
-    throw ERROR_FACTORY.create(ErrorCode.INVALID_API_KEY_FORMAT);
+    throw ERROR_FACTORY.create(ErrorCode.API_KEY);
   }
 
   return {

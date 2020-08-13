@@ -20,8 +20,8 @@ import { SERVICE, SERVICE_NAME } from './constants';
 
 export const enum ErrorCode {
   MISSING_APP_CONFIG_VALUES = 'missing-app-config-values',
-  INVALID_APP_ID_FORMAT = 'invalid-app-id-format',
-  INVALID_API_KEY_FORMAT = 'invalid-api-key-format',
+  APP_ID = 'invalid-app-id-format',
+  API_KEY = 'invalid-api-key-format',
   NOT_REGISTERED = 'not-registered',
   INSTALLATION_NOT_FOUND = 'installation-not-found',
   REQUEST_FAILED = 'request-failed',
@@ -32,11 +32,11 @@ export const enum ErrorCode {
 const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
   [ErrorCode.MISSING_APP_CONFIG_VALUES]:
     'Missing App configuration value: "{$valueName}"',
-  [ErrorCode.INVALID_APP_ID_FORMAT]:
+  [ErrorCode.APP_ID]:
     'Please set your Application ID. A valid Firebase App ID is required to communicate ' +
     'with Firebase server APIs: It identifies your application with Firebase.' +
     'Please refer to https://firebase.google.com/support/privacy/init-options.',
-  [ErrorCode.INVALID_API_KEY_FORMAT]:
+  [ErrorCode.API_KEY]:
     'Please set a valid API key. A Firebase API key is required to communicate with ' +
     'Firebase server APIs: It authenticates your project with Google.' +
     'Please refer to https://firebase.google.com/support/privacy/init-options.',
