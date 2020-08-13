@@ -21,8 +21,10 @@ import { CONFIG_EXPIRY_LOCAL_STORAGE_KEY } from '../constants';
 import { setupApi, Api } from './api_service';
 import * as iidService from './iid_service';
 import { getConfig } from './remote_config_service';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import '../../test/setup';
+import { FirebaseInstallations } from '@firebase/installations-types';
+import { PerformanceController } from '../controllers/perf';
 
 describe('Performance Monitoring > remote_config_service', () => {
   const IID = 'asd123';
@@ -48,6 +50,16 @@ describe('Performance Monitoring > remote_config_service', () => {
 
   setupApi(self);
   const ApiInstance = Api.getInstance();
+
+  const fakeFirebaseApp = ({
+    options: { projectId: PROJECT_ID, appId: APP_ID, apiKey: API_KEY }
+  } as unknown) as FirebaseApp;
+
+  const fakeInstallations = ({} as unknown) as FirebaseInstallations;
+  const performanceController = new PerformanceController(
+    fakeFirebaseApp,
+    fakeInstallations
+  );
 
   function storageGetItemFakeFactory(
     expiry: string,
@@ -90,9 +102,6 @@ describe('Performance Monitoring > remote_config_service', () => {
     );
 
     clock = useFakeTimers(GLOBAL_CLOCK_NOW);
-    SettingsService.prototype.firebaseAppInstance = ({
-      options: { projectId: PROJECT_ID, appId: APP_ID, apiKey: API_KEY }
-    } as unknown) as FirebaseApp;
 
     // we need to stub the entire localStorage, because storage can't be stubbed in Firefox and IE.
     // stubbing on self(window) seems to only work the first time (at least in Firefox), the subsequent
@@ -125,7 +134,7 @@ describe('Performance Monitoring > remote_config_service', () => {
         config: STRINGIFIED_CONFIG
       });
 
-      await getConfig(IID);
+      await getConfig(performanceController, IID);
 
       expect(getItemStub).to.be.called;
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
@@ -151,7 +160,7 @@ describe('Performance Monitoring > remote_config_service', () => {
         config: STRINGIFIED_CONFIG
       });
 
-      await getConfig(IID);
+      await getConfig(performanceController, IID);
 
       expect(fetchStub).not.to.be.called;
     });
@@ -165,7 +174,7 @@ describe('Performance Monitoring > remote_config_service', () => {
         { reject: false, value: new Response(STRINGIFIED_CONFIG) }
       );
 
-      await getConfig(IID);
+      await getConfig(performanceController, IID);
 
       expect(getItemStub).to.be.calledOnce;
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
@@ -194,7 +203,7 @@ describe('Performance Monitoring > remote_config_service', () => {
         { reject: true }
       );
 
-      await getConfig(IID);
+      await getConfig(performanceController, IID);
 
       expect(SettingsService.getInstance().loggingEnabled).to.equal(false);
     });
@@ -215,7 +224,7 @@ describe('Performance Monitoring > remote_config_service', () => {
         { reject: false, value: new Response(STRINGIFIED_PARTIAL_CONFIG) }
       );
 
-      await getConfig(IID);
+      await getConfig(performanceController, IID);
 
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
     });
@@ -232,7 +241,7 @@ describe('Performance Monitoring > remote_config_service', () => {
         },
         { reject: false, value: new Response(STRINGIFIED_PARTIAL_CONFIG) }
       );
-      await getConfig(IID);
+      await getConfig(performanceController, IID);
 
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
     });
@@ -254,7 +263,7 @@ describe('Performance Monitoring > remote_config_service', () => {
         { reject: false, value: new Response(STRINGIFIED_CONFIG) }
       );
 
-      await getConfig(IID);
+      await getConfig(performanceController, IID);
 
       expect(getItemStub).to.be.calledOnce;
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;

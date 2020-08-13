@@ -26,6 +26,8 @@ import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
 import { Api } from './api_service';
 import { getAuthTokenPromise } from './iid_service';
 import { SettingsService } from './settings_service';
+import { PerformanceController } from '../controllers/perf';
+import { getProjectId, getApiKey, getAppId } from '../utils/app_utils';
 
 const REMOTE_CONFIG_SDK_VERSION = '0.0.1';
 
@@ -64,14 +66,17 @@ interface RemoteConfigResponse {
 
 const FIS_AUTH_PREFIX = 'FIREBASE_INSTALLATIONS_AUTH';
 
-export function getConfig(iid: string): Promise<void> {
+export function getConfig(
+  performanceController: PerformanceController,
+  iid: string
+): Promise<void> {
   const config = getStoredConfig();
   if (config) {
     processConfig(config);
     return Promise.resolve();
   }
 
-  return getRemoteConfig(iid)
+  return getRemoteConfig(performanceController, iid)
     .then(processConfig)
     .then(
       config => storeConfig(config),
@@ -122,13 +127,16 @@ const COULD_NOT_GET_CONFIG_MSG =
   'Could not fetch config, will use default configs';
 
 function getRemoteConfig(
+  performanceController: PerformanceController,
   iid: string
 ): Promise<RemoteConfigResponse | undefined> {
   // Perf needs auth token only to retrieve remote config.
-  return getAuthTokenPromise()
+  return getAuthTokenPromise(performanceController.installations)
     .then(authToken => {
-      const projectId = SettingsService.getInstance().getProjectId();
-      const configEndPoint = `https://firebaseremoteconfig.googleapis.com/v1/projects/${projectId}/namespaces/fireperf:fetch?key=${SettingsService.getInstance().getApiKey()}`;
+      const projectId = getProjectId(performanceController.app);
+      const configEndPoint = `https://firebaseremoteconfig.googleapis.com/v1/projects/${projectId}/namespaces/fireperf:fetch?key=${getApiKey(
+        performanceController.app
+      )}`;
       const request = new Request(configEndPoint, {
         method: 'POST',
         headers: { Authorization: `${FIS_AUTH_PREFIX} ${authToken}` },
@@ -136,7 +144,7 @@ function getRemoteConfig(
         body: JSON.stringify({
           app_instance_id: iid,
           app_instance_id_token: authToken,
-          app_id: SettingsService.getInstance().getAppId(),
+          app_id: getAppId(performanceController.app),
           app_version: SDK_VERSION,
           sdk_version: REMOTE_CONFIG_SDK_VERSION
         })

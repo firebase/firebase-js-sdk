@@ -14,10 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import {
-  FirebasePerformance,
-  PerformanceSettings
+  PerformanceSettings,
+  FirebasePerformance
 } from '@firebase/performance-types-exp';
 
 import { Api } from '../services/api_service';
@@ -26,12 +26,24 @@ import { setupOobResources } from '../services/oob_resources_service';
 import { SettingsService } from '../services/settings_service';
 import { setupTransportService } from '../services/transport_service';
 import { consoleLogger } from '../utils/console_logger';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 export class PerformanceController implements FirebasePerformance {
   constructor(
     readonly app: FirebaseApp,
-    readonly settings?: PerformanceSettings
-  ) {
+    readonly installations: FirebaseInstallations
+  ) {}
+
+  /**
+   * This method *must* be called internally as part of creating a
+   * PerformanceController instance.
+   *
+   * Currently it's not possible to pass the settings object through the
+   * constructor using Components, so this method exists to be called with the
+   * desired settings, to ensure nothing is collected without the user's
+   * consent.
+   */
+  _init(settings?: PerformanceSettings): void {
     if (settings?.dataCollectionEnabled !== undefined) {
       this.dataCollectionEnabled = settings.dataCollectionEnabled;
     }
@@ -41,7 +53,10 @@ export class PerformanceController implements FirebasePerformance {
 
     if (Api.getInstance().requiredApisAvailable()) {
       setupTransportService();
-      getInitializationPromise().then(setupOobResources, setupOobResources);
+      getInitializationPromise(this).then(
+        () => setupOobResources(this),
+        () => setupOobResources(this)
+      );
     } else {
       consoleLogger.info(
         'Firebase Performance cannot start if the browser does not support ' +
