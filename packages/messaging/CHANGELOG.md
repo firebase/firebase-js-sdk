@@ -1,5 +1,22 @@
 # @firebase/messaging
 
+## 0.7.0
+
+### Minor Changes
+
+- [`29327b21`](https://github.com/firebase/firebase-js-sdk/commit/29327b2198391a9f1e545bcd1172a4b3e12a522c) [#3234](https://github.com/firebase/firebase-js-sdk/pull/3234) - Add `getToken(options:{serviceWorkerRegistration, vapidKey})`,`onBackgroundMessage`.
+  Deprecate `setBackgroundMessageHandler`, `onTokenRefresh`, `useVapidKey`, `useServiceWorker`, `getToken`.
+
+  Add Typing `MessagePayload`, `NotificationPayload`, `FcmOptions`.
+
+### Patch Changes
+
+- Updated dependencies [[`d4ca3da0`](https://github.com/firebase/firebase-js-sdk/commit/d4ca3da0a59fcea1261ba69d7eb663bba38d3089), [`29327b21`](https://github.com/firebase/firebase-js-sdk/commit/29327b2198391a9f1e545bcd1172a4b3e12a522c)]:
+  - @firebase/util@0.3.1
+  - @firebase/messaging-types@0.5.0
+  - @firebase/component@0.1.18
+  - @firebase/installations@0.4.16
+
 ## 0.6.21
 
 ### Patch Changes
@@ -25,5 +42,6 @@
   - @firebase/installations@0.4.14
 
 ## 0.6.11
+
 - [fixed] Fixed an issue introduced in firebase@7.7.0, when FCM switched to provide base64-encoded VAPID
   key to [PushManager](https://developer.mozilla.org/en-US/docs/Web/API/PushManager) for push subscription. For backward compatibility, the SDK has switched back to using VAPID key in type [ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer).
