@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,4 @@
  * limitations under the License.
  */
 
-import { MessagePayload } from './message-payload';
-
-export enum MessageType {
-  PUSH_RECEIVED = 'push-received',
-  NOTIFICATION_CLICKED = 'notification-clicked'
-}
-
-export interface InternalMessage {
-  firebaseMessaging: {
-    type: MessageType;
-    payload: MessagePayload;
-  };
-}
+export * from '../browser/format_json';

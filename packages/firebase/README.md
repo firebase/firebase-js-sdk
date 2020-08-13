@@ -14,7 +14,7 @@ For more information, visit:
   The Firebase Realtime Database lets you store and query user data, and makes
   it available between users in realtime.
 - [Cloud Firestore](https://firebase.google.com/docs/firestore/quickstart) -
-  Cloud Firestore is a flexible, scalable database for mobile, web, and server 
+  Cloud Firestore is a flexible, scalable database for mobile, web, and server
   development from Firebase and Google Cloud Platform.
 - [Firebase Storage](https://firebase.google.com/docs/storage/web/start) -
   Firebase Storage lets you upload and store user generated content, such as
@@ -37,6 +37,10 @@ you should use the
 ## Get the code (browser)
 
 ### Script include
+>This brings in all Firebase features. See
+>["Include only the features you need"](#include-only-the-features-you-need)
+>below for
+>how to minimize download size by only including the scripts you need.
 
 Include Firebase in your web application via a `<script>` tag:
 
@@ -56,11 +60,16 @@ Include Firebase in your web application via a `<script>` tag:
 </script>
 ```
 
-*Note: To get a filled in version of the above code snippet, go to the
+_Note: To get a filled in version of the above code snippet, go to the
 [Firebase console](https://console.firebase.google.com/) for your app and click on "Add
-Firebase to your web app".*
+Firebase to your web app"._
 
 ### npm bundler (Browserify, Webpack, etc.)
+
+>This brings in all Firebase features. See
+>["Include only the features you need"](#include-only-the-features-you-need)
+>below for
+>how to minimize bundle size by only importing the features you need.
 
 The Firebase JavaScript npm package contains code that can be run in the browser
 after combining the modules you use with a package bundler (e.g.,
@@ -173,11 +182,12 @@ var app = firebase.initializeApp({ ... });
 // ...
 ```
 
-If you are using native ES6 module with --experimental-modules flag, you should do:
+If you are using native ES6 module with --experimental-modules flag (or Node 12+)
+you should do:
 
 ```js
 // This import loads the firebase namespace.
-import firebase from 'firebase/app';
+import * as firebase from 'firebase/app';
 
 // These imports load individual services into the firebase namespace.
 import 'firebase/auth';
@@ -185,7 +195,6 @@ import 'firebase/database';
 ```
 
 _Known issue for typescript users with --experimental-modules: you have to set allowSyntheticDefaultImports to true in tsconfig.json to pass the type check. Use it with caution since it makes the assumption that all modules have a default export, which might not be the case for the other dependencies you have. And Your code will break if you try to import the default export from a module that doesn't have default export._
-
 
 Firebase Storage is not included in the server side Firebase npm module.
 Instead, you can use the
@@ -231,4 +240,5 @@ The Firebase changelog can be found at
 [firebase.google.com](https://firebase.google.com/support/release-notes/js).
 
 ## Browser/environment compatibility
+
 Please see [Environment Support](https://firebase.google.com/support/guides/environments_js-sdk).
