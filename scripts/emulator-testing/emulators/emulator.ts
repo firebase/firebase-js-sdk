@@ -123,5 +123,10 @@ export abstract class Emulator {
       console.log(`Shutting down emulator, pid: [${this.emulator.pid}] ...`);
       this.emulator.kill();
     }
+
+    if (this.binaryPath) {
+      console.log(`Deleting the emulator jar at ${this.binaryPath}`);
+      fs.unlinkSync(this.binaryPath);
+    }
   }
 }

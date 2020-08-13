@@ -1,16 +1,18 @@
 {
-  "name": "@firebase/testing",
-  "version": "0.20.10",
+  "name": "@firebase/rules-unit-testing",
+  "version": "0.1.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "rollup -c",
-    "build:deps": "lerna run --scope @firebase/testing --include-dependencies build",
+    "build:deps": "lerna run --scope @firebase/rules-unit-testing --include-dependencies build",
     "dev": "rollup -c -w",
     "test:nyc": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --config ../../config/mocharc.node.js",
     "test": "firebase --debug emulators:exec 'yarn test:nyc'",
@@ -25,13 +27,19 @@
     "request": "2.88.2"
   },
   "devDependencies": {
+    "@google-cloud/firestore": "4.2.0",
     "@types/request": "2.48.5",
-    "firebase-tools": "8.6.0",
+    "firebase-admin": "9.0.0",
+    "firebase-tools": "8.7.0",
     "rollup": "2.23.0",
     "rollup-plugin-typescript2": "0.27.1"
   },
+  "peerDependencies": {
+    "@google-cloud/firestore": "^4.2.0",
+    "firebase-admin": "^9.0.0"
+  },
   "repository": {
-    "directory": "packages/testing",
+    "directory": "packages/rules-unit-testing",
     "type": "git",
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
