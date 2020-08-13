@@ -28,7 +28,7 @@ import * as bundleProto from '../protos/firestore_bundle_proto';
 import * as api from '../protos/firestore_proto_api';
 import { DocumentKey } from '../model/document_key';
 import { MaybeDocument, NoDocument } from '../model/document';
-import { debugAssert, debugCast } from '../util/assert';
+import { debugAssert } from '../util/assert';
 import {
   applyBundleDocuments,
   getQueryDocumentMapping,
@@ -36,11 +36,7 @@ import {
   saveNamedQuery
 } from '../local/local_store';
 import { SizedBundleElement } from '../util/bundle_reader';
-import {
-  documentKeySet,
-  DocumentKeySet,
-  MaybeDocumentMap
-} from '../model/collections';
+import { MaybeDocumentMap } from '../model/collections';
 import { BundleMetadata } from '../protos/firestore_bundle_proto';
 
 /**
