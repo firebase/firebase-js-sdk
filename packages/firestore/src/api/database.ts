@@ -448,7 +448,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     }
 
     const deferred = new Deferred<void>();
-    this._queue.enqueueAndForgetEvenAfterShutdown(async () => {
+    this._queue.enqueueAndForgetEvenWhileRestricted(async () => {
       try {
         await this._offlineComponentProvider.clearPersistence(
           this._databaseId,
