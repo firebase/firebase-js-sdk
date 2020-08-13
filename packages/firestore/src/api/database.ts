@@ -362,10 +362,10 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     validateExactNumberOfArgs('Firestore.settings', arguments, 1);
     validateArgType('Firestore.settings', 'object', 1, settingsLiteral);
 
-    if (settingsLiteral.inherit) {
+    if (settingsLiteral.merge) {
       settingsLiteral = { ...this._settings, ...settingsLiteral };
       // Remove the property from the settings once the merge is completed
-      delete settingsLiteral.inherit;
+      delete settingsLiteral.merge;
     }
 
     const newSettings = new FirestoreSettings(settingsLiteral);

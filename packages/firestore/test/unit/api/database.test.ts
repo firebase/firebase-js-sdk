@@ -176,7 +176,7 @@ describe('Settings', () => {
     firestoreClient.settings({ host: 'other.host' });
     firestoreClient.settings({
       ignoreUndefinedProperties: true,
-      inherit: true
+      merge: true
     });
 
     expect(firestoreClient._getSettings().ignoreUndefinedProperties).to.be.true;

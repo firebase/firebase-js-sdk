@@ -7765,11 +7765,11 @@ declare namespace firebase.firestore {
 
     /**
      * Whether to merge the provided settings with the existing settings. If
-     * set to `true`, the settings will be merged with existing settings. If
-     * set to `false` or left unset, the settings will replace the existing
+     * set to `true`, the settings are merged with existing settings. If
+     * set to `false` or left unset, the settings replace the existing
      * settings.
      */
-    inherit?: boolean;
+    merge?: boolean;
   }
 
   /**
