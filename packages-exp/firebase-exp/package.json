@@ -27,8 +27,9 @@
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "scripts": {
-    "build": "rollup -c && gulp firebase-js",
-    "build:release": "rollup -c rollup.config.release.js && gulp firebase-js",
+    "build": "rollup -c && gulp firebase-js && build:compat",
+    "build:release": "rollup -c rollup.config.release.js && gulp firebase-js && build:compat",
+    "build:compat": "rollup -c compat/rollup.config.js",
     "dev": "rollup -c -w",
     "prepare": "yarn build:release",
     "test": "echo 'No test suite for firebase wrapper'",
@@ -36,6 +37,7 @@
   },
   "dependencies": {
     "@firebase/app-exp": "0.0.800",
+    "@firebase/app-compat": "0.0.800",
     "@firebase/functions-exp": "0.0.800",
     "@firebase/firestore": "1.16.2"
   },

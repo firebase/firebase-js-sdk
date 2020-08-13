@@ -3,6 +3,7 @@
   "version": "0.0.800",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "private": true,
   "main": "dist/index.cjs.js",
   "browser": "dist/index.esm5.js",
   "module": "dist/index.esm5.js",
