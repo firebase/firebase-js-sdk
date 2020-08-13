@@ -16,12 +16,14 @@
  */
 
 import { registerVersion } from '@firebase/app-exp';
+
 import { name, version } from './package.json';
 import { _initializeAuthForClientPlatform } from './src/core/auth/auth_impl';
 import { ClientPlatform } from './src/core/util/version';
 
 // Core functionality shared by all clients
 export * from './src';
+export {indexedDBLocalPersistence} from './src/platform_browser/persistence/indexed_db';
 
 export const initializeAuth = _initializeAuthForClientPlatform(
   ClientPlatform.WORKER
