@@ -23,7 +23,7 @@ import * as sinonChai from 'sinon-chai';
 import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
 import { UserImpl } from '../user/user_impl';
 import { _getInstance } from '../util/instantiator';
-import { Persistence, PersistenceType } from './';
+import { Persistence, PersistenceType, StorageEventListener } from './';
 import { inMemoryPersistence } from './in_memory';
 import { PersistenceUserManager } from './persistence_user_manager';
 
@@ -42,7 +42,9 @@ function makePersistence(
     get() {
       return Promise.resolve(null);
     },
-    remove: async () => {}
+    remove: async () => {},
+    addListener(_key: string, _listener: StorageEventListener) {},
+    removeListener(_key: string, _listener: StorageEventListener) {}
   };
 
   const stub = sinon.stub(persistence);

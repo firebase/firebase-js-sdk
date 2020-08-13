@@ -17,10 +17,8 @@
 
 import { ApiKey, AppName, Auth } from '../../model/auth';
 import { User } from '../../model/user';
-import { AuthErrorCode } from '../errors';
-import { PersistedBlob, Persistence, PersistenceValue } from '../persistence';
+import { PersistedBlob, Persistence } from '../persistence';
 import { UserImpl } from '../user/user_impl';
-import { assert } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { inMemoryPersistence } from './in_memory';
 
@@ -37,14 +35,9 @@ function _persistenceKeyName(
   return `${PERSISTENCE_NAMESPACE}:${key}:${apiKey}:${appName}`;
 }
 
-export interface UserEventListener {
-  (): void;
-}
-
 export class PersistenceUserManager {
   private readonly fullUserKey: string;
   private readonly fullPersistenceKey: string;
-  private listener: UserEventListener | null = null;
 
   private constructor(
     public persistence: Persistence,
@@ -58,6 +51,7 @@ export class PersistenceUserManager {
       config.apiKey,
       name
     );
+    this.persistence.addListener(this.fullUserKey, auth._onStorageEvent);
   }
 
   setCurrentUser(user: User): Promise<void> {
@@ -92,27 +86,11 @@ export class PersistenceUserManager {
     }
   }
 
-  _onStorageEvent(_value: PersistenceValue | null): void {
-    assert(this.listener, AuthErrorCode.INTERNAL_ERROR, {
-      appName: this.auth.name
-    });
-    this.listener();
-  }
-
-  async addListener(listener: UserEventListener): Promise<void> {
-    assert(!this.listener, AuthErrorCode.INTERNAL_ERROR, {
-      appName: this.auth.name
-    });
-    this.listener = listener;
-    this.persistence.addListener(this.fullUserKey, this._onStorageEvent);
-  }
-
-  removeListener(listener: UserEventListener): void {
-    assert(this.listener === listener, AuthErrorCode.INTERNAL_ERROR, {
-      appName: this.auth.name
-    });
-    this.persistence.removeListener(this.fullUserKey, this._onStorageEvent);
-    this.listener = null;
+  delete(): void {
+    this.persistence.removeListener(
+      this.fullUserKey,
+      this.auth._onStorageEvent
+    );
   }
 
   static async create(

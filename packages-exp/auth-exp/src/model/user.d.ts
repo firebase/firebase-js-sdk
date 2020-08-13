@@ -24,6 +24,8 @@ import { PersistedBlob } from '../core/persistence';
 import { StsTokenManager } from '../core/user/token_manager';
 import { Auth } from './auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from './id_token';
+import { StsTokenManager } from '../core/user/token_manager';
+import { UserMetadata } from '../core/user/user_metadata';
 
 type MutableUserInfo = {
   -readonly [K in keyof externs.UserInfo]: externs.UserInfo[K];
@@ -58,7 +60,7 @@ export interface User extends externs.User {
   emailVerified: boolean;
   tenantId: string | null;
   providerData: MutableUserInfo[];
-  metadata: externs.UserMetadata;
+  metadata: UserMetadata;
 
   stsTokenManager: StsTokenManager;
   _redirectEventId?: string;
@@ -68,6 +70,7 @@ export interface User extends externs.User {
     reload?: boolean
   ): Promise<void>;
 
+  _copy(user: User): void;
   _onReload: (cb: NextFn<APIUserInfo>) => void;
   _notifyReloadListener: NextFn<APIUserInfo>;
   _startProactiveRefresh: () => void;

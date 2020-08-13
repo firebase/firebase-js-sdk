@@ -46,7 +46,7 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
   }
 
   // The polling period in case events are not supported
-  private static readonly POLLING_TIMER_INTERVAL = 1000;
+  private static readonly POLLING_INTERVAL_MS = 1000;
   // The IE 10 localStorage cross tab synchronization delay in milliseconds
   private static readonly IE10_LOCAL_STORAGE_SYNC_DELAY = 10;
 
@@ -181,7 +181,7 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
           );
         }
       );
-    }, BrowserLocalPersistence.POLLING_TIMER_INTERVAL);
+    }, BrowserLocalPersistence.POLLING_INTERVAL_MS);
   }
 
   private _stopPolling(): void {

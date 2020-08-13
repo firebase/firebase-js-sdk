@@ -16,16 +16,14 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-
 import {
   PersistedBlob,
   Persistence,
   PersistenceType,
   PersistenceValue,
-  STORAGE_AVAILABLE_KEY,
-  StorageEventListener
+  StorageEventListener,
+  STORAGE_AVAILABLE_KEY
 } from '../../core/persistence/';
-import { debugFail } from '../../core/util/assert';
 
 export const DB_NAME = 'firebaseLocalStorageDb';
 const DB_VERSION = 1;
@@ -143,6 +141,13 @@ class IndexedDBLocalPersistence implements Persistence {
   type = PersistenceType.LOCAL;
   db?: IDBDatabase;
 
+  private static readonly POLLING_INTERVAL_MS = 800;
+
+  private readonly listeners: Record<string, Set<StorageEventListener>> = {};
+  private readonly localCache: Record<string, PersistenceValue | null> = {};
+  private pollTimer: NodeJS.Timeout | null = null;
+  private pendingWrites = 0;
+
   private async initialize(): Promise<IDBDatabase> {
     if (this.db) {
       return this.db;
@@ -164,28 +169,114 @@ class IndexedDBLocalPersistence implements Persistence {
     return false;
   }
 
+  private async _withPendingWrite(write: () => Promise<void>): Promise<void> {
+    this.pendingWrites++;
+    try {
+      await write();
+    } finally {
+      this.pendingWrites--;
+    }
+  }
+
   async set(key: string, value: PersistenceValue): Promise<void> {
     const db = await this.initialize();
-    return putObject(db, key, value);
+    return this._withPendingWrite(async () => {
+      await putObject(db, key, value);
+      this.localCache[key] = value;
+    });
   }
 
   async get<T extends PersistenceValue>(key: string): Promise<T | null> {
     const db = await this.initialize();
-    const obj = await getObject(db, key);
-    return obj as T;
+    const obj = (await getObject(db, key)) as T;
+    this.localCache[key] = obj;
+    return obj;
   }
 
   async remove(key: string): Promise<void> {
     const db = await this.initialize();
-    return deleteObject(db, key);
+    return this._withPendingWrite(async () => {
+      await deleteObject(db, key);
+      delete this.localCache[key];
+    });
   }
 
-  addListener(_key: string, _listener: StorageEventListener): void {
-    debugFail('not implemented');
+  private async _poll(): Promise<void> {
+    const db = await this.initialize();
+
+    // TODO: check if we need to fallback if getAll is not supported
+    const getAllRequest = getObjectStore(db, false).getAll();
+    const result = await new DBPromise<DBObject | null>(
+      getAllRequest
+    ).toPromise();
+
+    if (!result) {
+      return;
+    }
+
+    // If we have pending writes in progress abort, we'll get picked up on the next poll
+    if (this.pendingWrites !== 0) {
+      return;
+    }
+
+    for (const key of Object.keys(result.value)) {
+      const value = result.value[key];
+      if (this.localCache[key] !== value) {
+        this._notifyListeners(key, value as PersistenceValue);
+      }
+    }
   }
 
-  removeListener(_key: string, _listener: StorageEventListener): void {
-    debugFail('not implemented');
+  private _notifyListeners(
+    key: string,
+    newValue: PersistenceValue | null
+  ): void {
+    if (!this.listeners[key]) {
+      return;
+    }
+    this.localCache[key] = newValue;
+    for (const listener of Array.from(this.listeners[key])) {
+      listener(newValue);
+    }
+  }
+
+  private _startPolling(): void {
+    this._stopPolling();
+
+    this.pollTimer = setInterval(
+      this._poll,
+      IndexedDBLocalPersistence.POLLING_INTERVAL_MS
+    );
+  }
+
+  private _stopPolling(): void {
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
+    }
+  }
+
+  addListener(key: string, listener: StorageEventListener): void {
+    if (Object.keys(this.listeners).length === 0) {
+      this._startPolling();
+    }
+    this.listeners[key] = this.listeners[key] || [];
+    this.listeners[key].add(listener);
+  }
+
+  removeListener(key: string, listener: StorageEventListener): void {
+    if (this.listeners[key]) {
+      this.listeners[key].delete(listener);
+
+      if (this.listeners[key].size === 0) {
+        delete this.listeners[key];
+        delete this.localCache[key];
+      }
+    }
+
+    if (Object.keys(this.listeners).length === 0) {
+      this._stopPolling();
+    }
   }
 }
 

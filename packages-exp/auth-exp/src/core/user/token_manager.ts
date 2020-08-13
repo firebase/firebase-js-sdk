@@ -141,6 +141,12 @@ export class StsTokenManager {
     };
   }
 
+  _copy(stsTokenManager: StsTokenManager): void {
+    this.accessToken = stsTokenManager.accessToken;
+    this.refreshToken = stsTokenManager.refreshToken;
+    this.expirationTime = stsTokenManager.expirationTime;
+  }
+
   _performRefresh(): never {
     return debugFail('not implemented');
   }

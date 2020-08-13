@@ -24,7 +24,7 @@ import {
   PersistenceType
 } from '../../core/persistence';
 import { _getInstance } from '../../core/util/instantiator';
-import { browserSessionPersistence } from './browser';
+import { browserSessionPersistence } from './session_storage';
 
 describe('core/persistence/browser', () => {
   beforeEach(() => {
