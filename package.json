@@ -76,6 +76,7 @@
     "@types/listr": "0.14.2",
     "@types/long": "4.0.1",
     "@types/mocha": "7.0.2",
+    "@types/mz": "2.7.1",
     "@types/node": "12.12.53",
     "@types/sinon": "9.0.4",
     "@types/sinon-chai": "3.2.4",
