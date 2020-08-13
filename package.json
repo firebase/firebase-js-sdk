@@ -25,7 +25,7 @@
     "build": "lerna run --scope @firebase/app-exp build:deps && lerna run --scope @firebase/* --scope firebase --scope rxfire --ignore @firebase/app-exp build",
     "build:exp": "lerna run --scope @firebase/*-exp --scope @firebase/*-compat --scope firebase-exp build",
     "build:release": "lerna run --scope @firebase/app-exp build:deps && lerna run --scope @firebase/* --scope firebase --scope rxfire --ignore @firebase/*-exp prepare",
-    "build:exp:release": "yarn --cwd packages/app build:deps && lerna run --scope @firebase/*-exp --scope firebase-exp prepare && yarn --cwd packages-exp/app-exp typings:public",
+    "build:exp:release": "yarn --cwd packages/app build:deps && lerna run --scope @firebase/*-exp --scope @firebase/*-compat --scope firebase-exp prepare && yarn --cwd packages-exp/app-exp typings:public",
     "link:packages": "lerna exec --scope @firebase/* --scope firebase --scope rxfire -- yarn link",
     "stage:packages": "./scripts/prepublish.sh",
     "repl": "node tools/repl.js",
