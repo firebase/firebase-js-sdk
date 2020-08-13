@@ -111,7 +111,7 @@ export function _isIEMobile(ua: string): boolean {
 }
 
 export function _isAndroid(ua: string): boolean {
-  return /android\//i.test(ua);
+  return /android/i.test(ua);
 }
 
 export function _isBlackBerry(ua: string): boolean {

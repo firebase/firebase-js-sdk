@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,14 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-
-import { testUser, testAuth } from '../../../test/helpers/mock_auth';
-import { _getInstance } from '../../core/util/instantiator';
+import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import {
   PersistedBlob,
   Persistence,
   PersistenceType
 } from '../../core/persistence';
-import { browserLocalPersistence, browserSessionPersistence } from './browser';
+import { _getInstance } from '../../core/util/instantiator';
+import { browserSessionPersistence } from './browser';
 
 describe('core/persistence/browser', () => {
   beforeEach(() => {
@@ -34,51 +33,6 @@ describe('core/persistence/browser', () => {
   });
 
   afterEach(() => sinon.restore());
-
-  describe('browserLocalPersistence', () => {
-    const persistence: Persistence = _getInstance(browserLocalPersistence);
-
-    it('should work with persistence type', async () => {
-      const key = 'my-super-special-persistence-type';
-      const value = PersistenceType.LOCAL;
-      expect(await persistence.get(key)).to.be.null;
-      await persistence.set(key, value);
-      expect(await persistence.get(key)).to.be.eq(value);
-      expect(await persistence.get('other-key')).to.be.null;
-      await persistence.remove(key);
-      expect(await persistence.get(key)).to.be.null;
-    });
-
-    it('should return persistedblob from user', async () => {
-      const key = 'my-super-special-user';
-      const auth = await testAuth();
-      const value = testUser(auth, 'some-uid');
-
-      expect(await persistence.get(key)).to.be.null;
-      await persistence.set(key, value.toJSON());
-      const out = await persistence.get<PersistedBlob>(key);
-      expect(out!['uid']).to.eql(value.uid);
-      await persistence.remove(key);
-      expect(await persistence.get(key)).to.be.null;
-    });
-
-    describe('#isAvailable', () => {
-      it('should emit false if localStorage setItem throws', async () => {
-        sinon.stub(localStorage, 'setItem').throws(new Error('nope'));
-        expect(await persistence.isAvailable()).to.be.false;
-      });
-
-      it('should emit false if localStorage removeItem throws', async () => {
-        sinon.stub(localStorage, 'removeItem').throws(new Error('nope'));
-        expect(await persistence.isAvailable()).to.be.false;
-      });
-
-      it('should emit true if everything works properly', async () => {
-        expect(await persistence.isAvailable()).to.be.true;
-      });
-    });
-  });
-
   describe('browserSessionPersistence', () => {
     const persistence: Persistence = _getInstance(browserSessionPersistence);
 

@@ -31,10 +31,8 @@ export * from './src';
 // Additional DOM dependend functionality
 
 // persistence
-export {
-  browserLocalPersistence,
-  browserSessionPersistence
-} from './src/platform_browser/persistence/browser';
+export { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
+export { browserSessionPersistence } from './src/platform_browser/persistence/session_storage';
 export { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
 // providers
