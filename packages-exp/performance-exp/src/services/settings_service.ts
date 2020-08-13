@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
-import { FirebaseInstallations } from '@firebase/installations-types';
 import { mergeStrings } from '../utils/string_merger';
 
 let settingsServiceInstance: SettingsService | undefined;
@@ -56,43 +53,6 @@ export class SettingsService {
 
   // TTL of config retrieved from remote config in hours.
   configTimeToLive = 12;
-
-  firebaseAppInstance!: FirebaseApp;
-
-  installationsService!: FirebaseInstallations;
-
-  getAppId(): string {
-    const appId =
-      this.firebaseAppInstance &&
-      this.firebaseAppInstance.options &&
-      this.firebaseAppInstance.options.appId;
-    if (!appId) {
-      throw ERROR_FACTORY.create(ErrorCode.NO_APP_ID);
-    }
-    return appId;
-  }
-
-  getProjectId(): string {
-    const projectId =
-      this.firebaseAppInstance &&
-      this.firebaseAppInstance.options &&
-      this.firebaseAppInstance.options.projectId;
-    if (!projectId) {
-      throw ERROR_FACTORY.create(ErrorCode.NO_PROJECT_ID);
-    }
-    return projectId;
-  }
-
-  getApiKey(): string {
-    const apiKey =
-      this.firebaseAppInstance &&
-      this.firebaseAppInstance.options &&
-      this.firebaseAppInstance.options.apiKey;
-    if (!apiKey) {
-      throw ERROR_FACTORY.create(ErrorCode.NO_API_KEY);
-    }
-    return apiKey;
-  }
 
   getFlTransportFullUrl(): string {
     return this.flTransportEndpointUrl.concat('?key=', this.transportKey);

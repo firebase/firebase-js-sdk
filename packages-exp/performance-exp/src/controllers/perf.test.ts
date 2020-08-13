@@ -17,7 +17,7 @@
 
 import '../../test/setup';
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 
@@ -26,6 +26,7 @@ import { Api, setupApi } from '../services/api_service';
 import * as initializationService from '../services/initialization_service';
 import { SettingsService } from '../services/settings_service';
 import { consoleLogger } from '../utils/console_logger';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 describe('Firebase Performance Test', () => {
   setupApi(window);
@@ -44,12 +45,18 @@ describe('Firebase Performance Test', () => {
     options: fakeFirebaseConfig
   } as unknown) as FirebaseApp;
 
+  const fakeInstallations = ({} as unknown) as FirebaseInstallations;
+
   describe('#constructor', () => {
     it('does not initialize performance if the required apis are not available', () => {
       stub(Api.prototype, 'requiredApisAvailable').returns(false);
       stub(initializationService, 'getInitializationPromise');
       stub(consoleLogger, 'info');
-      new PerformanceController(fakeFirebaseApp);
+      const performanceController = new PerformanceController(
+        fakeFirebaseApp,
+        fakeInstallations
+      );
+      performanceController._init();
 
       expect(initializationService.getInitializationPromise).not.be.called;
       expect(consoleLogger.info).be.called;
@@ -63,10 +70,14 @@ describe('Firebase Performance Test', () => {
         dataCollectionEnabled: false
       };
 
-      const controller = new PerformanceController(fakeFirebaseApp, settings);
+      const performance = new PerformanceController(
+        fakeFirebaseApp,
+        fakeInstallations
+      );
+      performance._init(settings);
 
-      expect(controller.instrumentationEnabled).is.equal(false);
-      expect(controller.dataCollectionEnabled).is.equal(false);
+      expect(performance.instrumentationEnabled).is.equal(false);
+      expect(performance.dataCollectionEnabled).is.equal(false);
     });
 
     it('uses defaults when settings are not provided', async () => {
@@ -75,45 +86,65 @@ describe('Firebase Performance Test', () => {
       const expectedDataCollectionEnabled = SettingsService.getInstance()
         .dataCollectionEnabled;
 
-      const controller = new PerformanceController(fakeFirebaseApp);
+      const performance = new PerformanceController(
+        fakeFirebaseApp,
+        fakeInstallations
+      );
+      performance._init();
 
-      expect(controller.instrumentationEnabled).is.equal(
+      expect(performance.instrumentationEnabled).is.equal(
         expectedInstrumentationEnabled
       );
-      expect(controller.dataCollectionEnabled).is.equal(
+      expect(performance.dataCollectionEnabled).is.equal(
         expectedDataCollectionEnabled
       );
     });
 
     describe('#instrumentationEnabled', () => {
       it('sets instrumentationEnabled to enabled', async () => {
-        const controller = new PerformanceController(fakeFirebaseApp);
+        const performance = new PerformanceController(
+          fakeFirebaseApp,
+          fakeInstallations
+        );
+        performance._init();
 
-        controller.instrumentationEnabled = true;
-        expect(controller.instrumentationEnabled).is.equal(true);
+        performance.instrumentationEnabled = true;
+        expect(performance.instrumentationEnabled).is.equal(true);
       });
 
       it('sets instrumentationEnabled to disabled', async () => {
-        const controller = new PerformanceController(fakeFirebaseApp);
+        const performance = new PerformanceController(
+          fakeFirebaseApp,
+          fakeInstallations
+        );
+        performance._init();
 
-        controller.instrumentationEnabled = false;
-        expect(controller.instrumentationEnabled).is.equal(false);
+        performance.instrumentationEnabled = false;
+        expect(performance.instrumentationEnabled).is.equal(false);
       });
     });
 
     describe('#dataCollectionEnabled', () => {
       it('sets dataCollectionEnabled to enabled', async () => {
-        const controller = new PerformanceController(fakeFirebaseApp);
+        const performance = new PerformanceController(
+          fakeFirebaseApp,
+          fakeInstallations
+        );
+        performance._init();
 
-        controller.dataCollectionEnabled = true;
-        expect(controller.dataCollectionEnabled).is.equal(true);
+        performance.dataCollectionEnabled = true;
+        expect(performance.dataCollectionEnabled).is.equal(true);
       });
 
       it('sets dataCollectionEnabled to disabled', () => {
-        const controller = new PerformanceController(fakeFirebaseApp);
+        const performance = new PerformanceController(
+          fakeFirebaseApp,
+          fakeInstallations
+        );
+        performance._init();
 
-        controller.dataCollectionEnabled = false;
-        expect(controller.dataCollectionEnabled).is.equal(false);
+        performance.dataCollectionEnabled = false;
+        expect(performance.dataCollectionEnabled).is.equal(false);
       });
     });
   });

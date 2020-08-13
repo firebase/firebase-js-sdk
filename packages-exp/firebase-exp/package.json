@@ -57,6 +57,7 @@
     "app",
     "functions",
     "firestore",
-    "firestore/lite"
+    "firestore/lite",
+    "performance"
   ]
 }

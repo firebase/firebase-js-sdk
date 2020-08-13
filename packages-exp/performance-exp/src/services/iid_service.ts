@@ -14,13 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SettingsService } from './settings_service';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 let iid: string | undefined;
 let authToken: string | undefined;
 
-export function getIidPromise(): Promise<string> {
-  const iidPromise = SettingsService.getInstance().installationsService.getId();
+export function getIidPromise(
+  installationsService: FirebaseInstallations
+): Promise<string> {
+  const iidPromise = installationsService.getId();
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   iidPromise.then((iidVal: string) => {
     iid = iidVal;
@@ -33,8 +35,10 @@ export function getIid(): string | undefined {
   return iid;
 }
 
-export function getAuthTokenPromise(): Promise<string> {
-  const authTokenPromise = SettingsService.getInstance().installationsService.getToken();
+export function getAuthTokenPromise(
+  installationsService: FirebaseInstallations
+): Promise<string> {
+  const authTokenPromise = installationsService.getToken();
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   authTokenPromise.then((authTokenVal: string) => {
     authToken = authTokenVal;
