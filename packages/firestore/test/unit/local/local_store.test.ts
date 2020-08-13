@@ -35,7 +35,6 @@ import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   applyBundleDocuments,
-  ApplyBundleDocumentsResult,
   getNamedQuery,
   hasNewerBundle,
   LocalStore,
@@ -116,7 +115,6 @@ export interface LocalStoreComponents {
 class LocalStoreTester {
   private promiseChain: Promise<void> = Promise.resolve();
   private lastChanges: MaybeDocumentMap | null = null;
-  private lastBundleQueryDocumentMap: Map<string, DocumentKeySet> | null = null;
   private lastTargetId: TargetId | null = null;
   private batches: MutationBatch[] = [];
 
@@ -129,7 +127,6 @@ class LocalStoreTester {
   private prepareNextStep(): void {
     this.promiseChain = this.promiseChain.then(() => {
       this.lastChanges = null;
-      this.lastBundleQueryDocumentMap = null;
       this.lastTargetId = null;
       this.queryEngine.resetCounts();
     });
@@ -193,9 +190,8 @@ class LocalStoreTester {
 
     this.promiseChain = this.promiseChain
       .then(() => applyBundleDocuments(this.localStore, documents))
-      .then((result: ApplyBundleDocumentsResult) => {
-        this.lastChanges = result.changedDocuments;
-        this.lastBundleQueryDocumentMap = result.queryDocumentMap;
+      .then(result => {
+        this.lastChanges = result;
       });
     return this;
   }
@@ -378,25 +374,6 @@ class LocalStoreTester {
         );
       }
       this.lastChanges = null;
-    });
-    return this;
-  }
-
-  toReturnQueryDocumentMap(
-    expected: Map<string, DocumentKeySet>
-  ): LocalStoreTester {
-    this.promiseChain = this.promiseChain.then(() => {
-      debugAssert(
-        !!this.lastBundleQueryDocumentMap,
-        'Expecting query document map to be returned from applying bundled documents'
-      );
-      for (const k of Array.from(this.lastBundleQueryDocumentMap.keys())) {
-        expect(expected.has(k)).to.be.true;
-        expect(
-          this.lastBundleQueryDocumentMap.get(k)!.isEqual(expected.get(k)!)
-        ).to.be.true;
-      }
-      this.lastBundleQueryDocumentMap = null;
     });
     return this;
   }
@@ -1758,7 +1735,7 @@ function genericLocalStoreTests(
       .finish();
   });
 
-  it('handles loading named queries allocates targets and updates target document mapping', async () => {
+  it('loading named queries allocates targets and updates target document mapping', async () => {
     const expectedQueryDocumentMap = new Map([
       ['query-1', documentKeySet(key('foo1/bar'))],
       ['query-2', documentKeySet(key('foo2/bar'))]
@@ -1777,7 +1754,6 @@ function genericLocalStoreTests(
         doc('foo1/bar', 1, { sum: 1337 }),
         doc('foo2/bar', 2, { sum: 42 })
       )
-      .toReturnQueryDocumentMap(expectedQueryDocumentMap)
       .toContain(doc('foo1/bar', 1, { sum: 1337 }))
       .toContain(doc('foo2/bar', 2, { sum: 42 }))
       .after(

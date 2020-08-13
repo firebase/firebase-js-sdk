@@ -28,14 +28,19 @@ import * as bundleProto from '../protos/firestore_bundle_proto';
 import * as api from '../protos/firestore_proto_api';
 import { DocumentKey } from '../model/document_key';
 import { MaybeDocument, NoDocument } from '../model/document';
-import { debugAssert } from '../util/assert';
+import { debugAssert, debugCast } from '../util/assert';
 import {
   applyBundleDocuments,
+  getQueryDocumentMapping,
   LocalStore,
   saveNamedQuery
 } from '../local/local_store';
 import { SizedBundleElement } from '../util/bundle_reader';
-import { MaybeDocumentMap } from '../model/collections';
+import {
+  documentKeySet,
+  DocumentKeySet,
+  MaybeDocumentMap
+} from '../model/collections';
 import { BundleMetadata } from '../protos/firestore_bundle_proto';
 
 /**
@@ -218,17 +223,20 @@ export class BundleLoader {
       'Bundled documents ends with a document metadata and missing document.'
     );
 
-    const result = await applyBundleDocuments(this.localStore, this.documents);
+    const changedDocuments = await applyBundleDocuments(
+      this.localStore,
+      this.documents
+    );
 
+    const queryDocumentMap = getQueryDocumentMapping(
+      this.localStore,
+      this.documents
+    );
     for (const q of this.queries) {
-      await saveNamedQuery(
-        this.localStore,
-        q,
-        result.queryDocumentMap.get(q.name!)
-      );
+      await saveNamedQuery(this.localStore, q, queryDocumentMap.get(q.name!));
     }
 
     this.progress.taskState = 'Success';
-    return new BundleLoadResult({ ...this.progress }, result.changedDocuments);
+    return new BundleLoadResult({ ...this.progress }, changedDocuments);
   }
 }

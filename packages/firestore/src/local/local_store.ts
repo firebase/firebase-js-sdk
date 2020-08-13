@@ -1249,9 +1249,28 @@ export async function ignoreIfPrimaryLeaseLoss(
   }
 }
 
-export interface ApplyBundleDocumentsResult {
-  changedDocuments: MaybeDocumentMap;
-  queryDocumentMap: Map<string, DocumentKeySet>;
+export function getQueryDocumentMapping(
+  localStore: LocalStore,
+  documents: BundledDocuments
+): Map<string, DocumentKeySet> {
+  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
+  const queryDocumentMap = new Map<string, DocumentKeySet>();
+  const bundleConverter = new BundleConverter(localStoreImpl.serializer);
+  for (const bundleDoc of documents) {
+    if (bundleDoc.metadata.queries) {
+      const documentKey = bundleConverter.toDocumentKey(
+        bundleDoc.metadata.name!
+      );
+      for (const queryName of bundleDoc.metadata.queries) {
+        const documentKeys = (
+          queryDocumentMap.get(queryName) || documentKeySet()
+        ).add(documentKey);
+        queryDocumentMap.set(queryName, documentKeys);
+      }
+    }
+  }
+
+  return queryDocumentMap;
 }
 
 /**
@@ -1264,12 +1283,11 @@ export interface ApplyBundleDocumentsResult {
 export function applyBundleDocuments(
   localStore: LocalStore,
   documents: BundledDocuments
-): Promise<ApplyBundleDocumentsResult> {
+): Promise<MaybeDocumentMap> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const bundleConverter = new BundleConverter(localStoreImpl.serializer);
   let documentMap = maybeDocumentMap();
   let versionMap = documentVersionMap();
-  const queryDocumentMap: Map<string, DocumentKeySet> = new Map();
   for (const bundleDoc of documents) {
     const documentKey = bundleConverter.toDocumentKey(bundleDoc.metadata.name!);
     documentMap = documentMap.insert(
@@ -1280,14 +1298,6 @@ export function applyBundleDocuments(
       documentKey,
       bundleConverter.toSnapshotVersion(bundleDoc.metadata.readTime!)
     );
-    if (bundleDoc.metadata.queries) {
-      for (const queryName of bundleDoc.metadata.queries) {
-        const documentKeys = (
-          queryDocumentMap.get(queryName) || documentKeySet()
-        ).add(documentKey);
-        queryDocumentMap.set(queryName, documentKeys);
-      }
-    }
   }
 
   const documentBuffer = localStoreImpl.remoteDocuments.newChangeBuffer({
@@ -1316,10 +1326,7 @@ export function applyBundleDocuments(
           );
         })
         .next(changedDocuments => {
-          return PersistencePromise.resolve({
-            changedDocuments,
-            queryDocumentMap
-          });
+          return PersistencePromise.resolve(changedDocuments);
         });
     }
   );
@@ -1410,32 +1417,40 @@ export async function saveNamedQuery(
     'readwrite',
     transaction => {
       // Update allocated target's read time, if the bundle's read time is newer.
-      let updateReadTime = PersistencePromise.resolve();
+      let updateReadTime = PersistencePromise.resolve(false);
       const readTime = fromVersion(query.readTime!);
       if (allocated.snapshotVersion.compareTo(readTime) < 0) {
         const newTargetData = allocated.withResumeToken(
           ByteString.EMPTY_BYTE_STRING,
           readTime
         );
-        updateReadTime = localStoreImpl.targetCache.updateTargetData(
-          transaction,
-          newTargetData
-        );
+        updateReadTime = localStoreImpl.targetCache
+          .updateTargetData(transaction, newTargetData)
+          .next(
+            () => true,
+            () => false
+          );
         localStoreImpl.targetDataByTarget = localStoreImpl.targetDataByTarget.insert(
           newTargetData.targetId,
           newTargetData
         );
       }
       return updateReadTime
+        .next(updated => {
+          if (updated) {
+            return localStoreImpl.targetCache
+              .removeMatchingKeysForTargetId(transaction, allocated.targetId)
+              .next(() =>
+                localStoreImpl.targetCache.addMatchingKeys(
+                  transaction,
+                  documents,
+                  allocated.targetId
+                )
+              );
+          }
+        })
         .next(() =>
           localStoreImpl.bundleCache.saveNamedQuery(transaction, query)
-        )
-        .next(() =>
-          localStoreImpl.targetCache.addMatchingKeys(
-            transaction,
-            documents,
-            allocated.targetId
-          )
         );
     }
   );
