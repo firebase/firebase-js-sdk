@@ -22,8 +22,10 @@ import {
   Persistence,
   PersistenceType,
   PersistenceValue,
-  STORAGE_AVAILABLE_KEY
+  STORAGE_AVAILABLE_KEY,
+  StorageEventListener
 } from '../../core/persistence/';
+import { debugFail } from '../../core/util/assert';
 
 export const DB_NAME = 'firebaseLocalStorageDb';
 const DB_VERSION = 1;
@@ -176,6 +178,14 @@ class IndexedDBLocalPersistence implements Persistence {
   async remove(key: string): Promise<void> {
     const db = await this.initialize();
     return deleteObject(db, key);
+  }
+
+  addListener(_key: string, _listener: StorageEventListener): void {
+    debugFail('not implemented');
+  }
+
+  removeListener(_key: string, _listener: StorageEventListener): void {
+    debugFail('not implemented');
   }
 }
 

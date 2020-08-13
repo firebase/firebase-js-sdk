@@ -21,8 +21,10 @@ import {
   Persistence,
   PersistenceType,
   PersistenceValue,
-  STORAGE_AVAILABLE_KEY
+  STORAGE_AVAILABLE_KEY,
+  StorageEventListener
 } from '../../core/persistence';
+import { debugFail } from '../../core/util/assert';
 
 /**
  * Returns a persistence class that wraps AsyncStorage imported from
@@ -69,6 +71,14 @@ export function getReactNativePersistence(
 
     remove(key: string): Promise<void> {
       return storage.removeItem(key);
+    }
+
+    addListener(_key: string, _listener: StorageEventListener): void {
+      debugFail('not implemented');
+    }
+
+    removeListener(_key: string, _listener: StorageEventListener): void {
+      debugFail('not implemented');
     }
   };
 }

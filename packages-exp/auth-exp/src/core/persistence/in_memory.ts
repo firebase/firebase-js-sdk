@@ -17,7 +17,12 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { Persistence, PersistenceType, PersistenceValue } from '../persistence';
+import {
+  Persistence,
+  PersistenceType,
+  PersistenceValue,
+  StorageEventListener
+} from '../persistence';
 
 export class InMemoryPersistence implements Persistence {
   static type: 'NONE' = 'NONE';
@@ -39,6 +44,16 @@ export class InMemoryPersistence implements Persistence {
 
   async remove(key: string): Promise<void> {
     delete this.storage[key];
+  }
+
+  addListener(_key: string, _listener: StorageEventListener): void {
+    // Listeners are not supported for in-memory storage since it cannot be shared across windows/workers
+    return;
+  }
+
+  removeListener(_key: string, _listener: StorageEventListener): void {
+    // Listeners are not supported for in-memory storage since it cannot be shared across windows/workers
+    return;
   }
 }
 

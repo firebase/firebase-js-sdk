@@ -16,11 +16,13 @@
  */
 
 import { ApiKey, AppName, Auth } from '../../model/auth';
-import { PersistedBlob, Persistence } from '../persistence';
+import { User } from '../../model/user';
+import { AuthErrorCode } from '../errors';
+import { PersistedBlob, Persistence, PersistenceValue } from '../persistence';
+import { UserImpl } from '../user/user_impl';
+import { assert } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { inMemoryPersistence } from './in_memory';
-import { User } from '../../model/user';
-import { UserImpl } from '../user/user_impl';
 
 export const _AUTH_USER_KEY_NAME = 'authUser';
 export const _REDIRECT_USER_KEY_NAME = 'redirectUser';
@@ -35,9 +37,15 @@ function _persistenceKeyName(
   return `${PERSISTENCE_NAMESPACE}:${key}:${apiKey}:${appName}`;
 }
 
+export interface UserEventListener {
+  (): void;
+}
+
 export class PersistenceUserManager {
   private readonly fullUserKey: string;
   private readonly fullPersistenceKey: string;
+  private listener: UserEventListener | null = null;
+
   private constructor(
     public persistence: Persistence,
     private readonly auth: Auth,
@@ -82,6 +90,29 @@ export class PersistenceUserManager {
     if (currentUser) {
       return this.setCurrentUser(currentUser);
     }
+  }
+
+  _onStorageEvent(_value: PersistenceValue | null): void {
+    assert(this.listener, AuthErrorCode.INTERNAL_ERROR, {
+      appName: this.auth.name
+    });
+    this.listener();
+  }
+
+  async addListener(listener: UserEventListener): Promise<void> {
+    assert(!this.listener, AuthErrorCode.INTERNAL_ERROR, {
+      appName: this.auth.name
+    });
+    this.listener = listener;
+    this.persistence.addListener(this.fullUserKey, this._onStorageEvent);
+  }
+
+  removeListener(listener: UserEventListener): void {
+    assert(this.listener === listener, AuthErrorCode.INTERNAL_ERROR, {
+      appName: this.auth.name
+    });
+    this.persistence.removeListener(this.fullUserKey, this._onStorageEvent);
+    this.listener = null;
   }
 
   static async create(
