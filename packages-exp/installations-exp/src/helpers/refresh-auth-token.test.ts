@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
-import * as generateAuthTokenRequestModule from '../api/generate-auth-token-request';
+import * as generateAuthTokenRequestModule from '../functions/generate-auth-token-request';
 import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
 import {
   CompletedAuthToken,

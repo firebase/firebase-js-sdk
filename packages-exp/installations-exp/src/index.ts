@@ -27,7 +27,7 @@ import {
   IdChangeCallbackFn,
   IdChangeUnsubscribeFn,
   onIdChange
-} from './functions';
+} from './api';
 import { extractAppConfig } from './helpers/extract-app-config';
 import { FirebaseDependencies } from './interfaces/firebase-dependencies';
 

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { deleteInstallationRequest } from '../api/delete-installation-request';
+import { deleteInstallationRequest } from '../functions/delete-installation-request';
 import { remove, update } from '../helpers/idb-manager';
 import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
 import { RequestStatus } from '../interfaces/installation-entry';

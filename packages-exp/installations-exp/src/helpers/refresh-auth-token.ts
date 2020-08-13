@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { generateAuthTokenRequest } from '../api/generate-auth-token-request';
+import { generateAuthTokenRequest } from '../functions/generate-auth-token-request';
 import { AppConfig } from '../interfaces/app-config';
 import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
 import {

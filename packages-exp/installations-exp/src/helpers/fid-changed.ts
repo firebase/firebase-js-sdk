@@ -17,7 +17,7 @@
 
 import { getKey } from '../util/get-key';
 import { AppConfig } from '../interfaces/app-config';
-import { IdChangeCallbackFn } from '../functions';
+import { IdChangeCallbackFn } from '../api';
 
 const fidChangeCallbacks: Map<string, Set<IdChangeCallbackFn>> = new Map();
 

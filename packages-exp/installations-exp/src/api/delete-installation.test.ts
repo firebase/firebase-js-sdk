@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
-import * as deleteInstallationRequestModule from '../api/delete-installation-request';
+import * as deleteInstallationRequestModule from '../functions/delete-installation-request';
 import { get, set } from '../helpers/idb-manager';
 import { AppConfig } from '../interfaces/app-config';
 import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
