@@ -30,6 +30,8 @@ import {
   SDK_VERSION,
   initializeApp,
   registerVersion,
+  onLog,
+  setLogLevel,
   _registerComponent,
   _DEFAULT_ENTRY_NAME
 } from '@firebase/app-exp';
@@ -65,6 +67,8 @@ export function createFirebaseNamespaceCore(
     // @ts-ignore
     app,
     registerVersion,
+    setLogLevel,
+    onLog,
     // @ts-ignore
     apps: null,
     SDK_VERSION,

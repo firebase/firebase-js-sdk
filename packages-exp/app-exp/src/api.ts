@@ -34,7 +34,7 @@ import { FirebaseAppImpl } from './firebaseApp';
 import { _apps, _components, _registerComponent } from './internal';
 import { logger } from './logger';
 import {
-  LogLevel,
+  LogLevelString,
   setLogLevel as setLogLevelImpl,
   LogCallback,
   LogOptions,
@@ -300,7 +300,7 @@ export function onLog(
  *
  * @public
  */
-export function setLogLevel(logLevel: LogLevel): void {
+export function setLogLevel(logLevel: LogLevelString): void {
   setLogLevelImpl(logLevel);
 }
 

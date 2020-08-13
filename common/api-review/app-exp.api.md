@@ -10,6 +10,7 @@ import { FirebaseAppConfig } from '@firebase/app-types-exp';
 import { FirebaseOptions } from '@firebase/app-types-exp';
 import { LogCallback } from '@firebase/logger';
 import { LogLevel } from '@firebase/logger';
+import { LogLevelString } from '@firebase/logger';
 import { LogOptions } from '@firebase/logger';
 import { Name } from '@firebase/component';
 import { Provider } from '@firebase/component';
@@ -68,7 +69,7 @@ export function _removeServiceInstance<T extends Name>(app: FirebaseApp, name: T
 export const SDK_VERSION: string;
 
 // @public
-export function setLogLevel(logLevel: LogLevel): void;
+export function setLogLevel(logLevel: LogLevelString): void;
 
 
 ```
