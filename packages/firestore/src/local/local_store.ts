@@ -277,6 +277,9 @@ export interface LocalStore {
   executeQuery(query: Query, usePreviousResults: boolean): Promise<QueryResult>;
 
   collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults>;
+
+  /** Returns the serializer associated with the local store. */
+  getSerializer(): JsonProtoSerializer;
 }
 
 /**
@@ -1083,6 +1086,10 @@ class LocalStoreImpl implements LocalStore {
       txn => garbageCollector.collect(txn, this.targetDataByTarget)
     );
   }
+
+  getSerializer(): JsonProtoSerializer {
+    return this.serializer;
+  }
 }
 
 export function newLocalStore(
@@ -1249,30 +1256,6 @@ export async function ignoreIfPrimaryLeaseLoss(
   }
 }
 
-export function getQueryDocumentMapping(
-  localStore: LocalStore,
-  documents: BundledDocuments
-): Map<string, DocumentKeySet> {
-  const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  const queryDocumentMap = new Map<string, DocumentKeySet>();
-  const bundleConverter = new BundleConverter(localStoreImpl.serializer);
-  for (const bundleDoc of documents) {
-    if (bundleDoc.metadata.queries) {
-      const documentKey = bundleConverter.toDocumentKey(
-        bundleDoc.metadata.name!
-      );
-      for (const queryName of bundleDoc.metadata.queries) {
-        const documentKeys = (
-          queryDocumentMap.get(queryName) || documentKeySet()
-        ).add(documentKey);
-        queryDocumentMap.set(queryName, documentKeys);
-      }
-    }
-  }
-
-  return queryDocumentMap;
-}
-
 /**
  * Applies the documents from a bundle to the "ground-state" (remote)
  * documents.
@@ -1324,9 +1307,6 @@ export function applyBundleDocuments(
             txn,
             changedDocs
           );
-        })
-        .next(changedDocuments => {
-          return PersistencePromise.resolve(changedDocuments);
         });
     }
   );
@@ -1417,41 +1397,36 @@ export async function saveNamedQuery(
     'readwrite',
     transaction => {
       // Update allocated target's read time, if the bundle's read time is newer.
-      let updateReadTime = PersistencePromise.resolve(false);
+      let readTimeUpdated = PersistencePromise.resolve();
       const readTime = fromVersion(query.readTime!);
       if (allocated.snapshotVersion.compareTo(readTime) < 0) {
         const newTargetData = allocated.withResumeToken(
           ByteString.EMPTY_BYTE_STRING,
           readTime
         );
-        updateReadTime = localStoreImpl.targetCache
+        readTimeUpdated = localStoreImpl.targetCache
           .updateTargetData(transaction, newTargetData)
-          .next(
-            () => true,
-            () => false
+          .next(() =>
+            localStoreImpl.targetCache.removeMatchingKeysForTargetId(
+              transaction,
+              allocated.targetId
+            )
+          )
+          .next(() =>
+            localStoreImpl.targetCache.addMatchingKeys(
+              transaction,
+              documents,
+              allocated.targetId
+            )
           );
         localStoreImpl.targetDataByTarget = localStoreImpl.targetDataByTarget.insert(
           newTargetData.targetId,
           newTargetData
         );
       }
-      return updateReadTime
-        .next(updated => {
-          if (updated) {
-            return localStoreImpl.targetCache
-              .removeMatchingKeysForTargetId(transaction, allocated.targetId)
-              .next(() =>
-                localStoreImpl.targetCache.addMatchingKeys(
-                  transaction,
-                  documents,
-                  allocated.targetId
-                )
-              );
-          }
-        })
-        .next(() =>
-          localStoreImpl.bundleCache.saveNamedQuery(transaction, query)
-        );
+      return readTimeUpdated.next(() =>
+        localStoreImpl.bundleCache.saveNamedQuery(transaction, query)
+      );
     }
   );
 }

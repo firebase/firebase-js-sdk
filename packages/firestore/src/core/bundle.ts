@@ -31,12 +31,15 @@ import { MaybeDocument, NoDocument } from '../model/document';
 import { debugAssert } from '../util/assert';
 import {
   applyBundleDocuments,
-  getQueryDocumentMapping,
   LocalStore,
   saveNamedQuery
 } from '../local/local_store';
 import { SizedBundleElement } from '../util/bundle_reader';
-import { MaybeDocumentMap } from '../model/collections';
+import {
+  documentKeySet,
+  DocumentKeySet,
+  MaybeDocumentMap
+} from '../model/collections';
 import { BundleMetadata } from '../protos/firestore_bundle_proto';
 
 /**
@@ -209,6 +212,30 @@ export class BundleLoader {
     return null;
   }
 
+  private getQueryDocumentMapping(
+    documents: BundledDocuments
+  ): Map<string, DocumentKeySet> {
+    const queryDocumentMap = new Map<string, DocumentKeySet>();
+    const bundleConverter = new BundleConverter(
+      this.localStore.getSerializer()
+    );
+    for (const bundleDoc of documents) {
+      if (bundleDoc.metadata.queries) {
+        const documentKey = bundleConverter.toDocumentKey(
+          bundleDoc.metadata.name!
+        );
+        for (const queryName of bundleDoc.metadata.queries) {
+          const documentKeys = (
+            queryDocumentMap.get(queryName) || documentKeySet()
+          ).add(documentKey);
+          queryDocumentMap.set(queryName, documentKeys);
+        }
+      }
+    }
+
+    return queryDocumentMap;
+  }
+
   /**
    * Update the progress to 'Success' and return the updated progress.
    */
@@ -224,10 +251,8 @@ export class BundleLoader {
       this.documents
     );
 
-    const queryDocumentMap = getQueryDocumentMapping(
-      this.localStore,
-      this.documents
-    );
+    const queryDocumentMap = this.getQueryDocumentMapping(this.documents);
+
     for (const q of this.queries) {
       await saveNamedQuery(this.localStore, q, queryDocumentMap.get(q.name!));
     }
