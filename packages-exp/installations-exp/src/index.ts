@@ -15,11 +15,9 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
-import {
-  _FirebaseNamespace,
-  FirebaseService
-} from '@firebase/app-types/private';
+// import firebase from '@firebase/app-exp';
+import { registerVersion, _registerComponent } from '@firebase/app-exp';
+import { _FirebaseService } from '@firebase/app-types-exp';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import {
@@ -35,10 +33,10 @@ import { FirebaseDependencies } from './interfaces/firebase-dependencies';
 
 import { name, version } from '../package.json';
 
-export function registerInstallations(instance: _FirebaseNamespace): void {
+export function registerInstallations(): void {
   const installationsName = 'installations';
 
-  instance.INTERNAL.registerComponent(
+  _registerComponent(
     new Component(
       installationsName,
       container => {
@@ -52,7 +50,7 @@ export function registerInstallations(instance: _FirebaseNamespace): void {
           platformLoggerProvider
         };
 
-        const installations: FirebaseInstallations & FirebaseService = {
+        const installations: FirebaseInstallations & _FirebaseService = {
           app,
           getId: () => getId(dependencies),
           getToken: (forceRefresh?: boolean) =>
@@ -67,10 +65,10 @@ export function registerInstallations(instance: _FirebaseNamespace): void {
     )
   );
 
-  instance.registerVersion(name, version);
+  registerVersion(name, version);
 }
 
-registerInstallations(firebase as _FirebaseNamespace);
+registerInstallations();
 
 /**
  * Define extension behavior of `registerInstallations`
