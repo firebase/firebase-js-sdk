@@ -22,7 +22,7 @@ export function getFakeApp(measurementId?: string): FirebaseApp {
   return {
     name: 'appName',
     options: {
-      apiKey: 'apiKey',
+      apiKey: 'A-fake-api-key-jklmnopqrstuvwxyz1234567',
       projectId: 'projectId',
       authDomain: 'authDomain',
       messagingSenderId: 'messagingSenderId',

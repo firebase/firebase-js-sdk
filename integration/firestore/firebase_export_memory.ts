@@ -33,7 +33,10 @@ export function newTestFirestore(
   }
   const app =
     typeof nameOrApp === 'string'
-      ? firebase.initializeApp({ apiKey: 'fake-api-key', projectId }, nameOrApp)
+      ? firebase.initializeApp(
+          { apiKey: 'A-fake-api-key-jklmnopqrstuvwxyz1234567', projectId },
+          nameOrApp
+        )
       : nameOrApp;
 
   const firestore = firebase.firestore(app);
