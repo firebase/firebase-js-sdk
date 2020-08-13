@@ -27,8 +27,8 @@
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "scripts": {
-    "build": "rollup -c && gulp firebase-js && build:compat",
-    "build:release": "rollup -c rollup.config.release.js && gulp firebase-js && build:compat",
+    "build": "rollup -c && gulp firebase-js && yarn build:compat",
+    "build:release": "rollup -c rollup.config.release.js && gulp firebase-js && yarn build:compat",
     "build:compat": "rollup -c compat/rollup.config.js",
     "dev": "rollup -c -w",
     "prepare": "yarn build:release",
