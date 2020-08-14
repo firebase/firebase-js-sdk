@@ -72,4 +72,4 @@ export type RemoteSyncer = {
    * May be called repeatedly for the same user.
    */
   handleCredentialChange?(user: User): Promise<void>;
-}
+};

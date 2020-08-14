@@ -28,10 +28,12 @@ import {
 } from '../local/local_store';
 import {
   applyActiveTargetsChange,
-  applyBatchState, applyOnlineStateChange,
+  applyBatchState,
+  applyOnlineStateChange,
   applyPrimaryState,
   applyTargetState,
-  getActiveClients, handleCredentialChange,
+  getActiveClients,
+  handleCredentialChange,
   newSyncEngine,
   SyncEngine
 } from './sync_engine';
@@ -333,12 +335,16 @@ export class OnlineComponentProvider {
     this.eventManager = this.createEventManager(cfg);
 
     this.sharedClientState.onlineStateHandler = onlineState =>
-      applyOnlineStateChange(this.syncEngine, 
+      applyOnlineStateChange(
+        this.syncEngine,
         onlineState,
         OnlineStateSource.SharedClientState
       );
 
-    this.remoteStore.remoteSyncer.handleCredentialChange = handleCredentialChange.bind(null, this.syncEngine);
+    this.remoteStore.remoteSyncer.handleCredentialChange = handleCredentialChange.bind(
+      null,
+      this.syncEngine
+    );
 
     await this.remoteStore.start();
     await this.remoteStore.applyPrimaryState(this.syncEngine.isPrimaryClient);
@@ -360,7 +366,8 @@ export class OnlineComponentProvider {
       this.datastore,
       cfg.asyncQueue,
       onlineState =>
-        applyOnlineStateChange(this.syncEngine, 
+        applyOnlineStateChange(
+          this.syncEngine,
           onlineState,
           OnlineStateSource.RemoteStore
         ),

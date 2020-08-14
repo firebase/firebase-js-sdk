@@ -37,7 +37,11 @@ import {
   eventManagerListen,
   eventManagerUnlisten
 } from './event_manager';
-import {registerPendingWritesCallback, SyncEngine, syncEngineWrite} from './sync_engine';
+import {
+  registerPendingWritesCallback,
+  SyncEngine,
+  syncEngineWrite
+} from './sync_engine';
 import { View } from './view';
 import { SharedClientState } from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
@@ -551,7 +555,9 @@ export function enqueueWrite(
   mutations: Mutation[]
 ): Promise<void> {
   const deferred = new Deferred<void>();
-  asyncQueue.enqueueAndForget(() => syncEngineWrite(syncEngine, mutations, deferred));
+  asyncQueue.enqueueAndForget(() =>
+    syncEngineWrite(syncEngine, mutations, deferred)
+  );
   return deferred.promise;
 }
 
@@ -572,8 +578,8 @@ export function enqueueWaitForPendingWrites(
   syncEngine: SyncEngine
 ): Promise<void> {
   const deferred = new Deferred<void>();
-  asyncQueue.enqueueAndForget(() => 
-    registerPendingWritesCallback( syncEngine, deferred)
+  asyncQueue.enqueueAndForget(() =>
+    registerPendingWritesCallback(syncEngine, deferred)
   );
   return deferred.promise;
 }

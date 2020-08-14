@@ -40,8 +40,10 @@ import {
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
-  activeLimboDocumentResolutions, enqueuedLimboDocumentResolutions,
-  SyncEngine, syncEngineWrite
+  activeLimboDocumentResolutions,
+  enqueuedLimboDocumentResolutions,
+  SyncEngine,
+  syncEngineWrite
 } from '../../../src/core/sync_engine';
 import { TargetId } from '../../../src/core/types';
 import {
@@ -497,8 +499,8 @@ abstract class TestRunner {
       this.sharedWrites.push(mutations);
     }
 
-    return this.queue.enqueue(() => 
-       syncEngineWrite(this.syncEngine, mutations, syncEngineCallback)
+    return this.queue.enqueue(() =>
+      syncEngineWrite(this.syncEngine, mutations, syncEngineCallback)
     );
   }
 

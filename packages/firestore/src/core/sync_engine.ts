@@ -1435,17 +1435,32 @@ export async function applyActiveTargetsChange(
   }
 }
 
-function ensureWatchCallbacks(syncEngine: SyncEngine) : SyncEngineImpl {
+function ensureWatchCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  syncEngineImpl.remoteStore.remoteSyncer.applyRemoteEvent = applyRemoteEvent.bind(null, syncEngineImpl);
-  syncEngineImpl.remoteStore.remoteSyncer.getRemoteKeysForTarget = getRemoteKeysForTarget.bind(null, syncEngineImpl);
-  syncEngineImpl.remoteStore.remoteSyncer.rejectListen = rejectListen.bind(null, syncEngineImpl);
+  syncEngineImpl.remoteStore.remoteSyncer.applyRemoteEvent = applyRemoteEvent.bind(
+    null,
+    syncEngineImpl
+  );
+  syncEngineImpl.remoteStore.remoteSyncer.getRemoteKeysForTarget = getRemoteKeysForTarget.bind(
+    null,
+    syncEngineImpl
+  );
+  syncEngineImpl.remoteStore.remoteSyncer.rejectListen = rejectListen.bind(
+    null,
+    syncEngineImpl
+  );
   return syncEngineImpl;
 }
 
-function ensureWriteCallbacks(syncEngine: SyncEngine) : SyncEngineImpl {
+function ensureWriteCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  syncEngineImpl.remoteStore.remoteSyncer.applySuccessfulWrite = applySuccessfulWrite.bind(null, syncEngineImpl);
-  syncEngineImpl.remoteStore.remoteSyncer.rejectFailedWrite = rejectFailedWrite.bind(null, syncEngineImpl);
+  syncEngineImpl.remoteStore.remoteSyncer.applySuccessfulWrite = applySuccessfulWrite.bind(
+    null,
+    syncEngineImpl
+  );
+  syncEngineImpl.remoteStore.remoteSyncer.rejectFailedWrite = rejectFailedWrite.bind(
+    null,
+    syncEngineImpl
+  );
   return syncEngineImpl;
 }

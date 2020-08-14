@@ -189,7 +189,7 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /**
-   * SyncEngine callbacks to notify of watch and write events. Individual 
+   * SyncEngine callbacks to notify of watch and write events. Individual
    * callbacks must be set before use.
    */
   remoteSyncer: RemoteSyncer = {};
@@ -313,7 +313,10 @@ export class RemoteStore implements TargetMetadataProvider {
 
   /** {@link TargetMetadataProvider.getRemoteKeysForTarget} */
   getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet {
-    debugAssert(!!this.remoteSyncer.getRemoteKeysForTarget, 'getRemoteKeysForTarget() not set');
+    debugAssert(
+      !!this.remoteSyncer.getRemoteKeysForTarget,
+      'getRemoteKeysForTarget() not set'
+    );
     return this.remoteSyncer.getRemoteKeysForTarget(targetId);
   }
 
@@ -510,7 +513,10 @@ export class RemoteStore implements TargetMetadataProvider {
    * SyncEngine.
    */
   private raiseWatchSnapshot(snapshotVersion: SnapshotVersion): Promise<void> {
-    debugAssert(!!this.remoteSyncer.applyRemoteEvent, 'applyRemoteEvent() not set');
+    debugAssert(
+      !!this.remoteSyncer.applyRemoteEvent,
+      'applyRemoteEvent() not set'
+    );
     debugAssert(
       !snapshotVersion.isEqual(SnapshotVersion.min()),
       "Can't raise event for unknown SnapshotVersion"
@@ -701,7 +707,10 @@ export class RemoteStore implements TargetMetadataProvider {
     const batch = this.writePipeline.shift()!;
     const success = MutationBatchResult.from(batch, commitVersion, results);
 
-    debugAssert(!!this.remoteSyncer.applySuccessfulWrite, 'applySuccessfulWrite() not set');
+    debugAssert(
+      !!this.remoteSyncer.applySuccessfulWrite,
+      'applySuccessfulWrite() not set'
+    );
     await this.executeWithRecovery(() =>
       this.remoteSyncer.applySuccessfulWrite!(success)
     );
@@ -747,8 +756,11 @@ export class RemoteStore implements TargetMetadataProvider {
       // down -- this was just a bad request so inhibit backoff on the next
       // restart.
       this.writeStream.inhibitBackoff();
-      
-      debugAssert(!!this.remoteSyncer.rejectFailedWrite, 'rejectFailedWrite() not set');
+
+      debugAssert(
+        !!this.remoteSyncer.rejectFailedWrite,
+        'rejectFailedWrite() not set'
+      );
       await this.executeWithRecovery(() =>
         this.remoteSyncer.rejectFailedWrite!(batch.batchId, error)
       );
@@ -782,7 +794,10 @@ export class RemoteStore implements TargetMetadataProvider {
 
     await this.disableNetworkInternal();
     this.onlineStateTracker.set(OnlineState.Unknown);
-    debugAssert(!!this.remoteSyncer.handleCredentialChange, 'handleCredentialChange() not set');
+    debugAssert(
+      !!this.remoteSyncer.handleCredentialChange,
+      'handleCredentialChange() not set'
+    );
     await this.remoteSyncer.handleCredentialChange(user);
 
     this.offlineCauses.delete(OfflineCause.CredentialChange);
