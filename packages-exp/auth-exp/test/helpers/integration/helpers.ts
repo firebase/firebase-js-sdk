@@ -16,9 +16,9 @@
  */
 
 import { deleteApp, initializeApp } from '@firebase/app-exp';
-import { initializeAuth } from '@firebase/auth-exp';
 import { Auth, User } from '@firebase/auth-types-exp';
 
+import { getAuth } from '../../../index';
 import { _generateEventId } from '../../../src/core/util/event_id';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -44,7 +44,7 @@ export function getTestInstance(): Auth {
   });
 
   const createdUsers: User[] = [];
-  const auth = initializeAuth(app) as IntegrationTestAuth;
+  const auth = getAuth(app) as IntegrationTestAuth;
   auth.settings.appVerificationDisabledForTesting = true;
 
   auth.onAuthStateChanged(user => {

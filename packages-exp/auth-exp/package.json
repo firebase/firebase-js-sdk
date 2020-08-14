@@ -39,6 +39,7 @@
     "@firebase/app-types-exp": "0.x",
     "@firebase/auth-types-exp": "0.x",
     "@firebase/auth-exp": "0.x",
+    "@firebase/component": "0.x",
     "@firebase/util": "0.x"
   },
   "dependencies": {

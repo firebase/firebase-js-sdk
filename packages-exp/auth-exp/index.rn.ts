@@ -22,12 +22,15 @@
  * just use index.ts
  */
 
-import { registerVersion } from '@firebase/app-exp';
 import { AsyncStorage } from 'react-native';
-import { name, version } from './package.json';
-import { _initializeAuthForClientPlatform } from './src/core/auth/auth_impl';
-import { getReactNativePersistence } from './src/platform_react_native/persistence/react_native';
+
+import { FirebaseApp } from '@firebase/app-types-exp';
+import { Auth } from '@firebase/auth-types-exp';
+
+import { initializeAuth } from './src';
+import { registerAuth } from './src/core/auth/register';
 import { ClientPlatform } from './src/core/util/version';
+import { getReactNativePersistence } from './src/platform_react_native/persistence/react_native';
 
 // Core functionality shared by all clients
 export * from './src';
@@ -36,8 +39,10 @@ export const reactNativeLocalPersistence = getReactNativePersistence(
   AsyncStorage
 );
 
-export const initializeAuth = _initializeAuthForClientPlatform(
-  ClientPlatform.REACT_NATIVE
-);
+export function getAuth(app?: FirebaseApp): Auth {
+  return initializeAuth(app, {
+    persistence: reactNativeLocalPersistence,
+  });
+}
 
-registerVersion(name, version, 'rn');
+registerAuth(ClientPlatform.REACT_NATIVE);

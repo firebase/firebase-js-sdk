@@ -24,11 +24,13 @@
 
 import * as fetchImpl from 'node-fetch';
 
-import { registerVersion } from '@firebase/app-exp';
-import { name, version } from './package.json';
-import { _initializeAuthForClientPlatform } from './src/core/auth/auth_impl';
-import { ClientPlatform } from './src/core/util/version';
+import { FirebaseApp } from '@firebase/app-types-exp';
+import { Auth } from '@firebase/auth-types-exp';
+
+import { initializeAuth } from './src';
+import { registerAuth } from './src/core/auth/register';
 import { FetchProvider } from './src/core/util/fetch_provider';
+import { ClientPlatform } from './src/core/util/version';
 
 // Initialize the fetch polyfill, the types are slightly off so just cast and hope for the best
 FetchProvider.initialize(
@@ -40,8 +42,8 @@ FetchProvider.initialize(
 // Core functionality shared by all clients
 export * from './src';
 
-export const initializeAuth = _initializeAuthForClientPlatform(
-  ClientPlatform.NODE
-);
+export function getAuth(app?: FirebaseApp): Auth {
+  return initializeAuth(app);
+}
 
-registerVersion(name, version, 'node');
+registerAuth(ClientPlatform.NODE);

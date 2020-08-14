@@ -33,6 +33,7 @@ import {
   fetchSignInMethodsForEmail,
   indexedDBLocalPersistence,
   initializeAuth,
+  getAuth,
   inMemoryPersistence,
   isSignInWithEmailLink,
   linkWithCredential,
@@ -1640,10 +1641,7 @@ function onApplyAuthSettingsChange() {
 function initApp() {
   log('Initializing app...');
   app = initializeApp(config);
-  auth = initializeAuth(app, {
-    persistence: browserSessionPersistence,
-    popupRedirectResolver: browserPopupRedirectResolver
-  });
+  auth = getAuth(app);
 
   tempApp = initializeApp(
     {

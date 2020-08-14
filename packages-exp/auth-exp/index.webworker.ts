@@ -15,16 +15,10 @@
  * limitations under the License.
  */
 
-import { registerVersion } from '@firebase/app-exp';
-import { name, version } from './package.json';
-import { _initializeAuthForClientPlatform } from './src/core/auth/auth_impl';
+import { registerAuth } from './src/core/auth/register';
 import { ClientPlatform } from './src/core/util/version';
 
 // Core functionality shared by all clients
 export * from './src';
 
-export const initializeAuth = _initializeAuthForClientPlatform(
-  ClientPlatform.WORKER
-);
-
-registerVersion(name, version, 'webworker');
+registerAuth(ClientPlatform.WORKER);
