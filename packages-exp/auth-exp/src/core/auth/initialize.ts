@@ -34,7 +34,10 @@ export function initializeAuth(
   return auth;
 }
 
-export function _initializeAuthInstance(auth: AuthImpl, deps?: Dependencies): void {
+export function _initializeAuthInstance(
+  auth: AuthImpl,
+  deps?: Dependencies
+): void {
   const persistence = deps?.persistence || [];
   const hierarchy = (Array.isArray(persistence)
     ? persistence

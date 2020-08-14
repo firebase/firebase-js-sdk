@@ -39,10 +39,12 @@ export function getAuth(app = getApp()): Auth {
   // This promise is intended to float; auth initialization happens in the
   // background, meanwhile the auth object may be used by the app.
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  _getInstance<Persistence>(indexedDBLocalPersistence).isAvailable().then(avail => {
-    const deps = avail ? {persistence: indexedDBLocalPersistence} : {};
-    _initializeAuthInstance(auth, deps);
-  });
+  _getInstance<Persistence>(indexedDBLocalPersistence)
+    .isAvailable()
+    .then(avail => {
+      const deps = avail ? { persistence: indexedDBLocalPersistence } : {};
+      _initializeAuthInstance(auth, deps);
+    });
 
   return auth;
 }

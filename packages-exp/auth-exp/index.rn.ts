@@ -41,7 +41,7 @@ export const reactNativeLocalPersistence = getReactNativePersistence(
 
 export function getAuth(app?: FirebaseApp): Auth {
   return initializeAuth(app, {
-    persistence: reactNativeLocalPersistence,
+    persistence: reactNativeLocalPersistence
   });
 }
 

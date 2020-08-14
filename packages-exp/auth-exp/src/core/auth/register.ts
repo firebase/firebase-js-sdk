@@ -24,10 +24,15 @@ import { AuthErrorCode } from '../errors';
 import { assert } from '../util/assert';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import {
-    AuthImpl, DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST
+  AuthImpl,
+  DEFAULT_API_HOST,
+  DEFAULT_API_SCHEME,
+  DEFAULT_TOKEN_API_HOST
 } from './auth_impl';
 
-function getVersionForPlatform(clientPlatform: ClientPlatform): string|undefined {
+function getVersionForPlatform(
+  clientPlatform: ClientPlatform
+): string | undefined {
   switch (clientPlatform) {
     case ClientPlatform.NODE:
       return 'node';
@@ -46,7 +51,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
       'auth-exp',
       container => {
         const app = container.getProvider('app-exp').getImmediate()!;
-        const {apiKey, authDomain} = app.options;
+        const { apiKey, authDomain } = app.options;
         return (app => {
           assert(apiKey, AuthErrorCode.INVALID_API_KEY, { appName: app.name });
           const config: externs.Config = {
@@ -58,9 +63,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
             sdkClientVersion: _getClientVersion(clientPlatform)
           };
           return new AuthImpl(app.name, config);
-        })(
-          app,
-        );
+        })(app);
       },
       ComponentType.PUBLIC
     )

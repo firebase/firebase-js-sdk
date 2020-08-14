@@ -16,8 +16,14 @@
  */
 import { initializeApp } from '@firebase/app-exp';
 import {
-    createUserWithEmailAndPassword, fetchSignInMethodsForEmail, getAuth, GoogleAuthProvider,
-    signInAnonymously, signInWithCredential, signInWithEmailAndPassword, updateProfile
+  createUserWithEmailAndPassword,
+  fetchSignInMethodsForEmail,
+  getAuth,
+  GoogleAuthProvider,
+  signInAnonymously,
+  signInWithCredential,
+  signInWithEmailAndPassword,
+  updateProfile
 } from '@firebase/auth-exp';
 import { OAuthCredential, User } from '@firebase/auth-types-exp';
 

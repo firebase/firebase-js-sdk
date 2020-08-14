@@ -17,7 +17,13 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import {
-    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
+  CompleteFn,
+  createSubscribe,
+  ErrorFn,
+  NextFn,
+  Observer,
+  Subscribe,
+  Unsubscribe
 } from '@firebase/util';
 
 import { Auth, AuthCore } from '../../model/auth';
@@ -26,7 +32,8 @@ import { User, UserParameters } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
 import {
-    _REDIRECT_USER_KEY_NAME, PersistenceUserManager
+  _REDIRECT_USER_KEY_NAME,
+  PersistenceUserManager
 } from '../persistence/persistence_user_manager';
 import { _reloadWithoutSaving } from '../user/reload';
 import { UserImpl } from '../user/user_impl';

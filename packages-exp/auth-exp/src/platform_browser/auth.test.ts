@@ -25,7 +25,11 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { testAuth, testUser } from '../../test/helpers/mock_auth';
 import {
-    _castAuth, AuthImpl, DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST
+  _castAuth,
+  AuthImpl,
+  DEFAULT_API_HOST,
+  DEFAULT_API_SCHEME,
+  DEFAULT_TOKEN_API_HOST
 } from '../core/auth/auth_impl';
 import { _initializeAuthInstance } from '../core/auth/initialize';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
@@ -36,7 +40,10 @@ import * as reload from '../core/user/reload';
 import { _getInstance } from '../core/util/instantiator';
 import { _getClientVersion, ClientPlatform } from '../core/util/version';
 import { Auth } from '../model/auth';
-import { browserLocalPersistence, browserSessionPersistence } from './persistence/browser';
+import {
+  browserLocalPersistence,
+  browserSessionPersistence
+} from './persistence/browser';
 import { browserPopupRedirectResolver } from './popup_redirect';
 
 use(sinonChai);
@@ -62,10 +69,10 @@ describe('core/auth/auth_impl', () => {
       apiHost: DEFAULT_API_HOST,
       apiScheme: DEFAULT_API_SCHEME,
       tokenApiHost: DEFAULT_TOKEN_API_HOST,
-      sdkClientVersion: 'v',
+      sdkClientVersion: 'v'
     });
 
-    _initializeAuthInstance(authImpl, {persistence: inMemoryPersistence});
+    _initializeAuthInstance(authImpl, { persistence: inMemoryPersistence });
     auth = authImpl;
   });
 
@@ -116,9 +123,9 @@ describe('core/auth/initializeAuth', () => {
         apiScheme: DEFAULT_API_SCHEME,
         tokenApiHost: DEFAULT_TOKEN_API_HOST,
         authDomain: FAKE_APP.options.authDomain,
-        sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER),
+        sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
       });
-  
+
       _initializeAuthInstance(auth, {
         persistence,
         popupRedirectResolver
