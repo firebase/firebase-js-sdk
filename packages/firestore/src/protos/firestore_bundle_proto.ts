@@ -54,6 +54,9 @@ export interface BundledDocumentMetadata {
 
   /** BundledDocumentMetadata exists */
   exists?: boolean | null;
+
+  /** The names of the queries in this bundle that this document matches to. */
+  queries?: string[];
 }
 
 /** Properties of a BundleMetadata. */

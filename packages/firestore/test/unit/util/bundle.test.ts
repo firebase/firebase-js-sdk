@@ -40,6 +40,7 @@ import {
   doc2
 } from './bundle_data';
 import { newTextEncoder } from '../../../src/platform/serializer';
+import { JSON_SERIALIZER } from '../local/persistence_test_helpers';
 
 use(chaiAsPromised);
 
@@ -92,7 +93,10 @@ describe('Bundle ', () => {
 
 function genericBundleReadingTests(bytesPerRead: number): void {
   function bundleFromString(s: string): BundleReader {
-    return new BundleReader(byteStreamReaderFromString(s, bytesPerRead));
+    return new BundleReader(
+      byteStreamReaderFromString(s, bytesPerRead),
+      JSON_SERIALIZER
+    );
   }
 
   async function getAllElements(

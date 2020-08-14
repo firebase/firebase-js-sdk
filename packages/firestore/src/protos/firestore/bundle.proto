@@ -79,6 +79,9 @@ message BundledDocumentMetadata {
 
   // Whether the document exists.
   bool exists = 3;
+
+  // The names of the queries in this bundle that this document matches to.
+  repeated string queries = 4;
 }
 
 // Metadata describing the bundle file/stream.

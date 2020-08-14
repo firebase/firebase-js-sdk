@@ -35,7 +35,11 @@ import {
   saveNamedQuery
 } from '../local/local_store';
 import { SizedBundleElement } from '../util/bundle_reader';
-import { MaybeDocumentMap } from '../model/collections';
+import {
+  documentKeySet,
+  DocumentKeySet,
+  MaybeDocumentMap
+} from '../model/collections';
 import { BundleMetadata } from '../protos/firestore_bundle_proto';
 
 /**
@@ -79,7 +83,7 @@ export type BundledDocuments = BundledDocument[];
  * Helper to convert objects from bundles to model objects in the SDK.
  */
 export class BundleConverter {
-  constructor(private serializer: JsonProtoSerializer) {}
+  constructor(private readonly serializer: JsonProtoSerializer) {}
 
   toDocumentKey(name: string): DocumentKey {
     return fromName(this.serializer, name);
@@ -161,7 +165,8 @@ export class BundleLoader {
 
   constructor(
     private metadata: bundleProto.BundleMetadata,
-    private localStore: LocalStore
+    private localStore: LocalStore,
+    private serializer: JsonProtoSerializer
   ) {
     this.progress = bundleInitialProgress(metadata);
   }
@@ -208,6 +213,28 @@ export class BundleLoader {
     return null;
   }
 
+  private getQueryDocumentMapping(
+    documents: BundledDocuments
+  ): Map<string, DocumentKeySet> {
+    const queryDocumentMap = new Map<string, DocumentKeySet>();
+    const bundleConverter = new BundleConverter(this.serializer);
+    for (const bundleDoc of documents) {
+      if (bundleDoc.metadata.queries) {
+        const documentKey = bundleConverter.toDocumentKey(
+          bundleDoc.metadata.name!
+        );
+        for (const queryName of bundleDoc.metadata.queries) {
+          const documentKeys = (
+            queryDocumentMap.get(queryName) || documentKeySet()
+          ).add(documentKey);
+          queryDocumentMap.set(queryName, documentKeys);
+        }
+      }
+    }
+
+    return queryDocumentMap;
+  }
+
   /**
    * Update the progress to 'Success' and return the updated progress.
    */
@@ -218,16 +245,18 @@ export class BundleLoader {
       'Bundled documents ends with a document metadata and missing document.'
     );
 
-    for (const q of this.queries) {
-      await saveNamedQuery(this.localStore, q);
-    }
-
-    const changedDocs = await applyBundleDocuments(
+    const changedDocuments = await applyBundleDocuments(
       this.localStore,
       this.documents
     );
 
+    const queryDocumentMap = this.getQueryDocumentMapping(this.documents);
+
+    for (const q of this.queries) {
+      await saveNamedQuery(this.localStore, q, queryDocumentMap.get(q.name!));
+    }
+
     this.progress.taskState = 'Success';
-    return new BundleLoadResult({ ...this.progress }, changedDocs);
+    return new BundleLoadResult({ ...this.progress }, changedDocuments);
   }
 }

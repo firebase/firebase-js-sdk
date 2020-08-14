@@ -477,7 +477,8 @@ abstract class TestRunner {
 
   private async doLoadBundle(bundle: string): Promise<void> {
     const reader = new BundleReader(
-      toByteStreamReader(newTextEncoder().encode(bundle))
+      toByteStreamReader(newTextEncoder().encode(bundle)),
+      this.serializer
     );
     const task = new LoadBundleTask();
     return this.queue.enqueue(async () => {

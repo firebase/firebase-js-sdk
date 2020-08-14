@@ -46,7 +46,6 @@ import {
   indexedDbStoragePrefix
 } from '../../../src/local/indexeddb_persistence';
 import { LoadBundleTask } from '../../../src/api/bundle';
-import { Query } from '../../../lite';
 import {
   getLocalStore,
   getPersistence,
@@ -332,9 +331,17 @@ export function loadBundle(
   const firestoreImpl = cast(firestore, Firestore);
   const resultTask = new LoadBundleTask();
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  getSyncEngine(firestoreImpl).then(syncEngine =>
-    enqueueLoadBundle(firestoreImpl._queue, syncEngine, bundleData, resultTask)
-  );
+  getSyncEngine(firestoreImpl).then(async syncEngine => {
+    const databaseId = (await firestoreImpl._getConfiguration()).databaseInfo
+      .databaseId;
+    enqueueLoadBundle(
+      databaseId,
+      firestoreImpl._queue,
+      syncEngine,
+      bundleData,
+      resultTask
+    );
+  });
 
   return resultTask;
 }

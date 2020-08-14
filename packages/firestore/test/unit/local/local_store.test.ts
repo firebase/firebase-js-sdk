@@ -48,6 +48,7 @@ import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
 import { SimpleQueryEngine } from '../../../src/local/simple_query_engine';
 import {
+  DocumentKeySet,
   documentKeySet,
   MaybeDocumentMap
 } from '../../../src/model/collections';
@@ -91,6 +92,7 @@ import {
   query,
   setMutation,
   TestBundledDocuments,
+  TestNamedQuery,
   TestSnapshotVersion,
   transformMutation,
   unknownDoc,
@@ -137,7 +139,7 @@ class LocalStoreTester {
       | RemoteEvent
       | LocalViewChanges
       | TestBundledDocuments
-      | bundleProto.NamedQuery
+      | TestNamedQuery
   ): LocalStoreTester {
     if (op instanceof Mutation) {
       return this.afterMutations([op]);
@@ -188,17 +190,21 @@ class LocalStoreTester {
 
     this.promiseChain = this.promiseChain
       .then(() => applyBundleDocuments(this.localStore, documents))
-      .then((result: MaybeDocumentMap) => {
+      .then(result => {
         this.lastChanges = result;
       });
     return this;
   }
 
-  afterNamedQuery(namedQuery: bundleProto.NamedQuery): LocalStoreTester {
+  afterNamedQuery(testQuery: TestNamedQuery): LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain.then(() =>
-      saveNamedQuery(this.localStore, namedQuery)
+      saveNamedQuery(
+        this.localStore,
+        testQuery.namedQuery,
+        testQuery.matchingDocuments
+      )
     );
     return this;
   }
@@ -429,6 +435,29 @@ class LocalStoreTester {
         expect(actual).to.equal(expectedId);
       });
     });
+    return this;
+  }
+
+  toHaveQueryDocumentMapping(
+    persistence: Persistence,
+    targetId: TargetId,
+    expectedKeys: DocumentKeySet
+  ): LocalStoreTester {
+    this.promiseChain = this.promiseChain.then(() => {
+      return persistence.runTransaction(
+        'toHaveQueryDocumentMapping',
+        'readonly',
+        transaction => {
+          return persistence
+            .getTargetCache()
+            .getMatchingKeysForTargetId(transaction, targetId)
+            .next(matchedKeys => {
+              expect(matchedKeys.isEqual(expectedKeys)).to.be.true;
+            });
+        }
+      );
+    });
+
     return this;
   }
 
@@ -1703,6 +1732,68 @@ function genericLocalStoreTests(
         query: query('coll'),
         readTime: SnapshotVersion.min()
       })
+      .finish();
+  });
+
+  it('loading named queries allocates targets and updates target document mapping', async () => {
+    const expectedQueryDocumentMap = new Map([
+      ['query-1', documentKeySet(key('foo1/bar'))],
+      ['query-2', documentKeySet(key('foo2/bar'))]
+    ]);
+    const version1 = SnapshotVersion.fromTimestamp(Timestamp.fromMillis(10000));
+    const version2 = SnapshotVersion.fromTimestamp(Timestamp.fromMillis(20000));
+
+    return expectLocalStore()
+      .after(
+        bundledDocuments(
+          [doc('foo1/bar', 1, { sum: 1337 }), doc('foo2/bar', 2, { sum: 42 })],
+          [['query-1'], ['query-2']]
+        )
+      )
+      .toReturnChanged(
+        doc('foo1/bar', 1, { sum: 1337 }),
+        doc('foo2/bar', 2, { sum: 42 })
+      )
+      .toContain(doc('foo1/bar', 1, { sum: 1337 }))
+      .toContain(doc('foo2/bar', 2, { sum: 42 }))
+      .after(
+        namedQuery(
+          'query-1',
+          query('foo1'),
+          /* limitType */ 'FIRST',
+          version1,
+          expectedQueryDocumentMap.get('query-1')
+        )
+      )
+      .toHaveNamedQuery({
+        name: 'query-1',
+        query: query('foo1'),
+        readTime: version1
+      })
+      .toHaveQueryDocumentMapping(
+        persistence,
+        /*targetId*/ 2,
+        /*expectedKeys*/ documentKeySet(key('foo1/bar'))
+      )
+      .after(
+        namedQuery(
+          'query-2',
+          query('foo2'),
+          /* limitType */ 'FIRST',
+          version2,
+          expectedQueryDocumentMap.get('query-2')
+        )
+      )
+      .toHaveNamedQuery({
+        name: 'query-2',
+        query: query('foo2'),
+        readTime: version2
+      })
+      .toHaveQueryDocumentMapping(
+        persistence,
+        /*targetId*/ 4,
+        /*expectedKeys*/ documentKeySet(key('foo2/bar'))
+      )
       .finish();
   });
 

@@ -23,6 +23,7 @@ import { Deferred } from './promise';
 import { debugAssert } from './assert';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newTextDecoder } from '../platform/serializer';
+import { JsonProtoSerializer } from '../remote/serializer';
 
 /**
  * A complete element in the bundle stream, together with the byte length it
@@ -70,13 +71,20 @@ export class BundleReader {
   /** The decoder used to parse binary data into strings. */
   private textDecoder: TextDecoder;
 
-  static fromBundleSource(source: BundleSource): BundleReader {
-    return new BundleReader(toByteStreamReader(source, BYTES_PER_READ));
+  static fromBundleSource(
+    source: BundleSource,
+    serializer: JsonProtoSerializer
+  ): BundleReader {
+    return new BundleReader(
+      toByteStreamReader(source, BYTES_PER_READ),
+      serializer
+    );
   }
 
   constructor(
     /** The reader to read from underlying binary bundle data source. */
-    private reader: ReadableStreamReader<Uint8Array>
+    private reader: ReadableStreamReader<Uint8Array>,
+    readonly serializer: JsonProtoSerializer
   ) {
     this.textDecoder = newTextDecoder();
     // Read the metadata (which is the first element).

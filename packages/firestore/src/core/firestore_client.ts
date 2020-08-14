@@ -55,9 +55,10 @@ import { TransactionRunner } from './transaction_runner';
 import { Datastore } from '../remote/datastore';
 import { BundleReader } from '../util/bundle_reader';
 import { LoadBundleTask } from '../api/bundle';
-import { newTextEncoder } from '../platform/serializer';
+import { newSerializer, newTextEncoder } from '../platform/serializer';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { NamedQuery } from './bundle';
+import { JsonProtoSerializer } from '../remote/serializer';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -537,7 +538,10 @@ export class FirestoreClient {
   ): void {
     this.verifyNotTerminated();
 
-    const reader = createBundleReader(data);
+    const reader = createBundleReader(
+      data,
+      newSerializer(this.databaseInfo.databaseId)
+    );
     this.asyncQueue.enqueueAndForget(async () => {
       loadBundle(this.syncEngine, reader, resultTask);
       return resultTask.catch(e => {
@@ -798,7 +802,8 @@ export function enqueueExecuteQueryViaSnapshotListener(
 }
 
 function createBundleReader(
-  data: ReadableStream<Uint8Array> | ArrayBuffer | string
+  data: ReadableStream<Uint8Array> | ArrayBuffer | string,
+  serializer: JsonProtoSerializer
 ): BundleReader {
   let content: ReadableStream<Uint8Array> | ArrayBuffer;
   if (typeof data === 'string') {
@@ -806,16 +811,17 @@ function createBundleReader(
   } else {
     content = data;
   }
-  return new BundleReader(toByteStreamReader(content));
+  return new BundleReader(toByteStreamReader(content), serializer);
 }
 
 export function enqueueLoadBundle(
+  databaseId: DatabaseId,
   asyncQueue: AsyncQueue,
   syncEngine: SyncEngine,
   data: ReadableStream<Uint8Array> | ArrayBuffer | string,
   resultTask: LoadBundleTask
 ): void {
-  const reader = createBundleReader(data);
+  const reader = createBundleReader(data, newSerializer(databaseId));
   asyncQueue.enqueueAndForget(async () => {
     loadBundle(syncEngine, reader, resultTask);
     return resultTask.catch(e => {
