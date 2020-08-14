@@ -17,7 +17,11 @@
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { OnlineState, TargetId } from '../core/types';
-import { LocalStore } from '../local/local_store';
+import {
+  LocalStore,
+  getLastRemoteSnapshotVersion,
+  nextMutationBatch
+} from '../local/local_store';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import {
@@ -442,7 +446,9 @@ export class RemoteStore implements TargetMetadataProvider {
 
     if (!snapshotVersion.isEqual(SnapshotVersion.min())) {
       try {
-        const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
+        const lastRemoteSnapshotVersion = await getLastRemoteSnapshotVersion(
+          this.localStore
+        );
         if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
           // We have received a target change with a global snapshot if the snapshot
           // version is not equal to SnapshotVersion.min().
@@ -483,7 +489,7 @@ export class RemoteStore implements TargetMetadataProvider {
         // Use a simple read operation to determine if IndexedDB recovered.
         // Ideally, we would expose a health check directly on SimpleDb, but
         // RemoteStore only has access to persistence through LocalStore.
-        op = () => this.localStore.getLastRemoteSnapshotVersion();
+        op = () => getLastRemoteSnapshotVersion(this.localStore);
       }
 
       // Probe IndexedDB periodically and re-enable network
@@ -612,7 +618,8 @@ export class RemoteStore implements TargetMetadataProvider {
 
     while (this.canAddToWritePipeline()) {
       try {
-        const batch = await this.localStore.nextMutationBatch(
+        const batch = await nextMutationBatch(
+          this.localStore,
           lastBatchIdRetrieved
         );
 

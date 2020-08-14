@@ -23,7 +23,17 @@ import {
   LocalStore,
   getActiveClientsFromPersistence,
   lookupMutationDocuments,
-  removeCachedMutationBatchMetadata
+  removeCachedMutationBatchMetadata,
+  allocateTarget,
+  executeQuery,
+  releaseTarget,
+  applyRemoteEventToLocalCache,
+  rejectBatch,
+  handleUserChange,
+  localWrite,
+  acknowledgeBatch,
+  getHighestUnacknowledgedBatchId,
+  notifyLocalViewChanges
 } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
@@ -46,7 +56,6 @@ import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
-
 import { ClientId, SharedClientState } from '../local/shared_client_state';
 import { QueryTargetState } from '../local/shared_client_state_syncer';
 import { SortedSet } from '../util/sorted_set';
@@ -169,9 +178,9 @@ export interface SyncEngine {
 
 /**
  * An implementation of `SyncEngine` coordinating with other parts of SDK.
- * 
+ *
  * The parts of SyncEngine that act as a callback to RemoteStore need to be
- * registered individually. This is done in `syncEngineWrite()` and 
+ * registered individually. This is done in `syncEngineWrite()` and
  * `syncEngineListen()` (as well as `applyPrimaryState()`) as these methods
  * serve as entry points to RemoteStore's functionality.
  *
@@ -313,7 +322,8 @@ export async function syncEngineListen(
     syncEngineImpl.sharedClientState.addLocalQueryTarget(targetId);
     viewSnapshot = queryView.view.computeInitialSnapshot();
   } else {
-    const targetData = await syncEngineImpl.localStore.allocateTarget(
+    const targetData = await allocateTarget(
+      syncEngineImpl.localStore,
       queryToTarget(query)
     );
 
@@ -351,7 +361,8 @@ async function initializeViewAndComputeSnapshot(
   syncEngineImpl.applyDocChanges = (queryView, changes, remoteEvent) =>
     applyDocChanges(syncEngineImpl, queryView, changes, remoteEvent);
 
-  const queryResult = await syncEngineImpl.localStore.executeQuery(
+  const queryResult = await executeQuery(
+    syncEngineImpl.localStore,
     query,
     /* usePreviousResults= */ true
   );
@@ -421,8 +432,11 @@ export async function syncEngineUnlisten(
     );
 
     if (!targetRemainsActive) {
-      await syncEngineImpl.localStore
-        .releaseTarget(queryView.targetId, /*keepPersistedTargetData=*/ false)
+      await releaseTarget(
+        syncEngineImpl.localStore,
+        queryView.targetId,
+        /*keepPersistedTargetData=*/ false
+      )
         .then(() => {
           syncEngineImpl.sharedClientState.clearQueryState(queryView.targetId);
           syncEngineImpl.remoteStore.unlisten(queryView.targetId);
@@ -432,7 +446,8 @@ export async function syncEngineUnlisten(
     }
   } else {
     removeAndCleanupTarget(syncEngineImpl, queryView.targetId);
-    await syncEngineImpl.localStore.releaseTarget(
+    await releaseTarget(
+      syncEngineImpl.localStore,
       queryView.targetId,
       /*keepPersistedTargetData=*/ true
     );
@@ -458,7 +473,7 @@ export async function syncEngineWrite(
   syncEngineImpl.assertSubscribed('write()');
 
   try {
-    const result = await syncEngineImpl.localStore.localWrite(batch);
+    const result = await localWrite(syncEngineImpl.localStore, batch);
     syncEngineImpl.sharedClientState.addPendingMutation(result.batchId);
     addMutationCallback(syncEngineImpl, result.batchId, userCallback);
     await emitNewSnapsAndNotifyLocalStore(syncEngineImpl, result.changes);
@@ -483,7 +498,8 @@ export async function applyRemoteEvent(
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   syncEngineImpl.assertSubscribed('applyRemoteEvent()');
   try {
-    const changes = await syncEngineImpl.localStore.applyRemoteEvent(
+    const changes = await applyRemoteEventToLocalCache(
+      syncEngineImpl.localStore,
       remoteEvent
     );
     // Update `receivedDocument` as appropriate for any limbo targets.
@@ -629,8 +645,11 @@ export async function rejectListen(
     syncEngineImpl.activeLimboResolutionsByTarget.delete(targetId);
     pumpEnqueuedLimboResolutions(syncEngineImpl);
   } else {
-    await syncEngineImpl.localStore
-      .releaseTarget(targetId, /* keepPersistedTargetData */ false)
+    await releaseTarget(
+      syncEngineImpl.localStore,
+      targetId,
+      /* keepPersistedTargetData */ false
+    )
       .then(() => removeAndCleanupTarget(syncEngineImpl, targetId, err))
       .catch(ignoreIfPrimaryLeaseLoss);
   }
@@ -646,7 +665,8 @@ export async function applySuccessfulWrite(
   const batchId = mutationBatchResult.batch.batchId;
 
   try {
-    const changes = await syncEngineImpl.localStore.acknowledgeBatch(
+    const changes = await acknowledgeBatch(
+      syncEngineImpl.localStore,
       mutationBatchResult
     );
 
@@ -676,7 +696,7 @@ export async function rejectFailedWrite(
   syncEngineImpl.assertSubscribed('rejectFailedWrite()');
 
   try {
-    const changes = await syncEngineImpl.localStore.rejectBatch(batchId);
+    const changes = await rejectBatch(syncEngineImpl.localStore, batchId);
 
     // The local store may or may not be able to apply the write result and
     // raise events immediately (depending on whether the watcher is caught up),
@@ -714,7 +734,9 @@ export async function registerPendingWritesCallback(
   }
 
   try {
-    const highestBatchId = await syncEngineImpl.localStore.getHighestUnacknowledgedBatchId();
+    const highestBatchId = await getHighestUnacknowledgedBatchId(
+      syncEngineImpl.localStore
+    );
     if (highestBatchId === BATCHID_UNKNOWN) {
       // Trigger the callback right away if there is no pending writes at the moment.
       callback.resolve();
@@ -1004,7 +1026,7 @@ export async function emitNewSnapsAndNotifyLocalStore(
 
   await Promise.all(queriesProcessed);
   syncEngineImpl.syncEngineListener!.onWatchChange(newSnaps);
-  await syncEngineImpl.localStore.notifyLocalViewChanges(docChangesInAllViews);
+  await notifyLocalViewChanges(syncEngineImpl.localStore, docChangesInAllViews);
 }
 
 async function applyDocChanges(
@@ -1018,11 +1040,13 @@ async function applyDocChanges(
     // The query has a limit and some docs were removed, so we need
     // to re-run the query against the local store to make sure we
     // didn't lose any good docs that had been past the limit.
-    viewDocChanges = await syncEngineImpl.localStore
-      .executeQuery(queryView.query, /* usePreviousResults= */ false)
-      .then(({ documents }) => {
-        return queryView.view.computeDocChanges(documents, viewDocChanges);
-      });
+    viewDocChanges = await executeQuery(
+      syncEngineImpl.localStore,
+      queryView.query,
+      /* usePreviousResults= */ false
+    ).then(({ documents }) => {
+      return queryView.view.computeDocChanges(documents, viewDocChanges);
+    });
   }
 
   const targetChange =
@@ -1050,7 +1074,7 @@ export async function handleCredentialChange(
   if (userChanged) {
     logDebug(LOG_TAG, 'User change. New user:', user.toKey());
 
-    const result = await syncEngineImpl.localStore.handleUserChange(user);
+    const result = await handleUserChange(syncEngineImpl.localStore, user);
     syncEngineImpl.currentUser = user;
 
     // Fails tasks waiting for pending writes requested by previous user.
@@ -1108,7 +1132,8 @@ async function synchronizeViewAndComputeSnapshot(
   queryView: QueryView
 ): Promise<ViewChange> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  const queryResult = await syncEngineImpl.localStore.executeQuery(
+  const queryResult = await executeQuery(
+    syncEngineImpl.localStore,
     queryView.query,
     /* usePreviousResults= */ true
   );
@@ -1206,7 +1231,8 @@ export async function applyPrimaryState(
       } else {
         p = p.then(() => {
           removeAndCleanupTarget(syncEngineImpl, targetId);
-          return syncEngineImpl.localStore.releaseTarget(
+          return releaseTarget(
+            syncEngineImpl.localStore,
             targetId,
             /*keepPersistedTargetData=*/ true
           );
@@ -1271,7 +1297,8 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
       // from LocalStore (as the resume token and the snapshot version
       // might have changed) and reconcile their views with the persisted
       // state (the list of syncedDocuments may have gotten out of sync).
-      targetData = await syncEngineImpl.localStore.allocateTarget(
+      targetData = await allocateTarget(
+        syncEngineImpl.localStore,
         queryToTarget(queries[0])
       );
 
@@ -1299,7 +1326,7 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
       // allocate the target in LocalStore and initialize a new View.
       const target = await getCachedTarget(syncEngineImpl.localStore, targetId);
       debugAssert(!!target, `Target for id ${targetId} not found`);
-      targetData = await syncEngineImpl.localStore.allocateTarget(target);
+      targetData = await allocateTarget(syncEngineImpl.localStore, target);
       await initializeViewAndComputeSnapshot(
         syncEngineImpl,
         synthesizeTargetToQuery(target!),
@@ -1379,7 +1406,8 @@ export async function applyTargetState(
         break;
       }
       case 'rejected': {
-        await syncEngineImpl.localStore.releaseTarget(
+        await releaseTarget(
+          syncEngineImpl.localStore,
           targetId,
           /* keepPersistedTargetData */ true
         );
@@ -1412,7 +1440,7 @@ export async function applyActiveTargetsChange(
 
     const target = await getCachedTarget(syncEngineImpl.localStore, targetId);
     debugAssert(!!target, `Query data for active target ${targetId} not found`);
-    const targetData = await syncEngineImpl.localStore.allocateTarget(target);
+    const targetData = await allocateTarget(syncEngineImpl.localStore, target);
     await initializeViewAndComputeSnapshot(
       syncEngineImpl,
       synthesizeTargetToQuery(target),
@@ -1430,8 +1458,11 @@ export async function applyActiveTargetsChange(
     }
 
     // Release queries that are still active.
-    await syncEngineImpl.localStore
-      .releaseTarget(targetId, /* keepPersistedTargetData */ false)
+    await releaseTarget(
+      syncEngineImpl.localStore,
+      targetId,
+      /* keepPersistedTargetData */ false
+    )
       .then(() => {
         syncEngineImpl.remoteStore.unlisten(targetId);
         removeAndCleanupTarget(syncEngineImpl, targetId);

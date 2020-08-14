@@ -28,7 +28,8 @@
                 "validateArgType",
                 "validateExactNumberOfArgs",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -49,7 +50,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 21244
+        "sizeInBytes": 21515
     },
     "CollectionReference": {
         "dependencies": {
@@ -68,7 +69,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
-                "removeComponents$1"
+                "removeComponents$1",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -90,7 +92,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18473
+        "sizeInBytes": 18744
     },
     "DocumentReference": {
         "dependencies": {
@@ -107,7 +109,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
-                "removeComponents$1"
+                "removeComponents$1",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -131,7 +134,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19845
+        "sizeInBytes": 20116
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -178,7 +181,8 @@
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -215,7 +219,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 39259
+        "sizeInBytes": 39654
     },
     "FieldPath": {
         "dependencies": {
@@ -241,7 +245,8 @@
                 "validateArgType",
                 "validateNamedArrayAtLeastNumberOfElements",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -264,7 +269,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22917
+        "sizeInBytes": 23188
     },
     "FieldValue": {
         "dependencies": {
@@ -281,7 +286,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
-                "removeComponents$1"
+                "removeComponents$1",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -302,7 +308,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16547
+        "sizeInBytes": 16818
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -319,7 +325,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
-                "removeComponents$1"
+                "removeComponents$1",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -338,7 +345,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16456
+        "sizeInBytes": 16727
     },
     "GeoPoint": {
         "dependencies": {
@@ -363,7 +370,8 @@
                 "validateArgType",
                 "validateExactNumberOfArgs",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -383,7 +391,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19308
+        "sizeInBytes": 19636
     },
     "Query": {
         "dependencies": {
@@ -400,7 +408,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
-                "removeComponents$1"
+                "removeComponents$1",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -420,7 +429,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16649
+        "sizeInBytes": 16920
     },
     "QueryConstraint": {
         "dependencies": {
@@ -437,7 +446,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
-                "removeComponents$1"
+                "removeComponents$1",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -457,7 +467,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16462
+        "sizeInBytes": 16733
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -504,7 +514,8 @@
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -541,7 +552,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 39269
+        "sizeInBytes": 39664
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -590,7 +601,8 @@
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -629,7 +641,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 41900
+        "sizeInBytes": 42295
     },
     "SnapshotMetadata": {
         "dependencies": {
@@ -646,7 +658,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
-                "removeComponents$1"
+                "removeComponents$1",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -666,7 +679,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16671
+        "sizeInBytes": 16942
     },
     "Timestamp": {
         "dependencies": {
@@ -683,7 +696,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
-                "removeComponents$1"
+                "removeComponents$1",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -703,7 +717,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17990
+        "sizeInBytes": 18328
     },
     "Transaction": {
         "dependencies": {
@@ -786,7 +800,8 @@
                 "validateReference",
                 "validateType",
                 "valueDescription",
-                "valueEquals"
+                "valueEquals",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -844,7 +859,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 62785
+        "sizeInBytes": 63180
     },
     "WriteBatch": {
         "dependencies": {
@@ -924,7 +939,8 @@
                 "validateReference",
                 "validateType",
                 "valueDescription",
-                "valueEquals"
+                "valueEquals",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -973,11 +989,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 55522
+        "sizeInBytes": 55917
     },
     "addDoc": {
         "dependencies": {
             "functions": [
+                "acknowledgeBatch",
                 "addDoc",
                 "addMutationCallback",
                 "applyArrayRemoveTransformOperation",
@@ -998,6 +1015,7 @@
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
                 "applyTransformOperationToRemoteDocument",
+                "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
                 "asNumber",
@@ -1072,6 +1090,7 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
+                "getLastRemoteSnapshotVersion",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -1080,6 +1099,7 @@
                 "getPostMutationVersion",
                 "getSyncEngine",
                 "handleCredentialChange",
+                "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
@@ -1106,6 +1126,7 @@
                 "isWrite",
                 "loadProtos",
                 "localTransformResults",
+                "localWrite",
                 "logDebug",
                 "logError",
                 "logWarn",
@@ -1125,10 +1146,12 @@
                 "newSyncEngine",
                 "newTarget",
                 "newUserDataReader",
+                "nextMutationBatch",
                 "nodePromise",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
+                "notifyLocalViewChanges",
                 "nullableMaybeDocumentMap",
                 "numberEquals",
                 "objectEquals",
@@ -1156,6 +1179,7 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
+                "rejectBatch",
                 "rejectFailedWrite",
                 "rejectOutstandingPendingWritesCallbacks",
                 "removeComponents",
@@ -1336,7 +1360,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 194769
+        "sizeInBytes": 189963
     },
     "arrayRemove": {
         "dependencies": {
@@ -1390,7 +1414,8 @@
                 "validateExactNumberOfArgs",
                 "validatePlainObject",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "ArrayRemoveFieldValueImpl",
@@ -1424,7 +1449,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 35814
+        "sizeInBytes": 36209
     },
     "arrayUnion": {
         "dependencies": {
@@ -1478,7 +1503,8 @@
                 "validateExactNumberOfArgs",
                 "validatePlainObject",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "ArrayUnionFieldValueImpl",
@@ -1512,7 +1538,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 35806
+        "sizeInBytes": 36201
     },
     "clearIndexedDbPersistence": {
         "dependencies": {
@@ -1535,6 +1561,7 @@
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
+                "wrapInUserErrorIfRecoverable",
                 "wrapRequest"
             ],
             "classes": [
@@ -1560,7 +1587,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 29922
+        "sizeInBytes": 30195
     },
     "collection": {
         "dependencies": {
@@ -1587,7 +1614,8 @@
                 "validateArgType",
                 "validateCollectionPath",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -1614,7 +1642,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 24552
+        "sizeInBytes": 24823
     },
     "collectionGroup": {
         "dependencies": {
@@ -1641,7 +1669,8 @@
                 "tryGetCustomObjectType",
                 "validateArgType",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -1664,11 +1693,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22937
+        "sizeInBytes": 23208
     },
     "deleteDoc": {
         "dependencies": {
             "functions": [
+                "acknowledgeBatch",
                 "addMutationCallback",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
@@ -1687,6 +1717,7 @@
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
                 "applyTransformOperationToRemoteDocument",
+                "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
                 "asNumber",
@@ -1754,6 +1785,7 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
+                "getLastRemoteSnapshotVersion",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -1762,6 +1794,7 @@
                 "getPostMutationVersion",
                 "getSyncEngine",
                 "handleCredentialChange",
+                "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "isArray",
@@ -1784,6 +1817,7 @@
                 "isValidResourceName",
                 "loadProtos",
                 "localTransformResults",
+                "localWrite",
                 "logDebug",
                 "logError",
                 "logWarn",
@@ -1800,10 +1834,12 @@
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
+                "nextMutationBatch",
                 "nodePromise",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
+                "notifyLocalViewChanges",
                 "nullableMaybeDocumentMap",
                 "numberEquals",
                 "objectEquals",
@@ -1824,6 +1860,7 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
+                "rejectBatch",
                 "rejectFailedWrite",
                 "rejectOutstandingPendingWritesCallbacks",
                 "removeComponents",
@@ -1985,7 +2022,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 177099
+        "sizeInBytes": 172236
     },
     "deleteField": {
         "dependencies": {
@@ -2003,7 +2040,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
-                "removeComponents$1"
+                "removeComponents$1",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -2026,7 +2064,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17513
+        "sizeInBytes": 17784
     },
     "disableNetwork": {
         "dependencies": {
@@ -2091,10 +2129,7 @@
                 "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueNetworkEnabled",
-                "extractFieldMask",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldTransformEquals",
                 "filterEquals",
@@ -2113,6 +2148,7 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
+                "getLastRemoteSnapshotVersion",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -2122,6 +2158,7 @@
                 "getPostMutationVersion",
                 "getRemoteStore",
                 "handleCredentialChange",
+                "handleUserChange",
                 "hardAssert",
                 "isArray",
                 "isCollectionGroupQuery",
@@ -2159,10 +2196,12 @@
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
+                "nextMutationBatch",
                 "nodePromise",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
+                "notifyLocalViewChanges",
                 "nullableMaybeDocumentMap",
                 "numberEquals",
                 "objectEquals",
@@ -2233,7 +2272,8 @@
                 "valueCompare",
                 "valueEquals",
                 "verifyNotTerminated",
-                "versionFromListenResponse"
+                "versionFromListenResponse",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "ArrayRemoveTransformOperation",
@@ -2258,7 +2298,6 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FirebaseCredentialsProvider",
                 "Firestore",
@@ -2337,7 +2376,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 173116
+        "sizeInBytes": 164309
     },
     "doc": {
         "dependencies": {
@@ -2364,7 +2403,8 @@
                 "validateArgType",
                 "validateDocumentPath",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -2391,7 +2431,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 24603
+        "sizeInBytes": 24874
     },
     "documentId": {
         "dependencies": {
@@ -2418,7 +2458,8 @@
                 "validateArgType",
                 "validateNamedArrayAtLeastNumberOfElements",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -2441,7 +2482,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22967
+        "sizeInBytes": 23238
     },
     "enableIndexedDbPersistence": {
         "dependencies": {
@@ -2523,10 +2564,7 @@
                 "encodeSegment",
                 "encodeSeparator",
                 "extractDocumentKeysFromArrayValue",
-                "extractFieldMask",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldTransformEquals",
                 "filterEquals",
@@ -2685,6 +2723,7 @@
                 "valueCompare",
                 "valueEquals",
                 "verifyNotInitialized",
+                "wrapInUserErrorIfRecoverable",
                 "wrapRequest",
                 "writeEmptyTargetGlobalEntry",
                 "writeSentinelKey"
@@ -2810,11 +2849,13 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 210577
+        "sizeInBytes": 199048
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
             "functions": [
+                "acknowledgeBatch",
+                "allocateTarget",
                 "applyActiveTargetsChange",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
@@ -2830,6 +2871,7 @@
                 "applyPatchMutationToRemoteDocument",
                 "applyPrimaryState",
                 "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applySuccessfulWrite",
@@ -2838,6 +2880,7 @@
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
                 "applyTransformOperationToRemoteDocument",
+                "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
                 "arrayValueContains",
@@ -2912,11 +2955,9 @@
                 "encodeSeparator",
                 "ensureWatchCallbacks",
                 "ensureWriteCallbacks",
+                "executeQuery",
                 "extractDocumentKeysFromArrayValue",
-                "extractFieldMask",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldTransformEquals",
                 "filterEquals",
@@ -2963,6 +3004,8 @@
                 "getCachedTarget",
                 "getDocument",
                 "getEncodedDatabaseId",
+                "getLastRemoteSnapshotVersion",
+                "getLocalTargetData",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -2973,6 +3016,7 @@
                 "getWindow",
                 "globalTargetStore",
                 "handleCredentialChange",
+                "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "immediateSuccessor",
@@ -3024,10 +3068,12 @@
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
+                "nextMutationBatch",
                 "nodePromise",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
+                "notifyLocalViewChanges",
                 "nullableMaybeDocumentMap",
                 "numberEquals",
                 "objectEquals",
@@ -3050,9 +3096,11 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
+                "rejectBatch",
                 "rejectFailedWrite",
                 "rejectListen",
                 "rejectOutstandingPendingWritesCallbacks",
+                "releaseTarget",
                 "remoteDocumentsStore",
                 "removeAndCleanupTarget",
                 "removeCachedMutationBatchMetadata",
@@ -3069,6 +3117,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -3129,6 +3178,7 @@
                 "verifyNotInitialized",
                 "verifyNotTerminated",
                 "versionFromListenResponse",
+                "wrapInUserErrorIfRecoverable",
                 "wrapRequest",
                 "writeEmptyTargetGlobalEntry",
                 "writeSentinelKey"
@@ -3292,7 +3342,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 301589
+        "sizeInBytes": 301121
     },
     "enableNetwork": {
         "dependencies": {
@@ -3357,10 +3407,7 @@
                 "enableNetwork",
                 "encodeBase64",
                 "enqueueNetworkEnabled",
-                "extractFieldMask",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldTransformEquals",
                 "filterEquals",
@@ -3379,6 +3426,7 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
+                "getLastRemoteSnapshotVersion",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -3388,6 +3436,7 @@
                 "getPostMutationVersion",
                 "getRemoteStore",
                 "handleCredentialChange",
+                "handleUserChange",
                 "hardAssert",
                 "isArray",
                 "isCollectionGroupQuery",
@@ -3425,10 +3474,12 @@
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
+                "nextMutationBatch",
                 "nodePromise",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
+                "notifyLocalViewChanges",
                 "nullableMaybeDocumentMap",
                 "numberEquals",
                 "objectEquals",
@@ -3499,7 +3550,8 @@
                 "valueCompare",
                 "valueEquals",
                 "verifyNotTerminated",
-                "versionFromListenResponse"
+                "versionFromListenResponse",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "ArrayRemoveTransformOperation",
@@ -3524,7 +3576,6 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FirebaseCredentialsProvider",
                 "Firestore",
@@ -3603,7 +3654,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 173113
+        "sizeInBytes": 164306
     },
     "endAt": {
         "dependencies": {
@@ -3680,7 +3731,8 @@
                 "validateNamedArrayAtLeastNumberOfElements",
                 "validatePlainObject",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -3725,7 +3777,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 52813
+        "sizeInBytes": 53208
     },
     "endBefore": {
         "dependencies": {
@@ -3802,7 +3854,8 @@
                 "validateNamedArrayAtLeastNumberOfElements",
                 "validatePlainObject",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -3847,11 +3900,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 52824
+        "sizeInBytes": 53219
     },
     "getDoc": {
         "dependencies": {
             "functions": [
+                "allocateTarget",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
@@ -3864,6 +3918,7 @@
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
                 "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -3922,10 +3977,8 @@
                 "errorMessage",
                 "eventManagerListen",
                 "eventManagerUnlisten",
-                "extractFieldMask",
+                "executeQuery",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
@@ -3950,6 +4003,8 @@
                 "getDoc",
                 "getEncodedDatabaseId",
                 "getEventManager",
+                "getLastRemoteSnapshotVersion",
+                "getLocalTargetData",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -3959,6 +4014,7 @@
                 "getPreviousValue",
                 "getRemoteKeysForTarget",
                 "handleCredentialChange",
+                "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "initializeViewAndComputeSnapshot",
@@ -4001,10 +4057,12 @@
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
+                "nextMutationBatch",
                 "nodePromise",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
+                "notifyLocalViewChanges",
                 "nullableMaybeDocumentMap",
                 "numberEquals",
                 "objectEquals",
@@ -4028,6 +4086,7 @@
                 "registerFirestore",
                 "rejectListen",
                 "rejectOutstandingPendingWritesCallbacks",
+                "releaseTarget",
                 "removeAndCleanupTarget",
                 "removeComponents",
                 "removeComponents$1",
@@ -4037,6 +4096,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -4126,7 +4186,6 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
@@ -4219,7 +4278,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 210476
+        "sizeInBytes": 207696
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4279,9 +4338,6 @@
                 "encodeBase64",
                 "enqueueReadDocumentFromCache",
                 "errorMessage",
-                "extractFieldMask",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
@@ -4345,6 +4401,7 @@
                 "queryOrderBy",
                 "queryToTarget",
                 "randomBytes",
+                "readLocalDocument",
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
@@ -4399,7 +4456,6 @@
                 "DocumentSnapshot",
                 "DocumentSnapshot$1",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
@@ -4453,7 +4509,6 @@
                 "SortedMapIterator",
                 "SortedSet",
                 "SortedSetIterator",
-                "TargetData",
                 "TargetIdGenerator",
                 "TargetImpl",
                 "Timestamp",
@@ -4465,11 +4520,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 131265
+        "sizeInBytes": 118383
     },
     "getDocFromServer": {
         "dependencies": {
             "functions": [
+                "allocateTarget",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
@@ -4482,6 +4538,7 @@
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
                 "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -4540,10 +4597,8 @@
                 "errorMessage",
                 "eventManagerListen",
                 "eventManagerUnlisten",
-                "extractFieldMask",
+                "executeQuery",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
@@ -4568,6 +4623,8 @@
                 "getDocFromServer",
                 "getEncodedDatabaseId",
                 "getEventManager",
+                "getLastRemoteSnapshotVersion",
+                "getLocalTargetData",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -4577,6 +4634,7 @@
                 "getPreviousValue",
                 "getRemoteKeysForTarget",
                 "handleCredentialChange",
+                "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "initializeViewAndComputeSnapshot",
@@ -4619,10 +4677,12 @@
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
+                "nextMutationBatch",
                 "nodePromise",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
+                "notifyLocalViewChanges",
                 "nullableMaybeDocumentMap",
                 "numberEquals",
                 "objectEquals",
@@ -4646,6 +4706,7 @@
                 "registerFirestore",
                 "rejectListen",
                 "rejectOutstandingPendingWritesCallbacks",
+                "releaseTarget",
                 "removeAndCleanupTarget",
                 "removeComponents",
                 "removeComponents$1",
@@ -4655,6 +4716,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -4744,7 +4806,6 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
@@ -4837,11 +4898,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 210532
+        "sizeInBytes": 207752
     },
     "getDocs": {
         "dependencies": {
             "functions": [
+                "allocateTarget",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
@@ -4854,6 +4916,7 @@
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
                 "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -4912,10 +4975,8 @@
                 "errorMessage",
                 "eventManagerListen",
                 "eventManagerUnlisten",
-                "extractFieldMask",
+                "executeQuery",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
@@ -4940,6 +5001,8 @@
                 "getDocs",
                 "getEncodedDatabaseId",
                 "getEventManager",
+                "getLastRemoteSnapshotVersion",
+                "getLocalTargetData",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -4949,6 +5012,7 @@
                 "getPreviousValue",
                 "getRemoteKeysForTarget",
                 "handleCredentialChange",
+                "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "initializeViewAndComputeSnapshot",
@@ -4991,10 +5055,12 @@
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
+                "nextMutationBatch",
                 "nodePromise",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
+                "notifyLocalViewChanges",
                 "nullableMaybeDocumentMap",
                 "numberEquals",
                 "objectEquals",
@@ -5018,6 +5084,7 @@
                 "registerFirestore",
                 "rejectListen",
                 "rejectOutstandingPendingWritesCallbacks",
+                "releaseTarget",
                 "removeAndCleanupTarget",
                 "removeComponents",
                 "removeComponents$1",
@@ -5028,6 +5095,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -5118,7 +5186,6 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
@@ -5213,7 +5280,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 213039
+        "sizeInBytes": 210259
     },
     "getDocsFromCache": {
         "dependencies": {
@@ -5275,9 +5342,7 @@
                 "encodeBase64",
                 "enqueueExecuteQueryFromCache",
                 "errorMessage",
-                "extractFieldMask",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
+                "executeQuery",
                 "fail",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
@@ -5290,6 +5355,7 @@
                 "geoPointEquals",
                 "getDocsFromCache",
                 "getLocalStore",
+                "getLocalTargetData",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -5400,7 +5466,6 @@
                 "DocumentSnapshot",
                 "DocumentSnapshot$1",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
@@ -5457,7 +5522,6 @@
                 "SortedMapIterator",
                 "SortedSet",
                 "SortedSetIterator",
-                "TargetData",
                 "TargetIdGenerator",
                 "TargetImpl",
                 "Timestamp",
@@ -5471,11 +5535,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 143516
+        "sizeInBytes": 131563
     },
     "getDocsFromServer": {
         "dependencies": {
             "functions": [
+                "allocateTarget",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
@@ -5488,6 +5553,7 @@
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
                 "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -5546,10 +5612,8 @@
                 "errorMessage",
                 "eventManagerListen",
                 "eventManagerUnlisten",
-                "extractFieldMask",
+                "executeQuery",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
@@ -5574,6 +5638,8 @@
                 "getDocsFromServer",
                 "getEncodedDatabaseId",
                 "getEventManager",
+                "getLastRemoteSnapshotVersion",
+                "getLocalTargetData",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -5583,6 +5649,7 @@
                 "getPreviousValue",
                 "getRemoteKeysForTarget",
                 "handleCredentialChange",
+                "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "initializeViewAndComputeSnapshot",
@@ -5625,10 +5692,12 @@
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
+                "nextMutationBatch",
                 "nodePromise",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
+                "notifyLocalViewChanges",
                 "nullableMaybeDocumentMap",
                 "numberEquals",
                 "objectEquals",
@@ -5652,6 +5721,7 @@
                 "registerFirestore",
                 "rejectListen",
                 "rejectOutstandingPendingWritesCallbacks",
+                "releaseTarget",
                 "removeAndCleanupTarget",
                 "removeComponents",
                 "removeComponents$1",
@@ -5662,6 +5732,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -5751,7 +5822,6 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
@@ -5846,7 +5916,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 212777
+        "sizeInBytes": 209997
     },
     "getFirestore": {
         "dependencies": {
@@ -5864,7 +5934,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
-                "removeComponents$1"
+                "removeComponents$1",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -5883,7 +5954,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16532
+        "sizeInBytes": 16803
     },
     "increment": {
         "dependencies": {
@@ -5906,7 +5977,8 @@
                 "removeComponents$1",
                 "toDouble",
                 "toInteger",
-                "toNumber"
+                "toNumber",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -5932,7 +6004,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18378
+        "sizeInBytes": 18649
     },
     "initializeFirestore": {
         "dependencies": {
@@ -5950,7 +6022,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
-                "removeComponents$1"
+                "removeComponents$1",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -5970,7 +6043,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17836
+        "sizeInBytes": 18107
     },
     "limit": {
         "dependencies": {
@@ -5992,7 +6065,8 @@
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "validatePositiveNumber"
+                "validatePositiveNumber",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -6015,7 +6089,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18963
+        "sizeInBytes": 19234
     },
     "limitToLast": {
         "dependencies": {
@@ -6037,7 +6111,8 @@
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "validatePositiveNumber"
+                "validatePositiveNumber",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -6060,11 +6135,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18987
+        "sizeInBytes": 19258
     },
     "onSnapshot": {
         "dependencies": {
             "functions": [
+                "allocateTarget",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
@@ -6077,6 +6153,7 @@
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
                 "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -6135,10 +6212,8 @@
                 "errorMessage",
                 "eventManagerListen",
                 "eventManagerUnlisten",
-                "extractFieldMask",
+                "executeQuery",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
@@ -6162,6 +6237,8 @@
                 "geoPointEquals",
                 "getEncodedDatabaseId",
                 "getEventManager",
+                "getLastRemoteSnapshotVersion",
+                "getLocalTargetData",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -6171,6 +6248,7 @@
                 "getPreviousValue",
                 "getRemoteKeysForTarget",
                 "handleCredentialChange",
+                "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "implementsAnyMethods",
@@ -6215,10 +6293,12 @@
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
+                "nextMutationBatch",
                 "nodePromise",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
+                "notifyLocalViewChanges",
                 "nullableMaybeDocumentMap",
                 "numberEquals",
                 "objectEquals",
@@ -6243,6 +6323,7 @@
                 "registerFirestore",
                 "rejectListen",
                 "rejectOutstandingPendingWritesCallbacks",
+                "releaseTarget",
                 "removeAndCleanupTarget",
                 "removeComponents",
                 "removeComponents$1",
@@ -6253,6 +6334,7 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -6343,7 +6425,6 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
@@ -6438,7 +6519,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 214122
+        "sizeInBytes": 211342
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -6502,10 +6583,7 @@
                 "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueSnapshotsInSyncListen",
-                "extractFieldMask",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldTransformEquals",
                 "filterEquals",
@@ -6525,6 +6603,7 @@
                 "geoPointEquals",
                 "getEncodedDatabaseId",
                 "getEventManager",
+                "getLastRemoteSnapshotVersion",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -6532,6 +6611,7 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "handleCredentialChange",
+                "handleUserChange",
                 "hardAssert",
                 "implementsAnyMethods",
                 "isArray",
@@ -6571,10 +6651,12 @@
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
+                "nextMutationBatch",
                 "nodePromise",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
+                "notifyLocalViewChanges",
                 "nullableMaybeDocumentMap",
                 "numberEquals",
                 "objectEquals",
@@ -6646,7 +6728,8 @@
                 "valueCompare",
                 "valueEquals",
                 "verifyNotTerminated",
-                "versionFromListenResponse"
+                "versionFromListenResponse",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "ArrayRemoveTransformOperation",
@@ -6672,7 +6755,6 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FirebaseCredentialsProvider",
                 "Firestore",
@@ -6751,7 +6833,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 173962
+        "sizeInBytes": 165155
     },
     "orderBy": {
         "dependencies": {
@@ -6789,7 +6871,8 @@
                 "validateNewOrderBy",
                 "validateOrderByAndInequalityMatch",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -6818,7 +6901,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 28608
+        "sizeInBytes": 28879
     },
     "parent": {
         "dependencies": {
@@ -6839,7 +6922,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
-                "removeComponents$1"
+                "removeComponents$1",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -6866,7 +6950,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22613
+        "sizeInBytes": 22884
     },
     "query": {
         "dependencies": {
@@ -6885,7 +6969,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
-                "removeComponents$1"
+                "removeComponents$1",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -6905,7 +6990,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17230
+        "sizeInBytes": 17501
     },
     "queryEqual": {
         "dependencies": {
@@ -6952,7 +7037,8 @@
                 "timestampEquals",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
-                "valueEquals"
+                "valueEquals",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -6980,7 +7066,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 33112
+        "sizeInBytes": 33450
     },
     "refEqual": {
         "dependencies": {
@@ -7000,7 +7086,8 @@
                 "refEqual",
                 "registerFirestore",
                 "removeComponents",
-                "removeComponents$1"
+                "removeComponents$1",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -7027,7 +7114,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22160
+        "sizeInBytes": 22431
     },
     "runTransaction": {
         "dependencies": {
@@ -7141,7 +7228,8 @@
                 "validateReference",
                 "validateType",
                 "valueDescription",
-                "valueEquals"
+                "valueEquals",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "ArrayRemoveTransformOperation",
@@ -7213,7 +7301,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 81716
+        "sizeInBytes": 82111
     },
     "serverTimestamp": {
         "dependencies": {
@@ -7231,7 +7319,8 @@
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "serverTimestamp$1"
+                "serverTimestamp$1",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -7257,11 +7346,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17524
+        "sizeInBytes": 17795
     },
     "setDoc": {
         "dependencies": {
             "functions": [
+                "acknowledgeBatch",
                 "addMutationCallback",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
@@ -7281,6 +7371,7 @@
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
                 "applyTransformOperationToRemoteDocument",
+                "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
                 "asNumber",
@@ -7354,6 +7445,7 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
+                "getLastRemoteSnapshotVersion",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -7362,6 +7454,7 @@
                 "getPostMutationVersion",
                 "getSyncEngine",
                 "handleCredentialChange",
+                "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
@@ -7388,6 +7481,7 @@
                 "isWrite",
                 "loadProtos",
                 "localTransformResults",
+                "localWrite",
                 "logDebug",
                 "logError",
                 "logWarn",
@@ -7406,10 +7500,12 @@
                 "newSyncEngine",
                 "newTarget",
                 "newUserDataReader",
+                "nextMutationBatch",
                 "nodePromise",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
+                "notifyLocalViewChanges",
                 "nullableMaybeDocumentMap",
                 "numberEquals",
                 "objectEquals",
@@ -7437,6 +7533,7 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
+                "rejectBatch",
                 "rejectFailedWrite",
                 "rejectOutstandingPendingWritesCallbacks",
                 "removeComponents",
@@ -7615,7 +7712,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 192993
+        "sizeInBytes": 188187
     },
     "setLogLevel": {
         "dependencies": {
@@ -7633,7 +7730,8 @@
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "setLogLevel"
+                "setLogLevel",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -7652,7 +7750,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16498
+        "sizeInBytes": 16769
     },
     "snapshotEqual": {
         "dependencies": {
@@ -7721,7 +7819,8 @@
                 "validateNamedArrayAtLeastNumberOfElements",
                 "validateType",
                 "valueDescription",
-                "valueEquals"
+                "valueEquals",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -7765,7 +7864,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 50544
+        "sizeInBytes": 50939
     },
     "startAfter": {
         "dependencies": {
@@ -7842,7 +7941,8 @@
                 "validateNamedArrayAtLeastNumberOfElements",
                 "validatePlainObject",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -7887,7 +7987,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 52834
+        "sizeInBytes": 53229
     },
     "startAt": {
         "dependencies": {
@@ -7964,7 +8064,8 @@
                 "validateNamedArrayAtLeastNumberOfElements",
                 "validatePlainObject",
                 "validateType",
-                "valueDescription"
+                "valueDescription",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -8009,7 +8110,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 52824
+        "sizeInBytes": 53219
     },
     "terminate": {
         "dependencies": {
@@ -8028,7 +8129,8 @@
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "terminate"
+                "terminate",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
@@ -8047,11 +8149,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17028
+        "sizeInBytes": 17299
     },
     "updateDoc": {
         "dependencies": {
             "functions": [
+                "acknowledgeBatch",
                 "addMutationCallback",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
@@ -8070,6 +8173,7 @@
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
                 "applyTransformOperationToRemoteDocument",
+                "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
                 "asNumber",
@@ -8144,6 +8248,7 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
+                "getLastRemoteSnapshotVersion",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -8152,6 +8257,7 @@
                 "getPostMutationVersion",
                 "getSyncEngine",
                 "handleCredentialChange",
+                "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
@@ -8178,6 +8284,7 @@
                 "isWrite",
                 "loadProtos",
                 "localTransformResults",
+                "localWrite",
                 "logDebug",
                 "logError",
                 "logWarn",
@@ -8196,10 +8303,12 @@
                 "newSyncEngine",
                 "newTarget",
                 "newUserDataReader",
+                "nextMutationBatch",
                 "nodePromise",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
+                "notifyLocalViewChanges",
                 "nullableMaybeDocumentMap",
                 "numberEquals",
                 "objectEquals",
@@ -8228,6 +8337,7 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
+                "rejectBatch",
                 "rejectFailedWrite",
                 "rejectOutstandingPendingWritesCallbacks",
                 "removeComponents",
@@ -8408,7 +8518,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 194492
+        "sizeInBytes": 189686
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -8472,10 +8582,7 @@
                 "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueWaitForPendingWrites",
-                "extractFieldMask",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldTransformEquals",
                 "filterEquals",
@@ -8494,6 +8601,8 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
+                "getHighestUnacknowledgedBatchId",
+                "getLastRemoteSnapshotVersion",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -8502,6 +8611,7 @@
                 "getPostMutationVersion",
                 "getSyncEngine",
                 "handleCredentialChange",
+                "handleUserChange",
                 "hardAssert",
                 "isArray",
                 "isCollectionGroupQuery",
@@ -8539,10 +8649,12 @@
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
+                "nextMutationBatch",
                 "nodePromise",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
+                "notifyLocalViewChanges",
                 "nullableMaybeDocumentMap",
                 "numberEquals",
                 "objectEquals",
@@ -8641,7 +8753,6 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FirebaseCredentialsProvider",
                 "Firestore",
@@ -8720,7 +8831,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 173872
+        "sizeInBytes": 165142
     },
     "where": {
         "dependencies": {
@@ -8818,7 +8929,8 @@
                 "valueCompare",
                 "valueDescription",
                 "valueEquals",
-                "where"
+                "where",
+                "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "ArrayContainsAnyFilter",
@@ -8866,11 +8978,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 59239
+        "sizeInBytes": 59634
     },
     "writeBatch": {
         "dependencies": {
             "functions": [
+                "acknowledgeBatch",
                 "addMutationCallback",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
@@ -8890,6 +9003,7 @@
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
                 "applyTransformOperationToRemoteDocument",
+                "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
                 "asNumber",
@@ -8964,6 +9078,7 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
+                "getLastRemoteSnapshotVersion",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -8972,6 +9087,7 @@
                 "getPostMutationVersion",
                 "getSyncEngine",
                 "handleCredentialChange",
+                "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
@@ -8998,6 +9114,7 @@
                 "isWrite",
                 "loadProtos",
                 "localTransformResults",
+                "localWrite",
                 "logDebug",
                 "logError",
                 "logWarn",
@@ -9016,10 +9133,12 @@
                 "newSyncEngine",
                 "newTarget",
                 "newUserDataReader",
+                "nextMutationBatch",
                 "nodePromise",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
+                "notifyLocalViewChanges",
                 "nullableMaybeDocumentMap",
                 "numberEquals",
                 "objectEquals",
@@ -9049,6 +9168,7 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
+                "rejectBatch",
                 "rejectFailedWrite",
                 "rejectOutstandingPendingWritesCallbacks",
                 "removeComponents",
@@ -9232,6 +9352,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 198159
+        "sizeInBytes": 193353
     }
 }
