@@ -83,7 +83,7 @@ export type BundledDocuments = BundledDocument[];
  * Helper to convert objects from bundles to model objects in the SDK.
  */
 export class BundleConverter {
-  constructor(private serializer: JsonProtoSerializer) {}
+  constructor(private readonly serializer: JsonProtoSerializer) {}
 
   toDocumentKey(name: string): DocumentKey {
     return fromName(this.serializer, name);
@@ -165,7 +165,8 @@ export class BundleLoader {
 
   constructor(
     private metadata: bundleProto.BundleMetadata,
-    private localStore: LocalStore
+    private localStore: LocalStore,
+    private serializer: JsonProtoSerializer
   ) {
     this.progress = bundleInitialProgress(metadata);
   }
@@ -216,9 +217,7 @@ export class BundleLoader {
     documents: BundledDocuments
   ): Map<string, DocumentKeySet> {
     const queryDocumentMap = new Map<string, DocumentKeySet>();
-    const bundleConverter = new BundleConverter(
-      this.localStore.getSerializer()
-    );
+    const bundleConverter = new BundleConverter(this.serializer);
     for (const bundleDoc of documents) {
       if (bundleDoc.metadata.queries) {
         const documentKey = bundleConverter.toDocumentKey(

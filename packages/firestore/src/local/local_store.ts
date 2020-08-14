@@ -277,9 +277,6 @@ export interface LocalStore {
   executeQuery(query: Query, usePreviousResults: boolean): Promise<QueryResult>;
 
   collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults>;
-
-  /** Returns the serializer associated with the local store. */
-  getSerializer(): JsonProtoSerializer;
 }
 
 /**
@@ -1086,10 +1083,6 @@ class LocalStoreImpl implements LocalStore {
       txn => garbageCollector.collect(txn, this.targetDataByTarget)
     );
   }
-
-  getSerializer(): JsonProtoSerializer {
-    return this.serializer;
-  }
 }
 
 export function newLocalStore(
@@ -1391,42 +1384,46 @@ export async function saveNamedQuery(
   const allocated = await localStore.allocateTarget(
     queryToTarget(fromBundledQuery(query.bundledQuery!))
   );
+
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   return localStoreImpl.persistence.runTransaction(
     'Save named query',
     'readwrite',
     transaction => {
-      // Update allocated target's read time, if the bundle's read time is newer.
-      let readTimeUpdated = PersistencePromise.resolve();
       const readTime = fromVersion(query.readTime!);
-      if (allocated.snapshotVersion.compareTo(readTime) < 0) {
-        const newTargetData = allocated.withResumeToken(
-          ByteString.EMPTY_BYTE_STRING,
-          readTime
-        );
-        readTimeUpdated = localStoreImpl.targetCache
-          .updateTargetData(transaction, newTargetData)
-          .next(() =>
-            localStoreImpl.targetCache.removeMatchingKeysForTargetId(
-              transaction,
-              allocated.targetId
-            )
-          )
-          .next(() =>
-            localStoreImpl.targetCache.addMatchingKeys(
-              transaction,
-              documents,
-              allocated.targetId
-            )
-          );
-        localStoreImpl.targetDataByTarget = localStoreImpl.targetDataByTarget.insert(
-          newTargetData.targetId,
-          newTargetData
-        );
+      // Simply save the query itself if it is older than what the SDK already
+      // has.
+      if (allocated.snapshotVersion.compareTo(readTime) >= 0) {
+        return localStoreImpl.bundleCache.saveNamedQuery(transaction, query);
       }
-      return readTimeUpdated.next(() =>
-        localStoreImpl.bundleCache.saveNamedQuery(transaction, query)
+
+      // Update existing target data because the query from the bundle is newer.
+      const newTargetData = allocated.withResumeToken(
+        ByteString.EMPTY_BYTE_STRING,
+        readTime
       );
+      localStoreImpl.targetDataByTarget = localStoreImpl.targetDataByTarget.insert(
+        newTargetData.targetId,
+        newTargetData
+      );
+      return localStoreImpl.targetCache
+        .updateTargetData(transaction, newTargetData)
+        .next(() =>
+          localStoreImpl.targetCache.removeMatchingKeysForTargetId(
+            transaction,
+            allocated.targetId
+          )
+        )
+        .next(() =>
+          localStoreImpl.targetCache.addMatchingKeys(
+            transaction,
+            documents,
+            allocated.targetId
+          )
+        )
+        .next(() =>
+          localStoreImpl.bundleCache.saveNamedQuery(transaction, query)
+        );
     }
   );
 }

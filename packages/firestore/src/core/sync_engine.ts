@@ -1358,7 +1358,11 @@ async function loadBundleImpl(
 
     task._updateProgress(bundleInitialProgress(metadata));
 
-    const loader = new BundleLoader(metadata, syncEngine.localStore);
+    const loader = new BundleLoader(
+      metadata,
+      syncEngine.localStore,
+      reader.serializer
+    );
     let element = await reader.nextElement();
     while (element) {
       debugAssert(
