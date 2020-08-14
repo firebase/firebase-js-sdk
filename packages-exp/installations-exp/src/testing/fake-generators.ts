@@ -39,11 +39,7 @@ export function getFakeApp(): FirebaseApp {
       storageBucket: 'storageBucket',
       appId: '1:777777777777:web:d93b5ca1475efe57'
     },
-    automaticDataCollectionEnabled: true,
-    delete: async () => {},
-    // This won't be used in tests.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    installations: null as any
+    automaticDataCollectionEnabled: true
   };
 }
 

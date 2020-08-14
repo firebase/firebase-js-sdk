@@ -38,11 +38,11 @@ describe('extractAppConfig', () => {
     expect(() => extractAppConfig(undefined as any)).to.throw(FirebaseError);
 
     let firebaseApp = getFakeApp();
-    delete firebaseApp.name;
+    delete (firebaseApp as any).name;
     expect(() => extractAppConfig(firebaseApp)).to.throw(FirebaseError);
 
     firebaseApp = getFakeApp();
-    delete firebaseApp.options;
+    delete (firebaseApp as any).options;
     expect(() => extractAppConfig(firebaseApp)).to.throw(FirebaseError);
 
     firebaseApp = getFakeApp();

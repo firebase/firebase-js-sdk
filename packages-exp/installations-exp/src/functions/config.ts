@@ -24,13 +24,13 @@ import { extractAppConfig } from '../helpers/extract-app-config';
 import { name, version } from '../../package.json';
 
 export function registerInstallations(): void {
-  const installationsName = 'installations';
+  const installationsName = 'installations-exp';
 
   _registerComponent(
     new Component(
       installationsName,
       container => {
-        const app = container.getProvider('app').getImmediate();
+        const app = container.getProvider('app-exp').getImmediate();
 
         // Throws if app isn't configured properly.
         const appConfig = extractAppConfig(app);
@@ -46,6 +46,6 @@ export function registerInstallations(): void {
       ComponentType.PUBLIC
     )
   );
-
-  registerVersion(name, version);
 }
+
+registerVersion(name, version);
