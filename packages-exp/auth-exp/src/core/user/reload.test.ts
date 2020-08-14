@@ -31,7 +31,7 @@ import {
   ProviderUserInfo
 } from '../../api/account_management/account';
 import { _reloadWithoutSaving, reload } from './reload';
-import { UserMetadata } from './user_impl';
+import { UserMetadata } from './user_metadata';
 
 use(chaiAsPromised);
 use(sinonChai);

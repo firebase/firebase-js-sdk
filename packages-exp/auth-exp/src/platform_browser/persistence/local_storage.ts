@@ -192,7 +192,7 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
   }
 
   private _attachListener(): void {
-    window.addEventListener('storage', this._onStorageEvent);
+    window.addEventListener('storage', this._onStorageEvent.bind(this));
   }
 
   private _detachListener(): void {
@@ -212,7 +212,7 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
         this._attachListener();
       }
     }
-    this.listeners[key] = this.listeners[key] || [];
+    this.listeners[key] = this.listeners[key] || new Set();
     this.listeners[key].add(listener);
   }
 
