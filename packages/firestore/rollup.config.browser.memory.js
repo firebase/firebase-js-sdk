@@ -38,7 +38,7 @@ export default [
       format: 'es',
       sourcemap: true
     },
-    plugins: util.es2017ToES5Plugins(/* mangled= */ true),
+    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
     external: util.resolveBrowserExterns
   },
   {
@@ -48,7 +48,7 @@ export default [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: util.es2017ToES5Plugins(/* mangled= */ true),
+    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
     external: util.resolveBrowserExterns
   }
 ];

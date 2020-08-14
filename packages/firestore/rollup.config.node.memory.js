@@ -49,7 +49,7 @@ export default [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: util.es2017ToES5Plugins(),
+    plugins: util.es2017ToEs5Plugins(),
     external: util.resolveNodeExterns
   }
 ];

@@ -33,13 +33,13 @@ export default [
   {
     input: pkg.esm2017,
     output: { file: pkg.module, format: 'es', sourcemap: true },
-    plugins: util.es2017ToES5Plugins(/* mangled= */ true),
+    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
     external: util.resolveBrowserExterns
   },
   {
     input: pkg.esm2017,
     output: { file: pkg.browser, format: 'cjs', sourcemap: true },
-    plugins: util.es2017ToES5Plugins(/* mangled= */ true),
+    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
     external: util.resolveBrowserExterns
   }
 ];

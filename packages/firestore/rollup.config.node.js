@@ -44,7 +44,7 @@ export default [
   {
     input: pkg['main-esm2017'],
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    plugins: util.es2017ToES5Plugins(),
+    plugins: util.es2017ToEs5Plugins(),
     external: util.resolveNodeExterns
   }
 ];

@@ -170,7 +170,7 @@ exports.es2017Plugins = function (platform, mangled = false) {
   }
 };
 
-exports.es2017ToES5Plugins = function (mangled = false) {
+exports.es2017ToEs5Plugins = function (mangled = false) {
   if (mangled) {
     return [
       typescriptPlugin({
