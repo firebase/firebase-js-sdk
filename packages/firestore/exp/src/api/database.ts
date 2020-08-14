@@ -332,8 +332,10 @@ export function loadBundle(
   const resultTask = new LoadBundleTask();
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   getSyncEngine(firestoreImpl).then(async syncEngine => {
+    const databaseId = (await firestoreImpl._getConfiguration()).databaseInfo
+      .databaseId;
     enqueueLoadBundle(
-      (await firestoreImpl._getConfiguration()).databaseInfo.databaseId,
+      databaseId,
       firestoreImpl._queue,
       syncEngine,
       bundleData,
