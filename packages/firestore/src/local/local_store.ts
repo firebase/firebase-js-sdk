@@ -153,7 +153,7 @@ export interface QueryResult {
  * (unexpected) failure (e.g. failed assert) and always represent an
  * unrecoverable error (should be caught / reported by the async_queue).
  *
- * This methods retains one interface to help TypeScript narrow down the type.
+ * This interface retains one method to help TypeScript narrow down the type.
  * All other methods are free functions.
  */
 export interface LocalStore {
@@ -332,7 +332,7 @@ export async function handleUserChange(
   return result;
 }
 
-/* Accept locally generated Mutations and commit them to storage. */
+/* Accepts locally generated Mutations and commit them to storage. */
 export function localWrite(
   localStore: LocalStore,
   mutations: Mutation[]
@@ -395,7 +395,7 @@ export function localWrite(
 }
 
 /**
- * Acknowledge the given batch.
+ * Acknowledges the given batch.
  *
  * On the happy path when a batch is acknowledged, the local store will
  *
@@ -435,7 +435,7 @@ export function acknowledgeBatch(
 }
 
 /**
- * Remove mutations from the MutationQueue for the specified batch;
+ * Removes mutations from the MutationQueue for the specified batch;
  * LocalDocuments will be recalculated.
  *
  * @returns The resulting modified documents.
@@ -498,7 +498,7 @@ export function getLastRemoteSnapshotVersion(
 }
 
 /**
- * Update the "ground-state" (remote) documents. We assume that the remote
+ * Updates the "ground-state" (remote) documents. We assume that the remote
  * event reflects any write batches that have been acknowledged or rejected
  * (i.e. we do not re-apply local mutations to updates from this event).
  *
@@ -717,7 +717,7 @@ function shouldPersistTargetData(
 }
 
 /**
- * Notify local store of the changed views to locally pin documents.
+ * Notifies local store of the changed views to locally pin documents.
  */
 export async function notifyLocalViewChanges(
   localStore: LocalStore,
@@ -817,7 +817,7 @@ export function nextMutationBatch(
 }
 
 /**
- * Read the current value of a Document with a given key or null if not
+ * Reads the current value of a Document with a given key or null if not
  * found - used for testing.
  */
 export function readLocalDocument(
@@ -917,7 +917,7 @@ export function getLocalTargetData(
 }
 
 /**
- * Unpin all the documents associated with the given target. If
+ * Unpins all the documents associated with the given target. If
  * `keepPersistedTargetData` is set to false and Eager GC enabled, the method
  * directly removes the associated target data from the target cache.
  *
