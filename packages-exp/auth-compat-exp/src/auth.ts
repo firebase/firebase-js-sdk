@@ -21,12 +21,20 @@ import { FirebaseApp } from '@firebase/app-types';
 import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import * as externs from '@firebase/auth-types-exp';
-import { ErrorFn, isIndexedDBAvailable, Observer, Unsubscribe } from '@firebase/util';
+import {
+  ErrorFn,
+  isIndexedDBAvailable,
+  Observer,
+  Unsubscribe
+} from '@firebase/util';
 
 import { _validatePersistenceArgument, Persistence } from './persistence';
 import { _getClientPlatform, _isPopupRedirectSupported } from './platform';
 import { User } from './user';
-import { convertConfirmationResult, convertCredential } from './user_credential';
+import {
+  convertConfirmationResult,
+  convertCredential
+} from './user_credential';
 
 export class Auth extends impl.AuthImplCompat<User>
   implements compat.FirebaseAuth {
