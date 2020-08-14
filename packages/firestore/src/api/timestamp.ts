@@ -95,6 +95,10 @@ export class Timestamp {
     );
   }
 
+  toJSON(): { seconds: number; nanoseconds: number } {
+    return { seconds: this.seconds, nanoseconds: this.nanoseconds };
+  }
+
   valueOf(): string {
     // This method returns a string of the form <seconds>.<nanoseconds> where <seconds> is
     // translated to have a non-negative value and both <seconds> and <nanoseconds> are left-padded

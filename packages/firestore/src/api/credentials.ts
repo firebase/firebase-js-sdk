@@ -127,10 +127,6 @@ export class EmptyCredentialsProvider implements CredentialsProvider {
   }
 
   removeChangeListener(): void {
-    debugAssert(
-      this.changeListener !== null,
-      'removeChangeListener() when no listener registered'
-    );
     this.changeListener = null;
   }
 }
@@ -252,15 +248,6 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   }
 
   removeChangeListener(): void {
-    debugAssert(
-      this.tokenListener != null,
-      'removeChangeListener() called twice'
-    );
-    debugAssert(
-      this.changeListener !== null,
-      'removeChangeListener() called when no listener registered'
-    );
-
     if (this.auth) {
       this.auth.removeAuthTokenListener(this.tokenListener!);
     }

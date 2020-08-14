@@ -304,11 +304,15 @@ abstract class TestRunner {
   }
 
   async shutdown(): Promise<void> {
-    await this.queue.enqueueAndInitiateShutdown(async () => {
+    this.queue.enterRestrictedMode();
+    const deferred = new Deferred();
+    this.queue.enqueueAndForgetEvenWhileRestricted(async () => {
       if (this.started) {
         await this.doShutdown();
       }
+      deferred.resolve();
     });
+    return deferred.promise;
   }
 
   /** Runs a single SpecStep on this runner. */

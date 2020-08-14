@@ -1,5 +1,13 @@
 # @firebase/functions
 
+## 0.4.50
+
+### Patch Changes
+
+- Updated dependencies [[`29327b21`](https://github.com/firebase/firebase-js-sdk/commit/29327b2198391a9f1e545bcd1172a4b3e12a522c)]:
+  - @firebase/messaging-types@0.5.0
+  - @firebase/component@0.1.18
+
 ## 0.4.49
 
 ### Patch Changes

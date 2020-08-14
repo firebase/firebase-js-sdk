@@ -1182,6 +1182,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
         await expect(db1.start()).to.eventually.be.rejectedWith(
           'IndexedDB transaction failed'
         );
+        await db1.shutdown();
       }
     );
   });

@@ -71,6 +71,10 @@ export class GeoPoint {
     return this._lat === other._lat && this._long === other._long;
   }
 
+  toJSON(): { latitude: number; longitude: number } {
+    return { latitude: this._lat, longitude: this._long };
+  }
+
   /**
    * Actually private to JS consumers of our API, so this function is prefixed
    * with an underscore.

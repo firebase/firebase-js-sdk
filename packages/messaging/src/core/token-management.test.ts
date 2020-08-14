@@ -16,20 +16,23 @@
  */
 
 import '../testing/setup';
-import { spy, stub, useFakeTimers } from 'sinon';
-import { getToken, deleteToken } from './token-management';
-import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
-import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
-import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
-import { DEFAULT_VAPID_KEY } from '../util/constants';
-import { expect } from 'chai';
-import { ErrorCode } from '../util/errors';
-import { dbGet, dbSet } from '../helpers/idb-manager';
+
 import * as apiModule from './api';
+
+import { SubscriptionOptions, TokenDetails } from '../interfaces/token-details';
+import { dbGet, dbSet } from '../helpers/idb-manager';
+import { deleteToken, getToken } from './token-management';
+import { spy, stub, useFakeTimers } from 'sinon';
+
+import { DEFAULT_VAPID_KEY } from '../util/constants';
+import { ErrorCode } from '../util/errors';
+import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
+import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { Stub } from '../testing/sinon-types';
-import { getFakeTokenDetails } from '../testing/fakes/token-details';
-import { TokenDetails, SubscriptionOptions } from '../interfaces/token-details';
 import { arrayToBase64 } from '../helpers/array-base64-translator';
+import { expect } from 'chai';
+import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
+import { getFakeTokenDetails } from '../testing/fakes/token-details';
 
 describe('Token Management', () => {
   let tokenDetails: TokenDetails;
