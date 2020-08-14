@@ -729,11 +729,9 @@ export async function generateReportForModule(
 ): Promise<Report> {
   const packageJsonPath = `${moduleLocation}/package.json`;
   if (!fs.existsSync(packageJsonPath)) {
-    // throw new Error(`Firebase Module locates at ${moduleLocation}: ${ErrorCode.PKG_JSON_DOES_NOT_EXIST}`);
-    return {
-      name: '',
-      symbols: []
-    };
+    throw new Error(
+      `Firebase Module locates at ${moduleLocation}: ${ErrorCode.PKG_JSON_DOES_NOT_EXIST}`
+    );
   }
   const packageJson = require(packageJsonPath);
   // to exclude <modules>-types modules
@@ -811,14 +809,21 @@ async function traverseDirs(
 
   const reports: Report[] = [];
   const report: Report = await executor(moduleLocation);
-  if (report != null && report.name.length !== 0) {
+  if (report != null) {
     reports.push(report);
   }
 
   for (const name of fs.readdirSync(moduleLocation)) {
     const p = `${moduleLocation}/${name}`;
-
-    if (fs.lstatSync(p).isDirectory()) {
+    const generateSizeAnalysisReportPkgJsonField: string =
+      'generate-size-analysis-report';
+    // submodules of a firebase module should set generate-size-analysis-report field of package.json to true
+    // in order to be analyzed
+    if (
+      fs.lstatSync(p).isDirectory() &&
+      fs.existsSync(`${p}/package.json`) &&
+      require(`${p}/package.json`)[generateSizeAnalysisReportPkgJsonField]
+    ) {
       const subModuleReports: Report[] = await traverseDirs(
         p,
         executor,
