@@ -31,7 +31,11 @@ import { inMemoryPersistence } from '../persistence/in_memory';
 import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
 import {
-    _castAuth, AuthImpl, DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST
+  _castAuth,
+  AuthImpl,
+  DEFAULT_API_HOST,
+  DEFAULT_API_SCHEME,
+  DEFAULT_TOKEN_API_HOST
 } from './auth_impl';
 import { _initializeAuthInstance } from './initialize';
 
