@@ -1,5 +1,33 @@
 # firebase
 
+## 7.18.0
+
+### Minor Changes
+
+- [`29327b21`](https://github.com/firebase/firebase-js-sdk/commit/29327b2198391a9f1e545bcd1172a4b3e12a522c) [#3234](https://github.com/firebase/firebase-js-sdk/pull/3234) - Add `getToken(options:{serviceWorkerRegistration, vapidKey})`,`onBackgroundMessage`.
+  Deprecate `setBackgroundMessageHandler`, `onTokenRefresh`, `useVapidKey`, `useServiceWorker`, `getToken`.
+
+  Add Typing `MessagePayload`, `NotificationPayload`, `FcmOptions`.
+
+### Patch Changes
+
+- [`d4ca3da0`](https://github.com/firebase/firebase-js-sdk/commit/d4ca3da0a59fcea1261ba69d7eb663bba38d3089) [#3585](https://github.com/firebase/firebase-js-sdk/pull/3585) - Extended Usage of `isIndexedDBAvailable` to Service Worker
+
+* [`2a0d254f`](https://github.com/firebase/firebase-js-sdk/commit/2a0d254fa58e607842fc0380c8cfa7bbbb69df75) [#3555](https://github.com/firebase/firebase-js-sdk/pull/3555) - Added Browser Extension check for Firebase Analytics. `analytics.isSupported()` will now return `Promise<false>` for extension environments.
+
+* Updated dependencies [[`36be62a8`](https://github.com/firebase/firebase-js-sdk/commit/36be62a85c3cc47c15c9a59f20cdfcd7d0a72ad9), [`d4ca3da0`](https://github.com/firebase/firebase-js-sdk/commit/d4ca3da0a59fcea1261ba69d7eb663bba38d3089), [`2a0d254f`](https://github.com/firebase/firebase-js-sdk/commit/2a0d254fa58e607842fc0380c8cfa7bbbb69df75), [`29327b21`](https://github.com/firebase/firebase-js-sdk/commit/29327b2198391a9f1e545bcd1172a4b3e12a522c), [`68995c24`](https://github.com/firebase/firebase-js-sdk/commit/68995c2422a479d42b9c972bab3da4d544b9f002)]:
+  - @firebase/firestore@1.16.4
+  - @firebase/util@0.3.1
+  - @firebase/analytics@0.4.2
+  - @firebase/messaging@0.7.0
+  - @firebase/app@0.6.10
+  - @firebase/database@0.6.11
+  - @firebase/installations@0.4.16
+  - @firebase/performance@0.3.11
+  - @firebase/remote-config@0.1.27
+  - @firebase/storage@0.3.42
+  - @firebase/functions@0.4.50
+
 ## 7.17.2
 
 ### Patch Changes

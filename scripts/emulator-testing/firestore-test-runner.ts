@@ -16,7 +16,11 @@
  */
 
 // @ts-ignore
-import { spawn } from 'child-process-promise';
+import {
+  spawn,
+  ChildProcessPromise,
+  SpawnPromiseResult
+} from 'child-process-promise';
 import * as path from 'path';
 // @ts-ignore
 import * as freePortFinder from 'find-free-port';
@@ -35,19 +39,32 @@ function runTest(port: number, projectId: string, withPersistence: boolean) {
   // TODO(b/113267261): Include browser test once WebChannel support is
   // ready in Firestore emulator.
   // Use `prod` to allow test runner's env variable overrides to work.
+  const childProcesses: ChildProcessPromise<SpawnPromiseResult>[] = [];
   if (withPersistence) {
-    return Promise.all([
+    childProcesses.push(
       spawn('yarn', ['test:node:persistence:prod'], options),
       spawn('yarn', ['test:exp:persistence:prod'], options),
       spawn('yarn', ['test:lite:prod'], options)
-    ]);
+    );
   } else {
-    return Promise.all([
+    childProcesses.push(
       spawn('yarn', ['test:node:prod'], options),
       spawn('yarn', ['test:exp:prod'], options),
       spawn('yarn', ['test:lite:prod'], options)
-    ]);
+    );
   }
+
+  process.once('exit', () =>
+    childProcesses.forEach(p => p.childProcess.kill())
+  );
+  process.once('SIGINT', () =>
+    childProcesses.forEach(p => p.childProcess.kill('SIGINT'))
+  );
+  process.once('SIGTERM', () =>
+    childProcesses.forEach(p => p.childProcess.kill('SIGTERM'))
+  );
+
+  return Promise.all(childProcesses);
 }
 
 async function run(): Promise<void> {

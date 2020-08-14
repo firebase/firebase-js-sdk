@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.16.3",
+  "version": "1.16.4",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -60,10 +60,10 @@
     "memory/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.1.17",
+    "@firebase/component": "0.1.18",
     "@firebase/firestore-types": "1.12.0",
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.3.0",
+    "@firebase/util": "0.3.1",
     "@firebase/webchannel-wrapper": "0.3.0",
     "@grpc/grpc-js": "^1.0.0",
     "@grpc/proto-loader": "^0.5.0",
