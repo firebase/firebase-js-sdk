@@ -24,10 +24,7 @@ import { AuthErrorCode } from '../errors';
 import { assert } from '../util/assert';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import {
-  AuthImpl,
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST
+    AuthImpl, DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST
 } from './auth_impl';
 
 function getVersionForPlatform(
@@ -62,7 +59,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
             apiScheme: DEFAULT_API_SCHEME,
             sdkClientVersion: _getClientVersion(clientPlatform)
           };
-          return new AuthImpl(app.name, config);
+          return new AuthImpl(app, config);
         })(app);
       },
       ComponentType.PUBLIC
