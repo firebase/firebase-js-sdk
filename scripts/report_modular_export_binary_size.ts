@@ -38,32 +38,27 @@ async function generateReport(): Promise<RequestBody> {
     log: `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}`,
     modules: []
   };
-  try {
-    let allModulesLocation: string[] = await mapWorkspaceToPackages([
-      `${projectRoot}/packages-exp/*`
-    ]);
 
-    allModulesLocation = allModulesLocation.filter(path => {
-      const json = require(`${path}/package.json`);
-      return (
-        json.name.startsWith('@firebase') &&
-        !json.name.includes('-compat') &&
-        !json.name.includes('-types')
-      );
-    });
+  let allModulesLocation: string[] = await mapWorkspaceToPackages([
+    `${projectRoot}/packages-exp/*`
+  ]);
 
-    const reports: Report[] = await generateReportForModules(
-      allModulesLocation
+  allModulesLocation = allModulesLocation.filter(path => {
+    const json = require(`${path}/package.json`);
+    return (
+      json.name.startsWith('@firebase') &&
+      !json.name.includes('-compat') &&
+      !json.name.includes('-types')
     );
+  });
 
-    for (const report of reports) {
-      requestBody.modules.push(report);
-    }
+  const reports: Report[] = await generateReportForModules(allModulesLocation);
 
-    return requestBody;
-  } catch (error) {
-    throw error;
+  for (const report of reports) {
+    requestBody.modules.push(report);
   }
+
+  return requestBody;
 }
 
 function constructRequestPath(): string {
