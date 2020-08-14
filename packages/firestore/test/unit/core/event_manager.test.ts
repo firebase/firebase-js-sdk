@@ -64,6 +64,7 @@ describe('EventManager', () => {
 
   beforeEach(() => {
     remoteStoreSpy = {
+      remoteSyncer: {},
       listen: sinon.spy(),
       unlisten: sinon.spy()
     } as any;

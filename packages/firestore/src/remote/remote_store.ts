@@ -189,10 +189,10 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /**
-   * SyncEngine to notify of watch and write events. This must be set
-   * immediately after construction.
+   * SyncEngine callbacks to notify of watch and write events. Individual 
+   * callbacks must be set before use.
    */
-  syncEngine!: RemoteSyncer;
+  remoteSyncer: RemoteSyncer = {};
 
   /**
    * Starts up the remote store, creating streams, restoring state from
@@ -313,7 +313,8 @@ export class RemoteStore implements TargetMetadataProvider {
 
   /** {@link TargetMetadataProvider.getRemoteKeysForTarget} */
   getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet {
-    return this.syncEngine.getRemoteKeysForTarget(targetId);
+    debugAssert(!!this.remoteSyncer.getRemoteKeysForTarget, 'getRemoteKeysForTarget() not set');
+    return this.remoteSyncer.getRemoteKeysForTarget(targetId);
   }
 
   /**
@@ -509,6 +510,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * SyncEngine.
    */
   private raiseWatchSnapshot(snapshotVersion: SnapshotVersion): Promise<void> {
+    debugAssert(!!this.remoteSyncer.applyRemoteEvent, 'applyRemoteEvent() not set');
     debugAssert(
       !snapshotVersion.isEqual(SnapshotVersion.min()),
       "Can't raise event for unknown SnapshotVersion"
@@ -569,19 +571,20 @@ export class RemoteStore implements TargetMetadataProvider {
     });
 
     // Finally raise remote event
-    return applyRemoteEvent(this.syncEngine, remoteEvent);
+    return this.remoteSyncer.applyRemoteEvent(remoteEvent);
   }
 
   /** Handles an error on a target */
   private async handleTargetError(
     watchChange: WatchTargetChange
   ): Promise<void> {
+    debugAssert(!!this.remoteSyncer.rejectListen, 'rejectListen() not set');
     debugAssert(!!watchChange.cause, 'Handling target error without a cause');
     const error = watchChange.cause!;
     for (const targetId of watchChange.targetIds) {
       // A watched target might have been removed already.
       if (this.listenTargets.has(targetId)) {
-        await rejectListen(this.syncEngine, targetId, error);
+        await this.remoteSyncer.rejectListen(targetId, error);
         this.listenTargets.delete(targetId);
         this.watchChangeAggregator!.removeTarget(targetId);
       }
@@ -698,8 +701,9 @@ export class RemoteStore implements TargetMetadataProvider {
     const batch = this.writePipeline.shift()!;
     const success = MutationBatchResult.from(batch, commitVersion, results);
 
+    debugAssert(!!this.remoteSyncer.applySuccessfulWrite, 'applySuccessfulWrite() not set');
     await this.executeWithRecovery(() =>
-      this.syncEngine.applySuccessfulWrite(success)
+      this.remoteSyncer.applySuccessfulWrite!(success)
     );
 
     // It's possible that with the completion of this mutation another
@@ -743,9 +747,10 @@ export class RemoteStore implements TargetMetadataProvider {
       // down -- this was just a bad request so inhibit backoff on the next
       // restart.
       this.writeStream.inhibitBackoff();
-
+      
+      debugAssert(!!this.remoteSyncer.rejectFailedWrite, 'rejectFailedWrite() not set');
       await this.executeWithRecovery(() =>
-        this.syncEngine.rejectFailedWrite(batch.batchId, error)
+        this.remoteSyncer.rejectFailedWrite!(batch.batchId, error)
       );
 
       // It's possible that with the completion of this mutation
@@ -777,7 +782,8 @@ export class RemoteStore implements TargetMetadataProvider {
 
     await this.disableNetworkInternal();
     this.onlineStateTracker.set(OnlineState.Unknown);
-    await this.syncEngine.handleCredentialChange(user);
+    debugAssert(!!this.remoteSyncer.handleCredentialChange, 'handleCredentialChange() not set');
+    await this.remoteSyncer.handleCredentialChange(user);
 
     this.offlineCauses.delete(OfflineCause.CredentialChange);
     await this.enableNetworkInternal();

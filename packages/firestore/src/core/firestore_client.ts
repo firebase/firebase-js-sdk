@@ -37,7 +37,7 @@ import {
   eventManagerListen,
   eventManagerUnlisten
 } from './event_manager';
-import { SyncEngine } from './sync_engine';
+import {registerPendingWritesCallback, SyncEngine, syncEngineWrite} from './sync_engine';
 import { View } from './view';
 import { SharedClientState } from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
@@ -392,7 +392,7 @@ export class FirestoreClient {
 
     const deferred = new Deferred<void>();
     this.asyncQueue.enqueueAndForget(() => {
-      return this.syncEngine.registerPendingWritesCallback(deferred);
+      return registerPendingWritesCallback(this.syncEngine, deferred);
     });
     return deferred.promise;
   }
@@ -470,7 +470,7 @@ export class FirestoreClient {
     this.verifyNotTerminated();
     const deferred = new Deferred<void>();
     this.asyncQueue.enqueueAndForget(() =>
-      this.syncEngine.write(mutations, deferred)
+      syncEngineWrite(this.syncEngine, mutations, deferred)
     );
     return deferred.promise;
   }
@@ -539,7 +539,7 @@ export function enqueueWrite(
   mutations: Mutation[]
 ): Promise<void> {
   const deferred = new Deferred<void>();
-  asyncQueue.enqueueAndForget(() => syncEngine.write(mutations, deferred));
+  asyncQueue.enqueueAndForget(() => syncEngineWrite(syncEngine, mutations, deferred));
   return deferred.promise;
 }
 
@@ -560,9 +560,9 @@ export function enqueueWaitForPendingWrites(
   syncEngine: SyncEngine
 ): Promise<void> {
   const deferred = new Deferred<void>();
-  asyncQueue.enqueueAndForget(() => {
-    return syncEngine.registerPendingWritesCallback(deferred);
-  });
+  asyncQueue.enqueueAndForget(() => 
+    registerPendingWritesCallback( syncEngine, deferred)
+  );
   return deferred.promise;
 }
 

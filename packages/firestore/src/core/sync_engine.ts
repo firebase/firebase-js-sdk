@@ -39,7 +39,6 @@ import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatchResult } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { RemoteStore } from '../remote/remote_store';
-import { RemoteSyncer } from '../remote/remote_syncer';
 import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
@@ -161,48 +160,11 @@ export interface SyncEngineListener {
  * The SyncEngine’s methods should only ever be called by methods running in the
  * global async queue.
  */
-export interface SyncEngine extends RemoteSyncer {
+export interface SyncEngine {
   isPrimaryClient: boolean;
 
   /** Subscribes to SyncEngine notifications. Has to be called exactly once. */
   subscribe(syncEngineListener: SyncEngineListener): void;
-
-  /**
-   * Initiates the write of local mutation batch which involves adding the
-   * writes to the mutation queue, notifying the remote store about new
-   * mutations and raising events for any changes this write caused.
-   *
-   * The promise returned by this call is resolved when the above steps
-   * have completed, *not* when the write was acked by the backend. The
-   * userCallback is resolved once the write was acked/rejected by the
-   * backend (or failed locally for any other reason).
-   */
-  write(batch: Mutation[], userCallback: Deferred<void>): Promise<void>;
-
-  /**
-   * Applies an OnlineState change to the sync engine and notifies any views of
-   * the change.
-   */
-  applyOnlineStateChange(
-    onlineState: OnlineState,
-    source: OnlineStateSource
-  ): void;
-
-  /**
-   * Registers a user callback that resolves when all pending mutations at the moment of calling
-   * are acknowledged .
-   */
-  registerPendingWritesCallback(callback: Deferred<void>): Promise<void>;
-
-  // Visible for testing
-  activeLimboDocumentResolutions(): SortedMap<DocumentKey, TargetId>;
-
-  // Visible for testing
-  enqueuedLimboDocumentResolutions(): DocumentKey[];
-
-  handleCredentialChange(user: User): Promise<void>;
-
-  getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet;
 }
 
 /**
@@ -249,11 +211,11 @@ class SyncEngineImpl implements SyncEngine {
   activeLimboResolutionsByTarget = new Map<TargetId, LimboResolution>();
   limboDocumentRefs = new ReferenceSet();
   /** Stores user completion handlers, indexed by User and BatchId. */
-  private mutationUserCallbacks = {} as {
+  mutationUserCallbacks = {} as {
     [uidKey: string]: SortedMap<BatchId, Deferred<void>>;
   };
   /** Stores user callbacks waiting for all pending writes to be acknowledged. */
-  private pendingWritesCallbacks = new Map<BatchId, Array<Deferred<void>>>();
+  pendingWritesCallbacks = new Map<BatchId, Array<Deferred<void>>>();
   limboTargetIdGenerator = TargetIdGenerator.forSyncEngine();
 
   onlineState = OnlineState.Unknown;
@@ -268,7 +230,7 @@ class SyncEngineImpl implements SyncEngine {
     public remoteStore: RemoteStore,
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
     public sharedClientState: SharedClientState,
-    private currentUser: User,
+    public currentUser: User,
     public maxConcurrentLimboResolutions: number
   ) {}
 
@@ -289,295 +251,11 @@ class SyncEngineImpl implements SyncEngine {
     this.syncEngineListener = syncEngineListener;
   }
 
-  async write(batch: Mutation[], userCallback: Deferred<void>): Promise<void> {
-    this.assertSubscribed('write()');
-
-    try {
-      const result = await this.localStore.localWrite(batch);
-      this.sharedClientState.addPendingMutation(result.batchId);
-      this.addMutationCallback(result.batchId, userCallback);
-      await this.emitNewSnapsAndNotifyLocalStore(result.changes);
-      await this.remoteStore.fillWritePipeline();
-    } catch (e) {
-      // If we can't persist the mutation, we reject the user callback and
-      // don't send the mutation. The user can then retry the write.
-      const error = wrapInUserErrorIfRecoverable(e, `Failed to persist write`);
-      userCallback.reject(error);
-    }
-  }
-
-  applyOnlineStateChange(
-    onlineState: OnlineState,
-    source: OnlineStateSource
-  ): void {
-    // If we are the secondary client, we explicitly ignore the remote store's
-    // online state (the local client may go offline, even though the primary
-    // tab remains online) and only apply the primary tab's online state from
-    // SharedClientState.
-    if (
-      (this.isPrimaryClient && source === OnlineStateSource.RemoteStore) ||
-      (!this.isPrimaryClient && source === OnlineStateSource.SharedClientState)
-    ) {
-      this.assertSubscribed('applyOnlineStateChange()');
-      const newViewSnapshots = [] as ViewSnapshot[];
-      this.queryViewsByQuery.forEach((query, queryView) => {
-        const viewChange = queryView.view.applyOnlineStateChange(onlineState);
-        debugAssert(
-          viewChange.limboChanges.length === 0,
-          'OnlineState should not affect limbo documents.'
-        );
-        if (viewChange.snapshot) {
-          newViewSnapshots.push(viewChange.snapshot);
-        }
-      });
-      this.syncEngineListener!.onOnlineStateChange(onlineState);
-      this.syncEngineListener!.onWatchChange(newViewSnapshots);
-      this.onlineState = onlineState;
-      if (this.isPrimaryClient) {
-        this.sharedClientState.setOnlineState(onlineState);
-      }
-    }
-  }
-
-  async applySuccessfulWrite(
-    mutationBatchResult: MutationBatchResult
-  ): Promise<void> {
-    this.assertSubscribed('applySuccessfulWrite()');
-
-    const batchId = mutationBatchResult.batch.batchId;
-
-    try {
-      const changes = await this.localStore.acknowledgeBatch(
-        mutationBatchResult
-      );
-
-      // The local store may or may not be able to apply the write result and
-      // raise events immediately (depending on whether the watcher is caught
-      // up), so we raise user callbacks first so that they consistently happen
-      // before listen events.
-      this.processUserCallback(batchId, /*error=*/ null);
-      this.triggerPendingWritesCallbacks(batchId);
-
-      this.sharedClientState.updateMutationState(batchId, 'acknowledged');
-      await this.emitNewSnapsAndNotifyLocalStore(changes);
-    } catch (error) {
-      await ignoreIfPrimaryLeaseLoss(error);
-    }
-  }
-
-  async rejectFailedWrite(
-    batchId: BatchId,
-    error: FirestoreError
-  ): Promise<void> {
-    this.assertSubscribed('rejectFailedWrite()');
-
-    try {
-      const changes = await this.localStore.rejectBatch(batchId);
-
-      // The local store may or may not be able to apply the write result and
-      // raise events immediately (depending on whether the watcher is caught up),
-      // so we raise user callbacks first so that they consistently happen before
-      // listen events.
-      this.processUserCallback(batchId, error);
-      this.triggerPendingWritesCallbacks(batchId);
-
-      this.sharedClientState.updateMutationState(batchId, 'rejected', error);
-      await this.emitNewSnapsAndNotifyLocalStore(changes);
-    } catch (error) {
-      await ignoreIfPrimaryLeaseLoss(error);
-    }
-  }
-
-  async registerPendingWritesCallback(callback: Deferred<void>): Promise<void> {
-    if (!this.remoteStore.canUseNetwork()) {
-      logDebug(
-        LOG_TAG,
-        'The network is disabled. The task returned by ' +
-          "'awaitPendingWrites()' will not complete until the network is enabled."
-      );
-    }
-
-    try {
-      const highestBatchId = await this.localStore.getHighestUnacknowledgedBatchId();
-      if (highestBatchId === BATCHID_UNKNOWN) {
-        // Trigger the callback right away if there is no pending writes at the moment.
-        callback.resolve();
-        return;
-      }
-
-      const callbacks = this.pendingWritesCallbacks.get(highestBatchId) || [];
-      callbacks.push(callback);
-      this.pendingWritesCallbacks.set(highestBatchId, callbacks);
-    } catch (e) {
-      const firestoreError = wrapInUserErrorIfRecoverable(
-        e,
-        'Initialization of waitForPendingWrites() operation failed'
-      );
-      callback.reject(firestoreError);
-    }
-  }
-
-  /**
-   * Triggers the callbacks that are waiting for this batch id to get acknowledged by server,
-   * if there are any.
-   */
-  private triggerPendingWritesCallbacks(batchId: BatchId): void {
-    (this.pendingWritesCallbacks.get(batchId) || []).forEach(callback => {
-      callback.resolve();
-    });
-
-    this.pendingWritesCallbacks.delete(batchId);
-  }
-
-  /** Reject all outstanding callbacks waiting for pending writes to complete. */
-  private rejectOutstandingPendingWritesCallbacks(errorMessage: string): void {
-    this.pendingWritesCallbacks.forEach(callbacks => {
-      callbacks.forEach(callback => {
-        callback.reject(new FirestoreError(Code.CANCELLED, errorMessage));
-      });
-    });
-
-    this.pendingWritesCallbacks.clear();
-  }
-
-  private addMutationCallback(
-    batchId: BatchId,
-    callback: Deferred<void>
-  ): void {
-    let newCallbacks = this.mutationUserCallbacks[this.currentUser.toKey()];
-    if (!newCallbacks) {
-      newCallbacks = new SortedMap<BatchId, Deferred<void>>(
-        primitiveComparator
-      );
-    }
-    newCallbacks = newCallbacks.insert(batchId, callback);
-    this.mutationUserCallbacks[this.currentUser.toKey()] = newCallbacks;
-  }
-
-  /**
-   * Resolves or rejects the user callback for the given batch and then discards
-   * it.
-   */
-  processUserCallback(batchId: BatchId, error: Error | null): void {
-    let newCallbacks = this.mutationUserCallbacks[this.currentUser.toKey()];
-
-    // NOTE: Mutations restored from persistence won't have callbacks, so it's
-    // okay for there to be no callback for this ID.
-    if (newCallbacks) {
-      const callback = newCallbacks.get(batchId);
-      if (callback) {
-        debugAssert(
-          batchId === newCallbacks.minKey(),
-          'Mutation callbacks processed out-of-order?'
-        );
-        if (error) {
-          callback.reject(error);
-        } else {
-          callback.resolve();
-        }
-        newCallbacks = newCallbacks.remove(batchId);
-      }
-      this.mutationUserCallbacks[this.currentUser.toKey()] = newCallbacks;
-    }
-  }
-
-  // Visible for testing
-  activeLimboDocumentResolutions(): SortedMap<DocumentKey, TargetId> {
-    return this.activeLimboTargetsByKey;
-  }
-
-  // Visible for testing
-  enqueuedLimboDocumentResolutions(): DocumentKey[] {
-    return this.enqueuedLimboResolutions;
-  }
-
-  async emitNewSnapsAndNotifyLocalStore(
-    changes: MaybeDocumentMap,
-    remoteEvent?: RemoteEvent
-  ): Promise<void> {
-    const newSnaps: ViewSnapshot[] = [];
-    const docChangesInAllViews: LocalViewChanges[] = [];
-    const queriesProcessed: Array<Promise<void>> = [];
-
-    this.queryViewsByQuery.forEach((_, queryView) => {
-      debugAssert(!!this.applyDocChanges, 'ApplyDocChangesHandler not set');
-      queriesProcessed.push(
-        this.applyDocChanges(queryView, changes, remoteEvent).then(
-          viewSnapshot => {
-            if (viewSnapshot) {
-              if (this.isPrimaryClient) {
-                this.sharedClientState.updateQueryState(
-                  queryView.targetId,
-                  viewSnapshot.fromCache ? 'not-current' : 'current'
-                );
-              }
-              newSnaps.push(viewSnapshot);
-              const docChanges = LocalViewChanges.fromSnapshot(
-                queryView.targetId,
-                viewSnapshot
-              );
-              docChangesInAllViews.push(docChanges);
-            }
-          }
-        )
-      );
-    });
-
-    await Promise.all(queriesProcessed);
-    this.syncEngineListener!.onWatchChange(newSnaps);
-    await this.localStore.notifyLocalViewChanges(docChangesInAllViews);
-  }
-
   assertSubscribed(fnName: string): void {
     debugAssert(
       this.syncEngineListener !== null,
       'Trying to call ' + fnName + ' before calling subscribe().'
     );
-  }
-
-  async handleCredentialChange(user: User): Promise<void> {
-    const userChanged = !this.currentUser.isEqual(user);
-
-    if (userChanged) {
-      logDebug(LOG_TAG, 'User change. New user:', user.toKey());
-
-      const result = await this.localStore.handleUserChange(user);
-      this.currentUser = user;
-
-      // Fails tasks waiting for pending writes requested by previous user.
-      this.rejectOutstandingPendingWritesCallbacks(
-        "'waitForPendingWrites' promise is rejected due to a user change."
-      );
-      // TODO(b/114226417): Consider calling this only in the primary tab.
-      this.sharedClientState.handleUserChange(
-        user,
-        result.removedBatchIds,
-        result.addedBatchIds
-      );
-      await this.emitNewSnapsAndNotifyLocalStore(result.affectedDocuments);
-    }
-  }
-
-  getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet {
-    const limboResolution = this.activeLimboResolutionsByTarget.get(targetId);
-    if (limboResolution && limboResolution.receivedDocument) {
-      return documentKeySet().add(limboResolution.key);
-    } else {
-      let keySet = documentKeySet();
-      const queries = this.queriesByTarget.get(targetId);
-      if (!queries) {
-        return keySet;
-      }
-      for (const query of queries) {
-        const queryView = this.queryViewsByQuery.get(query);
-        debugAssert(
-          !!queryView,
-          `No query view found for ${stringifyQuery(query)}`
-        );
-        keySet = keySet.unionWith(queryView.view.syncedDocuments);
-      }
-      return keySet;
-    }
   }
 }
 
@@ -604,32 +282,6 @@ export function newSyncEngine(
 }
 
 /**
- * Reconcile the list of synced documents in an existing view with those
- * from persistence.
- */
-async function synchronizeViewAndComputeSnapshot(
-  syncEngine: SyncEngine,
-  queryView: QueryView
-): Promise<ViewChange> {
-  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  const queryResult = await syncEngineImpl.localStore.executeQuery(
-    queryView.query,
-    /* usePreviousResults= */ true
-  );
-  const viewSnapshot = queryView.view.synchronizeWithPersistedState(
-    queryResult
-  );
-  if (syncEngineImpl.isPrimaryClient) {
-    updateTrackedLimbos(
-      syncEngineImpl,
-      queryView.targetId,
-      viewSnapshot.limboChanges
-    );
-  }
-  return viewSnapshot;
-}
-
-/**
  * Initiates the new listen, resolves promise when listen enqueued to the
  * server. All the subsequent view snapshots or errors are sent to the
  * subscribed handlers. Returns the initial snapshot.
@@ -638,7 +290,7 @@ export async function syncEngineListen(
   syncEngine: SyncEngine,
   query: Query
 ): Promise<ViewSnapshot> {
-  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  const syncEngineImpl = ensureWatchCallbacks(syncEngine);
   syncEngineImpl.assertSubscribed('listen()');
 
   let targetId;
@@ -728,96 +380,9 @@ async function initializeViewAndComputeSnapshot(
   return viewChange.snapshot;
 }
 
-async function applyDocChanges(
-  syncEngineImpl: SyncEngineImpl,
-  queryView: QueryView,
-  changes: MaybeDocumentMap,
-  remoteEvent?: RemoteEvent
-): Promise<ViewSnapshot | undefined> {
-  let viewDocChanges = queryView.view.computeDocChanges(changes);
-  if (viewDocChanges.needsRefill) {
-    // The query has a limit and some docs were removed, so we need
-    // to re-run the query against the local store to make sure we
-    // didn't lose any good docs that had been past the limit.
-    viewDocChanges = await syncEngineImpl.localStore
-      .executeQuery(queryView.query, /* usePreviousResults= */ false)
-      .then(({ documents }) => {
-        return queryView.view.computeDocChanges(documents, viewDocChanges);
-      });
-  }
-
-  const targetChange =
-    remoteEvent && remoteEvent.targetChanges.get(queryView.targetId);
-  const viewChange = queryView.view.applyChanges(
-    viewDocChanges,
-    /* updateLimboDocuments= */ syncEngineImpl.isPrimaryClient,
-    targetChange
-  );
-  updateTrackedLimbos(
-    syncEngineImpl,
-    queryView.targetId,
-    viewChange.limboChanges
-  );
-  return viewChange.snapshot;
-}
-
-/**
- * Applies one remote event to the sync engine, notifying any views of the
- * changes, and releasing any pending mutation batches that would become
- * visible because of the snapshot version the remote event contains.
- */
-export async function applyRemoteEvent(
-  syncEngine: RemoteSyncer,
-  remoteEvent: RemoteEvent
-): Promise<void> {
-  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  syncEngineImpl.assertSubscribed('applyRemoteEvent()');
-  try {
-    const changes = await syncEngineImpl.localStore.applyRemoteEvent(
-      remoteEvent
-    );
-    // Update `receivedDocument` as appropriate for any limbo targets.
-    remoteEvent.targetChanges.forEach((targetChange, targetId) => {
-      const limboResolution = syncEngineImpl.activeLimboResolutionsByTarget.get(
-        targetId
-      );
-      if (limboResolution) {
-        // Since this is a limbo resolution lookup, it's for a single document
-        // and it could be added, modified, or removed, but not a combination.
-        hardAssert(
-          targetChange.addedDocuments.size +
-            targetChange.modifiedDocuments.size +
-            targetChange.removedDocuments.size <=
-            1,
-          'Limbo resolution for single document contains multiple changes.'
-        );
-        if (targetChange.addedDocuments.size > 0) {
-          limboResolution.receivedDocument = true;
-        } else if (targetChange.modifiedDocuments.size > 0) {
-          hardAssert(
-            limboResolution.receivedDocument,
-            'Received change for limbo target document without add.'
-          );
-        } else if (targetChange.removedDocuments.size > 0) {
-          hardAssert(
-            limboResolution.receivedDocument,
-            'Received remove for limbo target document without add.'
-          );
-          limboResolution.receivedDocument = false;
-        } else {
-          // This was probably just a CURRENT targetChange or similar.
-        }
-      }
-    });
-    await syncEngineImpl.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
-  } catch (error) {
-    await ignoreIfPrimaryLeaseLoss(error);
-  }
-}
-
 /** Stops listening to the query. */
 export async function syncEngineUnlisten(
-  syncEngine: RemoteSyncer,
+  syncEngine: SyncEngine,
   query: Query
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
@@ -870,6 +435,133 @@ export async function syncEngineUnlisten(
 }
 
 /**
+ * Initiates the write of local mutation batch which involves adding the
+ * writes to the mutation queue, notifying the remote store about new
+ * mutations and raising events for any changes this write caused.
+ *
+ * The promise returned by this call is resolved when the above steps
+ * have completed, *not* when the write was acked by the backend. The
+ * userCallback is resolved once the write was acked/rejected by the
+ * backend (or failed locally for any other reason).
+ */
+export async function syncEngineWrite(
+  syncEngine: SyncEngine,
+  batch: Mutation[],
+  userCallback: Deferred<void>
+): Promise<void> {
+  const syncEngineImpl = ensureWriteCallbacks(syncEngine);
+  syncEngineImpl.assertSubscribed('write()');
+
+  try {
+    const result = await syncEngineImpl.localStore.localWrite(batch);
+    syncEngineImpl.sharedClientState.addPendingMutation(result.batchId);
+    addMutationCallback(syncEngineImpl, result.batchId, userCallback);
+    await emitNewSnapsAndNotifyLocalStore(syncEngineImpl, result.changes);
+    await syncEngineImpl.remoteStore.fillWritePipeline();
+  } catch (e) {
+    // If we can't persist the mutation, we reject the user callback and
+    // don't send the mutation. The user can then retry the write.
+    const error = wrapInUserErrorIfRecoverable(e, `Failed to persist write`);
+    userCallback.reject(error);
+  }
+}
+
+/**
+ * Applies one remote event to the sync engine, notifying any views of the
+ * changes, and releasing any pending mutation batches that would become
+ * visible because of the snapshot version the remote event contains.
+ */
+export async function applyRemoteEvent(
+  syncEngine: SyncEngine,
+  remoteEvent: RemoteEvent
+): Promise<void> {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  syncEngineImpl.assertSubscribed('applyRemoteEvent()');
+  try {
+    const changes = await syncEngineImpl.localStore.applyRemoteEvent(
+      remoteEvent
+    );
+    // Update `receivedDocument` as appropriate for any limbo targets.
+    remoteEvent.targetChanges.forEach((targetChange, targetId) => {
+      const limboResolution = syncEngineImpl.activeLimboResolutionsByTarget.get(
+        targetId
+      );
+      if (limboResolution) {
+        // Since this is a limbo resolution lookup, it's for a single document
+        // and it could be added, modified, or removed, but not a combination.
+        hardAssert(
+          targetChange.addedDocuments.size +
+            targetChange.modifiedDocuments.size +
+            targetChange.removedDocuments.size <=
+            1,
+          'Limbo resolution for single document contains multiple changes.'
+        );
+        if (targetChange.addedDocuments.size > 0) {
+          limboResolution.receivedDocument = true;
+        } else if (targetChange.modifiedDocuments.size > 0) {
+          hardAssert(
+            limboResolution.receivedDocument,
+            'Received change for limbo target document without add.'
+          );
+        } else if (targetChange.removedDocuments.size > 0) {
+          hardAssert(
+            limboResolution.receivedDocument,
+            'Received remove for limbo target document without add.'
+          );
+          limboResolution.receivedDocument = false;
+        } else {
+          // This was probably just a CURRENT targetChange or similar.
+        }
+      }
+    });
+    await emitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes, remoteEvent);
+  } catch (error) {
+    await ignoreIfPrimaryLeaseLoss(error);
+  }
+}
+
+/**
+ * Applies an OnlineState change to the sync engine and notifies any views of
+ * the change.
+ */
+export function applyOnlineStateChange(
+  syncEngine: SyncEngine,
+  onlineState: OnlineState,
+  source: OnlineStateSource
+): void {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  // If we are the secondary client, we explicitly ignore the remote store's
+  // online state (the local client may go offline, even though the primary
+  // tab remains online) and only apply the primary tab's online state from
+  // SharedClientState.
+  if (
+    (syncEngineImpl.isPrimaryClient &&
+      source === OnlineStateSource.RemoteStore) ||
+    (!syncEngineImpl.isPrimaryClient &&
+      source === OnlineStateSource.SharedClientState)
+  ) {
+    syncEngineImpl.assertSubscribed('applyOnlineStateChange()');
+    const newViewSnapshots = [] as ViewSnapshot[];
+    syncEngineImpl.queryViewsByQuery.forEach((query, queryView) => {
+      const viewChange = queryView.view.applyOnlineStateChange(onlineState);
+      debugAssert(
+        viewChange.limboChanges.length === 0,
+        'OnlineState should not affect limbo documents.'
+      );
+      if (viewChange.snapshot) {
+        newViewSnapshots.push(viewChange.snapshot);
+      }
+    });
+    syncEngineImpl.syncEngineListener!.onOnlineStateChange(onlineState);
+    syncEngineImpl.syncEngineListener!.onWatchChange(newViewSnapshots);
+    syncEngineImpl.onlineState = onlineState;
+    if (syncEngineImpl.isPrimaryClient) {
+      syncEngineImpl.sharedClientState.setOnlineState(onlineState);
+    }
+  }
+}
+
+/**
  * Rejects the listen for the given targetID. This can be triggered by the
  * backend for any active target.
  *
@@ -881,7 +573,7 @@ export async function syncEngineUnlisten(
  * authorized to see the data matching the target.
  */
 export async function rejectListen(
-  syncEngine: RemoteSyncer,
+  syncEngine: SyncEngine,
   targetId: TargetId,
   err: FirestoreError
 ): Promise<void> {
@@ -936,6 +628,186 @@ export async function rejectListen(
       .releaseTarget(targetId, /* keepPersistedTargetData */ false)
       .then(() => removeAndCleanupTarget(syncEngineImpl, targetId, err))
       .catch(ignoreIfPrimaryLeaseLoss);
+  }
+}
+
+export async function applySuccessfulWrite(
+  syncEngine: SyncEngine,
+  mutationBatchResult: MutationBatchResult
+): Promise<void> {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  syncEngineImpl.assertSubscribed('applySuccessfulWrite()');
+
+  const batchId = mutationBatchResult.batch.batchId;
+
+  try {
+    const changes = await syncEngineImpl.localStore.acknowledgeBatch(
+      mutationBatchResult
+    );
+
+    // The local store may or may not be able to apply the write result and
+    // raise events immediately (depending on whether the watcher is caught
+    // up), so we raise user callbacks first so that they consistently happen
+    // before listen events.
+    processUserCallback(syncEngineImpl, batchId, /*error=*/ null);
+    triggerPendingWritesCallbacks(syncEngineImpl, batchId);
+
+    syncEngineImpl.sharedClientState.updateMutationState(
+      batchId,
+      'acknowledged'
+    );
+    await emitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
+  } catch (error) {
+    await ignoreIfPrimaryLeaseLoss(error);
+  }
+}
+
+export async function rejectFailedWrite(
+  syncEngine: SyncEngine,
+  batchId: BatchId,
+  error: FirestoreError
+): Promise<void> {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  syncEngineImpl.assertSubscribed('rejectFailedWrite()');
+
+  try {
+    const changes = await syncEngineImpl.localStore.rejectBatch(batchId);
+
+    // The local store may or may not be able to apply the write result and
+    // raise events immediately (depending on whether the watcher is caught up),
+    // so we raise user callbacks first so that they consistently happen before
+    // listen events.
+    processUserCallback(syncEngineImpl, batchId, error);
+    triggerPendingWritesCallbacks(syncEngineImpl, batchId);
+
+    syncEngineImpl.sharedClientState.updateMutationState(
+      batchId,
+      'rejected',
+      error
+    );
+    await emitNewSnapsAndNotifyLocalStore(syncEngineImpl, changes);
+  } catch (error) {
+    await ignoreIfPrimaryLeaseLoss(error);
+  }
+}
+
+/**
+ * Registers a user callback that resolves when all pending mutations at the moment of calling
+ * are acknowledged .
+ */
+export async function registerPendingWritesCallback(
+  syncEngine: SyncEngine,
+  callback: Deferred<void>
+): Promise<void> {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  if (!syncEngineImpl.remoteStore.canUseNetwork()) {
+    logDebug(
+      LOG_TAG,
+      'The network is disabled. The task returned by ' +
+        "'awaitPendingWrites()' will not complete until the network is enabled."
+    );
+  }
+
+  try {
+    const highestBatchId = await syncEngineImpl.localStore.getHighestUnacknowledgedBatchId();
+    if (highestBatchId === BATCHID_UNKNOWN) {
+      // Trigger the callback right away if there is no pending writes at the moment.
+      callback.resolve();
+      return;
+    }
+
+    const callbacks =
+      syncEngineImpl.pendingWritesCallbacks.get(highestBatchId) || [];
+    callbacks.push(callback);
+    syncEngineImpl.pendingWritesCallbacks.set(highestBatchId, callbacks);
+  } catch (e) {
+    const firestoreError = wrapInUserErrorIfRecoverable(
+      e,
+      'Initialization of waitForPendingWrites() operation failed'
+    );
+    callback.reject(firestoreError);
+  }
+}
+
+/**
+ * Triggers the callbacks that are waiting for this batch id to get acknowledged by server,
+ * if there are any.
+ */
+function triggerPendingWritesCallbacks(
+  syncEngineImpl: SyncEngineImpl,
+  batchId: BatchId
+): void {
+  (syncEngineImpl.pendingWritesCallbacks.get(batchId) || []).forEach(
+    callback => {
+      callback.resolve();
+    }
+  );
+
+  syncEngineImpl.pendingWritesCallbacks.delete(batchId);
+}
+
+/** Reject all outstanding callbacks waiting for pending writes to complete. */
+function rejectOutstandingPendingWritesCallbacks(
+  syncEngineImpl: SyncEngineImpl,
+  errorMessage: string
+): void {
+  syncEngineImpl.pendingWritesCallbacks.forEach(callbacks => {
+    callbacks.forEach(callback => {
+      callback.reject(new FirestoreError(Code.CANCELLED, errorMessage));
+    });
+  });
+
+  syncEngineImpl.pendingWritesCallbacks.clear();
+}
+
+function addMutationCallback(
+  syncEngineImpl: SyncEngineImpl,
+  batchId: BatchId,
+  callback: Deferred<void>
+): void {
+  let newCallbacks =
+    syncEngineImpl.mutationUserCallbacks[syncEngineImpl.currentUser.toKey()];
+  if (!newCallbacks) {
+    newCallbacks = new SortedMap<BatchId, Deferred<void>>(primitiveComparator);
+  }
+  newCallbacks = newCallbacks.insert(batchId, callback);
+  syncEngineImpl.mutationUserCallbacks[
+    syncEngineImpl.currentUser.toKey()
+  ] = newCallbacks;
+}
+
+/**
+ * Resolves or rejects the user callback for the given batch and then discards
+ * it.
+ */
+export function processUserCallback(
+  syncEngine: SyncEngine,
+  batchId: BatchId,
+  error: Error | null
+): void {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  let newCallbacks =
+    syncEngineImpl.mutationUserCallbacks[syncEngineImpl.currentUser.toKey()];
+
+  // NOTE: Mutations restored from persistence won't have callbacks, so it's
+  // okay for there to be no callback for this ID.
+  if (newCallbacks) {
+    const callback = newCallbacks.get(batchId);
+    if (callback) {
+      debugAssert(
+        batchId === newCallbacks.minKey(),
+        'Mutation callbacks processed out-of-order?'
+      );
+      if (error) {
+        callback.reject(error);
+      } else {
+        callback.resolve();
+      }
+      newCallbacks = newCallbacks.remove(batchId);
+    }
+    syncEngineImpl.mutationUserCallbacks[
+      syncEngineImpl.currentUser.toKey()
+    ] = newCallbacks;
   }
 }
 
@@ -1072,6 +944,182 @@ function pumpEnqueuedLimboResolutions(syncEngineImpl: SyncEngineImpl): void {
   }
 }
 
+// Visible for testing
+export function activeLimboDocumentResolutions(
+  syncEngine: SyncEngine
+): SortedMap<DocumentKey, TargetId> {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  return syncEngineImpl.activeLimboTargetsByKey;
+}
+
+// Visible for testing
+export function enqueuedLimboDocumentResolutions(
+  syncEngine: SyncEngine
+): DocumentKey[] {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  return syncEngineImpl.enqueuedLimboResolutions;
+}
+
+export async function emitNewSnapsAndNotifyLocalStore(
+  syncEngine: SyncEngine,
+  changes: MaybeDocumentMap,
+  remoteEvent?: RemoteEvent
+): Promise<void> {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  const newSnaps: ViewSnapshot[] = [];
+  const docChangesInAllViews: LocalViewChanges[] = [];
+  const queriesProcessed: Array<Promise<void>> = [];
+
+  syncEngineImpl.queryViewsByQuery.forEach((_, queryView) => {
+    debugAssert(
+      !!syncEngineImpl.applyDocChanges,
+      'ApplyDocChangesHandler not set'
+    );
+    queriesProcessed.push(
+      syncEngineImpl
+        .applyDocChanges(queryView, changes, remoteEvent)
+        .then(viewSnapshot => {
+          if (viewSnapshot) {
+            if (syncEngineImpl.isPrimaryClient) {
+              syncEngineImpl.sharedClientState.updateQueryState(
+                queryView.targetId,
+                viewSnapshot.fromCache ? 'not-current' : 'current'
+              );
+            }
+            newSnaps.push(viewSnapshot);
+            const docChanges = LocalViewChanges.fromSnapshot(
+              queryView.targetId,
+              viewSnapshot
+            );
+            docChangesInAllViews.push(docChanges);
+          }
+        })
+    );
+  });
+
+  await Promise.all(queriesProcessed);
+  syncEngineImpl.syncEngineListener!.onWatchChange(newSnaps);
+  await syncEngineImpl.localStore.notifyLocalViewChanges(docChangesInAllViews);
+}
+
+async function applyDocChanges(
+  syncEngineImpl: SyncEngineImpl,
+  queryView: QueryView,
+  changes: MaybeDocumentMap,
+  remoteEvent?: RemoteEvent
+): Promise<ViewSnapshot | undefined> {
+  let viewDocChanges = queryView.view.computeDocChanges(changes);
+  if (viewDocChanges.needsRefill) {
+    // The query has a limit and some docs were removed, so we need
+    // to re-run the query against the local store to make sure we
+    // didn't lose any good docs that had been past the limit.
+    viewDocChanges = await syncEngineImpl.localStore
+      .executeQuery(queryView.query, /* usePreviousResults= */ false)
+      .then(({ documents }) => {
+        return queryView.view.computeDocChanges(documents, viewDocChanges);
+      });
+  }
+
+  const targetChange =
+    remoteEvent && remoteEvent.targetChanges.get(queryView.targetId);
+  const viewChange = queryView.view.applyChanges(
+    viewDocChanges,
+    /* updateLimboDocuments= */ syncEngineImpl.isPrimaryClient,
+    targetChange
+  );
+  updateTrackedLimbos(
+    syncEngineImpl,
+    queryView.targetId,
+    viewChange.limboChanges
+  );
+  return viewChange.snapshot;
+}
+
+export async function handleCredentialChange(
+  syncEngine: SyncEngine,
+  user: User
+): Promise<void> {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  const userChanged = !syncEngineImpl.currentUser.isEqual(user);
+
+  if (userChanged) {
+    logDebug(LOG_TAG, 'User change. New user:', user.toKey());
+
+    const result = await syncEngineImpl.localStore.handleUserChange(user);
+    syncEngineImpl.currentUser = user;
+
+    // Fails tasks waiting for pending writes requested by previous user.
+    rejectOutstandingPendingWritesCallbacks(
+      syncEngineImpl,
+      "'waitForPendingWrites' promise is rejected due to a user change."
+    );
+    // TODO(b/114226417): Consider calling this only in the primary tab.
+    syncEngineImpl.sharedClientState.handleUserChange(
+      user,
+      result.removedBatchIds,
+      result.addedBatchIds
+    );
+    await emitNewSnapsAndNotifyLocalStore(
+      syncEngineImpl,
+      result.affectedDocuments
+    );
+  }
+}
+
+export function getRemoteKeysForTarget(
+  syncEngine: SyncEngine,
+  targetId: TargetId
+): DocumentKeySet {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  const limboResolution = syncEngineImpl.activeLimboResolutionsByTarget.get(
+    targetId
+  );
+  if (limboResolution && limboResolution.receivedDocument) {
+    return documentKeySet().add(limboResolution.key);
+  } else {
+    let keySet = documentKeySet();
+    const queries = syncEngineImpl.queriesByTarget.get(targetId);
+    if (!queries) {
+      return keySet;
+    }
+    for (const query of queries) {
+      const queryView = syncEngineImpl.queryViewsByQuery.get(query);
+      debugAssert(
+        !!queryView,
+        `No query view found for ${stringifyQuery(query)}`
+      );
+      keySet = keySet.unionWith(queryView.view.syncedDocuments);
+    }
+    return keySet;
+  }
+}
+
+/**
+ * Reconcile the list of synced documents in an existing view with those
+ * from persistence.
+ */
+async function synchronizeViewAndComputeSnapshot(
+  syncEngine: SyncEngine,
+  queryView: QueryView
+): Promise<ViewChange> {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  const queryResult = await syncEngineImpl.localStore.executeQuery(
+    queryView.query,
+    /* usePreviousResults= */ true
+  );
+  const viewSnapshot = queryView.view.synchronizeWithPersistedState(
+    queryResult
+  );
+  if (syncEngineImpl.isPrimaryClient) {
+    updateTrackedLimbos(
+      syncEngineImpl,
+      queryView.targetId,
+      viewSnapshot.limboChanges
+    );
+  }
+  return viewSnapshot;
+}
+
 /** Applies a mutation state to an existing batch.  */
 // PORTING NOTE: Multi-Tab only.
 export async function applyBatchState(
@@ -1107,13 +1155,13 @@ export async function applyBatchState(
   } else if (batchState === 'acknowledged' || batchState === 'rejected') {
     // NOTE: Both these methods are no-ops for batches that originated from
     // other clients.
-    syncEngineImpl.processUserCallback(batchId, error ? error : null);
+    processUserCallback(syncEngineImpl, batchId, error ? error : null);
     removeCachedMutationBatchMetadata(syncEngineImpl.localStore, batchId);
   } else {
     fail(`Unknown batchState: ${batchState}`);
   }
 
-  await syncEngineImpl.emitNewSnapsAndNotifyLocalStore(documents);
+  await emitNewSnapsAndNotifyLocalStore(syncEngineImpl, documents);
 }
 
 /** Applies a query target change from a different tab. */
@@ -1123,6 +1171,8 @@ export async function applyPrimaryState(
   isPrimary: boolean
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  ensureWatchCallbacks(syncEngineImpl);
+  ensureWriteCallbacks(syncEngineImpl);
   if (isPrimary === true && syncEngineImpl._isPrimaryClient !== true) {
     // Secondary tabs only maintain Views for their local listeners and the
     // Views internal state may not be 100% populated (in particular
@@ -1193,6 +1243,7 @@ function resetLimboDocuments(syncEngine: SyncEngine): void {
  * persistence. Raises snapshots for any changes that affect the local
  * client and returns the updated state of all target's query data.
  *
+ * @param syncEngine the SyncEngine to operate on
  * @param targets the list of targets with views that need to be recomputed
  * @param transitionToPrimary `true` iff the tab transitions from a secondary
  * tab to a primary tab
@@ -1315,7 +1366,8 @@ export async function applyTargetState(
           targetId,
           state === 'current'
         );
-        await syncEngineImpl.emitNewSnapsAndNotifyLocalStore(
+        await emitNewSnapsAndNotifyLocalStore(
+          syncEngineImpl,
           changes,
           synthesizedRemoteEvent
         );
@@ -1341,7 +1393,7 @@ export async function applyActiveTargetsChange(
   added: TargetId[],
   removed: TargetId[]
 ): Promise<void> {
-  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  const syncEngineImpl = ensureWatchCallbacks(syncEngine);
   if (!syncEngineImpl._isPrimaryClient) {
     return;
   }
@@ -1381,4 +1433,19 @@ export async function applyActiveTargetsChange(
       })
       .catch(ignoreIfPrimaryLeaseLoss);
   }
+}
+
+function ensureWatchCallbacks(syncEngine: SyncEngine) : SyncEngineImpl {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  syncEngineImpl.remoteStore.remoteSyncer.applyRemoteEvent = applyRemoteEvent.bind(null, syncEngineImpl);
+  syncEngineImpl.remoteStore.remoteSyncer.getRemoteKeysForTarget = getRemoteKeysForTarget.bind(null, syncEngineImpl);
+  syncEngineImpl.remoteStore.remoteSyncer.rejectListen = rejectListen.bind(null, syncEngineImpl);
+  return syncEngineImpl;
+}
+
+function ensureWriteCallbacks(syncEngine: SyncEngine) : SyncEngineImpl {
+  const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  syncEngineImpl.remoteStore.remoteSyncer.applySuccessfulWrite = applySuccessfulWrite.bind(null, syncEngineImpl);
+  syncEngineImpl.remoteStore.remoteSyncer.rejectFailedWrite = rejectFailedWrite.bind(null, syncEngineImpl);
+  return syncEngineImpl;
 }
