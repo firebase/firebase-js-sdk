@@ -31,8 +31,7 @@ interface RequestBody {
 }
 const runId: string = process.env.GITHUB_RUN_ID || 'local-run-id';
 
-const METRICS_SERVICE_URL: string = process.env.METRICS_SERVICE_URL;
-//const METRICS_SERVICE_URL: string = 'https://size-analysis-test-tv5rmd4a6q-uc.a.run.app';
+const METRICS_SERVICE_URL: string = process.env.METRICS_SERVICE_URL!;
 
 async function generateReport(): Promise<RequestBody> {
   const requestBody: RequestBody = {
@@ -46,8 +45,13 @@ async function generateReport(): Promise<RequestBody> {
 
     allModulesLocation = allModulesLocation.filter(path => {
       const json = require(`${path}/package.json`);
-      return json.name.startsWith('@firebase');
+      return (
+        json.name.startsWith('@firebase') &&
+        !json.name.includes('-compat') &&
+        !json.name.includes('-types')
+      );
     });
+
     const reports: Report[] = await generateReportForModules(
       allModulesLocation
     );
@@ -58,8 +62,7 @@ async function generateReport(): Promise<RequestBody> {
 
     return requestBody;
   } catch (error) {
-    console.log(error);
-    return requestBody;
+    throw error;
   }
 }
 
@@ -118,8 +121,8 @@ function upload(report: RequestBody): void {
 }
 
 async function main(): Promise<void> {
-  const report: RequestBody = await generateReport();
-  console.log(report);
-  upload(report);
+  const reports: RequestBody = await generateReport();
+  console.log(JSON.stringify(reports, null, 4));
+  upload(reports);
 }
 main();
