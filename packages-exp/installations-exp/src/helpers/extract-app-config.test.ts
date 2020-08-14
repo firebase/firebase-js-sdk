@@ -17,7 +17,7 @@
 
 import { FirebaseError } from '@firebase/util';
 import { expect } from 'chai';
-import { AppConfig } from '../interfaces/app-config';
+import { AppConfig } from '@firebase/installations-types-exp';
 import { getFakeApp } from '../testing/fake-generators';
 import '../testing/setup';
 import { extractAppConfig } from './extract-app-config';

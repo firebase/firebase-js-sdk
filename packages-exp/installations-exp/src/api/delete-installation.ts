@@ -17,14 +17,14 @@
 
 import { deleteInstallationRequest } from '../functions/delete-installation-request';
 import { remove, update } from '../helpers/idb-manager';
-import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
 import { RequestStatus } from '../interfaces/installation-entry';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
 export async function deleteInstallation(
-  dependencies: FirebaseDependencies
+  installations: FirebaseInstallations
 ): Promise<void> {
-  const { appConfig } = dependencies;
+  const { appConfig } = installations;
 
   const entry = await update(appConfig, oldEntry => {
     if (oldEntry && oldEntry.registrationStatus === RequestStatus.NOT_STARTED) {

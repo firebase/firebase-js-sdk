@@ -16,7 +16,7 @@
  */
 
 import { getKey } from '../util/get-key';
-import { AppConfig } from '../interfaces/app-config';
+import { AppConfig } from '@firebase/installations-types-exp';
 import { IdChangeCallbackFn } from '../api';
 
 const fidChangeCallbacks: Map<string, Set<IdChangeCallbackFn>> = new Map();

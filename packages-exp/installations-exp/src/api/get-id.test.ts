@@ -19,27 +19,29 @@ import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import * as getInstallationEntryModule from '../helpers/get-installation-entry';
 import * as refreshAuthTokenModule from '../helpers/refresh-auth-token';
-import { AppConfig } from '../interfaces/app-config';
-import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
+import {
+  FirebaseInstallations,
+  AppConfig
+} from '@firebase/installations-types-exp';
 import {
   RegisteredInstallationEntry,
   RequestStatus
 } from '../interfaces/installation-entry';
-import { getFakeDependencies } from '../testing/fake-generators';
+import { getFakeInstallations } from '../testing/fake-generators';
 import '../testing/setup';
 import { getId } from './get-id';
 
 const FID = 'disciples-of-the-watch';
 
 describe('getId', () => {
-  let dependencies: FirebaseDependencies;
+  let installations: FirebaseInstallations;
   let getInstallationEntrySpy: SinonStub<
     [AppConfig],
     Promise<getInstallationEntryModule.InstallationEntryWithRegistrationPromise>
   >;
 
   beforeEach(() => {
-    dependencies = getFakeDependencies();
+    installations = getFakeInstallations();
 
     getInstallationEntrySpy = stub(
       getInstallationEntryModule,
@@ -56,7 +58,7 @@ describe('getId', () => {
       registrationPromise: Promise.resolve({} as RegisteredInstallationEntry)
     });
 
-    const fid = await getId(dependencies);
+    const fid = await getId(installations);
     expect(fid).to.equal(FID);
     expect(getInstallationEntrySpy).to.be.calledOnce;
   });
@@ -83,7 +85,7 @@ describe('getId', () => {
       creationTime: Date.now()
     });
 
-    await getId(dependencies);
+    await getId(installations);
     expect(refreshAuthTokenSpy).to.be.calledOnce;
   });
 });

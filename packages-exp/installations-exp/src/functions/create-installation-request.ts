@@ -16,7 +16,7 @@
  */
 
 import { CreateInstallationResponse } from '../interfaces/api-response';
-import { AppConfig } from '../interfaces/app-config';
+import { AppConfig } from '@firebase/installations-types-exp';
 import {
   InProgressInstallationEntry,
   RegisteredInstallationEntry,

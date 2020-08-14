@@ -20,32 +20,32 @@ import { stub } from 'sinon';
 import '../testing/setup';
 import { onIdChange } from './on-id-change';
 import * as FidChangedModule from '../helpers/fid-changed';
-import { getFakeDependencies } from '../testing/fake-generators';
-import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
+import { getFakeInstallations } from '../testing/fake-generators';
+import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
 describe('onIdChange', () => {
-  let dependencies: FirebaseDependencies;
+  let installations: FirebaseInstallations;
 
   beforeEach(() => {
-    dependencies = getFakeDependencies();
+    installations = getFakeInstallations();
     stub(FidChangedModule);
   });
 
   it('calls addCallback with the given callback and app key when called', () => {
     const callback = stub();
-    onIdChange(dependencies, callback);
+    onIdChange(installations, callback);
     expect(FidChangedModule.addCallback).to.have.been.calledOnceWith(
-      dependencies.appConfig,
+      installations.appConfig,
       callback
     );
   });
 
   it('calls removeCallback with the given callback and app key when unsubscribe is called', () => {
     const callback = stub();
-    const unsubscribe = onIdChange(dependencies, callback);
+    const unsubscribe = onIdChange(installations, callback);
     unsubscribe();
     expect(FidChangedModule.removeCallback).to.have.been.calledOnceWith(
-      dependencies.appConfig,
+      installations.appConfig,
       callback
     );
   });

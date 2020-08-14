@@ -19,14 +19,14 @@ import { FirebaseError } from '@firebase/util';
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import { GenerateAuthTokenResponse } from '../interfaces/api-response';
-import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
+import { FirebaseInstallations } from '@firebase/installations-types-exp';
 import {
   CompletedAuthToken,
   RegisteredInstallationEntry,
   RequestStatus
 } from '../interfaces/installation-entry';
 import { compareHeaders } from '../testing/compare-headers';
-import { getFakeDependencies } from '../testing/fake-generators';
+import { getFakeInstallations } from '../testing/fake-generators';
 import '../testing/setup';
 import {
   INSTALLATIONS_API_URL,
@@ -39,13 +39,13 @@ import { generateAuthTokenRequest } from './generate-auth-token-request';
 const FID = 'evil-has-no-boundaries';
 
 describe('generateAuthTokenRequest', () => {
-  let dependencies: FirebaseDependencies;
+  let installations: FirebaseInstallations;
   let fetchSpy: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
   let registeredInstallationEntry: RegisteredInstallationEntry;
   let response: GenerateAuthTokenResponse;
 
   beforeEach(() => {
-    dependencies = getFakeDependencies();
+    installations = getFakeInstallations();
 
     registeredInstallationEntry = {
       fid: FID,
@@ -72,7 +72,7 @@ describe('generateAuthTokenRequest', () => {
 
     it('fetches a new Authentication Token', async () => {
       const completedAuthToken: CompletedAuthToken = await generateAuthTokenRequest(
-        dependencies,
+        installations,
         registeredInstallationEntry
       );
       expect(completedAuthToken.requestStatus).to.equal(
@@ -100,7 +100,10 @@ describe('generateAuthTokenRequest', () => {
       };
       const expectedEndpoint = `${INSTALLATIONS_API_URL}/projects/projectId/installations/${FID}/authTokens:generate`;
 
-      await generateAuthTokenRequest(dependencies, registeredInstallationEntry);
+      await generateAuthTokenRequest(
+        installations,
+        registeredInstallationEntry
+      );
 
       expect(fetchSpy).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
       const actualHeaders = fetchSpy.lastCall.lastArg.headers;
@@ -123,7 +126,7 @@ describe('generateAuthTokenRequest', () => {
       );
 
       await expect(
-        generateAuthTokenRequest(dependencies, registeredInstallationEntry)
+        generateAuthTokenRequest(installations, registeredInstallationEntry)
       ).to.be.rejectedWith(FirebaseError);
     });
 
@@ -142,7 +145,7 @@ describe('generateAuthTokenRequest', () => {
       fetchSpy.onCall(1).resolves(new Response(JSON.stringify(response)));
 
       await expect(
-        generateAuthTokenRequest(dependencies, registeredInstallationEntry)
+        generateAuthTokenRequest(installations, registeredInstallationEntry)
       ).to.be.fulfilled;
       expect(fetchSpy).to.be.calledTwice;
     });

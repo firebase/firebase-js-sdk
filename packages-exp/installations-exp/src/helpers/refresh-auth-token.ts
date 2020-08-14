@@ -16,8 +16,10 @@
  */
 
 import { generateAuthTokenRequest } from '../functions/generate-auth-token-request';
-import { AppConfig } from '../interfaces/app-config';
-import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
+import {
+  AppConfig,
+  FirebaseInstallations
+} from '@firebase/installations-types-exp';
 import {
   AuthToken,
   CompletedAuthToken,
@@ -38,11 +40,11 @@ import { remove, set, update } from './idb-manager';
  * Should only be called if the Firebase Installation is registered.
  */
 export async function refreshAuthToken(
-  dependencies: FirebaseDependencies,
+  installations: FirebaseInstallations,
   forceRefresh = false
 ): Promise<CompletedAuthToken> {
   let tokenPromise: Promise<CompletedAuthToken> | undefined;
-  const entry = await update(dependencies.appConfig, oldEntry => {
+  const entry = await update(installations.appConfig, oldEntry => {
     if (!isEntryRegistered(oldEntry)) {
       throw ERROR_FACTORY.create(ErrorCode.NOT_REGISTERED);
     }
@@ -53,7 +55,7 @@ export async function refreshAuthToken(
       return oldEntry;
     } else if (oldAuthToken.requestStatus === RequestStatus.IN_PROGRESS) {
       // There already is a token request in progress.
-      tokenPromise = waitUntilAuthTokenRequest(dependencies, forceRefresh);
+      tokenPromise = waitUntilAuthTokenRequest(installations, forceRefresh);
       return oldEntry;
     } else {
       // No token or token expired.
@@ -62,7 +64,7 @@ export async function refreshAuthToken(
       }
 
       const inProgressEntry = makeAuthTokenRequestInProgressEntry(oldEntry);
-      tokenPromise = fetchAuthTokenFromServer(dependencies, inProgressEntry);
+      tokenPromise = fetchAuthTokenFromServer(installations, inProgressEntry);
       return inProgressEntry;
     }
   });
@@ -80,25 +82,25 @@ export async function refreshAuthToken(
  * tries once in this thread as well.
  */
 async function waitUntilAuthTokenRequest(
-  dependencies: FirebaseDependencies,
+  installations: FirebaseInstallations,
   forceRefresh: boolean
 ): Promise<CompletedAuthToken> {
   // Unfortunately, there is no way of reliably observing when a value in
   // IndexedDB changes (yet, see https://github.com/WICG/indexed-db-observers),
   // so we need to poll.
 
-  let entry = await updateAuthTokenRequest(dependencies.appConfig);
+  let entry = await updateAuthTokenRequest(installations.appConfig);
   while (entry.authToken.requestStatus === RequestStatus.IN_PROGRESS) {
     // generateAuthToken still in progress.
     await sleep(100);
 
-    entry = await updateAuthTokenRequest(dependencies.appConfig);
+    entry = await updateAuthTokenRequest(installations.appConfig);
   }
 
   const authToken = entry.authToken;
   if (authToken.requestStatus === RequestStatus.NOT_STARTED) {
     // The request timed out or failed in a different call. Try again.
-    return refreshAuthToken(dependencies, forceRefresh);
+    return refreshAuthToken(installations, forceRefresh);
   } else {
     return authToken;
   }
@@ -133,31 +135,31 @@ function updateAuthTokenRequest(
 }
 
 async function fetchAuthTokenFromServer(
-  dependencies: FirebaseDependencies,
+  installations: FirebaseInstallations,
   installationEntry: RegisteredInstallationEntry
 ): Promise<CompletedAuthToken> {
   try {
     const authToken = await generateAuthTokenRequest(
-      dependencies,
+      installations,
       installationEntry
     );
     const updatedInstallationEntry: RegisteredInstallationEntry = {
       ...installationEntry,
       authToken
     };
-    await set(dependencies.appConfig, updatedInstallationEntry);
+    await set(installations.appConfig, updatedInstallationEntry);
     return authToken;
   } catch (e) {
     if (isServerError(e) && (e.serverCode === 401 || e.serverCode === 404)) {
       // Server returned a "FID not found" or a "Invalid authentication" error.
       // Generate a new ID next time.
-      await remove(dependencies.appConfig);
+      await remove(installations.appConfig);
     } else {
       const updatedInstallationEntry: RegisteredInstallationEntry = {
         ...installationEntry,
         authToken: { requestStatus: RequestStatus.NOT_STARTED }
       };
-      await set(dependencies.appConfig, updatedInstallationEntry);
+      await set(installations.appConfig, updatedInstallationEntry);
     }
     throw e;
   }

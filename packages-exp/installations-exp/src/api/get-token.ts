@@ -17,18 +17,20 @@
 
 import { getInstallationEntry } from '../helpers/get-installation-entry';
 import { refreshAuthToken } from '../helpers/refresh-auth-token';
-import { AppConfig } from '../interfaces/app-config';
-import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
+import {
+  FirebaseInstallations,
+  AppConfig
+} from '@firebase/installations-types-exp';
 
 export async function getToken(
-  dependencies: FirebaseDependencies,
+  installations: FirebaseInstallations,
   forceRefresh = false
 ): Promise<string> {
-  await completeInstallationRegistration(dependencies.appConfig);
+  await completeInstallationRegistration(installations.appConfig);
 
   // At this point we either have a Registered Installation in the DB, or we've
   // already thrown an error.
-  const authToken = await refreshAuthToken(dependencies, forceRefresh);
+  const authToken = await refreshAuthToken(installations, forceRefresh);
   return authToken.token;
 }
 

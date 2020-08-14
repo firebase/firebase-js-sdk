@@ -16,7 +16,7 @@
  */
 
 import { createInstallationRequest } from '../functions/create-installation-request';
-import { AppConfig } from '../interfaces/app-config';
+import { AppConfig } from '@firebase/installations-types-exp';
 import {
   InProgressInstallationEntry,
   InstallationEntry,

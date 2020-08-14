@@ -16,68 +16,8 @@
  */
 
 // import firebase from '@firebase/app-exp';
-import { registerVersion, _registerComponent } from '@firebase/app-exp';
-import { _FirebaseService } from '@firebase/app-types-exp';
-import { Component, ComponentType } from '@firebase/component';
-import { FirebaseInstallations } from '@firebase/installations-types';
-import {
-  deleteInstallation,
-  getId,
-  getToken,
-  IdChangeCallbackFn,
-  IdChangeUnsubscribeFn,
-  onIdChange
-} from './api';
-import { extractAppConfig } from './helpers/extract-app-config';
-import { FirebaseDependencies } from './interfaces/firebase-dependencies';
+import { registerInstallations } from './functions/config';
 
-import { name, version } from '../package.json';
-
-export function registerInstallations(): void {
-  const installationsName = 'installations';
-
-  _registerComponent(
-    new Component(
-      installationsName,
-      container => {
-        const app = container.getProvider('app').getImmediate();
-
-        // Throws if app isn't configured properly.
-        const appConfig = extractAppConfig(app);
-        const platformLoggerProvider = container.getProvider('platform-logger');
-        const dependencies: FirebaseDependencies = {
-          appConfig,
-          platformLoggerProvider
-        };
-
-        const installations: FirebaseInstallations & _FirebaseService = {
-          app,
-          getId: () => getId(dependencies),
-          getToken: (forceRefresh?: boolean) =>
-            getToken(dependencies, forceRefresh),
-          delete: () => deleteInstallation(dependencies),
-          onIdChange: (callback: IdChangeCallbackFn): IdChangeUnsubscribeFn =>
-            onIdChange(dependencies, callback)
-        };
-        return installations;
-      },
-      ComponentType.PUBLIC
-    )
-  );
-
-  registerVersion(name, version);
-}
+export * from './api';
 
 registerInstallations();
-
-/**
- * Define extension behavior of `registerInstallations`
- */
-declare module '@firebase/app-types' {
-  interface FirebaseNamespace {
-    installations(app?: FirebaseApp): FirebaseInstallations;
-  }
-  interface FirebaseApp {
-    installations(): FirebaseInstallations;
-  }
-}

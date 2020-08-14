@@ -15,40 +15,43 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
+import { Provider } from '@firebase/component';
 
 export interface FirebaseInstallations {
   /**
-   * Creates a Firebase Installation if there isn't one for the app and
-   * returns the Installation ID.
-   *
-   * @return Firebase Installation ID
+   * Firebase APP configurations
    */
-  getId(): Promise<string>;
-
+  readonly appConfig: AppConfig;
   /**
-   * Returns an Authentication Token for the current Firebase Installation.
-   *
-   * @return Firebase Installation Authentication Token
+   * Firebase platform logging util.
    */
-  getToken(forceRefresh?: boolean): Promise<string>;
-
-  /**
-   * Deletes the Firebase Installation and all associated data.
-   */
-  delete(): Promise<void>;
-
-  /**
-   * Sets a new callback that will get called when Installlation ID changes.
-   * Returns an unsubscribe function that will remove the callback when called.
-   */
-  onIdChange(callback: (installationId: string) => void): () => void;
+  readonly platformLoggerProvider: Provider<'platform-logger'>;
 }
 
-export type FirebaseInstallationsName = 'installations';
+export interface AppConfig {
+  /**
+   * Firebase APP name.
+   */
+  readonly appName: string;
+  /**
+   * Firebase project ID.
+   */
+  readonly projectId: string;
+  /**
+   * Firebase API key.
+   */
+  readonly apiKey: string;
+  /**
+   * Firebase APP ID.
+   */
+  readonly appId: string;
+}
+
+export type FirebaseInstallationsName = 'installations-exp';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'installations': FirebaseInstallations;
+    'installations-exp': FirebaseInstallations;
   }
 }

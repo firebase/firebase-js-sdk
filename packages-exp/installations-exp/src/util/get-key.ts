@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { AppConfig } from '../interfaces/app-config';
+import { AppConfig } from '@firebase/installations-types-exp';
 
 /** Returns a string key that can be used to identify the app. */
 export function getKey(appConfig: AppConfig): string {

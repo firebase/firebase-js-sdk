@@ -16,7 +16,7 @@
  */
 
 import { addCallback, removeCallback } from '../helpers/fid-changed';
-import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
+import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
 export type IdChangeCallbackFn = (installationId: string) => void;
 export type IdChangeUnsubscribeFn = () => void;
@@ -26,7 +26,7 @@ export type IdChangeUnsubscribeFn = () => void;
  * Returns an unsubscribe function that will remove the callback when called.
  */
 export function onIdChange(
-  { appConfig }: FirebaseDependencies,
+  { appConfig }: FirebaseInstallations,
   callback: IdChangeCallbackFn
 ): IdChangeUnsubscribeFn {
   addCallback(appConfig, callback);

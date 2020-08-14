@@ -15,15 +15,17 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import {
   Component,
   ComponentContainer,
   ComponentType
 } from '@firebase/component';
 import { extractAppConfig } from '../helpers/extract-app-config';
-import { AppConfig } from '../interfaces/app-config';
-import { FirebaseDependencies } from '../interfaces/firebase-dependencies';
+import {
+  FirebaseInstallations,
+  AppConfig
+} from '@firebase/installations-types-exp';
 
 export function getFakeApp(): FirebaseApp {
   return {
@@ -51,7 +53,7 @@ export function getFakeAppConfig(
   return { ...extractAppConfig(getFakeApp()), ...customValues };
 }
 
-export function getFakeDependencies(): FirebaseDependencies {
+export function getFakeInstallations(): FirebaseInstallations {
   const container = new ComponentContainer('test');
   container.addComponent(
     new Component(

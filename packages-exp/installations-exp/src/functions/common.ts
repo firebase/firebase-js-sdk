@@ -17,7 +17,7 @@
 
 import { FirebaseError } from '@firebase/util';
 import { GenerateAuthTokenResponse } from '../interfaces/api-response';
-import { AppConfig } from '../interfaces/app-config';
+import { AppConfig } from '@firebase/installations-types-exp';
 import {
   CompletedAuthToken,
   RegisteredInstallationEntry,

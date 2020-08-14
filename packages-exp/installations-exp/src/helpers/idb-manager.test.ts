@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import { AppConfig } from '../interfaces/app-config';
+import { AppConfig } from '@firebase/installations-types-exp';
 import {
   InstallationEntry,
   RequestStatus
