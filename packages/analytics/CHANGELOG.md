@@ -1,5 +1,16 @@
 # @firebase/analytics
 
+## 0.4.2
+
+### Patch Changes
+
+- [`2a0d254f`](https://github.com/firebase/firebase-js-sdk/commit/2a0d254fa58e607842fc0380c8cfa7bbbb69df75) [#3555](https://github.com/firebase/firebase-js-sdk/pull/3555) - Added Browser Extension check for Firebase Analytics. `analytics.isSupported()` will now return `Promise<false>` for extension environments.
+
+- Updated dependencies [[`d4ca3da0`](https://github.com/firebase/firebase-js-sdk/commit/d4ca3da0a59fcea1261ba69d7eb663bba38d3089)]:
+  - @firebase/util@0.3.1
+  - @firebase/component@0.1.18
+  - @firebase/installations@0.4.16
+
 ## 0.4.1
 
 ### Patch Changes
