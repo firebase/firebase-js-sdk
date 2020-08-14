@@ -31,11 +31,7 @@ import { inMemoryPersistence } from '../persistence/in_memory';
 import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
 import {
-  _castAuth,
-  AuthImpl,
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST
+    _castAuth, AuthImpl, DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST
 } from './auth_impl';
 import { _initializeAuthInstance } from './initialize';
 
@@ -57,7 +53,7 @@ describe('core/auth/auth_impl', () => {
 
   beforeEach(async () => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
-    const authImpl = new AuthImpl('test-app', {
+    const authImpl = new AuthImpl(FAKE_APP, {
       apiKey: FAKE_APP.options.apiKey!,
       apiHost: DEFAULT_API_HOST,
       apiScheme: DEFAULT_API_SCHEME,

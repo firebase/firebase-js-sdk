@@ -25,11 +25,7 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { testAuth, testUser } from '../../test/helpers/mock_auth';
 import {
-  _castAuth,
-  AuthImpl,
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST
+    _castAuth, AuthImpl, DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST
 } from '../core/auth/auth_impl';
 import { _initializeAuthInstance } from '../core/auth/initialize';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
@@ -40,10 +36,7 @@ import * as reload from '../core/user/reload';
 import { _getInstance } from '../core/util/instantiator';
 import { _getClientVersion, ClientPlatform } from '../core/util/version';
 import { Auth } from '../model/auth';
-import {
-  browserLocalPersistence,
-  browserSessionPersistence
-} from './persistence/browser';
+import { browserLocalPersistence, browserSessionPersistence } from './persistence/browser';
 import { browserPopupRedirectResolver } from './popup_redirect';
 
 use(sinonChai);
@@ -64,7 +57,7 @@ describe('core/auth/auth_impl', () => {
 
   beforeEach(async () => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
-    const authImpl = new AuthImpl('test-app', {
+    const authImpl = new AuthImpl(FAKE_APP, {
       apiKey: FAKE_APP.options.apiKey!,
       apiHost: DEFAULT_API_HOST,
       apiScheme: DEFAULT_API_SCHEME,
@@ -117,7 +110,7 @@ describe('core/auth/initializeAuth', () => {
       persistence: externs.Persistence | externs.Persistence[],
       popupRedirectResolver?: externs.PopupRedirectResolver
     ): Promise<externs.Auth> {
-      const auth = new AuthImpl('test-app', {
+      const auth = new AuthImpl(FAKE_APP, {
         apiKey: FAKE_APP.options.apiKey!,
         apiHost: DEFAULT_API_HOST,
         apiScheme: DEFAULT_API_SCHEME,
