@@ -26,7 +26,7 @@ import { User } from '../auth/user';
  * An interface that describes the actions the RemoteStore needs to perform on
  * a cooperating synchronization engine.
  */
-export type RemoteSyncer = {
+export interface RemoteSyncer {
   /**
    * Applies one remote event to the sync engine, notifying any views of the
    * changes, and releasing any pending mutation batches that would become
@@ -72,4 +72,4 @@ export type RemoteSyncer = {
    * May be called repeatedly for the same user.
    */
   handleCredentialChange?(user: User): Promise<void>;
-};
+}

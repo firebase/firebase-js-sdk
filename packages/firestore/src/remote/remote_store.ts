@@ -55,7 +55,6 @@ import {
 import { ByteString } from '../util/byte_string';
 import { isIndexedDbTransactionError } from '../local/simple_db';
 import { User } from '../auth/user';
-import { rejectListen, applyRemoteEvent } from '../core/sync_engine';
 
 const LOG_TAG = 'RemoteStore';
 

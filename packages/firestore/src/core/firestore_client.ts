@@ -407,9 +407,9 @@ export class FirestoreClient {
     this.verifyNotTerminated();
 
     const deferred = new Deferred<void>();
-    this.asyncQueue.enqueueAndForget(() => {
-      return registerPendingWritesCallback(this.syncEngine, deferred);
-    });
+    this.asyncQueue.enqueueAndForget(() => 
+       registerPendingWritesCallback(this.syncEngine, deferred)
+    );
     return deferred.promise;
   }
 

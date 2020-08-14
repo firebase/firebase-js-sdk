@@ -43,7 +43,7 @@ import { newSyncEngine, SyncEngine } from '../../../src/core/sync_engine';
 import { User } from '../../../src/auth/user';
 import { MAX_CONCURRENT_LIMBO_RESOLUTIONS } from '../../../src/core/firestore_client';
 
-// This test fails uses mocks that only implement the required functionality.
+// This test uses mocks that only implement the required functionality.
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 describe('EventManager', () => {

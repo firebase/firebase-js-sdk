@@ -226,12 +226,12 @@ class SyncEngineImpl implements SyncEngine {
   _isPrimaryClient: undefined | boolean = undefined;
 
   constructor(
-    public localStore: LocalStore,
-    public remoteStore: RemoteStore,
+    readonly localStore: LocalStore,
+    readonly remoteStore: RemoteStore,
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
-    public sharedClientState: SharedClientState,
+    readonly sharedClientState: SharedClientState,
     public currentUser: User,
-    public maxConcurrentLimboResolutions: number
+    readonly maxConcurrentLimboResolutions: number
   ) {}
 
   get isPrimaryClient(): boolean {
@@ -1243,7 +1243,7 @@ function resetLimboDocuments(syncEngine: SyncEngine): void {
  * persistence. Raises snapshots for any changes that affect the local
  * client and returns the updated state of all target's query data.
  *
- * @param syncEngine the SyncEngine to operate on
+ * @param syncEngine The sync engine implementation
  * @param targets the list of targets with views that need to be recomputed
  * @param transitionToPrimary `true` iff the tab transitions from a secondary
  * tab to a primary tab
