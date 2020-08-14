@@ -169,6 +169,11 @@ export interface SyncEngine {
 
 /**
  * An implementation of `SyncEngine` coordinating with other parts of SDK.
+ * 
+ * The parts of SyncEngine that act as a callback to RemoteStore need to be
+ * registered individually. This is done in `syncEngineWrite()` and 
+ * `syncEngineListen()` (as well as `applyPrimaryState()`) as these methods
+ * serve as entry points to RemoteStore's functionality.
  *
  * Note: some field defined in this class might have public access level, but
  * the class is not exported so they are only accessible from this module.
