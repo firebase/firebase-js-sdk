@@ -37,6 +37,12 @@ function _iframeCannotSyncWebStorage(): boolean {
   return _isSafari(ua) || _isIOS(ua);
 }
 
+// The polling period in case events are not supported
+export const POLLING_INTERVAL_MS = 1000;
+
+// The IE 10 localStorage cross tab synchronization delay in milliseconds
+const IE10_LOCAL_STORAGE_SYNC_DELAY = 10;
+
 class BrowserLocalPersistence extends BrowserPersistenceClass
   implements Persistence {
   static type: 'LOCAL' = 'LOCAL';
@@ -45,11 +51,6 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
     super(localStorage, PersistenceType.LOCAL);
   }
 
-  // The polling period in case events are not supported
-  private static readonly POLLING_INTERVAL_MS = 1000;
-  // The IE 10 localStorage cross tab synchronization delay in milliseconds
-  private static readonly IE10_LOCAL_STORAGE_SYNC_DELAY = 10;
-
   private readonly listeners: Record<string, Set<StorageEventListener>> = {};
   private readonly localCache: Record<string, string | null> = {};
   private pollTimer: NodeJS.Timeout | null = null;
@@ -57,6 +58,8 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
   // Safari or iOS browser and embedded in an iframe.
   private readonly safariLocalStorageNotSynced =
     _iframeCannotSyncWebStorage() && _isIframe();
+  // Whether to use polling instead of depending on window events
+  private readonly fallbackToPolling = _isMobileBrowser();
 
   private _forAllChangedKeys(
     cb: (key: string, oldValue: string | null, newValue: string | null) => void
@@ -148,7 +151,7 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
       // this recovers from that situation.
       setTimeout(
         triggerListeners,
-        BrowserLocalPersistence.IE10_LOCAL_STORAGE_SYNC_DELAY
+        IE10_LOCAL_STORAGE_SYNC_DELAY
       );
     } else {
       triggerListeners();
@@ -181,7 +184,7 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
           );
         }
       );
-    }, BrowserLocalPersistence.POLLING_INTERVAL_MS);
+    }, POLLING_INTERVAL_MS);
   }
 
   private _stopPolling(): void {
@@ -206,7 +209,7 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
       // This may happen in some mobile browsers. A localStorage change in the foreground window
       // will not be detected in the background window via the storage event.
       // This was detected in iOS 7.x mobile browsers
-      if (_isMobileBrowser()) {
+      if (this.fallbackToPolling) {
         this._startPolling();
       } else {
         this._attachListener();

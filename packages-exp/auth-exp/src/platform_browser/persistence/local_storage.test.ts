@@ -25,7 +25,7 @@ import {
   PersistenceType
 } from '../../core/persistence';
 import { _getInstance } from '../../core/util/instantiator';
-import { browserLocalPersistence } from './local_storage';
+import { browserLocalPersistence, POLLING_INTERVAL_MS } from './local_storage';
 
 use(sinonChai);
 
@@ -86,79 +86,151 @@ describe('browserLocalPersistence', () => {
 
     beforeEach(() => {
       callback = sinon.spy();
-      persistence.addListener(key, callback);
     });
 
-    afterEach(() => {
-      persistence.removeListener(key, callback);
-    });
-
-    context('with multiple listeners', () => {
-      let otherCallback: sinon.SinonSpy;
-
+    context('with events', () => {
       beforeEach(() => {
-        otherCallback = sinon.spy();
-        persistence.addListener(key, otherCallback);
-        localStorage.setItem(key, JSON.stringify(newValue));
+        persistence.addListener(key, callback);
       });
 
       afterEach(() => {
-        persistence.removeListener(key, otherCallback);
-      });
-
-      it('should trigger both listeners if multiple listeners are registered', () => {
-        window.dispatchEvent(
-          new StorageEvent('storage', {
-            key,
-            oldValue: null,
-            newValue: JSON.stringify(newValue)
-          })
-        );
-
-        expect(callback).to.have.been.calledWith(newValue);
-        expect(otherCallback).to.have.been.calledWith(newValue);
-      });
-    });
-
-    context('with a change in the underlying storage', () => {
-      beforeEach(() => {
-        localStorage.setItem(key, JSON.stringify(newValue));
-      });
-
-      it('should trigger on storage event for the same key', () => {
-        window.dispatchEvent(
-          new StorageEvent('storage', {
-            key,
-            oldValue: null,
-            newValue: JSON.stringify(newValue)
-          })
-        );
-
-        expect(callback).to.have.been.calledWith(newValue);
-      });
-
-      it('should not trigger after unsubscribe', () => {
         persistence.removeListener(key, callback);
-        window.dispatchEvent(
-          new StorageEvent('storage', {
-            key,
-            oldValue: null,
-            newValue: JSON.stringify(newValue)
-          })
-        );
-
-        expect(callback).not.to.have.been.called;
       });
 
-      it('should trigger even if the event had no key', () => {
-        window.dispatchEvent(new StorageEvent('storage', {}));
+      context('with multiple listeners', () => {
+        let otherCallback: sinon.SinonSpy;
 
-        expect(callback).to.have.been.calledWith(newValue);
+        beforeEach(() => {
+          otherCallback = sinon.spy();
+          persistence.addListener(key, otherCallback);
+          localStorage.setItem(key, JSON.stringify(newValue));
+        });
+
+        afterEach(() => {
+          persistence.removeListener(key, otherCallback);
+        });
+
+        it('should trigger both listeners if multiple listeners are registered', () => {
+          window.dispatchEvent(
+            new StorageEvent('storage', {
+              key,
+              oldValue: null,
+              newValue: JSON.stringify(newValue)
+            })
+          );
+
+          expect(callback).to.have.been.calledWith(newValue);
+          expect(otherCallback).to.have.been.calledWith(newValue);
+        });
+      });
+
+      context('with a change in the underlying storage', () => {
+        beforeEach(() => {
+          localStorage.setItem(key, JSON.stringify(newValue));
+        });
+
+        it('should trigger on storage event for the same key', () => {
+          window.dispatchEvent(
+            new StorageEvent('storage', {
+              key,
+              oldValue: null,
+              newValue: JSON.stringify(newValue)
+            })
+          );
+
+          expect(callback).to.have.been.calledWith(newValue);
+        });
+
+        it('should not trigger after unsubscribe', () => {
+          persistence.removeListener(key, callback);
+          window.dispatchEvent(
+            new StorageEvent('storage', {
+              key,
+              oldValue: null,
+              newValue: JSON.stringify(newValue)
+            })
+          );
+
+          expect(callback).not.to.have.been.called;
+        });
+
+        it('should trigger even if the event had no key', () => {
+          window.dispatchEvent(new StorageEvent('storage', {}));
+
+          expect(callback).to.have.been.calledWith(newValue);
+        });
+      });
+
+      context('without a change in the underlying storage', () => {
+        it('should not trigger', () => {
+          window.dispatchEvent(
+            new StorageEvent('storage', {
+              key,
+              oldValue: null,
+              newValue: JSON.stringify(newValue)
+            })
+          );
+
+          expect(callback).not.to.have.been.called;
+        });
+
+        it('should not trigger on storage event for a different key', () => {
+          localStorage.setItem('other-key', JSON.stringify(newValue));
+          window.dispatchEvent(
+            new StorageEvent('storage', {
+              key: 'other-key',
+              oldValue: null,
+              newValue: JSON.stringify(newValue)
+            })
+          );
+
+          expect(callback).not.to.have.been.called;
+        });
+
+        it('should not trigger if the listener was added after the storage was updated', () => {
+          const otherCallback = sinon.spy();
+          persistence.addListener(key, otherCallback);
+
+          window.dispatchEvent(
+            new StorageEvent('storage', {
+              key,
+              oldValue: null,
+              newValue: JSON.stringify(newValue)
+            })
+          );
+
+          expect(otherCallback).not.to.have.been.called;
+          persistence.removeListener(key, otherCallback);
+        });
       });
     });
 
-    context('without a change in the underlying storage', () => {
-      it('should not trigger', () => {
+    context('with polling (mobile browsers)', () => {
+      let clock: sinon.SinonFakeTimers;
+
+      beforeEach(() => {
+        clock = sinon.useFakeTimers();
+        (persistence as any)['fallbackToPolling'] = true;
+        persistence.addListener(key, callback);
+      });
+
+      afterEach(() => {
+        persistence.removeListener(key, callback);
+        clock.restore();
+      });
+
+      it('should catch persistence changes', async () => {
+        localStorage.setItem(key, JSON.stringify(newValue));
+
+        clock.tick(POLLING_INTERVAL_MS + 1);
+
+        expect(callback).to.have.been.calledWith(newValue);
+      });
+
+      it('should not trigger twice if event still occurs after poll', async () => {
+        localStorage.setItem(key, JSON.stringify(newValue));
+
+        clock.tick(POLLING_INTERVAL_MS + 1);
         window.dispatchEvent(
           new StorageEvent('storage', {
             key,
@@ -167,25 +239,11 @@ describe('browserLocalPersistence', () => {
           })
         );
 
-        expect(callback).not.to.have.been.called;
+        expect(callback).to.have.been.calledOnceWith(newValue);
       });
 
-      it('should not trigger on storage event for a different key', () => {
-        localStorage.setItem('other-key', JSON.stringify(newValue));
-        window.dispatchEvent(
-          new StorageEvent('storage', {
-            key: 'other-key',
-            oldValue: null,
-            newValue: JSON.stringify(newValue)
-          })
-        );
-
-        expect(callback).not.to.have.been.called;
-      });
-
-      it('should not trigger if the listener was added after the storage was updated', () => {
-        const otherCallback = sinon.spy();
-        persistence.addListener(key, otherCallback);
+      it('should not trigger twice if poll occurs after event', async () => {
+        localStorage.setItem(key, JSON.stringify(newValue));
 
         window.dispatchEvent(
           new StorageEvent('storage', {
@@ -194,8 +252,9 @@ describe('browserLocalPersistence', () => {
             newValue: JSON.stringify(newValue)
           })
         );
+        clock.tick(POLLING_INTERVAL_MS + 1);
 
-        expect(otherCallback).not.to.have.been.called;
+        expect(callback).to.have.been.calledOnceWith(newValue);
       });
     });
   });

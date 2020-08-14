@@ -15,17 +15,20 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { expect, use } from 'chai';
 import * as sinon from 'sinon';
+import * as sinonChai from 'sinon-chai';
 
 import { testUser, testAuth } from '../../../test/helpers/mock_auth';
 import { _getInstance } from '../../core/util/instantiator';
 import { Persistence, PersistenceType } from '../../core/persistence';
-import { indexedDBLocalPersistence } from './indexed_db';
+import { indexedDBLocalPersistence, POLLING_INTERVAL_MS, _putObject, _openDatabase, _clearDatabase } from './indexed_db';
 
-const persistence: Persistence = _getInstance(indexedDBLocalPersistence);
+use(sinonChai);
 
 describe('core/persistence/indexed_db', () => {
+  const persistence: Persistence = _getInstance(indexedDBLocalPersistence);
+
   afterEach(sinon.restore);
 
   it('should work with persistence type', async () => {
@@ -68,6 +71,91 @@ describe('core/persistence/indexed_db', () => {
       } as any);
 
       expect(await persistence.isAvailable()).to.be.false;
+    });
+  });
+
+  describe("#addEventListener", () => {
+    let clock: sinon.SinonFakeTimers;
+    const key = 'my-key';
+    const newValue = 'new-value';
+    let callback: sinon.SinonSpy;
+    let db: IDBDatabase;
+    
+    before(async () => {
+      db = await _openDatabase();
+    });
+
+    beforeEach(async () => {
+      clock = sinon.useFakeTimers();
+      callback = sinon.spy();
+      persistence.addListener(key, callback);
+    });
+
+    afterEach(async () => {
+      persistence.removeListener(key, callback);
+      await _clearDatabase(db);
+      clock.restore();
+    });
+
+    it('should trigger a listener when the key changes', async () => {
+      await _putObject(db, key, newValue);
+      
+      clock.tick(POLLING_INTERVAL_MS + 1);
+      clock.restore();
+      // Wait a little for the poll operation to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(callback).to.have.been.calledWith(newValue);
+    });
+
+    it('should not trigger the listener when a different key changes', async () => {
+      await _putObject(db, 'other-key', newValue);
+
+      clock.tick(POLLING_INTERVAL_MS + 1);
+      clock.restore();
+      // Wait a little for the poll operation to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(callback).not.to.have.been.called;
+    });
+
+
+    it('should not trigger if a write is pending', async () => {
+      await _putObject(db, key, newValue);
+      (persistence as any)['pendingWrites'] = 1;
+
+      clock.tick(POLLING_INTERVAL_MS + 1);
+      clock.restore();
+      // Wait a little for the poll operation to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(callback).not.to.have.been.called;
+      (persistence as any)['pendingWrites'] = 0;
+    });
+
+    context('with multiple listeners', () => {
+      let otherCallback: sinon.SinonSpy;
+
+      beforeEach(() => {
+        otherCallback = sinon.spy();
+        persistence.addListener(key, otherCallback);
+      });
+
+      afterEach(() => {
+        persistence.removeListener(key, otherCallback);
+      });
+
+      it('should trigger both listeners if multiple listeners are registered', async () => {
+        await _putObject(db, key, newValue);
+
+        clock.tick(POLLING_INTERVAL_MS + 1);
+        clock.restore();
+        // Wait a little for the poll operation to complete
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        expect(callback).to.have.been.calledWith(newValue);
+        expect(otherCallback).to.have.been.calledWith(newValue);
+      });
     });
   });
 });

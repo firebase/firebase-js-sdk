@@ -51,7 +51,7 @@ export class PersistenceUserManager {
       config.apiKey,
       name
     );
-    this.persistence.addListener(this.fullUserKey, auth._onStorageEvent);
+    this.persistence.addListener(this.fullUserKey, auth._onStorageEvent.bind(auth));
   }
 
   setCurrentUser(user: User): Promise<void> {

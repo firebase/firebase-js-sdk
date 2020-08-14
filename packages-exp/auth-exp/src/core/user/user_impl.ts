@@ -50,6 +50,8 @@ export class UserImpl implements User {
   // For the user object, provider is always Firebase.
   readonly providerId = externs.ProviderId.FIREBASE;
   stsTokenManager: StsTokenManager;
+  // Last known accessToken so we know when it changes
+  private accessToken: string | null;
 
   uid: string;
   auth: Auth;
@@ -72,6 +74,7 @@ export class UserImpl implements User {
     this.uid = uid;
     this.auth = auth;
     this.stsTokenManager = stsTokenManager;
+    this.accessToken = stsTokenManager.accessToken;
     this.displayName = opt.displayName || null;
     this.email = opt.email || null;
     this.phoneNumber = opt.phoneNumber || null;
@@ -81,12 +84,11 @@ export class UserImpl implements User {
   }
 
   async getIdToken(forceRefresh?: boolean): Promise<string> {
-    const tokens = await this.stsTokenManager.getToken(this.auth, forceRefresh);
-    assert(tokens, AuthErrorCode.INTERNAL_ERROR, { appName: this.auth.name });
+    const accessToken = await this.stsTokenManager.getToken(this.auth, forceRefresh);
+    assert(accessToken, AuthErrorCode.INTERNAL_ERROR, { appName: this.auth.name });
 
-    const { accessToken, wasRefreshed } = tokens;
-
-    if (wasRefreshed) {
+    if (this.accessToken !== accessToken) {
+      this.accessToken = accessToken;
       await this.auth._persistUserIfCurrent(this);
       this.auth._notifyListenersIfCurrent(this);
     }

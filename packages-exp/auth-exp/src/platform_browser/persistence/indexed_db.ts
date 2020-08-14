@@ -61,12 +61,17 @@ function getObjectStore(db: IDBDatabase, isReadWrite: boolean): IDBObjectStore {
     .objectStore(DB_OBJECTSTORE_NAME);
 }
 
-function deleteDatabase(): Promise<void> {
+export async function _clearDatabase(db: IDBDatabase): Promise<void>{
+  const objectStore = getObjectStore(db, true);
+  return new DBPromise<void>(objectStore.clear()).toPromise();
+}
+
+export function _deleteDatabase(): Promise<void> {
   const request = indexedDB.deleteDatabase(DB_NAME);
   return new DBPromise<void>(request).toPromise();
 }
 
-function openDatabase(): Promise<IDBDatabase> {
+export function _openDatabase(): Promise<IDBDatabase> {
   const request = indexedDB.open(DB_NAME, DB_VERSION);
   return new Promise((resolve, reject) => {
     request.addEventListener('error', () => {
@@ -91,8 +96,8 @@ function openDatabase(): Promise<IDBDatabase> {
       // https://github.com/firebase/firebase-js-sdk/issues/634
 
       if (!db.objectStoreNames.contains(DB_OBJECTSTORE_NAME)) {
-        await deleteDatabase();
-        return openDatabase();
+        await _deleteDatabase();
+        return _openDatabase();
       } else {
         resolve(db);
       }
@@ -100,7 +105,7 @@ function openDatabase(): Promise<IDBDatabase> {
   });
 }
 
-async function putObject(
+export async function _putObject(
   db: IDBDatabase,
   key: string,
   value: PersistenceValue | string
@@ -135,13 +140,13 @@ function deleteObject(db: IDBDatabase, key: string): Promise<void> {
   return new DBPromise<void>(request).toPromise();
 }
 
+export const POLLING_INTERVAL_MS = 800;
+
 class IndexedDBLocalPersistence implements Persistence {
   static type: 'LOCAL' = 'LOCAL';
 
   type = PersistenceType.LOCAL;
   db?: IDBDatabase;
-
-  private static readonly POLLING_INTERVAL_MS = 800;
 
   private readonly listeners: Record<string, Set<StorageEventListener>> = {};
   private readonly localCache: Record<string, PersistenceValue | null> = {};
@@ -152,7 +157,7 @@ class IndexedDBLocalPersistence implements Persistence {
     if (this.db) {
       return this.db;
     }
-    this.db = await openDatabase();
+    this.db = await _openDatabase();
     return this.db;
   }
 
@@ -161,8 +166,8 @@ class IndexedDBLocalPersistence implements Persistence {
       if (!indexedDB) {
         return false;
       }
-      const db = await openDatabase();
-      await putObject(db, STORAGE_AVAILABLE_KEY, '1');
+      const db = await _openDatabase();
+      await _putObject(db, STORAGE_AVAILABLE_KEY, '1');
       await deleteObject(db, STORAGE_AVAILABLE_KEY);
       return true;
     } catch {}
@@ -181,7 +186,7 @@ class IndexedDBLocalPersistence implements Persistence {
   async set(key: string, value: PersistenceValue): Promise<void> {
     const db = await this.initialize();
     return this._withPendingWrite(async () => {
-      await putObject(db, key, value);
+      await _putObject(db, key, value);
       this.localCache[key] = value;
     });
   }
@@ -202,11 +207,11 @@ class IndexedDBLocalPersistence implements Persistence {
   }
 
   private async _poll(): Promise<void> {
-    const db = await this.initialize();
+    const db = await _openDatabase();
 
     // TODO: check if we need to fallback if getAll is not supported
     const getAllRequest = getObjectStore(db, false).getAll();
-    const result = await new DBPromise<DBObject | null>(
+    const result = await new DBPromise<DBObject[] | null>(
       getAllRequest
     ).toPromise();
 
@@ -219,9 +224,8 @@ class IndexedDBLocalPersistence implements Persistence {
       return;
     }
 
-    for (const key of Object.keys(result.value)) {
-      const value = result.value[key];
-      if (this.localCache[key] !== value) {
+    for (const { fbase_key: key, value } of result) {
+      if (JSON.stringify(this.localCache[key]) !== JSON.stringify(value)) {
         this._notifyListeners(key, value as PersistenceValue);
       }
     }
@@ -244,8 +248,8 @@ class IndexedDBLocalPersistence implements Persistence {
     this._stopPolling();
 
     this.pollTimer = setInterval(
-      this._poll,
-      IndexedDBLocalPersistence.POLLING_INTERVAL_MS
+      async () => this._poll(),
+      POLLING_INTERVAL_MS
     );
   }
 
@@ -260,7 +264,7 @@ class IndexedDBLocalPersistence implements Persistence {
     if (Object.keys(this.listeners).length === 0) {
       this._startPolling();
     }
-    this.listeners[key] = this.listeners[key] || [];
+    this.listeners[key] = this.listeners[key] || new Set();
     this.listeners[key].add(listener);
   }
 

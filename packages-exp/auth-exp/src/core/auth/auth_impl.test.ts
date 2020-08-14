@@ -265,4 +265,125 @@ describe('core/auth/auth_impl', () => {
       });
     });
   });
+
+  describe('#_onStorageEvent', () => {
+    let authStateCallback: sinon.SinonSpy;
+    let idTokenCallback: sinon.SinonSpy;
+
+    beforeEach(async () => {
+      authStateCallback = sinon.spy();
+      idTokenCallback = sinon.spy();
+      auth._onAuthStateChanged(authStateCallback);
+      auth._onIdTokenChanged(idTokenCallback);
+      await auth.updateCurrentUser(null); // force event handlers to clear out
+      authStateCallback.resetHistory();
+      idTokenCallback.resetHistory();
+    });
+
+    context('previously logged out', () => {
+      context('still logged out', () => {
+        it('should do nothing', async () => {
+          await auth._onStorageEvent();
+          
+          expect(authStateCallback).not.to.have.been.called;
+          expect(idTokenCallback).not.to.have.been.called;
+        });
+      });
+
+      context('now logged in', () => {
+        let user: User;
+
+        beforeEach(() => {
+          user = testUser(auth, 'uid');
+          persistenceStub.get.returns(Promise.resolve(user.toJSON()));
+        });
+
+        it('should update the current user', async () => {
+          await auth._onStorageEvent();
+
+          expect(auth.currentUser?.toJSON()).to.eql(user.toJSON());
+          expect(authStateCallback).to.have.been.called;
+          expect(idTokenCallback).to.have.been.called;
+        });
+      });
+    });
+
+    context('previously logged in', () => {
+      let user: User;
+
+      beforeEach(async () => {
+        user = testUser(auth, 'uid', undefined, true);
+        await auth.updateCurrentUser(user);
+        authStateCallback.resetHistory();
+        idTokenCallback.resetHistory();
+      });
+
+      context('now logged out', () => {
+        beforeEach(() => {
+          persistenceStub.get.returns(Promise.resolve(null));
+        });
+
+        it('should log out', async () => {
+          await auth._onStorageEvent();
+
+          expect(auth.currentUser).to.be.null;
+          expect(authStateCallback).to.have.been.called;
+          expect(idTokenCallback).to.have.been.called;
+        });
+      });
+
+      context('still logged in as same user', () => {
+        it('should do nothing if nothing changed', async () => {
+          persistenceStub.get.returns(Promise.resolve(user.toJSON()));
+
+          await auth._onStorageEvent();
+
+          expect(auth.currentUser?.toJSON()).to.eql(user.toJSON());
+          expect(authStateCallback).not.to.have.been.called;
+          expect(idTokenCallback).not.to.have.been.called;     
+        });
+
+        it('should update fields if they have changed', async () => {
+          const userObj = user.toJSON();
+          userObj['displayName'] = 'other-name';
+          persistenceStub.get.returns(Promise.resolve(userObj));
+
+          await auth._onStorageEvent();
+
+          expect(auth.currentUser?.uid).to.eq(user.uid);
+          expect(auth.currentUser?.displayName).to.eq('other-name');
+          expect(authStateCallback).not.to.have.been.called;
+          expect(idTokenCallback).not.to.have.been.called;          
+        });
+
+        it('should update tokens if they have changed', async () => {
+          const userObj = user.toJSON();
+          (userObj['stsTokenManager'] as any)['accessToken'] = 'new-access-token';
+          persistenceStub.get.returns(Promise.resolve(userObj));
+
+          await auth._onStorageEvent();
+
+          expect(auth.currentUser?.uid).to.eq(user.uid);
+          expect(auth.currentUser?.stsTokenManager.accessToken).to.eq('new-access-token');
+          expect(authStateCallback).not.to.have.been.called;
+          expect(idTokenCallback).to.have.been.called;
+        });
+      });
+
+      context('now logged in as different user', () => {
+        it('should re-login as the new user', async () => {
+          const newUser = testUser(auth, 'other-uid', undefined, true);
+          persistenceStub.get.returns(Promise.resolve(newUser.toJSON()));
+
+          await auth._onStorageEvent();
+
+          console.log(auth.currentUser?.toJSON());
+          console.log(newUser.toJSON());
+          expect(auth.currentUser?.toJSON()).to.eql(newUser.toJSON());
+          expect(authStateCallback).to.have.been.called;
+          expect(idTokenCallback).to.have.been.called;
+        });
+      });
+    });
+  });
 });

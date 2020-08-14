@@ -24,7 +24,7 @@ import { _AUTH_COMPONENT_NAME, registerAuth } from './src/core/auth/register';
 import { Persistence } from './src/core/persistence';
 import { _getInstance } from './src/core/util/instantiator';
 import { ClientPlatform } from './src/core/util/version';
-import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
+export { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
 // Core functionality shared by all clients
 export * from './src';
