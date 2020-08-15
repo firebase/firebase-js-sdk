@@ -30,7 +30,7 @@ export function randomBytes(nBytes: number): Uint8Array {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     typeof self !== 'undefined' && (self.crypto || (self as any)['msCrypto']);
   const bytes = new Uint8Array(nBytes);
-  if (crypto && crypto.getRandomValues) {
+  if (crypto && typeof crypto.getRandomValues === 'function') {
     crypto.getRandomValues(bytes);
   } else {
     // Falls back to Math.random
