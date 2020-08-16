@@ -167,15 +167,6 @@ export async function extractDependenciesAndSize(
   fs.unlinkSync(externalDepsResolvedOutput);
   return exportData;
 }
-
-function serializeExternalField(externals: External[]): object {
-  const serializedExternals: object = {};
-  for (const external of externals) {
-    serializedExternals[external.moduleName] = external.symbols;
-  }
-
-  return serializedExternals;
-}
 /**
  * Extracts all function, class and variable declarations using the TypeScript
  * compiler API.

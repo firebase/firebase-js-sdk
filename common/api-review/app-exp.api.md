@@ -47,7 +47,13 @@ export function initializeApp(options: FirebaseOptions, name?: string): Firebase
 // @public
 export function initializeApp(options: FirebaseOptions, config?: FirebaseAppConfig): FirebaseApp;
 
+// @public (undocumented)
+export function lessDependenciesInTest(logLevel: LogLevel): void;
+
 export { LogLevel }
+
+// @public (undocumented)
+export function moreDependenciesInTest(): string;
 
 // @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;
