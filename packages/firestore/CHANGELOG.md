@@ -1,5 +1,17 @@
 # @firebase/firestore
 
+## 1.16.4
+
+### Patch Changes
+
+- [`36be62a8`](https://github.com/firebase/firebase-js-sdk/commit/36be62a85c3cc47c15c9a59f20cdfcd7d0a72ad9) [#3535](https://github.com/firebase/firebase-js-sdk/pull/3535) (fixes [#3495](https://github.com/firebase/firebase-js-sdk/issues/3495)) - The SDK no longer crashes with the error "The database connection is closing". Instead, the individual operations that cause this error may be rejected.
+
+* [`68995c24`](https://github.com/firebase/firebase-js-sdk/commit/68995c2422a479d42b9c972bab3da4d544b9f002) [#3586](https://github.com/firebase/firebase-js-sdk/pull/3586) - Fixed a bug that caused slow retries for IndexedDB operations even when a webpage re-entered the foreground.
+
+* Updated dependencies [[`d4ca3da0`](https://github.com/firebase/firebase-js-sdk/commit/d4ca3da0a59fcea1261ba69d7eb663bba38d3089)]:
+  - @firebase/util@0.3.1
+  - @firebase/component@0.1.18
+
 ## 1.16.3
 
 ### Patch Changes

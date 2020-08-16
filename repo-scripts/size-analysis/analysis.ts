@@ -92,6 +92,14 @@ async function main(): Promise<void> {
     let allModulesLocation = await mapWorkspaceToPackages([
       `${projectRoot}/packages-exp/*`
     ]);
+    allModulesLocation = allModulesLocation.filter(path => {
+      const json = require(`${path}/package.json`);
+      return (
+        json.name.startsWith('@firebase') &&
+        !json.name.includes('-compat') &&
+        !json.name.includes('-types')
+      );
+    });
     if (argv.inputModule) {
       allModulesLocation = allModulesLocation.filter(path => {
         const json = require(`${path}/package.json`);

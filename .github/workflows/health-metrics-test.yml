@@ -22,9 +22,9 @@ jobs:
       - run: cp config/ci.config.json config/project.json
       - run: yarn install
       - run: yarn build
-      - name: Run health-metrics/modular-exports-binary-size test
-        run: yarn modular-export-size-report
       - name: Run health-metrics/binary-size test
         run: yarn size-report
+      - name: Run health-metrics/modular-exports-binary-size test
+        run: yarn modular-export-size-report
 
   # TODO(yifany): Enable startup times testing on CI.

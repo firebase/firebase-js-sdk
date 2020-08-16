@@ -50,10 +50,10 @@
   },
   "typings": "dist/functions-exp-public.d.ts",
   "dependencies": {
-    "@firebase/component": "0.1.17",
+    "@firebase/component": "0.1.18",
     "@firebase/functions-types-exp": "0.0.800",
-    "@firebase/messaging-types": "0.4.5",
-    "@firebase/util": "0.3.0",
+    "@firebase/messaging-types": "0.5.0",
+    "@firebase/util": "0.3.1",
     "isomorphic-fetch": "2.2.1",
     "tslib": "^1.11.1"
   },
