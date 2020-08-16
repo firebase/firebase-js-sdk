@@ -40,7 +40,7 @@ import {
   LogOptions,
   setUserLogHandler
 } from '@firebase/logger';
-
+import { isBrowserExtension, isIndexedDBAvailable } from '@firebase/util';
 /**
  * The current SDK version.
  *
@@ -304,9 +304,29 @@ export function setLogLevel(logLevel: LogLevel): void {
   setLogLevelImpl(logLevel);
 }
 
-export { LogLevel } from '@firebase/logger';
-
-// tmp for testing
-export function aFunctionThatOnlyBaseHas(logLevel: LogLevel): void {
-  setLogLevelImpl(logLevel);
+export function lessDependenciesInTest(logLevel: LogLevel): void {
+  deleteApp(getApp('app'))
+    .then(() => {
+      setLogLevel(logLevel);
+      console.log(isBrowserExtension());
+      console.log(isIndexedDBAvailable());
+    })
+    .catch(error => {
+      console.log('Error deleting app:', error);
+    });
 }
+
+function d1(): string {
+  return d2() + d3();
+}
+function d2(): string {
+  return 'd2';
+}
+function d3(): string {
+  return 'd3';
+}
+export function moreDependenciesInTest(): string {
+  console.log(d1());
+  return d1();
+}
+export { LogLevel } from '@firebase/logger';
