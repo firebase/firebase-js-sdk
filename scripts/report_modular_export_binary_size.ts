@@ -31,36 +31,34 @@ interface RequestBody {
 }
 const runId: string = process.env.GITHUB_RUN_ID || 'local-run-id';
 
-const METRICS_SERVICE_URL: string = process.env.METRICS_SERVICE_URL;
-//const METRICS_SERVICE_URL: string = 'https://size-analysis-test-tv5rmd4a6q-uc.a.run.app';
+const METRICS_SERVICE_URL: string = process.env.METRICS_SERVICE_URL!;
 
 async function generateReport(): Promise<RequestBody> {
   const requestBody: RequestBody = {
     log: `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}`,
     modules: []
   };
-  try {
-    let allModulesLocation: string[] = await mapWorkspaceToPackages([
-      `${projectRoot}/packages-exp/*`
-    ]);
 
-    allModulesLocation = allModulesLocation.filter(path => {
-      const json = require(`${path}/package.json`);
-      return json.name.startsWith('@firebase');
-    });
-    const reports: Report[] = await generateReportForModules(
-      allModulesLocation
+  let allModulesLocation: string[] = await mapWorkspaceToPackages([
+    `${projectRoot}/packages-exp/*`
+  ]);
+
+  allModulesLocation = allModulesLocation.filter(path => {
+    const json = require(`${path}/package.json`);
+    return (
+      json.name.startsWith('@firebase') &&
+      !json.name.includes('-compat') &&
+      !json.name.includes('-types')
     );
+  });
 
-    for (const report of reports) {
-      requestBody.modules.push(report);
-    }
+  const reports: Report[] = await generateReportForModules(allModulesLocation);
 
-    return requestBody;
-  } catch (error) {
-    console.log(error);
-    return requestBody;
+  for (const report of reports) {
+    requestBody.modules.push(report);
   }
+
+  return requestBody;
 }
 
 function constructRequestPath(): string {
@@ -118,7 +116,8 @@ function upload(report: RequestBody): void {
 }
 
 async function main(): Promise<void> {
-  const report: RequestBody = await generateReport();
-  upload(report);
+  const reports: RequestBody = await generateReport();
+  console.log(JSON.stringify(reports, null, 4));
+  upload(reports);
 }
 main();

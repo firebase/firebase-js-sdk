@@ -34,11 +34,9 @@ export const enum ErrorCode {
   INPUT_FILE_DOES_NOT_EXIST = 'Input file does not exist!',
   INPUT_DTS_FILE_DOES_NOT_EXIST = 'Input dts file does not exist!',
   INPUT_BUNDLE_FILE_DOES_NOT_EXIST = 'Input bundle file does not exist!',
-  FILE_PARSING_ERROR = 'Failed to parse js file!'
-}
-export interface External {
-  moduleName: string;
-  symbols: string[];
+  FILE_PARSING_ERROR = 'Failed to parse js file!',
+  PKG_JSON_DOES_NOT_EXIST = 'Module does not have a package.json file!',
+  TYPINGS_FIELD_NOT_DEFINED = 'Module does not have typings field defined in its package.json!'
 }
 
 /** Contains a list of members by type. */
@@ -47,7 +45,6 @@ export interface MemberList {
   functions: string[];
   variables: string[];
   enums: string[];
-  externals: External[];
 }
 /** Contains the dependencies and the size of their code for a single export. */
 export interface ExportData {
@@ -56,7 +53,7 @@ export interface ExportData {
   functions: string[];
   variables: string[];
   enums: string[];
-  externals: object;
+  externals: { [key: string]: string[] };
   size: number;
   sizeWithExtDeps: number;
 }
@@ -109,10 +106,6 @@ export async function extractDependenciesAndSize(
     externalDepsNotResolvedOutput,
     map
   );
-  const externals: External[] = extractExternalDependencies(
-    externalDepsNotResolvedOutput
-  );
-  dependencies.externals.push(...externals);
 
   const externalDepsResolvedOutputContent = fs.readFileSync(
     externalDepsResolvedOutput,
@@ -143,25 +136,24 @@ export async function extractDependenciesAndSize(
       compress: false
     }
   );
-
-  fs.unlinkSync(input);
-  fs.unlinkSync(externalDepsNotResolvedOutput);
-  fs.unlinkSync(externalDepsResolvedOutput);
   const exportData: ExportData = {
     name: '',
-    classes: null,
-    functions: null,
-    variables: null,
-    enums: null,
-    externals: null,
+    classes: [],
+    functions: [],
+    variables: [],
+    enums: [],
+    externals: {},
     size: 0,
     sizeWithExtDeps: 0
   };
   exportData.name = exportName;
-  for (const key of Object.keys(dependencies)) {
+  for (const key of Object.keys(dependencies) as Array<keyof MemberList>) {
     exportData[key] = dependencies[key];
   }
-  exportData.externals = serializeExternalField(dependencies.externals);
+
+  exportData.externals = extractExternalDependencies(
+    externalDepsNotResolvedOutput
+  );
   exportData.size = Buffer.byteLength(
     externalDepsNotResolvedOutputContentMinimized.code!,
     'utf-8'
@@ -170,6 +162,9 @@ export async function extractDependenciesAndSize(
     externalDepsResolvedOutputContentMinimized.code!,
     'utf-8'
   );
+  fs.unlinkSync(input);
+  fs.unlinkSync(externalDepsNotResolvedOutput);
+  fs.unlinkSync(externalDepsResolvedOutput);
   return exportData;
 }
 
@@ -214,8 +209,7 @@ export function extractDeclarations(
     functions: [],
     classes: [],
     variables: [],
-    enums: [],
-    externals: []
+    enums: []
   };
   const namespaceImportSet: Set<string> = new Set();
   // define a map here which is used to handle export statements that have no from clause.
@@ -252,7 +246,10 @@ export function extractDeclarations(
         }
         // Binding Pattern Example: export const {a, b} = {a: 1, b: 1};
         else {
-          variableDeclaration.name.elements.forEach(node => {
+          const elements = variableDeclaration.name.elements as ts.NodeArray<
+            ts.BindingElement
+          >;
+          elements.forEach((node: ts.BindingElement) => {
             declarations.variables.push(node.name.getText(sourceFile));
           });
         }
@@ -323,7 +320,9 @@ export function extractDeclarations(
             node.moduleSpecifier.getText(sourceFile)
           );
           // concatenate re-exported MemberList with MemberList of the dts file
-          for (const key of Object.keys(declarations)) {
+          for (const key of Object.keys(declarations) as Array<
+            keyof MemberList
+          >) {
             declarations[key].push(...reExportsWithFromClause[key]);
           }
         }
@@ -367,13 +366,12 @@ function handleExportStatementsWithFromClause(
   node: ts.ExportDeclaration,
   moduleName: string
 ): MemberList {
-  const symbol = checker.getSymbolAtLocation(node.moduleSpecifier);
+  const symbol = checker.getSymbolAtLocation(node.moduleSpecifier!);
   let declarations: MemberList = {
     functions: [],
     classes: [],
     variables: [],
-    enums: [],
-    externals: []
+    enums: []
   };
   if (symbol && symbol.valueDeclaration) {
     const reExportFullPath = symbol.valueDeclaration.getSourceFile().fileName;
@@ -494,17 +492,17 @@ function handleExportStatementsWithoutFromClause(
       ) {
         const moduleLocation: string = importSymbolCurrentNameToModuleLocation.get(
           exportSymbolOriginalName
-        );
-        let reExportedSymbols: MemberList = null;
+        )!;
+        let reExportedSymbols: MemberList;
         if (importModuleLocationToExportedSymbolsList.has(moduleLocation)) {
           reExportedSymbols = deepCopy(
-            importModuleLocationToExportedSymbolsList.get(moduleLocation)
+            importModuleLocationToExportedSymbolsList.get(moduleLocation)!
           );
         } else {
           reExportedSymbols = extractDeclarations(
             importSymbolCurrentNameToModuleLocation.get(
               exportSymbolOriginalName
-            )
+            )!
           );
           importModuleLocationToExportedSymbolsList.set(
             moduleLocation,
@@ -520,7 +518,7 @@ function handleExportStatementsWithoutFromClause(
         ) {
           nameToBeReplaced = importSymbolCurrentNameToOriginalName.get(
             exportSymbolOriginalName
-          );
+          )!;
         }
 
         filterAllBy(reExportedSymbols, [nameToBeReplaced]);
@@ -532,7 +530,9 @@ function handleExportStatementsWithoutFromClause(
         );
 
         // concatenate re-exported MemberList with MemberList of the dts file
-        for (const key of Object.keys(parentDeclarations)) {
+        for (const key of Object.keys(parentDeclarations) as Array<
+          keyof MemberList
+        >) {
           parentDeclarations[key].push(...reExportedSymbols[key]);
         }
       }
@@ -558,7 +558,7 @@ function handleExportStatementsWithoutFromClause(
  * To Make sure symbols of every category are unique.
  */
 export function dedup(memberList: MemberList): MemberList {
-  for (const key of Object.keys(memberList)) {
+  for (const key of Object.keys(memberList) as Array<keyof MemberList>) {
     const set: Set<string> = new Set(memberList[key]);
     memberList[key] = Array.from(set);
   }
@@ -573,14 +573,13 @@ export function mapSymbolToType(
     functions: [],
     classes: [],
     variables: [],
-    enums: [],
-    externals: []
+    enums: []
   };
 
-  for (const key of Object.keys(memberList)) {
-    memberList[key].forEach(element => {
+  for (const key of Object.keys(memberList) as Array<keyof MemberList>) {
+    memberList[key].forEach((element: string) => {
       if (map.has(element)) {
-        newMemberList[map.get(element)].push(element);
+        newMemberList[map.get(element)! as keyof MemberList].push(element);
       } else {
         newMemberList[key].push(element);
       }
@@ -601,7 +600,7 @@ function extractOriginalSymbolName(
 }
 
 function filterAllBy(memberList: MemberList, keep: string[]): void {
-  for (const key of Object.keys(memberList)) {
+  for (const key of Object.keys(memberList) as Array<keyof MemberList>) {
     memberList[key] = memberList[key].filter(each => keep.includes(each));
   }
 }
@@ -611,7 +610,7 @@ export function replaceAll(
   original: string,
   current: string
 ): void {
-  for (const key of Object.keys(memberList)) {
+  for (const key of Object.keys(memberList) as Array<keyof MemberList>) {
     memberList[key] = replaceWith(memberList[key], original, current);
   }
 }
@@ -675,7 +674,7 @@ export function writeReportToDirectory(
  */
 export function extractExternalDependencies(
   minimizedBundleFile: string
-): External[] {
+): { [key: string]: string[] } {
   const program = ts.createProgram([minimizedBundleFile], { allowJs: true });
 
   const sourceFile = program.getSourceFile(minimizedBundleFile);
@@ -701,10 +700,10 @@ export function extractExternalDependencies(
           // if imported symbol is renamed, we want its original name which is stored in propertyName
           if (each.propertyName) {
             externalsMap
-              .get(moduleName)
+              .get(moduleName)!
               .push(each.propertyName.getText(sourceFile));
           } else {
-            externalsMap.get(moduleName).push(each.name.getText(sourceFile));
+            externalsMap.get(moduleName)!.push(each.name.getText(sourceFile));
           }
         });
         // import * as fs from 'fs'
@@ -712,24 +711,19 @@ export function extractExternalDependencies(
         node.importClause.namedBindings &&
         ts.isNamespaceImport(node.importClause.namedBindings)
       ) {
-        externalsMap.get(moduleName).push('*');
+        externalsMap.get(moduleName)!.push('*');
         // import a from '@firebase/dummy-exp'
       } else if (
         node.importClause.name &&
         ts.isIdentifier(node.importClause.name)
       ) {
-        externalsMap.get(moduleName).push('default export');
+        externalsMap.get(moduleName)!.push('default export');
       }
     }
   });
-  const externals: External[] = [];
-
+  const externals: { [key: string]: string[] } = {};
   externalsMap.forEach((value, key) => {
-    const external: External = {
-      moduleName: key.replace(/'/g, ''),
-      symbols: value
-    };
-    externals.push(external);
+    externals[key.replace(/'/g, '')] = value;
   });
   return externals;
 }
@@ -743,7 +737,9 @@ export async function generateReportForModule(
 ): Promise<Report> {
   const packageJsonPath = `${moduleLocation}/package.json`;
   if (!fs.existsSync(packageJsonPath)) {
-    return null;
+    throw new Error(
+      `Firebase Module locates at ${moduleLocation}: ${ErrorCode.PKG_JSON_DOES_NOT_EXIST}`
+    );
   }
   const packageJson = require(packageJsonPath);
   // to exclude <modules>-types modules
@@ -763,7 +759,9 @@ export async function generateReportForModule(
 
     return jsonReport;
   }
-  return null;
+  throw new Error(
+    `Firebase Module locates at: ${moduleLocation}: ${ErrorCode.TYPINGS_FIELD_NOT_DEFINED}`
+  );
 }
 /**
  *
@@ -774,7 +772,9 @@ export async function generateReportForModule(
  * field at the last.
  *
  */
-function retrieveBundleFileLocation(pkgJson: string): string {
+function retrieveBundleFileLocation(pkgJson: {
+  [key: string]: string;
+}): string {
   if (pkgJson['esm2017']) {
     return pkgJson['esm2017'];
   }
@@ -784,7 +784,7 @@ function retrieveBundleFileLocation(pkgJson: string): string {
   if (pkgJson['main']) {
     return pkgJson['main'];
   }
-  return null;
+  return '';
 }
 /**
  *
@@ -793,8 +793,9 @@ function retrieveBundleFileLocation(pkgJson: string): string {
  */
 export function buildMap(api: MemberList): Map<string, string> {
   const map: Map<string, string> = new Map();
-  for (const type of Object.keys(api)) {
-    api[type].forEach(element => {
+
+  for (const type of Object.keys(api) as Array<keyof MemberList>) {
+    api[type].forEach((element: string) => {
       map.set(element, type);
     });
   }
@@ -806,24 +807,31 @@ export function buildMap(api: MemberList): Map<string, string> {
  */
 async function traverseDirs(
   moduleLocation: string,
-  executor,
+  executor: Function,
   level: number,
   levelLimit: number
 ): Promise<Report[]> {
   if (level > levelLimit) {
-    return null;
+    return [];
   }
 
   const reports: Report[] = [];
   const report: Report = await executor(moduleLocation);
-  if (report !== null) {
+  if (report != null) {
     reports.push(report);
   }
 
   for (const name of fs.readdirSync(moduleLocation)) {
     const p = `${moduleLocation}/${name}`;
-
-    if (fs.lstatSync(p).isDirectory()) {
+    const generateSizeAnalysisReportPkgJsonField: string =
+      'generate-size-analysis-report';
+    // submodules of a firebase module should set generate-size-analysis-report field of package.json to true
+    // in order to be analyzed
+    if (
+      fs.lstatSync(p).isDirectory() &&
+      fs.existsSync(`${p}/package.json`) &&
+      require(`${p}/package.json`)[generateSizeAnalysisReportPkgJsonField]
+    ) {
       const subModuleReports: Report[] = await traverseDirs(
         p,
         executor,
