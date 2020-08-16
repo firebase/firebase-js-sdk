@@ -48,12 +48,12 @@ export function initializeApp(options: FirebaseOptions, name?: string): Firebase
 export function initializeApp(options: FirebaseOptions, config?: FirebaseAppConfig): FirebaseApp;
 
 // @public (undocumented)
-export function lessDependenciesInTest(logLevel: LogLevel): void;
+export function lessDependenciesInTest(): void;
 
 export { LogLevel }
 
 // @public (undocumented)
-export function moreDependenciesInTest(): string;
+export function moreDependenciesInTest(logLevel: LogLevel): string;
 
 // @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;
