@@ -262,7 +262,11 @@ abstract class TestRunner {
       persistenceSettings: this.persistenceSettings
     };
 
-    const onlineComponentProvider = new MockOnlineComponentProvider();
+    this.connection = new MockConnection(this.queue);
+
+    const onlineComponentProvider = new MockOnlineComponentProvider(
+      this.connection
+    );
     const offlineComponentProvider = await this.initializeOfflineComponentProvider(
       onlineComponentProvider,
       configuration,
@@ -276,7 +280,6 @@ abstract class TestRunner {
     this.sharedClientState = offlineComponentProvider.sharedClientState;
     this.persistence = offlineComponentProvider.persistence;
     this.localStore = offlineComponentProvider.localStore;
-    this.connection = onlineComponentProvider.connection;
     this.remoteStore = onlineComponentProvider.remoteStore;
     this.syncEngine = onlineComponentProvider.syncEngine;
     this.eventManager = onlineComponentProvider.eventManager;
@@ -301,11 +304,15 @@ abstract class TestRunner {
   }
 
   async shutdown(): Promise<void> {
-    await this.queue.enqueueAndInitiateShutdown(async () => {
+    this.queue.enterRestrictedMode();
+    const deferred = new Deferred();
+    this.queue.enqueueAndForgetEvenWhileRestricted(async () => {
       if (this.started) {
         await this.doShutdown();
       }
+      deferred.resolve();
     });
+    return deferred.promise;
   }
 
   /** Runs a single SpecStep on this runner. */

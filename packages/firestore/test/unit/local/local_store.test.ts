@@ -37,12 +37,23 @@ import {
   applyBundleDocuments,
   getNamedQuery,
   hasNewerBundle,
+  applyRemoteEventToLocalCache,
   LocalStore,
   LocalWriteResult,
   newLocalStore,
   saveBundle,
   saveNamedQuery,
-  synchronizeLastDocumentChangeReadTime
+  synchronizeLastDocumentChangeReadTime,
+  notifyLocalViewChanges,
+  acknowledgeBatch,
+  readLocalDocument,
+  localWrite,
+  executeQuery,
+  allocateTarget,
+  releaseTarget,
+  getLocalTargetData,
+  getHighestUnacknowledgedBatchId,
+  rejectBatch
 } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
@@ -160,9 +171,7 @@ class LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain
-      .then(() => {
-        return this.localStore.localWrite(mutations);
-      })
+      .then(() => localWrite(this.localStore, mutations))
       .then((result: LocalWriteResult) => {
         this.batches.push(
           new MutationBatch(result.batchId, Timestamp.now(), [], mutations)
@@ -176,9 +185,7 @@ class LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain
-      .then(() => {
-        return this.localStore.applyRemoteEvent(remoteEvent);
-      })
+      .then(() => applyRemoteEventToLocalCache(this.localStore, remoteEvent))
       .then((result: MaybeDocumentMap) => {
         this.lastChanges = result;
       });
@@ -213,7 +220,7 @@ class LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain.then(() =>
-      this.localStore.notifyLocalViewChanges([viewChanges])
+      notifyLocalViewChanges(this.localStore, [viewChanges])
     );
     return this;
   }
@@ -240,7 +247,7 @@ class LocalStoreTester {
         ];
         const write = MutationBatchResult.from(batch, ver, mutationResults);
 
-        return this.localStore.acknowledgeBatch(write);
+        return acknowledgeBatch(this.localStore, write);
       })
       .then((changes: MaybeDocumentMap) => {
         this.lastChanges = changes;
@@ -252,9 +259,7 @@ class LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain
-      .then(() => {
-        return this.localStore.rejectBatch(this.batches.shift()!.batchId);
-      })
+      .then(() => rejectBatch(this.localStore, this.batches.shift()!.batchId))
       .then((changes: MaybeDocumentMap) => {
         this.lastChanges = changes;
       });
@@ -268,36 +273,37 @@ class LocalStoreTester {
   afterAllocatingTarget(target: Target): LocalStoreTester {
     this.prepareNextStep();
 
-    this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.allocateTarget(target).then(result => {
+    this.promiseChain = this.promiseChain.then(() =>
+      allocateTarget(this.localStore, target).then(result => {
         this.lastTargetId = result.targetId;
-      });
-    });
+      })
+    );
     return this;
   }
 
   afterReleasingTarget(targetId: number): LocalStoreTester {
     this.prepareNextStep();
 
-    this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.releaseTarget(
+    this.promiseChain = this.promiseChain.then(() =>
+      releaseTarget(
+        this.localStore,
         targetId,
         /*keepPersistedTargetData=*/ false
-      );
-    });
+      )
+    );
     return this;
   }
 
   afterExecutingQuery(query: Query): LocalStoreTester {
     this.prepareNextStep();
 
-    this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore
-        .executeQuery(query, /* usePreviousResults= */ true)
-        .then(({ documents }) => {
+    this.promiseChain = this.promiseChain.then(() =>
+      executeQuery(this.localStore, query, /* usePreviousResults= */ true).then(
+        ({ documents }) => {
           this.lastChanges = documents;
-        });
-    });
+        }
+      )
+    );
     return this;
   }
 
@@ -399,7 +405,7 @@ class LocalStoreTester {
 
   toContain(doc: MaybeDocument): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.readDocument(doc.key).then(result => {
+      return readLocalDocument(this.localStore, doc.key).then(result => {
         expectEqual(
           result,
           doc,
@@ -413,11 +419,11 @@ class LocalStoreTester {
   }
 
   toNotContain(keyStr: string): LocalStoreTester {
-    this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.readDocument(key(keyStr)).then(result => {
+    this.promiseChain = this.promiseChain.then(() =>
+      readLocalDocument(this.localStore, key(keyStr)).then(result => {
         expect(result).to.be.null;
-      });
-    });
+      })
+    );
     return this;
   }
 
@@ -430,11 +436,11 @@ class LocalStoreTester {
   }
 
   toReturnHighestUnacknowledgeBatchId(expectedId: BatchId): LocalStoreTester {
-    this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.getHighestUnacknowledgedBatchId().then(actual => {
+    this.promiseChain = this.promiseChain.then(() =>
+      getHighestUnacknowledgedBatchId(this.localStore).then(actual => {
         expect(actual).to.equal(expectedId);
-      });
-    });
+      })
+    );
     return this;
   }
 
@@ -1173,14 +1179,14 @@ function genericLocalStoreTests(
 
   it('can execute document queries', () => {
     const localStore = expectLocalStore().localStore;
-    return localStore
-      .localWrite([
-        setMutation('foo/bar', { foo: 'bar' }),
-        setMutation('foo/baz', { foo: 'baz' }),
-        setMutation('foo/bar/Foo/Bar', { Foo: 'Bar' })
-      ])
+    return localWrite(localStore, [
+      setMutation('foo/bar', { foo: 'bar' }),
+      setMutation('foo/baz', { foo: 'baz' }),
+      setMutation('foo/bar/Foo/Bar', { Foo: 'Bar' })
+    ])
       .then(() => {
-        return localStore.executeQuery(
+        return executeQuery(
+          localStore,
           query('foo/bar'),
           /* usePreviousResults= */ true
         );
@@ -1193,16 +1199,16 @@ function genericLocalStoreTests(
 
   it('can execute collection queries', () => {
     const localStore = expectLocalStore().localStore;
-    return localStore
-      .localWrite([
-        setMutation('fo/bar', { fo: 'bar' }),
-        setMutation('foo/bar', { foo: 'bar' }),
-        setMutation('foo/baz', { foo: 'baz' }),
-        setMutation('foo/bar/Foo/Bar', { Foo: 'Bar' }),
-        setMutation('fooo/blah', { fooo: 'blah' })
-      ])
+    return localWrite(localStore, [
+      setMutation('fo/bar', { fo: 'bar' }),
+      setMutation('foo/bar', { foo: 'bar' }),
+      setMutation('foo/baz', { foo: 'baz' }),
+      setMutation('foo/bar/Foo/Bar', { Foo: 'Bar' }),
+      setMutation('fooo/blah', { fooo: 'blah' })
+    ])
       .then(() => {
-        return localStore.executeQuery(
+        return executeQuery(
+          localStore,
           query('foo'),
           /* usePreviousResults= */ true
         );
@@ -1216,16 +1222,19 @@ function genericLocalStoreTests(
 
   it('can execute mixed collection queries', async () => {
     const query1 = query('foo');
-    const targetData = await localStore.allocateTarget(queryToTarget(query1));
+    const targetData = await allocateTarget(localStore, queryToTarget(query1));
     expect(targetData.targetId).to.equal(2);
-    await localStore.applyRemoteEvent(
+    await applyRemoteEventToLocalCache(
+      localStore,
       docAddedRemoteEvent(doc('foo/baz', 10, { a: 'b' }), [2], [])
     );
-    await localStore.applyRemoteEvent(
+    await applyRemoteEventToLocalCache(
+      localStore,
       docUpdateRemoteEvent(doc('foo/bar', 20, { a: 'b' }), [2], [])
     );
-    await localStore.localWrite([setMutation('foo/bonk', { a: 'b' })]);
-    const { documents } = await localStore.executeQuery(
+    await localWrite(localStore, [setMutation('foo/bonk', { a: 'b' })]);
+    const { documents } = await executeQuery(
+      localStore,
       query1,
       /* usePreviousResults= */ true
     );
@@ -1278,7 +1287,7 @@ function genericLocalStoreTests(
   // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it.skip : it)('persists resume tokens', async () => {
     const query1 = query('foo/bar');
-    const targetData = await localStore.allocateTarget(queryToTarget(query1));
+    const targetData = await allocateTarget(localStore, queryToTarget(query1));
     const targetId = targetData.targetId;
     const resumeToken = byteStringFromString('abc');
     const watchChange = new WatchTargetChange(
@@ -1292,16 +1301,17 @@ function genericLocalStoreTests(
     });
     aggregator.handleTargetChange(watchChange);
     const remoteEvent = aggregator.createRemoteEvent(version(1000));
-    await localStore.applyRemoteEvent(remoteEvent);
+    await applyRemoteEventToLocalCache(localStore, remoteEvent);
 
     // Stop listening so that the query should become inactive (but persistent)
-    await localStore.releaseTarget(
+    await releaseTarget(
+      localStore,
       targetData.targetId,
       /*keepPersistedTargetData=*/ false
     );
 
     // Should come back with the same resume token
-    const targetData2 = await localStore.allocateTarget(queryToTarget(query1));
+    const targetData2 = await allocateTarget(localStore, queryToTarget(query1));
     expect(targetData2.resumeToken).to.deep.equal(resumeToken);
   });
 
@@ -1310,7 +1320,10 @@ function genericLocalStoreTests(
     'does not replace resume token with empty resume token',
     async () => {
       const query1 = query('foo/bar');
-      const targetData = await localStore.allocateTarget(queryToTarget(query1));
+      const targetData = await allocateTarget(
+        localStore,
+        queryToTarget(query1)
+      );
       const targetId = targetData.targetId;
       const resumeToken = byteStringFromString('abc');
 
@@ -1325,7 +1338,7 @@ function genericLocalStoreTests(
       });
       aggregator1.handleTargetChange(watchChange1);
       const remoteEvent1 = aggregator1.createRemoteEvent(version(1000));
-      await localStore.applyRemoteEvent(remoteEvent1);
+      await applyRemoteEventToLocalCache(localStore, remoteEvent1);
 
       const watchChange2 = new WatchTargetChange(
         WatchTargetChangeState.Current,
@@ -1338,16 +1351,18 @@ function genericLocalStoreTests(
       });
       aggregator2.handleTargetChange(watchChange2);
       const remoteEvent2 = aggregator2.createRemoteEvent(version(2000));
-      await localStore.applyRemoteEvent(remoteEvent2);
+      await applyRemoteEventToLocalCache(localStore, remoteEvent2);
 
       // Stop listening so that the query should become inactive (but persistent)
-      await localStore.releaseTarget(
+      await releaseTarget(
+        localStore,
         targetId,
         /*keepPersistedTargetData=*/ false
       );
 
       // Should come back with the same resume token
-      const targetData2 = await localStore.allocateTarget(
+      const targetData2 = await allocateTarget(
+        localStore,
         queryToTarget(query1)
       );
       expect(targetData2.resumeToken).to.deep.equal(resumeToken);
@@ -1921,10 +1936,11 @@ function genericLocalStoreTests(
 
     const target = queryToTarget(query('foo'));
 
-    const targetData = await localStore.allocateTarget(target);
+    const targetData = await allocateTarget(localStore, target);
 
     // Advance the query snapshot
-    await localStore.applyRemoteEvent(
+    await applyRemoteEventToLocalCache(
+      localStore,
       noChangeEvent(
         /* targetId= */ targetData.targetId,
         /* snapshotVersion= */ 10,
@@ -1936,7 +1952,7 @@ function genericLocalStoreTests(
     let cachedTargetData = await persistence.runTransaction(
       'getTargetData',
       'readonly',
-      txn => localStore.getTargetData(txn, target)
+      txn => getLocalTargetData(localStore, txn, target)
     );
     expect(
       cachedTargetData!.lastLimboFreeSnapshotVersion.isEqual(
@@ -1945,20 +1961,21 @@ function genericLocalStoreTests(
     ).to.be.true;
 
     // Mark the view synced, which updates the last limbo free snapshot version.
-    await localStore.notifyLocalViewChanges([
+    await notifyLocalViewChanges(localStore, [
       localViewChanges(2, /* fromCache= */ false, {})
     ]);
     cachedTargetData = await persistence.runTransaction(
       'getTargetData',
       'readonly',
-      txn => localStore.getTargetData(txn, target)
+      txn => getLocalTargetData(localStore, txn, target)
     );
     expect(cachedTargetData!.lastLimboFreeSnapshotVersion.isEqual(version(10)))
       .to.be.true;
 
     // The last limbo free snapshot version is persisted even if we release the
     // query.
-    await localStore.releaseTarget(
+    await releaseTarget(
+      localStore,
       targetData.targetId,
       /* keepPersistedTargetData= */ false
     );
@@ -1967,7 +1984,7 @@ function genericLocalStoreTests(
       cachedTargetData = await persistence.runTransaction(
         'getTargetData',
         'readonly',
-        txn => localStore.getTargetData(txn, target)
+        txn => getLocalTargetData(localStore, txn, target)
       );
       expect(
         cachedTargetData!.lastLimboFreeSnapshotVersion.isEqual(version(10))

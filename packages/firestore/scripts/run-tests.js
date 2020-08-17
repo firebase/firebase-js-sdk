@@ -30,6 +30,8 @@ process.env.TS_NODE_CACHE = 'NO';
 process.env.TS_NODE_COMPILER_OPTIONS = '{"module":"commonjs"}';
 process.env.TEST_PLATFORM = argv.platform;
 var args = [
+  '--reporter',
+  'lcovonly',
   mocha,
   '--require',
   'ts-node/register',

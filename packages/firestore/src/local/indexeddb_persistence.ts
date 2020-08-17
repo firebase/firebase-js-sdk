@@ -683,13 +683,22 @@ export class IndexedDbPersistence implements Persistence {
     }
     this.detachVisibilityHandler();
     this.detachWindowUnloadHook();
-    await this.runTransaction('shutdown', 'readwrite', txn => {
-      return this.releasePrimaryLeaseIfHeld(txn).next(() =>
-        this.removeClientMetadata(txn)
-      );
-    }).catch(e => {
-      logDebug(LOG_TAG, 'Proceeding with shutdown despite failure: ', e);
-    });
+
+    // Use `SimpleDb.runTransaction` directly to avoid failing if another tab
+    // has obtained the primary lease.
+    await this.simpleDb.runTransaction(
+      'readwrite',
+      [DbPrimaryClient.store, DbClientMetadata.store],
+      simpleDbTxn => {
+        const persistenceTransaction = new IndexedDbTransaction(
+          simpleDbTxn,
+          ListenSequence.INVALID
+        );
+        return this.releasePrimaryLeaseIfHeld(persistenceTransaction).next(() =>
+          this.removeClientMetadata(persistenceTransaction)
+        );
+      }
+    );
     this.simpleDb.close();
 
     // Remove the entry marking the client as zombied from LocalStorage since

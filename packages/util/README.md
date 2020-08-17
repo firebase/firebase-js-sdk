@@ -5,14 +5,6 @@ member of the Firebase team, please avoid using this package_
 
 This is a wrapper of some Webchannel Features for the Firebase JS SDK.
 
-## Installation
-
-You can install this wrapper by running the following in your project:
-
-```bash
-$ npm install @firebase/util
-```
-
 ## Usage
 
 **ES Modules**
@@ -30,3 +22,4 @@ const utils = require('@firebase/util');
 
 // Do stuff with any of the re-exported `utils`
 ```
+

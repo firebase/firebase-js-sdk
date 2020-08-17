@@ -19,7 +19,12 @@ import { GetOptions } from '@firebase/firestore-types';
 
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
-import { getNamedQuery, LocalStore } from '../local/local_store';
+import {
+  getNamedQuery,
+  executeQuery,
+  LocalStore,
+  readLocalDocument
+} from '../local/local_store';
 import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -369,21 +374,33 @@ export class FirestoreClient {
   }
 
   terminate(): Promise<void> {
-    return this.asyncQueue.enqueueAndInitiateShutdown(async () => {
-      // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
-      if (this.gcScheduler) {
-        this.gcScheduler.stop();
+    this.asyncQueue.enterRestrictedMode();
+    const deferred = new Deferred();
+    this.asyncQueue.enqueueAndForgetEvenWhileRestricted(async () => {
+      try {
+        // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
+        if (this.gcScheduler) {
+          this.gcScheduler.stop();
+        }
+
+        await this.remoteStore.shutdown();
+        await this.sharedClientState.shutdown();
+        await this.persistence.shutdown();
+
+        // `removeChangeListener` must be called after shutting down the
+        // RemoteStore as it will prevent the RemoteStore from retrieving
+        // auth tokens.
+        this.credentials.removeChangeListener();
+        deferred.resolve();
+      } catch (e) {
+        const firestoreError = wrapInUserErrorIfRecoverable(
+          e,
+          `Failed to shutdown persistence`
+        );
+        deferred.reject(firestoreError);
       }
-
-      await this.remoteStore.shutdown();
-      await this.sharedClientState.shutdown();
-      await this.persistence.shutdown();
-
-      // `removeChangeListener` must be called after shutting down the
-      // RemoteStore as it will prevent the RemoteStore from retrieving
-      // auth tokens.
-      this.credentials.removeChangeListener();
     });
+    return deferred.promise;
   }
 
   /**
@@ -630,7 +647,7 @@ export async function enqueueReadDocumentFromCache(
   const deferred = new Deferred<Document | null>();
   await asyncQueue.enqueue(async () => {
     try {
-      const maybeDoc = await localStore.readDocument(docKey);
+      const maybeDoc = await readLocalDocument(localStore, docKey);
       if (maybeDoc instanceof Document) {
         deferred.resolve(maybeDoc);
       } else if (maybeDoc instanceof NoDocument) {
@@ -734,7 +751,8 @@ export async function enqueueExecuteQueryFromCache(
   const deferred = new Deferred<ViewSnapshot>();
   await asyncQueue.enqueue(async () => {
     try {
-      const queryResult = await localStore.executeQuery(
+      const queryResult = await executeQuery(
+        localStore,
         query,
         /* usePreviousResults= */ true
       );
