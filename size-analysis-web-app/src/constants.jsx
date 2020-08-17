@@ -30,5 +30,5 @@ export const ENDPOINTS = {
 }
 
 export const API_ROOT = 'https://us-central1-fir-sdk-size-analysis.cloudfunctions.net/';
-//export const API_ROOT = 'http://localhost:5001/fir-size-analysis/us-central1/';
+//export const API_ROOT = 'http://localhost:5001/web-app-size-analysis/us-central1/';
 
