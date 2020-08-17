@@ -192,6 +192,7 @@ class App extends Component {
       .then(res => res.json())
       .then(
         (modules) => {
+          console.log(modules);
           this.setState({
             areModulesLoaded: true,
             allModulesOfSelectedVersion: modules
