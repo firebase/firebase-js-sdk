@@ -43,7 +43,7 @@ import {
   query
 } from '../../util/helpers';
 
-describe('EventManager', () => {
+describe.only('EventManager', () => {
   // mock object.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function fakeQueryListener(query: Query): any {
@@ -79,7 +79,7 @@ describe('EventManager', () => {
     expect(onListenSpy.callCount).to.equal(1);
 
     await eventManagerUnlisten(eventManager, fakeListener2);
-    expect(onListenSpy.callCount).to.equal(0);
+    expect(onUnlistenSpy.callCount).to.equal(0);
 
     await eventManagerUnlisten(eventManager, fakeListener1);
     expect(onUnlistenSpy.calledWith(query1)).to.be.true;
