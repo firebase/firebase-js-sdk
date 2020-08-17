@@ -196,7 +196,7 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
         compilerOptions: {
           allowJs: true
         },
-        include: ['dist/*.js']
+        include: ['dist/*.js', 'dist/exp/*.js']
       }),
       sourcemaps()
     ];
