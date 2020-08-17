@@ -93,7 +93,8 @@ async function extractDependenciesAndSize(exportName, jsBundle, map) {
     format: 'es'
   });
   const externalDepsNotResolvedBundle = await rollup({
-    input
+    input,
+    external: id => id.startsWith('@firebase') // exclude all firebase dependencies
   });
   await externalDepsNotResolvedBundle.write({
     file: externalDepsNotResolvedOutput,
@@ -117,7 +118,7 @@ async function extractDependenciesAndSize(exportName, jsBundle, map) {
       output: {
         comments: false
       },
-      mangle: true,
+      mangle: { toplevel: true },
       compress: false
     }
   );
@@ -127,7 +128,7 @@ async function extractDependenciesAndSize(exportName, jsBundle, map) {
       output: {
         comments: false
       },
-      mangle: true,
+      mangle: { toplevel: true },
       compress: false
     }
   );
@@ -176,7 +177,8 @@ function extractDeclarations(filePath, map) {
     functions: [],
     classes: [],
     variables: [],
-    enums: []
+    enums: [],
+    externals: []
   };
   const namespaceImportSet = new Set();
   // define a map here which is used to handle export statements that have no from clause.
@@ -282,17 +284,14 @@ function extractDeclarations(filePath, map) {
       } else {
         // export {LogLevel};
         // exclusively handles named export statements that has no from clause.
-        const reExportsWithoutFromClause = handleExportStatementsWithoutFromClause(
+        handleExportStatementsWithoutFromClause(
           node,
           importSymbolCurrentNameToModuleLocation,
           importSymbolCurrentNameToOriginalName,
           importModuleLocationToExportedSymbolsList,
-          namespaceImportSet
+          namespaceImportSet,
+          declarations
         );
-        // concatenate re-exported MemberList with MemberList of the dts file
-        for (const key of Object.keys(declarations)) {
-          declarations[key].push(...reExportsWithoutFromClause[key]);
-        }
       }
     }
   });
@@ -321,7 +320,8 @@ function handleExportStatementsWithFromClause(checker, node, moduleName) {
     functions: [],
     classes: [],
     variables: [],
-    enums: []
+    enums: [],
+    externals: []
   };
   if (symbol && symbol.valueDeclaration) {
     const reExportFullPath = symbol.valueDeclaration.getSourceFile().fileName;
@@ -388,6 +388,7 @@ function extractSymbolsFromNamedExportStatement(node, exportsFullList) {
  * @param importSymbolCurrentNameToOriginalName as imported symbols can be renamed, this map stores imported symbols current name and original name as key value pairs.
  * @param importModuleLocationToExportedSymbolsList a map that maps module location to a list of its exported symbols.
  * @param namespaceImportSymbolSet a set of namespace import symbols.
+ * @param parentDeclarations a list of exported symbols extracted from the module so far
  * This function exclusively handles named export statements that has no from clause, i.e: statements like export {LogLevel};
  * first case: namespace export
  * example: import * as fs from 'fs'; export {fs};
@@ -407,14 +408,9 @@ function handleExportStatementsWithoutFromClause(
   importSymbolCurrentNameToModuleLocation,
   importSymbolCurrentNameToOriginalName,
   importModuleLocationToExportedSymbolsList,
-  namespaceImportSymbolSet
+  namespaceImportSymbolSet,
+  parentDeclarations
 ) {
-  const declarations = {
-    functions: [],
-    classes: [],
-    variables: [],
-    enums: []
-  };
   if (node.exportClause && isNamedExports(node.exportClause)) {
     node.exportClause.elements.forEach(exportSpecifier => {
       // export symbol could be renamed, we retrieve both its current/renamed name and original name
@@ -424,9 +420,9 @@ function handleExportStatementsWithoutFromClause(
       );
       // import * as fs from 'fs';  export {fs};
       if (namespaceImportSymbolSet.has(exportSymbolOriginalName)) {
-        declarations.variables.push(exportSymbolOriginalName);
+        parentDeclarations.variables.push(exportSymbolOriginalName);
         replaceAll(
-          declarations,
+          parentDeclarations,
           exportSymbolOriginalName,
           exportSymbolCurrentName
         );
@@ -474,19 +470,19 @@ function handleExportStatementsWithoutFromClause(
           exportSymbolCurrentName
         );
         // concatenate re-exported MemberList with MemberList of the dts file
-        for (const key of Object.keys(declarations)) {
-          declarations[key].push(...reExportedSymbols[key]);
+        for (const key of Object.keys(parentDeclarations)) {
+          parentDeclarations[key].push(...reExportedSymbols[key]);
         }
       }
       // handles declare first then export
       // declare const apps: Map<string, number>;
-      // export { apps };
+      // export { apps as apps1};
       // function a() {};
       // export {a};
       else {
         if (isExportRenamed(exportSpecifier)) {
           replaceAll(
-            declarations,
+            parentDeclarations,
             exportSymbolOriginalName,
             exportSymbolCurrentName
           );
@@ -494,7 +490,6 @@ function handleExportStatementsWithoutFromClause(
       }
     });
   }
-  return declarations;
 }
 /**
  * To Make sure symbols of every category are unique.
@@ -511,7 +506,8 @@ function mapSymbolToType(map, memberList) {
     functions: [],
     classes: [],
     variables: [],
-    enums: []
+    enums: [],
+    externals: []
   };
   for (const key of Object.keys(memberList)) {
     memberList[key].forEach(element => {
@@ -793,6 +789,7 @@ function generateReportForModules(
 
 export {
   buildJsonReport,
+  buildMap,
   dedup,
   extractDeclarations,
   extractDependencies,
@@ -806,4 +803,3 @@ export {
   writeReportToDirectory,
   writeReportToFile
 };
-//# sourceMappingURL=index.esm2017.js.map
