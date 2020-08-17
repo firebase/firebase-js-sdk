@@ -21,7 +21,8 @@ import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import path from 'path';
-import sourcemaps from 'rollup-plugin-sourcemaps';
+import replace from 'rollup-plugin-replace';
+import copy from 'rollup-plugin-copy-assets';
 import { terser } from 'rollup-plugin-terser';
 import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
@@ -41,7 +42,14 @@ const nodePlugins = [
     abortOnError: false,
     transformers: [util.removeAssertTransformer, importPathTransformer]
   }),
-  json({ preferConst: true })
+  json({ preferConst: true }),
+  // Needed as we also use the *.proto files
+  copy({
+    assets: ['./src/protos']
+  }),
+  replace({
+    'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('../src/protos')
+  })
 ];
 
 const browserPlugins = [
@@ -87,18 +95,7 @@ const allBuilds = [
       name: 'firebase.firestore',
       sourcemap: true
     },
-    plugins: [
-      typescriptPlugin({
-        typescript,
-        compilerOptions: {
-          allowJs: true,
-          target: 'es5'
-        },
-        include: ['dist/exp/*.js']
-      }),
-      json(),
-      sourcemaps()
-    ],
+    plugins: util.es2017ToEs5Plugins(false),
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
