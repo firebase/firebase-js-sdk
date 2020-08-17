@@ -43,7 +43,7 @@ import {
   query
 } from '../../util/helpers';
 
-describe.only('EventManager', () => {
+describe('EventManager', () => {
   // mock object.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function fakeQueryListener(query: Query): any {
