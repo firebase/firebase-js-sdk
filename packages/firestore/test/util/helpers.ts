@@ -441,12 +441,13 @@ export function docUpdateRemoteEvent(
 }
 
 export class TestBundledDocuments {
-  constructor(public documents: BundledDocuments) {}
+  constructor(public documents: BundledDocuments, public bundleName?: string) {}
 }
 
 export function bundledDocuments(
   documents: MaybeDocument[],
-  queryNames?: string[][]
+  queryNames?: string[][],
+  bundleName?: string
 ): TestBundledDocuments {
   const result = documents.map((d, index) => {
     return {
@@ -461,7 +462,7 @@ export function bundledDocuments(
     };
   });
 
-  return new TestBundledDocuments(result);
+  return new TestBundledDocuments(result, bundleName);
 }
 
 export class TestNamedQuery {

@@ -62,6 +62,7 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
+import { umbrellaTarget } from '../../../src/core/bundle';
 
 const userDataWriter = testUserDataWriter();
 
@@ -375,6 +376,8 @@ export class SpecBuilder {
     this.currentStep = {
       loadBundle: bundleContent
     };
+    // Allocate umbrella target for bundles.
+    this.queryIdGenerator.next(umbrellaTarget('test-bundle'));
     return this;
   }
 

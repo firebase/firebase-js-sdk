@@ -1279,19 +1279,28 @@ export async function ignoreIfPrimaryLeaseLoss(
  * Applies the documents from a bundle to the "ground-state" (remote)
  * documents.
  *
+ * An umbrella target is passed to be used as a target holding references to
+ * all documents loaded, such that they will not get garbage collected right
+ * away.
+ *
  * LocalDocuments are re-calculated if there are remaining mutations in the
  * queue.
  */
-export function applyBundleDocuments(
+export async function applyBundleDocuments(
   localStore: LocalStore,
-  documents: BundledDocuments
+  documents: BundledDocuments,
+  umbrellaTarget: Target
 ): Promise<MaybeDocumentMap> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const bundleConverter = new BundleConverter(localStoreImpl.serializer);
+  let documentKeys = documentKeySet();
   let documentMap = maybeDocumentMap();
   let versionMap = documentVersionMap();
   for (const bundleDoc of documents) {
     const documentKey = bundleConverter.toDocumentKey(bundleDoc.metadata.name!);
+    if (bundleDoc.document) {
+      documentKeys = documentKeys.add(documentKey);
+    }
     documentMap = documentMap.insert(
       documentKey,
       bundleConverter.toMaybeDocument(bundleDoc)
@@ -1305,6 +1314,11 @@ export function applyBundleDocuments(
   const documentBuffer = localStoreImpl.remoteDocuments.newChangeBuffer({
     trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
   });
+
+  const umbrellaTargetData = await allocateTarget(
+    localStoreImpl,
+    umbrellaTarget
+  );
   return localStoreImpl.persistence.runTransaction(
     'Apply bundle documents',
     'readwrite',
@@ -1318,6 +1332,19 @@ export function applyBundleDocuments(
       )
         .next(changedDocs => {
           documentBuffer.apply(txn);
+          return changedDocs;
+        })
+        .next(changedDocs => {
+          localStoreImpl.targetCache
+            .removeMatchingKeysForTargetId(txn, umbrellaTargetData.targetId)
+            .next(() =>
+              localStoreImpl.targetCache.addMatchingKeys(
+                txn,
+                documentKeys,
+                umbrellaTargetData.targetId
+              )
+            );
+
           return changedDocs;
         })
         .next(changedDocs => {

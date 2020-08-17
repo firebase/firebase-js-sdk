@@ -16,7 +16,7 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-import { Query } from './query';
+import { newQueryForPath, Query, queryToTarget } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import {
   fromDocument,
@@ -41,6 +41,8 @@ import {
   MaybeDocumentMap
 } from '../model/collections';
 import { BundleMetadata } from '../protos/firestore_bundle_proto';
+import { Target } from './target';
+import { ResourcePath } from '../model/path';
 
 /**
  * Represents a Firestore bundle saved by the SDK in its local storage.
@@ -151,6 +153,11 @@ export class BundleLoadResult {
   ) {}
 }
 
+// Visible for testing.
+export function umbrellaTarget(bundleName: string): Target {
+  return queryToTarget(newQueryForPath(ResourcePath.fromString(bundleName)));
+}
+
 /**
  * A class to process the elements from a bundle, load them into local
  * storage and provide progress update while loading.
@@ -247,7 +254,8 @@ export class BundleLoader {
 
     const changedDocuments = await applyBundleDocuments(
       this.localStore,
-      this.documents
+      this.documents,
+      umbrellaTarget(this.metadata.id || '')
     );
 
     const queryDocumentMap = this.getQueryDocumentMapping(this.documents);

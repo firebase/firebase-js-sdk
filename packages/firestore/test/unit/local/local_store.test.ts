@@ -114,7 +114,11 @@ import { CountingQueryEngine, QueryEngineType } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
 import { ByteString } from '../../../src/util/byte_string';
-import { BundledDocuments, NamedQuery } from '../../../src/core/bundle';
+import {
+  BundledDocuments,
+  NamedQuery,
+  umbrellaTarget
+} from '../../../src/core/bundle';
 import * as bundleProto from '../../../src/protos/firestore_bundle_proto';
 
 export interface LocalStoreComponents {
@@ -161,7 +165,7 @@ class LocalStoreTester {
     } else if (op instanceof RemoteEvent) {
       return this.afterRemoteEvent(op);
     } else if (op instanceof TestBundledDocuments) {
-      return this.afterBundleDocuments(op.documents);
+      return this.afterBundleDocuments(op.documents, op.bundleName);
     } else {
       return this.afterNamedQuery(op);
     }
@@ -192,11 +196,20 @@ class LocalStoreTester {
     return this;
   }
 
-  afterBundleDocuments(documents: BundledDocuments): LocalStoreTester {
+  afterBundleDocuments(
+    documents: BundledDocuments,
+    bundleName?: string
+  ): LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain
-      .then(() => applyBundleDocuments(this.localStore, documents))
+      .then(() =>
+        applyBundleDocuments(
+          this.localStore,
+          documents,
+          umbrellaTarget(bundleName || '')
+        )
+      )
       .then(result => {
         this.lastChanges = result;
       });
@@ -1624,6 +1637,11 @@ function genericLocalStoreTests(
       )
       .toContain(doc('foo/bar', 1, { sum: 1337 }))
       .toContain(deletedDoc('foo/bar1', 1))
+      .toHaveQueryDocumentMapping(
+        persistence,
+        /*targetId*/ 2,
+        /*expectedKeys*/ documentKeySet(key('foo/bar'))
+      )
       .finish();
   });
 
@@ -1643,6 +1661,11 @@ function genericLocalStoreTests(
       .toReturnChanged(deletedDoc('foo/bar1', 1))
       .toContain(doc('foo/bar', 2, { sum: 1337 }))
       .toContain(deletedDoc('foo/bar1', 1))
+      .toHaveQueryDocumentMapping(
+        persistence,
+        /*targetId*/ 4,
+        /*expectedKeys*/ documentKeySet(key('foo/bar'))
+      )
       .finish();
   });
 
@@ -1665,6 +1688,11 @@ function genericLocalStoreTests(
       )
       .toContain(doc('foo/new', 1, { sum: 1336 }))
       .toContain(deletedDoc('foo/bar', 2))
+      .toHaveQueryDocumentMapping(
+        persistence,
+        /*targetId*/ 4,
+        /*expectedKeys*/ documentKeySet(key('foo/new'))
+      )
       .finish();
   });
 
@@ -1678,6 +1706,11 @@ function genericLocalStoreTests(
       .after(bundledDocuments([doc('foo/bar', 1, { val: 'new' })]))
       .toReturnChanged()
       .toContain(doc('foo/bar', 1, { val: 'old' }))
+      .toHaveQueryDocumentMapping(
+        persistence,
+        /*targetId*/ 4,
+        /*expectedKeys*/ documentKeySet(key('foo/bar'))
+      )
       .finish();
   });
 
@@ -1699,6 +1732,11 @@ function genericLocalStoreTests(
         doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
       )
       .toContain(doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true }))
+      .toHaveQueryDocumentMapping(
+        persistence,
+        /*targetId*/ 4,
+        /*expectedKeys*/ documentKeySet(key('foo/bar'))
+      )
       .finish();
   });
 
@@ -1721,6 +1759,11 @@ function genericLocalStoreTests(
         doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
       )
       .toContain(doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true }))
+      .toHaveQueryDocumentMapping(
+        persistence,
+        /*targetId*/ 4,
+        /*expectedKeys*/ documentKeySet(key('foo/bar'))
+      )
       .finish();
   });
 
@@ -1787,7 +1830,7 @@ function genericLocalStoreTests(
       })
       .toHaveQueryDocumentMapping(
         persistence,
-        /*targetId*/ 2,
+        /*targetId*/ 4,
         /*expectedKeys*/ documentKeySet(key('foo1/bar'))
       )
       .after(
@@ -1806,7 +1849,7 @@ function genericLocalStoreTests(
       })
       .toHaveQueryDocumentMapping(
         persistence,
-        /*targetId*/ 4,
+        /*targetId*/ 6,
         /*expectedKeys*/ documentKeySet(key('foo2/bar'))
       )
       .finish();
