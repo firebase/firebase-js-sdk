@@ -40,7 +40,6 @@ export const helloWorld = functions.https.onRequest((request, response) => {
 });
 export const retrieveFirebaseVersionFromNPM = functions.https.onRequest(
   (request, response) => {
-    console.time('retrieveFirebaseVersion');
     if (request.method !== 'GET') {
       response.status(405).end();
       return;
@@ -60,7 +59,6 @@ export const retrieveFirebaseVersionFromNPM = functions.https.onRequest(
         response.set({
           'Content-Type': 'application/json'
         });
-        console.timeEnd('retrieveFirebaseVersion');
         response.status(200).send(versionsArray);
       } catch (error) {
         response.status(500).send(error);
@@ -71,7 +69,6 @@ export const retrieveFirebaseVersionFromNPM = functions.https.onRequest(
 
 export const downloadPackageFromNPMGivenVersionAndReturnExportedSymbols = functions.https.onRequest(
   (request, response) => {
-    console.time('extractSymbols');
     if (request.method !== 'POST' && request.method !== 'OPTIONS') {
       response.status(405).end();
       return;
@@ -97,17 +94,14 @@ export const downloadPackageFromNPMGivenVersionAndReturnExportedSymbols = functi
       try {
         setUpPackageEnvironment(versionTobeInstalled);
         const allModuleLocations: string[] = retrieveAllModuleLocation();
-        console.log(allModuleLocations);
         generateExportedSymbolsListForModules(allModuleLocations)
           .then(exportedSymbolsListForModules => {
             response.set({
               'Content-Type': 'application/json'
             });
-            console.timeEnd('extractSymbols');
             response.status(200).send(exportedSymbolsListForModules);
           })
           .catch(error => {
-            console.log(error);
             response.status(500).send(error);
           });
       } catch (error) {
@@ -119,7 +113,6 @@ export const downloadPackageFromNPMGivenVersionAndReturnExportedSymbols = functi
 
 export const generateSizeAnalysisReportGivenCustomBundle = functions.https.onRequest(
   (request, response) => {
-    console.time('generateBundle');
     if (request.method !== 'POST' && request.method !== 'OPTIONS') {
       response.status(405).end();
       return;
@@ -164,7 +157,6 @@ export const generateSizeAnalysisReportGivenCustomBundle = functions.https.onReq
               size: sizeArray[0],
               sizeAfterGzip: sizeArray[1]
             };
-            console.timeEnd('generateBundle');
             response.set({
               'Content-Type': 'application/json'
             });

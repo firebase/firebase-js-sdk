@@ -148,10 +148,6 @@ export function setUpPackageEnvironment(
   firebaseVersionToBeInstalled: string
 ): void {
   try {
-    // if (!fs.existsSync(packageInstalledDirectory)) {
-    //   fs.mkdirSync(packageInstalledDirectory);
-    // }
-    console.log(packageInstalledDirectory);
     const packageJsonContent: string = `{\"name\":\"size-analysis-firebase\",\"version\":\"0.1.0\",\"dependencies\":{\"typescript\":\"3.8.3\",\"${pkgName}\":\"${firebaseVersionToBeInstalled}\"}}`;
     fs.writeFileSync(
       `${packageInstalledDirectory}/package.json`,
