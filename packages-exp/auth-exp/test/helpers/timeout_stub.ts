@@ -18,7 +18,7 @@
 import * as sinon from 'sinon';
 
 interface TimerTripFn {
-  (): void;
+  (): void|Promise<void>;
 }
 
 export interface TimerMap {
@@ -63,5 +63,29 @@ export function stubSingleTimeout(id?: number): TimerTripFn {
     }
 
     callbacks[key]();
+  };
+}
+
+/**
+ * Creates a blanket stub and returns one callback for any timeout set. When
+ * called, that callback trips the next chronological timer and returns the
+ * duration set.
+ */
+export function stubAllTimeouts(): () => number|Promise<number> {
+  const callbacks = stubTimeouts();
+  return () => {
+    const next = Object.keys(callbacks).map(Number).sort((a, b) => a - b)[0];
+    if (next === undefined) {
+      throw new Error('NO_MORE_TIMERS: Tried executing next callback but none found');
+    }
+
+    const cb = callbacks[next];
+    const result = cb();
+
+    delete callbacks[next];
+    if (result instanceof Promise)  {
+      return result.then(() => next);
+    }
+    return next;
   };
 }

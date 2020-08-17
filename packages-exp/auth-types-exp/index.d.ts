@@ -15,14 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  CompleteFn,
-  ErrorFn,
-  FirebaseError,
-  NextFn,
-  Observer,
-  Unsubscribe
-} from '@firebase/util';
+import { CompleteFn, ErrorFn, FirebaseError, NextFn, Observer, Unsubscribe } from '@firebase/util';
 
 /**
  * Supported providers
