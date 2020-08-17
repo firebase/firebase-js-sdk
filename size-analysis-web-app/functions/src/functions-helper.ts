@@ -17,6 +17,7 @@
 
 import { execSync } from 'child_process';
 import * as fs from 'fs';
+import * as tmp from 'tmp';
 import { resolve as pathResolve, basename } from 'path';
 import { rollup } from 'rollup';
 import resolve from 'rollup-plugin-node-resolve';
@@ -28,8 +29,7 @@ export const pkgName: string = 'firebase';
 const userSelectedSymbolFile = 'selected-symbols.js';
 export const userSelectedSymbolsBundleFile: string =
   'selected-symbols-bundle.js';
-export const packageInstalledDirectory: string =
-  'tmp-folder-size-analysis-web-app';
+export const packageInstalledDirectory: string = tmp.dirSync().name;
 export const pkgRoot: string = `${packageInstalledDirectory}/node_modules/${pkgName}`;
 
 /** Contains a list of symbols by type. */
@@ -148,9 +148,10 @@ export function setUpPackageEnvironment(
   firebaseVersionToBeInstalled: string
 ): void {
   try {
-    if (!fs.existsSync(packageInstalledDirectory)) {
-      fs.mkdirSync(packageInstalledDirectory);
-    }
+    // if (!fs.existsSync(packageInstalledDirectory)) {
+    //   fs.mkdirSync(packageInstalledDirectory);
+    // }
+    console.log(packageInstalledDirectory);
     const packageJsonContent: string = `{\"name\":\"size-analysis-firebase\",\"version\":\"0.1.0\",\"dependencies\":{\"typescript\":\"3.8.3\",\"${pkgName}\":\"${firebaseVersionToBeInstalled}\"}}`;
     fs.writeFileSync(
       `${packageInstalledDirectory}/package.json`,

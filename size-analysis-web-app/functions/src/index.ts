@@ -18,6 +18,7 @@
 import * as functions from 'firebase-functions';
 import { execSync } from 'child_process';
 import { resolve } from 'path';
+
 import {
   packageInstalledDirectory,
   userSelectedSymbolsBundleFile,
