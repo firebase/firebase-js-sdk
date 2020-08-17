@@ -95,7 +95,7 @@ const allBuilds = [
       name: 'firebase.firestore',
       sourcemap: true
     },
-    plugins: util.es2017ToEs5Plugins(false),
+    plugins: util.es2017ToEs5Plugins(/* mangled= */ false),
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
