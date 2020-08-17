@@ -208,6 +208,12 @@ toc:
   section:
   - title: "Messaging"
     path: /docs/reference/js/firebase.messaging.Messaging
+  - title: "Messaging"
+    path: /docs/reference/js/firebase.messaging.FcmOptions
+  - title: "Messaging"
+    path: /docs/reference/js/firebase.messaging.MessagePayload
+  - title: "Messaging"
+    path: /docs/reference/js/firebase.messaging.NotificationPayload
 
 - title: "firebase.performance"
   path: /docs/reference/js/firebase.performance
