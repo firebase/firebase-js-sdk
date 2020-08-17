@@ -24,11 +24,10 @@ import { AuthErrorCode } from '../errors';
 import { assert } from '../util/assert';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import {
-  AuthImpl,
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST
+    AuthImpl, DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST
 } from './auth_impl';
+
+export const _AUTH_COMPONENT_NAME = 'auth-exp';
 
 function getVersionForPlatform(
   clientPlatform: ClientPlatform
@@ -48,7 +47,7 @@ function getVersionForPlatform(
 export function registerAuth(clientPlatform: ClientPlatform): void {
   _registerComponent(
     new Component(
-      'auth-exp',
+      _AUTH_COMPONENT_NAME,
       container => {
         const app = container.getProvider('app-exp').getImmediate()!;
         const { apiKey, authDomain } = app.options;
@@ -68,5 +67,5 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
       ComponentType.PUBLIC
     )
   );
-  registerVersion('auth-exp', version, getVersionForPlatform(clientPlatform));
+  registerVersion(_AUTH_COMPONENT_NAME, version, getVersionForPlatform(clientPlatform));
 }
