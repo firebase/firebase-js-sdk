@@ -29,6 +29,6 @@ export const ENDPOINTS = {
     generateSizeAnalysisReportGivenCustomBundle: 'generateSizeAnalysisReportGivenCustomBundle'
 }
 
-export const API_ROOT = 'https://us-central1-fir-size-analysis.cloudfunctions.net/';
+export const API_ROOT = 'https://us-central1-fir-sdk-size-analysis.cloudfunctions.net/';
 //export const API_ROOT = 'http://localhost:5001/fir-size-analysis/us-central1/';
 
