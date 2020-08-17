@@ -22,10 +22,8 @@ import { ComponentConfiguration } from '../../../src/core/component_provider';
 import { DatabaseInfo } from '../../../src/core/database_info';
 import {
   EventManager,
-  eventManagerListen,
   Observer,
-  QueryListener,
-  eventManagerUnlisten
+  QueryListener
 } from '../../../src/core/event_manager';
 import {
   canonifyQuery,
@@ -43,6 +41,8 @@ import {
   activeLimboDocumentResolutions,
   enqueuedLimboDocumentResolutions,
   SyncEngine,
+  syncEngineListen,
+  syncEngineUnlisten,
   syncEngineWrite
 } from '../../../src/core/sync_engine';
 import { TargetId } from '../../../src/core/types';
@@ -286,6 +286,11 @@ abstract class TestRunner {
     this.syncEngine = onlineComponentProvider.syncEngine;
     this.eventManager = onlineComponentProvider.eventManager;
 
+    this.eventManager.subscribe(
+      syncEngineListen.bind(null, this.syncEngine),
+      syncEngineUnlisten.bind(null, this.syncEngine)
+    );
+
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
     });
@@ -411,9 +416,7 @@ abstract class TestRunner {
     const queryListener = new QueryListener(query, aggregator, options);
     this.queryListeners.set(query, queryListener);
 
-    await this.queue.enqueue(() =>
-      eventManagerListen(this.eventManager, queryListener)
-    );
+    await this.queue.enqueue(() => this.eventManager.listen(queryListener));
 
     if (targetFailed) {
       expect(this.persistence.injectFailures).contains('Allocate target');
@@ -445,9 +448,7 @@ abstract class TestRunner {
     const eventEmitter = this.queryListeners.get(query);
     debugAssert(!!eventEmitter, 'There must be a query to unlisten too!');
     this.queryListeners.delete(query);
-    await this.queue.enqueue(() =>
-      eventManagerUnlisten(this.eventManager, eventEmitter!)
-    );
+    await this.queue.enqueue(() => this.eventManager.unlisten(eventEmitter!));
   }
 
   private doSet(setSpec: SpecUserSet): Promise<void> {

@@ -37,13 +37,13 @@ import {
   EventManager,
   ListenOptions,
   Observer,
-  QueryListener,
-  eventManagerListen,
-  eventManagerUnlisten
+  QueryListener
 } from './event_manager';
 import {
   registerPendingWritesCallback,
   SyncEngine,
+  syncEngineListen,
+  syncEngineUnlisten,
   syncEngineWrite
 } from './sync_engine';
 import { View } from './view';
@@ -283,6 +283,11 @@ export class FirestoreClient {
       this.syncEngine = onlineComponentProvider.syncEngine;
       this.eventMgr = onlineComponentProvider.eventManager;
 
+      this.eventMgr.subscribe(
+        syncEngineListen.bind(null, this.syncEngine),
+        syncEngineUnlisten.bind(null, this.syncEngine)
+      );
+
       // When a user calls clearPersistence() in one client, all other clients
       // need to be terminated to allow the delete to succeed.
       this.persistence.setDatabaseDeletedListener(async () => {
@@ -425,14 +430,10 @@ export class FirestoreClient {
     this.verifyNotTerminated();
     const wrappedObserver = new AsyncObserver(observer);
     const listener = new QueryListener(query, wrappedObserver, options);
-    this.asyncQueue.enqueueAndForget(() =>
-      eventManagerListen(this.eventMgr, listener)
-    );
+    this.asyncQueue.enqueueAndForget(() => this.eventMgr.listen(listener));
     return () => {
       wrappedObserver.mute();
-      this.asyncQueue.enqueueAndForget(() =>
-        eventManagerUnlisten(this.eventMgr, listener)
-      );
+      this.asyncQueue.enqueueAndForget(() => this.eventMgr.unlisten(listener));
     };
   }
 
@@ -597,12 +598,10 @@ export function enqueueListen(
 ): Unsubscribe {
   const wrappedObserver = new AsyncObserver(observer);
   const listener = new QueryListener(query, wrappedObserver, options);
-  asyncQueue.enqueueAndForget(() => eventManagerListen(eventManger, listener));
+  asyncQueue.enqueueAndForget(() => eventManger.listen(listener));
   return () => {
     wrappedObserver.mute();
-    asyncQueue.enqueueAndForget(() =>
-      eventManagerUnlisten(eventManger, listener)
-    );
+    asyncQueue.enqueueAndForget(() => eventManger.unlisten(listener));
   };
 }
 

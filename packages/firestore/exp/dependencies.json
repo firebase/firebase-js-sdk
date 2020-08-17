@@ -1328,6 +1328,7 @@
                 "Precondition",
                 "Query",
                 "QueryImpl",
+                "QueryListenersInfo",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
@@ -1360,7 +1361,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 189963
+        "sizeInBytes": 191101
     },
     "arrayRemove": {
         "dependencies": {
@@ -1992,6 +1993,7 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
+                "QueryListenersInfo",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
@@ -2022,7 +2024,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 172236
+        "sizeInBytes": 173374
     },
     "deleteField": {
         "dependencies": {
@@ -2346,6 +2348,7 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
+                "QueryListenersInfo",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
@@ -2376,7 +2379,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 164309
+        "sizeInBytes": 165447
     },
     "doc": {
         "dependencies": {
@@ -2606,6 +2609,7 @@
                 "getPostMutationVersion",
                 "getWindow",
                 "globalTargetStore",
+                "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "immediateSuccessor",
@@ -2849,7 +2853,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 199048
+        "sizeInBytes": 200497
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -3299,6 +3303,7 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
+                "QueryListenersInfo",
                 "QueryTargetMetadata",
                 "QueryView",
                 "ReferenceSet",
@@ -3342,7 +3347,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 301121
+        "sizeInBytes": 302259
     },
     "enableNetwork": {
         "dependencies": {
@@ -3624,6 +3629,7 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
+                "QueryListenersInfo",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
@@ -3654,7 +3660,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 164306
+        "sizeInBytes": 165444
     },
     "endAt": {
         "dependencies": {
@@ -3975,8 +3981,6 @@
                 "enqueueReadDocumentViaSnapshotListener",
                 "ensureWatchCallbacks",
                 "errorMessage",
-                "eventManagerListen",
-                "eventManagerUnlisten",
                 "executeQuery",
                 "extractLocalPathFromResourceName",
                 "fail",
@@ -4278,7 +4282,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 207696
+        "sizeInBytes": 207709
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4356,6 +4360,7 @@
                 "getOfflineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
+                "handleUserChange",
                 "hardAssert",
                 "invalidClassError",
                 "isArray",
@@ -4520,7 +4525,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 118383
+        "sizeInBytes": 119832
     },
     "getDocFromServer": {
         "dependencies": {
@@ -4595,8 +4600,6 @@
                 "enqueueReadDocumentViaSnapshotListener",
                 "ensureWatchCallbacks",
                 "errorMessage",
-                "eventManagerListen",
-                "eventManagerUnlisten",
                 "executeQuery",
                 "extractLocalPathFromResourceName",
                 "fail",
@@ -4898,7 +4901,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 207752
+        "sizeInBytes": 207765
     },
     "getDocs": {
         "dependencies": {
@@ -4973,8 +4976,6 @@
                 "enqueueListen",
                 "ensureWatchCallbacks",
                 "errorMessage",
-                "eventManagerListen",
-                "eventManagerUnlisten",
                 "executeQuery",
                 "extractLocalPathFromResourceName",
                 "fail",
@@ -5280,7 +5281,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 210259
+        "sizeInBytes": 210272
     },
     "getDocsFromCache": {
         "dependencies": {
@@ -5362,6 +5363,7 @@
                 "getOfflineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
+                "handleUserChange",
                 "hardAssert",
                 "invalidClassError",
                 "isArray",
@@ -5535,7 +5537,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 131563
+        "sizeInBytes": 133012
     },
     "getDocsFromServer": {
         "dependencies": {
@@ -5610,8 +5612,6 @@
                 "enqueueListen",
                 "ensureWatchCallbacks",
                 "errorMessage",
-                "eventManagerListen",
-                "eventManagerUnlisten",
                 "executeQuery",
                 "extractLocalPathFromResourceName",
                 "fail",
@@ -5916,7 +5916,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 209997
+        "sizeInBytes": 210010
     },
     "getFirestore": {
         "dependencies": {
@@ -6210,8 +6210,6 @@
                 "enqueueListen",
                 "ensureWatchCallbacks",
                 "errorMessage",
-                "eventManagerListen",
-                "eventManagerUnlisten",
                 "executeQuery",
                 "extractLocalPathFromResourceName",
                 "fail",
@@ -6519,21 +6517,25 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 211342
+        "sizeInBytes": 211355
     },
     "onSnapshotsInSync": {
         "dependencies": {
             "functions": [
+                "allocateTarget",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
                 "applyDeleteMutationToRemoteDocument",
+                "applyDocChanges",
                 "applyMutationToLocalView",
                 "applyMutationToRemoteDocument",
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -6564,6 +6566,7 @@
                 "coercedFieldValuesArray",
                 "compareArrays",
                 "compareBlobs",
+                "compareChangeType",
                 "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
@@ -6583,6 +6586,8 @@
                 "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueSnapshotsInSyncListen",
+                "ensureWatchCallbacks",
+                "executeQuery",
                 "extractLocalPathFromResourceName",
                 "fail",
                 "fieldTransformEquals",
@@ -6604,16 +6609,20 @@
                 "getEncodedDatabaseId",
                 "getEventManager",
                 "getLastRemoteSnapshotVersion",
+                "getLocalTargetData",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
                 "getOfflineComponentProvider",
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
+                "getRemoteKeysForTarget",
                 "handleCredentialChange",
                 "handleUserChange",
                 "hardAssert",
+                "ignoreIfPrimaryLeaseLoss",
                 "implementsAnyMethods",
+                "initializeViewAndComputeSnapshot",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -6648,6 +6657,7 @@
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
                 "newQueryComparator",
+                "newQueryForPath",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -6667,6 +6677,7 @@
                 "patchObject",
                 "preconditionIsValidForDocument",
                 "primitiveComparator",
+                "pumpEnqueuedLimboResolutions",
                 "queryEquals",
                 "queryMatches",
                 "queryMatchesBounds",
@@ -6677,20 +6688,27 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
+                "rejectListen",
                 "rejectOutstandingPendingWritesCallbacks",
+                "releaseTarget",
+                "removeAndCleanupTarget",
                 "removeComponents",
                 "removeComponents$1",
+                "removeLimboTarget",
                 "requireDocument",
                 "serverTimestamp",
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
+                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineListen",
+                "syncEngineUnlisten",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -6721,10 +6739,12 @@
                 "toTimestamp",
                 "toUnaryOrFieldFilter",
                 "toVersion",
+                "trackLimboChange",
                 "transformObject",
                 "transformOperationEquals",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
+                "updateTrackedLimbos",
                 "valueCompare",
                 "valueEquals",
                 "verifyNotTerminated",
@@ -6732,6 +6752,7 @@
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
+                "AddedLimboDocument",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncObserver",
@@ -6749,7 +6770,9 @@
                 "DeleteMutation",
                 "DocReference",
                 "Document",
+                "DocumentChangeSet",
                 "DocumentKey",
+                "DocumentSet",
                 "DocumentWatchChange",
                 "EventManager",
                 "ExistenceFilter",
@@ -6765,6 +6788,7 @@
                 "JsonProtoSerializer",
                 "LLRBEmptyNode",
                 "LLRBNode",
+                "LimboResolution",
                 "ListenSequence",
                 "LocalClientState",
                 "LocalDocumentsView",
@@ -6803,10 +6827,13 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
+                "QueryListenersInfo",
+                "QueryView",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
                 "RemoteStore",
+                "RemovedLimboDocument",
                 "ResourcePath",
                 "ServerTimestampTransform",
                 "SetMutation",
@@ -6828,12 +6855,14 @@
                 "UnknownDocument",
                 "User",
                 "VerifyMutation",
+                "View",
+                "ViewSnapshot",
                 "WatchChangeAggregator",
                 "WatchTargetChange"
             ],
             "variables": []
         },
-        "sizeInBytes": 165155
+        "sizeInBytes": 192150
     },
     "orderBy": {
         "dependencies": {
@@ -7680,6 +7709,7 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
+                "QueryListenersInfo",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
@@ -7712,7 +7742,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 188187
+        "sizeInBytes": 189325
     },
     "setLogLevel": {
         "dependencies": {
@@ -8486,6 +8516,7 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
+                "QueryListenersInfo",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
@@ -8518,7 +8549,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 189686
+        "sizeInBytes": 190824
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -8801,6 +8832,7 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
+                "QueryListenersInfo",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
@@ -8831,7 +8863,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 165142
+        "sizeInBytes": 166280
     },
     "where": {
         "dependencies": {
@@ -9319,6 +9351,7 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
+                "QueryListenersInfo",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
@@ -9352,6 +9385,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 193353
+        "sizeInBytes": 194491
     }
 }

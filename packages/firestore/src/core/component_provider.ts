@@ -334,6 +334,8 @@ export class OnlineComponentProvider {
     this.syncEngine = this.createSyncEngine(cfg);
     this.eventManager = this.createEventManager(cfg);
 
+    this.syncEngine.subscribe(this.eventManager);
+
     this.sharedClientState.onlineStateHandler = onlineState =>
       applyOnlineStateChange(
         this.syncEngine,
@@ -351,7 +353,7 @@ export class OnlineComponentProvider {
   }
 
   createEventManager(cfg: ComponentConfiguration): EventManager {
-    return new EventManager(this.syncEngine);
+    return new EventManager();
   }
 
   createDatastore(cfg: ComponentConfiguration): Datastore {
