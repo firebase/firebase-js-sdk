@@ -18,7 +18,7 @@ class App extends Component {
       isCurrentBundleReportValid: false,
       dropDownData: [],
       isDropDownLoaded: false,
-      areModulesLoaded: true,
+      areModulesLoaded: false,
       isBundleOverviewLoaded: true
     }
     this.handleChange = this.handleChange.bind(this);
@@ -192,6 +192,7 @@ class App extends Component {
       .then(res => res.json())
       .then(
         (modules) => {
+          console.log(modules);
           this.setState({
             areModulesLoaded: true,
             allModulesOfSelectedVersion: modules
