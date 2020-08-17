@@ -96,6 +96,7 @@ export const downloadPackageFromNPMGivenVersionAndReturnExportedSymbols = functi
       try {
         setUpPackageEnvironment(versionTobeInstalled);
         const allModuleLocations: string[] = retrieveAllModuleLocation();
+        console.log(allModuleLocations);
         generateExportedSymbolsListForModules(allModuleLocations)
           .then(exportedSymbolsListForModules => {
             response.set({
@@ -105,6 +106,7 @@ export const downloadPackageFromNPMGivenVersionAndReturnExportedSymbols = functi
             response.status(200).send(exportedSymbolsListForModules);
           })
           .catch(error => {
+            console.log(error);
             response.status(500).send(error);
           });
       } catch (error) {

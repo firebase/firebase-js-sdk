@@ -18,7 +18,7 @@ class App extends Component {
       isCurrentBundleReportValid: false,
       dropDownData: [],
       isDropDownLoaded: false,
-      areModulesLoaded: true,
+      areModulesLoaded: false,
       isBundleOverviewLoaded: true
     }
     this.handleChange = this.handleChange.bind(this);
