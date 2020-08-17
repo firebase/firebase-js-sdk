@@ -34,7 +34,10 @@ registerAuth(ClientPlatform.WORKER);
 export function getAuth(app = getApp()): Auth {
   // Unlike the other environments, we need to explicitly check if indexedDb is
   // available. That means doing the whole rigamarole
-  const auth = _getProvider(app, _AUTH_COMPONENT_NAME).getImmediate() as AuthImpl;
+  const auth = _getProvider(
+    app,
+    _AUTH_COMPONENT_NAME
+  ).getImmediate() as AuthImpl;
 
   // This promise is intended to float; auth initialization happens in the
   // background, meanwhile the auth object may be used by the app.
