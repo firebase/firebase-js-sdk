@@ -1,5 +1,13 @@
 # @firebase/testing
 
+## 0.20.11
+
+### Patch Changes
+
+- Updated dependencies [[`d4ca3da0`](https://github.com/firebase/firebase-js-sdk/commit/d4ca3da0a59fcea1261ba69d7eb663bba38d3089), [`2a0d254f`](https://github.com/firebase/firebase-js-sdk/commit/2a0d254fa58e607842fc0380c8cfa7bbbb69df75), [`29327b21`](https://github.com/firebase/firebase-js-sdk/commit/29327b2198391a9f1e545bcd1172a4b3e12a522c)]:
+  - firebase@7.18.0
+  - @firebase/util@0.3.1
+
 ## 0.20.10
 
 ### Patch Changes
