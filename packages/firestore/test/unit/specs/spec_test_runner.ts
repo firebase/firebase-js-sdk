@@ -22,8 +22,12 @@ import { ComponentConfiguration } from '../../../src/core/component_provider';
 import { DatabaseInfo } from '../../../src/core/database_info';
 import {
   EventManager,
+  eventManagerListen,
+  eventManagerUnlisten,
   Observer,
-  QueryListener
+  QueryListener,
+  removeSnapshotsInSyncListener,
+  addSnapshotsInSyncListener
 } from '../../../src/core/event_manager';
 import {
   canonifyQuery,
@@ -416,7 +420,9 @@ abstract class TestRunner {
     const queryListener = new QueryListener(query, aggregator, options);
     this.queryListeners.set(query, queryListener);
 
-    await this.queue.enqueue(() => this.eventManager.listen(queryListener));
+    await this.queue.enqueue(() =>
+      eventManagerListen(this.eventManager, queryListener)
+    );
 
     if (targetFailed) {
       expect(this.persistence.injectFailures).contains('Allocate target');
@@ -448,7 +454,9 @@ abstract class TestRunner {
     const eventEmitter = this.queryListeners.get(query);
     debugAssert(!!eventEmitter, 'There must be a query to unlisten too!');
     this.queryListeners.delete(query);
-    await this.queue.enqueue(() => this.eventManager.unlisten(eventEmitter!));
+    await this.queue.enqueue(() =>
+      eventManagerUnlisten(this.eventManager, eventEmitter!)
+    );
   }
 
   private doSet(setSpec: SpecUserSet): Promise<void> {
@@ -472,14 +480,14 @@ abstract class TestRunner {
       error: () => {}
     };
     this.snapshotsInSyncListeners.push(observer);
-    this.eventManager.addSnapshotsInSyncListener(observer);
+    addSnapshotsInSyncListener(this.eventManager, observer);
     return Promise.resolve();
   }
 
   private doRemoveSnapshotsInSyncListener(): Promise<void> {
     const removeObs = this.snapshotsInSyncListeners.pop();
     if (removeObs) {
-      this.eventManager.removeSnapshotsInSyncListener(removeObs);
+      removeSnapshotsInSyncListener(this.eventManager, removeObs);
     } else {
       throw new Error('There must be a listener to unlisten to');
     }

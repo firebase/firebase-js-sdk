@@ -1064,6 +1064,9 @@
                 "enqueueWrite",
                 "ensureWriteCallbacks",
                 "errorMessage",
+                "eventManagerOnOnlineStateChange",
+                "eventManagerOnWatchChange",
+                "eventManagerOnWatchError",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -1137,6 +1140,7 @@
                 "newConnection",
                 "newConnectivityMonitor",
                 "newDatastore",
+                "newEventManager",
                 "newLocalStore",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
@@ -1177,6 +1181,7 @@
                 "queryMatchesPathAndCollectionGroup",
                 "queryOrderBy",
                 "queryToTarget",
+                "raiseSnapshotsInSyncEvent",
                 "randomBytes",
                 "registerFirestore",
                 "rejectBatch",
@@ -1270,7 +1275,7 @@
                 "DocumentKeyReference",
                 "DocumentReference",
                 "DocumentWatchChange",
-                "EventManager",
+                "EventManagerImpl",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
@@ -1328,7 +1333,6 @@
                 "Precondition",
                 "Query",
                 "QueryImpl",
-                "QueryListenersInfo",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
@@ -1361,7 +1365,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 191101
+        "sizeInBytes": 190442
     },
     "arrayRemove": {
         "dependencies": {
@@ -1764,6 +1768,9 @@
                 "encodeBase64",
                 "enqueueWrite",
                 "ensureWriteCallbacks",
+                "eventManagerOnOnlineStateChange",
+                "eventManagerOnWatchChange",
+                "eventManagerOnWatchError",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -1828,6 +1835,7 @@
                 "newConnection",
                 "newConnectivityMonitor",
                 "newDatastore",
+                "newEventManager",
                 "newLocalStore",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
@@ -1859,6 +1867,7 @@
                 "queryMatchesPathAndCollectionGroup",
                 "queryOrderBy",
                 "queryToTarget",
+                "raiseSnapshotsInSyncEvent",
                 "randomBytes",
                 "registerFirestore",
                 "rejectBatch",
@@ -1940,7 +1949,7 @@
                 "DocumentKeyReference",
                 "DocumentReference",
                 "DocumentWatchChange",
-                "EventManager",
+                "EventManagerImpl",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
@@ -1993,7 +2002,6 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
-                "QueryListenersInfo",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
@@ -2024,7 +2032,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 173374
+        "sizeInBytes": 172715
     },
     "deleteField": {
         "dependencies": {
@@ -2131,6 +2139,9 @@
                 "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueNetworkEnabled",
+                "eventManagerOnOnlineStateChange",
+                "eventManagerOnWatchChange",
+                "eventManagerOnWatchError",
                 "extractLocalPathFromResourceName",
                 "fail",
                 "fieldTransformEquals",
@@ -2191,6 +2202,7 @@
                 "newConnection",
                 "newConnectivityMonitor",
                 "newDatastore",
+                "newEventManager",
                 "newLocalStore",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
@@ -2221,6 +2233,7 @@
                 "queryMatchesPathAndCollectionGroup",
                 "queryOrderBy",
                 "queryToTarget",
+                "raiseSnapshotsInSyncEvent",
                 "randomBytes",
                 "registerFirestore",
                 "rejectOutstandingPendingWritesCallbacks",
@@ -2296,7 +2309,7 @@
                 "Document",
                 "DocumentKey",
                 "DocumentWatchChange",
-                "EventManager",
+                "EventManagerImpl",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
@@ -2348,7 +2361,6 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
-                "QueryListenersInfo",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
@@ -2379,7 +2391,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 165447
+        "sizeInBytes": 164788
     },
     "doc": {
         "dependencies": {
@@ -2959,6 +2971,9 @@
                 "encodeSeparator",
                 "ensureWatchCallbacks",
                 "ensureWriteCallbacks",
+                "eventManagerOnOnlineStateChange",
+                "eventManagerOnWatchChange",
+                "eventManagerOnWatchError",
                 "executeQuery",
                 "extractDocumentKeysFromArrayValue",
                 "extractLocalPathFromResourceName",
@@ -3063,6 +3078,7 @@
                 "newConnection",
                 "newConnectivityMonitor",
                 "newDatastore",
+                "newEventManager",
                 "newLocalStore",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
@@ -3098,6 +3114,7 @@
                 "queryMatchesPathAndCollectionGroup",
                 "queryOrderBy",
                 "queryToTarget",
+                "raiseSnapshotsInSyncEvent",
                 "randomBytes",
                 "registerFirestore",
                 "rejectBatch",
@@ -3225,7 +3242,7 @@
                 "DocumentKey",
                 "DocumentSet",
                 "DocumentWatchChange",
-                "EventManager",
+                "EventManagerImpl",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
@@ -3303,7 +3320,6 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
-                "QueryListenersInfo",
                 "QueryTargetMetadata",
                 "QueryView",
                 "ReferenceSet",
@@ -3347,7 +3363,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 302259
+        "sizeInBytes": 301600
     },
     "enableNetwork": {
         "dependencies": {
@@ -3412,6 +3428,9 @@
                 "enableNetwork",
                 "encodeBase64",
                 "enqueueNetworkEnabled",
+                "eventManagerOnOnlineStateChange",
+                "eventManagerOnWatchChange",
+                "eventManagerOnWatchError",
                 "extractLocalPathFromResourceName",
                 "fail",
                 "fieldTransformEquals",
@@ -3472,6 +3491,7 @@
                 "newConnection",
                 "newConnectivityMonitor",
                 "newDatastore",
+                "newEventManager",
                 "newLocalStore",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
@@ -3502,6 +3522,7 @@
                 "queryMatchesPathAndCollectionGroup",
                 "queryOrderBy",
                 "queryToTarget",
+                "raiseSnapshotsInSyncEvent",
                 "randomBytes",
                 "registerFirestore",
                 "rejectOutstandingPendingWritesCallbacks",
@@ -3577,7 +3598,7 @@
                 "Document",
                 "DocumentKey",
                 "DocumentWatchChange",
-                "EventManager",
+                "EventManagerImpl",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
@@ -3629,7 +3650,6 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
-                "QueryListenersInfo",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
@@ -3660,7 +3680,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 165444
+        "sizeInBytes": 164785
     },
     "endAt": {
         "dependencies": {
@@ -3981,6 +4001,11 @@
                 "enqueueReadDocumentViaSnapshotListener",
                 "ensureWatchCallbacks",
                 "errorMessage",
+                "eventManagerListen",
+                "eventManagerOnOnlineStateChange",
+                "eventManagerOnWatchChange",
+                "eventManagerOnWatchError",
+                "eventManagerUnlisten",
                 "executeQuery",
                 "extractLocalPathFromResourceName",
                 "fail",
@@ -4053,6 +4078,7 @@
                 "newConnection",
                 "newConnectivityMonitor",
                 "newDatastore",
+                "newEventManager",
                 "newLocalStore",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
@@ -4086,6 +4112,7 @@
                 "queryMatchesPathAndCollectionGroup",
                 "queryOrderBy",
                 "queryToTarget",
+                "raiseSnapshotsInSyncEvent",
                 "randomBytes",
                 "registerFirestore",
                 "rejectListen",
@@ -4186,7 +4213,7 @@
                 "DocumentSnapshot",
                 "DocumentSnapshot$1",
                 "DocumentWatchChange",
-                "EventManager",
+                "EventManagerImpl",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
@@ -4282,7 +4309,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 207709
+        "sizeInBytes": 208429
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4600,6 +4627,11 @@
                 "enqueueReadDocumentViaSnapshotListener",
                 "ensureWatchCallbacks",
                 "errorMessage",
+                "eventManagerListen",
+                "eventManagerOnOnlineStateChange",
+                "eventManagerOnWatchChange",
+                "eventManagerOnWatchError",
+                "eventManagerUnlisten",
                 "executeQuery",
                 "extractLocalPathFromResourceName",
                 "fail",
@@ -4672,6 +4704,7 @@
                 "newConnection",
                 "newConnectivityMonitor",
                 "newDatastore",
+                "newEventManager",
                 "newLocalStore",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
@@ -4705,6 +4738,7 @@
                 "queryMatchesPathAndCollectionGroup",
                 "queryOrderBy",
                 "queryToTarget",
+                "raiseSnapshotsInSyncEvent",
                 "randomBytes",
                 "registerFirestore",
                 "rejectListen",
@@ -4805,7 +4839,7 @@
                 "DocumentSnapshot",
                 "DocumentSnapshot$1",
                 "DocumentWatchChange",
-                "EventManager",
+                "EventManagerImpl",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
@@ -4901,7 +4935,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 207765
+        "sizeInBytes": 208485
     },
     "getDocs": {
         "dependencies": {
@@ -4976,6 +5010,11 @@
                 "enqueueListen",
                 "ensureWatchCallbacks",
                 "errorMessage",
+                "eventManagerListen",
+                "eventManagerOnOnlineStateChange",
+                "eventManagerOnWatchChange",
+                "eventManagerOnWatchError",
+                "eventManagerUnlisten",
                 "executeQuery",
                 "extractLocalPathFromResourceName",
                 "fail",
@@ -5048,6 +5087,7 @@
                 "newConnection",
                 "newConnectivityMonitor",
                 "newDatastore",
+                "newEventManager",
                 "newLocalStore",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
@@ -5081,6 +5121,7 @@
                 "queryMatchesPathAndCollectionGroup",
                 "queryOrderBy",
                 "queryToTarget",
+                "raiseSnapshotsInSyncEvent",
                 "randomBytes",
                 "registerFirestore",
                 "rejectListen",
@@ -5183,7 +5224,7 @@
                 "DocumentSnapshot",
                 "DocumentSnapshot$1",
                 "DocumentWatchChange",
-                "EventManager",
+                "EventManagerImpl",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
@@ -5281,7 +5322,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 210272
+        "sizeInBytes": 210992
     },
     "getDocsFromCache": {
         "dependencies": {
@@ -5612,6 +5653,11 @@
                 "enqueueListen",
                 "ensureWatchCallbacks",
                 "errorMessage",
+                "eventManagerListen",
+                "eventManagerOnOnlineStateChange",
+                "eventManagerOnWatchChange",
+                "eventManagerOnWatchError",
+                "eventManagerUnlisten",
                 "executeQuery",
                 "extractLocalPathFromResourceName",
                 "fail",
@@ -5684,6 +5730,7 @@
                 "newConnection",
                 "newConnectivityMonitor",
                 "newDatastore",
+                "newEventManager",
                 "newLocalStore",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
@@ -5717,6 +5764,7 @@
                 "queryMatchesPathAndCollectionGroup",
                 "queryOrderBy",
                 "queryToTarget",
+                "raiseSnapshotsInSyncEvent",
                 "randomBytes",
                 "registerFirestore",
                 "rejectListen",
@@ -5818,7 +5866,7 @@
                 "DocumentSnapshot",
                 "DocumentSnapshot$1",
                 "DocumentWatchChange",
-                "EventManager",
+                "EventManagerImpl",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
@@ -5916,7 +5964,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 210010
+        "sizeInBytes": 210730
     },
     "getFirestore": {
         "dependencies": {
@@ -6210,6 +6258,11 @@
                 "enqueueListen",
                 "ensureWatchCallbacks",
                 "errorMessage",
+                "eventManagerListen",
+                "eventManagerOnOnlineStateChange",
+                "eventManagerOnWatchChange",
+                "eventManagerOnWatchError",
+                "eventManagerUnlisten",
                 "executeQuery",
                 "extractLocalPathFromResourceName",
                 "fail",
@@ -6283,6 +6336,7 @@
                 "newConnection",
                 "newConnectivityMonitor",
                 "newDatastore",
+                "newEventManager",
                 "newLocalStore",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
@@ -6317,6 +6371,7 @@
                 "queryMatchesPathAndCollectionGroup",
                 "queryOrderBy",
                 "queryToTarget",
+                "raiseSnapshotsInSyncEvent",
                 "randomBytes",
                 "registerFirestore",
                 "rejectListen",
@@ -6419,7 +6474,7 @@
                 "DocumentSnapshot",
                 "DocumentSnapshot$1",
                 "DocumentWatchChange",
-                "EventManager",
+                "EventManagerImpl",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
@@ -6517,11 +6572,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 211355
+        "sizeInBytes": 212075
     },
     "onSnapshotsInSync": {
         "dependencies": {
             "functions": [
+                "addSnapshotsInSyncListener",
                 "allocateTarget",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
@@ -6587,6 +6643,9 @@
                 "encodeBase64",
                 "enqueueSnapshotsInSyncListen",
                 "ensureWatchCallbacks",
+                "eventManagerOnOnlineStateChange",
+                "eventManagerOnWatchChange",
+                "eventManagerOnWatchError",
                 "executeQuery",
                 "extractLocalPathFromResourceName",
                 "fail",
@@ -6653,6 +6712,7 @@
                 "newConnection",
                 "newConnectivityMonitor",
                 "newDatastore",
+                "newEventManager",
                 "newLocalStore",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
@@ -6686,6 +6746,7 @@
                 "queryMatchesPathAndCollectionGroup",
                 "queryOrderBy",
                 "queryToTarget",
+                "raiseSnapshotsInSyncEvent",
                 "randomBytes",
                 "registerFirestore",
                 "rejectListen",
@@ -6695,6 +6756,7 @@
                 "removeComponents",
                 "removeComponents$1",
                 "removeLimboTarget",
+                "removeSnapshotsInSyncListener",
                 "requireDocument",
                 "serverTimestamp",
                 "serverTransformResults",
@@ -6774,7 +6836,7 @@
                 "DocumentKey",
                 "DocumentSet",
                 "DocumentWatchChange",
-                "EventManager",
+                "EventManagerImpl",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
@@ -6827,7 +6889,6 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
-                "QueryListenersInfo",
                 "QueryView",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
@@ -6862,7 +6923,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 192150
+        "sizeInBytes": 191837
     },
     "orderBy": {
         "dependencies": {
@@ -7448,6 +7509,9 @@
                 "enqueueWrite",
                 "ensureWriteCallbacks",
                 "errorMessage",
+                "eventManagerOnOnlineStateChange",
+                "eventManagerOnWatchChange",
+                "eventManagerOnWatchError",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -7521,6 +7585,7 @@
                 "newConnection",
                 "newConnectivityMonitor",
                 "newDatastore",
+                "newEventManager",
                 "newLocalStore",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
@@ -7560,6 +7625,7 @@
                 "queryMatchesPathAndCollectionGroup",
                 "queryOrderBy",
                 "queryToTarget",
+                "raiseSnapshotsInSyncEvent",
                 "randomBytes",
                 "registerFirestore",
                 "rejectBatch",
@@ -7652,7 +7718,7 @@
                 "DocumentKeyReference",
                 "DocumentReference",
                 "DocumentWatchChange",
-                "EventManager",
+                "EventManagerImpl",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
@@ -7709,7 +7775,6 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
-                "QueryListenersInfo",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
@@ -7742,7 +7807,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 189325
+        "sizeInBytes": 188666
     },
     "setLogLevel": {
         "dependencies": {
@@ -8251,6 +8316,9 @@
                 "enqueueWrite",
                 "ensureWriteCallbacks",
                 "errorMessage",
+                "eventManagerOnOnlineStateChange",
+                "eventManagerOnWatchChange",
+                "eventManagerOnWatchError",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -8325,6 +8393,7 @@
                 "newConnection",
                 "newConnectivityMonitor",
                 "newDatastore",
+                "newEventManager",
                 "newLocalStore",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
@@ -8365,6 +8434,7 @@
                 "queryMatchesPathAndCollectionGroup",
                 "queryOrderBy",
                 "queryToTarget",
+                "raiseSnapshotsInSyncEvent",
                 "randomBytes",
                 "registerFirestore",
                 "rejectBatch",
@@ -8458,7 +8528,7 @@
                 "DocumentKeyReference",
                 "DocumentReference",
                 "DocumentWatchChange",
-                "EventManager",
+                "EventManagerImpl",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
@@ -8516,7 +8586,6 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
-                "QueryListenersInfo",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
@@ -8549,7 +8618,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 190824
+        "sizeInBytes": 190165
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -8613,6 +8682,9 @@
                 "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueWaitForPendingWrites",
+                "eventManagerOnOnlineStateChange",
+                "eventManagerOnWatchChange",
+                "eventManagerOnWatchError",
                 "extractLocalPathFromResourceName",
                 "fail",
                 "fieldTransformEquals",
@@ -8673,6 +8745,7 @@
                 "newConnection",
                 "newConnectivityMonitor",
                 "newDatastore",
+                "newEventManager",
                 "newLocalStore",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
@@ -8703,6 +8776,7 @@
                 "queryMatchesPathAndCollectionGroup",
                 "queryOrderBy",
                 "queryToTarget",
+                "raiseSnapshotsInSyncEvent",
                 "randomBytes",
                 "registerFirestore",
                 "registerPendingWritesCallback",
@@ -8780,7 +8854,7 @@
                 "Document",
                 "DocumentKey",
                 "DocumentWatchChange",
-                "EventManager",
+                "EventManagerImpl",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
@@ -8832,7 +8906,6 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
-                "QueryListenersInfo",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
@@ -8863,7 +8936,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 166280
+        "sizeInBytes": 165621
     },
     "where": {
         "dependencies": {
@@ -9083,6 +9156,9 @@
                 "enqueueWrite",
                 "ensureWriteCallbacks",
                 "errorMessage",
+                "eventManagerOnOnlineStateChange",
+                "eventManagerOnWatchChange",
+                "eventManagerOnWatchError",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -9157,6 +9233,7 @@
                 "newConnection",
                 "newConnectivityMonitor",
                 "newDatastore",
+                "newEventManager",
                 "newLocalStore",
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
@@ -9198,6 +9275,7 @@
                 "queryMatchesPathAndCollectionGroup",
                 "queryOrderBy",
                 "queryToTarget",
+                "raiseSnapshotsInSyncEvent",
                 "randomBytes",
                 "registerFirestore",
                 "rejectBatch",
@@ -9292,7 +9370,7 @@
                 "DocumentKeyReference",
                 "DocumentReference",
                 "DocumentWatchChange",
-                "EventManager",
+                "EventManagerImpl",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
@@ -9351,7 +9429,6 @@
                 "PersistentWriteStream",
                 "Precondition",
                 "QueryImpl",
-                "QueryListenersInfo",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
@@ -9385,6 +9462,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 194491
+        "sizeInBytes": 193832
     }
 }

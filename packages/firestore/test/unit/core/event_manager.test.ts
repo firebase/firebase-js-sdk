@@ -19,8 +19,13 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {
   EventManager,
+  eventManagerListen,
+  eventManagerUnlisten,
   ListenOptions,
-  QueryListener
+  newEventManager,
+  eventManagerOnWatchChange,
+  QueryListener,
+  eventManagerOnOnlineStateChange
 } from '../../../src/core/event_manager';
 import { Query } from '../../../src/core/query';
 import { OnlineState } from '../../../src/core/types';
@@ -64,19 +69,19 @@ describe('EventManager', () => {
     const fakeListener1 = fakeQueryListener(query1);
     const fakeListener2 = fakeQueryListener(query1);
 
-    const eventManager = new EventManager();
+    const eventManager = newEventManager();
     eventManager.subscribe(onListenSpy.bind(null), onUnlistenSpy.bind(null));
 
-    await eventManager.listen(fakeListener1);
+    await eventManagerListen(eventManager, fakeListener1);
     expect(onListenSpy.calledWith(query1)).to.be.true;
 
-    await eventManager.listen(fakeListener2);
+    await eventManagerListen(eventManager, fakeListener2);
     expect(onListenSpy.callCount).to.equal(1);
 
-    await eventManager.unlisten(fakeListener2);
+    await eventManagerUnlisten(eventManager, fakeListener2);
     expect(onListenSpy.callCount).to.equal(0);
 
-    await eventManager.unlisten(fakeListener1);
+    await eventManagerUnlisten(eventManager, fakeListener1);
     expect(onUnlistenSpy.calledWith(query1)).to.be.true;
   });
 
@@ -84,9 +89,9 @@ describe('EventManager', () => {
     const query1 = query('foo/bar');
     const fakeListener1 = fakeQueryListener(query1);
 
-    const eventManager = new EventManager();
+    const eventManager = newEventManager();
     eventManager.subscribe(onListenSpy.bind(null), onUnlistenSpy.bind(null));
-    await eventManager.unlisten(fakeListener1);
+    await eventManagerUnlisten(eventManager, fakeListener1);
     expect(onUnlistenSpy.callCount).to.equal(0);
   });
 
@@ -108,12 +113,12 @@ describe('EventManager', () => {
       eventOrder.push('listenable3');
     };
 
-    const eventManager = new EventManager();
+    const eventManager = newEventManager();
     eventManager.subscribe(onListenSpy.bind(null), onUnlistenSpy.bind(null));
 
-    await eventManager.listen(fakeListener1);
-    await eventManager.listen(fakeListener2);
-    await eventManager.listen(fakeListener3);
+    await eventManagerListen(eventManager, fakeListener1);
+    await eventManagerListen(eventManager, fakeListener2);
+    await eventManagerListen(eventManager, fakeListener3);
     expect(onListenSpy.callCount).to.equal(2);
 
     // mock ViewSnapshot.
@@ -122,7 +127,7 @@ describe('EventManager', () => {
     // mock ViewSnapshot.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const viewSnap2: any = { query: query2 };
-    eventManager.onWatchChange([viewSnap1, viewSnap2]);
+    eventManagerOnWatchChange(eventManager, [viewSnap1, viewSnap2]);
 
     expect(eventOrder).to.deep.equal([
       'listenable1',
@@ -139,12 +144,12 @@ describe('EventManager', () => {
       events.push(onlineState);
     };
 
-    const eventManager = new EventManager();
+    const eventManager = newEventManager();
     eventManager.subscribe(onListenSpy.bind(null), onUnlistenSpy.bind(null));
 
-    await eventManager.listen(fakeListener1);
+    await eventManagerListen(eventManager, fakeListener1);
     expect(events).to.deep.equal([OnlineState.Unknown]);
-    eventManager.onOnlineStateChange(OnlineState.Online);
+    eventManagerOnOnlineStateChange(eventManager, OnlineState.Online);
     expect(events).to.deep.equal([OnlineState.Unknown, OnlineState.Online]);
   });
 });

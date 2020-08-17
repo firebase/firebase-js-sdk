@@ -37,7 +37,11 @@ import {
   EventManager,
   ListenOptions,
   Observer,
-  QueryListener
+  QueryListener,
+  eventManagerListen,
+  eventManagerUnlisten,
+  removeSnapshotsInSyncListener,
+  addSnapshotsInSyncListener
 } from './event_manager';
 import {
   registerPendingWritesCallback,
@@ -430,10 +434,14 @@ export class FirestoreClient {
     this.verifyNotTerminated();
     const wrappedObserver = new AsyncObserver(observer);
     const listener = new QueryListener(query, wrappedObserver, options);
-    this.asyncQueue.enqueueAndForget(() => this.eventMgr.listen(listener));
+    this.asyncQueue.enqueueAndForget(() =>
+      eventManagerListen(this.eventMgr, listener)
+    );
     return () => {
       wrappedObserver.mute();
-      this.asyncQueue.enqueueAndForget(() => this.eventMgr.unlisten(listener));
+      this.asyncQueue.enqueueAndForget(() =>
+        eventManagerUnlisten(this.eventMgr, listener)
+      );
     };
   }
 
@@ -504,12 +512,12 @@ export class FirestoreClient {
     this.verifyNotTerminated();
     const wrappedObserver = new AsyncObserver(observer);
     this.asyncQueue.enqueueAndForget(async () =>
-      this.eventMgr.addSnapshotsInSyncListener(wrappedObserver)
+      addSnapshotsInSyncListener(this.eventMgr, wrappedObserver)
     );
     return () => {
       wrappedObserver.mute();
       this.asyncQueue.enqueueAndForget(async () =>
-        this.eventMgr.removeSnapshotsInSyncListener(wrappedObserver)
+        removeSnapshotsInSyncListener(this.eventMgr, wrappedObserver)
       );
     };
   }
@@ -598,10 +606,12 @@ export function enqueueListen(
 ): Unsubscribe {
   const wrappedObserver = new AsyncObserver(observer);
   const listener = new QueryListener(query, wrappedObserver, options);
-  asyncQueue.enqueueAndForget(() => eventManger.listen(listener));
+  asyncQueue.enqueueAndForget(() => eventManagerListen(eventManger, listener));
   return () => {
     wrappedObserver.mute();
-    asyncQueue.enqueueAndForget(() => eventManger.unlisten(listener));
+    asyncQueue.enqueueAndForget(() =>
+      eventManagerUnlisten(eventManger, listener)
+    );
   };
 }
 
@@ -612,12 +622,12 @@ export function enqueueSnapshotsInSyncListen(
 ): Unsubscribe {
   const wrappedObserver = new AsyncObserver(observer);
   asyncQueue.enqueueAndForget(async () =>
-    eventManager.addSnapshotsInSyncListener(wrappedObserver)
+    addSnapshotsInSyncListener(eventManager, wrappedObserver)
   );
   return () => {
     wrappedObserver.mute();
     asyncQueue.enqueueAndForget(async () =>
-      eventManager.removeSnapshotsInSyncListener(wrappedObserver)
+      removeSnapshotsInSyncListener(eventManager, wrappedObserver)
     );
   };
 }
