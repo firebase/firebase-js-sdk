@@ -1,0 +1,46 @@
+.text {
+    color: #FFFFFF;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.list-item-module {
+    background-color: #FFCB2B;
+    
+}
+.list-item-function {
+    background-color: #FF8964;
+}
+.code-pad {
+    background-color: #FFFFFF;
+    font-family: 'Courier New', Courier, monospace;
+    height: 40vh;
+    overflow: scroll;
+}
+.bundle-overview {
+    background-color: #FFFFFF;
+    height: 48vh;
+    overflow: scroll;
+
+
+}
+.bundle-item {
+    height: 80%;
+    
+    overflow: inherit;
+}
+.light-orange-btn {
+    background-color: #FF8964;
+    border-color: #FF8964;
+}
+.yellow-btn {
+    background-color:#FFCB2B ;
+    border-color: #FFCB2B;
+}
+.wrapper {
+    min-height: 100vh;
+    background-color: #059BE5;
+}
+.preview {
+    max-height: 90vh;
+    overflow: scroll;
+}
