@@ -60,9 +60,9 @@ export class EventManager implements SyncEngineListener {
 
   private snapshotsInSyncListeners: Set<Observer<void>> = new Set();
 
-  /** Callback invoked when a new Query is first listen to. */
+  /** Callback invoked when a Query is first listen to. */
   private onListen?: (query: Query) => Promise<ViewSnapshot>;
-  /** Callback invoked onve all listeners to a Query are removed. */
+  /** Callback invoked once all listeners to a Query are removed. */
   private onUnlisten?: (query: Query) => Promise<void>;
 
   subscribe(
