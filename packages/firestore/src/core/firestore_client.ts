@@ -19,7 +19,11 @@ import { GetOptions } from '@firebase/firestore-types';
 
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
-import { LocalStore } from '../local/local_store';
+import {
+  executeQuery,
+  LocalStore,
+  readLocalDocument
+} from '../local/local_store';
 import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -613,7 +617,7 @@ export async function enqueueReadDocumentFromCache(
   const deferred = new Deferred<Document | null>();
   await asyncQueue.enqueue(async () => {
     try {
-      const maybeDoc = await localStore.readDocument(docKey);
+      const maybeDoc = await readLocalDocument(localStore, docKey);
       if (maybeDoc instanceof Document) {
         deferred.resolve(maybeDoc);
       } else if (maybeDoc instanceof NoDocument) {
@@ -717,7 +721,8 @@ export async function enqueueExecuteQueryFromCache(
   const deferred = new Deferred<ViewSnapshot>();
   await asyncQueue.enqueue(async () => {
     try {
-      const queryResult = await localStore.executeQuery(
+      const queryResult = await executeQuery(
+        localStore,
         query,
         /* usePreviousResults= */ true
       );
