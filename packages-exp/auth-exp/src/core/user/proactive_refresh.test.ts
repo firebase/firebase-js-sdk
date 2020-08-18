@@ -1,3 +1,20 @@
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
@@ -6,7 +23,11 @@ import * as sinonChai from 'sinon-chai';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { User } from '../../model/user';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
-import { _OFFSET_DURATION, _RETRY_BACKOFF_MIN, ProactiveRefresh } from './proactive_refresh';
+import {
+  _OFFSET_DURATION,
+  _RETRY_BACKOFF_MIN,
+  ProactiveRefresh
+} from './proactive_refresh';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -29,7 +50,7 @@ describe('src/core/user/proactive_refresh', () => {
   // than the time since the epoch
   async function nextAsync(): Promise<number> {
     const now = Date.now();
-    const timeoutTime = await clock.nextAsync() - now;
+    const timeoutTime = (await clock.nextAsync()) - now;
     return timeoutTime;
   }
 
@@ -38,11 +59,13 @@ describe('src/core/user/proactive_refresh', () => {
     user = testUser(auth, 'uid');
 
     proactiveRefresh = new ProactiveRefresh(user);
-    getTokenStub = sinon.stub(user, 'getIdToken').returns(Promise.resolve('foo'));
+    getTokenStub = sinon
+      .stub(user, 'getIdToken')
+      .returns(Promise.resolve('foo'));
 
     clock = sinon.useFakeTimers({
       now: 0,
-      shouldAdvanceTime: false,
+      shouldAdvanceTime: false
     });
   });
 
@@ -81,7 +104,10 @@ describe('src/core/user/proactive_refresh', () => {
   });
 
   context('error backoff', () => {
-    const error = AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {appName: 'app'});
+    const error = AUTH_ERROR_FACTORY.create(
+      AuthErrorCode.NETWORK_REQUEST_FAILED,
+      { appName: 'app' }
+    );
     beforeEach(() => {
       getTokenStub.callsFake(() => Promise.reject(error));
     });

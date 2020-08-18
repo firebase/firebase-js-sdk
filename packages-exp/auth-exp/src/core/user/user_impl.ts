@@ -18,7 +18,10 @@
 import * as externs from '@firebase/auth-types-exp';
 import { NextFn } from '@firebase/util';
 
-import { APIUserInfo, deleteAccount } from '../../api/account_management/account';
+import {
+  APIUserInfo,
+  deleteAccount
+} from '../../api/account_management/account';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
