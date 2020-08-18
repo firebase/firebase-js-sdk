@@ -21,8 +21,7 @@ import {
   queryEquals,
   Filter,
   newQueryForPath,
-  queryToTarget,
-  newQuery
+  queryToTarget
 } from '../../../src/core/query';
 import { canonifyTarget, Target, targetEquals } from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
@@ -377,7 +376,7 @@ export class SpecBuilder {
     this.currentStep = {
       loadBundle: bundleContent
     };
-    // Allocate umbrella target for bundles.
+    // Loading a bundle implicitly creates a new target. We advance the `queryIdGenerator` to match.
     this.queryIdGenerator.next(
       queryToTarget(newQueryForPath(ResourcePath.emptyPath()))
     );

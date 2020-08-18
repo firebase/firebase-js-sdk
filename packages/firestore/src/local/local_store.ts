@@ -1350,7 +1350,7 @@ export async function applyBundleDocuments(
           return changedDocs;
         })
         .next(changedDocs => {
-          localStoreImpl.targetCache
+          return localStoreImpl.targetCache
             .removeMatchingKeysForTargetId(txn, umbrellaTargetData.targetId)
             .next(() =>
               localStoreImpl.targetCache.addMatchingKeys(
@@ -1358,15 +1358,13 @@ export async function applyBundleDocuments(
                 documentKeys,
                 umbrellaTargetData.targetId
               )
+            )
+            .next(() =>
+              localStoreImpl.localDocuments.getLocalViewOfDocuments(
+                txn,
+                changedDocs
+              )
             );
-
-          return changedDocs;
-        })
-        .next(changedDocs => {
-          return localStoreImpl.localDocuments.getLocalViewOfDocuments(
-            txn,
-            changedDocs
-          );
         });
     }
   );

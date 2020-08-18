@@ -33,8 +33,7 @@ import { debugAssert } from '../util/assert';
 import {
   applyBundleDocuments,
   LocalStore,
-  saveNamedQuery,
-  umbrellaTarget
+  saveNamedQuery
 } from '../local/local_store';
 import { SizedBundleElement } from '../util/bundle_reader';
 import {

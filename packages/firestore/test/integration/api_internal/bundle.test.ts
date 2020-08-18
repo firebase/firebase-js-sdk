@@ -242,6 +242,28 @@ apiDescribe('Bundles', (persistence: boolean) => {
     });
   });
 
+  it('loaded documents should not be GC-ed right away', () => {
+    return withTestDb(persistence, async db => {
+      const builder = bundleWithTestDocsAndQueries(db);
+
+      const fulfillProgress: firestore.LoadBundleTaskProgress = await db.loadBundle(
+        builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
+      );
+
+      verifySuccessProgress(fulfillProgress!);
+
+      // Read for a first time, expecting document in cache.
+      let snap = await db.collection('coll-1').get({ source: 'cache' });
+      verifySnapEqualTestDocs(snap);
+
+      // Read for a second time, still expecting document in cache. With memory
+      // GC, the document will get GC-ed if we did not hold the document keys
+      // in a "umbrella" target. See local_store.ts for details.
+      snap = await db.collection('coll-1').get({ source: 'cache' });
+      verifySnapEqualTestDocs(snap);
+    });
+  });
+
   it('load with documents from other projects fails', () => {
     return withTestDb(persistence, async db => {
       let builder = bundleWithTestDocsAndQueries(db);
