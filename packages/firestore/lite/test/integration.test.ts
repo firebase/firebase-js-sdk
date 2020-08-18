@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../lite-types';
-
 import { initializeApp } from '@firebase/app-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';

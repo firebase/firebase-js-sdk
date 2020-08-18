@@ -19,7 +19,12 @@ import { CredentialsProvider } from '../api/credentials';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import * as api from '../protos/firestore_proto_api';
+import {
+  RunQueryRequest as ProtoRunQueryRequest,
+  RunQueryResponse as ProtoRunQueryResponse,
+  BatchGetDocumentsRequest as ProtoBatchGetDocumentsRequest,
+  BatchGetDocumentsResponse as ProtoBatchGetDocumentsResponse
+} from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { Connection } from './connection';
@@ -162,8 +167,8 @@ export async function invokeBatchGetDocumentsRpc(
     documents: keys.map(k => toName(datastoreImpl.serializer, k))
   };
   const response = await datastoreImpl.invokeStreamingRPC<
-    api.BatchGetDocumentsRequest,
-    api.BatchGetDocumentsResponse
+    ProtoBatchGetDocumentsRequest,
+    ProtoBatchGetDocumentsResponse
   >('BatchGetDocuments', path, request);
 
   const docs = new Map<string, MaybeDocument>();
@@ -187,8 +192,8 @@ export async function invokeRunQueryRpc(
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
   const request = toQueryTarget(datastoreImpl.serializer, queryToTarget(query));
   const response = await datastoreImpl.invokeStreamingRPC<
-    api.RunQueryRequest,
-    api.RunQueryResponse
+    ProtoRunQueryRequest,
+    ProtoRunQueryResponse
   >('RunQuery', request.parent!, { structuredQuery: request.structuredQuery });
   return (
     response

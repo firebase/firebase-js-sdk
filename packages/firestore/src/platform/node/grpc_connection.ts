@@ -21,12 +21,10 @@ import {
   credentials as GrpcCredentials,
   ServiceError
 } from '@grpc/grpc-js';
-import * as grpcPkgJson from '@grpc/grpc-js/package.json';
+import { version as grpcVersion } from '@grpc/grpc-js/package.json';
 
 import firebase from '@firebase/app';
 const SDK_VERSION = firebase.SDK_VERSION;
-
-const grpcVersion = grpcPkgJson.version;
 
 import { Token } from '../../api/credentials';
 import { DatabaseInfo } from '../../core/database_info';

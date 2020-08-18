@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../../lite-types';
-
 import { validateAtLeastNumberOfArgs } from '../../../src/util/input_validation';
 import {
   ArrayRemoveFieldValueImpl,
@@ -30,8 +28,7 @@ import { ParseContext } from '../../../src/api/user_data_reader';
 import { FieldTransform } from '../../../src/model/mutation';
 
 /** The public FieldValue class of the lite API. */
-export abstract class FieldValue extends SerializableFieldValue
-  implements firestore.FieldValue {}
+export abstract class FieldValue extends SerializableFieldValue {}
 
 /**
  * A delegate class that allows the FieldValue implementations returned by
@@ -42,7 +39,7 @@ export abstract class FieldValue extends SerializableFieldValue
  * implementations as the base FieldValue class differs between the lite, full
  * and legacy SDK.
  */
-class FieldValueDelegate extends FieldValue implements firestore.FieldValue {
+class FieldValueDelegate extends FieldValue {
   readonly _methodName: string;
 
   constructor(readonly _delegate: SerializableFieldValue) {
@@ -54,7 +51,7 @@ class FieldValueDelegate extends FieldValue implements firestore.FieldValue {
     return this._delegate._toFieldTransform(context);
   }
 
-  isEqual(other: firestore.FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     if (!(other instanceof FieldValueDelegate)) {
       return false;
     }
@@ -62,17 +59,17 @@ class FieldValueDelegate extends FieldValue implements firestore.FieldValue {
   }
 }
 
-export function deleteField(): firestore.FieldValue {
+export function deleteField(): FieldValue {
   return new FieldValueDelegate(new DeleteFieldValueImpl('deleteField'));
 }
 
-export function serverTimestamp(): firestore.FieldValue {
+export function serverTimestamp(): FieldValue {
   return new FieldValueDelegate(
     new ServerTimestampFieldValueImpl('serverTimestamp')
   );
 }
 
-export function arrayUnion(...elements: unknown[]): firestore.FieldValue {
+export function arrayUnion(...elements: unknown[]): FieldValue {
   validateAtLeastNumberOfArgs('arrayUnion()', arguments, 1);
   // NOTE: We don't actually parse the data until it's used in set() or
   // update() since we'd need the Firestore instance to do this.
@@ -81,7 +78,7 @@ export function arrayUnion(...elements: unknown[]): firestore.FieldValue {
   );
 }
 
-export function arrayRemove(...elements: unknown[]): firestore.FieldValue {
+export function arrayRemove(...elements: unknown[]): FieldValue {
   validateAtLeastNumberOfArgs('arrayRemove()', arguments, 1);
   // NOTE: We don't actually parse the data until it's used in set() or
   // update() since we'd need the Firestore instance to do this.
@@ -90,7 +87,7 @@ export function arrayRemove(...elements: unknown[]): firestore.FieldValue {
   );
 }
 
-export function increment(n: number): firestore.FieldValue {
+export function increment(n: number): FieldValue {
   return new FieldValueDelegate(
     new NumericIncrementFieldValueImpl('increment', n)
   );

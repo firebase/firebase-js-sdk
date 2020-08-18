@@ -20,6 +20,7 @@ import { registerFirestore } from './register';
 registerFirestore();
 
 export {
+  Settings,
   Firestore as FirebaseFirestore,
   initializeFirestore,
   getFirestore,
@@ -27,10 +28,15 @@ export {
 } from './src/api/database';
 
 export {
+  DocumentData,
+  UpdateData,
   DocumentReference,
   Query,
   QueryConstraint,
+  QueryConstraintType,
   CollectionReference,
+  OrderByDirection,
+  WhereFilterOp,
   collection,
   collectionGroup,
   doc,

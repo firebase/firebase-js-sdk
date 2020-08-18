@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../../lite-types';
-
 import {
   parseSetData,
   parseUpdateData,
@@ -38,7 +36,12 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
 import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
 import { validateReference } from './write_batch';
-import { newUserDataReader } from './reference';
+import {
+  DocumentReference,
+  newUserDataReader,
+  SetOptions,
+  UpdateData
+} from './reference';
 import { FieldPath } from './field_path';
 import { cast } from './util';
 import { getDatastore } from './components';
@@ -60,9 +63,7 @@ export class Transaction {
     this._dataReader = newUserDataReader(_firestore);
   }
 
-  get<T>(
-    documentRef: firestore.DocumentReference<T>
-  ): Promise<DocumentSnapshot<T>> {
+  get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     const ref = validateReference(documentRef, this._firestore);
     return this._transaction
       .lookup([ref._key])
@@ -93,16 +94,16 @@ export class Transaction {
       });
   }
 
-  set<T>(documentRef: firestore.DocumentReference<T>, value: T): this;
+  set<T>(documentRef: DocumentReference<T>, value: T): this;
   set<T>(
-    documentRef: firestore.DocumentReference<T>,
+    documentRef: DocumentReference<T>,
     value: Partial<T>,
-    options: firestore.SetOptions
+    options: SetOptions
   ): this;
   set<T>(
-    documentRef: firestore.DocumentReference<T>,
+    documentRef: DocumentReference<T>,
     value: T,
-    options?: firestore.SetOptions
+    options?: SetOptions
   ): this {
     const ref = validateReference(documentRef, this._firestore);
     const convertedValue = applyFirestoreDataConverter(
@@ -122,19 +123,16 @@ export class Transaction {
     return this;
   }
 
+  update(documentRef: DocumentReference<unknown>, value: UpdateData): this;
   update(
-    documentRef: firestore.DocumentReference<unknown>,
-    value: firestore.UpdateData
-  ): this;
-  update(
-    documentRef: firestore.DocumentReference<unknown>,
+    documentRef: DocumentReference<unknown>,
     field: string | ExternalFieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): this;
   update(
-    documentRef: firestore.DocumentReference<unknown>,
-    fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
+    documentRef: DocumentReference<unknown>,
+    fieldOrUpdateData: string | ExternalFieldPath | UpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): this {
@@ -166,7 +164,7 @@ export class Transaction {
     return this;
   }
 
-  delete(documentRef: firestore.DocumentReference<unknown>): this {
+  delete(documentRef: DocumentReference<unknown>): this {
     const ref = validateReference(documentRef, this._firestore);
     this._transaction.delete(ref._key);
     return this;
@@ -174,8 +172,8 @@ export class Transaction {
 }
 
 export function runTransaction<T>(
-  firestore: firestore.FirebaseFirestore,
-  updateFunction: (transaction: firestore.Transaction) => Promise<T>
+  firestore: Firestore,
+  updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
   const firestoreClient = cast(firestore, Firestore);
   const datastore = getDatastore(firestoreClient);

@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../../lite-types';
-
 import {
   DeleteMutation,
   Mutation,
@@ -31,13 +29,18 @@ import {
   UserDataReader
 } from '../../../src/api/user_data_reader';
 import { cast } from './util';
-import { DocumentReference, newUserDataReader } from './reference';
+import {
+  DocumentReference,
+  newUserDataReader,
+  SetOptions,
+  UpdateData
+} from './reference';
 import { Firestore } from './database';
 import { invokeCommitRpc } from '../../../src/remote/datastore';
 import { FieldPath } from './field_path';
 import { getDatastore } from './components';
 
-export class WriteBatch implements firestore.WriteBatch {
+export class WriteBatch implements WriteBatch {
   // This is the lite version of the WriteBatch API used in the legacy SDK. The
   // class is a close copy but takes different input types.
 
@@ -52,16 +55,16 @@ export class WriteBatch implements firestore.WriteBatch {
     this._dataReader = newUserDataReader(_firestore);
   }
 
-  set<T>(documentRef: firestore.DocumentReference<T>, value: T): WriteBatch;
+  set<T>(documentRef: DocumentReference<T>, value: T): WriteBatch;
   set<T>(
-    documentRef: firestore.DocumentReference<T>,
+    documentRef: DocumentReference<T>,
     value: Partial<T>,
-    options: firestore.SetOptions
+    options: SetOptions
   ): WriteBatch;
   set<T>(
-    documentRef: firestore.DocumentReference<T>,
+    documentRef: DocumentReference<T>,
     value: T,
-    options?: firestore.SetOptions
+    options?: SetOptions
   ): WriteBatch {
     this.verifyNotCommitted();
     const ref = validateReference(documentRef, this._firestore);
@@ -86,18 +89,18 @@ export class WriteBatch implements firestore.WriteBatch {
   }
 
   update(
-    documentRef: firestore.DocumentReference<unknown>,
-    value: firestore.UpdateData
+    documentRef: DocumentReference<unknown>,
+    value: UpdateData
   ): WriteBatch;
   update(
-    documentRef: firestore.DocumentReference<unknown>,
-    field: string | firestore.FieldPath,
+    documentRef: DocumentReference<unknown>,
+    field: string | FieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch;
   update(
-    documentRef: firestore.DocumentReference<unknown>,
-    fieldOrUpdateData: string | firestore.FieldPath | firestore.UpdateData,
+    documentRef: DocumentReference<unknown>,
+    fieldOrUpdateData: string | FieldPath | UpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch {
@@ -133,7 +136,7 @@ export class WriteBatch implements firestore.WriteBatch {
     return this;
   }
 
-  delete(documentRef: firestore.DocumentReference<unknown>): WriteBatch {
+  delete(documentRef: DocumentReference<unknown>): WriteBatch {
     this.verifyNotCommitted();
     const ref = validateReference(documentRef, this._firestore);
     this._mutations = this._mutations.concat(
@@ -164,7 +167,7 @@ export class WriteBatch implements firestore.WriteBatch {
 }
 
 export function validateReference<T>(
-  documentRef: firestore.DocumentReference<T>,
+  documentRef: DocumentReference<T>,
   firestore: Firestore
 ): DocumentReference<T> {
   if (documentRef.firestore !== firestore) {
@@ -177,9 +180,7 @@ export function validateReference<T>(
   }
 }
 
-export function writeBatch(
-  firestore: firestore.FirebaseFirestore
-): firestore.WriteBatch {
+export function writeBatch(firestore: Firestore): WriteBatch {
   const firestoreImpl = cast(firestore, Firestore);
   const datastore = getDatastore(firestoreImpl);
   return new WriteBatch(firestoreImpl, writes =>
