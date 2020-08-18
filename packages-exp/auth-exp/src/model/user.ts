@@ -25,7 +25,7 @@ import { Auth } from './auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from './id_token';
 import { StsTokenManager } from '../core/user/token_manager';
 
-type MutableUserInfo = {
+export type MutableUserInfo = {
   -readonly [K in keyof externs.UserInfo]: externs.UserInfo[K];
 };
 
