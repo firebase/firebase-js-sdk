@@ -16,7 +16,7 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-import { newQueryForPath, Query, queryToTarget } from './query';
+import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import {
   fromDocument,
@@ -25,6 +25,7 @@ import {
   JsonProtoSerializer
 } from '../remote/serializer';
 import * as bundleProto from '../protos/firestore_bundle_proto';
+import { BundleMetadata } from '../protos/firestore_bundle_proto';
 import * as api from '../protos/firestore_proto_api';
 import { DocumentKey } from '../model/document_key';
 import { MaybeDocument, NoDocument } from '../model/document';
@@ -32,7 +33,8 @@ import { debugAssert } from '../util/assert';
 import {
   applyBundleDocuments,
   LocalStore,
-  saveNamedQuery
+  saveNamedQuery,
+  umbrellaTarget
 } from '../local/local_store';
 import { SizedBundleElement } from '../util/bundle_reader';
 import {
@@ -40,9 +42,6 @@ import {
   DocumentKeySet,
   MaybeDocumentMap
 } from '../model/collections';
-import { BundleMetadata } from '../protos/firestore_bundle_proto';
-import { Target } from './target';
-import { ResourcePath } from '../model/path';
 
 /**
  * Represents a Firestore bundle saved by the SDK in its local storage.
@@ -153,11 +152,6 @@ export class BundleLoadResult {
   ) {}
 }
 
-// Visible for testing.
-export function umbrellaTarget(bundleName: string): Target {
-  return queryToTarget(newQueryForPath(ResourcePath.fromString(bundleName)));
-}
-
 /**
  * A class to process the elements from a bundle, load them into local
  * storage and provide progress update while loading.
@@ -251,11 +245,12 @@ export class BundleLoader {
         !!this.documents[this.documents.length - 1].document,
       'Bundled documents ends with a document metadata and missing document.'
     );
+    debugAssert(!!this.metadata.id, 'Bundle ID must be set.');
 
     const changedDocuments = await applyBundleDocuments(
       this.localStore,
       this.documents,
-      umbrellaTarget(this.metadata.id || '')
+      this.metadata.id!
     );
 
     const queryDocumentMap = this.getQueryDocumentMapping(this.documents);

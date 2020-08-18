@@ -21,7 +21,8 @@ import {
   queryEquals,
   Filter,
   newQueryForPath,
-  queryToTarget
+  queryToTarget,
+  newQuery
 } from '../../../src/core/query';
 import { canonifyTarget, Target, targetEquals } from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
@@ -62,7 +63,7 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
-import { umbrellaTarget } from '../../../src/core/bundle';
+import { ResourcePath } from '../../../src/model/path';
 
 const userDataWriter = testUserDataWriter();
 
@@ -377,7 +378,9 @@ export class SpecBuilder {
       loadBundle: bundleContent
     };
     // Allocate umbrella target for bundles.
-    this.queryIdGenerator.next(umbrellaTarget('test-bundle'));
+    this.queryIdGenerator.next(
+      queryToTarget(newQueryForPath(ResourcePath.emptyPath()))
+    );
     return this;
   }
 

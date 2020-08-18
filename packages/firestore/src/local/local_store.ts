@@ -17,7 +17,7 @@
 
 import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
-import { Query, queryToTarget } from '../core/query';
+import { newQueryForPath, Query, queryToTarget } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { canonifyTarget, Target, targetEquals } from '../core/target';
 import { BatchId, TargetId } from '../core/types';
@@ -33,10 +33,10 @@ import {
 import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
+  extractMutationBaseValue,
   Mutation,
   PatchMutation,
-  Precondition,
-  extractMutationBaseValue
+  Precondition
 } from '../model/mutation';
 import {
   BATCHID_UNKNOWN,
@@ -79,6 +79,7 @@ import { BundleCache } from './bundle_cache';
 import { fromVersion, JsonProtoSerializer } from '../remote/serializer';
 import { fromBundledQuery } from './local_serializer';
 import { ByteString } from '../util/byte_string';
+import { ResourcePath } from '../model/path';
 
 const LOG_TAG = 'LocalStore';
 
@@ -1276,6 +1277,20 @@ export async function ignoreIfPrimaryLeaseLoss(
 }
 
 /**
+ * Creates a new target using the given bundle name, which will be used to
+ * hold the keys of all documents from the bundle in query-document mappings.
+ * This would make sure the loaded documents will not get garbage collected
+ * right away.
+ */
+export function umbrellaTarget(bundleName: string): Target {
+  // It is OK that the path used for the query is not valid, because this will
+  // not be read and queried.
+  return queryToTarget(
+    newQueryForPath(ResourcePath.fromString(`__bundle__${bundleName}`))
+  );
+}
+
+/**
  * Applies the documents from a bundle to the "ground-state" (remote)
  * documents.
  *
@@ -1289,7 +1304,7 @@ export async function ignoreIfPrimaryLeaseLoss(
 export async function applyBundleDocuments(
   localStore: LocalStore,
   documents: BundledDocuments,
-  umbrellaTarget: Target
+  bundleName: string
 ): Promise<MaybeDocumentMap> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
   const bundleConverter = new BundleConverter(localStoreImpl.serializer);
@@ -1317,7 +1332,7 @@ export async function applyBundleDocuments(
 
   const umbrellaTargetData = await allocateTarget(
     localStoreImpl,
-    umbrellaTarget
+    umbrellaTarget(bundleName)
   );
   return localStoreImpl.persistence.runTransaction(
     'Apply bundle documents',

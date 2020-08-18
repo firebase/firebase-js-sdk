@@ -114,11 +114,7 @@ import { CountingQueryEngine, QueryEngineType } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
 import { ByteString } from '../../../src/util/byte_string';
-import {
-  BundledDocuments,
-  NamedQuery,
-  umbrellaTarget
-} from '../../../src/core/bundle';
+import { BundledDocuments, NamedQuery } from '../../../src/core/bundle';
 import * as bundleProto from '../../../src/protos/firestore_bundle_proto';
 
 export interface LocalStoreComponents {
@@ -204,11 +200,7 @@ class LocalStoreTester {
 
     this.promiseChain = this.promiseChain
       .then(() =>
-        applyBundleDocuments(
-          this.localStore,
-          documents,
-          umbrellaTarget(bundleName || '')
-        )
+        applyBundleDocuments(this.localStore, documents, bundleName || '')
       )
       .then(result => {
         this.lastChanges = result;
