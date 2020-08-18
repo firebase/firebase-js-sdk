@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.16.4",
+  "version": "1.16.5",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
