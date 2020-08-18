@@ -15,56 +15,20 @@
  * limitations under the License.
  */
 
-import {
-  generateReportForModules,
-  Report
-} from '../repo-scripts/size-analysis/analysis-helper';
-
 import { execSync } from 'child_process';
 import * as https from 'https';
-import { mapWorkspaceToPackages } from './release/utils/workspace';
-import { projectRoot } from './utils';
 
-interface RequestBody {
+export interface RequestBody {
   log: string;
-  modules: Report[];
 }
-const runId: string = process.env.GITHUB_RUN_ID || 'local-run-id';
+export const runId = process.env.GITHUB_RUN_ID || 'local-run-id';
 
-const METRICS_SERVICE_URL: string = process.env.METRICS_SERVICE_URL!;
+export const METRICS_SERVICE_URL = process.env.METRICS_SERVICE_URL!;
 
-async function generateReport(): Promise<RequestBody> {
-  const requestBody: RequestBody = {
-    log: `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}`,
-    modules: []
-  };
-
-  let allModulesLocation: string[] = await mapWorkspaceToPackages([
-    `${projectRoot}/packages-exp/*`
-  ]);
-
-  allModulesLocation = allModulesLocation.filter(path => {
-    const json = require(`${path}/package.json`);
-    return (
-      json.name.startsWith('@firebase') &&
-      !json.name.includes('-compat') &&
-      !json.name.includes('-types')
-    );
-  });
-
-  const reports: Report[] = await generateReportForModules(allModulesLocation);
-
-  for (const report of reports) {
-    requestBody.modules.push(report);
-  }
-
-  return requestBody;
-}
-
-function constructRequestPath(): string {
+export function constructRequestPath(requestEndpoint: string): string {
   const repo = process.env.GITHUB_REPOSITORY;
   const commit = process.env.GITHUB_SHA;
-  let path = `/repos/${repo}/commits/${commit}/size_analysis`;
+  let path = `/repos/${repo}/commits/${commit}/${requestEndpoint}`;
   if (process.env.GITHUB_EVENT_NAME === 'pull_request') {
     const pullRequestNumber = process.env.GITHUB_PULL_REQUEST_NUMBER;
     const pullRequestBaseSha = process.env.GITHUB_PULL_REQUEST_BASE_SHA;
@@ -77,7 +41,7 @@ function constructRequestPath(): string {
   return path;
 }
 
-function constructRequestOptions(path: string) {
+export function constructRequestOptions(path: string) {
   const accessToken = execSync('gcloud auth print-identity-token', {
     encoding: 'utf8'
   }).trim();
@@ -91,17 +55,17 @@ function constructRequestOptions(path: string) {
   };
 }
 
-function upload(report: RequestBody): void {
+export function upload(report: RequestBody, requestEndpoint: string): void {
   if (!process.env.GITHUB_ACTIONS) {
     console.log('Metrics upload is only enabled on CI.');
     return;
   }
 
-  const path = constructRequestPath();
+  const path = constructRequestPath(requestEndpoint);
   const options = constructRequestOptions(path);
   console.log(`Posting to metrics service endpoint: ${path} ...`);
 
-  const request = https.request(METRICS_SERVICE_URL, options, response => {
+  const request = https.request(METRICS_SERVICE_URL!, options, response => {
     response.setEncoding('utf8');
     console.log(`Response status code: ${response.statusCode}`);
     response.on('data', console.log);
@@ -114,10 +78,3 @@ function upload(report: RequestBody): void {
   request.write(JSON.stringify(report));
   request.end();
 }
-
-async function main(): Promise<void> {
-  const reports: RequestBody = await generateReport();
-  console.log(JSON.stringify(reports, null, 4));
-  upload(reports);
-}
-main();
