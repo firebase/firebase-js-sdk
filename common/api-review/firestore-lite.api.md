@@ -4,15 +4,13 @@
 
 ```ts
 
-import { DocumentData as DocumentData_2 } from '@firebase/firestore-types';
-import { FieldPath as FieldPath_4 } from '@firebase/firestore-types';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { _FirebaseService } from '@firebase/app-types';
+import * as firestore from '@firebase/firestore-types';
 import { LogLevel } from '@firebase/logger';
 import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
-import { SetOptions } from '@firebase/firestore-types';
 
 // @public (undocumented)
 export function addDoc<T>(reference: CollectionReference<T>, data: T): Promise<DocumentReference<T>>;
@@ -330,7 +328,7 @@ export function setDoc<T>(reference: DocumentReference<T>, data: T): Promise<voi
 // Warning: (ae-forgotten-export) The symbol "SetOptions" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export function setDoc<T>(reference: DocumentReference<T>, data: Partial<T>, options: SetOptions_2): Promise<void>;
+export function setDoc<T>(reference: DocumentReference<T>, data: Partial<T>, options: SetOptions): Promise<void>;
 
 // @public (undocumented)
 export function setLogLevel(newLevel: LogLevelString | LogLevel): void;
@@ -402,7 +400,7 @@ export class Transaction {
     // (undocumented)
     set<T>(documentRef: DocumentReference<T>, value: T): this;
     // (undocumented)
-    set<T>(documentRef: DocumentReference<T>, value: Partial<T>, options: SetOptions_2): this;
+    set<T>(documentRef: DocumentReference<T>, value: Partial<T>, options: SetOptions): this;
     // (undocumented)
     update(documentRef: DocumentReference<unknown>, value: UpdateData): this;
     // (undocumented)
@@ -438,7 +436,7 @@ export class WriteBatch implements WriteBatch {
     // (undocumented)
     set<T>(documentRef: DocumentReference<T>, value: T): WriteBatch;
     // (undocumented)
-    set<T>(documentRef: DocumentReference<T>, value: Partial<T>, options: SetOptions_2): WriteBatch;
+    set<T>(documentRef: DocumentReference<T>, value: Partial<T>, options: SetOptions): WriteBatch;
     // (undocumented)
     update(documentRef: DocumentReference<unknown>, value: UpdateData): WriteBatch;
     // (undocumented)

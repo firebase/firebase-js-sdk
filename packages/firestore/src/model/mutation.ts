@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Value as ProtoValue } from '../protos/firestore_proto_api';
+import * as api from '../protos/firestore_proto_api';
 
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -120,7 +120,7 @@ export class MutationResult {
      *
      * Will be null if the mutation was not a TransformMutation.
      */
-    readonly transformResults: Array<ProtoValue | null> | null
+    readonly transformResults: Array<api.Value | null> | null
   ) {}
 }
 
@@ -725,9 +725,9 @@ function requireDocument(
 function serverTransformResults(
   fieldTransforms: FieldTransform[],
   baseDoc: MaybeDocument | null,
-  serverTransformResults: Array<ProtoValue | null>
-): ProtoValue[] {
-  const transformResults: ProtoValue[] = [];
+  serverTransformResults: Array<api.Value | null>
+): api.Value[] {
+  const transformResults: api.Value[] = [];
   hardAssert(
     fieldTransforms.length === serverTransformResults.length,
     `server transform result count (${serverTransformResults.length}) ` +
@@ -737,7 +737,7 @@ function serverTransformResults(
   for (let i = 0; i < serverTransformResults.length; i++) {
     const fieldTransform = fieldTransforms[i];
     const transform = fieldTransform.transform;
-    let previousValue: ProtoValue | null = null;
+    let previousValue: api.Value | null = null;
     if (baseDoc instanceof Document) {
       previousValue = baseDoc.field(fieldTransform.field);
     }
@@ -770,12 +770,12 @@ function localTransformResults(
   localWriteTime: Timestamp,
   maybeDoc: MaybeDocument | null,
   baseDoc: MaybeDocument | null
-): ProtoValue[] {
-  const transformResults: ProtoValue[] = [];
+): api.Value[] {
+  const transformResults: api.Value[] = [];
   for (const fieldTransform of fieldTransforms) {
     const transform = fieldTransform.transform;
 
-    let previousValue: ProtoValue | null = null;
+    let previousValue: api.Value | null = null;
     if (maybeDoc instanceof Document) {
       previousValue = maybeDoc.field(fieldTransform.field);
     }
@@ -802,7 +802,7 @@ function localTransformResults(
 function transformObject(
   mutation: TransformMutation,
   data: ObjectValue,
-  transformResults: ProtoValue[]
+  transformResults: api.Value[]
 ): ObjectValue {
   debugAssert(
     transformResults.length === mutation.fieldTransforms.length,

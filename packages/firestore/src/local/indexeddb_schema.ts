@@ -17,12 +17,7 @@
 
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
 import { ResourcePath } from '../model/path';
-import {
-  Write as ProtoWrite,
-  Document as ProtoDocument,
-  QueryTarget as ProtoQueryTarget,
-  DocumentsTarget as ProtoDocumentsTarget
-} from '../protos/firestore_proto_api';
+import * as api from '../protos/firestore_proto_api';
 import { debugAssert, hardAssert } from '../util/assert';
 
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -489,13 +484,13 @@ export class DbMutationBatch {
      *
      * These mutations are never sent to the backend.
      */
-    public baseMutations: ProtoWrite[] | undefined,
+    public baseMutations: api.Write[] | undefined,
     /**
      * A list of mutations to apply. All mutations will be applied atomically.
      *
      * Mutations are serialized via toMutation().
      */
-    public mutations: ProtoWrite[]
+    public mutations: api.Write[]
   ) {}
 }
 
@@ -696,7 +691,7 @@ export class DbRemoteDocument {
      * Set to an instance of a Document if there's a cached version of the
      * document.
      */
-    public document: ProtoDocument | null,
+    public document: api.Document | null,
     /**
      * Documents that were written to the remote document store based on
      * a write acknowledgment are marked with `hasCommittedMutations`. These
@@ -750,7 +745,7 @@ export type DbTargetKey = TargetId;
  * IndexedDb. We use the proto definitions for these two kinds of queries in
  * order to avoid writing extra serialization logic.
  */
-export type DbQuery = ProtoQueryTarget | ProtoDocumentsTarget;
+export type DbQuery = api.QueryTarget | api.DocumentsTarget;
 
 /**
  * An object to be stored in the 'targets' store in IndexedDb.

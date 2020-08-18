@@ -15,14 +15,9 @@
  * limitations under the License.
  */
 
-import { DocumentData } from '@firebase/firestore-types';
-import {
-  Value as ProtoValue,
-  MapValue as ProtoMapValue,
-  ArrayValue as ProtoArrayValue,
-  LatLng as ProtoLatLng,
-  Timestamp as ProtoTimestamp
-} from '../protos/firestore_proto_api';
+import * as firestore from '@firebase/firestore-types';
+
+import * as api from '../protos/firestore_proto_api';
 
 import { DocumentKeyReference } from './user_data_reader';
 import { Blob } from './blob';
@@ -60,10 +55,10 @@ export class UserDataWriter {
     private readonly serverTimestampBehavior: ServerTimestampBehavior,
     private readonly referenceFactory: (
       key: DocumentKey
-    ) => DocumentKeyReference<DocumentData>
+    ) => DocumentKeyReference<firestore.DocumentData>
   ) {}
 
-  convertValue(value: ProtoValue): unknown {
+  convertValue(value: api.Value): unknown {
     switch (typeOrder(value)) {
       case TypeOrder.NullValue:
         return null;
@@ -92,26 +87,26 @@ export class UserDataWriter {
     }
   }
 
-  private convertObject(mapValue: ProtoMapValue): DocumentData {
-    const result: DocumentData = {};
+  private convertObject(mapValue: api.MapValue): firestore.DocumentData {
+    const result: firestore.DocumentData = {};
     forEach(mapValue.fields || {}, (key, value) => {
       result[key] = this.convertValue(value);
     });
     return result;
   }
 
-  private convertGeoPoint(value: ProtoLatLng): GeoPoint {
+  private convertGeoPoint(value: api.LatLng): GeoPoint {
     return new GeoPoint(
       normalizeNumber(value.latitude),
       normalizeNumber(value.longitude)
     );
   }
 
-  private convertArray(arrayValue: ProtoArrayValue): unknown[] {
+  private convertArray(arrayValue: api.ArrayValue): unknown[] {
     return (arrayValue.values || []).map(value => this.convertValue(value));
   }
 
-  private convertServerTimestamp(value: ProtoValue): unknown {
+  private convertServerTimestamp(value: api.Value): unknown {
     switch (this.serverTimestampBehavior) {
       case 'previous':
         const previousValue = getPreviousValue(value);
@@ -126,7 +121,7 @@ export class UserDataWriter {
     }
   }
 
-  private convertTimestamp(value: ProtoTimestamp): Timestamp | Date {
+  private convertTimestamp(value: api.Timestamp): Timestamp | Date {
     const normalizedValue = normalizeTimestamp(value);
     const timestamp = new Timestamp(
       normalizedValue.seconds,
@@ -139,7 +134,9 @@ export class UserDataWriter {
     }
   }
 
-  private convertReference(name: string): DocumentKeyReference<DocumentData> {
+  private convertReference(
+    name: string
+  ): DocumentKeyReference<firestore.DocumentData> {
     const resourcePath = ResourcePath.fromString(name);
     hardAssert(
       isValidResourceName(resourcePath),

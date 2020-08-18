@@ -15,16 +15,13 @@
  * limitations under the License.
  */
 
-import {
-  FirestoreError as PublicFirestoreError,
-  FirestoreErrorCode as PublicFirestoreErrorCode
-} from '@firebase/firestore-types';
+import * as firestore from '@firebase/firestore-types';
 
 /**
  * Error Codes describing the different ways Firestore can fail. These come
  * directly from GRPC.
  */
-export type Code = PublicFirestoreErrorCode;
+export type Code = firestore.FirestoreErrorCode;
 
 export const Code = {
   // Causes are copied from:
@@ -161,7 +158,7 @@ export const Code = {
  * so we define our own compatible error class (with a `name` of 'FirebaseError'
  * and compatible `code` and `message` fields.)
  */
-export class FirestoreError extends Error implements PublicFirestoreError {
+export class FirestoreError extends Error implements firestore.FirestoreError {
   name = 'FirebaseError';
   stack?: string;
 

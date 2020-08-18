@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  Value as ProtoValue,
-  MapValue as ProtoMapValue
-} from '../protos/firestore_proto_api';
+import * as api from '../protos/firestore_proto_api';
 
 import { debugAssert } from '../util/assert';
 import { FieldMask } from './mutation';
@@ -52,7 +49,7 @@ export const enum TypeOrder {
  * ability to add and remove fields (via the ObjectValueBuilder).
  */
 export class ObjectValue {
-  constructor(readonly proto: { mapValue: ProtoMapValue }) {
+  constructor(readonly proto: { mapValue: api.MapValue }) {
     debugAssert(
       !isServerTimestamp(proto),
       'ServerTimestamps should be converted to ServerTimestampValue'
@@ -69,11 +66,11 @@ export class ObjectValue {
    * @param path the path to search
    * @return The value at the path or if there it doesn't exist.
    */
-  field(path: FieldPath): ProtoValue | null {
+  field(path: FieldPath): api.Value | null {
     if (path.isEmpty()) {
       return this.proto;
     } else {
-      let value: ProtoValue = this.proto;
+      let value: api.Value = this.proto;
       for (let i = 0; i < path.length - 1; ++i) {
         if (!value.mapValue!.fields) {
           return null;
@@ -99,7 +96,7 @@ export class ObjectValue {
  * map of Overlay values (to represent additional nesting at the given key) or
  * `null` (to represent field deletes).
  */
-type Overlay = Map<string, Overlay> | ProtoValue | null;
+type Overlay = Map<string, Overlay> | api.Value | null;
 
 /**
  * An ObjectValueBuilder provides APIs to set and delete fields from an
@@ -121,7 +118,7 @@ export class ObjectValueBuilder {
    * @param value The value to set.
    * @return The current Builder instance.
    */
-  set(path: FieldPath, value: ProtoValue): ObjectValueBuilder {
+  set(path: FieldPath, value: api.Value): ObjectValueBuilder {
     debugAssert(
       !path.isEmpty(),
       'Cannot set field for empty path on ObjectValue'
@@ -150,7 +147,7 @@ export class ObjectValueBuilder {
    * Adds `value` to the overlay map at `path`. Creates nested map entries if
    * needed.
    */
-  private setOverlay(path: FieldPath, value: ProtoValue | null): void {
+  private setOverlay(path: FieldPath, value: api.Value | null): void {
     let currentLevel = this.overlayMap;
 
     for (let i = 0; i < path.length - 1; ++i) {
@@ -209,7 +206,7 @@ export class ObjectValueBuilder {
   private applyOverlay(
     currentPath: FieldPath,
     currentOverlays: Map<string, Overlay>
-  ): { mapValue: ProtoMapValue } | null {
+  ): { mapValue: api.MapValue } | null {
     let modified = false;
 
     const existingValue = this.baseObject.field(currentPath);
@@ -242,7 +239,7 @@ export class ObjectValueBuilder {
 /**
  * Returns a FieldMask built from all fields in a MapValue.
  */
-export function extractFieldMask(value: ProtoMapValue): FieldMask {
+export function extractFieldMask(value: api.MapValue): FieldMask {
   const fields: FieldPath[] = [];
   forEach(value!.fields || {}, (key, value) => {
     const currentPath = new FieldPath([key]);

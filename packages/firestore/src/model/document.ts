@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  Value as ProtoValue,
-  MapValue as ProtoMapValue
-} from '../protos/firestore_proto_api';
+import * as api from '../protos/firestore_proto_api';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { fail } from '../util/assert';
@@ -70,7 +67,7 @@ export class Document extends MaybeDocument {
     this.hasCommittedMutations = !!options.hasCommittedMutations;
   }
 
-  field(path: FieldPath): ProtoValue | null {
+  field(path: FieldPath): api.Value | null {
     return this.objectValue.field(path);
   }
 
@@ -78,7 +75,7 @@ export class Document extends MaybeDocument {
     return this.objectValue;
   }
 
-  toProto(): { mapValue: ProtoMapValue } {
+  toProto(): { mapValue: api.MapValue } {
     return this.objectValue.proto;
   }
 

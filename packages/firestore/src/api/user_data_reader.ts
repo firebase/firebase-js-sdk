@@ -15,12 +15,9 @@
  * limitations under the License.
  */
 
-import { DocumentData, SetOptions } from '@firebase/firestore-types';
+import * as firestore from '@firebase/firestore-types';
 
-import {
-  Value as ProtoValue,
-  MapValue as ProtoMapValue
-} from '../protos/firestore_proto_api';
+import * as api from '../protos/firestore_proto_api';
 
 import { Timestamp } from './timestamp';
 import { DatabaseId } from '../core/database_info';
@@ -60,8 +57,11 @@ const RESERVED_FIELD_REGEX = /^__.*__$/;
  * lite, full and legacy SDK.
  */
 export interface UntypedFirestoreDataConverter<T> {
-  toFirestore(modelObject: T): DocumentData;
-  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+  toFirestore(modelObject: T): firestore.DocumentData;
+  toFirestore(
+    modelObject: Partial<T>,
+    options: firestore.SetOptions
+  ): firestore.DocumentData;
   fromFirestore(snapshot: unknown, options?: unknown): T;
 }
 
@@ -349,7 +349,7 @@ export function parseSetData(
   targetDoc: DocumentKey,
   input: unknown,
   hasConverter: boolean,
-  options: SetOptions = {}
+  options: firestore.SetOptions = {}
 ): ParsedSetData {
   const context = userDataReader.createContext(
     options.merge || options.mergeFields
@@ -538,7 +538,7 @@ export function parseQueryValue(
   methodName: string,
   input: unknown,
   allowArrays = false
-): ProtoValue {
+): api.Value {
   const context = userDataReader.createContext(
     allowArrays ? UserDataSource.ArrayArgument : UserDataSource.Argument,
     methodName
@@ -564,7 +564,7 @@ export function parseQueryValue(
 export function parseData(
   input: unknown,
   context: ParseContext
-): ProtoValue | null {
+): api.Value | null {
   if (looksLikeJsonObject(input)) {
     validatePlainObject('Unsupported field value:', context, input);
     return parseObject(input, context);
@@ -606,8 +606,8 @@ export function parseData(
 function parseObject(
   obj: Dict<unknown>,
   context: ParseContext
-): { mapValue: ProtoMapValue } {
-  const fields: Dict<ProtoValue> = {};
+): { mapValue: api.MapValue } {
+  const fields: Dict<api.Value> = {};
 
   if (isEmpty(obj)) {
     // If we encounter an empty object, we explicitly add it to the update
@@ -627,8 +627,8 @@ function parseObject(
   return { mapValue: { fields } };
 }
 
-function parseArray(array: unknown[], context: ParseContext): ProtoValue {
-  const values: ProtoValue[] = [];
+function parseArray(array: unknown[], context: ParseContext): api.Value {
+  const values: api.Value[] = [];
   let entryIndex = 0;
   for (const entry of array) {
     let parsedEntry = parseData(
@@ -680,7 +680,7 @@ function parseSentinelFieldValue(
 function parseScalarValue(
   value: unknown,
   context: ParseContext
-): ProtoValue | null {
+): api.Value | null {
   if (value === null) {
     return { nullValue: 'NULL_VALUE' };
   } else if (typeof value === 'number') {

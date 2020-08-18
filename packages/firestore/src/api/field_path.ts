@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FieldPath as PublicFieldPath } from '@firebase/firestore-types';
+import * as firestore from '@firebase/firestore-types';
 
 import { FieldPath as InternalFieldPath } from '../model/path';
 import { Code, FirestoreError } from '../util/error';
@@ -65,7 +65,7 @@ export abstract class BaseFieldPath {
  * field name (referring to a top-level field in the document), or a list of
  * field names (referring to a nested field in the document).
  */
-export class FieldPath extends BaseFieldPath implements PublicFieldPath {
+export class FieldPath extends BaseFieldPath implements firestore.FieldPath {
   /**
    * Creates a FieldPath from the provided field names. If more than one field
    * name is provided, the path will point to a nested field in a document.
@@ -86,7 +86,7 @@ export class FieldPath extends BaseFieldPath implements PublicFieldPath {
     return new FieldPath(InternalFieldPath.keyField().canonicalString());
   }
 
-  isEqual(other: PublicFieldPath): boolean {
+  isEqual(other: firestore.FieldPath): boolean {
     if (!(other instanceof FieldPath)) {
       throw invalidClassError('isEqual', 'FieldPath', 1, other);
     }
