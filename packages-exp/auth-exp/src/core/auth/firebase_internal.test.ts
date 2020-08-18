@@ -69,6 +69,7 @@ describe('src/core/auth/firebase_internal', () => {
         authInternal.addAuthTokenListener(token => {
           if (firstCall) {
             firstCall = false;
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             user.getIdToken(true);
             return;
           }
@@ -97,7 +98,7 @@ describe('src/core/auth/firebase_internal', () => {
     context('removeAuthTokenListener', () => {
       it('listeners no longer receive token updates', async () => {
         let tokenCount = 0;
-        function listener() {
+        function listener(): void {
           tokenCount++;
         }
         authInternal.addAuthTokenListener(listener);
@@ -112,7 +113,7 @@ describe('src/core/auth/firebase_internal', () => {
       });
 
       it('toggles proactive refresh when listeners fall to 0', () => {
-        function listenerA() {}
+        function listenerA() :void{}
 
         authInternal.addAuthTokenListener(listenerA);
         expect(isProactiveRefresh).to.be.true;
@@ -121,7 +122,7 @@ describe('src/core/auth/firebase_internal', () => {
       });
 
       it('toggles proactive refresh when single listener subbed twice', () => {
-        function listenerA() {}
+        function listenerA(): void {}
 
         authInternal.addAuthTokenListener(listenerA);
         authInternal.addAuthTokenListener(listenerA);
@@ -131,8 +132,8 @@ describe('src/core/auth/firebase_internal', () => {
       });
 
       it('toggles proactive refresh properly multiple listeners', () => {
-        function listenerA() {}
-        function listenerB() {}
+        function listenerA():void {}
+        function listenerB():void {}
 
         authInternal.addAuthTokenListener(listenerA);
         authInternal.addAuthTokenListener(listenerB);

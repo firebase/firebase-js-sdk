@@ -9,7 +9,12 @@ export const _RETRY_BACKOFF_MAX = 16 * 60 * 1000;
 
 export class ProactiveRefresh {
   private isRunning = false;
-  private timerId: number | null = null;
+
+  // Node timers and browser timers return fundamentally different types.
+  // We don't actually care what the value is but TS won't accept unknown and
+  // we can't cast properly in both environments.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private timerId: any | null = null;
   private errorBackoff = _RETRY_BACKOFF_MIN;
 
   constructor(private readonly user: User) {}
@@ -30,7 +35,7 @@ export class ProactiveRefresh {
 
     this.isRunning = false;
     if (this.timerId !== null) {
-      window.clearTimeout(this.timerId);
+      clearTimeout(this.timerId);
     }
   }
 
@@ -44,6 +49,7 @@ export class ProactiveRefresh {
       this.errorBackoff = _RETRY_BACKOFF_MIN;
       const expTime = this.user.stsTokenManager.expirationTime ?? 0;
       const interval = expTime - Date.now() - _OFFSET_DURATION;
+
       return Math.max(0, interval);
     }
   }
@@ -54,9 +60,10 @@ export class ProactiveRefresh {
       return;
     }
 
-    this.timerId = window.setTimeout(async () => {
+    const interval = this.getInterval(wasError);
+    this.timerId = setTimeout(async () => {
       await this.iteration();
-    }, this.getInterval(wasError));
+    }, interval);
   }
 
   private async iteration(): Promise<void> {
@@ -67,6 +74,7 @@ export class ProactiveRefresh {
       if (e.code === `auth/${AuthErrorCode.NETWORK_REQUEST_FAILED}`) {
         this.schedule(/* wasError */ true);
       }
+
       return;
     }
     this.schedule();
