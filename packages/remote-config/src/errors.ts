@@ -31,7 +31,7 @@ export const enum ErrorCode {
   FETCH_THROTTLE = 'fetch-throttle',
   FETCH_PARSE = 'fetch-client-parse',
   FETCH_STATUS = 'fetch-status',
-  INDEXED_DB_UNSUPPORTED = 'indexed-db-unsupported'
+  INDEXED_DB_UNAVAILABLE = 'indexed-db-unavailable'
 }
 
 const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
@@ -66,7 +66,7 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
     ' Original error: {$originalErrorMessage}.',
   [ErrorCode.FETCH_STATUS]:
     'Fetch server returned an HTTP error status. HTTP status: {$httpStatus}.',
-  [ErrorCode.INDEXED_DB_UNSUPPORTED]:
+  [ErrorCode.INDEXED_DB_UNAVAILABLE]:
     'Indexed DB is not supported by current browser'
 };
 

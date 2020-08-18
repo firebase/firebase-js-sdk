@@ -2032,8 +2032,8 @@ declare namespace firebase.remoteConfig {
    */
   export type LogLevel = 'debug' | 'error' | 'silent';
   /**
-   * An async function that returns true if current browser context supports
-   * initialization of `RemoteConfig` instance (`firebase.remoteConfig()`).
+   * Returns true if current browser context supports
+   * initialization of a `RemoteConfig` instance (`firebase.remoteConfig()`).
    *
    * Returns false otherwise.
    */
