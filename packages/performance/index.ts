@@ -26,7 +26,6 @@ import { ERROR_FACTORY, ErrorCode } from './src/utils/errors';
 import { FirebasePerformance } from '@firebase/performance-types';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations } from '@firebase/installations-types';
-
 import { name, version } from './package.json';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
