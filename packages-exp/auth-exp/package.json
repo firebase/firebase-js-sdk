@@ -37,12 +37,12 @@
   "peerDependencies": {
     "@firebase/app-exp": "0.x",
     "@firebase/app-types-exp": "0.x",
-    "@firebase/auth-types-exp": "0.x",
     "@firebase/auth-exp": "0.x",
-    "@firebase/component": "0.x",
+    "@firebase/auth-types-exp": "0.x",
     "@firebase/util": "0.x"
   },
   "dependencies": {
+    "@firebase/component": "0.1.17",
     "@firebase/logger": "^0.2.6",
     "@firebase/util": "^0.3.0",
     "node-fetch": "2.6.0",

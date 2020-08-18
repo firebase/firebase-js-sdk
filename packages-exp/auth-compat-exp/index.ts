@@ -16,19 +16,15 @@
  */
 
 import firebase from '@firebase/app';
-import * as impl from '@firebase/auth-exp/internal';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
+import * as impl from '@firebase/auth-exp/internal';
 import * as externs from '@firebase/auth-types-exp';
-import {
-  Component,
-  ComponentType,
-  InstantiationMode
-} from '@firebase/component';
-import '@firebase/installations';
+import { Component, ComponentType, InstantiationMode } from '@firebase/component';
+
 import { version } from './package.json';
 import { Auth } from './src/auth';
-import { RecaptchaVerifier } from './src/recaptcha_verifier';
 import { Persistence } from './src/persistence';
+import { RecaptchaVerifier } from './src/recaptcha_verifier';
 
 const AUTH_TYPE = 'auth';
 
