@@ -19,7 +19,11 @@ import firebase from '@firebase/app';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import * as impl from '@firebase/auth-exp/internal';
 import * as externs from '@firebase/auth-types-exp';
-import { Component, ComponentType, InstantiationMode } from '@firebase/component';
+import {
+  Component,
+  ComponentType,
+  InstantiationMode
+} from '@firebase/component';
 
 import { version } from './package.json';
 import { Auth } from './src/auth';
