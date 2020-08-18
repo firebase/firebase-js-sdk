@@ -51,6 +51,7 @@ const nodePlugins = [
         dest: 'dist/lite/src'
       },
       {
+        // Copy into generated source files to support API Extractor
         src: 'src/protos',
         dest: 'dist/lite/firestore/src'
       }

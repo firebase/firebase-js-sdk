@@ -17,29 +17,29 @@
 
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import {
-  DocumentChangeType,
-  WhereFilterOp,
+  CollectionReference as PublicCollectionReference,
   DocumentChange as PublicDocumentChange,
+  DocumentChangeType,
+  DocumentData,
+  DocumentReference as PublicDocumentReference,
+  DocumentSnapshot as PublicDocumentSnapshot,
+  FirebaseFirestore as PublicFirestore,
+  FirestoreDataConverter,
+  GetOptions,
+  LogLevel as PublicLogLevel,
   OrderByDirection,
   PersistenceSettings as PublicPersistenceSettings,
-  QueryDocumentSnapshot as PublicQueryDocumentSnapshot,
-  GetOptions,
-  SnapshotOptions as PublicSnapshotOptions,
-  DocumentData,
-  QuerySnapshot as PublicQuerySnapshot,
-  SnapshotMetadata as PublicSnapshotMetadata,
-  SnapshotListenOptions,
-  Settings as PublicSettings,
-  FirebaseFirestore as PublicFirestore,
-  DocumentReference as PublicDocumentReference,
-  UpdateData,
-  CollectionReference as PublicCollectionReference,
-  DocumentSnapshot as PublicDocumentSnapshot,
-  SetOptions,
-  LogLevel as PublicLogLevel,
   Query as PublicQuery,
-  FirestoreDataConverter,
+  QueryDocumentSnapshot as PublicQueryDocumentSnapshot,
+  QuerySnapshot as PublicQuerySnapshot,
+  SetOptions,
+  Settings as PublicSettings,
+  SnapshotListenOptions,
+  SnapshotMetadata as PublicSnapshotMetadata,
+  SnapshotOptions as PublicSnapshotOptions,
   Transaction as PublicTransaction,
+  UpdateData,
+  WhereFilterOp,
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
 
@@ -170,7 +170,7 @@ export interface FirestoreDatabase {
 
 /**
  * A concrete type describing all the values that can be applied via a
- * user-supplied PublicSettings object. This is a separate type so that
+ * user-supplied firestore.Settings object. This is a separate type so that
  * defaults can be supplied and the value can be checked for equality.
  */
 class FirestoreSettings {
@@ -382,8 +382,8 @@ export class Firestore implements PublicFirestore, FirebaseService {
   }
 
   settings(settingsLiteral: PublicSettings): void {
-    validateExactNumberOfArgs('firestore.Settings', arguments, 1);
-    validateArgType('firestore.Settings', 'object', 1, settingsLiteral);
+    validateExactNumberOfArgs('Firestore.settings', arguments, 1);
+    validateArgType('Firestore.settings', 'object', 1, settingsLiteral);
 
     const newSettings = new FirestoreSettings(settingsLiteral);
     if (this._firestoreClient && !this._settings.isEqual(newSettings)) {
@@ -689,7 +689,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
     }
   }
 
-  static setLogLevel(level: LogLevel): void {
+  static setLogLevel(level: PublicLogLevel): void {
     validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
     validateStringEnum(
       'setLogLevel',
