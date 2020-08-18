@@ -376,7 +376,7 @@ export class SpecBuilder {
     this.currentStep = {
       loadBundle: bundleContent
     };
-    // Allocate umbrella target for bundles.
+    // Loading a bundle implicitly creates a new target. We advance the `queryIdGenerator` to match.
     this.queryIdGenerator.next(umbrellaTarget('test-bundle'));
     return this;
   }
