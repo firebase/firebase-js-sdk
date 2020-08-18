@@ -24,11 +24,7 @@ import { AuthErrorCode } from '../errors';
 import { assert } from '../util/assert';
 import { _getClientVersion, ClientPlatform } from '../util/version';
 import {
-  _castAuth,
-  AuthImpl,
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST
+    _castAuth, AuthImpl, DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST
 } from './auth_impl';
 import { AuthInternal } from './firebase_internal';
 
@@ -79,7 +75,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
       _AUTH_INTERNAL_COMPONENT_NAME,
       container => {
         const auth = _castAuth(
-          container.getProvider('auth-exp').getImmediate()!
+          container.getProvider(_AUTH_COMPONENT_NAME).getImmediate()!
         );
         return (auth => new AuthInternal(auth))(auth);
       },
