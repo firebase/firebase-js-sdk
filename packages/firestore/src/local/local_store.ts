@@ -1343,12 +1343,8 @@ export async function applyBundleDocuments(
                 documentKeys,
                 umbrellaTargetData.targetId
               )
-            );
-
-          return changedDocs;
-        })
-        .next(changedDocs => {
-          return localStoreImpl.localDocuments.getLocalViewOfDocuments(
+            ) .next(() => {
+            return localStoreImpl.localDocuments.getLocalViewOfDocuments(
             txn,
             changedDocs
           );
