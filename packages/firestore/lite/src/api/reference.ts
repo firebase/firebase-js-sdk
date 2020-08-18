@@ -82,10 +82,12 @@ import { Code, FirestoreError } from '../../../src/util/error';
 import { getDatastore } from './components';
 
 export interface DocumentData {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [field: string]: any;
 }
 
 export interface UpdateData {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [fieldPath: string]: any;
 }
 
