@@ -1279,24 +1279,20 @@ export async function ignoreIfPrimaryLeaseLoss(
 /**
  * Creates a new target using the given bundle name, which will be used to
  * hold the keys of all documents from the bundle in query-document mappings.
- * This would make sure the loaded documents will not get garbage collected
+ * This ensures that the loaded documents do not get garbage collected
  * right away.
  */
 export function umbrellaTarget(bundleName: string): Target {
   // It is OK that the path used for the query is not valid, because this will
   // not be read and queried.
   return queryToTarget(
-    newQueryForPath(ResourcePath.fromString(`__bundle__${bundleName}`))
+    newQueryForPath(ResourcePath.fromString(`__bundle__/docs/${bundleName}`))
   );
 }
 
 /**
  * Applies the documents from a bundle to the "ground-state" (remote)
  * documents.
- *
- * An umbrella target is passed to be used as a target holding references to
- * all documents loaded, such that they will not get garbage collected right
- * away.
  *
  * LocalDocuments are re-calculated if there are remaining mutations in the
  * queue.
@@ -1330,6 +1326,8 @@ export async function applyBundleDocuments(
     trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
   });
 
+  // Allocates a target to hold all document keys from the bundle, such that
+  // they will not get garbage collected right away.
   const umbrellaTargetData = await allocateTarget(
     localStoreImpl,
     umbrellaTarget(bundleName)

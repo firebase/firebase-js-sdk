@@ -441,7 +441,7 @@ export function docUpdateRemoteEvent(
 }
 
 export class TestBundledDocuments {
-  constructor(public documents: BundledDocuments, public bundleName?: string) {}
+  constructor(public documents: BundledDocuments, public bundleName: string) {}
 }
 
 export function bundledDocuments(
@@ -462,7 +462,7 @@ export function bundledDocuments(
     };
   });
 
-  return new TestBundledDocuments(result, bundleName);
+  return new TestBundledDocuments(result, bundleName || '');
 }
 
 export class TestNamedQuery {
