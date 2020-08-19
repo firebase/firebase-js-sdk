@@ -1,0 +1,8 @@
+{
+  "extends": "../../../config/api-extractor.json",
+  "mainEntryPointFilePath": "../dist/exp/firestore/exp/index.d.ts",
+  "dtsRollup": {
+    "enabled": true,
+    "publicTrimmedFilePath": "../dist/exp/index.d.ts"
+  }
+}
