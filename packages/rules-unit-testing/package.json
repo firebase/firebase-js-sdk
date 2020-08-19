@@ -21,16 +21,16 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "firebase": "7.17.2",
+    "firebase": "7.18.0",
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.3.0",
+    "@firebase/util": "0.3.1",
     "request": "2.88.2"
   },
   "devDependencies": {
     "@google-cloud/firestore": "4.2.0",
     "@types/request": "2.48.5",
     "firebase-admin": "9.0.0",
-    "firebase-tools": "8.7.0",
+    "firebase-tools": "8.6.0",
     "rollup": "2.23.0",
     "rollup-plugin-typescript2": "0.27.1"
   },
