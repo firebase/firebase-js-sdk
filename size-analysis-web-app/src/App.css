@@ -16,6 +16,11 @@
     height: 40vh;
     overflow: scroll;
 }
+.symbols-preview, .bar-chart, .symbol-report {
+    height: 45vh;
+    overflow: scroll;
+
+}
 .bundle-overview {
     background-color: #FFFFFF;
     height: 48vh;
@@ -23,6 +28,7 @@
 
 
 }
+
 .bundle-item {
     height: 80%;
     

@@ -20,7 +20,8 @@ export const TEXT = {
     sizePrompt: 'Size',
     sizeAfterGzipPrompt: 'Size After Gzip',
     unit: 'bytes',
-    outdatedBadgeText: 'Outdated'
+    outdatedBadgeText: 'Outdated',
+    chooseFile: 'Choose File'
 }
 
 export const ENDPOINTS = {
