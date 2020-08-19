@@ -49,35 +49,27 @@ const fullTestTriggerFiles = [
  */
 const alwaysRunTestPackages = [
   // These tests are very fast.
-  'firebase-namespace-integration-test'
+  'firebase-typescript-test'
 ];
 
 /**
  * These files trigger tests in other dirs
  */
 const specialPaths = {
-  // 'scripts/emulator-testing/emulators/firestore-emulator.ts': [
-  //   '@firebase/firestore'
-  // ],
+  'scripts/emulator-testing/emulators/firestore-emulator.ts': [
+    '@firebase/firestore'
+  ],
   'scripts/emulator-testing/emulators/database-emulator.ts': [
     '@firebase/database'
   ],
   'scripts/emulator-testing/emulators/emulator.ts': [
-    // '@firebase/firestore',
+    '@firebase/firestore',
     '@firebase/database'
   ],
-  // 'scripts/emulator-testing/firestore-test-runner.ts': ['@firebase/firestore'],
-  'scripts/emulator-testing/database-test-runner.ts': ['@firebase/database']
-  // 'packages/firestore': ['firebase-firestore-integration-test']
+  'scripts/emulator-testing/firestore-test-runner.ts': ['@firebase/firestore'],
+  'scripts/emulator-testing/database-test-runner.ts': ['@firebase/database'],
+  'packages/firestore': ['firebase-firestore-integration-test']
 };
-
-/**
- * Ignore firestore packages. They take a lot of time to run, so we run them in a separate workflow
- */
-const ignoredPackages = [
-  '@firebase/firestore',
-  'firebase-firestore-integration-test'
-];
 
 /**
  * Identify modified packages that require tests.
@@ -93,7 +85,6 @@ async function getChangedPackages() {
   const changedFiles = diff.split('\n');
   const changedPackages = {};
   for (const filename of changedFiles) {
-    console.log(filename);
     // Files that trigger full test suite.
     if (fullTestTriggerFiles.includes(filename)) {
       console.log(
@@ -116,7 +107,7 @@ async function getChangedPackages() {
     const match = filename.match('^(packages(-exp)?/[a-zA-Z0-9-]+)/.*');
     if (match && match[1]) {
       const changedPackage = require(resolve(root, match[1], 'package.json'));
-      if (changedPackage && !ignoredPackages.includes(changedPackage.name)) {
+      if (changedPackage) {
         // Add the package itself.
         changedPackages[changedPackage.name] = 'direct';
         // Add packages that depend on it.
@@ -156,12 +147,7 @@ async function main() {
   try {
     const { testAll, changedPackages = {} } = await getChangedPackages();
     if (testAll) {
-      const lernaCmd = ['lerna', 'run', '--concurrency', '4'];
-      // ignore packages
-      for (const pkg of ignoredPackages) {
-        lernaCmd.push('--ignore', pkg);
-      }
-      await spawn('yarn', [lernaCmd], {
+      await spawn('yarn', [testCommand], {
         stdio: 'inherit'
       });
     } else {
@@ -181,16 +167,17 @@ async function main() {
         }
       }
 
-      const lernaCmd = ['lerna', 'run', '--concurrency', '4'];
+      changedPackages['packages/app'] = 'direct';
+      let lernaCmds = ['lerna', 'run', '--concurrency', '4', '--stream'];
       const packagesToRun = alwaysRunTestPackages.concat(
         Object.keys(changedPackages)
       );
       for (const packageToRun of packagesToRun) {
-        lernaCmd.push('--scope');
-        lernaCmd.push(packageToRun);
+        lernaCmds.push('--scope');
+        lernaCmds.push(packageToRun);
       }
-      lernaCmd.push(testCommand);
-      await spawn('npx', lernaCmd, { stdio: 'inherit', cwd: root });
+      lernaCmds.push(testCommand);
+      await spawn('npx', lernaCmds, { stdio: 'inherit', cwd: root });
       process.exit();
     }
   } catch (e) {
