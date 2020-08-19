@@ -3,7 +3,7 @@ name: Canary Deploy
 on:
   push:
     branches:
-      - ch-canaryfix
+      - master
 
 jobs:
   deploy:
