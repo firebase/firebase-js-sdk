@@ -19,7 +19,12 @@ import { resolve } from 'path';
 import * as fs from 'fs';
 import { execSync } from 'child_process';
 import * as terser from 'terser';
-import { upload, runId, RequestBody } from './size_report_helper';
+import {
+  upload,
+  runId,
+  RequestBody,
+  RequestEndpoint
+} from './size_report_helper';
 
 interface Report {
   sdk: string;
@@ -136,9 +141,9 @@ function traverseDirs(
 
 function makeReportObject(sdk: string, type: string, value: number): Report {
   return {
-    sdk: sdk,
-    type: type,
-    value: value
+    sdk,
+    type,
+    value
   };
 }
 
@@ -164,4 +169,4 @@ function generateSizeReport(): BinarySizeRequestBody {
 }
 
 const report = generateSizeReport();
-upload(report, 'reports');
+upload(report, RequestEndpoint.BINARY_SIZE);

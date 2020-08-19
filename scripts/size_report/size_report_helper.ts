@@ -21,11 +21,15 @@ import * as https from 'https';
 export interface RequestBody {
   log: string;
 }
+export enum RequestEndpoint {
+  MODULAR_EXPORT_BINARY_SIZE = 'size_analysis',
+  BINARY_SIZE = 'reports'
+}
 export const runId = process.env.GITHUB_RUN_ID || 'local-run-id';
 
-export const METRICS_SERVICE_URL = process.env.METRICS_SERVICE_URL!;
+const METRICS_SERVICE_URL = process.env.METRICS_SERVICE_URL!;
 
-export function constructRequestPath(requestEndpoint: string): string {
+function constructRequestPath(requestEndpoint: string): string {
   const repo = process.env.GITHUB_REPOSITORY;
   const commit = process.env.GITHUB_SHA;
   let path = `/repos/${repo}/commits/${commit}/${requestEndpoint}`;
@@ -41,7 +45,7 @@ export function constructRequestPath(requestEndpoint: string): string {
   return path;
 }
 
-export function constructRequestOptions(path: string) {
+function constructRequestOptions(path: string) {
   const accessToken = execSync('gcloud auth print-identity-token', {
     encoding: 'utf8'
   }).trim();

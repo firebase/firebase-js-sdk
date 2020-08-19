@@ -21,17 +21,17 @@ import {
 } from '../../repo-scripts/size-analysis/analysis-helper';
 import { mapWorkspaceToPackages } from '../release/utils/workspace';
 import { projectRoot } from '../utils';
-import { upload, runId, RequestBody } from './size_report_helper';
+import {
+  upload,
+  runId,
+  RequestBody,
+  RequestEndpoint
+} from './size_report_helper';
 interface ModularExportBinarySizeRequestBody extends RequestBody {
   modules: Report[];
 }
 
 async function generateReport(): Promise<ModularExportBinarySizeRequestBody> {
-  const requestBody: ModularExportBinarySizeRequestBody = {
-    log: `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}`,
-    modules: []
-  };
-
   let allModulesLocation: string[] = await mapWorkspaceToPackages([
     `${projectRoot}/packages-exp/*`
   ]);
@@ -46,17 +46,15 @@ async function generateReport(): Promise<ModularExportBinarySizeRequestBody> {
   });
 
   const reports: Report[] = await generateReportForModules(allModulesLocation);
-
-  for (const report of reports) {
-    requestBody.modules.push(report);
-  }
-
-  return requestBody;
+  return {
+    log: `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}`,
+    modules: reports
+  };
 }
 
 async function main(): Promise<void> {
   const reports: ModularExportBinarySizeRequestBody = await generateReport();
   console.log(JSON.stringify(reports, null, 4));
-  upload(reports, 'size_analysis');
+  upload(reports, RequestEndpoint.MODULAR_EXPORT_BINARY_SIZE);
 }
 main();
