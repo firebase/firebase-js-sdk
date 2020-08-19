@@ -59,7 +59,10 @@ function constructRequestOptions(path: string) {
   };
 }
 
-export function upload(report: RequestBody, requestEndpoint: string): void {
+export function upload(
+  report: RequestBody,
+  requestEndpoint: RequestEndpoint
+): void {
   if (!process.env.GITHUB_ACTIONS) {
     console.log('Metrics upload is only enabled on CI.');
     return;
