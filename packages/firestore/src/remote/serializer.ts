@@ -70,7 +70,9 @@ import {
   Target as ProtoTarget,
   Timestamp as ProtoTimestamp,
   Value as ProtoValue,
-  Write as ProtoWrite
+  Write as ProtoWrite,
+  TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
+  WriteResult as ProtoWriteResult
 } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
@@ -97,10 +99,6 @@ import {
   WatchTargetChangeState
 } from './watch_change';
 import { isNanValue, isNullValue, normalizeTimestamp } from '../model/values';
-import {
-  TargetChangeTargetChangeType,
-  WriteResult
-} from '../protos/firestore_proto_api';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: ProtoOrderDirection } = {};
@@ -572,7 +570,7 @@ export function fromWatchChange(
 }
 
 function fromWatchTargetChangeState(
-  state: TargetChangeTargetChangeType
+  state: ProtoTargetChangeTargetChangeType
 ): WatchTargetChangeState {
   if (state === 'NO_CHANGE') {
     return WatchTargetChangeState.NoChange;
@@ -716,7 +714,7 @@ function fromPrecondition(precondition: ProtoPrecondition): Precondition {
 }
 
 function fromWriteResult(
-  proto: WriteResult,
+  proto: ProtoWriteResult,
   commitTime: ProtoTimestamp
 ): MutationResult {
   // NOTE: Deletes don't have an updateTime.
@@ -741,7 +739,7 @@ function fromWriteResult(
 }
 
 export function fromWriteResults(
-  protos: WriteResult[] | undefined,
+  protos: ProtoWriteResult[] | undefined,
   commitTime?: ProtoTimestamp
 ): MutationResult[] {
   if (protos && protos.length > 0) {
