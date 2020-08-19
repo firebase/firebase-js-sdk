@@ -164,11 +164,11 @@ export class BundleLoader {
   private documents: BundledDocuments = [];
 
   constructor(
-    private metadata: bundleProto.BundleMetadata,
+    private bundleMetadata: bundleProto.BundleMetadata,
     private localStore: LocalStore,
     private serializer: JsonProtoSerializer
   ) {
-    this.progress = bundleInitialProgress(metadata);
+    this.progress = bundleInitialProgress(bundleMetadata);
   }
 
   /**
@@ -244,12 +244,12 @@ export class BundleLoader {
         !!this.documents[this.documents.length - 1].document,
       'Bundled documents ends with a document metadata and missing document.'
     );
-    debugAssert(!!this.metadata.id, 'Bundle ID must be set.');
+    debugAssert(!!this.bundleMetadata.id, 'Bundle ID must be set.');
 
     const changedDocuments = await applyBundleDocuments(
       this.localStore,
       this.documents,
-      this.metadata.id!
+      this.bundleMetadata.id!
     );
 
     const queryDocumentMap = this.getQueryDocumentMapping(this.documents);
