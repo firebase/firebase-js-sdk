@@ -28,7 +28,7 @@ const argv = yargs.options({
   s: {
     type: 'string',
     desc: 'the npm script to run',
-    demandOption: true
+    default: 'test'
   }
 }).argv;
 
