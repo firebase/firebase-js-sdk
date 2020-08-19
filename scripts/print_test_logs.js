@@ -22,7 +22,8 @@ const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
 const LOGFILE = path.join(LOGDIR, 'firebase-ci-log.txt');
 const SUMMARY_FILE = path.join(LOGDIR, 'firebase-ci-summary.txt');
 
-const EXCESSIVE_RUN_TIME = 1000 * 60 * 60; // 1 hour
+// const EXCESSIVE_RUN_TIME = 1000 * 60 * 60; // 1 hour
+const EXCESSIVE_RUN_TIME = 1000 * 60 * 10; // 10 minutes, TEST
 
 (async () => {
   const now = Date.now();
