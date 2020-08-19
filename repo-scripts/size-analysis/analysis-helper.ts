@@ -733,7 +733,9 @@ export async function generateReportForModule(
       `Firebase Module locates at ${moduleLocation}: ${ErrorCode.PKG_JSON_DOES_NOT_EXIST}`
     );
   }
-  const packageJson = require(packageJsonPath);
+  const packageJson = JSON.parse(
+    fs.readFileSync(packageJsonPath, { encoding: 'utf-8' })
+  );
   // to exclude <modules>-types modules
   const TYPINGS: string = 'typings';
   if (packageJson[TYPINGS]) {
@@ -822,7 +824,9 @@ async function traverseDirs(
     if (
       fs.lstatSync(p).isDirectory() &&
       fs.existsSync(`${p}/package.json`) &&
-      require(`${p}/package.json`)[generateSizeAnalysisReportPkgJsonField]
+      JSON.parse(fs.readFileSync(`${p}/package.json`, { encoding: 'utf-8' }))[
+        generateSizeAnalysisReportPkgJsonField
+      ]
     ) {
       const subModuleReports: Report[] = await traverseDirs(
         p,

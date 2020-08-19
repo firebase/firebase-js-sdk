@@ -27,6 +27,7 @@ import {
 import { mapWorkspaceToPackages } from '../../scripts/release/utils/workspace';
 import { projectRoot } from '../../scripts/utils';
 import * as yargs from 'yargs';
+import * as fs from 'fs';
 
 /**
  * Support Command Line Options
@@ -93,7 +94,9 @@ async function main(): Promise<void> {
       `${projectRoot}/packages-exp/*`
     ]);
     allModulesLocation = allModulesLocation.filter(path => {
-      const json = require(`${path}/package.json`);
+      const json = JSON.parse(
+        fs.readFileSync(`${path}/package.json`, { encoding: 'utf-8' })
+      );
       return (
         json.name.startsWith('@firebase') &&
         !json.name.includes('-compat') &&
@@ -102,7 +105,9 @@ async function main(): Promise<void> {
     });
     if (argv.inputModule) {
       allModulesLocation = allModulesLocation.filter(path => {
-        const json = require(`${path}/package.json`);
+        const json = JSON.parse(
+          fs.readFileSync(`${path}/package.json`, { encoding: 'utf-8' })
+        );
         return argv.inputModule.includes(json.name);
       });
     }
@@ -128,4 +133,6 @@ async function main(): Promise<void> {
   }
 }
 
-main();
+main().catch(error => {
+  console.log(error);
+});

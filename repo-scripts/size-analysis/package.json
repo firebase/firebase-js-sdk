@@ -6,7 +6,9 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -16,18 +18,22 @@
     "type-check": "tsc -p . --noEmit"
   },
   "dependencies": {
-    "typescript": "3.9.7",
+    "@firebase/app": "0.6.10",
+    "@firebase/util": "0.3.1",
     "rollup": "2.23.0",
+    "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-json": "4.0.0",
+    "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.27.1",
-    "rollup-plugin-commonjs": "10.1.0",
-    "rollup-plugin-node-resolve": "5.2.0"
+    "tmp": "^0.2.1",
+    "typescript": "3.9.7",
+    "terser": "4.8.0",
+    "yargs": "15.4.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.3.1"
+    "@firebase/logger": "0.2.6"
   },
   "repository": {
     "directory": "repo-scripts/size-analysis",
