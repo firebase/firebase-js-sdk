@@ -25,6 +25,7 @@ import {
   JsonProtoSerializer
 } from '../remote/serializer';
 import * as bundleProto from '../protos/firestore_bundle_proto';
+import { BundleMetadata } from '../protos/firestore_bundle_proto';
 import * as api from '../protos/firestore_proto_api';
 import { DocumentKey } from '../model/document_key';
 import { MaybeDocument, NoDocument } from '../model/document';
@@ -40,7 +41,6 @@ import {
   DocumentKeySet,
   MaybeDocumentMap
 } from '../model/collections';
-import { BundleMetadata } from '../protos/firestore_bundle_proto';
 
 /**
  * Represents a Firestore bundle saved by the SDK in its local storage.
@@ -164,11 +164,11 @@ export class BundleLoader {
   private documents: BundledDocuments = [];
 
   constructor(
-    private metadata: bundleProto.BundleMetadata,
+    private bundleMetadata: bundleProto.BundleMetadata,
     private localStore: LocalStore,
     private serializer: JsonProtoSerializer
   ) {
-    this.progress = bundleInitialProgress(metadata);
+    this.progress = bundleInitialProgress(bundleMetadata);
   }
 
   /**
@@ -244,10 +244,12 @@ export class BundleLoader {
         !!this.documents[this.documents.length - 1].document,
       'Bundled documents ends with a document metadata and missing document.'
     );
+    debugAssert(!!this.bundleMetadata.id, 'Bundle ID must be set.');
 
     const changedDocuments = await applyBundleDocuments(
       this.localStore,
-      this.documents
+      this.documents,
+      this.bundleMetadata.id!
     );
 
     const queryDocumentMap = this.getQueryDocumentMapping(this.documents);

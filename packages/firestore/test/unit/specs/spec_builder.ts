@@ -62,6 +62,7 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
+import { ResourcePath } from '../../../src/model/path';
 
 const userDataWriter = testUserDataWriter();
 
@@ -375,6 +376,10 @@ export class SpecBuilder {
     this.currentStep = {
       loadBundle: bundleContent
     };
+    // Loading a bundle implicitly creates a new target. We advance the `queryIdGenerator` to match.
+    this.queryIdGenerator.next(
+      queryToTarget(newQueryForPath(ResourcePath.emptyPath()))
+    );
     return this;
   }
 

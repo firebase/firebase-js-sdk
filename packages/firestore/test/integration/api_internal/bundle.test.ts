@@ -242,6 +242,28 @@ apiDescribe('Bundles', (persistence: boolean) => {
     });
   });
 
+  it('loaded documents should not be GC-ed right away', () => {
+    return withTestDb(persistence, async db => {
+      const builder = bundleWithTestDocsAndQueries(db);
+
+      const fulfillProgress: firestore.LoadBundleTaskProgress = await db.loadBundle(
+        builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
+      );
+
+      verifySuccessProgress(fulfillProgress!);
+
+      // Read a different collection, this will trigger GC.
+      let snap = await db.collection('coll-other').get();
+      expect(snap.empty).to.be.true;
+
+      // Read the loaded documents, expecting document in cache. With memory
+      // GC, the documents would get GC-ed if we did not hold the document keys
+      // in a "umbrella" target. See local_store.ts for details.
+      snap = await db.collection('coll-1').get({ source: 'cache' });
+      verifySnapEqualTestDocs(snap);
+    });
+  });
+
   it('load with documents from other projects fails', () => {
     return withTestDb(persistence, async db => {
       let builder = bundleWithTestDocsAndQueries(db);
