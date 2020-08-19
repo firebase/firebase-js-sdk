@@ -24,23 +24,21 @@ const root = resolve(__dirname, '..');
 const git = simpleGit(root);
 
 // use test:ci command in CI
-const testCommand = !!process.env.CI ? 'test:ci' : 'test';
+// const testCommand = !!process.env.CI ? 'test:ci' : 'test';
+const testCommand = 'test:ci';
 
 /**
  * Changes to these files warrant running all tests.
  */
 const fullTestTriggerFiles = [
   // Global dependency changes.
-  'package.json',
   'yarn.lock',
   // Test/compile/lint configs.
   'config/karma.base.js',
-  'config/.eslintrc.js',
   'config/mocha.browser.opts',
   'config/mocharc.node.js',
   'config/tsconfig.base.json',
   'config/webpack.test.js',
-  'config/firestore.rules',
   'config/database.rules.json'
 ];
 
@@ -161,6 +159,8 @@ async function main() {
       for (const pkg of ignoredPackages) {
         lernaCmd.push('--ignore', pkg);
       }
+      lernaCmd.push(testCommand);
+
       await spawn('yarn', lernaCmd, {
         stdio: 'inherit'
       });

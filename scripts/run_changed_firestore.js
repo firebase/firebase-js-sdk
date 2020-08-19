@@ -29,47 +29,28 @@ const testCommand = !!process.env.CI ? 'test:ci' : 'test';
 /**
  * Changes to these files warrant running all tests.
  */
-const fullTestTriggerFiles = [
+const testTriggerFiles = [
   // Global dependency changes.
-  'package.json',
   'yarn.lock',
-  // Test/compile/lint configs.
+  // Test/compile configs.
   'config/karma.base.js',
-  'config/.eslintrc.js',
   'config/mocha.browser.opts',
   'config/mocharc.node.js',
   'config/tsconfig.base.json',
   'config/webpack.test.js',
   'config/firestore.rules',
-  'config/database.rules.json'
+  'scripts/emulator-testing/emulators/firestore-emulator.ts',
+  'scripts/emulator-testing/emulators/emulator.ts',
+  'scripts/emulator-testing/firestore-test-runner.ts'
 ];
 
 /**
- * Always run tests in these paths.
+ * packages to test
  */
-const alwaysRunTestPackages = [
-  // These tests are very fast.
-  'firebase-typescript-test'
+const specialPaths = [
+  '@firebase/firestore',
+  'firebase-firestore-integration-test'
 ];
-
-/**
- * These files trigger tests in other dirs
- */
-const specialPaths = {
-  'scripts/emulator-testing/emulators/firestore-emulator.ts': [
-    '@firebase/firestore'
-  ],
-  'scripts/emulator-testing/emulators/database-emulator.ts': [
-    '@firebase/database'
-  ],
-  'scripts/emulator-testing/emulators/emulator.ts': [
-    '@firebase/firestore',
-    '@firebase/database'
-  ],
-  'scripts/emulator-testing/firestore-test-runner.ts': ['@firebase/firestore'],
-  'scripts/emulator-testing/database-test-runner.ts': ['@firebase/database'],
-  'packages/firestore': ['firebase-firestore-integration-test']
-};
 
 /**
  * Identify modified packages that require tests.
