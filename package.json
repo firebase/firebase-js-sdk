@@ -39,6 +39,7 @@
     "ci:coverage": "lcov-result-merger 'packages/**/lcov.info' 'lcov-all.info'",
     "test:coverage": "lcov-result-merger 'packages/**/lcov.info' | coveralls",
     "test:changed": "node scripts/run_changed.js",
+    "test:changed:firestore": "ts-node-script scripts/run_changed_firestore.ts",
     "test:setup": "node tools/config.js",
     "test:saucelabs": "node scripts/run_saucelabs.js",
     "docgen:js": "node scripts/docgen/generate-docs.js --api js",
