@@ -28,7 +28,7 @@
     "dev": "rollup -c -w",
     "prepare": "yarn build",
     "test": "run-p lint test:browser",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch"
   },

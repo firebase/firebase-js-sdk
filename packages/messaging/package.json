@@ -13,9 +13,9 @@
     "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/'{app,messaging}' --include-dependencies build",
     "dev": "rollup -c -w",
-    "test": "test:karma",
+    "test": "run-p lint test:karma",
     "test:integration": "test:karma && cd ../../integration/messaging && npm run-script test",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:karma",
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "prepare": "yarn build"

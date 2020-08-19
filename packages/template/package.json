@@ -17,8 +17,9 @@
     "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/'{app,template}' --include-dependencies build",
     "dev": "rollup -c -w",
-    "test": "run-p lint test:browser test:node",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "test": "run-p lint test:all",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
+    "test:all": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.* --config ../../config/mocharc.node.js",
     "prepare": "yarn build"
