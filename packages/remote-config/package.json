@@ -15,7 +15,7 @@
     "build:deps": "lerna run --scope @firebase/'{app,remote-config}' --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p lint test:browser",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "prettier": "prettier --write '{src,test}/**/*.{js,ts}'",
