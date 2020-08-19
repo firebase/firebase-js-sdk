@@ -22,6 +22,7 @@ import { Trace } from '../resources/trace';
 import { Api, setupApi } from '../services/api_service';
 import { FirebaseApp } from '@firebase/app-types';
 import * as initializationService from '../services/initialization_service';
+import * as FirebaseUtil from '@firebase/util';
 import { consoleLogger } from '../utils/console_logger';
 import '../../test/setup';
 
@@ -46,11 +47,36 @@ describe('Firebase Performance Test', () => {
     it('does not initialize performance if the required apis are not available', () => {
       stub(Api.prototype, 'requiredApisAvailable').returns(false);
       stub(initializationService, 'getInitializationPromise');
+      new PerformanceController(fakeFirebaseApp);
+      expect(initializationService.getInitializationPromise).not.be.called;
+    });
+    it('does not initialize performance if validateIndexedDBOpenable return false', async () => {
+      stub(Api.prototype, 'requiredApisAvailable').returns(true);
+      const validateStub = stub(
+        FirebaseUtil,
+        'validateIndexedDBOpenable'
+      ).resolves(false);
+      stub(initializationService, 'getInitializationPromise');
+      new PerformanceController(fakeFirebaseApp);
+      await validateStub;
+      expect(initializationService.getInitializationPromise).not.be.called;
+    });
+
+    it('does not initialize performance if validateIndexedDBOpenable throws an error', async () => {
+      stub(Api.prototype, 'requiredApisAvailable').returns(true);
+      const validateStub = stub(
+        FirebaseUtil,
+        'validateIndexedDBOpenable'
+      ).rejects();
+
+      stub(initializationService, 'getInitializationPromise');
       stub(consoleLogger, 'info');
       new PerformanceController(fakeFirebaseApp);
-
-      expect(initializationService.getInitializationPromise).not.be.called;
-      expect(consoleLogger.info).be.called;
+      try {
+        await validateStub;
+        expect(initializationService.getInitializationPromise).not.be.called;
+        expect(consoleLogger.info).be.called;
+      } catch (ignored) {}
     });
   });
 
