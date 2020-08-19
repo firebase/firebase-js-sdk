@@ -49,10 +49,7 @@ const fullTestTriggerFiles = [
  */
 const alwaysRunTestPackages = [
   // These tests are very fast.
-  'firebase-browserify-test',
-  'firebase-package-typings-test',
-  'firebase-typescript-test',
-  'firebase-webpack-test'
+  'firebase-typescript-test'
 ];
 
 /**

@@ -1,5 +1,5 @@
 {
-  "name": "firebase-messaging-selenium-test",
+  "name": "firebase-messaging-integration-test",
   "private": true,
   "version": "0.2.1",
   "scripts": {

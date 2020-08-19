@@ -25,7 +25,7 @@ function validateNamespace(definition, candidate) {
     describe('Firebase SDK Version', function () {
       it('Should be properly defined', function () {
         __expect(candidate.SDK_VERSION).to.equal(
-          require('../../packages/firebase/package.json').version
+          require('../../../packages/firebase/package.json').version
         );
       });
     });
