@@ -5,6 +5,6 @@
   "module": "../dist/esm5/internal.js",
   "browser": "../dist/esm5/internal.js",
   "esm2017": "../dist/esm2017/internal.js",
-  "typings": "../dist/esm5/index.d.ts",
+  "typings": "../dist/esm5/internal/index.d.ts",
   "private": true
 }
