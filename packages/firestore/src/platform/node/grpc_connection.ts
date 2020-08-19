@@ -23,9 +23,6 @@ import {
 } from '@grpc/grpc-js';
 import * as grpcPkgJson from '@grpc/grpc-js/package.json';
 
-import firebase from '@firebase/app';
-const SDK_VERSION = firebase.SDK_VERSION;
-
 const grpcVersion = grpcPkgJson.version;
 
 import { Token } from '../../api/credentials';
@@ -38,12 +35,9 @@ import { FirestoreError } from '../../util/error';
 import { logError, logDebug, logWarn } from '../../util/log';
 import { NodeCallback, nodePromise } from '../../util/node_api';
 import { Deferred } from '../../util/promise';
+import { SDK_VERSION } from '../../core/version';
 
 const LOG_TAG = 'Connection';
-
-// TODO(b/38203344): The SDK_VERSION is set independently from Firebase because
-// we are doing out-of-band releases. Once we release as part of Firebase, we
-// should use the Firebase version instead.
 const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${SDK_VERSION} grpc/${grpcVersion}`;
 
 function createMetadata(databasePath: string, token: Token | null): Metadata {

@@ -160,7 +160,7 @@ class FirestoreSettings {
 
   readonly cacheSizeBytes: number;
 
-  readonly forceLongPolling: boolean;
+  readonly experimentalForceLongPolling: boolean;
 
   readonly ignoreUndefinedProperties: boolean;
 
@@ -263,7 +263,7 @@ class FirestoreSettings {
       'experimentalForceLongPolling',
       settings.experimentalForceLongPolling
     );
-    this.forceLongPolling =
+    this.experimentalForceLongPolling =
       settings.experimentalForceLongPolling ?? DEFAULT_FORCE_LONG_POLLING;
   }
 
@@ -274,7 +274,8 @@ class FirestoreSettings {
       this.timestampsInSnapshots === other.timestampsInSnapshots &&
       this.credentials === other.credentials &&
       this.cacheSizeBytes === other.cacheSizeBytes &&
-      this.forceLongPolling === other.forceLongPolling &&
+      this.experimentalForceLongPolling ===
+        other.experimentalForceLongPolling &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties
     );
   }
@@ -360,6 +361,12 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   settings(settingsLiteral: firestore.Settings): void {
     validateExactNumberOfArgs('Firestore.settings', arguments, 1);
     validateArgType('Firestore.settings', 'object', 1, settingsLiteral);
+
+    if (settingsLiteral.merge) {
+      settingsLiteral = { ...this._settings, ...settingsLiteral };
+      // Remove the property from the settings once the merge is completed
+      delete settingsLiteral.merge;
+    }
 
     const newSettings = new FirestoreSettings(settingsLiteral);
     if (this._firestoreClient && !this._settings.isEqual(newSettings)) {
@@ -516,7 +523,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._persistenceKey,
       this._settings.host,
       this._settings.ssl,
-      this._settings.forceLongPolling
+      this._settings.experimentalForceLongPolling
     );
   }
 
@@ -680,6 +687,11 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // the way TypeScript compiler outputs properties.
   _areTimestampsInSnapshotsEnabled(): boolean {
     return this._settings.timestampsInSnapshots;
+  }
+
+  // Visible for testing.
+  _getSettings(): firestore.Settings {
+    return this._settings;
   }
 }
 
