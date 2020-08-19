@@ -18,6 +18,11 @@
 const yargs = require('yargs');
 const path = require('path');
 const { spawn } = require('child-process-promise');
+const { appendFileSync } = require('fs');
+
+const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
+const LOGFILE = path.join(LOGDIR, 'firebase-ci-log.txt');
+const SUMMARY_FILE = path.join(LOGDIR, 'firebase-ci-summary.txt');
 
 const argv = yargs.options({
   d: {
@@ -52,10 +57,14 @@ const argv = yargs.options({
 
     await testProcess;
     console.log('Success: ' + name);
+    appendFileSync(LOGFILE, stdout + '\n' + stderr, { encoding: 'utf8' });
+    appendFileSync(SUMMARY_FILE, `Success: ${name}\n`, { encoding: 'utf8' });
   } catch (e) {
     console.error('Failure: ' + name);
     console.log(stdout);
     console.error(stderr);
+    appendFileSync(LOGFILE, stdout + '\n' + stderr, { encoding: 'utf8' });
+    appendFileSync(SUMMARY_FILE, `Failure: ${name}\n`, { encoding: 'utf8' });
     process.exit(1);
   }
 })();
