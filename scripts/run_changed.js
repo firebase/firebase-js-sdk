@@ -161,7 +161,7 @@ async function main() {
       for (const pkg of ignoredPackages) {
         lernaCmd.push('--ignore', pkg);
       }
-      await spawn('yarn', [lernaCmd], {
+      await spawn('yarn', lernaCmd, {
         stdio: 'inherit'
       });
     } else {
