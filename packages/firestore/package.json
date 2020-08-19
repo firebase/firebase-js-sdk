@@ -57,7 +57,6 @@
   "license": "Apache-2.0",
   "files": [
     "dist",
-    "lite/package.json",
     "memory/package.json"
   ],
   "dependencies": {
