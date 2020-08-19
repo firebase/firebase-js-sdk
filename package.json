@@ -32,7 +32,7 @@
     "release": "ts-node-script scripts/release/cli.ts",
     "pretest": "node tools/pretest.js",
     "test": "lerna run --concurrency 4 test",
-    "test:ci": "lerna run --concurrency 4 --scope @firebase/util --scope @firebase/logger test:ci",
+    "test:ci": "lerna run --concurrency 4 test:ci",
     "test:release": "lerna run --concurrency 4 --ignore @firebase/*-exp --ignore firebase-exp test:ci",
     "test:exp": "lerna run --concurrency 4 --scope @firebase/*-exp --scope firebase-exp test",
     "pretest:coverage": "mkdirp coverage",
