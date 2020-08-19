@@ -365,31 +365,6 @@ export function snapshotEqual<T>(
   right: DocumentSnapshot<T> | QuerySnapshot<T>
 ): boolean;
 
-export type FirestoreErrorCode =
-  | 'cancelled'
-  | 'unknown'
-  | 'invalid-argument'
-  | 'deadline-exceeded'
-  | 'not-found'
-  | 'already-exists'
-  | 'permission-denied'
-  | 'resource-exhausted'
-  | 'failed-precondition'
-  | 'aborted'
-  | 'out-of-range'
-  | 'unimplemented'
-  | 'internal'
-  | 'unavailable'
-  | 'data-loss'
-  | 'unauthenticated';
-
-export interface FirestoreError {
-  code: FirestoreErrorCode;
-  message: string;
-  name: string;
-  stack?: string;
-}
-
 declare module '@firebase/component' {
   interface NameServiceMapping {
     'firestore/lite': FirebaseFirestore;

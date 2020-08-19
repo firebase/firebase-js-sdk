@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../../exp-types';
-
 import { Transaction as LiteTransaction } from '../../../lite/src/api/transaction';
 import { DocumentSnapshot } from './snapshot';
 import { TransactionRunner } from '../../../src/core/transaction_runner';
@@ -28,9 +26,9 @@ import { SnapshotMetadata } from '../../../src/api/database';
 import { Transaction as InternalTransaction } from '../../../src/core/transaction';
 import { validateReference } from '../../../lite/src/api/write_batch';
 import { getDatastore } from '../../../lite/src/api/components';
+import { DocumentReference } from '../../../lite/src/api/reference';
 
-export class Transaction extends LiteTransaction
-  implements firestore.Transaction {
+export class Transaction extends LiteTransaction {
   // This class implements the same logic as the Transaction API in the Lite SDK
   // but is subclassed in order to return its own DocumentSnapshot types.
 
@@ -41,9 +39,7 @@ export class Transaction extends LiteTransaction
     super(_firestore, _transaction);
   }
 
-  get<T>(
-    documentRef: firestore.DocumentReference<T>
-  ): Promise<DocumentSnapshot<T>> {
+  get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     const ref = validateReference<T>(documentRef, this._firestore);
     return super
       .get(documentRef)
@@ -64,8 +60,8 @@ export class Transaction extends LiteTransaction
 }
 
 export function runTransaction<T>(
-  firestore: firestore.FirebaseFirestore,
-  updateFunction: (transaction: firestore.Transaction) => Promise<T>
+  firestore: Firestore,
+  updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
   const firestoreClient = cast(firestore, Firestore);
   const datastore = getDatastore(firestoreClient);

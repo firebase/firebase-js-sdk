@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../../exp-types';
-
 import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
 import { _FirebaseService, FirebaseApp } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
@@ -37,7 +35,10 @@ import {
   MultiTabOfflineComponentProvider,
   OnlineComponentProvider
 } from '../../../src/core/component_provider';
-import { Firestore as LiteFirestore } from '../../../lite/src/api/database';
+import {
+  Firestore as LiteFirestore,
+  Settings as LiteSettings
+} from '../../../lite/src/api/database';
 import { cast } from '../../../lite/src/api/util';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
@@ -65,12 +66,15 @@ import { logDebug } from '../../../src/util/log';
 
 const LOG_TAG = 'Firestore';
 
+export interface Settings extends LiteSettings {
+  cacheSizeBytes?: number;
+}
+
 /**
  * The root reference to the Firestore database and the entry point for the
  * tree-shakeable SDK.
  */
-export class Firestore extends LiteFirestore
-  implements firestore.FirebaseFirestore, _FirebaseService {
+export class Firestore extends LiteFirestore implements _FirebaseService {
   readonly _queue = new AsyncQueue();
   readonly _persistenceKey: string;
   readonly _clientId = AutoId.newId();
@@ -81,7 +85,7 @@ export class Firestore extends LiteFirestore
 
   // We override the Settings property of the Lite SDK since the full Firestore
   // SDK supports more settings.
-  protected _settings?: firestore.Settings;
+  protected _settings?: Settings;
 
   constructor(
     app: FirebaseApp,
@@ -128,7 +132,7 @@ export class Firestore extends LiteFirestore
     };
   }
 
-  _getSettings(): firestore.Settings {
+  _getSettings(): Settings {
     return super._getSettings();
   }
 
@@ -160,7 +164,7 @@ export class Firestore extends LiteFirestore
 
 export function initializeFirestore(
   app: FirebaseApp,
-  settings: firestore.Settings
+  settings: Settings
 ): Firestore {
   const firestore = _getProvider(
     app,
@@ -187,7 +191,7 @@ export function getFirestore(app: FirebaseApp): Firestore {
 }
 
 export function enableIndexedDbPersistence(
-  firestore: firestore.FirebaseFirestore
+  firestore: Firestore
 ): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
   verifyNotInitialized(firestoreImpl);
@@ -213,7 +217,7 @@ export function enableIndexedDbPersistence(
 }
 
 export function enableMultiTabIndexedDbPersistence(
-  firestore: firestore.FirebaseFirestore
+  firestore: Firestore
 ): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
   verifyNotInitialized(firestoreImpl);
@@ -243,9 +247,7 @@ export function enableMultiTabIndexedDbPersistence(
   );
 }
 
-export function clearIndexedDbPersistence(
-  firestore: firestore.FirebaseFirestore
-): Promise<void> {
+export function clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
   if (firestoreImpl._initialized && !firestoreImpl._terminated) {
     throw new FirestoreError(
@@ -272,18 +274,14 @@ export function clearIndexedDbPersistence(
   return deferred.promise;
 }
 
-export function waitForPendingWrites(
-  firestore: firestore.FirebaseFirestore
-): Promise<void> {
+export function waitForPendingWrites(firestore: Firestore): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
   return getSyncEngine(firestoreImpl).then(syncEngine =>
     enqueueWaitForPendingWrites(firestoreImpl._queue, syncEngine)
   );
 }
 
-export function enableNetwork(
-  firestore: firestore.FirebaseFirestore
-): Promise<void> {
+export function enableNetwork(firestore: Firestore): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
   return Promise.all([
     getRemoteStore(firestoreImpl),
@@ -298,9 +296,7 @@ export function enableNetwork(
   );
 }
 
-export function disableNetwork(
-  firestore: firestore.FirebaseFirestore
-): Promise<void> {
+export function disableNetwork(firestore: Firestore): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
   return Promise.all([
     getRemoteStore(firestoreImpl),
@@ -315,9 +311,7 @@ export function disableNetwork(
   );
 }
 
-export function terminate(
-  firestore: firestore.FirebaseFirestore
-): Promise<void> {
+export function terminate(firestore: Firestore): Promise<void> {
   _removeServiceInstance(firestore.app, 'firestore-exp');
   const firestoreImpl = cast(firestore, Firestore);
   return firestoreImpl.delete();

@@ -15,19 +15,13 @@
  * limitations under the License.
  */
 
-// See https://github.com/typescript-eslint/typescript-eslint/issues/363
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import * as firestore from '../../../exp-types';
-
 import { cast } from '../../../lite/src/api/util';
 import { WriteBatch } from '../../../lite/src/api/write_batch';
 import { Firestore } from './database';
 import { getSyncEngine } from './components';
 import { enqueueWrite } from '../../../src/core/firestore_client';
 
-export function writeBatch(
-  firestore: firestore.FirebaseFirestore
-): firestore.WriteBatch {
+export function writeBatch(firestore: Firestore): WriteBatch {
   const firestoreImpl = cast(firestore, Firestore);
   return new WriteBatch(firestoreImpl, writes =>
     getSyncEngine(firestoreImpl).then(syncEngine =>

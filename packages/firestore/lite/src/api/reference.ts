@@ -49,6 +49,7 @@ import { AutoId } from '../../../src/util/misc';
 import {
   DocumentSnapshot,
   fieldPathFromArgument,
+  FirestoreDataConverter,
   QueryDocumentSnapshot,
   QuerySnapshot
 } from './snapshot';
@@ -89,12 +90,6 @@ export interface DocumentData {
 export interface UpdateData {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [fieldPath: string]: any;
-}
-
-export interface FirestoreDataConverter<T> {
-  toFirestore(modelObject: T): DocumentData;
-  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
-  fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
 }
 
 export type SetOptions =

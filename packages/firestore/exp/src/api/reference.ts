@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-// See https://github.com/typescript-eslint/typescript-eslint/issues/363
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import * as firestore from '../../../exp-types';
-
 import { Firestore } from './database';
 import {
   DocumentKeyReference,
@@ -41,7 +37,9 @@ import {
   doc,
   DocumentReference,
   newUserDataReader,
-  Query
+  Query,
+  SetOptions,
+  UpdateData
 } from '../../../lite/src/api/reference';
 import { Document } from '../../../src/model/document';
 import { DeleteMutation, Precondition } from '../../../src/model/mutation';
@@ -56,19 +54,48 @@ import {
 } from '../../../src/api/observer';
 import { getEventManager, getLocalStore, getSyncEngine } from './components';
 import {
-  enqueueListen,
-  enqueueWrite,
-  enqueueExecuteQueryViaSnapshotListener,
-  enqueueReadDocumentViaSnapshotListener,
-  enqueueReadDocumentFromCache,
   enqueueExecuteQueryFromCache,
-  enqueueSnapshotsInSyncListen
+  enqueueExecuteQueryViaSnapshotListener,
+  enqueueListen,
+  enqueueReadDocumentFromCache,
+  enqueueReadDocumentViaSnapshotListener,
+  enqueueSnapshotsInSyncListen,
+  enqueueWrite
 } from '../../../src/core/firestore_client';
 import { newQueryForPath } from '../../../src/core/query';
 
+export interface SnapshotListenOptions {
+  readonly includeMetadataChanges?: boolean;
+}
+
+export type FirestoreErrorCode =
+  | 'cancelled'
+  | 'unknown'
+  | 'invalid-argument'
+  | 'deadline-exceeded'
+  | 'not-found'
+  | 'already-exists'
+  | 'permission-denied'
+  | 'resource-exhausted'
+  | 'failed-precondition'
+  | 'aborted'
+  | 'out-of-range'
+  | 'unimplemented'
+  | 'internal'
+  | 'unavailable'
+  | 'data-loss'
+  | 'unauthenticated';
+
+export interface FirestoreError {
+  code: FirestoreErrorCode;
+  message: string;
+  name: string;
+  stack?: string;
+}
+
 export function getDoc<T>(
-  reference: firestore.DocumentReference<T>
-): Promise<firestore.DocumentSnapshot<T>> {
+  reference: DocumentReference<T>
+): Promise<DocumentSnapshot<T>> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
   return getEventManager(firestore).then(eventManager =>
@@ -81,8 +108,8 @@ export function getDoc<T>(
 }
 
 export function getDocFromCache<T>(
-  reference: firestore.DocumentReference<T>
-): Promise<firestore.DocumentSnapshot<T>> {
+  reference: DocumentReference<T>
+): Promise<DocumentSnapshot<T>> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
   return getLocalStore(firestore).then(localStore =>
@@ -103,8 +130,8 @@ export function getDocFromCache<T>(
 }
 
 export function getDocFromServer<T>(
-  reference: firestore.DocumentReference<T>
-): Promise<firestore.DocumentSnapshot<T>> {
+  reference: DocumentReference<T>
+): Promise<DocumentSnapshot<T>> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
   return getEventManager(firestore).then(eventManager =>
@@ -117,9 +144,7 @@ export function getDocFromServer<T>(
   );
 }
 
-export function getDocs<T>(
-  query: firestore.Query<T>
-): Promise<QuerySnapshot<T>> {
+export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
   const firestore = cast<Firestore>(query.firestore, Firestore);
 
@@ -134,7 +159,7 @@ export function getDocs<T>(
 }
 
 export function getDocsFromCache<T>(
-  query: firestore.Query<T>
+  query: Query<T>
 ): Promise<QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
   const firestore = cast<Firestore>(query.firestore, Firestore);
@@ -148,7 +173,7 @@ export function getDocsFromCache<T>(
 }
 
 export function getDocsFromServer<T>(
-  query: firestore.Query<T>
+  query: Query<T>
 ): Promise<QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
   const firestore = cast<Firestore>(query.firestore, Firestore);
@@ -163,18 +188,18 @@ export function getDocsFromServer<T>(
 }
 
 export function setDoc<T>(
-  reference: firestore.DocumentReference<T>,
+  reference: DocumentReference<T>,
   data: T
 ): Promise<void>;
 export function setDoc<T>(
-  reference: firestore.DocumentReference<T>,
+  reference: DocumentReference<T>,
   data: Partial<T>,
-  options: firestore.SetOptions
+  options: SetOptions
 ): Promise<void>;
 export function setDoc<T>(
-  reference: firestore.DocumentReference<T>,
+  reference: DocumentReference<T>,
   data: T,
-  options?: firestore.SetOptions
+  options?: SetOptions
 ): Promise<void> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast(ref.firestore, Firestore);
@@ -204,18 +229,18 @@ export function setDoc<T>(
 }
 
 export function updateDoc(
-  reference: firestore.DocumentReference<unknown>,
-  data: firestore.UpdateData
+  reference: DocumentReference<unknown>,
+  data: UpdateData
 ): Promise<void>;
 export function updateDoc(
-  reference: firestore.DocumentReference<unknown>,
-  field: string | firestore.FieldPath,
+  reference: DocumentReference<unknown>,
+  field: string | FieldPath,
   value: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void>;
 export function updateDoc(
-  reference: firestore.DocumentReference<unknown>,
-  fieldOrUpdateData: string | firestore.FieldPath | firestore.UpdateData,
+  reference: DocumentReference<unknown>,
+  fieldOrUpdateData: string | FieldPath | UpdateData,
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
@@ -254,9 +279,7 @@ export function updateDoc(
   );
 }
 
-export function deleteDoc(
-  reference: firestore.DocumentReference
-): Promise<void> {
+export function deleteDoc(reference: DocumentReference): Promise<void> {
   const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
   const firestore = cast(ref.firestore, Firestore);
   return getSyncEngine(firestore).then(syncEngine =>
@@ -267,9 +290,9 @@ export function deleteDoc(
 }
 
 export function addDoc<T>(
-  reference: firestore.CollectionReference<T>,
+  reference: CollectionReference<T>,
   data: T
-): Promise<firestore.DocumentReference<T>> {
+): Promise<DocumentReference<T>> {
   const collRef = cast<CollectionReference<T>>(reference, CollectionReference);
   const firestore = cast(collRef.firestore, Firestore);
   const docRef = doc(collRef);
@@ -300,75 +323,76 @@ export function addDoc<T>(
 // TODO(firestorexp): Make sure these overloads are tested via the Firestore
 // integration tests
 export function onSnapshot<T>(
-  reference: firestore.DocumentReference<T>,
+  reference: DocumentReference<T>,
   observer: {
-    next?: (snapshot: firestore.DocumentSnapshot<T>) => void;
-    error?: (error: firestore.FirestoreError) => void;
+    next?: (snapshot: DocumentSnapshot<T>) => void;
+    error?: (error: FirestoreError) => void;
+    complete?: () => void;
+  }
+): Unsubscribe;
+
+export function onSnapshot<T>(
+  reference: DocumentReference<T>,
+  options: SnapshotListenOptions,
+  observer: {
+    next?: (snapshot: DocumentSnapshot<T>) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): Unsubscribe;
 export function onSnapshot<T>(
-  reference: firestore.DocumentReference<T>,
-  options: firestore.SnapshotListenOptions,
+  reference: DocumentReference<T>,
+  onNext: (snapshot: DocumentSnapshot<T>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
+export function onSnapshot<T>(
+  reference: DocumentReference<T>,
+  options: SnapshotListenOptions,
+  onNext: (snapshot: DocumentSnapshot<T>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
+export function onSnapshot<T>(
+  query: Query<T>,
   observer: {
-    next?: (snapshot: firestore.DocumentSnapshot<T>) => void;
-    error?: (error: firestore.FirestoreError) => void;
+    next?: (snapshot: QuerySnapshot<T>) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): Unsubscribe;
 export function onSnapshot<T>(
-  reference: firestore.DocumentReference<T>,
-  onNext: (snapshot: firestore.DocumentSnapshot<T>) => void,
-  onError?: (error: firestore.FirestoreError) => void,
-  onCompletion?: () => void
-): Unsubscribe;
-export function onSnapshot<T>(
-  reference: firestore.DocumentReference<T>,
-  options: firestore.SnapshotListenOptions,
-  onNext: (snapshot: firestore.DocumentSnapshot<T>) => void,
-  onError?: (error: firestore.FirestoreError) => void,
-  onCompletion?: () => void
-): Unsubscribe;
-export function onSnapshot<T>(
-  query: firestore.Query<T>,
+  query: Query<T>,
+  options: SnapshotListenOptions,
   observer: {
-    next?: (snapshot: firestore.QuerySnapshot<T>) => void;
-    error?: (error: firestore.FirestoreError) => void;
+    next?: (snapshot: QuerySnapshot<T>) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): Unsubscribe;
 export function onSnapshot<T>(
-  query: firestore.Query<T>,
-  options: firestore.SnapshotListenOptions,
-  observer: {
-    next?: (snapshot: firestore.QuerySnapshot<T>) => void;
-    error?: (error: firestore.FirestoreError) => void;
-    complete?: () => void;
-  }
-): Unsubscribe;
-export function onSnapshot<T>(
-  query: firestore.Query<T>,
-  onNext: (snapshot: firestore.QuerySnapshot<T>) => void,
-  onError?: (error: firestore.FirestoreError) => void,
+  query: Query<T>,
+  onNext: (snapshot: QuerySnapshot<T>) => void,
+  onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
 export function onSnapshot<T>(
-  query: firestore.Query<T>,
-  options: firestore.SnapshotListenOptions,
-  onNext: (snapshot: firestore.QuerySnapshot<T>) => void,
-  onError?: (error: firestore.FirestoreError) => void,
+  query: Query<T>,
+  options: SnapshotListenOptions,
+  onNext: (snapshot: QuerySnapshot<T>) => void,
+  onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
 export function onSnapshot<T>(
-  ref: firestore.Query<T> | firestore.DocumentReference<T>,
+  ref: Query<T> | DocumentReference<T>,
   ...args: unknown[]
 ): Unsubscribe {
-  let options: firestore.SnapshotListenOptions = {
+  let options: SnapshotListenOptions = {
     includeMetadataChanges: false
   };
   let currArg = 0;
   if (typeof args[currArg] === 'object' && !isPartialObserver(args[currArg])) {
-    options = args[currArg] as firestore.SnapshotListenOptions;
+    options = args[currArg] as SnapshotListenOptions;
     currArg++;
   }
 
@@ -377,9 +401,7 @@ export function onSnapshot<T>(
   };
 
   if (isPartialObserver(args[currArg])) {
-    const userObserver = args[currArg] as PartialObserver<
-      firestore.QuerySnapshot<T>
-    >;
+    const userObserver = args[currArg] as PartialObserver<QuerySnapshot<T>>;
     args[currArg] = userObserver.next?.bind(userObserver);
     args[currArg + 1] = userObserver.error?.bind(userObserver);
     args[currArg + 2] = userObserver.complete?.bind(userObserver);
@@ -393,7 +415,7 @@ export function onSnapshot<T>(
     const observer: PartialObserver<ViewSnapshot> = {
       next: snapshot => {
         if (args[currArg]) {
-          (args[currArg] as NextFn<firestore.DocumentSnapshot<T>>)(
+          (args[currArg] as NextFn<DocumentSnapshot<T>>)(
             convertToDocSnapshot(firestore, ref, snapshot)
           );
         }
@@ -418,7 +440,7 @@ export function onSnapshot<T>(
     const observer: PartialObserver<ViewSnapshot> = {
       next: snapshot => {
         if (args[currArg]) {
-          (args[currArg] as NextFn<firestore.QuerySnapshot<T>>)(
+          (args[currArg] as NextFn<QuerySnapshot<T>>)(
             new QuerySnapshot(firestore, query, snapshot)
           );
         }
@@ -451,19 +473,19 @@ export function onSnapshot<T>(
 // TODO(firestorexp): Make sure these overloads are tested via the Firestore
 // integration tests
 export function onSnapshotsInSync(
-  firestore: firestore.FirebaseFirestore,
+  firestore: Firestore,
   observer: {
     next?: (value: void) => void;
-    error?: (error: firestore.FirestoreError) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): Unsubscribe;
 export function onSnapshotsInSync(
-  firestore: firestore.FirebaseFirestore,
+  firestore: Firestore,
   onSync: () => void
 ): Unsubscribe;
 export function onSnapshotsInSync(
-  firestore: firestore.FirebaseFirestore,
+  firestore: Firestore,
   arg: unknown
 ): Unsubscribe {
   const firestoreImpl = cast(firestore, Firestore);

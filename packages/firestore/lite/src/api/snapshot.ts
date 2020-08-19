@@ -20,7 +20,8 @@ import {
   DocumentData,
   DocumentReference,
   Query,
-  queryEqual
+  queryEqual,
+  SetOptions
 } from './reference';
 import { FieldPath } from './field_path';
 import { cast } from './util';
@@ -33,6 +34,12 @@ import {
   UntypedFirestoreDataConverter
 } from '../../../src/api/user_data_reader';
 import { arrayEquals } from '../../../src/util/misc';
+
+export interface FirestoreDataConverter<T> {
+  toFirestore(modelObject: T): DocumentData;
+  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+  fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
+}
 
 export class DocumentSnapshot<T = DocumentData> {
   // Note: This class is stripped down version of the DocumentSnapshot in
