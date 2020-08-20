@@ -23,6 +23,7 @@ const includeOnlyPackages = ['firebase-messaging-integration-test'];
 async function run() {
   let testTasks = await getTestTasks();
   testTasks = testTasks.filter(t => includeOnlyPackages.includes(t.pkgName));
+
   await buildForTests(testTasks);
   runTests(testTasks);
 }

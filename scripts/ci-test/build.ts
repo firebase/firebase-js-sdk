@@ -27,7 +27,8 @@ export async function buildForTests(
 ) {
   try {
     if (testTasks.length === 0) {
-      chalk`{green No test tasks. Skipping all tests }`;
+      console.log(chalk`{green No test tasks. Skipping all builds }`);
+      return;
     }
 
     // hack to build Firestore which depends on @firebase/app-exp (because of firestore exp),
