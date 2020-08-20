@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
+import { Value as ProtoValue } from '../protos/firestore_proto_api';
 
 import { compareDocumentsByField, Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -579,7 +579,7 @@ export class FieldFilter extends Filter {
   protected constructor(
     public field: FieldPath,
     public op: Operator,
-    public value: api.Value
+    public value: ProtoValue
   ) {
     super();
   }
@@ -587,7 +587,11 @@ export class FieldFilter extends Filter {
   /**
    * Creates a filter based on the provided arguments.
    */
-  static create(field: FieldPath, op: Operator, value: api.Value): FieldFilter {
+  static create(
+    field: FieldPath,
+    op: Operator,
+    value: ProtoValue
+  ): FieldFilter {
     if (field.isKeyField()) {
       if (op === Operator.IN || op === Operator.NOT_IN) {
         return this.createKeyFieldInFilter(field, op, value);
@@ -648,7 +652,7 @@ export class FieldFilter extends Filter {
   private static createKeyFieldInFilter(
     field: FieldPath,
     op: Operator.IN | Operator.NOT_IN,
-    value: api.Value
+    value: ProtoValue
   ): FieldFilter {
     debugAssert(
       isArray(value),
@@ -759,7 +763,7 @@ export function stringifyFilter(filter: Filter): string {
 export class KeyFieldFilter extends FieldFilter {
   private readonly key: DocumentKey;
 
-  constructor(field: FieldPath, op: Operator, value: api.Value) {
+  constructor(field: FieldPath, op: Operator, value: ProtoValue) {
     super(field, op, value);
     debugAssert(
       isReferenceValue(value),
@@ -778,7 +782,7 @@ export class KeyFieldFilter extends FieldFilter {
 export class KeyFieldInFilter extends FieldFilter {
   private readonly keys: DocumentKey[];
 
-  constructor(field: FieldPath, value: api.Value) {
+  constructor(field: FieldPath, value: ProtoValue) {
     super(field, Operator.IN, value);
     this.keys = extractDocumentKeysFromArrayValue(Operator.IN, value);
   }
@@ -792,7 +796,7 @@ export class KeyFieldInFilter extends FieldFilter {
 export class KeyFieldNotInFilter extends FieldFilter {
   private readonly keys: DocumentKey[];
 
-  constructor(field: FieldPath, value: api.Value) {
+  constructor(field: FieldPath, value: ProtoValue) {
     super(field, Operator.NOT_IN, value);
     this.keys = extractDocumentKeysFromArrayValue(Operator.NOT_IN, value);
   }
@@ -804,7 +808,7 @@ export class KeyFieldNotInFilter extends FieldFilter {
 
 function extractDocumentKeysFromArrayValue(
   op: Operator.IN | Operator.NOT_IN,
-  value: api.Value
+  value: ProtoValue
 ): DocumentKey[] {
   debugAssert(
     isArray(value),
@@ -822,7 +826,7 @@ function extractDocumentKeysFromArrayValue(
 
 /** A Filter that implements the array-contains operator. */
 export class ArrayContainsFilter extends FieldFilter {
-  constructor(field: FieldPath, value: api.Value) {
+  constructor(field: FieldPath, value: ProtoValue) {
     super(field, Operator.ARRAY_CONTAINS, value);
   }
 
@@ -834,7 +838,7 @@ export class ArrayContainsFilter extends FieldFilter {
 
 /** A Filter that implements the IN operator. */
 export class InFilter extends FieldFilter {
-  constructor(field: FieldPath, value: api.Value) {
+  constructor(field: FieldPath, value: ProtoValue) {
     super(field, Operator.IN, value);
     debugAssert(isArray(value), 'InFilter expects an ArrayValue');
   }
@@ -847,7 +851,7 @@ export class InFilter extends FieldFilter {
 
 /** A Filter that implements the not-in operator. */
 export class NotInFilter extends FieldFilter {
-  constructor(field: FieldPath, value: api.Value) {
+  constructor(field: FieldPath, value: ProtoValue) {
     super(field, Operator.NOT_IN, value);
     debugAssert(isArray(value), 'NotInFilter expects an ArrayValue');
   }
@@ -860,7 +864,7 @@ export class NotInFilter extends FieldFilter {
 
 /** A Filter that implements the array-contains-any operator. */
 export class ArrayContainsAnyFilter extends FieldFilter {
-  constructor(field: FieldPath, value: api.Value) {
+  constructor(field: FieldPath, value: ProtoValue) {
     super(field, Operator.ARRAY_CONTAINS_ANY, value);
     debugAssert(isArray(value), 'ArrayContainsAnyFilter expects an ArrayValue');
   }
@@ -899,7 +903,7 @@ export const enum Direction {
  * just after the provided values.
  */
 export class Bound {
-  constructor(readonly position: api.Value[], readonly before: boolean) {}
+  constructor(readonly position: ProtoValue[], readonly before: boolean) {}
 }
 
 export function canonifyBound(bound: Bound): string {

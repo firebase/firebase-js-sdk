@@ -29,7 +29,10 @@ export default [
       sourcemap: true
     },
     plugins: util.es2017Plugins('browser', /* mangled= */ true),
-    external: util.resolveBrowserExterns
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   },
   {
     input: path.resolve('./memory', memoryPkg['esm2017']),
@@ -39,7 +42,10 @@ export default [
       sourcemap: true
     },
     plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
-    external: util.resolveBrowserExterns
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   },
   {
     input: path.resolve('./memory', memoryPkg['esm2017']),
@@ -49,6 +55,9 @@ export default [
       sourcemap: true
     },
     plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
-    external: util.resolveBrowserExterns
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
