@@ -129,7 +129,7 @@ export class DocumentReference<T = DocumentData> extends DocumentKeyReference<
   }
 }
 
-export class Query<T = DocumentData> implements Query<T> {
+export class Query<T = DocumentData> {
   readonly type: 'query' | 'collection' = 'query';
 
   // This is the lite version of the Query class in the main SDK.
@@ -154,7 +154,7 @@ export type QueryConstraintType =
   | 'endAt'
   | 'endBefore';
 
-export abstract class QueryConstraint implements QueryConstraint {
+export abstract class QueryConstraint {
   abstract readonly type: QueryConstraintType;
 
   /**
@@ -393,8 +393,7 @@ function newQueryBoundFromDocOrFields<T>(
   }
 }
 
-export class CollectionReference<T = DocumentData> extends Query<T>
-  implements CollectionReference<T> {
+export class CollectionReference<T = DocumentData> extends Query<T> {
   readonly type = 'collection';
 
   constructor(

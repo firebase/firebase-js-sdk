@@ -40,7 +40,7 @@ import { invokeCommitRpc } from '../../../src/remote/datastore';
 import { FieldPath } from './field_path';
 import { getDatastore } from './components';
 
-export class WriteBatch implements WriteBatch {
+export class WriteBatch {
   // This is the lite version of the WriteBatch API used in the legacy SDK. The
   // class is a close copy but takes different input types.
 
