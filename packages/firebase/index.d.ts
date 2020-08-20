@@ -6952,7 +6952,7 @@ declare namespace firebase.messaging {
    * Do not call this constructor directly. Instead, use
    * {@link firebase.messaging `firebase.messaging()`}.
    *
-   * See {@link https://firebase.google.com/docs/cloud-messaging/js/client
+   * See {@link https://firebase.google.com/docs/cloud-messaging/js/client 
    * Set Up a JavaScript Firebase Cloud Messaging Client App} for a full guide on how to use the
    * Firebase Messaging service.
    *
