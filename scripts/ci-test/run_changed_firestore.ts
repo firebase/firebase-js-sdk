@@ -26,7 +26,7 @@ const includeOnlyPackages = [
 async function run() {
   let testTasks = await getTestTasks();
   testTasks = testTasks.filter(t => includeOnlyPackages.includes(t.pkgName));
-  await buildForTests(testTasks);
+  await buildForTests(testTasks, true);
   runTests(testTasks);
 }
 

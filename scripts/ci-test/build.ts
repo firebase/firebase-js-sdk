@@ -21,11 +21,30 @@ import chalk from 'chalk';
 import { resolve } from 'path';
 const root = resolve(__dirname, '../..');
 
-export async function buildForTests(testTasks: TestTask[]) {
+export async function buildForTests(
+  testTasks: TestTask[],
+  buildAppExp = false
+) {
   try {
     if (testTasks.length === 0) {
       chalk`{green No test tasks. Skipping all tests }`;
-      process.exit(0);
+    }
+
+    // hack to build Firestore which depends on @firebase/app-exp (because of firestore exp),
+    // but doesn't list it as a dependency in its package.json
+    if (buildAppExp) {
+      await spawn(
+        'npx',
+        [
+          'lerna',
+          'run',
+          '--scope',
+          '@firebase/app-exp',
+          '--include-dependencies',
+          'build'
+        ],
+        { stdio: 'inherit', cwd: root }
+      );
     }
 
     const lernaCmd = ['lerna', 'run'];
@@ -46,9 +65,7 @@ export async function buildForTests(testTasks: TestTask[]) {
 
     lernaCmd.push('--include-dependencies', 'build');
     await spawn('npx', lernaCmd, { stdio: 'inherit', cwd: root });
-    process.exit(0);
   } catch (e) {
     console.error(chalk`{red ${e}}`);
-    process.exit(1);
   }
 }

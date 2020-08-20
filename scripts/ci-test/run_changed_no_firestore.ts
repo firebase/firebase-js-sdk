@@ -44,7 +44,7 @@ async function run() {
 
   // remove the ignored packages from the tasks
   testTasks = testTasks.filter(t => !ignoredPackages.includes(t.pkgName));
-
+  console.log(testTasks);
   await buildForTests(testTasks);
 
   runTests(testTasks);

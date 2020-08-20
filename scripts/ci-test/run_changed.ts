@@ -110,7 +110,9 @@ export async function getTestTasks(): Promise<TestTask[]> {
       console.log(
         chalk`{blue Running all tests because ${filename} was modified.}`
       );
-      return allPackageNames.map(pkgName => createTestTask(pkgName));
+      // run tests in all packages
+      testTasks = allPackageNames.map(pkgName => createTestTask(pkgName));
+      break;
     }
     // Files outside a package dir that should trigger its tests.
     const specialPathKeys = Object.keys(specialPaths) as Array<
@@ -169,7 +171,6 @@ export async function getTestTasks(): Promise<TestTask[]> {
     );
   }
 
-  // remove ignored packages
   testTasks = testTasks.filter(t => !ignoredPackages.includes(t.pkgName));
 
   return testTasks;
