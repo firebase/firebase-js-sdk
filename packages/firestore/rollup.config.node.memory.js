@@ -35,7 +35,10 @@ export default [
         'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
       })
     ],
-    external: util.resolveNodeExterns
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   },
   {
     input: path.resolve('./memory', memoryPkg['main-esm2017']),
@@ -45,6 +48,9 @@ export default [
       sourcemap: true
     },
     plugins: util.es2017ToEs5Plugins(),
-    external: util.resolveNodeExterns
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
