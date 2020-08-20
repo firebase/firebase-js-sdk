@@ -1,10 +1,10 @@
-name: Test Firestore
+name: Test FCM integration
 
 on: pull_request
 
 jobs:
   test:
-    name: Test Firestore
+    name: Test FCM integration
     runs-on: ubuntu-latest
 
     steps:
@@ -27,5 +27,5 @@ jobs:
         yarn
     - name: yarn build
       run: yarn build
-    - name: Run tests if firestore or its dependenceies has changed
-      run: xvfb-run yarn test:changed:firestore
+    - name: Run tests if FCM or its dependenceies has changed
+      run: xvfb-run yarn test:changed:fcm
