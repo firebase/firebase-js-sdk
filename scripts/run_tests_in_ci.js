@@ -18,11 +18,21 @@
 const yargs = require('yargs');
 const path = require('path');
 const { spawn } = require('child-process-promise');
-const { appendFileSync } = require('fs');
+const { writeFileSync } = require('fs');
 
 const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
-const LOGFILE = path.join(LOGDIR, 'firebase-ci-log.txt');
-const SUMMARY_FILE = path.join(LOGDIR, 'firebase-ci-summary.txt');
+
+function writeLogs(status, name, logText) {
+  const safeName = name.replace(/@/g, 'at_').replace(/\//g, '_');
+  writeFileSync(path.join(LOGDIR, `${safeName}-ci-log.txt`), logText, {
+    encoding: 'utf8'
+  });
+  writeFileSync(
+    path.join(LOGDIR, `${safeName}-ci-summary.txt`),
+    `${status}: ${name}`,
+    { encoding: 'utf8' }
+  );
+}
 
 const argv = yargs.options({
   d: {
@@ -57,14 +67,12 @@ const argv = yargs.options({
 
     await testProcess;
     console.log('Success: ' + name);
-    appendFileSync(LOGFILE, stdout + '\n' + stderr, { encoding: 'utf8' });
-    appendFileSync(SUMMARY_FILE, `Success: ${name}\n`, { encoding: 'utf8' });
+    writeLogs('Success', name, stdout + '\n' + stderr);
   } catch (e) {
     console.error('Failure: ' + name);
     console.log(stdout);
     console.error(stderr);
-    appendFileSync(LOGFILE, stdout + '\n' + stderr, { encoding: 'utf8' });
-    appendFileSync(SUMMARY_FILE, `Failure: ${name}\n`, { encoding: 'utf8' });
+    writeLogs('Failure', name, stdout + '\n' + stderr);
     process.exit(1);
   }
 })();

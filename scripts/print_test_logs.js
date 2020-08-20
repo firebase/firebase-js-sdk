@@ -17,10 +17,9 @@
 
 const path = require('path');
 const { existsSync, unlinkSync, readFileSync } = require('fs');
+const glob = require('glob');
 
 const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
-const LOGFILE = path.join(LOGDIR, 'firebase-ci-log.txt');
-const SUMMARY_FILE = path.join(LOGDIR, 'firebase-ci-summary.txt');
 
 // const EXCESSIVE_RUN_TIME = 1000 * 60 * 60; // 1 hour
 const EXCESSIVE_RUN_TIME = 1000 * 60 * 10; // 10 minutes, TEST
@@ -37,13 +36,14 @@ const EXCESSIVE_RUN_TIME = 1000 * 60 * 10; // 10 minutes, TEST
       } seconds exceeded threshold of ${EXCESSIVE_RUN_TIME / 1000} seconds.`
     );
     console.log(`Printing full logs.`);
-    if (existsSync(SUMMARY_FILE)) {
-      console.log(readFileSync(SUMMARY_FILE, { encoding: 'utf8' }));
-      unlinkSync(SUMMARY_FILE);
-    }
-    if (existsSync(LOGFILE)) {
-      console.log(readFileSync(LOGFILE, { encoding: 'utf8' }));
-      unlinkSync(LOGFILE);
+
+    const summaryFiles = glob.sync(path.join(LOGDIR, '*-ci-summary.txt'));
+    const logFiles = glob.sync(path.join(LOGDIR, '*-ci-log.txt'));
+    for (const file of summaryFiles.concat(logFiles)) {
+      if (existsSync(file)) {
+        console.log(readFileSync(file, { encoding: 'utf8' }));
+        unlinkSync(file);
+      }
     }
   }
 })();
