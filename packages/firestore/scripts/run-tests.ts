@@ -44,6 +44,8 @@ process.env.TS_NODE_COMPILER_OPTIONS = '{"module":"commonjs"}';
 process.env.TEST_PLATFORM = argv.platform;
 
 let args = [
+  '--reporter',
+  'lcovonly',
   mocha,
   '--require',
   'ts-node/register',
