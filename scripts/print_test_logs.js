@@ -21,8 +21,7 @@ const glob = require('glob');
 
 const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
 
-// const EXCESSIVE_RUN_TIME = 1000 * 60 * 60; // 1 hour
-const EXCESSIVE_RUN_TIME = 1000 * 60 * 10; // 10 minutes, TEST
+const EXCESSIVE_RUN_TIME = 1000 * 60 * 60; // 1 hour
 
 (async () => {
   const now = Date.now();
