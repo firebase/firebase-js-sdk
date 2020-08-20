@@ -15,19 +15,33 @@
  * limitations under the License.
  */
 
-const { argv } = require('yargs');
+const yargs = require('yargs');
 const path = require('path');
 const { spawn } = require('child-process-promise');
 
+const argv = yargs.options({
+  d: {
+    type: 'string',
+    desc: 'current working directory',
+    default: '.'
+  },
+  s: {
+    type: 'string',
+    desc: 'the npm script to run',
+    default: 'test'
+  }
+}).argv;
+
 (async () => {
-  const myPath = argv._[0] || '.'; // default to the current directory
+  const myPath = argv.d;
+  const scriptName = argv.s;
   const dir = path.resolve(myPath);
   const { name } = require(`${dir}/package.json`);
 
   let stdout = '';
   let stderr = '';
   try {
-    const testProcess = spawn('yarn', ['--cwd', dir, 'test']);
+    const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
 
     testProcess.childProcess.stdout.on('data', data => {
       stdout += data.toString();
