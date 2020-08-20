@@ -83,6 +83,12 @@ const specialPaths = {
 };
 
 /**
+ * firebase and firebase-exp don't have tests and are very expensive to build, so we don't
+ * generate TestTasks for them.
+ */
+const ignoredPackages = ['firebase', 'firebase-exp'];
+
+/**
  * Identify modified packages that require tests.
  */
 export async function getTestTasks(): Promise<TestTask[]> {
@@ -97,7 +103,7 @@ export async function getTestTasks(): Promise<TestTask[]> {
   );
   const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
   const changedFiles = diff.split('\n');
-  const testTasks: TestTask[] = [];
+  let testTasks: TestTask[] = [];
   for (const filename of changedFiles) {
     // Files that trigger full test suite.
     if (fullTestTriggerFiles.includes(filename)) {
@@ -156,11 +162,15 @@ export async function getTestTasks(): Promise<TestTask[]> {
       }
     }
   }
+
   if (testTasks.length === 0) {
     console.log(
       chalk`{green No changes detected in any package. No test tasks is created }`
     );
   }
+
+  // remove ignored packages
+  testTasks = testTasks.filter(t => !ignoredPackages.includes(t.pkgName));
 
   return testTasks;
 }
