@@ -38,7 +38,7 @@
     "pretest:coverage": "mkdirp coverage",
     "ci:coverage": "lcov-result-merger 'packages/**/lcov.info' 'lcov-all.info'",
     "test:coverage": "lcov-result-merger 'packages/**/lcov.info' | coveralls",
-    "test:changed": "ts-node-script scripts/ci-test/run_changed_no_firestore.js",
+    "test:changed": "ts-node-script scripts/ci-test/run_changed_no_firestore.ts",
     "test:changed:firestore": "ts-node-script scripts/ci-test/run_changed_firestore.ts",
     "test:setup": "node tools/config.js",
     "test:saucelabs": "node scripts/run_saucelabs.js",

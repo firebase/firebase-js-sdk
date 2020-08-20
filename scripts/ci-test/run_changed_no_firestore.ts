@@ -27,7 +27,8 @@ const alwaysRunTestPackages = [
 
 const ignoredPackages = [
   '@firebase/firestore',
-  'firebase-firestore-integration-test'
+  'firebase-firestore-integration-test',
+  'firebase-messaging-integration-test'
 ];
 
 async function run() {
