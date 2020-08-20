@@ -71,7 +71,7 @@ export async function setOfflineComponentProvider(
   // When a user calls clearPersistence() in one client, all other clients
   // need to be terminated to allow the delete to succeed.
   offlineComponentProvider.persistence.setDatabaseDeletedListener(() =>
-    firestore.delete()
+    firestore._delete()
   );
   offlineDeferred.resolve(offlineComponentProvider);
 }

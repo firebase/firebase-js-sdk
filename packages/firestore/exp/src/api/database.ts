@@ -306,7 +306,7 @@ export function terminate(
 ): Promise<void> {
   _removeServiceInstance(firestore.app, 'firestore-exp');
   const firestoreImpl = cast(firestore, Firestore);
-  return firestoreImpl.delete();
+  return firestoreImpl._delete();
 }
 
 function verifyNotInitialized(firestore: Firestore): void {

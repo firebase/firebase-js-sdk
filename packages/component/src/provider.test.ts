@@ -232,7 +232,7 @@ describe('Provider', () => {
         const deleteFake = fake();
         const myService: _FirebaseService = {
           app: getFakeApp(),
-          delete: deleteFake
+          _delete: deleteFake
         };
 
         // provide factory and create a service instance
