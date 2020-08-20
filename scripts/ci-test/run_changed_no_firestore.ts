@@ -18,33 +18,18 @@
 import { runTests, getTestTasks, createTestTask } from './run_changed';
 import { buildForTests } from './build';
 
-/**
- * Always run tests in these paths.
- */
-const alwaysRunTestPackages = [
-  // These tests are very fast.
-  'firebase-namespace-integration-test'
-];
-
 const ignoredPackages = [
   '@firebase/firestore',
   'firebase-firestore-integration-test',
-  'firebase-messaging-integration-test'
+  'firebase-messaging-integration-test',
+  'firebase-namespace-integration-test'
 ];
 
 async function run() {
   let testTasks = await getTestTasks();
 
-  // add alwaysRunTestPackages to tests if they don't already have a task
-  for (const packageToTest of alwaysRunTestPackages) {
-    if (!testTasks.find(t => t.pkgName === packageToTest)) {
-      testTasks.push(createTestTask(packageToTest));
-    }
-  }
-
   // remove the ignored packages from the tasks
   testTasks = testTasks.filter(t => !ignoredPackages.includes(t.pkgName));
-  console.log(testTasks);
   await buildForTests(testTasks);
 
   runTests(testTasks);
