@@ -16,11 +16,12 @@
     height: 40vh;
     overflow: scroll;
 }
-.symbols-preview, .bar-chart, .symbol-report {
+.visualization {
     height: 45vh;
     overflow: scroll;
-
+    border: 2px solid white;
 }
+
 .bundle-overview {
     background-color: #FFFFFF;
     height: 48vh;

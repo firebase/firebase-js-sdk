@@ -3,6 +3,7 @@ import { TEXT } from '../constants';
 import '../App.css';
 import ReactJson from 'react-json-view'
 import { HorizontalBar } from 'react-chartjs-2';
+import Alert from './Alert';
 
 
 class Symbol {
@@ -19,20 +20,44 @@ class Visualization extends Component {
         this.state = {
             errorMsg: "",
             symbols: [],
-            symbolsOnDisplay: [],
+            symbolsOnDisplay: new Set(),
             symbolsOffDisplay: new Set(),
             jsonReport: {},
             symbolReport: {},
+            symbolNameofReportOnDisplay: "root",
+            chartOptions: {
+                onClick: (e, item) => this.showReport(this.state.chartData.labels[item[0]._index]),
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            fontColor: 'white'
+                        },
+                    }],
+                    xAxes: [{
+                        ticks: {
+                            fontColor: 'white'
+                        },
+                    }]
+                },
+                legend: {
+
+                    labels: {
+                        fontColor: 'white'
+                    },
+
+                }
+            },
             chartData: {
                 labels: [],
                 datasets: [
                     {
                         label: 'Symbols Size Comparison',
-                        backgroundColor: 'rgba(255,99,132,0.2)',
-                        borderColor: 'rgba(255,99,132,1)',
+
+                        backgroundColor: 'rgba(255,203,43,0.2)',
+                        borderColor: 'rgba(255,203,43,1)',
                         borderWidth: 2,
-                        hoverBackgroundColor: 'rgba(255,99,132,0.4)',
-                        hoverBorderColor: 'rgba(255,99,132,1)',
+                        hoverBackgroundColor: 'rgba(255,203,43,0.4)',
+                        hoverBorderColor: 'rgba(255,203,43,1)',
                         data: []
                     }
                 ]
@@ -46,38 +71,41 @@ class Visualization extends Component {
         this.updateSymbolDisplay = this.updateSymbolDisplay.bind(this);
         this.isSymbolOnDisplay = this.isSymbolOnDisplay.bind(this);
         this.isSymbolOnDisplay = this.isSymbolOnDisplay.bind(this);
+        this.clearErrorMessage = this.clearErrorMessage.bind(this);
     }
 
+    clearErrorMessage() {
+        this.setState({
+            errorMsg: ""
+        });
+    }
     isSymbolOnDisplay(symbol) {
         return !this.state.symbolsOffDisplay.has(symbol);
     }
-    updateSymbolDisplay(symbol) {
+    updateSymbolDisplay(e, symbol) {
+        e.stopPropagation();
         const charDataClone = Object.assign({}, this.state.chartData);
-        if (this.state.symbolsOffDisplay.has(symbol)) {
-            this.setState(prevState => ({
-                symbolsOnDisplay: [...prevState.symbolsOnDisplay, this.state.symbolsOffDisplay.get(symbol)],
-                symbolsOffDisplay: prevState.symbolsOffDisplay.remove(symbol),
+        const symbolsOnDisplay = new Set(this.state.symbolsOnDisplay);
+        const symbolsOffDisplay = new Set(this.state.symbolsOffDisplay);
+        if (symbolsOffDisplay.has(symbol)) {
+            symbolsOnDisplay.add(symbol);
+            symbolsOffDisplay.delete(symbol);
 
-
-            }));
         } else {
-            this.setState(prevState => ({
-                symbolsOnDisplay: [...prevState.symbolsOnDisplay.filter(each => each !== symbol)],
-                symbolsOffDisplay: prevState.symbolsOffDisplay.add(symbol)
-
-            }));
+            symbolsOnDisplay.delete(symbol);
+            symbolsOffDisplay.add(symbol);
 
         }
-        const chartLabel = this.extractChartLabel(this.state.symbolsOnDisplay);
-        const chartData = this.extractChartData(symbolsOnDisplay);
-        const charDataClone = Object.assign({}, this.state.chartData);
+        const symbolsOnDisplayArray = Array.from(symbolsOnDisplay);
+        symbolsOnDisplayArray.sort((a, b) => b.sizeInBytes - a.sizeInBytes);
+        const chartLabel = this.extractChartLabel(symbolsOnDisplayArray);
+        const chartData = this.extractChartData(symbolsOnDisplayArray);
         charDataClone.labels = chartLabel;
         charDataClone.datasets[0].data = chartData;
-
         this.setState({
 
-            jsonReport: jsonReport,
-            symbolReport: jsonReport,
+            symbolsOffDisplay: symbolsOffDisplay,
+            symbolsOnDisplay: symbolsOnDisplay,
             chartData: charDataClone
         });
 
@@ -96,8 +124,12 @@ class Visualization extends Component {
         reader.onload = async (e) => {
             const jsonReport = JSON.parse(e.target.result);
             const symbols = [];
+            const symbolsOnDisplay = new Set();
             for (let key of Object.keys(jsonReport)) {
-                symbols.push(new Symbol(key, jsonReport[key].dependencies, jsonReport[key].sizeInBytes, jsonReport[key].sizeInBytesWithExternalDeps));
+                const symbol = new Symbol(key, jsonReport[key].dependencies, jsonReport[key].sizeInBytes, jsonReport[key].sizeInBytesWithExternalDeps);
+                symbols.push(symbol);
+                symbolsOnDisplay.add(symbol);
+
             }
             // sort symbols in descending order 
             symbols.sort((a, b) => b.sizeInBytes - a.sizeInBytes);
@@ -111,7 +143,7 @@ class Visualization extends Component {
                 symbols: symbols,
                 jsonReport: jsonReport,
                 symbolReport: jsonReport,
-                symbolsOnDisplay: symbols,
+                symbolsOnDisplay: symbolsOnDisplay,
                 chartData: charDataClone
             });
 
@@ -131,7 +163,8 @@ class Visualization extends Component {
         for (let key of Object.keys(this.state.jsonReport)) {
             if (key.localeCompare(symbolName) === 0) {
                 this.setState({
-                    symbolReport: this.state.jsonReport[key]
+                    symbolReport: this.state.jsonReport[key],
+                    symbolNameofReportOnDisplay: symbolName
                 });
                 break;
             }
@@ -164,15 +197,16 @@ class Visualization extends Component {
         return (
             <div className="container-fluid wrapper">
                 <div className="row mx-1">
-                    <div className="input-group">
+                    {this.state.errorMsg ? <Alert errorMessage={this.state.errorMsg} clearErrorMessage={this.clearErrorMessage} /> : <div className="input-group">
                         <div className="custom-file">
                             <input type="file" className="custom-file-input" id="filePicker" onChange={this.handleOnFileUpload} aria-describedby="inputGroupFileAddon01" />
                             <label className="custom-file-label" htmlFor="filePicker">{TEXT.chooseFile}</label>
                         </div>
-                    </div>
+                    </div>}
+
                 </div>
                 <div className="row m-1">
-                    <div className="col-7 symbols-preview">
+                    <div className="col-7 visualization ">
                         <ul className="list-group">
                             {this.state.symbols.map(each =>
                                 <li
@@ -182,7 +216,7 @@ class Visualization extends Component {
                                     {each.name} {each.sizeInBytes} {TEXT.unit}
                                     <button
                                         className="badge badge-primary light-orange-btn"
-                                        onClick={() => { this.updateSymbolDisplay(each) }}
+                                        onClick={(e) => { this.updateSymbolDisplay(e, each) }}
                                     >
                                         {this.isSymbolOnDisplay(each) ? TEXT.deleteButtonText : TEXT.addButtonText}
                                     </button>
@@ -193,17 +227,18 @@ class Visualization extends Component {
                         </ul>
 
                     </div>
-                    <div className="col-5 symbol-report">
+                    <div className="col-5 visualization ">
                         <ReactJson
+                            name={this.state.symbolNameofReportOnDisplay}
                             src={this.state.symbolReport}
                             displayDataTypes={false}
                             style={style} />
 
                     </div>
                 </div>
-                <div className="row m-1  bar-chart">
+                <div className="row m-1  visualization">
                     <div className="col">
-                        <HorizontalBar data={this.state.chartData} />
+                        <HorizontalBar data={this.state.chartData} options={this.state.chartOptions} />
                     </div>
                 </div>
             </div>
