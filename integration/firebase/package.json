@@ -4,7 +4,7 @@
   "version": "0.2.1",
   "scripts": {
     "test": "karma start --single-run",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js"
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test"
   },
   "devDependencies": {
     "firebase": "7.18.0",

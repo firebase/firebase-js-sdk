@@ -90,15 +90,6 @@ async function publishPackage(pkg: string) {
   try {
     const path = await mapPkgNameToPkgPath(pkg);
 
-    const { private: isPrivate } = JSON.parse(
-      await readFile(`${path}/package.json`, 'utf8')
-    );
-
-    /**
-     * Skip private packages
-     */
-    if (isPrivate) return;
-
     /**
      * publish args
      */
@@ -134,9 +125,20 @@ async function publishToNpm(updatedPkgs: string[]) {
        * Can't require here because we have a cached version of the required JSON
        * in memory and it doesn't contain the updates
        */
-      const { version } = JSON.parse(
+      const { version, private: isPrivate } = JSON.parse(
         await readFile(`${path}/package.json`, 'utf8')
       );
+
+      /**
+       * Skip private packages
+       */
+      if (isPrivate) {
+        return {
+          title: `Skipping private package: ${pkg}.`,
+          task: () => {}
+        };
+      }
+
       return {
         title: `📦  ${pkg}@${version}`,
         task: () => publishPackage(pkg)
