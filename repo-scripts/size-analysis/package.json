@@ -18,22 +18,22 @@
     "type-check": "tsc -p . --noEmit"
   },
   "dependencies": {
-    "@firebase/app": "0.6.10",
-    "@firebase/util": "0.3.1",
     "rollup": "2.23.0",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.27.1",
-    "tmp": "^0.2.1",
+    "tmp": "0.2.1",
     "typescript": "3.9.7",
     "terser": "4.8.0",
-    "yargs": "15.4.1"
+    "yargs": "15.4.1",
+    "@firebase/util": "0.3.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/logger": "0.2.6"
+    "@firebase/logger": "0.2.6",
+    "@firebase/app": "0.6.10"
   },
   "repository": {
     "directory": "repo-scripts/size-analysis",
