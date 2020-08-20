@@ -39,12 +39,18 @@ export default [
         'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
       })
     ],
-    external: util.resolveNodeExterns
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   },
   {
     input: pkg['main-esm2017'],
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: util.es2017ToEs5Plugins(),
-    external: util.resolveNodeExterns
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];

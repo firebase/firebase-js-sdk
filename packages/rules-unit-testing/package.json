@@ -16,7 +16,7 @@
     "dev": "rollup -c -w",
     "test:nyc": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --config ../../config/mocharc.node.js",
     "test": "firebase --debug emulators:exec 'yarn test:nyc'",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
     "prepare": "yarn build"
   },
   "license": "Apache-2.0",
@@ -30,7 +30,7 @@
     "@google-cloud/firestore": "4.2.0",
     "@types/request": "2.48.5",
     "firebase-admin": "9.0.0",
-    "firebase-tools": "8.7.0",
+    "firebase-tools": "8.6.0",
     "rollup": "2.23.0",
     "rollup-plugin-typescript2": "0.27.1"
   },

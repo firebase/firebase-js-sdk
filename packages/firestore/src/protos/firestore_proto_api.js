@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-// This file exists to solve an unresolved import error during API extraction.
+// This file exists to solve an unresolved import error during the build.

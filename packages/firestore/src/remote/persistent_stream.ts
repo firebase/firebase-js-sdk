@@ -20,7 +20,12 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { TargetId } from '../core/types';
 import { TargetData } from '../local/target_data';
 import { Mutation, MutationResult } from '../model/mutation';
-import * as api from '../protos/firestore_proto_api';
+import {
+  ListenRequest as ProtoListenRequest,
+  ListenResponse as ProtoListenResponse,
+  WriteRequest as ProtoWriteRequest,
+  WriteResponse as ProtoWriteResponse
+} from '../protos/firestore_proto_api';
 import { debugAssert, hardAssert } from '../util/assert';
 import { AsyncQueue, DelayedOperation, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
@@ -47,10 +52,10 @@ const LOG_TAG = 'PersistentStream';
 // The generated proto interfaces for these class are missing the database
 // field. So we add it here.
 // TODO(b/36015800): Remove this once the api generator is fixed.
-interface ListenRequest extends api.ListenRequest {
+interface ListenRequest extends ProtoListenRequest {
   database?: string;
 }
-export interface WriteRequest extends api.WriteRequest {
+export interface WriteRequest extends ProtoWriteRequest {
   database?: string;
 }
 /**
@@ -539,8 +544,8 @@ export interface WatchStreamListener extends PersistentStreamListener {
  * sent from the server for ListenResponses.
  */
 export class PersistentListenStream extends PersistentStream<
-  api.ListenRequest,
-  api.ListenResponse,
+  ProtoListenRequest,
+  ProtoListenResponse,
   WatchStreamListener
 > {
   constructor(
@@ -562,14 +567,14 @@ export class PersistentListenStream extends PersistentStream<
 
   protected startRpc(
     token: Token | null
-  ): Stream<api.ListenRequest, api.ListenResponse> {
-    return this.connection.openStream<api.ListenRequest, api.ListenResponse>(
+  ): Stream<ProtoListenRequest, ProtoListenResponse> {
+    return this.connection.openStream<ProtoListenRequest, ProtoListenResponse>(
       'Listen',
       token
     );
   }
 
-  protected onMessage(watchChangeProto: api.ListenResponse): Promise<void> {
+  protected onMessage(watchChangeProto: ProtoListenResponse): Promise<void> {
     // A successful response means the stream is healthy
     this.backoff.reset();
 
@@ -645,8 +650,8 @@ export interface WriteStreamListener extends PersistentStreamListener {
  * TODO(b/33271235): Use proto types
  */
 export class PersistentWriteStream extends PersistentStream<
-  api.WriteRequest,
-  api.WriteResponse,
+  ProtoWriteRequest,
+  ProtoWriteResponse,
   WriteStreamListener
 > {
   private handshakeComplete_ = false;
@@ -701,14 +706,14 @@ export class PersistentWriteStream extends PersistentStream<
 
   protected startRpc(
     token: Token | null
-  ): Stream<api.WriteRequest, api.WriteResponse> {
-    return this.connection.openStream<api.WriteRequest, api.WriteResponse>(
+  ): Stream<ProtoWriteRequest, ProtoWriteResponse> {
+    return this.connection.openStream<ProtoWriteRequest, ProtoWriteResponse>(
       'Write',
       token
     );
   }
 
-  protected onMessage(responseProto: api.WriteResponse): Promise<void> {
+  protected onMessage(responseProto: ProtoWriteResponse): Promise<void> {
     // Always capture the last stream token.
     hardAssert(
       !!responseProto.streamToken,

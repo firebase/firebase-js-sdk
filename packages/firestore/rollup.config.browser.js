@@ -28,18 +28,27 @@ export default [
       sourcemap: true
     },
     plugins: util.es2017Plugins('browser', /* mangled= */ true),
-    external: util.resolveBrowserExterns
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   },
   {
     input: pkg.esm2017,
     output: { file: pkg.module, format: 'es', sourcemap: true },
     plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
-    external: util.resolveBrowserExterns
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   },
   {
     input: pkg.esm2017,
     output: { file: pkg.browser, format: 'cjs', sourcemap: true },
     plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
-    external: util.resolveBrowserExterns
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];
