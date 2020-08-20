@@ -39,7 +39,7 @@ const MESSAGING_NAME = 'messaging';
 function factoryMethod(
   container: ComponentContainer
 ): FirebaseService & FirebaseMessaging {
-  // Dependencies. 1213
+  // Dependencies.
   const app = container.getProvider('app').getImmediate();
   const appConfig = extractAppConfig(app);
   const installations = container.getProvider('installations').getImmediate();
