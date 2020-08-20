@@ -38,7 +38,7 @@ import { logger } from './logger';
 
 /**
  * Global context object for a collection of services using
- * a shared authentication state.
+ * a shared authentication state. 123
  */
 export class FirebaseAppImpl implements FirebaseApp {
   private readonly options_: FirebaseOptions;
