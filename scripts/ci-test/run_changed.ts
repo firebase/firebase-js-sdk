@@ -19,15 +19,15 @@ import { resolve } from 'path';
 import { spawn, exec } from 'child-process-promise';
 import chalk from 'chalk';
 import simpleGit from 'simple-git/promise';
-const root = resolve(__dirname, '..');
+const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
 
-interface TestTask {
+export interface TestTask {
   pkgName: string;
   reason: TestReason;
 }
 
-enum TestReason {
+export enum TestReason {
   Changed = 'changed',
   Dependent = 'dependent',
   Global = 'global'

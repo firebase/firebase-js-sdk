@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
-import * as firebase from 'firebase/app';
-import 'firebase/firestore';
+import firebase from '@firebase/app';
+import '@firebase/firestore';
+import { FirebaseApp } from '@firebase/app-types';
+import { Settings, FirebaseFirestore } from '@firebase/firestore-types';
 
 // This file replaces "packages/firestore/test/integration/util/firebase_export"
 // and depends on the minified sources.
@@ -25,9 +27,9 @@ let appCount = 0;
 
 export function newTestFirestore(
   projectId: string,
-  nameOrApp?: string | firebase.app.App,
-  settings?: firebase.firestore.Settings
-): firebase.firestore.Firestore {
+  nameOrApp?: string | FirebaseApp,
+  settings?: Settings
+): FirebaseFirestore {
   if (nameOrApp === undefined) {
     nameOrApp = 'test-app-' + appCount++;
   }
@@ -36,7 +38,7 @@ export function newTestFirestore(
       ? firebase.initializeApp({ apiKey: 'fake-api-key', projectId }, nameOrApp)
       : nameOrApp;
 
-  const firestore = firebase.firestore(app);
+  const firestore = firebase.firestore!(app);
   if (settings) {
     firestore.settings(settings);
   }

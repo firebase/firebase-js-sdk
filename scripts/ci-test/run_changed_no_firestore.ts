@@ -16,6 +16,7 @@
  */
 
 import { runTests, getTestTasks, createTestTask } from './run_changed';
+import { buildForTests } from './build';
 
 /**
  * Always run tests in these paths.
@@ -43,6 +44,8 @@ async function run() {
 
   // remove the ignored packages from the tasks
   testTasks = testTasks.filter(t => !ignoredPackages.includes(t.pkgName));
+
+  await buildForTests(testTasks);
 
   runTests(testTasks);
 }
