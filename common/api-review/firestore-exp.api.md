@@ -4,13 +4,16 @@
 
 ```ts
 
+import { DocumentData as DocumentData_2 } from '@firebase/firestore-types';
+import { FieldPath as FieldPath_4 } from '@firebase/firestore-types';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { _FirebaseService } from '@firebase/app-types';
-import * as firestore from '@firebase/firestore-types';
 import { LogLevel } from '@firebase/logger';
 import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
+import { SetOptions as SetOptions_2 } from '@firebase/firestore-types';
+import { SnapshotMetadata as SnapshotMetadata_2 } from '@firebase/firestore-types';
 
 // @public (undocumented)
 export function addDoc<T>(reference: CollectionReference<T>, data: T): Promise<DocumentReference<T>>;
@@ -399,7 +402,7 @@ export class QuerySnapshot<T = DocumentData> {
     // Warning: (ae-forgotten-export) The symbol "DocumentChange" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    docChanges(options?: SnapshotListenOptions): Array<DocumentChange_2<T>>;
+    docChanges(options?: SnapshotListenOptions): Array<DocumentChange<T>>;
     // (undocumented)
     get docs(): Array<QueryDocumentSnapshot<T>>;
     // (undocumented)
@@ -463,14 +466,14 @@ export interface SnapshotListenOptions {
 }
 
 // @public (undocumented)
-export class SnapshotMetadata implements firestore.SnapshotMetadata {
+export class SnapshotMetadata implements SnapshotMetadata_2 {
     constructor(hasPendingWrites: boolean, fromCache: boolean);
     // (undocumented)
     readonly fromCache: boolean;
     // (undocumented)
     readonly hasPendingWrites: boolean;
     // (undocumented)
-    isEqual(other: firestore.SnapshotMetadata): boolean;
+    isEqual(other: SnapshotMetadata_2): boolean;
 }
 
 // @public (undocumented)
