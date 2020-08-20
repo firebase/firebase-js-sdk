@@ -12,7 +12,7 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
-    "build:deps": "lerna run --scope @firebase/'{app,remote-config}' --include-dependencies build",
+    "build:deps": "lerna run --scope @firebase/remote-config --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
@@ -35,6 +35,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@firebase/app": "0.6.10",
     "rollup": "2.23.0",
     "rollup-plugin-typescript2": "0.27.1",
     "typescript": "3.9.7"

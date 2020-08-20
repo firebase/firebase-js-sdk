@@ -11,7 +11,7 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
     "build": "rollup -c",
-    "build:deps": "lerna run --scope @firebase/'{app,installations}' --include-dependencies build",
+    "build:deps": "lerna run --scope @firebase/installations --include-dependencies build",
     "test": "run-p lint test:karma",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:karma",
     "test:karma": "karma start --single-run",
@@ -30,6 +30,7 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
+    "@firebase/app": "0.6.10",
     "rollup": "2.23.0",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-json": "4.0.0",
