@@ -28,4 +28,4 @@ jobs:
     - name: yarn build
       run: yarn build
     - name: Run tests on changed packages
-      run: xvfb-run yarn lerna --scope firebase-namespace-integration-test test:ci
+      run: xvfb-run yarn lerna run --scope firebase-namespace-integration-test test:ci
