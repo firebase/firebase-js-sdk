@@ -4,7 +4,7 @@ on: pull_request
 
 jobs:
   test:
-    name: Test FCM integration
+    name: If Changed
     runs-on: ubuntu-latest
 
     steps:
