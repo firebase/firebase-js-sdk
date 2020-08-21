@@ -144,39 +144,41 @@ function verifyNotTerminated(firestore: Firestore): void {
   }
 }
 
-export function getSyncEngine(firestore: Firestore): Promise<SyncEngine> {
-  return getOnlineComponentProvider(firestore).then(
-    components => components.syncEngine
-  );
+export async function getSyncEngine(firestore: Firestore): Promise<SyncEngine> {
+  const components = await getOnlineComponentProvider(firestore);
+  return components.syncEngine;
 }
 
-export function getRemoteStore(firestore: Firestore): Promise<RemoteStore> {
-  return getOnlineComponentProvider(firestore).then(
-    components => components.remoteStore
-  );
+export async function getRemoteStore(
+  firestore: Firestore
+): Promise<RemoteStore> {
+  const components = await getOnlineComponentProvider(firestore);
+  return components.remoteStore;
 }
 
-export function getEventManager(firestore: Firestore): Promise<EventManager> {
-  return getOnlineComponentProvider(firestore).then(components => {
-    const eventManager = components.eventManager;
-    eventManager.subscribe(
-      syncEngineListen.bind(null, components.syncEngine),
-      syncEngineUnlisten.bind(null, components.syncEngine)
-    );
-    return eventManager;
-  });
+export async function getEventManager(
+  firestore: Firestore
+): Promise<EventManager> {
+  const components = await getOnlineComponentProvider(firestore);
+  const eventManager = components.eventManager;
+  eventManager.onListen = syncEngineListen.bind(null, components.syncEngine);
+  eventManager.onUnlisten = syncEngineUnlisten.bind(
+    null,
+    components.syncEngine
+  );
+  return eventManager;
 }
 
-export function getPersistence(firestore: Firestore): Promise<Persistence> {
-  return getOfflineComponentProvider(firestore).then(
-    components => components.persistence
-  );
+export async function getPersistence(
+  firestore: Firestore
+): Promise<Persistence> {
+  const components = await getOfflineComponentProvider(firestore);
+  return components.persistence;
 }
 
-export function getLocalStore(firestore: Firestore): Promise<LocalStore> {
-  return getOfflineComponentProvider(firestore).then(
-    provider => provider.localStore
-  );
+export async function getLocalStore(firestore: Firestore): Promise<LocalStore> {
+  const components = await getOfflineComponentProvider(firestore);
+  return components.localStore;
 }
 
 /**
