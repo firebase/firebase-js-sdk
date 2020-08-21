@@ -186,20 +186,27 @@ export class BundleLoader {
 
     let documentsLoaded = this.progress.documentsLoaded;
 
+    console.log(`pushing ${JSON.stringify(element.payload)}`);
+    console.log(`${element.payload['documentMetadata']}`);
     if (element.payload.namedQuery) {
+      console.log(`pushing named query`);
       this.queries.push(element.payload.namedQuery);
-    } else if (element.payload.documentMetadata) {
-      this.documents.push({ metadata: element.payload.documentMetadata });
-      if (!element.payload.documentMetadata.exists) {
+    } else if (element.payload['documentMetadata']) {
+      console.log(`pushing documentMetadata`);
+      this.documents.push({ metadata: element.payload['documentMetadata'] });
+      console.log(`this.documents is ${JSON.stringify(this.documents)}`);
+      if (!element.payload.documentMetadata['exists']) {
         ++documentsLoaded;
       }
     } else if (element.payload.document) {
+      console.log(`pushing document`);
       debugAssert(
         this.documents.length > 0 &&
           this.documents[this.documents.length - 1].metadata.name ===
             element.payload.document.name,
         'The document being added does not match the stored metadata.'
       );
+      console.log(`this.documents is ${JSON.stringify(this.documents)}`);
       this.documents[this.documents.length - 1].document =
         element.payload.document;
       ++documentsLoaded;
@@ -246,15 +253,18 @@ export class BundleLoader {
     );
     debugAssert(!!this.bundleMetadata.id, 'Bundle ID must be set.');
 
+    console.log(`Applying bundled doc`);
     const changedDocuments = await applyBundleDocuments(
       this.localStore,
       this.documents,
       this.bundleMetadata.id!
     );
+    console.log(`Finished applying bundled doc`);
 
     const queryDocumentMap = this.getQueryDocumentMapping(this.documents);
 
     for (const q of this.queries) {
+      console.log(`Saving named query ${q.name}`);
       await saveNamedQuery(this.localStore, q, queryDocumentMap.get(q.name!));
     }
 

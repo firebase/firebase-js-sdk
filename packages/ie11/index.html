@@ -2,6 +2,108 @@
 <head></head>
 <body>
 <script src="https://unpkg.com/core-js-bundle@3.0.1/minified.js"></script>
+<script>
+  if (typeof TextEncoder === "undefined") {
+    TextEncoder=function TextEncoder(){};
+    TextEncoder.prototype.encode = function encode(str) {
+      "use strict";
+      var Len = str.length, resPos = -1;
+      // The Uint8Array's length must be at least 3x the length of the string because an invalid UTF-16
+      //  takes up the equivelent space of 3 UTF-8 characters to encode it properly. However, Array's
+      //  have an auto expanding length and 1.5x should be just the right balance for most uses.
+      var resArr = typeof Uint8Array === "undefined" ? new Array(Len * 1.5) : new Uint8Array(Len * 3);
+      for (var point=0, nextcode=0, i = 0; i !== Len; ) {
+        point = str.charCodeAt(i), i += 1;
+        if (point >= 0xD800 && point <= 0xDBFF) {
+          if (i === Len) {
+            resArr[resPos += 1] = 0xef/*0b11101111*/; resArr[resPos += 1] = 0xbf/*0b10111111*/;
+            resArr[resPos += 1] = 0xbd/*0b10111101*/; break;
+          }
+          // https://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
+          nextcode = str.charCodeAt(i);
+          if (nextcode >= 0xDC00 && nextcode <= 0xDFFF) {
+            point = (point - 0xD800) * 0x400 + nextcode - 0xDC00 + 0x10000;
+            i += 1;
+            if (point > 0xffff) {
+              resArr[resPos += 1] = (0x1e/*0b11110*/<<3) | (point>>>18);
+              resArr[resPos += 1] = (0x2/*0b10*/<<6) | ((point>>>12)&0x3f/*0b00111111*/);
+              resArr[resPos += 1] = (0x2/*0b10*/<<6) | ((point>>>6)&0x3f/*0b00111111*/);
+              resArr[resPos += 1] = (0x2/*0b10*/<<6) | (point&0x3f/*0b00111111*/);
+              continue;
+            }
+          } else {
+            resArr[resPos += 1] = 0xef/*0b11101111*/; resArr[resPos += 1] = 0xbf/*0b10111111*/;
+            resArr[resPos += 1] = 0xbd/*0b10111101*/; continue;
+          }
+        }
+        if (point <= 0x007f) {
+          resArr[resPos += 1] = (0x0/*0b0*/<<7) | point;
+        } else if (point <= 0x07ff) {
+          resArr[resPos += 1] = (0x6/*0b110*/<<5) | (point>>>6);
+          resArr[resPos += 1] = (0x2/*0b10*/<<6)  | (point&0x3f/*0b00111111*/);
+        } else {
+          resArr[resPos += 1] = (0xe/*0b1110*/<<4) | (point>>>12);
+          resArr[resPos += 1] = (0x2/*0b10*/<<6)    | ((point>>>6)&0x3f/*0b00111111*/);
+          resArr[resPos += 1] = (0x2/*0b10*/<<6)    | (point&0x3f/*0b00111111*/);
+        }
+      }
+      if (typeof Uint8Array !== "undefined") return resArr.subarray(0, resPos + 1);
+      // else // IE 6-9
+      resArr.length = resPos + 1; // trim off extra weight
+      return resArr;
+    };
+    TextEncoder.prototype.toString = function(){return "[object TextEncoder]"};
+    try { // Object.defineProperty only works on DOM prototypes in IE8
+      Object.defineProperty(TextEncoder.prototype,"encoding",{
+        get:function(){if(TextEncoder.prototype.isPrototypeOf(this)) return"utf-8";
+        else throw TypeError("Illegal invocation");}
+      });
+    } catch(e) { /*IE6-8 fallback*/ TextEncoder.prototype.encoding = "utf-8"; }
+    if(typeof Symbol!=="undefined")TextEncoder.prototype[Symbol.toStringTag]="TextEncoder";
+  }
+
+  if(typeof TextDecoder === 'undefined') {
+    function TextDecoder() {
+    }
+
+    TextDecoder.prototype.decode = function (octets) {
+      var string = "";
+      var i = 0;
+      while (i < octets.length) {
+        var octet = octets[i];
+        var bytesNeeded = 0;
+        var codePoint = 0;
+        if (octet <= 0x7F) {
+          bytesNeeded = 0;
+          codePoint = octet & 0xFF;
+        } else if (octet <= 0xDF) {
+          bytesNeeded = 1;
+          codePoint = octet & 0x1F;
+        } else if (octet <= 0xEF) {
+          bytesNeeded = 2;
+          codePoint = octet & 0x0F;
+        } else if (octet <= 0xF4) {
+          bytesNeeded = 3;
+          codePoint = octet & 0x07;
+        }
+        if (octets.length - i - bytesNeeded > 0) {
+          var k = 0;
+          while (k < bytesNeeded) {
+            octet = octets[i + k + 1];
+            codePoint = (codePoint << 6) | (octet & 0x3F);
+            k += 1;
+          }
+        } else {
+          codePoint = 0xFFFD;
+          bytesNeeded = octets.length - i;
+        }
+        string += String.fromCodePoint(codePoint);
+        i += bytesNeeded + 1;
+      }
+      return string
+    };
+  }
+</script>
 <script src="bundle.js"></script>
 </body>
 </html>

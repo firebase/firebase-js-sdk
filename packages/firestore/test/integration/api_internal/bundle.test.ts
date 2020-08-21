@@ -242,12 +242,12 @@ apiDescribe('Bundles', (persistence: boolean) => {
     });
   });
 
-  it('loaded documents should not be GC-ed right away', () => {
+  it.only('loaded documents should not be GC-ed right away', () => {
     return withTestDb(persistence, async db => {
       const builder = bundleWithTestDocsAndQueries(db);
 
       const fulfillProgress: firestore.LoadBundleTaskProgress = await db.loadBundle(
-        builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
+        '136{"metadata":{"id":"test-bundle","createTime":{"seconds":1598032960,"nanos":299528000},"version":1,"totalDocuments":1,"totalBytes":1419}}358{"namedQuery":{"name":"limitQuery","bundledQuery":{"parent":"projects/fireeats-97d5e/databases/(default)/documents","structuredQuery":{"from":[{"collectionId":"node_4.2.0_uPypnKxZaMqgDXCwhJSe"}],"orderBy":[{"field":{"fieldPath":"sort"},"direction":"DESCENDING"}],"limit":{"value":1}},"limitType":"FIRST"},"readTime":{"seconds":1598032960,"nanos":215513000}}}362{"namedQuery":{"name":"limitToLastQuery","bundledQuery":{"parent":"projects/fireeats-97d5e/databases/(default)/documents","structuredQuery":{"from":[{"collectionId":"node_4.2.0_uPypnKxZaMqgDXCwhJSe"}],"orderBy":[{"field":{"fieldPath":"sort"},"direction":"ASCENDING"}],"limit":{"value":1}},"limitType":"LAST"},"readTime":{"seconds":1598032960,"nanos":299528000}}}232{"documentMetadata":{"name":"projects/fireeats-97d5e/databases/(default)/documents/node_4.2.0_uPypnKxZaMqgDXCwhJSe/doc4","readTime":{"seconds":1598032960,"nanos":299528000},"exists":true,"queries":["limitQuery","limitToLastQuery"]}}455{"document":{"name":"projects/fireeats-97d5e/databases/(default)/documents/node_4.2.0_uPypnKxZaMqgDXCwhJSe/doc4","createTime":{"_seconds":1598032960,"_nanoseconds":105293000},"updateTime":{"_seconds":1598032960,"_nanoseconds":105293000},"fields":{"sort":{"integerValue":"4","valueType":"integerValue"},"name":{"stringValue":"4","valueType":"stringValue"},"value":{"timestampValue":{"seconds":"1598032960","nanos":66000000},"valueType":"timestampValue"}}}}'
       );
 
       verifySuccessProgress(fulfillProgress!);
@@ -259,7 +259,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
       // Read the loaded documents, expecting document in cache. With memory
       // GC, the documents would get GC-ed if we did not hold the document keys
       // in a "umbrella" target. See local_store.ts for details.
-      snap = await db.collection('coll-1').get({ source: 'cache' });
+      snap = await db.collection('node_4.2.0_uPypnKxZaMqgDXCwhJSe').get({ source: 'cache' });
       verifySnapEqualTestDocs(snap);
     });
   });

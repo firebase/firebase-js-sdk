@@ -29,7 +29,7 @@ declare const __karma__: any;
 const PROJECT_CONFIG = require('../../../../../config/project.json');
 
 const EMULATOR_PORT = process.env.FIRESTORE_EMULATOR_PORT;
-const EMULATOR_PROJECT_ID = process.env.FIRESTORE_EMULATOR_PROJECT_ID;
+const EMULATOR_PROJECT_ID = 'fireeats-97d5e';
 export const USE_EMULATOR = !!EMULATOR_PORT;
 
 const EMULATOR_FIRESTORE_SETTING = {
@@ -56,7 +56,5 @@ function getDefaultSettings(): firestore.Settings {
   }
 }
 
-export const DEFAULT_PROJECT_ID = USE_EMULATOR
-  ? EMULATOR_PROJECT_ID
-  : PROJECT_CONFIG.projectId;
+export const DEFAULT_PROJECT_ID = 'fireeats-97d5e';
 export const ALT_PROJECT_ID = 'test-db2';

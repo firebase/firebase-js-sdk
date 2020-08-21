@@ -1381,7 +1381,9 @@ async function loadBundleImpl(
   task: LoadBundleTask
 ): Promise<void> {
   try {
+    console.log(`start loading`);
     const metadata = await reader.getMetadata();
+    console.log(`metadata ${JSON.stringify(metadata)}`);
     const skip = await hasNewerBundle(syncEngine.localStore, metadata);
     if (skip) {
       await reader.close();
@@ -1396,13 +1398,16 @@ async function loadBundleImpl(
       syncEngine.localStore,
       reader.serializer
     );
+    console.log(`created loader`);
     let element = await reader.nextElement();
     while (element) {
+      console.log(`element ${JSON.stringify(element)}`);
       debugAssert(
         !element.payload.metadata,
         'Unexpected BundleMetadata element.'
       );
       const progress = await loader.addSizedElement(element);
+      console.log(`added to loader`);
       if (progress) {
         task._updateProgress(progress);
       }
@@ -1410,7 +1415,9 @@ async function loadBundleImpl(
       element = await reader.nextElement();
     }
 
+    console.log(`start to call complete()`);
     const result = await loader.complete();
+    console.log(`with result ${result}`);
     // TODO(b/160876443): This currently raises snapshots with
     // `fromCache=false` if users already listen to some queries and bundles
     // has newer version.
@@ -1419,8 +1426,10 @@ async function loadBundleImpl(
       /* remoteEvent */ undefined
     );
 
+    console.log(`emitted snapshot`);
     // Save metadata, so loading the same bundle will skip.
     await saveBundle(syncEngine.localStore, metadata);
+    console.log(`saved bundle`);
     task._completeWith(result.progress);
   } catch (e) {
     task._failWith(e);
