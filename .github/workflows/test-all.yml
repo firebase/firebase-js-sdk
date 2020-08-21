@@ -23,8 +23,12 @@ jobs:
         yarn
     - name: yarn build
       run: yarn build
+    - name: Set start timestamp env var
+      run: echo "::set-env name=FIREBASE_CI_TEST_START_TIME::$(date +%s)"
     - name: Run unit tests
-      run: xvfb-run yarn test:ci
+      run: |
+        xvfb-run yarn test:ci
+        node scripts/print_test_logs.js
     - name: Generate coverage file
       run: yarn ci:coverage
     - name: Run coverage

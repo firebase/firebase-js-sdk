@@ -15,13 +15,13 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
-    "build:deps": "lerna run --scope @firebase/'{app,template}' --include-dependencies build",
+    "build:deps": "lerna run --scope @firebase/template --include-dependencies build",
     "dev": "rollup -c -w",
-    "test": "yarn type-check && run-p lint test:browser test:node",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "test": "run-p lint test:all",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
+    "test:all": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha src/**/*.test.* --config ../../config/mocharc.node.js",
-    "type-check": "tsc -p . --noEmit",
     "prepare": "yarn build"
   },
   "peerDependencies": {
@@ -34,6 +34,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@firebase/app": "0.6.10",
     "rollup": "2.23.0",
     "rollup-plugin-typescript2": "0.27.1",
     "typescript": "3.9.7"

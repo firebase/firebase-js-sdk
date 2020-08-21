@@ -28,5 +28,8 @@ export default {
     sourcemap: true
   },
   plugins: util.es2017Plugins('rn', /* mangled= */ true),
-  external: util.resolveBrowserExterns
+  external: util.resolveBrowserExterns,
+  treeshake: {
+    moduleSideEffects: false
+  }
 };
