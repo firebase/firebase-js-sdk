@@ -15,27 +15,21 @@
  * limitations under the License.
  */
 
-import { runTests, getTestTasks } from './run_changed';
-import { buildForTests } from './build';
-
-const ignoredPackages = [
-  '@firebase/firestore',
-  'firebase-firestore-integration-test',
-  'firebase-messaging-integration-test',
-  'firebase-namespace-integration-test',
-  '@firebase/testing',
-  '@firebase/rules-unit-testing',
-  'rxfire',
-  '@firebase/auth'
-];
+import { getTestTasks, runTests } from './run_changed';
+import { spawn } from 'child-process-promise';
+import { resolve } from 'path';
+const root = resolve(__dirname, '../..');
+/**
+ * run auth tests in a separate workflow because it depends on firebase-app.js which requires building the entire repo
+ */
+const includeOnlyPackages = ['@firebase/auth'];
 
 async function run() {
   let testTasks = await getTestTasks();
+  testTasks = testTasks.filter(t => includeOnlyPackages.includes(t.pkgName));
 
-  // remove the ignored packages from the tasks
-  testTasks = testTasks.filter(t => !ignoredPackages.includes(t.pkgName));
-  await buildForTests(testTasks);
-
+  // build all because auth tests need on firebase-app.js
+  await spawn('npx', ['yarn', 'build'], { stdio: 'inherit', cwd: root });
   runTests(testTasks);
 }
 

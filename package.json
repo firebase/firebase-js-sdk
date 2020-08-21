@@ -41,6 +41,7 @@
     "test:changed": "ts-node-script scripts/ci-test/run_changed_core.ts",
     "test:changed:firestore": "ts-node-script scripts/ci-test/run_changed_firestore.ts",
     "test:changed:fcm": "ts-node-script scripts/ci-test/run_changed_fcm_integration.ts",
+    "test:changed:auth": "ts-node-script scripts/ci-test/run_changed_auth.ts",
     "test:changed:auxiliary": "ts-node-script scripts/ci-test/run_changed_auxiliary_libs.ts",
     "test:setup": "node tools/config.js",
     "test:saucelabs": "node scripts/run_saucelabs.js",
