@@ -19,9 +19,9 @@ import '@firebase/logger';
 import * as fs from 'fs';
 import {
   basicFuncExportEnumDependenciesBar,
-  basicFuncExternalDependenciesBar
+  basicFuncExternalDependenciesBar,
+  BasicClassExportBar as BasicClassExportBarRenamed
 } from './bar';
-import { BasicClassExportBar as BasicClassExportBarRenamed } from './bar';
 import defaultExport from '@firebase/app';
 console.log(
   fs,

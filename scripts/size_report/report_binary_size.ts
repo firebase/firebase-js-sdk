@@ -15,20 +15,30 @@
  * limitations under the License.
  */
 
-const { resolve } = require('path');
-const fs = require('fs');
-const { execSync } = require('child_process');
-const https = require('https');
-const terser = require('terser');
+import { resolve } from 'path';
+import * as fs from 'fs';
+import { execSync } from 'child_process';
+import * as terser from 'terser';
+import {
+  upload,
+  runId,
+  RequestBody,
+  RequestEndpoint
+} from './size_report_helper';
 
-const runId = process.env.GITHUB_RUN_ID || 'local-run-id';
-
-const METRICS_SERVICE_URL = process.env.METRICS_SERVICE_URL;
-
+interface Report {
+  sdk: string;
+  type: string;
+  value: number;
+}
+interface BinarySizeRequestBody extends RequestBody {
+  metric: string;
+  results: Report[];
+}
 // CDN scripts
-function generateReportForCDNScripts() {
+function generateReportForCDNScripts(): Report[] {
   const reports = [];
-  const firebaseRoot = resolve(__dirname, '../packages/firebase');
+  const firebaseRoot = resolve(__dirname, '../../packages/firebase');
   const pkgJson = require(`${firebaseRoot}/package.json`);
 
   const special_files = [
@@ -39,9 +49,9 @@ function generateReportForCDNScripts() {
   ];
 
   const files = [
-    ...special_files.map(file => `${firebaseRoot}/${file}`),
+    ...special_files.map((file: string) => `${firebaseRoot}/${file}`),
     ...pkgJson.components.map(
-      component => `${firebaseRoot}/firebase-${component}.js`
+      (component: string) => `${firebaseRoot}/firebase-${component}.js`
     )
   ];
 
@@ -55,8 +65,8 @@ function generateReportForCDNScripts() {
 }
 
 // NPM packages
-function generateReportForNPMPackages() {
-  const reports = [];
+function generateReportForNPMPackages(): Report[] {
+  const reports: Report[] = [];
   const fields = [
     'main',
     'module',
@@ -71,13 +81,13 @@ function generateReportForNPMPackages() {
     execSync('npx lerna ls --json --scope @firebase/*').toString()
   );
 
-  for (const package of packageInfo) {
+  for (const pkg of packageInfo) {
     // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
     // Currently we only traverse 1 level deep because we don't have any submodule deeper than that.
-    traverseDirs(package.location, collectBinarySize, 0, 1);
+    traverseDirs(pkg.location, collectBinarySize, 0, 1);
   }
 
-  function collectBinarySize(path) {
+  function collectBinarySize(path: string) {
     const packageJsonPath = `${path}/package.json`;
     if (!fs.existsSync(packageJsonPath)) {
       return;
@@ -99,7 +109,7 @@ function generateReportForNPMPackages() {
           compress: false
         });
 
-        const size = Buffer.byteLength(code, 'utf-8');
+        const size = Buffer.byteLength(code!, 'utf-8');
         reports.push(makeReportObject(packageJson.name, field, size));
       }
     }
@@ -108,7 +118,12 @@ function generateReportForNPMPackages() {
   return reports;
 }
 
-function traverseDirs(path, executor, level, levelLimit) {
+function traverseDirs(
+  path: string,
+  executor: Function,
+  level: number,
+  levelLimit: number
+) {
   if (level > levelLimit) {
     return;
   }
@@ -124,7 +139,7 @@ function traverseDirs(path, executor, level, levelLimit) {
   }
 }
 
-function makeReportObject(sdk, type, value) {
+function makeReportObject(sdk: string, type: string, value: number): Report {
   return {
     sdk,
     type,
@@ -132,8 +147,8 @@ function makeReportObject(sdk, type, value) {
   };
 }
 
-function generateSizeReport() {
-  const reports = [
+function generateSizeReport(): BinarySizeRequestBody {
+  const reports: Report[] = [
     ...generateReportForCDNScripts(),
     ...generateReportForNPMPackages()
   ];
@@ -153,61 +168,5 @@ function generateSizeReport() {
   };
 }
 
-function constructRequestPath() {
-  const repo = process.env.GITHUB_REPOSITORY;
-  const commit = process.env.GITHUB_SHA;
-  let path = `/repos/${repo}/commits/${commit}/reports`;
-  if (process.env.GITHUB_EVENT_NAME === 'pull_request') {
-    const pullRequestNumber = process.env.GITHUB_PULL_REQUEST_NUMBER;
-    const pullRequestBaseSha = process.env.GITHUB_PULL_REQUEST_BASE_SHA;
-    path += `?pull_request=${pullRequestNumber}&base_commit=${pullRequestBaseSha}`;
-  } else if (process.env.GITHUB_EVENT_NAME === 'push') {
-    const ref = process.env.GITHUB_REF; // 'refs/heads/<some-branch-name>'
-    const branch = ref.substring('refs/heads/'.length);
-    path += `?branch=${branch}`;
-  }
-  return path;
-}
-
-function constructRequestOptions(path) {
-  const accessToken = execSync('gcloud auth print-identity-token', {
-    encoding: 'utf8'
-  }).trim();
-  return {
-    path: path,
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json'
-    }
-  };
-}
-
-function upload(report) {
-  if (!process.env.GITHUB_ACTIONS) {
-    console.log('Metrics upload is only enabled on CI.');
-    return;
-  }
-
-  const path = constructRequestPath();
-  const options = constructRequestOptions(path);
-
-  console.log(`${report.metric} report:`, report);
-  console.log(`Posting to metrics service endpoint: ${path} ...`);
-
-  const request = https.request(METRICS_SERVICE_URL, options, response => {
-    response.setEncoding('utf8');
-    console.log(`Response status code: ${response.statusCode}`);
-    response.on('data', console.log);
-    response.on('end', () => {
-      if (response.statusCode !== 202) {
-        process.exit(1);
-      }
-    });
-  });
-  request.write(JSON.stringify(report));
-  request.end();
-}
-
 const report = generateSizeReport();
-upload(report);
+upload(report, RequestEndpoint.BINARY_SIZE);
