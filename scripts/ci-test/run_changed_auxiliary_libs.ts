@@ -15,23 +15,19 @@
  * limitations under the License.
  */
 
-import { runTests, getTestTasks, createTestTask } from './run_changed';
+import { getTestTasks, runTests } from './run_changed';
 import { buildForTests } from './build';
 
-const ignoredPackages = [
-  '@firebase/firestore',
-  'firebase-firestore-integration-test',
-  'firebase-messaging-integration-test',
-  'firebase-namespace-integration-test'
+const includeOnlyPackages = [
+  '@firebase/testing',
+  '@firebase/rules-unit-testing',
+  'rxfire'
 ];
 
 async function run() {
   let testTasks = await getTestTasks();
-
-  // remove the ignored packages from the tasks
-  testTasks = testTasks.filter(t => !ignoredPackages.includes(t.pkgName));
-  await buildForTests(testTasks);
-
+  testTasks = testTasks.filter(t => includeOnlyPackages.includes(t.pkgName));
+  await buildForTests(testTasks, true);
   runTests(testTasks);
 }
 
