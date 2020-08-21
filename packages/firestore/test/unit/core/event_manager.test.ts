@@ -65,7 +65,8 @@ describe('EventManager', () => {
     const fakeListener2 = fakeQueryListener(query1);
 
     const eventManager = new EventManager();
-    eventManager.subscribe(onListenSpy.bind(null), onUnlistenSpy.bind(null));
+    eventManager.onListen = onListenSpy.bind(null);
+    eventManager.onUnlisten = onUnlistenSpy.bind(null);
 
     await eventManager.listen(fakeListener1);
     expect(onListenSpy.calledWith(query1)).to.be.true;
@@ -85,7 +86,9 @@ describe('EventManager', () => {
     const fakeListener1 = fakeQueryListener(query1);
 
     const eventManager = new EventManager();
-    eventManager.subscribe(onListenSpy.bind(null), onUnlistenSpy.bind(null));
+    eventManager.onListen = onListenSpy.bind(null);
+    eventManager.onUnlisten = onUnlistenSpy.bind(null);
+
     await eventManager.unlisten(fakeListener1);
     expect(onUnlistenSpy.callCount).to.equal(0);
   });
@@ -109,7 +112,8 @@ describe('EventManager', () => {
     };
 
     const eventManager = new EventManager();
-    eventManager.subscribe(onListenSpy.bind(null), onUnlistenSpy.bind(null));
+    eventManager.onListen = onListenSpy.bind(null);
+    eventManager.onUnlisten = onUnlistenSpy.bind(null);
 
     await eventManager.listen(fakeListener1);
     await eventManager.listen(fakeListener2);
@@ -140,7 +144,8 @@ describe('EventManager', () => {
     };
 
     const eventManager = new EventManager();
-    eventManager.subscribe(onListenSpy.bind(null), onUnlistenSpy.bind(null));
+    eventManager.onListen = onListenSpy.bind(null);
+    eventManager.onUnlisten = onUnlistenSpy.bind(null);
 
     await eventManager.listen(fakeListener1);
     expect(events).to.deep.equal([OnlineState.Unknown]);
