@@ -1,0 +1,24 @@
+{
+  "name": "ie11",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "rollup -c rollup.config.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "firebase": "file:../firebase"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.11.1",
+    "@babel/preset-env": "^7.11.0",
+    "@rollup/plugin-babel": "^5.2.0",
+    "@rollup/plugin-commonjs": "^14.0.0",
+    "@rollup/plugin-node-resolve": "^8.4.0",
+    "@rollup/plugin-typescript": "^5.0.2",
+    "rollup": "^2.23.1",
+    "tslib": "^2.0.1",
+    "typescript": "^3.9.7"
+  }
+}
