@@ -18,7 +18,7 @@
 import { getTestTasks, runTests } from './run_changed';
 import { buildForTests } from './build';
 
-const includeOnlyPackages = ['@firebase/firestore'];
+const includeOnlyPackages = ['firebase-firestore-integration-test'];
 
 async function run() {
   let testTasks = await getTestTasks();

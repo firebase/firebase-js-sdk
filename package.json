@@ -40,6 +40,7 @@
     "test:coverage": "lcov-result-merger 'packages/**/lcov.info' | coveralls",
     "test:changed": "ts-node-script scripts/ci-test/run_changed_core.ts",
     "test:changed:firestore": "ts-node-script scripts/ci-test/run_changed_firestore.ts",
+    "test:changed:firestore:integration": "ts-node-script scripts/ci-test/run_changed_firestore_integration.ts",
     "test:changed:fcm": "ts-node-script scripts/ci-test/run_changed_fcm_integration.ts",
     "test:changed:auth": "ts-node-script scripts/ci-test/run_changed_auth.ts",
     "test:changed:auxiliary": "ts-node-script scripts/ci-test/run_changed_auxiliary_libs.ts",
