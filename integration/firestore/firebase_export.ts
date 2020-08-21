@@ -38,7 +38,7 @@ export function newTestFirestore(
       ? firebase.initializeApp({ apiKey: 'fake-api-key', projectId }, nameOrApp)
       : nameOrApp;
 
-  const firestore = firebase.firestore!(app);
+  const firestore = firebase.firestore(app);
   if (settings) {
     firestore.settings(settings);
   }
