@@ -33,6 +33,7 @@ export async function buildForTests(
 
     // hack to build Firestore which depends on @firebase/app-exp (because of firestore exp),
     // but doesn't list it as a dependency in its package.json
+    // TODO: remove once modular SDKs become official
     if (buildAppExp) {
       await spawn(
         'npx',
