@@ -19,15 +19,15 @@ import { resolve } from 'path';
 import { spawn, exec } from 'child-process-promise';
 import chalk from 'chalk';
 import simpleGit from 'simple-git/promise';
-const root = resolve(__dirname, '..');
+const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
 
-interface TestTask {
+export interface TestTask {
   pkgName: string;
   reason: TestReason;
 }
 
-enum TestReason {
+export enum TestReason {
   Changed = 'changed',
   Dependent = 'dependent',
   Global = 'global'
@@ -79,8 +79,15 @@ const specialPaths = {
   ],
   'scripts/emulator-testing/firestore-test-runner.ts': ['@firebase/firestore'],
   'scripts/emulator-testing/database-test-runner.ts': ['@firebase/database'],
-  'packages/firestore': ['firebase-firestore-integration-test']
+  'packages/firestore': ['firebase-firestore-integration-test'],
+  'packages/messaging': ['firebase-messaging-integration-test']
 };
+
+/**
+ * firebase and firebase-exp don't have tests and are very expensive to build, so we don't
+ * generate TestTasks for them.
+ */
+const ignoredPackages = ['firebase', 'firebase-exp'];
 
 /**
  * Identify modified packages that require tests.
@@ -97,14 +104,16 @@ export async function getTestTasks(): Promise<TestTask[]> {
   );
   const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
   const changedFiles = diff.split('\n');
-  const testTasks: TestTask[] = [];
+  let testTasks: TestTask[] = [];
   for (const filename of changedFiles) {
     // Files that trigger full test suite.
     if (fullTestTriggerFiles.includes(filename)) {
       console.log(
         chalk`{blue Running all tests because ${filename} was modified.}`
       );
-      return allPackageNames.map(pkgName => createTestTask(pkgName));
+      // run tests in all packages
+      testTasks = allPackageNames.map(pkgName => createTestTask(pkgName));
+      break;
     }
     // Files outside a package dir that should trigger its tests.
     const specialPathKeys = Object.keys(specialPaths) as Array<
@@ -156,11 +165,14 @@ export async function getTestTasks(): Promise<TestTask[]> {
       }
     }
   }
+
   if (testTasks.length === 0) {
     console.log(
       chalk`{green No changes detected in any package. No test tasks is created }`
     );
   }
+
+  testTasks = testTasks.filter(t => !ignoredPackages.includes(t.pkgName));
 
   return testTasks;
 }

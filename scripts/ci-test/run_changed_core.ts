@@ -15,34 +15,26 @@
  * limitations under the License.
  */
 
-import { runTests, getTestTasks, createTestTask } from './run_changed';
-
-/**
- * Always run tests in these paths.
- */
-const alwaysRunTestPackages = [
-  // These tests are very fast.
-  'firebase-namespace-integration-test'
-];
+import { runTests, getTestTasks } from './run_changed';
+import { buildForTests } from './build';
 
 const ignoredPackages = [
   '@firebase/firestore',
   'firebase-firestore-integration-test',
-  'firebase-messaging-integration-test'
+  'firebase-messaging-integration-test',
+  'firebase-namespace-integration-test',
+  '@firebase/testing',
+  '@firebase/rules-unit-testing',
+  'rxfire',
+  '@firebase/auth'
 ];
 
 async function run() {
   let testTasks = await getTestTasks();
 
-  // add alwaysRunTestPackages to tests if they don't already have a task
-  for (const packageToTest of alwaysRunTestPackages) {
-    if (!testTasks.find(t => t.pkgName === packageToTest)) {
-      testTasks.push(createTestTask(packageToTest));
-    }
-  }
-
   // remove the ignored packages from the tasks
   testTasks = testTasks.filter(t => !ignoredPackages.includes(t.pkgName));
+  await buildForTests(testTasks);
 
   runTests(testTasks);
 }

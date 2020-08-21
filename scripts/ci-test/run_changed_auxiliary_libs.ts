@@ -18,12 +18,15 @@
 import { getTestTasks, runTests } from './run_changed';
 import { buildForTests } from './build';
 
-const includeOnlyPackages = ['firebase-messaging-integration-test'];
+const includeOnlyPackages = [
+  '@firebase/testing',
+  '@firebase/rules-unit-testing',
+  'rxfire'
+];
 
 async function run() {
   let testTasks = await getTestTasks();
   testTasks = testTasks.filter(t => includeOnlyPackages.includes(t.pkgName));
-
   await buildForTests(testTasks, true);
   runTests(testTasks);
 }

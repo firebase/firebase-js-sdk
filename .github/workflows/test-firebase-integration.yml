@@ -1,10 +1,10 @@
-name: Test Modified Packages
+name: Test Firebase Namespace
 
 on: pull_request
 
 jobs:
   test:
-    name: Test Packages With Changed Files
+    name: Test Firebase Namespace
     runs-on: ubuntu-latest
 
     steps:
@@ -25,5 +25,7 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
+    - name: yarn build
+      run: yarn build
     - name: Run tests on changed packages
-      run: xvfb-run yarn test:changed
+      run: xvfb-run yarn lerna run --scope firebase-namespace-integration-test test:ci

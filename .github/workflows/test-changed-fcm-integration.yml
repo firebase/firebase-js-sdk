@@ -4,7 +4,7 @@ on: pull_request
 
 jobs:
   test:
-    name: Test FCM integration
+    name: If Changed
     runs-on: ubuntu-latest
 
     steps:
@@ -25,7 +25,5 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
-    - name: yarn build
-      run: yarn build
     - name: Run tests if FCM or its dependenceies has changed
       run: xvfb-run yarn test:changed:fcm

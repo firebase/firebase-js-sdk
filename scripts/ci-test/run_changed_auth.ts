@@ -16,15 +16,20 @@
  */
 
 import { getTestTasks, runTests } from './run_changed';
-import { buildForTests } from './build';
-
-const includeOnlyPackages = ['firebase-messaging-integration-test'];
+import { spawn } from 'child-process-promise';
+import { resolve } from 'path';
+const root = resolve(__dirname, '../..');
+/**
+ * run auth tests in a separate workflow because it depends on firebase-app.js which requires building the entire repo
+ */
+const includeOnlyPackages = ['@firebase/auth'];
 
 async function run() {
   let testTasks = await getTestTasks();
   testTasks = testTasks.filter(t => includeOnlyPackages.includes(t.pkgName));
 
-  await buildForTests(testTasks, true);
+  // build all because auth tests need on firebase-app.js
+  await spawn('npx', ['yarn', 'build'], { stdio: 'inherit', cwd: root });
   runTests(testTasks);
 }
 
