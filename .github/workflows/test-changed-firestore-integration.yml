@@ -26,4 +26,4 @@ jobs:
         cp config/ci.config.json config/project.json
         yarn
     - name: Run tests if firestore or its dependenceies has changed
-      run: xvfb-run yarn test:changed:firestore
+      run: xvfb-run yarn test:changed:firestore:integration
