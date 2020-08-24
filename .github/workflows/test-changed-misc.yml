@@ -28,4 +28,4 @@ jobs:
     - name: build
       run: yarn build:changed misc
     - name: Run tests
-      run: xvfb-run yarn test:changed misc
+      run: yarn test:changed misc

@@ -28,4 +28,4 @@ jobs:
     - name: build
       run: yarn build:changed firebase-integration
     - name: Run tests on changed packages
-      run: xvfb-run yarn test:changed firebase-integration
+      run: yarn test:changed firebase-integration

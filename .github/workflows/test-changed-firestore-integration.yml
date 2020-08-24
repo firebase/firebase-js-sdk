@@ -28,4 +28,4 @@ jobs:
     - name: build
       run: yarn build:changed firestore-integration
     - name: Run tests if firestore or its dependenceies has changed
-      run: xvfb-run yarn test:changed firestore-integration
+      run: yarn test:changed firestore-integration
