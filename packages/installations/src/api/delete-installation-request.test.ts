@@ -32,6 +32,7 @@ import {
 } from '../util/constants';
 import { ErrorResponse } from './common';
 import { deleteInstallationRequest } from './delete-installation-request';
+import { TEST_API_KEY } from '../testing/test-constants';
 
 const FID = 'foreclosure-of-a-dream';
 
@@ -65,7 +66,7 @@ describe('deleteInstallationRequest', () => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `${INTERNAL_AUTH_VERSION} refreshToken`,
-        'x-goog-api-key': 'apiKey'
+        'x-goog-api-key': TEST_API_KEY
       });
       const expectedRequest: RequestInit = {
         method: 'DELETE',

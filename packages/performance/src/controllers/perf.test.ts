@@ -30,7 +30,7 @@ describe('Firebase Performance Test', () => {
   setupApi(window);
 
   const fakeFirebaseConfig = {
-    apiKey: 'api-key',
+    apiKey: 'A-test-api-key-jklmnopqrstuvwxyz1234567',
     authDomain: 'project-id.firebaseapp.com',
     databaseURL: 'https://project-id.firebaseio.com',
     projectId: 'project-id',

@@ -35,6 +35,7 @@ import {
 } from '../util/constants';
 import { ErrorResponse } from './common';
 import { generateAuthTokenRequest } from './generate-auth-token-request';
+import { TEST_API_KEY } from '../testing/test-constants';
 
 const FID = 'evil-has-no-boundaries';
 
@@ -85,7 +86,7 @@ describe('generateAuthTokenRequest', () => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: `${INTERNAL_AUTH_VERSION} refreshToken`,
-        'x-goog-api-key': 'apiKey',
+        'x-goog-api-key': TEST_API_KEY,
         'x-firebase-client': 'a/1.2.3 b/2.3.4'
       });
       const expectedBody = {
