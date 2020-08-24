@@ -68,7 +68,6 @@
     "@changesets/cli": "2.9.2",
     "@microsoft/api-documenter": "7.8.21",
     "@microsoft/api-extractor": "7.9.2",
-    "@types/mz": "2.7.1",
     "@types/chai": "4.2.12",
     "@types/chai-as-promised": "7.1.3",
     "@types/child-process-promise": "2.2.1",
