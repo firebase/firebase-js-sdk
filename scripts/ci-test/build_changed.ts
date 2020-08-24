@@ -59,7 +59,7 @@ buildForTests(config, buildAppExp);
 async function buildForTests(config: TestConfig, buildAppExp = false) {
   try {
     const testTasks = filterTasks(await getTestTasks(), config);
-    console.log(testTasks);
+
     if (testTasks.length === 0) {
       console.log(chalk`{green No test tasks. Skipping all builds }`);
       return;
@@ -103,5 +103,6 @@ async function buildForTests(config: TestConfig, buildAppExp = false) {
     await spawn('npx', lernaCmd, { stdio: 'inherit', cwd: root });
   } catch (e) {
     console.error(chalk`{red ${e}}`);
+    process.exit(1);
   }
 }
