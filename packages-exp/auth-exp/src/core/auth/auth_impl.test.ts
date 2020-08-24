@@ -15,21 +15,29 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types-exp';
-import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+
+import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseError } from '@firebase/util';
+
 import { testUser } from '../../../test/helpers/mock_auth';
+import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { Persistence } from '../persistence';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
-import { ClientPlatform } from '../util/version';
-import { _castAuth, _initializeAuthForClientPlatform } from './auth_impl';
-import { Auth } from '../../model/auth';
+import {
+  _castAuth,
+  AuthImpl,
+  DEFAULT_API_HOST,
+  DEFAULT_API_SCHEME,
+  DEFAULT_TOKEN_API_HOST
+} from './auth_impl';
+import { _initializeAuthInstance } from './initialize';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -43,19 +51,22 @@ const FAKE_APP: FirebaseApp = {
   automaticDataCollectionEnabled: false
 };
 
-const initializeAuth = _initializeAuthForClientPlatform(ClientPlatform.BROWSER);
-
 describe('core/auth/auth_impl', () => {
   let auth: Auth;
   let persistenceStub: sinon.SinonStubbedInstance<Persistence>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
-    auth = _castAuth(
-      initializeAuth(FAKE_APP, {
-        persistence: inMemoryPersistence
-      })
-    );
+    const authImpl = new AuthImpl(FAKE_APP, {
+      apiKey: FAKE_APP.options.apiKey!,
+      apiHost: DEFAULT_API_HOST,
+      apiScheme: DEFAULT_API_SCHEME,
+      tokenApiHost: DEFAULT_TOKEN_API_HOST,
+      sdkClientVersion: 'v'
+    });
+
+    _initializeAuthInstance(authImpl, { persistence: inMemoryPersistence });
+    auth = authImpl;
   });
 
   afterEach(sinon.restore);

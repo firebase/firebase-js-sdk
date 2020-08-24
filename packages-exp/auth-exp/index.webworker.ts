@@ -15,16 +15,39 @@
  * limitations under the License.
  */
 
-import { registerVersion } from '@firebase/app-exp';
-import { name, version } from './package.json';
-import { _initializeAuthForClientPlatform } from './src/core/auth/auth_impl';
+import { _getProvider, getApp } from '@firebase/app-exp';
+import { Auth } from '@firebase/auth-types-exp';
+
+import { AuthImpl } from './src/core/auth/auth_impl';
+import { _initializeAuthInstance } from './src/core/auth/initialize';
+import { _AUTH_COMPONENT_NAME, registerAuth } from './src/core/auth/register';
+import { Persistence } from './src/core/persistence';
+import { _getInstance } from './src/core/util/instantiator';
 import { ClientPlatform } from './src/core/util/version';
+import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
 // Core functionality shared by all clients
 export * from './src';
 
-export const initializeAuth = _initializeAuthForClientPlatform(
-  ClientPlatform.WORKER
-);
+registerAuth(ClientPlatform.WORKER);
 
-registerVersion(name, version, 'webworker');
+export function getAuth(app = getApp()): Auth {
+  // Unlike the other environments, we need to explicitly check if indexedDb is
+  // available. That means doing the whole rigamarole
+  const auth = _getProvider(
+    app,
+    _AUTH_COMPONENT_NAME
+  ).getImmediate() as AuthImpl;
+
+  // This promise is intended to float; auth initialization happens in the
+  // background, meanwhile the auth object may be used by the app.
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  _getInstance<Persistence>(indexedDBLocalPersistence)
+    .isAvailable()
+    .then(avail => {
+      const deps = avail ? { persistence: indexedDBLocalPersistence } : {};
+      _initializeAuthInstance(auth, deps);
+    });
+
+  return auth;
+}

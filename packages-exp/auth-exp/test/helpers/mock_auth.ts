@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseApp } from '@firebase/app-types-exp';
 import { PopupRedirectResolver } from '@firebase/auth-types-exp';
 
 import { AuthImpl } from '../../src/core/auth/auth_impl';
@@ -35,6 +36,12 @@ export interface TestAuth extends AuthImpl {
   persistenceLayer: MockPersistenceLayer;
 }
 
+const FAKE_APP: FirebaseApp = {
+  name: 'test-app',
+  options: {},
+  automaticDataCollectionEnabled: false
+};
+
 export class MockPersistenceLayer extends InMemoryPersistence {
   lastObjectSet: PersistedBlob | null = null;
 
@@ -53,7 +60,7 @@ export async function testAuth(
   popupRedirectResolver?: PopupRedirectResolver,
   persistence = new MockPersistenceLayer()
 ): Promise<TestAuth> {
-  const auth: TestAuth = new AuthImpl('test-app', {
+  const auth: TestAuth = new AuthImpl(FAKE_APP, {
     apiKey: TEST_KEY,
     authDomain: TEST_AUTH_DOMAIN,
     apiHost: TEST_HOST,
