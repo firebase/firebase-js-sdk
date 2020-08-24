@@ -22,29 +22,29 @@ import * as sinonChai from 'sinon-chai';
 
 import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
-import { FirebaseError } from '@firebase/util';
 
-import { testUser, testAuth } from '../../test/helpers/mock_auth';
-import { browserPopupRedirectResolver } from './popup_redirect';
+import { testAuth, testUser } from '../../test/helpers/mock_auth';
+import {
+  _castAuth,
+  AuthImpl,
+  DEFAULT_API_HOST,
+  DEFAULT_API_SCHEME,
+  DEFAULT_TOKEN_API_HOST
+} from '../core/auth/auth_impl';
+import { _initializeAuthInstance } from '../core/auth/initialize';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { Persistence } from '../core/persistence';
-import {
-  browserLocalPersistence,
-  browserSessionPersistence
-} from './persistence/browser';
 import { inMemoryPersistence } from '../core/persistence/in_memory';
 import { PersistenceUserManager } from '../core/persistence/persistence_user_manager';
 import * as reload from '../core/user/reload';
 import { _getInstance } from '../core/util/instantiator';
 import { _getClientVersion, ClientPlatform } from '../core/util/version';
-import {
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST,
-  _castAuth,
-  _initializeAuthForClientPlatform
-} from '../core/auth/auth_impl';
 import { Auth } from '../model/auth';
+import {
+  browserLocalPersistence,
+  browserSessionPersistence
+} from './persistence/browser';
+import { browserPopupRedirectResolver } from './popup_redirect';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -58,19 +58,22 @@ const FAKE_APP: FirebaseApp = {
   automaticDataCollectionEnabled: false
 };
 
-const initializeAuth = _initializeAuthForClientPlatform(ClientPlatform.BROWSER);
-
 describe('core/auth/auth_impl', () => {
   let auth: Auth;
   let persistenceStub: sinon.SinonStubbedInstance<Persistence>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
-    auth = _castAuth(
-      initializeAuth(FAKE_APP, {
-        persistence: inMemoryPersistence
-      })
-    );
+    const authImpl = new AuthImpl(FAKE_APP, {
+      apiKey: FAKE_APP.options.apiKey!,
+      apiHost: DEFAULT_API_HOST,
+      apiScheme: DEFAULT_API_SCHEME,
+      tokenApiHost: DEFAULT_TOKEN_API_HOST,
+      sdkClientVersion: 'v'
+    });
+
+    _initializeAuthInstance(authImpl, { persistence: inMemoryPersistence });
+    auth = authImpl;
   });
 
   afterEach(sinon.restore);
@@ -97,18 +100,6 @@ describe('core/auth/auth_impl', () => {
 describe('core/auth/initializeAuth', () => {
   afterEach(sinon.restore);
 
-  it('throws an API error if key not provided', () => {
-    expect(() =>
-      initializeAuth({
-        ...FAKE_APP,
-        options: {} // apiKey is missing
-      })
-    ).to.throw(
-      FirebaseError,
-      'Firebase: Your API key is invalid, please check you have copied it correctly. (auth/invalid-api-key).'
-    );
-  });
-
   describe('persistence manager creation', () => {
     let createManagerStub: sinon.SinonSpy;
     let reloadStub: sinon.SinonStub;
@@ -126,7 +117,16 @@ describe('core/auth/initializeAuth', () => {
       persistence: externs.Persistence | externs.Persistence[],
       popupRedirectResolver?: externs.PopupRedirectResolver
     ): Promise<externs.Auth> {
-      const auth = initializeAuth(FAKE_APP, {
+      const auth = new AuthImpl(FAKE_APP, {
+        apiKey: FAKE_APP.options.apiKey!,
+        apiHost: DEFAULT_API_HOST,
+        apiScheme: DEFAULT_API_SCHEME,
+        tokenApiHost: DEFAULT_TOKEN_API_HOST,
+        authDomain: FAKE_APP.options.authDomain,
+        sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
+      });
+
+      _initializeAuthInstance(auth, {
         persistence,
         popupRedirectResolver
       });

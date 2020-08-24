@@ -18,9 +18,8 @@ import { initializeApp } from '@firebase/app-exp';
 import {
   createUserWithEmailAndPassword,
   fetchSignInMethodsForEmail,
+  getAuth,
   GoogleAuthProvider,
-  initializeAuth,
-  inMemoryPersistence,
   signInAnonymously,
   signInWithCredential,
   signInWithEmailAndPassword,
@@ -37,9 +36,7 @@ import { config } from '../config';
 
 // Initialize the Firebase app in the web worker.
 const app = initializeApp(config);
-const auth = initializeAuth(app, {
-  persistence: inMemoryPersistence
-});
+const auth = getAuth(app);
 
 /**
  * Returns a promise that resolves with an ID token if available.

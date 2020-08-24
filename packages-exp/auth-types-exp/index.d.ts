@@ -487,3 +487,9 @@ export type UserProfile = Record<string, unknown>;
 
 /** No documentation for this yet */
 export interface PopupRedirectResolver {}
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'auth-exp': Auth;
+  }
+}
