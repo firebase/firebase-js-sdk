@@ -59,35 +59,20 @@ describe('FirebaseAnalytics instance tests', () => {
       'field is empty'
     );
   });
-  it('Throws if no apiKey and no measurementId in config', () => {
+  it('Throws if no apiKey in config', () => {
     const app = getFakeApp({ appId: fakeAppParams.appId });
     const installations = getFakeInstallations();
     expect(() => analyticsFactory(app, installations)).to.throw(
       'field is empty'
     );
   });
-  it('Warns if config has no apiKey but does have a measurementId', () => {
-    const consoleStub = stub(console, 'warn');
-    const app = getFakeApp({
-      appId: fakeAppParams.appId,
-      measurementId: fakeMeasurementId
-    });
-    const installations = getFakeInstallations();
-    stubFetch(200, { measurementId: fakeMeasurementId });
-    analyticsFactory(app, installations);
-    expect(consoleStub.args[0][1]).to.include(fakeMeasurementId);
-    consoleStub.restore();
-    fetchStub.restore();
-  });
   it('Throws if creating an instance with already-used analytics ID', () => {
     const app = getFakeApp(fakeAppParams);
     const installations = getFakeInstallations();
     resetGlobalVars(false, { [fakeAppParams.appId]: Promise.resolve() });
-    stubFetch(200, { measurementId: fakeMeasurementId });
     expect(() => analyticsFactory(app, installations)).to.throw(
       'already exists'
     );
-    fetchStub.restore();
   });
   describe('Standard app, page already has user gtag script', () => {
     let app: FirebaseApp = {} as FirebaseApp;
@@ -97,29 +82,32 @@ describe('FirebaseAnalytics instance tests', () => {
 
       app = getFakeApp(fakeAppParams);
       fidDeferred = new Deferred<void>();
+      const installations = getFakeInstallations('fid-1234', () =>
+        fidDeferred.resolve()
+      );
       window['gtag'] = gtagStub;
       window['dataLayer'] = [];
+      analyticsInstance = analyticsFactory(app, installations);
     });
     after(() => {
       delete window['gtag'];
       delete window['dataLayer'];
       removeGtagScript();
+      fetchStub.restore();
     });
     afterEach(() => {
       gtagStub.reset();
     });
+    it('Contains reference to parent app', () => {
+      stubFetch(200, {});
+      expect(analyticsInstance.app).to.equal(app);
+    });
     it('Calls gtag correctly on logEvent (instance)', async () => {
-      const installations = getFakeInstallations('fid-1234', () =>
-        fidDeferred.resolve()
-      );
       stubFetch(200, { measurementId: fakeMeasurementId });
-      analyticsInstance = analyticsFactory(app, installations);
       analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
-      // Clear event stack of initialization promise.
-      const { dynamicConfigPromisesList } = getGlobalVars();
-      await Promise.all(Object.values(dynamicConfigPromisesList));
+      await new Promise(resolve => setTimeout(resolve, 10));
       expect(gtagStub).to.have.been.calledWith('js');
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.CONFIG,
@@ -153,9 +141,6 @@ describe('FirebaseAnalytics instance tests', () => {
         Function
       );
     });
-    it('Contains reference to parent app', () => {
-      expect(analyticsInstance.app).to.equal(app);
-    });
   });
 
   describe('Page has user gtag script with custom gtag and dataLayer names', () => {
@@ -173,25 +158,22 @@ describe('FirebaseAnalytics instance tests', () => {
         dataLayerName: customDataLayerName,
         gtagName: customGtagName
       });
-      stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance = analyticsFactory(app, installations);
     });
     after(() => {
       delete window[customGtagName];
       delete window[customDataLayerName];
       removeGtagScript();
-      fetchStub.restore();
     });
     afterEach(() => {
       gtagStub.reset();
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
+      stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
-      // Clear event stack of initialization promise.
-      const { dynamicConfigPromisesList } = getGlobalVars();
-      await Promise.all(Object.values(dynamicConfigPromisesList));
+      await new Promise(resolve => setTimeout(resolve, 10));
       expect(gtagStub).to.have.been.calledWith('js');
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.CONFIG,

@@ -131,6 +131,7 @@ async function gtagOnEvent(
       }
       // Checking 'send_to' fields requires having all measurement ID results back from
       // the dynamic config fetch.
+      console.log('awaiting dynamicConfigPromisesList');
       const dynamicConfigResults = await Promise.all(dynamicConfigPromisesList);
       for (const sendToId of gaSendToList) {
         // Any fetched dynamic measurement ID that matches this 'send_to' ID
@@ -159,10 +160,17 @@ async function gtagOnEvent(
         initializationPromisesMap
       );
     }
+    console.log('awaiting initializationPromisesToWaitFor');
 
     // Run core gtag function with args after all relevant initialization
     // promises have been resolved.
     await Promise.all(initializationPromisesToWaitFor);
+    console.log(
+      'calling gtagCore with',
+      GtagCommand.EVENT,
+      measurementId,
+      gtagParams
+    );
     // Workaround for http://b/141370449 - third argument cannot be undefined.
     gtagCore(GtagCommand.EVENT, measurementId, gtagParams || {});
   } catch (e) {
@@ -215,6 +223,7 @@ function wrapGtag(
       // If event, check that relevant initialization promises have completed.
       if (command === GtagCommand.EVENT) {
         // If EVENT, second arg must be measurementId.
+        console.log('calling gtagOnEvent');
         await gtagOnEvent(
           gtagCore,
           initializationPromisesMap,
