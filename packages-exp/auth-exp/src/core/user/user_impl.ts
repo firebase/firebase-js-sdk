@@ -23,16 +23,17 @@ import {
   deleteAccount
 } from '../../api/account_management/account';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
+import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import { User, UserParameters, MutableUserInfo } from '../../model/user';
+import { MutableUserInfo, User, UserParameters } from '../../model/user';
+import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
 import { assert } from '../util/assert';
-import { getIdTokenResult } from './id_token_result';
-import { reload, _reloadWithoutSaving } from './reload';
-import { StsTokenManager } from './token_manager';
-import { Auth } from '../../model/auth';
 import { utcTimestampToDateString } from '../util/time';
-import { AuthErrorCode } from '../errors';
+import { getIdTokenResult } from './id_token_result';
+import { ProactiveRefresh } from './proactive_refresh';
+import { _reloadWithoutSaving, reload } from './reload';
+import { StsTokenManager } from './token_manager';
 
 function assertStringOrUndefined(
   assertion: unknown,
@@ -85,6 +86,7 @@ export class UserImpl implements User {
   photoURL: string | null;
 
   _redirectEventId?: string;
+  private readonly proactiveRefresh = new ProactiveRefresh(this);
 
   constructor({ uid, auth, stsTokenManager, ...opt }: UserParameters) {
     this.uid = uid;
@@ -142,6 +144,14 @@ export class UserImpl implements User {
       // If no listener is subscribed yet, save the result so it's available when they do subscribe
       this.reloadUserInfo = userInfo;
     }
+  }
+
+  _startProactiveRefresh(): void {
+    this.proactiveRefresh._start();
+  }
+
+  _stopProactiveRefresh(): void {
+    this.proactiveRefresh._stop();
   }
 
   async _updateTokensIfNecessary(
