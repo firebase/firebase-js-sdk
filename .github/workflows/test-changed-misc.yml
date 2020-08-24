@@ -25,5 +25,7 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
+    - name: build
+      run: yarn build:changed misc
     - name: Run tests
-      run: xvfb-run yarn test:changed:auxiliary
+      run: xvfb-run yarn test:changed misc

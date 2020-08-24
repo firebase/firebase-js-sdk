@@ -15,42 +15,49 @@
  * limitations under the License.
  */
 
-import { TestTask, TestReason } from './run_changed';
-import { spawn } from 'child-process-promise';
-import chalk from 'chalk';
 import { resolve } from 'path';
+import { spawn } from 'child-process-promise';
+import { TestReason, filterTasks, getTestTasks } from './tasks';
+import chalk from 'chalk';
+import { argv } from 'yargs';
+import { TestConfig, testConfig } from './testConfig';
 const root = resolve(__dirname, '../..');
 
-export async function buildForTests(
-  testTasks: TestTask[],
-  buildAppExp = false
-) {
+const inputTestConfigName = argv._[0];
+const testCommand = 'test:ci';
+
+const allTestConfigNames = Object.keys(testConfig);
+if (!inputTestConfigName) {
+  throw Error(`
+  A config name is required. Valid names include ${allTestConfigNames.join(
+    ', '
+  )}.
+  To add a new config, update scripts/ci-test/testConfig.ts
+  `);
+}
+
+if (!allTestConfigNames.includes(inputTestConfigName)) {
+  throw Error(`
+  Invalid config name. Valid names include ${allTestConfigNames.join(', ')}.
+  To add a new config, update scripts/ci-test/testConfig.ts
+  `);
+}
+
+const config = testConfig[inputTestConfigName]!;
+
+runTests(config);
+
+async function runTests(config: TestConfig) {
   try {
+    const testTasks = filterTasks(await getTestTasks(), config);
+
     if (testTasks.length === 0) {
-      console.log(chalk`{green No test tasks. Skipping all builds }`);
-      return;
+      chalk`{green No test tasks. Skipping all tests }`;
+      process.exit(0);
     }
 
-    // hack to build Firestore which depends on @firebase/app-exp (because of firestore exp),
-    // but doesn't list it as a dependency in its package.json
-    // TODO: remove once modular SDKs become official
-    if (buildAppExp) {
-      await spawn(
-        'npx',
-        [
-          'lerna',
-          'run',
-          '--scope',
-          '@firebase/app-exp',
-          '--include-dependencies',
-          'build'
-        ],
-        { stdio: 'inherit', cwd: root }
-      );
-    }
-
-    const lernaCmd = ['lerna', 'run'];
-    console.log(chalk`{blue Running build in:}`);
+    const lernaCmd = ['lerna', 'run', '--concurrency', '4'];
+    console.log(chalk`{blue Running tests in:}`);
     for (const task of testTasks) {
       if (task.reason === TestReason.Changed) {
         console.log(chalk`{yellow ${task.pkgName} (contains modified files)}`);
@@ -65,9 +72,11 @@ export async function buildForTests(
       lernaCmd.push(task.pkgName);
     }
 
-    lernaCmd.push('--include-dependencies', 'build');
+    lernaCmd.push(testCommand);
     await spawn('npx', lernaCmd, { stdio: 'inherit', cwd: root });
+    process.exit(0);
   } catch (e) {
     console.error(chalk`{red ${e}}`);
+    process.exit(1);
   }
 }

@@ -16,9 +16,10 @@
  */
 
 import { resolve } from 'path';
-import { spawn, exec } from 'child-process-promise';
+import { exec } from 'child-process-promise';
 import chalk from 'chalk';
 import simpleGit from 'simple-git/promise';
+import { TestConfig } from './testConfig';
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
 
@@ -42,10 +43,6 @@ export function createTestTask(
     reason
   };
 }
-
-// use test:ci command in CI
-// const testCommand = !!process.env.CI ? 'test:ci' : 'test';
-const testCommand = 'test:ci';
 
 /**
  * Changes to these files warrant running all tests.
@@ -82,12 +79,6 @@ const specialPaths = {
   'packages/firestore': ['firebase-firestore-integration-test'],
   'packages/messaging': ['firebase-messaging-integration-test']
 };
-
-/**
- * firebase and firebase-exp don't have tests and are very expensive to build, so we don't
- * generate TestTasks for them.
- */
-const ignoredPackages = ['firebase', 'firebase-exp'];
 
 /**
  * Identify modified packages that require tests.
@@ -172,39 +163,30 @@ export async function getTestTasks(): Promise<TestTask[]> {
     );
   }
 
-  testTasks = testTasks.filter(t => !ignoredPackages.includes(t.pkgName));
-
   return testTasks;
 }
 
-export async function runTests(testTasks: TestTask[]) {
-  try {
-    if (testTasks.length === 0) {
-      chalk`{green No test tasks. Skipping all tests }`;
-      process.exit(0);
-    }
+export function filterTasks(
+  tasks: TestTask[],
+  { onlyIncludePackages, alwaysIncludePackages, ignorePackages }: TestConfig
+): TestTask[] {
+  let filteredTasks: TestTask[] = [];
 
-    const lernaCmd = ['lerna', 'run', '--concurrency', '4'];
-    console.log(chalk`{blue Running tests in:}`);
-    for (const task of testTasks) {
-      if (task.reason === TestReason.Changed) {
-        console.log(chalk`{yellow ${task.pkgName} (contains modified files)}`);
-      } else if (task.reason === TestReason.Dependent) {
-        console.log(
-          chalk`{yellow ${task.pkgName} (depends on modified files)}`
-        );
-      } else {
-        console.log(chalk`{yellow ${task.pkgName} (running all tests)}`);
-      }
-      lernaCmd.push('--scope');
-      lernaCmd.push(task.pkgName);
-    }
-
-    lernaCmd.push(testCommand);
-    await spawn('npx', lernaCmd, { stdio: 'inherit', cwd: root });
-    process.exit(0);
-  } catch (e) {
-    console.error(chalk`{red ${e}}`);
-    process.exit(1);
+  // `ignorePacakges` and `onlyIncludePackages` should not be defined at same time,
+  // `ignorePacakges` will be ignored if that happens
+  if (onlyIncludePackages) {
+    filteredTasks = tasks.filter(t => onlyIncludePackages.includes(t.pkgName));
+  } else if (ignorePackages) {
+    filteredTasks = tasks.filter(t => !ignorePackages.includes(t.pkgName));
   }
+
+  if (alwaysIncludePackages) {
+    for (const pkg of alwaysIncludePackages) {
+      if (!filteredTasks.find(t => t.pkgName === pkg)) {
+        filteredTasks.push(createTestTask(pkg));
+      }
+    }
+  }
+
+  return filteredTasks;
 }
