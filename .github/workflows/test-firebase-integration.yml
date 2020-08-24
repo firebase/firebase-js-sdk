@@ -26,6 +26,6 @@ jobs:
         cp config/ci.config.json config/project.json
         yarn
     - name: build
-      run: yarn build:changed firebase-integration
+      run: yarn build:changed firebase-integration --buildAppExp
     - name: Run tests on changed packages
       run: yarn test:changed firebase-integration
