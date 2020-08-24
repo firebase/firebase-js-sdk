@@ -54,6 +54,8 @@ export function signOut(auth: externs.Auth): Promise<void> {
   return auth.signOut();
 }
 
+export { initializeAuth } from './auth/initialize';
+
 // credentials
 export { AuthCredential } from './credentials';
 export { EmailAuthCredential } from './credentials/email';
