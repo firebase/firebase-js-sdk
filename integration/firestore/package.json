@@ -15,7 +15,7 @@
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
-    "@firebase/firestore": "1.16.4"
+    "@firebase/firestore": "1.16.5"
   },
   "devDependencies": {
     "@types/mocha": "7.0.2",
