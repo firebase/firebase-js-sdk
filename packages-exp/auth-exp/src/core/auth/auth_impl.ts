@@ -62,7 +62,9 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
   private authStateSubscription = new Subscription<T>(this);
   private idTokenSubscription = new Subscription<T>(this);
   private redirectUser: T | null = null;
+  private isProactiveRefreshEnabled = false;
   _isInitialized = false;
+  _initializationPromise: Promise<void> | null = null;
   _popupRedirectResolver: PopupRedirectResolver | null = null;
   readonly name: string;
 
@@ -86,7 +88,7 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
     persistenceHierarchy: Persistence[],
     popupRedirectResolver?: externs.PopupRedirectResolver
   ): Promise<void> {
-    return this.queue(async () => {
+    this._initializationPromise = this.queue(async () => {
       if (popupRedirectResolver) {
         this._popupRedirectResolver = _getInstance(popupRedirectResolver);
       }
@@ -101,6 +103,8 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
       this._isInitialized = true;
       this.notifyAuthListeners();
     });
+
+    return this._initializationPromise;
   }
 
   _createUser(params: UserParameters): T {
@@ -271,6 +275,20 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
     return `${this.config.authDomain}:${this.config.apiKey}:${this.name}`;
   }
 
+  _startProactiveRefresh(): void {
+    this.isProactiveRefreshEnabled = true;
+    if (this.currentUser) {
+      this.currentUser._startProactiveRefresh();
+    }
+  }
+
+  _stopProactiveRefresh(): void {
+    this.isProactiveRefreshEnabled = false;
+    if (this.currentUser) {
+      this.currentUser._stopProactiveRefresh();
+    }
+  }
+
   private notifyAuthListeners(): void {
     if (!this._isInitialized) {
       return;
@@ -313,6 +331,13 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
    * because the queue shouldn't rely on another queued callback.
    */
   private async directlySetCurrentUser(user: T | null): Promise<void> {
+    if (this.currentUser && this.currentUser !== user) {
+      this.currentUser._stopProactiveRefresh();
+      if (user && this.isProactiveRefreshEnabled) {
+        user._startProactiveRefresh();
+      }
+    }
+
     this.currentUser = user;
 
     if (user) {
