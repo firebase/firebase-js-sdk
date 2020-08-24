@@ -21,9 +21,9 @@ import { NextFn } from '@firebase/util';
 import { APIUserInfo } from '../api/account_management/account';
 import { FinalizeMfaResponse } from '../api/authentication/mfa';
 import { PersistedBlob } from '../core/persistence';
+import { StsTokenManager } from '../core/user/token_manager';
 import { Auth } from './auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from './id_token';
-import { StsTokenManager } from '../core/user/token_manager';
 
 type MutableUserInfo = {
   -readonly [K in keyof externs.UserInfo]: externs.UserInfo[K];
@@ -70,6 +70,8 @@ export interface User extends externs.User {
 
   _onReload: (cb: NextFn<APIUserInfo>) => void;
   _notifyReloadListener: NextFn<APIUserInfo>;
+  _startProactiveRefresh: () => void;
+  _stopProactiveRefresh: () => void;
 
   getIdToken(forceRefresh?: boolean): Promise<string>;
   getIdTokenResult(forceRefresh?: boolean): Promise<externs.IdTokenResult>;
