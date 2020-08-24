@@ -15,20 +15,4 @@
  * limitations under the License.
  */
 
-import pkg from './package.json';
-
-const util = require('./rollup.shared');
-
-export default {
-  input: 'index.rn.ts',
-  output: {
-    file: pkg['react-native'],
-    format: 'es',
-    sourcemap: true
-  },
-  plugins: util.es2017Plugins('rn', /* mangled= */ true),
-  external: util.resolveBrowserExterns,
-  treeshake: {
-    moduleSideEffects: false
-  }
-};
+// This file exists to solve an unresolved import error during the build.
