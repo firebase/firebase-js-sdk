@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
+import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { requestStsToken } from '../../api/authentication/token';
+import { AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
 import { assert, debugFail } from '../util/assert';
-import { FinalizeMfaResponse } from '../../api/authentication/mfa';
-import { AuthCore } from '../../model/auth';
 
 /**
  * The number of milliseconds before the official expiration time of a token
