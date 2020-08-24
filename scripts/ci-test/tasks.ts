@@ -159,7 +159,7 @@ export async function getTestTasks(): Promise<TestTask[]> {
 
   if (testTasks.length === 0) {
     console.log(
-      chalk`{green No changes detected in any package. No test tasks is created }`
+      chalk`{green No changes detected in any package. No test tasks created }`
     );
   }
 
