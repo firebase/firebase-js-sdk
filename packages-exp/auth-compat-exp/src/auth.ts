@@ -15,24 +15,26 @@
  * limitations under the License.
  */
 
+import '@firebase/installations';
+
 import { FirebaseApp } from '@firebase/app-types';
 import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import * as externs from '@firebase/auth-types-exp';
-import '@firebase/installations';
 import {
-  Observer,
-  Unsubscribe,
   ErrorFn,
-  isIndexedDBAvailable
+  isIndexedDBAvailable,
+  Observer,
+  Unsubscribe
 } from '@firebase/util';
+
+import { _validatePersistenceArgument, Persistence } from './persistence';
+import { _getClientPlatform, _isPopupRedirectSupported } from './platform';
 import { User } from './user';
 import {
   convertConfirmationResult,
   convertCredential
 } from './user_credential';
-import { _isPopupRedirectSupported, _getClientPlatform } from './platform';
-import { Persistence, _validatePersistenceArgument } from './persistence';
 
 export class Auth extends impl.AuthImplCompat<User>
   implements compat.FirebaseAuth {
@@ -59,7 +61,7 @@ export class Auth extends impl.AuthImplCompat<User>
       sdkClientVersion: impl._getClientVersion(_getClientPlatform())
     };
 
-    super(app.name, config, User);
+    super(app, config, User);
     this.app = app;
 
     // This promise is intended to float; auth initialization happens in the
