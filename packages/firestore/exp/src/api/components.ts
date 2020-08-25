@@ -23,7 +23,7 @@ import {
   OfflineComponentProvider,
   OnlineComponentProvider
 } from '../../../src/core/component_provider';
-import {handleUserChange, LocalStore} from '../../../src/local/local_store';
+import { handleUserChange, LocalStore } from '../../../src/local/local_store';
 import { Deferred } from '../../../src/util/promise';
 import { logDebug } from '../../../src/util/log';
 import { SyncEngine } from '../../../src/core/sync_engine';
