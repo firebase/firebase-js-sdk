@@ -20,10 +20,10 @@
     "google-closure-library": "20200628.0.0",
     "gulp": "4.0.2",
     "gulp-sourcemaps": "2.6.5",
-    "rollup": "2.23.0",
+    "rollup": "2.26.5",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-sourcemaps": "0.6.2",
-    "rollup-plugin-typescript2": "0.27.1",
+    "rollup-plugin-typescript2": "0.27.2",
     "typescript": "4.0.2"
   },
   "repository": {

@@ -27,10 +27,10 @@
   "devDependencies": {
     "@google-cloud/firestore": "4.2.0",
     "@types/request": "2.48.5",
-    "firebase-admin": "9.0.0",
-    "firebase-tools": "8.6.0",
-    "rollup": "2.23.0",
-    "rollup-plugin-typescript2": "0.27.1"
+    "firebase-admin": "9.1.1",
+    "firebase-tools": "8.9.0",
+    "rollup": "2.26.5",
+    "rollup-plugin-typescript2": "0.27.2"
   },
   "peerDependencies": {
     "@google-cloud/firestore": "^4.2.0",
