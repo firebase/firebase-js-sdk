@@ -29,18 +29,18 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@firebase/app-exp": "0.0.800",
-    "@firebase/util": "0.3.0",
+    "@firebase/util": "0.3.1",
     "@firebase/logger": "0.2.6",
-    "@firebase/component": "0.1.17",
+    "@firebase/component": "0.1.18",
     "tslib": "^1.11.1",
     "dom-storage": "2.1.0",
     "xmlhttprequest": "1.8.0"
   },
   "devDependencies": {
-    "rollup": "2.23.0",
+    "rollup": "2.26.5",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-replace": "2.2.0",
-    "rollup-plugin-typescript2": "0.27.1",
+    "rollup-plugin-typescript2": "0.27.2",
     "typescript": "3.9.7"
   },
   "repository": {
