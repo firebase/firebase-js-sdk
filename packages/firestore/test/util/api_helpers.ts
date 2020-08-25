@@ -65,6 +65,18 @@ export function firestore(): Firestore {
   return FIRESTORE;
 }
 
+export function newTestFirestore(): Firestore {
+  return new Firestore(
+    {
+      projectId: 'new-project',
+      database: '(default)'
+    },
+    new Provider('auth-internal', new ComponentContainer('default')),
+    offlineComponentProvider,
+    onlineComponentProvider
+  );
+}
+
 export function collectionReference(path: string): CollectionReference {
   const firestoreClient = firestore();
   // eslint-disable-next-line @typescript-eslint/no-floating-promises

@@ -15,19 +15,48 @@
  * limitations under the License.
  */
 
-const { argv } = require('yargs');
+const yargs = require('yargs');
 const path = require('path');
 const { spawn } = require('child-process-promise');
+const { writeFileSync } = require('fs');
+
+const LOGDIR = process.env.CI ? process.env.HOME : '/tmp';
+
+function writeLogs(status, name, logText) {
+  const safeName = name.replace(/@/g, 'at_').replace(/\//g, '_');
+  writeFileSync(path.join(LOGDIR, `${safeName}-ci-log.txt`), logText, {
+    encoding: 'utf8'
+  });
+  writeFileSync(
+    path.join(LOGDIR, `${safeName}-ci-summary.txt`),
+    `${status}: ${name}`,
+    { encoding: 'utf8' }
+  );
+}
+
+const argv = yargs.options({
+  d: {
+    type: 'string',
+    desc: 'current working directory',
+    default: '.'
+  },
+  s: {
+    type: 'string',
+    desc: 'the npm script to run',
+    default: 'test'
+  }
+}).argv;
 
 (async () => {
-  const myPath = argv._[0] || '.'; // default to the current directory
+  const myPath = argv.d;
+  const scriptName = argv.s;
   const dir = path.resolve(myPath);
   const { name } = require(`${dir}/package.json`);
 
   let stdout = '';
   let stderr = '';
   try {
-    const testProcess = spawn('yarn', ['--cwd', dir, 'test']);
+    const testProcess = spawn('yarn', ['--cwd', dir, scriptName]);
 
     testProcess.childProcess.stdout.on('data', data => {
       stdout += data.toString();
@@ -38,10 +67,12 @@ const { spawn } = require('child-process-promise');
 
     await testProcess;
     console.log('Success: ' + name);
+    writeLogs('Success', name, stdout + '\n' + stderr);
   } catch (e) {
     console.error('Failure: ' + name);
     console.log(stdout);
     console.error(stderr);
+    writeLogs('Failure', name, stdout + '\n' + stderr);
     process.exit(1);
   }
 })();

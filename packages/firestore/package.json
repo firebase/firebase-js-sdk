@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.16.4",
+  "version": "1.16.5",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -10,8 +10,8 @@
     "bundle": "rollup -c",
     "build": "run-p 'bundle rollup.config.browser.js' 'bundle rollup.config.browser.memory.js' 'bundle rollup.config.node.js' 'bundle rollup.config.node.memory.js' 'bundle rollup.config.rn.js' 'bundle rollup.config.rn.memory.js' build:lite build:exp",
     "build:scripts": "tsc -moduleResolution node --module commonjs scripts/*.ts && ls scripts/*.js | xargs -I % sh -c 'terser %  -o %'",
-    "build:release": "rollup -c rollup.config.es2017.js && rollup -c rollup.config.es5.js",
-    "build:deps": "lerna run --scope @firebase/'{app,firestore}' --include-dependencies build",
+    "build:release": "run-p 'bundle rollup.config.browser.js' 'bundle rollup.config.browser.memory.js' 'bundle rollup.config.node.js' 'bundle rollup.config.node.memory.js' 'bundle rollup.config.rn.js' 'bundle rollup.config.rn.memory.js'",
+    "build:deps": "lerna run --scope @firebase/firestore --include-dependencies build",
     "build:console": "node tools/console.build.js",
     "build:exp": "rollup -c rollup.config.exp.js",
     "build:lite": "rollup -c rollup.config.lite.js",
@@ -36,7 +36,7 @@
     "test:exp:browser": "karma start --single-run --exp",
     "test:exp:browser:debug": "karma start --single-run --exp --auto-watch",
     "test": "run-s lint test:all",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:all": "run-p test:browser test:lite:browser test:exp:browser test:travis test:minified",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
@@ -57,7 +57,6 @@
   "license": "Apache-2.0",
   "files": [
     "dist",
-    "lite/package.json",
     "memory/package.json"
   ],
   "dependencies": {
@@ -76,20 +75,21 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
+    "@firebase/app": "0.6.10",
     "@rollup/plugin-alias": "3.1.1",
     "@types/json-stable-stringify": "1.0.32",
     "json-stable-stringify": "1.0.1",
     "protobufjs": "6.10.1",
-    "rollup": "2.23.0",
+    "rollup": "2.26.5",
     "rollup-plugin-copy-assets": "1.1.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-sourcemaps": "0.6.2",
     "rollup-plugin-terser": "6.1.0",
-    "rollup-plugin-typescript2": "0.27.1",
+    "rollup-plugin-typescript2": "0.27.2",
     "ts-node": "8.10.2",
-    "typescript": "3.9.7"
+    "typescript": "4.0.2"
   },
   "repository": {
     "directory": "packages/firestore",

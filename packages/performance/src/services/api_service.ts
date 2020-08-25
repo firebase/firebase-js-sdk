@@ -16,10 +16,12 @@
  */
 
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
-
+import { isIndexedDBAvailable } from '@firebase/util';
+import { consoleLogger } from '../utils/console_logger';
 declare global {
   interface Window {
     PerformanceObserver: typeof PerformanceObserver;
+    // eslint-disable-next-line @typescript-eslint/ban-types
     perfMetrics?: { onFirstInputDelay: Function };
   }
 }
@@ -44,6 +46,7 @@ export class Api {
   /** PreformanceObserver constructor function. */
   private readonly PerformanceObserver: typeof PerformanceObserver;
   private readonly windowLocation: Location;
+  // eslint-disable-next-line @typescript-eslint/ban-types
   readonly onFirstInputDelay?: Function;
   readonly localStorage?: Storage;
   readonly document: Document;
@@ -110,10 +113,23 @@ export class Api {
   }
 
   requiredApisAvailable(): boolean {
-    if (fetch && Promise && this.navigator && this.navigator.cookieEnabled) {
-      return true;
+    if (
+      !fetch ||
+      !Promise ||
+      !this.navigator ||
+      !this.navigator.cookieEnabled
+    ) {
+      consoleLogger.info(
+        'Firebase Performance cannot start if browser does not support fetch and Promise or cookie is disabled.'
+      );
+      return false;
     }
-    return false;
+
+    if (!isIndexedDBAvailable()) {
+      consoleLogger.info('IndexedDB is not supported by current browswer');
+      return false;
+    }
+    return true;
   }
 
   setupObserver(
