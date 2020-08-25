@@ -95,7 +95,7 @@ export class FunctionsService implements _FirebaseService {
     });
   }
 
-  delete(): Promise<void> {
+  _delete(): Promise<void> {
     return this.deleteService();
   }
 

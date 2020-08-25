@@ -187,7 +187,7 @@ describe('API tests', () => {
         'test1' as any,
         _container =>
           ({
-            delete: async () => {
+            _delete: async () => {
               await Promise.resolve();
               expect(count).to.equal(0);
               count++;
