@@ -165,10 +165,6 @@ describe('FirebaseAnalytics instance tests', () => {
       window['dataLayer'] = [];
       stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance = analyticsFactory(app, installations);
-      // Fetch stub will revert to real `fetch` when before() block ends,
-      // while hanging analytics initialization promises are still resolving.
-      // Wait for all promises to resolve.
-      // await clock.runAllAsync();
     });
     after(() => {
       delete window['gtag'];
@@ -282,10 +278,6 @@ describe('FirebaseAnalytics instance tests', () => {
       const installations = getFakeInstallations();
       stubFetch(200, {});
       analyticsInstance = analyticsFactory(app, installations);
-      // Fetch stub will revert to real `fetch` when before() block ends,
-      // while hanging analytics initialization promises are still resolving.
-      // Wait for all promises to resolve.
-      await clock.runAllAsync();
     });
     after(() => {
       delete window['gtag'];
