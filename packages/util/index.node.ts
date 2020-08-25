@@ -33,4 +33,5 @@ export * from './src/obj';
 export * from './src/query';
 export * from './src/sha1';
 export * from './src/subscribe';
+export * from './src/validation';
 export * from './src/utf8';
