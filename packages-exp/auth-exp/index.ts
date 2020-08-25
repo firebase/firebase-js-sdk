@@ -21,7 +21,7 @@ import { Auth } from '@firebase/auth-types-exp';
 import { initializeAuth } from './src';
 import { registerAuth } from './src/core/auth/register';
 import { ClientPlatform } from './src/core/util/version';
-import { browserLocalPersistence } from './src/platform_browser/persistence/browser';
+import { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 import { browserPopupRedirectResolver } from './src/platform_browser/popup_redirect';
 

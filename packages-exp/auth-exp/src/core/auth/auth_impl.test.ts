@@ -284,7 +284,7 @@ describe('core/auth/auth_impl', () => {
       context('still logged out', () => {
         it('should do nothing', async () => {
           await auth._onStorageEvent();
-          
+
           expect(authStateCallback).not.to.have.been.called;
           expect(idTokenCallback).not.to.have.been.called;
         });
@@ -340,7 +340,7 @@ describe('core/auth/auth_impl', () => {
 
           expect(auth.currentUser?.toJSON()).to.eql(user.toJSON());
           expect(authStateCallback).not.to.have.been.called;
-          expect(idTokenCallback).not.to.have.been.called;     
+          expect(idTokenCallback).not.to.have.been.called;
         });
 
         it('should update fields if they have changed', async () => {
@@ -353,18 +353,21 @@ describe('core/auth/auth_impl', () => {
           expect(auth.currentUser?.uid).to.eq(user.uid);
           expect(auth.currentUser?.displayName).to.eq('other-name');
           expect(authStateCallback).not.to.have.been.called;
-          expect(idTokenCallback).not.to.have.been.called;          
+          expect(idTokenCallback).not.to.have.been.called;
         });
 
         it('should update tokens if they have changed', async () => {
           const userObj = user.toJSON();
-          (userObj['stsTokenManager'] as any)['accessToken'] = 'new-access-token';
+          (userObj['stsTokenManager'] as any)['accessToken'] =
+            'new-access-token';
           persistenceStub.get.returns(Promise.resolve(userObj));
 
           await auth._onStorageEvent();
 
           expect(auth.currentUser?.uid).to.eq(user.uid);
-          expect(auth.currentUser?.stsTokenManager.accessToken).to.eq('new-access-token');
+          expect(auth.currentUser?.stsTokenManager.accessToken).to.eq(
+            'new-access-token'
+          );
           expect(authStateCallback).not.to.have.been.called;
           expect(idTokenCallback).to.have.been.called;
         });
@@ -377,8 +380,6 @@ describe('core/auth/auth_impl', () => {
 
           await auth._onStorageEvent();
 
-          console.log(auth.currentUser?.toJSON());
-          console.log(newUser.toJSON());
           expect(auth.currentUser?.toJSON()).to.eql(newUser.toJSON());
           expect(authStateCallback).to.have.been.called;
           expect(idTokenCallback).to.have.been.called;

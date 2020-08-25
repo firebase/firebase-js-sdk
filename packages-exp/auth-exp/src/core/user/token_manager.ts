@@ -57,7 +57,9 @@ export class StsTokenManager {
     }
 
     if (!this.refreshToken) {
-      assert(!this.accessToken, AuthErrorCode.TOKEN_EXPIRED, { appName: auth.name });
+      assert(!this.accessToken, AuthErrorCode.TOKEN_EXPIRED, {
+        appName: auth.name
+      });
       return null;
     }
 

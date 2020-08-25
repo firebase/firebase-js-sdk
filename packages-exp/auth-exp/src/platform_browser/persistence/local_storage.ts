@@ -149,10 +149,7 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
       // correct key, oldValue and newValue but localStorage.getItem(key) does
       // not yield the updated value until a few milliseconds. This ensures
       // this recovers from that situation.
-      setTimeout(
-        triggerListeners,
-        IE10_LOCAL_STORAGE_SYNC_DELAY
-      );
+      setTimeout(triggerListeners, IE10_LOCAL_STORAGE_SYNC_DELAY);
     } else {
       triggerListeners();
     }

@@ -28,10 +28,9 @@ import { MutableUserInfo, User, UserParameters } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
 import { assert } from '../util/assert';
-import { utcTimestampToDateString } from '../util/time';
 import { getIdTokenResult } from './id_token_result';
 import { ProactiveRefresh } from './proactive_refresh';
-import { _reloadWithoutSaving, reload } from './reload';
+import { reload, _reloadWithoutSaving } from './reload';
 import { StsTokenManager } from './token_manager';
 import { UserMetadata } from './user_metadata';
 
@@ -84,8 +83,13 @@ export class UserImpl implements User {
   }
 
   async getIdToken(forceRefresh?: boolean): Promise<string> {
-    const accessToken = await this.stsTokenManager.getToken(this.auth, forceRefresh);
-    assert(accessToken, AuthErrorCode.INTERNAL_ERROR, { appName: this.auth.name });
+    const accessToken = await this.stsTokenManager.getToken(
+      this.auth,
+      forceRefresh
+    );
+    assert(accessToken, AuthErrorCode.INTERNAL_ERROR, {
+      appName: this.auth.name
+    });
 
     if (this.accessToken !== accessToken) {
       this.accessToken = accessToken;

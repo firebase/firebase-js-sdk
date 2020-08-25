@@ -116,7 +116,7 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
     if (!this.currentUser && !user) {
       // No change, do nothing (was signed out and remained signed out).
       return;
-    } 
+    }
 
     // If the same user is to be synchronized.
     if (this.currentUser && user && this.currentUser.uid === user.uid) {

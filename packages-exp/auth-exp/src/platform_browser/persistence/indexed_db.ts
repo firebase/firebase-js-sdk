@@ -61,7 +61,7 @@ function getObjectStore(db: IDBDatabase, isReadWrite: boolean): IDBObjectStore {
     .objectStore(DB_OBJECTSTORE_NAME);
 }
 
-export async function _clearDatabase(db: IDBDatabase): Promise<void>{
+export async function _clearDatabase(db: IDBDatabase): Promise<void> {
   const objectStore = getObjectStore(db, true);
   return new DBPromise<void>(objectStore.clear()).toPromise();
 }
@@ -247,10 +247,7 @@ class IndexedDBLocalPersistence implements Persistence {
   private _startPolling(): void {
     this._stopPolling();
 
-    this.pollTimer = setInterval(
-      async () => this._poll(),
-      POLLING_INTERVAL_MS
-    );
+    this.pollTimer = setInterval(async () => this._poll(), POLLING_INTERVAL_MS);
   }
 
   private _stopPolling(): void {

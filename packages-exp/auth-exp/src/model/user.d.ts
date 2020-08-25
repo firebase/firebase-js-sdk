@@ -17,15 +17,13 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import { NextFn } from '@firebase/util';
-
 import { APIUserInfo } from '../api/account_management/account';
 import { FinalizeMfaResponse } from '../api/authentication/mfa';
 import { PersistedBlob } from '../core/persistence';
 import { StsTokenManager } from '../core/user/token_manager';
+import { UserMetadata } from '../core/user/user_metadata';
 import { Auth } from './auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from './id_token';
-import { StsTokenManager } from '../core/user/token_manager';
-import { UserMetadata } from '../core/user/user_metadata';
 
 type MutableUserInfo = {
   -readonly [K in keyof externs.UserInfo]: externs.UserInfo[K];

@@ -22,7 +22,13 @@ import * as sinonChai from 'sinon-chai';
 import { testUser, testAuth } from '../../../test/helpers/mock_auth';
 import { _getInstance } from '../../core/util/instantiator';
 import { Persistence, PersistenceType } from '../../core/persistence';
-import { indexedDBLocalPersistence, POLLING_INTERVAL_MS, _putObject, _openDatabase, _clearDatabase } from './indexed_db';
+import {
+  indexedDBLocalPersistence,
+  POLLING_INTERVAL_MS,
+  _putObject,
+  _openDatabase,
+  _clearDatabase
+} from './indexed_db';
 
 use(sinonChai);
 
@@ -74,13 +80,13 @@ describe('core/persistence/indexed_db', () => {
     });
   });
 
-  describe("#addEventListener", () => {
+  describe('#addEventListener', () => {
     let clock: sinon.SinonFakeTimers;
     const key = 'my-key';
     const newValue = 'new-value';
     let callback: sinon.SinonSpy;
     let db: IDBDatabase;
-    
+
     before(async () => {
       db = await _openDatabase();
     });
@@ -99,7 +105,7 @@ describe('core/persistence/indexed_db', () => {
 
     it('should trigger a listener when the key changes', async () => {
       await _putObject(db, key, newValue);
-      
+
       clock.tick(POLLING_INTERVAL_MS + 1);
       clock.restore();
       // Wait a little for the poll operation to complete
@@ -118,7 +124,6 @@ describe('core/persistence/indexed_db', () => {
 
       expect(callback).not.to.have.been.called;
     });
-
 
     it('should not trigger if a write is pending', async () => {
       await _putObject(db, key, newValue);
