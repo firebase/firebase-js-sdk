@@ -265,7 +265,7 @@ function fromTimestamp(date: ProtoTimestamp): Timestamp {
  */
 export function toBytes(
   serializer: JsonProtoSerializer,
-  bytes: Blob | ByteString
+  bytes: ByteString
 ): string | Uint8Array {
   if (serializer.useProto3Json) {
     return bytes.toBase64();

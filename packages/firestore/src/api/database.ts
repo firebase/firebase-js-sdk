@@ -45,6 +45,7 @@ import {
 
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
+import { Blob } from './blob';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
@@ -1369,7 +1370,8 @@ export class DocumentSnapshot<T = DocumentData>
           this._firestore._areTimestampsInSnapshotsEnabled(),
           options.serverTimestamps || 'none',
           key =>
-            new DocumentReference(key, this._firestore, /* converter= */ null)
+            new DocumentReference(key, this._firestore, /* converter= */ null),
+          bytes => new Blob(bytes)
         );
         return userDataWriter.convertValue(this._document.toProto()) as T;
       }
@@ -1393,7 +1395,8 @@ export class DocumentSnapshot<T = DocumentData>
           this._firestore._databaseId,
           this._firestore._areTimestampsInSnapshotsEnabled(),
           options.serverTimestamps || 'none',
-          key => new DocumentReference(key, this._firestore, this._converter)
+          key => new DocumentReference(key, this._firestore, this._converter),
+          bytes => new Blob(bytes)
         );
         return userDataWriter.convertValue(value);
       }

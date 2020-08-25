@@ -23,6 +23,7 @@ import {
   validateExactNumberOfArgs
 } from '../util/input_validation';
 import { ByteString } from '../util/byte_string';
+import { Bytes } from '../../lite/src/api/bytes';
 
 /** Helper function to assert Uint8Array is available at runtime. */
 function assertUint8ArrayAvailable(): void {
@@ -51,14 +52,9 @@ function assertBase64Available(): void {
  * Note that while you can't hide the constructor in JavaScript code, we are
  * using the hack above to make sure no-one outside this module can call it.
  */
-export class Blob {
-  // Prefix with underscore to signal that we consider this not part of the
-  // public API and to prevent it from showing up for autocompletion.
-  _byteString: ByteString;
-
+export class Blob extends Bytes {
   constructor(byteString: ByteString) {
-    assertBase64Available();
-    this._byteString = byteString;
+    super(byteString);
   }
 
   static fromBase64String(base64: string): Blob {
@@ -87,13 +83,13 @@ export class Blob {
   toBase64(): string {
     validateExactNumberOfArgs('Blob.toBase64', arguments, 0);
     assertBase64Available();
-    return this._byteString.toBase64();
+    return super.toBase64();
   }
 
   toUint8Array(): Uint8Array {
     validateExactNumberOfArgs('Blob.toUint8Array', arguments, 0);
     assertUint8ArrayAvailable();
-    return this._byteString.toUint8Array();
+    return super.toUint8Array();
   }
 
   toString(): string {
@@ -101,6 +97,6 @@ export class Blob {
   }
 
   isEqual(other: Blob): boolean {
-    return this._byteString.isEqual(other._byteString);
+    return super.isEqual(other);
   }
 }
