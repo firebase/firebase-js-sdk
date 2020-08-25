@@ -25,7 +25,6 @@ import {
   getApp,
   registerVersion,
   setLogLevel,
-  LogLevel,
   onLog
 } from './api';
 import { DEFAULT_ENTRY_NAME } from './constants';
@@ -236,14 +235,14 @@ describe('API tests', () => {
               const logger = new Logger('@firebase/logger-test');
               logger.warn('hello');
               expect(warnSpy.called).to.be.true;
-              setLogLevel(LogLevel.WARN);
+              setLogLevel('warn');
               logger.info('hi');
               expect(infoSpy.called).to.be.false;
               logger.log('hi');
               expect(logSpy.called).to.be.false;
               logSpy.resetHistory();
               infoSpy.resetHistory();
-              setLogLevel(LogLevel.DEBUG);
+              setLogLevel('debug');
               logger.info('hi');
               expect(infoSpy.called).to.be.true;
               logger.log('hi');

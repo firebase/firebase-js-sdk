@@ -9,7 +9,6 @@ import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseAppConfig } from '@firebase/app-types-exp';
 import { FirebaseOptions } from '@firebase/app-types-exp';
 import { LogCallback } from '@firebase/logger';
-import { LogLevel } from '@firebase/logger';
 import { LogLevelString } from '@firebase/logger';
 import { LogOptions } from '@firebase/logger';
 import { Name } from '@firebase/component';
@@ -50,8 +49,6 @@ export function initializeApp(options: FirebaseOptions, name?: string): Firebase
 
 // @public
 export function initializeApp(options: FirebaseOptions, config?: FirebaseAppConfig): FirebaseApp;
-
-export { LogLevel }
 
 // @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;

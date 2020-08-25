@@ -303,5 +303,3 @@ export function onLog(
 export function setLogLevel(logLevel: LogLevelString): void {
   setLogLevelImpl(logLevel);
 }
-
-export { LogLevel } from '@firebase/logger';
