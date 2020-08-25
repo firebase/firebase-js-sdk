@@ -1,10 +1,10 @@
-name: Test Modified Packages
+name: Test Auth
 
 on: pull_request
 
 jobs:
   test:
-    name: Test Packages With Changed Files
+    name: If Changed
     runs-on: ubuntu-latest
 
     steps:
@@ -26,6 +26,6 @@ jobs:
         cp config/ci.config.json config/project.json
         yarn
     - name: build
-      run: yarn build:changed core
+      run: yarn build
     - name: Run tests on changed packages
-      run: xvfb-run yarn test:changed core
+      run: xvfb-run yarn test:changed auth
