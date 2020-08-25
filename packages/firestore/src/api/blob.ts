@@ -91,8 +91,4 @@ export class Blob extends Bytes {
   toString(): string {
     return 'Blob(base64: ' + this.toBase64() + ')';
   }
-
-  isEqual(other: Blob): boolean {
-    return super.isEqual(other);
-  }
 }
