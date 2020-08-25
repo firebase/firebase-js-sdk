@@ -130,12 +130,6 @@ export function doc(
   reference: DocumentReference<unknown>,
   documentPath: string
 ): DocumentReference<DocumentData>;
-export function parent(
-  reference: CollectionReference<unknown>
-): DocumentReference<DocumentData> | null;
-export function parent<T>(
-  reference: DocumentReference<T>
-): CollectionReference<T>;
 export function collectionGroup(
   firestore: FirebaseFirestore,
   collectionId: string
@@ -247,6 +241,9 @@ export class DocumentReference<T = DocumentData> {
   readonly path: string;
   readonly id: string;
 
+  get parent(): CollectionReference<T>;
+
+  collection(collectionPath: string): CollectionReference<DocumentData>;
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
@@ -359,6 +356,10 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
   readonly type: 'collection';
   readonly id: string;
   readonly path: string;
+
+  get parent(): DocumentReference<DocumentData> | null;
+
+  doc(documentPath?: string): DocumentReference<T>;
   withConverter<U>(
     converter: FirestoreDataConverter<U>
   ): CollectionReference<U>;

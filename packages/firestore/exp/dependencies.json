@@ -50,7 +50,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 21515
+        "sizeInBytes": 21406
     },
     "CollectionReference": {
         "dependencies": {
@@ -70,52 +70,16 @@
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "wrapInUserErrorIfRecoverable"
-            ],
-            "classes": [
-                "AsyncQueue",
-                "AutoId",
-                "CollectionReference",
-                "DatabaseId",
-                "DatabaseInfo",
-                "Deferred",
-                "DelayedOperation",
-                "ExponentialBackoff",
-                "FirebaseCredentialsProvider",
-                "Firestore",
-                "Firestore$1",
-                "FirestoreError",
-                "OAuthToken",
-                "Query",
-                "QueryImpl",
-                "User"
-            ],
-            "variables": []
-        },
-        "sizeInBytes": 18744
-    },
-    "DocumentReference": {
-        "dependencies": {
-            "functions": [
-                "argToString",
-                "fail",
-                "formatJSON",
-                "getMessageOrStack",
-                "hardAssert",
-                "isIndexedDbTransactionError",
-                "logDebug",
-                "logError",
-                "primitiveComparator",
-                "randomBytes",
-                "registerFirestore",
-                "removeComponents",
-                "removeComponents$1",
+                "validateCollectionPath",
+                "validateDocumentPath",
+                "validateNonEmptyArgument",
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
                 "AsyncQueue",
                 "AutoId",
                 "BasePath",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -129,12 +93,64 @@
                 "Firestore$1",
                 "FirestoreError",
                 "OAuthToken",
+                "Query",
+                "QueryImpl",
                 "ResourcePath",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 20116
+        "sizeInBytes": 23642
+    },
+    "DocumentReference": {
+        "dependencies": {
+            "functions": [
+                "argToString",
+                "fail",
+                "formatJSON",
+                "getMessageOrStack",
+                "hardAssert",
+                "isIndexedDbTransactionError",
+                "isNullOrUndefined",
+                "logDebug",
+                "logError",
+                "newQueryForPath",
+                "primitiveComparator",
+                "randomBytes",
+                "registerFirestore",
+                "removeComponents",
+                "removeComponents$1",
+                "validateCollectionPath",
+                "validateDocumentPath",
+                "validateNonEmptyArgument",
+                "wrapInUserErrorIfRecoverable"
+            ],
+            "classes": [
+                "AsyncQueue",
+                "AutoId",
+                "BasePath",
+                "CollectionReference",
+                "DatabaseId",
+                "DatabaseInfo",
+                "Deferred",
+                "DelayedOperation",
+                "DocumentKey",
+                "DocumentKeyReference",
+                "DocumentReference",
+                "ExponentialBackoff",
+                "FirebaseCredentialsProvider",
+                "Firestore",
+                "Firestore$1",
+                "FirestoreError",
+                "OAuthToken",
+                "Query",
+                "QueryImpl",
+                "ResourcePath",
+                "User"
+            ],
+            "variables": []
+        },
+        "sizeInBytes": 23640
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -160,11 +176,13 @@
                 "hardAssert",
                 "invalidClassError",
                 "isIndexedDbTransactionError",
+                "isNullOrUndefined",
                 "isPlainObject",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "logDebug",
                 "logError",
+                "newQueryForPath",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
@@ -178,8 +196,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "wrapInUserErrorIfRecoverable"
@@ -191,6 +212,7 @@
                 "BasePath",
                 "Blob",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -210,8 +232,10 @@
                 "FirestoreError",
                 "GeoPoint",
                 "OAuthToken",
+                "Query",
                 "QueryDocumentSnapshot",
                 "QueryDocumentSnapshot$1",
+                "QueryImpl",
                 "ResourcePath",
                 "Timestamp",
                 "User",
@@ -219,7 +243,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 39654
+        "sizeInBytes": 43178
     },
     "FieldPath": {
         "dependencies": {
@@ -269,7 +293,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23188
+        "sizeInBytes": 23079
     },
     "FieldValue": {
         "dependencies": {
@@ -308,7 +332,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16818
+        "sizeInBytes": 16709
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -345,7 +369,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16727
+        "sizeInBytes": 16618
     },
     "GeoPoint": {
         "dependencies": {
@@ -391,7 +415,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19636
+        "sizeInBytes": 19527
     },
     "Query": {
         "dependencies": {
@@ -429,7 +453,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16920
+        "sizeInBytes": 16811
     },
     "QueryConstraint": {
         "dependencies": {
@@ -467,7 +491,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16733
+        "sizeInBytes": 16624
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -493,11 +517,13 @@
                 "hardAssert",
                 "invalidClassError",
                 "isIndexedDbTransactionError",
+                "isNullOrUndefined",
                 "isPlainObject",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "logDebug",
                 "logError",
+                "newQueryForPath",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
@@ -511,8 +537,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "wrapInUserErrorIfRecoverable"
@@ -524,6 +553,7 @@
                 "BasePath",
                 "Blob",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -543,8 +573,10 @@
                 "FirestoreError",
                 "GeoPoint",
                 "OAuthToken",
+                "Query",
                 "QueryDocumentSnapshot",
                 "QueryDocumentSnapshot$1",
+                "QueryImpl",
                 "ResourcePath",
                 "Timestamp",
                 "User",
@@ -552,7 +584,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 39664
+        "sizeInBytes": 43188
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -579,11 +611,13 @@
                 "hardAssert",
                 "invalidClassError",
                 "isIndexedDbTransactionError",
+                "isNullOrUndefined",
                 "isPlainObject",
                 "isServerTimestamp",
                 "isValidResourceName",
                 "logDebug",
                 "logError",
+                "newQueryForPath",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
@@ -598,8 +632,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "wrapInUserErrorIfRecoverable"
@@ -611,6 +648,7 @@
                 "BasePath",
                 "Blob",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -630,8 +668,10 @@
                 "FirestoreError",
                 "GeoPoint",
                 "OAuthToken",
+                "Query",
                 "QueryDocumentSnapshot",
                 "QueryDocumentSnapshot$1",
+                "QueryImpl",
                 "QuerySnapshot",
                 "ResourcePath",
                 "SnapshotMetadata",
@@ -641,7 +681,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 42295
+        "sizeInBytes": 45819
     },
     "SnapshotMetadata": {
         "dependencies": {
@@ -679,7 +719,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16942
+        "sizeInBytes": 16833
     },
     "Timestamp": {
         "dependencies": {
@@ -717,7 +757,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18328
+        "sizeInBytes": 18219
     },
     "Transaction": {
         "dependencies": {
@@ -753,6 +793,7 @@
                 "isIndexedDbTransactionError",
                 "isMapValue",
                 "isNegativeZero",
+                "isNullOrUndefined",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -761,6 +802,7 @@
                 "logDebug",
                 "logError",
                 "looksLikeJsonObject",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "normalizeByteString",
@@ -794,8 +836,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateReference",
                 "validateType",
@@ -810,6 +855,7 @@
                 "BasePath",
                 "Blob",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -843,8 +889,10 @@
                 "ParsedUpdateData",
                 "PatchMutation",
                 "Precondition",
+                "Query",
                 "QueryDocumentSnapshot",
                 "QueryDocumentSnapshot$1",
+                "QueryImpl",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "SetMutation",
@@ -859,7 +907,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 63180
+        "sizeInBytes": 66704
     },
     "WriteBatch": {
         "dependencies": {
@@ -893,6 +941,7 @@
                 "isIndexedDbTransactionError",
                 "isMapValue",
                 "isNegativeZero",
+                "isNullOrUndefined",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -900,6 +949,7 @@
                 "logDebug",
                 "logError",
                 "looksLikeJsonObject",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "normalizeByteString",
@@ -933,8 +983,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateReference",
                 "validateType",
@@ -949,6 +1002,7 @@
                 "BasePath",
                 "Blob",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -978,6 +1032,8 @@
                 "ParsedUpdateData",
                 "PatchMutation",
                 "Precondition",
+                "Query",
+                "QueryImpl",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "SetMutation",
@@ -989,7 +1045,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 55917
+        "sizeInBytes": 59441
     },
     "addDoc": {
         "dependencies": {
@@ -1007,7 +1063,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -1231,9 +1287,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
                 "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueCompare",
@@ -1366,7 +1424,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 214087
+        "sizeInBytes": 215482
     },
     "arrayRemove": {
         "dependencies": {
@@ -1455,7 +1513,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 36209
+        "sizeInBytes": 36100
     },
     "arrayUnion": {
         "dependencies": {
@@ -1544,7 +1602,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 36201
+        "sizeInBytes": 36092
     },
     "clearIndexedDbPersistence": {
         "dependencies": {
@@ -1593,7 +1651,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 30195
+        "sizeInBytes": 30086
     },
     "collection": {
         "dependencies": {
@@ -1606,21 +1664,17 @@
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "isNullOrUndefined",
-                "isPlainObject",
                 "logDebug",
                 "logError",
                 "newQueryForPath",
-                "ordinal",
                 "primitiveComparator",
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "tryGetCustomObjectType",
-                "validateArgType",
                 "validateCollectionPath",
-                "validateType",
-                "valueDescription",
+                "validateDocumentPath",
+                "validateNonEmptyArgument",
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
@@ -1648,7 +1702,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 24823
+        "sizeInBytes": 24375
     },
     "collectionGroup": {
         "dependencies": {
@@ -1662,20 +1716,15 @@
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "isNullOrUndefined",
-                "isPlainObject",
                 "logDebug",
                 "logError",
                 "newQueryForCollectionGroup",
-                "ordinal",
                 "primitiveComparator",
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "tryGetCustomObjectType",
-                "validateArgType",
-                "validateType",
-                "valueDescription",
+                "validateNonEmptyArgument",
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
@@ -1699,7 +1748,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23208
+        "sizeInBytes": 21622
     },
     "deleteDoc": {
         "dependencies": {
@@ -1715,7 +1764,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -1916,6 +1965,9 @@
                 "transformOperationEquals",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
+                "validateCollectionPath",
+                "validateDocumentPath",
+                "validateNonEmptyArgument",
                 "valueCompare",
                 "valueEquals",
                 "verifyNotTerminated",
@@ -1931,6 +1983,7 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -1999,6 +2052,7 @@
                 "PersistentStream",
                 "PersistentWriteStream",
                 "Precondition",
+                "Query",
                 "QueryImpl",
                 "QueryListenersInfo",
                 "QueryView",
@@ -2035,7 +2089,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 196418
+        "sizeInBytes": 198668
     },
     "deleteField": {
         "dependencies": {
@@ -2077,7 +2131,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17784
+        "sizeInBytes": 17675
     },
     "disableNetwork": {
         "dependencies": {
@@ -2093,7 +2147,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -2412,7 +2466,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 196036
+        "sizeInBytes": 196151
     },
     "doc": {
         "dependencies": {
@@ -2425,21 +2479,17 @@
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "isNullOrUndefined",
-                "isPlainObject",
                 "logDebug",
                 "logError",
                 "newQueryForPath",
-                "ordinal",
                 "primitiveComparator",
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "tryGetCustomObjectType",
-                "validateArgType",
+                "validateCollectionPath",
                 "validateDocumentPath",
-                "validateType",
-                "valueDescription",
+                "validateNonEmptyArgument",
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
@@ -2467,7 +2517,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 24874
+        "sizeInBytes": 24430
     },
     "documentId": {
         "dependencies": {
@@ -2518,7 +2568,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23238
+        "sizeInBytes": 23129
     },
     "enableIndexedDbPersistence": {
         "dependencies": {
@@ -2642,6 +2692,7 @@
                 "getPostMutationVersion",
                 "getWindow",
                 "globalTargetStore",
+                "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "immediateSuccessor",
@@ -2885,7 +2936,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 199048
+        "sizeInBytes": 200588
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -2904,7 +2955,7 @@
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
                 "applyPrimaryState",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTargetState",
@@ -3364,7 +3415,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 304821
+        "sizeInBytes": 304936
     },
     "enableNetwork": {
         "dependencies": {
@@ -3380,7 +3431,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -3699,7 +3750,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 196033
+        "sizeInBytes": 196148
     },
     "endAt": {
         "dependencies": {
@@ -3742,6 +3793,7 @@
                 "newQueryBoundFromDocOrFields",
                 "newQueryBoundFromDocument",
                 "newQueryBoundFromFields",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "normalizeByteString",
@@ -3772,8 +3824,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -3787,6 +3842,7 @@
                 "Blob",
                 "Bound",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -3822,7 +3878,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53208
+        "sizeInBytes": 55148
     },
     "endBefore": {
         "dependencies": {
@@ -3865,6 +3921,7 @@
                 "newQueryBoundFromDocOrFields",
                 "newQueryBoundFromDocument",
                 "newQueryBoundFromFields",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "normalizeByteString",
@@ -3895,8 +3952,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -3910,6 +3970,7 @@
                 "Blob",
                 "Bound",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -3945,7 +4006,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53219
+        "sizeInBytes": 55159
     },
     "getDoc": {
         "dependencies": {
@@ -3961,7 +4022,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -4177,8 +4238,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -4199,6 +4263,7 @@
                 "Blob",
                 "Bound",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -4272,6 +4337,7 @@
                 "PersistentStream",
                 "PersistentWriteStream",
                 "Precondition",
+                "Query",
                 "QueryDocumentSnapshot",
                 "QueryDocumentSnapshot$1",
                 "QueryImpl",
@@ -4313,7 +4379,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 212441
+        "sizeInBytes": 214691
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4391,6 +4457,7 @@
                 "getOfflineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
+                "handleUserChange",
                 "hardAssert",
                 "invalidClassError",
                 "isArray",
@@ -4414,6 +4481,7 @@
                 "mutationEquals",
                 "newLocalStore",
                 "newQueryComparator",
+                "newQueryForPath",
                 "newTarget",
                 "normalizeByteString",
                 "normalizeNumber",
@@ -4460,8 +4528,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -4479,6 +4550,7 @@
                 "Blob",
                 "Bound",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -4530,6 +4602,7 @@
                 "PersistencePromise",
                 "PersistenceTransaction",
                 "Precondition",
+                "Query",
                 "QueryDocumentSnapshot",
                 "QueryDocumentSnapshot$1",
                 "QueryImpl",
@@ -4555,7 +4628,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 118383
+        "sizeInBytes": 122116
     },
     "getDocFromServer": {
         "dependencies": {
@@ -4571,7 +4644,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -4787,8 +4860,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -4809,6 +4885,7 @@
                 "Blob",
                 "Bound",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -4882,6 +4959,7 @@
                 "PersistentStream",
                 "PersistentWriteStream",
                 "Precondition",
+                "Query",
                 "QueryDocumentSnapshot",
                 "QueryDocumentSnapshot$1",
                 "QueryImpl",
@@ -4923,7 +5001,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 212497
+        "sizeInBytes": 214747
     },
     "getDocs": {
         "dependencies": {
@@ -4939,7 +5017,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -5156,9 +5234,12 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateHasExplicitOrderByForLimitToLast",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -5179,6 +5260,7 @@
                 "Blob",
                 "Bound",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -5295,7 +5377,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 215004
+        "sizeInBytes": 217034
     },
     "getDocsFromCache": {
         "dependencies": {
@@ -5377,6 +5459,7 @@
                 "getOfflineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
+                "handleUserChange",
                 "hardAssert",
                 "invalidClassError",
                 "isArray",
@@ -5400,6 +5483,7 @@
                 "mutationEquals",
                 "newLocalStore",
                 "newQueryComparator",
+                "newQueryForPath",
                 "newTarget",
                 "normalizeByteString",
                 "normalizeNumber",
@@ -5447,8 +5531,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -5467,6 +5554,7 @@
                 "Blob",
                 "Bound",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -5550,7 +5638,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 131563
+        "sizeInBytes": 135076
     },
     "getDocsFromServer": {
         "dependencies": {
@@ -5566,7 +5654,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -5783,8 +5871,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -5805,6 +5896,7 @@
                 "Blob",
                 "Bound",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -5921,7 +6013,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 214742
+        "sizeInBytes": 216772
     },
     "getFirestore": {
         "dependencies": {
@@ -5959,7 +6051,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16803
+        "sizeInBytes": 16694
     },
     "increment": {
         "dependencies": {
@@ -6009,7 +6101,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18649
+        "sizeInBytes": 18540
     },
     "initializeFirestore": {
         "dependencies": {
@@ -6048,7 +6140,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18107
+        "sizeInBytes": 17998
     },
     "limit": {
         "dependencies": {
@@ -6094,7 +6186,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19234
+        "sizeInBytes": 19125
     },
     "limitToLast": {
         "dependencies": {
@@ -6140,7 +6232,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19258
+        "sizeInBytes": 19149
     },
     "onSnapshot": {
         "dependencies": {
@@ -6156,7 +6248,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -6375,9 +6467,12 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateHasExplicitOrderByForLimitToLast",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -6398,6 +6493,7 @@
                 "Blob",
                 "Bound",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -6514,7 +6610,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 216087
+        "sizeInBytes": 218117
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -6530,7 +6626,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -6851,7 +6947,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 196882
+        "sizeInBytes": 196997
     },
     "orderBy": {
         "dependencies": {
@@ -6919,56 +7015,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 28879
-    },
-    "parent": {
-        "dependencies": {
-            "functions": [
-                "argToString",
-                "cast",
-                "fail",
-                "formatJSON",
-                "getMessageOrStack",
-                "hardAssert",
-                "isIndexedDbTransactionError",
-                "isNullOrUndefined",
-                "logDebug",
-                "logError",
-                "newQueryForPath",
-                "parent",
-                "primitiveComparator",
-                "randomBytes",
-                "registerFirestore",
-                "removeComponents",
-                "removeComponents$1",
-                "wrapInUserErrorIfRecoverable"
-            ],
-            "classes": [
-                "AsyncQueue",
-                "AutoId",
-                "BasePath",
-                "CollectionReference",
-                "DatabaseId",
-                "DatabaseInfo",
-                "Deferred",
-                "DelayedOperation",
-                "DocumentKey",
-                "DocumentKeyReference",
-                "DocumentReference",
-                "ExponentialBackoff",
-                "FirebaseCredentialsProvider",
-                "Firestore",
-                "Firestore$1",
-                "FirestoreError",
-                "OAuthToken",
-                "Query",
-                "QueryImpl",
-                "ResourcePath",
-                "User"
-            ],
-            "variables": []
-        },
-        "sizeInBytes": 22884
+        "sizeInBytes": 28770
     },
     "query": {
         "dependencies": {
@@ -7008,7 +7055,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17501
+        "sizeInBytes": 17392
     },
     "queryEqual": {
         "dependencies": {
@@ -7084,7 +7131,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 33450
+        "sizeInBytes": 33341
     },
     "refEqual": {
         "dependencies": {
@@ -7105,6 +7152,9 @@
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
+                "validateCollectionPath",
+                "validateDocumentPath",
+                "validateNonEmptyArgument",
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
@@ -7132,7 +7182,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22431
+        "sizeInBytes": 23925
     },
     "runTransaction": {
         "dependencies": {
@@ -7198,6 +7248,7 @@
                 "mapCodeFromRpcCode",
                 "newConnection",
                 "newDatastore",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "nodePromise",
@@ -7240,8 +7291,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateReference",
                 "validateType",
@@ -7258,6 +7312,7 @@
                 "BasePath",
                 "Blob",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -7296,8 +7351,10 @@
                 "ParsedUpdateData",
                 "PatchMutation",
                 "Precondition",
+                "Query",
                 "QueryDocumentSnapshot",
                 "QueryDocumentSnapshot$1",
+                "QueryImpl",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
@@ -7319,7 +7376,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 82111
+        "sizeInBytes": 85597
     },
     "serverTimestamp": {
         "dependencies": {
@@ -7364,7 +7421,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17795
+        "sizeInBytes": 17686
     },
     "setDoc": {
         "dependencies": {
@@ -7381,7 +7438,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -7605,8 +7662,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueCompare",
@@ -7627,6 +7687,7 @@
                 "Blob",
                 "Bound",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -7699,6 +7760,7 @@
                 "PersistentStream",
                 "PersistentWriteStream",
                 "Precondition",
+                "Query",
                 "QueryImpl",
                 "QueryListenersInfo",
                 "QueryView",
@@ -7737,7 +7799,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 212369
+        "sizeInBytes": 214619
     },
     "setLogLevel": {
         "dependencies": {
@@ -7775,7 +7837,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16769
+        "sizeInBytes": 16660
     },
     "snapshotEqual": {
         "dependencies": {
@@ -7814,6 +7876,7 @@
                 "isValidResourceName",
                 "logDebug",
                 "logError",
+                "newQueryForPath",
                 "newTarget",
                 "normalizeByteString",
                 "normalizeNumber",
@@ -7840,8 +7903,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "valueEquals",
@@ -7855,6 +7921,7 @@
                 "Blob",
                 "Bound",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -7889,7 +7956,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 50939
+        "sizeInBytes": 52879
     },
     "startAfter": {
         "dependencies": {
@@ -7931,6 +7998,7 @@
                 "newQueryBoundFromDocOrFields",
                 "newQueryBoundFromDocument",
                 "newQueryBoundFromFields",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "normalizeByteString",
@@ -7962,8 +8030,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -7977,6 +8048,7 @@
                 "Blob",
                 "Bound",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -8012,7 +8084,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53229
+        "sizeInBytes": 55169
     },
     "startAt": {
         "dependencies": {
@@ -8054,6 +8126,7 @@
                 "newQueryBoundFromDocOrFields",
                 "newQueryBoundFromDocument",
                 "newQueryBoundFromFields",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "normalizeByteString",
@@ -8085,8 +8158,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -8100,6 +8176,7 @@
                 "Blob",
                 "Bound",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -8135,7 +8212,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53219
+        "sizeInBytes": 55159
     },
     "terminate": {
         "dependencies": {
@@ -8174,7 +8251,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17299
+        "sizeInBytes": 17190
     },
     "updateDoc": {
         "dependencies": {
@@ -8190,7 +8267,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -8416,8 +8493,11 @@
                 "uint8ArrayFromBinaryString",
                 "updateDoc",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueCompare",
@@ -8438,6 +8518,7 @@
                 "Blob",
                 "Bound",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -8512,6 +8593,7 @@
                 "PersistentStream",
                 "PersistentWriteStream",
                 "Precondition",
+                "Query",
                 "QueryImpl",
                 "QueryListenersInfo",
                 "QueryView",
@@ -8550,7 +8632,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 213868
+        "sizeInBytes": 216118
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -8566,7 +8648,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -8884,7 +8966,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 195825
+        "sizeInBytes": 195940
     },
     "where": {
         "dependencies": {
@@ -9031,7 +9113,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 59634
+        "sizeInBytes": 59601
     },
     "writeBatch": {
         "dependencies": {
@@ -9048,7 +9130,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -9274,8 +9356,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateReference",
                 "validateType",
@@ -9298,6 +9383,7 @@
                 "Blob",
                 "Bound",
                 "ByteString",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -9373,6 +9459,7 @@
                 "PersistentStream",
                 "PersistentWriteStream",
                 "Precondition",
+                "Query",
                 "QueryImpl",
                 "QueryListenersInfo",
                 "QueryView",
@@ -9412,6 +9499,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 217535
+        "sizeInBytes": 219785
     }
 }

@@ -34,7 +34,6 @@ export {
   collection,
   collectionGroup,
   doc,
-  parent,
   getDoc,
   getDocs,
   deleteDoc,

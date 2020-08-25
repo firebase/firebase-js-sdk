@@ -47,7 +47,6 @@ import {
   initializeFirestore,
   onSnapshot,
   onSnapshotsInSync,
-  parent,
   query,
   queryEqual,
   refEqual,
@@ -298,7 +297,7 @@ export class DocumentReference<T = legacy.DocumentData>
   readonly path = this._delegate.path;
 
   get parent(): legacy.CollectionReference<T> {
-    return new CollectionReference<T>(this.firestore, parent(this._delegate));
+    return new CollectionReference<T>(this.firestore, this._delegate.parent);
   }
 
   collection(
@@ -306,7 +305,7 @@ export class DocumentReference<T = legacy.DocumentData>
   ): legacy.CollectionReference<legacy.DocumentData> {
     return new CollectionReference(
       this.firestore,
-      collection(this._delegate, collectionPath)
+      this._delegate.collection(collectionPath)
     );
   }
 
@@ -640,7 +639,7 @@ export class CollectionReference<T = legacy.DocumentData> extends Query<T>
   readonly path = this._delegate.path;
 
   get parent(): DocumentReference<legacy.DocumentData> | null {
-    const docRef = parent(this._delegate);
+    const docRef = this._delegate.parent;
     return docRef
       ? new DocumentReference<legacy.DocumentData>(this.firestore, docRef)
       : null;
@@ -648,12 +647,12 @@ export class CollectionReference<T = legacy.DocumentData> extends Query<T>
 
   doc(documentPath?: string): DocumentReference<T> {
     if (documentPath !== undefined) {
-      return new DocumentReference<T>(
+      return new DocumentReference(
         this.firestore,
-        doc(this._delegate, documentPath)
+        this._delegate.doc(documentPath)
       );
     } else {
-      return new DocumentReference<T>(this.firestore, doc(this._delegate));
+      return new DocumentReference(this.firestore, this._delegate.doc());
     }
   }
 
