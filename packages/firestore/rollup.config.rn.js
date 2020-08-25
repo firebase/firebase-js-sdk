@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,20 @@
  * limitations under the License.
  */
 
-import * as firebase from 'firebase/app';
+import pkg from './package.json';
 
-/**
- * Verifying the namespace types are properly exposed from the `firebase`
- * package
- */
-let app: firebase.app.App;
-let auth: firebase.auth.Auth;
-let database: firebase.database.Database;
-let firestore: firebase.firestore.Firestore;
-let functions: firebase.functions.Functions;
-let messaging: firebase.messaging.Messaging;
-let storage: firebase.storage.Storage;
+const util = require('./rollup.shared');
+
+export default {
+  input: 'index.rn.ts',
+  output: {
+    file: pkg['react-native'],
+    format: 'es',
+    sourcemap: true
+  },
+  plugins: util.es2017Plugins('rn', /* mangled= */ true),
+  external: util.resolveBrowserExterns,
+  treeshake: {
+    moduleSideEffects: false
+  }
+};

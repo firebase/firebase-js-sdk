@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,21 @@
  * limitations under the License.
  */
 
-const karma = require('karma');
-const path = require('path');
-const karmaBase = require('../../config/karma.base');
+import * as path from 'path';
+import memoryPkg from './memory/package.json';
 
-const files = [`dist/**/*`];
+const util = require('./rollup.shared');
 
-module.exports = function (config) {
-  const karmaConfig = Object.assign({}, karmaBase, {
-    // files to load into karma
-    files: files,
-    // frameworks to use
-    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha']
-  });
-
-  config.set(karmaConfig);
+export default {
+  input: 'index.rn.memory.ts',
+  output: {
+    file: path.resolve('./memory', memoryPkg['react-native']),
+    format: 'es',
+    sourcemap: true
+  },
+  plugins: util.es2017Plugins('rn', /* mangled= */ true),
+  external: util.resolveBrowserExterns,
+  treeshake: {
+    moduleSideEffects: false
+  }
 };
-
-module.exports.files = files;

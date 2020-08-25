@@ -11,10 +11,10 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
-    "build:deps": "lerna run --scope @firebase/'{app,storage}' --include-dependencies build",
+    "build:deps": "lerna run --scope @firebase/storage --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p test:browser lint",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser:unit": "karma start --single-run --unit",
     "test:browser:integration": "karma start --single-run --integration",
     "test:browser": "karma start --single-run",
@@ -33,9 +33,10 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/auth": "0.x",
-    "rollup": "2.23.0",
-    "rollup-plugin-typescript2": "0.27.1",
+    "@firebase/app": "0.6.10",
+    "@firebase/auth": "0.14.9",
+    "rollup": "2.26.5",
+    "rollup-plugin-typescript2": "0.27.2",
     "typescript": "3.9.7"
   },
   "repository": {

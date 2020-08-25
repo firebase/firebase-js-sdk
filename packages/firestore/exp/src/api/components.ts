@@ -23,7 +23,7 @@ import {
   OfflineComponentProvider,
   OnlineComponentProvider
 } from '../../../src/core/component_provider';
-import { LocalStore } from '../../../src/local/local_store';
+import {handleUserChange, LocalStore} from '../../../src/local/local_store';
 import { Deferred } from '../../../src/util/promise';
 import { logDebug } from '../../../src/util/log';
 import { SyncEngine } from '../../../src/core/sync_engine';
@@ -65,7 +65,7 @@ export async function setOfflineComponentProvider(
     firestore._queue.enqueueAndForget(() =>
       // TODO(firestorexp): Make sure handleUserChange is a no-op if user
       // didn't change
-      offlineComponentProvider.localStore.handleUserChange(user)
+      handleUserChange(offlineComponentProvider.localStore, user)
     )
   );
   // When a user calls clearPersistence() in one client, all other clients

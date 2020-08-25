@@ -87,10 +87,9 @@ describe('FirebaseAnalytics instance tests', () => {
       analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
-      // Clear event stack of async FID call.
-      // For IE: Need then() or else "expect" runs immediately on FID resolve
-      // before the other statements in initializeGAId.
-      await fidDeferred.promise.then();
+      // Clear event stack of initialization promise.
+      const { initializedIdPromisesMap } = getGlobalVars();
+      await Promise.all(Object.values(initializedIdPromisesMap));
       expect(gtagStub).to.have.been.calledWith('js');
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.CONFIG,
@@ -101,10 +100,6 @@ describe('FirebaseAnalytics instance tests', () => {
           update: true
         }
       );
-      // Clear event stack of initialization promise.
-      const { initializedIdPromisesMap } = getGlobalVars();
-      await Promise.all(Object.values(initializedIdPromisesMap));
-      // await Promise.resolve().then(() => {});
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.EVENT,
         EventName.ADD_PAYMENT_INFO,
@@ -159,10 +154,9 @@ describe('FirebaseAnalytics instance tests', () => {
       analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
-      // Clear event stack of async FID call.
-      // For IE: Need then() or else "expect" runs immediately on FID resolve
-      // before the other statements in initializeGAId.
-      await fidDeferred.promise.then();
+      // Clear event stack of initialization promise.
+      const { initializedIdPromisesMap } = getGlobalVars();
+      await Promise.all(Object.values(initializedIdPromisesMap));
       expect(gtagStub).to.have.been.calledWith('js');
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.CONFIG,
@@ -173,9 +167,6 @@ describe('FirebaseAnalytics instance tests', () => {
           update: true
         }
       );
-      // Clear event stack of initialization promise.
-      const { initializedIdPromisesMap } = getGlobalVars();
-      await Promise.all(Object.values(initializedIdPromisesMap));
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.EVENT,
         EventName.ADD_PAYMENT_INFO,

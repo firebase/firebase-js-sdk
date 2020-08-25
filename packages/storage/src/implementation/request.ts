@@ -64,8 +64,9 @@ class NetworkRequest<T> implements Request<T> {
   private additionalRetryCodes_: number[];
   private pendingXhr_: XhrIo | null = null;
   private backoffId_: backoff.id | null = null;
-  private resolve_: Function | null = null;
-  private reject_: Function | null = null;
+  private resolve_!: (value?: T | PromiseLike<T> | undefined) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private reject_!: (reason?: any) => void;
   private canceled_: boolean = false;
   private appDelete_: boolean = false;
   private callback_: (p1: XhrIo, p2: string) => T;
@@ -170,8 +171,8 @@ class NetworkRequest<T> implements Request<T> {
       requestWentThrough: boolean,
       status: RequestEndStatus
     ): void {
-      const resolve = self.resolve_ as Function;
-      const reject = self.reject_ as Function;
+      const resolve = self.resolve_;
+      const reject = self.reject_;
       const xhr = status.xhr as XhrIo;
       if (status.wasSuccessCode) {
         try {
