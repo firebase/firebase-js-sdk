@@ -37,6 +37,7 @@ export class EventAccumulator {
   reject;
   private onResetFxn;
   private onEventFxn;
+  // eslint-disable-next-line @typescript-eslint/ban-types
   constructor(public condition: Function) {
     this.promise = new Promise((resolve, reject) => {
       this.resolve = resolve;
@@ -52,6 +53,7 @@ export class EventAccumulator {
       this.resolve(this.eventData);
     }
   }
+  // eslint-disable-next-line @typescript-eslint/ban-types
   reset(condition?: Function) {
     this.eventData = [];
     this.promise = new Promise((resolve, reject) => {
@@ -65,9 +67,11 @@ export class EventAccumulator {
       this.condition = condition;
     }
   }
+  // eslint-disable-next-line @typescript-eslint/ban-types
   onEvent(cb: Function) {
     this.onEventFxn = cb;
   }
+  // eslint-disable-next-line @typescript-eslint/ban-types
   onReset(cb: Function) {
     this.onResetFxn = cb;
   }

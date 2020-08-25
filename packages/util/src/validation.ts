@@ -115,6 +115,7 @@ export function validateNamespace(
 export function validateCallback(
   fnName: string,
   argumentNumber: number,
+  // eslint-disable-next-line @typescript-eslint/ban-types
   callback: Function,
   optional: boolean
 ): void {

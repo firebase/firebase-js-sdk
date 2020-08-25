@@ -52,9 +52,9 @@ export function makeFakeApp(bucketArg?: string): FirebaseApp {
   return app as FirebaseApp;
 }
 
-export function makeFakeAuthProvider(
-  token: {} | null
-): Provider<FirebaseAuthInternalName> {
+export function makeFakeAuthProvider(token: {
+  accessToken: string;
+}): Provider<FirebaseAuthInternalName> {
   const provider = new Provider(
     'auth-internal',
     new ComponentContainer('storage-container')
@@ -113,6 +113,7 @@ export function fakeXhrIo(headers: Headers, status: number = 200): XhrIo {
 /**
  * Binds ignoring types. Used to test calls involving improper arguments.
  */
+// eslint-disable-next-line @typescript-eslint/ban-types
 export function bind(f: Function, ctx: any, ...args: any[]): () => void {
   return () => {
     f.apply(ctx, args);

@@ -21,6 +21,7 @@ import { consoleLogger } from '../utils/console_logger';
 declare global {
   interface Window {
     PerformanceObserver: typeof PerformanceObserver;
+    // eslint-disable-next-line @typescript-eslint/ban-types
     perfMetrics?: { onFirstInputDelay: Function };
   }
 }
@@ -45,6 +46,7 @@ export class Api {
   /** PreformanceObserver constructor function. */
   private readonly PerformanceObserver: typeof PerformanceObserver;
   private readonly windowLocation: Location;
+  // eslint-disable-next-line @typescript-eslint/ban-types
   readonly onFirstInputDelay?: Function;
   readonly localStorage?: Storage;
   readonly document: Document;
