@@ -21,7 +21,7 @@ import { isEmpty, querystring } from '@firebase/util';
 
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
-import { browserSessionPersistence } from './persistence/browser';
+import { browserSessionPersistence } from './persistence/session_storage';
 import { OAuthProvider } from '../core/providers/oauth';
 import { assert, debugAssert } from '../core/util/assert';
 import { _generateEventId } from '../core/util/event_id';

@@ -17,7 +17,6 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import { NextFn } from '@firebase/util';
-
 import {
   APIUserInfo,
   deleteAccount
@@ -29,11 +28,11 @@ import { MutableUserInfo, User, UserParameters } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
 import { assert } from '../util/assert';
-import { utcTimestampToDateString } from '../util/time';
 import { getIdTokenResult } from './id_token_result';
 import { ProactiveRefresh } from './proactive_refresh';
-import { _reloadWithoutSaving, reload } from './reload';
+import { reload, _reloadWithoutSaving } from './reload';
 import { StsTokenManager } from './token_manager';
+import { UserMetadata } from './user_metadata';
 
 function assertStringOrUndefined(
   assertion: unknown,
@@ -46,36 +45,18 @@ function assertStringOrUndefined(
   );
 }
 
-export class UserMetadata implements externs.UserMetadata {
-  readonly creationTime?: string;
-  readonly lastSignInTime?: string;
-
-  constructor(
-    private readonly createdAt?: string | number,
-    private readonly lastLoginAt?: string | number
-  ) {
-    this.lastSignInTime = utcTimestampToDateString(lastLoginAt);
-    this.creationTime = utcTimestampToDateString(createdAt);
-  }
-
-  toJSON(): object {
-    return {
-      createdAt: this.createdAt,
-      lastLoginAt: this.lastLoginAt
-    };
-  }
-}
-
 export class UserImpl implements User {
   // For the user object, provider is always Firebase.
   readonly providerId = externs.ProviderId.FIREBASE;
   stsTokenManager: StsTokenManager;
+  // Last known accessToken so we know when it changes
+  private accessToken: string | null;
 
   uid: string;
   auth: Auth;
   emailVerified = false;
   isAnonymous = false;
-  tenantId = null;
+  tenantId: string | null = null;
   readonly metadata: UserMetadata;
   providerData: MutableUserInfo[] = [];
 
@@ -92,6 +73,7 @@ export class UserImpl implements User {
     this.uid = uid;
     this.auth = auth;
     this.stsTokenManager = stsTokenManager;
+    this.accessToken = stsTokenManager.accessToken;
     this.displayName = opt.displayName || null;
     this.email = opt.email || null;
     this.phoneNumber = opt.phoneNumber || null;
@@ -101,12 +83,16 @@ export class UserImpl implements User {
   }
 
   async getIdToken(forceRefresh?: boolean): Promise<string> {
-    const tokens = await this.stsTokenManager.getToken(this.auth, forceRefresh);
-    assert(tokens, AuthErrorCode.INTERNAL_ERROR, { appName: this.auth.name });
+    const accessToken = await this.stsTokenManager.getToken(
+      this.auth,
+      forceRefresh
+    );
+    assert(accessToken, AuthErrorCode.INTERNAL_ERROR, {
+      appName: this.auth.name
+    });
 
-    const { accessToken, wasRefreshed } = tokens;
-
-    if (wasRefreshed) {
+    if (this.accessToken !== accessToken) {
+      this.accessToken = accessToken;
       await this.auth._persistUserIfCurrent(this);
       this.auth._notifyListenersIfCurrent(this);
     }
@@ -124,6 +110,25 @@ export class UserImpl implements User {
 
   private reloadUserInfo: APIUserInfo | null = null;
   private reloadListener: NextFn<APIUserInfo> | null = null;
+
+  _copy(user: User): void {
+    if (this === user) {
+      return;
+    }
+    assert(this.uid === user.uid, AuthErrorCode.INTERNAL_ERROR, {
+      appName: this.auth.name
+    });
+    this.displayName = user.displayName;
+    this.photoURL = user.photoURL;
+    this.email = user.email;
+    this.emailVerified = user.emailVerified;
+    this.phoneNumber = user.phoneNumber;
+    this.isAnonymous = user.isAnonymous;
+    this.tenantId = user.tenantId;
+    this.providerData = user.providerData.map(userInfo => ({ ...userInfo }));
+    this.metadata._copy(user.metadata);
+    this.stsTokenManager._copy(user.stsTokenManager);
+  }
 
   _onReload(callback: NextFn<APIUserInfo>): void {
     // There should only ever be one listener, and that is a single instance of MultiFactorUser

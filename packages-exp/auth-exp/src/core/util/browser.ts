@@ -15,6 +15,16 @@
  * limitations under the License.
  */
 
+import { isIE, getUA } from '@firebase/util';
+
+interface NavigatorStandalone extends Navigator {
+  standalone?: unknown;
+}
+
+interface Document {
+  documentMode?: number;
+}
+
 /**
  * Enums for Browser name.
  */
@@ -40,36 +50,31 @@ export function _getBrowserName(userAgent: string): BrowserName | string {
   const ua = userAgent.toLowerCase();
   if (ua.includes('opera/') || ua.includes('opr/') || ua.includes('opios/')) {
     return BrowserName.OPERA;
-  } else if (ua.includes('iemobile')) {
+  } else if (_isIEMobile(ua)) {
     // Windows phone IEMobile browser.
     return BrowserName.IEMOBILE;
   } else if (ua.includes('msie') || ua.includes('trident/')) {
     return BrowserName.IE;
   } else if (ua.includes('edge/')) {
     return BrowserName.EDGE;
-  } else if (ua.includes('firefox/')) {
+  } else if (_isFirefox(ua)) {
     return BrowserName.FIREFOX;
   } else if (ua.includes('silk/')) {
     return BrowserName.SILK;
-  } else if (ua.includes('blackberry')) {
+  } else if (_isBlackBerry(ua)) {
     // Blackberry browser.
     return BrowserName.BLACKBERRY;
-  } else if (ua.includes('webos')) {
+  } else if (_isWebOS(ua)) {
     // WebOS default browser.
     return BrowserName.WEBOS;
-  } else if (
-    ua.includes('safari/') &&
-    !ua.includes('chrome/') &&
-    !ua.includes('crios/') &&
-    !ua.includes('android')
-  ) {
+  } else if (_isSafari(ua)) {
     return BrowserName.SAFARI;
   } else if (
-    (ua.includes('chrome/') || ua.includes('crios/')) &&
+    (ua.includes('chrome/') || _isChromeIOS(ua)) &&
     !ua.includes('edge/')
   ) {
     return BrowserName.CHROME;
-  } else if (ua.includes('android')) {
+  } else if (_isAndroid(ua)) {
     // Android stock browser.
     return BrowserName.ANDROID;
   } else {
@@ -81,4 +86,72 @@ export function _getBrowserName(userAgent: string): BrowserName | string {
     }
   }
   return BrowserName.OTHER;
+}
+
+export function _isFirefox(ua: string): boolean {
+  return /firefox\//i.test(ua);
+}
+
+export function _isSafari(userAgent: string): boolean {
+  const ua = userAgent.toLowerCase();
+  return (
+    ua.includes('safari/') &&
+    !ua.includes('chrome/') &&
+    !ua.includes('crios/') &&
+    !ua.includes('android')
+  );
+}
+
+export function _isChromeIOS(ua: string): boolean {
+  return /crios\//i.test(ua);
+}
+
+export function _isIEMobile(ua: string): boolean {
+  return /iemobile/i.test(ua);
+}
+
+export function _isAndroid(ua: string): boolean {
+  return /android/i.test(ua);
+}
+
+export function _isBlackBerry(ua: string): boolean {
+  return /blackberry/i.test(ua);
+}
+
+export function _isWebOS(ua: string): boolean {
+  return /webos/i.test(ua);
+}
+
+export function _isIOS(ua: string): boolean {
+  return /iphone|ipad|ipod/i.test(ua);
+}
+
+export function _isIOSStandalone(ua: string): boolean {
+  return _isIOS(ua) && !!(window.navigator as NavigatorStandalone)?.standalone;
+}
+
+export function _isIE10(): boolean {
+  return isIE() && (document as Document).documentMode === 10;
+}
+
+export function _isMobileBrowser(ua: string = getUA()): boolean {
+  // TODO: implement getBrowserName equivalent for OS.
+  return (
+    _isIOS(ua) ||
+    _isAndroid(ua) ||
+    _isWebOS(ua) ||
+    _isBlackBerry(ua) ||
+    /windows phone/i.test(ua) ||
+    _isIEMobile(ua)
+  );
+}
+
+export function _isIframe(): boolean {
+  try {
+    // Check that the current window is not the top window.
+    // If so, return true.
+    return !!(window && window !== window.top);
+  } catch (e) {
+    return false;
+  }
 }

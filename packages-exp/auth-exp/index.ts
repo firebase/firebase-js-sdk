@@ -21,7 +21,7 @@ import { Auth } from '@firebase/auth-types-exp';
 import { initializeAuth } from './src';
 import { registerAuth } from './src/core/auth/register';
 import { ClientPlatform } from './src/core/util/version';
-import { browserLocalPersistence } from './src/platform_browser/persistence/browser';
+import { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
 import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 import { browserPopupRedirectResolver } from './src/platform_browser/popup_redirect';
 
@@ -31,10 +31,8 @@ export * from './src';
 // Additional DOM dependend functionality
 
 // persistence
-export {
-  browserLocalPersistence,
-  browserSessionPersistence
-} from './src/platform_browser/persistence/browser';
+export { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
+export { browserSessionPersistence } from './src/platform_browser/persistence/session_storage';
 export { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
 // providers

@@ -31,10 +31,16 @@ export type PersistenceValue = PersistedBlob | string;
 
 export const STORAGE_AVAILABLE_KEY = '__sak';
 
+export interface StorageEventListener {
+  (value: PersistenceValue | null): void;
+}
+
 export interface Persistence {
   type: PersistenceType;
-  isAvailable(): Promise<boolean>;
-  set(key: string, value: PersistenceValue): Promise<void>;
-  get<T extends PersistenceValue>(key: string): Promise<T | null>;
-  remove(key: string): Promise<void>;
+  _isAvailable(): Promise<boolean>;
+  _set(key: string, value: PersistenceValue): Promise<void>;
+  _get<T extends PersistenceValue>(key: string): Promise<T | null>;
+  _remove(key: string): Promise<void>;
+  _addListener(key: string, listener: StorageEventListener): void;
+  _removeListener(key: string, listener: StorageEventListener): void;
 }

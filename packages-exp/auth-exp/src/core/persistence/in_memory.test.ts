@@ -28,12 +28,12 @@ describe('core/persistence/in_memory', () => {
   it('should work with persistence type', async () => {
     const key = 'my-super-special-persistence-type';
     const value = PersistenceType.LOCAL;
-    expect(await persistence.get(key)).to.be.null;
-    await persistence.set(key, value);
-    expect(await persistence.get(key)).to.be.eq(value);
-    expect(await persistence.get('other-key')).to.be.null;
-    await persistence.remove(key);
-    expect(await persistence.get(key)).to.be.null;
+    expect(await persistence._get(key)).to.be.null;
+    await persistence._set(key, value);
+    expect(await persistence._get(key)).to.be.eq(value);
+    expect(await persistence._get('other-key')).to.be.null;
+    await persistence._remove(key);
+    expect(await persistence._get(key)).to.be.null;
   });
 
   it('should work with user', async () => {
@@ -41,15 +41,15 @@ describe('core/persistence/in_memory', () => {
     const auth = await testAuth();
     const value = testUser(auth, 'uid');
 
-    expect(await persistence.get(key)).to.be.null;
-    await persistence.set(key, value.toJSON());
-    expect(await persistence.get(key)).to.eql(value.toJSON());
-    expect(await persistence.get('other-key')).to.be.null;
-    await persistence.remove(key);
-    expect(await persistence.get(key)).to.be.null;
+    expect(await persistence._get(key)).to.be.null;
+    await persistence._set(key, value.toJSON());
+    expect(await persistence._get(key)).to.eql(value.toJSON());
+    expect(await persistence._get('other-key')).to.be.null;
+    await persistence._remove(key);
+    expect(await persistence._get(key)).to.be.null;
   });
 
   it('isAvailable returns true', async () => {
-    expect(await persistence.isAvailable()).to.be.true;
+    expect(await persistence._isAvailable()).to.be.true;
   });
 });
