@@ -801,6 +801,7 @@ export function buildMap(api: MemberList): Map<string, string> {
  */
 async function traverseDirs(
   moduleLocation: string,
+  // eslint-disable-next-line @typescript-eslint/ban-types
   executor: Function,
   level: number,
   levelLimit: number
