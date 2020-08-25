@@ -17,11 +17,11 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import { NextFn } from '@firebase/util';
-
 import { APIUserInfo } from '../api/account_management/account';
 import { FinalizeMfaResponse } from '../api/authentication/mfa';
 import { PersistedBlob } from '../core/persistence';
 import { StsTokenManager } from '../core/user/token_manager';
+import { UserMetadata } from '../core/user/user_metadata';
 import { Auth } from './auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from './id_token';
 
@@ -58,7 +58,7 @@ export interface User extends externs.User {
   emailVerified: boolean;
   tenantId: string | null;
   providerData: MutableUserInfo[];
-  metadata: externs.UserMetadata;
+  metadata: UserMetadata;
 
   stsTokenManager: StsTokenManager;
   _redirectEventId?: string;
@@ -68,6 +68,7 @@ export interface User extends externs.User {
     reload?: boolean
   ): Promise<void>;
 
+  _copy(user: User): void;
   _onReload: (cb: NextFn<APIUserInfo>) => void;
   _notifyReloadListener: NextFn<APIUserInfo>;
   _startProactiveRefresh: () => void;

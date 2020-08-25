@@ -23,7 +23,7 @@ import {
   _isChromeIOS,
   _isFirefox,
   _isIOSStandalone
-} from '../../core/util/environment';
+} from '../../core/util/browser';
 
 const BASE_POPUP_OPTIONS = {
   location: 'yes',

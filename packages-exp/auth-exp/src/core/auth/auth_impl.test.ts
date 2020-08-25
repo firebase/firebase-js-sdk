@@ -83,7 +83,7 @@ describe('core/auth/auth_impl', () => {
         return testUser(auth, `${n}`);
       });
 
-      persistenceStub.set.callsFake(() => {
+      persistenceStub._set.callsFake(() => {
         return new Promise(resolve => {
           // Force into the async flow to make this test actually meaningful
           setTimeout(() => resolve(), 1);
@@ -92,7 +92,7 @@ describe('core/auth/auth_impl', () => {
 
       await Promise.all(users.map(u => auth.updateCurrentUser(u)));
       for (let i = 0; i < 10; i++) {
-        expect(persistenceStub.set.getCall(i)).to.have.been.calledWith(
+        expect(persistenceStub._set.getCall(i)).to.have.been.calledWith(
           sinon.match.any,
           users[i].toJSON()
         );
@@ -101,7 +101,7 @@ describe('core/auth/auth_impl', () => {
 
     it('setting to null triggers a remove call', async () => {
       await auth.updateCurrentUser(null);
-      expect(persistenceStub.remove).to.have.been.called;
+      expect(persistenceStub._remove).to.have.been.called;
     });
 
     it('should throw an error if the user is from a different tenant', async () => {
@@ -118,7 +118,7 @@ describe('core/auth/auth_impl', () => {
     it('sets currentUser to null, calls remove', async () => {
       await auth.updateCurrentUser(testUser(auth, 'test'));
       await auth.signOut();
-      expect(persistenceStub.remove).to.have.been.called;
+      expect(persistenceStub._remove).to.have.been.called;
       expect(auth.currentUser).to.be.null;
     });
   });
@@ -262,6 +262,128 @@ describe('core/auth/auth_impl', () => {
         await auth.updateCurrentUser(user);
         expect(cb1).to.have.been.calledWith(user);
         expect(cb2).to.have.been.calledWith(user);
+      });
+    });
+  });
+
+  describe('#_onStorageEvent', () => {
+    let authStateCallback: sinon.SinonSpy;
+    let idTokenCallback: sinon.SinonSpy;
+
+    beforeEach(async () => {
+      authStateCallback = sinon.spy();
+      idTokenCallback = sinon.spy();
+      auth._onAuthStateChanged(authStateCallback);
+      auth._onIdTokenChanged(idTokenCallback);
+      await auth.updateCurrentUser(null); // force event handlers to clear out
+      authStateCallback.resetHistory();
+      idTokenCallback.resetHistory();
+    });
+
+    context('previously logged out', () => {
+      context('still logged out', () => {
+        it('should do nothing', async () => {
+          await auth._onStorageEvent();
+
+          expect(authStateCallback).not.to.have.been.called;
+          expect(idTokenCallback).not.to.have.been.called;
+        });
+      });
+
+      context('now logged in', () => {
+        let user: User;
+
+        beforeEach(() => {
+          user = testUser(auth, 'uid');
+          persistenceStub._get.returns(Promise.resolve(user.toJSON()));
+        });
+
+        it('should update the current user', async () => {
+          await auth._onStorageEvent();
+
+          expect(auth.currentUser?.toJSON()).to.eql(user.toJSON());
+          expect(authStateCallback).to.have.been.called;
+          expect(idTokenCallback).to.have.been.called;
+        });
+      });
+    });
+
+    context('previously logged in', () => {
+      let user: User;
+
+      beforeEach(async () => {
+        user = testUser(auth, 'uid', undefined, true);
+        await auth.updateCurrentUser(user);
+        authStateCallback.resetHistory();
+        idTokenCallback.resetHistory();
+      });
+
+      context('now logged out', () => {
+        beforeEach(() => {
+          persistenceStub._get.returns(Promise.resolve(null));
+        });
+
+        it('should log out', async () => {
+          await auth._onStorageEvent();
+
+          expect(auth.currentUser).to.be.null;
+          expect(authStateCallback).to.have.been.called;
+          expect(idTokenCallback).to.have.been.called;
+        });
+      });
+
+      context('still logged in as same user', () => {
+        it('should do nothing if nothing changed', async () => {
+          persistenceStub._get.returns(Promise.resolve(user.toJSON()));
+
+          await auth._onStorageEvent();
+
+          expect(auth.currentUser?.toJSON()).to.eql(user.toJSON());
+          expect(authStateCallback).not.to.have.been.called;
+          expect(idTokenCallback).not.to.have.been.called;
+        });
+
+        it('should update fields if they have changed', async () => {
+          const userObj = user.toJSON();
+          userObj['displayName'] = 'other-name';
+          persistenceStub._get.returns(Promise.resolve(userObj));
+
+          await auth._onStorageEvent();
+
+          expect(auth.currentUser?.uid).to.eq(user.uid);
+          expect(auth.currentUser?.displayName).to.eq('other-name');
+          expect(authStateCallback).not.to.have.been.called;
+          expect(idTokenCallback).not.to.have.been.called;
+        });
+
+        it('should update tokens if they have changed', async () => {
+          const userObj = user.toJSON();
+          (userObj['stsTokenManager'] as any)['accessToken'] =
+            'new-access-token';
+          persistenceStub._get.returns(Promise.resolve(userObj));
+
+          await auth._onStorageEvent();
+
+          expect(auth.currentUser?.uid).to.eq(user.uid);
+          expect(auth.currentUser?.stsTokenManager.accessToken).to.eq(
+            'new-access-token'
+          );
+          expect(authStateCallback).not.to.have.been.called;
+          expect(idTokenCallback).to.have.been.called;
+        });
+      });
+
+      context('now logged in as different user', () => {
+        it('should re-login as the new user', async () => {
+          const newUser = testUser(auth, 'other-uid', undefined, true);
+          persistenceStub._get.returns(Promise.resolve(newUser.toJSON()));
+
+          await auth._onStorageEvent();
+
+          expect(auth.currentUser?.toJSON()).to.eql(newUser.toJSON());
+          expect(authStateCallback).to.have.been.called;
+          expect(idTokenCallback).to.have.been.called;
+        });
       });
     });
   });
