@@ -21,7 +21,7 @@ import { isNode, isBrowser } from '@firebase/util';
 import { logger } from './src/logger';
 import { registerCoreComponents } from './src/registerCoreComponents';
 
-// Firebase Lite detection test
+// Firebase Lite detection test test
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 if (isBrowser() && (self as any).firebase !== undefined) {
   logger.warn(`
