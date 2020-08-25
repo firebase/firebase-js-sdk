@@ -731,6 +731,14 @@ export class FieldPath implements legacy.FieldPath {
 export class Blob implements legacy.Blob {
   constructor(readonly _delegate: BytesExp) {}
 
+  static fromBase64String(base64: string): Blob {
+    return new Blob(BytesExp.fromBase64String(base64));
+  }
+
+  static fromUint8Array(array: Uint8Array): Blob {
+    return new Blob(BytesExp.fromUint8Array(array));
+  }
+
   toBase64(): string {
     return this._delegate.toBase64();
   }
