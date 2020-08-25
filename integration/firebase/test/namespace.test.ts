@@ -15,16 +15,20 @@
  * limitations under the License.
  */
 
-import * as firebase from 'firebase/app';
+import * as firebase from 'firebase';
+import * as namespaceDefinition from './namespaceDefinition.json';
+import validateNamespace from './validator';
 
-/**
- * Verifying the namespace types are properly exposed from the `firebase`
- * package
- */
-let app: firebase.app.App;
-let auth: firebase.auth.Auth;
-let database: firebase.database.Database;
-let firestore: firebase.firestore.Firestore;
-let functions: firebase.functions.Functions;
-let messaging: firebase.messaging.Messaging;
-let storage: firebase.storage.Storage;
+firebase.initializeApp({
+  apiKey: 'test-api-key',
+  authDomain: 'test-project-name.firebaseapp.com',
+  databaseURL: 'https://test-project-name.firebaseio.com',
+  projectId: 'test-project-name',
+  storageBucket: 'test-project-name.appspot.com',
+  messagingSenderId: '012345678910',
+  appId: 'myAppId'
+});
+
+describe('Firebase Namespace Validation', function () {
+  validateNamespace(namespaceDefinition, firebase);
+});
