@@ -22,7 +22,7 @@ import {
   ProviderUserInfo
 } from '../../api/account_management/account';
 import { User } from '../../model/user';
-import { UserMetadata } from './user_impl';
+import { UserMetadata } from './user_metadata';
 import { assert } from '../util/assert';
 import { AuthErrorCode } from '../errors';
 

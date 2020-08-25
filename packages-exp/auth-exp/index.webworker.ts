@@ -29,6 +29,9 @@ import { indexedDBLocalPersistence } from './src/platform_browser/persistence/in
 // Core functionality shared by all clients
 export * from './src';
 
+// persistence
+export { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
+
 registerAuth(ClientPlatform.WORKER);
 
 export function getAuth(app = getApp()): Auth {
@@ -43,7 +46,7 @@ export function getAuth(app = getApp()): Auth {
   // background, meanwhile the auth object may be used by the app.
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   _getInstance<Persistence>(indexedDBLocalPersistence)
-    .isAvailable()
+    ._isAvailable()
     .then(avail => {
       const deps = avail ? { persistence: indexedDBLocalPersistence } : {};
       _initializeAuthInstance(auth, deps);

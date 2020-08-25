@@ -16,11 +16,11 @@
  */
 
 import { ApiKey, AppName, Auth } from '../../model/auth';
+import { User } from '../../model/user';
 import { PersistedBlob, Persistence } from '../persistence';
+import { UserImpl } from '../user/user_impl';
 import { _getInstance } from '../util/instantiator';
 import { inMemoryPersistence } from './in_memory';
-import { User } from '../../model/user';
-import { UserImpl } from '../user/user_impl';
 
 export const _AUTH_USER_KEY_NAME = 'authUser';
 export const _REDIRECT_USER_KEY_NAME = 'redirectUser';
@@ -38,6 +38,7 @@ function _persistenceKeyName(
 export class PersistenceUserManager {
   private readonly fullUserKey: string;
   private readonly fullPersistenceKey: string;
+
   private constructor(
     public persistence: Persistence,
     private readonly auth: Auth,
@@ -50,23 +51,30 @@ export class PersistenceUserManager {
       config.apiKey,
       name
     );
+    this.persistence._addListener(
+      this.fullUserKey,
+      auth._onStorageEvent.bind(auth)
+    );
   }
 
   setCurrentUser(user: User): Promise<void> {
-    return this.persistence.set(this.fullUserKey, user.toJSON());
+    return this.persistence._set(this.fullUserKey, user.toJSON());
   }
 
   async getCurrentUser(): Promise<User | null> {
-    const blob = await this.persistence.get<PersistedBlob>(this.fullUserKey);
+    const blob = await this.persistence._get<PersistedBlob>(this.fullUserKey);
     return blob ? UserImpl._fromJSON(this.auth, blob) : null;
   }
 
   removeCurrentUser(): Promise<void> {
-    return this.persistence.remove(this.fullUserKey);
+    return this.persistence._remove(this.fullUserKey);
   }
 
   savePersistenceForRedirect(): Promise<void> {
-    return this.persistence.set(this.fullPersistenceKey, this.persistence.type);
+    return this.persistence._set(
+      this.fullPersistenceKey,
+      this.persistence.type
+    );
   }
 
   async setPersistence(newPersistence: Persistence): Promise<void> {
@@ -84,6 +92,13 @@ export class PersistenceUserManager {
     }
   }
 
+  delete(): void {
+    this.persistence._removeListener(
+      this.fullUserKey,
+      this.auth._onStorageEvent
+    );
+  }
+
   static async create(
     auth: Auth,
     persistenceHierarchy: Persistence[],
@@ -99,7 +114,7 @@ export class PersistenceUserManager {
 
     const key = _persistenceKeyName(userKey, auth.config.apiKey, auth.name);
     for (const persistence of persistenceHierarchy) {
-      if (await persistence.get(key)) {
+      if (await persistence._get(key)) {
         return new PersistenceUserManager(persistence, auth, userKey);
       }
     }

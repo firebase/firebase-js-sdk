@@ -19,7 +19,7 @@ import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { requestStsToken } from '../../api/authentication/token';
 import { AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
 import { assert, debugFail } from '../util/assert';
 
@@ -28,12 +28,6 @@ import { assert, debugFail } from '../util/assert';
  * to refresh that token, to provide a buffer for RPCs to complete.
  */
 export const TOKEN_REFRESH_BUFFER_MS = 30_000;
-
-export interface Tokens {
-  accessToken: string;
-  refreshToken: string | null;
-  wasRefreshed: boolean;
-}
 
 export class StsTokenManager {
   refreshToken: string | null = null;
@@ -57,31 +51,20 @@ export class StsTokenManager {
     );
   }
 
-  async getToken(auth: AuthCore, forceRefresh = false): Promise<Tokens | null> {
+  async getToken(auth: AuthCore, forceRefresh = false): Promise<string | null> {
     if (!forceRefresh && this.accessToken && !this.isExpired) {
-      return {
-        accessToken: this.accessToken,
-        refreshToken: this.refreshToken,
-        wasRefreshed: false
-      };
-    }
-
-    if (this.accessToken && !this.refreshToken) {
-      throw AUTH_ERROR_FACTORY.create(AuthErrorCode.TOKEN_EXPIRED, {
-        appName: auth.name
-      });
+      return this.accessToken;
     }
 
     if (!this.refreshToken) {
+      assert(!this.accessToken, AuthErrorCode.TOKEN_EXPIRED, {
+        appName: auth.name
+      });
       return null;
     }
 
     await this.refresh(auth, this.refreshToken);
-    return {
-      accessToken: this.accessToken!,
-      refreshToken: this.refreshToken,
-      wasRefreshed: true
-    };
+    return this.accessToken;
   }
 
   clearRefreshToken(): void {
@@ -139,6 +122,12 @@ export class StsTokenManager {
       accessToken: this.accessToken,
       expirationTime: this.expirationTime
     };
+  }
+
+  _copy(stsTokenManager: StsTokenManager): void {
+    this.accessToken = stsTokenManager.accessToken;
+    this.refreshToken = stsTokenManager.refreshToken;
+    this.expirationTime = stsTokenManager.expirationTime;
   }
 
   _performRefresh(): never {
