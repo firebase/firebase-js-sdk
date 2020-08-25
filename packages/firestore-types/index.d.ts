@@ -30,6 +30,7 @@ export interface Settings {
   cacheSizeBytes?: number;
   experimentalForceLongPolling?: boolean;
   ignoreUndefinedProperties?: boolean;
+  merge?: boolean;
 }
 
 export interface PersistenceSettings {
@@ -50,6 +51,7 @@ export function setLogLevel(logLevel: LogLevel): void;
 
 export interface FirestoreDataConverter<T> {
   toFirestore(modelObject: T): DocumentData;
+  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
 
   fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): T;
 }
@@ -146,9 +148,10 @@ export class Transaction {
 
   set<T>(
     documentRef: DocumentReference<T>,
-    data: T,
-    options?: SetOptions
+    data: Partial<T>,
+    options: SetOptions
   ): Transaction;
+  set<T>(documentRef: DocumentReference<T>, data: T): Transaction;
 
   update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
   update(
@@ -166,9 +169,10 @@ export class WriteBatch {
 
   set<T>(
     documentRef: DocumentReference<T>,
-    data: T,
-    options?: SetOptions
+    data: Partial<T>,
+    options: SetOptions
   ): WriteBatch;
+  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
 
   update(documentRef: DocumentReference<any>, data: UpdateData): WriteBatch;
   update(
@@ -208,7 +212,8 @@ export class DocumentReference<T = DocumentData> {
 
   isEqual(other: DocumentReference<T>): boolean;
 
-  set(data: T, options?: SetOptions): Promise<void>;
+  set(data: Partial<T>, options: SetOptions): Promise<void>;
+  set(data: T): Promise<void>;
 
   update(data: UpdateData): Promise<void>;
   update(

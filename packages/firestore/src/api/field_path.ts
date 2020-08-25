@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
+import { FieldPath as PublicFieldPath } from '@firebase/firestore-types';
 
 import { FieldPath as InternalFieldPath } from '../model/path';
 import { Code, FirestoreError } from '../util/error';
@@ -65,7 +65,7 @@ export abstract class BaseFieldPath {
  * field name (referring to a top-level field in the document), or a list of
  * field names (referring to a nested field in the document).
  */
-export class FieldPath extends BaseFieldPath implements firestore.FieldPath {
+export class FieldPath extends BaseFieldPath implements PublicFieldPath {
   /**
    * Creates a FieldPath from the provided field names. If more than one field
    * name is provided, the path will point to a nested field in a document.
@@ -76,21 +76,17 @@ export class FieldPath extends BaseFieldPath implements firestore.FieldPath {
     super(fieldNames);
   }
 
-  /**
-   * Internal Note: The backend doesn't technically support querying by
-   * document ID. Instead it queries by the entire document name (full path
-   * included), but in the cases we currently support documentId(), the net
-   * effect is the same.
-   */
-  private static readonly _DOCUMENT_ID = new FieldPath(
-    InternalFieldPath.keyField().canonicalString()
-  );
-
   static documentId(): FieldPath {
-    return FieldPath._DOCUMENT_ID;
+    /**
+     * Internal Note: The backend doesn't technically support querying by
+     * document ID. Instead it queries by the entire document name (full path
+     * included), but in the cases we currently support documentId(), the net
+     * effect is the same.
+     */
+    return new FieldPath(InternalFieldPath.keyField().canonicalString());
   }
 
-  isEqual(other: firestore.FieldPath): boolean {
+  isEqual(other: PublicFieldPath): boolean {
     if (!(other instanceof FieldPath)) {
       throw invalidClassError('isEqual', 'FieldPath', 1, other);
     }

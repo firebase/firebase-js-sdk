@@ -1,0 +1,29 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@1.1.0/schema.json",
+  "changelog": ["../repo-scripts/changelog-generator", { "repo": "firebase/firebase-js-sdk"}],
+  "commit": false,
+  "linked": [],
+  "access": "public",
+  "baseBranch": "master",
+  "updateInternalDependencies": "patch",
+  "ignore": [
+    "firebase-browserify-test",
+    "firebase-package-typings-test",
+    "firebase-firestore-integration-test",
+    "firebase-messaging-selenium-test",
+    "firebase-typescript-test",
+    "firebase-webpack-test",
+    "@firebase/app-exp",
+    "@firebase/app-types-exp",
+    "@firebase/functions-exp",
+    "@firebase/functions-types-exp",
+    "@firebase/testing",
+    "firebase-exp",
+    "@firebase/changelog-generator",
+    "firebase-size-analysis"
+  ],
+  "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
+    "onlyUpdatePeerDependentsWhenOutOfRange": true,
+    "useCalculatedVersionForSnapshots": true
+  }
+}

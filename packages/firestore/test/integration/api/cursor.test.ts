@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import firebase from '../util/firebase_export';
+import * as firebaseExport from '../util/firebase_export';
 import {
   apiDescribe,
   toDataArray,
@@ -28,8 +28,8 @@ import {
 } from '../util/helpers';
 import { Timestamp as TimestampInstance } from '@firebase/firestore-types';
 
-const Timestamp = firebase.firestore!.Timestamp;
-const FieldPath = firebase.firestore!.FieldPath;
+const Timestamp = firebaseExport.Timestamp;
+const FieldPath = firebaseExport.FieldPath;
 
 apiDescribe('Cursors', (persistence: boolean) => {
   it('can page through items', () => {
@@ -48,10 +48,7 @@ apiDescribe('Cursors', (persistence: boolean) => {
         .then(docs => {
           expect(toDataArray(docs)).to.deep.equal([{ v: 'a' }, { v: 'b' }]);
           const lastDoc = docs.docs[docs.docs.length - 1];
-          return coll
-            .limit(3)
-            .startAfter(lastDoc)
-            .get();
+          return coll.limit(3).startAfter(lastDoc).get();
         })
         .then(docs => {
           expect(toDataArray(docs)).to.deep.equal([
@@ -60,18 +57,12 @@ apiDescribe('Cursors', (persistence: boolean) => {
             { v: 'e' }
           ]);
           const lastDoc = docs.docs[docs.docs.length - 1];
-          return coll
-            .limit(1)
-            .startAfter(lastDoc)
-            .get();
+          return coll.limit(1).startAfter(lastDoc).get();
         })
         .then(docs => {
           expect(toDataArray(docs)).to.deep.equal([{ v: 'f' }]);
           const lastDoc = docs.docs[docs.docs.length - 1];
-          return coll
-            .limit(3)
-            .startAfter(lastDoc)
-            .get();
+          return coll.limit(3).startAfter(lastDoc).get();
         })
         .then(docs => {
           expect(toDataArray(docs)).to.deep.equal([]);

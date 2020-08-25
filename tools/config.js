@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,12 +72,12 @@ Promise.resolve(userToken || cachedToken)
     })();
 
     // Write config to top-level config directory
-    await firebaseTools.setup
-      .web({ project, token })
+    await firebaseTools.apps
+      .sdkconfig('web', undefined, { project, token })
       .then(config =>
         fs.writeFile(
           path.resolve(__dirname, '../config/project.json'),
-          JSON.stringify(config, null, 2)
+          JSON.stringify(config.sdkConfig, null, 2)
         )
       );
 

@@ -1,0 +1,64 @@
+name: Check Changeset
+
+on: pull_request
+
+jobs:
+  check_changeset:
+    name: Check changeset vs changed files
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@master
+      with:
+        # This makes Actions fetch all Git history so check_changeset script can diff properly.
+        fetch-depth: 0
+    - name: Set up Node (10)
+      uses: actions/setup-node@v1
+      with:
+        node-version: 10.x
+    - name: Yarn install
+      run: yarn
+    - name: Run changeset script
+      run: yarn ts-node-script scripts/check_changeset.ts
+      id: check-changeset
+    - name: Read output
+      run: echo "${{steps.check-changeset.outputs.MISSING_PACKAGES}}"
+    - name: Find Comment
+      uses: peter-evans/find-comment@v1
+      id: fc
+      with:
+        issue-number: ${{github.event.number}}
+        body-includes: Changeset File Check
+    - name: Create comment (missing packages)
+      if: ${{!steps.fc.outputs.comment-id && steps.check-changeset.outputs.MISSING_PACKAGES}}
+      uses: peter-evans/create-or-update-comment@v1
+      with:
+        issue-number: ${{github.event.number}}
+        body: |
+          ### Changeset File Check :warning:
+          Warning: This PR modifies files in the following packages but they have not been included in the changeset file:
+          ${{steps.check-changeset.outputs.MISSING_PACKAGES}}
+          
+          Make sure this was intentional.
+    - name: Update comment (missing packages)
+      if: ${{steps.fc.outputs.comment-id}}
+      uses: peter-evans/create-or-update-comment@v1
+      with:
+        comment-id: ${{steps.fc.outputs.comment-id}} && steps.check-changeset.outputs.MISSING_PACKAGES}}
+        edit-mode: replace
+        body: |
+          ### Changeset File Check :warning:
+          Warning: This PR modifies files in the following packages but they have not been included in the changeset file:
+          ${{steps.check-changeset.outputs.MISSING_PACKAGES}}
+
+          Make sure this was intentional.
+    - name: Update comment (no missing packages)
+      if: ${{steps.fc.outputs.comment-id && !steps.check-changeset.outputs.MISSING_PACKAGES}}
+      uses: peter-evans/create-or-update-comment@v1
+      with:
+        comment-id: ${{steps.fc.outputs.comment-id}}
+        edit-mode: replace
+        body: |
+          ### Changeset File Check :white_check_mark:
+          No modified packages are missing from the changeset file.

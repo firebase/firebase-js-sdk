@@ -23,7 +23,7 @@ import { serializerTest } from './serializer.helper';
 import {
   loadRawProtos,
   protoLoaderOptions
-} from '../../../src/platform_node/load_protos';
+} from '../../../src/platform/node/load_protos';
 
 const protos = loadRawProtos();
 

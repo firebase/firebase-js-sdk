@@ -15,56 +15,57 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../';
+import * as firestore from '../../../lite-types';
 
-import { _getProvider } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
+import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
 
 import { Code, FirestoreError } from '../../../src/util/error';
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
+import { DatabaseId } from '../../../src/core/database_info';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import {
   CredentialsProvider,
   FirebaseCredentialsProvider
 } from '../../../src/api/credentials';
-import { Datastore, newDatastore } from '../../../src/remote/datastore';
-import { PlatformSupport } from '../../../src/platform/platform';
-import { Deferred } from '../../../src/util/promise';
-
-// settings() defaults:
-const DEFAULT_HOST = 'firestore.googleapis.com';
-const DEFAULT_SSL = true;
-
-// TODO(firestorelite): Depend on FirebaseService once #3112 is merged
+import { cast } from './util';
+import { removeComponents } from './components';
 
 /**
  * The root reference to the Firestore Lite database.
  */
-export class Firestore implements firestore.FirebaseFirestore {
+export class Firestore
+  implements firestore.FirebaseFirestore, _FirebaseService {
   readonly _databaseId: DatabaseId;
-  private readonly _firebaseApp: FirebaseApp;
-  private readonly _credentials: CredentialsProvider;
+  readonly _credentials: CredentialsProvider;
+  readonly _persistenceKey: string = '(lite)';
 
-  // Assigned via _configureClient()/_ensureClientConfigured()
-  _settings?: firestore.Settings;
-  private readonly _datastoreDeferred = new Deferred<Datastore>();
+  // Assigned via _configureClient()
+  protected _settings?: firestore.Settings;
+  private _settingsFrozen = false;
+
+  // A task that is assigned when the terminate() is invoked and resolved when
+  // all components have shut down.
+  private _terminateTask?: Promise<void>;
 
   constructor(
-    app: FirebaseApp,
+    readonly app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>
   ) {
-    this._firebaseApp = app;
     this._databaseId = Firestore.databaseIdFromApp(app);
     this._credentials = new FirebaseCredentialsProvider(authProvider);
   }
 
-  get app(): FirebaseApp {
-    return this._firebaseApp;
+  get _initialized(): boolean {
+    return this._settingsFrozen;
+  }
+
+  get _terminated(): boolean {
+    return this._terminateTask !== undefined;
   }
 
   _configureClient(settings: firestore.Settings): void {
-    if (this._settings) {
+    if (this._settingsFrozen) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Firestore has already been started and its settings can no longer ' +
@@ -73,41 +74,14 @@ export class Firestore implements firestore.FirebaseFirestore {
       );
     }
     this._settings = settings;
-
-    const databaseInfo = this._makeDatabaseInfo(settings);
-
-    // Kick off initializing the datastore but don't actually wait for it.
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    PlatformSupport.getPlatform()
-      .loadConnection(databaseInfo)
-      .then(connection => {
-        const serializer = PlatformSupport.getPlatform().newSerializer(
-          databaseInfo.databaseId
-        );
-        const datastore = newDatastore(
-          connection,
-          this._credentials,
-          serializer
-        );
-        this._datastoreDeferred.resolve(datastore);
-      });
   }
 
-  _ensureClientConfigured(): Promise<Datastore> {
+  _getSettings(): firestore.Settings {
     if (!this._settings) {
       this._settings = {};
     }
-    return this._datastoreDeferred.promise;
-  }
-
-  private _makeDatabaseInfo(settings: firestore.Settings): DatabaseInfo {
-    return new DatabaseInfo(
-      this._databaseId,
-      /* persistenceKey= */ 'unsupported',
-      settings.host ?? DEFAULT_HOST,
-      settings.ssl ?? DEFAULT_SSL,
-      /* forceLongPolling= */ false
-    );
+    this._settingsFrozen = true;
+    return this._settings;
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
@@ -120,6 +94,31 @@ export class Firestore implements firestore.FirebaseFirestore {
 
     return new DatabaseId(app.options.projectId!);
   }
+
+  delete(): Promise<void> {
+    if (!this._terminateTask) {
+      this._terminateTask = this._terminate();
+    }
+    return this._terminateTask;
+  }
+
+  /**
+   * Terminates all components used by this client. Subclasses can override
+   * this method to clean up their own dependencies, but must also call this
+   * method.
+   *
+   * Only ever called once.
+   */
+  protected _terminate(): Promise<void> {
+    removeComponents(this);
+    return Promise.resolve();
+  }
+
+  // TODO(firestoreexp): `deleteApp()` should call the delete method above,
+  // but it still calls INTERNAL.delete().
+  INTERNAL = {
+    delete: () => this.delete()
+  };
 }
 
 export function initializeFirestore(
@@ -136,4 +135,12 @@ export function initializeFirestore(
 
 export function getFirestore(app: FirebaseApp): Firestore {
   return _getProvider(app, 'firestore/lite').getImmediate() as Firestore;
+}
+
+export function terminate(
+  firestore: firestore.FirebaseFirestore
+): Promise<void> {
+  _removeServiceInstance(firestore.app, 'firestore/lite');
+  const firestoreClient = cast(firestore, Firestore);
+  return firestoreClient.delete();
 }

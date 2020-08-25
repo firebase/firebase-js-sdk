@@ -58,7 +58,7 @@ export function validateNoArgs(functionName: string, args: IArguments): void {
  */
 export function validateExactNumberOfArgs(
   functionName: string,
-  args: IArguments,
+  args: ArrayLike<unknown>,
   numberOfArgs: number
 ): void {
   if (args.length !== numberOfArgs) {
@@ -327,7 +327,7 @@ export function validateDocumentPath(path: ResourcePath): void {
   if (!DocumentKey.isDocumentKey(path)) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `Invalid document path (${path}). Path points to a collection.`
+      `Invalid document reference. Document references must have an even number of segments, but ${path} has ${path.length}.`
     );
   }
 }
@@ -340,7 +340,7 @@ export function validateCollectionPath(path: ResourcePath): void {
   if (DocumentKey.isDocumentKey(path)) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `Invalid collection path (${path}). Path points to a document.`
+      `Invalid collection reference. Collection references must have an odd number of segments, but ${path} has ${path.length}.`
     );
   }
 }

@@ -27,6 +27,7 @@ import {
 import { StatsManager } from '../core/stats/StatsManager';
 import { PacketReceiver } from './polling/PacketReceiver';
 import {
+  APPLICATION_ID_PARAM,
   FORGE_DOMAIN,
   FORGE_REF,
   LAST_SESSION_PARAM,
@@ -104,16 +105,18 @@ export class BrowserPollConnection implements Transport {
   private onDisconnect_: ((a?: boolean) => void) | null;
 
   /**
-   * @param {string} connId An identifier for this connection, used for logging
-   * @param {RepoInfo} repoInfo The info for the endpoint to send data to.
-   * @param {string=} transportSessionId Optional transportSessionid if we are reconnecting for an existing
+   * @param connId An identifier for this connection, used for logging
+   * @param repoInfo The info for the endpoint to send data to.
+   * @param applicationId The Firebase App ID for this project.
+   * @param transportSessionId Optional transportSessionid if we are reconnecting for an existing
    *                                         transport session
-   * @param {string=}  lastSessionId Optional lastSessionId if the PersistentConnection has already created a
+   * @param lastSessionId Optional lastSessionId if the PersistentConnection has already created a
    *                                     connection previously
    */
   constructor(
     public connId: string,
     public repoInfo: RepoInfo,
+    private applicationId?: string,
     public transportSessionId?: string,
     public lastSessionId?: string
   ) {
@@ -213,6 +216,9 @@ export class BrowserPollConnection implements Transport {
       }
       if (this.lastSessionId) {
         urlParams[LAST_SESSION_PARAM] = this.lastSessionId;
+      }
+      if (this.applicationId) {
+        urlParams[APPLICATION_ID_PARAM] = this.applicationId;
       }
       if (
         typeof location !== 'undefined' &&
@@ -394,7 +400,7 @@ export class BrowserPollConnection implements Transport {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface IFrameElement extends HTMLIFrameElement {
   doc: Document;
 }
@@ -719,7 +725,7 @@ export class FirebaseIFrameScriptHolder {
           newScript.async = true;
           newScript.src = url;
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          newScript.onload = (newScript as any).onreadystatechange = function() {
+          newScript.onload = (newScript as any).onreadystatechange = function () {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const rstate = (newScript as any).readyState;
             if (!rstate || rstate === 'loaded' || rstate === 'complete') {

@@ -15,14 +15,64 @@
  * limitations under the License.
  */
 
-import * as path from 'path';
+const tmp = require('tmp');
+const json = require('rollup-plugin-json');
+const alias = require('@rollup/plugin-alias');
+const typescriptPlugin = require('rollup-plugin-typescript2');
+const typescript = require('typescript');
+const { terser } = require('rollup-plugin-terser');
+const path = require('path');
+const sourcemaps = require('rollup-plugin-sourcemaps');
 
-import { externs } from './externs.json';
-import { renameInternals } from './scripts/rename-internals';
-import { extractPublicIdentifiers } from './scripts/extract-api';
-import { removeAsserts } from './scripts/remove-asserts';
+const { renameInternals } = require('./scripts/rename-internals');
+const { extractPublicIdentifiers } = require('./scripts/extract-api');
+const { removeAsserts } = require('./scripts/remove-asserts');
 
-import pkg from './package.json';
+const { externs } = require('./externs.json');
+const pkg = require('./package.json');
+
+// This file contains shared utilities for Firestore's rollup builds.
+
+// Firestore is released in a number of different build configurations:
+// - Browser builds that support persistence in ES5 CJS and ES5 ESM formats and
+//   ES2017 in ESM format.
+// - In-memory Browser builds that support persistence in ES5 CJS and ES5 ESM
+//   formats and ES2017 in ESM format.
+// - A NodeJS build that supports persistence (to be used with an IndexedDb
+//   shim)
+// - A in-memory only NodeJS build
+//
+// The in-memory builds are roughly 130 KB smaller, but throw an exception
+// for calls to `enablePersistence()` or `clearPersistence()`.
+//
+// We use two different rollup pipelines to take advantage of tree shaking,
+// as Rollup does not support tree shaking for Typescript classes transpiled
+// down to ES5 (see https://bit.ly/340P23U). The build pipeline in this file
+// produces tree-shaken ES2017 builds that are consumed by the ES5 builds in
+// `rollup.config.es.js`.
+//
+// All browser builds rely on Terser's property name mangling to reduce code
+// size.
+//
+// See https://g3doc/firebase/jscore/g3doc/contributing/builds.md
+// for a description of the various JavaScript formats used in our SDKs.
+
+/**
+ * Returns an replacement configuration for `@rollup/plugin-alias` that replaces
+ * references to platform-specific files with implementations for the provided
+ * target platform.
+ */
+function generateAliasConfig(platform) {
+  return {
+    entries: [
+      {
+        find: /^(.*)\/platform\/([^.\/]*)(\.ts)?$/,
+        replacement: `$1\/platform/${platform}/$2.ts`
+      }
+    ]
+  };
+}
+exports.generateAliasConfig = generateAliasConfig;
 
 const browserDeps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
@@ -31,39 +81,48 @@ const browserDeps = Object.keys(
 const nodeDeps = [...browserDeps, 'util', 'path'];
 
 /** Resolves the external dependencies for the browser build. */
-export function resolveBrowserExterns(id) {
+exports.resolveBrowserExterns = function (id) {
   return browserDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
-}
+};
 
 /** Resolves the external dependencies for the Node build. */
-export function resolveNodeExterns(id) {
+exports.resolveNodeExterns = function (id) {
   return nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
-}
+};
 
 const externsPaths = externs.map(p => path.resolve(__dirname, '../../', p));
 const publicIdentifiers = extractPublicIdentifiers(externsPaths);
 
 /**
+ * Transformers that remove calls to `debugAssert` and messages for 'fail` and
+ * `hardAssert`.
+ */
+const removeAssertTransformer = service => ({
+  before: [removeAsserts(service.getProgram())],
+  after: []
+});
+exports.removeAssertTransformer = removeAssertTransformer;
+
+/**
  * Transformers that remove calls to `debugAssert`, messages for 'fail` and
  * `hardAssert` and appends a __PRIVATE_ prefix to all internal symbols.
  */
-export const firestoreTransformers = [
-  service => ({
-    before: [
-      removeAsserts(service.getProgram()),
-      renameInternals(service.getProgram(), {
-        publicIdentifiers,
-        prefix: '__PRIVATE_'
-      })
-    ],
-    after: []
-  })
-];
+const removeAssertAndPrefixInternalTransformer = service => ({
+  before: [
+    removeAsserts(service.getProgram()),
+    renameInternals(service.getProgram(), {
+      publicIdentifiers,
+      prefix: '__PRIVATE_'
+    })
+  ],
+  after: []
+});
+exports.removeAssertAndPrefixInternalTransformer = removeAssertAndPrefixInternalTransformer;
 
 /**
  * Terser options that mangle all properties prefixed with __PRIVATE_.
  */
-export const manglePrivatePropertiesOptions = {
+const manglePrivatePropertiesOptions = {
   output: {
     comments: 'all',
     beautify: true
@@ -72,5 +131,74 @@ export const manglePrivatePropertiesOptions = {
     properties: {
       regex: /^__PRIVATE_/
     }
+  }
+};
+exports.manglePrivatePropertiesOptions = manglePrivatePropertiesOptions;
+
+exports.es2017Plugins = function (platform, mangled = false) {
+  if (mangled) {
+    return [
+      alias(generateAliasConfig(platform)),
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            target: 'es2017'
+          }
+        },
+        cacheDir: tmp.dirSync(),
+        transformers: [removeAssertAndPrefixInternalTransformer]
+      }),
+      json({ preferConst: true }),
+      terser(manglePrivatePropertiesOptions)
+    ];
+  } else {
+    return [
+      alias(generateAliasConfig(platform)),
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            target: 'es2017'
+          }
+        },
+        cacheDir: tmp.dirSync(),
+        transformers: [removeAssertTransformer]
+      }),
+      json({ preferConst: true })
+    ];
+  }
+};
+
+exports.es2017ToEs5Plugins = function (mangled = false) {
+  if (mangled) {
+    return [
+      typescriptPlugin({
+        typescript,
+        compilerOptions: {
+          allowJs: true
+        },
+        include: ['dist/*.js', 'dist/exp/*.js']
+      }),
+      terser({
+        output: {
+          comments: 'all',
+          beautify: true
+        },
+        mangle: true
+      }),
+      sourcemaps()
+    ];
+  } else {
+    return [
+      typescriptPlugin({
+        typescript,
+        compilerOptions: {
+          allowJs: true
+        },
+        include: ['dist/*.js', 'dist/exp/*.js']
+      }),
+      sourcemaps()
+    ];
   }
 };

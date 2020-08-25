@@ -83,10 +83,8 @@ export class Repo {
     public repoInfo_: RepoInfo,
     forceRestClient: boolean,
     public app: FirebaseApp,
-    authProvider: Provider<FirebaseAuthInternalName>
+    authTokenProvider: AuthTokenProvider
   ) {
-    const authTokenProvider = new AuthTokenProvider(app, authProvider);
-
     this.stats_ = StatsManager.getCollection(repoInfo_);
 
     if (forceRestClient || beingCrawled()) {
@@ -116,6 +114,7 @@ export class Repo {
 
       this.persistentConnection_ = new PersistentConnection(
         this.repoInfo_,
+        app.options.appId,
         this.onDataUpdate_.bind(this),
         this.onConnectStatus_.bind(this),
         this.onServerInfoUpdate_.bind(this),

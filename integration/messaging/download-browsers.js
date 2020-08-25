@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,10 @@
 const seleniumAssistant = require('selenium-assistant');
 
 console.log('Starting browser download - this may take some time.');
-Promise.all([
-  seleniumAssistant.downloadLocalBrowser('chrome', 'stable', 48),
-  seleniumAssistant.downloadLocalBrowser('chrome', 'beta', 48),
-  seleniumAssistant.downloadLocalBrowser('chrome', 'unstable', 48),
-  seleniumAssistant.downloadLocalBrowser('firefox', 'stable', 48),
-  seleniumAssistant.downloadLocalBrowser('firefox', 'beta', 48),
-  seleniumAssistant.downloadLocalBrowser('firefox', 'unstable', 48)
-])
+// TODO: enable firefox testing once figure out how to give notification permission with SE
+// webdriver. TODO: Run the integration test against multiple major chrome versions to ensure
+// backward compatibility
+Promise.all([seleniumAssistant.downloadLocalBrowser('chrome', 'stable', 80)])
   .then(() => {
     console.log('Browser download complete.');
   })

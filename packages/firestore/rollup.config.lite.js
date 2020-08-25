@@ -15,16 +15,21 @@
  * limitations under the License.
  */
 
+import tmp from 'tmp';
+import path from 'path';
 import json from 'rollup-plugin-json';
+import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-
-import { resolveNodeExterns } from './rollup.shared';
+import sourcemaps from 'rollup-plugin-sourcemaps';
+import { terser } from 'rollup-plugin-terser';
+import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
 import pkg from './lite/package.json';
-import path from 'path';
 
-const defaultPlugins = [
+const util = require('./rollup.shared');
+
+const nodePlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
@@ -32,26 +37,104 @@ const defaultPlugins = [
         target: 'es2017'
       }
     },
-    clean: true
+    cacheDir: tmp.dirSync(),
+    abortOnError: false,
+    transformers: [util.removeAssertTransformer, importPathTransformer]
   }),
   json({ preferConst: true })
 ];
 
-const nodeBuilds = [
+const browserPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    },
+    cacheDir: tmp.dirSync(),
+    abortOnError: false,
+    transformers: [
+      util.removeAssertAndPrefixInternalTransformer,
+      importPathTransformer
+    ]
+  }),
+  json({ preferConst: true }),
+  terser(util.manglePrivatePropertiesOptions)
+];
+
+const allBuilds = [
+  // Node ESM build
   {
-    input: 'lite/index.node.ts',
+    input: './lite/index.ts',
+    output: {
+      file: path.resolve('./lite', pkg['main-esm']),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [alias(util.generateAliasConfig('node_lite')), ...nodePlugins],
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Node UMD build
+  {
+    input: path.resolve('./lite', pkg['main-esm']),
     output: {
       file: path.resolve('./lite', pkg.main),
-      format: 'es'
+      format: 'umd',
+      name: 'firebase.firestore',
+      sourcemap: true
     },
-    plugins: defaultPlugins,
-    external: resolveNodeExterns,
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        compilerOptions: {
+          allowJs: true,
+          target: 'es5'
+        },
+        include: ['dist/lite/*.js']
+      }),
+      json(),
+      sourcemaps()
+    ],
+    external: util.resolveNodeExterns,
     treeshake: {
-      tryCatchDeoptimization: false
+      moduleSideEffects: false
+    }
+  },
+  // Browser build
+  {
+    input: './lite/index.ts',
+    output: {
+      file: path.resolve('./lite', pkg.browser),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      alias(util.generateAliasConfig('browser_lite')),
+      ...browserPlugins
+    ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // RN build
+  {
+    input: './lite/index.ts',
+    output: {
+      file: path.resolve('./lite', pkg['react-native']),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [alias(util.generateAliasConfig('rn_lite')), ...browserPlugins],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
     }
   }
 ];
 
-// TODO(firestorelite): Add browser builds
-
-export default [...nodeBuilds];
+export default allBuilds;

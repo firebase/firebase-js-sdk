@@ -16,9 +16,12 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Transaction } from '../core/transaction';
 import { OnlineState, TargetId } from '../core/types';
-import { LocalStore } from '../local/local_store';
+import {
+  LocalStore,
+  getLastRemoteSnapshotVersion,
+  nextMutationBatch
+} from '../local/local_store';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import {
@@ -55,11 +58,28 @@ import {
 } from './watch_change';
 import { ByteString } from '../util/byte_string';
 import { isIndexedDbTransactionError } from '../local/simple_db';
+import { User } from '../auth/user';
 
 const LOG_TAG = 'RemoteStore';
 
 // TODO(b/35853402): Negotiate this with the stream.
 const MAX_PENDING_WRITES = 10;
+
+/** Reasons for why the RemoteStore may be offline. */
+const enum OfflineCause {
+  /** The user has explicitly disabled the network (via `disableNetwork()`). */
+  UserDisabled,
+  /** An IndexedDb failure occurred while persisting a stream update. */
+  IndexedDbFailed,
+  /** The tab is not the primary tab (only relevant with multi-tab). */
+  IsSecondary,
+  /** We are restarting the streams due to an Auth credential change. */
+  CredentialChange,
+  /** The connectivity state of the environment has changed. */
+  ConnectivityChange,
+  /** The RemoteStore has been shut down. */
+  Shutdown
+}
 
 /**
  * RemoteStore - An interface to remotely stored data, basically providing a
@@ -117,19 +137,10 @@ export class RemoteStore implements TargetMetadataProvider {
   private watchChangeAggregator: WatchChangeAggregator | null = null;
 
   /**
-   * Set to true by enableNetwork() and false by disableNetwork() and indicates
-   * the user-preferred network state.
+   * A set of reasons for why the RemoteStore may be offline. If empty, the
+   * RemoteStore may start its network connections.
    */
-  private networkEnabled = false;
-
-  private isPrimary = false;
-
-  /**
-   * When set to `true`, the network was taken offline due to an IndexedDB
-   * failure. The state is flipped to `false` when access becomes available
-   * again.
-   */
-  private indexedDbFailed = false;
+  private offlineCauses = new Set<OfflineCause>();
 
   private onlineStateTracker: OnlineStateTracker;
 
@@ -145,8 +156,11 @@ export class RemoteStore implements TargetMetadataProvider {
     connectivityMonitor: ConnectivityMonitor
   ) {
     this.connectivityMonitor = connectivityMonitor;
-    this.connectivityMonitor.addCallback((status: NetworkStatus) => {
+    this.connectivityMonitor.addCallback((_: NetworkStatus) => {
       asyncQueue.enqueueAndForget(async () => {
+        // Porting Note: Unlike iOS, `restartNetwork()` is called even when the
+        // network becomes unreachable as we don't have any other way to tear
+        // down our streams.
         if (this.canUseNetwork()) {
           logDebug(
             LOG_TAG,
@@ -193,7 +207,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
   /** Re-enables the network. Idempotent. */
   enableNetwork(): Promise<void> {
-    this.networkEnabled = true;
+    this.offlineCauses.delete(OfflineCause.UserDisabled);
     return this.enableNetworkInternal();
   }
 
@@ -215,7 +229,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * enableNetwork().
    */
   async disableNetwork(): Promise<void> {
-    this.networkEnabled = false;
+    this.offlineCauses.add(OfflineCause.UserDisabled);
     await this.disableNetworkInternal();
 
     // Set the OnlineState to Offline so get()s return from cache, etc.
@@ -239,7 +253,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
   async shutdown(): Promise<void> {
     logDebug(LOG_TAG, 'RemoteStore shutting down.');
-    this.networkEnabled = false;
+    this.offlineCauses.add(OfflineCause.Shutdown);
     await this.disableNetworkInternal();
     this.connectivityMonitor.shutdown();
 
@@ -348,7 +362,7 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   canUseNetwork(): boolean {
-    return !this.indexedDbFailed && this.isPrimary && this.networkEnabled;
+    return this.offlineCauses.size === 0;
   }
 
   private cleanUpWatchStreamState(): void {
@@ -428,7 +442,9 @@ export class RemoteStore implements TargetMetadataProvider {
 
     if (!snapshotVersion.isEqual(SnapshotVersion.min())) {
       try {
-        const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
+        const lastRemoteSnapshotVersion = await getLastRemoteSnapshotVersion(
+          this.localStore
+        );
         if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
           // We have received a target change with a global snapshot if the snapshot
           // version is not equal to SnapshotVersion.min().
@@ -456,10 +472,10 @@ export class RemoteStore implements TargetMetadataProvider {
   ): Promise<void> {
     if (isIndexedDbTransactionError(e)) {
       debugAssert(
-        !this.indexedDbFailed,
+        !this.offlineCauses.has(OfflineCause.IndexedDbFailed),
         'Unexpected network event when IndexedDB was marked failed.'
       );
-      this.indexedDbFailed = true;
+      this.offlineCauses.add(OfflineCause.IndexedDbFailed);
 
       // Disable network and raise offline snapshots
       await this.disableNetworkInternal();
@@ -469,14 +485,14 @@ export class RemoteStore implements TargetMetadataProvider {
         // Use a simple read operation to determine if IndexedDB recovered.
         // Ideally, we would expose a health check directly on SimpleDb, but
         // RemoteStore only has access to persistence through LocalStore.
-        op = () => this.localStore.getLastRemoteSnapshotVersion();
+        op = () => getLastRemoteSnapshotVersion(this.localStore);
       }
 
       // Probe IndexedDB periodically and re-enable network
       this.asyncQueue.enqueueRetryable(async () => {
         logDebug(LOG_TAG, 'Retrying IndexedDB access');
         await op!();
-        this.indexedDbFailed = false;
+        this.offlineCauses.delete(OfflineCause.IndexedDbFailed);
         await this.enableNetworkInternal();
       });
     } else {
@@ -593,7 +609,8 @@ export class RemoteStore implements TargetMetadataProvider {
 
     while (this.canAddToWritePipeline()) {
       try {
-        const batch = await this.localStore.nextMutationBatch(
+        const batch = await nextMutationBatch(
+          this.localStore,
           lastBatchIdRetrieved
         );
 
@@ -745,36 +762,42 @@ export class RemoteStore implements TargetMetadataProvider {
     }
   }
 
-  createTransaction(): Transaction {
-    return new Transaction(this.datastore);
-  }
-
   private async restartNetwork(): Promise<void> {
-    this.networkEnabled = false;
+    this.offlineCauses.add(OfflineCause.ConnectivityChange);
     await this.disableNetworkInternal();
     this.onlineStateTracker.set(OnlineState.Unknown);
-    await this.enableNetwork();
+    this.writeStream.inhibitBackoff();
+    this.watchStream.inhibitBackoff();
+    this.offlineCauses.delete(OfflineCause.ConnectivityChange);
+    await this.enableNetworkInternal();
   }
 
-  async handleCredentialChange(): Promise<void> {
-    if (this.canUseNetwork()) {
-      // Tear down and re-create our network streams. This will ensure we get a fresh auth token
-      // for the new user and re-fill the write pipeline with new mutations from the LocalStore
-      // (since mutations are per-user).
-      logDebug(LOG_TAG, 'RemoteStore restarting streams for new credential');
-      await this.restartNetwork();
-    }
+  async handleCredentialChange(user: User): Promise<void> {
+    this.asyncQueue.verifyOperationInProgress();
+
+    // Tear down and re-create our network streams. This will ensure we get a
+    // fresh auth token for the new user and re-fill the write pipeline with
+    // new mutations from the LocalStore (since mutations are per-user).
+    logDebug(LOG_TAG, 'RemoteStore received new credentials');
+    this.offlineCauses.add(OfflineCause.CredentialChange);
+
+    await this.disableNetworkInternal();
+    this.onlineStateTracker.set(OnlineState.Unknown);
+    await this.syncEngine.handleCredentialChange(user);
+
+    this.offlineCauses.delete(OfflineCause.CredentialChange);
+    await this.enableNetworkInternal();
   }
 
   /**
    * Toggles the network state when the client gains or loses its primary lease.
    */
   async applyPrimaryState(isPrimary: boolean): Promise<void> {
-    this.isPrimary = isPrimary;
-
-    if (isPrimary && this.networkEnabled) {
-      await this.enableNetwork();
+    if (isPrimary) {
+      this.offlineCauses.delete(OfflineCause.IsSecondary);
+      await this.enableNetworkInternal();
     } else if (!isPrimary) {
+      this.offlineCauses.add(OfflineCause.IsSecondary);
       await this.disableNetworkInternal();
       this.onlineStateTracker.set(OnlineState.Unknown);
     }

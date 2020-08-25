@@ -1,26 +1,24 @@
 {
   "name": "@firebase/messaging",
-  "version": "0.6.17",
+  "version": "0.7.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
-    "build:deps": "lerna run --scope @firebase/'{app,messaging}' --include-dependencies build",
+    "build:deps": "lerna run --scope @firebase/messaging --include-dependencies build",
     "dev": "rollup -c -w",
-    "test": "run-p test:karma type-check lint",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "test": "run-p lint test:karma",
+    "test:integration": "test:karma && cd ../../integration/messaging && npm run-script test",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:karma",
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
-    "prepare": "yarn build",
-    "type-check": "tsc --noEmit"
+    "prepare": "yarn build"
   },
   "license": "Apache-2.0",
   "peerDependencies": {
@@ -28,18 +26,19 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/installations": "0.4.11",
-    "@firebase/messaging-types": "0.4.5",
-    "@firebase/util": "0.2.48",
-    "@firebase/component": "0.1.13",
+    "@firebase/installations": "0.4.16",
+    "@firebase/messaging-types": "0.5.0",
+    "@firebase/util": "0.3.1",
+    "@firebase/component": "0.1.18",
     "idb": "3.0.2",
-    "tslib": "1.11.1"
+    "tslib": "^1.11.1"
   },
   "devDependencies": {
-    "rollup": "2.7.6",
-    "rollup-plugin-typescript2": "0.27.0",
-    "ts-essentials": "6.0.4",
-    "typescript": "3.8.3"
+    "@firebase/app": "0.6.10",
+    "rollup": "2.23.0",
+    "rollup-plugin-typescript2": "0.27.1",
+    "ts-essentials": "7.0.0",
+    "typescript": "3.9.7"
   },
   "repository": {
     "directory": "packages/messaging",

@@ -15,14 +15,22 @@
  * limitations under the License.
  */
 
+import tmp from 'tmp';
+import json from 'rollup-plugin-json';
+import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
+import path from 'path';
+import replace from 'rollup-plugin-replace';
+import copy from 'rollup-plugin-copy-assets';
+import { terser } from 'rollup-plugin-terser';
+import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 
-import { resolveNodeExterns } from './rollup.shared';
+import pkg from './exp/package.json';
 
-import pkg from './package.json';
+const util = require('./rollup.shared');
 
-const defaultPlugins = [
+const nodePlugins = [
   typescriptPlugin({
     typescript,
     tsconfigOverride: {
@@ -30,23 +38,97 @@ const defaultPlugins = [
         target: 'es2017'
       }
     },
-    clean: true
+    cacheDir: tmp.dirSync(),
+    abortOnError: false,
+    transformers: [util.removeAssertTransformer, importPathTransformer]
+  }),
+  json({ preferConst: true }),
+  // Needed as we also use the *.proto files
+  copy({
+    assets: ['./src/protos']
+  }),
+  replace({
+    'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('../src/protos')
   })
 ];
 
-const nodeBuilds = [
-  {
-    input: './exp/index.node.ts',
-    output: {
-      file: pkg.exp,
-      format: 'es'
+const browserPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
     },
-    plugins: defaultPlugins,
-    external: resolveNodeExterns,
+    cacheDir: tmp.dirSync(),
+    abortOnError: false,
+    transformers: [
+      util.removeAssertAndPrefixInternalTransformer,
+      importPathTransformer
+    ]
+  }),
+  json({ preferConst: true }),
+  terser(util.manglePrivatePropertiesOptions)
+];
+
+const allBuilds = [
+  // Node ESM build
+  {
+    input: './exp/index.ts',
+    output: {
+      file: path.resolve('./exp', pkg['main-esm']),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [alias(util.generateAliasConfig('node')), ...nodePlugins],
+    external: util.resolveNodeExterns,
     treeshake: {
-      tryCatchDeoptimization: false
+      moduleSideEffects: false
+    }
+  },
+  // Node UMD build
+  {
+    input: path.resolve('./exp', pkg['main-esm']),
+    output: {
+      file: path.resolve('./exp', pkg.main),
+      format: 'umd',
+      name: 'firebase.firestore',
+      sourcemap: true
+    },
+    plugins: util.es2017ToEs5Plugins(/* mangled= */ false),
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // Browser build
+  {
+    input: './exp/index.ts',
+    output: {
+      file: path.resolve('./exp', pkg.browser),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
+  // RN build
+  {
+    input: './exp/index.ts',
+    output: {
+      file: path.resolve('./exp', pkg['react-native']),
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [alias(util.generateAliasConfig('rn')), ...browserPlugins],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
     }
   }
 ];
 
-export default [...nodeBuilds];
+export default allBuilds;

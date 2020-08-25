@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,189 +15,289 @@
  * limitations under the License.
  */
 
-const seleniumAssistant = require('selenium-assistant');
-const fetch = require('node-fetch');
 const expect = require('chai').expect;
-
-const setupNotificationPermission = require('./utils/setupNotificationPermission');
 const testServer = require('./utils/test-server');
-const retrieveFCMToken = require('./utils/retrieveFCMToken');
-const makeFCMAPICall = require('./utils/makeFCMAPICall');
-const getReceivedMessages = require('./utils/getReceivedMessages');
-const demoSetup = require('./utils/getDemoSetup');
+const sendMessage = require('./utils/sendMessage');
+const retrieveToken = require('./utils/retrieveToken');
+const seleniumAssistant = require('selenium-assistant');
+const getReceivedBackgroundMessages = require('./utils/getReceivedBackgroundMessages');
+const getReceivedForegroundMessages = require('./utils/getReceivedForegroundMessages');
+const openNewTab = require('./utils/openNewTab');
+const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 
-const ENDPOINT = 'https://fcm.googleapis.com';
-// const ENDPOINT = 'https://jmt17.google.com';
+const TEST_DOMAINS = ['valid-vapid-key', 'valid-vapid-key-modern-sw'];
+const TEST_PROJECT_SENDER_ID = '750970317741';
+const DEFAULT_COLLAPSE_KEY_VALUE = 'do_not_collapse';
+const FIELD_FROM = 'from';
+const FIELD_COLLAPSE_KEY_LEGACY = 'collapse_key';
+const FIELD_COLLAPSE_KEY = 'collapseKey';
 
-const DEMOS = demoSetup.DEMOS;
+const FIELD_DATA = 'data';
+const FIELD_NOTIFICATION = 'notification';
 
-describe('Firebase Messaging Integration Tests > send messages', function() {
-  this.timeout(60 * 1000);
-  if (process.env.TRAVIS) {
-    this.retries(3);
-  } else {
-    this.retries(1);
-  }
+// 4 minutes. The fact that the flow includes making a request to the Send Service,
+// storing/retrieving form indexedDb asynchronously makes these test units to have a execution time
+// variance. Therefore, allowing these units to have a longer time to work is crucial.
+const TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS = 240000;
 
+const TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS = 120000;
+
+// 1 minute. Wait for object store to be created and received message to be stored in idb. This
+// waiting time MUST be longer than the wait time for adding to db in the sw.
+const WAIT_TIME_BEFORE_RETRIEVING_BACKGROUND_MESSAGES_MILLISECONDS = 60000;
+
+const wait = ms => new Promise(res => setTimeout(res, ms));
+
+describe('Starting Integration Test > Sending and Receiving ', function () {
+  this.retries(3);
   let globalWebDriver;
 
-  async function cleanUp() {
-    await seleniumAssistant.killWebDriver(globalWebDriver);
-  }
-
-  before(async function() {
+  before(async function () {
     await testServer.start();
   });
 
-  after(async function() {
+  after(async function () {
     await testServer.stop();
-    await cleanUp();
   });
 
-  const availableBrowsers = seleniumAssistant.getLocalBrowsers();
-  availableBrowsers.forEach(assistantBrowser => {
-    // Only test on Chrome and Firefox
-    if (
-      assistantBrowser.getId() !== 'chrome' &&
-      assistantBrowser.getId() !== 'firefox'
-    ) {
+  // TODO: enable testing for firefox
+  seleniumAssistant.getLocalBrowsers().forEach(assistantBrowser => {
+    if (assistantBrowser.getId() !== 'chrome') {
       return;
     }
 
-    DEMOS.forEach(demoInfo => {
-      describe(`${assistantBrowser.getPrettyName()} : ${
-        demoInfo.name
-      }`, function() {
-        beforeEach(async function() {
-          await cleanUp();
-
-          assistantBrowser = setupNotificationPermission(
-            assistantBrowser,
-            testServer.serverAddress
+    TEST_DOMAINS.forEach(domain => {
+      describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${domain}`, function() {
+        before(async function() {
+          globalWebDriver = createPermittedWebDriver(
+            /* browser= */ assistantBrowser.getId()
           );
-
-          globalWebDriver = await assistantBrowser.getSeleniumDriver();
         });
 
-        it(`should send an empty messge and be recieved by the SDK`, async function() {
-          await globalWebDriver.get(
-            `${testServer.serverAddress}/${demoInfo.name}/`
-          );
-          const token = await retrieveFCMToken(globalWebDriver);
-          expect(token).to.exist;
+        it('Background app can receive a {} empty message from sw', async function() {
+          this.timeout(TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
 
-          const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
+          // Clearing the cache and db data by killing the previously instantiated driver. Note that
+          // ideally this call is placed inside the after/before hooks. However, Mocha forbids
+          // operations longer than 2s in hooks. Hence, this clearing call needs to be inside the
+          // test unit.
+          await seleniumAssistant.killWebDriver(globalWebDriver);
+
+          globalWebDriver = createPermittedWebDriver(
+            /* browser= */ assistantBrowser.getId()
+          );
+
+          prepareBackgroundApp(globalWebDriver, domain);
+
+          checkSendResponse(
+            await sendMessage({
+              to: await retrieveToken(globalWebDriver)
+            })
+          );
+
+          await wait(
+            WAIT_TIME_BEFORE_RETRIEVING_BACKGROUND_MESSAGES_MILLISECONDS
+          );
+
+          checkMessageReceived(
+            await getReceivedBackgroundMessages(globalWebDriver),
+            /* expectedNotificationPayload= */ null,
+            /* expectedDataPayload= */ null,
+            /* isLegacyPayload= */ false
+          );
+        });
+
+        it('Background app can receive a {"data"} message frow sw', async function() {
+          this.timeout(TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
+
+          await seleniumAssistant.killWebDriver(globalWebDriver);
+
+          globalWebDriver = createPermittedWebDriver(
+            /* browser= */ assistantBrowser.getId()
+          );
+
+          prepareBackgroundApp(globalWebDriver, domain);
+
+          checkSendResponse(
+            await sendMessage({
+              to: await retrieveToken(globalWebDriver),
+              data: getTestDataPayload()
+            })
+          );
+
+          await wait(
+            WAIT_TIME_BEFORE_RETRIEVING_BACKGROUND_MESSAGES_MILLISECONDS
+          );
+
+          checkMessageReceived(
+            await getReceivedBackgroundMessages(globalWebDriver),
+            /* expectedNotificationPayload= */ null,
+            /* expectedDataPayload= */ getTestDataPayload()
+          );
+        });
+
+      });
+
+      it('Foreground app can receive a {} empty message in onMessage', async function () {
+        this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
+
+        await seleniumAssistant.killWebDriver(globalWebDriver);
+
+        globalWebDriver = createPermittedWebDriver(
+          /* browser= */ assistantBrowser.getId()
+        );
+
+        await globalWebDriver.get(`${testServer.serverAddress}/${domain}/`);
+
+        let token = await retrieveToken(globalWebDriver);
+        checkSendResponse(
+          await sendMessage({
             to: token
-          });
-          expect(response).to.exist;
-          if (response.success !== 1) {
-            // It's helpful to know the error returned by FCM
-            console.error(response);
-          }
-          expect(response.success).to.equal(1);
+          })
+        );
 
-          const receivedMessage = await getReceivedMessages(globalWebDriver);
-          expect(receivedMessage).to.exist;
-          expect(receivedMessage.length).to.equal(1);
-          expect(receivedMessage[0]).to.deep.equal({
-            collapse_key: 'do_not_collapse',
-            from: demoInfo.senderId
-          });
-        });
+        await checkMessageReceived(
+          await getReceivedForegroundMessages(globalWebDriver),
+          /* expectedNotificationPayload= */ null,
+          /* expectedDataPayload= */ null
+        );
+      });
 
-        it(`should send a data only messge and be recieved by the SDK`, async function() {
-          await globalWebDriver.get(
-            `${testServer.serverAddress}/${demoInfo.name}/`
-          );
-          const token = await retrieveFCMToken(globalWebDriver);
-          expect(token).to.exist;
+      it('Foreground app can receive a {"notification"} message in onMessage', async function () {
+        this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
 
-          const data = { hello: 'world' };
+        await seleniumAssistant.killWebDriver(globalWebDriver);
 
-          const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
-            to: token,
-            data: data
-          });
-          expect(response).to.exist;
-          expect(response.success).to.equal(1);
+        globalWebDriver = createPermittedWebDriver(
+          /* browser= */ assistantBrowser.getId()
+        );
 
-          const receivedMessage = await getReceivedMessages(globalWebDriver);
-          expect(receivedMessage).to.exist;
-          expect(receivedMessage.length).to.equal(1);
-          expect(receivedMessage[0]).to.deep.equal({
-            collapse_key: 'do_not_collapse',
-            from: demoInfo.senderId,
-            data: data
-          });
-        });
+        await globalWebDriver.get(`${testServer.serverAddress}/${domain}/`);
 
-        it(`should send a notification only messge and be recieved by the SDK`, async function() {
-          await globalWebDriver.get(
-            `${testServer.serverAddress}/${demoInfo.name}/`
-          );
-          const token = await retrieveFCMToken(globalWebDriver);
-          expect(token).to.exist;
+        checkSendResponse(
+          await sendMessage({
+            to: await retrieveToken(globalWebDriver),
+            notification: getTestNotificationPayload()
+          })
+        );
 
-          const notification = {
-            title: 'Test Title',
-            body: 'Test Body',
-            icon: '/test/icon.png',
-            click_action: '/',
-            tag: 'test-tag'
-          };
+        await checkMessageReceived(
+          await getReceivedForegroundMessages(globalWebDriver),
+          /* expectedNotificationPayload= */ getTestNotificationPayload(),
+          /* expectedDataPayload= */ null
+        );
+      });
 
-          const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
-            to: token,
-            notification: notification
-          });
-          expect(response).to.exist;
-          expect(response.success).to.equal(1);
+      it('Foreground app can receive a {"data"} message in onMessage', async function () {
+        this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
 
-          const receivedMessage = await getReceivedMessages(globalWebDriver);
-          expect(receivedMessage).to.exist;
-          expect(receivedMessage.length).to.equal(1);
-          expect(receivedMessage[0]).to.deep.equal({
-            collapse_key: 'do_not_collapse',
-            from: demoInfo.senderId,
-            notification: notification
-          });
-        });
+        await seleniumAssistant.killWebDriver(globalWebDriver);
 
-        it(`should send a notification and data messge and be recieved by the SDK`, async function() {
-          await globalWebDriver.get(
-            `${testServer.serverAddress}/${demoInfo.name}/`
-          );
-          const token = await retrieveFCMToken(globalWebDriver);
-          expect(token).to.exist;
+        globalWebDriver = createPermittedWebDriver(
+          /* browser= */ assistantBrowser.getId()
+        );
 
-          const data = { hello: 'world' };
-          const notification = {
-            title: 'Test Title',
-            body: 'Test Body',
-            icon: '/test/icon.png',
-            click_action: '/',
-            tag: 'test-tag'
-          };
+        await globalWebDriver.get(`${testServer.serverAddress}/${domain}/`);
 
-          const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
-            to: token,
-            data: data,
-            notification: notification
-          });
-          expect(response).to.exist;
-          expect(response.success).to.equal(1);
+        checkSendResponse(
+          await sendMessage({
+            to: await retrieveToken(globalWebDriver),
+            data: getTestDataPayload()
+          })
+        );
 
-          const receivedMessage = await getReceivedMessages(globalWebDriver);
-          expect(receivedMessage).to.exist;
-          expect(receivedMessage.length).to.equal(1);
-          expect(receivedMessage[0]).to.deep.equal({
-            collapse_key: 'do_not_collapse',
-            from: demoInfo.senderId,
-            data: data,
-            notification: notification
-          });
-        });
+        await checkMessageReceived(
+          await getReceivedForegroundMessages(globalWebDriver),
+          /* expectedNotificationPayload= */ null,
+          /* expectedDataPayload= */ getTestDataPayload()
+        );
+      });
+
+      it('Foreground app can receive a {"notification", "data"} message in onMessage', async function () {
+        this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
+
+        await seleniumAssistant.killWebDriver(globalWebDriver);
+
+        globalWebDriver = createPermittedWebDriver(
+          /* browser= */ assistantBrowser.getId()
+        );
+
+        await globalWebDriver.get(`${testServer.serverAddress}/${domain}/`);
+
+        checkSendResponse(
+          await sendMessage({
+            to: await retrieveToken(globalWebDriver),
+            data: getTestDataPayload(),
+            notification: getTestNotificationPayload()
+          })
+        );
+
+        await checkMessageReceived(
+          await getReceivedForegroundMessages(globalWebDriver),
+          /* expectedNotificationPayload= */ getTestNotificationPayload(),
+          /* expectedDataPayload= */ getTestDataPayload()
+        );
       });
     });
   });
 });
+
+function checkMessageReceived(
+  receivedMessages,
+  expectedNotificationPayload,
+  expectedDataPayload
+) {
+  expect(receivedMessages).to.exist;
+
+  const message = receivedMessages[0];
+
+  expect(message[FIELD_FROM]).to.equal(TEST_PROJECT_SENDER_ID);
+  const collapseKey = !!message[FIELD_COLLAPSE_KEY_LEGACY]
+    ? message[FIELD_COLLAPSE_KEY_LEGACY]
+    : message[FIELD_COLLAPSE_KEY];
+  expect(collapseKey).to.equal(DEFAULT_COLLAPSE_KEY_VALUE);
+
+  if (expectedNotificationPayload) {
+    expect(message[FIELD_NOTIFICATION]).to.deep.equal(
+      getTestNotificationPayload()
+    );
+  }
+
+  if (expectedDataPayload) {
+    expect(message[FIELD_DATA]).to.deep.equal(getTestDataPayload());
+  }
+}
+
+function checkSendResponse(response) {
+  expect(response).to.exist;
+  expect(response.success).to.equal(1);
+}
+
+function getTestNotificationPayload() {
+  return {
+    title: 'test title',
+    body: 'test body',
+    icon: '/test/icon.png',
+    click_action: '/',
+    tag: 'test-tag'
+  };
+}
+
+function getTestDataPayload() {
+  return { hello: 'world' };
+}
+
+async function prepareBackgroundApp(globalWebDriver, domain) {
+  await globalWebDriver.get(`${testServer.serverAddress}/${domain}/`);
+
+  // TODO: remove the try/catch block once the underlying bug has been resolved. Shift window focus
+  // away from app window so that background messages can be received/processed
+  try {
+    await openNewTab(globalWebDriver);
+  } catch (err) {
+    // ChromeDriver seems to have an open bug which throws "JavascriptError: javascript error:
+    // circular reference". Nevertheless, a new tab can still be opened. Hence, just catch and
+    // continue here.
+    console.log('FCM (ignored on purpose): ' + err);
+  }
+}

@@ -17,7 +17,6 @@
 
 import { expect } from 'chai';
 import { User } from '../../../src/auth/user';
-import { Query } from '../../../src/core/query';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { documentKeySet } from '../../../src/model/collections';
@@ -26,7 +25,7 @@ import {
   expectEqualArrays,
   key,
   patchMutation,
-  path,
+  query,
   setMutation
 } from '../../util/helpers';
 
@@ -245,9 +244,7 @@ function genericMutationQueueTests(): void {
     }
     const expected = [batches[1], batches[2], batches[4]];
     const matches = await mutationQueue.getAllMutationBatchesAffectingDocumentKeys(
-      documentKeySet()
-        .add(key('foo/bar'))
-        .add(key('foo/baz'))
+      documentKeySet().add(key('foo/bar')).add(key('foo/baz'))
     );
     expectEqualArrays(matches, expected);
   });
@@ -268,9 +265,9 @@ function genericMutationQueueTests(): void {
       batches.push(batch);
     }
     const expected = [batches[1], batches[2], batches[4]];
-    const query = Query.atPath(path('foo'));
+    const query1 = query('foo');
     const matches = await mutationQueue.getAllMutationBatchesAffectingQuery(
-      query
+      query1
     );
     expectEqualArrays(matches, expected);
   });
@@ -286,9 +283,9 @@ function genericMutationQueueTests(): void {
       setMutation('foo/baz', value)
     ]);
     const expected = [batch1, batch2];
-    const query = Query.atPath(path('foo'));
+    const query1 = query('foo');
     const matches = await mutationQueue.getAllMutationBatchesAffectingQuery(
-      query
+      query1
     );
     expectEqualArrays(matches, expected);
   });

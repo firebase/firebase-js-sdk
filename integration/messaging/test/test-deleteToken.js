@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,91 +15,67 @@
  * limitations under the License.
  */
 
-const seleniumAssistant = require('selenium-assistant');
 const expect = require('chai').expect;
-
-const setupNotificationPermission = require('./utils/setupNotificationPermission');
 const testServer = require('./utils/test-server');
-const getErrors = require('./utils/getErrors');
-const retrieveFCMToken = require('./utils/retrieveFCMToken');
-const deleteFCMToken = require('./utils/deleteFCMToken');
-const demoSetup = require('./utils/getDemoSetup');
+const deleteToken = require('./utils/deleteToken');
+const clearAppForTest = require('./utils/clearAppForTest');
+const retrieveToken = require('./utils/retrieveToken');
+const seleniumAssistant = require('selenium-assistant');
+const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 
-const ENDPOINT = 'https://fcm.googleapis.com';
-const DEMOS = demoSetup.DEMOS;
+const TEST_SUITE_TIMEOUT_MS = 100000;
+const TEST_DOMAIN = 'valid-vapid-key';
 
-describe('Firebase Messaging Integration Tests > get and delete token', function() {
-  this.timeout(60 * 1000);
-  if (process.env.TRAVIS) {
-    this.retries(3);
-  } else {
-    this.retries(1);
-  }
-
+describe('Firebase Messaging Integration Tests > get and delete token', function () {
+  this.timeout(TEST_SUITE_TIMEOUT_MS);
+  this.retries(3);
   let globalWebDriver;
 
-  async function cleanUp() {
-    await seleniumAssistant.killWebDriver(globalWebDriver);
-  }
-
-  before(async function() {
+  before(async function () {
     await testServer.start();
   });
 
-  after(async function() {
+  after(async function () {
     await testServer.stop();
-    await cleanUp();
   });
 
   const availableBrowsers = seleniumAssistant.getLocalBrowsers();
   availableBrowsers.forEach(assistantBrowser => {
-    // Only test on Chrome and Firefox
-    if (
-      assistantBrowser.getId() !== 'chrome' &&
-      assistantBrowser.getId() !== 'firefox'
-    ) {
+    // TODO: enable testing for firefox
+    if (assistantBrowser.getId() !== 'chrome') {
       return;
     }
 
-    DEMOS.forEach(demoInfo => {
-      describe(`${assistantBrowser.getPrettyName()} : ${
-        demoInfo.name
-      }`, function() {
-        beforeEach(async function() {
-          await cleanUp();
+    describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${TEST_DOMAIN}`, function () {
+      before(async function () {
+        // Use one webDriver per browser instead of one per test to speed up test.
+        globalWebDriver = createPermittedWebDriver(
+          /* browser= */ assistantBrowser.getId()
+        );
 
-          assistantBrowser = setupNotificationPermission(
-            assistantBrowser,
-            testServer.serverAddress
-          );
+        await globalWebDriver.get(
+          `${testServer.serverAddress}/${TEST_DOMAIN}/`
+        );
+      });
 
-          globalWebDriver = await assistantBrowser.getSeleniumDriver();
-        });
+      after(async function () {
+        await seleniumAssistant.killWebDriver(globalWebDriver);
+      });
 
-        it(`should get a token and delete it`, async function() {
-          await globalWebDriver.get(
-            `${testServer.serverAddress}/${demoInfo.name}/`
-          );
-          const token = await retrieveFCMToken(globalWebDriver);
-          expect(token).to.exist;
-          try {
-            await deleteFCMToken(globalWebDriver, token);
-          } catch (e) {
-            console.log('Error trying to delete FCM token: ', e);
-            fail();
-          }
-        });
+      afterEach(async function () {
+        await clearAppForTest(globalWebDriver);
+      });
 
-        it(`should fail to delete an invalid token`, async function() {
-          await globalWebDriver.get(
-            `${testServer.serverAddress}/${demoInfo.name}/`
-          );
-          await deleteFCMToken(globalWebDriver, 'invalid-token');
-          const errors = await getErrors(globalWebDriver);
-          expect(errors).to.exist;
-          expect(errors.length).to.equal(1);
-          expect(errors[0].code).to.equal('messaging/invalid-delete-token');
-        });
+      it(`Test app can delete a valid token`, async function () {
+        const token = await retrieveToken(globalWebDriver);
+        expect(token).to.exist;
+        try {
+          await deleteToken(globalWebDriver, token);
+          console.log('Token deletion succeed.');
+        } catch (e) {
+          console.log('Error trying to delete FCM token: ', e);
+          fail();
+        }
       });
     });
   });

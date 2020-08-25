@@ -20,11 +20,13 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as firestore from '@firebase/firestore-types';
 import { expect, use } from 'chai';
 
-import { Deferred } from '../../util/promise';
+import { Deferred } from '@firebase/util';
 import { EventsAccumulator } from '../util/events_accumulator';
-import firebase from '../util/firebase_export';
+import * as firebaseExport from '../util/firebase_export';
 import {
   apiDescribe,
+  notEqualOp,
+  notInOp,
   withTestCollection,
   withTestDb,
   withTestDbs,
@@ -33,13 +35,13 @@ import {
 } from '../util/helpers';
 import { DEFAULT_SETTINGS } from '../util/settings';
 
-// tslint:disable:no-floating-promises
-
 use(chaiAsPromised);
 
-const Timestamp = firebase.firestore!.Timestamp;
-const FieldPath = firebase.firestore!.FieldPath;
-const FieldValue = firebase.firestore!.FieldValue;
+const newTestFirestore = firebaseExport.newTestFirestore;
+const usesFunctionalApi = firebaseExport.usesFunctionalApi;
+const Timestamp = firebaseExport.Timestamp;
+const FieldPath = firebaseExport.FieldPath;
+const FieldValue = firebaseExport.FieldValue;
 
 const MEMORY_ONLY_BUILD =
   typeof process !== 'undefined' &&
@@ -642,6 +644,14 @@ apiDescribe('Database', (persistence: boolean) => {
       });
     });
 
+    it('inequality and NOT_IN on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.where('x', '>=', 32).where('y', notInOp, [1, 2])
+        ).not.to.throw();
+      });
+    });
+
     it('inequality and array-contains-any on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
@@ -657,19 +667,35 @@ apiDescribe('Database', (persistence: boolean) => {
       });
     });
 
+    it('!= same as orderBy works.', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.where('x', notEqualOp, 32).orderBy('x')
+        ).not.to.throw();
+        expect(() =>
+          coll.orderBy('x').where('x', notEqualOp, 32)
+        ).not.to.throw();
+      });
+    });
+
     it('inequality same as first orderBy works.', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll
-            .where('x', '>', 32)
-            .orderBy('x')
-            .orderBy('y')
+          coll.where('x', '>', 32).orderBy('x').orderBy('y')
         ).not.to.throw();
         expect(() =>
-          coll
-            .orderBy('x')
-            .where('x', '>', 32)
-            .orderBy('y')
+          coll.orderBy('x').where('x', '>', 32).orderBy('y')
+        ).not.to.throw();
+      });
+    });
+
+    it('!= same as first orderBy works.', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.where('x', notEqualOp, 32).orderBy('x').orderBy('y')
+        ).not.to.throw();
+        expect(() =>
+          coll.orderBy('x').where('x', notEqualOp, 32).orderBy('y')
         ).not.to.throw();
       });
     });
@@ -691,6 +717,14 @@ apiDescribe('Database', (persistence: boolean) => {
     it('IN different than orderBy works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() => coll.orderBy('x').where('y', 'in', [1, 2])).not.to.throw();
+      });
+    });
+
+    it('NOT_IN different than orderBy works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.orderBy('x').where('y', notInOp, [1, 2])
+        ).not.to.throw();
       });
     });
 
@@ -1045,6 +1079,13 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
+  it('can call terminate() multiple times', async () => {
+    return withTestDb(persistence, async db => {
+      await db.terminate();
+      await db.terminate();
+    });
+  });
+
   // eslint-disable-next-line no-restricted-properties
   (MEMORY_ONLY_BUILD ? it : it.skip)(
     'recovers when persistence is missing',
@@ -1083,8 +1124,8 @@ apiDescribe('Database', (persistence: boolean) => {
         const options = app.options;
 
         await app.delete();
-        const app2 = firebase.initializeApp(options, name);
-        const firestore2 = firebase.firestore!(app2);
+
+        const firestore2 = newTestFirestore(options.projectId, name);
         await firestore2.enablePersistence();
         const docRef2 = firestore2.doc(docRef.path);
         const docSnap2 = await docRef2.get({ source: 'cache' });
@@ -1106,8 +1147,7 @@ apiDescribe('Database', (persistence: boolean) => {
 
         await app.delete();
         await firestore.clearPersistence();
-        const app2 = firebase.initializeApp(options, name);
-        const firestore2 = firebase.firestore!(app2);
+        const firestore2 = newTestFirestore(options.projectId, name);
         await firestore2.enablePersistence();
         const docRef2 = firestore2.doc(docRef.path);
         await expect(
@@ -1128,8 +1168,7 @@ apiDescribe('Database', (persistence: boolean) => {
         const options = app.options;
 
         await app.delete();
-        const app2 = firebase.initializeApp(options, name);
-        const firestore2 = firebase.firestore!(app2);
+        const firestore2 = newTestFirestore(options.projectId, name);
         await firestore2.clearPersistence();
         await firestore2.enablePersistence();
         const docRef2 = firestore2.doc(docRef.path);
@@ -1146,11 +1185,18 @@ apiDescribe('Database', (persistence: boolean) => {
     async () => {
       await withTestDoc(persistence, async docRef => {
         const firestore = docRef.firestore;
-        await expect(
-          firestore.clearPersistence()
-        ).to.eventually.be.rejectedWith(
-          'Persistence cannot be cleared after this Firestore instance is initialized.'
-        );
+        const expectedError =
+          'Persistence can only be cleared before a Firestore instance is ' +
+          'initialized or after it is terminated.';
+        if (usesFunctionalApi()) {
+          // The modular API throws an exception rather than rejecting the
+          // Promise, which matches our overall handling of API call violations.
+          expect(() => firestore.clearPersistence()).to.throw(expectedError);
+        } else {
+          await expect(
+            firestore.clearPersistence()
+          ).to.eventually.be.rejectedWith(expectedError);
+        }
       });
     }
   );
@@ -1194,7 +1240,10 @@ apiDescribe('Database', (persistence: boolean) => {
       const firestore = docRef.firestore;
       await firestore.terminate();
 
-      const newFirestore = firebase.firestore!(firestore.app);
+      const newFirestore = newTestFirestore(
+        firestore.app.options.projectId,
+        firestore.app
+      );
       expect(newFirestore).to.not.equal(firestore);
 
       // New instance functions.
@@ -1217,7 +1266,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it('calling terminate mutiple times should proceed', async () => {
+  it('calling terminate multiple times should proceed', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
       await firestore.terminate();
@@ -1296,6 +1345,34 @@ apiDescribe('Database', (persistence: boolean) => {
       }
     };
 
+    const postConverterMerge = {
+      toFirestore(
+        post: Partial<Post>,
+        options?: firestore.SetOptions
+      ): firestore.DocumentData {
+        if (options && (options.merge || options.mergeFields)) {
+          expect(post).to.not.be.an.instanceof(Post);
+        } else {
+          expect(post).to.be.an.instanceof(Post);
+        }
+        const result: firestore.DocumentData = {};
+        if (post.title) {
+          result.title = post.title;
+        }
+        if (post.author) {
+          result.author = post.author;
+        }
+        return result;
+      },
+      fromFirestore(
+        snapshot: firestore.QueryDocumentSnapshot,
+        options: firestore.SnapshotOptions
+      ): Post {
+        const data = snapshot.data();
+        return new Post(data.title, data.author);
+      }
+    };
+
     it('for DocumentReference.withConverter()', () => {
       return withTestDb(persistence, async db => {
         const docRef = db
@@ -1340,6 +1417,127 @@ apiDescribe('Database', (persistence: boolean) => {
       });
     });
 
+    it('requires the correct converter for Partial usage', async () => {
+      return withTestDb(persistence, async db => {
+        const ref = db
+          .collection('posts')
+          .doc('some-post')
+          .withConverter(postConverter);
+        await ref.set(new Post('walnut', 'author'));
+        const batch = db.batch();
+        expect(() =>
+          batch.set(ref, { title: 'olive' }, { merge: true })
+        ).to.throw(
+          'Function WriteBatch.set() called with invalid ' +
+            'data (via `toFirestore()`). Unsupported field value: undefined ' +
+            '(found in field author in document posts/some-post)'
+        );
+      });
+    });
+
+    it('WriteBatch.set() supports partials with merge', async () => {
+      return withTestDb(persistence, async db => {
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
+        await ref.set(new Post('walnut', 'author'));
+        const batch = db.batch();
+        batch.set(ref, { title: 'olive' }, { merge: true });
+        await batch.commit();
+        const doc = await ref.get();
+        expect(doc.get('title')).to.equal('olive');
+        expect(doc.get('author')).to.equal('author');
+      });
+    });
+
+    it('WriteBatch.set() supports partials with mergeFields', async () => {
+      return withTestDb(persistence, async db => {
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
+        await ref.set(new Post('walnut', 'author'));
+        const batch = db.batch();
+        batch.set(
+          ref,
+          { title: 'olive', author: 'writer' },
+          { mergeFields: ['title'] }
+        );
+        await batch.commit();
+        const doc = await ref.get();
+        expect(doc.get('title')).to.equal('olive');
+        expect(doc.get('author')).to.equal('author');
+      });
+    });
+
+    it('Transaction.set() supports partials with merge', async () => {
+      return withTestDb(persistence, async db => {
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
+        await ref.set(new Post('walnut', 'author'));
+        await db.runTransaction(async tx => {
+          tx.set(ref, { title: 'olive' }, { merge: true });
+        });
+        const doc = await ref.get();
+        expect(doc.get('title')).to.equal('olive');
+        expect(doc.get('author')).to.equal('author');
+      });
+    });
+
+    it('Transaction.set() supports partials with mergeFields', async () => {
+      return withTestDb(persistence, async db => {
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
+        await ref.set(new Post('walnut', 'author'));
+        await db.runTransaction(async tx => {
+          tx.set(
+            ref,
+            { title: 'olive', author: 'person' },
+            { mergeFields: ['title'] }
+          );
+        });
+        const doc = await ref.get();
+        expect(doc.get('title')).to.equal('olive');
+        expect(doc.get('author')).to.equal('author');
+      });
+    });
+
+    it('DocumentReference.set() supports partials with merge', async () => {
+      return withTestDb(persistence, async db => {
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
+        await ref.set(new Post('walnut', 'author'));
+        await ref.set({ title: 'olive' }, { merge: true });
+        const doc = await ref.get();
+        expect(doc.get('title')).to.equal('olive');
+        expect(doc.get('author')).to.equal('author');
+      });
+    });
+
+    it('DocumentReference.set() supports partials with mergeFields', async () => {
+      return withTestDb(persistence, async db => {
+        const ref = db
+          .collection('posts')
+          .doc()
+          .withConverter(postConverterMerge);
+        await ref.set(new Post('walnut', 'author'));
+        await ref.set(
+          { title: 'olive', author: 'writer' },
+          { mergeFields: ['title'] }
+        );
+        const doc = await ref.get();
+        expect(doc.get('title')).to.equal('olive');
+        expect(doc.get('author')).to.equal('author');
+      });
+    });
+
     it('calls DocumentSnapshot.data() with specified SnapshotOptions', () => {
       return withTestDb(persistence, async db => {
         const docRef = db.doc('some/doc').withConverter({
@@ -1372,6 +1570,24 @@ apiDescribe('Database', (persistence: boolean) => {
 
         const usersCollection = postsCollection.parent;
         expect(usersCollection!.isEqual(db.doc('users/user1'))).to.be.true;
+      });
+    });
+
+    it('checks converter when comparing with isEqual()', () => {
+      return withTestDb(persistence, async db => {
+        const postConverter2 = { ...postConverter };
+
+        const postsCollection = db
+          .collection('users/user1/posts')
+          .withConverter(postConverter);
+        const postsCollection2 = db
+          .collection('users/user1/posts')
+          .withConverter(postConverter2);
+        expect(postsCollection.isEqual(postsCollection2)).to.be.false;
+
+        const docRef = db.doc('some/doc').withConverter(postConverter);
+        const docRef2 = db.doc('some/doc').withConverter(postConverter2);
+        expect(docRef.isEqual(docRef2)).to.be.false;
       });
     });
   });

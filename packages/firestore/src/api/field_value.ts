@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
+import { FieldValue as PublicFieldValue } from '@firebase/firestore-types';
 import {
   validateArgType,
   validateAtLeastNumberOfArgs,
@@ -31,6 +31,7 @@ import {
 } from '../model/transform_operation';
 import { ParseContext, parseData, UserDataSource } from './user_data_reader';
 import { debugAssert } from '../util/assert';
+import { toNumber } from '../remote/serializer';
 
 /**
  * An opaque base class for FieldValue sentinel objects in our public API that
@@ -83,13 +84,47 @@ export class DeleteFieldValueImpl extends SerializableFieldValue {
   }
 }
 
+/**
+ * Creates a child context for parsing SerializableFieldValues.
+ *
+ * This is different than calling `ParseContext.contextWith` because it keeps
+ * the fieldTransforms and fieldMask separate.
+ *
+ * The created context has its `dataSource` set to `UserDataSource.Argument`.
+ * Although these values are used with writes, any elements in these FieldValues
+ * are not considered writes since they cannot contain any FieldValue sentinels,
+ * etc.
+ *
+ * @param fieldValue The sentinel FieldValue for which to create a child
+ *     context.
+ * @param context The parent context.
+ * @param arrayElement Whether or not the FieldValue has an array.
+ */
+function createSentinelChildContext(
+  fieldValue: SerializableFieldValue,
+  context: ParseContext,
+  arrayElement: boolean
+): ParseContext {
+  return new ParseContext(
+    {
+      dataSource: UserDataSource.Argument,
+      targetDoc: context.settings.targetDoc,
+      methodName: fieldValue._methodName,
+      arrayElement
+    },
+    context.databaseId,
+    context.serializer,
+    context.ignoreUndefinedProperties
+  );
+}
+
 export class ServerTimestampFieldValueImpl extends SerializableFieldValue {
   constructor(readonly _methodName: string) {
     super();
   }
 
   _toFieldTransform(context: ParseContext): FieldTransform {
-    return new FieldTransform(context.path!, ServerTimestampTransform.instance);
+    return new FieldTransform(context.path!, new ServerTimestampTransform());
   }
 
   isEqual(other: FieldValue): boolean {
@@ -106,18 +141,10 @@ export class ArrayUnionFieldValueImpl extends SerializableFieldValue {
   }
 
   _toFieldTransform(context: ParseContext): FieldTransform {
-    // Although array transforms are used with writes, the actual elements
-    // being uniomed or removed are not considered writes since they cannot
-    // contain any FieldValue sentinels, etc.
-    const parseContext = new ParseContext(
-      {
-        dataSource: UserDataSource.Argument,
-        methodName: this._methodName,
-        arrayElement: true
-      },
-      context.databaseId,
-      context.serializer,
-      context.ignoreUndefinedProperties
+    const parseContext = createSentinelChildContext(
+      this,
+      context,
+      /*array=*/ true
     );
     const parsedElements = this._elements.map(
       element => parseData(element, parseContext)!
@@ -138,18 +165,10 @@ export class ArrayRemoveFieldValueImpl extends SerializableFieldValue {
   }
 
   _toFieldTransform(context: ParseContext): FieldTransform {
-    // Although array transforms are used with writes, the actual elements
-    // being unioned or removed are not considered writes since they cannot
-    // contain any FieldValue sentinels, etc.
-    const parseContext = new ParseContext(
-      {
-        dataSource: UserDataSource.Argument,
-        methodName: this._methodName,
-        arrayElement: true
-      },
-      context.databaseId,
-      context.serializer,
-      context.ignoreUndefinedProperties
+    const parseContext = createSentinelChildContext(
+      this,
+      context,
+      /*array=*/ true
     );
     const parsedElements = this._elements.map(
       element => parseData(element, parseContext)!
@@ -170,19 +189,9 @@ export class NumericIncrementFieldValueImpl extends SerializableFieldValue {
   }
 
   _toFieldTransform(context: ParseContext): FieldTransform {
-    const parseContext = new ParseContext(
-      {
-        dataSource: UserDataSource.Argument,
-        methodName: this._methodName
-      },
-      context.databaseId,
-      context.serializer,
-      context.ignoreUndefinedProperties
-    );
-    const operand = parseData(this._operand, parseContext)!;
     const numericIncrement = new NumericIncrementTransformOperation(
       context.serializer,
-      operand
+      toNumber(context.serializer, this._operand)
     );
     return new FieldTransform(context.path!, numericIncrement);
   }
@@ -195,22 +204,26 @@ export class NumericIncrementFieldValueImpl extends SerializableFieldValue {
 
 /** The public FieldValue class of the lite API. */
 export abstract class FieldValue extends SerializableFieldValue
-  implements firestore.FieldValue {
-  static delete(): firestore.FieldValue {
+  implements PublicFieldValue {
+  protected constructor() {
+    super();
+  }
+
+  static delete(): PublicFieldValue {
     validateNoArgs('FieldValue.delete', arguments);
     return new FieldValueDelegate(
       new DeleteFieldValueImpl('FieldValue.delete')
     );
   }
 
-  static serverTimestamp(): firestore.FieldValue {
+  static serverTimestamp(): PublicFieldValue {
     validateNoArgs('FieldValue.serverTimestamp', arguments);
     return new FieldValueDelegate(
       new ServerTimestampFieldValueImpl('FieldValue.serverTimestamp')
     );
   }
 
-  static arrayUnion(...elements: unknown[]): firestore.FieldValue {
+  static arrayUnion(...elements: unknown[]): PublicFieldValue {
     validateAtLeastNumberOfArgs('FieldValue.arrayUnion', arguments, 1);
     // NOTE: We don't actually parse the data until it's used in set() or
     // update() since we'd need the Firestore instance to do this.
@@ -219,7 +232,7 @@ export abstract class FieldValue extends SerializableFieldValue
     );
   }
 
-  static arrayRemove(...elements: unknown[]): firestore.FieldValue {
+  static arrayRemove(...elements: unknown[]): PublicFieldValue {
     validateAtLeastNumberOfArgs('FieldValue.arrayRemove', arguments, 1);
     // NOTE: We don't actually parse the data until it's used in set() or
     // update() since we'd need the Firestore instance to do this.
@@ -228,7 +241,7 @@ export abstract class FieldValue extends SerializableFieldValue
     );
   }
 
-  static increment(n: number): firestore.FieldValue {
+  static increment(n: number): PublicFieldValue {
     validateArgType('FieldValue.increment', 'number', 1, n);
     validateExactNumberOfArgs('FieldValue.increment', arguments, 1);
     return new FieldValueDelegate(
@@ -246,7 +259,7 @@ export abstract class FieldValue extends SerializableFieldValue
  * implementations as the base FieldValue class differs between the lite, full
  * and legacy SDK.
  */
-class FieldValueDelegate extends FieldValue implements firestore.FieldValue {
+class FieldValueDelegate extends FieldValue implements PublicFieldValue {
   readonly _methodName: string;
 
   constructor(readonly _delegate: SerializableFieldValue) {
@@ -258,7 +271,7 @@ class FieldValueDelegate extends FieldValue implements firestore.FieldValue {
     return this._delegate._toFieldTransform(context);
   }
 
-  isEqual(other: firestore.FieldValue): boolean {
+  isEqual(other: PublicFieldValue): boolean {
     if (!(other instanceof FieldValueDelegate)) {
       return false;
     }

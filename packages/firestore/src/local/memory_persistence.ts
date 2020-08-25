@@ -108,6 +108,10 @@ export class MemoryPersistence implements Persistence {
     // No op.
   }
 
+  setNetworkEnabled(): void {
+    // No op.
+  }
+
   getIndexManager(): MemoryIndexManager {
     return this.indexManager;
   }
@@ -187,7 +191,7 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
   /** Tracks all documents that are active in Query views. */
   private localViewReferences: ReferenceSet = new ReferenceSet();
   /** The list of documents that are potentially GCed after each transaction. */
-  private _orphanedDocuments: Set<DocumentKey> | null = null;
+  private _orphanedDocuments: Set</* path= */ string> | null = null;
 
   private constructor(private readonly persistence: MemoryPersistence) {}
 
@@ -195,7 +199,7 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
     return new MemoryEagerDelegate(persistence);
   }
 
-  private get orphanedDocuments(): Set<DocumentKey> {
+  private get orphanedDocuments(): Set<string> {
     if (!this._orphanedDocuments) {
       throw fail('orphanedDocuments is only valid during a transaction.');
     } else {
@@ -209,7 +213,7 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
     key: DocumentKey
   ): PersistencePromise<void> {
     this.localViewReferences.addReference(key, targetId);
-    this.orphanedDocuments.delete(key);
+    this.orphanedDocuments.delete(key.toString());
     return PersistencePromise.resolve();
   }
 
@@ -219,7 +223,7 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
     key: DocumentKey
   ): PersistencePromise<void> {
     this.localViewReferences.removeReference(key, targetId);
-    this.orphanedDocuments.add(key);
+    this.orphanedDocuments.add(key.toString());
     return PersistencePromise.resolve();
   }
 
@@ -227,7 +231,7 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
-    this.orphanedDocuments.add(key);
+    this.orphanedDocuments.add(key.toString());
     return PersistencePromise.resolve();
   }
 
@@ -238,18 +242,18 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
     const orphaned = this.localViewReferences.removeReferencesForId(
       targetData.targetId
     );
-    orphaned.forEach(key => this.orphanedDocuments.add(key));
+    orphaned.forEach(key => this.orphanedDocuments.add(key.toString()));
     const cache = this.persistence.getTargetCache();
     return cache
       .getMatchingKeysForTargetId(txn, targetData.targetId)
       .next(keys => {
-        keys.forEach(key => this.orphanedDocuments.add(key));
+        keys.forEach(key => this.orphanedDocuments.add(key.toString()));
       })
       .next(() => cache.removeTargetData(txn, targetData));
   }
 
   onTransactionStarted(): void {
-    this._orphanedDocuments = new Set<DocumentKey>();
+    this._orphanedDocuments = new Set<string>();
   }
 
   onTransactionCommitted(
@@ -260,7 +264,8 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
     const changeBuffer = cache.newChangeBuffer();
     return PersistencePromise.forEach(
       this.orphanedDocuments,
-      (key: DocumentKey) => {
+      (path: string) => {
+        const key = DocumentKey.fromPath(path);
         return this.isReferenced(txn, key).next(isReferenced => {
           if (!isReferenced) {
             changeBuffer.removeEntry(key);
@@ -279,9 +284,9 @@ export class MemoryEagerDelegate implements MemoryReferenceDelegate {
   ): PersistencePromise<void> {
     return this.isReferenced(txn, key).next(isReferenced => {
       if (isReferenced) {
-        this.orphanedDocuments.delete(key);
+        this.orphanedDocuments.delete(key.toString());
       } else {
-        this.orphanedDocuments.add(key);
+        this.orphanedDocuments.add(key.toString());
       }
     });
   }
@@ -308,7 +313,10 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   private orphanedSequenceNumbers: ObjectMap<
     DocumentKey,
     ListenSequenceNumber
-  > = new ObjectMap(k => encodeResourcePath(k.path));
+  > = new ObjectMap(
+    k => encodeResourcePath(k.path),
+    (l, r) => l.isEqual(r)
+  );
 
   readonly garbageCollector: LruGarbageCollector;
 

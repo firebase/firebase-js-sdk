@@ -23,7 +23,7 @@ export interface Rejecter {
   (reason?: Error): void;
 }
 
-export class Deferred<R> {
+export class Deferred<R = void> {
   promise: Promise<R>;
   // Assigned synchronously in constructor by Promise constructor callback.
   resolve!: Resolver<R>;

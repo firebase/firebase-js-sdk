@@ -15,43 +15,45 @@
  * limitations under the License.
  */
 
-import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
-import { doc, path } from '../../util/helpers';
+import { doc, query } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
 
 describeSpec('Resume tokens:', [], () => {
   specTest('Resume tokens are sent after watch stream restarts', [], () => {
-    const query = Query.atPath(path('collection'));
+    const query1 = query('collection');
     const doc1 = doc('collection/a', 1000, { key: 'a' });
     return spec()
-      .userListens(query)
-      .watchAcks(query)
-      .watchSends({ affects: [query] }, doc1)
-      .watchCurrents(query, 'custom-query-resume-token')
+      .userListens(query1)
+      .watchAcks(query1)
+      .watchSends({ affects: [query1] }, doc1)
+      .watchCurrents(query1, 'custom-query-resume-token')
       .watchSnapshots(1000)
-      .expectEvents(query, { added: [doc1] })
+      .expectEvents(query1, { added: [doc1] })
       .watchStreamCloses(Code.UNAVAILABLE)
-      .expectActiveTargets({ query, resumeToken: 'custom-query-resume-token' });
+      .expectActiveTargets({
+        query: query1,
+        resumeToken: 'custom-query-resume-token'
+      });
   });
 
   specTest('Resume tokens are used across new listens', [], () => {
-    const query = Query.atPath(path('collection'));
+    const query1 = query('collection');
     const doc1 = doc('collection/a', 1000, { key: 'a' });
     return spec()
       .withGCEnabled(false)
-      .userListens(query)
-      .watchAcks(query)
-      .watchSends({ affects: [query] }, doc1)
-      .watchCurrents(query, 'custom-query-resume-token')
+      .userListens(query1)
+      .watchAcks(query1)
+      .watchSends({ affects: [query1] }, doc1)
+      .watchCurrents(query1, 'custom-query-resume-token')
       .watchSnapshots(1000)
-      .expectEvents(query, { added: [doc1] })
-      .userUnlistens(query)
-      .userListens(query, 'custom-query-resume-token')
-      .expectEvents(query, { fromCache: true, added: [doc1] })
-      .watchAcks(query)
+      .expectEvents(query1, { added: [doc1] })
+      .userUnlistens(query1)
+      .userListens(query1, 'custom-query-resume-token')
+      .expectEvents(query1, { fromCache: true, added: [doc1] })
+      .watchAcks(query1)
       .watchSnapshots(1001);
   });
 });

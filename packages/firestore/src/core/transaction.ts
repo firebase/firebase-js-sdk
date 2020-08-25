@@ -33,7 +33,6 @@ import {
 import { fail, debugAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { SnapshotVersion } from './snapshot_version';
-import { ResourcePath } from '../model/path';
 
 /**
  * Internal transaction object responsible for accumulating the mutations to
@@ -57,7 +56,7 @@ export class Transaction {
    * When there's more than one write to the same key in a transaction, any
    * writes after the first are handled differently.
    */
-  private writtenDocs: Set<DocumentKey> = new Set();
+  private writtenDocs: Set</* path= */ string> = new Set();
 
   constructor(private datastore: Datastore) {}
 
@@ -83,7 +82,7 @@ export class Transaction {
 
   set(key: DocumentKey, data: ParsedSetData): void {
     this.write(data.toMutations(key, this.precondition(key)));
-    this.writtenDocs.add(key);
+    this.writtenDocs.add(key.toString());
   }
 
   update(key: DocumentKey, data: ParsedUpdateData): void {
@@ -92,12 +91,12 @@ export class Transaction {
     } catch (e) {
       this.lastWriteError = e;
     }
-    this.writtenDocs.add(key);
+    this.writtenDocs.add(key.toString());
   }
 
   delete(key: DocumentKey): void {
     this.write([new DeleteMutation(key, this.precondition(key))]);
-    this.writtenDocs.add(key);
+    this.writtenDocs.add(key.toString());
   }
 
   async commit(): Promise<void> {
@@ -114,7 +113,7 @@ export class Transaction {
     // For each document that was read but not written to, we want to perform
     // a `verify` operation.
     unwritten.forEach((_, path) => {
-      const key = new DocumentKey(ResourcePath.fromString(path));
+      const key = DocumentKey.fromPath(path);
       this.mutations.push(new VerifyMutation(key, this.precondition(key)));
     });
     await invokeCommitRpc(this.datastore, this.mutations);
@@ -153,7 +152,7 @@ export class Transaction {
    */
   private precondition(key: DocumentKey): Precondition {
     const version = this.readVersions.get(key.toString());
-    if (!this.writtenDocs.has(key) && version) {
+    if (!this.writtenDocs.has(key.toString()) && version) {
       return Precondition.updateTime(version);
     } else {
       return Precondition.none();
@@ -167,7 +166,7 @@ export class Transaction {
     const version = this.readVersions.get(key.toString());
     // The first time a document is written, we want to take into account the
     // read time and existence
-    if (!this.writtenDocs.has(key) && version) {
+    if (!this.writtenDocs.has(key.toString()) && version) {
       if (version.isEqual(SnapshotVersion.min())) {
         // The document doesn't exist, so fail the transaction.
 

@@ -55,18 +55,19 @@ packages/messaging-types @zwu52 @firebase/jssdk-global-approvers
 integration/messaging @zwu52 @firebase/jssdk-global-approvers
 
 # Auth Code
-packages/auth  @bojeil-google @wti806 @firebase/jssdk-global-approvers
-packages/auth-types  @bojeil-google @wti806 @firebase/jssdk-global-approvers
+packages/auth  @bojeil-google @avolkovi @samhorlbeck @scottcrossen @firebase/jssdk-global-approvers
+packages/auth-types  @bojeil-google @avolkovi @samhorlbeck @scottcrossen @firebase/jssdk-global-approvers
 
 # Testing Code
 packages/testing  @avolkovi @samhorlbeck @scottcrossen @yuchenshi @firebase/jssdk-global-approvers
+packages/rules-unit-testing  @avolkovi @samhorlbeck @scottcrossen @yuchenshi @firebase/jssdk-global-approvers
 
 # RxFire Code
 packages/rxfire @davideast @jamesdaniels @firebase/jssdk-global-approvers
 
 # Installations
-packages/installations @andirayo @firebase/jssdk-global-approvers
-packages/installations-types @andirayo @firebase/jssdk-global-approvers
+packages/installations @andirayo @ChaoqunCHEN @firebase/jssdk-global-approvers
+packages/installations-types @andirayo @ChaoqunCHEN @firebase/jssdk-global-approvers
 
 # Performance Code
 packages/performance  @alikn @zijianjoy @firebase/jssdk-global-approvers
@@ -81,5 +82,8 @@ packages/remote-config @erikeldridge @firebase/jssdk-global-approvers
 packages/remote-config-types @erikeldridge @firebase/jssdk-global-approvers
 
 # Documentation Changes
-packages/firebase/index.d.ts @egilmorez @firebase/jssdk-global-approvers
-scripts/docgen/content-sources/ @egilmorez @firebase/jssdk-global-approvers
+packages/firebase/index.d.ts @firebase/firebase-techwriters @firebase/jssdk-global-approvers
+scripts/docgen/content-sources/ @firebase/firebase-techwriters @firebase/jssdk-global-approvers
+
+# Changeset
+.changeset @firebase/firebase-techwriters @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers

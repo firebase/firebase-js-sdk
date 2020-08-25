@@ -17,19 +17,29 @@
 
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
 import { ResourcePath } from '../model/path';
-import * as api from '../protos/firestore_proto_api';
-import { hardAssert, debugAssert } from '../util/assert';
+import {
+  Write as ProtoWrite,
+  Document as ProtoDocument,
+  QueryTarget as ProtoQueryTarget,
+  DocumentsTarget as ProtoDocumentsTarget
+} from '../protos/firestore_proto_api';
+import { debugAssert, hardAssert } from '../util/assert';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
 import {
   decodeResourcePath,
-  encodeResourcePath,
-  EncodedResourcePath
+  EncodedResourcePath,
+  encodeResourcePath
 } from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
 import { dbDocumentSize } from './indexeddb_remote_document_cache';
-import { LocalSerializer } from './local_serializer';
+import {
+  fromDbMutationBatch,
+  fromDbTarget,
+  LocalSerializer,
+  toDbTarget
+} from './local_serializer';
 import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
@@ -202,7 +212,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
                   dbBatch.userId === queue.userId,
                   `Cannot process batch ${dbBatch.batchId} from unexpected user`
                 );
-                const batch = this.serializer.fromDbMutationBatch(dbBatch);
+                const batch = fromDbMutationBatch(this.serializer, dbBatch);
 
                 return removeMutationBatch(
                   txn,
@@ -324,8 +334,8 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
   ): PersistencePromise<void> {
     const targetStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
     return targetStore.iterate((key, originalDbTarget) => {
-      const originalTargetData = this.serializer.fromDbTarget(originalDbTarget);
-      const updatedDbTarget = this.serializer.toDbTarget(originalTargetData);
+      const originalTargetData = fromDbTarget(originalDbTarget);
+      const updatedDbTarget = toDbTarget(this.serializer, originalTargetData);
       return targetStore.put(updatedDbTarget);
     });
   }
@@ -479,13 +489,13 @@ export class DbMutationBatch {
      *
      * These mutations are never sent to the backend.
      */
-    public baseMutations: api.Write[] | undefined,
+    public baseMutations: ProtoWrite[] | undefined,
     /**
      * A list of mutations to apply. All mutations will be applied atomically.
      *
-     * Mutations are serialized via JsonProtoSerializer.toMutation().
+     * Mutations are serialized via toMutation().
      */
-    public mutations: api.Write[]
+    public mutations: ProtoWrite[]
   ) {}
 }
 
@@ -686,7 +696,7 @@ export class DbRemoteDocument {
      * Set to an instance of a Document if there's a cached version of the
      * document.
      */
-    public document: api.Document | null,
+    public document: ProtoDocument | null,
     /**
      * Documents that were written to the remote document store based on
      * a write acknowledgment are marked with `hasCommittedMutations`. These
@@ -740,7 +750,7 @@ export type DbTargetKey = TargetId;
  * IndexedDb. We use the proto definitions for these two kinds of queries in
  * order to avoid writing extra serialization logic.
  */
-export type DbQuery = api.QueryTarget | api.DocumentsTarget;
+export type DbQuery = ProtoQueryTarget | ProtoDocumentsTarget;
 
 /**
  * An object to be stored in the 'targets' store in IndexedDb.

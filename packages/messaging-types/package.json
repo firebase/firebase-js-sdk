@@ -1,6 +1,6 @@
 {
   "name": "@firebase/messaging-types",
-  "version": "0.4.5",
+  "version": "0.5.0",
   "description": "@firebase/messaging Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -23,6 +23,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "typescript": "3.8.3"
+    "typescript": "3.9.7"
   }
 }

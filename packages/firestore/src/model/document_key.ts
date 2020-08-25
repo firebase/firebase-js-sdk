@@ -28,6 +28,10 @@ export class DocumentKey {
     );
   }
 
+  static fromPath(path: string): DocumentKey {
+    return new DocumentKey(ResourcePath.fromString(path));
+  }
+
   static fromName(name: string): DocumentKey {
     return new DocumentKey(ResourcePath.fromString(name).popFirst(5));
   }
@@ -49,8 +53,6 @@ export class DocumentKey {
   toString(): string {
     return this.path.toString();
   }
-
-  static EMPTY = new DocumentKey(new ResourcePath([]));
 
   static comparator(k1: DocumentKey, k2: DocumentKey): number {
     return ResourcePath.comparator(k1.path, k2.path);

@@ -58,12 +58,23 @@ export interface HttpResponseBody {
  *
  * @param millis Number of milliseconds to wait before rejecting.
  */
-function failAfter(millis: number): Promise<never> {
-  return new Promise((_, reject) => {
-    setTimeout(() => {
+function failAfter(
+  millis: number
+): {
+  timer: number | NodeJS.Timeout;
+  promise: Promise<never>;
+} {
+  let timer!: number | NodeJS.Timeout;
+  const promise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
       reject(new HttpsErrorImpl('deadline-exceeded', 'deadline-exceeded'));
     }, millis);
   });
+
+  return {
+    timer,
+    promise
+  };
 }
 
 /**
@@ -74,7 +85,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
   private readonly serializer = new Serializer();
   private emulatorOrigin: string | null = null;
   private cancelAllRequests: Promise<void>;
-  private deleteService!: Function;
+  private deleteService!: () => void;
 
   /**
    * Creates a new Functions service for the given app and (optional) region.
@@ -102,7 +113,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
 
   INTERNAL = {
     delete: (): Promise<void> => {
-      return this.deleteService();
+      return Promise.resolve(this.deleteService());
     }
   };
 
@@ -172,7 +183,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
         json: null
       };
     }
-    let json: {} | null = null;
+    let json: HttpResponseBody | null = null;
     try {
       json = await response.json();
     } catch (e) {
@@ -213,10 +224,12 @@ export class Service implements FirebaseFunctions, FirebaseService {
     // Default timeout to 70s, but let the options override it.
     const timeout = options.timeout || 70000;
 
+    const { timer, promise: failAfterPromise } = failAfter(timeout);
+
     const response = await Promise.race([
-      this.postJSON(url, body, headers),
-      failAfter(timeout),
-      this.cancelAllRequests
+      clearTimeoutWrapper(timer, this.postJSON(url, body, headers)),
+      failAfterPromise,
+      clearTimeoutWrapper(timer, this.cancelAllRequests)
     ]);
 
     // If service was deleted, interrupted response throws an error.
@@ -256,8 +269,18 @@ export class Service implements FirebaseFunctions, FirebaseService {
     }
 
     // Decode any special types, such as dates, in the returned data.
-    const decodedData = this.serializer.decode(responseData as {} | null);
+    const decodedData = this.serializer.decode(responseData);
 
     return { data: decodedData };
   }
+}
+
+async function clearTimeoutWrapper<T>(
+  timer: number | NodeJS.Timeout,
+  promise: Promise<T>
+): Promise<T> {
+  const result = await promise;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  clearTimeout(timer as any);
+  return result;
 }

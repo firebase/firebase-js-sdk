@@ -16,8 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import { WebChannelConnection } from '../../../src/platform_browser/webchannel_connection';
+import { WebChannelConnection } from '../../../src/platform/browser/webchannel_connection';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { DEFAULT_PROJECT_ID } from '../util/settings';
 import { getDefaultDatabaseInfo } from '../util/internal_helpers';
@@ -33,26 +32,6 @@ const describeFn =
       xdescribe;
 
 describeFn('WebChannel', () => {
-  describe('makeUrl', () => {
-    const info = new DatabaseInfo(
-      new DatabaseId('testproject'),
-      'persistenceKey',
-      'example.com',
-      /*ssl=*/ false,
-      /*forceLongPolling=*/ false
-    );
-    const conn = new WebChannelConnection(info);
-    const makeUrl = conn.makeUrl.bind(conn);
-
-    it('includes project ID and database ID', () => {
-      const url = makeUrl('Commit');
-      expect(url).to.equal(
-        'http://example.com/v1/projects/testproject/' +
-          'databases/(default)/documents:commit'
-      );
-    });
-  });
-
   it('receives error messages', done => {
     const projectId = DEFAULT_PROJECT_ID;
     const info = getDefaultDatabaseInfo();

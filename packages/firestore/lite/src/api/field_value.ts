@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../';
+import * as firestore from '../../../lite-types';
 
 import { validateAtLeastNumberOfArgs } from '../../../src/util/input_validation';
 import {
@@ -63,7 +63,7 @@ class FieldValueDelegate extends FieldValue implements firestore.FieldValue {
 }
 
 export function deleteField(): firestore.FieldValue {
-  return new FieldValueDelegate(new DeleteFieldValueImpl('delete'));
+  return new FieldValueDelegate(new DeleteFieldValueImpl('deleteField'));
 }
 
 export function serverTimestamp(): firestore.FieldValue {

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,29 @@
  * limitations under the License.
  */
 
-const express = require('express');
 const path = require('path');
-
+const express = require('express');
 const PORT_NUMBER = 3000;
+
+const FIREBASE_HEAD = express.static(
+  path.join(
+    /* firebase-js-sdk/integration/messaging */ process.env.PWD,
+    '../..',
+    '/packages/firebase'
+  )
+);
+
+const INTEGRATION_TEST_ASSETS = express.static(
+  path.join(
+    /* firebase-js-sdk/integration/messaging */ process.env.PWD,
+    'test/static'
+  )
+);
 
 class MessagingTestServer {
   constructor() {
     this._app = express();
-    // Expose static directory contents
-    this._app.use('/', express.static(path.join(__dirname, '..', 'static')));
-    console.log('Firebase Path:', path.dirname(require.resolve('firebase')));
-    this._app.use(
-      '/firebase',
-      express.static(path.dirname(require.resolve('firebase')))
-    );
-    this._app.use('/', express.static(path.join(__dirname, 'shared-files')));
-
+    this._app.use([INTEGRATION_TEST_ASSETS, FIREBASE_HEAD]);
     this._server = null;
   }
 
@@ -55,8 +61,8 @@ class MessagingTestServer {
     });
   }
 
-  // Sometimes the server doesn't trigger the callback due to
-  // currently open sockets. So call `closethis._server
+  // Sometimes the server doesn't trigger the callback due to currently open sockets. So call close
+  // this._server
   async stop() {
     if (this._server) {
       this._server.close();
@@ -64,4 +70,5 @@ class MessagingTestServer {
     }
   }
 }
+
 module.exports = new MessagingTestServer();

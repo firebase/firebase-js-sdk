@@ -21,16 +21,28 @@ import { expect } from 'chai';
 import { FieldValue } from '../../../src/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
-import { Query } from '../../../src/core/query';
+import { Query, queryToTarget } from '../../../src/core/query';
 import { Target } from '../../../src/core/target';
 import { BatchId, TargetId } from '../../../src/core/types';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
+  applyRemoteEventToLocalCache,
   LocalStore,
   LocalWriteResult,
-  MultiTabLocalStore
+  newLocalStore,
+  synchronizeLastDocumentChangeReadTime,
+  notifyLocalViewChanges,
+  acknowledgeBatch,
+  readLocalDocument,
+  localWrite,
+  executeQuery,
+  allocateTarget,
+  releaseTarget,
+  getLocalTargetData,
+  getHighestUnacknowledgedBatchId,
+  rejectBatch
 } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
@@ -72,7 +84,7 @@ import {
   mapAsArray,
   noChangeEvent,
   patchMutation,
-  path,
+  query,
   setMutation,
   TestSnapshotVersion,
   transformMutation,
@@ -128,9 +140,7 @@ class LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain
-      .then(() => {
-        return this.localStore.localWrite(mutations);
-      })
+      .then(() => localWrite(this.localStore, mutations))
       .then((result: LocalWriteResult) => {
         this.batches.push(
           new MutationBatch(result.batchId, Timestamp.now(), [], mutations)
@@ -144,9 +154,7 @@ class LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain
-      .then(() => {
-        return this.localStore.applyRemoteEvent(remoteEvent);
-      })
+      .then(() => applyRemoteEventToLocalCache(this.localStore, remoteEvent))
       .then((result: MaybeDocumentMap) => {
         this.lastChanges = result;
       });
@@ -157,7 +165,7 @@ class LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain.then(() =>
-      this.localStore.notifyLocalViewChanges([viewChanges])
+      notifyLocalViewChanges(this.localStore, [viewChanges])
     );
     return this;
   }
@@ -184,7 +192,7 @@ class LocalStoreTester {
         ];
         const write = MutationBatchResult.from(batch, ver, mutationResults);
 
-        return this.localStore.acknowledgeBatch(write);
+        return acknowledgeBatch(this.localStore, write);
       })
       .then((changes: MaybeDocumentMap) => {
         this.lastChanges = changes;
@@ -196,9 +204,7 @@ class LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain
-      .then(() => {
-        return this.localStore.rejectBatch(this.batches.shift()!.batchId);
-      })
+      .then(() => rejectBatch(this.localStore, this.batches.shift()!.batchId))
       .then((changes: MaybeDocumentMap) => {
         this.lastChanges = changes;
       });
@@ -206,42 +212,43 @@ class LocalStoreTester {
   }
 
   afterAllocatingQuery(query: Query): LocalStoreTester {
-    return this.afterAllocatingTarget(query.toTarget());
+    return this.afterAllocatingTarget(queryToTarget(query));
   }
 
   afterAllocatingTarget(target: Target): LocalStoreTester {
     this.prepareNextStep();
 
-    this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.allocateTarget(target).then(result => {
+    this.promiseChain = this.promiseChain.then(() =>
+      allocateTarget(this.localStore, target).then(result => {
         this.lastTargetId = result.targetId;
-      });
-    });
+      })
+    );
     return this;
   }
 
   afterReleasingTarget(targetId: number): LocalStoreTester {
     this.prepareNextStep();
 
-    this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.releaseTarget(
+    this.promiseChain = this.promiseChain.then(() =>
+      releaseTarget(
+        this.localStore,
         targetId,
         /*keepPersistedTargetData=*/ false
-      );
-    });
+      )
+    );
     return this;
   }
 
   afterExecutingQuery(query: Query): LocalStoreTester {
     this.prepareNextStep();
 
-    this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore
-        .executeQuery(query, /* usePreviousResults= */ true)
-        .then(({ documents }) => {
+    this.promiseChain = this.promiseChain.then(() =>
+      executeQuery(this.localStore, query, /* usePreviousResults= */ true).then(
+        ({ documents }) => {
           this.lastChanges = documents;
-        });
-    });
+        }
+      )
+    );
     return this;
   }
 
@@ -343,7 +350,7 @@ class LocalStoreTester {
 
   toContain(doc: MaybeDocument): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.readDocument(doc.key).then(result => {
+      return readLocalDocument(this.localStore, doc.key).then(result => {
         expectEqual(
           result,
           doc,
@@ -357,11 +364,11 @@ class LocalStoreTester {
   }
 
   toNotContain(keyStr: string): LocalStoreTester {
-    this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.readDocument(key(keyStr)).then(result => {
+    this.promiseChain = this.promiseChain.then(() =>
+      readLocalDocument(this.localStore, key(keyStr)).then(result => {
         expect(result).to.be.null;
-      });
-    });
+      })
+    );
     return this;
   }
 
@@ -374,11 +381,11 @@ class LocalStoreTester {
   }
 
   toReturnHighestUnacknowledgeBatchId(expectedId: BatchId): LocalStoreTester {
-    this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.getHighestUnacknowledgedBatchId().then(actual => {
+    this.promiseChain = this.promiseChain.then(() =>
+      getHighestUnacknowledgedBatchId(this.localStore).then(actual => {
         expect(actual).to.equal(expectedId);
-      });
-    });
+      })
+    );
     return this;
   }
 
@@ -396,7 +403,7 @@ describe('LocalStore w/ Memory Persistence (SimpleQueryEngine)', () => {
       QueryEngineType.Simple
     );
     const persistence = await persistenceHelpers.testMemoryEagerPersistence();
-    const localStore = new LocalStore(
+    const localStore = newLocalStore(
       persistence,
       queryEngine,
       User.UNAUTHENTICATED
@@ -414,7 +421,7 @@ describe('LocalStore w/ Memory Persistence (IndexFreeQueryEngine)', () => {
       QueryEngineType.IndexFree
     );
     const persistence = await persistenceHelpers.testMemoryEagerPersistence();
-    const localStore = new LocalStore(
+    const localStore = newLocalStore(
       persistence,
       queryEngine,
       User.UNAUTHENTICATED
@@ -440,12 +447,12 @@ describe('LocalStore w/ IndexedDB Persistence (SimpleQueryEngine)', () => {
       QueryEngineType.Simple
     );
     const persistence = await persistenceHelpers.testIndexedDbPersistence();
-    const localStore = new MultiTabLocalStore(
+    const localStore = newLocalStore(
       persistence,
       queryEngine,
       User.UNAUTHENTICATED
     );
-    await localStore.start();
+    await synchronizeLastDocumentChangeReadTime(localStore);
     return { queryEngine, persistence, localStore };
   }
 
@@ -467,12 +474,12 @@ describe('LocalStore w/ IndexedDB Persistence (IndexFreeQueryEngine)', () => {
       QueryEngineType.IndexFree
     );
     const persistence = await persistenceHelpers.testIndexedDbPersistence();
-    const localStore = new MultiTabLocalStore(
+    const localStore = newLocalStore(
       persistence,
       queryEngine,
       User.UNAUTHENTICATED
     );
-    await localStore.start();
+    await synchronizeLastDocumentChangeReadTime(localStore);
     return { queryEngine, persistence, localStore };
   }
 
@@ -528,7 +535,7 @@ function genericLocalStoreTests(
         doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true })
       )
       .toContain(doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true }))
-      .afterAllocatingQuery(Query.atPath(path('foo')))
+      .afterAllocatingQuery(query('foo'))
       .after(docUpdateRemoteEvent(doc('foo/bar', 2, { it: 'changed' }), [2]))
       .toReturnChanged(
         doc('foo/bar', 2, { foo: 'bar' }, { hasLocalMutations: true })
@@ -544,7 +551,7 @@ function genericLocalStoreTests(
       return (
         expectLocalStore()
           // Start a query so that acks must be held.
-          .afterAllocatingQuery(Query.atPath(path('foo')))
+          .afterAllocatingQuery(query('foo'))
           .toReturnTargetId(2)
           .after(setMutation('foo/bar', { foo: 'bar' }))
           .toReturnChanged(
@@ -583,9 +590,9 @@ function genericLocalStoreTests(
   );
 
   it('handles NoDocument -> SetMutation -> Ack', () => {
-    const query = Query.atPath(path('foo'));
+    const query1 = query('foo');
     return expectLocalStore()
-      .afterAllocatingQuery(query)
+      .afterAllocatingQuery(query1)
       .toReturnTargetId(2)
       .after(docUpdateRemoteEvent(deletedDoc('foo/bar', 2), [2]))
       .toReturnRemoved('foo/bar')
@@ -608,7 +615,7 @@ function genericLocalStoreTests(
 
   it('handles SetMutation -> NoDocument', () => {
     return expectLocalStore()
-      .afterAllocatingQuery(Query.atPath(path('foo')))
+      .afterAllocatingQuery(query('foo'))
       .toReturnTargetId(2)
       .after(setMutation('foo/bar', { foo: 'bar' }))
       .toReturnChanged(
@@ -625,7 +632,7 @@ function genericLocalStoreTests(
   it('handles Document -> SetMutation -> Ack ->  Document', () => {
     return (
       expectLocalStore()
-        .afterAllocatingQuery(Query.atPath(path('foo')))
+        .afterAllocatingQuery(query('foo'))
         .toReturnTargetId(2)
         .after(docAddedRemoteEvent(doc('foo/bar', 2, { it: 'base' }), [2]))
         .toReturnChanged(doc('foo/bar', 2, { it: 'base' }))
@@ -668,7 +675,7 @@ function genericLocalStoreTests(
       .after(patchMutation('foo/bar', { foo: 'bar' }))
       .toReturnRemoved('foo/bar')
       .toNotContain('foo/bar')
-      .afterAllocatingQuery(Query.atPath(path('foo')))
+      .afterAllocatingQuery(query('foo'))
       .toReturnTargetId(2)
       .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
       .toReturnChanged(
@@ -719,7 +726,7 @@ function genericLocalStoreTests(
       .afterAcknowledgingMutation({ documentVersion: 1 })
       .toReturnChanged(unknownDoc('foo/bar', 1))
       .toNotContainIfEager(unknownDoc('foo/bar', 1))
-      .afterAllocatingQuery(Query.atPath(path('foo')))
+      .afterAllocatingQuery(query('foo'))
       .toReturnTargetId(2)
       .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
       .toReturnChanged(doc('foo/bar', 1, { it: 'base' }))
@@ -741,10 +748,10 @@ function genericLocalStoreTests(
   });
 
   it('handles Document -> DeleteMutation -> Ack', () => {
-    const query = Query.atPath(path('foo'));
+    const query1 = query('foo');
     return (
       expectLocalStore()
-        .afterAllocatingQuery(query)
+        .afterAllocatingQuery(query1)
         .toReturnTargetId(2)
         .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
         .toReturnChanged(doc('foo/bar', 1, { it: 'base' }))
@@ -764,10 +771,10 @@ function genericLocalStoreTests(
   });
 
   it('handles DeleteMutation -> Document -> Ack', () => {
-    const query = Query.atPath(path('foo'));
+    const query1 = query('foo');
     return (
       expectLocalStore()
-        .afterAllocatingQuery(query)
+        .afterAllocatingQuery(query1)
         .toReturnTargetId(2)
         .after(deleteMutation('foo/bar'))
         .toReturnRemoved('foo/bar')
@@ -788,7 +795,7 @@ function genericLocalStoreTests(
 
   it('handles Document -> NoDocument -> Document', () => {
     return expectLocalStore()
-      .afterAllocatingQuery(Query.atPath(path('foo')))
+      .afterAllocatingQuery(query('foo'))
       .toReturnTargetId(2)
       .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
       .toReturnChanged(doc('foo/bar', 1, { it: 'base' }))
@@ -803,7 +810,7 @@ function genericLocalStoreTests(
   });
 
   it('handles SetMutation -> PatchMutation -> Document -> Ack -> Ack', () => {
-    const query = Query.atPath(path('foo'));
+    const query1 = query('foo');
     return expectLocalStore()
       .after(setMutation('foo/bar', { foo: 'old' }))
       .toReturnChanged(
@@ -815,7 +822,7 @@ function genericLocalStoreTests(
         doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true })
       )
       .toContain(doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true }))
-      .afterAllocatingQuery(query)
+      .afterAllocatingQuery(query1)
       .toReturnTargetId(2)
       .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
       .toReturnChanged(
@@ -922,9 +929,9 @@ function genericLocalStoreTests(
 
   // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it : it.skip)('collects garbage after ChangeBatch', () => {
-    const query = Query.atPath(path('foo'));
+    const query1 = query('foo');
     return expectLocalStore()
-      .afterAllocatingQuery(query)
+      .afterAllocatingQuery(query1)
       .toReturnTargetId(2)
       .after(docAddedRemoteEvent(doc('foo/bar', 2, { foo: 'bar' }), [2]))
       .toContain(doc('foo/bar', 2, { foo: 'bar' }))
@@ -937,10 +944,10 @@ function genericLocalStoreTests(
   (gcIsEager ? it : it.skip)(
     'collects garbage after acknowledged mutation',
     () => {
-      const query = Query.atPath(path('foo'));
+      const query1 = query('foo');
       return (
         expectLocalStore()
-          .afterAllocatingQuery(query)
+          .afterAllocatingQuery(query1)
           .toReturnTargetId(2)
           .after(docAddedRemoteEvent(doc('foo/bar', 1, { foo: 'old' }), [2]))
           .after(patchMutation('foo/bar', { foo: 'bar' }))
@@ -977,10 +984,10 @@ function genericLocalStoreTests(
 
   // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it : it.skip)('collects garbage after rejected mutation', () => {
-    const query = Query.atPath(path('foo'));
+    const query1 = query('foo');
     return (
       expectLocalStore()
-        .afterAllocatingQuery(query)
+        .afterAllocatingQuery(query1)
         .toReturnTargetId(2)
         .after(docAddedRemoteEvent(doc('foo/bar', 1, { foo: 'old' }), [2]))
         .after(patchMutation('foo/bar', { foo: 'bar' }))
@@ -1016,9 +1023,9 @@ function genericLocalStoreTests(
 
   // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it : it.skip)('pins documents in the local view', () => {
-    const query = Query.atPath(path('foo'));
+    const query1 = query('foo');
     return expectLocalStore()
-      .afterAllocatingQuery(query)
+      .afterAllocatingQuery(query1)
       .toReturnTargetId(2)
       .after(docAddedRemoteEvent(doc('foo/bar', 1, { foo: 'bar' }), [2]))
       .after(setMutation('foo/baz', { foo: 'baz' }))
@@ -1059,15 +1066,15 @@ function genericLocalStoreTests(
 
   it('can execute document queries', () => {
     const localStore = expectLocalStore().localStore;
-    return localStore
-      .localWrite([
-        setMutation('foo/bar', { foo: 'bar' }),
-        setMutation('foo/baz', { foo: 'baz' }),
-        setMutation('foo/bar/Foo/Bar', { Foo: 'Bar' })
-      ])
+    return localWrite(localStore, [
+      setMutation('foo/bar', { foo: 'bar' }),
+      setMutation('foo/baz', { foo: 'baz' }),
+      setMutation('foo/bar/Foo/Bar', { Foo: 'Bar' })
+    ])
       .then(() => {
-        return localStore.executeQuery(
-          Query.atPath(path('foo/bar')),
+        return executeQuery(
+          localStore,
+          query('foo/bar'),
           /* usePreviousResults= */ true
         );
       })
@@ -1079,17 +1086,17 @@ function genericLocalStoreTests(
 
   it('can execute collection queries', () => {
     const localStore = expectLocalStore().localStore;
-    return localStore
-      .localWrite([
-        setMutation('fo/bar', { fo: 'bar' }),
-        setMutation('foo/bar', { foo: 'bar' }),
-        setMutation('foo/baz', { foo: 'baz' }),
-        setMutation('foo/bar/Foo/Bar', { Foo: 'Bar' }),
-        setMutation('fooo/blah', { fooo: 'blah' })
-      ])
+    return localWrite(localStore, [
+      setMutation('fo/bar', { fo: 'bar' }),
+      setMutation('foo/bar', { foo: 'bar' }),
+      setMutation('foo/baz', { foo: 'baz' }),
+      setMutation('foo/bar/Foo/Bar', { Foo: 'Bar' }),
+      setMutation('fooo/blah', { fooo: 'blah' })
+    ])
       .then(() => {
-        return localStore.executeQuery(
-          Query.atPath(path('foo')),
+        return executeQuery(
+          localStore,
+          query('foo'),
           /* usePreviousResults= */ true
         );
       })
@@ -1101,18 +1108,21 @@ function genericLocalStoreTests(
   });
 
   it('can execute mixed collection queries', async () => {
-    const query = Query.atPath(path('foo'));
-    const targetData = await localStore.allocateTarget(query.toTarget());
+    const query1 = query('foo');
+    const targetData = await allocateTarget(localStore, queryToTarget(query1));
     expect(targetData.targetId).to.equal(2);
-    await localStore.applyRemoteEvent(
+    await applyRemoteEventToLocalCache(
+      localStore,
       docAddedRemoteEvent(doc('foo/baz', 10, { a: 'b' }), [2], [])
     );
-    await localStore.applyRemoteEvent(
+    await applyRemoteEventToLocalCache(
+      localStore,
       docUpdateRemoteEvent(doc('foo/bar', 20, { a: 'b' }), [2], [])
     );
-    await localStore.localWrite([setMutation('foo/bonk', { a: 'b' })]);
-    const { documents } = await localStore.executeQuery(
-      query,
+    await localWrite(localStore, [setMutation('foo/bonk', { a: 'b' })]);
+    const { documents } = await executeQuery(
+      localStore,
+      query1,
       /* usePreviousResults= */ true
     );
     expect(mapAsArray(documents)).to.deep.equal([
@@ -1126,10 +1136,8 @@ function genericLocalStoreTests(
   });
 
   it('reads all documents for initial collection queries', () => {
-    const firstQuery = Query.atPath(path('foo'));
-    const secondQuery = Query.atPath(path('foo')).addFilter(
-      filter('matches', '==', true)
-    );
+    const firstQuery = query('foo');
+    const secondQuery = query('foo', filter('matches', '==', true));
 
     return expectLocalStore()
       .afterAllocatingQuery(firstQuery)
@@ -1165,8 +1173,8 @@ function genericLocalStoreTests(
 
   // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it.skip : it)('persists resume tokens', async () => {
-    const query = Query.atPath(path('foo/bar'));
-    const targetData = await localStore.allocateTarget(query.toTarget());
+    const query1 = query('foo/bar');
+    const targetData = await allocateTarget(localStore, queryToTarget(query1));
     const targetId = targetData.targetId;
     const resumeToken = byteStringFromString('abc');
     const watchChange = new WatchTargetChange(
@@ -1180,16 +1188,17 @@ function genericLocalStoreTests(
     });
     aggregator.handleTargetChange(watchChange);
     const remoteEvent = aggregator.createRemoteEvent(version(1000));
-    await localStore.applyRemoteEvent(remoteEvent);
+    await applyRemoteEventToLocalCache(localStore, remoteEvent);
 
     // Stop listening so that the query should become inactive (but persistent)
-    await localStore.releaseTarget(
+    await releaseTarget(
+      localStore,
       targetData.targetId,
       /*keepPersistedTargetData=*/ false
     );
 
     // Should come back with the same resume token
-    const targetData2 = await localStore.allocateTarget(query.toTarget());
+    const targetData2 = await allocateTarget(localStore, queryToTarget(query1));
     expect(targetData2.resumeToken).to.deep.equal(resumeToken);
   });
 
@@ -1197,8 +1206,11 @@ function genericLocalStoreTests(
   (gcIsEager ? it.skip : it)(
     'does not replace resume token with empty resume token',
     async () => {
-      const query = Query.atPath(path('foo/bar'));
-      const targetData = await localStore.allocateTarget(query.toTarget());
+      const query1 = query('foo/bar');
+      const targetData = await allocateTarget(
+        localStore,
+        queryToTarget(query1)
+      );
       const targetId = targetData.targetId;
       const resumeToken = byteStringFromString('abc');
 
@@ -1213,7 +1225,7 @@ function genericLocalStoreTests(
       });
       aggregator1.handleTargetChange(watchChange1);
       const remoteEvent1 = aggregator1.createRemoteEvent(version(1000));
-      await localStore.applyRemoteEvent(remoteEvent1);
+      await applyRemoteEventToLocalCache(localStore, remoteEvent1);
 
       const watchChange2 = new WatchTargetChange(
         WatchTargetChangeState.Current,
@@ -1226,16 +1238,20 @@ function genericLocalStoreTests(
       });
       aggregator2.handleTargetChange(watchChange2);
       const remoteEvent2 = aggregator2.createRemoteEvent(version(2000));
-      await localStore.applyRemoteEvent(remoteEvent2);
+      await applyRemoteEventToLocalCache(localStore, remoteEvent2);
 
       // Stop listening so that the query should become inactive (but persistent)
-      await localStore.releaseTarget(
+      await releaseTarget(
+        localStore,
         targetId,
         /*keepPersistedTargetData=*/ false
       );
 
       // Should come back with the same resume token
-      const targetData2 = await localStore.allocateTarget(query.toTarget());
+      const targetData2 = await allocateTarget(
+        localStore,
+        queryToTarget(query1)
+      );
       expect(targetData2.resumeToken).to.deep.equal(resumeToken);
     }
   );
@@ -1306,10 +1322,10 @@ function genericLocalStoreTests(
   );
 
   it('handles SetMutation -> TransformMutation -> RemoteEvent -> TransformMutation', () => {
-    const query = Query.atPath(path('foo'));
+    const query1 = query('foo');
     return (
       expectLocalStore()
-        .afterAllocatingQuery(query)
+        .afterAllocatingQuery(query1)
         .toReturnTargetId(2)
         .after(setMutation('foo/bar', { sum: 0 }))
         .toReturnChanged(
@@ -1366,10 +1382,10 @@ function genericLocalStoreTests(
   });
 
   it('holds back only non-idempotent transforms', () => {
-    const query = Query.atPath(path('foo'));
+    const query1 = query('foo');
     return (
       expectLocalStore()
-        .afterAllocatingQuery(query)
+        .afterAllocatingQuery(query1)
         .toReturnTargetId(2)
         .after(setMutation('foo/bar', { sum: 0, arrayUnion: [] }))
         .toReturnChanged(
@@ -1435,9 +1451,9 @@ function genericLocalStoreTests(
   });
 
   it('handles MergeMutation with Transform -> RemoteEvent', () => {
-    const query = Query.atPath(path('foo'));
+    const query1 = query('foo');
     return expectLocalStore()
-      .afterAllocatingQuery(query)
+      .afterAllocatingQuery(query1)
       .toReturnTargetId(2)
       .afterMutations([
         patchMutation('foo/bar', {}, Precondition.none()),
@@ -1461,9 +1477,9 @@ function genericLocalStoreTests(
     // Note: This test reflects the current behavior, but it may be preferable
     // to replay the mutation once we receive the first value from the backend.
 
-    const query = Query.atPath(path('foo'));
+    const query1 = query('foo');
     return expectLocalStore()
-      .afterAllocatingQuery(query)
+      .afterAllocatingQuery(query1)
       .toReturnTargetId(2)
       .afterMutations([
         patchMutation('foo/bar', {}),
@@ -1496,10 +1512,10 @@ function genericLocalStoreTests(
   });
 
   it('only persists updates for documents when version changes', () => {
-    const query = Query.atPath(path('foo'));
+    const query1 = query('foo');
     return (
       expectLocalStore()
-        .afterAllocatingQuery(query)
+        .afterAllocatingQuery(query1)
         .toReturnTargetId(2)
         .afterRemoteEvent(
           docAddedRemoteEvent(doc('foo/bar', 1, { val: 'old' }), [2])
@@ -1531,12 +1547,10 @@ function genericLocalStoreTests(
     // This test verifies that once a target mapping has been written, only
     // documents that match the query are read from the RemoteDocumentCache.
 
-    const query = Query.atPath(path('foo')).addFilter(
-      filter('matches', '==', true)
-    );
+    const query1 = query('foo', filter('matches', '==', true));
     return (
       expectLocalStore()
-        .afterAllocatingQuery(query)
+        .afterAllocatingQuery(query1)
         .toReturnTargetId(2)
         .after(setMutation('foo/a', { matches: true }))
         .after(setMutation('foo/b', { matches: true }))
@@ -1544,7 +1558,7 @@ function genericLocalStoreTests(
         .afterAcknowledgingMutation({ documentVersion: 10 })
         .afterAcknowledgingMutation({ documentVersion: 10 })
         .afterAcknowledgingMutation({ documentVersion: 10 })
-        .afterExecutingQuery(query)
+        .afterExecutingQuery(query1)
         // Execute the query, but note that we read all existing documents
         // from the RemoteDocumentCache since we do not yet have target
         // mapping.
@@ -1567,7 +1581,7 @@ function genericLocalStoreTests(
           )
         )
         .after(localViewChanges(2, /* fromCache= */ false, {}))
-        .afterExecutingQuery(query)
+        .afterExecutingQuery(query1)
         .toHaveRead({ documentsByKey: 2, documentsByQuery: 0 })
         .toReturnChanged(
           doc('foo/a', 10, { matches: true }),
@@ -1582,12 +1596,13 @@ function genericLocalStoreTests(
     // is advanced when we compute a limbo-free free view and that the mapping
     // is persisted when we release a query.
 
-    const target = Query.atPath(path('foo')).toTarget();
+    const target = queryToTarget(query('foo'));
 
-    const targetData = await localStore.allocateTarget(target);
+    const targetData = await allocateTarget(localStore, target);
 
     // Advance the query snapshot
-    await localStore.applyRemoteEvent(
+    await applyRemoteEventToLocalCache(
+      localStore,
       noChangeEvent(
         /* targetId= */ targetData.targetId,
         /* snapshotVersion= */ 10,
@@ -1599,7 +1614,7 @@ function genericLocalStoreTests(
     let cachedTargetData = await persistence.runTransaction(
       'getTargetData',
       'readonly',
-      txn => localStore.getTargetData(txn, target)
+      txn => getLocalTargetData(localStore, txn, target)
     );
     expect(
       cachedTargetData!.lastLimboFreeSnapshotVersion.isEqual(
@@ -1608,20 +1623,21 @@ function genericLocalStoreTests(
     ).to.be.true;
 
     // Mark the view synced, which updates the last limbo free snapshot version.
-    await localStore.notifyLocalViewChanges([
+    await notifyLocalViewChanges(localStore, [
       localViewChanges(2, /* fromCache= */ false, {})
     ]);
     cachedTargetData = await persistence.runTransaction(
       'getTargetData',
       'readonly',
-      txn => localStore.getTargetData(txn, target)
+      txn => getLocalTargetData(localStore, txn, target)
     );
     expect(cachedTargetData!.lastLimboFreeSnapshotVersion.isEqual(version(10)))
       .to.be.true;
 
     // The last limbo free snapshot version is persisted even if we release the
     // query.
-    await localStore.releaseTarget(
+    await releaseTarget(
+      localStore,
       targetData.targetId,
       /* keepPersistedTargetData= */ false
     );
@@ -1630,7 +1646,7 @@ function genericLocalStoreTests(
       cachedTargetData = await persistence.runTransaction(
         'getTargetData',
         'readonly',
-        txn => localStore.getTargetData(txn, target)
+        txn => getLocalTargetData(localStore, txn, target)
       );
       expect(
         cachedTargetData!.lastLimboFreeSnapshotVersion.isEqual(version(10))
@@ -1646,25 +1662,23 @@ function genericLocalStoreTests(
       // include documents that were modified by local edits after the target
       // mapping was written.
 
-      const query = Query.atPath(path('foo')).addFilter(
-        filter('matches', '==', true)
-      );
+      const query1 = query('foo', filter('matches', '==', true));
       return (
         expectLocalStore()
-          .afterAllocatingQuery(query)
+          .afterAllocatingQuery(query1)
           .toReturnTargetId(2)
           .after(
             docAddedRemoteEvent([doc('foo/a', 10, { matches: true })], [2], [])
           )
           .after(localViewChanges(2, /* fromCache= */ false, {}))
           // Execute the query based on the RemoteEvent.
-          .afterExecutingQuery(query)
+          .afterExecutingQuery(query1)
           .toReturnChanged(doc('foo/a', 10, { matches: true }))
           // Write a document.
           .after(setMutation('foo/b', { matches: true }))
           // Execute the query and make sure that the pending mutation is
           // included in the result.
-          .afterExecutingQuery(query)
+          .afterExecutingQuery(query1)
           .toReturnChanged(
             doc('foo/a', 10, { matches: true }),
             doc('foo/b', 0, { matches: true }, { hasLocalMutations: true })
@@ -1672,7 +1686,7 @@ function genericLocalStoreTests(
           .afterAcknowledgingMutation({ documentVersion: 11 })
           // Execute the query and make sure that the acknowledged mutation is
           // included in the result.
-          .afterExecutingQuery(query)
+          .afterExecutingQuery(query1)
           .toReturnChanged(
             doc('foo/a', 10, { matches: true }),
             doc('foo/b', 11, { matches: true }, { hasCommittedMutations: true })
@@ -1690,10 +1704,8 @@ function genericLocalStoreTests(
       // include documents that were modified by other queries after the target
       // mapping was written.
 
-      const filteredQuery = Query.atPath(path('foo')).addFilter(
-        filter('matches', '==', true)
-      );
-      const fullQuery = Query.atPath(path('foo'));
+      const filteredQuery = query('foo', filter('matches', '==', true));
+      const fullQuery = query('foo');
       return (
         expectLocalStore()
           .afterAllocatingQuery(filteredQuery)
@@ -1744,10 +1756,8 @@ function genericLocalStoreTests(
       // This test verifies that documents that once matched a query are
       // post-filtered if they no longer match the query filter.
 
-      const filteredQuery = Query.atPath(path('foo')).addFilter(
-        filter('matches', '==', true)
-      );
-      const fullQuery = Query.atPath(path('foo'));
+      const filteredQuery = query('foo', filter('matches', '==', true));
+      const fullQuery = query('foo');
       return (
         expectLocalStore()
           // Add two document results for a simple filter query

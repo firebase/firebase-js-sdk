@@ -15,30 +15,34 @@
  * limitations under the License.
  */
 
-import { getToken, deleteToken } from '../core/token-management';
-import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
-import { FirebaseMessaging } from '@firebase/messaging-types';
-import { ERROR_FACTORY, ErrorCode } from '../util/errors';
-import { NextFn, Observer, Unsubscribe } from '@firebase/util';
-import { InternalMessage, MessageType } from '../interfaces/internal-message';
 import {
-  CONSOLE_CAMPAIGN_ID,
   CONSOLE_CAMPAIGN_ANALYTICS_ENABLED,
+  CONSOLE_CAMPAIGN_ID,
   CONSOLE_CAMPAIGN_NAME,
   CONSOLE_CAMPAIGN_TIME,
   DEFAULT_SW_PATH,
   DEFAULT_SW_SCOPE,
   DEFAULT_VAPID_KEY
 } from '../util/constants';
+import {
+  ConsoleMessageData,
+  MessagePayloadInternal,
+  MessageType
+} from '../interfaces/internal-message-payload';
+import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { NextFn, Observer, Unsubscribe } from '@firebase/util';
+import { deleteToken, getToken } from '../core/token-management';
+
 import { FirebaseApp } from '@firebase/app-types';
-import { ConsoleMessageData } from '../interfaces/message-payload';
-import { isConsoleMessage } from '../helpers/is-console-message';
+import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+import { FirebaseMessaging } from '@firebase/messaging-types';
 import { FirebaseService } from '@firebase/app-types/private';
+import { isConsoleMessage } from '../helpers/is-console-message';
 
 export class WindowController implements FirebaseMessaging, FirebaseService {
   private vapidKey: string | null = null;
   private swRegistration?: ServiceWorkerRegistration;
-  private onMessageCallback: NextFn<object> | null = null;
+  private onMessageCallback: NextFn<object> | Observer<object> | null = null;
 
   constructor(
     private readonly firebaseDependencies: FirebaseInternalDependencies
@@ -52,16 +56,52 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
     return this.firebaseDependencies.app;
   }
 
-  async getToken(): Promise<string> {
-    if (!this.vapidKey) {
-      this.vapidKey = DEFAULT_VAPID_KEY;
+  private async messageEventListener(event: MessageEvent): Promise<void> {
+    const internalPayload = event.data as MessagePayloadInternal;
+
+    if (!internalPayload.isFirebaseMessaging) {
+      return;
     }
 
-    const swRegistration = await this.getServiceWorkerRegistration();
+    // onMessageCallback is either a function or observer/subscriber.
+    // TODO: in the modularization release, have onMessage handle type MessagePayload as supposed to
+    // the legacy payload where some fields are in snake cases.
+    if (
+      this.onMessageCallback &&
+      internalPayload.messageType === MessageType.PUSH_RECEIVED
+    ) {
+      if (typeof this.onMessageCallback === 'function') {
+        this.onMessageCallback(
+          stripInternalFields(Object.assign({}, internalPayload))
+        );
+      } else {
+        this.onMessageCallback.next(Object.assign({}, internalPayload));
+      }
+    }
 
-    // Check notification permission.
+    const dataPayload = internalPayload.data;
+
+    if (
+      isConsoleMessage(dataPayload) &&
+      dataPayload[CONSOLE_CAMPAIGN_ANALYTICS_ENABLED] === '1'
+    ) {
+      await this.logEvent(internalPayload.messageType!, dataPayload);
+    }
+  }
+
+  getVapidKey(): string | null {
+    return this.vapidKey;
+  }
+
+  getSwReg(): ServiceWorkerRegistration | undefined {
+    return this.swRegistration;
+  }
+
+  async getToken(options?: {
+    vapidKey?: string;
+    serviceWorkerRegistration?: ServiceWorkerRegistration;
+  }): Promise<string> {
     if (Notification.permission === 'default') {
-      // The user hasn't allowed or denied notifications yet. Ask them.
       await Notification.requestPermission();
     }
 
@@ -69,13 +109,72 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
       throw ERROR_FACTORY.create(ErrorCode.PERMISSION_BLOCKED);
     }
 
-    return getToken(this.firebaseDependencies, swRegistration, this.vapidKey);
+    await this.updateVapidKey(options?.vapidKey);
+    await this.updateSwReg(options?.serviceWorkerRegistration);
+
+    return getToken(
+      this.firebaseDependencies,
+      this.swRegistration!,
+      this.vapidKey!
+    );
+  }
+
+  async updateVapidKey(vapidKey?: string | undefined): Promise<void> {
+    if (!!vapidKey) {
+      this.vapidKey = vapidKey;
+    } else if (!this.vapidKey) {
+      this.vapidKey = DEFAULT_VAPID_KEY;
+    }
+  }
+
+  async updateSwReg(
+    swRegistration?: ServiceWorkerRegistration | undefined
+  ): Promise<void> {
+    if (!swRegistration && !this.swRegistration) {
+      await this.registerDefaultSw();
+    }
+
+    if (!swRegistration && !!this.swRegistration) {
+      return;
+    }
+
+    if (!(swRegistration instanceof ServiceWorkerRegistration)) {
+      throw ERROR_FACTORY.create(ErrorCode.INVALID_SW_REGISTRATION);
+    }
+
+    this.swRegistration = swRegistration;
+  }
+
+  private async registerDefaultSw(): Promise<void> {
+    try {
+      this.swRegistration = await navigator.serviceWorker.register(
+        DEFAULT_SW_PATH,
+        {
+          scope: DEFAULT_SW_SCOPE
+        }
+      );
+
+      // The timing when browser updates sw when sw has an update is unreliable by my experiment. It
+      // leads to version conflict when the SDK upgrades to a newer version in the main page, but sw
+      // is stuck with the old version. For example,
+      // https://github.com/firebase/firebase-js-sdk/issues/2590 The following line reliably updates
+      // sw if there was an update.
+      this.swRegistration.update().catch(() => {
+        /* it is non blocking and we don't care if it failed */
+      });
+    } catch (e) {
+      throw ERROR_FACTORY.create(ErrorCode.FAILED_DEFAULT_REGISTRATION, {
+        browserErrorMessage: e.message
+      });
+    }
   }
 
   async deleteToken(): Promise<boolean> {
-    const swRegistration = await this.getServiceWorkerRegistration();
+    if (!this.swRegistration) {
+      await this.registerDefaultSw();
+    }
 
-    return deleteToken(this.firebaseDependencies, swRegistration);
+    return deleteToken(this.firebaseDependencies, this.swRegistration!);
   }
 
   /**
@@ -101,7 +200,10 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
     }
   }
 
-  // TODO: Deprecate this and make VAPID key a parameter in getToken.
+  /**
+   * @deprecated. Use getToken(options?: {vapidKey?: string; serviceWorkerRegistration?:
+   * ServiceWorkerRegistration;}): Promise<string> instead.
+   */
   usePublicVapidKey(vapidKey: string): void {
     if (this.vapidKey !== null) {
       throw ERROR_FACTORY.create(ErrorCode.USE_VAPID_KEY_AFTER_GET_TOKEN);
@@ -114,6 +216,10 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
     this.vapidKey = vapidKey;
   }
 
+  /**
+   * @deprecated. Use getToken(options?: {vapidKey?: string; serviceWorkerRegistration?:
+   * ServiceWorkerRegistration;}): Promise<string> instead.
+   */
   useServiceWorker(swRegistration: ServiceWorkerRegistration): void {
     if (!(swRegistration instanceof ServiceWorkerRegistration)) {
       throw ERROR_FACTORY.create(ErrorCode.INVALID_SW_REGISTRATION);
@@ -127,16 +233,12 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
   }
 
   /**
-   * @param nextOrObserver An observer object or a function triggered on
-   * message.
+   * @param nextOrObserver An observer object or a function triggered on message.
+   *
    * @return The unsubscribe function for the observer.
    */
-  // TODO: Simplify this to only accept a function and not an Observer.
   onMessage(nextOrObserver: NextFn<object> | Observer<object>): Unsubscribe {
-    this.onMessageCallback =
-      typeof nextOrObserver === 'function'
-        ? nextOrObserver
-        : nextOrObserver.next;
+    this.onMessageCallback = nextOrObserver;
 
     return () => {
       this.onMessageCallback = null;
@@ -147,64 +249,16 @@ export class WindowController implements FirebaseMessaging, FirebaseService {
     throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_SW);
   }
 
-  // Unimplemented
-  onTokenRefresh(): Unsubscribe {
-    return () => {};
+  onBackgroundMessage(): Unsubscribe {
+    throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_SW);
   }
 
   /**
-   * Creates or updates the default service worker registration.
-   * @return The service worker registration to be used for the push service.
+   * @deprecated No-op. It was initially designed with token rotation requests from server in mind.
+   * However, the plan to implement such feature was abandoned.
    */
-  private async getServiceWorkerRegistration(): Promise<
-    ServiceWorkerRegistration
-  > {
-    if (!this.swRegistration) {
-      try {
-        this.swRegistration = await navigator.serviceWorker.register(
-          DEFAULT_SW_PATH,
-          {
-            scope: DEFAULT_SW_SCOPE
-          }
-        );
-
-        // The timing when browser updates sw when sw has an update is unreliable by my experiment.
-        // It leads to version conflict when the SDK upgrades to a newer version in the main page, but
-        // sw is stuck with the old version. For example, https://github.com/firebase/firebase-js-sdk/issues/2590
-        // The following line reliably updates sw if there was an update.
-        this.swRegistration.update().catch(() => {
-          /* it is non blocking and we don't care if it failed */
-        });
-      } catch (e) {
-        throw ERROR_FACTORY.create(ErrorCode.FAILED_DEFAULT_REGISTRATION, {
-          browserErrorMessage: e.message
-        });
-      }
-    }
-
-    return this.swRegistration;
-  }
-
-  private async messageEventListener(event: MessageEvent): Promise<void> {
-    if (!event.data?.firebaseMessaging) {
-      // Not a message from FCM
-      return;
-    }
-
-    const { type, payload } = (event.data as InternalMessage).firebaseMessaging;
-
-    if (this.onMessageCallback && type === MessageType.PUSH_RECEIVED) {
-      this.onMessageCallback(payload);
-    }
-
-    const { data } = payload;
-    if (
-      isConsoleMessage(data) &&
-      data[CONSOLE_CAMPAIGN_ANALYTICS_ENABLED] === '1'
-    ) {
-      // Analytics is enabled on this message, so we should log it.
-      await this.logEvent(type, data);
-    }
+  onTokenRefresh(): Unsubscribe {
+    return () => {};
   }
 
   private async logEvent(
@@ -233,4 +287,12 @@ function getEventType(messageType: MessageType): string {
     default:
       throw new Error();
   }
+}
+
+function stripInternalFields(
+  internalPayload: MessagePayloadInternal
+): MessagePayloadInternal {
+  delete internalPayload.messageType;
+  delete internalPayload.isFirebaseMessaging;
+  return internalPayload;
 }

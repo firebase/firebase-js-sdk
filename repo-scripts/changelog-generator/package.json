@@ -1,0 +1,43 @@
+{
+  "name": "@firebase/changelog-generator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A package for generating changelog",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "build": "tsc",
+    "build:dev": "tsc -w",
+    "test": "tsc -p . --noEmit",
+    "prepare": "yarn build"
+  },
+  "dependencies": {
+    "@changesets/types": "3.1.0",
+    "@changesets/get-github-info": "0.4.3",
+    "node-fetch": "2.6.0",
+    "@types/node-fetch": "2.5.7"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "typescript": "3.9.7"
+  },
+  "repository": {
+    "directory": "repo-scripts/changelog-generator",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reportDir": "./coverage/node"
+  }
+}

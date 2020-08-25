@@ -17,7 +17,7 @@
 
 import { initializeApp } from '@firebase/app-exp';
 
-import * as firestore from '../index';
+import * as firestore from '../../lite-types';
 
 import { initializeFirestore } from '../src/api/database';
 import { doc, collection, setDoc } from '../src/api/reference';
@@ -25,6 +25,8 @@ import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
 } from '../../test/integration/util/settings';
+import { AutoId } from '../../src/util/misc';
+import { expect } from 'chai';
 
 let appCount = 0;
 
@@ -66,3 +68,72 @@ export function withTestDocAndInitialData(
     return fn(ref);
   });
 }
+
+export function withTestCollectionAndInitialData(
+  data: firestore.DocumentData[],
+  fn: (collRef: firestore.CollectionReference) => void | Promise<void>
+): Promise<void> {
+  return withTestDb(async db => {
+    const coll = collection(db, AutoId.newId());
+    for (const element of data) {
+      const ref = doc(coll);
+      await setDoc(ref, element);
+    }
+    return fn(coll);
+  });
+}
+
+export function withTestCollection(
+  fn: (collRef: firestore.CollectionReference) => void | Promise<void>
+): Promise<void> {
+  return withTestDb(db => {
+    return fn(collection(db, AutoId.newId()));
+  });
+}
+
+// Used for testing the FirestoreDataConverter.
+export class Post {
+  constructor(readonly title: string, readonly author: string) {}
+  byline(): string {
+    return this.title + ', by ' + this.author;
+  }
+}
+
+export const postConverter = {
+  toFirestore(post: Post): firestore.DocumentData {
+    return { title: post.title, author: post.author };
+  },
+  fromFirestore(snapshot: firestore.QueryDocumentSnapshot): Post {
+    const data = snapshot.data();
+    return new Post(data.title, data.author);
+  }
+};
+
+export const postConverterMerge = {
+  toFirestore(
+    post: Partial<Post>,
+    options?: firestore.SetOptions
+  ): firestore.DocumentData {
+    if (
+      options &&
+      ((options as { merge: true }).merge ||
+        (options as { mergeFields: Array<string | number> }).mergeFields)
+    ) {
+      expect(post).to.not.be.an.instanceof(Post);
+    } else {
+      expect(post).to.be.an.instanceof(Post);
+    }
+    const result: firestore.DocumentData = {};
+    if (post.title) {
+      result.title = post.title;
+    }
+    if (post.author) {
+      result.author = post.author;
+    }
+    return result;
+  },
+  fromFirestore(snapshot: firestore.QueryDocumentSnapshot): Post {
+    const data = snapshot.data();
+    return new Post(data.title, data.author);
+  }
+};
