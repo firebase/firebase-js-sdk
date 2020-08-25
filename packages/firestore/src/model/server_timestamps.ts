@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
+import {
+  Value as ProtoValue,
+  MapValue as ProtoMapValue
+} from '../protos/firestore_proto_api';
 import { Timestamp } from '../api/timestamp';
 import { normalizeTimestamp } from './values';
 
@@ -44,7 +47,7 @@ const TYPE_KEY = '__type__';
 const PREVIOUS_VALUE_KEY = '__previous_value__';
 const LOCAL_WRITE_TIME_KEY = '__local_write_time__';
 
-export function isServerTimestamp(value: api.Value | null): boolean {
+export function isServerTimestamp(value: ProtoValue | null): boolean {
   const type = (value?.mapValue?.fields || {})[TYPE_KEY]?.stringValue;
   return type === SERVER_TIMESTAMP_SENTINEL;
 }
@@ -54,9 +57,9 @@ export function isServerTimestamp(value: api.Value | null): boolean {
  */
 export function serverTimestamp(
   localWriteTime: Timestamp,
-  previousValue: api.Value | null
-): api.Value {
-  const mapValue: api.MapValue = {
+  previousValue: ProtoValue | null
+): ProtoValue {
+  const mapValue: ProtoMapValue = {
     fields: {
       [TYPE_KEY]: {
         stringValue: SERVER_TIMESTAMP_SENTINEL
@@ -83,7 +86,7 @@ export function serverTimestamp(
  * Preserving the previous values allows the user to display the last resoled
  * value until the backend responds with the timestamp.
  */
-export function getPreviousValue(value: api.Value): api.Value | null {
+export function getPreviousValue(value: ProtoValue): ProtoValue | null {
   const previousValue = value.mapValue!.fields![PREVIOUS_VALUE_KEY];
 
   if (isServerTimestamp(previousValue)) {
@@ -95,7 +98,7 @@ export function getPreviousValue(value: api.Value): api.Value | null {
 /**
  * Returns the local time at which this timestamp was first set.
  */
-export function getLocalWriteTime(value: api.Value): Timestamp {
+export function getLocalWriteTime(value: ProtoValue): Timestamp {
   const localWriteTime = normalizeTimestamp(
     value.mapValue!.fields![LOCAL_WRITE_TIME_KEY].timestampValue!
   );

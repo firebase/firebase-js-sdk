@@ -27,7 +27,10 @@ import {
   enqueueWaitForPendingWrites,
   MAX_CONCURRENT_LIMBO_RESOLUTIONS
 } from '../../../src/core/firestore_client';
-import { AsyncQueue } from '../../../src/util/async_queue';
+import {
+  AsyncQueue,
+  wrapInUserErrorIfRecoverable
+} from '../../../src/util/async_queue';
 import {
   ComponentConfiguration,
   IndexedDbOfflineComponentProvider,
@@ -59,7 +62,6 @@ import { AutoId } from '../../../src/util/misc';
 import { User } from '../../../src/auth/user';
 import { CredentialChangeListener } from '../../../src/api/credentials';
 import { logDebug } from '../../../src/util/log';
-import { debugAssert } from '../../../src/util/assert';
 
 const LOG_TAG = 'Firestore';
 
@@ -67,7 +69,8 @@ const LOG_TAG = 'Firestore';
  * The root reference to the Firestore database and the entry point for the
  * tree-shakeable SDK.
  */
-export class Firestore extends LiteFirestore
+export class Firestore
+  extends LiteFirestore
   implements firestore.FirebaseFirestore, _FirebaseService {
   readonly _queue = new AsyncQueue();
   readonly _persistenceKey: string;
@@ -131,16 +134,28 @@ export class Firestore extends LiteFirestore
   }
 
   _terminate(): Promise<void> {
-    debugAssert(!this._terminated, 'Cannot invoke _terminate() more than once');
-    return this._queue.enqueueAndInitiateShutdown(async () => {
-      await super._terminate();
-      await removeComponents(this);
+    this._queue.enterRestrictedMode();
+    const deferred = new Deferred();
+    this._queue.enqueueAndForgetEvenWhileRestricted(async () => {
+      try {
+        await super._terminate();
+        await removeComponents(this);
 
-      // `removeChangeListener` must be called after shutting down the
-      // RemoteStore as it will prevent the RemoteStore from retrieving
-      // auth tokens.
-      this._credentials.removeChangeListener();
+        // `removeChangeListener` must be called after shutting down the
+        // RemoteStore as it will prevent the RemoteStore from retrieving
+        // auth tokens.
+        this._credentials.removeChangeListener();
+
+        deferred.resolve();
+      } catch (e) {
+        const firestoreError = wrapInUserErrorIfRecoverable(
+          e,
+          `Failed to shutdown persistence`
+        );
+        deferred.reject(firestoreError);
+      }
     });
+    return deferred.promise;
   }
 }
 
@@ -242,7 +257,7 @@ export function clearIndexedDbPersistence(
   }
 
   const deferred = new Deferred<void>();
-  firestoreImpl._queue.enqueueAndForgetEvenAfterShutdown(async () => {
+  firestoreImpl._queue.enqueueAndForgetEvenWhileRestricted(async () => {
     try {
       await indexedDbClearPersistence(
         indexedDbStoragePrefix(

@@ -28,6 +28,10 @@ export class DocumentKey {
     );
   }
 
+  static fromPath(path: string): DocumentKey {
+    return new DocumentKey(ResourcePath.fromString(path));
+  }
+
   static fromName(name: string): DocumentKey {
     return new DocumentKey(ResourcePath.fromString(name).popFirst(5));
   }

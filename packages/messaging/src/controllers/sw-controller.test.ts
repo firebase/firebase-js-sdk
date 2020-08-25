@@ -79,6 +79,7 @@ const DATA_MESSAGE: MessagePayloadInternal = {
 
 describe('SwController', () => {
   let addEventListenerStub: Stub<typeof self.addEventListener>;
+  // eslint-disable-next-line @typescript-eslint/ban-types
   let eventListenerMap: Map<string, Function>;
   let swController: SwController;
   let firebaseDependencies: FirebaseInternalDependencies;

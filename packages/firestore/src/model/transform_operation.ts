@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
+import { Value as ProtoValue } from '../protos/firestore_proto_api';
 
 import { Timestamp } from '../api/timestamp';
 import { debugAssert } from '../util/assert';
@@ -43,9 +43,9 @@ export class TransformOperation {
  */
 export function applyTransformOperationToLocalView(
   transform: TransformOperation,
-  previousValue: api.Value | null,
+  previousValue: ProtoValue | null,
   localWriteTime: Timestamp
-): api.Value {
+): ProtoValue {
   if (transform instanceof ServerTimestampTransform) {
     return serverTimestamp(localWriteTime, previousValue);
   } else if (transform instanceof ArrayUnionTransformOperation) {
@@ -70,9 +70,9 @@ export function applyTransformOperationToLocalView(
  */
 export function applyTransformOperationToRemoteDocument(
   transform: TransformOperation,
-  previousValue: api.Value | null,
-  transformResult: api.Value | null
-): api.Value {
+  previousValue: ProtoValue | null,
+  transformResult: ProtoValue | null
+): ProtoValue {
   // The server just sends null as the transform result for array operations,
   // so we have to calculate a result the same as we do for local
   // applications.
@@ -106,8 +106,8 @@ export function applyTransformOperationToRemoteDocument(
  */
 export function computeTransformOperationBaseValue(
   transform: TransformOperation,
-  previousValue: api.Value | null
-): api.Value | null {
+  previousValue: ProtoValue | null
+): ProtoValue | null {
   if (transform instanceof NumericIncrementTransformOperation) {
     return isNumber(previousValue) ? previousValue! : { integerValue: 0 };
   }
@@ -146,15 +146,15 @@ export class ServerTimestampTransform extends TransformOperation {}
 
 /** Transforms an array value via a union operation. */
 export class ArrayUnionTransformOperation extends TransformOperation {
-  constructor(readonly elements: api.Value[]) {
+  constructor(readonly elements: ProtoValue[]) {
     super();
   }
 }
 
 function applyArrayUnionTransformOperation(
   transform: ArrayUnionTransformOperation,
-  previousValue: api.Value | null
-): api.Value {
+  previousValue: ProtoValue | null
+): ProtoValue {
   const values = coercedFieldValuesArray(previousValue);
   for (const toUnion of transform.elements) {
     if (!values.some(element => valueEquals(element, toUnion))) {
@@ -166,15 +166,15 @@ function applyArrayUnionTransformOperation(
 
 /** Transforms an array value via a remove operation. */
 export class ArrayRemoveTransformOperation extends TransformOperation {
-  constructor(readonly elements: api.Value[]) {
+  constructor(readonly elements: ProtoValue[]) {
     super();
   }
 }
 
 function applyArrayRemoveTransformOperation(
   transform: ArrayRemoveTransformOperation,
-  previousValue: api.Value | null
-): api.Value {
+  previousValue: ProtoValue | null
+): ProtoValue {
   let values = coercedFieldValuesArray(previousValue);
   for (const toRemove of transform.elements) {
     values = values.filter(element => !valueEquals(element, toRemove));
@@ -191,7 +191,7 @@ function applyArrayRemoveTransformOperation(
 export class NumericIncrementTransformOperation extends TransformOperation {
   constructor(
     readonly serializer: JsonProtoSerializer,
-    readonly operand: api.Value
+    readonly operand: ProtoValue
   ) {
     super();
     debugAssert(
@@ -203,8 +203,8 @@ export class NumericIncrementTransformOperation extends TransformOperation {
 
 export function applyNumericIncrementTransformOperationToLocalView(
   transform: NumericIncrementTransformOperation,
-  previousValue: api.Value | null
-): api.Value {
+  previousValue: ProtoValue | null
+): ProtoValue {
   // PORTING NOTE: Since JavaScript's integer arithmetic is limited to 53 bit
   // precision and resolves overflows by reducing precision, we do not
   // manually cap overflows at 2^63.
@@ -220,11 +220,11 @@ export function applyNumericIncrementTransformOperationToLocalView(
   }
 }
 
-function asNumber(value: api.Value): number {
+function asNumber(value: ProtoValue): number {
   return normalizeNumber(value.integerValue || value.doubleValue);
 }
 
-function coercedFieldValuesArray(value: api.Value | null): api.Value[] {
+function coercedFieldValuesArray(value: ProtoValue | null): ProtoValue[] {
   return isArray(value) && value.arrayValue.values
     ? value.arrayValue.values.slice()
     : [];

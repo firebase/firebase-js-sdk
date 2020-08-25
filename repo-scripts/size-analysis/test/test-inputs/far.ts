@@ -65,7 +65,7 @@ export function basicUniqueFuncFar(
 export function basicUniqueFuncFar(x: number): { suit: string; card: number };
 export function basicUniqueFuncFar(
   x: number | Array<{ suit: string; card: number }>
-) {
+): number | { suit: string; card: number } {
   if (typeof x === 'object') {
     const pickedCard = Math.floor(Math.random() * x.length);
     return pickedCard;

@@ -1079,6 +1079,13 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
+  it('can call terminate() multiple times', async () => {
+    return withTestDb(persistence, async db => {
+      await db.terminate();
+      await db.terminate();
+    });
+  });
+
   // eslint-disable-next-line no-restricted-properties
   (MEMORY_ONLY_BUILD ? it : it.skip)(
     'recovers when persistence is missing',
@@ -1259,7 +1266,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it('calling terminate mutiple times should proceed', async () => {
+  it('calling terminate multiple times should proceed', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
       await firestore.terminate();

@@ -1,14 +1,15 @@
 {
-  "name": "firebase-messaging-selenium-test",
+  "name": "firebase-messaging-integration-test",
   "private": true,
   "version": "0.2.1",
   "scripts": {
     "pretest:manual": "node ./download-browsers.js",
     "test": "mocha --exit",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
     "test:manual": "mocha --exit"
   },
   "devDependencies": {
-    "firebase": "7.17.2",
+    "firebase": "7.19.0",
     "chai": "4.2.0",
     "chromedriver": "84.0.1",
     "express": "4.17.1",

@@ -20,6 +20,7 @@
  * microtask, i.e. as soon as possible after the current script returns back
  * into browser code.
  */
+// eslint-disable-next-line @typescript-eslint/ban-types
 export function async(f: Function): Function {
   return (...argsToForward: unknown[]) => {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
