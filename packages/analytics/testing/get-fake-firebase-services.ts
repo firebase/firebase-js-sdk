@@ -42,6 +42,7 @@ export function getFakeApp(measurementId?: string): FirebaseApp {
 
 export function getFakeInstallations(
   fid: string = 'fid-1234',
+  // eslint-disable-next-line @typescript-eslint/ban-types
   onFidResolve?: Function
 ): FirebaseInstallations {
   return {
