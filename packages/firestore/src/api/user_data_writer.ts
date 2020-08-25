@@ -25,7 +25,6 @@ import {
   Value as ProtoValue
 } from '../protos/firestore_proto_api';
 import { DocumentKeyReference } from './user_data_reader';
-import { Blob } from './blob';
 import { GeoPoint } from './geo_point';
 import { Timestamp } from './timestamp';
 import { DatabaseId } from '../core/database_info';

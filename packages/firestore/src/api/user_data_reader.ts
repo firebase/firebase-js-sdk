@@ -46,7 +46,6 @@ import {
   toResourceName,
   toTimestamp
 } from '../remote/serializer';
-import { Blob } from './blob';
 import { BaseFieldPath, fromDotSeparatedString } from './field_path';
 import { DeleteFieldValueImpl, SerializableFieldValue } from './field_value';
 import { GeoPoint } from './geo_point';

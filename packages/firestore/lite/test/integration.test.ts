@@ -721,7 +721,7 @@ describe('DocumentSnapshot', () => {
       { bytes: Bytes.fromBase64String('aa') },
       async docRef => {
         const docSnap = await getDoc(docRef);
-        let bytes = docSnap.get('bytes')!;
+        const bytes = docSnap.get('bytes')!;
         expect(bytes.constructor.name).to.equal('Bytes');
       }
     );

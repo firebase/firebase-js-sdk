@@ -53,10 +53,6 @@ function assertBase64Available(): void {
  * using the hack above to make sure no-one outside this module can call it.
  */
 export class Blob extends Bytes {
-  constructor(byteString: ByteString) {
-    super(byteString);
-  }
-
   static fromBase64String(base64: string): Blob {
     validateExactNumberOfArgs('Blob.fromBase64String', arguments, 1);
     validateArgType('Blob.fromBase64String', 'string', 1, base64);

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Blob } from '../api/blob';
 import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import {
