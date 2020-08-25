@@ -116,20 +116,20 @@ export async function extractDependenciesAndSize(
     externalDepsNotResolvedOutput,
     'utf-8'
   );
-  const externalDepsResolvedOutputContentMinimized: terser.MinifyOutput = terser.minify(
+  const externalDepsResolvedOutputContentMinimized = await terser.minify(
     externalDepsResolvedOutputContent,
     {
-      output: {
+      format: {
         comments: false
       },
       mangle: { toplevel: true },
       compress: false
     }
   );
-  const externalDepsNotResolvedOutputContentMinimized: terser.MinifyOutput = terser.minify(
+  const externalDepsNotResolvedOutputContentMinimized = await terser.minify(
     externalDepsNotResolvedOutputContent,
     {
-      output: {
+      format: {
         comments: false
       },
       mangle: { toplevel: true },
@@ -801,6 +801,7 @@ export function buildMap(api: MemberList): Map<string, string> {
  */
 async function traverseDirs(
   moduleLocation: string,
+  // eslint-disable-next-line @typescript-eslint/ban-types
   executor: Function,
   level: number,
   levelLimit: number
