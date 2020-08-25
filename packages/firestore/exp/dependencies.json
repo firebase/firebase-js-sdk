@@ -50,7 +50,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 21515
+        "sizeInBytes": 21406
     },
     "CollectionReference": {
         "dependencies": {
@@ -61,7 +61,6 @@
                 "getMessageOrStack",
                 "hardAssert",
                 "isIndexedDbTransactionError",
-                "isNullOrUndefined",
                 "logDebug",
                 "logError",
                 "newQueryForPath",
@@ -92,7 +91,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18744
+        "sizeInBytes": 17680
     },
     "DocumentReference": {
         "dependencies": {
@@ -134,7 +133,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 20116
+        "sizeInBytes": 20083
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -219,7 +218,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 39654
+        "sizeInBytes": 39621
     },
     "FieldPath": {
         "dependencies": {
@@ -269,7 +268,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23188
+        "sizeInBytes": 23079
     },
     "FieldValue": {
         "dependencies": {
@@ -308,7 +307,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16818
+        "sizeInBytes": 16709
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -345,7 +344,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16727
+        "sizeInBytes": 16618
     },
     "GeoPoint": {
         "dependencies": {
@@ -391,7 +390,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19636
+        "sizeInBytes": 19527
     },
     "Query": {
         "dependencies": {
@@ -429,7 +428,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16920
+        "sizeInBytes": 16811
     },
     "QueryConstraint": {
         "dependencies": {
@@ -467,7 +466,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16733
+        "sizeInBytes": 16624
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -552,7 +551,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 39664
+        "sizeInBytes": 39631
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -641,7 +640,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 42295
+        "sizeInBytes": 42262
     },
     "SnapshotMetadata": {
         "dependencies": {
@@ -679,7 +678,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16942
+        "sizeInBytes": 16833
     },
     "Timestamp": {
         "dependencies": {
@@ -717,7 +716,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18328
+        "sizeInBytes": 18219
     },
     "Transaction": {
         "dependencies": {
@@ -859,7 +858,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 63180
+        "sizeInBytes": 63147
     },
     "WriteBatch": {
         "dependencies": {
@@ -989,7 +988,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 55917
+        "sizeInBytes": 55884
     },
     "addDoc": {
         "dependencies": {
@@ -1007,7 +1006,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -1017,6 +1016,7 @@
                 "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -1089,7 +1089,9 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
+                "getFirstOrderByField",
                 "getHighestUnacknowledgedBatchId",
+                "getInequalityFilterField",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -1101,6 +1103,8 @@
                 "getSyncEngine",
                 "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
                 "isArray",
@@ -1132,6 +1136,7 @@
                 "logWarn",
                 "looksLikeJsonObject",
                 "mapCodeFromRpcCode",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "newConnection",
@@ -1366,7 +1371,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 214087
+        "sizeInBytes": 214167
     },
     "arrayRemove": {
         "dependencies": {
@@ -1455,7 +1460,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 36209
+        "sizeInBytes": 36100
     },
     "arrayUnion": {
         "dependencies": {
@@ -1544,7 +1549,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 36201
+        "sizeInBytes": 36092
     },
     "clearIndexedDbPersistence": {
         "dependencies": {
@@ -1593,7 +1598,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 30195
+        "sizeInBytes": 30086
     },
     "collection": {
         "dependencies": {
@@ -1605,7 +1610,6 @@
                 "getMessageOrStack",
                 "hardAssert",
                 "isIndexedDbTransactionError",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "logDebug",
                 "logError",
@@ -1648,7 +1652,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 24823
+        "sizeInBytes": 23835
     },
     "collectionGroup": {
         "dependencies": {
@@ -1661,7 +1665,6 @@
                 "getMessageOrStack",
                 "hardAssert",
                 "isIndexedDbTransactionError",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "logDebug",
                 "logError",
@@ -1699,7 +1702,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23208
+        "sizeInBytes": 22144
     },
     "deleteDoc": {
         "dependencies": {
@@ -1715,7 +1718,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -1725,6 +1728,7 @@
                 "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertPresent",
                 "binaryStringFromUint8Array",
@@ -1790,7 +1794,9 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
+                "getFirstOrderByField",
                 "getHighestUnacknowledgedBatchId",
+                "getInequalityFilterField",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -1802,6 +1808,8 @@
                 "getSyncEngine",
                 "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "ignoreIfPrimaryLeaseLoss",
                 "isArray",
                 "isCollectionGroupQuery",
@@ -1828,6 +1836,7 @@
                 "logError",
                 "logWarn",
                 "mapCodeFromRpcCode",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "newConnection",
@@ -2035,7 +2044,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 196418
+        "sizeInBytes": 196498
     },
     "deleteField": {
         "dependencies": {
@@ -2077,7 +2086,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17784
+        "sizeInBytes": 17675
     },
     "disableNetwork": {
         "dependencies": {
@@ -2093,7 +2102,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -2103,6 +2112,7 @@
                 "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertPresent",
                 "binaryStringFromUint8Array",
@@ -2168,7 +2178,9 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
+                "getFirstOrderByField",
                 "getHighestUnacknowledgedBatchId",
+                "getInequalityFilterField",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -2181,6 +2193,8 @@
                 "getRemoteStore",
                 "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "ignoreIfPrimaryLeaseLoss",
                 "isArray",
                 "isCollectionGroupQuery",
@@ -2207,6 +2221,7 @@
                 "logError",
                 "logWarn",
                 "mapCodeFromRpcCode",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "newConnection",
@@ -2412,7 +2427,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 196036
+        "sizeInBytes": 196116
     },
     "doc": {
         "dependencies": {
@@ -2424,7 +2439,6 @@
                 "getMessageOrStack",
                 "hardAssert",
                 "isIndexedDbTransactionError",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "logDebug",
                 "logError",
@@ -2467,7 +2481,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 24874
+        "sizeInBytes": 23886
     },
     "documentId": {
         "dependencies": {
@@ -2518,7 +2532,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23238
+        "sizeInBytes": 23129
     },
     "enableIndexedDbPersistence": {
         "dependencies": {
@@ -2541,6 +2555,7 @@
                 "argToString",
                 "arrayEquals",
                 "arrayValueContains",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertPresent",
                 "binaryStringFromUint8Array",
@@ -2636,13 +2651,18 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getDocument",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
                 "getPostMutationVersion",
                 "getWindow",
                 "globalTargetStore",
+                "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "ignoreIfPrimaryLeaseLoss",
                 "immediateSuccessor",
                 "indexedDbClearPersistence",
@@ -2667,6 +2687,7 @@
                 "localTransformResults",
                 "logDebug",
                 "logError",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "mutationQueueContainsKey",
@@ -2885,7 +2906,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 199048
+        "sizeInBytes": 200558
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -2904,7 +2925,7 @@
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
                 "applyPrimaryState",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTargetState",
@@ -2916,6 +2937,7 @@
                 "argToString",
                 "arrayEquals",
                 "arrayValueContains",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertPresent",
                 "binaryStringFromUint8Array",
@@ -3036,7 +3058,9 @@
                 "getCachedTarget",
                 "getDocument",
                 "getEncodedDatabaseId",
+                "getFirstOrderByField",
                 "getHighestUnacknowledgedBatchId",
+                "getInequalityFilterField",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -3049,6 +3073,8 @@
                 "globalTargetStore",
                 "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "ignoreIfPrimaryLeaseLoss",
                 "immediateSuccessor",
                 "indexedDbClearPersistence",
@@ -3081,6 +3107,7 @@
                 "logWarn",
                 "lookupMutationDocuments",
                 "mapCodeFromRpcCode",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "mutationQueueContainsKey",
@@ -3364,7 +3391,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 304821
+        "sizeInBytes": 304901
     },
     "enableNetwork": {
         "dependencies": {
@@ -3380,7 +3407,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -3390,6 +3417,7 @@
                 "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertPresent",
                 "binaryStringFromUint8Array",
@@ -3455,7 +3483,9 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
+                "getFirstOrderByField",
                 "getHighestUnacknowledgedBatchId",
+                "getInequalityFilterField",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -3468,6 +3498,8 @@
                 "getRemoteStore",
                 "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "ignoreIfPrimaryLeaseLoss",
                 "isArray",
                 "isCollectionGroupQuery",
@@ -3494,6 +3526,7 @@
                 "logError",
                 "logWarn",
                 "mapCodeFromRpcCode",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "newConnection",
@@ -3699,7 +3732,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 196033
+        "sizeInBytes": 196113
     },
     "endAt": {
         "dependencies": {
@@ -3721,6 +3754,8 @@
                 "formatPlural",
                 "fromDotSeparatedString",
                 "fullyQualifiedPrefixPath",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "getPreviousValue",
@@ -3730,7 +3765,6 @@
                 "isEmpty",
                 "isIndexedDbTransactionError",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -3822,7 +3856,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53208
+        "sizeInBytes": 52464
     },
     "endBefore": {
         "dependencies": {
@@ -3844,6 +3878,8 @@
                 "formatPlural",
                 "fromDotSeparatedString",
                 "fullyQualifiedPrefixPath",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "getPreviousValue",
@@ -3853,7 +3889,6 @@
                 "isEmpty",
                 "isIndexedDbTransactionError",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -3945,7 +3980,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53219
+        "sizeInBytes": 52475
     },
     "getDoc": {
         "dependencies": {
@@ -3961,7 +3996,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -3971,6 +4006,7 @@
                 "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -4046,7 +4082,9 @@
                 "getDoc",
                 "getEncodedDatabaseId",
                 "getEventManager",
+                "getFirstOrderByField",
                 "getHighestUnacknowledgedBatchId",
+                "getInequalityFilterField",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -4058,6 +4096,8 @@
                 "getPreviousValue",
                 "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
                 "isArray",
@@ -4086,6 +4126,7 @@
                 "logError",
                 "logWarn",
                 "mapCodeFromRpcCode",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "newConnection",
@@ -4313,7 +4354,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 212441
+        "sizeInBytes": 212521
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4335,6 +4376,7 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
@@ -4384,6 +4426,8 @@
                 "fromDotSeparatedString",
                 "geoPointEquals",
                 "getDocFromCache",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalStore",
                 "getLocalWriteTime",
                 "getLogLevel",
@@ -4391,7 +4435,10 @@
                 "getOfflineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
+                "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "invalidClassError",
                 "isArray",
                 "isCollectionGroupQuery",
@@ -4410,6 +4457,7 @@
                 "localTransformResults",
                 "logDebug",
                 "logError",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "newLocalStore",
@@ -4555,7 +4603,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 118383
+        "sizeInBytes": 119893
     },
     "getDocFromServer": {
         "dependencies": {
@@ -4571,7 +4619,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -4581,6 +4629,7 @@
                 "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -4656,7 +4705,9 @@
                 "getDocFromServer",
                 "getEncodedDatabaseId",
                 "getEventManager",
+                "getFirstOrderByField",
                 "getHighestUnacknowledgedBatchId",
+                "getInequalityFilterField",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -4668,6 +4719,8 @@
                 "getPreviousValue",
                 "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
                 "isArray",
@@ -4696,6 +4749,7 @@
                 "logError",
                 "logWarn",
                 "mapCodeFromRpcCode",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "newConnection",
@@ -4923,7 +4977,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 212497
+        "sizeInBytes": 212577
     },
     "getDocs": {
         "dependencies": {
@@ -4939,7 +4993,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -4949,6 +5003,7 @@
                 "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -5024,7 +5079,9 @@
                 "getDocs",
                 "getEncodedDatabaseId",
                 "getEventManager",
+                "getFirstOrderByField",
                 "getHighestUnacknowledgedBatchId",
+                "getInequalityFilterField",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -5036,6 +5093,8 @@
                 "getPreviousValue",
                 "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
                 "isArray",
@@ -5064,6 +5123,7 @@
                 "logError",
                 "logWarn",
                 "mapCodeFromRpcCode",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "newConnection",
@@ -5295,7 +5355,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 215004
+        "sizeInBytes": 215083
     },
     "getDocsFromCache": {
         "dependencies": {
@@ -5317,6 +5377,7 @@
                 "applyTransformOperationToRemoteDocument",
                 "argToString",
                 "arrayEquals",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
@@ -5369,6 +5430,8 @@
                 "fromDotSeparatedString",
                 "geoPointEquals",
                 "getDocsFromCache",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalStore",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -5377,7 +5440,10 @@
                 "getOfflineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
+                "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "invalidClassError",
                 "isArray",
                 "isCollectionGroupQuery",
@@ -5396,6 +5462,7 @@
                 "localTransformResults",
                 "logDebug",
                 "logError",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "newLocalStore",
@@ -5550,7 +5617,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 131563
+        "sizeInBytes": 133068
     },
     "getDocsFromServer": {
         "dependencies": {
@@ -5566,7 +5633,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -5576,6 +5643,7 @@
                 "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -5651,7 +5719,9 @@
                 "getDocsFromServer",
                 "getEncodedDatabaseId",
                 "getEventManager",
+                "getFirstOrderByField",
                 "getHighestUnacknowledgedBatchId",
+                "getInequalityFilterField",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -5663,6 +5733,8 @@
                 "getPreviousValue",
                 "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
                 "isArray",
@@ -5691,6 +5763,7 @@
                 "logError",
                 "logWarn",
                 "mapCodeFromRpcCode",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "newConnection",
@@ -5921,7 +5994,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 214742
+        "sizeInBytes": 214822
     },
     "getFirestore": {
         "dependencies": {
@@ -5959,7 +6032,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16803
+        "sizeInBytes": 16694
     },
     "increment": {
         "dependencies": {
@@ -6009,7 +6082,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18649
+        "sizeInBytes": 18540
     },
     "initializeFirestore": {
         "dependencies": {
@@ -6048,7 +6121,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18107
+        "sizeInBytes": 17998
     },
     "limit": {
         "dependencies": {
@@ -6059,7 +6132,6 @@
                 "getMessageOrStack",
                 "hardAssert",
                 "isIndexedDbTransactionError",
-                "isNullOrUndefined",
                 "limit",
                 "logDebug",
                 "logError",
@@ -6094,7 +6166,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19234
+        "sizeInBytes": 18170
     },
     "limitToLast": {
         "dependencies": {
@@ -6105,7 +6177,6 @@
                 "getMessageOrStack",
                 "hardAssert",
                 "isIndexedDbTransactionError",
-                "isNullOrUndefined",
                 "limitToLast",
                 "logDebug",
                 "logError",
@@ -6140,7 +6211,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19258
+        "sizeInBytes": 18194
     },
     "onSnapshot": {
         "dependencies": {
@@ -6156,7 +6227,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -6166,6 +6237,7 @@
                 "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -6240,7 +6312,9 @@
                 "geoPointEquals",
                 "getEncodedDatabaseId",
                 "getEventManager",
+                "getFirstOrderByField",
                 "getHighestUnacknowledgedBatchId",
+                "getInequalityFilterField",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -6252,6 +6326,8 @@
                 "getPreviousValue",
                 "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "ignoreIfPrimaryLeaseLoss",
                 "implementsAnyMethods",
                 "invalidClassError",
@@ -6282,6 +6358,7 @@
                 "logError",
                 "logWarn",
                 "mapCodeFromRpcCode",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "newConnection",
@@ -6514,7 +6591,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 216087
+        "sizeInBytes": 216166
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -6530,7 +6607,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -6540,6 +6617,7 @@
                 "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertPresent",
                 "binaryStringFromUint8Array",
@@ -6605,7 +6683,9 @@
                 "geoPointEquals",
                 "getEncodedDatabaseId",
                 "getEventManager",
+                "getFirstOrderByField",
                 "getHighestUnacknowledgedBatchId",
+                "getInequalityFilterField",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -6616,6 +6696,8 @@
                 "getPostMutationVersion",
                 "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "ignoreIfPrimaryLeaseLoss",
                 "implementsAnyMethods",
                 "isArray",
@@ -6644,6 +6726,7 @@
                 "logError",
                 "logWarn",
                 "mapCodeFromRpcCode",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "newConnection",
@@ -6851,7 +6934,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 196882
+        "sizeInBytes": 196962
     },
     "orderBy": {
         "dependencies": {
@@ -6866,11 +6949,12 @@
                 "formatJSON",
                 "formatPlural",
                 "fromDotSeparatedString",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getMessageOrStack",
                 "hardAssert",
                 "invalidClassError",
                 "isIndexedDbTransactionError",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "logDebug",
                 "logError",
@@ -6919,7 +7003,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 28879
+        "sizeInBytes": 28059
     },
     "parent": {
         "dependencies": {
@@ -6931,7 +7015,6 @@
                 "getMessageOrStack",
                 "hardAssert",
                 "isIndexedDbTransactionError",
-                "isNullOrUndefined",
                 "logDebug",
                 "logError",
                 "newQueryForPath",
@@ -6968,7 +7051,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22884
+        "sizeInBytes": 21896
     },
     "query": {
         "dependencies": {
@@ -7008,7 +7091,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17501
+        "sizeInBytes": 17392
     },
     "queryEqual": {
         "dependencies": {
@@ -7025,12 +7108,13 @@
                 "filterEquals",
                 "formatJSON",
                 "geoPointEquals",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "hardAssert",
                 "isIndexedDbTransactionError",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isServerTimestamp",
                 "logDebug",
                 "logError",
@@ -7084,7 +7168,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 33450
+        "sizeInBytes": 32630
     },
     "refEqual": {
         "dependencies": {
@@ -7095,7 +7179,6 @@
                 "getMessageOrStack",
                 "hardAssert",
                 "isIndexedDbTransactionError",
-                "isNullOrUndefined",
                 "logDebug",
                 "logError",
                 "newQueryForPath",
@@ -7132,7 +7215,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22431
+        "sizeInBytes": 21443
     },
     "runTransaction": {
         "dependencies": {
@@ -7319,7 +7402,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 82111
+        "sizeInBytes": 82113
     },
     "serverTimestamp": {
         "dependencies": {
@@ -7364,7 +7447,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17795
+        "sizeInBytes": 17686
     },
     "setDoc": {
         "dependencies": {
@@ -7381,7 +7464,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -7391,6 +7474,7 @@
                 "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -7462,7 +7546,9 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
+                "getFirstOrderByField",
                 "getHighestUnacknowledgedBatchId",
+                "getInequalityFilterField",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -7474,6 +7560,8 @@
                 "getSyncEngine",
                 "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
                 "isArray",
@@ -7505,6 +7593,7 @@
                 "logWarn",
                 "looksLikeJsonObject",
                 "mapCodeFromRpcCode",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "newConnection",
@@ -7737,7 +7826,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 212369
+        "sizeInBytes": 212449
     },
     "setLogLevel": {
         "dependencies": {
@@ -7775,7 +7864,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16769
+        "sizeInBytes": 16660
     },
     "snapshotEqual": {
         "dependencies": {
@@ -7801,6 +7890,8 @@
                 "formatPlural",
                 "fromDotSeparatedString",
                 "geoPointEquals",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "getPreviousValue",
@@ -7808,7 +7899,6 @@
                 "invalidClassError",
                 "isIndexedDbTransactionError",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -7889,7 +7979,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 50939
+        "sizeInBytes": 50195
     },
     "startAfter": {
         "dependencies": {
@@ -7910,6 +8000,8 @@
                 "formatPlural",
                 "fromDotSeparatedString",
                 "fullyQualifiedPrefixPath",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "getPreviousValue",
@@ -7919,7 +8011,6 @@
                 "isEmpty",
                 "isIndexedDbTransactionError",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -8012,7 +8103,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53229
+        "sizeInBytes": 52485
     },
     "startAt": {
         "dependencies": {
@@ -8033,6 +8124,8 @@
                 "formatPlural",
                 "fromDotSeparatedString",
                 "fullyQualifiedPrefixPath",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "getPreviousValue",
@@ -8042,7 +8135,6 @@
                 "isEmpty",
                 "isIndexedDbTransactionError",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -8135,7 +8227,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53219
+        "sizeInBytes": 52475
     },
     "terminate": {
         "dependencies": {
@@ -8174,7 +8266,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17299
+        "sizeInBytes": 17190
     },
     "updateDoc": {
         "dependencies": {
@@ -8190,7 +8282,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -8200,6 +8292,7 @@
                 "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -8272,7 +8365,9 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
+                "getFirstOrderByField",
                 "getHighestUnacknowledgedBatchId",
+                "getInequalityFilterField",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -8284,6 +8379,8 @@
                 "getSyncEngine",
                 "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
                 "isArray",
@@ -8315,6 +8412,7 @@
                 "logWarn",
                 "looksLikeJsonObject",
                 "mapCodeFromRpcCode",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "newConnection",
@@ -8550,7 +8648,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 213868
+        "sizeInBytes": 213948
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -8566,7 +8664,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -8576,6 +8674,7 @@
                 "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertPresent",
                 "binaryStringFromUint8Array",
@@ -8640,7 +8739,9 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
+                "getFirstOrderByField",
                 "getHighestUnacknowledgedBatchId",
+                "getInequalityFilterField",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -8652,6 +8753,8 @@
                 "getSyncEngine",
                 "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "ignoreIfPrimaryLeaseLoss",
                 "isArray",
                 "isCollectionGroupQuery",
@@ -8678,6 +8781,7 @@
                 "logError",
                 "logWarn",
                 "mapCodeFromRpcCode",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "newConnection",
@@ -8884,7 +8988,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 195825
+        "sizeInBytes": 195905
     },
     "where": {
         "dependencies": {
@@ -8912,12 +9016,15 @@
                 "fail",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
+                "findFilterOperator",
                 "forEach",
                 "formatJSON",
                 "formatPlural",
                 "fromDotSeparatedString",
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalWriteTime",
                 "getMessageOrStack",
                 "hardAssert",
@@ -8928,7 +9035,6 @@
                 "isIndexedDbTransactionError",
                 "isNanValue",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isNullValue",
                 "isPlainObject",
                 "isSafeInteger",
@@ -9031,7 +9137,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 59634
+        "sizeInBytes": 59036
     },
     "writeBatch": {
         "dependencies": {
@@ -9048,7 +9154,7 @@
                 "applyNumericIncrementTransformOperationToLocalView",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEvent",
+                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -9058,6 +9164,7 @@
                 "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
+                "asCollectionQueryAtPath",
                 "asNumber",
                 "assertPresent",
                 "assertUint8ArrayAvailable",
@@ -9130,7 +9237,9 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
+                "getFirstOrderByField",
                 "getHighestUnacknowledgedBatchId",
+                "getInequalityFilterField",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -9142,6 +9251,8 @@
                 "getSyncEngine",
                 "handleUserChange",
                 "hardAssert",
+                "hasLimitToFirst",
+                "hasLimitToLast",
                 "ignoreIfPrimaryLeaseLoss",
                 "invalidClassError",
                 "isArray",
@@ -9173,6 +9284,7 @@
                 "logWarn",
                 "looksLikeJsonObject",
                 "mapCodeFromRpcCode",
+                "matchesAllDocuments",
                 "maybeDocumentMap",
                 "mutationEquals",
                 "newConnection",
@@ -9412,6 +9524,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 217535
+        "sizeInBytes": 217615
     }
 }

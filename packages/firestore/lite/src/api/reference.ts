@@ -31,6 +31,7 @@ import {
 import {
   Bound,
   Direction,
+  hasLimitToLast,
   LimitType,
   newQueryForCollectionGroup,
   newQueryForPath,
@@ -579,7 +580,7 @@ export function getDocs<T>(
         )
     );
 
-    if (queryImpl._query.hasLimitToLast()) {
+    if (hasLimitToLast(queryImpl._query)) {
       // Limit to last queries reverse the orderBy constraint that was
       // specified by the user. As such, we need to reverse the order of the
       // results to return the documents in the expected order.

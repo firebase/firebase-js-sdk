@@ -58,6 +58,9 @@ import {
   Direction,
   FieldFilter,
   Filter,
+  findFilterOperator,
+  getFirstOrderByField,
+  getInequalityFilterField,
   isCollectionGroupQuery,
   LimitType,
   newQueryComparator,
@@ -72,7 +75,8 @@ import {
   queryWithAddedOrderBy,
   queryWithEndAt,
   queryWithLimit,
-  queryWithStartAt
+  queryWithStartAt,
+  hasLimitToLast
 } from '../core/query';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
@@ -1784,7 +1788,7 @@ function validateNewFilter(query: InternalQuery, filter: Filter): void {
   debugAssert(filter instanceof FieldFilter, 'Only FieldFilters are supported');
 
   if (filter.isInequality()) {
-    const existingField = query.getInequalityFilterField();
+    const existingField = getInequalityFilterField(query);
     if (existingField !== null && !existingField.isEqual(filter.field)) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -1795,13 +1799,13 @@ function validateNewFilter(query: InternalQuery, filter: Filter): void {
       );
     }
 
-    const firstOrderByField = query.getFirstOrderByField();
+    const firstOrderByField = getFirstOrderByField(query);
     if (firstOrderByField !== null) {
       validateOrderByAndInequalityMatch(query, filter.field, firstOrderByField);
     }
   }
 
-  const conflictingOp = query.findFilterOperator(conflictingOps(filter.op));
+  const conflictingOp = findFilterOperator(query, conflictingOps(filter.op));
   if (conflictingOp !== null) {
     // Special case when it's a duplicate op to give a slightly clearer error message.
     if (conflictingOp === filter.op) {
@@ -1821,9 +1825,9 @@ function validateNewFilter(query: InternalQuery, filter: Filter): void {
 }
 
 function validateNewOrderBy(query: InternalQuery, orderBy: OrderBy): void {
-  if (query.getFirstOrderByField() === null) {
+  if (getFirstOrderByField(query) === null) {
     // This is the first order by. It must match any inequality.
-    const inequalityField = query.getInequalityFilterField();
+    const inequalityField = getInequalityFilterField(query);
     if (inequalityField !== null) {
       validateOrderByAndInequalityMatch(query, inequalityField, orderBy.field);
     }
@@ -1850,7 +1854,7 @@ function validateOrderByAndInequalityMatch(
 export function validateHasExplicitOrderByForLimitToLast(
   query: InternalQuery
 ): void {
-  if (query.hasLimitToLast() && query.explicitOrderBy.length === 0) {
+  if (hasLimitToLast(query) && query.explicitOrderBy.length === 0) {
     throw new FirestoreError(
       Code.UNIMPLEMENTED,
       'limitToLast() queries require specifying at least one orderBy() clause'
