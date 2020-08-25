@@ -146,7 +146,9 @@ module.exports = {
           'String': "Use 'string' instead.",
           'Number': "Use 'number' instead.",
           'Boolean': "Use 'boolean' instead.",
-          'Function': 'Avoid the Function type, as it provides little safety'
+          'Function': `Avoid the Function type, as it provides little safety for the following reasons:
+                       It provides no type safety when calling the value, which means it's easy to provide the wrong arguments.
+                       It accepts class declarations, which will fail when called, as they are called without the new keyword.`
         },
         'extendDefaults': false
       }
