@@ -37,7 +37,7 @@
   "dependencies": {
     "@firebase/app-exp": "0.0.800",
     "@firebase/functions-exp": "0.0.800",
-    "@firebase/firestore": "1.16.5"
+    "@firebase/firestore": "1.16.6"
   },
   "devDependencies": {
     "rollup": "2.26.5",
