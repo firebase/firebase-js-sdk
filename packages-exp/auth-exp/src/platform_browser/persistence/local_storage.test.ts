@@ -25,7 +25,7 @@ import {
   PersistenceType
 } from '../../core/persistence';
 import { _getInstance } from '../../core/util/instantiator';
-import { browserLocalPersistence, POLLING_INTERVAL_MS } from './local_storage';
+import { browserLocalPersistence, _POLLING_INTERVAL_MS } from './local_storage';
 
 use(sinonChai);
 
@@ -41,12 +41,12 @@ describe('browserLocalPersistence', () => {
   it('should work with persistence type', async () => {
     const key = 'my-super-special-persistence-type';
     const value = PersistenceType.LOCAL;
-    expect(await persistence.get(key)).to.be.null;
-    await persistence.set(key, value);
-    expect(await persistence.get(key)).to.be.eq(value);
-    expect(await persistence.get('other-key')).to.be.null;
-    await persistence.remove(key);
-    expect(await persistence.get(key)).to.be.null;
+    expect(await persistence._get(key)).to.be.null;
+    await persistence._set(key, value);
+    expect(await persistence._get(key)).to.be.eq(value);
+    expect(await persistence._get('other-key')).to.be.null;
+    await persistence._remove(key);
+    expect(await persistence._get(key)).to.be.null;
   });
 
   it('should return persistedblob from user', async () => {
@@ -54,27 +54,27 @@ describe('browserLocalPersistence', () => {
     const auth = await testAuth();
     const value = testUser(auth, 'some-uid');
 
-    expect(await persistence.get(key)).to.be.null;
-    await persistence.set(key, value.toJSON());
-    const out = await persistence.get<PersistedBlob>(key);
+    expect(await persistence._get(key)).to.be.null;
+    await persistence._set(key, value.toJSON());
+    const out = await persistence._get<PersistedBlob>(key);
     expect(out!['uid']).to.eql(value.uid);
-    await persistence.remove(key);
-    expect(await persistence.get(key)).to.be.null;
+    await persistence._remove(key);
+    expect(await persistence._get(key)).to.be.null;
   });
 
   describe('#isAvailable', () => {
     it('should emit false if localStorage setItem throws', async () => {
       sinon.stub(localStorage, 'setItem').throws(new Error('nope'));
-      expect(await persistence.isAvailable()).to.be.false;
+      expect(await persistence._isAvailable()).to.be.false;
     });
 
     it('should emit false if localStorage removeItem throws', async () => {
       sinon.stub(localStorage, 'removeItem').throws(new Error('nope'));
-      expect(await persistence.isAvailable()).to.be.false;
+      expect(await persistence._isAvailable()).to.be.false;
     });
 
     it('should emit true if everything works properly', async () => {
-      expect(await persistence.isAvailable()).to.be.true;
+      expect(await persistence._isAvailable()).to.be.true;
     });
   });
 
@@ -90,11 +90,11 @@ describe('browserLocalPersistence', () => {
 
     context('with events', () => {
       beforeEach(() => {
-        persistence.addListener(key, callback);
+        persistence._addListener(key, callback);
       });
 
       afterEach(() => {
-        persistence.removeListener(key, callback);
+        persistence._removeListener(key, callback);
       });
 
       context('with multiple listeners', () => {
@@ -102,12 +102,12 @@ describe('browserLocalPersistence', () => {
 
         beforeEach(() => {
           otherCallback = sinon.spy();
-          persistence.addListener(key, otherCallback);
+          persistence._addListener(key, otherCallback);
           localStorage.setItem(key, JSON.stringify(newValue));
         });
 
         afterEach(() => {
-          persistence.removeListener(key, otherCallback);
+          persistence._removeListener(key, otherCallback);
         });
 
         it('should trigger both listeners if multiple listeners are registered', () => {
@@ -142,7 +142,7 @@ describe('browserLocalPersistence', () => {
         });
 
         it('should not trigger after unsubscribe', () => {
-          persistence.removeListener(key, callback);
+          persistence._removeListener(key, callback);
           window.dispatchEvent(
             new StorageEvent('storage', {
               key,
@@ -189,7 +189,7 @@ describe('browserLocalPersistence', () => {
 
         it('should not trigger if the listener was added after the storage was updated', () => {
           const otherCallback = sinon.spy();
-          persistence.addListener(key, otherCallback);
+          persistence._addListener(key, otherCallback);
 
           window.dispatchEvent(
             new StorageEvent('storage', {
@@ -200,7 +200,7 @@ describe('browserLocalPersistence', () => {
           );
 
           expect(otherCallback).not.to.have.been.called;
-          persistence.removeListener(key, otherCallback);
+          persistence._removeListener(key, otherCallback);
         });
       });
     });
@@ -211,18 +211,18 @@ describe('browserLocalPersistence', () => {
       beforeEach(() => {
         clock = sinon.useFakeTimers();
         (persistence as any)['fallbackToPolling'] = true;
-        persistence.addListener(key, callback);
+        persistence._addListener(key, callback);
       });
 
       afterEach(() => {
-        persistence.removeListener(key, callback);
+        persistence._removeListener(key, callback);
         clock.restore();
       });
 
       it('should catch persistence changes', async () => {
         localStorage.setItem(key, JSON.stringify(newValue));
 
-        clock.tick(POLLING_INTERVAL_MS + 1);
+        clock.tick(_POLLING_INTERVAL_MS + 1);
 
         expect(callback).to.have.been.calledWith(newValue);
       });
@@ -230,7 +230,7 @@ describe('browserLocalPersistence', () => {
       it('should not trigger twice if event still occurs after poll', async () => {
         localStorage.setItem(key, JSON.stringify(newValue));
 
-        clock.tick(POLLING_INTERVAL_MS + 1);
+        clock.tick(_POLLING_INTERVAL_MS + 1);
         window.dispatchEvent(
           new StorageEvent('storage', {
             key,
@@ -252,7 +252,7 @@ describe('browserLocalPersistence', () => {
             newValue: JSON.stringify(newValue)
           })
         );
-        clock.tick(POLLING_INTERVAL_MS + 1);
+        clock.tick(_POLLING_INTERVAL_MS + 1);
 
         expect(callback).to.have.been.calledOnceWith(newValue);
       });

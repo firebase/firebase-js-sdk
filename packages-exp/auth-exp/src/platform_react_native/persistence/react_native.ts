@@ -47,7 +47,7 @@ export function getReactNativePersistence(
     static type: 'LOCAL' = 'LOCAL';
     readonly type: PersistenceType = PersistenceType.LOCAL;
 
-    async isAvailable(): Promise<boolean> {
+    async _isAvailable(): Promise<boolean> {
       try {
         if (!storage) {
           return false;
@@ -60,24 +60,24 @@ export function getReactNativePersistence(
       }
     }
 
-    set(key: string, value: PersistenceValue): Promise<void> {
+    _set(key: string, value: PersistenceValue): Promise<void> {
       return storage.setItem(key, JSON.stringify(value));
     }
 
-    async get<T extends PersistenceValue>(key: string): Promise<T | null> {
+    async _get<T extends PersistenceValue>(key: string): Promise<T | null> {
       const json = await storage.getItem(key);
       return json ? JSON.parse(json) : null;
     }
 
-    remove(key: string): Promise<void> {
+    _remove(key: string): Promise<void> {
       return storage.removeItem(key);
     }
 
-    addListener(_key: string, _listener: StorageEventListener): void {
+    _addListener(_key: string, _listener: StorageEventListener): void {
       debugFail('not implemented');
     }
 
-    removeListener(_key: string, _listener: StorageEventListener): void {
+    _removeListener(_key: string, _listener: StorageEventListener): void {
       debugFail('not implemented');
     }
   };

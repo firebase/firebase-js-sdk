@@ -39,12 +39,12 @@ describe('core/persistence/browser', () => {
     it('should work with persistence type', async () => {
       const key = 'my-super-special-persistence-type';
       const value = PersistenceType.SESSION;
-      expect(await persistence.get(key)).to.be.null;
-      await persistence.set(key, value);
-      expect(await persistence.get(key)).to.be.eq(value);
-      expect(await persistence.get('other-key')).to.be.null;
-      await persistence.remove(key);
-      expect(await persistence.get(key)).to.be.null;
+      expect(await persistence._get(key)).to.be.null;
+      await persistence._set(key, value);
+      expect(await persistence._get(key)).to.be.eq(value);
+      expect(await persistence._get('other-key')).to.be.null;
+      await persistence._remove(key);
+      expect(await persistence._get(key)).to.be.null;
     });
 
     it('should emit blobified persisted user', async () => {
@@ -52,27 +52,27 @@ describe('core/persistence/browser', () => {
       const auth = await testAuth();
       const value = testUser(auth, 'some-uid');
 
-      expect(await persistence.get(key)).to.be.null;
-      await persistence.set(key, value.toJSON());
-      const out = await persistence.get<PersistedBlob>(key);
+      expect(await persistence._get(key)).to.be.null;
+      await persistence._set(key, value.toJSON());
+      const out = await persistence._get<PersistedBlob>(key);
       expect(out!['uid']).to.eql(value.uid);
-      await persistence.remove(key);
-      expect(await persistence.get(key)).to.be.null;
+      await persistence._remove(key);
+      expect(await persistence._get(key)).to.be.null;
     });
 
     describe('#isAvailable', () => {
       it('should emit false if sessionStorage setItem throws', async () => {
         sinon.stub(sessionStorage, 'setItem').throws(new Error('nope'));
-        expect(await persistence.isAvailable()).to.be.false;
+        expect(await persistence._isAvailable()).to.be.false;
       });
 
       it('should emit false if sessionStorage removeItem throws', async () => {
         sinon.stub(sessionStorage, 'removeItem').throws(new Error('nope'));
-        expect(await persistence.isAvailable()).to.be.false;
+        expect(await persistence._isAvailable()).to.be.false;
       });
 
       it('should emit true if everything works properly', async () => {
-        expect(await persistence.isAvailable()).to.be.true;
+        expect(await persistence._isAvailable()).to.be.true;
       });
     });
   });

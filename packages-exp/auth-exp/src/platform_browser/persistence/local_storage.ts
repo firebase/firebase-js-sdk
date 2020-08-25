@@ -38,7 +38,7 @@ function _iframeCannotSyncWebStorage(): boolean {
 }
 
 // The polling period in case events are not supported
-export const POLLING_INTERVAL_MS = 1000;
+export const _POLLING_INTERVAL_MS = 1000;
 
 // The IE 10 localStorage cross tab synchronization delay in milliseconds
 const IE10_LOCAL_STORAGE_SYNC_DELAY = 10;
@@ -53,7 +53,9 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
 
   private readonly listeners: Record<string, Set<StorageEventListener>> = {};
   private readonly localCache: Record<string, string | null> = {};
-  private pollTimer: NodeJS.Timeout | null = null;
+  // setTimeout return value is platform specific
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private pollTimer: any | null = null;
 
   // Safari or iOS browser and embedded in an iframe.
   private readonly safariLocalStorageNotSynced =
@@ -61,7 +63,7 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
   // Whether to use polling instead of depending on window events
   private readonly fallbackToPolling = _isMobileBrowser();
 
-  private _forAllChangedKeys(
+  private forAllChangedKeys(
     cb: (key: string, oldValue: string | null, newValue: string | null) => void
   ): void {
     // Check all keys with listeners on them.
@@ -77,12 +79,12 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
     }
   }
 
-  private _onStorageEvent(event: StorageEvent, poll: boolean = false): void {
+  private onStorageEvent(event: StorageEvent, poll: boolean = false): void {
     // Key would be null in some situations, like when localStorage is cleared
     if (!event.key) {
-      this._forAllChangedKeys(
+      this.forAllChangedKeys(
         (key: string, _oldValue: string | null, newValue: string | null) => {
-          this._notifyListeners(key, newValue);
+          this.notifyListeners(key, newValue);
         }
       );
       return;
@@ -100,11 +102,11 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
     if (poll) {
       // Environment detects storage changes via polling.
       // Remove storage event listener to prevent possible event duplication.
-      this._detachListener();
+      this.detachListener();
     } else {
       // Environment detects storage changes via storage event listener.
       // Remove polling listener to prevent possible event duplication.
-      this._stopPolling();
+      this.stopPolling();
     }
 
     // Safari embedded iframe. Storage event will trigger with the delta
@@ -136,7 +138,7 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
         // This seems to trigger in some IE browsers for some reason.
         return;
       }
-      this._notifyListeners(key, storedValue);
+      this.notifyListeners(key, storedValue);
     };
 
     const storedValue = this.storage.getItem(key);
@@ -155,7 +157,7 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
     }
   }
 
-  private _notifyListeners(key: string, value: string | null): void {
+  private notifyListeners(key: string, value: string | null): void {
     if (!this.listeners[key]) {
       return;
     }
@@ -165,13 +167,13 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
     }
   }
 
-  private _startPolling(): void {
-    this._stopPolling();
+  private startPolling(): void {
+    this.stopPolling();
 
     this.pollTimer = setInterval(() => {
-      this._forAllChangedKeys(
+      this.forAllChangedKeys(
         (key: string, oldValue: string | null, newValue: string | null) => {
-          this._onStorageEvent(
+          this.onStorageEvent(
             new StorageEvent('storage', {
               key,
               oldValue,
@@ -181,25 +183,25 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
           );
         }
       );
-    }, POLLING_INTERVAL_MS);
+    }, _POLLING_INTERVAL_MS);
   }
 
-  private _stopPolling(): void {
+  private stopPolling(): void {
     if (this.pollTimer) {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
     }
   }
 
-  private _attachListener(): void {
-    window.addEventListener('storage', this._onStorageEvent.bind(this));
+  private attachListener(): void {
+    window.addEventListener('storage', this.onStorageEvent.bind(this));
   }
 
-  private _detachListener(): void {
-    window.removeEventListener('storage', this._onStorageEvent);
+  private detachListener(): void {
+    window.removeEventListener('storage', this.onStorageEvent);
   }
 
-  addListener(key: string, listener: StorageEventListener): void {
+  _addListener(key: string, listener: StorageEventListener): void {
     this.localCache[key] = this.storage.getItem(key);
     if (Object.keys(this.listeners).length === 0) {
       // Whether browser can detect storage event when it had already been pushed to the background.
@@ -207,16 +209,16 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
       // will not be detected in the background window via the storage event.
       // This was detected in iOS 7.x mobile browsers
       if (this.fallbackToPolling) {
-        this._startPolling();
+        this.startPolling();
       } else {
-        this._attachListener();
+        this.attachListener();
       }
     }
     this.listeners[key] = this.listeners[key] || new Set();
     this.listeners[key].add(listener);
   }
 
-  removeListener(key: string, listener: StorageEventListener): void {
+  _removeListener(key: string, listener: StorageEventListener): void {
     if (this.listeners[key]) {
       this.listeners[key].delete(listener);
 
@@ -227,8 +229,8 @@ class BrowserLocalPersistence extends BrowserPersistenceClass
     }
 
     if (Object.keys(this.listeners).length === 0) {
-      this._detachListener();
-      this._stopPolling();
+      this.detachListener();
+      this.stopPolling();
     }
   }
 }

@@ -111,7 +111,7 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
    * If the persistence is changed in another window, the user manager will let us know
    */
   async _onStorageEvent(): Promise<void> {
-    const user = await this.persistenceManager!.getCurrentUser();
+    const user = await this.assertedPersistence.getCurrentUser();
 
     if (!this.currentUser && !user) {
       // No change, do nothing (was signed out and remained signed out).
@@ -130,7 +130,6 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
 
     // Update current Auth state. Either a new login or logout.
     await this.updateCurrentUser(user);
-    // TODO: If a new user is signed in, enabled popup and redirect on that user.
     // Notify external Auth changes of Auth change event.
     this.notifyAuthListeners();
   }

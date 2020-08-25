@@ -29,29 +29,29 @@ export class InMemoryPersistence implements Persistence {
   readonly type = PersistenceType.NONE;
   storage: Record<string, PersistenceValue> = {};
 
-  async isAvailable(): Promise<boolean> {
+  async _isAvailable(): Promise<boolean> {
     return true;
   }
 
-  async set(key: string, value: PersistenceValue): Promise<void> {
+  async _set(key: string, value: PersistenceValue): Promise<void> {
     this.storage[key] = value;
   }
 
-  async get<T extends PersistenceValue>(key: string): Promise<T | null> {
+  async _get<T extends PersistenceValue>(key: string): Promise<T | null> {
     const value = this.storage[key];
     return value === undefined ? null : (value as T);
   }
 
-  async remove(key: string): Promise<void> {
+  async _remove(key: string): Promise<void> {
     delete this.storage[key];
   }
 
-  addListener(_key: string, _listener: StorageEventListener): void {
+  _addListener(_key: string, _listener: StorageEventListener): void {
     // Listeners are not supported for in-memory storage since it cannot be shared across windows/workers
     return;
   }
 
-  removeListener(_key: string, _listener: StorageEventListener): void {
+  _removeListener(_key: string, _listener: StorageEventListener): void {
     // Listeners are not supported for in-memory storage since it cannot be shared across windows/workers
     return;
   }

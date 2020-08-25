@@ -80,14 +80,14 @@ describe('core/auth/auth_impl', () => {
     it('swaps underlying persistence', async () => {
       const newPersistence = browserLocalPersistence;
       const newStub = sinon.stub(_getInstance<Persistence>(newPersistence));
-      persistenceStub.get.returns(
+      persistenceStub._get.returns(
         Promise.resolve(testUser(auth, 'test').toJSON())
       );
 
       await auth._setPersistence(newPersistence);
-      expect(persistenceStub.get).to.have.been.called;
-      expect(persistenceStub.remove).to.have.been.called;
-      expect(newStub.set).to.have.been.calledWith(
+      expect(persistenceStub._get).to.have.been.called;
+      expect(persistenceStub._remove).to.have.been.called;
+      expect(newStub._set).to.have.been.calledWith(
         sinon.match.any,
         testUser(auth, 'test').toJSON()
       );
@@ -143,7 +143,7 @@ describe('core/auth/initializeAuth', () => {
 
     it('pulls the user from storage', async () => {
       sinon
-        .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
+        .stub(_getInstance<Persistence>(inMemoryPersistence), '_get')
         .returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
       const auth = await initAndWait(inMemoryPersistence);
       expect(auth.currentUser!.uid).to.eq('uid');
@@ -164,10 +164,10 @@ describe('core/auth/initializeAuth', () => {
       const user = testUser(oldAuth, 'uid');
       user._redirectEventId = 'event-id';
       sinon
-        .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
+        .stub(_getInstance<Persistence>(inMemoryPersistence), '_get')
         .returns(Promise.resolve(user.toJSON()));
       sinon
-        .stub(_getInstance<Persistence>(browserSessionPersistence), 'get')
+        .stub(_getInstance<Persistence>(browserSessionPersistence), '_get')
         .returns(Promise.resolve(user.toJSON()));
       await initAndWait(inMemoryPersistence);
       expect(reload._reloadWithoutSaving).not.to.have.been.called;
@@ -175,10 +175,10 @@ describe('core/auth/initializeAuth', () => {
 
     it('reloads non-redirect users', async () => {
       sinon
-        .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
+        .stub(_getInstance<Persistence>(inMemoryPersistence), '_get')
         .returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
       sinon
-        .stub(_getInstance<Persistence>(browserSessionPersistence), 'get')
+        .stub(_getInstance<Persistence>(browserSessionPersistence), '_get')
         .returns(Promise.resolve(null));
 
       await initAndWait(inMemoryPersistence);
@@ -190,10 +190,10 @@ describe('core/auth/initializeAuth', () => {
       user._redirectEventId = 'event-id';
 
       sinon
-        .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
+        .stub(_getInstance<Persistence>(inMemoryPersistence), '_get')
         .returns(Promise.resolve(user.toJSON()));
       sinon
-        .stub(_getInstance<Persistence>(browserSessionPersistence), 'get')
+        .stub(_getInstance<Persistence>(browserSessionPersistence), '_get')
         .returns(Promise.resolve(user.toJSON()));
 
       await initAndWait(inMemoryPersistence, browserPopupRedirectResolver);
@@ -205,12 +205,12 @@ describe('core/auth/initializeAuth', () => {
       user._redirectEventId = 'event-id';
 
       sinon
-        .stub(_getInstance<Persistence>(inMemoryPersistence), 'get')
+        .stub(_getInstance<Persistence>(inMemoryPersistence), '_get')
         .returns(Promise.resolve(user.toJSON()));
 
       user._redirectEventId = 'some-other-id';
       sinon
-        .stub(_getInstance<Persistence>(browserSessionPersistence), 'get')
+        .stub(_getInstance<Persistence>(browserSessionPersistence), '_get')
         .returns(Promise.resolve(user.toJSON()));
 
       await initAndWait(inMemoryPersistence, browserPopupRedirectResolver);
@@ -219,8 +219,8 @@ describe('core/auth/initializeAuth', () => {
 
     it('Nulls out the current user if reload fails', async () => {
       const stub = sinon.stub(_getInstance<Persistence>(inMemoryPersistence));
-      stub.get.returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
-      stub.remove.returns(Promise.resolve());
+      stub._get.returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
+      stub._remove.returns(Promise.resolve());
       reloadStub.returns(
         Promise.reject(
           AUTH_ERROR_FACTORY.create(AuthErrorCode.TOKEN_EXPIRED, {
@@ -230,13 +230,13 @@ describe('core/auth/initializeAuth', () => {
       );
 
       await initAndWait(inMemoryPersistence);
-      expect(stub.remove).to.have.been.called;
+      expect(stub._remove).to.have.been.called;
     });
 
     it('Keeps current user if reload fails with network error', async () => {
       const stub = sinon.stub(_getInstance<Persistence>(inMemoryPersistence));
-      stub.get.returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
-      stub.remove.returns(Promise.resolve());
+      stub._get.returns(Promise.resolve(testUser(oldAuth, 'uid').toJSON()));
+      stub._remove.returns(Promise.resolve());
       reloadStub.returns(
         Promise.reject(
           AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
@@ -246,7 +246,7 @@ describe('core/auth/initializeAuth', () => {
       );
 
       await initAndWait(inMemoryPersistence);
-      expect(stub.remove).not.to.have.been.called;
+      expect(stub._remove).not.to.have.been.called;
     });
 
     it('sets auth name and config', async () => {

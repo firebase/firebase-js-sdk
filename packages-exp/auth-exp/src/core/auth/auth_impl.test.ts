@@ -83,7 +83,7 @@ describe('core/auth/auth_impl', () => {
         return testUser(auth, `${n}`);
       });
 
-      persistenceStub.set.callsFake(() => {
+      persistenceStub._set.callsFake(() => {
         return new Promise(resolve => {
           // Force into the async flow to make this test actually meaningful
           setTimeout(() => resolve(), 1);
@@ -92,7 +92,7 @@ describe('core/auth/auth_impl', () => {
 
       await Promise.all(users.map(u => auth.updateCurrentUser(u)));
       for (let i = 0; i < 10; i++) {
-        expect(persistenceStub.set.getCall(i)).to.have.been.calledWith(
+        expect(persistenceStub._set.getCall(i)).to.have.been.calledWith(
           sinon.match.any,
           users[i].toJSON()
         );
@@ -101,7 +101,7 @@ describe('core/auth/auth_impl', () => {
 
     it('setting to null triggers a remove call', async () => {
       await auth.updateCurrentUser(null);
-      expect(persistenceStub.remove).to.have.been.called;
+      expect(persistenceStub._remove).to.have.been.called;
     });
 
     it('should throw an error if the user is from a different tenant', async () => {
@@ -118,7 +118,7 @@ describe('core/auth/auth_impl', () => {
     it('sets currentUser to null, calls remove', async () => {
       await auth.updateCurrentUser(testUser(auth, 'test'));
       await auth.signOut();
-      expect(persistenceStub.remove).to.have.been.called;
+      expect(persistenceStub._remove).to.have.been.called;
       expect(auth.currentUser).to.be.null;
     });
   });
@@ -295,7 +295,7 @@ describe('core/auth/auth_impl', () => {
 
         beforeEach(() => {
           user = testUser(auth, 'uid');
-          persistenceStub.get.returns(Promise.resolve(user.toJSON()));
+          persistenceStub._get.returns(Promise.resolve(user.toJSON()));
         });
 
         it('should update the current user', async () => {
@@ -320,7 +320,7 @@ describe('core/auth/auth_impl', () => {
 
       context('now logged out', () => {
         beforeEach(() => {
-          persistenceStub.get.returns(Promise.resolve(null));
+          persistenceStub._get.returns(Promise.resolve(null));
         });
 
         it('should log out', async () => {
@@ -334,7 +334,7 @@ describe('core/auth/auth_impl', () => {
 
       context('still logged in as same user', () => {
         it('should do nothing if nothing changed', async () => {
-          persistenceStub.get.returns(Promise.resolve(user.toJSON()));
+          persistenceStub._get.returns(Promise.resolve(user.toJSON()));
 
           await auth._onStorageEvent();
 
@@ -346,7 +346,7 @@ describe('core/auth/auth_impl', () => {
         it('should update fields if they have changed', async () => {
           const userObj = user.toJSON();
           userObj['displayName'] = 'other-name';
-          persistenceStub.get.returns(Promise.resolve(userObj));
+          persistenceStub._get.returns(Promise.resolve(userObj));
 
           await auth._onStorageEvent();
 
@@ -360,7 +360,7 @@ describe('core/auth/auth_impl', () => {
           const userObj = user.toJSON();
           (userObj['stsTokenManager'] as any)['accessToken'] =
             'new-access-token';
-          persistenceStub.get.returns(Promise.resolve(userObj));
+          persistenceStub._get.returns(Promise.resolve(userObj));
 
           await auth._onStorageEvent();
 
@@ -376,7 +376,7 @@ describe('core/auth/auth_impl', () => {
       context('now logged in as different user', () => {
         it('should re-login as the new user', async () => {
           const newUser = testUser(auth, 'other-uid', undefined, true);
-          persistenceStub.get.returns(Promise.resolve(newUser.toJSON()));
+          persistenceStub._get.returns(Promise.resolve(newUser.toJSON()));
 
           await auth._onStorageEvent();
 

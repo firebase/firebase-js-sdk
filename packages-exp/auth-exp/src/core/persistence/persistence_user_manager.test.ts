@@ -37,14 +37,14 @@ function makePersistence(
 } {
   const persistence: Persistence = {
     type,
-    isAvailable: () => Promise.resolve(true),
-    set: async () => {},
-    get() {
+    _isAvailable: () => Promise.resolve(true),
+    _set: async () => {},
+    _get() {
       return Promise.resolve(null);
     },
-    remove: async () => {},
-    addListener(_key: string, _listener: StorageEventListener) {},
-    removeListener(_key: string, _listener: StorageEventListener) {}
+    _remove: async () => {},
+    _addListener(_key: string, _listener: StorageEventListener) {},
+    _removeListener(_key: string, _listener: StorageEventListener) {}
   };
 
   const stub = sinon.stub(persistence);
@@ -70,19 +70,19 @@ describe('core/persistence/persistence_user_manager', () => {
       const c = makePersistence();
       const search = [a.persistence, b.persistence, c.persistence];
       const auth = await testAuth();
-      b.stub.get.returns(Promise.resolve(testUser(auth, 'uid').toJSON()));
+      b.stub._get.returns(Promise.resolve(testUser(auth, 'uid').toJSON()));
 
       const out = await PersistenceUserManager.create(auth, search);
       expect(out.persistence).to.eq(b.persistence);
-      expect(a.stub.get).to.have.been.calledOnce;
-      expect(b.stub.get).to.have.been.calledOnce;
-      expect(c.stub.get).not.to.have.been.called;
+      expect(a.stub._get).to.have.been.calledOnce;
+      expect(b.stub._get).to.have.been.calledOnce;
+      expect(c.stub._get).not.to.have.been.called;
     });
 
     it('uses default user key if none provided', async () => {
       const { stub, persistence } = makePersistence();
       await PersistenceUserManager.create(auth, [persistence]);
-      expect(stub.get).to.have.been.calledWith(
+      expect(stub._get).to.have.been.calledWith(
         'firebase:authUser:test-api-key:test-app'
       );
     });
@@ -90,7 +90,7 @@ describe('core/persistence/persistence_user_manager', () => {
     it('uses user key if provided', async () => {
       const { stub, persistence } = makePersistence();
       await PersistenceUserManager.create(auth, [persistence], 'redirectUser');
-      expect(stub.get).to.have.been.calledWith(
+      expect(stub._get).to.have.been.calledWith(
         'firebase:redirectUser:test-api-key:test-app'
       );
     });
@@ -102,9 +102,9 @@ describe('core/persistence/persistence_user_manager', () => {
       const search = [a.persistence, b.persistence, c.persistence];
       const out = await PersistenceUserManager.create(auth, search);
       expect(out.persistence).to.eq(a.persistence);
-      expect(a.stub.get).to.have.been.calledOnce;
-      expect(b.stub.get).to.have.been.calledOnce;
-      expect(c.stub.get).to.have.been.called;
+      expect(a.stub._get).to.have.been.calledOnce;
+      expect(b.stub._get).to.have.been.calledOnce;
+      expect(c.stub._get).to.have.been.called;
     });
   });
 
@@ -121,7 +121,7 @@ describe('core/persistence/persistence_user_manager', () => {
     it('#setCurrentUser calls underlying persistence w/ key', async () => {
       const user = testUser(auth, 'uid');
       await manager.setCurrentUser(user);
-      expect(persistenceStub.set).to.have.been.calledWith(
+      expect(persistenceStub._set).to.have.been.calledWith(
         'firebase:authUser:test-api-key:test-app',
         user.toJSON()
       );
@@ -129,7 +129,7 @@ describe('core/persistence/persistence_user_manager', () => {
 
     it('#removeCurrentUser calls underlying persistence', async () => {
       await manager.removeCurrentUser();
-      expect(persistenceStub.remove).to.have.been.calledWith(
+      expect(persistenceStub._remove).to.have.been.calledWith(
         'firebase:authUser:test-api-key:test-app'
       );
     });
@@ -137,7 +137,7 @@ describe('core/persistence/persistence_user_manager', () => {
     it('#getCurrentUser calls with instantiator', async () => {
       const rawObject = {};
       const userImplStub = sinon.stub(UserImpl, '_fromJSON');
-      persistenceStub.get.returns(Promise.resolve(rawObject));
+      persistenceStub._get.returns(Promise.resolve(rawObject));
 
       await manager.getCurrentUser();
       expect(userImplStub).to.have.been.calledWith(auth, rawObject);
@@ -147,7 +147,7 @@ describe('core/persistence/persistence_user_manager', () => {
 
     it('#savePersistenceForRedirect calls through', async () => {
       await manager.savePersistenceForRedirect();
-      expect(persistenceStub.set).to.have.been.calledWith(
+      expect(persistenceStub._set).to.have.been.calledWith(
         'firebase:persistence:test-api-key:test-app',
         'SESSION'
       );
@@ -171,12 +171,12 @@ describe('core/persistence/persistence_user_manager', () => {
         } = makePersistence();
         const auth = await testAuth();
         const user = testUser(auth, 'uid');
-        persistenceStub.get.returns(Promise.resolve(user.toJSON()));
+        persistenceStub._get.returns(Promise.resolve(user.toJSON()));
 
         await manager.setPersistence(nextPersistence);
-        expect(persistenceStub.get).to.have.been.called;
-        expect(persistenceStub.remove).to.have.been.called;
-        expect(nextStub.set).to.have.been.calledWith(
+        expect(persistenceStub._get).to.have.been.called;
+        expect(persistenceStub._remove).to.have.been.called;
+        expect(nextStub._set).to.have.been.calledWith(
           'firebase:authUser:test-api-key:test-app',
           user.toJSON()
         );

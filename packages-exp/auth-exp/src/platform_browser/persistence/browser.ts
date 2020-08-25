@@ -31,7 +31,7 @@ export abstract class BrowserPersistenceClass {
     readonly type: PersistenceType
   ) {}
 
-  isAvailable(this: BrowserPersistenceClass): Promise<boolean> {
+  _isAvailable(this: BrowserPersistenceClass): Promise<boolean> {
     try {
       if (!this.storage) {
         return Promise.resolve(false);
@@ -44,17 +44,17 @@ export abstract class BrowserPersistenceClass {
     }
   }
 
-  set(key: string, value: PersistenceValue): Promise<void> {
+  _set(key: string, value: PersistenceValue): Promise<void> {
     this.storage.setItem(key, JSON.stringify(value));
     return Promise.resolve();
   }
 
-  get<T extends PersistenceValue>(key: string): Promise<T | null> {
+  _get<T extends PersistenceValue>(key: string): Promise<T | null> {
     const json = this.storage.getItem(key);
     return Promise.resolve(json ? JSON.parse(json) : null);
   }
 
-  remove(key: string): Promise<void> {
+  _remove(key: string): Promise<void> {
     this.storage.removeItem(key);
     return Promise.resolve();
   }

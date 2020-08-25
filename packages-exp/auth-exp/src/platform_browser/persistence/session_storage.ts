@@ -32,12 +32,12 @@ class BrowserSessionPersistence extends BrowserPersistenceClass
     super(sessionStorage, PersistenceType.SESSION);
   }
 
-  addListener(_key: string, _listener: StorageEventListener): void {
+  _addListener(_key: string, _listener: StorageEventListener): void {
     // Listeners are not supported for session storage since it cannot be shared across windows
     return;
   }
 
-  removeListener(_key: string, _listener: StorageEventListener): void {
+  _removeListener(_key: string, _listener: StorageEventListener): void {
     // Listeners are not supported for session storage since it cannot be shared across windows
     return;
   }

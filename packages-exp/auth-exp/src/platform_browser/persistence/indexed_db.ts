@@ -140,7 +140,7 @@ function deleteObject(db: IDBDatabase, key: string): Promise<void> {
   return new DBPromise<void>(request).toPromise();
 }
 
-export const POLLING_INTERVAL_MS = 800;
+export const _POLLING_INTERVAL_MS = 800;
 
 class IndexedDBLocalPersistence implements Persistence {
   static type: 'LOCAL' = 'LOCAL';
@@ -150,7 +150,9 @@ class IndexedDBLocalPersistence implements Persistence {
 
   private readonly listeners: Record<string, Set<StorageEventListener>> = {};
   private readonly localCache: Record<string, PersistenceValue | null> = {};
-  private pollTimer: NodeJS.Timeout | null = null;
+  // setTimeout return value is platform specific
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private pollTimer: any | null = null;
   private pendingWrites = 0;
 
   private async initialize(): Promise<IDBDatabase> {
@@ -161,7 +163,7 @@ class IndexedDBLocalPersistence implements Persistence {
     return this.db;
   }
 
-  async isAvailable(): Promise<boolean> {
+  async _isAvailable(): Promise<boolean> {
     try {
       if (!indexedDB) {
         return false;
@@ -183,7 +185,7 @@ class IndexedDBLocalPersistence implements Persistence {
     }
   }
 
-  async set(key: string, value: PersistenceValue): Promise<void> {
+  async _set(key: string, value: PersistenceValue): Promise<void> {
     const db = await this.initialize();
     return this._withPendingWrite(async () => {
       await _putObject(db, key, value);
@@ -191,14 +193,14 @@ class IndexedDBLocalPersistence implements Persistence {
     });
   }
 
-  async get<T extends PersistenceValue>(key: string): Promise<T | null> {
+  async _get<T extends PersistenceValue>(key: string): Promise<T | null> {
     const db = await this.initialize();
     const obj = (await getObject(db, key)) as T;
     this.localCache[key] = obj;
     return obj;
   }
 
-  async remove(key: string): Promise<void> {
+  async _remove(key: string): Promise<void> {
     const db = await this.initialize();
     return this._withPendingWrite(async () => {
       await deleteObject(db, key);
@@ -226,12 +228,12 @@ class IndexedDBLocalPersistence implements Persistence {
 
     for (const { fbase_key: key, value } of result) {
       if (JSON.stringify(this.localCache[key]) !== JSON.stringify(value)) {
-        this._notifyListeners(key, value as PersistenceValue);
+        this.notifyListeners(key, value as PersistenceValue);
       }
     }
   }
 
-  private _notifyListeners(
+  private notifyListeners(
     key: string,
     newValue: PersistenceValue | null
   ): void {
@@ -244,28 +246,31 @@ class IndexedDBLocalPersistence implements Persistence {
     }
   }
 
-  private _startPolling(): void {
-    this._stopPolling();
+  private startPolling(): void {
+    this.stopPolling();
 
-    this.pollTimer = setInterval(async () => this._poll(), POLLING_INTERVAL_MS);
+    this.pollTimer = setInterval(
+      async () => this._poll(),
+      _POLLING_INTERVAL_MS
+    );
   }
 
-  private _stopPolling(): void {
+  private stopPolling(): void {
     if (this.pollTimer) {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
     }
   }
 
-  addListener(key: string, listener: StorageEventListener): void {
+  _addListener(key: string, listener: StorageEventListener): void {
     if (Object.keys(this.listeners).length === 0) {
-      this._startPolling();
+      this.startPolling();
     }
     this.listeners[key] = this.listeners[key] || new Set();
     this.listeners[key].add(listener);
   }
 
-  removeListener(key: string, listener: StorageEventListener): void {
+  _removeListener(key: string, listener: StorageEventListener): void {
     if (this.listeners[key]) {
       this.listeners[key].delete(listener);
 
@@ -276,7 +281,7 @@ class IndexedDBLocalPersistence implements Persistence {
     }
 
     if (Object.keys(this.listeners).length === 0) {
-      this._stopPolling();
+      this.stopPolling();
     }
   }
 }
