@@ -436,7 +436,6 @@ describe('core/strategies/phone', () => {
 
     it('should link the phone number to the user', async () => {
       await updatePhoneNumber(user, credential);
-      console.log(JSON.stringify(signInMock.calls[0].request));
       expect(signInMock.calls[0].request).to.eql({
         idToken: 'access-token',
         sessionInfo: 'session-info',

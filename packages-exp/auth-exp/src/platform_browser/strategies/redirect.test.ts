@@ -126,15 +126,15 @@ describe('src/core/strategies/redirect', () => {
       const redirectPersistence: Persistence = _getInstance(
         RedirectPersistence
       );
-      sinon.spy(redirectPersistence, 'set');
-      sinon.spy(auth.persistenceLayer, 'set');
+      sinon.spy(redirectPersistence, '_set');
+      sinon.spy(auth.persistenceLayer, '_set');
 
       await linkWithRedirect(user, provider, resolver);
-      expect(redirectPersistence.set).to.have.been.calledWith(
+      expect(redirectPersistence._set).to.have.been.calledWith(
         'firebase:redirectUser:test-api-key:test-app',
         user.toJSON()
       );
-      expect(auth.persistenceLayer.set).to.have.been.calledWith(
+      expect(auth.persistenceLayer._set).to.have.been.calledWith(
         'firebase:authUser:test-api-key:test-app',
         user.toJSON()
       );
@@ -146,15 +146,15 @@ describe('src/core/strategies/redirect', () => {
       const redirectPersistence: Persistence = _getInstance(
         RedirectPersistence
       );
-      sinon.spy(redirectPersistence, 'set');
-      sinon.spy(auth.persistenceLayer, 'set');
+      sinon.spy(redirectPersistence, '_set');
+      sinon.spy(auth.persistenceLayer, '_set');
 
       await linkWithRedirect(user, provider, resolver);
-      expect(redirectPersistence.set).to.have.been.calledWith(
+      expect(redirectPersistence._set).to.have.been.calledWith(
         'firebase:redirectUser:test-api-key:test-app',
         user.toJSON()
       );
-      expect(auth.persistenceLayer.set).not.to.have.been.called;
+      expect(auth.persistenceLayer._set).not.to.have.been.called;
       expect(typeof user._redirectEventId).to.eq('string');
     });
   });
@@ -184,15 +184,15 @@ describe('src/core/strategies/redirect', () => {
       const redirectPersistence: Persistence = _getInstance(
         RedirectPersistence
       );
-      sinon.spy(redirectPersistence, 'set');
-      sinon.spy(auth.persistenceLayer, 'set');
+      sinon.spy(redirectPersistence, '_set');
+      sinon.spy(auth.persistenceLayer, '_set');
 
       await reauthenticateWithRedirect(user, provider, resolver);
-      expect(redirectPersistence.set).to.have.been.calledWith(
+      expect(redirectPersistence._set).to.have.been.calledWith(
         'firebase:redirectUser:test-api-key:test-app',
         user.toJSON()
       );
-      expect(auth.persistenceLayer.set).to.have.been.calledWith(
+      expect(auth.persistenceLayer._set).to.have.been.calledWith(
         'firebase:authUser:test-api-key:test-app',
         user.toJSON()
       );
@@ -204,15 +204,15 @@ describe('src/core/strategies/redirect', () => {
       const redirectPersistence: Persistence = _getInstance(
         RedirectPersistence
       );
-      sinon.spy(redirectPersistence, 'set');
-      sinon.spy(auth.persistenceLayer, 'set');
+      sinon.spy(redirectPersistence, '_set');
+      sinon.spy(auth.persistenceLayer, '_set');
 
       await reauthenticateWithRedirect(user, provider, resolver);
-      expect(redirectPersistence.set).to.have.been.calledWith(
+      expect(redirectPersistence._set).to.have.been.calledWith(
         'firebase:redirectUser:test-api-key:test-app',
         user.toJSON()
       );
-      expect(auth.persistenceLayer.set).not.to.have.been.called;
+      expect(auth.persistenceLayer._set).not.to.have.been.called;
       expect(typeof user._redirectEventId).to.eq('string');
     });
   });
@@ -238,10 +238,10 @@ describe('src/core/strategies/redirect', () => {
       const user = testUser(oldAuth, 'uid');
       user._redirectEventId = eventId;
       sinon
-        .stub(redirectPersistence, 'get')
+        .stub(redirectPersistence, '_get')
         .returns(Promise.resolve(user.toJSON()));
       sinon
-        .stub(mainPersistence, 'get')
+        .stub(mainPersistence, '_get')
         .returns(Promise.resolve(user.toJSON()));
 
       auth = await testAuth(resolver, mainPersistence);
@@ -345,7 +345,7 @@ describe('src/core/strategies/redirect', () => {
       const redirectPersistence: Persistence = _getInstance(
         RedirectPersistence
       );
-      sinon.spy(redirectPersistence, 'remove');
+      sinon.spy(redirectPersistence, '_remove');
 
       const cred = new UserCredentialImpl({
         user: auth.currentUser!,
@@ -358,7 +358,7 @@ describe('src/core/strategies/redirect', () => {
         type: AuthEventType.LINK_VIA_REDIRECT
       });
       expect(await promise).to.eq(cred);
-      expect(redirectPersistence.remove).to.have.been.called;
+      expect(redirectPersistence._remove).to.have.been.called;
       expect(auth.currentUser?._redirectEventId).to.be.undefined;
       expect(auth.persistenceLayer.lastObjectSet?._redirectEventId).to.be
         .undefined;

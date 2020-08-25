@@ -70,13 +70,11 @@ describe('src/core/auth/firebase_internal', () => {
     beforeEach(async () => {
       user = testUser(auth, 'uid', undefined, true);
       await auth.updateCurrentUser(user);
-      sinon.stub(user.stsTokenManager, 'getToken').returns(
-        Promise.resolve({
-          accessToken: 'access-token',
-          refreshToken: 'refresh-tken',
-          wasRefreshed: true
-        })
-      );
+      let i = 0;
+      sinon.stub(user.stsTokenManager, 'getToken').callsFake(async () => {
+        i += 1;
+        return `new-access-token-${i}`;
+      });
       sinon
         .stub(user, '_startProactiveRefresh')
         .callsFake(() => (isProactiveRefresh = true));

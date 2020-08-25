@@ -16,12 +16,12 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-
 import {
   PersistedBlob,
   Persistence,
   PersistenceType,
   PersistenceValue,
+  StorageEventListener,
   STORAGE_AVAILABLE_KEY
 } from '../../core/persistence/';
 
@@ -61,12 +61,17 @@ function getObjectStore(db: IDBDatabase, isReadWrite: boolean): IDBObjectStore {
     .objectStore(DB_OBJECTSTORE_NAME);
 }
 
-function deleteDatabase(): Promise<void> {
+export async function _clearDatabase(db: IDBDatabase): Promise<void> {
+  const objectStore = getObjectStore(db, true);
+  return new DBPromise<void>(objectStore.clear()).toPromise();
+}
+
+export function _deleteDatabase(): Promise<void> {
   const request = indexedDB.deleteDatabase(DB_NAME);
   return new DBPromise<void>(request).toPromise();
 }
 
-function openDatabase(): Promise<IDBDatabase> {
+export function _openDatabase(): Promise<IDBDatabase> {
   const request = indexedDB.open(DB_NAME, DB_VERSION);
   return new Promise((resolve, reject) => {
     request.addEventListener('error', () => {
@@ -91,8 +96,8 @@ function openDatabase(): Promise<IDBDatabase> {
       // https://github.com/firebase/firebase-js-sdk/issues/634
 
       if (!db.objectStoreNames.contains(DB_OBJECTSTORE_NAME)) {
-        await deleteDatabase();
-        return openDatabase();
+        await _deleteDatabase();
+        return _openDatabase();
       } else {
         resolve(db);
       }
@@ -100,7 +105,7 @@ function openDatabase(): Promise<IDBDatabase> {
   });
 }
 
-async function putObject(
+export async function _putObject(
   db: IDBDatabase,
   key: string,
   value: PersistenceValue | string
@@ -135,47 +140,149 @@ function deleteObject(db: IDBDatabase, key: string): Promise<void> {
   return new DBPromise<void>(request).toPromise();
 }
 
+export const _POLLING_INTERVAL_MS = 800;
+
 class IndexedDBLocalPersistence implements Persistence {
   static type: 'LOCAL' = 'LOCAL';
 
   type = PersistenceType.LOCAL;
   db?: IDBDatabase;
 
+  private readonly listeners: Record<string, Set<StorageEventListener>> = {};
+  private readonly localCache: Record<string, PersistenceValue | null> = {};
+  // setTimeout return value is platform specific
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private pollTimer: any | null = null;
+  private pendingWrites = 0;
+
   private async initialize(): Promise<IDBDatabase> {
     if (this.db) {
       return this.db;
     }
-    this.db = await openDatabase();
+    this.db = await _openDatabase();
     return this.db;
   }
 
-  async isAvailable(): Promise<boolean> {
+  async _isAvailable(): Promise<boolean> {
     try {
       if (!indexedDB) {
         return false;
       }
-      const db = await openDatabase();
-      await putObject(db, STORAGE_AVAILABLE_KEY, '1');
+      const db = await _openDatabase();
+      await _putObject(db, STORAGE_AVAILABLE_KEY, '1');
       await deleteObject(db, STORAGE_AVAILABLE_KEY);
       return true;
     } catch {}
     return false;
   }
 
-  async set(key: string, value: PersistenceValue): Promise<void> {
-    const db = await this.initialize();
-    return putObject(db, key, value);
+  private async _withPendingWrite(write: () => Promise<void>): Promise<void> {
+    this.pendingWrites++;
+    try {
+      await write();
+    } finally {
+      this.pendingWrites--;
+    }
   }
 
-  async get<T extends PersistenceValue>(key: string): Promise<T | null> {
+  async _set(key: string, value: PersistenceValue): Promise<void> {
     const db = await this.initialize();
-    const obj = await getObject(db, key);
-    return obj as T;
+    return this._withPendingWrite(async () => {
+      await _putObject(db, key, value);
+      this.localCache[key] = value;
+    });
   }
 
-  async remove(key: string): Promise<void> {
+  async _get<T extends PersistenceValue>(key: string): Promise<T | null> {
     const db = await this.initialize();
-    return deleteObject(db, key);
+    const obj = (await getObject(db, key)) as T;
+    this.localCache[key] = obj;
+    return obj;
+  }
+
+  async _remove(key: string): Promise<void> {
+    const db = await this.initialize();
+    return this._withPendingWrite(async () => {
+      await deleteObject(db, key);
+      delete this.localCache[key];
+    });
+  }
+
+  private async _poll(): Promise<void> {
+    const db = await _openDatabase();
+
+    // TODO: check if we need to fallback if getAll is not supported
+    const getAllRequest = getObjectStore(db, false).getAll();
+    const result = await new DBPromise<DBObject[] | null>(
+      getAllRequest
+    ).toPromise();
+
+    if (!result) {
+      return;
+    }
+
+    // If we have pending writes in progress abort, we'll get picked up on the next poll
+    if (this.pendingWrites !== 0) {
+      return;
+    }
+
+    for (const { fbase_key: key, value } of result) {
+      if (JSON.stringify(this.localCache[key]) !== JSON.stringify(value)) {
+        this.notifyListeners(key, value as PersistenceValue);
+      }
+    }
+  }
+
+  private notifyListeners(
+    key: string,
+    newValue: PersistenceValue | null
+  ): void {
+    if (!this.listeners[key]) {
+      return;
+    }
+    this.localCache[key] = newValue;
+    for (const listener of Array.from(this.listeners[key])) {
+      listener(newValue);
+    }
+  }
+
+  private startPolling(): void {
+    this.stopPolling();
+
+    this.pollTimer = setInterval(
+      async () => this._poll(),
+      _POLLING_INTERVAL_MS
+    );
+  }
+
+  private stopPolling(): void {
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
+    }
+  }
+
+  _addListener(key: string, listener: StorageEventListener): void {
+    if (Object.keys(this.listeners).length === 0) {
+      this.startPolling();
+    }
+    this.listeners[key] = this.listeners[key] || new Set();
+    this.listeners[key].add(listener);
+  }
+
+  _removeListener(key: string, listener: StorageEventListener): void {
+    if (this.listeners[key]) {
+      this.listeners[key].delete(listener);
+
+      if (this.listeners[key].size === 0) {
+        delete this.listeners[key];
+        delete this.localCache[key];
+      }
+    }
+
+    if (Object.keys(this.listeners).length === 0) {
+      this.stopPolling();
+    }
   }
 }
 

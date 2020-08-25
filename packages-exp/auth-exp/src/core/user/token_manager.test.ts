@@ -110,11 +110,7 @@ describe('core/user/token_manager', () => {
         expect(stsTokenManager.refreshToken).to.eq('new-refresh-token');
         expect(stsTokenManager.expirationTime).to.eq(now + 3_600_000);
 
-        expect(tokens).to.eql({
-          accessToken: 'new-access-token',
-          refreshToken: 'new-refresh-token',
-          wasRefreshed: true
-        });
+        expect(tokens).to.eql('new-access-token');
       });
 
       it('refreshes the token if token is expired', async () => {
@@ -130,11 +126,7 @@ describe('core/user/token_manager', () => {
         expect(stsTokenManager.refreshToken).to.eq('new-refresh-token');
         expect(stsTokenManager.expirationTime).to.eq(now + 3_600_000);
 
-        expect(tokens).to.eql({
-          accessToken: 'new-access-token',
-          refreshToken: 'new-refresh-token',
-          wasRefreshed: true
-        });
+        expect(tokens).to.eql('new-access-token');
       });
     });
 
@@ -162,11 +154,7 @@ describe('core/user/token_manager', () => {
       });
 
       const tokens = (await stsTokenManager.getToken(auth))!;
-      expect(tokens).to.eql({
-        accessToken: 'token',
-        refreshToken: 'refresh',
-        wasRefreshed: false
-      });
+      expect(tokens).to.eql('token');
     });
   });
 
