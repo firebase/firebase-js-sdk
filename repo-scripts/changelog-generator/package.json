@@ -17,8 +17,8 @@
     "prepare": "yarn build"
   },
   "dependencies": {
-    "@changesets/types": "3.1.0",
-    "@changesets/get-github-info": "0.4.3",
+    "@changesets/types": "3.1.1",
+    "@changesets/get-github-info": "0.4.4",
     "node-fetch": "2.6.0",
     "@types/node-fetch": "2.5.7"
   },

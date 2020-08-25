@@ -44,10 +44,10 @@
   },
   "devDependencies": {
     "firebase": "7.18.0",
-    "rollup": "2.23.0",
+    "rollup": "2.26.5",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-node-resolve": "5.2.0",
-    "rollup-plugin-typescript2": "0.27.1",
+    "rollup-plugin-typescript2": "0.27.2",
     "rollup-plugin-uglify": "6.0.4",
     "typescript": "3.9.7"
   },
