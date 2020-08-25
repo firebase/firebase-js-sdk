@@ -51,7 +51,7 @@
     "gulp": "4.0.2",
     "gulp-sourcemaps": "2.6.5",
     "gulp-concat": "2.6.1",
-    "typescript": "3.9.7"
+    "typescript": "4.0.2"
   },
   "components": [
     "app",

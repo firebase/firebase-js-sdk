@@ -49,7 +49,7 @@
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-typescript2": "0.27.2",
     "rollup-plugin-uglify": "6.0.4",
-    "typescript": "3.9.7"
+    "typescript": "4.0.2"
   },
   "typings": "dist/index.d.ts",
   "files": [
