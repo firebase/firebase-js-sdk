@@ -65,7 +65,7 @@ function generateReportForCDNScripts(): Report[] {
 }
 
 // NPM packages
-function generateReportForNPMPackages(): Report[] {
+async function generateReportForNPMPackages(): Promise<Report[]> {
   const reports: Report[] = [];
   const fields = [
     'main',
@@ -81,41 +81,50 @@ function generateReportForNPMPackages(): Report[] {
     execSync('npx lerna ls --json --scope @firebase/*').toString()
   );
 
+  const taskPromises: Promise<void>[] = [];
   for (const pkg of packageInfo) {
     // we traverse the dir in order to include binaries for submodules, e.g. @firebase/firestore/memory
     // Currently we only traverse 1 level deep because we don't have any submodule deeper than that.
     traverseDirs(pkg.location, collectBinarySize, 0, 1);
   }
 
-  function collectBinarySize(path: string) {
-    const packageJsonPath = `${path}/package.json`;
-    if (!fs.existsSync(packageJsonPath)) {
-      return;
-    }
-
-    const packageJson = require(packageJsonPath);
-
-    for (const field of fields) {
-      if (packageJson[field]) {
-        const filePath = `${path}/${packageJson[field]}`;
-        const rawCode = fs.readFileSync(filePath, 'utf-8');
-
-        // remove comments and whitespaces, then get size
-        const { code } = terser.minify(rawCode, {
-          output: {
-            comments: false
-          },
-          mangle: false,
-          compress: false
-        });
-
-        const size = Buffer.byteLength(code!, 'utf-8');
-        reports.push(makeReportObject(packageJson.name, field, size));
-      }
-    }
-  }
+  await Promise.all(taskPromises);
 
   return reports;
+
+  function collectBinarySize(path: string) {
+    const promise = new Promise<void>(async resolve => {
+      const packageJsonPath = `${path}/package.json`;
+      if (!fs.existsSync(packageJsonPath)) {
+        return;
+      }
+
+      const packageJson = require(packageJsonPath);
+
+      for (const field of fields) {
+        if (packageJson[field]) {
+          const filePath = `${path}/${packageJson[field]}`;
+          const rawCode = fs.readFileSync(filePath, 'utf-8');
+
+          // remove comments and whitespaces, then get size
+          const { code } = await terser.minify(rawCode, {
+            format: {
+              comments: false
+            },
+            mangle: false,
+            compress: false
+          });
+
+          const size = Buffer.byteLength(code!, 'utf-8');
+          reports.push(makeReportObject(packageJson.name, field, size));
+        }
+      }
+
+      resolve();
+    });
+
+    taskPromises.push(promise);
+  }
 }
 
 function traverseDirs(
@@ -147,10 +156,10 @@ function makeReportObject(sdk: string, type: string, value: number): Report {
   };
 }
 
-function generateSizeReport(): BinarySizeRequestBody {
+async function generateSizeReport(): Promise<BinarySizeRequestBody> {
   const reports: Report[] = [
     ...generateReportForCDNScripts(),
-    ...generateReportForNPMPackages()
+    ...(await generateReportForNPMPackages())
   ];
 
   for (const r of reports) {
@@ -168,5 +177,6 @@ function generateSizeReport(): BinarySizeRequestBody {
   };
 }
 
-const report = generateSizeReport();
-upload(report, RequestEndpoint.BINARY_SIZE);
+generateSizeReport().then(report => {
+  upload(report, RequestEndpoint.BINARY_SIZE);
+});
