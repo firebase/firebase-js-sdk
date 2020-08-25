@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import { FirebaseAnalytics } from '@firebase/analytics-types';
-import { SinonStub, stub } from 'sinon';
+import { SinonStub, stub, useFakeTimers } from 'sinon';
 import './testing/setup';
 import {
   settings as analyticsSettings,
@@ -34,11 +34,11 @@ import { GtagCommand, EventName } from './src/constants';
 import { findGtagScriptOnPage } from './src/helpers';
 import { removeGtagScript } from './testing/gtag-script-util';
 import { Deferred } from '@firebase/util';
+import { AnalyticsError } from './src/errors';
 
 let analyticsInstance: FirebaseAnalytics = {} as FirebaseAnalytics;
 const fakeMeasurementId = 'abcd-efgh';
 const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
-const gtagStub: SinonStub = stub();
 let fetchStub: SinonStub = stub();
 const customGtagName = 'customGtag';
 const customDataLayerName = 'customDataLayer';
@@ -52,34 +52,110 @@ function stubFetch(status: number, body: object): void {
 }
 
 describe('FirebaseAnalytics instance tests', () => {
-  it('Throws if no appId in config', () => {
-    const app = getFakeApp({ apiKey: fakeAppParams.apiKey });
-    const installations = getFakeInstallations();
-    expect(() => analyticsFactory(app, installations)).to.throw(
-      'field is empty'
-    );
-  });
-  it('Throws if no apiKey in config', () => {
-    const app = getFakeApp({ appId: fakeAppParams.appId });
-    const installations = getFakeInstallations();
-    expect(() => analyticsFactory(app, installations)).to.throw(
-      'field is empty'
-    );
-  });
-  it('Throws if creating an instance with already-used analytics ID', () => {
-    const app = getFakeApp(fakeAppParams);
-    const installations = getFakeInstallations();
-    resetGlobalVars(false, { [fakeAppParams.appId]: Promise.resolve() });
-    expect(() => analyticsFactory(app, installations)).to.throw(
-      'already exists'
-    );
+  describe('Initialization', () => {
+    beforeEach(() => resetGlobalVars());
+
+    it('Throws if no appId in config', () => {
+      const app = getFakeApp({ apiKey: fakeAppParams.apiKey });
+      const installations = getFakeInstallations();
+      expect(() => analyticsFactory(app, installations)).to.throw(
+        AnalyticsError.NO_APP_ID
+      );
+    });
+    it('Throws if no apiKey or measurementId in config', () => {
+      const app = getFakeApp({ appId: fakeAppParams.appId });
+      const installations = getFakeInstallations();
+      expect(() => analyticsFactory(app, installations)).to.throw(
+        AnalyticsError.NO_API_KEY
+      );
+    });
+    it('Warns if config has no apiKey but does have a measurementId', () => {
+      stubFetch(200, { measurementId: fakeMeasurementId });
+      const warnStub = stub(console, 'warn');
+      const app = getFakeApp({
+        appId: fakeAppParams.appId,
+        measurementId: fakeMeasurementId
+      });
+      const installations = getFakeInstallations();
+      analyticsFactory(app, installations);
+      expect(warnStub.args[0][1]).to.include(fakeMeasurementId);
+      expect(warnStub.args[0][1]).to.include('Falling back to');
+      warnStub.restore();
+      fetchStub.restore();
+    });
+    it('Throws if cookies are not enabled', () => {
+      const cookieStub = stub(navigator, 'cookieEnabled').value(false);
+      const app = getFakeApp({
+        appId: fakeAppParams.appId,
+        apiKey: fakeAppParams.apiKey
+      });
+      const installations = getFakeInstallations();
+      expect(() => analyticsFactory(app, installations)).to.throw(
+        AnalyticsError.COOKIES_NOT_ENABLED
+      );
+      cookieStub.restore();
+    });
+    it('Throws if browser extension environment', () => {
+      window.chrome = { runtime: { id: 'blah' } };
+      const app = getFakeApp({
+        appId: fakeAppParams.appId,
+        apiKey: fakeAppParams.apiKey
+      });
+      const installations = getFakeInstallations();
+      expect(() => analyticsFactory(app, installations)).to.throw(
+        AnalyticsError.INVALID_ANALYTICS_CONTEXT
+      );
+      window.chrome = undefined;
+    });
+    it('Throws if indexedDB does not exist', () => {
+      const idbStub = stub(window, 'indexedDB').value(undefined);
+      const app = getFakeApp({
+        appId: fakeAppParams.appId,
+        apiKey: fakeAppParams.apiKey
+      });
+      const installations = getFakeInstallations();
+      expect(() => analyticsFactory(app, installations)).to.throw(
+        AnalyticsError.INDEXED_DB_UNSUPPORTED
+      );
+      idbStub.restore();
+    });
+    it('Warns eventually if indexedDB.open() does not work', async () => {
+      stubFetch(200, { measurementId: fakeMeasurementId });
+      const clock = useFakeTimers();
+      const warnStub = stub(console, 'warn');
+      const idbOpenStub = stub(window, 'indexedDB').value({
+        open: Promise.reject()
+      });
+      const app = getFakeApp({
+        appId: fakeAppParams.appId,
+        apiKey: fakeAppParams.apiKey
+      });
+      const installations = getFakeInstallations();
+      analyticsFactory(app, installations);
+      await clock.runAllAsync();
+      expect(warnStub.args[0][1]).to.include(
+        AnalyticsError.INVALID_INDEXED_DB_CONTEXT
+      );
+      warnStub.restore();
+      idbOpenStub.restore();
+      fetchStub.restore();
+    });
+    it('Throws if creating an instance with already-used analytics ID', () => {
+      const app = getFakeApp(fakeAppParams);
+      const installations = getFakeInstallations();
+      resetGlobalVars(false, { [fakeAppParams.appId]: Promise.resolve() });
+      expect(() => analyticsFactory(app, installations)).to.throw(
+        AnalyticsError.ALREADY_EXISTS
+      );
+    });
   });
   describe('Standard app, page already has user gtag script', () => {
     let app: FirebaseApp = {} as FirebaseApp;
     let fidDeferred: Deferred<void>;
-    before(() => {
+    const gtagStub: SinonStub = stub();
+    const clock = useFakeTimers();
+    before(async () => {
       resetGlobalVars();
-
       app = getFakeApp(fakeAppParams);
       fidDeferred = new Deferred<void>();
       const installations = getFakeInstallations('fid-1234', () =>
@@ -87,7 +163,12 @@ describe('FirebaseAnalytics instance tests', () => {
       );
       window['gtag'] = gtagStub;
       window['dataLayer'] = [];
+      stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance = analyticsFactory(app, installations);
+      // Fetch stub will revert to real `fetch` when before() block ends,
+      // while hanging analytics initialization promises are still resolving.
+      // Wait for all promises to resolve.
+      await clock.runAllAsync();
     });
     after(() => {
       delete window['gtag'];
@@ -95,19 +176,15 @@ describe('FirebaseAnalytics instance tests', () => {
       removeGtagScript();
       fetchStub.restore();
     });
-    afterEach(() => {
-      gtagStub.reset();
-    });
     it('Contains reference to parent app', () => {
-      stubFetch(200, {});
       expect(analyticsInstance.app).to.equal(app);
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
-      stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
-      await new Promise(resolve => setTimeout(resolve, 10));
+      // Clear promise chain started by logEvent.
+      await clock.runAllAsync();
       expect(gtagStub).to.have.been.calledWith('js');
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.CONFIG,
@@ -144,10 +221,13 @@ describe('FirebaseAnalytics instance tests', () => {
   });
 
   describe('Page has user gtag script with custom gtag and dataLayer names', () => {
+    let app: FirebaseApp = {} as FirebaseApp;
     let fidDeferred: Deferred<void>;
-    before(() => {
+    const gtagStub: SinonStub = stub();
+    const clock = useFakeTimers();
+    before(async () => {
       resetGlobalVars();
-      const app = getFakeApp(fakeAppParams);
+      app = getFakeApp(fakeAppParams);
       fidDeferred = new Deferred<void>();
       const installations = getFakeInstallations('fid-1234', () =>
         fidDeferred.resolve()
@@ -158,22 +238,25 @@ describe('FirebaseAnalytics instance tests', () => {
         dataLayerName: customDataLayerName,
         gtagName: customGtagName
       });
+      stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance = analyticsFactory(app, installations);
+      // Fetch stub will revert to real `fetch` when before() block ends,
+      // while hanging analytics initialization promises are still resolving.
+      // Wait for all promises to resolve.
+      await clock.runAllAsync();
     });
     after(() => {
       delete window[customGtagName];
       delete window[customDataLayerName];
       removeGtagScript();
-    });
-    afterEach(() => {
-      gtagStub.reset();
+      fetchStub.restore();
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
-      stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
-      await new Promise(resolve => setTimeout(resolve, 10));
+      // Clear promise chain started by logEvent.
+      await clock.runAllAsync();
       expect(gtagStub).to.have.been.calledWith('js');
       expect(gtagStub).to.have.been.calledWith(
         GtagCommand.CONFIG,
@@ -196,11 +279,17 @@ describe('FirebaseAnalytics instance tests', () => {
   });
 
   describe('Page has no existing gtag script or dataLayer', () => {
-    before(() => {
+    const clock = useFakeTimers();
+    before(async () => {
       resetGlobalVars();
       const app = getFakeApp(fakeAppParams);
       const installations = getFakeInstallations();
+      stubFetch(200, {});
       analyticsInstance = analyticsFactory(app, installations);
+      // Fetch stub will revert to real `fetch` when before() block ends,
+      // while hanging analytics initialization promises are still resolving.
+      // Wait for all promises to resolve.
+      await clock.runAllAsync();
     });
     after(() => {
       delete window['gtag'];
@@ -209,7 +298,6 @@ describe('FirebaseAnalytics instance tests', () => {
       fetchStub.restore();
     });
     it('Adds the script tag to the page', async () => {
-      stubFetch(200, {});
       const { initializationPromisesMap } = getGlobalVars();
       await initializationPromisesMap[fakeMeasurementId];
       expect(findGtagScriptOnPage()).to.not.be.null;

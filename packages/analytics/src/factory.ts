@@ -158,6 +158,19 @@ export function factory(
   if (!areCookiesEnabled()) {
     throw ERROR_FACTORY.create(AnalyticsError.COOKIES_NOT_ENABLED);
   }
+  if (!isIndexedDBAvailable()) {
+    throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
+  }
+  // Async but non-blocking.
+  validateIndexedDBOpenable().catch(error => {
+    const analyticsError = ERROR_FACTORY.create(
+      AnalyticsError.INVALID_INDEXED_DB_CONTEXT,
+      {
+        errorInfo: error
+      }
+    );
+    logger.warn(analyticsError.message);
+  });
   const appId = app.options.appId;
   if (!appId) {
     throw ERROR_FACTORY.create(AnalyticsError.NO_APP_ID);
@@ -178,18 +191,6 @@ export function factory(
       id: appId
     });
   }
-  if (!areCookiesEnabled()) {
-    throw ERROR_FACTORY.create(AnalyticsError.COOKIES_NOT_ENABLED);
-  }
-  if (!isIndexedDBAvailable()) {
-    throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
-  }
-  // Async but non-blocking.
-  validateIndexedDBOpenable().catch(error => {
-    throw ERROR_FACTORY.create(AnalyticsError.INVALID_INDEXED_DB_CONTEXT, {
-      errorInfo: error
-    });
-  });
 
   if (!globalInitDone) {
     // Steps here should only be done once per page: creation or wrapping
