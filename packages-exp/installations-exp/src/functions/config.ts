@@ -17,28 +17,43 @@
 
 import { _registerComponent } from '@firebase/app-exp';
 import { _FirebaseService } from '@firebase/app-types-exp';
-import { Component, ComponentType } from '@firebase/component';
-import { getInstallations, deleteInstallations } from '../api/index';
+import {
+  Component,
+  ComponentType,
+  InstanceFactory,
+  ComponentContainer
+} from '@firebase/component';
+import {
+  getInstallations,
+  deleteInstallations,
+  getId,
+  getToken,
+  onIdChange
+} from '../api/index';
+import { FirebaseInstallationsInternal } from '../interfaces/installation-internal';
+
+const installationsName = 'installations-exp';
+
+const factory: InstanceFactory<'installations-exp'> = (
+  container: ComponentContainer
+) => {
+  const app = container.getProvider('app-exp').getImmediate();
+
+  // Throws if app isn't configured properly.
+  const installations = getInstallations(app);
+  const installationsService: FirebaseInstallationsInternal = {
+    app,
+    getId: () => getId(installations),
+    getToken: (forceRefresh?: boolean) => getToken(installations, forceRefresh),
+    delete: () => deleteInstallations(installations),
+    onIdChange: (callback: (fid: string) => void) =>
+      onIdChange(installations, callback)
+  };
+  return installationsService;
+};
 
 export function registerInstallations(): void {
-  const installationsName = 'installations-exp';
-
   _registerComponent(
-    new Component(
-      installationsName,
-      container => {
-        const app = container.getProvider('app-exp').getImmediate();
-
-        // Throws if app isn't configured properly.
-        const installations = getInstallations(app);
-        const installationsService: _FirebaseService = {
-          app,
-          delete: () => deleteInstallations(installations)
-        };
-
-        return installationsService;
-      },
-      ComponentType.PUBLIC
-    )
+    new Component(installationsName, factory, ComponentType.PUBLIC)
   );
 }

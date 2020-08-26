@@ -16,7 +16,7 @@
  */
 
 import { Provider } from '@firebase/component';
-import { _FirebaseService } from '@firebase/app-types-exp';
+import { FirebaseInstallationsInternal } from '../installations-exp/src/interfaces/installation-internal';
 
 export interface FirebaseInstallations {
   /**
@@ -52,6 +52,6 @@ export type FirebaseInstallationsName = 'installations-exp';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'installations-exp': _FirebaseService;
+    'installations-exp': FirebaseInstallationsInternal;
   }
 }
