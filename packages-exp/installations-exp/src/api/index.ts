@@ -17,6 +17,6 @@
 
 export * from './get-id';
 export * from './get-token';
-export * from './delete-installation';
+export * from './delete-installations';
 export * from './on-id-change';
 export * from './get-installations';

@@ -33,7 +33,7 @@ import { getFakeInstallations } from '../testing/fake-generators';
 import '../testing/setup';
 import { ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';
-import { deleteInstallation } from './delete-installation';
+import { deleteInstallations } from './delete-installations';
 
 const FID = 'children-of-the-damned';
 
@@ -56,7 +56,7 @@ describe('deleteInstallation', () => {
   });
 
   it('resolves without calling server API if there is no installation', async () => {
-    await expect(deleteInstallation(installations)).to.be.fulfilled;
+    await expect(deleteInstallations(installations)).to.be.fulfilled;
     expect(deleteInstallationRequestSpy).not.to.have.been.called;
   });
 
@@ -67,7 +67,7 @@ describe('deleteInstallation', () => {
     };
     await set(installations.appConfig, entry);
 
-    await expect(deleteInstallation(installations)).to.be.fulfilled;
+    await expect(deleteInstallations(installations)).to.be.fulfilled;
     expect(deleteInstallationRequestSpy).not.to.have.been.called;
     await expect(get(installations.appConfig)).to.eventually.be.undefined;
   });
@@ -80,7 +80,7 @@ describe('deleteInstallation', () => {
     };
     await set(installations.appConfig, entry);
 
-    await expect(deleteInstallation(installations)).to.be.rejectedWith(
+    await expect(deleteInstallations(installations)).to.be.rejectedWith(
       ErrorCode.DELETE_PENDING_REGISTRATION
     );
     expect(deleteInstallationRequestSpy).not.to.have.been.called;
@@ -101,7 +101,7 @@ describe('deleteInstallation', () => {
     await set(installations.appConfig, entry);
     stub(navigator, 'onLine').value(false);
 
-    await expect(deleteInstallation(installations)).to.be.rejectedWith(
+    await expect(deleteInstallations(installations)).to.be.rejectedWith(
       ErrorCode.APP_OFFLINE
     );
     expect(deleteInstallationRequestSpy).not.to.have.been.called;
@@ -121,7 +121,7 @@ describe('deleteInstallation', () => {
     };
     await set(installations.appConfig, entry);
 
-    await expect(deleteInstallation(installations)).to.be.fulfilled;
+    await expect(deleteInstallations(installations)).to.be.fulfilled;
     expect(deleteInstallationRequestSpy).to.have.been.calledOnceWith(
       installations.appConfig,
       entry

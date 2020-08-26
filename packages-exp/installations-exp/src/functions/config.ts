@@ -18,7 +18,7 @@
 import { registerVersion, _registerComponent } from '@firebase/app-exp';
 import { _FirebaseService } from '@firebase/app-types-exp';
 import { Component, ComponentType } from '@firebase/component';
-import { getInstallations, deleteInstallation } from '../api/index';
+import { getInstallations, deleteInstallations } from '../api/index';
 
 import { name, version } from '../../package.json';
 
@@ -35,7 +35,7 @@ export function registerInstallations(): void {
         const installations = getInstallations(app);
         const installationsService: _FirebaseService = {
           app,
-          delete: () => deleteInstallation(installations)
+          delete: () => deleteInstallations(installations)
         };
 
         return installationsService;

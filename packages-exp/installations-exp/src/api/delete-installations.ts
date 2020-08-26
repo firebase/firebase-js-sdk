@@ -21,7 +21,7 @@ import { RequestStatus } from '../interfaces/installation-entry';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
-export async function deleteInstallation(
+export async function deleteInstallations(
   installations: FirebaseInstallations
 ): Promise<void> {
   const { appConfig } = installations;
