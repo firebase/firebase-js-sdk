@@ -40,7 +40,7 @@ export interface FirebaseInstallationsInternal extends _FirebaseService {
   /**
    * Deletes the Firebase Installation and all associated data.
    */
-  delete(): Promise<void>;
+  _delete(): Promise<void>;
 
   /**
    * Sets a new callback that will get called when Installlation ID changes.

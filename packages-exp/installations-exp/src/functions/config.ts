@@ -45,7 +45,7 @@ const factory: InstanceFactory<'installations-exp'> = (
     app,
     getId: () => getId(installations),
     getToken: (forceRefresh?: boolean) => getToken(installations, forceRefresh),
-    delete: () => deleteInstallations(installations),
+    _delete: () => deleteInstallations(installations),
     onIdChange: (callback: (fid: string) => void) =>
       onIdChange(installations, callback)
   };
