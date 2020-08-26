@@ -46,9 +46,9 @@ export interface Observer<T> {
  * It handles "fan-out". -- Identical queries will re-use the same watch on the
  * backend.
  *
- * PORTING NOTE: On Web, EventManager requires a call to `subscribe()` to
- * register SyncEngine's `listen()` and `unlisten()` functionality. This allows
- * users to tree-shake the Watch logic.
+ * PORTING NOTE: On Web, EventManager `onListen` and `onUnlisten` need to be
+ * assigned to SyncEngine's `listen()` and `unlisten()` API before usage. This
+ * allows users to tree-shake the Watch logic.
  */
 export class EventManager implements SyncEngineListener {
   private queries = new ObjectMap<Query, QueryListenersInfo>(
