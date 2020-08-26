@@ -47,6 +47,10 @@ import {
 import { initializeIds } from './initialize-ids';
 import { logger } from './logger';
 
+interface FirebaseAnalyticsInternal extends FirebaseAnalytics {
+  INTERNAL?: {};
+}
+
 /**
  * Maps appId to full initialization promise. Wrapped gtag calls must wait on
  * all or some of these, depending on the call's `send_to` param and the status
@@ -224,7 +228,7 @@ export function factory(
     gtagCoreFunction
   );
 
-  const analyticsInstance: FirebaseAnalytics = {
+  const analyticsInstance: FirebaseAnalyticsInternal = {
     app,
     // Public methods return void for API simplicity and to better match gtag,
     // while internal implementations return promises.
@@ -266,6 +270,12 @@ export function factory(
         initializationPromisesMap[appId],
         enabled
       ).catch(e => logger.error(e));
+    },
+    INTERNAL: {
+      delete: (): Promise<void> => {
+        delete initializationPromisesMap[appId];
+        return Promise.resolve();
+      }
     }
   };
 

@@ -271,7 +271,6 @@ describe('FirebaseAnalytics instance tests', () => {
   });
 
   describe('Page has no existing gtag script or dataLayer', () => {
-    const clock = useFakeTimers();
     before(async () => {
       resetGlobalVars();
       const app = getFakeApp(fakeAppParams);
