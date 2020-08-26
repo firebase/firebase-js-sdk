@@ -17,7 +17,10 @@
 
 // import firebase from '@firebase/app-exp';
 import { registerInstallations } from './functions/config';
+import { registerVersion } from '@firebase/app-exp';
+import { name, version } from '../package.json';
 
 export * from './api';
 
 registerInstallations();
+registerVersion(name, version);

@@ -15,12 +15,10 @@
  * limitations under the License.
  */
 
-import { registerVersion, _registerComponent } from '@firebase/app-exp';
+import { _registerComponent } from '@firebase/app-exp';
 import { _FirebaseService } from '@firebase/app-types-exp';
 import { Component, ComponentType } from '@firebase/component';
 import { getInstallations, deleteInstallations } from '../api/index';
-
-import { name, version } from '../../package.json';
 
 export function registerInstallations(): void {
   const installationsName = 'installations-exp';
@@ -44,5 +42,3 @@ export function registerInstallations(): void {
     )
   );
 }
-
-registerVersion(name, version);
