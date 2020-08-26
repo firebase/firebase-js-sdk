@@ -23,7 +23,7 @@ import {
   OfflineComponentProvider,
   OnlineComponentProvider
 } from '../../../src/core/component_provider';
-import {handleUserChange, LocalStore} from '../../../src/local/local_store';
+import { handleUserChange, LocalStore } from '../../../src/local/local_store';
 import { Deferred } from '../../../src/util/promise';
 import { logDebug } from '../../../src/util/log';
 import { SyncEngine } from '../../../src/core/sync_engine';
@@ -71,7 +71,7 @@ export async function setOfflineComponentProvider(
   // When a user calls clearPersistence() in one client, all other clients
   // need to be terminated to allow the delete to succeed.
   offlineComponentProvider.persistence.setDatabaseDeletedListener(() =>
-    firestore.delete()
+    firestore._delete()
   );
   offlineDeferred.resolve(offlineComponentProvider);
 }
