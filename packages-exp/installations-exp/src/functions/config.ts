@@ -18,8 +18,7 @@
 import { registerVersion, _registerComponent } from '@firebase/app-exp';
 import { _FirebaseService } from '@firebase/app-types-exp';
 import { Component, ComponentType } from '@firebase/component';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
-import { extractAppConfig } from '../helpers/extract-app-config';
+import { getInstallations, deleteInstallation } from '../api/index';
 
 import { name, version } from '../../package.json';
 
@@ -33,15 +32,13 @@ export function registerInstallations(): void {
         const app = container.getProvider('app-exp').getImmediate();
 
         // Throws if app isn't configured properly.
-        const appConfig = extractAppConfig(app);
-        const platformLoggerProvider = container.getProvider('platform-logger');
-
-        const installations: FirebaseInstallations = {
-          appConfig,
-          platformLoggerProvider
+        const installations = getInstallations(app);
+        const installationsService: _FirebaseService = {
+          app,
+          delete: () => deleteInstallation(installations)
         };
 
-        return installations;
+        return installationsService;
       },
       ComponentType.PUBLIC
     )

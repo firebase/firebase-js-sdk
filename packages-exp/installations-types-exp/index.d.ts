@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
+import { _FirebaseService } from '@firebase/app-types-exp';
 
 export interface FirebaseInstallations {
   /**
@@ -52,6 +52,6 @@ export type FirebaseInstallationsName = 'installations-exp';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'installations-exp': FirebaseInstallations;
+    'installations-exp': _FirebaseService;
   }
 }
