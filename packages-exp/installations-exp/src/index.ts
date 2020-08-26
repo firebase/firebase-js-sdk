@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-// import firebase from '@firebase/app-exp';
 import { registerInstallations } from './functions/config';
 import { registerVersion } from '@firebase/app-exp';
 import { name, version } from '../package.json';
