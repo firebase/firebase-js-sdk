@@ -16,9 +16,9 @@
  */
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const karmaBase = require('../../../../config/karma.base');
+const karmaBase = require('../../config/karma.base');
 
-const files = [`./index.ts`];
+const files = [`./testing/integration-tests/integration.ts`];
 
 module.exports = function (config) {
   config.set({

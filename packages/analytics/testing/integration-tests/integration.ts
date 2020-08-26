@@ -24,24 +24,29 @@ import { stub } from 'sinon';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const config = require('../../../../config/project.json');
 
-describe('FirebaseAnalytics Integration Tests', () => {
+describe('FirebaseAnalytics Integration Smoke Tests', () => {
+  afterEach(() => firebase.app().delete());
   it('logEvent() sends correct network request.', async () => {
-    const app = firebase.initializeApp(config);
-    app.analytics().logEvent('login');
+    firebase.initializeApp(config);
+    firebase.analytics().logEvent('login');
     await new Promise(resolve => setTimeout(resolve, 10000));
     const resources = performance.getEntriesByType('resource');
-    resources.forEach(resource => console.log(resource.name));
-    await app.delete();
+    const callsWithEvent = resources.filter(
+      resource =>
+        resource.name.includes('google-analytics.com') &&
+        resource.name.includes('en=login')
+    );
+    expect(callsWithEvent.length).to.be.at.least(1);
   });
   it("Warns if measurement ID doesn't match.", done => {
     const warnStub = stub(console, 'warn').callsFake(() => {
       expect(warnStub.args[0][1]).to.include('does not match');
       done();
     });
-    const app = firebase.initializeApp({
+    firebase.initializeApp({
       ...config,
       measurementId: 'wrong-id'
     });
-    app.analytics();
+    firebase.analytics();
   });
 });
