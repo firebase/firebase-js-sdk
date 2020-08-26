@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+      "outDir": "dist",
+      "importHelpers": true,
+      "module": "es6",
+      "moduleResolution": "node",
+      "resolveJsonModule": true,
+      "target": "es6",
+      "declaration": true
+    },
+    "exclude": [
+      "dist/**/*"
+    ]
+  }

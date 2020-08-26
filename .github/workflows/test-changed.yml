@@ -8,10 +8,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Checkout
-      run: |
-        git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
+    - name: Checkout Repo
+      uses: actions/checkout@master
+      with:
+        # This makes Actions fetch all Git history so run-changed script can diff properly.
+        fetch-depth: 0
     - name: Set up Node (10)
       uses: actions/setup-node@v1
       with:
@@ -24,7 +25,7 @@ jobs:
       run: |
         cp config/ci.config.json config/project.json
         yarn
-    - name: yarn build
-      run: yarn build
+    - name: build
+      run: yarn build:changed core
     - name: Run tests on changed packages
-      run: xvfb-run yarn test:changed
+      run: xvfb-run yarn test:changed core

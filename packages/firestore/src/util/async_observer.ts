@@ -31,14 +31,20 @@ export class AsyncObserver<T> implements Observer<T> {
    */
   private muted = false;
 
-  constructor(private observer: Observer<T>) {}
+  constructor(private observer: Partial<Observer<T>>) {}
 
   next(value: T): void {
-    this.scheduleEvent(this.observer.next, value);
+    if (this.observer.next) {
+      this.scheduleEvent(this.observer.next, value);
+    }
   }
 
   error(error: FirestoreError): void {
-    this.scheduleEvent(this.observer.error, error);
+    if (this.observer.error) {
+      this.scheduleEvent(this.observer.error, error);
+    } else {
+      console.error('Uncaught Error in snapshot listener:', error);
+    }
   }
 
   mute(): void {

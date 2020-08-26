@@ -21,7 +21,7 @@ import { logDebug, logError } from './log';
 import { Deferred } from './promise';
 import { ExponentialBackoff } from '../remote/backoff';
 import { isIndexedDbTransactionError } from '../local/simple_db';
-import { getWindow } from '../platform/dom';
+import { getDocument } from '../platform/dom';
 
 const LOG_TAG = 'AsyncQueue';
 
@@ -235,12 +235,22 @@ export class AsyncQueue {
   // Visibility handler that triggers an immediate retry of all retryable
   // operations. Meant to speed up recovery when we regain file system access
   // after page comes into foreground.
-  private visibilityHandler = (): void => this.backoff.skipBackoff();
+  private visibilityHandler: () => void = () => {
+    const document = getDocument();
+    if (document) {
+      logDebug(
+        LOG_TAG,
+        'Visibility state changed to  ',
+        document.visibilityState
+      );
+    }
+    this.backoff.skipBackoff();
+  };
 
   constructor() {
-    const window = getWindow();
-    if (window && typeof window.addEventListener === 'function') {
-      window.addEventListener('visibilitychange', this.visibilityHandler);
+    const document = getDocument();
+    if (document && typeof document.addEventListener === 'function') {
+      document.addEventListener('visibilitychange', this.visibilityHandler);
     }
   }
 
@@ -263,7 +273,7 @@ export class AsyncQueue {
    * Regardless if the queue has initialized shutdown, adds a new operation to the
    * queue without waiting for it to complete (i.e. we ignore the Promise result).
    */
-  enqueueAndForgetEvenAfterShutdown<T extends unknown>(
+  enqueueAndForgetEvenWhileRestricted<T extends unknown>(
     op: () => Promise<T>
   ): void {
     this.verifyNotFailed();
@@ -272,32 +282,20 @@ export class AsyncQueue {
   }
 
   /**
-   * Regardless if the queue has initialized shutdown, adds a new operation to the
-   * queue.
+   * Initialize the shutdown of this queue. Once this method is called, the
+   * only possible way to request running an operation is through
+   * `enqueueEvenWhileRestricted()`.
    */
-  private enqueueEvenAfterShutdown<T extends unknown>(
-    op: () => Promise<T>
-  ): Promise<T> {
-    this.verifyNotFailed();
-    return this.enqueueInternal(op);
-  }
-
-  /**
-   * Adds a new operation to the queue and initialize the shut down of this queue.
-   * Returns a promise that will be resolved when the promise returned by the new
-   * operation is (with its value).
-   * Once this method is called, the only possible way to request running an operation
-   * is through `enqueueAndForgetEvenAfterShutdown`.
-   */
-  async enqueueAndInitiateShutdown(op: () => Promise<void>): Promise<void> {
-    this.verifyNotFailed();
+  enterRestrictedMode(): void {
     if (!this._isShuttingDown) {
       this._isShuttingDown = true;
-      const window = getWindow();
-      if (window) {
-        window.removeEventListener('visibilitychange', this.visibilityHandler);
+      const document = getDocument();
+      if (document && typeof document.removeEventListener === 'function') {
+        document.removeEventListener(
+          'visibilitychange',
+          this.visibilityHandler
+        );
       }
-      await this.enqueueEvenAfterShutdown(op);
     }
   }
 

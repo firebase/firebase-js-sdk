@@ -400,7 +400,7 @@ export class BrowserPollConnection implements Transport {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface IFrameElement extends HTMLIFrameElement {
   doc: Document;
 }

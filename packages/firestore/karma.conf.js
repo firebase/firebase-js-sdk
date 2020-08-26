@@ -55,6 +55,7 @@ function getTestFiles(argv) {
   } else if (argv.integration) {
     return [legcayIntegrationTests];
   } else if (argv.lite) {
+    process.env.TEST_PLATFORM = 'browser_lite';
     return [liteIntegrationTests];
   } else if (argv.exp) {
     return [expIntegrationTests];

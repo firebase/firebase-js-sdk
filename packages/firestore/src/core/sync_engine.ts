@@ -17,13 +17,23 @@
 
 import { User } from '../auth/user';
 import {
+  applyRemoteEventToLocalCache,
   getNewDocumentChanges,
   getCachedTarget,
   ignoreIfPrimaryLeaseLoss,
   LocalStore,
   getActiveClientsFromPersistence,
   lookupMutationDocuments,
-  removeCachedMutationBatchMetadata
+  removeCachedMutationBatchMetadata,
+  allocateTarget,
+  executeQuery,
+  releaseTarget,
+  rejectBatch,
+  acknowledgeBatch,
+  getHighestUnacknowledgedBatchId,
+  localWrite,
+  notifyLocalViewChanges,
+  handleUserChange
 } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
@@ -47,7 +57,6 @@ import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
-
 import { ClientId, SharedClientState } from '../local/shared_client_state';
 import { QueryTargetState } from '../local/shared_client_state_syncer';
 import { SortedSet } from '../util/sorted_set';
@@ -65,7 +74,6 @@ import {
 import { SnapshotVersion } from './snapshot_version';
 import { Target } from './target';
 import { TargetIdGenerator } from './target_id_generator';
-import { Transaction } from './transaction';
 import {
   BatchId,
   MutationBatchState,
@@ -82,8 +90,7 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
-import { TransactionRunner } from './transaction_runner';
+import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { Datastore } from '../remote/datastore';
 
 const LOG_TAG = 'SyncEngine';
@@ -182,29 +189,6 @@ export interface SyncEngine extends RemoteSyncer {
    * backend (or failed locally for any other reason).
    */
   write(batch: Mutation[], userCallback: Deferred<void>): Promise<void>;
-
-  /**
-   * Takes an updateFunction in which a set of reads and writes can be performed
-   * atomically. In the updateFunction, the client can read and write values
-   * using the supplied transaction object. After the updateFunction, all
-   * changes will be committed. If a retryable error occurs (ex: some other
-   * client has changed any of the data referenced), then the updateFunction
-   * will be called again after a backoff. If the updateFunction still fails
-   * after all retries, then the transaction will be rejected.
-   *
-   * The transaction object passed to the updateFunction contains methods for
-   * accessing documents and collections. Unlike other datastore access, data
-   * accessed with the transaction will not reflect local changes that have not
-   * been committed. For this reason, it is required that all reads are
-   * performed before any writes. Transactions must be performed while online.
-   *
-   * The Deferred input is resolved when the transaction is fully committed.
-   */
-  runTransaction<T>(
-    asyncQueue: AsyncQueue,
-    updateFunction: (transaction: Transaction) => Promise<T>,
-    deferred: Deferred<T>
-  ): void;
 
   /**
    * Applies an OnlineState change to the sync engine and notifies any views of
@@ -326,7 +310,8 @@ class SyncEngineImpl implements SyncEngine {
       this.sharedClientState.addLocalQueryTarget(targetId);
       viewSnapshot = queryView.view.computeInitialSnapshot();
     } else {
-      const targetData = await this.localStore.allocateTarget(
+      const targetData = await allocateTarget(
+        this.localStore,
         queryToTarget(query)
       );
 
@@ -356,7 +341,8 @@ class SyncEngineImpl implements SyncEngine {
     targetId: TargetId,
     current: boolean
   ): Promise<ViewSnapshot> {
-    const queryResult = await this.localStore.executeQuery(
+    const queryResult = await executeQuery(
+      this.localStore,
       query,
       /* usePreviousResults= */ true
     );
@@ -419,8 +405,11 @@ class SyncEngineImpl implements SyncEngine {
       );
 
       if (!targetRemainsActive) {
-        await this.localStore
-          .releaseTarget(queryView.targetId, /*keepPersistedTargetData=*/ false)
+        await releaseTarget(
+          this.localStore,
+          queryView.targetId,
+          /*keepPersistedTargetData=*/ false
+        )
           .then(() => {
             this.sharedClientState.clearQueryState(queryView.targetId);
             this.remoteStore.unlisten(queryView.targetId);
@@ -430,7 +419,8 @@ class SyncEngineImpl implements SyncEngine {
       }
     } else {
       this.removeAndCleanupTarget(queryView.targetId);
-      await this.localStore.releaseTarget(
+      await releaseTarget(
+        this.localStore,
         queryView.targetId,
         /*keepPersistedTargetData=*/ true
       );
@@ -441,7 +431,7 @@ class SyncEngineImpl implements SyncEngine {
     this.assertSubscribed('write()');
 
     try {
-      const result = await this.localStore.localWrite(batch);
+      const result = await localWrite(this.localStore, batch);
       this.sharedClientState.addPendingMutation(result.batchId);
       this.addMutationCallback(result.batchId, userCallback);
       await this.emitNewSnapsAndNotifyLocalStore(result.changes);
@@ -454,23 +444,13 @@ class SyncEngineImpl implements SyncEngine {
     }
   }
 
-  runTransaction<T>(
-    asyncQueue: AsyncQueue,
-    updateFunction: (transaction: Transaction) => Promise<T>,
-    deferred: Deferred<T>
-  ): void {
-    new TransactionRunner<T>(
-      asyncQueue,
-      this.datastore,
-      updateFunction,
-      deferred
-    ).run();
-  }
-
   async applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
     this.assertSubscribed('applyRemoteEvent()');
     try {
-      const changes = await this.localStore.applyRemoteEvent(remoteEvent);
+      const changes = await applyRemoteEventToLocalCache(
+        this.localStore,
+        remoteEvent
+      );
       // Update `receivedDocument` as appropriate for any limbo targets.
       remoteEvent.targetChanges.forEach((targetChange, targetId) => {
         const limboResolution = this.activeLimboResolutionsByTarget.get(
@@ -588,8 +568,11 @@ class SyncEngineImpl implements SyncEngine {
       this.activeLimboResolutionsByTarget.delete(targetId);
       this.pumpEnqueuedLimboResolutions();
     } else {
-      await this.localStore
-        .releaseTarget(targetId, /* keepPersistedTargetData */ false)
+      await releaseTarget(
+        this.localStore,
+        targetId,
+        /* keepPersistedTargetData */ false
+      )
         .then(() => this.removeAndCleanupTarget(targetId, err))
         .catch(ignoreIfPrimaryLeaseLoss);
     }
@@ -603,7 +586,8 @@ class SyncEngineImpl implements SyncEngine {
     const batchId = mutationBatchResult.batch.batchId;
 
     try {
-      const changes = await this.localStore.acknowledgeBatch(
+      const changes = await acknowledgeBatch(
+        this.localStore,
         mutationBatchResult
       );
 
@@ -628,7 +612,7 @@ class SyncEngineImpl implements SyncEngine {
     this.assertSubscribed('rejectFailedWrite()');
 
     try {
-      const changes = await this.localStore.rejectBatch(batchId);
+      const changes = await rejectBatch(this.localStore, batchId);
 
       // The local store may or may not be able to apply the write result and
       // raise events immediately (depending on whether the watcher is caught up),
@@ -654,7 +638,9 @@ class SyncEngineImpl implements SyncEngine {
     }
 
     try {
-      const highestBatchId = await this.localStore.getHighestUnacknowledgedBatchId();
+      const highestBatchId = await getHighestUnacknowledgedBatchId(
+        this.localStore
+      );
       if (highestBatchId === BATCHID_UNKNOWN) {
         // Trigger the callback right away if there is no pending writes at the moment.
         callback.resolve();
@@ -881,14 +867,16 @@ class SyncEngineImpl implements SyncEngine {
             // The query has a limit and some docs were removed, so we need
             // to re-run the query against the local store to make sure we
             // didn't lose any good docs that had been past the limit.
-            return this.localStore
-              .executeQuery(queryView.query, /* usePreviousResults= */ false)
-              .then(({ documents }) => {
-                return queryView.view.computeDocChanges(
-                  documents,
-                  viewDocChanges
-                );
-              });
+            return executeQuery(
+              this.localStore,
+              queryView.query,
+              /* usePreviousResults= */ false
+            ).then(({ documents }) => {
+              return queryView.view.computeDocChanges(
+                documents,
+                viewDocChanges
+              );
+            });
           })
           .then((viewDocChanges: ViewDocumentChanges) => {
             const targetChange =
@@ -923,7 +911,7 @@ class SyncEngineImpl implements SyncEngine {
 
     await Promise.all(queriesProcessed);
     this.syncEngineListener!.onWatchChange(newSnaps);
-    await this.localStore.notifyLocalViewChanges(docChangesInAllViews);
+    await notifyLocalViewChanges(this.localStore, docChangesInAllViews);
   }
 
   assertSubscribed(fnName: string): void {
@@ -939,7 +927,7 @@ class SyncEngineImpl implements SyncEngine {
     if (userChanged) {
       logDebug(LOG_TAG, 'User change. New user:', user.toKey());
 
-      const result = await this.localStore.handleUserChange(user);
+      const result = await handleUserChange(this.localStore, user);
       this.currentUser = user;
 
       // Fails tasks waiting for pending writes requested by previous user.
@@ -1012,7 +1000,8 @@ async function synchronizeViewAndComputeSnapshot(
   queryView: QueryView
 ): Promise<ViewChange> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  const queryResult = await syncEngineImpl.localStore.executeQuery(
+  const queryResult = await executeQuery(
+    syncEngineImpl.localStore,
     queryView.query,
     /* usePreviousResults= */ true
   );
@@ -1107,7 +1096,8 @@ export async function applyPrimaryState(
       } else {
         p = p.then(() => {
           syncEngineImpl.removeAndCleanupTarget(targetId);
-          return syncEngineImpl.localStore.releaseTarget(
+          return releaseTarget(
+            syncEngineImpl.localStore,
             targetId,
             /*keepPersistedTargetData=*/ true
           );
@@ -1171,7 +1161,8 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
       // from LocalStore (as the resume token and the snapshot version
       // might have changed) and reconcile their views with the persisted
       // state (the list of syncedDocuments may have gotten out of sync).
-      targetData = await syncEngineImpl.localStore.allocateTarget(
+      targetData = await allocateTarget(
+        syncEngineImpl.localStore,
         queryToTarget(queries[0])
       );
 
@@ -1199,7 +1190,7 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
       // allocate the target in LocalStore and initialize a new View.
       const target = await getCachedTarget(syncEngineImpl.localStore, targetId);
       debugAssert(!!target, `Target for id ${targetId} not found`);
-      targetData = await syncEngineImpl.localStore.allocateTarget(target);
+      targetData = await allocateTarget(syncEngineImpl.localStore, target);
       await syncEngineImpl.initializeViewAndComputeSnapshot(
         synthesizeTargetToQuery(target!),
         targetId,
@@ -1277,7 +1268,8 @@ export async function applyTargetState(
         break;
       }
       case 'rejected': {
-        await syncEngineImpl.localStore.releaseTarget(
+        await releaseTarget(
+          syncEngineImpl.localStore,
           targetId,
           /* keepPersistedTargetData */ true
         );
@@ -1310,7 +1302,7 @@ export async function applyActiveTargetsChange(
 
     const target = await getCachedTarget(syncEngineImpl.localStore, targetId);
     debugAssert(!!target, `Query data for active target ${targetId} not found`);
-    const targetData = await syncEngineImpl.localStore.allocateTarget(target);
+    const targetData = await allocateTarget(syncEngineImpl.localStore, target);
     await syncEngineImpl.initializeViewAndComputeSnapshot(
       synthesizeTargetToQuery(target),
       targetData.targetId,
@@ -1327,8 +1319,11 @@ export async function applyActiveTargetsChange(
     }
 
     // Release queries that are still active.
-    await syncEngineImpl.localStore
-      .releaseTarget(targetId, /* keepPersistedTargetData */ false)
+    await releaseTarget(
+      syncEngineImpl.localStore,
+      targetId,
+      /* keepPersistedTargetData */ false
+    )
       .then(() => {
         syncEngineImpl.remoteStore.unlisten(targetId);
         syncEngineImpl.removeAndCleanupTarget(targetId);

@@ -7,17 +7,17 @@
   "baseBranch": "master",
   "updateInternalDependencies": "patch",
   "ignore": [
-    "firebase-browserify-test",
-    "firebase-package-typings-test",
+    "firebase-namespace-integration-test",
     "firebase-firestore-integration-test",
-    "firebase-messaging-selenium-test",
-    "firebase-typescript-test",
-    "firebase-webpack-test",
+    "firebase-messaging-integration-test",
     "@firebase/app-exp",
     "@firebase/app-types-exp",
     "@firebase/functions-exp",
     "@firebase/functions-types-exp",
-    "firebase-exp"
+    "@firebase/testing",
+    "firebase-exp",
+    "@firebase/changelog-generator",
+    "firebase-size-analysis"
   ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true,

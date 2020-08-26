@@ -1,28 +1,6 @@
-import '../testing/setup';
-
-import * as tokenManagementModule from '../core/token-management';
-
-import {
-  CONSOLE_CAMPAIGN_ANALYTICS_ENABLED,
-  CONSOLE_CAMPAIGN_ID,
-  CONSOLE_CAMPAIGN_NAME,
-  CONSOLE_CAMPAIGN_TIME,
-  DEFAULT_SW_PATH,
-  DEFAULT_SW_SCOPE,
-  DEFAULT_VAPID_KEY
-} from '../util/constants';
-import { InternalMessage, MessageType } from '../interfaces/internal-message';
-import { SinonFakeTimers, SinonSpy, spy, stub, useFakeTimers } from 'sinon';
-import { Spy, Stub } from '../testing/sinon-types';
-
-import { ErrorCode } from '../util/errors';
-import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
-import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
-import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
-import { WindowController } from './window-controller';
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,12 +14,38 @@ import { WindowController } from './window-controller';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import '../testing/setup';
+
+import * as tokenManagementModule from '../core/token-management';
+
+import {
+  CONSOLE_CAMPAIGN_ANALYTICS_ENABLED,
+  CONSOLE_CAMPAIGN_ID,
+  CONSOLE_CAMPAIGN_NAME,
+  CONSOLE_CAMPAIGN_TIME,
+  DEFAULT_SW_PATH,
+  DEFAULT_SW_SCOPE,
+  DEFAULT_VAPID_KEY
+} from '../util/constants';
+import {
+  MessagePayloadInternal,
+  MessageType
+} from '../interfaces/internal-message-payload';
+import { SinonFakeTimers, SinonSpy, spy, stub, useFakeTimers } from 'sinon';
+import { Spy, Stub } from '../testing/sinon-types';
+
+import { ErrorCode } from '../util/errors';
+import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
+import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
+import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+import { WindowController } from './window-controller';
 import { expect } from 'chai';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
 
 type MessageEventListener = (event: Event) => Promise<void>;
 
-const ORIGINAL_SW_REGISTRATION = ServiceWorkerRegistration;
+const ORIGINAL_SW_REGISTRATION = FakeServiceWorkerRegistration;
 
 describe('WindowController', () => {
   let firebaseDependencies: FirebaseInternalDependencies;
@@ -104,6 +108,129 @@ describe('WindowController', () => {
   });
 
   describe('getToken', () => {
+    it('uses default sw if none was registered nor provided', async () => {
+      expect(windowController.getSwReg()).to.be.undefined;
+
+      await windowController.getToken({});
+
+      expect(registerStub).to.have.been.calledOnceWith(DEFAULT_SW_PATH, {
+        scope: DEFAULT_SW_SCOPE
+      });
+    });
+
+    it('uses option-provided swReg if non was registered', async () => {
+      expect(windowController.getSwReg()).to.be.undefined;
+
+      await windowController.getToken({
+        serviceWorkerRegistration: swRegistration
+      });
+
+      expect(getTokenStub).to.have.been.calledOnceWith(
+        firebaseDependencies,
+        swRegistration,
+        DEFAULT_VAPID_KEY
+      );
+    });
+
+    it('uses previously stored sw if non is provided in the option parameter', async () => {
+      windowController.useServiceWorker(swRegistration);
+      expect(windowController.getSwReg()).to.be.deep.equal(swRegistration);
+
+      await windowController.getToken({});
+
+      expect(getTokenStub).to.have.been.calledOnceWith(
+        firebaseDependencies,
+        swRegistration,
+        DEFAULT_VAPID_KEY
+      );
+    });
+
+    it('new swReg overrides existing swReg ', async () => {
+      windowController.useServiceWorker(swRegistration);
+      expect(windowController.getSwReg()).to.be.deep.equal(swRegistration);
+
+      const otherSwReg = new FakeServiceWorkerRegistration();
+
+      await windowController.getToken({
+        serviceWorkerRegistration: otherSwReg
+      });
+
+      expect(getTokenStub).to.have.been.calledOnceWith(
+        firebaseDependencies,
+        otherSwReg,
+        DEFAULT_VAPID_KEY
+      );
+    });
+
+    it('uses default VAPID if: a) no VAPID was stored and b) none is provided in option', async () => {
+      expect(windowController.getVapidKey()).is.null;
+
+      await windowController.getToken({});
+
+      expect(windowController.getVapidKey()).to.equal(DEFAULT_VAPID_KEY);
+
+      expect(getTokenStub).to.have.been.calledOnceWith(
+        firebaseDependencies,
+        swRegistration,
+        DEFAULT_VAPID_KEY
+      );
+    });
+
+    it('uses option-provided VAPID if no VAPID has been registered', async () => {
+      expect(windowController.getVapidKey()).is.null;
+
+      await windowController.getToken({ vapidKey: 'test_vapid_key' });
+
+      expect(windowController.getVapidKey()).to.equal('test_vapid_key');
+      expect(getTokenStub).to.have.been.calledOnceWith(
+        firebaseDependencies,
+        swRegistration,
+        'test_vapid_key'
+      );
+    });
+
+    it('uses option-provided VAPID if it is different from currently registered VAPID', async () => {
+      windowController.usePublicVapidKey('old_key');
+      expect(windowController.getVapidKey()).to.equal('old_key');
+
+      await windowController.getToken({ vapidKey: 'new_key' });
+
+      expect(windowController.getVapidKey()).to.equal('new_key');
+      expect(getTokenStub).to.have.been.calledOnceWith(
+        firebaseDependencies,
+        swRegistration,
+        'new_key'
+      );
+    });
+
+    it('uses existing VAPID if newly provided has the same value', async () => {
+      windowController.usePublicVapidKey('key');
+      expect(windowController.getVapidKey()).to.equal('key');
+
+      await windowController.getToken({ vapidKey: 'key' });
+
+      expect(windowController.getVapidKey()).to.equal('key');
+      expect(getTokenStub).to.have.been.calledOnceWith(
+        firebaseDependencies,
+        swRegistration,
+        'key'
+      );
+    });
+
+    it('uses existing VAPID if non is provided in the option parameter', async () => {
+      windowController.usePublicVapidKey('key');
+      expect(windowController.getVapidKey()).to.equal('key');
+
+      await windowController.getToken({});
+
+      expect(windowController.getVapidKey()).to.equal('key');
+      expect(getTokenStub).to.have.been.calledOnceWith(
+        firebaseDependencies,
+        swRegistration,
+        'key'
+      );
+    });
+
     it('throws if permission is denied', async () => {
       stub(Notification, 'permission').value('denied');
 
@@ -247,15 +374,17 @@ describe('WindowController', () => {
       const onMessageCallback = spy();
       windowController.onMessage(onMessageCallback);
 
-      const message: InternalMessage = {
-        firebaseMessaging: {
-          type: MessageType.PUSH_RECEIVED,
-          payload: { notification: { title: 'hello', body: 'world' } }
-        }
+      const internalPayload: MessagePayloadInternal = {
+        notification: { title: 'hello', body: 'world' },
+        messageType: MessageType.PUSH_RECEIVED,
+        isFirebaseMessaging: true,
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
       };
 
       await messageEventListener(
-        new MessageEvent('message', { data: message })
+        new MessageEvent('message', { data: internalPayload })
       );
 
       expect(onMessageCallback).to.have.been.called;
@@ -269,34 +398,38 @@ describe('WindowController', () => {
         complete: () => {}
       });
 
-      const message: InternalMessage = {
-        firebaseMessaging: {
-          type: MessageType.PUSH_RECEIVED,
-          payload: { notification: { title: 'hello', body: 'world' } }
-        }
+      const internalPayload: MessagePayloadInternal = {
+        notification: { title: 'hello', body: 'world' },
+        messageType: MessageType.PUSH_RECEIVED,
+        isFirebaseMessaging: true,
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
       };
 
       await messageEventListener(
-        new MessageEvent('message', { data: message })
+        new MessageEvent('message', { data: internalPayload })
       );
 
       expect(onMessageCallback).to.have.been.called;
     });
 
-    it('returns a function that unsets the onMessage callback', async () => {
+    it('returns a function that clears the onMessage callback', async () => {
       const onMessageCallback = spy();
       const unsubscribe = windowController.onMessage(onMessageCallback);
       unsubscribe();
 
-      const message: InternalMessage = {
-        firebaseMessaging: {
-          type: MessageType.PUSH_RECEIVED,
-          payload: { notification: { title: 'hello', body: 'world' } }
-        }
+      const internalPayload: MessagePayloadInternal = {
+        notification: { title: 'hello', body: 'world' },
+        messageType: MessageType.PUSH_RECEIVED,
+        isFirebaseMessaging: true,
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
       };
 
       await messageEventListener(
-        new MessageEvent('message', { data: message })
+        new MessageEvent('message', { data: internalPayload })
       );
 
       expect(onMessageCallback).not.to.have.been.called;
@@ -380,33 +513,40 @@ describe('WindowController', () => {
     });
 
     it('calls onMessage callback when it receives a PUSH_RECEIVED message', async () => {
-      const message: InternalMessage = {
-        firebaseMessaging: {
-          type: MessageType.PUSH_RECEIVED,
-          payload: { notification: { title: 'hello', body: 'world' } }
-        }
+      const internalPayload: MessagePayloadInternal = {
+        notification: { title: 'hello', body: 'world' },
+        messageType: MessageType.PUSH_RECEIVED,
+        isFirebaseMessaging: true,
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
       };
 
       await messageEventListener(
-        new MessageEvent('message', { data: message })
+        new MessageEvent('message', { data: internalPayload })
       );
 
-      expect(onMessageSpy).to.have.been.calledOnceWith(
-        message.firebaseMessaging.payload
-      );
+      expect(onMessageSpy).to.have.been.calledOnceWith({
+        notification: { title: 'hello', body: 'world' },
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
+      });
       expect(logEventSpy).not.to.have.been.called;
     });
 
     it('does not call onMessage callback when it receives a NOTIFICATION_CLICKED message', async () => {
-      const message: InternalMessage = {
-        firebaseMessaging: {
-          type: MessageType.NOTIFICATION_CLICKED,
-          payload: { notification: { title: 'hello', body: 'world' } }
-        }
+      const internalPayload: MessagePayloadInternal = {
+        notification: { title: 'hello', body: 'world' },
+        messageType: MessageType.NOTIFICATION_CLICKED,
+        isFirebaseMessaging: true,
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
       };
 
       await messageEventListener(
-        new MessageEvent('message', { data: message })
+        new MessageEvent('message', { data: internalPayload })
       );
 
       expect(onMessageSpy).not.to.have.been.called;
@@ -414,36 +554,44 @@ describe('WindowController', () => {
     });
 
     it('calls analytics.logEvent if the message has analytics enabled for PUSH_RECEIVED', async () => {
-      const data = {
-        [CONSOLE_CAMPAIGN_ID]: '123456',
-        [CONSOLE_CAMPAIGN_NAME]: 'Campaign Name',
-        [CONSOLE_CAMPAIGN_TIME]: '1234567890',
-        [CONSOLE_CAMPAIGN_ANALYTICS_ENABLED]: '1'
-      };
-      const message: InternalMessage = {
-        firebaseMessaging: {
-          type: MessageType.PUSH_RECEIVED,
-          payload: {
-            notification: { title: 'hello', body: 'world' },
-            data
-          }
-        }
+      const internalPayload: MessagePayloadInternal = {
+        notification: { title: 'hello', body: 'world' },
+        data: {
+          [CONSOLE_CAMPAIGN_ID]: '123456',
+          [CONSOLE_CAMPAIGN_NAME]: 'Campaign Name',
+          [CONSOLE_CAMPAIGN_TIME]: '1234567890',
+          [CONSOLE_CAMPAIGN_ANALYTICS_ENABLED]: '1'
+        },
+        messageType: MessageType.PUSH_RECEIVED,
+        isFirebaseMessaging: true,
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
       };
 
       await messageEventListener(
-        new MessageEvent('message', { data: message })
+        new MessageEvent('message', { data: internalPayload })
       );
 
-      expect(onMessageSpy).to.have.been.calledOnceWith(
-        message.firebaseMessaging.payload
-      );
+      expect(onMessageSpy).to.have.been.calledOnceWith({
+        notification: { title: 'hello', body: 'world' },
+        data: {
+          [CONSOLE_CAMPAIGN_ID]: '123456',
+          [CONSOLE_CAMPAIGN_NAME]: 'Campaign Name',
+          [CONSOLE_CAMPAIGN_TIME]: '1234567890',
+          [CONSOLE_CAMPAIGN_ANALYTICS_ENABLED]: '1'
+        },
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
+      });
       expect(logEventSpy).to.have.been.calledOnceWith(
         'notification_foreground',
         {
           /* eslint-disable camelcase */
-          message_id: data[CONSOLE_CAMPAIGN_ID],
-          message_name: data[CONSOLE_CAMPAIGN_NAME],
-          message_time: data[CONSOLE_CAMPAIGN_TIME],
+          message_id: '123456',
+          message_name: 'Campaign Name',
+          message_time: '1234567890',
           message_device_time: clock.now
           /* eslint-enable camelcase */
         }
@@ -451,32 +599,31 @@ describe('WindowController', () => {
     });
 
     it('calls analytics.logEvent if the message has analytics enabled for NOTIFICATION_CLICKED', async () => {
-      const data = {
-        [CONSOLE_CAMPAIGN_ID]: '123456',
-        [CONSOLE_CAMPAIGN_NAME]: 'Campaign Name',
-        [CONSOLE_CAMPAIGN_TIME]: '1234567890',
-        [CONSOLE_CAMPAIGN_ANALYTICS_ENABLED]: '1'
-      };
-      const message: InternalMessage = {
-        firebaseMessaging: {
-          type: MessageType.NOTIFICATION_CLICKED,
-          payload: {
-            notification: { title: 'hello', body: 'world' },
-            data
-          }
-        }
+      const internalPayload: MessagePayloadInternal = {
+        notification: { title: 'hello', body: 'world' },
+        data: {
+          [CONSOLE_CAMPAIGN_ID]: '123456',
+          [CONSOLE_CAMPAIGN_NAME]: 'Campaign Name',
+          [CONSOLE_CAMPAIGN_TIME]: '1234567890',
+          [CONSOLE_CAMPAIGN_ANALYTICS_ENABLED]: '1'
+        },
+        messageType: MessageType.NOTIFICATION_CLICKED,
+        isFirebaseMessaging: true,
+        from: 'from',
+        // eslint-disable-next-line camelcase
+        collapse_key: 'collapse'
       };
 
       await messageEventListener(
-        new MessageEvent('message', { data: message })
+        new MessageEvent('message', { data: internalPayload })
       );
 
       expect(onMessageSpy).not.to.have.been.called;
       expect(logEventSpy).to.have.been.calledOnceWith('notification_open', {
         /* eslint-disable camelcase */
-        message_id: data[CONSOLE_CAMPAIGN_ID],
-        message_name: data[CONSOLE_CAMPAIGN_NAME],
-        message_time: data[CONSOLE_CAMPAIGN_TIME],
+        message_id: '123456',
+        message_name: 'Campaign Name',
+        message_time: '1234567890',
         message_device_time: clock.now
         /* eslint-enable camelcase */
       });

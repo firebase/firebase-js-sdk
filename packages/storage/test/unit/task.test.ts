@@ -328,6 +328,7 @@ describe('Firebase Storage > Upload Task', () => {
       blob
     );
 
+    // eslint-disable-next-line @typescript-eslint/ban-types
     let resolve: Function, reject: Function;
     const promise = new Promise<void>((innerResolve, innerReject) => {
       resolve = innerResolve;

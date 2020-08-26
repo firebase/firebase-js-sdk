@@ -32,6 +32,7 @@ import {
   InFilter,
   KeyFieldFilter,
   LimitType,
+  NotInFilter,
   Operator,
   OrderBy,
   queryToTarget,
@@ -783,6 +784,21 @@ export function serializerTest(
         expect(roundtripped).to.be.instanceof(FieldFilter);
       });
 
+      it('converts NotEqual', () => {
+        const input = filter('field', '!=', 42);
+        const actual = toUnaryOrFieldFilter(input);
+        expect(actual).to.deep.equal({
+          fieldFilter: {
+            field: { fieldPath: 'field' },
+            op: 'NOT_EQUAL',
+            value: { integerValue: '42' }
+          }
+        });
+        const roundtripped = fromFieldFilter(actual);
+        expect(roundtripped).to.deep.equal(input);
+        expect(roundtripped).to.be.instanceof(FieldFilter);
+      });
+
       it('converts LessThan', () => {
         const input = filter('field', '<', 42);
         const actual = toUnaryOrFieldFilter(input);
@@ -899,6 +915,29 @@ export function serializerTest(
         expect(roundtripped).to.be.instanceof(InFilter);
       });
 
+      it('converts not-in', () => {
+        const input = filter('field', 'not-in', [42]);
+        const actual = toUnaryOrFieldFilter(input);
+        expect(actual).to.deep.equal({
+          fieldFilter: {
+            field: { fieldPath: 'field' },
+            op: 'NOT_IN',
+            value: {
+              arrayValue: {
+                values: [
+                  {
+                    integerValue: '42'
+                  }
+                ]
+              }
+            }
+          }
+        });
+        const roundtripped = fromFieldFilter(actual);
+        expect(roundtripped).to.deep.equal(input);
+        expect(roundtripped).to.be.instanceof(NotInFilter);
+      });
+
       it('converts array-contains-any', () => {
         const input = filter('field', 'array-contains-any', [42]);
         const actual = toUnaryOrFieldFilter(input);
@@ -945,6 +984,30 @@ export function serializerTest(
           unaryFilter: {
             field: { fieldPath: 'field' },
             op: 'IS_NAN'
+          }
+        });
+        expect(fromUnaryFilter(actual)).to.deep.equal(input);
+      });
+
+      it('converts not null', () => {
+        const input = filter('field', '!=', null);
+        const actual = toUnaryOrFieldFilter(input);
+        expect(actual).to.deep.equal({
+          unaryFilter: {
+            field: { fieldPath: 'field' },
+            op: 'IS_NOT_NULL'
+          }
+        });
+        expect(fromUnaryFilter(actual)).to.deep.equal(input);
+      });
+
+      it('converts not NaN', () => {
+        const input = filter('field', '!=', NaN);
+        const actual = toUnaryOrFieldFilter(input);
+        expect(actual).to.deep.equal({
+          unaryFilter: {
+            field: { fieldPath: 'field' },
+            op: 'IS_NOT_NAN'
           }
         });
         expect(fromUnaryFilter(actual)).to.deep.equal(input);
@@ -1321,10 +1384,12 @@ export function serializerTest(
           Operator.LESS_THAN,
           Operator.LESS_THAN_OR_EQUAL,
           Operator.EQUAL,
+          Operator.NOT_EQUAL,
           Operator.GREATER_THAN,
           Operator.GREATER_THAN_OR_EQUAL,
           Operator.ARRAY_CONTAINS,
           Operator.IN,
+          Operator.NOT_IN,
           Operator.ARRAY_CONTAINS_ANY
         ];
 

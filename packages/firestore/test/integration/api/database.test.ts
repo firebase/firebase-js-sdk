@@ -20,11 +20,13 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as firestore from '@firebase/firestore-types';
 import { expect, use } from 'chai';
 
-import { Deferred } from '../../util/promise';
+import { Deferred } from '@firebase/util';
 import { EventsAccumulator } from '../util/events_accumulator';
 import * as firebaseExport from '../util/firebase_export';
 import {
   apiDescribe,
+  notEqualOp,
+  notInOp,
   withTestCollection,
   withTestDb,
   withTestDbs,
@@ -642,6 +644,14 @@ apiDescribe('Database', (persistence: boolean) => {
       });
     });
 
+    it('inequality and NOT_IN on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.where('x', '>=', 32).where('y', notInOp, [1, 2])
+        ).not.to.throw();
+      });
+    });
+
     it('inequality and array-contains-any on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
@@ -657,6 +667,17 @@ apiDescribe('Database', (persistence: boolean) => {
       });
     });
 
+    it('!= same as orderBy works.', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.where('x', notEqualOp, 32).orderBy('x')
+        ).not.to.throw();
+        expect(() =>
+          coll.orderBy('x').where('x', notEqualOp, 32)
+        ).not.to.throw();
+      });
+    });
+
     it('inequality same as first orderBy works.', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
@@ -664,6 +685,17 @@ apiDescribe('Database', (persistence: boolean) => {
         ).not.to.throw();
         expect(() =>
           coll.orderBy('x').where('x', '>', 32).orderBy('y')
+        ).not.to.throw();
+      });
+    });
+
+    it('!= same as first orderBy works.', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.where('x', notEqualOp, 32).orderBy('x').orderBy('y')
+        ).not.to.throw();
+        expect(() =>
+          coll.orderBy('x').where('x', notEqualOp, 32).orderBy('y')
         ).not.to.throw();
       });
     });
@@ -685,6 +717,14 @@ apiDescribe('Database', (persistence: boolean) => {
     it('IN different than orderBy works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() => coll.orderBy('x').where('y', 'in', [1, 2])).not.to.throw();
+      });
+    });
+
+    it('NOT_IN different than orderBy works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.orderBy('x').where('y', notInOp, [1, 2])
+        ).not.to.throw();
       });
     });
 
@@ -1039,6 +1079,13 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
+  it('can call terminate() multiple times', async () => {
+    return withTestDb(persistence, async db => {
+      await db.terminate();
+      await db.terminate();
+    });
+  });
+
   // eslint-disable-next-line no-restricted-properties
   (MEMORY_ONLY_BUILD ? it : it.skip)(
     'recovers when persistence is missing',
@@ -1219,7 +1266,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it('calling terminate mutiple times should proceed', async () => {
+  it('calling terminate multiple times should proceed', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
       await firestore.terminate();

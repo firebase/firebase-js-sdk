@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { SinonStub, SinonSpy } from 'sinon';
+import { SinonSpy, SinonStub } from 'sinon';
 
 // Helper types for Sinon stubs and spies.
 

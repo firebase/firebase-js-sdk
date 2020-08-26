@@ -191,10 +191,7 @@ export class IndexedDbPersistence implements Persistence {
     }
   }
 
-  // Technically `simpleDb` should be `| undefined` because it is
-  // initialized asynchronously by start(), but that would be more misleading
-  // than useful.
-  private simpleDb!: SimpleDb;
+  private simpleDb: SimpleDb;
 
   private listenSequence: ListenSequence | null = null;
 
@@ -259,6 +256,11 @@ export class IndexedDbPersistence implements Persistence {
     this.referenceDelegate = new IndexedDbLruDelegate(this, lruParams);
     this.dbName = persistenceKey + MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
+    this.simpleDb = new SimpleDb(
+      this.dbName,
+      SCHEMA_VERSION,
+      new SchemaConverter(this.serializer)
+    );
     this.targetCache = new IndexedDbTargetCache(
       this.referenceDelegate,
       this.serializer
@@ -292,17 +294,10 @@ export class IndexedDbPersistence implements Persistence {
     debugAssert(!this.started, 'IndexedDbPersistence double-started!');
     debugAssert(this.window !== null, "Expected 'window' to be defined");
 
-    return SimpleDb.openOrCreate(
-      this.dbName,
-      SCHEMA_VERSION,
-      new SchemaConverter(this.serializer)
-    )
-      .then(db => {
-        this.simpleDb = db;
-        // NOTE: This is expected to fail sometimes (in the case of another tab already
-        // having the persistence lock), so it's the first thing we should do.
-        return this.updateClientMetadataAndTryBecomePrimary();
-      })
+    // NOTE: This is expected to fail sometimes (in the case of another tab
+    // already having the persistence lock), so it's the first thing we should
+    // do.
+    return this.updateClientMetadataAndTryBecomePrimary()
       .then(() => {
         if (!this.isPrimary && !this.allowTabSynchronization) {
           // Fail `start()` if `synchronizeTabs` is disabled and we cannot
@@ -685,13 +680,22 @@ export class IndexedDbPersistence implements Persistence {
     }
     this.detachVisibilityHandler();
     this.detachWindowUnloadHook();
-    await this.runTransaction('shutdown', 'readwrite', txn => {
-      return this.releasePrimaryLeaseIfHeld(txn).next(() =>
-        this.removeClientMetadata(txn)
-      );
-    }).catch(e => {
-      logDebug(LOG_TAG, 'Proceeding with shutdown despite failure: ', e);
-    });
+
+    // Use `SimpleDb.runTransaction` directly to avoid failing if another tab
+    // has obtained the primary lease.
+    await this.simpleDb.runTransaction(
+      'readwrite',
+      [DbPrimaryClient.store, DbClientMetadata.store],
+      simpleDbTxn => {
+        const persistenceTransaction = new IndexedDbTransaction(
+          simpleDbTxn,
+          ListenSequence.INVALID
+        );
+        return this.releasePrimaryLeaseIfHeld(persistenceTransaction).next(() =>
+          this.removeClientMetadata(persistenceTransaction)
+        );
+      }
+    );
     this.simpleDb.close();
 
     // Remove the entry marking the client as zombied from LocalStorage since

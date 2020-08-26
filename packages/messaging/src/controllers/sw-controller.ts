@@ -15,22 +15,24 @@
  * limitations under the License.
  */
 
-import { deleteToken, getToken } from '../core/token-management';
-import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
-import { FirebaseMessaging } from '@firebase/messaging-types';
+import { DEFAULT_VAPID_KEY, FCM_MSG, TAG } from '../util/constants';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { FirebaseMessaging, MessagePayload } from '@firebase/messaging-types';
 import {
-  MessagePayload,
-  NotificationDetails
-} from '../interfaces/message-payload';
-import { FCM_MSG, DEFAULT_VAPID_KEY } from '../util/constants';
-import { MessageType, InternalMessage } from '../interfaces/internal-message';
-import { dbGet } from '../helpers/idb-manager';
-import { Unsubscribe } from '@firebase/util';
-import { sleep } from '../helpers/sleep';
+  MessagePayloadInternal,
+  MessageType,
+  NotificationPayloadInternal
+} from '../interfaces/internal-message-payload';
+import { NextFn, Observer, Unsubscribe } from '@firebase/util';
+import { deleteToken, getToken } from '../core/token-management';
+
 import { FirebaseApp } from '@firebase/app-types';
-import { isConsoleMessage } from '../helpers/is-console-message';
+import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { FirebaseService } from '@firebase/app-types/private';
+import { dbGet } from '../helpers/idb-manager';
+import { externalizePayload } from '../helpers/externalizePayload';
+import { isConsoleMessage } from '../helpers/is-console-message';
+import { sleep } from '../helpers/sleep';
 
 // Let TS know that this is a service worker
 declare const self: ServiceWorkerGlobalScope;
@@ -38,8 +40,17 @@ declare const self: ServiceWorkerGlobalScope;
 export type BgMessageHandler = (payload: MessagePayload) => unknown;
 
 export class SwController implements FirebaseMessaging, FirebaseService {
+  // A boolean flag to determine wether an app is using onBackgroundMessage or
+  // setBackgroundMessageHandler. onBackgroundMessage will receive a MessagePayload regardless of if
+  // a notification is displayed. Whereas, setBackgroundMessageHandler will swallow the
+  // MessagePayload if a NotificationPayload is included.
+  private isOnBackgroundMessageUsed: boolean | null = null;
   private vapidKey: string | null = null;
-  private bgMessageHandler: BgMessageHandler | null = null;
+  private bgMessageHandler:
+    | BgMessageHandler
+    | null
+    | NextFn<MessagePayload>
+    | Observer<MessagePayload> = null;
 
   constructor(
     private readonly firebaseDependencies: FirebaseInternalDependencies
@@ -60,21 +71,23 @@ export class SwController implements FirebaseMessaging, FirebaseService {
   }
 
   /**
-   * Calling setBackgroundMessageHandler will opt in to some specific
-   * behaviours.
-   * 1.) If a notification doesn't need to be shown due to a window already
-   * being visible, then push messages will be sent to the page.
-   * 2.) If a notification needs to be shown, and the message contains no
-   * notification data this method will be called
-   * and the promise it returns will be passed to event.waitUntil.
-   * If you do not set this callback then all push messages will let and the
-   * developer can handle them in a their own 'push' event callback
+   * @deprecated. Use onBackgroundMessage(nextOrObserver: NextFn<object> | Observer<object>):
+   * Unsubscribe instead.
    *
-   * @param callback The callback to be called when a push message is received
-   * and a notification must be shown. The callback will be given the data from
-   * the push message.
+   * Calling setBackgroundMessageHandler will opt in to some specific behaviors.
+   *
+   * 1.) If a notification doesn't need to be shown due to a window already being visible, then push
+   * messages will be sent to the page. 2.) If a notification needs to be shown, and the message
+   * contains no notification data this method will be called and the promise it returns will be
+   * passed to event.waitUntil. If you do not set this callback then all push messages will let and
+   * the developer can handle them in a their own 'push' event callback
+   *
+   * @param callback The callback to be called when a push message is received and a notification
+   * must be shown. The callback will be given the data from the push message.
    */
   setBackgroundMessageHandler(callback: BgMessageHandler): void {
+    this.isOnBackgroundMessageUsed = false;
+
     if (!callback || typeof callback !== 'function') {
       throw ERROR_FACTORY.create(ErrorCode.INVALID_BG_HANDLER);
     }
@@ -82,14 +95,24 @@ export class SwController implements FirebaseMessaging, FirebaseService {
     this.bgMessageHandler = callback;
   }
 
-  // TODO: Remove getToken from SW Controller.
-  // Calling this from an old SW can cause all kinds of trouble.
+  onBackgroundMessage(
+    nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
+  ): Unsubscribe {
+    this.isOnBackgroundMessageUsed = true;
+    this.bgMessageHandler = nextOrObserver;
+
+    return () => {
+      this.bgMessageHandler = null;
+    };
+  }
+
+  // TODO: Remove getToken from SW Controller. Calling this from an old SW can cause all kinds of
+  // trouble.
   async getToken(): Promise<string> {
     if (!this.vapidKey) {
-      // Call getToken using the current VAPID key if there already is a token.
-      // This is needed because usePublicVapidKey was not available in SW.
-      // It will be removed when vapidKey becomes a parameter of getToken, or
-      // when getToken is removed from SW.
+      // Call getToken using the current VAPID key if there already is a token. This is needed
+      // because usePublicVapidKey was not available in SW. It will be removed when vapidKey becomes
+      // a parameter of getToken, or when getToken is removed from SW.
       const tokenDetails = await dbGet(this.firebaseDependencies);
       this.vapidKey =
         tokenDetails?.subscriptionOptions?.vapidKey ?? DEFAULT_VAPID_KEY;
@@ -102,8 +125,8 @@ export class SwController implements FirebaseMessaging, FirebaseService {
     );
   }
 
-  // TODO: Remove deleteToken from SW Controller.
-  // Calling this from an old SW can cause all kinds of trouble.
+  // TODO: Remove deleteToken from SW Controller. Calling this from an old SW can cause all kinds of
+  // trouble.
   deleteToken(): Promise<boolean> {
     return deleteToken(this.firebaseDependencies, self.registration);
   }
@@ -112,7 +135,6 @@ export class SwController implements FirebaseMessaging, FirebaseService {
     throw ERROR_FACTORY.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
-  // TODO: Deprecate this and make VAPID key a parameter in getToken.
   // TODO: Remove this together with getToken from SW Controller.
   usePublicVapidKey(vapidKey: string): void {
     if (this.vapidKey !== null) {
@@ -139,34 +161,55 @@ export class SwController implements FirebaseMessaging, FirebaseService {
   }
 
   /**
-   * A handler for push events that shows notifications based on the content of
-   * the payload.
+   * A handler for push events that shows notifications based on the content of the payload.
    *
-   * The payload must be a JSON-encoded Object with a `notification` key. The
-   * value of the `notification` property will be used as the NotificationOptions
-   * object passed to showNotification. Additionally, the `title` property of the
-   * notification object will be used as the title.
+   * The payload must be a JSON-encoded Object with a `notification` key. The value of the
+   * `notification` property will be used as the NotificationOptions object passed to
+   * showNotification. Additionally, the `title` property of the notification object will be used as
+   * the title.
    *
-   * If there is no notification data in the payload then no notification will be
-   * shown.
+   * If there is no notification data in the payload then no notification will be shown.
    */
   async onPush(event: PushEvent): Promise<void> {
-    const payload = getMessagePayload(event);
-    if (!payload) {
+    const internalPayload = getMessagePayloadInternal(event);
+    if (!internalPayload) {
+      console.debug(
+        TAG +
+          'failed to get parsed MessagePayload from the PushEvent. Skip handling the push.'
+      );
       return;
     }
 
+    // foreground handling: eventually passed to onMessage hook
     const clientList = await getClientList();
     if (hasVisibleClients(clientList)) {
-      // App in foreground. Send to page.
-      return sendMessageToWindowClients(clientList, payload);
+      return sendMessagePayloadInternalToWindows(clientList, internalPayload);
     }
 
-    const notificationDetails = getNotificationData(payload);
-    if (notificationDetails) {
-      await showNotification(notificationDetails);
-    } else if (this.bgMessageHandler) {
-      await this.bgMessageHandler(payload);
+    // background handling: display and pass to onBackgroundMessage hook
+    let isNotificationShown = false;
+    if (!!internalPayload.notification) {
+      await showNotification(wrapInternalPayload(internalPayload));
+      isNotificationShown = true;
+    }
+
+    // MessagePayload is only passed to `onBackgroundMessage`. Skip passing MessagePayload for
+    // the legacy `setBackgroundMessageHandler` to preserve the SDK behaviors.
+    if (
+      isNotificationShown === true &&
+      this.isOnBackgroundMessageUsed === false
+    ) {
+      return;
+    }
+
+    if (!!this.bgMessageHandler) {
+      const payload = externalizePayload(internalPayload);
+
+      if (typeof this.bgMessageHandler === 'function') {
+        this.bgMessageHandler(payload);
+      } else {
+        this.bgMessageHandler.next(payload);
+      }
     }
   }
 
@@ -188,14 +231,14 @@ export class SwController implements FirebaseMessaging, FirebaseService {
   }
 
   async onNotificationClick(event: NotificationEvent): Promise<void> {
-    const payload: MessagePayload = event.notification?.data?.[FCM_MSG];
-    if (!payload) {
-      // Not an FCM notification, do nothing.
+    const internalPayload: MessagePayloadInternal =
+      event.notification?.data?.[FCM_MSG];
+
+    if (!internalPayload) {
       return;
     } else if (event.action) {
-      // User clicked on an action button.
-      // This will allow devs to act on action button clicks by using a custom
-      // onNotificationClick listener that they define.
+      // User clicked on an action button. This will allow developers to act on action button clicks
+      // by using a custom onNotificationClick listener that they define.
       return;
     }
 
@@ -203,18 +246,17 @@ export class SwController implements FirebaseMessaging, FirebaseService {
     event.stopImmediatePropagation();
     event.notification.close();
 
-    const link = getLink(payload);
+    const link = getLink(internalPayload);
     if (!link) {
       return;
     }
 
     let client = await getWindowClient(link);
     if (!client) {
-      // Unable to find window client so need to open one.
-      // This also focuses the opened client.
+      // Unable to find window client so need to open one. This also focuses the opened client.
       client = await self.clients.openWindow(link);
-      // Wait three seconds for the client to initialize and set up the message
-      // handler so that it can receive the message.
+      // Wait three seconds for the client to initialize and set up the message handler so that it
+      // can receive the message.
       await sleep(3000);
     } else {
       client = await client.focus();
@@ -225,12 +267,32 @@ export class SwController implements FirebaseMessaging, FirebaseService {
       return;
     }
 
-    const message = createNewMessage(MessageType.NOTIFICATION_CLICKED, payload);
-    return client.postMessage(message);
+    internalPayload.messageType = MessageType.NOTIFICATION_CLICKED;
+    internalPayload.isFirebaseMessaging = true;
+    return client.postMessage(internalPayload);
   }
 }
 
-function getMessagePayload({ data }: PushEvent): MessagePayload | null {
+function wrapInternalPayload(
+  internalPayload: MessagePayloadInternal
+): NotificationPayloadInternal {
+  const wrappedInternalPayload: NotificationPayloadInternal = {
+    ...((internalPayload.notification as unknown) as NotificationPayloadInternal)
+  };
+
+  // Put the message payload under FCM_MSG name so we can identify the notification as being an FCM
+  // notification vs a notification from somewhere else (i.e. normal web push or developer generated
+  // notification).
+  wrappedInternalPayload.data = {
+    [FCM_MSG]: internalPayload
+  };
+
+  return wrappedInternalPayload;
+}
+
+function getMessagePayloadInternal({
+  data
+}: PushEvent): MessagePayloadInternal | null {
   if (!data) {
     return null;
   }
@@ -243,36 +305,13 @@ function getMessagePayload({ data }: PushEvent): MessagePayload | null {
   }
 }
 
-function getNotificationData(
-  payload: MessagePayload
-): NotificationDetails | undefined {
-  if (!payload || typeof payload.notification !== 'object') {
-    return;
-  }
-
-  const notificationInformation: NotificationDetails = {
-    ...payload.notification
-  };
-
-  // Put the message payload under FCM_MSG name so we can identify the
-  // notification as being an FCM notification vs a notification from
-  // somewhere else (i.e. normal web push or developer generated
-  // notification).
-  notificationInformation.data = {
-    ...payload.notification.data,
-    [FCM_MSG]: payload
-  };
-
-  return notificationInformation;
-}
-
 /**
  * @param url The URL to look for when focusing a client.
  * @return Returns an existing window client or a newly opened WindowClient.
  */
 async function getWindowClient(url: string): Promise<WindowClient | null> {
-  // Use URL to normalize the URL when comparing to windowClients.
-  // This at least handles whether to include trailing slashes or not
+  // Use URL to normalize the URL when comparing to windowClients. This at least handles whether to
+  // include trailing slashes or not
   const parsedURL = new URL(url, self.location.href);
 
   const clientList = await getClientList();
@@ -288,33 +327,28 @@ async function getWindowClient(url: string): Promise<WindowClient | null> {
 }
 
 /**
- * @returns If there is currently a visible WindowClient, this method will
- * resolve to true, otherwise false.
+ * @returns If there is currently a visible WindowClient, this method will resolve to true,
+ * otherwise false.
  */
 function hasVisibleClients(clientList: WindowClient[]): boolean {
   return clientList.some(
     client =>
       client.visibilityState === 'visible' &&
-      // Ignore chrome-extension clients as that matches the background pages
-      // of extensions, which are always considered visible for some reason.
+      // Ignore chrome-extension clients as that matches the background pages of extensions, which
+      // are always considered visible for some reason.
       !client.url.startsWith('chrome-extension://')
   );
 }
 
-/**
- * @param payload The data from the push event that should be sent to all
- * available pages.
- * @returns Returns a promise that resolves once the message has been sent to
- * all WindowClients.
- */
-function sendMessageToWindowClients(
+function sendMessagePayloadInternalToWindows(
   clientList: WindowClient[],
-  payload: MessagePayload
+  internalPayload: MessagePayloadInternal
 ): void {
-  const message = createNewMessage(MessageType.PUSH_RECEIVED, payload);
+  internalPayload.isFirebaseMessaging = true;
+  internalPayload.messageType = MessageType.PUSH_RECEIVED;
 
   for (const client of clientList) {
-    client.postMessage(message);
+    client.postMessage(internalPayload);
   }
 }
 
@@ -326,21 +360,12 @@ function getClientList(): Promise<WindowClient[]> {
   }) as Promise<WindowClient[]>;
 }
 
-function createNewMessage(
-  type: MessageType,
-  payload: MessagePayload
-): InternalMessage {
-  return {
-    firebaseMessaging: { type, payload }
-  };
-}
-
-function showNotification(details: NotificationDetails): Promise<void> {
-  const title = details.title ?? '';
-
-  const { actions } = details;
+function showNotification(
+  notificationPayloadInternal: NotificationPayloadInternal
+): Promise<void> {
   // Note: Firefox does not support the maxActions property.
   // https://developer.mozilla.org/en-US/docs/Web/API/notification/maxActions
+  const { actions } = notificationPayloadInternal;
   const { maxActions } = Notification;
   if (actions && maxActions && actions.length > maxActions) {
     console.warn(
@@ -348,10 +373,13 @@ function showNotification(details: NotificationDetails): Promise<void> {
     );
   }
 
-  return self.registration.showNotification(title, details);
+  return self.registration.showNotification(
+    /* title= */ notificationPayloadInternal.title ?? '',
+    notificationPayloadInternal
+  );
 }
 
-function getLink(payload: MessagePayload): string | null {
+function getLink(payload: MessagePayloadInternal): string | null {
   // eslint-disable-next-line camelcase
   const link = payload.fcmOptions?.link ?? payload.notification?.click_action;
   if (link) {
