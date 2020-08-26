@@ -19,7 +19,7 @@ import * as externs from '@firebase/auth-types-exp';
 import { CompleteFn, ErrorFn, Unsubscribe } from '@firebase/util';
 
 import { PopupRedirectResolver } from './popup_redirect';
-import { UserParameters, User } from './user';
+import { User, UserParameters } from './user';
 
 export type AppName = string;
 export type ApiKey = string;
@@ -43,8 +43,10 @@ export interface AuthCore {
 export interface Auth extends AuthCore {
   currentUser: User | null;
   _isInitialized: boolean;
+  _initializationPromise: Promise<void> | null;
   updateCurrentUser(user: User | null): Promise<void>;
 
+  _onStorageEvent(): void;
   _createUser(params: UserParameters): User;
   _setPersistence(persistence: externs.Persistence): void;
   _onAuthStateChanged(
@@ -66,6 +68,8 @@ export interface Auth extends AuthCore {
   _redirectUserForId(id: string): Promise<User | null>;
   _popupRedirectResolver: PopupRedirectResolver | null;
   _key(): string;
+  _startProactiveRefresh(): void;
+  _stopProactiveRefresh(): void;
 }
 
 export interface Dependencies {

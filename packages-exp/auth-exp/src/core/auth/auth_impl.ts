@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { getApp } from '@firebase/app-exp';
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { _FirebaseService, FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 import {
   CompleteFn,
@@ -28,9 +27,9 @@ import {
   Unsubscribe
 } from '@firebase/util';
 
-import { Auth, Dependencies, AuthCore } from '../../model/auth';
+import { Auth, AuthCore } from '../../model/auth';
 import { PopupRedirectResolver } from '../../model/popup_redirect';
-import { UserParameters, User } from '../../model/user';
+import { User, UserParameters } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
 import {
@@ -38,11 +37,10 @@ import {
   PersistenceUserManager
 } from '../persistence/persistence_user_manager';
 import { _reloadWithoutSaving } from '../user/reload';
+import { UserImpl } from '../user/user_impl';
 import { assert } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
-import { _getClientVersion, ClientPlatform } from '../util/version';
-import { UserImpl } from '../user/user_impl';
 
 interface AsyncAction {
   (): Promise<void>;
@@ -56,7 +54,7 @@ export const DEFAULT_TOKEN_API_HOST = 'securetoken.googleapis.com';
 export const DEFAULT_API_HOST = 'identitytoolkit.googleapis.com';
 export const DEFAULT_API_SCHEME = 'https';
 
-export class AuthImplCompat<T extends User> implements Auth {
+export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
   currentUser: T | null = null;
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
@@ -64,8 +62,11 @@ export class AuthImplCompat<T extends User> implements Auth {
   private authStateSubscription = new Subscription<T>(this);
   private idTokenSubscription = new Subscription<T>(this);
   private redirectUser: T | null = null;
+  private isProactiveRefreshEnabled = false;
   _isInitialized = false;
+  _initializationPromise: Promise<void> | null = null;
   _popupRedirectResolver: PopupRedirectResolver | null = null;
+  readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
   // repeated calls to the callbacks
@@ -76,16 +77,18 @@ export class AuthImplCompat<T extends User> implements Auth {
   settings: externs.AuthSettings = { appVerificationDisabledForTesting: false };
 
   constructor(
-    public readonly name: string,
+    public readonly app: FirebaseApp,
     public readonly config: externs.Config,
     private readonly _userProvider: UserProvider<T>
-  ) {}
+  ) {
+    this.name = app.name;
+  }
 
   _initializeWithPersistence(
     persistenceHierarchy: Persistence[],
     popupRedirectResolver?: externs.PopupRedirectResolver
   ): Promise<void> {
-    return this.queue(async () => {
+    this._initializationPromise = this.queue(async () => {
       if (popupRedirectResolver) {
         this._popupRedirectResolver = _getInstance(popupRedirectResolver);
       }
@@ -100,6 +103,35 @@ export class AuthImplCompat<T extends User> implements Auth {
       this._isInitialized = true;
       this.notifyAuthListeners();
     });
+
+    return this._initializationPromise;
+  }
+
+  /**
+   * If the persistence is changed in another window, the user manager will let us know
+   */
+  async _onStorageEvent(): Promise<void> {
+    const user = await this.assertedPersistence.getCurrentUser();
+
+    if (!this.currentUser && !user) {
+      // No change, do nothing (was signed out and remained signed out).
+      return;
+    }
+
+    // If the same user is to be synchronized.
+    if (this.currentUser && user && this.currentUser.uid === user.uid) {
+      // Data update, simply copy data changes.
+      this.currentUser._copy(user);
+      // If tokens changed from previous user tokens, this will trigger
+      // notifyAuthListeners_.
+      await this.currentUser.getIdToken();
+      return;
+    }
+
+    // Update current Auth state. Either a new login or logout.
+    await this.updateCurrentUser(user);
+    // Notify external Auth changes of Auth change event.
+    this.notifyAuthListeners();
   }
 
   _createUser(params: UserParameters): T {
@@ -151,6 +183,10 @@ export class AuthImplCompat<T extends User> implements Auth {
 
   useDeviceLanguage(): void {
     this.languageCode = _getUserLanguage();
+  }
+
+  async delete(): Promise<void> {
+    // TODO: Determine what we want to do in this case
   }
 
   async updateCurrentUser(user: externs.User | null): Promise<void> {
@@ -266,6 +302,20 @@ export class AuthImplCompat<T extends User> implements Auth {
     return `${this.config.authDomain}:${this.config.apiKey}:${this.name}`;
   }
 
+  _startProactiveRefresh(): void {
+    this.isProactiveRefreshEnabled = true;
+    if (this.currentUser) {
+      this.currentUser._startProactiveRefresh();
+    }
+  }
+
+  _stopProactiveRefresh(): void {
+    this.isProactiveRefreshEnabled = false;
+    if (this.currentUser) {
+      this.currentUser._stopProactiveRefresh();
+    }
+  }
+
   private notifyAuthListeners(): void {
     if (!this._isInitialized) {
       return;
@@ -308,6 +358,13 @@ export class AuthImplCompat<T extends User> implements Auth {
    * because the queue shouldn't rely on another queued callback.
    */
   private async directlySetCurrentUser(user: T | null): Promise<void> {
+    if (this.currentUser && this.currentUser !== user) {
+      this.currentUser._stopProactiveRefresh();
+      if (user && this.isProactiveRefreshEnabled) {
+        user._startProactiveRefresh();
+      }
+    }
+
     this.currentUser = user;
 
     if (user) {
@@ -338,8 +395,8 @@ export class AuthImplCompat<T extends User> implements Auth {
  * Don't instantiate this class directly, use initializeAuth()
  */
 export class AuthImpl extends AuthImplCompat<UserImpl> implements externs.Auth {
-  constructor(name: string, config: externs.Config) {
-    super(name, config, UserImpl);
+  constructor(app: FirebaseApp, config: externs.Config) {
+    super(app, config, UserImpl);
   }
 
   onAuthStateChanged(
@@ -370,42 +427,6 @@ export class AuthImpl extends AuthImplCompat<UserImpl> implements externs.Auth {
  */
 export function _castAuth(auth: externs.Auth): Auth {
   return (auth as unknown) as Auth;
-}
-
-export function _initializeAuthForClientPlatform(
-  clientPlatform: ClientPlatform
-) {
-  return function (
-    app: FirebaseApp = getApp(),
-    deps?: Dependencies
-  ): externs.Auth {
-    const persistence = deps?.persistence || [];
-    const hierarchy = (Array.isArray(persistence)
-      ? persistence
-      : [persistence]
-    ).map<Persistence>(_getInstance);
-    const { apiKey, authDomain } = app.options;
-
-    // TODO: platform needs to be determined using heuristics
-    assert(apiKey, AuthErrorCode.INVALID_API_KEY, { appName: app.name });
-    const config: externs.Config = {
-      apiKey,
-      authDomain,
-      apiHost: DEFAULT_API_HOST,
-      tokenApiHost: DEFAULT_TOKEN_API_HOST,
-      apiScheme: DEFAULT_API_SCHEME,
-      sdkClientVersion: _getClientVersion(clientPlatform)
-    };
-
-    const auth = new AuthImpl(app.name, config);
-
-    // This promise is intended to float; auth initialization happens in the
-    // background, meanwhile the auth object may be used by the app.
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    auth._initializeWithPersistence(hierarchy, deps?.popupRedirectResolver);
-
-    return auth;
-  };
 }
 
 /** Helper class to wrap subscriber logic */

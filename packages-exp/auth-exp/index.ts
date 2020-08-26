@@ -15,10 +15,15 @@
  * limitations under the License.
  */
 
-import { registerVersion } from '@firebase/app-exp';
-import { name, version } from './package.json';
-import { _initializeAuthForClientPlatform } from './src/core/auth/auth_impl';
+import { FirebaseApp } from '@firebase/app-types-exp';
+import { Auth } from '@firebase/auth-types-exp';
+
+import { initializeAuth } from './src';
+import { registerAuth } from './src/core/auth/register';
 import { ClientPlatform } from './src/core/util/version';
+import { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
+import { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
+import { browserPopupRedirectResolver } from './src/platform_browser/popup_redirect';
 
 // Core functionality shared by all clients
 export * from './src';
@@ -26,10 +31,8 @@ export * from './src';
 // Additional DOM dependend functionality
 
 // persistence
-export {
-  browserLocalPersistence,
-  browserSessionPersistence
-} from './src/platform_browser/persistence/browser';
+export { browserLocalPersistence } from './src/platform_browser/persistence/local_storage';
+export { browserSessionPersistence } from './src/platform_browser/persistence/session_storage';
 export { indexedDBLocalPersistence } from './src/platform_browser/persistence/indexed_db';
 
 // providers
@@ -60,8 +63,11 @@ export { browserPopupRedirectResolver } from './src/platform_browser/popup_redir
 // MFA
 export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
 
-export const initializeAuth = _initializeAuthForClientPlatform(
-  ClientPlatform.BROWSER
-);
+export function getAuth(app?: FirebaseApp): Auth {
+  return initializeAuth(app, {
+    popupRedirectResolver: browserPopupRedirectResolver,
+    persistence: [indexedDBLocalPersistence, browserLocalPersistence]
+  });
+}
 
-registerVersion(name, version);
+registerAuth(ClientPlatform.BROWSER);

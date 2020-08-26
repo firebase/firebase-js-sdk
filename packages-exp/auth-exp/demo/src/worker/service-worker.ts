@@ -21,8 +21,9 @@
  * mode.
  */
 import { initializeApp } from '@firebase/app-exp';
-import { initializeAuth, indexedDBLocalPersistence } from '@firebase/auth-exp';
+import { getAuth } from '@firebase/auth-exp';
 import { User } from '@firebase/auth-types-exp';
+
 import { config } from '../config';
 
 declare let self: ServiceWorkerGlobalScope;
@@ -38,9 +39,7 @@ const urlsToCache = [
 
 // Initialize the Firebase app in the service worker.
 const app = initializeApp(config);
-const auth = initializeAuth(app, {
-  persistence: indexedDBLocalPersistence
-});
+const auth = getAuth(app);
 
 /**
  * Returns a promise that resolves with an ID token if available.
