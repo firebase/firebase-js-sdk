@@ -286,9 +286,10 @@ abstract class TestRunner {
     this.syncEngine = onlineComponentProvider.syncEngine;
     this.eventManager = onlineComponentProvider.eventManager;
 
-    this.eventManager.subscribe(
-      syncEngineListen.bind(null, this.syncEngine),
-      syncEngineUnlisten.bind(null, this.syncEngine)
+    this.eventManager.onListen = syncEngineListen.bind(null, this.syncEngine);
+    this.eventManager.onUnlisten = syncEngineUnlisten.bind(
+      null,
+      this.syncEngine
     );
 
     await this.persistence.setDatabaseDeletedListener(async () => {
