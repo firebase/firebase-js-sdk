@@ -80,6 +80,7 @@ import {
 } from '../../test/integration/util/settings';
 import { expectEqual, expectNotEqual } from '../../test/util/helpers';
 import { Timestamp } from '../../src/api/timestamp';
+import { Bytes } from '../src/api/bytes';
 
 use(chaiAsPromised);
 
@@ -734,6 +735,17 @@ describe('DocumentSnapshot', () => {
       }
       expect(documentData).to.deep.equal({ foo: 1 });
     });
+  });
+
+  it('returns Bytes', () => {
+    return withTestDocAndInitialData(
+      { bytes: Bytes.fromBase64String('aa') },
+      async docRef => {
+        const docSnap = await getDoc(docRef);
+        const bytes = docSnap.get('bytes')!;
+        expect(bytes.constructor.name).to.equal('Bytes');
+      }
+    );
   });
 });
 

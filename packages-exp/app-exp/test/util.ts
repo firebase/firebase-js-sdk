@@ -25,7 +25,7 @@ export class TestService implements _FirebaseService {
     return this.app_;
   }
 
-  delete(): Promise<void> {
+  _delete(): Promise<void> {
     return new Promise((resolve: (v?: void) => void) => {
       setTimeout(() => resolve(), 10);
     });

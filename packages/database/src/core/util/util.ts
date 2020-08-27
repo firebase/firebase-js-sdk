@@ -428,7 +428,7 @@ export function each(obj: object, fn: (k: string, v: unknown) => void) {
 export const bindCallback = function (
   callback: (a: unknown) => void,
   context?: object | null
-): Function {
+): (a: unknown) => void {
   return context ? callback.bind(context) : callback;
 };
 
@@ -609,6 +609,7 @@ export const exceptionGuard = function (fn: () => void) {
  * @param {...*} varArgs Arbitrary args to be passed to opt_onComplete
  */
 export const callUserCallback = function (
+  // eslint-disable-next-line @typescript-eslint/ban-types
   callback?: Function | null,
   ...varArgs: unknown[]
 ) {
@@ -665,7 +666,7 @@ export const exportPropGetter = function (
  * @return {number|Object} The setTimeout() return value.
  */
 export const setTimeoutNonBlocking = function (
-  fn: Function,
+  fn: () => void,
   time: number
 ): number | object {
   const timeout: number | object = setTimeout(fn, time);

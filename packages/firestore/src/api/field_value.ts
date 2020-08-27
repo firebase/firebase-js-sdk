@@ -203,7 +203,8 @@ export class NumericIncrementFieldValueImpl extends SerializableFieldValue {
 }
 
 /** The public FieldValue class of the lite API. */
-export abstract class FieldValue extends SerializableFieldValue
+export abstract class FieldValue
+  extends SerializableFieldValue
   implements PublicFieldValue {
   protected constructor() {
     super();

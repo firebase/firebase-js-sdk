@@ -95,7 +95,7 @@ export function getOrCreateDataLayer(dataLayerName: string): DataLayer {
 function wrapGtag(
   gtagCore: Gtag,
   initializedIdPromisesMap: { [gaId: string]: Promise<void> }
-): Function {
+): Gtag {
   return (
     command: 'config' | 'set' | 'event',
     idOrNameOrParams: string | ControlParams,

@@ -40,6 +40,7 @@ import {
 } from '../../../src/api/database';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
+import { Bytes } from '../../../lite/src/api/bytes';
 
 const DEFAULT_SERVER_TIMESTAMP_BEHAVIOR: ServerTimestampBehavior = 'none';
 
@@ -87,7 +88,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
             this._firestore,
             /* converter= */ null,
             key.path
-          )
+          ),
+        bytes => new Bytes(bytes)
       );
       return userDataWriter.convertValue(this._document.toProto()) as T;
     }
@@ -107,7 +109,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
           /* timestampsInSnapshots= */ true,
           options.serverTimestamps || DEFAULT_SERVER_TIMESTAMP_BEHAVIOR,
           key =>
-            new DocumentReference(this._firestore, this._converter, key.path)
+            new DocumentReference(this._firestore, this._converter, key.path),
+          bytes => new Bytes(bytes)
         );
         return userDataWriter.convertValue(value);
       }

@@ -382,7 +382,8 @@ function newQueryBoundFromDocOrFields<T>(
   }
 }
 
-export class CollectionReference<T = firestore.DocumentData> extends Query<T>
+export class CollectionReference<T = firestore.DocumentData>
+  extends Query<T>
   implements firestore.CollectionReference<T> {
   readonly type = 'collection';
 

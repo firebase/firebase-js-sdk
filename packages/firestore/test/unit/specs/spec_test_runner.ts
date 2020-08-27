@@ -37,7 +37,14 @@ import {
   queryWithLimit
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { SyncEngine } from '../../../src/core/sync_engine';
+import {
+  activeLimboDocumentResolutions,
+  enqueuedLimboDocumentResolutions,
+  SyncEngine,
+  syncEngineListen,
+  syncEngineUnlisten,
+  syncEngineWrite
+} from '../../../src/core/sync_engine';
 import { TargetId } from '../../../src/core/types';
 import {
   ChangeType,
@@ -118,12 +125,12 @@ import {
   EventAggregator,
   MockConnection,
   MockIndexedDbPersistence,
-  MockMemoryPersistence,
-  QueryEvent,
-  SharedWriteTracker,
-  MockMultiTabOfflineComponentProvider,
   MockMemoryOfflineComponentProvider,
-  MockOnlineComponentProvider
+  MockMemoryPersistence,
+  MockMultiTabOfflineComponentProvider,
+  MockOnlineComponentProvider,
+  QueryEvent,
+  SharedWriteTracker
 } from './spec_test_components';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { encodeBase64 } from '../../../src/platform/base64';
@@ -278,6 +285,12 @@ abstract class TestRunner {
     this.remoteStore = onlineComponentProvider.remoteStore;
     this.syncEngine = onlineComponentProvider.syncEngine;
     this.eventManager = onlineComponentProvider.eventManager;
+
+    this.eventManager.onListen = syncEngineListen.bind(null, this.syncEngine);
+    this.eventManager.onUnlisten = syncEngineUnlisten.bind(
+      null,
+      this.syncEngine
+    );
 
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
@@ -488,9 +501,9 @@ abstract class TestRunner {
       this.sharedWrites.push(mutations);
     }
 
-    return this.queue.enqueue(() => {
-      return this.syncEngine.write(mutations, syncEngineCallback);
-    });
+    return this.queue.enqueue(() =>
+      syncEngineWrite(this.syncEngine, mutations, syncEngineCallback)
+    );
   }
 
   private doWatchAck(ackedTargets: SpecWatchAck): Promise<void> {
@@ -891,7 +904,7 @@ abstract class TestRunner {
   }
 
   private validateActiveLimboDocs(): void {
-    let actualLimboDocs = this.syncEngine.activeLimboDocumentResolutions();
+    let actualLimboDocs = activeLimboDocumentResolutions(this.syncEngine);
 
     if (this.connection.isWatchOpen) {
       // Validate that each active limbo doc has an expected active target
@@ -924,7 +937,7 @@ abstract class TestRunner {
 
   private validateEnqueuedLimboDocs(): void {
     let actualLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
-    this.syncEngine.enqueuedLimboDocumentResolutions().forEach(key => {
+    enqueuedLimboDocumentResolutions(this.syncEngine).forEach(key => {
       actualLimboDocs = actualLimboDocs.add(key);
     });
     let expectedLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);

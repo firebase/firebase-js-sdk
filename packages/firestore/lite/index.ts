@@ -79,7 +79,7 @@ export { Transaction, runTransaction } from './src/api/transaction';
 
 export { setLogLevel } from '../src/util/log';
 
-export { Blob } from '../src/api/blob';
+export { Bytes } from './src/api/bytes';
 
 export { GeoPoint } from '../src/api/geo_point';
 

@@ -125,7 +125,7 @@ export class Timestamp {
   valueOf(): string;
 }
 
-export class Blob {
+export class Bytes {
   private constructor();
 
   static fromBase64String(base64: string): Blob;

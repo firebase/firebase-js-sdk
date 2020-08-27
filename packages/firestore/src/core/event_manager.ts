@@ -19,7 +19,7 @@ import { debugAssert } from '../util/assert';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
-import { SyncEngine, SyncEngineListener } from './sync_engine';
+import { SyncEngineListener } from './sync_engine';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
@@ -45,6 +45,10 @@ export interface Observer<T> {
  * EventManager is responsible for mapping queries to query event emitters.
  * It handles "fan-out". -- Identical queries will re-use the same watch on the
  * backend.
+ *
+ * PORTING NOTE: On Web, EventManager `onListen` and `onUnlisten` need to be
+ * assigned to SyncEngine's `listen()` and `unlisten()` API before usage. This
+ * allows users to tree-shake the Watch logic.
  */
 export class EventManager implements SyncEngineListener {
   private queries = new ObjectMap<Query, QueryListenersInfo>(
@@ -56,11 +60,13 @@ export class EventManager implements SyncEngineListener {
 
   private snapshotsInSyncListeners: Set<Observer<void>> = new Set();
 
-  constructor(private syncEngine: SyncEngine) {
-    this.syncEngine.subscribe(this);
-  }
+  /** Callback invoked when a Query is first listen to. */
+  onListen?: (query: Query) => Promise<ViewSnapshot>;
+  /** Callback invoked once all listeners to a Query are removed. */
+  onUnlisten?: (query: Query) => Promise<void>;
 
   async listen(listener: QueryListener): Promise<void> {
+    debugAssert(!!this.onListen, 'onListen not set');
     const query = listener.query;
     let firstListen = false;
 
@@ -72,7 +78,7 @@ export class EventManager implements SyncEngineListener {
 
     if (firstListen) {
       try {
-        queryInfo.viewSnap = await this.syncEngine.listen(query);
+        queryInfo.viewSnap = await this.onListen(query);
       } catch (e) {
         const firestoreError = wrapInUserErrorIfRecoverable(
           e,
@@ -102,6 +108,7 @@ export class EventManager implements SyncEngineListener {
   }
 
   async unlisten(listener: QueryListener): Promise<void> {
+    debugAssert(!!this.onUnlisten, 'onUnlisten not set');
     const query = listener.query;
     let lastListen = false;
 
@@ -116,7 +123,7 @@ export class EventManager implements SyncEngineListener {
 
     if (lastListen) {
       this.queries.delete(query);
-      return this.syncEngine.unlisten(query);
+      return this.onUnlisten(query);
     }
   }
 
