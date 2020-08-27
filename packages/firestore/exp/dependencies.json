@@ -40,11 +40,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 21406
-=======
         "sizeInBytes": 18458
->>>>>>> master
     },
     "CollectionReference": {
         "dependencies": {
@@ -94,11 +90,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 23642
-=======
-        "sizeInBytes": 18637
->>>>>>> master
+        "sizeInBytes": 23644
     },
     "DocumentReference": {
         "dependencies": {
@@ -148,11 +140,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 23640
-=======
-        "sizeInBytes": 20085
->>>>>>> master
+        "sizeInBytes": 23642
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -212,11 +200,8 @@
                 "BaseFieldPath",
                 "BasePath",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -247,11 +232,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 43178
-=======
-        "sizeInBytes": 39149
->>>>>>> master
+        "sizeInBytes": 42706
     },
     "FieldPath": {
         "dependencies": {
@@ -301,11 +282,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 23079
-=======
         "sizeInBytes": 23081
->>>>>>> master
     },
     "FieldValue": {
         "dependencies": {
@@ -344,11 +321,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 16709
-=======
         "sizeInBytes": 16711
->>>>>>> master
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -385,11 +358,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 16618
-=======
         "sizeInBytes": 16620
->>>>>>> master
     },
     "GeoPoint": {
         "dependencies": {
@@ -435,11 +404,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 19527
-=======
         "sizeInBytes": 19529
->>>>>>> master
     },
     "Query": {
         "dependencies": {
@@ -477,11 +442,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 16811
-=======
         "sizeInBytes": 16813
->>>>>>> master
     },
     "QueryConstraint": {
         "dependencies": {
@@ -519,11 +480,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 16624
-=======
         "sizeInBytes": 16626
->>>>>>> master
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -583,11 +540,8 @@
                 "BaseFieldPath",
                 "BasePath",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -618,11 +572,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 43188
-=======
-        "sizeInBytes": 39159
->>>>>>> master
+        "sizeInBytes": 42716
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -684,11 +634,8 @@
                 "BaseFieldPath",
                 "BasePath",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -721,11 +668,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 45819
-=======
-        "sizeInBytes": 41790
->>>>>>> master
+        "sizeInBytes": 45347
     },
     "SnapshotMetadata": {
         "dependencies": {
@@ -763,11 +706,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 16833
-=======
         "sizeInBytes": 16835
->>>>>>> master
     },
     "Timestamp": {
         "dependencies": {
@@ -805,11 +744,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 18219
-=======
         "sizeInBytes": 18221
->>>>>>> master
     },
     "Transaction": {
         "dependencies": {
@@ -905,11 +840,8 @@
                 "BaseFieldPath",
                 "BasePath",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -961,11 +893,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 66704
-=======
-        "sizeInBytes": 62689
->>>>>>> master
+        "sizeInBytes": 66246
     },
     "WriteBatch": {
         "dependencies": {
@@ -1058,11 +986,8 @@
                 "BaseFieldPath",
                 "BasePath",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -1105,11 +1030,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 59441
-=======
-        "sizeInBytes": 55277
->>>>>>> master
+        "sizeInBytes": 58834
     },
     "addDoc": {
         "dependencies": {
@@ -1128,10 +1049,6 @@
                 "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-<<<<<<< HEAD
-                "applyRemoteEventToLocalCache",
-=======
->>>>>>> master
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applySuccessfulWrite",
@@ -1486,11 +1403,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 215482
-=======
-        "sizeInBytes": 190505
->>>>>>> master
+        "sizeInBytes": 191785
     },
     "arrayRemove": {
         "dependencies": {
@@ -1577,11 +1490,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 36100
-=======
         "sizeInBytes": 35216
->>>>>>> master
     },
     "arrayUnion": {
         "dependencies": {
@@ -1668,11 +1577,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 36092
-=======
         "sizeInBytes": 35208
->>>>>>> master
     },
     "clearIndexedDbPersistence": {
         "dependencies": {
@@ -1721,11 +1626,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 30086
-=======
         "sizeInBytes": 30088
->>>>>>> master
     },
     "collection": {
         "dependencies": {
@@ -1776,11 +1677,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 24375
-=======
-        "sizeInBytes": 24792
->>>>>>> master
+        "sizeInBytes": 24377
     },
     "collectionGroup": {
         "dependencies": {
@@ -1826,11 +1723,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 21622
-=======
-        "sizeInBytes": 23101
->>>>>>> master
+        "sizeInBytes": 21624
     },
     "deleteDoc": {
         "dependencies": {
@@ -1847,10 +1740,6 @@
                 "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-<<<<<<< HEAD
-                "applyRemoteEventToLocalCache",
-=======
->>>>>>> master
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applySuccessfulWrite",
@@ -1972,6 +1861,7 @@
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
                 "newQueryComparator",
+                "newQueryForPath",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -2169,11 +2059,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 198668
-=======
-        "sizeInBytes": 173387
->>>>>>> master
+        "sizeInBytes": 175580
     },
     "deleteField": {
         "dependencies": {
@@ -2215,11 +2101,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 17675
-=======
         "sizeInBytes": 17677
->>>>>>> master
     },
     "disableNetwork": {
         "dependencies": {
@@ -2234,10 +2116,6 @@
                 "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-<<<<<<< HEAD
-                "applyRemoteEventToLocalCache",
-=======
->>>>>>> master
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -2536,11 +2414,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 196151
-=======
         "sizeInBytes": 165460
->>>>>>> master
     },
     "doc": {
         "dependencies": {
@@ -2591,11 +2465,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 24430
-=======
-        "sizeInBytes": 24843
->>>>>>> master
+        "sizeInBytes": 24432
     },
     "documentId": {
         "dependencies": {
@@ -2646,11 +2516,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 23129
-=======
         "sizeInBytes": 23131
->>>>>>> master
     },
     "enableIndexedDbPersistence": {
         "dependencies": {
@@ -3018,11 +2884,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 200588
-=======
         "sizeInBytes": 200591
->>>>>>> master
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -3043,10 +2905,7 @@
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
                 "applyPrimaryState",
-<<<<<<< HEAD
-=======
                 "applyRemoteEvent",
->>>>>>> master
                 "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
@@ -3519,11 +3378,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 304936
-=======
         "sizeInBytes": 302272
->>>>>>> master
     },
     "enableNetwork": {
         "dependencies": {
@@ -3538,10 +3393,6 @@
                 "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-<<<<<<< HEAD
-                "applyRemoteEventToLocalCache",
-=======
->>>>>>> master
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -3840,11 +3691,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 196148
-=======
         "sizeInBytes": 165457
->>>>>>> master
     },
     "endAt": {
         "dependencies": {
@@ -3934,11 +3781,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -3974,11 +3818,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 55148
-=======
-        "sizeInBytes": 52669
->>>>>>> master
+        "sizeInBytes": 54642
     },
     "endBefore": {
         "dependencies": {
@@ -4068,11 +3908,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -4108,11 +3945,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 55159
-=======
-        "sizeInBytes": 52680
->>>>>>> master
+        "sizeInBytes": 54653
     },
     "getDoc": {
         "dependencies": {
@@ -4129,10 +3962,7 @@
                 "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-<<<<<<< HEAD
-=======
                 "applyRemoteEvent",
->>>>>>> master
                 "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
@@ -4379,11 +4209,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -4498,11 +4325,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 214691
-=======
-        "sizeInBytes": 207270
->>>>>>> master
+        "sizeInBytes": 209405
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4671,11 +4494,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -4753,11 +4573,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 122116
-=======
-        "sizeInBytes": 119452
->>>>>>> master
+        "sizeInBytes": 121645
     },
     "getDocFromServer": {
         "dependencies": {
@@ -4774,10 +4590,7 @@
                 "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-<<<<<<< HEAD
-=======
                 "applyRemoteEvent",
->>>>>>> master
                 "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
@@ -5024,11 +4837,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -5143,11 +4953,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 214747
-=======
-        "sizeInBytes": 207326
->>>>>>> master
+        "sizeInBytes": 209461
     },
     "getDocs": {
         "dependencies": {
@@ -5164,10 +4970,7 @@
                 "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-<<<<<<< HEAD
-=======
                 "applyRemoteEvent",
->>>>>>> master
                 "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
@@ -5416,11 +5219,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -5536,11 +5336,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 217034
-=======
-        "sizeInBytes": 209833
->>>>>>> master
+        "sizeInBytes": 211748
     },
     "getDocsFromCache": {
         "dependencies": {
@@ -5715,11 +5511,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -5803,11 +5596,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 135076
-=======
-        "sizeInBytes": 132632
->>>>>>> master
+        "sizeInBytes": 134605
     },
     "getDocsFromServer": {
         "dependencies": {
@@ -5824,10 +5613,7 @@
                 "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-<<<<<<< HEAD
-=======
                 "applyRemoteEvent",
->>>>>>> master
                 "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
@@ -6075,11 +5861,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -6195,11 +5978,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 216772
-=======
-        "sizeInBytes": 209571
->>>>>>> master
+        "sizeInBytes": 211486
     },
     "getFirestore": {
         "dependencies": {
@@ -6237,11 +6016,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 16694
-=======
         "sizeInBytes": 16696
->>>>>>> master
     },
     "increment": {
         "dependencies": {
@@ -6291,11 +6066,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 18540
-=======
         "sizeInBytes": 18542
->>>>>>> master
     },
     "initializeFirestore": {
         "dependencies": {
@@ -6334,11 +6105,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 17998
-=======
         "sizeInBytes": 18000
->>>>>>> master
     },
     "limit": {
         "dependencies": {
@@ -6384,11 +6151,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 19125
-=======
         "sizeInBytes": 19127
->>>>>>> master
     },
     "limitToLast": {
         "dependencies": {
@@ -6434,11 +6197,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 19149
-=======
         "sizeInBytes": 19151
->>>>>>> master
     },
     "onSnapshot": {
         "dependencies": {
@@ -6455,10 +6214,7 @@
                 "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-<<<<<<< HEAD
-=======
                 "applyRemoteEvent",
->>>>>>> master
                 "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
@@ -6709,11 +6465,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -6829,11 +6582,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 218117
-=======
-        "sizeInBytes": 210916
->>>>>>> master
+        "sizeInBytes": 212831
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -6850,10 +6599,7 @@
                 "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-<<<<<<< HEAD
-=======
                 "applyRemoteEvent",
->>>>>>> master
                 "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
@@ -7181,11 +6927,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 196997
-=======
         "sizeInBytes": 192185
->>>>>>> master
     },
     "orderBy": {
         "dependencies": {
@@ -7253,60 +6995,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 28770
-=======
         "sizeInBytes": 28772
-    },
-    "parent": {
-        "dependencies": {
-            "functions": [
-                "argToString",
-                "cast",
-                "fail",
-                "formatJSON",
-                "getMessageOrStack",
-                "hardAssert",
-                "isIndexedDbTransactionError",
-                "isNullOrUndefined",
-                "logDebug",
-                "logError",
-                "newQueryForPath",
-                "parent",
-                "primitiveComparator",
-                "randomBytes",
-                "registerFirestore",
-                "removeComponents",
-                "removeComponents$1",
-                "wrapInUserErrorIfRecoverable"
-            ],
-            "classes": [
-                "AsyncQueue",
-                "AutoId",
-                "BasePath",
-                "CollectionReference",
-                "DatabaseId",
-                "DatabaseInfo",
-                "Deferred",
-                "DelayedOperation",
-                "DocumentKey",
-                "DocumentKeyReference",
-                "DocumentReference",
-                "ExponentialBackoff",
-                "FirebaseCredentialsProvider",
-                "Firestore",
-                "Firestore$1",
-                "FirestoreError",
-                "OAuthToken",
-                "Query",
-                "QueryImpl",
-                "ResourcePath",
-                "User"
-            ],
-            "variables": []
-        },
-        "sizeInBytes": 22853
->>>>>>> master
     },
     "query": {
         "dependencies": {
@@ -7346,11 +7035,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 17392
-=======
         "sizeInBytes": 17394
->>>>>>> master
     },
     "queryEqual": {
         "dependencies": {
@@ -7426,11 +7111,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 33341
-=======
         "sizeInBytes": 33343
->>>>>>> master
     },
     "refEqual": {
         "dependencies": {
@@ -7481,11 +7162,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 23925
-=======
-        "sizeInBytes": 22400
->>>>>>> master
+        "sizeInBytes": 23927
     },
     "runTransaction": {
         "dependencies": {
@@ -7613,11 +7290,8 @@
                 "BaseFieldPath",
                 "BasePath",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -7681,11 +7355,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 85597
-=======
-        "sizeInBytes": 81655
->>>>>>> master
+        "sizeInBytes": 85139
     },
     "serverTimestamp": {
         "dependencies": {
@@ -7730,11 +7400,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 17686
-=======
         "sizeInBytes": 17688
->>>>>>> master
     },
     "setDoc": {
         "dependencies": {
@@ -7752,10 +7418,6 @@
                 "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-<<<<<<< HEAD
-                "applyRemoteEventToLocalCache",
-=======
->>>>>>> master
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applySuccessfulWrite",
@@ -7887,6 +7549,7 @@
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
                 "newQueryComparator",
+                "newQueryForPath",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -8003,11 +7666,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -8112,11 +7772,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 214619
-=======
-        "sizeInBytes": 188729
->>>>>>> master
+        "sizeInBytes": 190922
     },
     "setLogLevel": {
         "dependencies": {
@@ -8154,11 +7810,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 16660
-=======
         "sizeInBytes": 16662
->>>>>>> master
     },
     "snapshotEqual": {
         "dependencies": {
@@ -8240,11 +7892,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -8279,11 +7928,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 52879
-=======
-        "sizeInBytes": 50434
->>>>>>> master
+        "sizeInBytes": 52407
     },
     "startAfter": {
         "dependencies": {
@@ -8373,11 +8018,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -8413,11 +8055,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 55169
-=======
-        "sizeInBytes": 52690
->>>>>>> master
+        "sizeInBytes": 54663
     },
     "startAt": {
         "dependencies": {
@@ -8507,11 +8145,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -8547,11 +8182,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 55159
-=======
-        "sizeInBytes": 52680
->>>>>>> master
+        "sizeInBytes": 54653
     },
     "terminate": {
         "dependencies": {
@@ -8590,11 +8221,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 17190
-=======
         "sizeInBytes": 17193
->>>>>>> master
     },
     "updateDoc": {
         "dependencies": {
@@ -8611,10 +8238,6 @@
                 "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-<<<<<<< HEAD
-                "applyRemoteEventToLocalCache",
-=======
->>>>>>> master
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applySuccessfulWrite",
@@ -8747,6 +8370,7 @@
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
                 "newQueryComparator",
+                "newQueryForPath",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -8864,11 +8488,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -8975,11 +8596,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 216118
-=======
-        "sizeInBytes": 190228
->>>>>>> master
+        "sizeInBytes": 192421
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -8994,10 +8611,6 @@
                 "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-<<<<<<< HEAD
-                "applyRemoteEventToLocalCache",
-=======
->>>>>>> master
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
@@ -9297,11 +8910,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 195940
-=======
         "sizeInBytes": 166293
->>>>>>> master
     },
     "where": {
         "dependencies": {
@@ -9447,11 +9056,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 59601
-=======
         "sizeInBytes": 58994
->>>>>>> master
     },
     "writeBatch": {
         "dependencies": {
@@ -9469,10 +9074,6 @@
                 "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-<<<<<<< HEAD
-                "applyRemoteEventToLocalCache",
-=======
->>>>>>> master
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applySuccessfulWrite",
@@ -9605,6 +9206,7 @@
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
                 "newQueryComparator",
+                "newQueryForPath",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -9724,11 +9326,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -9837,10 +9436,6 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 219785
-=======
-        "sizeInBytes": 193895
->>>>>>> master
+        "sizeInBytes": 196088
     }
 }
