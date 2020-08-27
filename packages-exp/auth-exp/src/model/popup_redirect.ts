@@ -31,7 +31,7 @@ export const enum GapiOutcome {
   ERROR = 'ERROR'
 }
 
-interface GapiAuthEvent extends gapi.iframes.Message {
+export interface GapiAuthEvent extends gapi.iframes.Message {
   authEvent: AuthEvent;
 }
 

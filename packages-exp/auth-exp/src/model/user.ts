@@ -25,7 +25,7 @@ import { UserMetadata } from '../core/user/user_metadata';
 import { Auth } from './auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from './id_token';
 
-type MutableUserInfo = {
+export type MutableUserInfo = {
   -readonly [K in keyof externs.UserInfo]: externs.UserInfo[K];
 };
 

@@ -47,7 +47,7 @@ export class User extends impl.UserImpl implements compat.User {
     credential: compat.AuthCredential
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      this.auth,
+      (this.auth as unknown) as externs.Auth,
       impl.linkWithCredential(this, credential as externs.AuthCredential)
     );
   }
@@ -56,7 +56,7 @@ export class User extends impl.UserImpl implements compat.User {
     applicationVerifier: compat.ApplicationVerifier
   ): Promise<compat.ConfirmationResult> {
     return convertConfirmationResult(
-      this.auth,
+      (this.auth as unknown) as externs.Auth,
       impl.linkWithPhoneNumber(this, phoneNumber, applicationVerifier)
     );
   }
@@ -64,7 +64,7 @@ export class User extends impl.UserImpl implements compat.User {
     provider: compat.AuthProvider
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      this.auth,
+      (this.auth as unknown) as externs.Auth,
       impl.linkWithPopup(
         this,
         provider as externs.AuthProvider,
@@ -88,7 +88,7 @@ export class User extends impl.UserImpl implements compat.User {
     credential: compat.AuthCredential
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      this.auth,
+      (this.auth as unknown) as externs.Auth,
       impl.reauthenticateWithCredential(
         this,
         credential as externs.AuthCredential
@@ -100,7 +100,7 @@ export class User extends impl.UserImpl implements compat.User {
     applicationVerifier: compat.ApplicationVerifier
   ): Promise<compat.ConfirmationResult> {
     return convertConfirmationResult(
-      this.auth,
+      (this.auth as unknown) as externs.Auth,
       impl.reauthenticateWithPhoneNumber(this, phoneNumber, applicationVerifier)
     );
   }
@@ -108,7 +108,7 @@ export class User extends impl.UserImpl implements compat.User {
     provider: compat.AuthProvider
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      this.auth,
+      (this.auth as unknown) as externs.Auth,
       impl.reauthenticateWithPopup(
         this,
         provider as externs.AuthProvider,

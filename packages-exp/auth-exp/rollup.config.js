@@ -50,11 +50,11 @@ const es5Builds = [
    * Browser Builds
    */
   {
-    input: 'index.ts',
-    output: [
-      { file: pkg.browser, format: 'cjs', sourcemap: true },
-      { file: pkg.module, format: 'esm', sourcemap: true }
-    ],
+    input: {
+      index: 'index.ts',
+      internal: 'internal/index.ts'
+    },
+    output: [{ dir: 'dist/esm5', format: 'esm', sourcemap: true }],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -86,8 +86,11 @@ const es5Builds = [
    * Node.js Build
    */
   {
-    input: 'index.node.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
+    input: {
+      index: 'index.node.ts',
+      internal: 'internal/index.ts'
+    },
+    output: [{ dir: 'dist/node', format: 'cjs', sourcemap: true }],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -95,8 +98,11 @@ const es5Builds = [
    * React Native Builds
    */
   {
-    input: 'index.rn.ts',
-    output: [{ file: pkg['react-native'], format: 'cjs', sourcemap: true }],
+    input: {
+      index: 'index.rn.ts',
+      internal: 'internal/index.ts'
+    },
+    output: [{ dir: 'dist/rn', format: 'cjs', sourcemap: true }],
     plugins: es5BuildPlugins,
     external: id =>
       [...deps, 'react-native'].some(
@@ -125,9 +131,12 @@ const es2017Builds = [
    *  Browser Builds
    */
   {
-    input: 'index.ts',
+    input: {
+      index: 'index.ts',
+      internal: 'internal/index.ts'
+    },
     output: {
-      file: pkg.esm2017,
+      dir: 'dist/esm2017',
       format: 'es',
       sourcemap: true
     },
