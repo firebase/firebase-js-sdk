@@ -27,7 +27,13 @@ import { DocumentSet } from '../model/document_set';
 import { TargetChange } from '../remote/remote_event';
 import { debugAssert, fail } from '../util/assert';
 
-import { newQueryComparator, Query, queryMatches } from './query';
+import {
+  hasLimitToFirst,
+  hasLimitToLast,
+  newQueryComparator,
+  Query,
+  queryMatches
+} from './query';
 import { OnlineState } from './types';
 import {
   ChangeType,
@@ -140,11 +146,11 @@ export class View {
     // Note that this should never get used in a refill (when previousChanges is
     // set), because there will only be adds -- no deletes or updates.
     const lastDocInLimit =
-      this.query.hasLimitToFirst() && oldDocumentSet.size === this.query.limit
+      hasLimitToFirst(this.query) && oldDocumentSet.size === this.query.limit
         ? oldDocumentSet.last()
         : null;
     const firstDocInLimit =
-      this.query.hasLimitToLast() && oldDocumentSet.size === this.query.limit
+      hasLimitToLast(this.query) && oldDocumentSet.size === this.query.limit
         ? oldDocumentSet.first()
         : null;
 
@@ -234,9 +240,9 @@ export class View {
     );
 
     // Drop documents out to meet limit/limitToLast requirement.
-    if (this.query.hasLimitToFirst() || this.query.hasLimitToLast()) {
+    if (hasLimitToFirst(this.query) || hasLimitToLast(this.query)) {
       while (newDocumentSet.size > this.query.limit!) {
-        const oldDoc = this.query.hasLimitToFirst()
+        const oldDoc = hasLimitToFirst(this.query)
           ? newDocumentSet.last()
           : newDocumentSet.first();
         newDocumentSet = newDocumentSet.delete(oldDoc!.key);

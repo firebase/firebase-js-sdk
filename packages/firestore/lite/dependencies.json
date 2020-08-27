@@ -28,11 +28,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 12225
-=======
-        "sizeInBytes": 9275
->>>>>>> master
+        "sizeInBytes": 9277
     },
     "CollectionReference": {
         "dependencies": {
@@ -41,7 +37,6 @@
                 "fail",
                 "formatJSON",
                 "hardAssert",
-                "isNullOrUndefined",
                 "logDebug",
                 "logError",
                 "newQueryForPath",
@@ -72,11 +67,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 14962
-=======
-        "sizeInBytes": 9454
->>>>>>> master
+        "sizeInBytes": 14009
     },
     "DocumentReference": {
         "dependencies": {
@@ -85,7 +76,6 @@
                 "fail",
                 "formatJSON",
                 "hardAssert",
-                "isNullOrUndefined",
                 "logDebug",
                 "logError",
                 "newQueryForPath",
@@ -116,11 +106,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 14960
-=======
-        "sizeInBytes": 10902
->>>>>>> master
+        "sizeInBytes": 14007
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -143,7 +129,6 @@
                 "getPreviousValue",
                 "hardAssert",
                 "invalidClassError",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -175,11 +160,8 @@
                 "BaseFieldPath",
                 "BasePath",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -203,11 +185,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 33081
-=======
-        "sizeInBytes": 28501
->>>>>>> master
+        "sizeInBytes": 31606
     },
     "FieldPath": {
         "dependencies": {
@@ -245,7 +223,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 13898
+        "sizeInBytes": 13900
     },
     "FieldValue": {
         "dependencies": {
@@ -272,7 +250,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7528
+        "sizeInBytes": 7530
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -297,7 +275,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7435
+        "sizeInBytes": 7437
     },
     "GeoPoint": {
         "dependencies": {
@@ -331,7 +309,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 10346
+        "sizeInBytes": 10348
     },
     "Query": {
         "dependencies": {
@@ -357,7 +335,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7630
+        "sizeInBytes": 7632
     },
     "QueryConstraint": {
         "dependencies": {
@@ -383,7 +361,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7443
+        "sizeInBytes": 7445
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -406,7 +384,6 @@
                 "getPreviousValue",
                 "hardAssert",
                 "invalidClassError",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -438,11 +415,8 @@
                 "BaseFieldPath",
                 "BasePath",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -466,11 +440,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 33086
-=======
-        "sizeInBytes": 28506
->>>>>>> master
+        "sizeInBytes": 31611
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -496,7 +466,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7669
+        "sizeInBytes": 7671
     },
     "Timestamp": {
         "dependencies": {
@@ -522,7 +492,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 9038
+        "sizeInBytes": 9040
     },
     "Transaction": {
         "dependencies": {
@@ -555,7 +525,6 @@
                 "isEmpty",
                 "isMapValue",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -613,11 +582,8 @@
                 "BaseFieldPath",
                 "BasePath",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DeleteFieldValueImpl",
                 "Document",
@@ -660,11 +626,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 55999
-=======
-        "sizeInBytes": 51433
->>>>>>> master
+        "sizeInBytes": 54538
     },
     "WriteBatch": {
         "dependencies": {
@@ -695,7 +657,6 @@
                 "isEmpty",
                 "isMapValue",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -752,11 +713,8 @@
                 "BaseFieldPath",
                 "BasePath",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DeleteFieldValueImpl",
                 "DeleteMutation",
@@ -794,11 +752,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 50761
-=======
-        "sizeInBytes": 46094
->>>>>>> master
+        "sizeInBytes": 49199
     },
     "addDoc": {
         "dependencies": {
@@ -835,7 +789,6 @@
                 "isEmpty",
                 "isMapValue",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -948,11 +901,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 56642
-=======
-        "sizeInBytes": 54753
->>>>>>> master
+        "sizeInBytes": 55080
     },
     "arrayRemove": {
         "dependencies": {
@@ -1027,11 +976,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 26919
-=======
-        "sizeInBytes": 26033
->>>>>>> master
+        "sizeInBytes": 26035
     },
     "arrayUnion": {
         "dependencies": {
@@ -1106,11 +1051,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 26911
-=======
-        "sizeInBytes": 26025
->>>>>>> master
+        "sizeInBytes": 26027
     },
     "collection": {
         "dependencies": {
@@ -1120,7 +1061,6 @@
                 "fail",
                 "formatJSON",
                 "hardAssert",
-                "isNullOrUndefined",
                 "logDebug",
                 "logError",
                 "newQueryForPath",
@@ -1151,11 +1091,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 15695
-=======
-        "sizeInBytes": 15609
->>>>>>> master
+        "sizeInBytes": 14742
     },
     "collectionGroup": {
         "dependencies": {
@@ -1166,7 +1102,6 @@
                 "fail",
                 "formatJSON",
                 "hardAssert",
-                "isNullOrUndefined",
                 "logDebug",
                 "logError",
                 "newQueryForCollectionGroup",
@@ -1189,11 +1124,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 12441
-=======
-        "sizeInBytes": 13918
->>>>>>> master
+        "sizeInBytes": 11488
     },
     "deleteDoc": {
         "dependencies": {
@@ -1210,7 +1141,6 @@
                 "getEncodedDatabaseId",
                 "hardAssert",
                 "invokeCommitRpc",
-                "isNullOrUndefined",
                 "loadProtos",
                 "logDebug",
                 "logError",
@@ -1276,11 +1206,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 29205
-=======
-        "sizeInBytes": 25147
->>>>>>> master
+        "sizeInBytes": 28252
     },
     "deleteField": {
         "dependencies": {
@@ -1310,7 +1236,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 8494
+        "sizeInBytes": 8496
     },
     "doc": {
         "dependencies": {
@@ -1320,7 +1246,6 @@
                 "fail",
                 "formatJSON",
                 "hardAssert",
-                "isNullOrUndefined",
                 "logDebug",
                 "logError",
                 "newQueryForPath",
@@ -1351,11 +1276,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 15750
-=======
-        "sizeInBytes": 16161
->>>>>>> master
+        "sizeInBytes": 14797
     },
     "documentId": {
         "dependencies": {
@@ -1394,7 +1315,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 13948
+        "sizeInBytes": 13950
     },
     "endAt": {
         "dependencies": {
@@ -1415,6 +1336,8 @@
                 "formatPlural",
                 "fromDotSeparatedString",
                 "fullyQualifiedPrefixPath",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalWriteTime",
                 "getPreviousValue",
                 "hardAssert",
@@ -1422,7 +1345,6 @@
                 "isCollectionGroupQuery",
                 "isEmpty",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -1479,11 +1401,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -1514,11 +1433,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 46468
-=======
-        "sizeInBytes": 43486
->>>>>>> master
+        "sizeInBytes": 45251
     },
     "endBefore": {
         "dependencies": {
@@ -1539,6 +1454,8 @@
                 "formatPlural",
                 "fromDotSeparatedString",
                 "fullyQualifiedPrefixPath",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalWriteTime",
                 "getPreviousValue",
                 "hardAssert",
@@ -1546,7 +1463,6 @@
                 "isCollectionGroupQuery",
                 "isEmpty",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -1603,11 +1519,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -1638,11 +1551,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 46479
-=======
-        "sizeInBytes": 43497
->>>>>>> master
+        "sizeInBytes": 45262
     },
     "getDoc": {
         "dependencies": {
@@ -1686,7 +1595,6 @@
                 "invokeBatchGetDocumentsRpc",
                 "isMapValue",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -1732,11 +1640,8 @@
                 "BaseFieldPath",
                 "BasePath",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -1772,21 +1677,13 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 49683
-=======
-        "sizeInBytes": 45103
->>>>>>> master
+        "sizeInBytes": 48208
     },
     "getDocs": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "arrayEquals",
-<<<<<<< HEAD
-                "assertUint8ArrayAvailable",
-=======
->>>>>>> master
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
@@ -1813,9 +1710,12 @@
                 "geoPointEquals",
                 "getDatastore",
                 "getDocs",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalWriteTime",
                 "getPreviousValue",
                 "hardAssert",
+                "hasLimitToLast",
                 "invalidClassError",
                 "invokeRunQueryRpc",
                 "isMapValue",
@@ -1878,19 +1778,13 @@
                 "valueEquals"
             ],
             "classes": [
-<<<<<<< HEAD
                 "AutoId",
-=======
->>>>>>> master
                 "BaseFieldPath",
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -1928,11 +1822,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 54167
-=======
-        "sizeInBytes": 51171
->>>>>>> master
+        "sizeInBytes": 53099
     },
     "getFirestore": {
         "dependencies": {
@@ -1958,7 +1848,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7514
+        "sizeInBytes": 7516
     },
     "increment": {
         "dependencies": {
@@ -1996,7 +1886,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 9359
+        "sizeInBytes": 9361
     },
     "initializeFirestore": {
         "dependencies": {
@@ -2022,7 +1912,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7600
+        "sizeInBytes": 7602
     },
     "limit": {
         "dependencies": {
@@ -2031,7 +1921,6 @@
                 "fail",
                 "formatJSON",
                 "hardAssert",
-                "isNullOrUndefined",
                 "limit",
                 "logDebug",
                 "logError",
@@ -2056,7 +1945,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 9944
+        "sizeInBytes": 8991
     },
     "limitToLast": {
         "dependencies": {
@@ -2065,7 +1954,6 @@
                 "fail",
                 "formatJSON",
                 "hardAssert",
-                "isNullOrUndefined",
                 "limitToLast",
                 "logDebug",
                 "logError",
@@ -2090,7 +1978,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 9968
+        "sizeInBytes": 9015
     },
     "orderBy": {
         "dependencies": {
@@ -2105,9 +1993,10 @@
                 "formatJSON",
                 "formatPlural",
                 "fromDotSeparatedString",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "hardAssert",
                 "invalidClassError",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "logDebug",
                 "logError",
@@ -2146,47 +2035,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19589
-<<<<<<< HEAD
-=======
-    },
-    "parent": {
-        "dependencies": {
-            "functions": [
-                "argToString",
-                "cast",
-                "fail",
-                "formatJSON",
-                "hardAssert",
-                "isNullOrUndefined",
-                "logDebug",
-                "logError",
-                "newQueryForPath",
-                "parent",
-                "primitiveComparator",
-                "registerFirestore",
-                "removeComponents"
-            ],
-            "classes": [
-                "BasePath",
-                "CollectionReference",
-                "DatabaseId",
-                "DocumentKey",
-                "DocumentKeyReference",
-                "DocumentReference",
-                "FirebaseCredentialsProvider",
-                "Firestore",
-                "FirestoreError",
-                "OAuthToken",
-                "Query",
-                "QueryImpl",
-                "ResourcePath",
-                "User"
-            ],
-            "variables": []
-        },
-        "sizeInBytes": 13670
->>>>>>> master
+        "sizeInBytes": 18880
     },
     "query": {
         "dependencies": {
@@ -2214,7 +2063,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 8211
+        "sizeInBytes": 8213
     },
     "queryEqual": {
         "dependencies": {
@@ -2231,10 +2080,11 @@
                 "filterEquals",
                 "formatJSON",
                 "geoPointEquals",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalWriteTime",
                 "hardAssert",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isServerTimestamp",
                 "logDebug",
                 "logError",
@@ -2278,7 +2128,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 24160
+        "sizeInBytes": 23451
     },
     "refEqual": {
         "dependencies": {
@@ -2287,7 +2137,6 @@
                 "fail",
                 "formatJSON",
                 "hardAssert",
-                "isNullOrUndefined",
                 "logDebug",
                 "logError",
                 "newQueryForPath",
@@ -2319,11 +2168,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 15245
-=======
-        "sizeInBytes": 13217
->>>>>>> master
+        "sizeInBytes": 14292
     },
     "runTransaction": {
         "dependencies": {
@@ -2449,11 +2294,8 @@
                 "BaseFieldPath",
                 "BasePath",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -2512,11 +2354,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 81012
-=======
-        "sizeInBytes": 76519
->>>>>>> master
+        "sizeInBytes": 79624
     },
     "serverTimestamp": {
         "dependencies": {
@@ -2549,7 +2387,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 8482
+        "sizeInBytes": 8484
     },
     "setDoc": {
         "dependencies": {
@@ -2584,7 +2422,6 @@
                 "isEmpty",
                 "isMapValue",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -2654,11 +2491,8 @@
                 "BaseFieldPath",
                 "BasePath",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -2701,11 +2535,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 55783
-=======
-        "sizeInBytes": 51116
->>>>>>> master
+        "sizeInBytes": 54221
     },
     "setLogLevel": {
         "dependencies": {
@@ -2731,17 +2561,13 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7479
+        "sizeInBytes": 7481
     },
     "snapshotEqual": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "arrayEquals",
-<<<<<<< HEAD
-                "assertUint8ArrayAvailable",
-=======
->>>>>>> master
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "boundEquals",
@@ -2759,12 +2585,13 @@
                 "formatPlural",
                 "fromDotSeparatedString",
                 "geoPointEquals",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalWriteTime",
                 "getPreviousValue",
                 "hardAssert",
                 "invalidClassError",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isServerTimestamp",
                 "isValidResourceName",
@@ -2805,19 +2632,13 @@
                 "valueEquals"
             ],
             "classes": [
-<<<<<<< HEAD
                 "AutoId",
-=======
->>>>>>> master
                 "BaseFieldPath",
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -2844,11 +2665,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 40318
-=======
-        "sizeInBytes": 37322
->>>>>>> master
+        "sizeInBytes": 39087
     },
     "startAfter": {
         "dependencies": {
@@ -2868,6 +2685,8 @@
                 "formatPlural",
                 "fromDotSeparatedString",
                 "fullyQualifiedPrefixPath",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalWriteTime",
                 "getPreviousValue",
                 "hardAssert",
@@ -2875,7 +2694,6 @@
                 "isCollectionGroupQuery",
                 "isEmpty",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -2933,11 +2751,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -2968,11 +2783,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 46489
-=======
-        "sizeInBytes": 43507
->>>>>>> master
+        "sizeInBytes": 45272
     },
     "startAt": {
         "dependencies": {
@@ -2992,6 +2803,8 @@
                 "formatPlural",
                 "fromDotSeparatedString",
                 "fullyQualifiedPrefixPath",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalWriteTime",
                 "getPreviousValue",
                 "hardAssert",
@@ -2999,7 +2812,6 @@
                 "isCollectionGroupQuery",
                 "isEmpty",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -3057,11 +2869,8 @@
                 "BasePath",
                 "Bound",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -3092,11 +2901,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 46479
-=======
-        "sizeInBytes": 43497
->>>>>>> master
+        "sizeInBytes": 45262
     },
     "terminate": {
         "dependencies": {
@@ -3123,7 +2928,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 8012
+        "sizeInBytes": 8015
     },
     "updateDoc": {
         "dependencies": {
@@ -3158,7 +2963,6 @@
                 "isEmpty",
                 "isMapValue",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -3229,11 +3033,8 @@
                 "BaseFieldPath",
                 "BasePath",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -3279,11 +3080,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 58890
-=======
-        "sizeInBytes": 54223
->>>>>>> master
+        "sizeInBytes": 57328
     },
     "where": {
         "dependencies": {
@@ -3310,12 +3107,15 @@
                 "fail",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
+                "findFilterOperator",
                 "forEach",
                 "formatJSON",
                 "formatPlural",
                 "fromDotSeparatedString",
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
+                "getFirstOrderByField",
+                "getInequalityFilterField",
                 "getLocalWriteTime",
                 "hardAssert",
                 "invalidClassError",
@@ -3324,7 +3124,6 @@
                 "isEmpty",
                 "isNanValue",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isNullValue",
                 "isPlainObject",
                 "isSafeInteger",
@@ -3417,11 +3216,7 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 50420
-=======
-        "sizeInBytes": 49811
->>>>>>> master
+        "sizeInBytes": 49248
     },
     "writeBatch": {
         "dependencies": {
@@ -3457,7 +3252,6 @@
                 "isEmpty",
                 "isMapValue",
                 "isNegativeZero",
-                "isNullOrUndefined",
                 "isPlainObject",
                 "isSafeInteger",
                 "isServerTimestamp",
@@ -3530,11 +3324,8 @@
                 "BaseFieldPath",
                 "BasePath",
                 "ByteString",
-<<<<<<< HEAD
-                "CollectionReference",
-=======
                 "Bytes",
->>>>>>> master
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -3582,10 +3373,6 @@
             ],
             "variables": []
         },
-<<<<<<< HEAD
-        "sizeInBytes": 62591
-=======
-        "sizeInBytes": 57924
->>>>>>> master
+        "sizeInBytes": 61029
     }
 }

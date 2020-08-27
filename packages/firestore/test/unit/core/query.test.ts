@@ -37,7 +37,8 @@ import {
   queryToTarget,
   QueryImpl,
   queryEquals,
-  OrderBy
+  OrderBy,
+  matchesAllDocuments
 } from '../../../src/core/query';
 import { DOCUMENT_KEY_NAME, ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';
@@ -779,25 +780,25 @@ describe('Query', () => {
 
   it('matchesAllDocuments() considers filters, orders and bounds', () => {
     const baseQuery = newQueryForPath(ResourcePath.fromString('collection'));
-    expect(baseQuery.matchesAllDocuments()).to.be.true;
+    expect(matchesAllDocuments(baseQuery)).to.be.true;
 
     let query1 = query('collection', orderBy('__name__'));
-    expect(query1.matchesAllDocuments()).to.be.true;
+    expect(matchesAllDocuments(query1)).to.be.true;
 
     query1 = query('collection', orderBy('foo'));
-    expect(query1.matchesAllDocuments()).to.be.false;
+    expect(matchesAllDocuments(query1)).to.be.false;
 
     query1 = query('collection', filter('foo', '==', 'bar'));
-    expect(query1.matchesAllDocuments()).to.be.false;
+    expect(matchesAllDocuments(query1)).to.be.false;
 
     query1 = queryWithLimit(query('foo'), 1, LimitType.First);
-    expect(query1.matchesAllDocuments()).to.be.false;
+    expect(matchesAllDocuments(query1)).to.be.false;
 
     query1 = queryWithStartAt(baseQuery, bound([], true));
-    expect(query1.matchesAllDocuments()).to.be.false;
+    expect(matchesAllDocuments(query1)).to.be.false;
 
     query1 = queryWithEndAt(baseQuery, bound([], true));
-    expect(query1.matchesAllDocuments()).to.be.false;
+    expect(matchesAllDocuments(query1)).to.be.false;
   });
 
   function assertImplicitOrderBy(query: Query, ...orderBys: OrderBy[]): void {
