@@ -38,7 +38,13 @@ import {
   SyncEngine
 } from './sync_engine';
 import { RemoteStore } from '../remote/remote_store';
-import { EventManager } from './event_manager';
+import {
+  EventManager,
+  newEventManager,
+  eventManagerOnOnlineStateChange,
+  eventManagerOnWatchChange,
+  eventManagerOnWatchError
+} from './event_manager';
 import { AsyncQueue } from '../util/async_queue';
 import { DatabaseId, DatabaseInfo } from './database_info';
 import { Datastore, newDatastore } from '../remote/datastore';
@@ -334,7 +340,14 @@ export class OnlineComponentProvider {
     this.syncEngine = this.createSyncEngine(cfg);
     this.eventManager = this.createEventManager(cfg);
 
-    this.syncEngine.subscribe(this.eventManager);
+    this.syncEngine.subscribe({
+      onWatchChange: eventManagerOnWatchChange.bind(null, this.eventManager),
+      onWatchError: eventManagerOnWatchError.bind(null, this.eventManager),
+      onOnlineStateChange: eventManagerOnOnlineStateChange.bind(
+        null,
+        this.eventManager
+      )
+    });
 
     this.sharedClientState.onlineStateHandler = onlineState =>
       applyOnlineStateChange(
@@ -353,7 +366,7 @@ export class OnlineComponentProvider {
   }
 
   createEventManager(cfg: ComponentConfiguration): EventManager {
-    return new EventManager();
+    return newEventManager();
   }
 
   createDatastore(cfg: ComponentConfiguration): Datastore {
