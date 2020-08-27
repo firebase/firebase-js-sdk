@@ -628,7 +628,8 @@ export class DocumentChange<T = legacy.DocumentData>
   readonly newIndex = this._delegate.oldIndex;
 }
 
-export class CollectionReference<T = legacy.DocumentData> extends Query<T>
+export class CollectionReference<T = legacy.DocumentData>
+  extends Query<T>
   implements legacy.CollectionReference<T> {
   constructor(
     firestore: FirebaseFirestore,

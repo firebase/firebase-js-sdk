@@ -47,7 +47,10 @@ function assertBase64Available(): void {
 
 /**
  * Immutable class holding a blob (binary data).
- * This class is directly exposed in the public API.
+ *
+ * This class is directly exposed in the public API. It extends the Bytes class
+ * of the firestore-exp API to support `instanceof Bytes` checks during user
+ * data conversion.
  *
  * Note that while you can't hide the constructor in JavaScript code, we are
  * using the hack above to make sure no-one outside this module can call it.

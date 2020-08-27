@@ -50,45 +50,47 @@ describe('EventManager', () => {
     };
   }
 
-  // mock object.
+  // mock objects.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function makeSyncEngineSpy(): any {
-    const stub = {
-      listen: sinon.stub().returns(Promise.resolve(0)),
-      subscribe: sinon.spy(),
-      unlisten: sinon.spy()
-    };
-    return stub;
-  }
+  let onListenSpy: any, onUnlistenSpy: any;
+
+  beforeEach(() => {
+    onListenSpy = sinon.stub().returns(Promise.resolve(0));
+    onUnlistenSpy = sinon.spy();
+  });
 
   it('handles many listenables per query', async () => {
     const query1 = query('foo/bar');
     const fakeListener1 = fakeQueryListener(query1);
     const fakeListener2 = fakeQueryListener(query1);
 
-    const syncEngineSpy = makeSyncEngineSpy();
-    const eventManager = new EventManager(syncEngineSpy);
+    const eventManager = new EventManager();
+    eventManager.onListen = onListenSpy.bind(null);
+    eventManager.onUnlisten = onUnlistenSpy.bind(null);
 
     await eventManager.listen(fakeListener1);
-    expect(syncEngineSpy.listen.calledWith(query1)).to.be.true;
+    expect(onListenSpy.calledWith(query1)).to.be.true;
 
     await eventManager.listen(fakeListener2);
-    expect(syncEngineSpy.listen.callCount).to.equal(1);
+    expect(onListenSpy.callCount).to.equal(1);
 
     await eventManager.unlisten(fakeListener2);
-    expect(syncEngineSpy.unlisten.callCount).to.equal(0);
+    expect(onUnlistenSpy.callCount).to.equal(0);
 
     await eventManager.unlisten(fakeListener1);
-    expect(syncEngineSpy.unlisten.calledWith(query1)).to.be.true;
+    expect(onUnlistenSpy.calledWith(query1)).to.be.true;
   });
 
   it('handles unlisten on unknown listenable gracefully', async () => {
-    const syncEngineSpy = makeSyncEngineSpy();
     const query1 = query('foo/bar');
     const fakeListener1 = fakeQueryListener(query1);
-    const eventManager = new EventManager(syncEngineSpy);
+
+    const eventManager = new EventManager();
+    eventManager.onListen = onListenSpy.bind(null);
+    eventManager.onUnlisten = onUnlistenSpy.bind(null);
+
     await eventManager.unlisten(fakeListener1);
-    expect(syncEngineSpy.unlisten.callCount).to.equal(0);
+    expect(onUnlistenSpy.callCount).to.equal(0);
   });
 
   it('notifies listenables in the right order', async () => {
@@ -109,13 +111,14 @@ describe('EventManager', () => {
       eventOrder.push('listenable3');
     };
 
-    const syncEngineSpy = makeSyncEngineSpy();
-    const eventManager = new EventManager(syncEngineSpy);
+    const eventManager = new EventManager();
+    eventManager.onListen = onListenSpy.bind(null);
+    eventManager.onUnlisten = onUnlistenSpy.bind(null);
 
     await eventManager.listen(fakeListener1);
     await eventManager.listen(fakeListener2);
     await eventManager.listen(fakeListener3);
-    expect(syncEngineSpy.listen.callCount).to.equal(2);
+    expect(onListenSpy.callCount).to.equal(2);
 
     // mock ViewSnapshot.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -140,8 +143,9 @@ describe('EventManager', () => {
       events.push(onlineState);
     };
 
-    const syncEngineSpy = makeSyncEngineSpy();
-    const eventManager = new EventManager(syncEngineSpy);
+    const eventManager = new EventManager();
+    eventManager.onListen = onListenSpy.bind(null);
+    eventManager.onUnlisten = onUnlistenSpy.bind(null);
 
     await eventManager.listen(fakeListener1);
     expect(events).to.deep.equal([OnlineState.Unknown]);

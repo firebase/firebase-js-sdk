@@ -40,7 +40,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18456
+        "sizeInBytes": 18458
     },
     "CollectionReference": {
         "dependencies": {
@@ -82,7 +82,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18635
+        "sizeInBytes": 18637
     },
     "DocumentReference": {
         "dependencies": {
@@ -124,7 +124,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 20083
+        "sizeInBytes": 20085
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -208,7 +208,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 39147
+        "sizeInBytes": 39149
     },
     "FieldPath": {
         "dependencies": {
@@ -258,7 +258,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23079
+        "sizeInBytes": 23081
     },
     "FieldValue": {
         "dependencies": {
@@ -297,7 +297,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16709
+        "sizeInBytes": 16711
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -334,7 +334,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16618
+        "sizeInBytes": 16620
     },
     "GeoPoint": {
         "dependencies": {
@@ -380,7 +380,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19527
+        "sizeInBytes": 19529
     },
     "Query": {
         "dependencies": {
@@ -418,7 +418,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16811
+        "sizeInBytes": 16813
     },
     "QueryConstraint": {
         "dependencies": {
@@ -456,7 +456,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16624
+        "sizeInBytes": 16626
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
@@ -540,7 +540,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 39157
+        "sizeInBytes": 39159
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -628,7 +628,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 41788
+        "sizeInBytes": 41790
     },
     "SnapshotMetadata": {
         "dependencies": {
@@ -666,7 +666,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16833
+        "sizeInBytes": 16835
     },
     "Timestamp": {
         "dependencies": {
@@ -704,7 +704,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18219
+        "sizeInBytes": 18221
     },
     "Transaction": {
         "dependencies": {
@@ -845,7 +845,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 62687
+        "sizeInBytes": 62689
     },
     "WriteBatch": {
         "dependencies": {
@@ -974,14 +974,14 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 55275
+        "sizeInBytes": 55277
     },
     "addDoc": {
         "dependencies": {
             "functions": [
                 "acknowledgeBatch",
                 "addDoc",
-                "allocateTarget",
+                "addMutationCallback",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
@@ -990,11 +990,12 @@
                 "applyMutationToLocalView",
                 "applyMutationToRemoteDocument",
                 "applyNumericIncrementTransformOperationToLocalView",
+                "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
+                "applySuccessfulWrite",
                 "applyTransformMutationToLocalView",
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
@@ -1024,7 +1025,6 @@
                 "coercedFieldValuesArray",
                 "compareArrays",
                 "compareBlobs",
-                "compareChangeType",
                 "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
@@ -1043,10 +1043,11 @@
                 "documentMap",
                 "documentTargetMap",
                 "documentVersionMap",
+                "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueWrite",
+                "ensureWriteCallbacks",
                 "errorMessage",
-                "executeQuery",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -1073,9 +1074,7 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
-                "getHighestUnacknowledgedBatchId",
                 "getLastRemoteSnapshotVersion",
-                "getLocalTargetData",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -1083,6 +1082,7 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getSyncEngine",
+                "handleCredentialChange",
                 "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
@@ -1152,6 +1152,7 @@
                 "patchObject",
                 "preconditionIsValidForDocument",
                 "primitiveComparator",
+                "processUserCallback",
                 "queryEquals",
                 "queryMatches",
                 "queryMatchesBounds",
@@ -1163,7 +1164,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "rejectBatch",
-                "releaseTarget",
+                "rejectFailedWrite",
+                "rejectOutstandingPendingWritesCallbacks",
                 "removeComponents",
                 "removeComponents$1",
                 "requireDocument",
@@ -1171,13 +1173,13 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
-                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineWrite",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -1211,6 +1213,7 @@
                 "toVersion",
                 "transformObject",
                 "transformOperationEquals",
+                "triggerPendingWritesCallbacks",
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
@@ -1228,7 +1231,6 @@
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
-                "AddedLimboDocument",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -1248,11 +1250,9 @@
                 "DeleteMutation",
                 "DocReference",
                 "Document",
-                "DocumentChangeSet",
                 "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
-                "DocumentSet",
                 "DocumentWatchChange",
                 "EventManager",
                 "ExistenceFilter",
@@ -1271,7 +1271,6 @@
                 "JsonProtoSerializer",
                 "LLRBEmptyNode",
                 "LLRBNode",
-                "LimboResolution",
                 "ListenSequence",
                 "LocalClientState",
                 "LocalDocumentsView",
@@ -1314,12 +1313,10 @@
                 "Query",
                 "QueryImpl",
                 "QueryListenersInfo",
-                "QueryView",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
                 "RemoteStore",
-                "RemovedLimboDocument",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
@@ -1343,14 +1340,12 @@
                 "User",
                 "UserDataReader",
                 "VerifyMutation",
-                "View",
-                "ViewSnapshot",
                 "WatchChangeAggregator",
                 "WatchTargetChange"
             ],
             "variables": []
         },
-        "sizeInBytes": 213593
+        "sizeInBytes": 190505
     },
     "arrayRemove": {
         "dependencies": {
@@ -1437,7 +1432,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 35214
+        "sizeInBytes": 35216
     },
     "arrayUnion": {
         "dependencies": {
@@ -1524,7 +1519,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 35206
+        "sizeInBytes": 35208
     },
     "clearIndexedDbPersistence": {
         "dependencies": {
@@ -1573,7 +1568,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 30086
+        "sizeInBytes": 30088
     },
     "collection": {
         "dependencies": {
@@ -1628,7 +1623,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 24790
+        "sizeInBytes": 24792
     },
     "collectionGroup": {
         "dependencies": {
@@ -1679,13 +1674,13 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23099
+        "sizeInBytes": 23101
     },
     "deleteDoc": {
         "dependencies": {
             "functions": [
                 "acknowledgeBatch",
-                "allocateTarget",
+                "addMutationCallback",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
@@ -1693,11 +1688,12 @@
                 "applyMutationToLocalView",
                 "applyMutationToRemoteDocument",
                 "applyNumericIncrementTransformOperationToLocalView",
+                "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
+                "applySuccessfulWrite",
                 "applyTransformMutationToLocalView",
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
@@ -1727,7 +1723,6 @@
                 "coercedFieldValuesArray",
                 "compareArrays",
                 "compareBlobs",
-                "compareChangeType",
                 "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
@@ -1745,9 +1740,10 @@
                 "documentMap",
                 "documentTargetMap",
                 "documentVersionMap",
+                "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueWrite",
-                "executeQuery",
+                "ensureWriteCallbacks",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -1770,9 +1766,7 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
-                "getHighestUnacknowledgedBatchId",
                 "getLastRemoteSnapshotVersion",
-                "getLocalTargetData",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -1780,6 +1774,7 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getSyncEngine",
+                "handleCredentialChange",
                 "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
@@ -1817,7 +1812,6 @@
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
                 "newQueryComparator",
-                "newQueryForPath",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -1836,6 +1830,7 @@
                 "patchObject",
                 "preconditionIsValidForDocument",
                 "primitiveComparator",
+                "processUserCallback",
                 "queryEquals",
                 "queryMatches",
                 "queryMatchesBounds",
@@ -1847,7 +1842,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "rejectBatch",
-                "releaseTarget",
+                "rejectFailedWrite",
+                "rejectOutstandingPendingWritesCallbacks",
                 "removeComponents",
                 "removeComponents$1",
                 "requireDocument",
@@ -1855,13 +1851,13 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
-                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineWrite",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -1894,6 +1890,7 @@
                 "toVersion",
                 "transformObject",
                 "transformOperationEquals",
+                "triggerPendingWritesCallbacks",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "valueCompare",
@@ -1903,7 +1900,6 @@
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
-                "AddedLimboDocument",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -1920,11 +1916,9 @@
                 "DeleteMutation",
                 "DocReference",
                 "Document",
-                "DocumentChangeSet",
                 "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
-                "DocumentSet",
                 "DocumentWatchChange",
                 "EventManager",
                 "ExistenceFilter",
@@ -1941,7 +1935,6 @@
                 "JsonProtoSerializer",
                 "LLRBEmptyNode",
                 "LLRBNode",
-                "LimboResolution",
                 "ListenSequence",
                 "LocalClientState",
                 "LocalDocumentsView",
@@ -1981,12 +1974,10 @@
                 "Precondition",
                 "QueryImpl",
                 "QueryListenersInfo",
-                "QueryView",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
                 "RemoteStore",
-                "RemovedLimboDocument",
                 "ResourcePath",
                 "ServerTimestampTransform",
                 "SetMutation",
@@ -2008,14 +1999,12 @@
                 "UnknownDocument",
                 "User",
                 "VerifyMutation",
-                "View",
-                "ViewSnapshot",
                 "WatchChangeAggregator",
                 "WatchTargetChange"
             ],
             "variables": []
         },
-        "sizeInBytes": 196533
+        "sizeInBytes": 173387
     },
     "deleteField": {
         "dependencies": {
@@ -2057,13 +2046,11 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17675
+        "sizeInBytes": 17677
     },
     "disableNetwork": {
         "dependencies": {
             "functions": [
-                "acknowledgeBatch",
-                "allocateTarget",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
@@ -2071,16 +2058,15 @@
                 "applyMutationToLocalView",
                 "applyMutationToRemoteDocument",
                 "applyNumericIncrementTransformOperationToLocalView",
+                "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
                 "applyTransformOperationToRemoteDocument",
-                "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
                 "asNumber",
@@ -2105,7 +2091,6 @@
                 "coercedFieldValuesArray",
                 "compareArrays",
                 "compareBlobs",
-                "compareChangeType",
                 "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
@@ -2123,13 +2108,10 @@
                 "documentMap",
                 "documentTargetMap",
                 "documentVersionMap",
+                "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueNetworkEnabled",
-                "executeQuery",
-                "extractFieldMask",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldTransformEquals",
                 "filterEquals",
@@ -2148,9 +2130,7 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
-                "getHighestUnacknowledgedBatchId",
                 "getLastRemoteSnapshotVersion",
-                "getLocalTargetData",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -2159,9 +2139,9 @@
                 "getPersistence",
                 "getPostMutationVersion",
                 "getRemoteStore",
+                "handleCredentialChange",
                 "handleUserChange",
                 "hardAssert",
-                "ignoreIfPrimaryLeaseLoss",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -2182,7 +2162,6 @@
                 "isValidResourceName",
                 "loadProtos",
                 "localTransformResults",
-                "localWrite",
                 "logDebug",
                 "logError",
                 "logWarn",
@@ -2196,7 +2175,6 @@
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
                 "newQueryComparator",
-                "newQueryForPath",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -2225,8 +2203,7 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
-                "rejectBatch",
-                "releaseTarget",
+                "rejectOutstandingPendingWritesCallbacks",
                 "removeComponents",
                 "removeComponents$1",
                 "requireDocument",
@@ -2234,7 +2211,6 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
-                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -2282,7 +2258,6 @@
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
-                "AddedLimboDocument",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -2299,15 +2274,12 @@
                 "DeleteMutation",
                 "DocReference",
                 "Document",
-                "DocumentChangeSet",
                 "DocumentKey",
-                "DocumentSet",
                 "DocumentWatchChange",
                 "EventManager",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FirebaseCredentialsProvider",
                 "Firestore",
@@ -2318,7 +2290,6 @@
                 "JsonProtoSerializer",
                 "LLRBEmptyNode",
                 "LLRBNode",
-                "LimboResolution",
                 "ListenSequence",
                 "LocalClientState",
                 "LocalDocumentsView",
@@ -2358,12 +2329,10 @@
                 "Precondition",
                 "QueryImpl",
                 "QueryListenersInfo",
-                "QueryView",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
                 "RemoteStore",
-                "RemovedLimboDocument",
                 "ResourcePath",
                 "ServerTimestampTransform",
                 "SetMutation",
@@ -2385,14 +2354,12 @@
                 "UnknownDocument",
                 "User",
                 "VerifyMutation",
-                "View",
-                "ViewSnapshot",
                 "WatchChangeAggregator",
                 "WatchTargetChange"
             ],
             "variables": []
         },
-        "sizeInBytes": 196151
+        "sizeInBytes": 165460
     },
     "doc": {
         "dependencies": {
@@ -2447,7 +2414,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 24841
+        "sizeInBytes": 24843
     },
     "documentId": {
         "dependencies": {
@@ -2498,7 +2465,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23129
+        "sizeInBytes": 23131
     },
     "enableIndexedDbPersistence": {
         "dependencies": {
@@ -2866,7 +2833,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 200588
+        "sizeInBytes": 200591
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -2879,15 +2846,19 @@
                 "applyBatchState",
                 "applyDeleteMutationToLocalView",
                 "applyDeleteMutationToRemoteDocument",
+                "applyDocChanges",
                 "applyMutationToLocalView",
                 "applyMutationToRemoteDocument",
                 "applyNumericIncrementTransformOperationToLocalView",
+                "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
                 "applyPrimaryState",
+                "applyRemoteEvent",
                 "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
+                "applySuccessfulWrite",
                 "applyTargetState",
                 "applyTransformMutationToLocalView",
                 "applyTransformMutationToRemoteDocument",
@@ -2960,17 +2931,17 @@
                 "documentVersionMap",
                 "dropQueryCache",
                 "dropRemoteDocumentChangesStore",
+                "emitNewSnapsAndNotifyLocalStore",
                 "enableMultiTabIndexedDbPersistence",
                 "encodeBase64",
                 "encodeResourcePath",
                 "encodeSegment",
                 "encodeSeparator",
+                "ensureWatchCallbacks",
+                "ensureWriteCallbacks",
                 "executeQuery",
                 "extractDocumentKeysFromArrayValue",
-                "extractFieldMask",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldTransformEquals",
                 "filterEquals",
@@ -3017,7 +2988,6 @@
                 "getCachedTarget",
                 "getDocument",
                 "getEncodedDatabaseId",
-                "getHighestUnacknowledgedBatchId",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -3026,14 +2996,17 @@
                 "getNewDocumentChanges",
                 "getOfflineComponentProvider",
                 "getPostMutationVersion",
+                "getRemoteKeysForTarget",
                 "getWindow",
                 "globalTargetStore",
+                "handleCredentialChange",
                 "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "immediateSuccessor",
                 "indexedDbClearPersistence",
                 "indexedDbStoragePrefix",
+                "initializeViewAndComputeSnapshot",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -3056,7 +3029,6 @@
                 "isValidResourceName",
                 "loadProtos",
                 "localTransformResults",
-                "localWrite",
                 "logDebug",
                 "logError",
                 "logWarn",
@@ -3096,6 +3068,8 @@
                 "preconditionIsValidForDocument",
                 "primaryClientStore",
                 "primitiveComparator",
+                "processUserCallback",
+                "pumpEnqueuedLimboResolutions",
                 "queryEquals",
                 "queryMatches",
                 "queryMatchesBounds",
@@ -3107,11 +3081,16 @@
                 "randomBytes",
                 "registerFirestore",
                 "rejectBatch",
+                "rejectFailedWrite",
+                "rejectListen",
+                "rejectOutstandingPendingWritesCallbacks",
                 "releaseTarget",
                 "remoteDocumentsStore",
+                "removeAndCleanupTarget",
                 "removeCachedMutationBatchMetadata",
                 "removeComponents",
                 "removeComponents$1",
+                "removeLimboTarget",
                 "removeMutationBatch",
                 "requireDocument",
                 "resetLimboDocuments",
@@ -3170,10 +3149,13 @@
                 "toTimestamp",
                 "toUnaryOrFieldFilter",
                 "toVersion",
+                "trackLimboChange",
                 "transformObject",
                 "transformOperationEquals",
+                "triggerPendingWritesCallbacks",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
+                "updateTrackedLimbos",
                 "upgradeMutationBatchSchemaAndMigrateData",
                 "valueCompare",
                 "valueEquals",
@@ -3345,13 +3327,11 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 304936
+        "sizeInBytes": 302272
     },
     "enableNetwork": {
         "dependencies": {
             "functions": [
-                "acknowledgeBatch",
-                "allocateTarget",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
@@ -3359,16 +3339,15 @@
                 "applyMutationToLocalView",
                 "applyMutationToRemoteDocument",
                 "applyNumericIncrementTransformOperationToLocalView",
+                "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
                 "applyTransformOperationToRemoteDocument",
-                "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
                 "asNumber",
@@ -3393,7 +3372,6 @@
                 "coercedFieldValuesArray",
                 "compareArrays",
                 "compareBlobs",
-                "compareChangeType",
                 "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
@@ -3410,14 +3388,11 @@
                 "documentMap",
                 "documentTargetMap",
                 "documentVersionMap",
+                "emitNewSnapsAndNotifyLocalStore",
                 "enableNetwork",
                 "encodeBase64",
                 "enqueueNetworkEnabled",
-                "executeQuery",
-                "extractFieldMask",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldTransformEquals",
                 "filterEquals",
@@ -3436,9 +3411,7 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
-                "getHighestUnacknowledgedBatchId",
                 "getLastRemoteSnapshotVersion",
-                "getLocalTargetData",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -3447,9 +3420,9 @@
                 "getPersistence",
                 "getPostMutationVersion",
                 "getRemoteStore",
+                "handleCredentialChange",
                 "handleUserChange",
                 "hardAssert",
-                "ignoreIfPrimaryLeaseLoss",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -3470,7 +3443,6 @@
                 "isValidResourceName",
                 "loadProtos",
                 "localTransformResults",
-                "localWrite",
                 "logDebug",
                 "logError",
                 "logWarn",
@@ -3484,7 +3456,6 @@
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
                 "newQueryComparator",
-                "newQueryForPath",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -3513,8 +3484,7 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
-                "rejectBatch",
-                "releaseTarget",
+                "rejectOutstandingPendingWritesCallbacks",
                 "removeComponents",
                 "removeComponents$1",
                 "requireDocument",
@@ -3522,7 +3492,6 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
-                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -3570,7 +3539,6 @@
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
-                "AddedLimboDocument",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -3587,15 +3555,12 @@
                 "DeleteMutation",
                 "DocReference",
                 "Document",
-                "DocumentChangeSet",
                 "DocumentKey",
-                "DocumentSet",
                 "DocumentWatchChange",
                 "EventManager",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FirebaseCredentialsProvider",
                 "Firestore",
@@ -3606,7 +3571,6 @@
                 "JsonProtoSerializer",
                 "LLRBEmptyNode",
                 "LLRBNode",
-                "LimboResolution",
                 "ListenSequence",
                 "LocalClientState",
                 "LocalDocumentsView",
@@ -3646,12 +3610,10 @@
                 "Precondition",
                 "QueryImpl",
                 "QueryListenersInfo",
-                "QueryView",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
                 "RemoteStore",
-                "RemovedLimboDocument",
                 "ResourcePath",
                 "ServerTimestampTransform",
                 "SetMutation",
@@ -3673,14 +3635,12 @@
                 "UnknownDocument",
                 "User",
                 "VerifyMutation",
-                "View",
-                "ViewSnapshot",
                 "WatchChangeAggregator",
                 "WatchTargetChange"
             ],
             "variables": []
         },
-        "sizeInBytes": 196148
+        "sizeInBytes": 165457
     },
     "endAt": {
         "dependencies": {
@@ -3802,7 +3762,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 52667
+        "sizeInBytes": 52669
     },
     "endBefore": {
         "dependencies": {
@@ -3924,22 +3884,24 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 52678
+        "sizeInBytes": 52680
     },
     "getDoc": {
         "dependencies": {
             "functions": [
-                "acknowledgeBatch",
                 "allocateTarget",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
                 "applyDeleteMutationToRemoteDocument",
+                "applyDocChanges",
                 "applyMutationToLocalView",
                 "applyMutationToRemoteDocument",
                 "applyNumericIncrementTransformOperationToLocalView",
+                "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
@@ -3947,7 +3909,6 @@
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
                 "applyTransformOperationToRemoteDocument",
-                "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
                 "asNumber",
@@ -3991,15 +3952,14 @@
                 "documentMap",
                 "documentTargetMap",
                 "documentVersionMap",
+                "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueListen",
                 "enqueueReadDocumentViaSnapshotListener",
+                "ensureWatchCallbacks",
                 "errorMessage",
                 "executeQuery",
-                "extractFieldMask",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
@@ -4024,7 +3984,6 @@
                 "getDoc",
                 "getEncodedDatabaseId",
                 "getEventManager",
-                "getHighestUnacknowledgedBatchId",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -4034,9 +3993,12 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
+                "getRemoteKeysForTarget",
+                "handleCredentialChange",
                 "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "initializeViewAndComputeSnapshot",
                 "invalidClassError",
                 "isArray",
                 "isCollectionGroupQuery",
@@ -4059,7 +4021,6 @@
                 "isValidResourceName",
                 "loadProtos",
                 "localTransformResults",
-                "localWrite",
                 "logDebug",
                 "logError",
                 "logWarn",
@@ -4093,6 +4054,7 @@
                 "patchObject",
                 "preconditionIsValidForDocument",
                 "primitiveComparator",
+                "pumpEnqueuedLimboResolutions",
                 "queryEquals",
                 "queryMatches",
                 "queryMatchesBounds",
@@ -4103,10 +4065,13 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
-                "rejectBatch",
+                "rejectListen",
+                "rejectOutstandingPendingWritesCallbacks",
                 "releaseTarget",
+                "removeAndCleanupTarget",
                 "removeComponents",
                 "removeComponents$1",
+                "removeLimboTarget",
                 "requireDocument",
                 "serverTimestamp",
                 "serverTransformResults",
@@ -4119,6 +4084,8 @@
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineListen",
+                "syncEngineUnlisten",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -4149,11 +4116,13 @@
                 "toTimestamp",
                 "toUnaryOrFieldFilter",
                 "toVersion",
+                "trackLimboChange",
                 "transformObject",
                 "transformOperationEquals",
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
+                "updateTrackedLimbos",
                 "validateArgType",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
@@ -4198,7 +4167,6 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
@@ -4291,7 +4259,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 212082
+        "sizeInBytes": 207270
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4533,22 +4501,24 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 119449
+        "sizeInBytes": 119452
     },
     "getDocFromServer": {
         "dependencies": {
             "functions": [
-                "acknowledgeBatch",
                 "allocateTarget",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
                 "applyDeleteMutationToRemoteDocument",
+                "applyDocChanges",
                 "applyMutationToLocalView",
                 "applyMutationToRemoteDocument",
                 "applyNumericIncrementTransformOperationToLocalView",
+                "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
@@ -4556,7 +4526,6 @@
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
                 "applyTransformOperationToRemoteDocument",
-                "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
                 "asNumber",
@@ -4600,15 +4569,14 @@
                 "documentMap",
                 "documentTargetMap",
                 "documentVersionMap",
+                "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueListen",
                 "enqueueReadDocumentViaSnapshotListener",
+                "ensureWatchCallbacks",
                 "errorMessage",
                 "executeQuery",
-                "extractFieldMask",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
@@ -4633,7 +4601,6 @@
                 "getDocFromServer",
                 "getEncodedDatabaseId",
                 "getEventManager",
-                "getHighestUnacknowledgedBatchId",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -4643,9 +4610,12 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
+                "getRemoteKeysForTarget",
+                "handleCredentialChange",
                 "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "initializeViewAndComputeSnapshot",
                 "invalidClassError",
                 "isArray",
                 "isCollectionGroupQuery",
@@ -4668,7 +4638,6 @@
                 "isValidResourceName",
                 "loadProtos",
                 "localTransformResults",
-                "localWrite",
                 "logDebug",
                 "logError",
                 "logWarn",
@@ -4702,6 +4671,7 @@
                 "patchObject",
                 "preconditionIsValidForDocument",
                 "primitiveComparator",
+                "pumpEnqueuedLimboResolutions",
                 "queryEquals",
                 "queryMatches",
                 "queryMatchesBounds",
@@ -4712,10 +4682,13 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
-                "rejectBatch",
+                "rejectListen",
+                "rejectOutstandingPendingWritesCallbacks",
                 "releaseTarget",
+                "removeAndCleanupTarget",
                 "removeComponents",
                 "removeComponents$1",
+                "removeLimboTarget",
                 "requireDocument",
                 "serverTimestamp",
                 "serverTransformResults",
@@ -4728,6 +4701,8 @@
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineListen",
+                "syncEngineUnlisten",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -4758,11 +4733,13 @@
                 "toTimestamp",
                 "toUnaryOrFieldFilter",
                 "toVersion",
+                "trackLimboChange",
                 "transformObject",
                 "transformOperationEquals",
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
+                "updateTrackedLimbos",
                 "validateArgType",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
@@ -4807,7 +4784,6 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
@@ -4900,22 +4876,24 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 212138
+        "sizeInBytes": 207326
     },
     "getDocs": {
         "dependencies": {
             "functions": [
-                "acknowledgeBatch",
                 "allocateTarget",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
                 "applyDeleteMutationToRemoteDocument",
+                "applyDocChanges",
                 "applyMutationToLocalView",
                 "applyMutationToRemoteDocument",
                 "applyNumericIncrementTransformOperationToLocalView",
+                "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
@@ -4923,7 +4901,6 @@
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
                 "applyTransformOperationToRemoteDocument",
-                "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
                 "asNumber",
@@ -4967,15 +4944,14 @@
                 "documentMap",
                 "documentTargetMap",
                 "documentVersionMap",
+                "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueExecuteQueryViaSnapshotListener",
                 "enqueueListen",
+                "ensureWatchCallbacks",
                 "errorMessage",
                 "executeQuery",
-                "extractFieldMask",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
@@ -5000,7 +4976,6 @@
                 "getDocs",
                 "getEncodedDatabaseId",
                 "getEventManager",
-                "getHighestUnacknowledgedBatchId",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -5010,9 +4985,12 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
+                "getRemoteKeysForTarget",
+                "handleCredentialChange",
                 "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "initializeViewAndComputeSnapshot",
                 "invalidClassError",
                 "isArray",
                 "isCollectionGroupQuery",
@@ -5035,7 +5013,6 @@
                 "isValidResourceName",
                 "loadProtos",
                 "localTransformResults",
-                "localWrite",
                 "logDebug",
                 "logError",
                 "logWarn",
@@ -5069,6 +5046,7 @@
                 "patchObject",
                 "preconditionIsValidForDocument",
                 "primitiveComparator",
+                "pumpEnqueuedLimboResolutions",
                 "queryEquals",
                 "queryMatches",
                 "queryMatchesBounds",
@@ -5079,10 +5057,13 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
-                "rejectBatch",
+                "rejectListen",
+                "rejectOutstandingPendingWritesCallbacks",
                 "releaseTarget",
+                "removeAndCleanupTarget",
                 "removeComponents",
                 "removeComponents$1",
+                "removeLimboTarget",
                 "requireDocument",
                 "resultChangeType",
                 "serverTimestamp",
@@ -5096,6 +5077,8 @@
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineListen",
+                "syncEngineUnlisten",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -5126,11 +5109,13 @@
                 "toTimestamp",
                 "toUnaryOrFieldFilter",
                 "toVersion",
+                "trackLimboChange",
                 "transformObject",
                 "transformOperationEquals",
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
+                "updateTrackedLimbos",
                 "validateArgType",
                 "validateExactNumberOfArgs",
                 "validateHasExplicitOrderByForLimitToLast",
@@ -5176,7 +5161,6 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
@@ -5271,7 +5255,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 214645
+        "sizeInBytes": 209833
     },
     "getDocsFromCache": {
         "dependencies": {
@@ -5526,22 +5510,24 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 132629
+        "sizeInBytes": 132632
     },
     "getDocsFromServer": {
         "dependencies": {
             "functions": [
-                "acknowledgeBatch",
                 "allocateTarget",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
                 "applyDeleteMutationToRemoteDocument",
+                "applyDocChanges",
                 "applyMutationToLocalView",
                 "applyMutationToRemoteDocument",
                 "applyNumericIncrementTransformOperationToLocalView",
+                "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
@@ -5549,7 +5535,6 @@
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
                 "applyTransformOperationToRemoteDocument",
-                "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
                 "asNumber",
@@ -5593,15 +5578,14 @@
                 "documentMap",
                 "documentTargetMap",
                 "documentVersionMap",
+                "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueExecuteQueryViaSnapshotListener",
                 "enqueueListen",
+                "ensureWatchCallbacks",
                 "errorMessage",
                 "executeQuery",
-                "extractFieldMask",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
@@ -5626,7 +5610,6 @@
                 "getDocsFromServer",
                 "getEncodedDatabaseId",
                 "getEventManager",
-                "getHighestUnacknowledgedBatchId",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -5636,9 +5619,12 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
+                "getRemoteKeysForTarget",
+                "handleCredentialChange",
                 "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
+                "initializeViewAndComputeSnapshot",
                 "invalidClassError",
                 "isArray",
                 "isCollectionGroupQuery",
@@ -5661,7 +5647,6 @@
                 "isValidResourceName",
                 "loadProtos",
                 "localTransformResults",
-                "localWrite",
                 "logDebug",
                 "logError",
                 "logWarn",
@@ -5695,6 +5680,7 @@
                 "patchObject",
                 "preconditionIsValidForDocument",
                 "primitiveComparator",
+                "pumpEnqueuedLimboResolutions",
                 "queryEquals",
                 "queryMatches",
                 "queryMatchesBounds",
@@ -5705,10 +5691,13 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
-                "rejectBatch",
+                "rejectListen",
+                "rejectOutstandingPendingWritesCallbacks",
                 "releaseTarget",
+                "removeAndCleanupTarget",
                 "removeComponents",
                 "removeComponents$1",
+                "removeLimboTarget",
                 "requireDocument",
                 "resultChangeType",
                 "serverTimestamp",
@@ -5722,6 +5711,8 @@
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineListen",
+                "syncEngineUnlisten",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -5752,11 +5743,13 @@
                 "toTimestamp",
                 "toUnaryOrFieldFilter",
                 "toVersion",
+                "trackLimboChange",
                 "transformObject",
                 "transformOperationEquals",
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
+                "updateTrackedLimbos",
                 "validateArgType",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
@@ -5801,7 +5794,6 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
@@ -5896,7 +5888,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 214383
+        "sizeInBytes": 209571
     },
     "getFirestore": {
         "dependencies": {
@@ -5934,7 +5926,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16694
+        "sizeInBytes": 16696
     },
     "increment": {
         "dependencies": {
@@ -5984,7 +5976,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18540
+        "sizeInBytes": 18542
     },
     "initializeFirestore": {
         "dependencies": {
@@ -6023,7 +6015,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17998
+        "sizeInBytes": 18000
     },
     "limit": {
         "dependencies": {
@@ -6069,7 +6061,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19125
+        "sizeInBytes": 19127
     },
     "limitToLast": {
         "dependencies": {
@@ -6115,22 +6107,24 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 19149
+        "sizeInBytes": 19151
     },
     "onSnapshot": {
         "dependencies": {
             "functions": [
-                "acknowledgeBatch",
                 "allocateTarget",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
                 "applyDeleteMutationToRemoteDocument",
+                "applyDocChanges",
                 "applyMutationToLocalView",
                 "applyMutationToRemoteDocument",
                 "applyNumericIncrementTransformOperationToLocalView",
+                "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
@@ -6138,7 +6132,6 @@
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
                 "applyTransformOperationToRemoteDocument",
-                "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
                 "asNumber",
@@ -6183,14 +6176,13 @@
                 "documentMap",
                 "documentTargetMap",
                 "documentVersionMap",
+                "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueListen",
+                "ensureWatchCallbacks",
                 "errorMessage",
                 "executeQuery",
-                "extractFieldMask",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldPathFromArgument$1",
                 "fieldPathFromDotSeparatedString",
@@ -6214,7 +6206,6 @@
                 "geoPointEquals",
                 "getEncodedDatabaseId",
                 "getEventManager",
-                "getHighestUnacknowledgedBatchId",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -6224,10 +6215,13 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getPreviousValue",
+                "getRemoteKeysForTarget",
+                "handleCredentialChange",
                 "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "implementsAnyMethods",
+                "initializeViewAndComputeSnapshot",
                 "invalidClassError",
                 "isArray",
                 "isCollectionGroupQuery",
@@ -6251,7 +6245,6 @@
                 "isValidResourceName",
                 "loadProtos",
                 "localTransformResults",
-                "localWrite",
                 "logDebug",
                 "logError",
                 "logWarn",
@@ -6286,6 +6279,7 @@
                 "patchObject",
                 "preconditionIsValidForDocument",
                 "primitiveComparator",
+                "pumpEnqueuedLimboResolutions",
                 "queryEquals",
                 "queryMatches",
                 "queryMatchesBounds",
@@ -6296,10 +6290,13 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
-                "rejectBatch",
+                "rejectListen",
+                "rejectOutstandingPendingWritesCallbacks",
                 "releaseTarget",
+                "removeAndCleanupTarget",
                 "removeComponents",
                 "removeComponents$1",
+                "removeLimboTarget",
                 "requireDocument",
                 "resultChangeType",
                 "serverTimestamp",
@@ -6313,6 +6310,8 @@
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineListen",
+                "syncEngineUnlisten",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -6343,11 +6342,13 @@
                 "toTimestamp",
                 "toUnaryOrFieldFilter",
                 "toVersion",
+                "trackLimboChange",
                 "transformObject",
                 "transformOperationEquals",
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
+                "updateTrackedLimbos",
                 "validateArgType",
                 "validateExactNumberOfArgs",
                 "validateHasExplicitOrderByForLimitToLast",
@@ -6393,7 +6394,6 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
@@ -6488,22 +6488,24 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 215728
+        "sizeInBytes": 210916
     },
     "onSnapshotsInSync": {
         "dependencies": {
             "functions": [
-                "acknowledgeBatch",
                 "allocateTarget",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
                 "applyDeleteMutationToRemoteDocument",
+                "applyDocChanges",
                 "applyMutationToLocalView",
                 "applyMutationToRemoteDocument",
                 "applyNumericIncrementTransformOperationToLocalView",
+                "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
+                "applyRemoteEvent",
                 "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
@@ -6511,7 +6513,6 @@
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
                 "applyTransformOperationToRemoteDocument",
-                "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
                 "asNumber",
@@ -6553,13 +6554,12 @@
                 "documentMap",
                 "documentTargetMap",
                 "documentVersionMap",
+                "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueSnapshotsInSyncListen",
+                "ensureWatchCallbacks",
                 "executeQuery",
-                "extractFieldMask",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldTransformEquals",
                 "filterEquals",
@@ -6579,7 +6579,6 @@
                 "geoPointEquals",
                 "getEncodedDatabaseId",
                 "getEventManager",
-                "getHighestUnacknowledgedBatchId",
                 "getLastRemoteSnapshotVersion",
                 "getLocalTargetData",
                 "getLocalWriteTime",
@@ -6588,10 +6587,13 @@
                 "getOfflineComponentProvider",
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
+                "getRemoteKeysForTarget",
+                "handleCredentialChange",
                 "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
                 "implementsAnyMethods",
+                "initializeViewAndComputeSnapshot",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -6613,7 +6615,6 @@
                 "isValidResourceName",
                 "loadProtos",
                 "localTransformResults",
-                "localWrite",
                 "logDebug",
                 "logError",
                 "logWarn",
@@ -6647,6 +6648,7 @@
                 "patchObject",
                 "preconditionIsValidForDocument",
                 "primitiveComparator",
+                "pumpEnqueuedLimboResolutions",
                 "queryEquals",
                 "queryMatches",
                 "queryMatchesBounds",
@@ -6657,10 +6659,13 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
-                "rejectBatch",
+                "rejectListen",
+                "rejectOutstandingPendingWritesCallbacks",
                 "releaseTarget",
+                "removeAndCleanupTarget",
                 "removeComponents",
                 "removeComponents$1",
+                "removeLimboTarget",
                 "requireDocument",
                 "serverTimestamp",
                 "serverTransformResults",
@@ -6673,6 +6678,8 @@
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineListen",
+                "syncEngineUnlisten",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -6703,10 +6710,12 @@
                 "toTimestamp",
                 "toUnaryOrFieldFilter",
                 "toVersion",
+                "trackLimboChange",
                 "transformObject",
                 "transformOperationEquals",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
+                "updateTrackedLimbos",
                 "valueCompare",
                 "valueEquals",
                 "verifyNotTerminated",
@@ -6740,7 +6749,6 @@
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FirebaseCredentialsProvider",
                 "Firestore",
@@ -6825,7 +6833,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 196997
+        "sizeInBytes": 192185
     },
     "orderBy": {
         "dependencies": {
@@ -6893,7 +6901,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 28770
+        "sizeInBytes": 28772
     },
     "parent": {
         "dependencies": {
@@ -6942,7 +6950,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22851
+        "sizeInBytes": 22853
     },
     "query": {
         "dependencies": {
@@ -6982,7 +6990,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17392
+        "sizeInBytes": 17394
     },
     "queryEqual": {
         "dependencies": {
@@ -7058,7 +7066,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 33341
+        "sizeInBytes": 33343
     },
     "refEqual": {
         "dependencies": {
@@ -7106,7 +7114,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22398
+        "sizeInBytes": 22400
     },
     "runTransaction": {
         "dependencies": {
@@ -7292,7 +7300,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 81653
+        "sizeInBytes": 81655
     },
     "serverTimestamp": {
         "dependencies": {
@@ -7337,13 +7345,13 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17686
+        "sizeInBytes": 17688
     },
     "setDoc": {
         "dependencies": {
             "functions": [
                 "acknowledgeBatch",
-                "allocateTarget",
+                "addMutationCallback",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
@@ -7352,11 +7360,12 @@
                 "applyMutationToLocalView",
                 "applyMutationToRemoteDocument",
                 "applyNumericIncrementTransformOperationToLocalView",
+                "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
+                "applySuccessfulWrite",
                 "applyTransformMutationToLocalView",
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
@@ -7386,7 +7395,6 @@
                 "coercedFieldValuesArray",
                 "compareArrays",
                 "compareBlobs",
-                "compareChangeType",
                 "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
@@ -7404,10 +7412,11 @@
                 "documentMap",
                 "documentTargetMap",
                 "documentVersionMap",
+                "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueWrite",
+                "ensureWriteCallbacks",
                 "errorMessage",
-                "executeQuery",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -7434,9 +7443,7 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
-                "getHighestUnacknowledgedBatchId",
                 "getLastRemoteSnapshotVersion",
-                "getLocalTargetData",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -7444,6 +7451,7 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getSyncEngine",
+                "handleCredentialChange",
                 "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
@@ -7486,7 +7494,6 @@
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
                 "newQueryComparator",
-                "newQueryForPath",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -7513,6 +7520,7 @@
                 "patchObject",
                 "preconditionIsValidForDocument",
                 "primitiveComparator",
+                "processUserCallback",
                 "queryEquals",
                 "queryMatches",
                 "queryMatchesBounds",
@@ -7524,7 +7532,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "rejectBatch",
-                "releaseTarget",
+                "rejectFailedWrite",
+                "rejectOutstandingPendingWritesCallbacks",
                 "removeComponents",
                 "removeComponents$1",
                 "requireDocument",
@@ -7533,13 +7542,13 @@
                 "setDoc",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
-                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineWrite",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -7573,6 +7582,7 @@
                 "toVersion",
                 "transformObject",
                 "transformOperationEquals",
+                "triggerPendingWritesCallbacks",
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
@@ -7589,7 +7599,6 @@
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
-                "AddedLimboDocument",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -7608,11 +7617,9 @@
                 "DeleteMutation",
                 "DocReference",
                 "Document",
-                "DocumentChangeSet",
                 "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
-                "DocumentSet",
                 "DocumentWatchChange",
                 "EventManager",
                 "ExistenceFilter",
@@ -7631,7 +7638,6 @@
                 "JsonProtoSerializer",
                 "LLRBEmptyNode",
                 "LLRBNode",
-                "LimboResolution",
                 "ListenSequence",
                 "LocalClientState",
                 "LocalDocumentsView",
@@ -7673,12 +7679,10 @@
                 "Precondition",
                 "QueryImpl",
                 "QueryListenersInfo",
-                "QueryView",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
                 "RemoteStore",
-                "RemovedLimboDocument",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
@@ -7702,14 +7706,12 @@
                 "User",
                 "UserDataReader",
                 "VerifyMutation",
-                "View",
-                "ViewSnapshot",
                 "WatchChangeAggregator",
                 "WatchTargetChange"
             ],
             "variables": []
         },
-        "sizeInBytes": 211875
+        "sizeInBytes": 188729
     },
     "setLogLevel": {
         "dependencies": {
@@ -7747,7 +7749,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16660
+        "sizeInBytes": 16662
     },
     "snapshotEqual": {
         "dependencies": {
@@ -7860,7 +7862,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 50432
+        "sizeInBytes": 50434
     },
     "startAfter": {
         "dependencies": {
@@ -7982,7 +7984,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 52688
+        "sizeInBytes": 52690
     },
     "startAt": {
         "dependencies": {
@@ -8104,7 +8106,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 52678
+        "sizeInBytes": 52680
     },
     "terminate": {
         "dependencies": {
@@ -8143,13 +8145,13 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 17190
+        "sizeInBytes": 17193
     },
     "updateDoc": {
         "dependencies": {
             "functions": [
                 "acknowledgeBatch",
-                "allocateTarget",
+                "addMutationCallback",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
@@ -8157,11 +8159,12 @@
                 "applyMutationToLocalView",
                 "applyMutationToRemoteDocument",
                 "applyNumericIncrementTransformOperationToLocalView",
+                "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
+                "applySuccessfulWrite",
                 "applyTransformMutationToLocalView",
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
@@ -8191,7 +8194,6 @@
                 "coercedFieldValuesArray",
                 "compareArrays",
                 "compareBlobs",
-                "compareChangeType",
                 "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
@@ -8209,10 +8211,11 @@
                 "documentMap",
                 "documentTargetMap",
                 "documentVersionMap",
+                "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueWrite",
+                "ensureWriteCallbacks",
                 "errorMessage",
-                "executeQuery",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -8240,9 +8243,7 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
-                "getHighestUnacknowledgedBatchId",
                 "getLastRemoteSnapshotVersion",
-                "getLocalTargetData",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -8250,6 +8251,7 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getSyncEngine",
+                "handleCredentialChange",
                 "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
@@ -8292,7 +8294,6 @@
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
                 "newQueryComparator",
-                "newQueryForPath",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -8320,6 +8321,7 @@
                 "patchObject",
                 "preconditionIsValidForDocument",
                 "primitiveComparator",
+                "processUserCallback",
                 "queryEquals",
                 "queryMatches",
                 "queryMatchesBounds",
@@ -8331,7 +8333,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "rejectBatch",
-                "releaseTarget",
+                "rejectFailedWrite",
+                "rejectOutstandingPendingWritesCallbacks",
                 "removeComponents",
                 "removeComponents$1",
                 "requireDocument",
@@ -8339,13 +8342,13 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
-                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineWrite",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -8379,6 +8382,7 @@
                 "toVersion",
                 "transformObject",
                 "transformOperationEquals",
+                "triggerPendingWritesCallbacks",
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
@@ -8396,7 +8400,6 @@
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
-                "AddedLimboDocument",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -8416,11 +8419,9 @@
                 "DeleteMutation",
                 "DocReference",
                 "Document",
-                "DocumentChangeSet",
                 "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
-                "DocumentSet",
                 "DocumentWatchChange",
                 "EventManager",
                 "ExistenceFilter",
@@ -8440,7 +8441,6 @@
                 "JsonProtoSerializer",
                 "LLRBEmptyNode",
                 "LLRBNode",
-                "LimboResolution",
                 "ListenSequence",
                 "LocalClientState",
                 "LocalDocumentsView",
@@ -8482,12 +8482,10 @@
                 "Precondition",
                 "QueryImpl",
                 "QueryListenersInfo",
-                "QueryView",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
                 "RemoteStore",
-                "RemovedLimboDocument",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
@@ -8511,20 +8509,16 @@
                 "User",
                 "UserDataReader",
                 "VerifyMutation",
-                "View",
-                "ViewSnapshot",
                 "WatchChangeAggregator",
                 "WatchTargetChange"
             ],
             "variables": []
         },
-        "sizeInBytes": 213374
+        "sizeInBytes": 190228
     },
     "waitForPendingWrites": {
         "dependencies": {
             "functions": [
-                "acknowledgeBatch",
-                "allocateTarget",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
@@ -8532,16 +8526,15 @@
                 "applyMutationToLocalView",
                 "applyMutationToRemoteDocument",
                 "applyNumericIncrementTransformOperationToLocalView",
+                "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
                 "applyTransformMutationToLocalView",
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
                 "applyTransformOperationToRemoteDocument",
-                "applyWriteToRemoteDocuments",
                 "argToString",
                 "arrayEquals",
                 "asNumber",
@@ -8566,7 +8559,6 @@
                 "coercedFieldValuesArray",
                 "compareArrays",
                 "compareBlobs",
-                "compareChangeType",
                 "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
@@ -8583,13 +8575,10 @@
                 "documentMap",
                 "documentTargetMap",
                 "documentVersionMap",
+                "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueWaitForPendingWrites",
-                "executeQuery",
-                "extractFieldMask",
                 "extractLocalPathFromResourceName",
-                "extractMutationBaseValue",
-                "extractTransformMutationBaseValue",
                 "fail",
                 "fieldTransformEquals",
                 "filterEquals",
@@ -8610,7 +8599,6 @@
                 "getEncodedDatabaseId",
                 "getHighestUnacknowledgedBatchId",
                 "getLastRemoteSnapshotVersion",
-                "getLocalTargetData",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -8618,9 +8606,9 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getSyncEngine",
+                "handleCredentialChange",
                 "handleUserChange",
                 "hardAssert",
-                "ignoreIfPrimaryLeaseLoss",
                 "isArray",
                 "isCollectionGroupQuery",
                 "isDocumentQuery",
@@ -8641,7 +8629,6 @@
                 "isValidResourceName",
                 "loadProtos",
                 "localTransformResults",
-                "localWrite",
                 "logDebug",
                 "logError",
                 "logWarn",
@@ -8655,7 +8642,6 @@
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
                 "newQueryComparator",
-                "newQueryForPath",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -8684,8 +8670,8 @@
                 "queryToTarget",
                 "randomBytes",
                 "registerFirestore",
-                "rejectBatch",
-                "releaseTarget",
+                "registerPendingWritesCallback",
+                "rejectOutstandingPendingWritesCallbacks",
                 "removeComponents",
                 "removeComponents$1",
                 "requireDocument",
@@ -8693,7 +8679,6 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
-                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
@@ -8742,7 +8727,6 @@
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
-                "AddedLimboDocument",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -8759,15 +8743,12 @@
                 "DeleteMutation",
                 "DocReference",
                 "Document",
-                "DocumentChangeSet",
                 "DocumentKey",
-                "DocumentSet",
                 "DocumentWatchChange",
                 "EventManager",
                 "ExistenceFilter",
                 "ExistenceFilterChange",
                 "ExponentialBackoff",
-                "FieldMask",
                 "FieldPath",
                 "FirebaseCredentialsProvider",
                 "Firestore",
@@ -8778,7 +8759,6 @@
                 "JsonProtoSerializer",
                 "LLRBEmptyNode",
                 "LLRBNode",
-                "LimboResolution",
                 "ListenSequence",
                 "LocalClientState",
                 "LocalDocumentsView",
@@ -8818,12 +8798,10 @@
                 "Precondition",
                 "QueryImpl",
                 "QueryListenersInfo",
-                "QueryView",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
                 "RemoteStore",
-                "RemovedLimboDocument",
                 "ResourcePath",
                 "ServerTimestampTransform",
                 "SetMutation",
@@ -8845,14 +8823,12 @@
                 "UnknownDocument",
                 "User",
                 "VerifyMutation",
-                "View",
-                "ViewSnapshot",
                 "WatchChangeAggregator",
                 "WatchTargetChange"
             ],
             "variables": []
         },
-        "sizeInBytes": 195940
+        "sizeInBytes": 166293
     },
     "where": {
         "dependencies": {
@@ -8998,13 +8974,13 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 58992
+        "sizeInBytes": 58994
     },
     "writeBatch": {
         "dependencies": {
             "functions": [
                 "acknowledgeBatch",
-                "allocateTarget",
+                "addMutationCallback",
                 "applyArrayRemoveTransformOperation",
                 "applyArrayUnionTransformOperation",
                 "applyDeleteMutationToLocalView",
@@ -9013,11 +8989,12 @@
                 "applyMutationToLocalView",
                 "applyMutationToRemoteDocument",
                 "applyNumericIncrementTransformOperationToLocalView",
+                "applyOnlineStateChange",
                 "applyPatchMutationToLocalView",
                 "applyPatchMutationToRemoteDocument",
-                "applyRemoteEventToLocalCache",
                 "applySetMutationToLocalView",
                 "applySetMutationToRemoteDocument",
+                "applySuccessfulWrite",
                 "applyTransformMutationToLocalView",
                 "applyTransformMutationToRemoteDocument",
                 "applyTransformOperationToLocalView",
@@ -9047,7 +9024,6 @@
                 "coercedFieldValuesArray",
                 "compareArrays",
                 "compareBlobs",
-                "compareChangeType",
                 "compareDocs",
                 "compareDocumentsByField",
                 "compareGeoPoints",
@@ -9065,10 +9041,11 @@
                 "documentMap",
                 "documentTargetMap",
                 "documentVersionMap",
+                "emitNewSnapsAndNotifyLocalStore",
                 "encodeBase64",
                 "enqueueWrite",
+                "ensureWriteCallbacks",
                 "errorMessage",
-                "executeQuery",
                 "extractFieldMask",
                 "extractLocalPathFromResourceName",
                 "extractMutationBaseValue",
@@ -9096,9 +9073,7 @@
                 "fullyQualifiedPrefixPath",
                 "geoPointEquals",
                 "getEncodedDatabaseId",
-                "getHighestUnacknowledgedBatchId",
                 "getLastRemoteSnapshotVersion",
-                "getLocalTargetData",
                 "getLocalWriteTime",
                 "getLogLevel",
                 "getMessageOrStack",
@@ -9106,6 +9081,7 @@
                 "getOnlineComponentProvider",
                 "getPostMutationVersion",
                 "getSyncEngine",
+                "handleCredentialChange",
                 "handleUserChange",
                 "hardAssert",
                 "ignoreIfPrimaryLeaseLoss",
@@ -9148,7 +9124,6 @@
                 "newPersistentWatchStream",
                 "newPersistentWriteStream",
                 "newQueryComparator",
-                "newQueryForPath",
                 "newSerializer",
                 "newSyncEngine",
                 "newTarget",
@@ -9177,6 +9152,7 @@
                 "patchObject",
                 "preconditionIsValidForDocument",
                 "primitiveComparator",
+                "processUserCallback",
                 "queryEquals",
                 "queryMatches",
                 "queryMatchesBounds",
@@ -9188,7 +9164,8 @@
                 "randomBytes",
                 "registerFirestore",
                 "rejectBatch",
-                "releaseTarget",
+                "rejectFailedWrite",
+                "rejectOutstandingPendingWritesCallbacks",
                 "removeComponents",
                 "removeComponents$1",
                 "requireDocument",
@@ -9196,13 +9173,13 @@
                 "serverTransformResults",
                 "setOfflineComponentProvider",
                 "setOnlineComponentProvider",
-                "shouldPersistTargetData",
                 "snapshotChangesMap",
                 "sortsBeforeDocument",
                 "stringifyFilter",
                 "stringifyOrderBy",
                 "stringifyQuery",
                 "stringifyTarget",
+                "syncEngineWrite",
                 "targetEquals",
                 "targetIdSet",
                 "timestampEquals",
@@ -9236,6 +9213,7 @@
                 "toVersion",
                 "transformObject",
                 "transformOperationEquals",
+                "triggerPendingWritesCallbacks",
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
@@ -9254,7 +9232,6 @@
                 "writeBatch"
             ],
             "classes": [
-                "AddedLimboDocument",
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
@@ -9274,11 +9251,9 @@
                 "DeleteMutation",
                 "DocReference",
                 "Document",
-                "DocumentChangeSet",
                 "DocumentKey",
                 "DocumentKeyReference",
                 "DocumentReference",
-                "DocumentSet",
                 "DocumentWatchChange",
                 "EventManager",
                 "ExistenceFilter",
@@ -9298,7 +9273,6 @@
                 "JsonProtoSerializer",
                 "LLRBEmptyNode",
                 "LLRBNode",
-                "LimboResolution",
                 "ListenSequence",
                 "LocalClientState",
                 "LocalDocumentsView",
@@ -9341,12 +9315,10 @@
                 "Precondition",
                 "QueryImpl",
                 "QueryListenersInfo",
-                "QueryView",
                 "ReferenceSet",
                 "RemoteDocumentChangeBuffer",
                 "RemoteEvent",
                 "RemoteStore",
-                "RemovedLimboDocument",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
@@ -9370,14 +9342,12 @@
                 "User",
                 "UserDataReader",
                 "VerifyMutation",
-                "View",
-                "ViewSnapshot",
                 "WatchChangeAggregator",
                 "WatchTargetChange",
                 "WriteBatch"
             ],
             "variables": []
         },
-        "sizeInBytes": 217041
+        "sizeInBytes": 193895
     }
 }

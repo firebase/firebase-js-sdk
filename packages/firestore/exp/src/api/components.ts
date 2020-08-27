@@ -26,7 +26,11 @@ import {
 import { handleUserChange, LocalStore } from '../../../src/local/local_store';
 import { Deferred } from '../../../src/util/promise';
 import { logDebug } from '../../../src/util/log';
-import { SyncEngine } from '../../../src/core/sync_engine';
+import {
+  SyncEngine,
+  syncEngineListen,
+  syncEngineUnlisten
+} from '../../../src/core/sync_engine';
 import { RemoteStore } from '../../../src/remote/remote_store';
 import { Persistence } from '../../../src/local/persistence';
 import { EventManager } from '../../../src/core/event_manager';
@@ -140,6 +144,9 @@ function verifyNotTerminated(firestore: Firestore): void {
   }
 }
 
+// Note: These functions cannot be `async` since we want to throw an exception
+// when Firestore is terminated (via `getOnlineComponentProvider()`).
+
 export function getSyncEngine(firestore: Firestore): Promise<SyncEngine> {
   return getOnlineComponentProvider(firestore).then(
     components => components.syncEngine
@@ -153,9 +160,15 @@ export function getRemoteStore(firestore: Firestore): Promise<RemoteStore> {
 }
 
 export function getEventManager(firestore: Firestore): Promise<EventManager> {
-  return getOnlineComponentProvider(firestore).then(
-    components => components.eventManager
-  );
+  return getOnlineComponentProvider(firestore).then(components => {
+    const eventManager = components.eventManager;
+    eventManager.onListen = syncEngineListen.bind(null, components.syncEngine);
+    eventManager.onUnlisten = syncEngineUnlisten.bind(
+      null,
+      components.syncEngine
+    );
+    return eventManager;
+  });
 }
 
 export function getPersistence(firestore: Firestore): Promise<Persistence> {
