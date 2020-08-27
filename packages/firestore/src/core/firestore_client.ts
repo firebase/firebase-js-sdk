@@ -287,10 +287,8 @@ export class FirestoreClient {
       this.syncEngine = onlineComponentProvider.syncEngine;
       this.eventMgr = onlineComponentProvider.eventManager;
 
-      this.eventMgr.subscribe(
-        syncEngineListen.bind(null, this.syncEngine),
-        syncEngineUnlisten.bind(null, this.syncEngine)
-      );
+      this.eventMgr.onListen = syncEngineListen.bind(null, this.syncEngine);
+      this.eventMgr.onUnlisten = syncEngineUnlisten.bind(null, this.syncEngine);
 
       // When a user calls clearPersistence() in one client, all other clients
       // need to be terminated to allow the delete to succeed.

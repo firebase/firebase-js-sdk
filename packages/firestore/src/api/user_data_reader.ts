@@ -15,10 +15,12 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
+import { DocumentData, SetOptions } from '@firebase/firestore-types';
 
-import * as api from '../protos/firestore_proto_api';
-
+import {
+  Value as ProtoValue,
+  MapValue as ProtoMapValue
+} from '../protos/firestore_proto_api';
 import { Timestamp } from './timestamp';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
@@ -44,11 +46,11 @@ import {
   toResourceName,
   toTimestamp
 } from '../remote/serializer';
-import { Blob } from './blob';
 import { BaseFieldPath, fromDotSeparatedString } from './field_path';
 import { DeleteFieldValueImpl, SerializableFieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
 import { newSerializer } from '../platform/serializer';
+import { Bytes } from '../../lite/src/api/bytes';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -57,11 +59,8 @@ const RESERVED_FIELD_REGEX = /^__.*__$/;
  * lite, full and legacy SDK.
  */
 export interface UntypedFirestoreDataConverter<T> {
-  toFirestore(modelObject: T): firestore.DocumentData;
-  toFirestore(
-    modelObject: Partial<T>,
-    options: firestore.SetOptions
-  ): firestore.DocumentData;
+  toFirestore(modelObject: T): DocumentData;
+  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
   fromFirestore(snapshot: unknown, options?: unknown): T;
 }
 
@@ -349,7 +348,7 @@ export function parseSetData(
   targetDoc: DocumentKey,
   input: unknown,
   hasConverter: boolean,
-  options: firestore.SetOptions = {}
+  options: SetOptions = {}
 ): ParsedSetData {
   const context = userDataReader.createContext(
     options.merge || options.mergeFields
@@ -538,7 +537,7 @@ export function parseQueryValue(
   methodName: string,
   input: unknown,
   allowArrays = false
-): api.Value {
+): ProtoValue {
   const context = userDataReader.createContext(
     allowArrays ? UserDataSource.ArrayArgument : UserDataSource.Argument,
     methodName
@@ -564,7 +563,7 @@ export function parseQueryValue(
 export function parseData(
   input: unknown,
   context: ParseContext
-): api.Value | null {
+): ProtoValue | null {
   if (looksLikeJsonObject(input)) {
     validatePlainObject('Unsupported field value:', context, input);
     return parseObject(input, context);
@@ -606,8 +605,8 @@ export function parseData(
 function parseObject(
   obj: Dict<unknown>,
   context: ParseContext
-): { mapValue: api.MapValue } {
-  const fields: Dict<api.Value> = {};
+): { mapValue: ProtoMapValue } {
+  const fields: Dict<ProtoValue> = {};
 
   if (isEmpty(obj)) {
     // If we encounter an empty object, we explicitly add it to the update
@@ -627,8 +626,8 @@ function parseObject(
   return { mapValue: { fields } };
 }
 
-function parseArray(array: unknown[], context: ParseContext): api.Value {
-  const values: api.Value[] = [];
+function parseArray(array: unknown[], context: ParseContext): ProtoValue {
+  const values: ProtoValue[] = [];
   let entryIndex = 0;
   for (const entry of array) {
     let parsedEntry = parseData(
@@ -680,7 +679,7 @@ function parseSentinelFieldValue(
 function parseScalarValue(
   value: unknown,
   context: ParseContext
-): api.Value | null {
+): ProtoValue | null {
   if (value === null) {
     return { nullValue: 'NULL_VALUE' };
   } else if (typeof value === 'number') {
@@ -712,8 +711,8 @@ function parseScalarValue(
         longitude: value.longitude
       }
     };
-  } else if (value instanceof Blob) {
-    return { bytesValue: toBytes(context.serializer, value) };
+  } else if (value instanceof Bytes) {
+    return { bytesValue: toBytes(context.serializer, value._byteString) };
   } else if (value instanceof DocumentKeyReference) {
     const thisDb = context.databaseId;
     const otherDb = value._databaseId;
@@ -754,7 +753,7 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof Date) &&
     !(input instanceof Timestamp) &&
     !(input instanceof GeoPoint) &&
-    !(input instanceof Blob) &&
+    !(input instanceof Bytes) &&
     !(input instanceof DocumentKeyReference) &&
     !(input instanceof SerializableFieldValue)
   );

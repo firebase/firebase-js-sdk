@@ -85,7 +85,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
   private readonly serializer = new Serializer();
   private emulatorOrigin: string | null = null;
   private cancelAllRequests: Promise<void>;
-  private deleteService!: Function;
+  private deleteService!: () => void;
 
   /**
    * Creates a new Functions service for the given app and (optional) region.
@@ -113,7 +113,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
 
   INTERNAL = {
     delete: (): Promise<void> => {
-      return this.deleteService();
+      return Promise.resolve(this.deleteService());
     }
   };
 
@@ -183,7 +183,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
         json: null
       };
     }
-    let json: {} | null = null;
+    let json: HttpResponseBody | null = null;
     try {
       json = await response.json();
     } catch (e) {
@@ -269,7 +269,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
     }
 
     // Decode any special types, such as dates, in the returned data.
-    const decodedData = this.serializer.decode(responseData as {} | null);
+    const decodedData = this.serializer.decode(responseData);
 
     return { data: decodedData };
   }

@@ -45,15 +45,13 @@ export interface Observer<T> {
  * It handles "fan-out". -- Identical queries will re-use the same watch on the
  * backend.
  *
- * PORTING NOTE: On Web, EventManager requires a call to `subscribe()` to
- * register SyncEngine's `listen()` and `unlisten()` functionality. This allows
- * users to tree-shake the Watch logic.
+ * PORTING NOTE: On Web, EventManager `onListen` and `onUnlisten` need to be
+ * assigned to SyncEngine's `listen()` and `unlisten()` API before usage. This
+ * allows users to tree-shake the Watch logic.
  */
 export interface EventManager {
-  subscribe(
-    onListen: (query: Query) => Promise<ViewSnapshot>,
-    onUnlisten: (query: Query) => Promise<void>
-  ): void;
+  onListen?: (query: Query) => Promise<ViewSnapshot>;
+  onUnlisten?: (query: Query) => Promise<void>;
 }
 
 export function newEventManager(): EventManager {
@@ -74,14 +72,6 @@ export class EventManagerImpl implements EventManager {
   onListen?: (query: Query) => Promise<ViewSnapshot>;
   /** Callback invoked once all listeners to a Query are removed. */
   onUnlisten?: (query: Query) => Promise<void>;
-
-  subscribe(
-    onListen: (query: Query) => Promise<ViewSnapshot>,
-    onUnlisten: (query: Query) => Promise<void>
-  ): void {
-    this.onListen = onListen;
-    this.onUnlisten = onUnlisten;
-  }
 }
 
 export async function eventManagerListen(

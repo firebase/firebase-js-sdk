@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,4 @@
  * limitations under the License.
  */
 
-const path = require('path');
-
-module.exports = {
-  entry: path.resolve(__dirname, 'src/namespace.test.js'),
-  output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: 'namespace.test.js'
-  }
-};
+// This file exists to solve an unresolved import error during the build.

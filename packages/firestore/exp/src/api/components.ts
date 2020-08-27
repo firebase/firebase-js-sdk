@@ -75,7 +75,7 @@ export async function setOfflineComponentProvider(
   // When a user calls clearPersistence() in one client, all other clients
   // need to be terminated to allow the delete to succeed.
   offlineComponentProvider.persistence.setDatabaseDeletedListener(() =>
-    firestore.delete()
+    firestore._delete()
   );
   offlineDeferred.resolve(offlineComponentProvider);
 }
@@ -144,6 +144,9 @@ function verifyNotTerminated(firestore: Firestore): void {
   }
 }
 
+// Note: These functions cannot be `async` since we want to throw an exception
+// when Firestore is terminated (via `getOnlineComponentProvider()`).
+
 export function getSyncEngine(firestore: Firestore): Promise<SyncEngine> {
   return getOnlineComponentProvider(firestore).then(
     components => components.syncEngine
@@ -159,9 +162,10 @@ export function getRemoteStore(firestore: Firestore): Promise<RemoteStore> {
 export function getEventManager(firestore: Firestore): Promise<EventManager> {
   return getOnlineComponentProvider(firestore).then(components => {
     const eventManager = components.eventManager;
-    eventManager.subscribe(
-      syncEngineListen.bind(null, components.syncEngine),
-      syncEngineUnlisten.bind(null, components.syncEngine)
+    eventManager.onListen = syncEngineListen.bind(null, components.syncEngine);
+    eventManager.onUnlisten = syncEngineUnlisten.bind(
+      null,
+      components.syncEngine
     );
     return eventManager;
   });

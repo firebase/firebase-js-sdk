@@ -18,7 +18,6 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {
-  EventManager,
   eventManagerListen,
   eventManagerUnlisten,
   ListenOptions,
@@ -70,7 +69,8 @@ describe('EventManager', () => {
     const fakeListener2 = fakeQueryListener(query1);
 
     const eventManager = newEventManager();
-    eventManager.subscribe(onListenSpy.bind(null), onUnlistenSpy.bind(null));
+    eventManager.onListen = onListenSpy.bind(null);
+    eventManager.onUnlisten = onUnlistenSpy.bind(null);
 
     await eventManagerListen(eventManager, fakeListener1);
     expect(onListenSpy.calledWith(query1)).to.be.true;
@@ -90,7 +90,9 @@ describe('EventManager', () => {
     const fakeListener1 = fakeQueryListener(query1);
 
     const eventManager = newEventManager();
-    eventManager.subscribe(onListenSpy.bind(null), onUnlistenSpy.bind(null));
+    eventManager.onListen = onListenSpy.bind(null);
+    eventManager.onUnlisten = onUnlistenSpy.bind(null);
+
     await eventManagerUnlisten(eventManager, fakeListener1);
     expect(onUnlistenSpy.callCount).to.equal(0);
   });
@@ -114,7 +116,8 @@ describe('EventManager', () => {
     };
 
     const eventManager = newEventManager();
-    eventManager.subscribe(onListenSpy.bind(null), onUnlistenSpy.bind(null));
+    eventManager.onListen = onListenSpy.bind(null);
+    eventManager.onUnlisten = onUnlistenSpy.bind(null);
 
     await eventManagerListen(eventManager, fakeListener1);
     await eventManagerListen(eventManager, fakeListener2);
@@ -145,7 +148,8 @@ describe('EventManager', () => {
     };
 
     const eventManager = newEventManager();
-    eventManager.subscribe(onListenSpy.bind(null), onUnlistenSpy.bind(null));
+    eventManager.onListen = onListenSpy.bind(null);
+    eventManager.onUnlisten = onUnlistenSpy.bind(null);
 
     await eventManagerListen(eventManager, fakeListener1);
     expect(events).to.deep.equal([OnlineState.Unknown]);

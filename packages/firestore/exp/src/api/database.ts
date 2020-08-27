@@ -69,7 +69,8 @@ const LOG_TAG = 'Firestore';
  * The root reference to the Firestore database and the entry point for the
  * tree-shakeable SDK.
  */
-export class Firestore extends LiteFirestore
+export class Firestore
+  extends LiteFirestore
   implements firestore.FirebaseFirestore, _FirebaseService {
   readonly _queue = new AsyncQueue();
   readonly _persistenceKey: string;
@@ -320,7 +321,7 @@ export function terminate(
 ): Promise<void> {
   _removeServiceInstance(firestore.app, 'firestore-exp');
   const firestoreImpl = cast(firestore, Firestore);
-  return firestoreImpl.delete();
+  return firestoreImpl._delete();
 }
 
 function verifyNotInitialized(firestore: Firestore): void {
