@@ -95,11 +95,9 @@ export function basicUniqueFunc(
   }
 }
 
-const appsNotExported: Map<string, number> = new Map();
 const apps: Map<string, number> = new Map();
 export { apps };
 
-class FooNotExported {}
 class Foo {}
 export { Foo as Foo1 };
 

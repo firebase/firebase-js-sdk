@@ -706,8 +706,11 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       await withTestCollection(persistence, testDocs, async coll => {
         let expected = { ...testDocs };
+        // @ts-expect-error
         delete expected.a;
+        // @ts-expect-error
         delete expected.h;
+        // @ts-expect-error
         delete expected.i;
         const snapshot = await coll.where('zip', notEqualOp, 98101).get();
         expect(toDataArray(snapshot)).to.have.deep.members(
@@ -719,8 +722,11 @@ apiDescribe('Queries', (persistence: boolean) => {
           .where('zip', notEqualOp, { code: 500 })
           .get();
         expected = { ...testDocs };
+        // @ts-expect-error
         delete expected.f;
+        // @ts-expect-error
         delete expected.h;
+        // @ts-expect-error
         delete expected.i;
         expect(toDataArray(snapshot2)).to.have.deep.members(
           Object.values(expected)
@@ -729,7 +735,9 @@ apiDescribe('Queries', (persistence: boolean) => {
         // With null.
         const snapshot3 = await coll.where('zip', notEqualOp, null).get();
         expected = { ...testDocs };
+        // @ts-expect-error
         delete expected.h;
+        // @ts-expect-error
         delete expected.i;
         expect(toDataArray(snapshot3)).to.have.deep.members(
           Object.values(expected)
@@ -738,8 +746,11 @@ apiDescribe('Queries', (persistence: boolean) => {
         // With NaN.
         const snapshot4 = await coll.where('zip', notEqualOp, Number.NaN).get();
         expected = { ...testDocs };
+        // @ts-expect-error
         delete expected.h;
+        // @ts-expect-error
         delete expected.i;
+        // @ts-expect-error
         delete expected.j;
         expect(toDataArray(snapshot4)).to.have.deep.members(
           Object.values(expected)
@@ -859,9 +870,13 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       await withTestCollection(persistence, testDocs, async coll => {
         let expected = { ...testDocs };
+        // @ts-expect-error
         delete expected.a;
+        // @ts-expect-error
         delete expected.c;
+        // @ts-expect-error
         delete expected.g;
+        // @ts-expect-error
         delete expected.h;
         const snapshot = await coll
           .where('zip', notInOp, [98101, 98103, [98101, 98102]])
@@ -873,7 +888,9 @@ apiDescribe('Queries', (persistence: boolean) => {
           .where('zip', notInOp, [{ code: 500 }])
           .get();
         expected = { ...testDocs };
+        // @ts-expect-error
         delete expected.f;
+        // @ts-expect-error
         delete expected.h;
         expect(toDataArray(snapshot2)).to.deep.equal(Object.values(expected));
 
@@ -884,7 +901,9 @@ apiDescribe('Queries', (persistence: boolean) => {
         // With NaN.
         const snapshot4 = await coll.where('zip', notInOp, [Number.NaN]).get();
         expected = { ...testDocs };
+        // @ts-expect-error
         delete expected.h;
+        // @ts-expect-error
         delete expected.j;
         expect(toDataArray(snapshot4)).to.deep.equal(Object.values(expected));
 
@@ -893,8 +912,11 @@ apiDescribe('Queries', (persistence: boolean) => {
           .where('zip', notInOp, [Number.NaN, 98101])
           .get();
         expected = { ...testDocs };
+        // @ts-expect-error
         delete expected.a;
+        // @ts-expect-error
         delete expected.h;
+        // @ts-expect-error
         delete expected.j;
         expect(toDataArray(snapshot5)).to.deep.equal(Object.values(expected));
       });

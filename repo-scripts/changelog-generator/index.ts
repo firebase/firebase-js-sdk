@@ -30,13 +30,15 @@ const changelogFunctions: ChangelogFunctions = {
         'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]'
       );
     }
-    if (dependenciesUpdated.length === 0) return '';
+    if (dependenciesUpdated.length === 0) {
+      return '';
+    }
 
     const changesetLink = `- Updated dependencies [${(
       await Promise.all(
         changesets.map(async cs => {
           if (cs.commit) {
-            let { links } = await getInfo({
+            const { links } = await getInfo({
               repo: options.repo,
               commit: cs.commit
             });
@@ -65,7 +67,7 @@ const changelogFunctions: ChangelogFunctions = {
       .map(l => l.trimRight());
 
     if (changeset.commit) {
-      let { pull: pullNumber, links } = await getInfo({
+      const { pull: pullNumber, links } = await getInfo({
         repo: options.repo,
         commit: changeset.commit
       });

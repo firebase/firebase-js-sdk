@@ -32,6 +32,7 @@ export interface Equatable<T> {
  */
 export interface CustomMatcher<T> {
   equalsFn: (left: T, right: T) => boolean;
+  // eslint-disable-next-line @typescript-eslint/ban-types
   forType: Function;
 }
 
