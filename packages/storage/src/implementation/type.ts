@@ -26,6 +26,7 @@ export function isJustDef<T>(p: T | null | undefined): p is T | null {
   return p !== void 0;
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export function isFunction(p: unknown): p is Function {
   return typeof p === 'function';
 }

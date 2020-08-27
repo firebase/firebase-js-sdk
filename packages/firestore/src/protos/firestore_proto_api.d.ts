@@ -19,7 +19,7 @@
 /*
    eslint-disable
    camelcase, @typescript-eslint/no-explicit-any,
-   @typescript-eslint/interface-name-prefix,  @typescript-eslint/class-name-casing
+   @typescript-eslint/naming-convention
 */
 export declare type ApiClientHookFactory = any;
 export declare type PromiseRequestService = any;

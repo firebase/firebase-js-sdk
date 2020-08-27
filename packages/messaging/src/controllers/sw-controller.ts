@@ -96,7 +96,7 @@ export class SwController implements FirebaseMessaging, FirebaseService {
   }
 
   onBackgroundMessage(
-    nextOrObserver: NextFn<object> | Observer<object>
+    nextOrObserver: NextFn<MessagePayload> | Observer<MessagePayload>
   ): Unsubscribe {
     this.isOnBackgroundMessageUsed = true;
     this.bgMessageHandler = nextOrObserver;

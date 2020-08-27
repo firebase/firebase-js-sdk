@@ -1,34 +1,24 @@
 {
-    "Blob": {
+    "Bytes": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "decodeBase64",
                 "encodeBase64",
                 "fail",
                 "formatJSON",
-                "formatPlural",
                 "hardAssert",
-                "invalidClassError",
-                "isPlainObject",
                 "logDebug",
                 "logError",
-                "ordinal",
                 "primitiveComparator",
                 "registerFirestore",
                 "removeComponents",
-                "tryGetCustomObjectType",
-                "uint8ArrayFromBinaryString",
-                "validateArgType",
-                "validateExactNumberOfArgs",
-                "validateType",
-                "valueDescription"
+                "uint8ArrayFromBinaryString"
             ],
             "classes": [
-                "Blob",
                 "ByteString",
+                "Bytes",
                 "DatabaseId",
                 "FirebaseCredentialsProvider",
                 "Firestore",
@@ -38,7 +28,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 12225
+        "sizeInBytes": 9277
     },
     "CollectionReference": {
         "dependencies": {
@@ -51,23 +41,33 @@
                 "logError",
                 "newQueryForPath",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
-                "removeComponents"
+                "removeComponents",
+                "validateCollectionPath",
+                "validateDocumentPath",
+                "validateNonEmptyArgument"
             ],
             "classes": [
+                "AutoId",
+                "BasePath",
                 "CollectionReference",
                 "DatabaseId",
+                "DocumentKey",
+                "DocumentKeyReference",
+                "DocumentReference",
                 "FirebaseCredentialsProvider",
                 "Firestore",
                 "FirestoreError",
                 "OAuthToken",
                 "Query",
                 "QueryImpl",
+                "ResourcePath",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 8499
+        "sizeInBytes": 14009
     },
     "DocumentReference": {
         "dependencies": {
@@ -78,12 +78,19 @@
                 "hardAssert",
                 "logDebug",
                 "logError",
+                "newQueryForPath",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
-                "removeComponents"
+                "removeComponents",
+                "validateCollectionPath",
+                "validateDocumentPath",
+                "validateNonEmptyArgument"
             ],
             "classes": [
+                "AutoId",
                 "BasePath",
+                "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -92,18 +99,19 @@
                 "Firestore",
                 "FirestoreError",
                 "OAuthToken",
+                "Query",
+                "QueryImpl",
                 "ResourcePath",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 10902
+        "sizeInBytes": 14007
     },
     "DocumentSnapshot": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "cast",
                 "createError",
@@ -126,27 +134,34 @@
                 "isValidResourceName",
                 "logDebug",
                 "logError",
+                "newQueryForPath",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
                 "ordinal",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription"
             ],
             "classes": [
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "ByteString",
+                "Bytes",
+                "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -160,7 +175,9 @@
                 "FirestoreError",
                 "GeoPoint",
                 "OAuthToken",
+                "Query",
                 "QueryDocumentSnapshot",
+                "QueryImpl",
                 "ResourcePath",
                 "Timestamp",
                 "User",
@@ -168,7 +185,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 29023
+        "sizeInBytes": 31606
     },
     "FieldPath": {
         "dependencies": {
@@ -206,7 +223,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 13898
+        "sizeInBytes": 13900
     },
     "FieldValue": {
         "dependencies": {
@@ -233,7 +250,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7528
+        "sizeInBytes": 7530
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -258,7 +275,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7435
+        "sizeInBytes": 7437
     },
     "GeoPoint": {
         "dependencies": {
@@ -292,7 +309,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 10346
+        "sizeInBytes": 10348
     },
     "Query": {
         "dependencies": {
@@ -318,7 +335,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7630
+        "sizeInBytes": 7632
     },
     "QueryConstraint": {
         "dependencies": {
@@ -344,13 +361,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7443
+        "sizeInBytes": 7445
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "cast",
                 "createError",
@@ -373,27 +389,34 @@
                 "isValidResourceName",
                 "logDebug",
                 "logError",
+                "newQueryForPath",
                 "normalizeByteString",
                 "normalizeNumber",
                 "normalizeTimestamp",
                 "ordinal",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription"
             ],
             "classes": [
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "ByteString",
+                "Bytes",
+                "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -407,7 +430,9 @@
                 "FirestoreError",
                 "GeoPoint",
                 "OAuthToken",
+                "Query",
                 "QueryDocumentSnapshot",
+                "QueryImpl",
                 "ResourcePath",
                 "Timestamp",
                 "User",
@@ -415,7 +440,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 29028
+        "sizeInBytes": 31611
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -441,7 +466,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7669
+        "sizeInBytes": 7671
     },
     "Timestamp": {
         "dependencies": {
@@ -467,7 +492,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 9038
+        "sizeInBytes": 9040
     },
     "Transaction": {
         "dependencies": {
@@ -475,7 +500,6 @@
                 "applyFirestoreDataConverter",
                 "argToString",
                 "arrayEquals",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
@@ -509,6 +533,7 @@
                 "logDebug",
                 "logError",
                 "looksLikeJsonObject",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "normalizeByteString",
@@ -527,6 +552,7 @@
                 "parseUpdateData",
                 "parseUpdateVarargs",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "timestampEquals",
@@ -540,8 +566,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateReference",
                 "validateType",
@@ -549,10 +578,12 @@
                 "valueEquals"
             ],
             "classes": [
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "ByteString",
+                "Bytes",
+                "CollectionReference",
                 "DatabaseId",
                 "DeleteFieldValueImpl",
                 "Document",
@@ -580,7 +611,9 @@
                 "ParsedUpdateData",
                 "PatchMutation",
                 "Precondition",
+                "Query",
                 "QueryDocumentSnapshot",
+                "QueryImpl",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "SetMutation",
@@ -593,7 +626,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 51941
+        "sizeInBytes": 54538
     },
     "WriteBatch": {
         "dependencies": {
@@ -601,7 +634,6 @@
                 "applyFirestoreDataConverter",
                 "argToString",
                 "arrayEquals",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
@@ -632,6 +664,7 @@
                 "logDebug",
                 "logError",
                 "looksLikeJsonObject",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "normalizeByteString",
@@ -650,6 +683,7 @@
                 "parseUpdateData",
                 "parseUpdateVarargs",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "timestampEquals",
@@ -663,8 +697,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateReference",
                 "validateType",
@@ -672,10 +709,12 @@
                 "valueEquals"
             ],
             "classes": [
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "ByteString",
+                "Bytes",
+                "CollectionReference",
                 "DatabaseId",
                 "DeleteFieldValueImpl",
                 "DeleteMutation",
@@ -700,6 +739,8 @@
                 "ParsedUpdateData",
                 "PatchMutation",
                 "Precondition",
+                "Query",
+                "QueryImpl",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "SetMutation",
@@ -711,7 +752,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 46703
+        "sizeInBytes": 49199
     },
     "addDoc": {
         "dependencies": {
@@ -720,7 +761,6 @@
                 "applyFirestoreDataConverter",
                 "argToString",
                 "arrayEquals",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
@@ -800,9 +840,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
                 "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -814,8 +856,8 @@
                 "AutoId",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "ByteString",
+                "Bytes",
                 "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
@@ -859,14 +901,13 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 54407
+        "sizeInBytes": 55080
     },
     "arrayRemove": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "arrayRemove",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "createError",
                 "createSentinelChildContext",
@@ -878,7 +919,6 @@
                 "formatPlural",
                 "fullyQualifiedPrefixPath",
                 "hardAssert",
-                "invalidClassError",
                 "isEmpty",
                 "isNegativeZero",
                 "isPlainObject",
@@ -915,8 +955,8 @@
                 "ArrayRemoveFieldValueImpl",
                 "ArrayRemoveTransformOperation",
                 "BasePath",
-                "Blob",
                 "ByteString",
+                "Bytes",
                 "DatabaseId",
                 "DocumentKeyReference",
                 "FieldTransform",
@@ -936,14 +976,13 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 26919
+        "sizeInBytes": 26035
     },
     "arrayUnion": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "arrayUnion",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "createError",
                 "createSentinelChildContext",
@@ -955,7 +994,6 @@
                 "formatPlural",
                 "fullyQualifiedPrefixPath",
                 "hardAssert",
-                "invalidClassError",
                 "isEmpty",
                 "isNegativeZero",
                 "isPlainObject",
@@ -992,8 +1030,8 @@
                 "ArrayUnionFieldValueImpl",
                 "ArrayUnionTransformOperation",
                 "BasePath",
-                "Blob",
                 "ByteString",
+                "Bytes",
                 "DatabaseId",
                 "DocumentKeyReference",
                 "FieldTransform",
@@ -1013,7 +1051,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 26911
+        "sizeInBytes": 26027
     },
     "collection": {
         "dependencies": {
@@ -1023,21 +1061,19 @@
                 "fail",
                 "formatJSON",
                 "hardAssert",
-                "isPlainObject",
                 "logDebug",
                 "logError",
                 "newQueryForPath",
-                "ordinal",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
-                "tryGetCustomObjectType",
-                "validateArgType",
                 "validateCollectionPath",
-                "validateType",
-                "valueDescription"
+                "validateDocumentPath",
+                "validateNonEmptyArgument"
             ],
             "classes": [
+                "AutoId",
                 "BasePath",
                 "CollectionReference",
                 "DatabaseId",
@@ -1055,7 +1091,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 14654
+        "sizeInBytes": 14742
     },
     "collectionGroup": {
         "dependencies": {
@@ -1066,18 +1102,13 @@
                 "fail",
                 "formatJSON",
                 "hardAssert",
-                "isPlainObject",
                 "logDebug",
                 "logError",
                 "newQueryForCollectionGroup",
-                "ordinal",
                 "primitiveComparator",
                 "registerFirestore",
                 "removeComponents",
-                "tryGetCustomObjectType",
-                "validateArgType",
-                "validateType",
-                "valueDescription"
+                "validateNonEmptyArgument"
             ],
             "classes": [
                 "BasePath",
@@ -1093,7 +1124,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 12963
+        "sizeInBytes": 11488
     },
     "deleteDoc": {
         "dependencies": {
@@ -1117,9 +1148,11 @@
                 "mapCodeFromRpcCode",
                 "newConnection",
                 "newDatastore",
+                "newQueryForPath",
                 "newSerializer",
                 "nodePromise",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "toDocumentMask",
@@ -1130,12 +1163,17 @@
                 "toPrecondition",
                 "toResourceName",
                 "toTimestamp",
-                "toVersion"
+                "toVersion",
+                "validateCollectionPath",
+                "validateDocumentPath",
+                "validateNonEmptyArgument"
             ],
             "classes": [
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
+                "AutoId",
                 "BasePath",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -1155,6 +1193,8 @@
                 "OAuthToken",
                 "PatchMutation",
                 "Precondition",
+                "Query",
+                "QueryImpl",
                 "ResourcePath",
                 "ServerTimestampTransform",
                 "SetMutation",
@@ -1166,7 +1206,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 25147
+        "sizeInBytes": 28252
     },
     "deleteField": {
         "dependencies": {
@@ -1196,7 +1236,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 8494
+        "sizeInBytes": 8496
     },
     "doc": {
         "dependencies": {
@@ -1206,20 +1246,16 @@
                 "fail",
                 "formatJSON",
                 "hardAssert",
-                "isPlainObject",
                 "logDebug",
                 "logError",
                 "newQueryForPath",
-                "ordinal",
                 "primitiveComparator",
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
-                "tryGetCustomObjectType",
-                "validateArgType",
+                "validateCollectionPath",
                 "validateDocumentPath",
-                "validateType",
-                "valueDescription"
+                "validateNonEmptyArgument"
             ],
             "classes": [
                 "AutoId",
@@ -1240,7 +1276,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 15206
+        "sizeInBytes": 14797
     },
     "documentId": {
         "dependencies": {
@@ -1279,13 +1315,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 13948
+        "sizeInBytes": 13950
     },
     "endAt": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "cast",
                 "createError",
@@ -1321,6 +1356,7 @@
                 "newQueryBoundFromDocOrFields",
                 "newQueryBoundFromDocument",
                 "newQueryBoundFromFields",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "normalizeByteString",
@@ -1336,6 +1372,7 @@
                 "primitiveComparator",
                 "queryOrderBy",
                 "queryWithEndAt",
+                "randomBytes",
                 "refValue",
                 "registerFirestore",
                 "removeComponents",
@@ -1349,18 +1386,23 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription"
             ],
             "classes": [
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "Bound",
                 "ByteString",
+                "Bytes",
+                "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -1391,13 +1433,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 43283
+        "sizeInBytes": 45251
     },
     "endBefore": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "cast",
                 "createError",
@@ -1433,6 +1474,7 @@
                 "newQueryBoundFromDocOrFields",
                 "newQueryBoundFromDocument",
                 "newQueryBoundFromFields",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "normalizeByteString",
@@ -1448,6 +1490,7 @@
                 "primitiveComparator",
                 "queryOrderBy",
                 "queryWithEndAt",
+                "randomBytes",
                 "refValue",
                 "registerFirestore",
                 "removeComponents",
@@ -1461,18 +1504,23 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription"
             ],
             "classes": [
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "Bound",
                 "ByteString",
+                "Bytes",
+                "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -1503,7 +1551,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 43294
+        "sizeInBytes": 45262
     },
     "getDoc": {
         "dependencies": {
@@ -1511,7 +1559,6 @@
                 "argToString",
                 "arrayEquals",
                 "assertPresent",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
@@ -1558,6 +1605,7 @@
                 "mapCodeFromRpcCode",
                 "newConnection",
                 "newDatastore",
+                "newQueryForPath",
                 "newSerializer",
                 "nodePromise",
                 "normalizeByteString",
@@ -1568,6 +1616,7 @@
                 "objectSize",
                 "ordinal",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "timestampEquals",
@@ -1577,17 +1626,22 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "valueEquals"
             ],
             "classes": [
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "ByteString",
+                "Bytes",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -1611,7 +1665,9 @@
                 "NoDocument",
                 "OAuthToken",
                 "ObjectValue",
+                "Query",
                 "QueryDocumentSnapshot",
+                "QueryImpl",
                 "ResourcePath",
                 "SnapshotVersion",
                 "StreamBridge",
@@ -1621,14 +1677,13 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 45625
+        "sizeInBytes": 48208
     },
     "getDocs": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "arrayEquals",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
@@ -1678,6 +1733,7 @@
                 "mapCodeFromRpcCode",
                 "newConnection",
                 "newDatastore",
+                "newQueryForPath",
                 "newSerializer",
                 "newTarget",
                 "nodePromise",
@@ -1691,6 +1747,7 @@
                 "primitiveComparator",
                 "queryOrderBy",
                 "queryToTarget",
+                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "timestampEquals",
@@ -1710,19 +1767,24 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateHasExplicitOrderByForLimitToLast",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "valueEquals"
             ],
             "classes": [
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "Bound",
                 "ByteString",
+                "Bytes",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -1760,7 +1822,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 51145
+        "sizeInBytes": 53099
     },
     "getFirestore": {
         "dependencies": {
@@ -1786,7 +1848,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7514
+        "sizeInBytes": 7516
     },
     "increment": {
         "dependencies": {
@@ -1824,7 +1886,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 9359
+        "sizeInBytes": 9361
     },
     "initializeFirestore": {
         "dependencies": {
@@ -1850,7 +1912,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7600
+        "sizeInBytes": 7602
     },
     "limit": {
         "dependencies": {
@@ -1883,7 +1945,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 8989
+        "sizeInBytes": 8991
     },
     "limitToLast": {
         "dependencies": {
@@ -1916,7 +1978,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 9013
+        "sizeInBytes": 9015
     },
     "orderBy": {
         "dependencies": {
@@ -1973,43 +2035,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18878
-    },
-    "parent": {
-        "dependencies": {
-            "functions": [
-                "argToString",
-                "cast",
-                "fail",
-                "formatJSON",
-                "hardAssert",
-                "logDebug",
-                "logError",
-                "newQueryForPath",
-                "parent",
-                "primitiveComparator",
-                "registerFirestore",
-                "removeComponents"
-            ],
-            "classes": [
-                "BasePath",
-                "CollectionReference",
-                "DatabaseId",
-                "DocumentKey",
-                "DocumentKeyReference",
-                "DocumentReference",
-                "FirebaseCredentialsProvider",
-                "Firestore",
-                "FirestoreError",
-                "OAuthToken",
-                "Query",
-                "QueryImpl",
-                "ResourcePath",
-                "User"
-            ],
-            "variables": []
-        },
-        "sizeInBytes": 12715
+        "sizeInBytes": 18880
     },
     "query": {
         "dependencies": {
@@ -2037,7 +2063,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 8211
+        "sizeInBytes": 8213
     },
     "queryEqual": {
         "dependencies": {
@@ -2102,7 +2128,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23449
+        "sizeInBytes": 23451
     },
     "refEqual": {
         "dependencies": {
@@ -2115,11 +2141,16 @@
                 "logError",
                 "newQueryForPath",
                 "primitiveComparator",
+                "randomBytes",
                 "refEqual",
                 "registerFirestore",
-                "removeComponents"
+                "removeComponents",
+                "validateCollectionPath",
+                "validateDocumentPath",
+                "validateNonEmptyArgument"
             ],
             "classes": [
+                "AutoId",
                 "BasePath",
                 "CollectionReference",
                 "DatabaseId",
@@ -2137,7 +2168,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 12262
+        "sizeInBytes": 14292
     },
     "runTransaction": {
         "dependencies": {
@@ -2146,7 +2177,6 @@
                 "argToString",
                 "arrayEquals",
                 "assertPresent",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
@@ -2203,6 +2233,7 @@
                 "mapCodeFromRpcCode",
                 "newConnection",
                 "newDatastore",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "nodePromise",
@@ -2222,6 +2253,7 @@
                 "parseUpdateData",
                 "parseUpdateVarargs",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "runTransaction",
@@ -2243,8 +2275,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateReference",
                 "validateType",
@@ -2255,10 +2290,12 @@
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "ByteString",
+                "Bytes",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -2295,7 +2332,9 @@
                 "ParsedUpdateData",
                 "PatchMutation",
                 "Precondition",
+                "Query",
                 "QueryDocumentSnapshot",
+                "QueryImpl",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
@@ -2315,7 +2354,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 77027
+        "sizeInBytes": 79624
     },
     "serverTimestamp": {
         "dependencies": {
@@ -2348,7 +2387,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 8482
+        "sizeInBytes": 8484
     },
     "setDoc": {
         "dependencies": {
@@ -2356,7 +2395,6 @@
                 "applyFirestoreDataConverter",
                 "argToString",
                 "arrayEquals",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
@@ -2396,6 +2434,7 @@
                 "mapCodeFromRpcCode",
                 "newConnection",
                 "newDatastore",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "nodePromise",
@@ -2413,6 +2452,7 @@
                 "parseSentinelFieldValue",
                 "parseSetData",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "setDoc",
@@ -2434,8 +2474,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -2444,10 +2487,12 @@
             "classes": [
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "ByteString",
+                "Bytes",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -2474,6 +2519,8 @@
                 "ParsedSetData",
                 "PatchMutation",
                 "Precondition",
+                "Query",
+                "QueryImpl",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
@@ -2488,7 +2535,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 51725
+        "sizeInBytes": 54221
     },
     "setLogLevel": {
         "dependencies": {
@@ -2514,14 +2561,13 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7479
+        "sizeInBytes": 7481
     },
     "snapshotEqual": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "arrayEquals",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "boundEquals",
@@ -2551,6 +2597,7 @@
                 "isValidResourceName",
                 "logDebug",
                 "logError",
+                "newQueryForPath",
                 "newTarget",
                 "normalizeByteString",
                 "normalizeNumber",
@@ -2565,6 +2612,7 @@
                 "queryEquals",
                 "queryOrderBy",
                 "queryToTarget",
+                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "snapshotEqual",
@@ -2574,18 +2622,23 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "valueEquals"
             ],
             "classes": [
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "Bound",
                 "ByteString",
+                "Bytes",
+                "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -2612,13 +2665,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 37133
+        "sizeInBytes": 39087
     },
     "startAfter": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "cast",
                 "createError",
@@ -2653,6 +2705,7 @@
                 "newQueryBoundFromDocOrFields",
                 "newQueryBoundFromDocument",
                 "newQueryBoundFromFields",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "normalizeByteString",
@@ -2668,6 +2721,7 @@
                 "primitiveComparator",
                 "queryOrderBy",
                 "queryWithStartAt",
+                "randomBytes",
                 "refValue",
                 "registerFirestore",
                 "removeComponents",
@@ -2682,18 +2736,23 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription"
             ],
             "classes": [
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "Bound",
                 "ByteString",
+                "Bytes",
+                "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -2724,13 +2783,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 43304
+        "sizeInBytes": 45272
     },
     "startAt": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "cast",
                 "createError",
@@ -2765,6 +2823,7 @@
                 "newQueryBoundFromDocOrFields",
                 "newQueryBoundFromDocument",
                 "newQueryBoundFromFields",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "normalizeByteString",
@@ -2780,6 +2839,7 @@
                 "primitiveComparator",
                 "queryOrderBy",
                 "queryWithStartAt",
+                "randomBytes",
                 "refValue",
                 "registerFirestore",
                 "removeComponents",
@@ -2794,18 +2854,23 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription"
             ],
             "classes": [
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "Bound",
                 "ByteString",
+                "Bytes",
+                "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -2836,7 +2901,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 43294
+        "sizeInBytes": 45262
     },
     "terminate": {
         "dependencies": {
@@ -2863,14 +2928,13 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 8012
+        "sizeInBytes": 8015
     },
     "updateDoc": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "arrayEquals",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
@@ -2911,6 +2975,7 @@
                 "mapCodeFromRpcCode",
                 "newConnection",
                 "newDatastore",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "nodePromise",
@@ -2929,6 +2994,7 @@
                 "parseUpdateData",
                 "parseUpdateVarargs",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "timestampEquals",
@@ -2950,8 +3016,11 @@
                 "uint8ArrayFromBinaryString",
                 "updateDoc",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -2960,10 +3029,12 @@
             "classes": [
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "ByteString",
+                "Bytes",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -2993,6 +3064,8 @@
                 "ParsedUpdateData",
                 "PatchMutation",
                 "Precondition",
+                "Query",
+                "QueryImpl",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
@@ -3007,7 +3080,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 54832
+        "sizeInBytes": 57328
     },
     "where": {
         "dependencies": {
@@ -3015,7 +3088,6 @@
                 "argToString",
                 "arrayEquals",
                 "arrayValueContains",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
@@ -3110,8 +3182,8 @@
                 "ArrayContainsFilter",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "ByteString",
+                "Bytes",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentKeyReference",
@@ -3144,7 +3216,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 49855
+        "sizeInBytes": 49248
     },
     "writeBatch": {
         "dependencies": {
@@ -3152,7 +3224,6 @@
                 "applyFirestoreDataConverter",
                 "argToString",
                 "arrayEquals",
-                "assertUint8ArrayAvailable",
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "cast",
@@ -3193,6 +3264,7 @@
                 "mapCodeFromRpcCode",
                 "newConnection",
                 "newDatastore",
+                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "nodePromise",
@@ -3212,6 +3284,7 @@
                 "parseUpdateData",
                 "parseUpdateVarargs",
                 "primitiveComparator",
+                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "timestampEquals",
@@ -3232,8 +3305,11 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
+                "validateCollectionPath",
+                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
+                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateReference",
                 "validateType",
@@ -3244,10 +3320,12 @@
             "classes": [
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
+                "AutoId",
                 "BaseFieldPath",
                 "BasePath",
-                "Blob",
                 "ByteString",
+                "Bytes",
+                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -3278,6 +3356,8 @@
                 "ParsedUpdateData",
                 "PatchMutation",
                 "Precondition",
+                "Query",
+                "QueryImpl",
                 "ResourcePath",
                 "SerializableFieldValue",
                 "ServerTimestampTransform",
@@ -3293,6 +3373,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 58533
+        "sizeInBytes": 61029
     }
 }

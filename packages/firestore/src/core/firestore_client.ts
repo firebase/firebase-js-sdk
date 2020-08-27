@@ -39,7 +39,13 @@ import {
   Observer,
   QueryListener
 } from './event_manager';
-import { SyncEngine } from './sync_engine';
+import {
+  registerPendingWritesCallback,
+  SyncEngine,
+  syncEngineListen,
+  syncEngineUnlisten,
+  syncEngineWrite
+} from './sync_engine';
 import { View } from './view';
 import { SharedClientState } from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
@@ -277,6 +283,9 @@ export class FirestoreClient {
       this.syncEngine = onlineComponentProvider.syncEngine;
       this.eventMgr = onlineComponentProvider.eventManager;
 
+      this.eventMgr.onListen = syncEngineListen.bind(null, this.syncEngine);
+      this.eventMgr.onUnlisten = syncEngineUnlisten.bind(null, this.syncEngine);
+
       // When a user calls clearPersistence() in one client, all other clients
       // need to be terminated to allow the delete to succeed.
       this.persistence.setDatabaseDeletedListener(async () => {
@@ -405,9 +414,9 @@ export class FirestoreClient {
     this.verifyNotTerminated();
 
     const deferred = new Deferred<void>();
-    this.asyncQueue.enqueueAndForget(() => {
-      return this.syncEngine.registerPendingWritesCallback(deferred);
-    });
+    this.asyncQueue.enqueueAndForget(() =>
+      registerPendingWritesCallback(this.syncEngine, deferred)
+    );
     return deferred.promise;
   }
 
@@ -480,7 +489,7 @@ export class FirestoreClient {
     this.verifyNotTerminated();
     const deferred = new Deferred<void>();
     this.asyncQueue.enqueueAndForget(() =>
-      this.syncEngine.write(mutations, deferred)
+      syncEngineWrite(this.syncEngine, mutations, deferred)
     );
     return deferred.promise;
   }
@@ -549,7 +558,9 @@ export function enqueueWrite(
   mutations: Mutation[]
 ): Promise<void> {
   const deferred = new Deferred<void>();
-  asyncQueue.enqueueAndForget(() => syncEngine.write(mutations, deferred));
+  asyncQueue.enqueueAndForget(() =>
+    syncEngineWrite(syncEngine, mutations, deferred)
+  );
   return deferred.promise;
 }
 
@@ -570,9 +581,9 @@ export function enqueueWaitForPendingWrites(
   syncEngine: SyncEngine
 ): Promise<void> {
   const deferred = new Deferred<void>();
-  asyncQueue.enqueueAndForget(() => {
-    return syncEngine.registerPendingWritesCallback(deferred);
-  });
+  asyncQueue.enqueueAndForget(() =>
+    registerPendingWritesCallback(syncEngine, deferred)
+  );
   return deferred.promise;
 }
 

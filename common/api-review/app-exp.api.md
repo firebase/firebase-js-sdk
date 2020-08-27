@@ -9,7 +9,7 @@ import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseAppConfig } from '@firebase/app-types-exp';
 import { FirebaseOptions } from '@firebase/app-types-exp';
 import { LogCallback } from '@firebase/logger';
-import { LogLevel } from '@firebase/logger';
+import { LogLevelString } from '@firebase/logger';
 import { LogOptions } from '@firebase/logger';
 import { Name } from '@firebase/component';
 import { Provider } from '@firebase/component';
@@ -29,6 +29,9 @@ export function _clearComponents(): void;
 // @internal
 export const _components: Map<string, Component<any>>;
 
+// @internal
+export const _DEFAULT_ENTRY_NAME = "[DEFAULT]";
+
 // @public
 export function deleteApp(app: FirebaseApp): Promise<void>;
 
@@ -47,8 +50,6 @@ export function initializeApp(options: FirebaseOptions, name?: string): Firebase
 // @public
 export function initializeApp(options: FirebaseOptions, config?: FirebaseAppConfig): FirebaseApp;
 
-export { LogLevel }
-
 // @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;
 
@@ -65,7 +66,7 @@ export function _removeServiceInstance<T extends Name>(app: FirebaseApp, name: T
 export const SDK_VERSION: string;
 
 // @public
-export function setLogLevel(logLevel: LogLevel): void;
+export function setLogLevel(logLevel: LogLevelString): void;
 
 
 ```

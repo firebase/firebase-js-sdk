@@ -26,9 +26,9 @@
   },
   "devDependencies": {
     "@types/request": "2.48.5",
-    "firebase-tools": "8.6.0",
-    "rollup": "2.23.0",
-    "rollup-plugin-typescript2": "0.27.1"
+    "firebase-tools": "8.9.0",
+    "rollup": "2.26.5",
+    "rollup-plugin-typescript2": "0.27.2"
   },
   "repository": {
     "directory": "packages/testing",

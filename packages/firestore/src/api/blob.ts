@@ -23,6 +23,7 @@ import {
   validateExactNumberOfArgs
 } from '../util/input_validation';
 import { ByteString } from '../util/byte_string';
+import { Bytes } from '../../lite/src/api/bytes';
 
 /** Helper function to assert Uint8Array is available at runtime. */
 function assertUint8ArrayAvailable(): void {
@@ -46,21 +47,15 @@ function assertBase64Available(): void {
 
 /**
  * Immutable class holding a blob (binary data).
- * This class is directly exposed in the public API.
+ *
+ * This class is directly exposed in the public API. It extends the Bytes class
+ * of the firestore-exp API to support `instanceof Bytes` checks during user
+ * data conversion.
  *
  * Note that while you can't hide the constructor in JavaScript code, we are
  * using the hack above to make sure no-one outside this module can call it.
  */
-export class Blob {
-  // Prefix with underscore to signal that we consider this not part of the
-  // public API and to prevent it from showing up for autocompletion.
-  _byteString: ByteString;
-
-  constructor(byteString: ByteString) {
-    assertBase64Available();
-    this._byteString = byteString;
-  }
-
+export class Blob extends Bytes {
   static fromBase64String(base64: string): Blob {
     validateExactNumberOfArgs('Blob.fromBase64String', arguments, 1);
     validateArgType('Blob.fromBase64String', 'string', 1, base64);
@@ -87,20 +82,16 @@ export class Blob {
   toBase64(): string {
     validateExactNumberOfArgs('Blob.toBase64', arguments, 0);
     assertBase64Available();
-    return this._byteString.toBase64();
+    return super.toBase64();
   }
 
   toUint8Array(): Uint8Array {
     validateExactNumberOfArgs('Blob.toUint8Array', arguments, 0);
     assertUint8ArrayAvailable();
-    return this._byteString.toUint8Array();
+    return super.toUint8Array();
   }
 
   toString(): string {
     return 'Blob(base64: ' + this.toBase64() + ')';
-  }
-
-  isEqual(other: Blob): boolean {
-    return this._byteString.isEqual(other._byteString);
   }
 }

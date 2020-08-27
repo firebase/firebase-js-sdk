@@ -19,6 +19,7 @@ import { expect } from 'chai';
 import { fake, SinonSpy } from 'sinon';
 import { ComponentContainer } from './component_container';
 import { FirebaseService } from '@firebase/app-types/private';
+import { _FirebaseService } from '@firebase/app-types-exp';
 import { Provider } from './provider';
 import { getFakeApp, getFakeComponent } from '../test/util';
 import '../test/setup';
@@ -202,13 +203,36 @@ describe('Provider', () => {
     });
 
     describe('delete()', () => {
-      it('calls delete() on the service instance that implements FirebaseService', () => {
+      it('calls delete() on the service instance that implements legacy FirebaseService', () => {
         const deleteFake = fake();
         const myService: FirebaseService = {
           app: getFakeApp(),
           INTERNAL: {
             delete: deleteFake
           }
+        };
+
+        // provide factory and create a service instance
+        provider.setComponent(
+          getFakeComponent(
+            'test',
+            () => myService,
+            false,
+            InstantiationMode.EAGER
+          )
+        );
+
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        provider.delete();
+
+        expect(deleteFake).to.have.been.called;
+      });
+
+      it('calls delete() on the service instance that implements next FirebaseService', () => {
+        const deleteFake = fake();
+        const myService: _FirebaseService = {
+          app: getFakeApp(),
+          _delete: deleteFake
         };
 
         // provide factory and create a service instance

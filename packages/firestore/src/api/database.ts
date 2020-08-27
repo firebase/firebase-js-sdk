@@ -45,6 +45,7 @@ import {
 
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
+import { Blob } from './blob';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
@@ -1019,7 +1020,8 @@ export class WriteBatch implements PublicWriteBatch {
 /**
  * A reference to a particular document in a collection in the database.
  */
-export class DocumentReference<T = DocumentData> extends DocumentKeyReference<T>
+export class DocumentReference<T = DocumentData>
+  extends DocumentKeyReference<T>
   implements PublicDocumentReference<T> {
   private _firestoreClient: FirestoreClient;
 
@@ -1373,7 +1375,8 @@ export class DocumentSnapshot<T = DocumentData>
           this._firestore._areTimestampsInSnapshotsEnabled(),
           options.serverTimestamps || 'none',
           key =>
-            new DocumentReference(key, this._firestore, /* converter= */ null)
+            new DocumentReference(key, this._firestore, /* converter= */ null),
+          bytes => new Blob(bytes)
         );
         return userDataWriter.convertValue(this._document.toProto()) as T;
       }
@@ -1397,7 +1400,8 @@ export class DocumentSnapshot<T = DocumentData>
           this._firestore._databaseId,
           this._firestore._areTimestampsInSnapshotsEnabled(),
           options.serverTimestamps || 'none',
-          key => new DocumentReference(key, this._firestore, this._converter)
+          key => new DocumentReference(key, this._firestore, this._converter),
+          bytes => new Blob(bytes)
         );
         return userDataWriter.convertValue(value);
       }
@@ -1441,7 +1445,8 @@ export class DocumentSnapshot<T = DocumentData>
   }
 }
 
-export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T>
+export class QueryDocumentSnapshot<T = DocumentData>
+  extends DocumentSnapshot<T>
   implements PublicQueryDocumentSnapshot<T> {
   data(options?: SnapshotOptions): T {
     const data = super.data(options);
@@ -2307,7 +2312,8 @@ export class QuerySnapshot<T = DocumentData> implements PublicQuerySnapshot<T> {
   }
 }
 
-export class CollectionReference<T = DocumentData> extends Query<T>
+export class CollectionReference<T = DocumentData>
+  extends Query<T>
   implements PublicCollectionReference<T> {
   constructor(
     readonly _path: ResourcePath,
