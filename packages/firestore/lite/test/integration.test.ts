@@ -39,7 +39,6 @@ import {
   withTestDocAndInitialData
 } from './helpers';
 import {
-  parent,
   collection,
   CollectionReference,
   doc,
@@ -179,6 +178,15 @@ describe('doc', () => {
     });
   });
 
+  it('can be used relative to collection (via CollectionReference.doc())', () => {
+    return withTestDb(db => {
+      const result = collection(db, 'coll').doc('doc');
+      expect(result).to.be.an.instanceOf(DocumentReference);
+      expect(result.id).to.equal('doc');
+      expect(result.path).to.equal('coll/doc');
+    });
+  });
+
   it('can be relative to doc', () => {
     return withTestDb(db => {
       const result = doc(doc(db, 'coll/doc'), 'subcoll/subdoc');
@@ -195,8 +203,7 @@ describe('doc', () => {
           'number of segments, but coll has 1.'
       );
       expect(() => doc(db, '')).to.throw(
-        'Function doc() requires its second argument to be of type non-empty ' +
-          'string, but it was: ""'
+        'Function doc() cannot be called with an empty path.'
       );
       expect(() => doc(collection(db, 'coll'), 'doc/coll')).to.throw(
         'Invalid document reference. Document references must have an even ' +
@@ -212,6 +219,14 @@ describe('doc', () => {
     return withTestDb(db => {
       const coll = collection(db, 'coll');
       const ref = doc(coll);
+      expect(ref.id.length).to.equal(20);
+    });
+  });
+
+  it('supports AutoId (via CollectionReference.doc())', () => {
+    return withTestDb(db => {
+      const coll = collection(db, 'coll');
+      const ref = coll.doc();
       expect(ref.id.length).to.equal(20);
     });
   });
@@ -245,17 +260,23 @@ describe('collection', () => {
     });
   });
 
+  it('can be used relative to doc (via DocumentReference.collection())', () => {
+    return withTestDb(db => {
+      const result = doc(db, 'coll/doc').collection('subcoll');
+      expect(result).to.be.an.instanceOf(CollectionReference);
+      expect(result.id).to.equal('subcoll');
+      expect(result.path).to.equal('coll/doc/subcoll');
+    });
+  });
+
   it('validates path', () => {
     return withTestDb(db => {
       expect(() => collection(db, 'coll/doc')).to.throw(
         'Invalid collection reference. Collection references must have an odd ' +
           'number of segments, but coll/doc has 2.'
       );
-      // TODO(firestorelite): Explore returning a more helpful message
-      // (e.g. "Empty document paths are not supported.")
       expect(() => collection(doc(db, 'coll/doc'), '')).to.throw(
-        'Function collection() requires its second argument to be of type ' +
-          'non-empty string, but it was: ""'
+        'Function collection() cannot be called with an empty path'
       );
       expect(() => collection(doc(db, 'coll/doc'), 'coll/doc')).to.throw(
         'Invalid collection reference. Collection references must have an odd ' +
@@ -269,7 +290,7 @@ describe('parent', () => {
   it('returns CollectionReferences for DocumentReferences', () => {
     return withTestDb(db => {
       const coll = collection(db, 'coll/doc/coll');
-      const result = parent(coll);
+      const result = coll.parent;
       expect(result).to.be.an.instanceOf(DocumentReference);
       expect(result!.path).to.equal('coll/doc');
     });
@@ -278,7 +299,7 @@ describe('parent', () => {
   it('returns DocumentReferences for CollectionReferences', () => {
     return withTestDb(db => {
       const coll = doc(db, 'coll/doc');
-      const result = parent(coll);
+      const result = coll.parent;
       expect(result).to.be.an.instanceOf(CollectionReference);
       expect(result.path).to.equal('coll');
     });
@@ -287,7 +308,7 @@ describe('parent', () => {
   it('returns null for root collection', () => {
     return withTestDb(db => {
       const coll = collection(db, 'coll');
-      const result = parent(coll);
+      const result = coll.parent;
       expect(result).to.be.null;
     });
   });
@@ -974,7 +995,7 @@ describe('Query', () => {
   it('validates collection groups', () => {
     return withTestDb(firestore => {
       expect(() => collectionGroup(firestore, '')).to.throw(
-        'Function collectionGroup() requires its first argument to be of type non-empty string, but it was: ""'
+        'Function collectionGroup() cannot be called with an empty collection id.'
       );
       expect(() => collectionGroup(firestore, '/')).to.throw(
         "Invalid collection ID '/' passed to function collectionGroup(). Collection IDs must not contain '/'."
@@ -987,7 +1008,7 @@ describe('equality', () => {
   it('for collection references', () => {
     return withTestDb(firestore => {
       const coll1a = collection(firestore, 'a');
-      const coll1b = parent(doc(firestore, 'a/b'));
+      const coll1b = doc(firestore, 'a/b').parent;
       const coll2 = collection(firestore, 'c');
 
       expect(refEqual(coll1a, coll1b)).to.be.true;
@@ -1117,7 +1138,7 @@ describe('withConverter() support', () => {
   it('keeps the converter when calling parent() with a DocumentReference', () => {
     return withTestDb(async db => {
       const coll = doc(db, 'root/doc').withConverter(postConverter);
-      const typedColl = parent(coll)!;
+      const typedColl = coll.parent!;
       expect(
         refEqual(typedColl, collection(db, 'root').withConverter(postConverter))
       ).to.be.true;
@@ -1129,7 +1150,7 @@ describe('withConverter() support', () => {
       const coll = collection(db, 'root/doc/parent').withConverter(
         postConverter
       );
-      const untypedDoc = parent(coll)!;
+      const untypedDoc = coll.parent!;
       expect(refEqual(untypedDoc, doc(db, 'root/doc'))).to.be.true;
     });
   });

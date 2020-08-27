@@ -238,22 +238,23 @@ apiDescribe('Validation:', (persistence: boolean) => {
   describe('Collection paths', () => {
     validationIt(persistence, 'must be non-empty strings', db => {
       const baseDocRef = db.doc('foo/bar');
-      const argumentPosition = usesFunctionalApi() ? 'second' : 'first';
 
-      expect(() => db.collection('')).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'collection' : 'Firestore.collection'
-        }() requires its ${argumentPosition} argument to be of type ` +
-          'non-empty string, but it was: ""'
-      );
-      expect(() => baseDocRef.collection('')).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'collection' : 'DocumentReference.collection'
-        }() requires its ${argumentPosition} argument to be of type ` +
-          'non-empty string, but it was: ""'
-      );
-
-      if (validatesJsInput) {
+      if (usesFunctionalApi()) {
+        expect(() => db.collection('')).to.throw(
+          'Function collection() cannot be called with an empty path.'
+        );
+        expect(() => baseDocRef.collection('')).to.throw(
+          'Function DocumentReference.collection() cannot be called with an empty path.'
+        );
+      } else {
+        expect(() => db.collection('')).to.throw(
+          'Function Firestore.collection() requires its first ' +
+            'argument to be of type non-empty string, but it was: ""'
+        );
+        expect(() => baseDocRef.collection('')).to.throw(
+          'Function DocumentReference.collection() requires its first ' +
+            'argument to be of type non-empty string, but it was: ""'
+        );
         expect(() => db.collection(null as any)).to.throw(
           'Function Firestore.collection() requires its first argument ' +
             'to be of type non-empty string, but it was: null'
@@ -309,21 +310,23 @@ apiDescribe('Validation:', (persistence: boolean) => {
   describe('Document paths', () => {
     validationIt(persistence, 'must be strings', db => {
       const baseCollectionRef = db.collection('foo');
-      const argumentPosition = usesFunctionalApi() ? 'second' : 'first';
 
-      expect(() => db.doc('')).to.throw(
-        `Function ${usesFunctionalApi() ? 'doc' : 'Firestore.doc'}() ` +
-          `requires its ${argumentPosition} argument to be of type non-empty ` +
-          'string, but it was: ""'
-      );
-      expect(() => baseCollectionRef.doc('')).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'doc' : 'CollectionReference.doc'
-        }() requires its ${argumentPosition} argument to be of type ` +
-          'non-empty string, but it was: ""'
-      );
-
-      if (validatesJsInput) {
+      if (usesFunctionalApi()) {
+        expect(() => db.doc('')).to.throw(
+          'Function doc() cannot be called with an empty path.'
+        );
+        expect(() => baseCollectionRef.doc('')).to.throw(
+          'Function CollectionReference.doc() cannot be called with an empty path.'
+        );
+      } else {
+        expect(() => db.doc('')).to.throw(
+          'Function Firestore.doc() requires its first ' +
+            'argument to be of type non-empty string, but it was: ""'
+        );
+        expect(() => baseCollectionRef.doc('')).to.throw(
+          'Function CollectionReference.doc() requires its first ' +
+            'argument to be of type non-empty string, but it was: ""'
+        );
         expect(() => db.doc(null as any)).to.throw(
           'Function Firestore.doc() requires its first argument to be ' +
             'of type non-empty string, but it was: null'
