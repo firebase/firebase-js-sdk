@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.16.5",
+  "version": "1.16.6",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -61,7 +61,7 @@
   ],
   "dependencies": {
     "@firebase/component": "0.1.18",
-    "@firebase/firestore-types": "1.12.0",
+    "@firebase/firestore-types": "1.12.1",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "0.3.1",
     "@firebase/webchannel-wrapper": "0.3.0",
