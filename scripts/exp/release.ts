@@ -138,15 +138,7 @@ async function buildPackages() {
   // Build exp packages except for firebase-exp
   await spawn(
     'yarn',
-    [
-      'lerna',
-      'run',
-      '--scope',
-      '@firebase/*-exp',
-      '--scope',
-      '@firebase/*-compat',
-      'build:release'
-    ],
+    ['lerna', 'run', '--scope', '@firebase/*-exp', 'build:release'],
     {
       cwd: projectRoot,
       stdio: 'inherit'
@@ -158,6 +150,16 @@ async function buildPackages() {
   await spawn(
     'yarn',
     ['lerna', 'run', '--scope', '@firebase/firestore', 'build:exp:release'],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
+  // Build compat packages
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/*-compat', 'build'],
     {
       cwd: projectRoot,
       stdio: 'inherit'
