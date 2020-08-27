@@ -1016,7 +1016,8 @@ export class WriteBatch implements PublicWriteBatch {
 /**
  * A reference to a particular document in a collection in the database.
  */
-export class DocumentReference<T = DocumentData> extends DocumentKeyReference<T>
+export class DocumentReference<T = DocumentData>
+  extends DocumentKeyReference<T>
   implements PublicDocumentReference<T> {
   private _firestoreClient: FirestoreClient;
 
@@ -1440,7 +1441,8 @@ export class DocumentSnapshot<T = DocumentData>
   }
 }
 
-export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T>
+export class QueryDocumentSnapshot<T = DocumentData>
+  extends DocumentSnapshot<T>
   implements PublicQueryDocumentSnapshot<T> {
   data(options?: SnapshotOptions): T {
     const data = super.data(options);
@@ -2306,7 +2308,8 @@ export class QuerySnapshot<T = DocumentData> implements PublicQuerySnapshot<T> {
   }
 }
 
-export class CollectionReference<T = DocumentData> extends Query<T>
+export class CollectionReference<T = DocumentData>
+  extends Query<T>
   implements PublicCollectionReference<T> {
   constructor(
     readonly _path: ResourcePath,

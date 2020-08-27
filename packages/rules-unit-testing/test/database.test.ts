@@ -90,7 +90,7 @@ describe('Testing Module Tests', function () {
         throw new Error('Expected otherFailure to fail.');
       })
       .catch(() => {});
-  })
+  });
 
   it('initializeTestApp() with auth=null does not set access token', async function () {
     const app = firebase.initializeTestApp({
