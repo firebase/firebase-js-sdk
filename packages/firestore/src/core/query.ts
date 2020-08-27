@@ -63,22 +63,6 @@ export interface Query {
   readonly limitType: LimitType;
   readonly startAt: Bound | null;
   readonly endAt: Bound | null;
-
-  hasLimitToFirst(): boolean;
-  hasLimitToLast(): boolean;
-  getFirstOrderByField(): FieldPath | null;
-  getInequalityFilterField(): FieldPath | null;
-  asCollectionQueryAtPath(path: ResourcePath): Query;
-
-  /**
-   * Returns true if this query does not specify any query constraints that
-   * could remove results.
-   */
-  matchesAllDocuments(): boolean;
-
-  // Checks if any of the provided Operators are included in the query and
-  // returns the first one that is, or null if none are.
-  findFilterOperator(operators: Operator[]): Operator | null;
 }
 
 /**
@@ -121,77 +105,6 @@ export class QueryImpl implements Query {
       );
     }
   }
-
-  /**
-   * Helper to convert a collection group query into a collection query at a
-   * specific path. This is used when executing collection group queries, since
-   * we have to split the query into a set of collection queries at multiple
-   * paths.
-   */
-  asCollectionQueryAtPath(path: ResourcePath): Query {
-    return new QueryImpl(
-      path,
-      /*collectionGroup=*/ null,
-      this.explicitOrderBy.slice(),
-      this.filters.slice(),
-      this.limit,
-      this.limitType,
-      this.startAt,
-      this.endAt
-    );
-  }
-
-  matchesAllDocuments(): boolean {
-    return (
-      this.filters.length === 0 &&
-      this.limit === null &&
-      this.startAt == null &&
-      this.endAt == null &&
-      (this.explicitOrderBy.length === 0 ||
-        (this.explicitOrderBy.length === 1 &&
-          this.explicitOrderBy[0].field.isKeyField()))
-    );
-  }
-
-  hasLimitToFirst(): boolean {
-    return !isNullOrUndefined(this.limit) && this.limitType === LimitType.First;
-  }
-
-  hasLimitToLast(): boolean {
-    return !isNullOrUndefined(this.limit) && this.limitType === LimitType.Last;
-  }
-
-  getFirstOrderByField(): FieldPath | null {
-    return this.explicitOrderBy.length > 0
-      ? this.explicitOrderBy[0].field
-      : null;
-  }
-
-  getInequalityFilterField(): FieldPath | null {
-    for (const filter of this.filters) {
-      debugAssert(
-        filter instanceof FieldFilter,
-        'Only FieldFilters are supported'
-      );
-      if (filter.isInequality()) {
-        return filter.field;
-      }
-    }
-    return null;
-  }
-
-  findFilterOperator(operators: Operator[]): Operator | null {
-    for (const filter of this.filters) {
-      debugAssert(
-        filter instanceof FieldFilter,
-        'Only FieldFilters are supported'
-      );
-      if (operators.indexOf(filter.op) >= 0) {
-        return filter.op;
-      }
-    }
-    return null;
-  }
 }
 
 /** Creates a new Query instance with the options provided. */
@@ -220,6 +133,91 @@ export function newQuery(
 /** Creates a new Query for a query that matches all documents at `path` */
 export function newQueryForPath(path: ResourcePath): Query {
   return new QueryImpl(path);
+}
+
+/**
+ * Helper to convert a collection group query into a collection query at a
+ * specific path. This is used when executing collection group queries, since
+ * we have to split the query into a set of collection queries at multiple
+ * paths.
+ */
+export function asCollectionQueryAtPath(
+  query: Query,
+  path: ResourcePath
+): Query {
+  return new QueryImpl(
+    path,
+    /*collectionGroup=*/ null,
+    query.explicitOrderBy.slice(),
+    query.filters.slice(),
+    query.limit,
+    query.limitType,
+    query.startAt,
+    query.endAt
+  );
+}
+
+/**
+ * Returns true if this query does not specify any query constraints that
+ * could remove results.
+ */
+export function matchesAllDocuments(query: Query): boolean {
+  return (
+    query.filters.length === 0 &&
+    query.limit === null &&
+    query.startAt == null &&
+    query.endAt == null &&
+    (query.explicitOrderBy.length === 0 ||
+      (query.explicitOrderBy.length === 1 &&
+        query.explicitOrderBy[0].field.isKeyField()))
+  );
+}
+
+export function hasLimitToFirst(query: Query): boolean {
+  return !isNullOrUndefined(query.limit) && query.limitType === LimitType.First;
+}
+
+export function hasLimitToLast(query: Query): boolean {
+  return !isNullOrUndefined(query.limit) && query.limitType === LimitType.Last;
+}
+
+export function getFirstOrderByField(query: Query): FieldPath | null {
+  return query.explicitOrderBy.length > 0
+    ? query.explicitOrderBy[0].field
+    : null;
+}
+
+export function getInequalityFilterField(query: Query): FieldPath | null {
+  for (const filter of query.filters) {
+    debugAssert(
+      filter instanceof FieldFilter,
+      'Only FieldFilters are supported'
+    );
+    if (filter.isInequality()) {
+      return filter.field;
+    }
+  }
+  return null;
+}
+
+/**
+ * Checks if any of the provided Operators are included in the query and
+ * returns the first one that is, or null if none are.
+ */
+export function findFilterOperator(
+  query: Query,
+  operators: Operator[]
+): Operator | null {
+  for (const filter of query.filters) {
+    debugAssert(
+      filter instanceof FieldFilter,
+      'Only FieldFilters are supported'
+    );
+    if (operators.indexOf(filter.op) >= 0) {
+      return filter.op;
+    }
+  }
+  return null;
 }
 
 /**
@@ -260,8 +258,8 @@ export function queryOrderBy(query: Query): OrderBy[] {
   if (queryImpl.memoizedOrderBy === null) {
     queryImpl.memoizedOrderBy = [];
 
-    const inequalityField = queryImpl.getInequalityFilterField();
-    const firstOrderByField = queryImpl.getFirstOrderByField();
+    const inequalityField = getInequalityFilterField(queryImpl);
+    const firstOrderByField = getFirstOrderByField(queryImpl);
     if (inequalityField !== null && firstOrderByField === null) {
       // In order to implicitly add key ordering, we must also add the
       // inequality filter field for it to be a valid query.
@@ -355,10 +353,10 @@ export function queryToTarget(query: Query): Target {
 
 export function queryWithAddedFilter(query: Query, filter: Filter): Query {
   debugAssert(
-    query.getInequalityFilterField() == null ||
+    getInequalityFilterField(query) == null ||
       !(filter instanceof FieldFilter) ||
       !filter.isInequality() ||
-      filter.field.isEqual(query.getInequalityFilterField()!),
+      filter.field.isEqual(getInequalityFilterField(query)!),
     'Query must only have one inequality field.'
   );
 

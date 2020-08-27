@@ -31,6 +31,7 @@ import {
 import {
   Bound,
   Direction,
+  hasLimitToLast,
   LimitType,
   newQueryForCollectionGroup,
   newQueryForPath,
@@ -72,7 +73,6 @@ import {
 import { FieldPath } from './field_path';
 import { cast } from './util';
 import {
-  validateArgType,
   validateCollectionPath,
   validateDocumentPath,
   validateExactNumberOfArgs,
@@ -105,6 +105,27 @@ export class DocumentReference<T = firestore.DocumentData>
 
   get path(): string {
     return this._path.canonicalString();
+  }
+
+  get parent(): CollectionReference<T> {
+    return new CollectionReference<T>(
+      this.firestore,
+      this._converter,
+      this._key.path.popLast()
+    );
+  }
+
+  collection(path: string): CollectionReference<firestore.DocumentData> {
+    validateNonEmptyArgument('DocumentReference.collection', 'path', path);
+    const absolutePath = ResourcePath.fromString(this.path).child(
+      ResourcePath.fromString(path)
+    );
+    validateCollectionPath(absolutePath);
+    return new CollectionReference(
+      this.firestore,
+      /* converter= */ null,
+      absolutePath
+    );
   }
 
   withConverter<U>(
@@ -362,14 +383,15 @@ function newQueryBoundFromDocOrFields<T>(
   }
 }
 
-export class CollectionReference<T = firestore.DocumentData> extends Query<T>
+export class CollectionReference<T = firestore.DocumentData>
+  extends Query<T>
   implements firestore.CollectionReference<T> {
   readonly type = 'collection';
 
   constructor(
     readonly firestore: Firestore,
-    readonly _path: ResourcePath,
-    converter: firestore.FirestoreDataConverter<T> | null
+    converter: firestore.FirestoreDataConverter<T> | null,
+    readonly _path: ResourcePath
   ) {
     super(firestore, converter, newQueryForPath(_path));
   }
@@ -382,10 +404,35 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
     return this._query.path.canonicalString();
   }
 
+  get parent(): DocumentReference<firestore.DocumentData> | null {
+    const parentPath = this._path.popLast();
+    if (parentPath.isEmpty()) {
+      return null;
+    } else {
+      return new DocumentReference(
+        this.firestore,
+        /* converter= */ null,
+        parentPath
+      );
+    }
+  }
+
+  doc(path?: string): DocumentReference<T> {
+    // We allow omission of 'pathString' but explicitly prohibit passing in both
+    // 'undefined' and 'null'.
+    if (arguments.length === 0) {
+      path = AutoId.newId();
+    }
+    validateNonEmptyArgument('CollectionReference.doc', 'path', path);
+    const absolutePath = this._path.child(ResourcePath.fromString(path!));
+    validateDocumentPath(absolutePath);
+    return new DocumentReference(this.firestore, this.converter, absolutePath);
+  }
+
   withConverter<U>(
     converter: firestore.FirestoreDataConverter<U>
   ): firestore.CollectionReference<U> {
-    return new CollectionReference<U>(this.firestore, this._path, converter);
+    return new CollectionReference<U>(this.firestore, converter, this._path);
   }
 }
 
@@ -408,11 +455,11 @@ export function collection(
     | firestore.CollectionReference<unknown>,
   relativePath: string
 ): CollectionReference<firestore.DocumentData> {
-  validateArgType('collection', 'non-empty string', 2, relativePath);
+  validateNonEmptyArgument('collection', 'path', relativePath);
   if (parent instanceof Firestore) {
     const absolutePath = ResourcePath.fromString(relativePath);
     validateCollectionPath(absolutePath);
-    return new CollectionReference(parent, absolutePath, /* converter= */ null);
+    return new CollectionReference(parent, /* converter= */ null, absolutePath);
   } else {
     if (
       !(parent instanceof DocumentReference) &&
@@ -430,8 +477,8 @@ export function collection(
     validateCollectionPath(absolutePath);
     return new CollectionReference(
       parent.firestore,
-      absolutePath,
-      /* converter= */ null
+      /* converter= */ null,
+      absolutePath
     );
   }
 }
@@ -444,7 +491,7 @@ export function collectionGroup(
 ): Query<firestore.DocumentData> {
   const firestoreClient = cast(firestore, Firestore);
 
-  validateArgType('collectionGroup', 'non-empty string', 1, collectionId);
+  validateNonEmptyArgument('collectionGroup', 'collection id', collectionId);
   if (collectionId.indexOf('/') >= 0) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
@@ -484,10 +531,10 @@ export function doc<T>(
   if (arguments.length === 1) {
     relativePath = AutoId.newId();
   }
-  validateArgType('doc', 'non-empty string', 2, relativePath);
+  validateNonEmptyArgument('doc', 'path', relativePath);
 
   if (parent instanceof Firestore) {
-    const absolutePath = ResourcePath.fromString(relativePath!);
+    const absolutePath = ResourcePath.fromString(relativePath);
     validateDocumentPath(absolutePath);
     return new DocumentReference(parent, /* converter= */ null, absolutePath);
   } else {
@@ -502,43 +549,13 @@ export function doc<T>(
       );
     }
     const absolutePath = parent._path.child(
-      ResourcePath.fromString(relativePath!)
+      ResourcePath.fromString(relativePath)
     );
     validateDocumentPath(absolutePath);
     return new DocumentReference(
       parent.firestore,
       parent instanceof CollectionReference ? parent.converter : null,
       absolutePath
-    );
-  }
-}
-
-export function parent(
-  reference: firestore.CollectionReference<unknown>
-): DocumentReference<firestore.DocumentData> | null;
-export function parent<T>(
-  reference: firestore.DocumentReference<T>
-): CollectionReference<T>;
-export function parent<T>(
-  child: firestore.CollectionReference<unknown> | firestore.DocumentReference<T>
-): DocumentReference<firestore.DocumentData> | CollectionReference<T> | null {
-  if (child instanceof CollectionReference) {
-    const parentPath = child._path.popLast();
-    if (parentPath.isEmpty()) {
-      return null;
-    } else {
-      return new DocumentReference(
-        child.firestore,
-        /* converter= */ null,
-        parentPath
-      );
-    }
-  } else {
-    const doc = cast<DocumentReference<T>>(child, DocumentReference);
-    return new CollectionReference<T>(
-      doc.firestore,
-      doc._key.path.popLast(),
-      doc._converter
     );
   }
 }
@@ -579,7 +596,7 @@ export function getDocs<T>(
         )
     );
 
-    if (queryImpl._query.hasLimitToLast()) {
+    if (hasLimitToLast(queryImpl._query)) {
       // Limit to last queries reverse the orderBy constraint that was
       // specified by the user. As such, we need to reverse the order of the
       // results to return the documents in the expected order.
@@ -752,4 +769,17 @@ export function newUserDataReader(firestore: Firestore): UserDataReader {
     !!settings.ignoreUndefinedProperties,
     serializer
   );
+}
+
+function validateNonEmptyArgument(
+  functionName: string,
+  argumentName: string,
+  argument?: string
+): asserts argument is string {
+  if (!argument) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `Function ${functionName}() cannot be called with an empty ${argumentName}.`
+    );
+  }
 }

@@ -46,11 +46,11 @@ import {
   toResourceName,
   toTimestamp
 } from '../remote/serializer';
-import { Blob } from './blob';
 import { BaseFieldPath, fromDotSeparatedString } from './field_path';
 import { DeleteFieldValueImpl, SerializableFieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
 import { newSerializer } from '../platform/serializer';
+import { Bytes } from '../../lite/src/api/bytes';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -711,8 +711,8 @@ function parseScalarValue(
         longitude: value.longitude
       }
     };
-  } else if (value instanceof Blob) {
-    return { bytesValue: toBytes(context.serializer, value) };
+  } else if (value instanceof Bytes) {
+    return { bytesValue: toBytes(context.serializer, value._byteString) };
   } else if (value instanceof DocumentKeyReference) {
     const thisDb = context.databaseId;
     const otherDb = value._databaseId;
@@ -753,7 +753,7 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof Date) &&
     !(input instanceof Timestamp) &&
     !(input instanceof GeoPoint) &&
-    !(input instanceof Blob) &&
+    !(input instanceof Bytes) &&
     !(input instanceof DocumentKeyReference) &&
     !(input instanceof SerializableFieldValue)
   );
