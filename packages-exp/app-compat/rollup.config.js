@@ -29,7 +29,8 @@ const deps = Object.keys(
  */
 const es5BuildPlugins = [
   typescriptPlugin({
-    typescript
+    typescript,
+    abortOnError: false
   }),
   json()
 ];
