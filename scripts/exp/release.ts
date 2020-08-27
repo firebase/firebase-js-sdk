@@ -143,6 +143,7 @@ async function buildPackages() {
       'run',
       '--scope',
       '@firebase/*-exp',
+      '--scope',
       '@firebase/*-compat',
       'build:release'
     ],
