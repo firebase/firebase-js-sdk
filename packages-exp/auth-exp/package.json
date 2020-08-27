@@ -1,15 +1,14 @@
 {
   "name": "@firebase/auth-exp",
-  "version": "0.1.0",
+  "version": "0.0.800",
   "private": true,
   "description": "The Firebase Authenticaton component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/index.node.cjs.js",
-  "main-esm2017": "dist/index.node.esm2017.js",
-  "react-native": "dist/index.rn.cjs.js",
-  "browser": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
-  "esm2017": "dist/index.esm2017.js",
+  "main": "dist/node/index.js",
+  "react-native": "dist/rn/index.js",
+  "browser": "dist/esm5/index.js",
+  "module": "dist/esm5/index.js",
+  "esm2017": "dist/esm2017/index.js",
   "webworker": "dist/index.webworker.esm5.js",
   "files": [
     "dist"
@@ -17,9 +16,8 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "build": "rollup -c && yarn build:internal",
-    "build:deps": "lerna run --scope @firebase/'{app-exp,auth-exp,util}' --include-dependencies build",
-    "build:internal": "rollup -c rollup.config.internal.js",
+    "build": "rollup -c",
+    "build:deps": "lerna run --scope @firebase/auth-exp --include-dependencies build",
     "build:release": "rollup -c rollup.config.release.js && yarn api-report && yarn typings:public",
     "dev": "rollup -c -w",
     "test": "yarn type-check && run-p lint test:browser test:node",
@@ -36,30 +34,24 @@
   },
   "peerDependencies": {
     "@firebase/app-exp": "0.x",
-    "@firebase/app-types-exp": "0.x",
-    "@firebase/auth-exp": "0.x",
-    "@firebase/auth-types-exp": "0.x",
-    "@firebase/util": "0.x"
+    "@firebase/app-types-exp": "0.x"
   },
   "dependencies": {
+    "@firebase/logger": "0.2.6",
+    "@firebase/util": "0.3.0",
     "@firebase/component": "0.1.17",
-    "@firebase/logger": "^0.2.6",
-    "@firebase/util": "^0.3.0",
+    "@firebase/auth-types-exp": "0.0.800",
     "node-fetch": "2.6.0",
     "tslib": "^1.11.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@rollup/plugin-strip": "^1.3.2",
+    "@firebase/app-exp": "0.0.800",
     "rollup": "2.23.0",
-    "rollup-plugin-copy-assets": "1.1.0",
     "rollup-plugin-json": "4.0.0",
-    "rollup-plugin-node-resolve": "5.2.0",
-    "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-sourcemaps": "0.6.2",
-    "rollup-plugin-terser": "6.1.0",
     "rollup-plugin-typescript2": "0.27.1",
-    "ts-node": "8.10.2",
+    "@rollup/plugin-strip": "1.3.2",
     "typescript": "3.9.7"
   },
   "repository": {
@@ -70,7 +62,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/index.d.ts",
+  "typings": "dist/esm5/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"
