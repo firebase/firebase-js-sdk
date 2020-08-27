@@ -66,13 +66,14 @@ import {
   limitToLast,
   limit,
   orderBy,
-  where
+  where,
+  Bytes as BytesExp
 } from '../../exp/index';
 import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
 import { isPartialObserver, PartialObserver } from '../../src/api/observer';
 import { isPlainObject } from '../../src/util/input_validation';
 
-export { GeoPoint, Blob, Timestamp } from '../index';
+export { GeoPoint, Timestamp } from '../index';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -727,6 +728,30 @@ export class FieldPath implements legacy.FieldPath {
   }
 }
 
+export class Blob implements legacy.Blob {
+  constructor(readonly _delegate: BytesExp) {}
+
+  static fromBase64String(base64: string): Blob {
+    return new Blob(BytesExp.fromBase64String(base64));
+  }
+
+  static fromUint8Array(array: Uint8Array): Blob {
+    return new Blob(BytesExp.fromUint8Array(array));
+  }
+
+  toBase64(): string {
+    return this._delegate.toBase64();
+  }
+
+  toUint8Array(): Uint8Array {
+    return this._delegate.toUint8Array();
+  }
+
+  isEqual(other: Blob): boolean {
+    return this._delegate.isEqual(other._delegate);
+  }
+}
+
 /**
  * Takes document data that uses the firestore-exp API types and replaces them
  * with the API types defined in this shim.
@@ -736,6 +761,8 @@ function wrap(value: any): any {
     return value.map(v => wrap(v));
   } else if (value instanceof FieldPathExp) {
     return new FieldPath(...value._internalPath.toArray());
+  } else if (value instanceof BytesExp) {
+    return new Blob(value);
   } else if (value instanceof DocumentReferenceExp) {
     // TODO(mrschmidt): Ideally, we should use an existing instance of
     // FirebaseFirestore here rather than instantiating a new instance
@@ -763,6 +790,8 @@ function unwrap(value: any): any {
   } else if (value instanceof FieldPath) {
     return value._delegate;
   } else if (value instanceof FieldValue) {
+    return value._delegate;
+  } else if (value instanceof Blob) {
     return value._delegate;
   } else if (value instanceof DocumentReference) {
     return value._delegate;

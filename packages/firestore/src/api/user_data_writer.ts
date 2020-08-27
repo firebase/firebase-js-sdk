@@ -25,7 +25,6 @@ import {
   Value as ProtoValue
 } from '../protos/firestore_proto_api';
 import { DocumentKeyReference } from './user_data_reader';
-import { Blob } from './blob';
 import { GeoPoint } from './geo_point';
 import { Timestamp } from './timestamp';
 import { DatabaseId } from '../core/database_info';
@@ -46,6 +45,8 @@ import { TypeOrder } from '../model/object_value';
 import { ResourcePath } from '../model/path';
 import { isValidResourceName } from '../remote/serializer';
 import { logError } from '../util/log';
+import { ByteString } from '../util/byte_string';
+import { Bytes } from '../../lite/src/api/bytes';
 
 export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 
@@ -60,7 +61,8 @@ export class UserDataWriter {
     private readonly serverTimestampBehavior: ServerTimestampBehavior,
     private readonly referenceFactory: (
       key: DocumentKey
-    ) => DocumentKeyReference<DocumentData>
+    ) => DocumentKeyReference<DocumentData>,
+    private readonly bytesFactory: (bytes: ByteString) => Bytes
   ) {}
 
   convertValue(value: ProtoValue): unknown {
@@ -78,7 +80,7 @@ export class UserDataWriter {
       case TypeOrder.StringValue:
         return value.stringValue!;
       case TypeOrder.BlobValue:
-        return new Blob(normalizeByteString(value.bytesValue!));
+        return this.bytesFactory(normalizeByteString(value.bytesValue!));
       case TypeOrder.RefValue:
         return this.convertReference(value.referenceValue!);
       case TypeOrder.GeoPointValue:

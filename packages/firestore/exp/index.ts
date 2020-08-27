@@ -91,7 +91,7 @@ export {
 
 export { setLogLevel } from '../src/util/log';
 
-export { Blob } from '../src/api/blob';
+export { Bytes } from '../lite/src/api/bytes';
 
 export { writeBatch } from './src/api/write_batch';
 
