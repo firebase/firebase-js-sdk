@@ -109,8 +109,8 @@ export class DocumentReference<T = firestore.DocumentData>
   get parent(): CollectionReference<T> {
     return new CollectionReference<T>(
       this.firestore,
-      this._key.path.popLast(),
-      this._converter
+      this._converter,
+      this._key.path.popLast()
     );
   }
 
@@ -122,8 +122,8 @@ export class DocumentReference<T = firestore.DocumentData>
     validateCollectionPath(absolutePath);
     return new CollectionReference(
       this.firestore,
-      absolutePath,
-      /* converter= */ null
+      /* converter= */ null,
+      absolutePath
     );
   }
 
@@ -389,8 +389,8 @@ export class CollectionReference<T = firestore.DocumentData>
 
   constructor(
     readonly firestore: Firestore,
-    readonly _path: ResourcePath,
-    converter: firestore.FirestoreDataConverter<T> | null
+    converter: firestore.FirestoreDataConverter<T> | null,
+    readonly _path: ResourcePath
   ) {
     super(firestore, converter, newQueryForPath(_path));
   }
@@ -431,7 +431,7 @@ export class CollectionReference<T = firestore.DocumentData>
   withConverter<U>(
     converter: firestore.FirestoreDataConverter<U>
   ): firestore.CollectionReference<U> {
-    return new CollectionReference<U>(this.firestore, this._path, converter);
+    return new CollectionReference<U>(this.firestore, converter, this._path);
   }
 }
 
@@ -458,7 +458,7 @@ export function collection(
   if (parent instanceof Firestore) {
     const absolutePath = ResourcePath.fromString(relativePath);
     validateCollectionPath(absolutePath);
-    return new CollectionReference(parent, absolutePath, /* converter= */ null);
+    return new CollectionReference(parent, /* converter= */ null, absolutePath);
   } else {
     if (
       !(parent instanceof DocumentReference) &&
@@ -476,8 +476,8 @@ export function collection(
     validateCollectionPath(absolutePath);
     return new CollectionReference(
       parent.firestore,
-      absolutePath,
-      /* converter= */ null
+      /* converter= */ null,
+      absolutePath
     );
   }
 }
