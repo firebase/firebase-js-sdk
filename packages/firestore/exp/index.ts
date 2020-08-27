@@ -51,7 +51,6 @@ export {
   doc,
   collection,
   collectionGroup,
-  parent,
   startAt,
   startAfter,
   endAt,
