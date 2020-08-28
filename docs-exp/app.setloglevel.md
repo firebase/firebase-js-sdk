@@ -11,14 +11,14 @@ All of the log types above the current log level are captured (i.e. if you set t
 <b>Signature:</b>
 
 ```typescript
-export declare function setLogLevel(logLevel: LogLevel): void;
+export declare function setLogLevel(logLevel: LogLevelString): void;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  logLevel | LogLevel |  |
+|  logLevel | LogLevelString |  |
 
 <b>Returns:</b>
 
