@@ -22,11 +22,7 @@ import { _FirebaseService, FirebaseApp } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
 
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import {
-  enqueueNetworkEnabled,
-  enqueueWaitForPendingWrites,
-  MAX_CONCURRENT_LIMBO_RESOLUTIONS
-} from '../../../src/core/firestore_client';
+import { MAX_CONCURRENT_LIMBO_RESOLUTIONS } from '../../../src/core/firestore_client';
 import {
   AsyncQueue,
   wrapInUserErrorIfRecoverable
@@ -62,6 +58,7 @@ import { AutoId } from '../../../src/util/misc';
 import { User } from '../../../src/auth/user';
 import { CredentialChangeListener } from '../../../src/api/credentials';
 import { logDebug } from '../../../src/util/log';
+import { registerPendingWritesCallback } from '../../../src/core/sync_engine';
 
 const LOG_TAG = 'Firestore';
 
@@ -157,6 +154,15 @@ export class Firestore
     });
     return deferred.promise;
   }
+
+  _verifyNotTerminated(): void {
+    if (this._terminated) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'The client has already been terminated.'
+      );
+    }
+  }
 }
 
 export function initializeFirestore(
@@ -199,17 +205,19 @@ export function enableIndexedDbPersistence(
   // `getOnlineComponentProvider()`
   const settings = firestoreImpl._getSettings();
 
-  // TODO(firestoreexp): Add forceOwningTab
-  return setOfflineComponentProvider(
-    firestoreImpl,
-    {
-      durable: true,
-      synchronizeTabs: false,
-      cacheSizeBytes:
-        settings.cacheSizeBytes || LruParams.DEFAULT_CACHE_SIZE_BYTES,
-      forceOwningTab: false
-    },
-    new IndexedDbOfflineComponentProvider()
+  return firestoreImpl._queue.enqueue(() =>
+    // TODO(firestoreexp): Add forceOwningTab
+    setOfflineComponentProvider(
+      firestoreImpl,
+      {
+        durable: true,
+        synchronizeTabs: false,
+        cacheSizeBytes:
+          settings.cacheSizeBytes || LruParams.DEFAULT_CACHE_SIZE_BYTES,
+        forceOwningTab: false
+      },
+      new IndexedDbOfflineComponentProvider()
+    )
   );
 }
 
@@ -229,19 +237,20 @@ export function enableMultiTabIndexedDbPersistence(
   const offlineComponentProvider = new MultiTabOfflineComponentProvider(
     onlineComponentProvider
   );
-  return setOfflineComponentProvider(
-    firestoreImpl,
-    {
-      durable: true,
-      synchronizeTabs: true,
-      cacheSizeBytes:
-        settings.cacheSizeBytes || LruParams.DEFAULT_CACHE_SIZE_BYTES,
-      forceOwningTab: false
-    },
-    offlineComponentProvider
-  ).then(() =>
-    setOnlineComponentProvider(firestoreImpl, onlineComponentProvider)
-  );
+  return firestoreImpl._queue.enqueue(async () => {
+    await setOfflineComponentProvider(
+      firestoreImpl,
+      {
+        durable: true,
+        synchronizeTabs: true,
+        cacheSizeBytes:
+          settings.cacheSizeBytes || LruParams.DEFAULT_CACHE_SIZE_BYTES,
+        forceOwningTab: false
+      },
+      offlineComponentProvider
+    );
+    await setOnlineComponentProvider(firestoreImpl, onlineComponentProvider);
+  });
 }
 
 export function clearIndexedDbPersistence(
@@ -277,43 +286,42 @@ export function waitForPendingWrites(
   firestore: firestore.FirebaseFirestore
 ): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
-  return getSyncEngine(firestoreImpl).then(syncEngine =>
-    enqueueWaitForPendingWrites(firestoreImpl._queue, syncEngine)
-  );
+  firestoreImpl._verifyNotTerminated();
+
+  const deferred = new Deferred<void>();
+  firestoreImpl._queue.enqueueAndForget(async () => {
+    const syncEngine = await getSyncEngine(firestoreImpl);
+    return registerPendingWritesCallback(syncEngine, deferred);
+  });
+  return deferred.promise;
 }
 
 export function enableNetwork(
   firestore: firestore.FirebaseFirestore
 ): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
-  return Promise.all([
-    getRemoteStore(firestoreImpl),
-    getPersistence(firestoreImpl)
-  ]).then(([remoteStore, persistence]) =>
-    enqueueNetworkEnabled(
-      firestoreImpl._queue,
-      remoteStore,
-      persistence,
-      /* enabled= */ true
-    )
-  );
+  firestoreImpl._verifyNotTerminated();
+
+  return firestoreImpl._queue.enqueue(async () => {
+    const remoteStore = await getRemoteStore(firestoreImpl);
+    const persistence = await getPersistence(firestoreImpl);
+    persistence.setNetworkEnabled(true);
+    return remoteStore.enableNetwork();
+  });
 }
 
 export function disableNetwork(
   firestore: firestore.FirebaseFirestore
 ): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
-  return Promise.all([
-    getRemoteStore(firestoreImpl),
-    getPersistence(firestoreImpl)
-  ]).then(([remoteStore, persistence]) =>
-    enqueueNetworkEnabled(
-      firestoreImpl._queue,
-      remoteStore,
-      persistence,
-      /* enabled= */ false
-    )
-  );
+  firestoreImpl._verifyNotTerminated();
+
+  return firestoreImpl._queue.enqueue(async () => {
+    const remoteStore = await getRemoteStore(firestoreImpl);
+    const persistence = await getPersistence(firestoreImpl);
+    persistence.setNetworkEnabled(false);
+    return remoteStore.disableNetwork();
+  });
 }
 
 export function terminate(
@@ -325,7 +333,7 @@ export function terminate(
 }
 
 function verifyNotInitialized(firestore: Firestore): void {
-  if (firestore._initialized) {
+  if (firestore._initialized || firestore._terminated) {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
       'Firestore has already been started and persistence can no longer be ' +
