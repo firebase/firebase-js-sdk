@@ -28,8 +28,9 @@
   },
   "scripts": {
     "build": "rollup -c && gulp firebase-js && yarn build:compat",
-    "build:release": "rollup -c rollup.config.release.js && gulp firebase-js && yarn build:compat",
+    "build:release": "rollup -c rollup.config.release.js && gulp firebase-js && yarn build:compat:release",
     "build:compat": "rollup -c compat/rollup.config.js",
+    "build:compat:release": "rollup -c compat/rollup.config.release.js",
     "dev": "rollup -c -w",
     "prepare": "yarn build:release",
     "test": "echo 'No test suite for firebase wrapper'",
