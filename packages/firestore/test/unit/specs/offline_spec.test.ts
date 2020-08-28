@@ -245,12 +245,15 @@ describeSpec('Offline:', [], () => {
     // `Unknown` during a credential change.
 
     const query1 = query('collection');
-    return spec()
-      .disableNetwork()
-      .changeUser('user1')
-      .userListens(query1)
-      .expectEvents(query1, {
-        fromCache: true
-      });
+    return (
+      spec()
+        .disableNetwork()
+        .changeUser('user1')
+        .userListens(query1)
+        // Client is still offline and we raise a `fromCache` event immediately
+        .expectEvents(query1, {
+          fromCache: true
+        })
+    );
   });
 });
