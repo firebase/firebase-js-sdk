@@ -19,7 +19,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "firebase": "7.19.0",
+    "firebase": "7.19.1",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "0.3.1",
     "request": "2.88.2"

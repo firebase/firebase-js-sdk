@@ -156,6 +156,16 @@ async function buildPackages() {
     }
   );
 
+  // Build compat packages
+  await spawn(
+    'yarn',
+    ['lerna', 'run', '--scope', '@firebase/*-compat', 'build'],
+    {
+      cwd: projectRoot,
+      stdio: 'inherit'
+    }
+  );
+
   // Build firebase-exp
   await spawn(
     'yarn',

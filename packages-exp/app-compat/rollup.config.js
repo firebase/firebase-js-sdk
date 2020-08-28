@@ -29,7 +29,8 @@ const deps = Object.keys(
  */
 const es5BuildPlugins = [
   typescriptPlugin({
-    typescript
+    typescript,
+    abortOnError: false
   }),
   json()
 ];
@@ -62,6 +63,7 @@ const es5Builds = [
 const es2017BuildPlugins = [
   typescriptPlugin({
     typescript,
+    abortOnError: false,
     tsconfigOverride: {
       compilerOptions: {
         target: 'es2017'
