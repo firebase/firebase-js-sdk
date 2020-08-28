@@ -239,4 +239,22 @@ describeSpec('Offline:', [], () => {
       );
     }
   );
+
+  specTest(
+    'Client stays offline during credential change',
+    ['exclusive'],
+    () => {
+      // Reproduces a bug that caused the client to switch to OnlineState
+      // `Unknown` during a credential change.
+
+      const query1 = query('collection');
+      return spec()
+        .disableNetwork()
+        .changeUser('user1')
+        .userListens(query1)
+        .expectEvents(query1, {
+          fromCache: true
+        });
+    }
+  );
 });
