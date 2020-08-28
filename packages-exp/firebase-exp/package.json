@@ -42,7 +42,7 @@
     "@firebase/firestore": "1.16.6"
   },
   "devDependencies": {
-    "rollup": "2.26.5",
+    "rollup": "2.26.7",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-license": "2.2.0",
     "rollup-plugin-node-resolve": "5.2.0",
