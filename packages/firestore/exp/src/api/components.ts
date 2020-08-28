@@ -98,7 +98,7 @@ export async function setOnlineComponentProvider(
   // The CredentialChangeListener of the online component provider takes
   // precedence over the offline component provider.
   firestore._setCredentialChangeListener(user =>
-    // TODO(firestoreexp): This should be enqueue retryable.
+    // TODO(firestoreexp): This should be enqueueRetryable.
     firestore._queue.enqueueAndForget(() =>
       onlineComponentProvider.remoteStore.handleCredentialChange(user)
     )
