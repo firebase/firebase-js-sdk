@@ -24,19 +24,29 @@ import { stub } from 'sinon';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const config = require('../../../../config/project.json');
 
+const RETRY_INTERVAL = 1000;
+
 describe('FirebaseAnalytics Integration Smoke Tests', () => {
   afterEach(() => firebase.app().delete());
   it('logEvent() sends correct network request.', async () => {
     firebase.initializeApp(config);
     firebase.analytics().logEvent('login');
-    await new Promise(resolve => setTimeout(resolve, 10000));
-    const resources = performance.getEntriesByType('resource');
-    const callsWithEvent = resources.filter(
-      resource =>
-        resource.name.includes('google-analytics.com') &&
-        resource.name.includes('en=login')
-    );
-    expect(callsWithEvent.length).to.equal(1);
+    async function checkForEventCalls(): Promise<number> {
+      await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+      const resources = performance.getEntriesByType('resource');
+      const callsWithEvent = resources.filter(
+        resource =>
+          resource.name.includes('google-analytics.com') &&
+          resource.name.includes('en=login')
+      );
+      if (callsWithEvent.length === 0) {
+        return checkForEventCalls();
+      } else {
+        return callsWithEvent.length;
+      }
+    }
+    const eventCallCount = await checkForEventCalls();
+    expect(eventCallCount).to.equal(1);
   });
   it("Warns if measurement ID doesn't match.", done => {
     const warnStub = stub(console, 'warn').callsFake(() => {
