@@ -16,6 +16,7 @@ export class CollectionReference<T = DocumentData> extends Query<T>
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [id](./firestore_lite.collectionreference.id.md) |  | string |  |
+|  [parent](./firestore_lite.collectionreference.parent.md) |  | [DocumentReference](./firestore_lite.documentreference.md)<!-- -->&lt;[DocumentData](./firestore_lite.documentdata.md)<!-- -->&gt; \| null |  |
 |  [path](./firestore_lite.collectionreference.path.md) |  | string |  |
 |  [type](./firestore_lite.collectionreference.type.md) |  | 'collection' |  |
 
@@ -23,5 +24,6 @@ export class CollectionReference<T = DocumentData> extends Query<T>
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
+|  [doc(documentPath)](./firestore_lite.collectionreference.doc.md) |  |  |
 |  [withConverter(converter)](./firestore_lite.collectionreference.withconverter.md) |  |  |
 

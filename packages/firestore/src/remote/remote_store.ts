@@ -791,21 +791,24 @@ export class RemoteStore implements TargetMetadataProvider {
 
   async handleCredentialChange(user: User): Promise<void> {
     this.asyncQueue.verifyOperationInProgress();
-
-    // Tear down and re-create our network streams. This will ensure we get a
-    // fresh auth token for the new user and re-fill the write pipeline with
-    // new mutations from the LocalStore (since mutations are per-user).
-    logDebug(LOG_TAG, 'RemoteStore received new credentials');
-    this.offlineCauses.add(OfflineCause.CredentialChange);
-
-    await this.disableNetworkInternal();
-    this.onlineStateTracker.set(OnlineState.Unknown);
     debugAssert(
       !!this.remoteSyncer.handleCredentialChange,
       'handleCredentialChange() not set'
     );
-    await this.remoteSyncer.handleCredentialChange(user);
 
+    logDebug(LOG_TAG, 'RemoteStore received new credentials');
+    const canUseNetwork = this.canUseNetwork();
+
+    // Tear down and re-create our network streams. This will ensure we get a
+    // fresh auth token for the new user and re-fill the write pipeline with
+    // new mutations from the LocalStore (since mutations are per-user).
+    this.offlineCauses.add(OfflineCause.CredentialChange);
+    await this.disableNetworkInternal();
+    if (canUseNetwork) {
+      // Don't set the network status to Unknown if we are offline.
+      this.onlineStateTracker.set(OnlineState.Unknown);
+    }
+    await this.remoteSyncer.handleCredentialChange(user);
     this.offlineCauses.delete(OfflineCause.CredentialChange);
     await this.enableNetworkInternal();
   }
