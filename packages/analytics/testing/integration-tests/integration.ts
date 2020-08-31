@@ -36,7 +36,7 @@ describe('FirebaseAnalytics Integration Smoke Tests', () => {
         resource.name.includes('google-analytics.com') &&
         resource.name.includes('en=login')
     );
-    expect(callsWithEvent.length).to.be.at.least(1);
+    expect(callsWithEvent.length).to.equal(1);
   });
   it("Warns if measurement ID doesn't match.", done => {
     const warnStub = stub(console, 'warn').callsFake(() => {
