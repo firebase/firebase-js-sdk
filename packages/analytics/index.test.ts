@@ -124,7 +124,7 @@ describe('FirebaseAnalytics instance tests', () => {
       const clock = useFakeTimers();
       const warnStub = stub(console, 'warn');
       const idbOpenStub = stub(window, 'indexedDB').value({
-        open: Promise.reject()
+        open: stub().throws('idb open throw message')
       });
       const app = getFakeApp({
         appId: fakeAppParams.appId,
@@ -136,6 +136,7 @@ describe('FirebaseAnalytics instance tests', () => {
       expect(warnStub.args[0][1]).to.include(
         AnalyticsError.INVALID_INDEXED_DB_CONTEXT
       );
+      expect(warnStub.args[0][1]).to.include('idb open throw message');
       warnStub.restore();
       idbOpenStub.restore();
       fetchStub.restore();
