@@ -123,9 +123,9 @@ describe('FirebaseAnalytics instance tests', () => {
       stubFetch(200, { measurementId: fakeMeasurementId });
       const clock = useFakeTimers();
       const warnStub = stub(console, 'warn');
-      const idbOpenStub = stub(window, 'indexedDB').value({
-        open: stub().throws('idb open throw message')
-      });
+      const idbOpenStub = stub(indexedDB, 'open').throws(
+        'idb open throw message'
+      );
       const app = getFakeApp({
         appId: fakeAppParams.appId,
         apiKey: fakeAppParams.apiKey
