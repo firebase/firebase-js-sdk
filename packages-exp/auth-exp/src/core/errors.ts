@@ -19,8 +19,8 @@
 import * as externs from '@firebase/auth-types-exp';
 import { ErrorFactory, ErrorMap } from '@firebase/util';
 
-import { AppName } from '../model/auth';
 import { IdTokenMfaResponse } from '../api/authentication/mfa';
+import { AppName } from '../model/auth';
 
 /*
  * Developer facing Firebase Auth error codes.
@@ -40,6 +40,7 @@ export const enum AuthErrorCode {
   DYNAMIC_LINK_NOT_ACTIVATED = 'dynamic-link-not-activated',
   EMAIL_CHANGE_NEEDS_VERIFICATION = 'email-change-needs-verification',
   EMAIL_EXISTS = 'email-already-in-use',
+  EMULATOR_CONFIG_FAILED = 'emulator-config-failed',
   EXPIRED_OOB_CODE = 'expired-action-code',
   EXPIRED_POPUP_REQUEST = 'cancelled-popup-request',
   INTERNAL_ERROR = 'internal-error',
@@ -154,6 +155,10 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
     'Multi-factor users must always have a verified email.',
   [AuthErrorCode.EMAIL_EXISTS]:
     'The email address is already in use by another account.',
+  [AuthErrorCode.EMULATOR_CONFIG_FAILED]:
+    'Auth instance has already been used to make a network call. Auth can ' +
+    'no longer be configured to use the emulator. Try calling ' +
+    '"useEmulator()" sooner.',
   [AuthErrorCode.EXPIRED_OOB_CODE]: 'The action code has expired.',
   [AuthErrorCode.EXPIRED_POPUP_REQUEST]:
     'This operation has been cancelled due to another conflicting popup being opened.',

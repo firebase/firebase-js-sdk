@@ -63,6 +63,10 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
   private idTokenSubscription = new Subscription<T>(this);
   private redirectUser: T | null = null;
   private isProactiveRefreshEnabled = false;
+
+  // Any network calls will set this to true and prevent subsequent emulator
+  // initialization
+  _canInitEmulator = true;
   _isInitialized = false;
   _initializationPromise: Promise<void> | null = null;
   _popupRedirectResolver: PopupRedirectResolver | null = null;
