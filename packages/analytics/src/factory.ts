@@ -162,9 +162,8 @@ export function factory(
   if (!areCookiesEnabled()) {
     throw ERROR_FACTORY.create(AnalyticsError.COOKIES_NOT_ENABLED);
   }
-  const appId = app.options.appId;
-  if (!appId) {
-    throw ERROR_FACTORY.create(AnalyticsError.NO_APP_ID);
+  if (!isIndexedDBAvailable()) {
+    throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
   }
   // Async but non-blocking.
   validateIndexedDBOpenable().catch(error => {
@@ -176,6 +175,10 @@ export function factory(
     );
     logger.warn(analyticsError.message);
   });
+  const appId = app.options.appId;
+  if (!appId) {
+    throw ERROR_FACTORY.create(AnalyticsError.NO_APP_ID);
+  }
   if (!app.options.apiKey) {
     if (app.options.measurementId) {
       logger.warn(
