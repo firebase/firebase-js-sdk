@@ -26,7 +26,7 @@ import {
 } from '../../api/authentication/sms';
 import { AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import { AuthCredential } from './';
+import { AuthCredential } from './auth_credential';
 
 export interface PhoneAuthCredentialParameters {
   verificationId?: string;

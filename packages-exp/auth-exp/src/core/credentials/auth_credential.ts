@@ -18,7 +18,6 @@
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import { AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import { EmailAuthCredential, OAuthCredential, PhoneAuthCredential } from './';
 import { debugFail } from '../util/assert';
 
 export class AuthCredential {
@@ -26,21 +25,6 @@ export class AuthCredential {
     readonly providerId: string,
     readonly signInMethod: string
   ) {}
-
-  static fromJSON(json: object | string): AuthCredential | null {
-    for (const fn of [
-      /* SAMLAuthCredential.fromJSON, */
-      OAuthCredential.fromJSON,
-      EmailAuthCredential.fromJSON,
-      PhoneAuthCredential.fromJSON
-    ]) {
-      const credential = fn(json);
-      if (credential) {
-        return credential;
-      }
-    }
-    return null;
-  }
 
   toJSON(): object {
     return debugFail('not implemented');
