@@ -23,10 +23,10 @@ import {
   SignInWithIdpRequest
 } from '../../api/authentication/idp';
 import { AuthCore } from '../../model/auth';
+import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { fail } from '../util/assert';
-import { AuthCredential } from './';
-import { IdTokenResponse } from '../../model/id_token';
+import { AuthCredential } from './auth_credential';
 
 const IDP_REQUEST_URI = 'http://localhost';
 
