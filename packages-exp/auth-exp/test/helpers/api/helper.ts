@@ -19,7 +19,7 @@ import { Endpoint } from '../../../src/api';
 import { TEST_HOST, TEST_KEY, TEST_SCHEME } from '../mock_auth';
 import { mock, Route } from '../mock_fetch';
 
-export function endpointUrl(endpoint: Endpoint):string {
+export function endpointUrl(endpoint: Endpoint): string {
   return `${TEST_SCHEME}://${TEST_HOST}${endpoint}?key=${TEST_KEY}`;
 }
 
@@ -28,9 +28,5 @@ export function mockEndpoint(
   response: object,
   status = 200
 ): Route {
-  return mock(
-    endpointUrl(endpoint),
-    response,
-    status
-  );
+  return mock(endpointUrl(endpoint), response, status);
 }

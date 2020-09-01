@@ -117,7 +117,7 @@ export const enum AuthErrorCode {
   USER_MISMATCH = 'user-mismatch',
   USER_SIGNED_OUT = 'user-signed-out',
   WEAK_PASSWORD = 'weak-password',
-  WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported',
+  WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported'
 }
 
 const ERRORS: ErrorMap<AuthErrorCode> = {

@@ -17,23 +17,11 @@
 
 import { FirebaseError, querystring } from '@firebase/util';
 
-<<<<<<< HEAD
-import {
-  AUTH_ERROR_FACTORY,
-  AuthErrorCode,
-  NamedErrorParams
-} from '../core/errors';
-import { fail } from '../core/util/assert';
-import { Delay } from '../core/util/delay';
-import { FetchProvider } from '../core/util/fetch_provider';
-import { AuthCore } from '../model/auth';
-=======
 import { AUTH_ERROR_FACTORY, AuthErrorCode, NamedErrorParams } from '../core/errors';
 import { fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { FetchProvider } from '../core/util/fetch_provider';
 import { Auth, AuthCore } from '../model/auth';
->>>>>>> be103af54 (Add hooks into emulator for auth-next)
 import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
@@ -107,7 +95,10 @@ export async function _performApiRequest<T, V>(
     }
 
     return FetchProvider.fetch()(
-      _getFinalTarget(auth, `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${query}`),
+      _getFinalTarget(
+        auth,
+        `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${query}`
+      ),
       {
         method,
         headers,
@@ -193,7 +184,7 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
 }
 
 export function _getFinalTarget(auth: AuthCore, url: string): string {
-  const {emulator} = auth.config;
+  const { emulator } = auth.config;
   if (!emulator) {
     return url;
   }

@@ -39,7 +39,7 @@ export function initializeAuth(
 export function useEmulator(
   authExtern: externs.Auth,
   hostname: string,
-  port: number,
+  port: number
 ): void {
   const auth = _castAuth(authExtern);
   if (!auth._canInitEmulator) {

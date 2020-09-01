@@ -38,7 +38,13 @@ describe('core/auth/initialize', () => {
     user = testUser(_castAuth(auth), 'uid', 'email', true);
     fetch.setUp();
     normalEndpoint = mockEndpoint(Endpoint.DELETE_ACCOUNT, {});
-    emulatorEndpoint = fetch.mock(`http://localhost:2020/${endpointUrl(Endpoint.DELETE_ACCOUNT).replace(/^.*:\/\//, '')}`, {});
+    emulatorEndpoint = fetch.mock(
+      `http://localhost:2020/${endpointUrl(Endpoint.DELETE_ACCOUNT).replace(
+        /^.*:\/\//,
+        ''
+      )}`,
+      {}
+    );
   });
 
   afterEach(() => {
@@ -48,7 +54,10 @@ describe('core/auth/initialize', () => {
   context('useEmulator', () => {
     it('fails if a network request has already been made', async () => {
       await user.delete();
-      expect(() => useEmulator(auth, 'localhost', 2020)).to.throw(FirebaseError, 'auth/emulator-config-failed');
+      expect(() => useEmulator(auth, 'localhost', 2020)).to.throw(
+        FirebaseError,
+        'auth/emulator-config-failed'
+      );
     });
 
     it('updates the endpoint appropriately', async () => {

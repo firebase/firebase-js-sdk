@@ -29,7 +29,7 @@ interface ConfigInternal extends externs.Config {
   emulator?: {
     hostname: string;
     port: number;
-  }
+  };
 }
 
 /**
