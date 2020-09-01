@@ -45,7 +45,7 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
     DEFAULT_SETTINGS.host!,
     !!DEFAULT_SETTINGS.ssl,
     !!DEFAULT_SETTINGS.experimentalForceLongPolling,
-    /*experimentalAutodetectLongPolling=*/ true
+    !!DEFAULT_SETTINGS.experimentalAutodetectLongPolling
   );
 }
 
