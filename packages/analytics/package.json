@@ -15,8 +15,9 @@
     "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/analytics --include-dependencies build",
     "dev": "rollup -c -w",
-    "test": "run-p lint test:browser test:integration",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
+    "test": "run-p lint test:all",
+    "test:all": "run-p test:browser test:integration",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "karma start --single-run --nocache",
     "test:integration": "karma start ./karma.integration.conf.js --single-run --nocache",
     "prepare": "yarn build"
