@@ -25,7 +25,10 @@ import { Delay } from '../../core/util/delay';
 import { _generateEventId } from '../../core/util/event_id';
 import { _getInstance } from '../../core/util/instantiator';
 import { Auth } from '../../model/auth';
-import { AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import {
+  AuthEventType,
+  PopupRedirectResolver
+} from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import { AuthPopup } from '../util/popup';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
@@ -39,7 +42,9 @@ export async function signInWithPopup(
   provider: externs.AuthProvider,
   resolverExtern: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
-  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {appName: auth.name});
+  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
+    appName: auth.name
+  });
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
   const action = new PopupOperation(
@@ -57,7 +62,9 @@ export async function reauthenticateWithPopup(
   resolverExtern: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
   const user = userExtern as User;
-  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {appName: user.auth.name});
+  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
+    appName: user.auth.name
+  });
 
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
@@ -77,7 +84,9 @@ export async function linkWithPopup(
   resolverExtern: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
   const user = userExtern as User;
-  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {appName: user.auth.name});
+  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
+    appName: user.auth.name
+  });
 
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 

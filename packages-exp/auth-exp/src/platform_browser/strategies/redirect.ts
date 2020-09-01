@@ -25,7 +25,11 @@ import { assert } from '../../core/util/assert';
 import { _generateEventId } from '../../core/util/event_id';
 import { _getInstance } from '../../core/util/instantiator';
 import { Auth } from '../../model/auth';
-import { AuthEvent, AuthEventType, PopupRedirectResolver } from '../../model/popup_redirect';
+import {
+  AuthEvent,
+  AuthEventType,
+  PopupRedirectResolver
+} from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 
@@ -34,7 +38,9 @@ export async function signInWithRedirect(
   provider: externs.AuthProvider,
   resolverExtern: externs.PopupRedirectResolver
 ): Promise<never> {
-  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {appName: auth.name});
+  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
+    appName: auth.name
+  });
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
   return resolver._openRedirect(
@@ -50,7 +56,9 @@ export async function reauthenticateWithRedirect(
   resolverExtern: externs.PopupRedirectResolver
 ): Promise<never> {
   const user = userExtern as User;
-  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {appName: user.auth.name});
+  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
+    appName: user.auth.name
+  });
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
   const eventId = await prepareUserForRedirect(user.auth, user);
@@ -68,7 +76,9 @@ export async function linkWithRedirect(
   resolverExtern: externs.PopupRedirectResolver
 ): Promise<never> {
   const user = userExtern as User;
-  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {appName: user.auth.name});
+  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
+    appName: user.auth.name
+  });
   const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
   await _assertLinkedStatus(false, user, provider.providerId);
