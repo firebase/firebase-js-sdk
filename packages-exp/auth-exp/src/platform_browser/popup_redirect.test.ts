@@ -24,12 +24,20 @@ import { SDK_VERSION } from '@firebase/app-exp';
 import { Config, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { TEST_AUTH_DOMAIN, TEST_KEY, testAuth, TestAuth } from '../../test/helpers/mock_auth';
+import {
+  TEST_AUTH_DOMAIN,
+  TEST_KEY,
+  testAuth,
+  TestAuth
+} from '../../test/helpers/mock_auth';
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { OAuthProvider } from '../core/providers/oauth';
 import { SingletonInstantiator } from '../core/util/instantiator';
 import {
-    AuthEvent, AuthEventType, GapiAuthEvent, PopupRedirectResolver
+  AuthEvent,
+  AuthEventType,
+  GapiAuthEvent,
+  PopupRedirectResolver
 } from '../model/popup_redirect';
 import * as authWindow from './auth_window';
 import * as gapiLoader from './iframe/gapi';

@@ -44,9 +44,13 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
       MultiFactorInfo._fromServerResponse(auth, enrollment)
     );
 
-    assert(error.serverResponse.mfaPendingCredential, AuthErrorCode.INTERNAL_ERROR, {appName: auth.name});
-    const session = MultiFactorSession._fromMfaPendingCredential(
+    assert(
       error.serverResponse.mfaPendingCredential,
+      AuthErrorCode.INTERNAL_ERROR,
+      { appName: auth.name }
+    );
+    const session = MultiFactorSession._fromMfaPendingCredential(
+      error.serverResponse.mfaPendingCredential
     );
 
     return new MultiFactorResolver(

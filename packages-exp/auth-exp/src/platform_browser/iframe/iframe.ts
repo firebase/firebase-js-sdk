@@ -54,7 +54,7 @@ export async function _openIframe(
 ): Promise<gapi.iframes.Iframe> {
   const context = await gapiLoader._loadGapi(auth);
   const gapi = _window().gapi;
-  assert(gapi, AuthErrorCode.INTERNAL_ERROR, {appName: auth.name});
+  assert(gapi, AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
   return context.open(
     {
       where: document.body,

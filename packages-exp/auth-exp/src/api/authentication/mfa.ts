@@ -20,7 +20,10 @@ import { AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { MfaEnrollment } from '../account_management/mfa';
 import { SignInWithIdpResponse } from './idp';
-import { SignInWithPhoneNumberRequest, SignInWithPhoneNumberResponse } from './sms';
+import {
+  SignInWithPhoneNumberRequest,
+  SignInWithPhoneNumberResponse
+} from './sms';
 
 export interface FinalizeMfaResponse {
   idToken: string;
