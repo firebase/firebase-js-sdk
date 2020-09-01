@@ -24,7 +24,8 @@ import { User } from '../model/user';
 import { AuthCredential } from '../core/credentials';
 import { IdTokenMfaResponse } from '../api/authentication/mfa';
 
-export class MultiFactorError extends FirebaseError
+export class MultiFactorError
+  extends FirebaseError
   implements externs.MultiFactorError {
   readonly name = 'FirebaseError';
   readonly code: string;
