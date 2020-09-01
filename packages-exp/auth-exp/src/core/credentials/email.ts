@@ -20,14 +20,13 @@ import * as externs from '@firebase/auth-types-exp';
 import { updateEmailPassword } from '../../api/account_management/email_and_password';
 import { signInWithPassword } from '../../api/authentication/email_and_password';
 import {
-  signInWithEmailLink,
-  signInWithEmailLinkForLinking
+    signInWithEmailLink, signInWithEmailLinkForLinking
 } from '../../api/authentication/email_link';
 import { AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { fail } from '../util/assert';
-import { AuthCredential } from './';
+import { AuthCredential } from './auth_credential';
 
 export class EmailAuthCredential
   extends AuthCredential

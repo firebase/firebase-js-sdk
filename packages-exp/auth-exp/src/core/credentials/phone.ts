@@ -19,14 +19,12 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
 import {
-  linkWithPhoneNumber,
-  signInWithPhoneNumber,
-  SignInWithPhoneNumberRequest,
-  verifyPhoneNumberForExisting
+    linkWithPhoneNumber, signInWithPhoneNumber, SignInWithPhoneNumberRequest,
+    verifyPhoneNumberForExisting
 } from '../../api/authentication/sms';
 import { AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
-import { AuthCredential } from './';
+import { AuthCredential } from './auth_credential';
 
 export interface PhoneAuthCredentialParameters {
   verificationId?: string;
