@@ -29,6 +29,9 @@ const RETRY_INTERVAL = 1000;
 describe('FirebaseAnalytics Integration Smoke Tests', () => {
   afterEach(() => firebase.app().delete());
   it('logEvent() sends correct network request.', async () => {
+    console.log('config:');
+    console.log(JSON.stringify(config));
+    console.log(config);
     firebase.initializeApp(config);
     firebase.analytics().logEvent('login');
     async function checkForEventCalls(): Promise<number> {
