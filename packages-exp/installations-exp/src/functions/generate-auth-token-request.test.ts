@@ -19,7 +19,6 @@ import { FirebaseError } from '@firebase/util';
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import { GenerateAuthTokenResponse } from '../interfaces/api-response';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
 import {
   CompletedAuthToken,
   RegisteredInstallationEntry,
@@ -35,11 +34,12 @@ import {
 } from '../util/constants';
 import { ErrorResponse } from './common';
 import { generateAuthTokenRequest } from './generate-auth-token-request';
+import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 
 const FID = 'evil-has-no-boundaries';
 
 describe('generateAuthTokenRequest', () => {
-  let installations: FirebaseInstallations;
+  let installations: FirebaseInstallationsImpl;
   let fetchSpy: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
   let registeredInstallationEntry: RegisteredInstallationEntry;
   let response: GenerateAuthTokenResponse;

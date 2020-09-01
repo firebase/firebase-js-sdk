@@ -18,7 +18,6 @@
 import { expect } from 'chai';
 import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
 import * as generateAuthTokenRequestModule from '../functions/generate-auth-token-request';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
 import {
   CompletedAuthToken,
   RegisteredInstallationEntry,
@@ -31,6 +30,7 @@ import { TOKEN_EXPIRATION_BUFFER } from '../util/constants';
 import { sleep } from '../util/sleep';
 import { get, set } from './idb-manager';
 import { refreshAuthToken } from './refresh-auth-token';
+import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 
 const FID = 'carry-the-blessed-home';
 const AUTH_TOKEN = 'authTokenFromServer';
@@ -38,9 +38,9 @@ const DB_AUTH_TOKEN = 'authTokenFromDB';
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 describe('refreshAuthToken', () => {
-  let installations: FirebaseInstallations;
+  let installations: FirebaseInstallationsImpl;
   let generateAuthTokenRequestSpy: SinonStub<
-    [FirebaseInstallations, RegisteredInstallationEntry],
+    [FirebaseInstallationsImpl, RegisteredInstallationEntry],
     Promise<CompletedAuthToken>
   >;
 

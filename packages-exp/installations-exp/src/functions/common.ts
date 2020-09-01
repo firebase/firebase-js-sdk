@@ -17,7 +17,6 @@
 
 import { FirebaseError } from '@firebase/util';
 import { GenerateAuthTokenResponse } from '../interfaces/api-response';
-import { AppConfig } from '@firebase/installations-types-exp';
 import {
   CompletedAuthToken,
   RegisteredInstallationEntry,
@@ -28,6 +27,7 @@ import {
   INTERNAL_AUTH_VERSION
 } from '../util/constants';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { AppConfig } from '../interfaces/installation-impl';
 
 export function getInstallationsEndpoint({ projectId }: AppConfig): string {
   return `${INSTALLATIONS_API_URL}/projects/${projectId}/installations`;

@@ -23,9 +23,9 @@ import {
 } from '@firebase/component';
 import { extractAppConfig } from '../helpers/extract-app-config';
 import {
-  FirebaseInstallations,
+  FirebaseInstallationsImpl,
   AppConfig
-} from '@firebase/installations-types-exp';
+} from '../interfaces/installation-impl';
 
 export function getFakeApp(): FirebaseApp {
   return {
@@ -49,7 +49,7 @@ export function getFakeAppConfig(
   return { ...extractAppConfig(getFakeApp()), ...customValues };
 }
 
-export function getFakeInstallations(): FirebaseInstallations {
+export function getFakeInstallations(): FirebaseInstallationsImpl {
   const container = new ComponentContainer('test');
   container.addComponent(
     new Component(
@@ -60,7 +60,11 @@ export function getFakeInstallations(): FirebaseInstallations {
   );
 
   return {
+    app: getFakeApp(),
     appConfig: getFakeAppConfig(),
-    platformLoggerProvider: container.getProvider('platform-logger')
+    platformLoggerProvider: container.getProvider('platform-logger'),
+    _delete: () => {
+      return Promise.resolve();
+    }
   };
 }

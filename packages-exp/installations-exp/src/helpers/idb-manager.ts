@@ -16,7 +16,7 @@
  */
 
 import { DB, openDb } from 'idb';
-import { AppConfig } from '@firebase/installations-types-exp';
+import { AppConfig } from '../interfaces/installation-impl';
 import { InstallationEntry } from '../interfaces/installation-entry';
 import { getKey } from '../util/get-key';
 import { fidChanged } from './fid-changed';

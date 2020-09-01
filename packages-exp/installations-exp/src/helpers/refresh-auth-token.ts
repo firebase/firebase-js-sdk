@@ -18,8 +18,8 @@
 import { generateAuthTokenRequest } from '../functions/generate-auth-token-request';
 import {
   AppConfig,
-  FirebaseInstallations
-} from '@firebase/installations-types-exp';
+  FirebaseInstallationsImpl
+} from '../interfaces/installation-impl';
 import {
   AuthToken,
   CompletedAuthToken,
@@ -40,7 +40,7 @@ import { remove, set, update } from './idb-manager';
  * Should only be called if the Firebase Installation is registered.
  */
 export async function refreshAuthToken(
-  installations: FirebaseInstallations,
+  installations: FirebaseInstallationsImpl,
   forceRefresh = false
 ): Promise<CompletedAuthToken> {
   let tokenPromise: Promise<CompletedAuthToken> | undefined;
@@ -82,7 +82,7 @@ export async function refreshAuthToken(
  * tries once in this thread as well.
  */
 async function waitUntilAuthTokenRequest(
-  installations: FirebaseInstallations,
+  installations: FirebaseInstallationsImpl,
   forceRefresh: boolean
 ): Promise<CompletedAuthToken> {
   // Unfortunately, there is no way of reliably observing when a value in
@@ -135,7 +135,7 @@ function updateAuthTokenRequest(
 }
 
 async function fetchAuthTokenFromServer(
-  installations: FirebaseInstallations,
+  installations: FirebaseInstallationsImpl,
   installationEntry: RegisteredInstallationEntry
 ): Promise<CompletedAuthToken> {
   try {

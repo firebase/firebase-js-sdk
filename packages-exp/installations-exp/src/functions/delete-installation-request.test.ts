@@ -18,7 +18,7 @@
 import { FirebaseError } from '@firebase/util';
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
-import { AppConfig } from '@firebase/installations-types-exp';
+import { AppConfig } from '../interfaces/installation-impl';
 import {
   RegisteredInstallationEntry,
   RequestStatus

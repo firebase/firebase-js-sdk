@@ -21,10 +21,10 @@ import '../testing/setup';
 import { onIdChange } from './on-id-change';
 import * as FidChangedModule from '../helpers/fid-changed';
 import { getFakeInstallations } from '../testing/fake-generators';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
+import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 
 describe('onIdChange', () => {
-  let installations: FirebaseInstallations;
+  let installations: FirebaseInstallationsImpl;
 
   beforeEach(() => {
     installations = getFakeInstallations();

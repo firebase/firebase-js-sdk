@@ -20,10 +20,6 @@ import { SinonStub, stub } from 'sinon';
 import * as deleteInstallationRequestModule from '../functions/delete-installation-request';
 import { get, set } from '../helpers/idb-manager';
 import {
-  FirebaseInstallations,
-  AppConfig
-} from '@firebase/installations-types-exp';
-import {
   InProgressInstallationEntry,
   RegisteredInstallationEntry,
   RequestStatus,
@@ -34,11 +30,15 @@ import '../testing/setup';
 import { ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';
 import { deleteInstallations } from './delete-installations';
+import {
+  FirebaseInstallationsImpl,
+  AppConfig
+} from '../interfaces/installation-impl';
 
 const FID = 'children-of-the-damned';
 
 describe('deleteInstallation', () => {
-  let installations: FirebaseInstallations;
+  let installations: FirebaseInstallationsImpl;
   let deleteInstallationRequestSpy: SinonStub<
     [AppConfig, RegisteredInstallationEntry],
     Promise<void>

@@ -19,10 +19,10 @@ import { deleteInstallationRequest } from '../functions/delete-installation-requ
 import { remove, update } from '../helpers/idb-manager';
 import { RequestStatus } from '../interfaces/installation-entry';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
+import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 
 export async function deleteInstallations(
-  installations: FirebaseInstallations
+  installations: FirebaseInstallationsImpl
 ): Promise<void> {
   const { appConfig } = installations;
 

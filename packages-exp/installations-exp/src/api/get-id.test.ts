@@ -20,21 +20,21 @@ import { SinonStub, stub } from 'sinon';
 import * as getInstallationEntryModule from '../helpers/get-installation-entry';
 import * as refreshAuthTokenModule from '../helpers/refresh-auth-token';
 import {
-  FirebaseInstallations,
-  AppConfig
-} from '@firebase/installations-types-exp';
-import {
   RegisteredInstallationEntry,
   RequestStatus
 } from '../interfaces/installation-entry';
 import { getFakeInstallations } from '../testing/fake-generators';
 import '../testing/setup';
 import { getId } from './get-id';
+import {
+  FirebaseInstallationsImpl,
+  AppConfig
+} from '../interfaces/installation-impl';
 
 const FID = 'disciples-of-the-watch';
 
 describe('getId', () => {
-  let installations: FirebaseInstallations;
+  let installations: FirebaseInstallationsImpl;
   let getInstallationEntrySpy: SinonStub<
     [AppConfig],
     Promise<getInstallationEntryModule.InstallationEntryWithRegistrationPromise>

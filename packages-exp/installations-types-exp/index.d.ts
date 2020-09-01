@@ -15,43 +15,29 @@
  * limitations under the License.
  */
 
-import { Provider } from '@firebase/component';
-import { FirebaseInstallationsInternal } from '../installations-exp/src/interfaces/installation-internal';
+import { FirebaseInstallationsImpl } from '../installations-exp/src/interfaces/installation-impl';
 
-export interface FirebaseInstallations {
+export interface FirebaseInstallations {}
+
+/**
+ * An interface for Firebase internal SDKs use only.
+ */
+export interface FirebaseInstallationsInternal {
   /**
-   * Firebase APP configurations
+   * Creates a Firebase Installation if there isn't one for the app and
+   * returns the Installation ID.
    */
-  readonly appConfig: AppConfig;
+  getId(): Promise<string>;
+
   /**
-   * Firebase platform logging util.
+   * Returns an Authentication Token for the current Firebase Installation.
    */
-  readonly platformLoggerProvider: Provider<'platform-logger'>;
+  getToken(forceRefresh?: boolean): Promise<string>;
 }
-
-export interface AppConfig {
-  /**
-   * Firebase APP name.
-   */
-  readonly appName: string;
-  /**
-   * Firebase project ID.
-   */
-  readonly projectId: string;
-  /**
-   * Firebase API key.
-   */
-  readonly apiKey: string;
-  /**
-   * Firebase APP ID.
-   */
-  readonly appId: string;
-}
-
-export type FirebaseInstallationsName = 'installations-exp';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'installations-exp': FirebaseInstallationsInternal;
+    'installations-exp': FirebaseInstallationsImpl;
+    'installations-exp-internal': FirebaseInstallationsInternal;
   }
 }

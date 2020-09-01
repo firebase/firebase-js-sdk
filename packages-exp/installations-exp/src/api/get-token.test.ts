@@ -21,10 +21,6 @@ import * as createInstallationRequestModule from '../functions/create-installati
 import * as generateAuthTokenRequestModule from '../functions/generate-auth-token-request';
 import { get, set } from '../helpers/idb-manager';
 import {
-  FirebaseInstallations,
-  AppConfig
-} from '@firebase/installations-types-exp';
-import {
   CompletedAuthToken,
   InProgressInstallationEntry,
   RegisteredInstallationEntry,
@@ -37,6 +33,10 @@ import { TOKEN_EXPIRATION_BUFFER } from '../util/constants';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';
 import { getToken } from './get-token';
+import {
+  AppConfig,
+  FirebaseInstallationsImpl
+} from '../interfaces/installation-impl';
 
 const FID = 'dont-talk-to-strangers';
 const AUTH_TOKEN = 'authToken';
@@ -173,13 +173,13 @@ const setupInstallationEntryMap: Map<
 ]);
 
 describe('getToken', () => {
-  let installations: FirebaseInstallations;
+  let installations: FirebaseInstallationsImpl;
   let createInstallationRequestSpy: SinonStub<
     [AppConfig, InProgressInstallationEntry],
     Promise<RegisteredInstallationEntry>
   >;
   let generateAuthTokenRequestSpy: SinonStub<
-    [FirebaseInstallations, RegisteredInstallationEntry],
+    [FirebaseInstallationsImpl, RegisteredInstallationEntry],
     Promise<CompletedAuthToken>
   >;
 

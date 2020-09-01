@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _registerComponent } from '@firebase/app-exp';
+import { _registerComponent, _getProvider } from '@firebase/app-exp';
 import { _FirebaseService } from '@firebase/app-types-exp';
 import {
   Component,
@@ -23,37 +23,53 @@ import {
   InstanceFactory,
   ComponentContainer
 } from '@firebase/component';
-import {
-  getInstallations,
-  deleteInstallations,
-  getId,
-  getToken,
-  onIdChange
-} from '../api/index';
-import { FirebaseInstallationsInternal } from '../interfaces/installation-internal';
+import { deleteInstallations, getId, getToken } from '../api/index';
+import { FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
+import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
+import { extractAppConfig } from '../helpers/extract-app-config';
 
-const installationsName = 'installations-exp';
+const INSTALLATIONS_NAME = 'installations-exp';
 
-const factory: InstanceFactory<'installations-exp'> = (
+const publicFactory: InstanceFactory<'installations-exp'> = (
   container: ComponentContainer
 ) => {
   const app = container.getProvider('app-exp').getImmediate();
-
   // Throws if app isn't configured properly.
-  const installations = getInstallations(app);
-  const installationsService: FirebaseInstallationsInternal = {
+  const appConfig = extractAppConfig(app);
+  const platformLoggerProvider = _getProvider(app, 'platform-logger');
+
+  const installationsImpl: FirebaseInstallationsImpl = {
     app,
-    getId: () => getId(installations),
-    getToken: (forceRefresh?: boolean) => getToken(installations, forceRefresh),
-    _delete: () => deleteInstallations(installations),
-    onIdChange: (callback: (fid: string) => void) =>
-      onIdChange(installations, callback)
+    appConfig,
+    platformLoggerProvider,
+    _delete: () => deleteInstallations(installationsImpl)
   };
-  return installationsService;
+  return installationsImpl;
+};
+
+const internalFactory: InstanceFactory<'installations-exp-internal'> = (
+  container: ComponentContainer
+) => {
+  const app = container.getProvider('app-exp').getImmediate();
+  // Internal FIS instance relies on public FIS instance.
+  const installationsImpl = _getProvider(
+    app,
+    INSTALLATIONS_NAME
+  ).getImmediate();
+
+  const installationsInternal: FirebaseInstallationsInternal = {
+    getId: () => getId(installationsImpl),
+    getToken: (forceRefresh?: boolean) =>
+      getToken(installationsImpl, forceRefresh)
+  };
+  return installationsInternal;
 };
 
 export function registerInstallations(): void {
   _registerComponent(
-    new Component(installationsName, factory, ComponentType.PUBLIC)
+    new Component(INSTALLATIONS_NAME, publicFactory, ComponentType.PUBLIC)
+  );
+  _registerComponent(
+    new Component(INSTALLATIONS_NAME, internalFactory, ComponentType.PRIVATE)
   );
 }

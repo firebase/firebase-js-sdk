@@ -16,7 +16,6 @@
  */
 
 import { CreateInstallationResponse } from '../interfaces/api-response';
-import { AppConfig } from '@firebase/installations-types-exp';
 import {
   InProgressInstallationEntry,
   RegisteredInstallationEntry,
@@ -30,6 +29,7 @@ import {
   getInstallationsEndpoint,
   retryIfServerError
 } from './common';
+import { AppConfig } from '../interfaces/installation-impl';
 
 export async function createInstallationRequest(
   appConfig: AppConfig,

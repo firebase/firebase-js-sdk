@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { AppConfig } from '@firebase/installations-types-exp';
+import { AppConfig } from '../interfaces/installation-impl';
 import { RegisteredInstallationEntry } from '../interfaces/installation-entry';
 import {
   getErrorFromResponse,

@@ -15,14 +15,20 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types-exp';
+import { Provider } from '@firebase/component';
+import { _FirebaseService } from '@firebase/app-types-exp';
 import { FirebaseInstallations } from '@firebase/installations-types-exp';
-import { _getProvider } from '@firebase/app-exp';
 
-export function getInstallations(app: FirebaseApp): FirebaseInstallations {
-  const installationsImpl = _getProvider(
-    app,
-    'installations-exp'
-  ).getImmediate();
-  return installationsImpl;
+export interface FirebaseInstallationsImpl
+  extends FirebaseInstallations,
+    _FirebaseService {
+  readonly appConfig: AppConfig;
+  readonly platformLoggerProvider: Provider<'platform-logger'>;
+}
+
+export interface AppConfig {
+  readonly appName: string;
+  readonly projectId: string;
+  readonly apiKey: string;
+  readonly appId: string;
 }

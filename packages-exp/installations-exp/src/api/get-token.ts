@@ -18,12 +18,12 @@
 import { getInstallationEntry } from '../helpers/get-installation-entry';
 import { refreshAuthToken } from '../helpers/refresh-auth-token';
 import {
-  FirebaseInstallations,
+  FirebaseInstallationsImpl,
   AppConfig
-} from '@firebase/installations-types-exp';
+} from '../interfaces/installation-impl';
 
 export async function getToken(
-  installations: FirebaseInstallations,
+  installations: FirebaseInstallationsImpl,
   forceRefresh = false
 ): Promise<string> {
   await completeInstallationRegistration(installations.appConfig);

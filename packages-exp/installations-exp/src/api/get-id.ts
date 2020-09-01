@@ -17,10 +17,10 @@
 
 import { getInstallationEntry } from '../helpers/get-installation-entry';
 import { refreshAuthToken } from '../helpers/refresh-auth-token';
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
+import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 
 export async function getId(
-  installations: FirebaseInstallations
+  installations: FirebaseInstallationsImpl
 ): Promise<string> {
   const { installationEntry, registrationPromise } = await getInstallationEntry(
     installations.appConfig

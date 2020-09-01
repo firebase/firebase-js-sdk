@@ -17,10 +17,6 @@
 
 import { GenerateAuthTokenResponse } from '../interfaces/api-response';
 import {
-  AppConfig,
-  FirebaseInstallations
-} from '@firebase/installations-types-exp';
-import {
   CompletedAuthToken,
   RegisteredInstallationEntry
 } from '../interfaces/installation-entry';
@@ -32,9 +28,13 @@ import {
   getInstallationsEndpoint,
   retryIfServerError
 } from './common';
+import {
+  FirebaseInstallationsImpl,
+  AppConfig
+} from '../interfaces/installation-impl';
 
 export async function generateAuthTokenRequest(
-  { appConfig, platformLoggerProvider }: FirebaseInstallations,
+  { appConfig, platformLoggerProvider }: FirebaseInstallationsImpl,
   installationEntry: RegisteredInstallationEntry
 ): Promise<CompletedAuthToken> {
   const endpoint = getGenerateAuthTokenEndpoint(appConfig, installationEntry);
