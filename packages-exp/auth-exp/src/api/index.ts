@@ -17,7 +17,11 @@
 
 import { FirebaseError, querystring } from '@firebase/util';
 
-import { AUTH_ERROR_FACTORY, AuthErrorCode, NamedErrorParams } from '../core/errors';
+import {
+  AUTH_ERROR_FACTORY,
+  AuthErrorCode,
+  NamedErrorParams
+} from '../core/errors';
 import { fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { FetchProvider } from '../core/util/fetch_provider';
@@ -95,11 +99,7 @@ export async function _performApiRequest<T, V>(
     }
 
     return FetchProvider.fetch()(
-      _getFinalTarget(
-        auth,
-        auth.config.apiHost,
-        path,
-        query),
+      _getFinalTarget(auth, auth.config.apiHost, path, query),
       {
         method,
         headers,
@@ -184,7 +184,12 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
   return serverResponse;
 }
 
-export function _getFinalTarget(auth: AuthCore, host: string, path: string, query: string): string {
+export function _getFinalTarget(
+  auth: AuthCore,
+  host: string,
+  path: string,
+  query: string
+): string {
   const { emulator } = auth.config;
   const base = `${host}${path}?${query}`;
 

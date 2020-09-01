@@ -19,7 +19,11 @@
 
 import { querystring } from '@firebase/util';
 
-import { _getFinalTarget, _performFetchWithErrorHandling, HttpMethod } from '../';
+import {
+  _getFinalTarget,
+  _performFetchWithErrorHandling,
+  HttpMethod
+} from '../';
 import { FetchProvider } from '../../core/util/fetch_provider';
 import { AuthCore } from '../../model/auth';
 
@@ -51,12 +55,7 @@ export async function requestStsToken(
       'refresh_token': refreshToken
     }).slice(1);
     const { tokenApiHost, apiKey, sdkClientVersion } = auth.config;
-    const url = _getFinalTarget(
-      auth,
-      tokenApiHost,
-      _ENDPOINT,
-      `key=${apiKey}`,
-    );
+    const url = _getFinalTarget(auth, tokenApiHost, _ENDPOINT, `key=${apiKey}`);
 
     return FetchProvider.fetch()(url, {
       method: HttpMethod.POST,

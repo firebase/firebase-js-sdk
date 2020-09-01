@@ -42,7 +42,9 @@ export function useEmulator(
   port: number
 ): void {
   const auth = _castAuth(authExtern);
-  assert(auth._canInitEmulator, AuthErrorCode.EMULATOR_CONFIG_FAILED, {appName: auth.name});
+  assert(auth._canInitEmulator, AuthErrorCode.EMULATOR_CONFIG_FAILED, {
+    appName: auth.name
+  });
 
   auth.config.emulator = {
     hostname,
