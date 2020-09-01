@@ -49,7 +49,8 @@ export interface OAuthCredentialParams {
   signInMethod: string;
 }
 
-export class OAuthCredential extends AuthCredential
+export class OAuthCredential
+  extends AuthCredential
   implements externs.OAuthCredential {
   idToken?: string;
   accessToken?: string;

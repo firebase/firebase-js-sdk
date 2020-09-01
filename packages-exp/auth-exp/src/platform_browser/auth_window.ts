@@ -30,7 +30,7 @@ export type AuthWindow = {
   grecaptcha?: Recaptcha;
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   ___jsl?: Record<string, any>;
-  gapi: typeof gapi;
+  gapi?: typeof gapi;
 } & {
   // A final catch-all for callbacks (which will have random names) that
   // we will stick on the window.
