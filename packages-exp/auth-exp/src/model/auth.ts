@@ -25,13 +25,20 @@ export type AppName = string;
 export type ApiKey = string;
 export type AuthDomain = string;
 
+interface ConfigInternal extends externs.Config {
+  emulator?: {
+    hostname: string;
+    port: number;
+  }
+}
+
 /**
  * Core implementation of the Auth object, the signatures here should match across both legacy
  * and modern implementations
  */
 export interface AuthCore {
   readonly name: AppName;
-  readonly config: externs.Config;
+  readonly config: ConfigInternal;
   languageCode: string | null;
   tenantId: string | null;
   readonly settings: externs.AuthSettings;
@@ -42,6 +49,7 @@ export interface AuthCore {
 
 export interface Auth extends AuthCore {
   currentUser: User | null;
+  _canInitEmulator: boolean;
   _isInitialized: boolean;
   _initializationPromise: Promise<void> | null;
   updateCurrentUser(user: User | null): Promise<void>;

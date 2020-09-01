@@ -18,13 +18,7 @@
 import { _FirebaseService, FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 import {
-  CompleteFn,
-  createSubscribe,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Subscribe,
-  Unsubscribe
+    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
 } from '@firebase/util';
 
 import { Auth, AuthCore } from '../../model/auth';
@@ -33,8 +27,7 @@ import { User, UserParameters } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
 import {
-  _REDIRECT_USER_KEY_NAME,
-  PersistenceUserManager
+    _REDIRECT_USER_KEY_NAME, PersistenceUserManager
 } from '../persistence/persistence_user_manager';
 import { _reloadWithoutSaving } from '../user/reload';
 import { UserImpl } from '../user/user_impl';
@@ -63,6 +56,10 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
   private idTokenSubscription = new Subscription<T>(this);
   private redirectUser: T | null = null;
   private isProactiveRefreshEnabled = false;
+  
+  // Any network calls will set this to true and prevent subsequent emulator
+  // initialization
+  _canInitEmulator = true;
   _isInitialized = false;
   _initializationPromise: Promise<void> | null = null;
   _popupRedirectResolver: PopupRedirectResolver | null = null;
