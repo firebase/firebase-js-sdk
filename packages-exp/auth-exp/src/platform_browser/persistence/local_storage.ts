@@ -43,7 +43,8 @@ export const _POLLING_INTERVAL_MS = 1000;
 // The IE 10 localStorage cross tab synchronization delay in milliseconds
 const IE10_LOCAL_STORAGE_SYNC_DELAY = 10;
 
-class BrowserLocalPersistence extends BrowserPersistenceClass
+class BrowserLocalPersistence
+  extends BrowserPersistenceClass
   implements Persistence {
   static type: 'LOCAL' = 'LOCAL';
 

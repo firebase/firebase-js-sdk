@@ -35,7 +35,8 @@ export interface PhoneAuthCredentialParameters {
   temporaryProof?: string;
 }
 
-export class PhoneAuthCredential extends AuthCredential
+export class PhoneAuthCredential
+  extends AuthCredential
   implements externs.PhoneAuthCredential {
   private constructor(private readonly params: PhoneAuthCredentialParameters) {
     super(externs.ProviderId.PHONE, externs.SignInMethod.PHONE);

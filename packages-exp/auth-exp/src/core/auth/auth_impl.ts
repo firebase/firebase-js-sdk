@@ -185,7 +185,7 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
     this.languageCode = _getUserLanguage();
   }
 
-  async delete(): Promise<void> {
+  async _delete(): Promise<void> {
     // TODO: Determine what we want to do in this case
   }
 

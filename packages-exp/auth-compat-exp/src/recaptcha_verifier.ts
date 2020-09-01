@@ -21,7 +21,8 @@ import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import * as externs from '@firebase/auth-types-exp';
 
-export class RecaptchaVerifier extends impl.RecaptchaVerifier
+export class RecaptchaVerifier
+  extends impl.RecaptchaVerifier
   implements compat.RecaptchaVerifier {
   constructor(
     container: HTMLElement | string,

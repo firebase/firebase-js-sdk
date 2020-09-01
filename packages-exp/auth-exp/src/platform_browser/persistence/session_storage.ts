@@ -24,7 +24,8 @@ import {
 } from '../../core/persistence';
 import { BrowserPersistenceClass } from './browser';
 
-class BrowserSessionPersistence extends BrowserPersistenceClass
+class BrowserSessionPersistence
+  extends BrowserPersistenceClass
   implements Persistence {
   static type: 'SESSION' = 'SESSION';
 
