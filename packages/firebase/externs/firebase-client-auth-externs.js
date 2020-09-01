@@ -497,5 +497,6 @@ firebase.auth.RecaptchaVerifier.prototype.render = function () {};
  * Waits for the user to solve the reCAPTCHA and resolves with the reCAPTCHA
  * token.
  * @return {!firebase.Promise<string>} A Promise for the reCAPTCHA token.
+ * @override
  */
 firebase.auth.RecaptchaVerifier.prototype.verify = function () {};
