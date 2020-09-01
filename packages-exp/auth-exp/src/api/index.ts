@@ -97,8 +97,9 @@ export async function _performApiRequest<T, V>(
     return FetchProvider.fetch()(
       _getFinalTarget(
         auth,
-        `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${query}`
-      ),
+        auth.config.apiHost,
+        path,
+        query),
       {
         method,
         headers,
@@ -183,14 +184,15 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
   return serverResponse;
 }
 
-export function _getFinalTarget(auth: AuthCore, url: string): string {
+export function _getFinalTarget(auth: AuthCore, host: string, path: string, query: string): string {
   const { emulator } = auth.config;
+  const base = `${host}${path}?${query}`;
+
   if (!emulator) {
-    return url;
+    return `${auth.config.apiScheme}://${base}`;
   }
 
-  const urlWithoutScheme = url.replace(/^.*:\/\//, '');
-  return `http://${emulator.hostname}:${emulator.port}/${urlWithoutScheme}`;
+  return `http://${emulator.hostname}:${emulator.port}/${base}`;
 }
 
 function makeNetworkTimeout<T>(appName: string): Promise<T> {
