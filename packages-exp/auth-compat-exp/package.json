@@ -30,7 +30,7 @@
     "@firebase/auth-types": "0.10.1",
     "@firebase/auth-exp": "0.0.800",
     "@firebase/auth-types-exp": "0.0.800",
-    "@firebase/component": "0.1.17",
+    "@firebase/component":  "0.1.18",
     "@firebase/util": "0.3.0",
     "tslib": "^1.11.1"
   },

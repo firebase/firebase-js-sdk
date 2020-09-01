@@ -1251,14 +1251,6 @@
     unique-filename "^1.1.1"
     which "^1.3.1"
 
-"@firebase/component@0.1.17":
-  version "0.1.17"
-  resolved "https://registry.npmjs.org/@firebase/component/-/component-0.1.17.tgz#2ce3e1aa060eccf0f06d20368ef9a32cf07c07be"
-  integrity sha512-/tN5iLcFp9rdpTfCJPfQ/o2ziGHlDxOzNx6XD2FoHlu4pG/PPGu+59iRfQXIowBGhxcTGD/l7oJhZEY/PVg0KQ==
-  dependencies:
-    "@firebase/util" "0.3.0"
-    tslib "^1.11.1"
-
 "@firebase/util@0.3.0":
   version "0.3.0"
   resolved "https://registry.npmjs.org/@firebase/util/-/util-0.3.0.tgz#c3e938192cde4e1c6260aecaaf22103add2352f5"
