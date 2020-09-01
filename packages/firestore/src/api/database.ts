@@ -193,7 +193,7 @@ class FirestoreSettings {
 
   readonly experimentalForceLongPolling: boolean;
 
-  readonly autodetectLongPolling: boolean;
+  readonly experimentalAutodetectLongPolling: boolean;
 
   readonly ignoreUndefinedProperties: boolean;
 
@@ -306,7 +306,7 @@ class FirestoreSettings {
       'experimentalAutodetectLongPolling',
       settings.experimentalAutodetectLongPolling
     );
-    this.autodetectLongPolling =
+    this.experimentalAutodetectLongPolling =
       settings.experimentalAutodetectLongPolling ??
       DEFAULT_FORCE_AUTODETECT_LONG_POLLING;
 
@@ -327,7 +327,8 @@ class FirestoreSettings {
       this.cacheSizeBytes === other.cacheSizeBytes &&
       this.experimentalForceLongPolling ===
         other.experimentalForceLongPolling &&
-      this.autodetectLongPolling === other.autodetectLongPolling &&
+      this.experimentalAutodetectLongPolling ===
+        other.experimentalAutodetectLongPolling &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties
     );
   }
@@ -576,7 +577,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
       this._settings.host,
       this._settings.ssl,
       this._settings.experimentalForceLongPolling,
-      this._settings.autodetectLongPolling
+      this._settings.experimentalAutodetectLongPolling
     );
   }
 

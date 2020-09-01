@@ -29,7 +29,8 @@ export class DatabaseInfo {
    * @param ssl Whether to use SSL when connecting.
    * @param forceLongPolling Whether to use the forceLongPolling option
    * when using WebChannel as the network transport.
-   * @param autodetectLongPolling TODO
+   * @param autodetectLongPolling Whether to use the autodetectLongPolling
+   * option when using WebChannel as the network transport.
    */
   constructor(
     readonly databaseId: DatabaseId,
