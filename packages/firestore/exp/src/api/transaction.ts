@@ -29,7 +29,8 @@ import { Transaction as InternalTransaction } from '../../../src/core/transactio
 import { validateReference } from '../../../lite/src/api/write_batch';
 import { getDatastore } from '../../../lite/src/api/components';
 
-export class Transaction extends LiteTransaction
+export class Transaction
+  extends LiteTransaction
   implements firestore.Transaction {
   // This class implements the same logic as the Transaction API in the Lite SDK
   // but is subclassed in order to return its own DocumentSnapshot types.
@@ -68,15 +69,14 @@ export function runTransaction<T>(
   updateFunction: (transaction: firestore.Transaction) => Promise<T>
 ): Promise<T> {
   const firestoreClient = cast(firestore, Firestore);
-  return getDatastore(firestoreClient).then(async datastore => {
-    const deferred = new Deferred<T>();
-    new TransactionRunner<T>(
-      new AsyncQueue(),
-      datastore,
-      internalTransaction =>
-        updateFunction(new Transaction(firestoreClient, internalTransaction)),
-      deferred
-    ).run();
-    return deferred.promise;
-  });
+  const datastore = getDatastore(firestoreClient);
+  const deferred = new Deferred<T>();
+  new TransactionRunner<T>(
+    new AsyncQueue(),
+    datastore,
+    internalTransaction =>
+      updateFunction(new Transaction(firestoreClient, internalTransaction)),
+    deferred
+  ).run();
+  return deferred.promise;
 }

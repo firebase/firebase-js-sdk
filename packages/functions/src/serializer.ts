@@ -58,7 +58,7 @@ export class Serializer {
       return data.map(x => this.encode(x));
     }
     if (typeof data === 'function' || typeof data === 'object') {
-      return mapValues(data as object, x => this.encode(x));
+      return mapValues(data!, x => this.encode(x));
     }
     // If we got this far, the data is not encodable.
     throw new Error('Data cannot be encoded in JSON: ' + data);
@@ -93,7 +93,7 @@ export class Serializer {
       return json.map(x => this.decode(x));
     }
     if (typeof json === 'function' || typeof json === 'object') {
-      return mapValues(json as object, x => this.decode(x as {} | null));
+      return mapValues(json!, x => this.decode(x));
     }
     // Anything else is safe to return.
     return json;

@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-import { DB, openDb, deleteDb } from 'idb';
+import { DB, deleteDb, openDb } from 'idb';
+
+import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { TokenDetails } from '../interfaces/token-details';
 import { migrateOldDatabase } from './migrate-old-database';
-import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 
 // Exported for tests.
 export const DATABASE_NAME = 'firebase-messaging-database';
@@ -29,10 +30,9 @@ let dbPromise: Promise<DB> | null = null;
 function getDbPromise(): Promise<DB> {
   if (!dbPromise) {
     dbPromise = openDb(DATABASE_NAME, DATABASE_VERSION, upgradeDb => {
-      // We don't use 'break' in this switch statement, the fall-through
-      // behavior is what we want, because if there are multiple versions between
-      // the old version and the current version, we want ALL the migrations
-      // that correspond to those versions to run, not only the last one.
+      // We don't use 'break' in this switch statement, the fall-through behavior is what we want,
+      // because if there are multiple versions between the old version and the current version, we
+      // want ALL the migrations that correspond to those versions to run, not only the last one.
       // eslint-disable-next-line default-case
       switch (upgradeDb.oldVersion) {
         case 0:

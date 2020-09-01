@@ -23,10 +23,14 @@ import {
   OfflineComponentProvider,
   OnlineComponentProvider
 } from '../../../src/core/component_provider';
-import { LocalStore } from '../../../src/local/local_store';
+import { handleUserChange, LocalStore } from '../../../src/local/local_store';
 import { Deferred } from '../../../src/util/promise';
 import { logDebug } from '../../../src/util/log';
-import { SyncEngine } from '../../../src/core/sync_engine';
+import {
+  SyncEngine,
+  syncEngineListen,
+  syncEngineUnlisten
+} from '../../../src/core/sync_engine';
 import { RemoteStore } from '../../../src/remote/remote_store';
 import { Persistence } from '../../../src/local/persistence';
 import { EventManager } from '../../../src/core/event_manager';
@@ -65,13 +69,13 @@ export async function setOfflineComponentProvider(
     firestore._queue.enqueueAndForget(() =>
       // TODO(firestorexp): Make sure handleUserChange is a no-op if user
       // didn't change
-      offlineComponentProvider.localStore.handleUserChange(user)
+      handleUserChange(offlineComponentProvider.localStore, user)
     )
   );
   // When a user calls clearPersistence() in one client, all other clients
   // need to be terminated to allow the delete to succeed.
   offlineComponentProvider.persistence.setDatabaseDeletedListener(() =>
-    firestore.delete()
+    firestore._delete()
   );
   offlineDeferred.resolve(offlineComponentProvider);
 }
@@ -94,6 +98,7 @@ export async function setOnlineComponentProvider(
   // The CredentialChangeListener of the online component provider takes
   // precedence over the offline component provider.
   firestore._setCredentialChangeListener(user =>
+    // TODO(firestoreexp): This should be enqueueRetryable.
     firestore._queue.enqueueAndForget(() =>
       onlineComponentProvider.remoteStore.handleCredentialChange(user)
     )
@@ -140,6 +145,9 @@ function verifyNotTerminated(firestore: Firestore): void {
   }
 }
 
+// Note: These functions cannot be `async` since we want to throw an exception
+// when Firestore is terminated (via `getOnlineComponentProvider()`).
+
 export function getSyncEngine(firestore: Firestore): Promise<SyncEngine> {
   return getOnlineComponentProvider(firestore).then(
     components => components.syncEngine
@@ -153,9 +161,15 @@ export function getRemoteStore(firestore: Firestore): Promise<RemoteStore> {
 }
 
 export function getEventManager(firestore: Firestore): Promise<EventManager> {
-  return getOnlineComponentProvider(firestore).then(
-    components => components.eventManager
-  );
+  return getOnlineComponentProvider(firestore).then(components => {
+    const eventManager = components.eventManager;
+    eventManager.onListen = syncEngineListen.bind(null, components.syncEngine);
+    eventManager.onUnlisten = syncEngineUnlisten.bind(
+      null,
+      components.syncEngine
+    );
+    return eventManager;
+  });
 }
 
 export function getPersistence(firestore: Firestore): Promise<Persistence> {

@@ -19,7 +19,11 @@ import { GetOptions } from '@firebase/firestore-types';
 
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
-import { LocalStore } from '../local/local_store';
+import {
+  executeQuery,
+  LocalStore,
+  readLocalDocument
+} from '../local/local_store';
 import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -33,9 +37,19 @@ import {
   EventManager,
   ListenOptions,
   Observer,
-  QueryListener
+  QueryListener,
+  eventManagerListen,
+  eventManagerUnlisten,
+  removeSnapshotsInSyncListener,
+  addSnapshotsInSyncListener
 } from './event_manager';
-import { SyncEngine } from './sync_engine';
+import {
+  registerPendingWritesCallback,
+  SyncEngine,
+  syncEngineListen,
+  syncEngineUnlisten,
+  syncEngineWrite
+} from './sync_engine';
 import { View } from './view';
 import { SharedClientState } from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
@@ -51,6 +65,8 @@ import {
 import { PartialObserver, Unsubscribe } from '../api/observer';
 import { AsyncObserver } from '../util/async_observer';
 import { debugAssert } from '../util/assert';
+import { TransactionRunner } from './transaction_runner';
+import { Datastore } from '../remote/datastore';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -87,6 +103,7 @@ export class FirestoreClient {
   private eventMgr!: EventManager;
   private persistence!: Persistence;
   private localStore!: LocalStore;
+  private datastore!: Datastore;
   private remoteStore!: RemoteStore;
   private syncEngine!: SyncEngine;
   private gcScheduler!: GarbageCollectionScheduler | null;
@@ -265,9 +282,13 @@ export class FirestoreClient {
       this.sharedClientState = offlineComponentProvider.sharedClientState;
       this.localStore = offlineComponentProvider.localStore;
       this.gcScheduler = offlineComponentProvider.gcScheduler;
+      this.datastore = onlineComponentProvider.datastore;
       this.remoteStore = onlineComponentProvider.remoteStore;
       this.syncEngine = onlineComponentProvider.syncEngine;
       this.eventMgr = onlineComponentProvider.eventManager;
+
+      this.eventMgr.onListen = syncEngineListen.bind(null, this.syncEngine);
+      this.eventMgr.onUnlisten = syncEngineUnlisten.bind(null, this.syncEngine);
 
       // When a user calls clearPersistence() in one client, all other clients
       // need to be terminated to allow the delete to succeed.
@@ -359,21 +380,33 @@ export class FirestoreClient {
   }
 
   terminate(): Promise<void> {
-    return this.asyncQueue.enqueueAndInitiateShutdown(async () => {
-      // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
-      if (this.gcScheduler) {
-        this.gcScheduler.stop();
+    this.asyncQueue.enterRestrictedMode();
+    const deferred = new Deferred();
+    this.asyncQueue.enqueueAndForgetEvenWhileRestricted(async () => {
+      try {
+        // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
+        if (this.gcScheduler) {
+          this.gcScheduler.stop();
+        }
+
+        await this.remoteStore.shutdown();
+        await this.sharedClientState.shutdown();
+        await this.persistence.shutdown();
+
+        // `removeChangeListener` must be called after shutting down the
+        // RemoteStore as it will prevent the RemoteStore from retrieving
+        // auth tokens.
+        this.credentials.removeChangeListener();
+        deferred.resolve();
+      } catch (e) {
+        const firestoreError = wrapInUserErrorIfRecoverable(
+          e,
+          `Failed to shutdown persistence`
+        );
+        deferred.reject(firestoreError);
       }
-
-      await this.remoteStore.shutdown();
-      await this.sharedClientState.shutdown();
-      await this.persistence.shutdown();
-
-      // `removeChangeListener` must be called after shutting down the
-      // RemoteStore as it will prevent the RemoteStore from retrieving
-      // auth tokens.
-      this.credentials.removeChangeListener();
     });
+    return deferred.promise;
   }
 
   /**
@@ -385,9 +418,9 @@ export class FirestoreClient {
     this.verifyNotTerminated();
 
     const deferred = new Deferred<void>();
-    this.asyncQueue.enqueueAndForget(() => {
-      return this.syncEngine.registerPendingWritesCallback(deferred);
-    });
+    this.asyncQueue.enqueueAndForget(() =>
+      registerPendingWritesCallback(this.syncEngine, deferred)
+    );
     return deferred.promise;
   }
 
@@ -399,10 +432,14 @@ export class FirestoreClient {
     this.verifyNotTerminated();
     const wrappedObserver = new AsyncObserver(observer);
     const listener = new QueryListener(query, wrappedObserver, options);
-    this.asyncQueue.enqueueAndForget(() => this.eventMgr.listen(listener));
+    this.asyncQueue.enqueueAndForget(() =>
+      eventManagerListen(this.eventMgr, listener)
+    );
     return () => {
       wrappedObserver.mute();
-      this.asyncQueue.enqueueAndForget(() => this.eventMgr.unlisten(listener));
+      this.asyncQueue.enqueueAndForget(() =>
+        eventManagerUnlisten(this.eventMgr, listener)
+      );
     };
   }
 
@@ -460,7 +497,7 @@ export class FirestoreClient {
     this.verifyNotTerminated();
     const deferred = new Deferred<void>();
     this.asyncQueue.enqueueAndForget(() =>
-      this.syncEngine.write(mutations, deferred)
+      syncEngineWrite(this.syncEngine, mutations, deferred)
     );
     return deferred.promise;
   }
@@ -473,12 +510,12 @@ export class FirestoreClient {
     this.verifyNotTerminated();
     const wrappedObserver = new AsyncObserver(observer);
     this.asyncQueue.enqueueAndForget(async () =>
-      this.eventMgr.addSnapshotsInSyncListener(wrappedObserver)
+      addSnapshotsInSyncListener(this.eventMgr, wrappedObserver)
     );
     return () => {
       wrappedObserver.mute();
       this.asyncQueue.enqueueAndForget(async () =>
-        this.eventMgr.removeSnapshotsInSyncListener(wrappedObserver)
+        removeSnapshotsInSyncListener(this.eventMgr, wrappedObserver)
       );
     };
   }
@@ -490,13 +527,33 @@ export class FirestoreClient {
     return this.asyncQueue.isShuttingDown;
   }
 
+  /**
+   * Takes an updateFunction in which a set of reads and writes can be performed
+   * atomically. In the updateFunction, the client can read and write values
+   * using the supplied transaction object. After the updateFunction, all
+   * changes will be committed. If a retryable error occurs (ex: some other
+   * client has changed any of the data referenced), then the updateFunction
+   * will be called again after a backoff. If the updateFunction still fails
+   * after all retries, then the transaction will be rejected.
+   *
+   * The transaction object passed to the updateFunction contains methods for
+   * accessing documents and collections. Unlike other datastore access, data
+   * accessed with the transaction will not reflect local changes that have not
+   * been committed. For this reason, it is required that all reads are
+   * performed before any writes. Transactions must be performed while online.
+   */
   transaction<T>(
     updateFunction: (transaction: Transaction) => Promise<T>
   ): Promise<T> {
     this.verifyNotTerminated();
     const deferred = new Deferred<T>();
     this.asyncQueue.enqueueAndForget(() => {
-      this.syncEngine.runTransaction(this.asyncQueue, updateFunction, deferred);
+      new TransactionRunner<T>(
+        this.asyncQueue,
+        this.datastore,
+        updateFunction,
+        deferred
+      ).run();
       return Promise.resolve();
     });
     return deferred.promise;
@@ -509,7 +566,9 @@ export function enqueueWrite(
   mutations: Mutation[]
 ): Promise<void> {
   const deferred = new Deferred<void>();
-  asyncQueue.enqueueAndForget(() => syncEngine.write(mutations, deferred));
+  asyncQueue.enqueueAndForget(() =>
+    syncEngineWrite(syncEngine, mutations, deferred)
+  );
   return deferred.promise;
 }
 
@@ -530,9 +589,9 @@ export function enqueueWaitForPendingWrites(
   syncEngine: SyncEngine
 ): Promise<void> {
   const deferred = new Deferred<void>();
-  asyncQueue.enqueueAndForget(() => {
-    return syncEngine.registerPendingWritesCallback(deferred);
-  });
+  asyncQueue.enqueueAndForget(() =>
+    registerPendingWritesCallback(syncEngine, deferred)
+  );
   return deferred.promise;
 }
 
@@ -545,10 +604,12 @@ export function enqueueListen(
 ): Unsubscribe {
   const wrappedObserver = new AsyncObserver(observer);
   const listener = new QueryListener(query, wrappedObserver, options);
-  asyncQueue.enqueueAndForget(() => eventManger.listen(listener));
+  asyncQueue.enqueueAndForget(() => eventManagerListen(eventManger, listener));
   return () => {
     wrappedObserver.mute();
-    asyncQueue.enqueueAndForget(() => eventManger.unlisten(listener));
+    asyncQueue.enqueueAndForget(() =>
+      eventManagerUnlisten(eventManger, listener)
+    );
   };
 }
 
@@ -559,12 +620,12 @@ export function enqueueSnapshotsInSyncListen(
 ): Unsubscribe {
   const wrappedObserver = new AsyncObserver(observer);
   asyncQueue.enqueueAndForget(async () =>
-    eventManager.addSnapshotsInSyncListener(wrappedObserver)
+    addSnapshotsInSyncListener(eventManager, wrappedObserver)
   );
   return () => {
     wrappedObserver.mute();
     asyncQueue.enqueueAndForget(async () =>
-      eventManager.removeSnapshotsInSyncListener(wrappedObserver)
+      removeSnapshotsInSyncListener(eventManager, wrappedObserver)
     );
   };
 }
@@ -577,7 +638,7 @@ export async function enqueueReadDocumentFromCache(
   const deferred = new Deferred<Document | null>();
   await asyncQueue.enqueue(async () => {
     try {
-      const maybeDoc = await localStore.readDocument(docKey);
+      const maybeDoc = await readLocalDocument(localStore, docKey);
       if (maybeDoc instanceof Document) {
         deferred.resolve(maybeDoc);
       } else if (maybeDoc instanceof NoDocument) {
@@ -681,7 +742,8 @@ export async function enqueueExecuteQueryFromCache(
   const deferred = new Deferred<ViewSnapshot>();
   await asyncQueue.enqueue(async () => {
     try {
-      const queryResult = await localStore.executeQuery(
+      const queryResult = await executeQuery(
+        localStore,
         query,
         /* usePreviousResults= */ true
       );

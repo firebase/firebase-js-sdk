@@ -54,12 +54,10 @@ export function withTestDatastore(
   credentialsProvider: CredentialsProvider = new EmptyCredentialsProvider()
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
-  return newConnection(databaseInfo).then(conn => {
-    const serializer = newSerializer(databaseInfo.databaseId);
-    const datastore = newDatastore(credentialsProvider, serializer);
-    datastore.start(conn);
-    return fn(datastore);
-  });
+  const connection = newConnection(databaseInfo);
+  const serializer = newSerializer(databaseInfo.databaseId);
+  const datastore = newDatastore(credentialsProvider, connection, serializer);
+  return fn(datastore);
 }
 
 export class MockCredentialsProvider extends EmptyCredentialsProvider {

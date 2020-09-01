@@ -19,7 +19,7 @@
 /*
    eslint-disable
    camelcase, @typescript-eslint/no-explicit-any,
-   @typescript-eslint/interface-name-prefix,  @typescript-eslint/class-name-casing
+   @typescript-eslint/naming-convention
 */
 export declare type ApiClientHookFactory = any;
 export declare type PromiseRequestService = any;
@@ -126,11 +126,15 @@ export declare const TargetChangeTargetChangeTypeEnum: ITargetChangeTargetChange
 export declare type UnaryFilterOp =
   | 'OPERATOR_UNSPECIFIED'
   | 'IS_NAN'
-  | 'IS_NULL';
+  | 'IS_NULL'
+  | 'IS_NOT_NAN'
+  | 'IS_NOT_NULL';
 export interface IUnaryFilterOpEnum {
   OPERATOR_UNSPECIFIED: UnaryFilterOp;
   IS_NAN: UnaryFilterOp;
   IS_NULL: UnaryFilterOp;
+  IS_NOT_NAN: UnaryFilterOp;
+  IS_NOT_NULL: UnaryFilterOp;
   values(): UnaryFilterOp[];
 }
 export declare const UnaryFilterOpEnum: IUnaryFilterOpEnum;

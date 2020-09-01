@@ -60,7 +60,7 @@ export function encode(data: unknown): unknown {
     return data.map(x => encode(x));
   }
   if (typeof data === 'function' || typeof data === 'object') {
-    return mapValues(data as object, x => encode(x));
+    return mapValues(data!, x => encode(x));
   }
   // If we got this far, the data is not encodable.
   throw new Error('Data cannot be encoded in JSON: ' + data);
@@ -99,7 +99,7 @@ export function decode(json: unknown): unknown {
     return json.map(x => decode(x));
   }
   if (typeof json === 'function' || typeof json === 'object') {
-    return mapValues(json as object, x => decode(x as {} | null));
+    return mapValues(json!, x => decode(x));
   }
   // Anything else is safe to return.
   return json;

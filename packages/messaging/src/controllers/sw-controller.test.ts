@@ -14,59 +14,76 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
-import { stub, spy } from 'sinon';
 
-import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
 import '../testing/setup';
-import { SwController, BgMessageHandler } from './sw-controller';
+
 import * as tokenManagementModule from '../core/token-management';
-import { Stub } from '../testing/sinon-types';
-import { Writable, ValueOf, DeepPartial } from 'ts-essentials';
-import { MessagePayload } from '../interfaces/message-payload';
-import { MessageType, InternalMessage } from '../interfaces/internal-message';
+
+import { BgMessageHandler, SwController } from './sw-controller';
 import {
-  mockServiceWorker,
-  restoreServiceWorker,
-  FakeEvent,
-  FakePushSubscription
-} from '../testing/fakes/service-worker';
-import {
-  FCM_MSG,
-  DEFAULT_VAPID_KEY,
+  CONSOLE_CAMPAIGN_ANALYTICS_ENABLED,
   CONSOLE_CAMPAIGN_ID,
   CONSOLE_CAMPAIGN_NAME,
   CONSOLE_CAMPAIGN_TIME,
-  CONSOLE_CAMPAIGN_ANALYTICS_ENABLED
+  DEFAULT_VAPID_KEY,
+  FCM_MSG
 } from '../util/constants';
-import { dbSet } from '../helpers/idb-manager';
-import { getFakeTokenDetails } from '../testing/fakes/token-details';
+import { DeepPartial, ValueOf, Writable } from 'ts-essentials';
+import {
+  FakeEvent,
+  FakePushSubscription,
+  mockServiceWorker,
+  restoreServiceWorker
+} from '../testing/fakes/service-worker';
+import {
+  MessagePayloadInternal,
+  MessageType
+} from '../interfaces/internal-message-payload';
+import { spy, stub } from 'sinon';
+
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+import { Stub } from '../testing/sinon-types';
+import { dbSet } from '../helpers/idb-manager';
+import { expect } from 'chai';
+import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
+import { getFakeTokenDetails } from '../testing/fakes/token-details';
+
+const LOCAL_HOST = self.location.host;
+const TEST_LINK = 'https://' + LOCAL_HOST + '/test-link.org';
+const TEST_CLICK_ACTION = 'https://' + LOCAL_HOST + '/test-click-action.org';
 
 // Add fake SW types.
 declare const self: Window & Writable<ServiceWorkerGlobalScope>;
 
-const NOTIFICATION_MESSAGE_PAYLOAD: MessagePayload = {
+// internal message payload (parsed directly from the push event) that contains and only contains
+// notification payload.
+const DISPLAY_MESSAGE: MessagePayloadInternal = {
   notification: {
-    title: 'message title',
-    body: 'message body',
-    data: {
-      key: 'value'
-    }
+    title: 'title',
+    body: 'body'
   },
   fcmOptions: {
-    link: 'https://example.org'
-  }
+    link: TEST_LINK
+  },
+  from: 'from',
+  // eslint-disable-next-line camelcase
+  collapse_key: 'collapse'
 };
 
-const DATA_MESSAGE_PAYLOAD: MessagePayload = {
+// internal message payload (parsed directly from the push event) that contains and only contains
+// data payload.
+const DATA_MESSAGE: MessagePayloadInternal = {
   data: {
     key: 'value'
-  }
+  },
+  from: 'from',
+  // eslint-disable-next-line camelcase
+  collapse_key: 'collapse'
 };
 
 describe('SwController', () => {
   let addEventListenerStub: Stub<typeof self.addEventListener>;
+  // eslint-disable-next-line @typescript-eslint/ban-types
   let eventListenerMap: Map<string, Function>;
   let swController: SwController;
   let firebaseDependencies: FirebaseInternalDependencies;
@@ -78,10 +95,9 @@ describe('SwController', () => {
 
     stub(Notification, 'permission').value('granted');
 
-    // Instead of calling actual addEventListener, add the event to the
-    // eventListeners list.
-    // Actual event listeners can't be used as the tests are not running in a
-    // Service Worker, which means Push events do not exist.
+    // Instead of calling actual addEventListener, add the event to the eventListeners list. Actual
+    // event listeners can't be used as the tests are not running in a Service Worker, which means
+    // Push events do not exist.
     addEventListenerStub = stub(self, 'addEventListener').callsFake(
       (type, listener) => {
         eventListenerMap.set(type, listener);
@@ -204,16 +220,14 @@ describe('SwController', () => {
       await callEventListener(
         makeEvent('push', {
           data: {
-            json: () => NOTIFICATION_MESSAGE_PAYLOAD
+            json: () => DISPLAY_MESSAGE
           }
         })
       );
 
-      const expectedMessage: InternalMessage = {
-        firebaseMessaging: {
-          type: MessageType.PUSH_RECEIVED,
-          payload: NOTIFICATION_MESSAGE_PAYLOAD
-        }
+      const expectedMessage: MessagePayloadInternal = {
+        ...DISPLAY_MESSAGE,
+        messageType: MessageType.PUSH_RECEIVED
       };
       expect(postMessageSpy).to.have.been.calledOnceWith(expectedMessage);
     });
@@ -226,17 +240,16 @@ describe('SwController', () => {
       await callEventListener(
         makeEvent('push', {
           data: {
-            json: () => NOTIFICATION_MESSAGE_PAYLOAD
+            json: () => DISPLAY_MESSAGE
           }
         })
       );
 
       expect(postMessageSpy).not.to.have.been.called;
-      expect(showNotificationSpy).to.have.been.calledWith('message title', {
-        ...NOTIFICATION_MESSAGE_PAYLOAD.notification,
+      expect(showNotificationSpy).to.have.been.calledWith('title', {
+        ...DISPLAY_MESSAGE.notification,
         data: {
-          ...NOTIFICATION_MESSAGE_PAYLOAD.notification!.data,
-          [FCM_MSG]: NOTIFICATION_MESSAGE_PAYLOAD
+          [FCM_MSG]: DISPLAY_MESSAGE
         }
       });
     });
@@ -247,16 +260,16 @@ describe('SwController', () => {
       await callEventListener(
         makeEvent('push', {
           data: {
-            json: () => NOTIFICATION_MESSAGE_PAYLOAD
+            json: () => DISPLAY_MESSAGE
           }
         })
       );
 
-      expect(showNotificationSpy).to.have.been.calledWith('message title', {
-        ...NOTIFICATION_MESSAGE_PAYLOAD.notification,
+      expect(showNotificationSpy).to.have.been.calledWith('title', {
+        ...DISPLAY_MESSAGE.notification,
         data: {
-          ...NOTIFICATION_MESSAGE_PAYLOAD.notification!.data,
-          [FCM_MSG]: NOTIFICATION_MESSAGE_PAYLOAD
+          ...DISPLAY_MESSAGE.notification!.data,
+          [FCM_MSG]: DISPLAY_MESSAGE
         }
       });
     });
@@ -268,12 +281,37 @@ describe('SwController', () => {
       await callEventListener(
         makeEvent('push', {
           data: {
-            json: () => DATA_MESSAGE_PAYLOAD
+            json: () => DATA_MESSAGE
           }
         })
       );
 
       expect(bgMessageHandlerSpy).to.have.been.calledWith();
+    });
+
+    it('forwards MessagePayload with a notification payload to onBackgroundMessage', async () => {
+      const bgMessageHandlerSpy = spy();
+      const showNotificationSpy = spy(self.registration, 'showNotification');
+
+      swController.onBackgroundMessage(bgMessageHandlerSpy);
+
+      await callEventListener(
+        makeEvent('push', {
+          data: {
+            json: () => ({
+              notification: {
+                ...DISPLAY_MESSAGE
+              },
+              data: {
+                ...DATA_MESSAGE
+              }
+            })
+          }
+        })
+      );
+
+      expect(bgMessageHandlerSpy).to.have.been.called;
+      expect(showNotificationSpy).to.have.been.called;
     });
 
     it('warns if there are more action buttons than the browser limit', async () => {
@@ -291,7 +329,7 @@ describe('SwController', () => {
           data: {
             json: () => ({
               notification: {
-                ...NOTIFICATION_MESSAGE_PAYLOAD,
+                ...DISPLAY_MESSAGE,
                 actions: [
                   { action: 'like', title: 'Like' },
                   { action: 'favorite', title: 'Favorite' }
@@ -308,7 +346,7 @@ describe('SwController', () => {
     });
   });
 
-  describe('setBackgrounMessageHandler', () => {
+  describe('setBackgroundMessageHandler', () => {
     it('throws on invalid input', () => {
       expect(() =>
         swController.setBackgroundMessageHandler(
@@ -350,11 +388,11 @@ describe('SwController', () => {
 
     beforeEach(() => {
       NOTIFICATION_CLICK_PAYLOAD = {
-        notification: new Notification('message title', {
-          ...NOTIFICATION_MESSAGE_PAYLOAD.notification,
+        notification: new Notification('title', {
+          ...DISPLAY_MESSAGE.notification,
           data: {
-            ...NOTIFICATION_MESSAGE_PAYLOAD.notification!.data,
-            [FCM_MSG]: NOTIFICATION_MESSAGE_PAYLOAD
+            ...DISPLAY_MESSAGE.notification!.data,
+            [FCM_MSG]: DISPLAY_MESSAGE
           }
         })
       };
@@ -420,9 +458,29 @@ describe('SwController', () => {
       expect(matchAllSpy).not.to.have.been.called;
     });
 
+    it('does not redirect if link is not from origin', async () => {
+      // Remove link.
+      NOTIFICATION_CLICK_PAYLOAD.notification!.data![FCM_MSG].fcmOptions.link =
+        'https://www.youtube.com';
+
+      const event = makeEvent('notificationclick', NOTIFICATION_CLICK_PAYLOAD);
+      const stopImmediatePropagationSpy = spy(
+        event,
+        'stopImmediatePropagation'
+      );
+      const notificationCloseSpy = spy(event.notification, 'close');
+      const matchAllSpy = spy(self.clients, 'matchAll');
+
+      await callEventListener(event);
+
+      expect(stopImmediatePropagationSpy).to.have.been.called;
+      expect(notificationCloseSpy).to.have.been.called;
+      expect(matchAllSpy).not.to.have.been.called;
+    });
+
     it('focuses on and sends the message to an open WindowClient', async () => {
       const client: Writable<WindowClient> = (await self.clients.openWindow(
-        'https://example.org'
+        TEST_LINK
       ))!;
       const focusSpy = spy(client, 'focus');
       const matchAllSpy = spy(self.clients, 'matchAll');
@@ -437,10 +495,8 @@ describe('SwController', () => {
       expect(openWindowSpy).not.to.have.been.called;
       expect(focusSpy).to.have.been.called;
       expect(postMessageSpy).to.have.been.calledWith({
-        firebaseMessaging: {
-          type: MessageType.NOTIFICATION_CLICKED,
-          payload: NOTIFICATION_MESSAGE_PAYLOAD
-        }
+        ...DISPLAY_MESSAGE,
+        messageType: MessageType.NOTIFICATION_CLICKED
       });
     });
 
@@ -453,7 +509,7 @@ describe('SwController', () => {
       await callEventListener(event);
 
       expect(matchAllSpy).to.have.been.called;
-      expect(openWindowSpy).to.have.been.calledWith('https://example.org');
+      expect(openWindowSpy).to.have.been.calledWith(TEST_LINK);
     });
 
     it('works with click_action', async () => {
@@ -461,7 +517,7 @@ describe('SwController', () => {
       delete NOTIFICATION_CLICK_PAYLOAD.notification!.data![FCM_MSG].fcmOptions;
       NOTIFICATION_CLICK_PAYLOAD.notification!.data![
         FCM_MSG
-      ].notification.click_action = 'https://example.org'; // eslint-disable-line camelcase
+      ].notification.click_action = TEST_CLICK_ACTION; // eslint-disable-line camelcase
 
       const matchAllSpy = spy(self.clients, 'matchAll');
       const openWindowSpy = spy(self.clients, 'openWindow');
@@ -471,7 +527,7 @@ describe('SwController', () => {
       await callEventListener(event);
 
       expect(matchAllSpy).to.have.been.called;
-      expect(openWindowSpy).to.have.been.calledWith('https://example.org');
+      expect(openWindowSpy).to.have.been.calledWith(TEST_CLICK_ACTION);
     });
 
     it('redirects to origin if message was sent from the FN Console', async () => {

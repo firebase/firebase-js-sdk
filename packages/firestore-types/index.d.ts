@@ -31,6 +31,7 @@ export interface Settings {
   experimentalForceLongPolling?: boolean;
   experimentalAutodetectLongPolling?: boolean;
   ignoreUndefinedProperties?: boolean;
+  merge?: boolean;
 }
 
 export interface PersistenceSettings {

@@ -19,7 +19,12 @@ import { CredentialsProvider } from '../api/credentials';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import * as api from '../protos/firestore_proto_api';
+import {
+  BatchGetDocumentsRequest as ProtoBatchGetDocumentsRequest,
+  BatchGetDocumentsResponse as ProtoBatchGetDocumentsResponse,
+  RunQueryRequest as ProtoRunQueryRequest,
+  RunQueryResponse as ProtoRunQueryResponse
+} from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { Connection } from './connection';
@@ -47,8 +52,7 @@ import { Query, queryToTarget } from '../core/query';
  * for the rest of the client SDK architecture to consume.
  */
 export abstract class Datastore {
-  abstract start(connection: Connection): void;
-  abstract termiate(): Promise<void>;
+  abstract terminate(): void;
 }
 
 /**
@@ -56,11 +60,11 @@ export abstract class Datastore {
  * consumption.
  */
 class DatastoreImpl extends Datastore {
-  connection!: Connection;
   terminated = false;
 
   constructor(
     readonly credentials: CredentialsProvider,
+    readonly connection: Connection,
     readonly serializer: JsonProtoSerializer
   ) {
     super();
@@ -76,38 +80,19 @@ class DatastoreImpl extends Datastore {
     }
   }
 
-  start(connection: Connection): void {
-    debugAssert(!this.connection, 'Datastore.start() already called');
-    this.connection = connection;
-  }
-
   /** Gets an auth token and invokes the provided RPC. */
-  invokeRPC<Req, Resp>(rpcName: string, request: Req): Promise<Resp> {
-    this.verifyInitialized();
-    return this.credentials
-      .getToken()
-      .then(token => {
-        return this.connection.invokeRPC<Req, Resp>(rpcName, request, token);
-      })
-      .catch((error: FirestoreError) => {
-        if (error.code === Code.UNAUTHENTICATED) {
-          this.credentials.invalidateToken();
-        }
-        throw error;
-      });
-  }
-
-  /** Gets an auth token and invokes the provided RPC with streamed results. */
-  invokeStreamingRPC<Req, Resp>(
+  invokeRPC<Req, Resp>(
     rpcName: string,
+    path: string,
     request: Req
-  ): Promise<Resp[]> {
+  ): Promise<Resp> {
     this.verifyInitialized();
     return this.credentials
       .getToken()
       .then(token => {
-        return this.connection.invokeStreamingRPC<Req, Resp>(
+        return this.connection.invokeRPC<Req, Resp>(
           rpcName,
+          path,
           request,
           token
         );
@@ -120,7 +105,32 @@ class DatastoreImpl extends Datastore {
       });
   }
 
-  async termiate(): Promise<void> {
+  /** Gets an auth token and invokes the provided RPC with streamed results. */
+  invokeStreamingRPC<Req, Resp>(
+    rpcName: string,
+    path: string,
+    request: Req
+  ): Promise<Resp[]> {
+    this.verifyInitialized();
+    return this.credentials
+      .getToken()
+      .then(token => {
+        return this.connection.invokeStreamingRPC<Req, Resp>(
+          rpcName,
+          path,
+          request,
+          token
+        );
+      })
+      .catch((error: FirestoreError) => {
+        if (error.code === Code.UNAUTHENTICATED) {
+          this.credentials.invalidateToken();
+        }
+        throw error;
+      });
+  }
+
+  terminate(): void {
     this.terminated = false;
   }
 }
@@ -129,9 +139,10 @@ class DatastoreImpl extends Datastore {
 // firestore-exp client.
 export function newDatastore(
   credentials: CredentialsProvider,
+  connection: Connection,
   serializer: JsonProtoSerializer
 ): Datastore {
-  return new DatastoreImpl(credentials, serializer);
+  return new DatastoreImpl(credentials, connection, serializer);
 }
 
 export async function invokeCommitRpc(
@@ -139,11 +150,11 @@ export async function invokeCommitRpc(
   mutations: Mutation[]
 ): Promise<void> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const params = {
-    database: getEncodedDatabaseId(datastoreImpl.serializer),
+  const path = getEncodedDatabaseId(datastoreImpl.serializer) + '/documents';
+  const request = {
     writes: mutations.map(m => toMutation(datastoreImpl.serializer, m))
   };
-  await datastoreImpl.invokeRPC('Commit', params);
+  await datastoreImpl.invokeRPC('Commit', path, request);
 }
 
 export async function invokeBatchGetDocumentsRpc(
@@ -151,14 +162,14 @@ export async function invokeBatchGetDocumentsRpc(
   keys: DocumentKey[]
 ): Promise<MaybeDocument[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const params = {
-    database: getEncodedDatabaseId(datastoreImpl.serializer),
+  const path = getEncodedDatabaseId(datastoreImpl.serializer) + '/documents';
+  const request = {
     documents: keys.map(k => toName(datastoreImpl.serializer, k))
   };
   const response = await datastoreImpl.invokeStreamingRPC<
-    api.BatchGetDocumentsRequest,
-    api.BatchGetDocumentsResponse
-  >('BatchGetDocuments', params);
+    ProtoBatchGetDocumentsRequest,
+    ProtoBatchGetDocumentsResponse
+  >('BatchGetDocuments', path, request);
 
   const docs = new Map<string, MaybeDocument>();
   response.forEach(proto => {
@@ -179,21 +190,11 @@ export async function invokeRunQueryRpc(
   query: Query
 ): Promise<Document[]> {
   const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const { structuredQuery, parent } = toQueryTarget(
-    datastoreImpl.serializer,
-    queryToTarget(query)
-  );
-  const params = {
-    database: getEncodedDatabaseId(datastoreImpl.serializer),
-    parent,
-    structuredQuery
-  };
-
+  const request = toQueryTarget(datastoreImpl.serializer, queryToTarget(query));
   const response = await datastoreImpl.invokeStreamingRPC<
-    api.RunQueryRequest,
-    api.RunQueryResponse
-  >('RunQuery', params);
-
+    ProtoRunQueryRequest,
+    ProtoRunQueryResponse
+  >('RunQuery', request.parent!, { structuredQuery: request.structuredQuery });
   return (
     response
       // Omit RunQueryResponses that only contain readTimes.

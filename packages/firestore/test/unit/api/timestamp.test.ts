@@ -132,4 +132,19 @@ describe('Timestamp', () => {
     expect(t1 > t2).to.be.false;
     expect(t1 >= t2).to.be.false;
   });
+
+  it('serializes to JSON', () => {
+    expect(new Timestamp(123, 456).toJSON()).to.deep.equal({
+      seconds: 123,
+      nanoseconds: 456
+    });
+    expect(new Timestamp(0, 0).toJSON()).to.deep.equal({
+      seconds: 0,
+      nanoseconds: 0
+    });
+    expect(new Timestamp(-123, 456).toJSON()).to.deep.equal({
+      seconds: -123,
+      nanoseconds: 456
+    });
+  });
 });

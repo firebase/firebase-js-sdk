@@ -95,7 +95,7 @@ export class Firestore
     return new DatabaseId(app.options.projectId!);
   }
 
-  delete(): Promise<void> {
+  _delete(): Promise<void> {
     if (!this._terminateTask) {
       this._terminateTask = this._terminate();
     }
@@ -110,13 +110,14 @@ export class Firestore
    * Only ever called once.
    */
   protected _terminate(): Promise<void> {
-    return removeComponents(this);
+    removeComponents(this);
+    return Promise.resolve();
   }
 
   // TODO(firestoreexp): `deleteApp()` should call the delete method above,
   // but it still calls INTERNAL.delete().
   INTERNAL = {
-    delete: () => this.delete()
+    delete: () => this._delete()
   };
 }
 
@@ -141,5 +142,5 @@ export function terminate(
 ): Promise<void> {
   _removeServiceInstance(firestore.app, 'firestore/lite');
   const firestoreClient = cast(firestore, Firestore);
-  return firestoreClient.delete();
+  return firestoreClient._delete();
 }

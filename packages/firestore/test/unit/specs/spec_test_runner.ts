@@ -22,8 +22,12 @@ import { ComponentConfiguration } from '../../../src/core/component_provider';
 import { DatabaseInfo } from '../../../src/core/database_info';
 import {
   EventManager,
+  eventManagerListen,
+  eventManagerUnlisten,
   Observer,
-  QueryListener
+  QueryListener,
+  removeSnapshotsInSyncListener,
+  addSnapshotsInSyncListener
 } from '../../../src/core/event_manager';
 import {
   canonifyQuery,
@@ -37,7 +41,14 @@ import {
   queryWithLimit
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { SyncEngine } from '../../../src/core/sync_engine';
+import {
+  activeLimboDocumentResolutions,
+  enqueuedLimboDocumentResolutions,
+  SyncEngine,
+  syncEngineListen,
+  syncEngineUnlisten,
+  syncEngineWrite
+} from '../../../src/core/sync_engine';
 import { TargetId } from '../../../src/core/types';
 import {
   ChangeType,
@@ -118,12 +129,12 @@ import {
   EventAggregator,
   MockConnection,
   MockIndexedDbPersistence,
-  MockMemoryPersistence,
-  QueryEvent,
-  SharedWriteTracker,
-  MockMultiTabOfflineComponentProvider,
   MockMemoryOfflineComponentProvider,
-  MockOnlineComponentProvider
+  MockMemoryPersistence,
+  MockMultiTabOfflineComponentProvider,
+  MockOnlineComponentProvider,
+  QueryEvent,
+  SharedWriteTracker
 } from './spec_test_components';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { encodeBase64 } from '../../../src/platform/base64';
@@ -258,7 +269,11 @@ abstract class TestRunner {
       persistenceSettings: this.persistenceSettings
     };
 
-    const onlineComponentProvider = new MockOnlineComponentProvider();
+    this.connection = new MockConnection(this.queue);
+
+    const onlineComponentProvider = new MockOnlineComponentProvider(
+      this.connection
+    );
     const offlineComponentProvider = await this.initializeOfflineComponentProvider(
       onlineComponentProvider,
       configuration,
@@ -272,10 +287,15 @@ abstract class TestRunner {
     this.sharedClientState = offlineComponentProvider.sharedClientState;
     this.persistence = offlineComponentProvider.persistence;
     this.localStore = offlineComponentProvider.localStore;
-    this.connection = onlineComponentProvider.connection;
     this.remoteStore = onlineComponentProvider.remoteStore;
     this.syncEngine = onlineComponentProvider.syncEngine;
     this.eventManager = onlineComponentProvider.eventManager;
+
+    this.eventManager.onListen = syncEngineListen.bind(null, this.syncEngine);
+    this.eventManager.onUnlisten = syncEngineUnlisten.bind(
+      null,
+      this.syncEngine
+    );
 
     await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
@@ -297,11 +317,15 @@ abstract class TestRunner {
   }
 
   async shutdown(): Promise<void> {
-    await this.queue.enqueueAndInitiateShutdown(async () => {
+    this.queue.enterRestrictedMode();
+    const deferred = new Deferred();
+    this.queue.enqueueAndForgetEvenWhileRestricted(async () => {
       if (this.started) {
         await this.doShutdown();
       }
+      deferred.resolve();
     });
+    return deferred.promise;
   }
 
   /** Runs a single SpecStep on this runner. */
@@ -398,7 +422,9 @@ abstract class TestRunner {
     const queryListener = new QueryListener(query, aggregator, options);
     this.queryListeners.set(query, queryListener);
 
-    await this.queue.enqueue(() => this.eventManager.listen(queryListener));
+    await this.queue.enqueue(() =>
+      eventManagerListen(this.eventManager, queryListener)
+    );
 
     if (targetFailed) {
       expect(this.persistence.injectFailures).contains('Allocate target');
@@ -430,7 +456,9 @@ abstract class TestRunner {
     const eventEmitter = this.queryListeners.get(query);
     debugAssert(!!eventEmitter, 'There must be a query to unlisten too!');
     this.queryListeners.delete(query);
-    await this.queue.enqueue(() => this.eventManager.unlisten(eventEmitter!));
+    await this.queue.enqueue(() =>
+      eventManagerUnlisten(this.eventManager, eventEmitter!)
+    );
   }
 
   private doSet(setSpec: SpecUserSet): Promise<void> {
@@ -454,14 +482,14 @@ abstract class TestRunner {
       error: () => {}
     };
     this.snapshotsInSyncListeners.push(observer);
-    this.eventManager.addSnapshotsInSyncListener(observer);
+    addSnapshotsInSyncListener(this.eventManager, observer);
     return Promise.resolve();
   }
 
   private doRemoveSnapshotsInSyncListener(): Promise<void> {
     const removeObs = this.snapshotsInSyncListeners.pop();
     if (removeObs) {
-      this.eventManager.removeSnapshotsInSyncListener(removeObs);
+      removeSnapshotsInSyncListener(this.eventManager, removeObs);
     } else {
       throw new Error('There must be a listener to unlisten to');
     }
@@ -482,9 +510,9 @@ abstract class TestRunner {
       this.sharedWrites.push(mutations);
     }
 
-    return this.queue.enqueue(() => {
-      return this.syncEngine.write(mutations, syncEngineCallback);
-    });
+    return this.queue.enqueue(() =>
+      syncEngineWrite(this.syncEngine, mutations, syncEngineCallback)
+    );
   }
 
   private doWatchAck(ackedTargets: SpecWatchAck): Promise<void> {
@@ -885,7 +913,7 @@ abstract class TestRunner {
   }
 
   private validateActiveLimboDocs(): void {
-    let actualLimboDocs = this.syncEngine.activeLimboDocumentResolutions();
+    let actualLimboDocs = activeLimboDocumentResolutions(this.syncEngine);
 
     if (this.connection.isWatchOpen) {
       // Validate that each active limbo doc has an expected active target
@@ -918,7 +946,7 @@ abstract class TestRunner {
 
   private validateEnqueuedLimboDocs(): void {
     let actualLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
-    this.syncEngine.enqueuedLimboDocumentResolutions().forEach(key => {
+    enqueuedLimboDocumentResolutions(this.syncEngine).forEach(key => {
       actualLimboDocs = actualLimboDocs.add(key);
     });
     let expectedLimboDocs = new SortedSet<DocumentKey>(DocumentKey.comparator);
@@ -1548,7 +1576,7 @@ export interface StateExpectation {
 }
 
 async function clearCurrentPrimaryLease(): Promise<void> {
-  const db = await SimpleDb.openOrCreate(
+  const db = new SimpleDb(
     INDEXEDDB_TEST_DATABASE_NAME,
     SCHEMA_VERSION,
     new SchemaConverter(TEST_SERIALIZER)

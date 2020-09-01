@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import tmp from 'tmp';
 import path from 'path';
 import json from 'rollup-plugin-json';
 import alias from '@rollup/plugin-alias';
@@ -36,7 +37,7 @@ const nodePlugins = [
         target: 'es2017'
       }
     },
-    clean: true,
+    cacheDir: tmp.dirSync(),
     abortOnError: false,
     transformers: [util.removeAssertTransformer, importPathTransformer]
   }),
@@ -51,7 +52,7 @@ const browserPlugins = [
         target: 'es2017'
       }
     },
-    clean: true,
+    cacheDir: tmp.dirSync(),
     abortOnError: false,
     transformers: [
       util.removeAssertAndPrefixInternalTransformer,
@@ -71,7 +72,7 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('node')), ...nodePlugins],
+    plugins: [alias(util.generateAliasConfig('node_lite')), ...nodePlugins],
     external: util.resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false
@@ -111,7 +112,10 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins],
+    plugins: [
+      alias(util.generateAliasConfig('browser_lite')),
+      ...browserPlugins
+    ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
@@ -125,7 +129,7 @@ const allBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [alias(util.generateAliasConfig('rn')), ...browserPlugins],
+    plugins: [alias(util.generateAliasConfig('rn_lite')), ...browserPlugins],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false

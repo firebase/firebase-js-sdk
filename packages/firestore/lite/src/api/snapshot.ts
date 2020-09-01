@@ -30,6 +30,7 @@ import {
   UntypedFirestoreDataConverter
 } from '../../../src/api/user_data_reader';
 import { arrayEquals } from '../../../src/util/misc';
+import { Bytes } from './bytes';
 
 export class DocumentSnapshot<T = firestore.DocumentData>
   implements firestore.DocumentSnapshot<T> {
@@ -84,7 +85,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
             this._firestore,
             /* converter= */ null,
             key.path
-          )
+          ),
+        bytes => new Bytes(bytes)
       );
       return userDataWriter.convertValue(this._document.toProto()) as T;
     }
@@ -101,7 +103,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
           /* timestampsInSnapshots= */ true,
           /* serverTimestampBehavior=*/ 'none',
           key =>
-            new DocumentReference(this._firestore, this._converter, key.path)
+            new DocumentReference(this._firestore, this._converter, key.path),
+          bytes => new Bytes(bytes)
         );
         return userDataWriter.convertValue(value);
       }

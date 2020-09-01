@@ -25,11 +25,13 @@ import {
   getApp,
   registerVersion,
   setLogLevel,
-  LogLevel,
   onLog
 } from './api';
 import { DEFAULT_ENTRY_NAME } from './constants';
-import { _FirebaseAppInternal } from '@firebase/app-types-exp';
+import {
+  _FirebaseAppInternal,
+  _FirebaseService
+} from '@firebase/app-types-exp';
 import {
   _clearComponents,
   _components,
@@ -175,6 +177,33 @@ describe('API tests', () => {
       deleteApp(app).catch(() => {});
       expect(getApps().length).to.equal(0);
     });
+
+    it('waits for all services being deleted', async () => {
+      _clearComponents();
+      let count = 0;
+      const comp1 = new Component(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'test1' as any,
+        _container =>
+          ({
+            _delete: async () => {
+              await Promise.resolve();
+              expect(count).to.equal(0);
+              count++;
+            }
+          } as _FirebaseService),
+        ComponentType.PUBLIC
+      );
+      _registerComponent(comp1);
+
+      const app = initializeApp({});
+      // create service instance
+      const test1Provider = _getProvider(app, 'test1' as any);
+      test1Provider.getImmediate();
+
+      await deleteApp(app);
+      expect(count).to.equal(1);
+    });
   });
 
   describe('registerVersion', () => {
@@ -236,14 +265,14 @@ describe('API tests', () => {
               const logger = new Logger('@firebase/logger-test');
               logger.warn('hello');
               expect(warnSpy.called).to.be.true;
-              setLogLevel(LogLevel.WARN);
+              setLogLevel('warn');
               logger.info('hi');
               expect(infoSpy.called).to.be.false;
               logger.log('hi');
               expect(logSpy.called).to.be.false;
               logSpy.resetHistory();
               infoSpy.resetHistory();
-              setLogLevel(LogLevel.DEBUG);
+              setLogLevel('debug');
               logger.info('hi');
               expect(infoSpy.called).to.be.true;
               logger.log('hi');

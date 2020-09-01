@@ -24,7 +24,9 @@ import {
   apiDescribe,
   withAlternateTestDb,
   withTestCollection,
-  withTestDb
+  withTestDb,
+  notInOp,
+  notEqualOp
 } from '../util/helpers';
 import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
 
@@ -236,22 +238,23 @@ apiDescribe('Validation:', (persistence: boolean) => {
   describe('Collection paths', () => {
     validationIt(persistence, 'must be non-empty strings', db => {
       const baseDocRef = db.doc('foo/bar');
-      const argumentPosition = usesFunctionalApi() ? 'second' : 'first';
 
-      expect(() => db.collection('')).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'collection' : 'Firestore.collection'
-        }() requires its ${argumentPosition} argument to be of type ` +
-          'non-empty string, but it was: ""'
-      );
-      expect(() => baseDocRef.collection('')).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'collection' : 'DocumentReference.collection'
-        }() requires its ${argumentPosition} argument to be of type ` +
-          'non-empty string, but it was: ""'
-      );
-
-      if (validatesJsInput) {
+      if (usesFunctionalApi()) {
+        expect(() => db.collection('')).to.throw(
+          'Function collection() cannot be called with an empty path.'
+        );
+        expect(() => baseDocRef.collection('')).to.throw(
+          'Function DocumentReference.collection() cannot be called with an empty path.'
+        );
+      } else {
+        expect(() => db.collection('')).to.throw(
+          'Function Firestore.collection() requires its first ' +
+            'argument to be of type non-empty string, but it was: ""'
+        );
+        expect(() => baseDocRef.collection('')).to.throw(
+          'Function DocumentReference.collection() requires its first ' +
+            'argument to be of type non-empty string, but it was: ""'
+        );
         expect(() => db.collection(null as any)).to.throw(
           'Function Firestore.collection() requires its first argument ' +
             'to be of type non-empty string, but it was: null'
@@ -307,21 +310,23 @@ apiDescribe('Validation:', (persistence: boolean) => {
   describe('Document paths', () => {
     validationIt(persistence, 'must be strings', db => {
       const baseCollectionRef = db.collection('foo');
-      const argumentPosition = usesFunctionalApi() ? 'second' : 'first';
 
-      expect(() => db.doc('')).to.throw(
-        `Function ${usesFunctionalApi() ? 'doc' : 'Firestore.doc'}() ` +
-          `requires its ${argumentPosition} argument to be of type non-empty ` +
-          'string, but it was: ""'
-      );
-      expect(() => baseCollectionRef.doc('')).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'doc' : 'CollectionReference.doc'
-        }() requires its ${argumentPosition} argument to be of type ` +
-          'non-empty string, but it was: ""'
-      );
-
-      if (validatesJsInput) {
+      if (usesFunctionalApi()) {
+        expect(() => db.doc('')).to.throw(
+          'Function doc() cannot be called with an empty path.'
+        );
+        expect(() => baseCollectionRef.doc('')).to.throw(
+          'Function CollectionReference.doc() cannot be called with an empty path.'
+        );
+      } else {
+        expect(() => db.doc('')).to.throw(
+          'Function Firestore.doc() requires its first ' +
+            'argument to be of type non-empty string, but it was: ""'
+        );
+        expect(() => baseCollectionRef.doc('')).to.throw(
+          'Function CollectionReference.doc() requires its first ' +
+            'argument to be of type non-empty string, but it was: ""'
+        );
         expect(() => db.doc(null as any)).to.throw(
           'Function Firestore.doc() requires its first argument to be ' +
             'of type non-empty string, but it was: null'
@@ -955,6 +960,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expect(() => collection.where('a', 'in', null)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' filters."
         );
+        expect(() => collection.where('a', notInOp, null)).to.throw(
+          "Invalid Query. A non-empty array is required for 'not-in' filters."
+        );
         expect(() =>
           collection.where('a', 'array-contains-any', null)
         ).to.throw(
@@ -969,6 +977,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
         ).to.throw('Invalid query. NaN supports only equality comparisons.');
         expect(() => collection.where('a', 'in', Number.NaN)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' filters."
+        );
+        expect(() => collection.where('a', notInOp, Number.NaN)).to.throw(
+          "Invalid Query. A non-empty array is required for 'not-in' filters."
         );
         expect(() =>
           collection.where('a', 'array-contains-any', Number.NaN)
@@ -1117,6 +1128,28 @@ apiDescribe('Validation:', (persistence: boolean) => {
       );
     });
 
+    validationIt(persistence, 'with more than one != query fail', db => {
+      const collection = db.collection('test');
+      expect(() =>
+        collection.where('x', notEqualOp, 32).where('x', notEqualOp, 33)
+      ).to.throw("Invalid query. You cannot use more than one '!=' filter.");
+    });
+
+    validationIt(
+      persistence,
+      'with != and inequality queries on different fields fail',
+      db => {
+        const collection = db.collection('test');
+        expect(() =>
+          collection.where('y', '>', 32).where('x', notEqualOp, 33)
+        ).to.throw(
+          'Invalid query. All where filters with an ' +
+            'inequality (<, <=, >, or >=) must be on the same field.' +
+            ` But you have inequality filters on 'y' and 'x`
+        );
+      }
+    );
+
     validationIt(
       persistence,
       'with inequality different than first orderBy fail.',
@@ -1138,6 +1171,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
         ).to.throw(reason);
         expect(() =>
           collection.orderBy('y').orderBy('x').where('x', '>', 32)
+        ).to.throw(reason);
+        expect(() =>
+          collection.where('x', notEqualOp, 32).orderBy('y')
         ).to.throw(reason);
       }
     );
@@ -1171,6 +1207,36 @@ apiDescribe('Validation:', (persistence: boolean) => {
         "Invalid query. You cannot use 'array-contains' filters with " +
           "'array-contains-any' filters."
       );
+
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', notInOp, [2, 3])
+          .where('foo', 'array-contains', 1)
+      ).to.throw(
+        "Invalid query. You cannot use 'array-contains' filters with " +
+          "'not-in' filters."
+      );
+    });
+
+    validationIt(persistence, 'with != and not-in filters fail', db => {
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', notInOp, [2, 3])
+          .where('foo', notEqualOp, 4)
+      ).to.throw(
+        "Invalid query. You cannot use '!=' filters with 'not-in' filters."
+      );
+
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', notEqualOp, 4)
+          .where('foo', notInOp, [2, 3])
+      ).to.throw(
+        "Invalid query. You cannot use 'not-in' filters with '!=' filters."
+      );
     });
 
     validationIt(persistence, 'with multiple disjunctive filters fail', db => {
@@ -1180,6 +1246,15 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .where('foo', 'in', [1, 2])
           .where('foo', 'in', [2, 3])
       ).to.throw("Invalid query. You cannot use more than one 'in' filter.");
+
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', notInOp, [1, 2])
+          .where('foo', notInOp, [2, 3])
+      ).to.throw(
+        "Invalid query. You cannot use more than one 'not-in' filter."
+      );
 
       expect(() =>
         db
@@ -1211,6 +1286,44 @@ apiDescribe('Validation:', (persistence: boolean) => {
           "'in' filters."
       );
 
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', notInOp, [2, 3])
+          .where('foo', 'array-contains-any', [2, 3])
+      ).to.throw(
+        "Invalid query. You cannot use 'array-contains-any' filters with " +
+          "'not-in' filters."
+      );
+
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', 'array-contains-any', [2, 3])
+          .where('foo', notInOp, [2, 3])
+      ).to.throw(
+        "Invalid query. You cannot use 'not-in' filters with " +
+          "'array-contains-any' filters."
+      );
+
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', notInOp, [2, 3])
+          .where('foo', 'in', [2, 3])
+      ).to.throw(
+        "Invalid query. You cannot use 'in' filters with 'not-in' filters."
+      );
+
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', 'in', [2, 3])
+          .where('foo', notInOp, [2, 3])
+      ).to.throw(
+        "Invalid query. You cannot use 'not-in' filters with 'in' filters."
+      );
+
       // This is redundant with the above tests, but makes sure our validation
       // doesn't get confused.
       expect(() =>
@@ -1220,8 +1333,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .where('foo', 'array-contains', 1)
           .where('foo', 'array-contains-any', [2])
       ).to.throw(
-        "Invalid query. You cannot use 'array-contains-any' filters with " +
-          "'in' filters."
+        "Invalid query. You cannot use 'array-contains-any' filters with 'in' filters."
       );
 
       expect(() =>
@@ -1232,7 +1344,29 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .where('foo', 'array-contains-any', [2])
       ).to.throw(
         "Invalid query. You cannot use 'array-contains-any' filters with " +
-          "'in' filters."
+          "'array-contains' filters."
+      );
+
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', notInOp, [2, 3])
+          .where('foo', 'array-contains', 2)
+          .where('foo', 'array-contains-any', [2])
+      ).to.throw(
+        "Invalid query. You cannot use 'array-contains' filters with " +
+          "'not-in' filters."
+      );
+
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', 'array-contains', 2)
+          .where('foo', 'in', [2])
+          .where('foo', notInOp, [2, 3])
+      ).to.throw(
+        "Invalid query. You cannot use 'not-in' filters with " +
+          "'array-contains' filters."
       );
     });
 

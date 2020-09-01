@@ -1,5 +1,20 @@
 # @firebase/performance
 
+## 0.4.0
+
+### Minor Changes
+
+- [`67501b980`](https://github.com/firebase/firebase-js-sdk/commit/67501b9806c7014738080bc0be945b2c0748c17e) [#3424](https://github.com/firebase/firebase-js-sdk/pull/3424) - Issue 2393 - Add environment check to Performance Module
+
+## 0.3.11
+
+### Patch Changes
+
+- Updated dependencies [[`d4ca3da0`](https://github.com/firebase/firebase-js-sdk/commit/d4ca3da0a59fcea1261ba69d7eb663bba38d3089)]:
+  - @firebase/util@0.3.1
+  - @firebase/component@0.1.18
+  - @firebase/installations@0.4.16
+
 ## 0.3.10
 
 ### Patch Changes

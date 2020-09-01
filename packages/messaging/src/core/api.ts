@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-import { ErrorCode, ERROR_FACTORY } from '../util/errors';
 import { DEFAULT_VAPID_KEY, ENDPOINT } from '../util/constants';
-import { TokenDetails, SubscriptionOptions } from '../interfaces/token-details';
-import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { SubscriptionOptions, TokenDetails } from '../interfaces/token-details';
+
 import { AppConfig } from '../interfaces/app-config';
+import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 
 export interface ApiResponse {
   token?: string;
