@@ -32,7 +32,6 @@ import {
   Component,
   ComponentType
 } from '@firebase/component';
-import { CONSTANTS } from '@firebase/util';
 
 /**
  * INTERNAL methods for internal-use only (tests, etc.).
@@ -97,22 +96,17 @@ export function initStandalone<T>({
   url,
   version,
   customAuthImpl,
-  namespace,
-  isAdmin
+  namespace
 }: {
   app: FirebaseApp;
   url: string;
   version: string;
   customAuthImpl: FirebaseAuthInternal;
   namespace: T;
-  isAdmin: boolean;
 }): {
   instance: types.Database;
   namespace: T;
 } {
-  if (isAdmin) {
-    CONSTANTS.NODE_ADMIN = true;
-  }
   setSDKVersion(version);
 
   /**

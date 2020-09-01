@@ -27,7 +27,7 @@ import * as INTERNAL from './src/api/internal';
 import * as TEST_ACCESS from './src/api/test_access';
 import * as types from '@firebase/database-types';
 import { setSDKVersion } from './src/core/version';
-import { isNodeSdk } from '@firebase/util';
+import { CONSTANTS, isNodeSdk } from '@firebase/util';
 import { setWebSocketImpl } from './src/realtime/WebSocketConnection';
 import { Client } from 'faye-websocket';
 import { Component, ComponentType } from '@firebase/component';
@@ -48,6 +48,7 @@ const ServerValue = Database.ServerValue;
  * @param version custom version e.g. firebase-admin version
  */
 export function initStandalone(app: FirebaseApp, url: string, version: string) {
+  CONSTANTS.NODE_ADMIN = true;
   return INTERNAL.initStandalone({
     app,
     url,
@@ -64,8 +65,7 @@ export function initStandalone(app: FirebaseApp, url: string, version: string) {
       INTERNAL,
       ServerValue,
       TEST_ACCESS
-    },
-    isAdmin: true
+    }
   });
 }
 
