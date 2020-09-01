@@ -54,7 +54,7 @@ export function initStandalone(app: FirebaseApp, url: string, version: string) {
     url,
     version,
     // firebase-admin-node's app.INTERNAL implements FirebaseAuthInternal interface
-    // eslint-disable-next-line @typescript-eslint/no-explicit-anys
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     customAuthImpl: (app as any).INTERNAL as FirebaseAuthInternal,
     namespace: {
       Reference,
