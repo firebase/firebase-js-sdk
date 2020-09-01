@@ -36,7 +36,8 @@ import {
   convertCredential
 } from './user_credential';
 
-export class Auth extends impl.AuthImplCompat<User>
+export class Auth
+  extends impl.AuthImplCompat<User>
   implements compat.FirebaseAuth {
   readonly app: FirebaseApp;
 

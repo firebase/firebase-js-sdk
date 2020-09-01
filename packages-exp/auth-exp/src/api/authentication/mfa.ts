@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performApiRequest } from '..';
+import { _performApiRequest, Endpoint, HttpMethod } from '../';
+import { AuthCore } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
+import { MfaEnrollment } from '../account_management/mfa';
 import { SignInWithIdpResponse } from './idp';
 import {
   SignInWithPhoneNumberRequest,
   SignInWithPhoneNumberResponse
 } from './sms';
-import { MfaEnrollment } from '../account_management/mfa';
-import { AuthCore } from '../../model/auth';
 
 export interface FinalizeMfaResponse {
   idToken: string;
@@ -31,7 +31,7 @@ export interface FinalizeMfaResponse {
 }
 
 export interface IdTokenMfaResponse extends IdTokenResponse {
-  mfaPendingCredential: string;
+  mfaPendingCredential?: string;
   mfaInfo?: MfaEnrollment[];
 }
 

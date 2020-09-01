@@ -16,18 +16,19 @@
  */
 
 import { FirebaseError, querystring } from '@firebase/util';
+
 import {
-  AuthErrorCode,
   AUTH_ERROR_FACTORY,
+  AuthErrorCode,
   NamedErrorParams
 } from '../core/errors';
 import { fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
+import { FetchProvider } from '../core/util/fetch_provider';
 import { AuthCore } from '../model/auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';
-import { ServerError, ServerErrorMap, SERVER_ERROR_MAP } from './errors';
-import { FetchProvider } from '../core/util/fetch_provider';
+import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
 
 export enum HttpMethod {
   POST = 'POST',
@@ -165,13 +166,13 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
-  const serverResponse = await _performApiRequest<T, V | IdTokenMfaResponse>(
+  const serverResponse = (await _performApiRequest<T, V | IdTokenMfaResponse>(
     auth,
     method,
     path,
     request,
     customErrorMap
-  );
+  )) as V;
   if ('mfaPendingCredential' in serverResponse) {
     throw AUTH_ERROR_FACTORY.create(AuthErrorCode.MFA_REQUIRED, {
       appName: auth.name,

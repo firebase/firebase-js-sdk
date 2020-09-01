@@ -21,7 +21,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import { SDK_VERSION } from '@firebase/app-exp';
-import { ProviderId } from '@firebase/auth-types-exp';
+import { Config, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import {
@@ -117,7 +117,7 @@ describe('src/platform_browser/popup_redirect', () => {
     });
 
     it('throws an error if apiKey is unspecified', async () => {
-      delete auth.config.apiKey;
+      delete (auth.config as Partial<Config>).apiKey;
       await resolver._initialize(auth);
 
       await expect(
@@ -173,7 +173,7 @@ describe('src/platform_browser/popup_redirect', () => {
     });
 
     it('throws an error if apiKey is unspecified', async () => {
-      delete auth.config.apiKey;
+      delete (auth.config as Partial<Config>).apiKey;
 
       await expect(
         resolver._openRedirect(auth, provider, event)

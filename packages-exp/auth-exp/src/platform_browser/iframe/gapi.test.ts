@@ -52,7 +52,7 @@ describe('src/platform_browser/iframe/gapi', () => {
     return ({
       load: sinon
         .stub()
-        .callsFake((_name: string, params: Record<string, Function>) =>
+        .callsFake((_name: string, params: Record<string, () => void>) =>
           params[callbackFn]()
         ),
       iframes: {

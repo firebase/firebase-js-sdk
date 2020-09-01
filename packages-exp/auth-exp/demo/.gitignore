@@ -2,4 +2,4 @@ src/config.js
 .firebaserc
 public/service-worker.*
 public/web-worker.*
-public/index.*
+public/index.js*

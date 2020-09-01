@@ -29,7 +29,8 @@ import { AuthErrorCode } from '../errors';
 import { fail } from '../util/assert';
 import { AuthCredential } from './';
 
-export class EmailAuthCredential extends AuthCredential
+export class EmailAuthCredential
+  extends AuthCredential
   implements externs.AuthCredential {
   private constructor(
     readonly email: string,
