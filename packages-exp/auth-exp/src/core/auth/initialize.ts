@@ -20,9 +20,11 @@ import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 
 import { Dependencies } from '../../model/auth';
+import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
+import { assert } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
-import { AuthImpl } from './auth_impl';
+import { _castAuth, AuthImpl } from './auth_impl';
 
 export function initializeAuth(
   app: FirebaseApp = getApp(),
@@ -32,6 +34,22 @@ export function initializeAuth(
   _initializeAuthInstance(auth, deps);
 
   return auth;
+}
+
+export function useEmulator(
+  authExtern: externs.Auth,
+  hostname: string,
+  port: number
+): void {
+  const auth = _castAuth(authExtern);
+  assert(auth._canInitEmulator, AuthErrorCode.EMULATOR_CONFIG_FAILED, {
+    appName: auth.name
+  });
+
+  auth.config.emulator = {
+    hostname,
+    port
+  };
 }
 
 export function _initializeAuthInstance(
