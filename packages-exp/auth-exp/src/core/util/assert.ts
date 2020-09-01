@@ -47,6 +47,8 @@ export function assert<K extends AuthErrorCode>(
   }
 }
 
+// We really do want to accept literally any function type here
+// eslint-disable-next-line @typescript-eslint/ban-types
 type TypeExpectation = Function | string | MapType;
 
 interface MapType extends Record<string, TypeExpectation | Optional> {}

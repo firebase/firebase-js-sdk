@@ -16,15 +16,16 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { UserCredential } from '../model/user';
+
+import { _castAuth } from '../core/auth/auth_impl';
 import { AuthErrorCode } from '../core/errors';
 import { UserCredentialImpl } from '../core/user/user_credential_impl';
 import { assert, fail } from '../core/util/assert';
+import { UserCredential } from '../model/user';
 import { MultiFactorAssertion } from './assertions';
 import { MultiFactorError } from './mfa_error';
 import { MultiFactorInfo } from './mfa_info';
 import { MultiFactorSession } from './mfa_session';
-import { _castAuth } from '../core/auth/auth_impl';
 
 export class MultiFactorResolver implements externs.MultiFactorResolver {
   private constructor(
@@ -43,8 +44,9 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
       MultiFactorInfo._fromServerResponse(auth, enrollment)
     );
 
+    assert(error.serverResponse.mfaPendingCredential, AuthErrorCode.INTERNAL_ERROR, {appName: auth.name});
     const session = MultiFactorSession._fromMfaPendingCredential(
-      error.serverResponse.mfaPendingCredential
+      error.serverResponse.mfaPendingCredential,
     );
 
     return new MultiFactorResolver(

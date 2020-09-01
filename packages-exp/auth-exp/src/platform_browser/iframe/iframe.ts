@@ -19,6 +19,7 @@ import { SDK_VERSION } from '@firebase/app-exp';
 import { querystring } from '@firebase/util';
 
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
+import { assert } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
 import { AuthCore } from '../../model/auth';
 import { _window } from '../auth_window';
@@ -52,11 +53,13 @@ export async function _openIframe(
   auth: AuthCore
 ): Promise<gapi.iframes.Iframe> {
   const context = await gapiLoader._loadGapi(auth);
+  const gapi = _window().gapi;
+  assert(gapi, AuthErrorCode.INTERNAL_ERROR, {appName: auth.name});
   return context.open(
     {
       where: document.body,
       url: getIframeUrl(auth),
-      messageHandlersFilter: _window().gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER,
+      messageHandlersFilter: gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER,
       attributes: IFRAME_ATTRIBUTES,
       dontclear: true
     },
