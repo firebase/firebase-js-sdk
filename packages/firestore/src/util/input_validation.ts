@@ -211,7 +211,8 @@ export function validateIsNotUsedTogether(
   if (
     argument1 !== undefined &&
     argument2 !== undefined &&
-    argument1 === argument2
+    argument1 === true &&
+    argument2 === true
   ) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,

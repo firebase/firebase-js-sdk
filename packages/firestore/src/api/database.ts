@@ -147,7 +147,7 @@ const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
 const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = true;
 const DEFAULT_FORCE_LONG_POLLING = false;
-const DEFAULT_FORCE_AUTODETECT_LONG_POLLING = false;
+const DEFAULT_FORCE_AUTO_DETECT_LONG_POLLING = false;
 const DEFAULT_IGNORE_UNDEFINED_PROPERTIES = false;
 
 /**
@@ -308,7 +308,7 @@ class FirestoreSettings {
     );
     this.experimentalAutoDetectLongPolling =
       settings.experimentalAutoDetectLongPolling ??
-      DEFAULT_FORCE_AUTODETECT_LONG_POLLING;
+      DEFAULT_FORCE_AUTO_DETECT_LONG_POLLING;
 
     validateIsNotUsedTogether(
       'experimentalForceLongPolling',

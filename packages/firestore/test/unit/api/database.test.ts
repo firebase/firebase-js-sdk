@@ -170,6 +170,17 @@ describe('Settings', () => {
     );
   });
 
+  it('can not use mutually exclusive settings together', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const firestoreClient = newTestFirestore();
+    expect(
+      firestoreClient.settings.bind(firestoreClient.settings, {
+        experimentalForceLongPolling: true,
+        experimentalAutoDetectLongPolling: true
+      })
+    ).to.throw(`can not be used together.`);
+  });
+
   it('can merge settings', () => {
     // Use a new instance of Firestore in order to configure settings.
     const firestoreClient = newTestFirestore();
