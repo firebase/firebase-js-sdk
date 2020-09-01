@@ -60,7 +60,7 @@ export function getDatastore(firestore: Firestore): Datastore {
       settings.host ?? DEFAULT_HOST,
       settings.ssl ?? DEFAULT_SSL,
       /* forceLongPolling= */ false,
-      /* forceAutodetectLongPolling= */ false
+      /* forceAutoDetectLongPolling= */ false
     );
 
     const connection = newConnection(databaseInfo);

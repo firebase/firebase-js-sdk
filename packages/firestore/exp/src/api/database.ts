@@ -116,7 +116,7 @@ export class Firestore
       settings.host ?? DEFAULT_HOST,
       settings.ssl ?? DEFAULT_SSL,
       /* forceLongPolling= */ false,
-      /* forceAutodetectLongPolling= */ false
+      /* forceAutoDetectLongPolling= */ false
     );
     return {
       asyncQueue: this._queue,

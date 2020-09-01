@@ -232,7 +232,7 @@ abstract class TestRunner {
       'host',
       /*ssl=*/ false,
       /*forceLongPolling=*/ false,
-      /*autodetectLongPolling=*/ true
+      /*autoDetectLongPolling=*/ true
     );
 
     // TODO(mrschmidt): During client startup in `firestore_client`, we block

@@ -29,7 +29,7 @@ export interface Settings {
   timestampsInSnapshots?: boolean;
   cacheSizeBytes?: number;
   experimentalForceLongPolling?: boolean;
-  experimentalAutodetectLongPolling?: boolean;
+  experimentalAutoDetectLongPolling?: boolean;
   ignoreUndefinedProperties?: boolean;
   merge?: boolean;
 }

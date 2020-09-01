@@ -34,12 +34,14 @@ export const USE_EMULATOR = !!EMULATOR_PORT;
 
 const EMULATOR_FIRESTORE_SETTING = {
   host: `localhost:${EMULATOR_PORT}`,
-  ssl: false
+  ssl: false,
+  experimentalAutoDetectLongPolling: true
 };
 
 const PROD_FIRESTORE_SETTING = {
   host: 'firestore.googleapis.com',
-  ssl: true
+  ssl: true,
+  experimentalAutoDetectLongPolling: true
 };
 
 export const DEFAULT_SETTINGS = getDefaultSettings();

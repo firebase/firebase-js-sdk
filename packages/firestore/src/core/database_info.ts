@@ -29,7 +29,7 @@ export class DatabaseInfo {
    * @param ssl Whether to use SSL when connecting.
    * @param forceLongPolling Whether to use the forceLongPolling option
    * when using WebChannel as the network transport.
-   * @param autodetectLongPolling Whether to use the autodetectLongPolling
+   * @param autoDetectLongPolling Whether to use the autoDetectLongPolling
    * option when using WebChannel as the network transport.
    */
   constructor(
@@ -38,7 +38,7 @@ export class DatabaseInfo {
     readonly host: string,
     readonly ssl: boolean,
     readonly forceLongPolling: boolean,
-    readonly autodetectLongPolling: boolean
+    readonly autoDetectLongPolling: boolean
   ) {}
 }
 

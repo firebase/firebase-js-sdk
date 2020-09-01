@@ -193,7 +193,7 @@ class FirestoreSettings {
 
   readonly experimentalForceLongPolling: boolean;
 
-  readonly experimentalAutodetectLongPolling: boolean;
+  readonly experimentalAutoDetectLongPolling: boolean;
 
   readonly ignoreUndefinedProperties: boolean;
 
@@ -225,7 +225,7 @@ class FirestoreSettings {
       'timestampsInSnapshots',
       'cacheSizeBytes',
       'experimentalForceLongPolling',
-      'experimentalAutodetectLongPolling',
+      'experimentalAutoDetectLongPolling',
       'ignoreUndefinedProperties'
     ]);
 
@@ -303,18 +303,18 @@ class FirestoreSettings {
     validateNamedOptionalType(
       'settings',
       'boolean',
-      'experimentalAutodetectLongPolling',
-      settings.experimentalAutodetectLongPolling
+      'experimentalAutoDetectLongPolling',
+      settings.experimentalAutoDetectLongPolling
     );
-    this.experimentalAutodetectLongPolling =
-      settings.experimentalAutodetectLongPolling ??
+    this.experimentalAutoDetectLongPolling =
+      settings.experimentalAutoDetectLongPolling ??
       DEFAULT_FORCE_AUTODETECT_LONG_POLLING;
 
     validateIsNotUsedTogether(
       'experimentalForceLongPolling',
       settings.experimentalForceLongPolling,
-      'experimentalAutodetectLongPolling',
-      settings.experimentalAutodetectLongPolling
+      'experimentalAutoDetectLongPolling',
+      settings.experimentalAutoDetectLongPolling
     );
   }
 
@@ -327,8 +327,8 @@ class FirestoreSettings {
       this.cacheSizeBytes === other.cacheSizeBytes &&
       this.experimentalForceLongPolling ===
         other.experimentalForceLongPolling &&
-      this.experimentalAutodetectLongPolling ===
-        other.experimentalAutodetectLongPolling &&
+      this.experimentalAutoDetectLongPolling ===
+        other.experimentalAutoDetectLongPolling &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties
     );
   }
@@ -577,7 +577,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
       this._settings.host,
       this._settings.ssl,
       this._settings.experimentalForceLongPolling,
-      this._settings.experimentalAutodetectLongPolling
+      this._settings.experimentalAutoDetectLongPolling
     );
   }
 
