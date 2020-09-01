@@ -23,7 +23,7 @@ import { _getFinalTarget, _performFetchWithErrorHandling, HttpMethod } from '../
 import { FetchProvider } from '../../core/util/fetch_provider';
 import { AuthCore } from '../../model/auth';
 
-export const _ENDPOINT = 'v1/token';
+export const _ENDPOINT = '/v1/token';
 const GRANT_TYPE = 'refresh_token';
 
 /** The server responses with snake_case; we convert to camelCase */
@@ -58,7 +58,7 @@ export async function requestStsToken(
       `key=${apiKey}`,
     );
 
-    return FetchProvider.fetch()(`${url}?key=${apiKey}`, {
+    return FetchProvider.fetch()(url, {
       method: HttpMethod.POST,
       headers: {
         'X-Client-Version': sdkClientVersion,

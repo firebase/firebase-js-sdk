@@ -22,7 +22,7 @@ import * as externs from '@firebase/auth-types-exp';
 import { Dependencies } from '../../model/auth';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
-import { fail } from '../util/assert';
+import { assert } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { _castAuth, AuthImpl } from './auth_impl';
 
@@ -42,11 +42,7 @@ export function useEmulator(
   port: number
 ): void {
   const auth = _castAuth(authExtern);
-  if (!auth._canInitEmulator) {
-    fail(AuthErrorCode.EMULATOR_CONFIG_FAILED, {
-      appName: auth.name
-    });
-  }
+  assert(auth._canInitEmulator, AuthErrorCode.EMULATOR_CONFIG_FAILED, {appName: auth.name});
 
   auth.config.emulator = {
     hostname,

@@ -35,7 +35,7 @@ describe('requestStsToken', () => {
   beforeEach(async () => {
     auth = await testAuth();
     const { apiKey, tokenApiHost, apiScheme } = auth.config;
-    endpoint = `${apiScheme}://${tokenApiHost}/${_ENDPOINT}?key=${apiKey}`;
+    endpoint = `${apiScheme}://${tokenApiHost}${_ENDPOINT}?key=${apiKey}`;
     fetch.setUp();
   });
 
