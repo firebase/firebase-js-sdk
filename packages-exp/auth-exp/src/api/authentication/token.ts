@@ -19,11 +19,15 @@
 
 import { querystring } from '@firebase/util';
 
-import { _performFetchWithErrorHandling, HttpMethod } from '../';
-import { AuthCore } from '../../model/auth';
+import {
+  _getFinalTarget,
+  _performFetchWithErrorHandling,
+  HttpMethod
+} from '../';
 import { FetchProvider } from '../../core/util/fetch_provider';
+import { AuthCore } from '../../model/auth';
 
-export const _ENDPOINT = 'v1/token';
+export const _ENDPOINT = '/v1/token';
 const GRANT_TYPE = 'refresh_token';
 
 /** The server responses with snake_case; we convert to camelCase */
@@ -50,10 +54,10 @@ export async function requestStsToken(
       'grant_type': GRANT_TYPE,
       'refresh_token': refreshToken
     }).slice(1);
-    const { apiScheme, tokenApiHost, apiKey, sdkClientVersion } = auth.config;
-    const url = `${apiScheme}://${tokenApiHost}/${_ENDPOINT}`;
+    const { tokenApiHost, apiKey, sdkClientVersion } = auth.config;
+    const url = _getFinalTarget(auth, tokenApiHost, _ENDPOINT, `key=${apiKey}`);
 
-    return FetchProvider.fetch()(`${url}?key=${apiKey}`, {
+    return FetchProvider.fetch()(url, {
       method: HttpMethod.POST,
       headers: {
         'X-Client-Version': sdkClientVersion,

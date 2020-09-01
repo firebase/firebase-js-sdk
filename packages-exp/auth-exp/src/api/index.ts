@@ -25,7 +25,7 @@ import {
 import { fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { FetchProvider } from '../core/util/fetch_provider';
-import { AuthCore } from '../model/auth';
+import { Auth, AuthCore } from '../model/auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
@@ -99,7 +99,7 @@ export async function _performApiRequest<T, V>(
     }
 
     return FetchProvider.fetch()(
-      `${auth.config.apiScheme}://${auth.config.apiHost}${path}?${query}`,
+      _getFinalTarget(auth, auth.config.apiHost, path, query),
       {
         method,
         headers,
@@ -115,6 +115,7 @@ export async function _performFetchWithErrorHandling<V>(
   customErrorMap: Partial<ServerErrorMap<ServerError>>,
   fetchFn: () => Promise<Response>
 ): Promise<V> {
+  (auth as Auth)._canInitEmulator = false;
   const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
   try {
     const response: Response = await Promise.race<Promise<Response>>([
@@ -181,6 +182,22 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
   }
 
   return serverResponse;
+}
+
+export function _getFinalTarget(
+  auth: AuthCore,
+  host: string,
+  path: string,
+  query: string
+): string {
+  const { emulator } = auth.config;
+  const base = `${host}${path}?${query}`;
+
+  if (!emulator) {
+    return `${auth.config.apiScheme}://${base}`;
+  }
+
+  return `http://${emulator.hostname}:${emulator.port}/${base}`;
 }
 
 function makeNetworkTimeout<T>(appName: string): Promise<T> {
