@@ -27,16 +27,11 @@ import * as INTERNAL from './src/api/internal';
 import * as TEST_ACCESS from './src/api/test_access';
 import * as types from '@firebase/database-types';
 import { setSDKVersion } from './src/core/version';
-import { CONSTANTS, isNodeSdk } from '@firebase/util';
+import { isNodeSdk } from '@firebase/util';
 import { setWebSocketImpl } from './src/realtime/WebSocketConnection';
 import { Client } from 'faye-websocket';
-import {
-  Component,
-  ComponentType,
-  Provider,
-  ComponentContainer
-} from '@firebase/component';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { Component, ComponentType } from '@firebase/component';
+import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 
 import { name, version } from './package.json';
 
@@ -46,46 +41,20 @@ const ServerValue = Database.ServerValue;
 
 /**
  * A one off register function which returns a database based on the app and
- * passed database URL.
+ * passed database URL. (Used by the Admin SDK)
  *
  * @param app A valid FirebaseApp-like object
  * @param url A valid Firebase databaseURL
  * @param version custom version e.g. firebase-admin version
  */
 export function initStandalone(app: FirebaseApp, url: string, version: string) {
-  /**
-   * This should allow the firebase-admin package to provide a custom version
-   * to the backend
-   */
-  CONSTANTS.NODE_ADMIN = true;
-  setSDKVersion(version);
-
-  /**
-   * Create a 'auth-internal' component using firebase-admin-node's implementation
-   * that implements FirebaseAuthInternal.
-   * ComponentContainer('database-admin') is just a placeholder that doesn't perform
-   * any actual function.
-   */
-  const authProvider = new Provider<FirebaseAuthInternalName>(
-    'auth-internal',
-    new ComponentContainer('database-admin')
-  );
-  authProvider.setComponent(
-    new Component(
-      'auth-internal',
-      // firebase-admin-node's app.INTERNAL implements FirebaseAuthInternal interface
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      () => (app as any).INTERNAL,
-      ComponentType.PRIVATE
-    )
-  );
-
-  return {
-    instance: RepoManager.getInstance().databaseFromApp(
-      app,
-      authProvider,
-      url
-    ) as types.Database,
+  return INTERNAL.initStandalone({
+    app,
+    url,
+    version,
+    // firebase-admin-node's app.INTERNAL implements FirebaseAuthInternal interface
+    // eslint-disable-next-line @typescript-eslint/no-explicit-anys
+    customAuthImpl: (app as any).INTERNAL as FirebaseAuthInternal,
     namespace: {
       Reference,
       Query,
@@ -95,8 +64,9 @@ export function initStandalone(app: FirebaseApp, url: string, version: string) {
       INTERNAL,
       ServerValue,
       TEST_ACCESS
-    }
-  };
+    },
+    isAdmin: true
+  });
 }
 
 export function registerDatabase(instance: FirebaseNamespace) {

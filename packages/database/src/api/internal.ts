@@ -18,6 +18,21 @@
 import { WebSocketConnection } from '../realtime/WebSocketConnection';
 import { BrowserPollConnection } from '../realtime/BrowserPollConnection';
 import { Reference } from './Reference';
+import { RepoManager } from '../core/RepoManager';
+import { setSDKVersion } from '../core/version';
+import { FirebaseApp } from '@firebase/app-types';
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthInternalName
+} from '@firebase/auth-interop-types';
+import * as types from '@firebase/database-types';
+import {
+  Provider,
+  ComponentContainer,
+  Component,
+  ComponentType
+} from '@firebase/component';
+import { CONSTANTS } from '@firebase/util';
 
 /**
  * INTERNAL methods for internal-use only (tests, etc.).
@@ -67,3 +82,57 @@ export const interceptServerData = function (
 ) {
   return ref.repo.interceptServerData_(callback);
 };
+
+/**
+ * Used by console to create a database based on the app,
+ * passed database URL and a custom auth implementation.
+ *
+ * @param app A valid FirebaseApp-like object
+ * @param url A valid Firebase databaseURL
+ * @param version custom version e.g. firebase-admin version
+ * @param customAuthImpl custom auth implementation
+ */
+export function initStandalone<T>({
+  app,
+  url,
+  version,
+  customAuthImpl,
+  namespace,
+  isAdmin
+}: {
+  app: FirebaseApp;
+  url: string;
+  version: string;
+  customAuthImpl: FirebaseAuthInternal;
+  namespace: T;
+  isAdmin: boolean;
+}): {
+  instance: types.Database;
+  namespace: T;
+} {
+  if (isAdmin) {
+    CONSTANTS.NODE_ADMIN = true;
+  }
+  setSDKVersion(version);
+
+  /**
+   * ComponentContainer('database-standalone') is just a placeholder that doesn't perform
+   * any actual function.
+   */
+  const authProvider = new Provider<FirebaseAuthInternalName>(
+    'auth-internal',
+    new ComponentContainer('database-standalone')
+  );
+  authProvider.setComponent(
+    new Component('auth-internal', () => customAuthImpl, ComponentType.PRIVATE)
+  );
+
+  return {
+    instance: RepoManager.getInstance().databaseFromApp(
+      app,
+      authProvider,
+      url
+    ) as types.Database,
+    namespace
+  };
+}
