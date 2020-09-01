@@ -176,10 +176,6 @@ export function factory(
     );
     logger.warn(analyticsError.message);
   });
-  const appId = app.options.appId;
-  if (!appId) {
-    throw ERROR_FACTORY.create(AnalyticsError.NO_APP_ID);
-  }
   if (!app.options.apiKey) {
     if (app.options.measurementId) {
       logger.warn(
