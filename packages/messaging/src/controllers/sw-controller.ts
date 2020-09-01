@@ -246,15 +246,25 @@ export class SwController implements FirebaseMessaging, FirebaseService {
     event.stopImmediatePropagation();
     event.notification.close();
 
+    // Note clicking on a notification with no link set will focus the Chrome's current tab.
     const link = getLink(internalPayload);
     if (!link) {
       return;
     }
 
-    let client = await getWindowClient(link);
+    // FM should only open/focus links from app's origin.
+    const url = new URL(link, self.location.href);
+    const originUrl = new URL(self.location.origin);
+
+    if (url.host !== originUrl.host) {
+      return;
+    }
+
+    let client = await getWindowClient(url);
+
     if (!client) {
-      // Unable to find window client so need to open one. This also focuses the opened client.
       client = await self.clients.openWindow(link);
+
       // Wait three seconds for the client to initialize and set up the message handler so that it
       // can receive the message.
       await sleep(3000);
@@ -309,16 +319,13 @@ function getMessagePayloadInternal({
  * @param url The URL to look for when focusing a client.
  * @return Returns an existing window client or a newly opened WindowClient.
  */
-async function getWindowClient(url: string): Promise<WindowClient | null> {
-  // Use URL to normalize the URL when comparing to windowClients. This at least handles whether to
-  // include trailing slashes or not
-  const parsedURL = new URL(url, self.location.href);
-
+async function getWindowClient(url: URL): Promise<WindowClient | null> {
   const clientList = await getClientList();
 
   for (const client of clientList) {
-    const parsedClientUrl = new URL(client.url, self.location.href);
-    if (parsedClientUrl.host === parsedURL.host) {
+    const clientUrl = new URL(client.url, self.location.href);
+
+    if (url.host === clientUrl.host) {
       return client;
     }
   }
