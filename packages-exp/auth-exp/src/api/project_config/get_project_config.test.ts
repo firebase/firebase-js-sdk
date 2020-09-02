@@ -30,7 +30,6 @@ import { _getProjectConfig } from './get_project_config';
 use(chaiAsPromised);
 
 describe('api/project_config/getProjectConfig', () => {
-
   let auth: TestAuth;
 
   beforeEach(async () => {

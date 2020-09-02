@@ -17,7 +17,11 @@
 
 import { FirebaseError, querystring } from '@firebase/util';
 
-import { AUTH_ERROR_FACTORY, AuthErrorCode, NamedErrorParams } from '../core/errors';
+import {
+  AUTH_ERROR_FACTORY,
+  AuthErrorCode,
+  NamedErrorParams
+} from '../core/errors';
 import { fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { FetchProvider } from '../core/util/fetch_provider';

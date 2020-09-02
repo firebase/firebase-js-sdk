@@ -25,7 +25,7 @@ export interface GetProjectConfigResponse {
 }
 
 export async function _getProjectConfig(
-  auth: AuthCore,
+  auth: AuthCore
 ): Promise<GetProjectConfigResponse> {
   return _performApiRequest<GetProjectConfigRequest, GetProjectConfigResponse>(
     auth,
