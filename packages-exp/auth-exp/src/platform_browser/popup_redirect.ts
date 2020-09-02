@@ -21,12 +21,11 @@ import { isEmpty, querystring } from '@firebase/util';
 
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
-import { browserSessionPersistence } from './persistence/session_storage';
 import { OAuthProvider } from '../core/providers/oauth';
 import { assert, debugAssert } from '../core/util/assert';
 import { _generateEventId } from '../core/util/event_id';
 import { _getCurrentUrl } from '../core/util/location';
-import { _open, AuthPopup } from './util/popup';
+import { _validateOrigin } from '../core/util/validate_origin';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
   AuthEventType,
@@ -37,6 +36,8 @@ import {
 } from '../model/popup_redirect';
 import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';
+import { browserSessionPersistence } from './persistence/session_storage';
+import { _open, AuthPopup } from './util/popup';
 
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
@@ -50,6 +51,7 @@ interface ManagerOrPromise {
 
 class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   private readonly eventManagers: Record<string, ManagerOrPromise> = {};
+  private readonly originValidationPromises: Record<string, Promise<void>> = {};
 
   readonly _redirectPersistence = browserSessionPersistence;
 
@@ -65,6 +67,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
       this.eventManagers[auth._key()]?.manager,
       '_initialize() not called before _openPopup()'
     );
+    await this.originValidation(auth);
     const url = getRedirectUrl(auth, provider, authType, eventId);
     return _open(auth.name, url, _generateEventId());
   }
@@ -75,6 +78,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     authType: AuthEventType,
     eventId?: string
   ): Promise<never> {
+    await this.originValidation(auth);
     _setWindowLocation(getRedirectUrl(auth, provider, authType, eventId));
     return new Promise(() => {});
   }
@@ -111,6 +115,15 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
 
     this.eventManagers[auth._key()] = { manager };
     return manager;
+  }
+
+  private originValidation(auth: Auth): Promise<void> {
+    const key = auth._key();
+    if (!this.originValidationPromises[key]) {
+      this.originValidationPromises[key] = _validateOrigin(auth);
+    }
+
+    return this.originValidationPromises[key];
   }
 }
 
