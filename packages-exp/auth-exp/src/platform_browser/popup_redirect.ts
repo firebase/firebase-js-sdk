@@ -19,7 +19,6 @@ import { SDK_VERSION } from '@firebase/app-exp';
 import * as externs from '@firebase/auth-types-exp';
 import { isEmpty, querystring } from '@firebase/util';
 
-import { _getProjectConfig } from '../api/project_config/get_project_config';
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
 import { OAuthProvider } from '../core/providers/oauth';
@@ -29,11 +28,7 @@ import { _getCurrentUrl } from '../core/util/location';
 import { _validateOrigin } from '../core/util/validate_origin';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
-  AuthEventType,
-  EventManager,
-  GapiAuthEvent,
-  GapiOutcome,
-  PopupRedirectResolver
+    AuthEventType, EventManager, GapiAuthEvent, GapiOutcome, PopupRedirectResolver
 } from '../model/popup_redirect';
 import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';
