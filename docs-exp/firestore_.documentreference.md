@@ -17,6 +17,7 @@ export class DocumentReference<T = DocumentData>
 |  [converter](./firestore_.documentreference.converter.md) |  | [FirestoreDataConverter](./firestore_.firestoredataconverter.md)<!-- -->&lt;T&gt; \| null |  |
 |  [firestore](./firestore_.documentreference.firestore.md) |  | [FirebaseFirestore](./firestore_.firebasefirestore.md) |  |
 |  [id](./firestore_.documentreference.id.md) |  | string |  |
+|  [parent](./firestore_.documentreference.parent.md) |  | [CollectionReference](./firestore_.collectionreference.md)<!-- -->&lt;T&gt; |  |
 |  [path](./firestore_.documentreference.path.md) |  | string |  |
 |  [type](./firestore_.documentreference.type.md) |  | 'document' |  |
 
@@ -24,5 +25,6 @@ export class DocumentReference<T = DocumentData>
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
+|  [collection(collectionPath)](./firestore_.documentreference.collection.md) |  |  |
 |  [withConverter(converter)](./firestore_.documentreference.withconverter.md) |  |  |
 

@@ -1,5 +1,15 @@
 # @firebase/firestore
 
+## 1.16.6
+
+### Patch Changes
+
+- [`61b4cd31b`](https://github.com/firebase/firebase-js-sdk/commit/61b4cd31b961c90354be38b18af5fbea9da8d5a3) [#3464](https://github.com/firebase/firebase-js-sdk/pull/3464) (fixes [#3354](https://github.com/firebase/firebase-js-sdk/issues/3354)) - feat: Added `merge` option to `firestore.settings()`, which merges the provided settings with
+  settings from a previous call. This allows adding settings on top of the settings that were applied
+  by `@firebase/testing`.
+- Updated dependencies [[`61b4cd31b`](https://github.com/firebase/firebase-js-sdk/commit/61b4cd31b961c90354be38b18af5fbea9da8d5a3)]:
+  - @firebase/firestore-types@1.12.1
+
 ## 1.16.5
 
 ### Patch Changes

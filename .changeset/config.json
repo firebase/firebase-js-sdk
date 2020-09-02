@@ -16,6 +16,7 @@
     "@firebase/functions-types-exp",
     "@firebase/testing",
     "firebase-exp",
+    "@firebase/app-compat",
     "@firebase/changelog-generator",
     "firebase-size-analysis"
   ],

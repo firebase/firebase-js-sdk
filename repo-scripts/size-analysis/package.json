@@ -18,7 +18,7 @@
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha **/*.test.ts --config ../../config/mocharc.node.js --timeout 60000"
   },
   "dependencies": {
-    "rollup": "2.26.5",
+    "rollup": "2.26.7",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-node-resolve": "5.2.0",

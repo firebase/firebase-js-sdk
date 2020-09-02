@@ -1,6 +1,6 @@
 {
   "name": "firebase-exp",
-  "version": "0.800.4",
+  "version": "0.800.7",
   "private": true,
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -27,8 +27,10 @@
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "scripts": {
-    "build": "rollup -c && gulp firebase-js",
-    "build:release": "rollup -c rollup.config.release.js && gulp firebase-js",
+    "build": "rollup -c && gulp firebase-js && yarn build:compat",
+    "build:release": "rollup -c rollup.config.release.js && gulp firebase-js && yarn build:compat:release",
+    "build:compat": "rollup -c compat/rollup.config.js",
+    "build:compat:release": "rollup -c compat/rollup.config.release.js",
     "dev": "rollup -c -w",
     "prepare": "yarn build:release",
     "test": "echo 'No test suite for firebase wrapper'",
@@ -36,11 +38,12 @@
   },
   "dependencies": {
     "@firebase/app-exp": "0.0.800",
+    "@firebase/app-compat": "0.0.800",
     "@firebase/functions-exp": "0.0.800",
-    "@firebase/firestore": "1.16.5"
+    "@firebase/firestore": "1.16.6"
   },
   "devDependencies": {
-    "rollup": "2.26.5",
+    "rollup": "2.26.7",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-license": "2.2.0",
     "rollup-plugin-node-resolve": "5.2.0",

@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-import { debugAssert } from '../util/assert';
+import { debugAssert, debugCast } from '../util/assert';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { canonifyQuery, Query, queryEquals, stringifyQuery } from './query';
-import { SyncEngine, SyncEngineListener } from './sync_engine';
 import { OnlineState } from './types';
 import { ChangeType, DocumentViewChange, ViewSnapshot } from './view_snapshot';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
@@ -45,146 +44,199 @@ export interface Observer<T> {
  * EventManager is responsible for mapping queries to query event emitters.
  * It handles "fan-out". -- Identical queries will re-use the same watch on the
  * backend.
+ *
+ * PORTING NOTE: On Web, EventManager `onListen` and `onUnlisten` need to be
+ * assigned to SyncEngine's `listen()` and `unlisten()` API before usage. This
+ * allows users to tree-shake the Watch logic.
  */
-export class EventManager implements SyncEngineListener {
-  private queries = new ObjectMap<Query, QueryListenersInfo>(
+export interface EventManager {
+  onListen?: (query: Query) => Promise<ViewSnapshot>;
+  onUnlisten?: (query: Query) => Promise<void>;
+}
+
+export function newEventManager(): EventManager {
+  return new EventManagerImpl();
+}
+
+export class EventManagerImpl implements EventManager {
+  queries = new ObjectMap<Query, QueryListenersInfo>(
     q => canonifyQuery(q),
     queryEquals
   );
 
-  private onlineState = OnlineState.Unknown;
+  onlineState = OnlineState.Unknown;
 
-  private snapshotsInSyncListeners: Set<Observer<void>> = new Set();
+  snapshotsInSyncListeners: Set<Observer<void>> = new Set();
 
-  constructor(private syncEngine: SyncEngine) {
-    this.syncEngine.subscribe(this);
+  /** Callback invoked when a Query is first listen to. */
+  onListen?: (query: Query) => Promise<ViewSnapshot>;
+  /** Callback invoked once all listeners to a Query are removed. */
+  onUnlisten?: (query: Query) => Promise<void>;
+}
+
+export async function eventManagerListen(
+  eventManager: EventManager,
+  listener: QueryListener
+): Promise<void> {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+
+  debugAssert(!!eventManagerImpl.onListen, 'onListen not set');
+  const query = listener.query;
+  let firstListen = false;
+
+  let queryInfo = eventManagerImpl.queries.get(query);
+  if (!queryInfo) {
+    firstListen = true;
+    queryInfo = new QueryListenersInfo();
   }
 
-  async listen(listener: QueryListener): Promise<void> {
-    const query = listener.query;
-    let firstListen = false;
-
-    let queryInfo = this.queries.get(query);
-    if (!queryInfo) {
-      firstListen = true;
-      queryInfo = new QueryListenersInfo();
-    }
-
-    if (firstListen) {
-      try {
-        queryInfo.viewSnap = await this.syncEngine.listen(query);
-      } catch (e) {
-        const firestoreError = wrapInUserErrorIfRecoverable(
-          e,
-          `Initialization of query '${stringifyQuery(listener.query)}' failed`
-        );
-        listener.onError(firestoreError);
-        return;
-      }
-    }
-
-    this.queries.set(query, queryInfo);
-    queryInfo.listeners.push(listener);
-
-    // Run global snapshot listeners if a consistent snapshot has been emitted.
-    const raisedEvent = listener.applyOnlineStateChange(this.onlineState);
-    debugAssert(
-      !raisedEvent,
-      "applyOnlineStateChange() shouldn't raise an event for brand-new listeners."
-    );
-
-    if (queryInfo.viewSnap) {
-      const raisedEvent = listener.onViewSnapshot(queryInfo.viewSnap);
-      if (raisedEvent) {
-        this.raiseSnapshotsInSyncEvent();
-      }
+  if (firstListen) {
+    try {
+      queryInfo.viewSnap = await eventManagerImpl.onListen(query);
+    } catch (e) {
+      const firestoreError = wrapInUserErrorIfRecoverable(
+        e,
+        `Initialization of query '${stringifyQuery(listener.query)}' failed`
+      );
+      listener.onError(firestoreError);
+      return;
     }
   }
 
-  async unlisten(listener: QueryListener): Promise<void> {
-    const query = listener.query;
-    let lastListen = false;
+  eventManagerImpl.queries.set(query, queryInfo);
+  queryInfo.listeners.push(listener);
 
-    const queryInfo = this.queries.get(query);
-    if (queryInfo) {
-      const i = queryInfo.listeners.indexOf(listener);
-      if (i >= 0) {
-        queryInfo.listeners.splice(i, 1);
-        lastListen = queryInfo.listeners.length === 0;
-      }
-    }
+  // Run global snapshot listeners if a consistent snapshot has been emitted.
+  const raisedEvent = listener.applyOnlineStateChange(
+    eventManagerImpl.onlineState
+  );
+  debugAssert(
+    !raisedEvent,
+    "applyOnlineStateChange() shouldn't raise an event for brand-new listeners."
+  );
 
-    if (lastListen) {
-      this.queries.delete(query);
-      return this.syncEngine.unlisten(query);
-    }
-  }
-
-  onWatchChange(viewSnaps: ViewSnapshot[]): void {
-    let raisedEvent = false;
-    for (const viewSnap of viewSnaps) {
-      const query = viewSnap.query;
-      const queryInfo = this.queries.get(query);
-      if (queryInfo) {
-        for (const listener of queryInfo.listeners) {
-          if (listener.onViewSnapshot(viewSnap)) {
-            raisedEvent = true;
-          }
-        }
-        queryInfo.viewSnap = viewSnap;
-      }
-    }
+  if (queryInfo.viewSnap) {
+    const raisedEvent = listener.onViewSnapshot(queryInfo.viewSnap);
     if (raisedEvent) {
-      this.raiseSnapshotsInSyncEvent();
+      raiseSnapshotsInSyncEvent(eventManagerImpl);
+    }
+  }
+}
+
+export async function eventManagerUnlisten(
+  eventManager: EventManager,
+  listener: QueryListener
+): Promise<void> {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+
+  debugAssert(!!eventManagerImpl.onUnlisten, 'onUnlisten not set');
+  const query = listener.query;
+  let lastListen = false;
+
+  const queryInfo = eventManagerImpl.queries.get(query);
+  if (queryInfo) {
+    const i = queryInfo.listeners.indexOf(listener);
+    if (i >= 0) {
+      queryInfo.listeners.splice(i, 1);
+      lastListen = queryInfo.listeners.length === 0;
     }
   }
 
-  onWatchError(query: Query, error: Error): void {
-    const queryInfo = this.queries.get(query);
+  if (lastListen) {
+    eventManagerImpl.queries.delete(query);
+    return eventManagerImpl.onUnlisten(query);
+  }
+}
+
+export function eventManagerOnWatchChange(
+  eventManager: EventManager,
+  viewSnaps: ViewSnapshot[]
+): void {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+
+  let raisedEvent = false;
+  for (const viewSnap of viewSnaps) {
+    const query = viewSnap.query;
+    const queryInfo = eventManagerImpl.queries.get(query);
     if (queryInfo) {
       for (const listener of queryInfo.listeners) {
-        listener.onError(error);
-      }
-    }
-
-    // Remove all listeners. NOTE: We don't need to call syncEngine.unlisten()
-    // after an error.
-    this.queries.delete(query);
-  }
-
-  onOnlineStateChange(onlineState: OnlineState): void {
-    this.onlineState = onlineState;
-    let raisedEvent = false;
-    this.queries.forEach((_, queryInfo) => {
-      for (const listener of queryInfo.listeners) {
-        // Run global snapshot listeners if a consistent snapshot has been emitted.
-        if (listener.applyOnlineStateChange(onlineState)) {
+        if (listener.onViewSnapshot(viewSnap)) {
           raisedEvent = true;
         }
       }
-    });
-    if (raisedEvent) {
-      this.raiseSnapshotsInSyncEvent();
+      queryInfo.viewSnap = viewSnap;
+    }
+  }
+  if (raisedEvent) {
+    raiseSnapshotsInSyncEvent(eventManagerImpl);
+  }
+}
+
+export function eventManagerOnWatchError(
+  eventManager: EventManager,
+  query: Query,
+  error: Error
+): void {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+
+  const queryInfo = eventManagerImpl.queries.get(query);
+  if (queryInfo) {
+    for (const listener of queryInfo.listeners) {
+      listener.onError(error);
     }
   }
 
-  addSnapshotsInSyncListener(observer: Observer<void>): void {
-    this.snapshotsInSyncListeners.add(observer);
-    // Immediately fire an initial event, indicating all existing listeners
-    // are in-sync.
+  // Remove all listeners. NOTE: We don't need to call syncEngine.unlisten()
+  // after an error.
+  eventManagerImpl.queries.delete(query);
+}
+
+export function eventManagerOnOnlineStateChange(
+  eventManager: EventManager,
+  onlineState: OnlineState
+): void {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+
+  eventManagerImpl.onlineState = onlineState;
+  let raisedEvent = false;
+  eventManagerImpl.queries.forEach((_, queryInfo) => {
+    for (const listener of queryInfo.listeners) {
+      // Run global snapshot listeners if a consistent snapshot has been emitted.
+      if (listener.applyOnlineStateChange(onlineState)) {
+        raisedEvent = true;
+      }
+    }
+  });
+  if (raisedEvent) {
+    raiseSnapshotsInSyncEvent(eventManagerImpl);
+  }
+}
+
+export function addSnapshotsInSyncListener(
+  eventManager: EventManager,
+  observer: Observer<void>
+): void {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+
+  eventManagerImpl.snapshotsInSyncListeners.add(observer);
+  // Immediately fire an initial event, indicating all existing listeners
+  // are in-sync.
+  observer.next();
+}
+
+export function removeSnapshotsInSyncListener(
+  eventManager: EventManager,
+  observer: Observer<void>
+): void {
+  const eventManagerImpl = debugCast(eventManager, EventManagerImpl);
+  eventManagerImpl.snapshotsInSyncListeners.delete(observer);
+}
+
+// Call all global snapshot listeners that have been set.
+function raiseSnapshotsInSyncEvent(eventManagerImpl: EventManagerImpl): void {
+  eventManagerImpl.snapshotsInSyncListeners.forEach(observer => {
     observer.next();
-  }
-
-  removeSnapshotsInSyncListener(observer: Observer<void>): void {
-    this.snapshotsInSyncListeners.delete(observer);
-  }
-
-  // Call all global snapshot listeners that have been set.
-  private raiseSnapshotsInSyncEvent(): void {
-    this.snapshotsInSyncListeners.forEach(observer => {
-      observer.next();
-    });
-  }
+  });
 }
 
 export interface ListenOptions {

@@ -192,10 +192,10 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /**
-   * SyncEngine to notify of watch and write events. This must be set
-   * immediately after construction.
+   * SyncEngine callbacks to notify of watch and write events. Individual
+   * callbacks must be set before use.
    */
-  syncEngine!: RemoteSyncer;
+  remoteSyncer: RemoteSyncer = {};
 
   /**
    * Starts up the remote store, creating streams, restoring state from
@@ -316,7 +316,11 @@ export class RemoteStore implements TargetMetadataProvider {
 
   /** {@link TargetMetadataProvider.getRemoteKeysForTarget} */
   getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet {
-    return this.syncEngine.getRemoteKeysForTarget(targetId);
+    debugAssert(
+      !!this.remoteSyncer.getRemoteKeysForTarget,
+      'getRemoteKeysForTarget() not set'
+    );
+    return this.remoteSyncer.getRemoteKeysForTarget(targetId);
   }
 
   /**
@@ -515,6 +519,10 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private raiseWatchSnapshot(snapshotVersion: SnapshotVersion): Promise<void> {
     debugAssert(
+      !!this.remoteSyncer.applyRemoteEvent,
+      'applyRemoteEvent() not set'
+    );
+    debugAssert(
       !snapshotVersion.isEqual(SnapshotVersion.min()),
       "Can't raise event for unknown SnapshotVersion"
     );
@@ -574,19 +582,20 @@ export class RemoteStore implements TargetMetadataProvider {
     });
 
     // Finally raise remote event
-    return this.syncEngine.applyRemoteEvent(remoteEvent);
+    return this.remoteSyncer.applyRemoteEvent(remoteEvent);
   }
 
   /** Handles an error on a target */
   private async handleTargetError(
     watchChange: WatchTargetChange
   ): Promise<void> {
+    debugAssert(!!this.remoteSyncer.rejectListen, 'rejectListen() not set');
     debugAssert(!!watchChange.cause, 'Handling target error without a cause');
     const error = watchChange.cause!;
     for (const targetId of watchChange.targetIds) {
       // A watched target might have been removed already.
       if (this.listenTargets.has(targetId)) {
-        await this.syncEngine.rejectListen(targetId, error);
+        await this.remoteSyncer.rejectListen(targetId, error);
         this.listenTargets.delete(targetId);
         this.watchChangeAggregator!.removeTarget(targetId);
       }
@@ -704,8 +713,12 @@ export class RemoteStore implements TargetMetadataProvider {
     const batch = this.writePipeline.shift()!;
     const success = MutationBatchResult.from(batch, commitVersion, results);
 
+    debugAssert(
+      !!this.remoteSyncer.applySuccessfulWrite,
+      'applySuccessfulWrite() not set'
+    );
     await this.executeWithRecovery(() =>
-      this.syncEngine.applySuccessfulWrite(success)
+      this.remoteSyncer.applySuccessfulWrite!(success)
     );
 
     // It's possible that with the completion of this mutation another
@@ -750,8 +763,12 @@ export class RemoteStore implements TargetMetadataProvider {
       // restart.
       this.writeStream.inhibitBackoff();
 
+      debugAssert(
+        !!this.remoteSyncer.rejectFailedWrite,
+        'rejectFailedWrite() not set'
+      );
       await this.executeWithRecovery(() =>
-        this.syncEngine.rejectFailedWrite(batch.batchId, error)
+        this.remoteSyncer.rejectFailedWrite!(batch.batchId, error)
       );
 
       // It's possible that with the completion of this mutation
@@ -774,17 +791,24 @@ export class RemoteStore implements TargetMetadataProvider {
 
   async handleCredentialChange(user: User): Promise<void> {
     this.asyncQueue.verifyOperationInProgress();
+    debugAssert(
+      !!this.remoteSyncer.handleCredentialChange,
+      'handleCredentialChange() not set'
+    );
+
+    logDebug(LOG_TAG, 'RemoteStore received new credentials');
+    const canUseNetwork = this.canUseNetwork();
 
     // Tear down and re-create our network streams. This will ensure we get a
     // fresh auth token for the new user and re-fill the write pipeline with
     // new mutations from the LocalStore (since mutations are per-user).
-    logDebug(LOG_TAG, 'RemoteStore received new credentials');
     this.offlineCauses.add(OfflineCause.CredentialChange);
-
     await this.disableNetworkInternal();
-    this.onlineStateTracker.set(OnlineState.Unknown);
-    await this.syncEngine.handleCredentialChange(user);
-
+    if (canUseNetwork) {
+      // Don't set the network status to Unknown if we are offline.
+      this.onlineStateTracker.set(OnlineState.Unknown);
+    }
+    await this.remoteSyncer.handleCredentialChange(user);
     this.offlineCauses.delete(OfflineCause.CredentialChange);
     await this.enableNetworkInternal();
   }

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Blob } from '../api/blob';
 import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import {
@@ -265,7 +264,7 @@ function fromTimestamp(date: ProtoTimestamp): Timestamp {
  */
 export function toBytes(
   serializer: JsonProtoSerializer,
-  bytes: Blob | ByteString
+  bytes: ByteString
 ): string | Uint8Array {
   if (serializer.useProto3Json) {
     return bytes.toBase64();

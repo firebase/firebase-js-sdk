@@ -127,3 +127,8 @@ export function _removeServiceInstance<T extends Name>(
 export function _clearComponents(): void {
   _components.clear();
 }
+
+/**
+ * Exported in order to be used in app-compat package
+ */
+export { DEFAULT_ENTRY_NAME as _DEFAULT_ENTRY_NAME };
