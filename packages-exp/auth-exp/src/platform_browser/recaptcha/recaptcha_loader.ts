@@ -46,7 +46,9 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
   private readonly librarySeparatelyLoaded = !!_window().grecaptcha;
 
   load(auth: AuthCore, hl = ''): Promise<Recaptcha> {
-    assert(isHostLanguageValid(hl), AuthErrorCode.ARGUMENT_ERROR, {appName: auth.name});  
+    assert(isHostLanguageValid(hl), AuthErrorCode.ARGUMENT_ERROR, {
+      appName: auth.name
+    });
 
     if (this.shouldResolveImmediately(hl)) {
       return Promise.resolve(_window().grecaptcha!);
