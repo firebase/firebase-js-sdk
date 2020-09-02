@@ -27,10 +27,7 @@ import { stubSingleTimeout } from '../../../test/helpers/timeout_stub';
 import { _window } from '../auth_window';
 import * as jsHelpers from '../load_js';
 import {
-  _JSLOAD_CALLBACK,
-  MockReCaptchaLoaderImpl,
-  ReCaptchaLoader,
-  ReCaptchaLoaderImpl
+    _JSLOAD_CALLBACK, MockReCaptchaLoaderImpl, ReCaptchaLoader, ReCaptchaLoaderImpl
 } from './recaptcha_loader';
 import { MockReCaptcha } from './recaptcha_mock';
 
@@ -141,6 +138,10 @@ describe('platform-browser/recaptcha/recaptcha_loader', () => {
         _window().grecaptcha = new MockReCaptcha(auth);
         const loader = new ReCaptchaLoaderImpl();
         expect(await loader.load(auth)).to.eq(_window().grecaptcha);
+      });
+
+      it('fails if the host language is invalid', async () => {
+        expect(() => loader.load(auth, 'javascript:injection')).to.throw(FirebaseError, 'auth/argument-error');
       });
     });
   });

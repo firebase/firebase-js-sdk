@@ -18,6 +18,7 @@
 import { querystring } from '@firebase/util';
 
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
+import { assert } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
 import { Auth, AuthCore } from '../../model/auth';
 import { _window } from '../auth_window';
@@ -45,6 +46,8 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
   private readonly librarySeparatelyLoaded = !!_window().grecaptcha;
 
   load(auth: AuthCore, hl = ''): Promise<Recaptcha> {
+    assert(isHostLanguageValid(hl), AuthErrorCode.ARGUMENT_ERROR, {appName: auth.name});  
+
     if (this.shouldResolveImmediately(hl)) {
       return Promise.resolve(_window().grecaptcha!);
     }
@@ -121,6 +124,10 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
         this.librarySeparatelyLoaded)
     );
   }
+}
+
+function isHostLanguageValid(hl: string): boolean {
+  return hl.length <= 6 && /^\s*[a-zA-Z0-9\-]*\s*$/.test(hl);
 }
 
 export class MockReCaptchaLoaderImpl implements ReCaptchaLoader {
