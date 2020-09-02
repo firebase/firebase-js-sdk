@@ -1260,6 +1260,7 @@ function signInWithPopupRedirect(provider) {
         type === 'popup' ? reauthenticateWithPopup : reauthenticateWithRedirect;
       break;
     default:
+      inst = auth;
       method = type === 'popup' ? signInWithPopup : signInWithRedirect;
   }
 
