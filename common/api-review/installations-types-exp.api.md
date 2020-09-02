@@ -7,10 +7,8 @@
 // @public (undocumented)
 export interface FirebaseInstallations {}
 
-// Warning: (ae-internal-missing-underscore) The name "FirebaseInstallationsInternal" should be prefixed with an underscore because the declaration is marked as @internal
-//
 // @internal
-export interface FirebaseInstallationsInternal {
+export interface _FirebaseInstallationsInternal {
   getId(): Promise<string>;
 
   getToken(forceRefresh?: boolean): Promise<string>;
