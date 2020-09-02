@@ -755,7 +755,7 @@ firebase.firestore.DocumentSnapshot.prototype.metadata;
 
 /**
  * An object containing all the data in a document.
- * @type {Object}
+ * @typedef {Object}
  */
 firebase.firestore.DocumentData;
 
