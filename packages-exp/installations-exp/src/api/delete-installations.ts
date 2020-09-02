@@ -20,11 +20,12 @@ import { remove, update } from '../helpers/idb-manager';
 import { RequestStatus } from '../interfaces/installation-entry';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
+import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
 export async function deleteInstallations(
-  installations: FirebaseInstallationsImpl
+  installations: FirebaseInstallations
 ): Promise<void> {
-  const { appConfig } = installations;
+  const { appConfig } = installations as FirebaseInstallationsImpl;
 
   const entry = await update(appConfig, oldEntry => {
     if (oldEntry && oldEntry.registrationStatus === RequestStatus.NOT_STARTED) {

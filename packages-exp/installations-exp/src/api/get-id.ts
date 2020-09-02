@@ -18,12 +18,14 @@
 import { getInstallationEntry } from '../helpers/get-installation-entry';
 import { refreshAuthToken } from '../helpers/refresh-auth-token';
 import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
+import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
 export async function getId(
-  installations: FirebaseInstallationsImpl
+  installations: FirebaseInstallations
 ): Promise<string> {
+  const installationsImpl = installations as FirebaseInstallationsImpl;
   const { installationEntry, registrationPromise } = await getInstallationEntry(
-    installations.appConfig
+    installationsImpl.appConfig
   );
 
   if (registrationPromise) {
@@ -31,7 +33,7 @@ export async function getId(
   } else {
     // If the installation is already registered, update the authentication
     // token if needed.
-    refreshAuthToken(installations).catch(console.error);
+    refreshAuthToken(installationsImpl).catch(console.error);
   }
 
   return installationEntry.fid;

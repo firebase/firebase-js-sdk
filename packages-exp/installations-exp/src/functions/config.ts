@@ -23,12 +23,13 @@ import {
   InstanceFactory,
   ComponentContainer
 } from '@firebase/component';
-import { deleteInstallations, getId, getToken } from '../api/index';
+import { getId, getToken } from '../api/index';
 import { FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 import { extractAppConfig } from '../helpers/extract-app-config';
 
 const INSTALLATIONS_NAME = 'installations-exp';
+const INSTALLATIONS_NAME_INTERNAL = 'installations-exp-internal';
 
 const publicFactory: InstanceFactory<'installations-exp'> = (
   container: ComponentContainer
@@ -42,7 +43,7 @@ const publicFactory: InstanceFactory<'installations-exp'> = (
     app,
     appConfig,
     platformLoggerProvider,
-    _delete: () => deleteInstallations(installationsImpl)
+    _delete: () => Promise.resolve()
   };
   return installationsImpl;
 };
@@ -52,15 +53,11 @@ const internalFactory: InstanceFactory<'installations-exp-internal'> = (
 ) => {
   const app = container.getProvider('app-exp').getImmediate();
   // Internal FIS instance relies on public FIS instance.
-  const installationsImpl = _getProvider(
-    app,
-    INSTALLATIONS_NAME
-  ).getImmediate();
+  const installations = _getProvider(app, INSTALLATIONS_NAME).getImmediate();
 
   const installationsInternal: FirebaseInstallationsInternal = {
-    getId: () => getId(installationsImpl),
-    getToken: (forceRefresh?: boolean) =>
-      getToken(installationsImpl, forceRefresh)
+    getId: () => getId(installations),
+    getToken: (forceRefresh?: boolean) => getToken(installations, forceRefresh)
   };
   return installationsInternal;
 };
@@ -70,6 +67,10 @@ export function registerInstallations(): void {
     new Component(INSTALLATIONS_NAME, publicFactory, ComponentType.PUBLIC)
   );
   _registerComponent(
-    new Component(INSTALLATIONS_NAME, internalFactory, ComponentType.PRIVATE)
+    new Component(
+      INSTALLATIONS_NAME_INTERNAL,
+      internalFactory,
+      ComponentType.PRIVATE
+    )
   );
 }
