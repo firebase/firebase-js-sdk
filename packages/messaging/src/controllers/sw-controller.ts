@@ -206,9 +206,9 @@ export class SwController implements FirebaseMessaging, FirebaseService {
       const payload = externalizePayload(internalPayload);
 
       if (typeof this.bgMessageHandler === 'function') {
-        this.bgMessageHandler(payload);
+        await this.bgMessageHandler(payload);
       } else {
-        this.bgMessageHandler.next(payload);
+        await this.bgMessageHandler.next(payload);
       }
     }
   }
