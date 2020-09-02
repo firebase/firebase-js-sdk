@@ -142,6 +142,13 @@ describe('platform-browser/recaptcha/recaptcha_loader', () => {
         const loader = new ReCaptchaLoaderImpl();
         expect(await loader.load(auth)).to.eq(_window().grecaptcha);
       });
+
+      it('fails if the host language is invalid', async () => {
+        expect(() => loader.load(auth, 'javascript:injection')).to.throw(
+          FirebaseError,
+          'auth/argument-error'
+        );
+      });
     });
   });
 });
