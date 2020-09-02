@@ -24,7 +24,7 @@ import {
   ComponentContainer
 } from '@firebase/component';
 import { getId, getToken } from '../api/index';
-import { FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 import { extractAppConfig } from '../helpers/extract-app-config';
 
@@ -55,7 +55,7 @@ const internalFactory: InstanceFactory<'installations-exp-internal'> = (
   // Internal FIS instance relies on public FIS instance.
   const installations = _getProvider(app, INSTALLATIONS_NAME).getImmediate();
 
-  const installationsInternal: FirebaseInstallationsInternal = {
+  const installationsInternal: _FirebaseInstallationsInternal = {
     getId: () => getId(installations),
     getToken: (forceRefresh?: boolean) => getToken(installations, forceRefresh)
   };
