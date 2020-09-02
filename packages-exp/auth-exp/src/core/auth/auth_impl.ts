@@ -18,23 +18,16 @@
 import { _FirebaseService, FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 import {
-  CompleteFn,
-  createSubscribe,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Subscribe,
-  Unsubscribe
+    CompleteFn, createSubscribe, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe
 } from '@firebase/util';
 
-import { Auth, AuthCore } from '../../model/auth';
+import { Auth, AuthCore, ConfigInternal } from '../../model/auth';
 import { PopupRedirectResolver } from '../../model/popup_redirect';
 import { User, UserParameters } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
 import {
-  _REDIRECT_USER_KEY_NAME,
-  PersistenceUserManager
+    _REDIRECT_USER_KEY_NAME, PersistenceUserManager
 } from '../persistence/persistence_user_manager';
 import { _reloadWithoutSaving } from '../user/reload';
 import { UserImpl } from '../user/user_impl';
@@ -82,7 +75,7 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
 
   constructor(
     public readonly app: FirebaseApp,
-    public readonly config: externs.Config,
+    public readonly config: ConfigInternal,
     private readonly _userProvider: UserProvider<T>
   ) {
     this.name = app.name;
@@ -187,6 +180,20 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
 
   useDeviceLanguage(): void {
     this.languageCode = _getUserLanguage();
+  }
+
+  useEmulator(
+    hostname: string,
+    port: number
+  ): void {
+    assert(this._canInitEmulator, AuthErrorCode.EMULATOR_CONFIG_FAILED, {
+      appName: this.name
+    });
+  
+    this.config.emulator = {
+      hostname,
+      port
+    };
   }
 
   async _delete(): Promise<void> {

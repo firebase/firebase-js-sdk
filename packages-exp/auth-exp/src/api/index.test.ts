@@ -25,12 +25,9 @@ import { mockEndpoint } from '../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../test/helpers/mock_auth';
 import * as mockFetch from '../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../core/errors';
+import { ConfigInternal } from '../model/auth';
 import {
-  _performApiRequest,
-  DEFAULT_API_TIMEOUT_MS,
-  Endpoint,
-  HttpHeader,
-  HttpMethod
+    _getFinalTarget, _performApiRequest, DEFAULT_API_TIMEOUT_MS, Endpoint, HttpHeader, HttpMethod
 } from './';
 import { ServerError } from './errors';
 
@@ -325,6 +322,20 @@ describe('api/_performApiRequest', () => {
         expect(e.email).to.eq('email@test.com');
         expect(e.phoneNumber).to.eq('+1555-this-is-a-number');
       }
+    });
+  });
+
+  context('_getFinalTarget', () => {
+    it('works properly with a non-emulated environment', () => {
+      expect(_getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq('mock://host/path?query=test');
+    });
+
+    it('works properly with an emulated environment', () => {
+      (auth.config as ConfigInternal).emulator = {
+        hostname: 'localhost',
+        port: 5000,
+      };
+      expect(_getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq('http://localhost:5000/host/path?query=test');
     });
   });
 });

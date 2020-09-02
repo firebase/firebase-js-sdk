@@ -25,6 +25,11 @@ const IP_ADDRESS_REGEX = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
 const HTTP_REGEX = /^https?/;
 
 export async function _validateOrigin(auth: Auth): Promise<void> {
+  // Skip origin validation if we are in an emulated environment
+  if (auth.config.emulator) {
+    return;
+  }
+  
   const { authorizedDomains } = await _getProjectConfig(auth);
 
   for (const domain of authorizedDomains) {

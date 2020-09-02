@@ -23,7 +23,10 @@ import * as sinonChai from 'sinon-chai';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import { testUser } from '../../../test/helpers/mock_auth';
+import { endpointUrl, mockEndpoint } from '../../../test/helpers/api/helper';
+import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
+import * as fetch from '../../../test/helpers/mock_fetch';
+import { Endpoint } from '../../api';
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { Persistence } from '../persistence';
@@ -31,11 +34,7 @@ import { inMemoryPersistence } from '../persistence/in_memory';
 import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
 import {
-  _castAuth,
-  AuthImpl,
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST
+    _castAuth, AuthImpl, DEFAULT_API_HOST, DEFAULT_API_SCHEME, DEFAULT_TOKEN_API_HOST
 } from './auth_impl';
 import { _initializeAuthInstance } from './initialize';
 
@@ -385,6 +384,50 @@ describe('core/auth/auth_impl', () => {
           expect(idTokenCallback).to.have.been.called;
         });
       });
+    });
+  });
+});
+
+// These tests are separate because they are using a different auth with
+// separate setup and config
+describe('core/auth/auth_impl useEmulator', () => {
+  let auth: TestAuth;
+  let user: User;
+  let normalEndpoint: fetch.Route;
+  let emulatorEndpoint: fetch.Route;
+
+  beforeEach(async () => {
+    auth = await testAuth();
+    user = testUser(_castAuth(auth), 'uid', 'email', true);
+    fetch.setUp();
+    normalEndpoint = mockEndpoint(Endpoint.DELETE_ACCOUNT, {});
+    emulatorEndpoint = fetch.mock(
+      `http://localhost:2020/${endpointUrl(Endpoint.DELETE_ACCOUNT).replace(
+        /^.*:\/\//,
+        ''
+      )}`,
+      {}
+    );
+  });
+
+  afterEach(() => {
+    fetch.tearDown();
+  });
+
+  context('useEmulator', () => {
+    it('fails if a network request has already been made', async () => {
+      await user.delete();
+      expect(() => auth.useEmulator('localhost', 2020)).to.throw(
+        FirebaseError,
+        'auth/emulator-config-failed'
+      );
+    });
+
+    it('updates the endpoint appropriately', async () => {
+      auth.useEmulator('localhost', 2020);
+      await user.delete();
+      expect(normalEndpoint.calls.length).to.eq(0);
+      expect(emulatorEndpoint.calls.length).to.eq(1);
     });
   });
 });
