@@ -17,10 +17,15 @@
 
 import { FirebaseInstallationsImpl } from '../installations-exp/src/interfaces/installation-impl';
 
+/**
+ * @public
+ */
 export interface FirebaseInstallations {}
 
 /**
  * An interface for Firebase internal SDKs use only.
+ * 
+ * @internal
  */
 export interface FirebaseInstallationsInternal {
   /**
