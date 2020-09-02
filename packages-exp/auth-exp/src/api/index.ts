@@ -17,11 +17,7 @@
 
 import { FirebaseError, querystring } from '@firebase/util';
 
-import {
-  AUTH_ERROR_FACTORY,
-  AuthErrorCode,
-  NamedErrorParams
-} from '../core/errors';
+import { AUTH_ERROR_FACTORY, AuthErrorCode, NamedErrorParams } from '../core/errors';
 import { fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { FetchProvider } from '../core/util/fetch_provider';
@@ -60,7 +56,8 @@ export enum Endpoint {
   FINALIZE_PHONE_MFA_ENROLLMENT = '/v2/accounts/mfaEnrollment:finalize',
   START_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:start',
   FINALIZE_PHONE_MFA_SIGN_IN = '/v2/accounts/mfaSignIn:finalize',
-  WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw'
+  WITHDRAW_MFA = '/v2/accounts/mfaEnrollment:withdraw',
+  GET_PROJECT_CONFIG = '/v1/projects'
 }
 
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);

@@ -19,24 +19,22 @@ import { SDK_VERSION } from '@firebase/app-exp';
 import * as externs from '@firebase/auth-types-exp';
 import { isEmpty, querystring } from '@firebase/util';
 
+import { _getProjectConfig } from '../api/project_config/get_project_config';
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
-import { browserSessionPersistence } from './persistence/session_storage';
 import { OAuthProvider } from '../core/providers/oauth';
 import { assert, debugAssert } from '../core/util/assert';
 import { _generateEventId } from '../core/util/event_id';
 import { _getCurrentUrl } from '../core/util/location';
-import { _open, AuthPopup } from './util/popup';
+import { _validateOrigin } from '../core/util/validate_origin';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
-  AuthEventType,
-  EventManager,
-  GapiAuthEvent,
-  GapiOutcome,
-  PopupRedirectResolver
+    AuthEventType, EventManager, GapiAuthEvent, GapiOutcome, PopupRedirectResolver
 } from '../model/popup_redirect';
 import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';
+import { browserSessionPersistence } from './persistence/session_storage';
+import { _open, AuthPopup } from './util/popup';
 
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
@@ -65,6 +63,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
       this.eventManagers[auth._key()]?.manager,
       '_initialize() not called before _openPopup()'
     );
+    await _validateOrigin(auth);
     const url = getRedirectUrl(auth, provider, authType, eventId);
     return _open(auth.name, url, _generateEventId());
   }
@@ -75,6 +74,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     authType: AuthEventType,
     eventId?: string
   ): Promise<never> {
+    await _validateOrigin(auth);
     _setWindowLocation(getRedirectUrl(auth, provider, authType, eventId));
     return new Promise(() => {});
   }

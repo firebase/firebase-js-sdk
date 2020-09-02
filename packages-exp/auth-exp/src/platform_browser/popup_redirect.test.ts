@@ -24,20 +24,13 @@ import { SDK_VERSION } from '@firebase/app-exp';
 import { Config, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import {
-  TEST_AUTH_DOMAIN,
-  TEST_KEY,
-  testAuth,
-  TestAuth
-} from '../../test/helpers/mock_auth';
+import { TEST_AUTH_DOMAIN, TEST_KEY, testAuth, TestAuth } from '../../test/helpers/mock_auth';
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { OAuthProvider } from '../core/providers/oauth';
 import { SingletonInstantiator } from '../core/util/instantiator';
+import * as validateOrigin from '../core/util/validate_origin';
 import {
-  AuthEvent,
-  AuthEventType,
-  GapiAuthEvent,
-  PopupRedirectResolver
+    AuthEvent, AuthEventType, GapiAuthEvent, PopupRedirectResolver
 } from '../model/popup_redirect';
 import * as authWindow from './auth_window';
 import * as gapiLoader from './iframe/gapi';
@@ -56,6 +49,8 @@ describe('src/platform_browser/popup_redirect', () => {
     resolver = new (browserPopupRedirectResolver as SingletonInstantiator<
       PopupRedirectResolver
     >)();
+
+    sinon.stub(validateOrigin, '_validateOrigin').returns(Promise.resolve());
 
     sinon.stub(gapiLoader, '_loadGapi').returns(
       Promise.resolve(({
@@ -124,6 +119,15 @@ describe('src/platform_browser/popup_redirect', () => {
         resolver._openPopup(auth, provider, event)
       ).to.be.rejectedWith(FirebaseError, 'auth/invalid-api-key');
     });
+
+    it('rejects immediately if origin validation fails', async () => {
+      await resolver._initialize(auth);
+      (validateOrigin._validateOrigin as sinon.SinonStub).returns(Promise.reject(
+        new Error('invalid-origin')
+      ));
+
+      await expect(resolver._openPopup(auth, provider, event)).to.be.rejectedWith(Error, 'invalid-origin');
+    });
   });
 
   context('#_openRedirect', () => {
@@ -139,7 +143,7 @@ describe('src/platform_browser/popup_redirect', () => {
       });
     });
 
-    it('builds the correct url', () => {
+    it('builds the correct url', async () => {
       provider.addScope('some-scope-a');
       provider.addScope('some-scope-b');
       provider.setCustomParameters({ foo: 'bar' });
@@ -147,6 +151,10 @@ describe('src/platform_browser/popup_redirect', () => {
       // This promise will never resolve on purpose
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       resolver._openRedirect(auth, provider, event);
+
+      // Delay one tick
+      await Promise.resolve();
+      
       expect(newWindowLocation).to.include(
         `https://${TEST_AUTH_DOMAIN}/__/auth/handler`
       );
@@ -178,6 +186,13 @@ describe('src/platform_browser/popup_redirect', () => {
       await expect(
         resolver._openRedirect(auth, provider, event)
       ).to.be.rejectedWith(FirebaseError, 'auth/invalid-api-key');
+    });
+
+    it('rejects immediately if origin validation fails', async () => {
+      (validateOrigin._validateOrigin as sinon.SinonStub).returns(Promise.reject(
+        new Error('invalid-origin')
+      ));
+      await expect(resolver._openRedirect(auth, provider, event)).to.be.rejectedWith(Error, 'invalid-origin');
     });
   });
 
