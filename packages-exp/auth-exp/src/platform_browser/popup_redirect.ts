@@ -29,7 +29,11 @@ import { _getCurrentUrl } from '../core/util/location';
 import { _validateOrigin } from '../core/util/validate_origin';
 import { ApiKey, AppName, Auth } from '../model/auth';
 import {
-    AuthEventType, EventManager, GapiAuthEvent, GapiOutcome, PopupRedirectResolver
+  AuthEventType,
+  EventManager,
+  GapiAuthEvent,
+  GapiOutcome,
+  PopupRedirectResolver
 } from '../model/popup_redirect';
 import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';
@@ -208,7 +212,7 @@ function getRedirectUrl(
   return url.toString();
 }
 
-function getHandlerBase({config}: Auth): string {
+function getHandlerBase({ config }: Auth): string {
   if (!config.emulator) {
     return `https://${config.authDomain}/${WIDGET_PATH}`;
   }

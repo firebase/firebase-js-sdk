@@ -29,7 +29,7 @@ export async function _validateOrigin(auth: Auth): Promise<void> {
   if (auth.config.emulator) {
     return;
   }
-  
+
   const { authorizedDomains } = await _getProjectConfig(auth);
 
   for (const domain of authorizedDomains) {

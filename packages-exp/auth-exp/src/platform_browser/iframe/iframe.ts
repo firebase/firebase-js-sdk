@@ -41,8 +41,9 @@ const IFRAME_ATTRIBUTES = {
 
 function getIframeUrl(auth: AuthCore): string {
   const config = auth.config;
-  const url = config.emulator ? _emulatorUrl(config, EMULATED_IFRAME_PATH) :
-  `https://${auth.config.authDomain!}/${IFRAME_PATH}`;
+  const url = config.emulator
+    ? _emulatorUrl(config, EMULATED_IFRAME_PATH)
+    : `https://${auth.config.authDomain!}/${IFRAME_PATH}`;
 
   const params = {
     apiKey: config.apiKey,
