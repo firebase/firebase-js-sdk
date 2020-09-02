@@ -70,7 +70,7 @@ const plugins = [
   commonjs()
 ];
 
-const deps = [...Object.keys(pkg.dependencies || {}), 'tslib'];
+const deps = Object.keys(pkg.dependencies || {});
 const external = id => deps.some(dep => id === dep || id.startsWith(`${dep}/`));
 
 /**
