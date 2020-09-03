@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
+import firebase from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { registerVersion, _registerComponent } from '@firebase/app-exp';
-import { name, version } from './package.json';
+import { registerVersion } from '@firebase/app-exp';
+import { name, version } from '../package.json';
 import { FunctionsService } from './service';
 import {
   Component,
@@ -39,12 +40,12 @@ const factory: InstanceFactory<'functions'> = (
   return new FunctionsService(app as FirebaseApp, region);
 };
 
-export function registerFunctions(instance: _FirebaseNamespace): void {
+export function registerFunctions(): void {
   const namespaceExports = {
     // no-inline
     Functions: FunctionsService
   };
-  instance.INTERNAL.registerComponent(
+  (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
     new Component('functions', factory, ComponentType.PUBLIC)
       .setServiceProps(namespaceExports)
       .setMultipleInstances(true)
