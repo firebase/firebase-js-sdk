@@ -70,7 +70,6 @@ describe('FirebaseAnalytics instance tests', () => {
       );
     });
     it('Warns if config has no apiKey but does have a measurementId', () => {
-      stubFetch(200, { measurementId: fakeMeasurementId });
       const warnStub = stub(console, 'warn');
       const app = getFakeApp({
         appId: fakeAppParams.appId,
@@ -78,10 +77,10 @@ describe('FirebaseAnalytics instance tests', () => {
       });
       const installations = getFakeInstallations();
       analyticsFactory(app, installations);
-      expect(warnStub.args[0][1]).to.include(fakeMeasurementId);
-      expect(warnStub.args[0][1]).to.include('Falling back to');
+      expect(warnStub.args[0][1]).to.include(
+        `Falling back to the measurement ID ${fakeMeasurementId}`
+      );
       warnStub.restore();
-      fetchStub.restore();
     });
     it('Throws if cookies are not enabled', () => {
       const cookieStub = stub(navigator, 'cookieEnabled').value(false);
@@ -141,7 +140,7 @@ describe('FirebaseAnalytics instance tests', () => {
       idbOpenStub.restore();
       fetchStub.restore();
     });
-    it('Throws if creating an instance with already-used analytics ID', () => {
+    it('Throws if creating an instance with already-used appId', () => {
       const app = getFakeApp(fakeAppParams);
       const installations = getFakeInstallations();
       resetGlobalVars(false, { [fakeAppParams.appId]: Promise.resolve() });
@@ -155,6 +154,8 @@ describe('FirebaseAnalytics instance tests', () => {
     let fidDeferred: Deferred<void>;
     const gtagStub: SinonStub = stub();
     const clock = useFakeTimers();
+    // Making function async prevents fetch stub from being reset before
+    // all async functions started by analyticsFactory resolve.
     before(async () => {
       resetGlobalVars();
       app = getFakeApp(fakeAppParams);
@@ -222,6 +223,8 @@ describe('FirebaseAnalytics instance tests', () => {
     let fidDeferred: Deferred<void>;
     const gtagStub: SinonStub = stub();
     const clock = useFakeTimers();
+    // Making function async prevents fetch stub from being reset before
+    // all async functions started by analyticsFactory resolve.
     before(async () => {
       resetGlobalVars();
       app = getFakeApp(fakeAppParams);
@@ -272,6 +275,8 @@ describe('FirebaseAnalytics instance tests', () => {
   });
 
   describe('Page has no existing gtag script or dataLayer', () => {
+    // Making function async prevents fetch stub from being reset before
+    // all async functions started by analyticsFactory resolve.
     before(async () => {
       resetGlobalVars();
       const app = getFakeApp(fakeAppParams);
@@ -287,7 +292,7 @@ describe('FirebaseAnalytics instance tests', () => {
     });
     it('Adds the script tag to the page', async () => {
       const { initializationPromisesMap } = getGlobalVars();
-      await initializationPromisesMap[fakeMeasurementId];
+      await initializationPromisesMap[fakeAppParams.appId];
       expect(findGtagScriptOnPage()).to.not.be.null;
       expect(typeof window['gtag']).to.equal('function');
       expect(Array.isArray(window['dataLayer'])).to.be.true;

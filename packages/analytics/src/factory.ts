@@ -46,10 +46,11 @@ import {
 } from '@firebase/util';
 import { initializeIds } from './initialize-ids';
 import { logger } from './logger';
+import { FirebaseService } from '@firebase/app-types/private';
 
-interface FirebaseAnalyticsInternal extends FirebaseAnalytics {
-  INTERNAL?: {};
-}
+interface FirebaseAnalyticsInternal
+  extends FirebaseAnalytics,
+    FirebaseService {}
 
 /**
  * Maps appId to full initialization promise. Wrapped gtag calls must wait on
@@ -124,7 +125,7 @@ export function resetGlobalVars(
  * For testing
  */
 export function getGlobalVars(): {
-  initializationPromisesMap: { [gaId: string]: Promise<string> };
+  initializationPromisesMap: { [appId: string]: Promise<string> };
   dynamicConfigPromisesList: Array<
     Promise<DynamicConfig | MinimalDynamicConfig>
   >;

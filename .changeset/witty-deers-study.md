@@ -1,8 +1,6 @@
 ---
 '@firebase/analytics': minor
 '@firebase/analytics-types': minor
-'@firebase/remote-config': patch
-'@firebase/util': patch
 ---
 
 Analytics now dynamically fetches the app's Measurement ID from the Dynamic Config backend
