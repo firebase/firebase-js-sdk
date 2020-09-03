@@ -3,7 +3,7 @@ name: Health Metrics
 on: [push, pull_request]
 
 jobs:
-  binary-size-test:
+  binary-size:
     name: Binary Size
     if: github.event_name == 'push' || !(github.event.pull_request.head.repo.fork)
     runs-on: ubuntu-latest
@@ -19,12 +19,28 @@ jobs:
       - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
-      - run: cp config/ci.config.json config/project.json
       - run: yarn install
       - run: yarn build
       - name: Run health-metrics/binary-size test
         run: yarn size-report
+  modular-export-size:
+    name: Binary Size For Modular Exports
+    if: github.event_name == 'push' || !(github.event.pull_request.head.repo.fork)
+    runs-on: ubuntu-latest
+    env:
+      METRICS_SERVICE_URL: ${{ secrets.METRICS_SERVICE_URL }}
+      GITHUB_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+      GITHUB_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 10.x
+      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+      - run: yarn install
+      - run: yarn build
       - name: Run health-metrics/modular-exports-binary-size test
         run: yarn modular-export-size-report
-
   # TODO(yifany): Enable startup times testing on CI.
