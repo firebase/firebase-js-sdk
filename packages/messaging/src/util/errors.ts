@@ -53,14 +53,14 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
   [ErrorCode.FAILED_DEFAULT_REGISTRATION]:
     'We are unable to register the default service worker. {$browserErrorMessage}',
   [ErrorCode.TOKEN_SUBSCRIBE_FAILED]:
-    'A problem occured while subscribing the user to FCM: {$errorInfo}',
+    'A problem occurred while subscribing the user to FCM: {$errorInfo}',
   [ErrorCode.TOKEN_SUBSCRIBE_NO_TOKEN]:
     'FCM returned no token when subscribing the user to push.',
   [ErrorCode.TOKEN_UNSUBSCRIBE_FAILED]:
-    'A problem occured while unsubscribing the ' +
+    'A problem occurred while unsubscribing the ' +
     'user from FCM: {$errorInfo}',
   [ErrorCode.TOKEN_UPDATE_FAILED]:
-    'A problem occured while updating the user from FCM: {$errorInfo}',
+    'A problem occurred while updating the user from FCM: {$errorInfo}',
   [ErrorCode.TOKEN_UPDATE_NO_TOKEN]:
     'FCM returned no token when updating the user to push.',
   [ErrorCode.USE_SW_AFTER_GET_TOKEN]:
