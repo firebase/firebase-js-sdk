@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
+import firebase from '@firebase/app-compat';
 import { FirebaseApp } from '@firebase/app-types';
 import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
@@ -33,6 +33,10 @@ export class RecaptchaVerifier
     impl.assertFn(app.options?.apiKey, impl.AuthErrorCode.INVALID_API_KEY, {
       appName: app.name
     });
-    super(container, parameters, (app.auth!() as unknown) as externs.Auth);
+    super(
+      container,
+      parameters as any,
+      (app.auth!() as unknown) as externs.Auth
+    );
   }
 }

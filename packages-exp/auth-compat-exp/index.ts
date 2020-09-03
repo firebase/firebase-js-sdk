@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
+import firebase from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import * as impl from '@firebase/auth-exp/internal';
 import * as externs from '@firebase/auth-types-exp';
