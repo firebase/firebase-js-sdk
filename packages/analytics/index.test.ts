@@ -53,10 +53,6 @@ function stubFetch(status: number, body: object): void {
 }
 
 describe('FirebaseAnalytics instance tests', () => {
-  before(() => {
-    clock = useFakeTimers();
-  });
-  after(() => clock.restore());
   describe('Initialization', () => {
     beforeEach(() => resetGlobalVars());
 
@@ -124,6 +120,7 @@ describe('FirebaseAnalytics instance tests', () => {
       idbStub.restore();
     });
     it('Warns eventually if indexedDB.open() does not work', async () => {
+      clock = useFakeTimers();
       stubFetch(200, { measurementId: fakeMeasurementId });
       const warnStub = stub(console, 'warn');
       const idbOpenStub = stub(indexedDB, 'open').throws(
@@ -143,6 +140,7 @@ describe('FirebaseAnalytics instance tests', () => {
       warnStub.restore();
       idbOpenStub.restore();
       fetchStub.restore();
+      clock.restore();
     });
     it('Throws if creating an instance with already-used appId', () => {
       const app = getFakeApp(fakeAppParams);
@@ -157,9 +155,8 @@ describe('FirebaseAnalytics instance tests', () => {
     let app: FirebaseApp = {} as FirebaseApp;
     let fidDeferred: Deferred<void>;
     const gtagStub: SinonStub = stub();
-    // Making function async prevents fetch stub from being reset before
-    // all async functions started by analyticsFactory resolve.
-    before(async () => {
+    before(() => {
+      clock = useFakeTimers();
       resetGlobalVars();
       app = getFakeApp(fakeAppParams);
       fidDeferred = new Deferred<void>();
@@ -170,13 +167,13 @@ describe('FirebaseAnalytics instance tests', () => {
       window['dataLayer'] = [];
       stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance = analyticsFactory(app, installations);
-      await clock.runAllAsync();
     });
     after(() => {
       delete window['gtag'];
       delete window['dataLayer'];
       removeGtagScript();
       fetchStub.restore();
+      clock.restore();
     });
     it('Contains reference to parent app', () => {
       expect(analyticsInstance.app).to.equal(app);
@@ -226,9 +223,8 @@ describe('FirebaseAnalytics instance tests', () => {
     let app: FirebaseApp = {} as FirebaseApp;
     let fidDeferred: Deferred<void>;
     const gtagStub: SinonStub = stub();
-    // Making function async prevents fetch stub from being reset before
-    // all async functions started by analyticsFactory resolve.
-    before(async () => {
+    before(() => {
+      clock = useFakeTimers();
       resetGlobalVars();
       app = getFakeApp(fakeAppParams);
       fidDeferred = new Deferred<void>();
@@ -243,13 +239,13 @@ describe('FirebaseAnalytics instance tests', () => {
       });
       stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance = analyticsFactory(app, installations);
-      await clock.runAllAsync();
     });
     after(() => {
       delete window[customGtagName];
       delete window[customDataLayerName];
       removeGtagScript();
       fetchStub.restore();
+      clock.restore();
     });
     it('Calls gtag correctly on logEvent (instance)', async () => {
       analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
@@ -285,7 +281,6 @@ describe('FirebaseAnalytics instance tests', () => {
       const installations = getFakeInstallations();
       stubFetch(200, {});
       analyticsInstance = analyticsFactory(app, installations);
-      await clock.runAllAsync();
 
       const { initializationPromisesMap } = getGlobalVars();
       await initializationPromisesMap[fakeAppParams.appId];
