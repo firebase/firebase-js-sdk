@@ -152,6 +152,44 @@ describe('Testing Module Tests', function () {
     );
   });
 
+  it('initializeAdminApp() and initializeTestApp() work together', async function () {
+    await firebase.loadDatabaseRules({
+      databaseName: 'foo',
+      rules: JSON.stringify({
+        'rules': {
+          'public': { '.read': true, '.write': true },
+          'private': { '.read': false, '.write': false }
+        }
+      })
+    });
+
+    const adminApp = firebase.initializeAdminApp({
+      projectId: 'foo',
+      databaseName: 'foo'
+    });
+
+    const testApp = firebase.initializeTestApp({
+      projectId: 'foo',
+      databaseName: 'foo'
+    });
+
+    // Admin app can write anywhere
+    await firebase.assertSucceeds(
+      adminApp.database().ref().child('/public/doc').set({ hello: 'admin' })
+    );
+    await firebase.assertSucceeds(
+      adminApp.database().ref().child('/private/doc').set({ hello: 'admin' })
+    );
+
+    // Test app can only write to public, not to private
+    await firebase.assertSucceeds(
+      testApp.database().ref().child('/public/doc').set({ hello: 'test' })
+    );
+    await firebase.assertFails(
+      testApp.database().ref().child('/private/doc').set({ hello: 'test' })
+    );
+  });
+
   it('loadDatabaseRules() throws if no databaseName or rules', async function () {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await expect((firebase as any).loadDatabaseRules.bind(null, {})).to.throw(
