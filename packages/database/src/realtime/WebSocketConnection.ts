@@ -76,6 +76,7 @@ export class WebSocketConnection implements Transport {
   private stats_: StatsCollection;
   private everConnected_: boolean;
   private isClosed_: boolean;
+  private nodeAdmin: boolean;
 
   /**
    * @param connId identifier for this transport
@@ -87,7 +88,7 @@ export class WebSocketConnection implements Transport {
    */
   constructor(
     public connId: string,
-    private repoInfo: RepoInfo,
+    repoInfo: RepoInfo,
     private applicationId?: string,
     transportSessionId?: string,
     lastSessionId?: string
@@ -99,6 +100,7 @@ export class WebSocketConnection implements Transport {
       transportSessionId,
       lastSessionId
     );
+    this.nodeAdmin = repoInfo.nodeAdmin;
   }
 
   /**
@@ -151,7 +153,7 @@ export class WebSocketConnection implements Transport {
 
     try {
       if (isNodeSdk()) {
-        const device = this.repoInfo.nodeAdmin ? 'AdminNode' : 'Node';
+        const device = this.nodeAdmin ? 'AdminNode' : 'Node';
         // UA Format: Firebase/<wire_protocol>/<sdk_version>/<platform>/<device>
         const options: { [k: string]: object } = {
           headers: {
