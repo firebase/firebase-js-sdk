@@ -42,6 +42,7 @@ const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
 let fetchStub: SinonStub = stub();
 const customGtagName = 'customGtag';
 const customDataLayerName = 'customDataLayer';
+let clock: sinon.SinonFakeTimers;
 
 function stubFetch(status: number, body: object): void {
   fetchStub = stub(window, 'fetch');
@@ -52,6 +53,10 @@ function stubFetch(status: number, body: object): void {
 }
 
 describe('FirebaseAnalytics instance tests', () => {
+  before(() => {
+    clock = useFakeTimers();
+  });
+  after(() => clock.restore());
   describe('Initialization', () => {
     beforeEach(() => resetGlobalVars());
 
@@ -120,7 +125,6 @@ describe('FirebaseAnalytics instance tests', () => {
     });
     it('Warns eventually if indexedDB.open() does not work', async () => {
       stubFetch(200, { measurementId: fakeMeasurementId });
-      const clock = useFakeTimers();
       const warnStub = stub(console, 'warn');
       const idbOpenStub = stub(indexedDB, 'open').throws(
         'idb open throw message'
@@ -153,7 +157,6 @@ describe('FirebaseAnalytics instance tests', () => {
     let app: FirebaseApp = {} as FirebaseApp;
     let fidDeferred: Deferred<void>;
     const gtagStub: SinonStub = stub();
-    const clock = useFakeTimers();
     // Making function async prevents fetch stub from being reset before
     // all async functions started by analyticsFactory resolve.
     before(async () => {
@@ -167,6 +170,7 @@ describe('FirebaseAnalytics instance tests', () => {
       window['dataLayer'] = [];
       stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance = analyticsFactory(app, installations);
+      await clock.runAllAsync();
     });
     after(() => {
       delete window['gtag'];
@@ -222,7 +226,6 @@ describe('FirebaseAnalytics instance tests', () => {
     let app: FirebaseApp = {} as FirebaseApp;
     let fidDeferred: Deferred<void>;
     const gtagStub: SinonStub = stub();
-    const clock = useFakeTimers();
     // Making function async prevents fetch stub from being reset before
     // all async functions started by analyticsFactory resolve.
     before(async () => {
@@ -240,6 +243,7 @@ describe('FirebaseAnalytics instance tests', () => {
       });
       stubFetch(200, { measurementId: fakeMeasurementId });
       analyticsInstance = analyticsFactory(app, installations);
+      await clock.runAllAsync();
     });
     after(() => {
       delete window[customGtagName];
@@ -275,27 +279,24 @@ describe('FirebaseAnalytics instance tests', () => {
   });
 
   describe('Page has no existing gtag script or dataLayer', () => {
-    // Making function async prevents fetch stub from being reset before
-    // all async functions started by analyticsFactory resolve.
-    before(async () => {
+    it('Adds the script tag to the page', async () => {
       resetGlobalVars();
       const app = getFakeApp(fakeAppParams);
       const installations = getFakeInstallations();
       stubFetch(200, {});
       analyticsInstance = analyticsFactory(app, installations);
-    });
-    after(() => {
-      delete window['gtag'];
-      delete window['dataLayer'];
-      removeGtagScript();
-      fetchStub.restore();
-    });
-    it('Adds the script tag to the page', async () => {
+      await clock.runAllAsync();
+
       const { initializationPromisesMap } = getGlobalVars();
       await initializationPromisesMap[fakeAppParams.appId];
       expect(findGtagScriptOnPage()).to.not.be.null;
       expect(typeof window['gtag']).to.equal('function');
       expect(Array.isArray(window['dataLayer'])).to.be.true;
+
+      delete window['gtag'];
+      delete window['dataLayer'];
+      removeGtagScript();
+      fetchStub.restore();
     });
   });
 });

@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { SinonStub, stub, useFakeTimers } from 'sinon';
+import { SinonStub, stub, useFakeTimers, restore } from 'sinon';
 import '../testing/setup';
 import {
   fetchDynamicConfig,
@@ -45,6 +45,7 @@ function stubFetch(status: number, body: { [key: string]: any }): void {
 }
 
 describe('Dynamic Config Fetch Functions', () => {
+  afterEach(restore);
   describe('fetchDynamicConfig() - no retry', () => {
     it('successfully request and receives dynamic config JSON data', async () => {
       stubFetch(200, successObject);
