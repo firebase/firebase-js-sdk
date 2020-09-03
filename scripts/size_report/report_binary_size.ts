@@ -93,12 +93,12 @@ async function generateReportForNPMPackages(): Promise<Report[]> {
   return reports;
 
   function collectBinarySize(path: string) {
-    const promise = new Promise<void>(async resolve => {
-      const packageJsonPath = `${path}/package.json`;
-      if (!fs.existsSync(packageJsonPath)) {
-        return;
-      }
+    const packageJsonPath = `${path}/package.json`;
+    if (!fs.existsSync(packageJsonPath)) {
+      return;
+    }
 
+    const promise = new Promise<void>(async resolve => {
       const packageJson = require(packageJsonPath);
 
       for (const field of fields) {
