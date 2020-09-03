@@ -1,0 +1,46 @@
+{
+  "name": "@firebase/functions-compat",
+  "version": "0.0.800",
+  "description": "",
+  "private": true,
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.node.cjs.js",
+  "browser": "dist/index.esm.js",
+  "module": "dist/index.esm.js",
+  "esm2017": "dist/index.esm2017.js",
+  "files": ["dist"],
+  "license": "Apache-2.0",
+  "peerDependencies": {
+    "@firebase/app-exp": "0.x",
+    "@firebase/app-types-exp": "0.x"
+  },
+  "devDependencies": {
+    "@firebase/app-exp": "0.0.800",
+    "rollup": "2.26.7",
+    "rollup-plugin-typescript2": "0.27.2",
+    "typescript": "4.0.2"
+  },
+  "repository": {
+    "directory": "packages-exp/functions-compat",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "typings": "dist/functions-exp-public.d.ts",
+  "dependencies": {
+    "@firebase/component": "0.1.18",
+    "@firebase/functions-types-exp": "0.0.800",
+    "@firebase/messaging-types": "0.5.0",
+    "@firebase/util": "0.3.1",
+    "isomorphic-fetch": "2.2.1",
+    "tslib": "^1.11.1"
+  },
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reportDir": "./coverage/node"
+  }
+}
