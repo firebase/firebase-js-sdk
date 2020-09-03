@@ -18,7 +18,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/auth-exp --include-dependencies build",
-    "build:release": "rollup -c rollup.config.release.js && yarn api-report && yarn typings:public",
+    "build:release": "rollup -c rollup.config.release.js",
     "dev": "rollup -c -w",
     "test": "run-p lint test:all",
     "test:all": "run-p test:browser test:node",
@@ -29,9 +29,7 @@
     "test:browser:debug": "karma start --auto-watch",
     "test:browser:unit:debug": "karma start --auto-watch --unit",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/!(platform_browser|platform_react_native)/**/*.test.ts' --file index.node.ts --config ../../config/mocharc.node.js",
-    "prepare": "yarn build",
-    "typings:public": "node ./use_typings.js --public",
-    "typings:internal": "node ./use_typings.js"
+    "prepare": "rollup -c rollup.config.release.js"
   },
   "peerDependencies": {
     "@firebase/app-exp": "0.x",
