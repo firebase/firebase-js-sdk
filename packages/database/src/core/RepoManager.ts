@@ -99,7 +99,8 @@ export class RepoManager {
   databaseFromApp(
     app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
-    url?: string
+    url?: string,
+    nodeAdmin?: boolean
   ): Database {
     let dbUrl: string | undefined = url || app.options[DATABASE_URL_OPTION];
     if (dbUrl === undefined) {
@@ -129,8 +130,12 @@ export class RepoManager {
       isEmulator = !parsedUrl.repoInfo.secure;
     }
 
+    if (nodeAdmin) {
+      repoInfo.setNodeAdmin(nodeAdmin);
+    }
+
     const authTokenProvider =
-      CONSTANTS.NODE_ADMIN && isEmulator
+      nodeAdmin && isEmulator
         ? new EmulatorAdminTokenProvider()
         : new FirebaseAuthTokenProvider(app, authProvider);
 

@@ -43,7 +43,8 @@ export class RepoInfo {
     public namespace: string,
     public webSocketOnly: boolean,
     public persistenceKey: string = '',
-    public includeNamespaceInQueryParams: boolean = false
+    public includeNamespaceInQueryParams: boolean = false,
+    public nodeAdmin: boolean = false
   ) {
     this.host = host.toLowerCase();
     this.domain = this.host.substr(this.host.indexOf('.') + 1);
@@ -71,6 +72,10 @@ export class RepoInfo {
     return (
       this.domain !== 'firebaseio.com' && this.domain !== 'firebaseio-demo.com'
     );
+  }
+
+  setNodeAdmin(nodeAdmin: boolean) {
+    this.nodeAdmin = nodeAdmin;
   }
 
   updateHost(newHost: string) {
