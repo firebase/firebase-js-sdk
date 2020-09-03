@@ -25,7 +25,7 @@
     "prepare": "yarn build"
   },
   "peerDependencies": {
-    "@firebase/app-compat": "0.x",
+    "@firebase/app": "0.x",
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
@@ -38,7 +38,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-compat": "0.0.800",
+    "@firebase/app": "0.6.10",
     "rollup": "2.23.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-replace": "2.2.0",
