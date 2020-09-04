@@ -66,17 +66,15 @@ export function getConfig({ isReleaseBuild }) {
       output: [{ file: pkg.webworker, format: 'es', sourcemap: true }],
       plugins: [
         ...commonPlugins,
-        typescriptPlugin({
-          typescript,
-          tsconfigOverride: {
-            compilerOptions: {
-              lib: [
-                // Remove dom after we figure out why navigator stuff doesn't exist
-                'dom',
-                'es2015',
-                'webworker'
-              ]
-            }
+        getTypesScriptPlugin({
+          isReleaseBuild,
+          compilerOptions: {
+            lib: [
+              // Remove dom after we figure out why navigator stuff doesn't exist
+              'dom',
+              'es2015',
+              'webworker'
+            ]
           }
         })
       ],
@@ -116,7 +114,10 @@ export function getConfig({ isReleaseBuild }) {
    */
   const es2017BuildPlugins = [
     ...commonPlugins,
-    getTypesScriptPlugin({ isReleaseBuild, target: 'es2017' })
+    getTypesScriptPlugin({
+      isReleaseBuild,
+      compilerOptions: { target: 'es2017' }
+    })
   ];
 
   const es2017Builds = [
@@ -151,13 +152,11 @@ export function getConfig({ isReleaseBuild }) {
   return allBuilds;
 }
 
-function getTypesScriptPlugin({ target = 'es5', isReleaseBuild }) {
+function getTypesScriptPlugin({ compilerOptions, isReleaseBuild }) {
   let options = {
     typescript,
     tsconfigOverride: {
-      compilerOptions: {
-        target
-      }
+      compilerOptions
     }
   };
 
