@@ -165,6 +165,7 @@ function getTypesScriptPlugin({ target = 'es5', isReleaseBuild }) {
     options = {
       ...options,
       clean: true,
+      abortOnError: false,
       transformers: [importPathTransformer]
     };
   }
