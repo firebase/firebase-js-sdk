@@ -35,6 +35,7 @@ export class RecaptchaVerifier
     });
     super(
       container,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       parameters as any,
       (app.auth!() as unknown) as externs.Auth
     );
