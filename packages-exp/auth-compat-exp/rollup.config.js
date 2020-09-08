@@ -22,11 +22,9 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
 
-const deps = [
-  '@firebase/app',
-  '@firebase/component',
-  '@firebase/installations'
-];
+const deps = Object.keys(
+  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
+);
 
 /**
  * Common plugins for all builds
@@ -49,10 +47,7 @@ const es5Builds = [
    */
   {
     input: 'index.ts',
-    output: [
-      { file: pkg.browser, format: 'cjs', sourcemap: true },
-      { file: pkg.module, format: 'esm', sourcemap: true }
-    ],
+    output: [{ file: pkg.module, format: 'esm', sourcemap: true }],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },

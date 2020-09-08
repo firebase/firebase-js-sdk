@@ -17,4 +17,4 @@
 
 import { getConfig } from './rollup.config.shared';
 
-export default getConfig({ isReleaseBuild: false });
+export default getConfig({ isReleaseBuild: true });

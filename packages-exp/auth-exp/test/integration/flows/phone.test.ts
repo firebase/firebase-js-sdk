@@ -27,6 +27,7 @@ import {
   signInWithPhoneNumber,
   unlink,
   updatePhoneNumber
+  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/auth-exp';
 import {
   Auth,
@@ -69,7 +70,11 @@ describe('Integration test: phone auth', () => {
     auth = getTestInstance();
     fakeRecaptchaContainer = document.createElement('div');
     document.body.appendChild(fakeRecaptchaContainer);
-    verifier = new RecaptchaVerifier(fakeRecaptchaContainer, undefined, auth);
+    verifier = new RecaptchaVerifier(
+      fakeRecaptchaContainer,
+      undefined as any,
+      auth
+    );
   });
 
   afterEach(async () => {
@@ -111,7 +116,11 @@ describe('Integration test: phone auth', () => {
 
     function resetVerifier(): void {
       verifier.clear();
-      verifier = new RecaptchaVerifier(fakeRecaptchaContainer, undefined, auth);
+      verifier = new RecaptchaVerifier(
+        fakeRecaptchaContainer,
+        undefined as any,
+        auth
+      );
     }
 
     beforeEach(async () => {
