@@ -209,8 +209,6 @@ export function validateIsNotUsedTogether(
   argument2: boolean | undefined
 ): void {
   if (
-    argument1 !== undefined &&
-    argument2 !== undefined &&
     argument1 === true &&
     argument2 === true
   ) {
