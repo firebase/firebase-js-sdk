@@ -16,6 +16,8 @@
  */
 
 /**
+ * A Firebase Installation instance which is a required argument for all Firebase Installations operations.
+ *
  * @public
  */
 export interface FirebaseInstallations {}

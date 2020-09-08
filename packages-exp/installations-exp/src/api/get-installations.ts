@@ -20,6 +20,8 @@ import { FirebaseInstallations } from '@firebase/installations-types-exp';
 import { _getProvider } from '@firebase/app-exp';
 
 /**
+ * Returns a Firebase Installation instance for the given app.
+ *
  * @public
  */
 export function getInstallations(app: FirebaseApp): FirebaseInstallations {

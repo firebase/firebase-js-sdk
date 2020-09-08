@@ -20,10 +20,14 @@ import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
 /**
+ * An user defined callback function that takes action when Installations ID changes.
+ *
  * @public
  */
 export type IdChangeCallbackFn = (installationId: string) => void;
 /**
+ * An unsubscribe function that will remove the onIdChange callback when called.
+ *
  * @public
  */
 export type IdChangeUnsubscribeFn = () => void;
