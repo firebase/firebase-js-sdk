@@ -15,14 +15,17 @@
  * limitations under the License.
  */
 
-import { FirebaseInstallationsImpl } from '../installations-exp/src/interfaces/installation-impl';
-
+/**
+ * @public
+ */
 export interface FirebaseInstallations {}
 
 /**
  * An interface for Firebase internal SDKs use only.
+ *
+ * @internal
  */
-export interface FirebaseInstallationsInternal {
+export interface _FirebaseInstallationsInternal {
   /**
    * Creates a Firebase Installation if there isn't one for the app and
    * returns the Installation ID.
@@ -38,6 +41,6 @@ export interface FirebaseInstallationsInternal {
 declare module '@firebase/component' {
   interface NameServiceMapping {
     'installations-exp': FirebaseInstallations;
-    'installations-exp-internal': FirebaseInstallationsInternal;
+    'installations-exp-internal': _FirebaseInstallationsInternal;
   }
 }

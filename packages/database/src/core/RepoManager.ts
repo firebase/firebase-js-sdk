@@ -18,7 +18,7 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { safeGet, CONSTANTS } from '@firebase/util';
 import { Repo } from './Repo';
-import { fatal } from './util/util';
+import { fatal, log } from './util/util';
 import { parseRepoInfo } from './util/libs/parser';
 import { validateUrl } from './util/validation';
 import './Repo_transaction';
@@ -31,9 +31,6 @@ import {
   EmulatorAdminTokenProvider,
   FirebaseAuthTokenProvider
 } from './AuthTokenProvider';
-
-/** @const {string} */
-const DATABASE_URL_OPTION = 'databaseURL';
 
 /**
  * This variable is also defined in the firebase node.js admin SDK. Before
@@ -101,13 +98,17 @@ export class RepoManager {
     authProvider: Provider<FirebaseAuthInternalName>,
     url?: string
   ): Database {
-    let dbUrl: string | undefined = url || app.options[DATABASE_URL_OPTION];
+    let dbUrl: string | undefined = url || app.options.databaseURL;
     if (dbUrl === undefined) {
-      fatal(
-        "Can't determine Firebase Database URL.  Be sure to include " +
-          DATABASE_URL_OPTION +
-          ' option when calling firebase.initializeApp().'
-      );
+      if (!app.options.projectId) {
+        fatal(
+          "Can't determine Firebase Database URL. Be sure to include " +
+            ' a Project ID when calling firebase.initializeApp().'
+        );
+      }
+
+      log('Using default host for project ', app.options.projectId);
+      dbUrl = `${app.options.projectId}-default-rtdb.firebaseio.com`;
     }
 
     let parsedUrl = parseRepoInfo(dbUrl);

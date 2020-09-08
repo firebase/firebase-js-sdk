@@ -23,6 +23,9 @@ import {
 } from '../interfaces/installation-impl';
 import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
+/**
+ * @public
+ */
 export async function getToken(
   installations: FirebaseInstallations,
   forceRefresh = false

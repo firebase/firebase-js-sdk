@@ -73,7 +73,15 @@ import { JsonObject } from '../../../src/model/object_value';
 import { Mutation } from '../../../src/model/mutation';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
-import { RemoteStore } from '../../../src/remote/remote_store';
+import {
+  RemoteStore,
+  fillWritePipeline,
+  remoteStoreDisableNetwork,
+  remoteStoreShutdown,
+  remoteStoreEnableNetwork,
+  remoteStoreHandleCredentialChange,
+  outstandingWrites
+} from '../../../src/remote/remote_store';
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
 import {
   JsonProtoSerializer,
@@ -720,9 +728,9 @@ abstract class TestRunner {
     this.networkEnabled = false;
     // Make sure to execute all writes that are currently queued. This allows us
     // to assert on the total number of requests sent before shutdown.
-    await this.remoteStore.fillWritePipeline();
+    await fillWritePipeline(this.remoteStore);
     this.persistence.setNetworkEnabled(false);
-    await this.remoteStore.disableNetwork();
+    await remoteStoreDisableNetwork(this.remoteStore);
   }
 
   private async doDrainQueue(): Promise<void> {
@@ -732,11 +740,11 @@ abstract class TestRunner {
   private async doEnableNetwork(): Promise<void> {
     this.networkEnabled = true;
     this.persistence.setNetworkEnabled(true);
-    await this.remoteStore.enableNetwork();
+    await remoteStoreEnableNetwork(this.remoteStore);
   }
 
   private async doShutdown(): Promise<void> {
-    await this.remoteStore.shutdown();
+    await remoteStoreShutdown(this.remoteStore);
     await this.sharedClientState.shutdown();
     // We don't delete the persisted data here since multi-clients may still
     // be accessing it. Instead, we manually remove it at the end of the
@@ -779,7 +787,7 @@ abstract class TestRunner {
     // during an IndexedDb failure. Non-recovery tests will pick up the user
     // change when the AsyncQueue is drained.
     this.queue.enqueueRetryable(() =>
-      this.remoteStore.handleCredentialChange(new User(user))
+      remoteStoreHandleCredentialChange(this.remoteStore, new User(user))
     );
   }
 
@@ -828,7 +836,7 @@ abstract class TestRunner {
   ): Promise<void> {
     if (expectedState) {
       if ('numOutstandingWrites' in expectedState) {
-        expect(this.remoteStore.outstandingWrites()).to.equal(
+        expect(outstandingWrites(this.remoteStore)).to.equal(
           expectedState.numOutstandingWrites
         );
       }

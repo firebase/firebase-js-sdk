@@ -145,7 +145,7 @@ collectionChanges(collectionRef, ['added'])
 ```
 
 ### `sortedChanges()`
-The `sortedChanges()` function creates an observable that emits the reduced state of individual changes. This is different than the collection function in that it creates an array out of every individual change to occur. It also contains the `type` property to indicate what kind of change occured. The optional `events` parameter will filter which child events populate the array.
+The `sortedChanges()` function creates an observable that emits the reduced state of individual changes. This is different than the collection function in that it creates an array out of every individual change to occur. It also contains the `type` property to indicate what kind of change occurred. The optional `events` parameter will filter which child events populate the array.
 
 |                 |                                          |
 |-----------------|------------------------------------------|

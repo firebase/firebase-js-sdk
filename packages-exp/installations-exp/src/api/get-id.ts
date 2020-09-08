@@ -20,6 +20,9 @@ import { refreshAuthToken } from '../helpers/refresh-auth-token';
 import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
+/**
+ * @public
+ */
 export async function getId(
   installations: FirebaseInstallations
 ): Promise<string> {

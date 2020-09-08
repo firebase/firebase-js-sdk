@@ -22,6 +22,9 @@ import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
+/**
+ * @public
+ */
 export async function deleteInstallations(
   installations: FirebaseInstallations
 ): Promise<void> {

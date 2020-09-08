@@ -27,11 +27,14 @@ import { handleUserChange, LocalStore } from '../../../src/local/local_store';
 import { Deferred } from '../../../src/util/promise';
 import { logDebug } from '../../../src/util/log';
 import {
+  RemoteStore,
+  remoteStoreHandleCredentialChange
+} from '../../../src/remote/remote_store';
+import {
   SyncEngine,
   syncEngineListen,
   syncEngineUnlisten
 } from '../../../src/core/sync_engine';
-import { RemoteStore } from '../../../src/remote/remote_store';
 import { Persistence } from '../../../src/local/persistence';
 import { EventManager } from '../../../src/core/event_manager';
 export const LOG_TAG = 'ComponentProvider';
@@ -100,7 +103,10 @@ export async function setOnlineComponentProvider(
   firestore._setCredentialChangeListener(user =>
     // TODO(firestoreexp): This should be enqueueRetryable.
     firestore._queue.enqueueAndForget(() =>
-      onlineComponentProvider.remoteStore.handleCredentialChange(user)
+      remoteStoreHandleCredentialChange(
+        onlineComponentProvider.remoteStore,
+        user
+      )
     )
   );
   onlineDeferred.resolve(onlineComponentProvider);

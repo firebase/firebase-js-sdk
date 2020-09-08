@@ -58,7 +58,7 @@ describe('RemoteConfig', () => {
 
   let getActiveConfigStub: sinon.SinonStub;
   let loggerDebugSpy: sinon.SinonSpy;
-  let loggerLogLevelSpy: sinon.SinonSpy;
+  let loggerLogLevelSpy: any;
 
   beforeEach(() => {
     // Clears stubbed behavior between each test.
@@ -85,7 +85,7 @@ describe('RemoteConfig', () => {
       rc.setLogLevel('debug');
 
       // Casts spy to any because property setters aren't defined on the SinonSpy type.
-      expect((loggerLogLevelSpy as any).set).to.have.been.calledWith(
+      expect(loggerLogLevelSpy.set).to.have.been.calledWith(
         FirebaseLogLevel.DEBUG
       );
     });
@@ -95,7 +95,7 @@ describe('RemoteConfig', () => {
         rc.setLogLevel(logLevel as RemoteConfigLogLevel);
 
         // Casts spy to any because property setters aren't defined on the SinonSpy type.
-        expect((loggerLogLevelSpy as any).set).to.have.been.calledWith(
+        expect(loggerLogLevelSpy.set).to.have.been.calledWith(
           FirebaseLogLevel.ERROR
         );
       }

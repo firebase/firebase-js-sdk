@@ -19,6 +19,9 @@ import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseInstallations } from '@firebase/installations-types-exp';
 import { _getProvider } from '@firebase/app-exp';
 
+/**
+ * @public
+ */
 export function getInstallations(app: FirebaseApp): FirebaseInstallations {
   const installationsImpl = _getProvider(
     app,
