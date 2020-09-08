@@ -33,23 +33,19 @@ import {
   applyPrimaryState,
   applyTargetState,
   getActiveClients,
-  handleCredentialChange,
+  syncEngineHandleCredentialChange,
   newSyncEngine,
-  SyncEngine
+  SyncEngine,
+  ensureWriteCallbacks
 } from './sync_engine';
 import {
+  fillWritePipeline,
   newRemoteStore,
   RemoteStore,
   remoteStoreApplyPrimaryState,
   remoteStoreShutdown
 } from '../remote/remote_store';
-import {
-  EventManager,
-  newEventManager,
-  eventManagerOnOnlineStateChange,
-  eventManagerOnWatchChange,
-  eventManagerOnWatchError
-} from './event_manager';
+import { EventManager, newEventManager } from './event_manager';
 import { AsyncQueue } from '../util/async_queue';
 import { DatabaseId, DatabaseInfo } from './database_info';
 import { Datastore, newDatastore } from '../remote/datastore';
@@ -185,9 +181,21 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
   localStore!: LocalStore;
   gcScheduler!: GarbageCollectionScheduler | null;
 
+  constructor(
+    protected readonly onlineComponentProvider: OnlineComponentProvider
+  ) {
+    super();
+  }
+
   async initialize(cfg: ComponentConfiguration): Promise<void> {
     await super.initialize(cfg);
     await synchronizeLastDocumentChangeReadTime(this.localStore);
+
+    await this.onlineComponentProvider.initialize(this, cfg);
+
+    // Enqueue writes from a previous session
+    await ensureWriteCallbacks(this.onlineComponentProvider.syncEngine);
+    await fillWritePipeline(this.onlineComponentProvider.remoteStore);
   }
 
   createGarbageCollectionScheduler(
@@ -246,16 +254,9 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
  * `synchronizeTabs` will be enabled.
  */
 export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentProvider {
-  constructor(
-    private readonly onlineComponentProvider: OnlineComponentProvider
-  ) {
-    super();
-  }
-
   async initialize(cfg: ComponentConfiguration): Promise<void> {
     await super.initialize(cfg);
 
-    await this.onlineComponentProvider.initialize(this, cfg);
     const syncEngine = this.onlineComponentProvider.syncEngine;
 
     if (this.sharedClientState instanceof WebStorageSharedClientState) {
@@ -342,17 +343,8 @@ export class OnlineComponentProvider {
     this.sharedClientState = offlineComponentProvider.sharedClientState;
     this.datastore = this.createDatastore(cfg);
     this.remoteStore = this.createRemoteStore(cfg);
-    this.syncEngine = this.createSyncEngine(cfg);
     this.eventManager = this.createEventManager(cfg);
-
-    this.syncEngine.subscribe({
-      onWatchChange: eventManagerOnWatchChange.bind(null, this.eventManager),
-      onWatchError: eventManagerOnWatchError.bind(null, this.eventManager),
-      onOnlineStateChange: eventManagerOnOnlineStateChange.bind(
-        null,
-        this.eventManager
-      )
-    });
+    this.syncEngine = this.createSyncEngine(cfg);
 
     this.sharedClientState.onlineStateHandler = onlineState =>
       applyOnlineStateChange(
@@ -361,7 +353,7 @@ export class OnlineComponentProvider {
         OnlineStateSource.SharedClientState
       );
 
-    this.remoteStore.remoteSyncer.handleCredentialChange = handleCredentialChange.bind(
+    this.remoteStore.remoteSyncer.handleCredentialChange = syncEngineHandleCredentialChange.bind(
       null,
       this.syncEngine
     );
@@ -401,6 +393,7 @@ export class OnlineComponentProvider {
     return newSyncEngine(
       this.localStore,
       this.remoteStore,
+      this.eventManager,
       this.sharedClientState,
       cfg.initialUser,
       cfg.maxConcurrentLimboResolutions,

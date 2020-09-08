@@ -51,7 +51,6 @@ import {
   setOfflineComponentProvider,
   setOnlineComponentProvider
 } from './components';
-
 import { DEFAULT_HOST, DEFAULT_SSL } from '../../../lite/src/api/components';
 import { DatabaseInfo } from '../../../src/core/database_info';
 import { AutoId } from '../../../src/util/misc';
@@ -209,9 +208,14 @@ export function enableIndexedDbPersistence(
   // `getOnlineComponentProvider()`
   const settings = firestoreImpl._getSettings();
 
-  return firestoreImpl._queue.enqueue(() =>
+  const onlineComponentProvider = new OnlineComponentProvider();
+  const offlineComponentProvider = new IndexedDbOfflineComponentProvider(
+    onlineComponentProvider
+  );
+
+  return firestoreImpl._queue.enqueue(async () => {
     // TODO(firestoreexp): Add forceOwningTab
-    setOfflineComponentProvider(
+    await setOfflineComponentProvider(
       firestoreImpl,
       {
         durable: true,
@@ -220,9 +224,10 @@ export function enableIndexedDbPersistence(
           settings.cacheSizeBytes || LruParams.DEFAULT_CACHE_SIZE_BYTES,
         forceOwningTab: false
       },
-      new IndexedDbOfflineComponentProvider()
-    )
-  );
+      offlineComponentProvider
+    );
+    await setOnlineComponentProvider(firestoreImpl, onlineComponentProvider);
+  });
 }
 
 export function enableMultiTabIndexedDbPersistence(

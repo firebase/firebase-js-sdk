@@ -1068,6 +1068,37 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
+  // eslint-disable-next-line no-restricted-properties
+  (persistence ? it : it.skip)('offline writes are sent after restart', () => {
+    return withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+
+      const app = firestore.app;
+      const name = app.name;
+      const options = app.options;
+
+      await firestore.disableNetwork();
+
+      // We are merely adding to the cache.
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      docRef.set({ foo: 'bar' });
+
+      await app.delete();
+
+      const firestore2 = newTestFirestore(
+        options.projectId,
+        name,
+        DEFAULT_SETTINGS
+      );
+      await firestore2.enablePersistence();
+      await firestore2.waitForPendingWrites();
+      const doc = await firestore2.doc(docRef.path).get();
+
+      expect(doc.exists).to.be.true;
+      expect(doc.metadata.hasPendingWrites).to.be.false;
+    });
+  });
+
   it('rejects subsequent method calls after terminate() is called', async () => {
     return withTestDb(persistence, db => {
       return db.INTERNAL.delete().then(() => {

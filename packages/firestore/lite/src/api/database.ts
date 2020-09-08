@@ -113,12 +113,6 @@ export class Firestore
     removeComponents(this);
     return Promise.resolve();
   }
-
-  // TODO(firestoreexp): `deleteApp()` should call the delete method above,
-  // but it still calls INTERNAL.delete().
-  INTERNAL = {
-    delete: () => this._delete()
-  };
 }
 
 export function initializeFirestore(
