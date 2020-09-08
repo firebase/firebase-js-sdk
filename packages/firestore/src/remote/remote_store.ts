@@ -920,7 +920,7 @@ function ensureWatchStream(
   remoteStoreImpl: RemoteStoreImpl
 ): PersistentListenStream {
   if (!remoteStoreImpl.watchStream) {
-    // Creat stream (but note that it is not started yet).
+    // Create stream (but note that it is not started yet).
     remoteStoreImpl.watchStream = newPersistentWatchStream(
       remoteStoreImpl.datastore,
       remoteStoreImpl.asyncQueue,
@@ -951,8 +951,8 @@ function ensureWatchStream(
 
 /**
  * If not yet initialized, registers the WriteStream and its network state
- * callback with remoteStoreImpl. Returns the existing stream if one is already
- * available.
+ * callback with `remoteStoreImpl`. Returns the existing stream if one is
+ * already available.
  *
  * PORTING NOTE: On iOS and Android, the WriteStream gets registered on startup.
  * This is not done on Web to allow it to be tree-shaken.
@@ -966,7 +966,7 @@ function ensureWriteStream(
       'Should not issue writes before WriteStream is enabled'
     );
 
-    // Creat stream (but note that it is not started yet).
+    // Create stream (but note that it is not started yet).
     remoteStoreImpl.writeStream = newPersistentWriteStream(
       remoteStoreImpl.datastore,
       remoteStoreImpl.asyncQueue,
