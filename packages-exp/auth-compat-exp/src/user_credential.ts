@@ -18,7 +18,6 @@
 import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import * as externs from '@firebase/auth-types-exp';
-import '@firebase/installations';
 import { User } from './user';
 
 function credentialFromResponse(

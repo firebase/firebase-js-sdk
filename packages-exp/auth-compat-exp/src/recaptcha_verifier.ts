@@ -33,6 +33,11 @@ export class RecaptchaVerifier
     impl.assertFn(app.options?.apiKey, impl.AuthErrorCode.INVALID_API_KEY, {
       appName: app.name
     });
-    super(container, parameters, (app.auth!() as unknown) as externs.Auth);
+    super(
+      container,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      parameters as any,
+      (app.auth!() as unknown) as externs.Auth
+    );
   }
 }
