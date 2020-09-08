@@ -25,6 +25,7 @@ import {
   signInWithCredential,
   signInWithEmailAndPassword,
   updateProfile
+  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/auth-exp';
 import { Auth, OperationType, UserCredential } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
