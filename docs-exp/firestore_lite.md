@@ -8,7 +8,7 @@
 
 |  Class | Description |
 |  --- | --- |
-|  [Blob](./firestore_lite.blob.md) |  |
+|  [Bytes](./firestore_lite.bytes.md) |  |
 |  [CollectionReference](./firestore_lite.collectionreference.md) |  |
 |  [DocumentReference](./firestore_lite.documentreference.md) |  |
 |  [DocumentSnapshot](./firestore_lite.documentsnapshot.md) |  |
@@ -53,8 +53,6 @@
 |  [limit(limit)](./firestore_lite.limit.md) |  |
 |  [limitToLast(limit)](./firestore_lite.limittolast.md) |  |
 |  [orderBy(fieldPath, directionStr)](./firestore_lite.orderby.md) |  |
-|  [parent(reference)](./firestore_lite.parent.md) |  |
-|  [parent(reference)](./firestore_lite.parent_1.md) |  |
 |  [query(query, constraints)](./firestore_lite.query.md) |  |
 |  [queryEqual(left, right)](./firestore_lite.queryequal.md) |  |
 |  [refEqual(left, right)](./firestore_lite.refequal.md) |  |

@@ -59,6 +59,10 @@ import { User } from '../../../src/auth/user';
 import { CredentialChangeListener } from '../../../src/api/credentials';
 import { logDebug } from '../../../src/util/log';
 import { registerPendingWritesCallback } from '../../../src/core/sync_engine';
+import {
+  remoteStoreDisableNetwork,
+  remoteStoreEnableNetwork
+} from '../../../src/remote/remote_store';
 
 const LOG_TAG = 'Firestore';
 
@@ -306,7 +310,7 @@ export function enableNetwork(
     const remoteStore = await getRemoteStore(firestoreImpl);
     const persistence = await getPersistence(firestoreImpl);
     persistence.setNetworkEnabled(true);
-    return remoteStore.enableNetwork();
+    return remoteStoreEnableNetwork(remoteStore);
   });
 }
 
@@ -320,7 +324,7 @@ export function disableNetwork(
     const remoteStore = await getRemoteStore(firestoreImpl);
     const persistence = await getPersistence(firestoreImpl);
     persistence.setNetworkEnabled(false);
-    return remoteStore.disableNetwork();
+    return remoteStoreDisableNetwork(remoteStore);
   });
 }
 
