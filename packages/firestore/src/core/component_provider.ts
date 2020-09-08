@@ -38,7 +38,6 @@ import {
   SyncEngine
 } from './sync_engine';
 import {
-  fillWritePipeline,
   newRemoteStore,
   RemoteStore,
   remoteStoreApplyPrimaryState,
