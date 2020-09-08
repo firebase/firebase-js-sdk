@@ -1,6 +1,6 @@
 {
   "name": "firebase-exp",
-  "version": "0.800.4",
+  "version": "0.800.7",
   "private": true,
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -27,8 +27,10 @@
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "scripts": {
-    "build": "rollup -c && gulp firebase-js",
-    "build:release": "rollup -c rollup.config.release.js && gulp firebase-js",
+    "build": "rollup -c && gulp firebase-js && yarn build:compat",
+    "build:release": "rollup -c rollup.config.release.js && gulp firebase-js && yarn build:compat:release",
+    "build:compat": "rollup -c compat/rollup.config.js",
+    "build:compat:release": "rollup -c compat/rollup.config.release.js",
     "dev": "rollup -c -w",
     "prepare": "yarn build:release",
     "test": "echo 'No test suite for firebase wrapper'",
@@ -36,22 +38,23 @@
   },
   "dependencies": {
     "@firebase/app-exp": "0.0.800",
+    "@firebase/app-compat": "0.0.800",
     "@firebase/functions-exp": "0.0.800",
-    "@firebase/firestore": "1.16.4"
+    "@firebase/firestore": "1.16.6"
   },
   "devDependencies": {
-    "rollup": "2.23.0",
+    "rollup": "2.26.7",
     "rollup-plugin-commonjs": "10.1.0",
-    "rollup-plugin-license": "2.1.0",
+    "rollup-plugin-license": "2.2.0",
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-sourcemaps": "0.6.2",
-    "rollup-plugin-terser": "6.1.0",
-    "rollup-plugin-typescript2": "0.27.1",
+    "rollup-plugin-terser": "7.0.0",
+    "rollup-plugin-typescript2": "0.27.2",
     "rollup-plugin-uglify": "6.0.4",
     "gulp": "4.0.2",
     "gulp-sourcemaps": "2.6.5",
     "gulp-concat": "2.6.1",
-    "typescript": "3.9.7"
+    "typescript": "4.0.2"
   },
   "components": [
     "app",

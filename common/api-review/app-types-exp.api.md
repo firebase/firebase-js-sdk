@@ -57,7 +57,7 @@ export interface FirebaseOptions {
 export interface _FirebaseService {
   // (undocumented)
   app: FirebaseApp;
-  delete(): Promise<void>;
+  _delete(): Promise<void>;
 }
 
 // @public (undocumented)

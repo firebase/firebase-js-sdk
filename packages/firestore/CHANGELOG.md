@@ -1,5 +1,23 @@
 # @firebase/firestore
 
+## 1.16.6
+
+### Patch Changes
+
+- [`61b4cd31b`](https://github.com/firebase/firebase-js-sdk/commit/61b4cd31b961c90354be38b18af5fbea9da8d5a3) [#3464](https://github.com/firebase/firebase-js-sdk/pull/3464) (fixes [#3354](https://github.com/firebase/firebase-js-sdk/issues/3354)) - feat: Added `merge` option to `firestore.settings()`, which merges the provided settings with
+  settings from a previous call. This allows adding settings on top of the settings that were applied
+  by `@firebase/testing`.
+- Updated dependencies [[`61b4cd31b`](https://github.com/firebase/firebase-js-sdk/commit/61b4cd31b961c90354be38b18af5fbea9da8d5a3)]:
+  - @firebase/firestore-types@1.12.1
+
+## 1.16.5
+
+### Patch Changes
+
+- [`960093d5b`](https://github.com/firebase/firebase-js-sdk/commit/960093d5b3ada866709c1a51b4ca175c3a01f1f3) [#3575](https://github.com/firebase/firebase-js-sdk/pull/3575) (fixes [#2755](https://github.com/firebase/firebase-js-sdk/issues/2755)) - `terminate()` can now be retried if it fails with an IndexedDB exception.
+
+* [`b97c7e758`](https://github.com/firebase/firebase-js-sdk/commit/b97c7e758b1e2a370cb72a7aac14c17a54531a36) [#3487](https://github.com/firebase/firebase-js-sdk/pull/3487) - Enable fallback for auto-generated identifiers in environments that support `crypto` but not `crypto.getRandomValues`.
+
 ## 1.16.4
 
 ### Patch Changes

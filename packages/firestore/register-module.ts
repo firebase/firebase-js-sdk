@@ -19,7 +19,7 @@ import * as types from '@firebase/firestore-types';
 
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {
-    firestore?: {
+    firestore: {
       (app?: FirebaseApp): types.FirebaseFirestore;
       Blob: typeof types.Blob;
       CollectionReference: typeof types.CollectionReference;

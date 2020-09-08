@@ -20,7 +20,10 @@ import { LocalDocumentsView } from './local_documents_view';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import {
+  hasLimitToFirst,
+  hasLimitToLast,
   LimitType,
+  matchesAllDocuments,
   newQueryComparator,
   Query,
   queryMatches,
@@ -78,7 +81,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
     // Queries that match all documents don't benefit from using
     // IndexFreeQueries. It is more efficient to scan all documents in a
     // collection, rather than to perform individual lookups.
-    if (query.matchesAllDocuments()) {
+    if (matchesAllDocuments(query)) {
       return this.executeFullCollectionScan(transaction, query);
     }
 
@@ -93,7 +96,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
         const previousResults = this.applyQuery(query, documents);
 
         if (
-          (query.hasLimitToFirst() || query.hasLimitToLast()) &&
+          (hasLimitToFirst(query) || hasLimitToLast(query)) &&
           this.needsRefill(
             query.limitType,
             previousResults,

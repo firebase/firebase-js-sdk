@@ -48,6 +48,10 @@ import { expect } from 'chai';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
 
+const LOCAL_HOST = self.location.host;
+const TEST_LINK = 'https://' + LOCAL_HOST + '/test-link.org';
+const TEST_CLICK_ACTION = 'https://' + LOCAL_HOST + '/test-click-action.org';
+
 // Add fake SW types.
 declare const self: Window & Writable<ServiceWorkerGlobalScope>;
 
@@ -59,7 +63,7 @@ const DISPLAY_MESSAGE: MessagePayloadInternal = {
     body: 'body'
   },
   fcmOptions: {
-    link: 'https://example.org'
+    link: TEST_LINK
   },
   from: 'from',
   // eslint-disable-next-line camelcase
@@ -79,6 +83,7 @@ const DATA_MESSAGE: MessagePayloadInternal = {
 
 describe('SwController', () => {
   let addEventListenerStub: Stub<typeof self.addEventListener>;
+  // eslint-disable-next-line @typescript-eslint/ban-types
   let eventListenerMap: Map<string, Function>;
   let swController: SwController;
   let firebaseDependencies: FirebaseInternalDependencies;
@@ -453,9 +458,29 @@ describe('SwController', () => {
       expect(matchAllSpy).not.to.have.been.called;
     });
 
+    it('does not redirect if link is not from origin', async () => {
+      // Remove link.
+      NOTIFICATION_CLICK_PAYLOAD.notification!.data![FCM_MSG].fcmOptions.link =
+        'https://www.youtube.com';
+
+      const event = makeEvent('notificationclick', NOTIFICATION_CLICK_PAYLOAD);
+      const stopImmediatePropagationSpy = spy(
+        event,
+        'stopImmediatePropagation'
+      );
+      const notificationCloseSpy = spy(event.notification, 'close');
+      const matchAllSpy = spy(self.clients, 'matchAll');
+
+      await callEventListener(event);
+
+      expect(stopImmediatePropagationSpy).to.have.been.called;
+      expect(notificationCloseSpy).to.have.been.called;
+      expect(matchAllSpy).not.to.have.been.called;
+    });
+
     it('focuses on and sends the message to an open WindowClient', async () => {
       const client: Writable<WindowClient> = (await self.clients.openWindow(
-        'https://example.org'
+        TEST_LINK
       ))!;
       const focusSpy = spy(client, 'focus');
       const matchAllSpy = spy(self.clients, 'matchAll');
@@ -484,7 +509,7 @@ describe('SwController', () => {
       await callEventListener(event);
 
       expect(matchAllSpy).to.have.been.called;
-      expect(openWindowSpy).to.have.been.calledWith('https://example.org');
+      expect(openWindowSpy).to.have.been.calledWith(TEST_LINK);
     });
 
     it('works with click_action', async () => {
@@ -492,7 +517,7 @@ describe('SwController', () => {
       delete NOTIFICATION_CLICK_PAYLOAD.notification!.data![FCM_MSG].fcmOptions;
       NOTIFICATION_CLICK_PAYLOAD.notification!.data![
         FCM_MSG
-      ].notification.click_action = 'https://example.org'; // eslint-disable-line camelcase
+      ].notification.click_action = TEST_CLICK_ACTION; // eslint-disable-line camelcase
 
       const matchAllSpy = spy(self.clients, 'matchAll');
       const openWindowSpy = spy(self.clients, 'openWindow');
@@ -502,7 +527,7 @@ describe('SwController', () => {
       await callEventListener(event);
 
       expect(matchAllSpy).to.have.been.called;
-      expect(openWindowSpy).to.have.been.calledWith('https://example.org');
+      expect(openWindowSpy).to.have.been.calledWith(TEST_CLICK_ACTION);
     });
 
     it('redirects to origin if message was sent from the FN Console', async () => {

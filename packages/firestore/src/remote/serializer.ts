@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Blob } from '../api/blob';
 import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import {
@@ -50,7 +49,30 @@ import {
   VerifyMutation
 } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
-import * as api from '../protos/firestore_proto_api';
+import {
+  ApiClientObjectMap as ProtoApiClientObjectMap,
+  BatchGetDocumentsResponse as ProtoBatchGetDocumentsResponse,
+  Cursor as ProtoCursor,
+  Document as ProtoDocument,
+  DocumentMask as ProtoDocumentMask,
+  DocumentsTarget as ProtoDocumentsTarget,
+  FieldFilterOp as ProtoFieldFilterOp,
+  FieldReference as ProtoFieldReference,
+  FieldTransform as ProtoFieldTransform,
+  Filter as ProtoFilter,
+  ListenResponse as ProtoListenResponse,
+  Order as ProtoOrder,
+  OrderDirection as ProtoOrderDirection,
+  Precondition as ProtoPrecondition,
+  QueryTarget as ProtoQueryTarget,
+  Status as ProtoStatus,
+  Target as ProtoTarget,
+  Timestamp as ProtoTimestamp,
+  Value as ProtoValue,
+  Write as ProtoWrite,
+  TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
+  WriteResult as ProtoWriteResult
+} from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { ByteString } from '../util/byte_string';
@@ -76,20 +98,16 @@ import {
   WatchTargetChangeState
 } from './watch_change';
 import { isNanValue, isNullValue, normalizeTimestamp } from '../model/values';
-import {
-  TargetChangeTargetChangeType,
-  WriteResult
-} from '../protos/firestore_proto_api';
 
 const DIRECTIONS = (() => {
-  const dirs: { [dir: string]: api.OrderDirection } = {};
+  const dirs: { [dir: string]: ProtoOrderDirection } = {};
   dirs[Direction.ASCENDING] = 'ASCENDING';
   dirs[Direction.DESCENDING] = 'DESCENDING';
   return dirs;
 })();
 
 const OPERATORS = (() => {
-  const ops: { [op: string]: api.FieldFilterOp } = {};
+  const ops: { [op: string]: ProtoFieldFilterOp } = {};
   ops[Operator.LESS_THAN] = 'LESS_THAN';
   ops[Operator.LESS_THAN_OR_EQUAL] = 'LESS_THAN_OR_EQUAL';
   ops[Operator.GREATER_THAN] = 'GREATER_THAN';
@@ -128,7 +146,7 @@ export class JsonProtoSerializer {
   ) {}
 }
 
-function fromRpcStatus(status: api.Status): FirestoreError {
+function fromRpcStatus(status: ProtoStatus): FirestoreError {
   const code =
     status.code === undefined ? Code.UNKNOWN : mapCodeFromRpcCode(status.code);
   return new FirestoreError(code, status.message || '');
@@ -171,7 +189,7 @@ function fromInt32Proto(
 /**
  * Returns an IntegerValue for `value`.
  */
-export function toInteger(value: number): api.Value {
+export function toInteger(value: number): ProtoValue {
   return { integerValue: '' + value };
 }
 
@@ -182,7 +200,7 @@ export function toInteger(value: number): api.Value {
 export function toDouble(
   serializer: JsonProtoSerializer,
   value: number
-): api.Value {
+): ProtoValue {
   if (serializer.useProto3Json) {
     if (isNaN(value)) {
       return { doubleValue: 'NaN' };
@@ -203,7 +221,7 @@ export function toDouble(
 export function toNumber(
   serializer: JsonProtoSerializer,
   value: number
-): api.Value {
+): ProtoValue {
   return isSafeInteger(value) ? toInteger(value) : toDouble(serializer, value);
 }
 
@@ -213,7 +231,7 @@ export function toNumber(
 export function toTimestamp(
   serializer: JsonProtoSerializer,
   timestamp: Timestamp
-): api.Timestamp {
+): ProtoTimestamp {
   if (serializer.useProto3Json) {
     // Serialize to ISO-8601 date format, but with full nano resolution.
     // Since JS Date has only millis, let's only use it for the seconds and
@@ -234,7 +252,7 @@ export function toTimestamp(
   }
 }
 
-function fromTimestamp(date: api.Timestamp): Timestamp {
+function fromTimestamp(date: ProtoTimestamp): Timestamp {
   const timestamp = normalizeTimestamp(date);
   return new Timestamp(timestamp.seconds, timestamp.nanos);
 }
@@ -246,7 +264,7 @@ function fromTimestamp(date: api.Timestamp): Timestamp {
  */
 export function toBytes(
   serializer: JsonProtoSerializer,
-  bytes: Blob | ByteString
+  bytes: ByteString
 ): string | Uint8Array {
   if (serializer.useProto3Json) {
     return bytes.toBase64();
@@ -280,11 +298,11 @@ export function fromBytes(
 export function toVersion(
   serializer: JsonProtoSerializer,
   version: SnapshotVersion
-): api.Timestamp {
+): ProtoTimestamp {
   return toTimestamp(serializer, version.toTimestamp());
 }
 
-export function fromVersion(version: api.Timestamp): SnapshotVersion {
+export function fromVersion(version: ProtoTimestamp): SnapshotVersion {
   hardAssert(!!version, "Trying to deserialize version that isn't set");
   return SnapshotVersion.fromTimestamp(fromTimestamp(version));
 }
@@ -386,12 +404,12 @@ function extractLocalPathFromResourceName(
   return resourceName.popFirst(5);
 }
 
-/** Creates an api.Document from key and fields (but no create/update time) */
+/** Creates a Document proto from key and fields (but no create/update time) */
 export function toMutationDocument(
   serializer: JsonProtoSerializer,
   key: DocumentKey,
   fields: ObjectValue
-): api.Document {
+): ProtoDocument {
   return {
     name: toName(serializer, key),
     fields: fields.proto.mapValue.fields
@@ -401,7 +419,7 @@ export function toMutationDocument(
 export function toDocument(
   serializer: JsonProtoSerializer,
   document: Document
-): api.Document {
+): ProtoDocument {
   debugAssert(
     !document.hasLocalMutations,
     "Can't serialize documents with mutations."
@@ -415,7 +433,7 @@ export function toDocument(
 
 export function fromDocument(
   serializer: JsonProtoSerializer,
-  document: api.Document,
+  document: ProtoDocument,
   hasCommittedMutations?: boolean
 ): Document {
   const key = fromName(serializer, document.name!);
@@ -428,7 +446,7 @@ export function fromDocument(
 
 function fromFound(
   serializer: JsonProtoSerializer,
-  doc: api.BatchGetDocumentsResponse
+  doc: ProtoBatchGetDocumentsResponse
 ): Document {
   hardAssert(
     !!doc.found,
@@ -444,7 +462,7 @@ function fromFound(
 
 function fromMissing(
   serializer: JsonProtoSerializer,
-  result: api.BatchGetDocumentsResponse
+  result: ProtoBatchGetDocumentsResponse
 ): NoDocument {
   hardAssert(
     !!result.missing,
@@ -461,7 +479,7 @@ function fromMissing(
 
 export function fromMaybeDocument(
   serializer: JsonProtoSerializer,
-  result: api.BatchGetDocumentsResponse
+  result: ProtoBatchGetDocumentsResponse
 ): MaybeDocument {
   if ('found' in result) {
     return fromFound(serializer, result);
@@ -473,7 +491,7 @@ export function fromMaybeDocument(
 
 export function fromWatchChange(
   serializer: JsonProtoSerializer,
-  change: api.ListenResponse
+  change: ProtoListenResponse
 ): WatchChange {
   let watchChange: WatchChange;
   if ('targetChange' in change) {
@@ -551,7 +569,7 @@ export function fromWatchChange(
 }
 
 function fromWatchTargetChangeState(
-  state: TargetChangeTargetChangeType
+  state: ProtoTargetChangeTargetChangeType
 ): WatchTargetChangeState {
   if (state === 'NO_CHANGE') {
     return WatchTargetChangeState.NoChange;
@@ -569,7 +587,7 @@ function fromWatchTargetChangeState(
 }
 
 export function versionFromListenResponse(
-  change: api.ListenResponse
+  change: ProtoListenResponse
 ): SnapshotVersion {
   // We have only reached a consistent snapshot for the entire stream if there
   // is a read_time set and it applies to all targets (i.e. the list of
@@ -590,8 +608,8 @@ export function versionFromListenResponse(
 export function toMutation(
   serializer: JsonProtoSerializer,
   mutation: Mutation
-): api.Write {
-  let result: api.Write;
+): ProtoWrite {
+  let result: ProtoWrite;
   if (mutation instanceof SetMutation) {
     result = {
       update: toMutationDocument(serializer, mutation.key, mutation.value)
@@ -629,7 +647,7 @@ export function toMutation(
 
 export function fromMutation(
   serializer: JsonProtoSerializer,
-  proto: api.Write
+  proto: ProtoWrite
 ): Mutation {
   const precondition = proto.currentDocument
     ? fromPrecondition(proto.currentDocument)
@@ -671,7 +689,7 @@ export function fromMutation(
 function toPrecondition(
   serializer: JsonProtoSerializer,
   precondition: Precondition
-): api.Precondition {
+): ProtoPrecondition {
   debugAssert(!precondition.isNone, "Can't serialize an empty precondition");
   if (precondition.updateTime !== undefined) {
     return {
@@ -684,7 +702,7 @@ function toPrecondition(
   }
 }
 
-function fromPrecondition(precondition: api.Precondition): Precondition {
+function fromPrecondition(precondition: ProtoPrecondition): Precondition {
   if (precondition.updateTime !== undefined) {
     return Precondition.updateTime(fromVersion(precondition.updateTime));
   } else if (precondition.exists !== undefined) {
@@ -695,8 +713,8 @@ function fromPrecondition(precondition: api.Precondition): Precondition {
 }
 
 function fromWriteResult(
-  proto: WriteResult,
-  commitTime: api.Timestamp
+  proto: ProtoWriteResult,
+  commitTime: ProtoTimestamp
 ): MutationResult {
   // NOTE: Deletes don't have an updateTime.
   let version = proto.updateTime
@@ -712,7 +730,7 @@ function fromWriteResult(
     version = fromVersion(commitTime);
   }
 
-  let transformResults: api.Value[] | null = null;
+  let transformResults: ProtoValue[] | null = null;
   if (proto.transformResults && proto.transformResults.length > 0) {
     transformResults = proto.transformResults;
   }
@@ -720,8 +738,8 @@ function fromWriteResult(
 }
 
 export function fromWriteResults(
-  protos: WriteResult[] | undefined,
-  commitTime?: api.Timestamp
+  protos: ProtoWriteResult[] | undefined,
+  commitTime?: ProtoTimestamp
 ): MutationResult[] {
   if (protos && protos.length > 0) {
     hardAssert(
@@ -737,7 +755,7 @@ export function fromWriteResults(
 function toFieldTransform(
   serializer: JsonProtoSerializer,
   fieldTransform: FieldTransform
-): api.FieldTransform {
+): ProtoFieldTransform {
   const transform = fieldTransform.transform;
   if (transform instanceof ServerTimestampTransform) {
     return {
@@ -770,7 +788,7 @@ function toFieldTransform(
 
 function fromFieldTransform(
   serializer: JsonProtoSerializer,
-  proto: api.FieldTransform
+  proto: ProtoFieldTransform
 ): FieldTransform {
   let transform: TransformOperation | null = null;
   if ('setToServerValue' in proto) {
@@ -800,12 +818,12 @@ function fromFieldTransform(
 export function toDocumentsTarget(
   serializer: JsonProtoSerializer,
   target: Target
-): api.DocumentsTarget {
+): ProtoDocumentsTarget {
   return { documents: [toQueryPath(serializer, target.path)] };
 }
 
 export function fromDocumentsTarget(
-  documentsTarget: api.DocumentsTarget
+  documentsTarget: ProtoDocumentsTarget
 ): Target {
   const count = documentsTarget.documents!.length;
   hardAssert(
@@ -819,9 +837,9 @@ export function fromDocumentsTarget(
 export function toQueryTarget(
   serializer: JsonProtoSerializer,
   target: Target
-): api.QueryTarget {
+): ProtoQueryTarget {
   // Dissect the path into parent, collectionId, and optional key filter.
-  const result: api.QueryTarget = { structuredQuery: {} };
+  const result: ProtoQueryTarget = { structuredQuery: {} };
   const path = target.path;
   if (target.collectionGroup !== null) {
     debugAssert(
@@ -869,7 +887,7 @@ export function toQueryTarget(
   return result;
 }
 
-export function fromQueryTarget(target: api.QueryTarget): Target {
+export function fromQueryTarget(target: ProtoQueryTarget): Target {
   let path = fromQueryPath(target.parent!);
 
   const query = target.structuredQuery!;
@@ -930,7 +948,7 @@ export function fromQueryTarget(target: api.QueryTarget): Target {
 export function toListenRequestLabels(
   serializer: JsonProtoSerializer,
   targetData: TargetData
-): api.ApiClientObjectMap<string> | null {
+): ProtoApiClientObjectMap<string> | null {
   const value = toLabel(serializer, targetData.purpose);
   if (value == null) {
     return null;
@@ -960,8 +978,8 @@ function toLabel(
 export function toTarget(
   serializer: JsonProtoSerializer,
   targetData: TargetData
-): api.Target {
-  let result: api.Target;
+): ProtoTarget {
+  let result: ProtoTarget;
   const target = targetData.target;
 
   if (isDocumentTarget(target)) {
@@ -979,7 +997,7 @@ export function toTarget(
   return result;
 }
 
-function toFilter(filters: Filter[]): api.Filter | undefined {
+function toFilter(filters: Filter[]): ProtoFilter | undefined {
   if (filters.length === 0) {
     return;
   }
@@ -996,7 +1014,7 @@ function toFilter(filters: Filter[]): api.Filter | undefined {
   return { compositeFilter: { op: 'AND', filters: protos } };
 }
 
-function fromFilter(filter: api.Filter | undefined): Filter[] {
+function fromFilter(filter: ProtoFilter | undefined): Filter[] {
   if (!filter) {
     return [];
   } else if (filter.unaryFilter !== undefined) {
@@ -1012,38 +1030,38 @@ function fromFilter(filter: api.Filter | undefined): Filter[] {
   }
 }
 
-function toOrder(orderBys: OrderBy[]): api.Order[] | undefined {
+function toOrder(orderBys: OrderBy[]): ProtoOrder[] | undefined {
   if (orderBys.length === 0) {
     return;
   }
   return orderBys.map(order => toPropertyOrder(order));
 }
 
-function fromOrder(orderBys: api.Order[]): OrderBy[] {
+function fromOrder(orderBys: ProtoOrder[]): OrderBy[] {
   return orderBys.map(order => fromPropertyOrder(order));
 }
 
-function toCursor(cursor: Bound): api.Cursor {
+function toCursor(cursor: Bound): ProtoCursor {
   return {
     before: cursor.before,
     values: cursor.position
   };
 }
 
-function fromCursor(cursor: api.Cursor): Bound {
+function fromCursor(cursor: ProtoCursor): Bound {
   const before = !!cursor.before;
   const position = cursor.values || [];
   return new Bound(position, before);
 }
 
 // visible for testing
-export function toDirection(dir: Direction): api.OrderDirection {
+export function toDirection(dir: Direction): ProtoOrderDirection {
   return DIRECTIONS[dir];
 }
 
 // visible for testing
 export function fromDirection(
-  dir: api.OrderDirection | undefined
+  dir: ProtoOrderDirection | undefined
 ): Direction | undefined {
   switch (dir) {
     case 'ASCENDING':
@@ -1056,11 +1074,11 @@ export function fromDirection(
 }
 
 // visible for testing
-export function toOperatorName(op: Operator): api.FieldFilterOp {
+export function toOperatorName(op: Operator): ProtoFieldFilterOp {
   return OPERATORS[op];
 }
 
-export function fromOperatorName(op: api.FieldFilterOp): Operator {
+export function fromOperatorName(op: ProtoFieldFilterOp): Operator {
   switch (op) {
     case 'EQUAL':
       return Operator.EQUAL;
@@ -1089,32 +1107,32 @@ export function fromOperatorName(op: api.FieldFilterOp): Operator {
   }
 }
 
-export function toFieldPathReference(path: FieldPath): api.FieldReference {
+export function toFieldPathReference(path: FieldPath): ProtoFieldReference {
   return { fieldPath: path.canonicalString() };
 }
 
 export function fromFieldPathReference(
-  fieldReference: api.FieldReference
+  fieldReference: ProtoFieldReference
 ): FieldPath {
   return FieldPath.fromServerFormat(fieldReference.fieldPath!);
 }
 
 // visible for testing
-export function toPropertyOrder(orderBy: OrderBy): api.Order {
+export function toPropertyOrder(orderBy: OrderBy): ProtoOrder {
   return {
     field: toFieldPathReference(orderBy.field),
     direction: toDirection(orderBy.dir)
   };
 }
 
-export function fromPropertyOrder(orderBy: api.Order): OrderBy {
+export function fromPropertyOrder(orderBy: ProtoOrder): OrderBy {
   return new OrderBy(
     fromFieldPathReference(orderBy.field!),
     fromDirection(orderBy.direction)
   );
 }
 
-export function fromFieldFilter(filter: api.Filter): Filter {
+export function fromFieldFilter(filter: ProtoFilter): Filter {
   return FieldFilter.create(
     fromFieldPathReference(filter.fieldFilter!.field!),
     fromOperatorName(filter.fieldFilter!.op!),
@@ -1123,7 +1141,7 @@ export function fromFieldFilter(filter: api.Filter): Filter {
 }
 
 // visible for testing
-export function toUnaryOrFieldFilter(filter: FieldFilter): api.Filter {
+export function toUnaryOrFieldFilter(filter: FieldFilter): ProtoFilter {
   if (filter.op === Operator.EQUAL) {
     if (isNanValue(filter.value)) {
       return {
@@ -1166,7 +1184,7 @@ export function toUnaryOrFieldFilter(filter: FieldFilter): api.Filter {
   };
 }
 
-export function fromUnaryFilter(filter: api.Filter): Filter {
+export function fromUnaryFilter(filter: ProtoFilter): Filter {
   switch (filter.unaryFilter!.op!) {
     case 'IS_NAN':
       const nanField = fromFieldPathReference(filter.unaryFilter!.field!);
@@ -1195,7 +1213,7 @@ export function fromUnaryFilter(filter: api.Filter): Filter {
   }
 }
 
-export function toDocumentMask(fieldMask: FieldMask): api.DocumentMask {
+export function toDocumentMask(fieldMask: FieldMask): ProtoDocumentMask {
   const canonicalFields: string[] = [];
   fieldMask.fields.forEach(field =>
     canonicalFields.push(field.canonicalString())
@@ -1205,7 +1223,7 @@ export function toDocumentMask(fieldMask: FieldMask): api.DocumentMask {
   };
 }
 
-export function fromDocumentMask(proto: api.DocumentMask): FieldMask {
+export function fromDocumentMask(proto: ProtoDocumentMask): FieldMask {
   const paths = proto.fieldPaths || [];
   return new FieldMask(paths.map(path => FieldPath.fromServerFormat(path)));
 }

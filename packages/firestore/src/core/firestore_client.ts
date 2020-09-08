@@ -28,7 +28,13 @@ import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { RemoteStore } from '../remote/remote_store';
+import {
+  remoteStoreHandleCredentialChange,
+  RemoteStore,
+  remoteStoreEnableNetwork,
+  remoteStoreDisableNetwork,
+  remoteStoreShutdown
+} from '../remote/remote_store';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
@@ -37,9 +43,19 @@ import {
   EventManager,
   ListenOptions,
   Observer,
-  QueryListener
+  QueryListener,
+  eventManagerListen,
+  eventManagerUnlisten,
+  removeSnapshotsInSyncListener,
+  addSnapshotsInSyncListener
 } from './event_manager';
-import { SyncEngine } from './sync_engine';
+import {
+  registerPendingWritesCallback,
+  SyncEngine,
+  syncEngineListen,
+  syncEngineUnlisten,
+  syncEngineWrite
+} from './sync_engine';
 import { View } from './view';
 import { SharedClientState } from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
@@ -199,7 +215,7 @@ export class FirestoreClient {
         ).then(this.initializationDone.resolve, this.initializationDone.reject);
       } else {
         this.asyncQueue.enqueueRetryable(() =>
-          this.remoteStore.handleCredentialChange(user)
+          remoteStoreHandleCredentialChange(this.remoteStore, user)
         );
       }
     });
@@ -218,7 +234,7 @@ export class FirestoreClient {
     this.verifyNotTerminated();
     return this.asyncQueue.enqueue(() => {
       this.persistence.setNetworkEnabled(true);
-      return this.remoteStore.enableNetwork();
+      return remoteStoreEnableNetwork(this.remoteStore);
     });
   }
 
@@ -276,6 +292,9 @@ export class FirestoreClient {
       this.remoteStore = onlineComponentProvider.remoteStore;
       this.syncEngine = onlineComponentProvider.syncEngine;
       this.eventMgr = onlineComponentProvider.eventManager;
+
+      this.eventMgr.onListen = syncEngineListen.bind(null, this.syncEngine);
+      this.eventMgr.onUnlisten = syncEngineUnlisten.bind(null, this.syncEngine);
 
       // When a user calls clearPersistence() in one client, all other clients
       // need to be terminated to allow the delete to succeed.
@@ -362,7 +381,7 @@ export class FirestoreClient {
     this.verifyNotTerminated();
     return this.asyncQueue.enqueue(() => {
       this.persistence.setNetworkEnabled(false);
-      return this.remoteStore.disableNetwork();
+      return remoteStoreDisableNetwork(this.remoteStore);
     });
   }
 
@@ -376,7 +395,7 @@ export class FirestoreClient {
           this.gcScheduler.stop();
         }
 
-        await this.remoteStore.shutdown();
+        await remoteStoreShutdown(this.remoteStore);
         await this.sharedClientState.shutdown();
         await this.persistence.shutdown();
 
@@ -405,9 +424,9 @@ export class FirestoreClient {
     this.verifyNotTerminated();
 
     const deferred = new Deferred<void>();
-    this.asyncQueue.enqueueAndForget(() => {
-      return this.syncEngine.registerPendingWritesCallback(deferred);
-    });
+    this.asyncQueue.enqueueAndForget(() =>
+      registerPendingWritesCallback(this.syncEngine, deferred)
+    );
     return deferred.promise;
   }
 
@@ -419,10 +438,14 @@ export class FirestoreClient {
     this.verifyNotTerminated();
     const wrappedObserver = new AsyncObserver(observer);
     const listener = new QueryListener(query, wrappedObserver, options);
-    this.asyncQueue.enqueueAndForget(() => this.eventMgr.listen(listener));
+    this.asyncQueue.enqueueAndForget(() =>
+      eventManagerListen(this.eventMgr, listener)
+    );
     return () => {
       wrappedObserver.mute();
-      this.asyncQueue.enqueueAndForget(() => this.eventMgr.unlisten(listener));
+      this.asyncQueue.enqueueAndForget(() =>
+        eventManagerUnlisten(this.eventMgr, listener)
+      );
     };
   }
 
@@ -480,7 +503,7 @@ export class FirestoreClient {
     this.verifyNotTerminated();
     const deferred = new Deferred<void>();
     this.asyncQueue.enqueueAndForget(() =>
-      this.syncEngine.write(mutations, deferred)
+      syncEngineWrite(this.syncEngine, mutations, deferred)
     );
     return deferred.promise;
   }
@@ -493,12 +516,12 @@ export class FirestoreClient {
     this.verifyNotTerminated();
     const wrappedObserver = new AsyncObserver(observer);
     this.asyncQueue.enqueueAndForget(async () =>
-      this.eventMgr.addSnapshotsInSyncListener(wrappedObserver)
+      addSnapshotsInSyncListener(this.eventMgr, wrappedObserver)
     );
     return () => {
       wrappedObserver.mute();
       this.asyncQueue.enqueueAndForget(async () =>
-        this.eventMgr.removeSnapshotsInSyncListener(wrappedObserver)
+        removeSnapshotsInSyncListener(this.eventMgr, wrappedObserver)
       );
     };
   }
@@ -549,7 +572,9 @@ export function enqueueWrite(
   mutations: Mutation[]
 ): Promise<void> {
   const deferred = new Deferred<void>();
-  asyncQueue.enqueueAndForget(() => syncEngine.write(mutations, deferred));
+  asyncQueue.enqueueAndForget(() =>
+    syncEngineWrite(syncEngine, mutations, deferred)
+  );
   return deferred.promise;
 }
 
@@ -561,7 +586,9 @@ export function enqueueNetworkEnabled(
 ): Promise<void> {
   return asyncQueue.enqueue(() => {
     persistence.setNetworkEnabled(enabled);
-    return enabled ? remoteStore.enableNetwork() : remoteStore.disableNetwork();
+    return enabled
+      ? remoteStoreEnableNetwork(remoteStore)
+      : remoteStoreDisableNetwork(remoteStore);
   });
 }
 
@@ -570,9 +597,9 @@ export function enqueueWaitForPendingWrites(
   syncEngine: SyncEngine
 ): Promise<void> {
   const deferred = new Deferred<void>();
-  asyncQueue.enqueueAndForget(() => {
-    return syncEngine.registerPendingWritesCallback(deferred);
-  });
+  asyncQueue.enqueueAndForget(() =>
+    registerPendingWritesCallback(syncEngine, deferred)
+  );
   return deferred.promise;
 }
 
@@ -585,10 +612,12 @@ export function enqueueListen(
 ): Unsubscribe {
   const wrappedObserver = new AsyncObserver(observer);
   const listener = new QueryListener(query, wrappedObserver, options);
-  asyncQueue.enqueueAndForget(() => eventManger.listen(listener));
+  asyncQueue.enqueueAndForget(() => eventManagerListen(eventManger, listener));
   return () => {
     wrappedObserver.mute();
-    asyncQueue.enqueueAndForget(() => eventManger.unlisten(listener));
+    asyncQueue.enqueueAndForget(() =>
+      eventManagerUnlisten(eventManger, listener)
+    );
   };
 }
 
@@ -599,12 +628,12 @@ export function enqueueSnapshotsInSyncListen(
 ): Unsubscribe {
   const wrappedObserver = new AsyncObserver(observer);
   asyncQueue.enqueueAndForget(async () =>
-    eventManager.addSnapshotsInSyncListener(wrappedObserver)
+    addSnapshotsInSyncListener(eventManager, wrappedObserver)
   );
   return () => {
     wrappedObserver.mute();
     asyncQueue.enqueueAndForget(async () =>
-      eventManager.removeSnapshotsInSyncListener(wrappedObserver)
+      removeSnapshotsInSyncListener(eventManager, wrappedObserver)
     );
   };
 }

@@ -74,7 +74,7 @@ export class FunctionsService implements _FirebaseService {
   readonly contextProvider: ContextProvider;
   emulatorOrigin: string | null = null;
   cancelAllRequests: Promise<void>;
-  deleteService!: Function;
+  deleteService!: () => Promise<void>;
 
   /**
    * Creates a new Functions service for the given app.
@@ -90,12 +90,12 @@ export class FunctionsService implements _FirebaseService {
     // Cancels all ongoing requests when resolved.
     this.cancelAllRequests = new Promise(resolve => {
       this.deleteService = () => {
-        return resolve();
+        return Promise.resolve(resolve());
       };
     });
   }
 
-  delete(): Promise<void> {
+  _delete(): Promise<void> {
     return this.deleteService();
   }
 
@@ -154,7 +154,7 @@ export function httpsCallable(
  */
 async function postJSON(
   url: string,
-  body: {},
+  body: unknown,
   headers: Headers
 ): Promise<HttpResponse> {
   headers.append('Content-Type', 'application/json');
@@ -176,7 +176,7 @@ async function postJSON(
       json: null
     };
   }
-  let json: {} | null = null;
+  let json: HttpResponseBody | null = null;
   try {
     json = await response.json();
   } catch (e) {
@@ -254,7 +254,7 @@ async function call(
   }
 
   // Decode any special types, such as dates, in the returned data.
-  const decodedData = decode(responseData as {} | null);
+  const decodedData = decode(responseData);
 
   return { data: decodedData };
 }

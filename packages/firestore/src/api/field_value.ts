@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
+import { FieldValue as PublicFieldValue } from '@firebase/firestore-types';
 import {
   validateArgType,
   validateAtLeastNumberOfArgs,
@@ -203,27 +203,28 @@ export class NumericIncrementFieldValueImpl extends SerializableFieldValue {
 }
 
 /** The public FieldValue class of the lite API. */
-export abstract class FieldValue extends SerializableFieldValue
-  implements firestore.FieldValue {
+export abstract class FieldValue
+  extends SerializableFieldValue
+  implements PublicFieldValue {
   protected constructor() {
     super();
   }
 
-  static delete(): firestore.FieldValue {
+  static delete(): PublicFieldValue {
     validateNoArgs('FieldValue.delete', arguments);
     return new FieldValueDelegate(
       new DeleteFieldValueImpl('FieldValue.delete')
     );
   }
 
-  static serverTimestamp(): firestore.FieldValue {
+  static serverTimestamp(): PublicFieldValue {
     validateNoArgs('FieldValue.serverTimestamp', arguments);
     return new FieldValueDelegate(
       new ServerTimestampFieldValueImpl('FieldValue.serverTimestamp')
     );
   }
 
-  static arrayUnion(...elements: unknown[]): firestore.FieldValue {
+  static arrayUnion(...elements: unknown[]): PublicFieldValue {
     validateAtLeastNumberOfArgs('FieldValue.arrayUnion', arguments, 1);
     // NOTE: We don't actually parse the data until it's used in set() or
     // update() since we'd need the Firestore instance to do this.
@@ -232,7 +233,7 @@ export abstract class FieldValue extends SerializableFieldValue
     );
   }
 
-  static arrayRemove(...elements: unknown[]): firestore.FieldValue {
+  static arrayRemove(...elements: unknown[]): PublicFieldValue {
     validateAtLeastNumberOfArgs('FieldValue.arrayRemove', arguments, 1);
     // NOTE: We don't actually parse the data until it's used in set() or
     // update() since we'd need the Firestore instance to do this.
@@ -241,7 +242,7 @@ export abstract class FieldValue extends SerializableFieldValue
     );
   }
 
-  static increment(n: number): firestore.FieldValue {
+  static increment(n: number): PublicFieldValue {
     validateArgType('FieldValue.increment', 'number', 1, n);
     validateExactNumberOfArgs('FieldValue.increment', arguments, 1);
     return new FieldValueDelegate(
@@ -259,7 +260,7 @@ export abstract class FieldValue extends SerializableFieldValue
  * implementations as the base FieldValue class differs between the lite, full
  * and legacy SDK.
  */
-class FieldValueDelegate extends FieldValue implements firestore.FieldValue {
+class FieldValueDelegate extends FieldValue implements PublicFieldValue {
   readonly _methodName: string;
 
   constructor(readonly _delegate: SerializableFieldValue) {
@@ -271,7 +272,7 @@ class FieldValueDelegate extends FieldValue implements firestore.FieldValue {
     return this._delegate._toFieldTransform(context);
   }
 
-  isEqual(other: firestore.FieldValue): boolean {
+  isEqual(other: PublicFieldValue): boolean {
     if (!(other instanceof FieldValueDelegate)) {
       return false;
     }

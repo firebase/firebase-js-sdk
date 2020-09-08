@@ -151,7 +151,7 @@ export function _errorForResponse(
 
       details = errorJSON.details;
       if (details !== undefined) {
-        details = decode(details as {} | null);
+        details = decode(details);
       }
     }
   } catch (e) {

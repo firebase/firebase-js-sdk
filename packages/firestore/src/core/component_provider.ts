@@ -29,14 +29,27 @@ import {
 import {
   applyActiveTargetsChange,
   applyBatchState,
+  applyOnlineStateChange,
   applyPrimaryState,
   applyTargetState,
   getActiveClients,
+  handleCredentialChange,
   newSyncEngine,
   SyncEngine
 } from './sync_engine';
-import { RemoteStore } from '../remote/remote_store';
-import { EventManager } from './event_manager';
+import {
+  newRemoteStore,
+  RemoteStore,
+  remoteStoreApplyPrimaryState,
+  remoteStoreShutdown
+} from '../remote/remote_store';
+import {
+  EventManager,
+  newEventManager,
+  eventManagerOnOnlineStateChange,
+  eventManagerOnWatchChange,
+  eventManagerOnWatchError
+} from './event_manager';
 import { AsyncQueue } from '../util/async_queue';
 import { DatabaseId, DatabaseInfo } from './database_info';
 import { Datastore, newDatastore } from '../remote/datastore';
@@ -332,20 +345,35 @@ export class OnlineComponentProvider {
     this.syncEngine = this.createSyncEngine(cfg);
     this.eventManager = this.createEventManager(cfg);
 
+    this.syncEngine.subscribe({
+      onWatchChange: eventManagerOnWatchChange.bind(null, this.eventManager),
+      onWatchError: eventManagerOnWatchError.bind(null, this.eventManager),
+      onOnlineStateChange: eventManagerOnOnlineStateChange.bind(
+        null,
+        this.eventManager
+      )
+    });
+
     this.sharedClientState.onlineStateHandler = onlineState =>
-      this.syncEngine.applyOnlineStateChange(
+      applyOnlineStateChange(
+        this.syncEngine,
         onlineState,
         OnlineStateSource.SharedClientState
       );
 
-    this.remoteStore.syncEngine = this.syncEngine;
+    this.remoteStore.remoteSyncer.handleCredentialChange = handleCredentialChange.bind(
+      null,
+      this.syncEngine
+    );
 
-    await this.remoteStore.start();
-    await this.remoteStore.applyPrimaryState(this.syncEngine.isPrimaryClient);
+    await remoteStoreApplyPrimaryState(
+      this.remoteStore,
+      this.syncEngine.isPrimaryClient
+    );
   }
 
   createEventManager(cfg: ComponentConfiguration): EventManager {
-    return new EventManager(this.syncEngine);
+    return newEventManager();
   }
 
   createDatastore(cfg: ComponentConfiguration): Datastore {
@@ -355,12 +383,13 @@ export class OnlineComponentProvider {
   }
 
   createRemoteStore(cfg: ComponentConfiguration): RemoteStore {
-    return new RemoteStore(
+    return newRemoteStore(
       this.localStore,
       this.datastore,
       cfg.asyncQueue,
       onlineState =>
-        this.syncEngine.applyOnlineStateChange(
+        applyOnlineStateChange(
+          this.syncEngine,
           onlineState,
           OnlineStateSource.RemoteStore
         ),
@@ -372,7 +401,6 @@ export class OnlineComponentProvider {
     return newSyncEngine(
       this.localStore,
       this.remoteStore,
-      this.datastore,
       this.sharedClientState,
       cfg.initialUser,
       cfg.maxConcurrentLimboResolutions,
@@ -382,6 +410,6 @@ export class OnlineComponentProvider {
   }
 
   terminate(): Promise<void> {
-    return this.remoteStore.shutdown();
+    return remoteStoreShutdown(this.remoteStore);
   }
 }

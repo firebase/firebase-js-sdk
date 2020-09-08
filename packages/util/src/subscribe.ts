@@ -126,7 +126,7 @@ class ObserverProxy<T> implements Observer<T> {
    *   call to subscribe().
    */
   subscribe(
-    nextOrObserver?: PartialObserver<T> | Function,
+    nextOrObserver?: NextFn<T> | PartialObserver<T>,
     error?: ErrorFn,
     complete?: CompleteFn
   ): Unsubscribe {
@@ -261,6 +261,7 @@ class ObserverProxy<T> implements Observer<T> {
 }
 
 /** Turn synchronous function into one called asynchronously. */
+// eslint-disable-next-line @typescript-eslint/ban-types
 export function async(fn: Function, onError?: ErrorFn): Function {
   return (...args: unknown[]) => {
     Promise.resolve(true)

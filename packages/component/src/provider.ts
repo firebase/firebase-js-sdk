@@ -170,12 +170,16 @@ export class Provider<T extends Name> {
   async delete(): Promise<void> {
     const services = Array.from(this.instances.values());
 
-    await Promise.all(
-      services
-        .filter(service => 'INTERNAL' in service)
+    await Promise.all([
+      ...services
+        .filter(service => 'INTERNAL' in service) // legacy services
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .map(service => (service as any).INTERNAL!.delete())
-    );
+        .map(service => (service as any).INTERNAL!.delete()),
+      ...services
+        .filter(service => '_delete' in service) // modularized services
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map(service => (service as any)._delete())
+    ]);
   }
 
   isComponentSet(): boolean {

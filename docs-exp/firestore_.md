@@ -8,7 +8,7 @@
 
 |  Class | Description |
 |  --- | --- |
-|  [Blob](./firestore_.blob.md) |  |
+|  [Bytes](./firestore_.bytes.md) |  |
 |  [CollectionReference](./firestore_.collectionreference.md) |  |
 |  [DocumentReference](./firestore_.documentreference.md) |  |
 |  [DocumentSnapshot](./firestore_.documentsnapshot.md) |  |
@@ -73,8 +73,6 @@
 |  [onSnapshotsInSync(firestore, observer)](./firestore_.onsnapshotsinsync.md) |  |
 |  [onSnapshotsInSync(firestore, onSync)](./firestore_.onsnapshotsinsync_1.md) |  |
 |  [orderBy(fieldPath, directionStr)](./firestore_.orderby.md) |  |
-|  [parent(reference)](./firestore_.parent.md) |  |
-|  [parent(reference)](./firestore_.parent_1.md) |  |
 |  [query(query, constraints)](./firestore_.query.md) |  |
 |  [queryEqual(left, right)](./firestore_.queryequal.md) |  |
 |  [refEqual(left, right)](./firestore_.refequal.md) |  |

@@ -26,7 +26,7 @@ const tmpDir = `${projectRoot}/temp`;
 // create *.api.json files
 async function generateDocs() {
   // TODO: change yarn command once exp packages become official
-  await spawn('yarn', ['build:exp'], {
+  await spawn('yarn', ['lerna', 'run', '--scope', '@firebase/*-exp', 'build'], {
     stdio: 'inherit'
   });
 

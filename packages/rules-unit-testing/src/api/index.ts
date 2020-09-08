@@ -328,7 +328,8 @@ export function assertFails(pr: Promise<any>): any {
     },
     (err: any) => {
       const isPermissionDenied =
-        err && err.message && err.message.indexOf('PERMISSION_DENIED') >= 0;
+        (err && err.message && err.message.indexOf('PERMISSION_DENIED') >= 0) ||
+        (err && err.code === 'permission-denied');
       if (!isPermissionDenied) {
         return Promise.reject(
           new Error(

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/performance",
-  "version": "0.3.11",
+  "version": "0.4.0",
   "description": "Firebase performance for web",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -12,10 +12,10 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'",
     "build": "rollup -c",
-    "build:deps": "lerna run --scope @firebase/'{app,performance}' --include-dependencies build",
+    "build:deps": "lerna run --scope @firebase/performance --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p lint test:browser",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "prepare": "yarn build",
@@ -35,10 +35,11 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "2.23.0",
+    "@firebase/app": "0.6.10",
+    "rollup": "2.26.7",
     "rollup-plugin-json": "4.0.0",
-    "rollup-plugin-typescript2": "0.27.1",
-    "typescript": "3.9.7"
+    "rollup-plugin-typescript2": "0.27.2",
+    "typescript": "4.0.2"
   },
   "repository": {
     "directory": "packages/performance",
