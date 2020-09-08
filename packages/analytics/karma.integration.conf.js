@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,18 @@
  * limitations under the License.
  */
 
-export * from './src/assert';
-export * from './src/crypt';
-export * from './src/constants';
-export * from './src/deepCopy';
-export * from './src/deferred';
-export * from './src/environment';
-export * from './src/errors';
-export * from './src/json';
-export * from './src/jwt';
-export * from './src/obj';
-export * from './src/query';
-export * from './src/sha1';
-export * from './src/subscribe';
-export * from './src/validation';
-export * from './src/utf8';
-export * from './src/exponential_backoff';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const karmaBase = require('../../config/karma.base');
+
+const files = [`./testing/integration-tests/integration.ts`];
+
+module.exports = function (config) {
+  config.set({
+    ...karmaBase,
+    files,
+    preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
+    frameworks: ['mocha']
+  });
+};
+
+module.exports.files = files;
