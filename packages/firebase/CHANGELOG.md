@@ -1,5 +1,28 @@
 # firebase
 
+## 7.20.0
+
+### Minor Changes
+
+- [`fb3b095e4`](https://github.com/firebase/firebase-js-sdk/commit/fb3b095e4b7c8f57fdb3172bc039c84576abf290) [#2800](https://github.com/firebase/firebase-js-sdk/pull/2800) - Analytics now dynamically fetches the app's Measurement ID from the Dynamic Config backend
+  instead of depending on the local Firebase config. It will fall back to any `measurementId`
+  value found in the local config if the Dynamic Config fetch fails.
+
+### Patch Changes
+
+- Updated dependencies [[`249d40cb6`](https://github.com/firebase/firebase-js-sdk/commit/249d40cb692366f686a50c06c44ec81e4cae23d7), [`d347c6ca1`](https://github.com/firebase/firebase-js-sdk/commit/d347c6ca1bcb7cd48ab2e4f7954cabafe761aea7), [`fb3b095e4`](https://github.com/firebase/firebase-js-sdk/commit/fb3b095e4b7c8f57fdb3172bc039c84576abf290), [`dc9892565`](https://github.com/firebase/firebase-js-sdk/commit/dc989256566b8379f475c722370ccbd8f47527c3), [`fb3b095e4`](https://github.com/firebase/firebase-js-sdk/commit/fb3b095e4b7c8f57fdb3172bc039c84576abf290), [`fb3b095e4`](https://github.com/firebase/firebase-js-sdk/commit/fb3b095e4b7c8f57fdb3172bc039c84576abf290)]:
+  - @firebase/firestore@1.16.7
+  - @firebase/database@0.6.12
+  - @firebase/remote-config@0.1.28
+  - @firebase/messaging@0.7.1
+  - @firebase/util@0.3.2
+  - @firebase/analytics@0.5.0
+  - @firebase/app@0.6.11
+  - @firebase/functions@0.4.51
+  - @firebase/installations@0.4.17
+  - @firebase/performance@0.4.1
+  - @firebase/storage@0.3.43
+
 ## 7.19.1
 
 ### Patch Changes
