@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import firebase from '@firebase/app';
-import { DATABASE_ADDRESS, createTestApp, DATABASE_URL } from './helpers/util';
+import { DATABASE_ADDRESS, createTestApp } from './helpers/util';
 import '../index';
 
 describe('Database Tests', () => {
