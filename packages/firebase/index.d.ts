@@ -7890,11 +7890,11 @@ declare namespace firebase.firestore {
 
     /**
      * Configures the SDK's underlying transport (WebChannel) to automatically detect if
-     * long-polling should be used and also update as the networking conditions change. This is
-     * very similar to experimentalForceLongPolling but does automatic detection.
+     * long-polling should be used. This is very similar to `experimentalForceLongPolling`,
+     * but only uses long-polling if required.
      *
-     * This setting cannot be used with experimentalForceLongPolling and may be removed in a future
-     * release.
+     * This setting will likely be enabled by default in future releases and cannot be 
+     * combined with `experimentalForceLongPolling`.
      *
      * @webonly
      */
