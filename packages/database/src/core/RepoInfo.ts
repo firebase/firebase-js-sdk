@@ -43,7 +43,7 @@ export class RepoInfo {
     public readonly secure: boolean,
     public readonly namespace: string,
     public readonly webSocketOnly: boolean,
-    public readonly nodeAdmin: boolean,
+    public readonly nodeAdmin: boolean = false,
     public readonly persistenceKey: string = '',
     public readonly includeNamespaceInQueryParams: boolean = false
   ) {
