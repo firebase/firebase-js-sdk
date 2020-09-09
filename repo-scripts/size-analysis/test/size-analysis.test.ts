@@ -199,7 +199,8 @@ describe('extractDeclarations on .d.ts file', () => {
 describe('extractDeclarations on js bundle file', () => {
   let subsetExportsBundleFile: string;
   let extractedDeclarations: MemberList;
-  before(() => {
+  before(function () {
+    this.timeout(120000);
     const start = Date.now();
     const testModuleDtsFile: string = getTestModuleDtsFilePath();
     const map: Map<string, string> = buildMap(
@@ -248,7 +249,7 @@ describe('extractDeclarations on js bundle file', () => {
     classesArray.sort();
     expect(extractedDeclarations.classes).to.have.members(classesArray);
   });
-}).timeout(120000);
+});
 
 describe('test dedup helper function', () => {
   it('test dedup with non-empty entries', () => {
