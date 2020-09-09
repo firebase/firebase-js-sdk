@@ -214,7 +214,7 @@ export function validateIsNotUsedTogether(
   ) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `${optionName1} and ${optionName2} can not be used together.`
+      `${optionName1} and ${optionName2} cannot be used together.`
     );
   }
 }
