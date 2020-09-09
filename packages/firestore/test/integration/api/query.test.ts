@@ -24,7 +24,6 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import * as firebaseExport from '../util/firebase_export';
 import {
   apiDescribe,
-  isRunningAgainstEmulator,
   notEqualOp,
   notInOp,
   toChangesArray,
@@ -687,101 +686,82 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  // eslint-disable-next-line no-restricted-properties
-  (isRunningAgainstEmulator() ? it : it.skip)(
-    'can use != filters',
-    async () => {
-      const testDocs = {
-        a: { zip: 98101 },
-        b: { zip: 91102 },
-        c: { zip: '98101' },
-        d: { zip: [98101] },
-        e: { zip: ['98101', { zip: 98101 }] },
-        f: { zip: { code: 500 } },
-        g: { zip: [98101, 98102] },
-        h: { code: 500 },
-        i: { zip: null },
-        j: { zip: Number.NaN }
-      };
+  it('can use != filters', async () => {
+    const testDocs = {
+      a: { zip: 98101 },
+      b: { zip: 91102 },
+      c: { zip: '98101' },
+      d: { zip: [98101] },
+      e: { zip: ['98101', { zip: 98101 }] },
+      f: { zip: { code: 500 } },
+      g: { zip: [98101, 98102] },
+      h: { code: 500 },
+      i: { zip: null },
+      j: { zip: Number.NaN }
+    };
 
-      await withTestCollection(persistence, testDocs, async coll => {
-        let expected = { ...testDocs };
-        // @ts-expect-error
-        delete expected.a;
-        // @ts-expect-error
-        delete expected.h;
-        // @ts-expect-error
-        delete expected.i;
-        const snapshot = await coll.where('zip', notEqualOp, 98101).get();
-        expect(toDataArray(snapshot)).to.have.deep.members(
-          Object.values(expected)
-        );
+    await withTestCollection(persistence, testDocs, async coll => {
+      let expected = { ...testDocs };
+      delete expected.a;
+      delete expected.h;
+      delete expected.i;
+      const snapshot = await coll.where('zip', notEqualOp, 98101).get();
+      expect(toDataArray(snapshot)).to.have.deep.members(
+        Object.values(expected)
+      );
 
-        // With objects.
-        const snapshot2 = await coll
-          .where('zip', notEqualOp, { code: 500 })
-          .get();
-        expected = { ...testDocs };
-        // @ts-expect-error
-        delete expected.f;
-        // @ts-expect-error
-        delete expected.h;
-        // @ts-expect-error
-        delete expected.i;
-        expect(toDataArray(snapshot2)).to.have.deep.members(
-          Object.values(expected)
-        );
+      // With objects.
+      const snapshot2 = await coll
+        .where('zip', notEqualOp, { code: 500 })
+        .get();
+      expected = { ...testDocs };
+      delete expected.f;
+      delete expected.h;
+      delete expected.i;
+      expect(toDataArray(snapshot2)).to.have.deep.members(
+        Object.values(expected)
+      );
 
-        // With null.
-        const snapshot3 = await coll.where('zip', notEqualOp, null).get();
-        expected = { ...testDocs };
-        // @ts-expect-error
-        delete expected.h;
-        // @ts-expect-error
-        delete expected.i;
-        expect(toDataArray(snapshot3)).to.have.deep.members(
-          Object.values(expected)
-        );
+      // With null.
+      const snapshot3 = await coll.where('zip', notEqualOp, null).get();
+      expected = { ...testDocs };
+      delete expected.h;
+      delete expected.i;
+      expect(toDataArray(snapshot3)).to.have.deep.members(
+        Object.values(expected)
+      );
 
-        // With NaN.
-        const snapshot4 = await coll.where('zip', notEqualOp, Number.NaN).get();
-        expected = { ...testDocs };
-        // @ts-expect-error
-        delete expected.h;
-        // @ts-expect-error
-        delete expected.i;
-        // @ts-expect-error
-        delete expected.j;
-        expect(toDataArray(snapshot4)).to.have.deep.members(
-          Object.values(expected)
-        );
-      });
-    }
-  );
+      // With NaN.
+      const snapshot4 = await coll.where('zip', notEqualOp, Number.NaN).get();
+      expected = { ...testDocs };
+      delete expected.h;
+      delete expected.i;
+      delete expected.j;
+      expect(toDataArray(snapshot4)).to.have.deep.members(
+        Object.values(expected)
+      );
+    });
+  });
 
-  // eslint-disable-next-line no-restricted-properties
-  (isRunningAgainstEmulator() ? it : it.skip)(
-    'can use != filters by document ID',
-    async () => {
-      const testDocs = {
-        aa: { key: 'aa' },
-        ab: { key: 'ab' },
-        ba: { key: 'ba' },
-        bb: { key: 'bb' }
-      };
-      await withTestCollection(persistence, testDocs, async coll => {
-        const snapshot = await coll
-          .where(FieldPath.documentId(), notEqualOp, 'aa')
-          .get();
+  it('can use != filters by document ID', async () => {
+    const testDocs = {
+      aa: { key: 'aa' },
+      ab: { key: 'ab' },
+      ba: { key: 'ba' },
+      bb: { key: 'bb' }
+    };
+    await withTestCollection(persistence, testDocs, async coll => {
+      const snapshot = await coll
+        .where(FieldPath.documentId(), notEqualOp, 'aa')
+        .get();
 
-        expect(toDataArray(snapshot)).to.deep.equal([
-          { key: 'ab' },
-          { key: 'ba' },
-          { key: 'bb' }
-        ]);
-      });
-    }
-  );
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { key: 'ab' },
+        { key: 'ba' },
+        { key: 'bb' }
+      ]);
+    });
+  });
 
   it('can use array-contains filters', async () => {
     const testDocs = {
@@ -851,100 +831,79 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  // eslint-disable-next-line no-restricted-properties
-  (isRunningAgainstEmulator() ? it : it.skip)(
-    'can use NOT_IN filters',
-    async () => {
-      const testDocs = {
-        a: { zip: 98101 },
-        b: { zip: 91102 },
-        c: { zip: 98103 },
-        d: { zip: [98101] },
-        e: { zip: ['98101', { zip: 98101 }] },
-        f: { zip: { code: 500 } },
-        g: { zip: [98101, 98102] },
-        h: { code: 500 },
-        i: { zip: null },
-        j: { zip: Number.NaN }
-      };
+  it('can use NOT_IN filters', async () => {
+    const testDocs = {
+      a: { zip: 98101 },
+      b: { zip: 91102 },
+      c: { zip: 98103 },
+      d: { zip: [98101] },
+      e: { zip: ['98101', { zip: 98101 }] },
+      f: { zip: { code: 500 } },
+      g: { zip: [98101, 98102] },
+      h: { code: 500 },
+      i: { zip: null },
+      j: { zip: Number.NaN }
+    };
 
-      await withTestCollection(persistence, testDocs, async coll => {
-        let expected = { ...testDocs };
-        // @ts-expect-error
-        delete expected.a;
-        // @ts-expect-error
-        delete expected.c;
-        // @ts-expect-error
-        delete expected.g;
-        // @ts-expect-error
-        delete expected.h;
-        const snapshot = await coll
-          .where('zip', notInOp, [98101, 98103, [98101, 98102]])
-          .get();
-        expect(toDataArray(snapshot)).to.deep.equal(Object.values(expected));
+    await withTestCollection(persistence, testDocs, async coll => {
+      let expected = { ...testDocs };
+      delete expected.a;
+      delete expected.c;
+      delete expected.g;
+      delete expected.h;
+      const snapshot = await coll
+        .where('zip', notInOp, [98101, 98103, [98101, 98102]])
+        .get();
+      expect(toDataArray(snapshot)).to.deep.equal(Object.values(expected));
 
-        // With objects.
-        const snapshot2 = await coll
-          .where('zip', notInOp, [{ code: 500 }])
-          .get();
-        expected = { ...testDocs };
-        // @ts-expect-error
-        delete expected.f;
-        // @ts-expect-error
-        delete expected.h;
-        expect(toDataArray(snapshot2)).to.deep.equal(Object.values(expected));
+      // With objects.
+      const snapshot2 = await coll.where('zip', notInOp, [{ code: 500 }]).get();
+      expected = { ...testDocs };
+      delete expected.f;
+      delete expected.h;
+      expect(toDataArray(snapshot2)).to.deep.equal(Object.values(expected));
 
-        // With null.
-        const snapshot3 = await coll.where('zip', notInOp, [null]).get();
-        expect(toDataArray(snapshot3)).to.deep.equal([]);
+      // With null.
+      const snapshot3 = await coll.where('zip', notInOp, [null]).get();
+      expect(toDataArray(snapshot3)).to.deep.equal([]);
 
-        // With NaN.
-        const snapshot4 = await coll.where('zip', notInOp, [Number.NaN]).get();
-        expected = { ...testDocs };
-        // @ts-expect-error
-        delete expected.h;
-        // @ts-expect-error
-        delete expected.j;
-        expect(toDataArray(snapshot4)).to.deep.equal(Object.values(expected));
+      // With NaN.
+      const snapshot4 = await coll.where('zip', notInOp, [Number.NaN]).get();
+      expected = { ...testDocs };
+      delete expected.h;
+      delete expected.j;
+      expect(toDataArray(snapshot4)).to.deep.equal(Object.values(expected));
 
-        // With NaN and a number.
-        const snapshot5 = await coll
-          .where('zip', notInOp, [Number.NaN, 98101])
-          .get();
-        expected = { ...testDocs };
-        // @ts-expect-error
-        delete expected.a;
-        // @ts-expect-error
-        delete expected.h;
-        // @ts-expect-error
-        delete expected.j;
-        expect(toDataArray(snapshot5)).to.deep.equal(Object.values(expected));
-      });
-    }
-  );
+      // With NaN and a number.
+      const snapshot5 = await coll
+        .where('zip', notInOp, [Number.NaN, 98101])
+        .get();
+      expected = { ...testDocs };
+      delete expected.a;
+      delete expected.h;
+      delete expected.j;
+      expect(toDataArray(snapshot5)).to.deep.equal(Object.values(expected));
+    });
+  });
 
-  // eslint-disable-next-line no-restricted-properties
-  (isRunningAgainstEmulator() ? it : it.skip)(
-    'can use NOT_IN filters by document ID',
-    async () => {
-      const testDocs = {
-        aa: { key: 'aa' },
-        ab: { key: 'ab' },
-        ba: { key: 'ba' },
-        bb: { key: 'bb' }
-      };
-      await withTestCollection(persistence, testDocs, async coll => {
-        const snapshot = await coll
-          .where(FieldPath.documentId(), notInOp, ['aa', 'ab'])
-          .get();
+  it('can use NOT_IN filters by document ID', async () => {
+    const testDocs = {
+      aa: { key: 'aa' },
+      ab: { key: 'ab' },
+      ba: { key: 'ba' },
+      bb: { key: 'bb' }
+    };
+    await withTestCollection(persistence, testDocs, async coll => {
+      const snapshot = await coll
+        .where(FieldPath.documentId(), notInOp, ['aa', 'ab'])
+        .get();
 
-        expect(toDataArray(snapshot)).to.deep.equal([
-          { key: 'ba' },
-          { key: 'bb' }
-        ]);
-      });
-    }
-  );
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { key: 'ba' },
+        { key: 'bb' }
+      ]);
+    });
+  });
 
   it('can use array-contains-any filters', async () => {
     const testDocs = {
