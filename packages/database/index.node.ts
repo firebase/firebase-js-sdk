@@ -51,13 +51,19 @@ const ServerValue = Database.ServerValue;
  * @param app A valid FirebaseApp-like object
  * @param url A valid Firebase databaseURL
  * @param version custom version e.g. firebase-admin version
+ * @param nodeAdmin true if the SDK is being initialized from Firebase Admin.
  */
-export function initStandalone(app: FirebaseApp, url: string, version: string) {
+export function initStandalone(
+  app: FirebaseApp,
+  url: string,
+  version: string,
+  nodeAdmin: boolean = true
+) {
   /**
    * This should allow the firebase-admin package to provide a custom version
    * to the backend
    */
-  CONSTANTS.NODE_ADMIN = true;
+  CONSTANTS.NODE_ADMIN = nodeAdmin;
   setSDKVersion(version);
 
   /**
@@ -84,7 +90,8 @@ export function initStandalone(app: FirebaseApp, url: string, version: string) {
     instance: RepoManager.getInstance().databaseFromApp(
       app,
       authProvider,
-      url
+      url,
+      nodeAdmin
     ) as types.Database,
     namespace: {
       Reference,

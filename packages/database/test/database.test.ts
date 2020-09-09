@@ -105,6 +105,20 @@ describe('Database Tests', () => {
     expect(db.ref().toString()).to.equal('https://localhost/');
   });
 
+  it('Can infer database URL from project Id', async () => {
+    const app = firebase.initializeApp(
+      { projectId: 'abc123' },
+      'project-id-app'
+    );
+    const db = app.database();
+    expect(db).to.be.ok;
+    // The URL is assumed to be secure if no port is specified.
+    expect(db.ref().toString()).to.equal(
+      'https://abc123-default-rtdb.firebaseio.com/'
+    );
+    await app.delete();
+  });
+
   it('Can read ns query param', () => {
     const db = defaultApp.database('http://localhost:80/?ns=foo&unused=true');
     expect(db).to.be.ok;

@@ -162,7 +162,7 @@ interface SyncEngineListener {
   onWatchChange?(snapshots: ViewSnapshot[]): void;
 
   /** Handles the failure of a query. */
-  onWatchError?(query: Query, error: Error): void;
+  onWatchError?(query: Query, error: FirestoreError): void;
 }
 
 /**
@@ -804,7 +804,7 @@ function addMutationCallback(
 export function processUserCallback(
   syncEngine: SyncEngine,
   batchId: BatchId,
-  error: Error | null
+  error: FirestoreError | null
 ): void {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   let newCallbacks =
@@ -835,7 +835,7 @@ export function processUserCallback(
 function removeAndCleanupTarget(
   syncEngineImpl: SyncEngineImpl,
   targetId: number,
-  error: Error | null = null
+  error: FirestoreError | null = null
 ): void {
   syncEngineImpl.sharedClientState.removeLocalQueryTarget(targetId);
 
