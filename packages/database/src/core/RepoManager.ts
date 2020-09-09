@@ -96,7 +96,8 @@ export class RepoManager {
   databaseFromApp(
     app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
-    url?: string
+    url?: string,
+    nodeAdmin?: boolean
   ): Database {
     let dbUrl: string | undefined = url || app.options.databaseURL;
     if (dbUrl === undefined) {
@@ -111,7 +112,7 @@ export class RepoManager {
       dbUrl = `${app.options.projectId}-default-rtdb.firebaseio.com`;
     }
 
-    let parsedUrl = parseRepoInfo(dbUrl);
+    let parsedUrl = parseRepoInfo(dbUrl, nodeAdmin);
     let repoInfo = parsedUrl.repoInfo;
 
     let isEmulator: boolean;
@@ -124,14 +125,14 @@ export class RepoManager {
     if (dbEmulatorHost) {
       isEmulator = true;
       dbUrl = `http://${dbEmulatorHost}?ns=${repoInfo.namespace}`;
-      parsedUrl = parseRepoInfo(dbUrl);
+      parsedUrl = parseRepoInfo(dbUrl, nodeAdmin);
       repoInfo = parsedUrl.repoInfo;
     } else {
       isEmulator = !parsedUrl.repoInfo.secure;
     }
 
     const authTokenProvider =
-      CONSTANTS.NODE_ADMIN && isEmulator
+      nodeAdmin && isEmulator
         ? new EmulatorAdminTokenProvider()
         : new FirebaseAuthTokenProvider(app, authProvider);
 

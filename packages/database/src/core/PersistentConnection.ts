@@ -796,7 +796,7 @@ export class PersistentConnection extends ServerActions {
         .then(null, error => {
           self.log_('Failed to get token: ' + error);
           if (!canceled) {
-            if (CONSTANTS.NODE_ADMIN) {
+            if (this.repoInfo_.nodeAdmin) {
               // This may be a critical error for the Admin Node.js SDK, so log a warning.
               // But getToken() may also just have temporarily failed, so we still want to
               // continue retrying.
@@ -959,10 +959,12 @@ export class PersistentConnection extends ServerActions {
     const stats: { [k: string]: number } = {};
 
     let clientName = 'js';
-    if (CONSTANTS.NODE_ADMIN) {
-      clientName = 'admin_node';
-    } else if (CONSTANTS.NODE_CLIENT) {
-      clientName = 'node';
+    if (isNodeSdk()) {
+      if (this.repoInfo_.nodeAdmin) {
+        clientName = 'admin_node';
+      } else {
+        clientName = 'node';
+      }
     }
 
     stats['sdk.' + clientName + '.' + SDK_VERSION.replace(/\./g, '-')] = 1;
