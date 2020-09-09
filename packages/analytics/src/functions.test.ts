@@ -27,7 +27,8 @@ import {
 } from './functions';
 import { GtagCommand, EventName } from './constants';
 
-const analyticsId = 'abcd-efgh-ijkl';
+const fakeMeasurementId = 'abcd-efgh-ijkl';
+const fakeInitializationPromise = Promise.resolve(fakeMeasurementId);
 
 describe('FirebaseAnalytics methods', () => {
   const gtagStub: SinonStub = stub();
@@ -36,8 +37,8 @@ describe('FirebaseAnalytics methods', () => {
     gtagStub.reset();
   });
 
-  it('logEvent() calls gtag function correctly', () => {
-    logEvent(gtagStub, analyticsId, EventName.ADD_TO_CART, {
+  it('logEvent() calls gtag function correctly', async () => {
+    await logEvent(gtagStub, fakeInitializationPromise, EventName.ADD_TO_CART, {
       currency: 'USD'
     });
 
@@ -45,28 +46,28 @@ describe('FirebaseAnalytics methods', () => {
       GtagCommand.EVENT,
       EventName.ADD_TO_CART,
       {
-        'send_to': analyticsId,
+        'send_to': fakeMeasurementId,
         currency: 'USD'
       }
     );
   });
 
-  it('logEvent() with no event params calls gtag function correctly', () => {
-    logEvent(gtagStub, analyticsId, EventName.VIEW_ITEM);
+  it('logEvent() with no event params calls gtag function correctly', async () => {
+    await logEvent(gtagStub, fakeInitializationPromise, EventName.VIEW_ITEM);
 
     expect(gtagStub).to.have.been.calledWith(
       GtagCommand.EVENT,
       EventName.VIEW_ITEM,
       {
-        'send_to': analyticsId
+        'send_to': fakeMeasurementId
       }
     );
   });
 
-  it('logEvent() globally calls gtag function correctly', () => {
-    logEvent(
+  it('logEvent() globally calls gtag function correctly', async () => {
+    await logEvent(
       gtagStub,
-      analyticsId,
+      fakeInitializationPromise,
       EventName.ADD_TO_CART,
       {
         currency: 'USD'
@@ -83,66 +84,88 @@ describe('FirebaseAnalytics methods', () => {
     );
   });
 
-  it('logEvent() with no event params globally calls gtag function correctly', () => {
-    logEvent(gtagStub, analyticsId, EventName.ADD_TO_CART, undefined, {
-      global: true
-    });
+  it('logEvent() with no event params globally calls gtag function correctly', async () => {
+    await logEvent(
+      gtagStub,
+      fakeInitializationPromise,
+      EventName.ADD_TO_CART,
+      undefined,
+      {
+        global: true
+      }
+    );
 
     expect(gtagStub).to.have.been.calledWith(
       GtagCommand.EVENT,
       EventName.ADD_TO_CART,
-      {}
+      undefined
     );
   });
 
   it('setCurrentScreen() calls gtag correctly (instance)', async () => {
-    setCurrentScreen(gtagStub, analyticsId, 'home');
-    expect(gtagStub).to.have.been.calledWith(GtagCommand.CONFIG, analyticsId, {
-      'screen_name': 'home',
-      update: true
-    });
+    await setCurrentScreen(gtagStub, fakeInitializationPromise, 'home');
+    expect(gtagStub).to.have.been.calledWith(
+      GtagCommand.CONFIG,
+      fakeMeasurementId,
+      {
+        'screen_name': 'home',
+        update: true
+      }
+    );
   });
 
   it('setCurrentScreen() calls gtag correctly (global)', async () => {
-    setCurrentScreen(gtagStub, analyticsId, 'home', { global: true });
+    await setCurrentScreen(gtagStub, fakeInitializationPromise, 'home', {
+      global: true
+    });
     expect(gtagStub).to.be.calledWith(GtagCommand.SET, {
       'screen_name': 'home'
     });
   });
 
   it('setUserId() calls gtag correctly (instance)', async () => {
-    setUserId(gtagStub, analyticsId, 'user123');
-    expect(gtagStub).to.have.been.calledWith(GtagCommand.CONFIG, analyticsId, {
-      'user_id': 'user123',
-      update: true
-    });
+    await setUserId(gtagStub, fakeInitializationPromise, 'user123');
+    expect(gtagStub).to.have.been.calledWith(
+      GtagCommand.CONFIG,
+      fakeMeasurementId,
+      {
+        'user_id': 'user123',
+        update: true
+      }
+    );
   });
 
   it('setUserId() calls gtag correctly (global)', async () => {
-    setUserId(gtagStub, analyticsId, 'user123', { global: true });
+    await setUserId(gtagStub, fakeInitializationPromise, 'user123', {
+      global: true
+    });
     expect(gtagStub).to.be.calledWith(GtagCommand.SET, {
       'user_id': 'user123'
     });
   });
 
   it('setUserProperties() calls gtag correctly (instance)', async () => {
-    setUserProperties(gtagStub, analyticsId, {
+    await setUserProperties(gtagStub, fakeInitializationPromise, {
       'currency': 'USD',
       'language': 'en'
     });
-    expect(gtagStub).to.have.been.calledWith(GtagCommand.CONFIG, analyticsId, {
-      'user_properties': {
-        'currency': 'USD',
-        'language': 'en'
-      },
-      update: true
-    });
+    expect(gtagStub).to.have.been.calledWith(
+      GtagCommand.CONFIG,
+      fakeMeasurementId,
+      {
+        'user_properties': {
+          'currency': 'USD',
+          'language': 'en'
+        },
+        update: true
+      }
+    );
   });
 
   it('setUserProperties() calls gtag correctly (global)', async () => {
-    setUserProperties(
+    await setUserProperties(
       gtagStub,
-      analyticsId,
+      fakeInitializationPromise,
       { 'currency': 'USD', 'language': 'en' },
       { global: true }
     );
@@ -153,10 +176,10 @@ describe('FirebaseAnalytics methods', () => {
   });
 
   it('setAnalyticsCollectionEnabled() calls gtag correctly', async () => {
-    setAnalyticsCollectionEnabled(analyticsId, true);
-    expect(window[`ga-disable-${analyticsId}`]).to.be.false;
-    setAnalyticsCollectionEnabled(analyticsId, false);
-    expect(window[`ga-disable-${analyticsId}`]).to.be.true;
-    delete window[`ga-disable-${analyticsId}`];
+    await setAnalyticsCollectionEnabled(fakeInitializationPromise, true);
+    expect(window[`ga-disable-${fakeMeasurementId}`]).to.be.false;
+    await setAnalyticsCollectionEnabled(fakeInitializationPromise, false);
+    expect(window[`ga-disable-${fakeMeasurementId}`]).to.be.true;
+    delete window[`ga-disable-${fakeMeasurementId}`];
   });
 });

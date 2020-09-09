@@ -37,7 +37,12 @@ import {
   newSyncEngine,
   SyncEngine
 } from './sync_engine';
-import { RemoteStore } from '../remote/remote_store';
+import {
+  newRemoteStore,
+  RemoteStore,
+  remoteStoreApplyPrimaryState,
+  remoteStoreShutdown
+} from '../remote/remote_store';
 import {
   EventManager,
   newEventManager,
@@ -361,8 +366,10 @@ export class OnlineComponentProvider {
       this.syncEngine
     );
 
-    await this.remoteStore.start();
-    await this.remoteStore.applyPrimaryState(this.syncEngine.isPrimaryClient);
+    await remoteStoreApplyPrimaryState(
+      this.remoteStore,
+      this.syncEngine.isPrimaryClient
+    );
   }
 
   createEventManager(cfg: ComponentConfiguration): EventManager {
@@ -376,7 +383,7 @@ export class OnlineComponentProvider {
   }
 
   createRemoteStore(cfg: ComponentConfiguration): RemoteStore {
-    return new RemoteStore(
+    return newRemoteStore(
       this.localStore,
       this.datastore,
       cfg.asyncQueue,
@@ -403,6 +410,6 @@ export class OnlineComponentProvider {
   }
 
   terminate(): Promise<void> {
-    return this.remoteStore.shutdown();
+    return remoteStoreShutdown(this.remoteStore);
   }
 }

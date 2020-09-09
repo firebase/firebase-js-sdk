@@ -1,0 +1,64 @@
+{
+  "name": "@firebase/installations-exp",
+  "version": "0.0.800",
+  "private": true,
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "browser": "dist/index.esm.js",
+  "esm2017": "dist/index.esm2017.js",
+  "typings": "dist/installations-exp.d.ts",
+  "license": "Apache-2.0",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "build": "rollup -c && yarn api-report",
+    "build:deps": "lerna run --scope @firebase/installations-exp --include-dependencies build",
+    "dev": "rollup -c -w",
+    "test": "yarn type-check && yarn test:karma && yarn lint",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "test:karma": "karma start --single-run",
+    "test:debug": "karma start --browsers=Chrome --auto-watch",
+    "type-check": "tsc -p . --noEmit",
+    "serve": "yarn serve:build && yarn serve:host",
+    "serve:build": "rollup -c test-app/rollup.config.js",
+    "serve:host": "http-server -c-1 test-app",
+    "prepare": "yarn build",
+    "api-report": "api-extractor run --local --verbose",
+    "predoc": "node ../../scripts/exp/remove-exp.js temp",
+    "doc": "api-documenter markdown --input temp --output docs",
+    "build:doc": "yarn build && yarn doc"
+  },
+  "repository": {
+    "directory": "packages-exp/installations-exp",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "devDependencies": {
+    "@firebase/app-exp": "0.0.800",
+    "rollup": "2.26.7",
+    "rollup-plugin-commonjs": "10.1.0",
+    "rollup-plugin-json": "4.0.0",
+    "rollup-plugin-node-resolve": "5.2.0",
+    "rollup-plugin-typescript2": "0.27.2",
+    "rollup-plugin-uglify": "6.0.4",
+    "typescript": "4.0.2"
+  },
+  "peerDependencies": {
+    "@firebase/app-exp": "0.x",
+    "@firebase/app-types-exp": "0.x"
+  },
+  "dependencies": {
+    "@firebase/installations-types-exp": "0.0.800",
+    "@firebase/util": "0.3.1",
+    "@firebase/component": "0.1.18",
+    "idb": "3.0.2",
+    "tslib": "^1.11.1"
+  }
+}

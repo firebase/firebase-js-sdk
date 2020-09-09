@@ -15,11 +15,14 @@
  * limitations under the License.
  */
 
-export const ANALYTICS_ID_FIELD = 'measurementId';
-
 // Key to attach FID to in gtag params.
 export const GA_FID_KEY = 'firebase_id';
 export const ORIGIN_KEY = 'origin';
+
+export const FETCH_TIMEOUT_MILLIS = 60 * 1000;
+
+export const DYNAMIC_CONFIG_URL =
+  'https://firebase.googleapis.com/v1alpha/projects/-/apps/{app-id}/webConfig';
 
 export const GTAG_URL = 'https://www.googletagmanager.com/gtag/js';
 

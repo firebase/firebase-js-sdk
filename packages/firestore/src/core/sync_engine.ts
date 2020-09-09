@@ -48,7 +48,14 @@ import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatchResult } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
-import { RemoteStore } from '../remote/remote_store';
+import {
+  canUseNetwork,
+  fillWritePipeline,
+  RemoteStore,
+  remoteStoreApplyPrimaryState,
+  remoteStoreListen,
+  remoteStoreUnlisten
+} from '../remote/remote_store';
 import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
@@ -338,7 +345,7 @@ export async function syncEngineListen(
       status === 'current'
     );
     if (syncEngineImpl.isPrimaryClient) {
-      syncEngineImpl.remoteStore.listen(targetData);
+      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
     }
   }
 
@@ -439,7 +446,7 @@ export async function syncEngineUnlisten(
       )
         .then(() => {
           syncEngineImpl.sharedClientState.clearQueryState(queryView.targetId);
-          syncEngineImpl.remoteStore.unlisten(queryView.targetId);
+          remoteStoreUnlisten(syncEngineImpl.remoteStore, queryView.targetId);
           removeAndCleanupTarget(syncEngineImpl, queryView.targetId);
         })
         .catch(ignoreIfPrimaryLeaseLoss);
@@ -477,7 +484,7 @@ export async function syncEngineWrite(
     syncEngineImpl.sharedClientState.addPendingMutation(result.batchId);
     addMutationCallback(syncEngineImpl, result.batchId, userCallback);
     await emitNewSnapsAndNotifyLocalStore(syncEngineImpl, result.changes);
-    await syncEngineImpl.remoteStore.fillWritePipeline();
+    await fillWritePipeline(syncEngineImpl.remoteStore);
   } catch (e) {
     // If we can't persist the mutation, we reject the user callback and
     // don't send the mutation. The user can then retry the write.
@@ -725,7 +732,7 @@ export async function registerPendingWritesCallback(
   callback: Deferred<void>
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  if (!syncEngineImpl.remoteStore.canUseNetwork()) {
+  if (!canUseNetwork(syncEngineImpl.remoteStore)) {
     logDebug(
       LOG_TAG,
       'The network is disabled. The task returned by ' +
@@ -888,7 +895,7 @@ function removeLimboTarget(
     return;
   }
 
-  syncEngineImpl.remoteStore.unlisten(limboTargetId);
+  remoteStoreUnlisten(syncEngineImpl.remoteStore, limboTargetId);
   syncEngineImpl.activeLimboTargetsByKey = syncEngineImpl.activeLimboTargetsByKey.remove(
     key
   );
@@ -960,7 +967,8 @@ function pumpEnqueuedLimboResolutions(syncEngineImpl: SyncEngineImpl): void {
       key,
       limboTargetId
     );
-    syncEngineImpl.remoteStore.listen(
+    remoteStoreListen(
+      syncEngineImpl.remoteStore,
       new TargetData(
         queryToTarget(newQueryForPath(key.path)),
         limboTargetId,
@@ -1181,7 +1189,7 @@ export async function applyBatchState(
     // If we are the primary client, we need to send this write to the
     // backend. Secondary clients will ignore these writes since their remote
     // connection is disabled.
-    await syncEngineImpl.remoteStore.fillWritePipeline();
+    await fillWritePipeline(syncEngineImpl.remoteStore);
   } else if (batchState === 'acknowledged' || batchState === 'rejected') {
     // NOTE: Both these methods are no-ops for batches that originated from
     // other clients.
@@ -1217,9 +1225,9 @@ export async function applyPrimaryState(
       /*transitionToPrimary=*/ true
     );
     syncEngineImpl._isPrimaryClient = true;
-    await syncEngineImpl.remoteStore.applyPrimaryState(true);
+    await remoteStoreApplyPrimaryState(syncEngineImpl.remoteStore, true);
     for (const targetData of activeQueries) {
-      syncEngineImpl.remoteStore.listen(targetData);
+      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
     }
   } else if (isPrimary === false && syncEngineImpl._isPrimaryClient !== false) {
     const activeTargets: TargetId[] = [];
@@ -1238,7 +1246,7 @@ export async function applyPrimaryState(
           );
         });
       }
-      syncEngineImpl.remoteStore.unlisten(targetId);
+      remoteStoreUnlisten(syncEngineImpl.remoteStore, targetId);
     });
     await p;
 
@@ -1249,7 +1257,7 @@ export async function applyPrimaryState(
     );
     resetLimboDocuments(syncEngineImpl);
     syncEngineImpl._isPrimaryClient = false;
-    await syncEngineImpl.remoteStore.applyPrimaryState(false);
+    await remoteStoreApplyPrimaryState(syncEngineImpl.remoteStore, false);
   }
 }
 
@@ -1257,7 +1265,7 @@ export async function applyPrimaryState(
 function resetLimboDocuments(syncEngine: SyncEngine): void {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   syncEngineImpl.activeLimboResolutionsByTarget.forEach((_, targetId) => {
-    syncEngineImpl.remoteStore.unlisten(targetId);
+    remoteStoreUnlisten(syncEngineImpl.remoteStore, targetId);
   });
   syncEngineImpl.limboDocumentRefs.removeAllReferences();
   syncEngineImpl.activeLimboResolutionsByTarget = new Map<
@@ -1447,7 +1455,7 @@ export async function applyActiveTargetsChange(
       targetData.targetId,
       /*current=*/ false
     );
-    syncEngineImpl.remoteStore.listen(targetData);
+    remoteStoreListen(syncEngineImpl.remoteStore, targetData);
   }
 
   for (const targetId of removed) {
@@ -1464,7 +1472,7 @@ export async function applyActiveTargetsChange(
       /* keepPersistedTargetData */ false
     )
       .then(() => {
-        syncEngineImpl.remoteStore.unlisten(targetId);
+        remoteStoreUnlisten(syncEngineImpl.remoteStore, targetId);
         removeAndCleanupTarget(syncEngineImpl, targetId);
       })
       .catch(ignoreIfPrimaryLeaseLoss);
