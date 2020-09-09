@@ -215,7 +215,7 @@ export function metadataValidator(p: unknown): void {
       const val = p[key];
       if (key === 'customMetadata') {
         if (!type.isObject(val)) {
-          throw 'Expected object for \'customMetadata\' mapping.';
+          throw "Expected object for 'customMetadata' mapping.";
         }
       } else {
         if (type.isNonNullObject(val)) {
