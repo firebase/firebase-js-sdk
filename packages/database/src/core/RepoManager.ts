@@ -111,7 +111,7 @@ export class RepoManager {
       );
     }
 
-    let parsedUrl = parseRepoInfo(dbUrl);
+    let parsedUrl = parseRepoInfo(dbUrl, nodeAdmin);
     let repoInfo = parsedUrl.repoInfo;
 
     let isEmulator: boolean;
@@ -124,14 +124,10 @@ export class RepoManager {
     if (dbEmulatorHost) {
       isEmulator = true;
       dbUrl = `http://${dbEmulatorHost}?ns=${repoInfo.namespace}`;
-      parsedUrl = parseRepoInfo(dbUrl);
+      parsedUrl = parseRepoInfo(dbUrl, nodeAdmin);
       repoInfo = parsedUrl.repoInfo;
     } else {
       isEmulator = !parsedUrl.repoInfo.secure;
-    }
-
-    if (nodeAdmin) {
-      repoInfo.setNodeAdmin(nodeAdmin);
     }
 
     const authTokenProvider =
