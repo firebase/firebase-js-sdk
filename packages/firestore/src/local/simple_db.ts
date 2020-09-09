@@ -325,8 +325,9 @@ export class SimpleDb {
           attemptNumber < TRANSACTION_RETRY_COUNT;
         logDebug(
           LOG_TAG,
-          'Transaction failed with error: %s. Retrying: %s.',
+          'Transaction failed with error:',
           error.message,
+          'Retrying:',
           retryable
         );
 

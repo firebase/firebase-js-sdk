@@ -104,15 +104,11 @@ export interface RemoteStore {
    * immediately after construction.
    */
   remoteSyncer: RemoteSyncer;
-
-  /**
-   * Starts up the remote store, creating streams, restoring state from
-   * LocalStore, etc.
-   */
-  start(): Promise<void>;
 }
 
 class RemoteStoreImpl implements RemoteStore {
+  remoteSyncer: RemoteSyncer = {};
+
   /**
    * A list of up to MAX_PENDING_WRITES writes that we have fetched from the
    * LocalStore via fillWritePipeline() and have or will send to the write
@@ -144,15 +140,24 @@ class RemoteStoreImpl implements RemoteStore {
   listenTargets = new Map<TargetId, TargetData>();
 
   connectivityMonitor: ConnectivityMonitor;
-  watchStream: PersistentListenStream;
-  writeStream: PersistentWriteStream;
-  watchChangeAggregator: WatchChangeAggregator | null = null;
+  watchStream?: PersistentListenStream;
+  writeStream?: PersistentWriteStream;
+  watchChangeAggregator?: WatchChangeAggregator;
 
   /**
    * A set of reasons for why the RemoteStore may be offline. If empty, the
    * RemoteStore may start its network connections.
    */
   offlineCauses = new Set<OfflineCause>();
+
+  /**
+   * Event handlers that get called when the network is disabled or enabled.
+   *
+   * PORTING NOTE: These functions are used on the Web client to create the
+   * underlying streams (to support tree-shakeable streams). On Android and iOS,
+   * the streams are created during construction of RemoteStore.
+   */
+  onNetworkStatusChange: Array<(enabled: boolean) => Promise<void>> = [];
 
   onlineStateTracker: OnlineStateTracker;
 
@@ -187,26 +192,6 @@ class RemoteStoreImpl implements RemoteStore {
       asyncQueue,
       onlineStateHandler
     );
-
-    // Create streams (but note they're not started yet).
-    this.watchStream = newPersistentWatchStream(this.datastore, asyncQueue, {
-      onOpen: onWatchStreamOpen.bind(null, this),
-      onClose: onWatchStreamClose.bind(null, this),
-      onWatchChange: onWatchStreamChange.bind(null, this)
-    });
-
-    this.writeStream = newPersistentWriteStream(this.datastore, asyncQueue, {
-      onOpen: onWriteStreamOpen.bind(null, this),
-      onClose: onWriteStreamClose.bind(null, this),
-      onHandshakeComplete: onWriteHandshakeComplete.bind(null, this),
-      onMutationResult: onMutationResult.bind(null, this)
-    });
-  }
-
-  remoteSyncer: RemoteSyncer = {};
-
-  start(): Promise<void> {
-    return remoteStoreEnableNetwork(this);
   }
 }
 
@@ -239,14 +224,9 @@ async function enableNetworkInternal(
   remoteStoreImpl: RemoteStoreImpl
 ): Promise<void> {
   if (canUseNetwork(remoteStoreImpl)) {
-    if (shouldStartWatchStream(remoteStoreImpl)) {
-      startWatchStream(remoteStoreImpl);
-    } else {
-      remoteStoreImpl.onlineStateTracker.set(OnlineState.Unknown);
+    for (const networkStatusHandler of remoteStoreImpl.onNetworkStatusChange) {
+      await networkStatusHandler(/* enabled= */ true);
     }
-
-    // This will start the write stream if necessary.
-    await fillWritePipeline(remoteStoreImpl);
   }
 }
 
@@ -268,18 +248,9 @@ export async function remoteStoreDisableNetwork(
 async function disableNetworkInternal(
   remoteStoreImpl: RemoteStoreImpl
 ): Promise<void> {
-  await remoteStoreImpl.writeStream.stop();
-  await remoteStoreImpl.watchStream.stop();
-
-  if (remoteStoreImpl.writePipeline.length > 0) {
-    logDebug(
-      LOG_TAG,
-      `Stopping write stream with ${remoteStoreImpl.writePipeline.length} pending writes`
-    );
-    remoteStoreImpl.writePipeline = [];
+  for (const networkStatusHandler of remoteStoreImpl.onNetworkStatusChange) {
+    await networkStatusHandler(/* enabled= */ false);
   }
-
-  cleanUpWatchStreamState(remoteStoreImpl);
 }
 
 export async function remoteStoreShutdown(
@@ -316,7 +287,7 @@ export function remoteStoreListen(
   if (shouldStartWatchStream(remoteStoreImpl)) {
     // The listen will be sent in onWatchStreamOpen
     startWatchStream(remoteStoreImpl);
-  } else if (remoteStoreImpl.watchStream.isOpen()) {
+  } else if (ensureWatchStream(remoteStoreImpl).isOpen()) {
     sendWatchRequest(remoteStoreImpl, targetData);
   }
 }
@@ -330,6 +301,7 @@ export function remoteStoreUnlisten(
   targetId: TargetId
 ): void {
   const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
+  const watchStream = ensureWatchStream(remoteStoreImpl);
 
   debugAssert(
     remoteStoreImpl.listenTargets.has(targetId),
@@ -337,13 +309,13 @@ export function remoteStoreUnlisten(
   );
 
   remoteStoreImpl.listenTargets.delete(targetId);
-  if (remoteStoreImpl.watchStream.isOpen()) {
+  if (watchStream.isOpen()) {
     sendUnwatchRequest(remoteStoreImpl, targetId);
   }
 
   if (remoteStoreImpl.listenTargets.size === 0) {
-    if (remoteStoreImpl.watchStream.isOpen()) {
-      remoteStoreImpl.watchStream.markIdle();
+    if (watchStream.isOpen()) {
+      watchStream.markIdle();
     } else if (canUseNetwork(remoteStoreImpl)) {
       // Revert to OnlineState.Unknown if the watch stream is not open and we
       // have no listeners, since without any listens to send we cannot
@@ -364,7 +336,7 @@ function sendWatchRequest(
   remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(
     targetData.targetId
   );
-  remoteStoreImpl.watchStream.watch(targetData);
+  ensureWatchStream(remoteStoreImpl).watch(targetData);
 }
 
 /**
@@ -377,7 +349,7 @@ function sendUnwatchRequest(
   targetId: TargetId
 ): void {
   remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(targetId);
-  remoteStoreImpl.watchStream.unwatch(targetId);
+  ensureWatchStream(remoteStoreImpl).unwatch(targetId);
 }
 
 function startWatchStream(remoteStoreImpl: RemoteStoreImpl): void {
@@ -396,7 +368,7 @@ function startWatchStream(remoteStoreImpl: RemoteStoreImpl): void {
     getTargetDataForTarget: targetId =>
       remoteStoreImpl.listenTargets.get(targetId) || null
   });
-  remoteStoreImpl.watchStream.start();
+  ensureWatchStream(remoteStoreImpl).start();
   remoteStoreImpl.onlineStateTracker.handleWatchStreamStart();
 }
 
@@ -407,7 +379,7 @@ function startWatchStream(remoteStoreImpl: RemoteStoreImpl): void {
 function shouldStartWatchStream(remoteStoreImpl: RemoteStoreImpl): boolean {
   return (
     canUseNetwork(remoteStoreImpl) &&
-    !remoteStoreImpl.watchStream.isStarted() &&
+    !ensureWatchStream(remoteStoreImpl).isStarted() &&
     remoteStoreImpl.listenTargets.size > 0
   );
 }
@@ -418,7 +390,7 @@ export function canUseNetwork(remoteStore: RemoteStore): boolean {
 }
 
 function cleanUpWatchStreamState(remoteStoreImpl: RemoteStoreImpl): void {
-  remoteStoreImpl.watchChangeAggregator = null;
+  remoteStoreImpl.watchChangeAggregator = undefined;
 }
 
 async function onWatchStreamOpen(
@@ -679,6 +651,7 @@ export async function fillWritePipeline(
   remoteStore: RemoteStore
 ): Promise<void> {
   const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
+  const writeStream = ensureWriteStream(remoteStoreImpl);
 
   let lastBatchIdRetrieved =
     remoteStoreImpl.writePipeline.length > 0
@@ -695,7 +668,7 @@ export async function fillWritePipeline(
 
       if (batch === null) {
         if (remoteStoreImpl.writePipeline.length === 0) {
-          remoteStoreImpl.writeStream.markIdle();
+          writeStream.markIdle();
         }
         break;
       } else {
@@ -743,18 +716,16 @@ function addToWritePipeline(
   );
   remoteStoreImpl.writePipeline.push(batch);
 
-  if (
-    remoteStoreImpl.writeStream.isOpen() &&
-    remoteStoreImpl.writeStream.handshakeComplete
-  ) {
-    remoteStoreImpl.writeStream.writeMutations(batch.mutations);
+  const writeStream = ensureWriteStream(remoteStoreImpl);
+  if (writeStream.isOpen() && writeStream.handshakeComplete) {
+    writeStream.writeMutations(batch.mutations);
   }
 }
 
 function shouldStartWriteStream(remoteStoreImpl: RemoteStoreImpl): boolean {
   return (
     canUseNetwork(remoteStoreImpl) &&
-    !remoteStoreImpl.writeStream.isStarted() &&
+    !ensureWriteStream(remoteStoreImpl).isStarted() &&
     remoteStoreImpl.writePipeline.length > 0
   );
 }
@@ -764,21 +735,22 @@ function startWriteStream(remoteStoreImpl: RemoteStoreImpl): void {
     shouldStartWriteStream(remoteStoreImpl),
     'startWriteStream() called when shouldStartWriteStream() is false.'
   );
-  remoteStoreImpl.writeStream.start();
+  ensureWriteStream(remoteStoreImpl).start();
 }
 
 async function onWriteStreamOpen(
   remoteStoreImpl: RemoteStoreImpl
 ): Promise<void> {
-  remoteStoreImpl.writeStream.writeHandshake();
+  ensureWriteStream(remoteStoreImpl).writeHandshake();
 }
 
 async function onWriteHandshakeComplete(
   remoteStoreImpl: RemoteStoreImpl
 ): Promise<void> {
+  const writeStream = ensureWriteStream(remoteStoreImpl);
   // Send the write pipeline now that the stream is established.
   for (const batch of remoteStoreImpl.writePipeline) {
-    remoteStoreImpl.writeStream.writeMutations(batch.mutations);
+    writeStream.writeMutations(batch.mutations);
   }
 }
 
@@ -824,7 +796,7 @@ async function onWriteStreamClose(
 
   // If the write stream closed after the write handshake completes, a write
   // operation failed and we fail the pending operation.
-  if (error && remoteStoreImpl.writeStream.handshakeComplete) {
+  if (error && ensureWriteStream(remoteStoreImpl).handshakeComplete) {
     // This error affects the actual write.
     await handleWriteError(remoteStoreImpl, error!);
   }
@@ -850,7 +822,7 @@ async function handleWriteError(
     // In this case it's also unlikely that the server itself is melting
     // down -- this was just a bad request so inhibit backoff on the next
     // restart.
-    remoteStoreImpl.writeStream.inhibitBackoff();
+    ensureWriteStream(remoteStoreImpl).inhibitBackoff();
 
     debugAssert(
       !!remoteStoreImpl.remoteSyncer.rejectFailedWrite,
@@ -872,8 +844,6 @@ async function restartNetwork(remoteStore: RemoteStore): Promise<void> {
   const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
   remoteStoreImpl.offlineCauses.add(OfflineCause.ConnectivityChange);
   await disableNetworkInternal(remoteStoreImpl);
-  remoteStoreImpl.writeStream.inhibitBackoff();
-  remoteStoreImpl.watchStream.inhibitBackoff();
   remoteStoreImpl.onlineStateTracker.set(OnlineState.Unknown);
   remoteStoreImpl.offlineCauses.delete(OfflineCause.ConnectivityChange);
   await enableNetworkInternal(remoteStoreImpl);
@@ -923,4 +893,100 @@ export async function remoteStoreApplyPrimaryState(
     await disableNetworkInternal(remoteStoreImpl);
     remoteStoreImpl.onlineStateTracker.set(OnlineState.Unknown);
   }
+}
+
+/**
+ * If not yet initialized, registers the WatchStream and its network state
+ * callback with `remoteStoreImpl`. Returns the existing stream if one is
+ * already available.
+ *
+ * PORTING NOTE: On iOS and Android, the WatchStream gets registered on startup.
+ * This is not done on Web to allow it to be tree-shaken.
+ */
+function ensureWatchStream(
+  remoteStoreImpl: RemoteStoreImpl
+): PersistentListenStream {
+  if (!remoteStoreImpl.watchStream) {
+    // Create stream (but note that it is not started yet).
+    remoteStoreImpl.watchStream = newPersistentWatchStream(
+      remoteStoreImpl.datastore,
+      remoteStoreImpl.asyncQueue,
+      {
+        onOpen: onWatchStreamOpen.bind(null, remoteStoreImpl),
+        onClose: onWatchStreamClose.bind(null, remoteStoreImpl),
+        onWatchChange: onWatchStreamChange.bind(null, remoteStoreImpl)
+      }
+    );
+
+    remoteStoreImpl.onNetworkStatusChange.push(async enabled => {
+      if (enabled) {
+        remoteStoreImpl.watchStream!.inhibitBackoff();
+        if (shouldStartWatchStream(remoteStoreImpl)) {
+          startWatchStream(remoteStoreImpl);
+        } else {
+          remoteStoreImpl.onlineStateTracker.set(OnlineState.Unknown);
+        }
+      } else {
+        await remoteStoreImpl.watchStream!.stop();
+        cleanUpWatchStreamState(remoteStoreImpl);
+      }
+    });
+  }
+
+  return remoteStoreImpl.watchStream;
+}
+
+/**
+ * If not yet initialized, registers the WriteStream and its network state
+ * callback with `remoteStoreImpl`. Returns the existing stream if one is
+ * already available.
+ *
+ * PORTING NOTE: On iOS and Android, the WriteStream gets registered on startup.
+ * This is not done on Web to allow it to be tree-shaken.
+ */
+function ensureWriteStream(
+  remoteStoreImpl: RemoteStoreImpl
+): PersistentWriteStream {
+  if (!remoteStoreImpl.writeStream) {
+    debugAssert(
+      remoteStoreImpl.writePipeline.length === 0,
+      'Should not issue writes before WriteStream is enabled'
+    );
+
+    // Create stream (but note that it is not started yet).
+    remoteStoreImpl.writeStream = newPersistentWriteStream(
+      remoteStoreImpl.datastore,
+      remoteStoreImpl.asyncQueue,
+      {
+        onOpen: onWriteStreamOpen.bind(null, remoteStoreImpl),
+        onClose: onWriteStreamClose.bind(null, remoteStoreImpl),
+        onHandshakeComplete: onWriteHandshakeComplete.bind(
+          null,
+          remoteStoreImpl
+        ),
+        onMutationResult: onMutationResult.bind(null, remoteStoreImpl)
+      }
+    );
+
+    remoteStoreImpl.onNetworkStatusChange.push(async enabled => {
+      if (enabled) {
+        remoteStoreImpl.writeStream!.inhibitBackoff();
+
+        // This will start the write stream if necessary.
+        await fillWritePipeline(remoteStoreImpl);
+      } else {
+        await remoteStoreImpl.writeStream!.stop();
+
+        if (remoteStoreImpl.writePipeline.length > 0) {
+          logDebug(
+            LOG_TAG,
+            `Stopping write stream with ${remoteStoreImpl.writePipeline.length} pending writes`
+          );
+          remoteStoreImpl.writePipeline = [];
+        }
+      }
+    });
+  }
+
+  return remoteStoreImpl.writeStream;
 }
