@@ -196,9 +196,7 @@ describe('extractDeclarations on .d.ts file', () => {
     expect(extractedDeclarations.variables).to.include.members(['aVar']);
   });
 });
-//TODO: Temporarily disabled due to causing timeout issues.
-// eslint-disable-next-line no-restricted-globals
-xdescribe('extractDeclarations on js bundle file', () => {
+describe('extractDeclarations on js bundle file', () => {
   let subsetExportsBundleFile: string;
   let extractedDeclarations: MemberList;
   before(() => {
@@ -250,7 +248,7 @@ xdescribe('extractDeclarations on js bundle file', () => {
     classesArray.sort();
     expect(extractedDeclarations.classes).to.have.members(classesArray);
   });
-});
+}).timeout(120000);
 
 describe('test dedup helper function', () => {
   it('test dedup with non-empty entries', () => {
