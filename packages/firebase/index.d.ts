@@ -8215,7 +8215,7 @@ declare namespace firebase.firestore {
      */
     onSnapshotsInSync(observer: {
       next?: (value: void) => void;
-      error?: (error: Error) => void;
+      error?: (error: FirestoreError) => void;
       complete?: () => void;
     }): () => void;
 
@@ -8843,7 +8843,7 @@ declare namespace firebase.firestore {
       options: SnapshotListenOptions,
       observer: {
         next?: (snapshot: DocumentSnapshot<T>) => void;
-        error?: (error: Error) => void;
+        error?: (error: FirestoreError) => void;
         complete?: () => void;
       }
     ): () => void;
@@ -8864,7 +8864,7 @@ declare namespace firebase.firestore {
      */
     onSnapshot(
       onNext: (snapshot: DocumentSnapshot<T>) => void,
-      onError?: (error: Error) => void,
+      onError?: (error: FirestoreError) => void,
       onCompletion?: () => void
     ): () => void;
     /**
@@ -8886,7 +8886,7 @@ declare namespace firebase.firestore {
     onSnapshot(
       options: SnapshotListenOptions,
       onNext: (snapshot: DocumentSnapshot<T>) => void,
-      onError?: (error: Error) => void,
+      onError?: (error: FirestoreError) => void,
       onCompletion?: () => void
     ): () => void;
 
@@ -9273,7 +9273,7 @@ declare namespace firebase.firestore {
      */
     onSnapshot(observer: {
       next?: (snapshot: QuerySnapshot<T>) => void;
-      error?: (error: Error) => void;
+      error?: (error: FirestoreError) => void;
       complete?: () => void;
     }): () => void;
     /**
@@ -9294,7 +9294,7 @@ declare namespace firebase.firestore {
       options: SnapshotListenOptions,
       observer: {
         next?: (snapshot: QuerySnapshot<T>) => void;
-        error?: (error: Error) => void;
+        error?: (error: FirestoreError) => void;
         complete?: () => void;
       }
     ): () => void;
@@ -9316,7 +9316,7 @@ declare namespace firebase.firestore {
      */
     onSnapshot(
       onNext: (snapshot: QuerySnapshot<T>) => void,
-      onError?: (error: Error) => void,
+      onError?: (error: FirestoreError) => void,
       onCompletion?: () => void
     ): () => void;
     /**
@@ -9339,7 +9339,7 @@ declare namespace firebase.firestore {
     onSnapshot(
       options: SnapshotListenOptions,
       onNext: (snapshot: QuerySnapshot<T>) => void,
-      onError?: (error: Error) => void,
+      onError?: (error: FirestoreError) => void,
       onCompletion?: () => void
     ): () => void;
 

@@ -262,7 +262,7 @@ export class ParseContext {
     return this.contextWith({ path: undefined, arrayElement: true });
   }
 
-  createError(reason: string): Error {
+  createError(reason: string): FirestoreError {
     return createError(
       reason,
       this.settings.methodName,
@@ -832,7 +832,7 @@ function createError(
   hasConverter: boolean,
   path?: FieldPath,
   targetDoc?: DocumentKey
-): Error {
+): FirestoreError {
   const hasPath = path && !path.isEmpty();
   const hasDocument = targetDoc !== undefined;
   let message = `Function ${methodName}() called with invalid data`;
