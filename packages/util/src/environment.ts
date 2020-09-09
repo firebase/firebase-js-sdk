@@ -72,22 +72,40 @@ export function isBrowser(): boolean {
   return typeof self === 'object' && self.self === self;
 }
 
+interface Client {
+  readonly id: string;
+  readonly type: ClientTypes;
+  readonly url: string;
+}
+
 /**
- * Detect browser extensions (Chrome and Firefox at least).
+ * Returns browser extension runtime or undefined if it's not defined.
+ * @return browser extension runtime
  */
 interface BrowserRuntime {
   id?: unknown;
+  getBackgroundClient?: () => Client;
 }
 declare const chrome: { runtime?: BrowserRuntime };
 declare const browser: { runtime?: BrowserRuntime };
-export function isBrowserExtension(): boolean {
+
+export function getBrowserExtensionRuntime(): BrowserRuntime | undefined {
   const runtime =
     typeof chrome === 'object'
       ? chrome.runtime
       : typeof browser === 'object'
       ? browser.runtime
       : undefined;
-  return typeof runtime === 'object' && runtime.id !== undefined;
+  return typeof runtime === 'object' && runtime.id !== undefined
+    ? runtime
+    : undefined;
+}
+
+/**
+ * Detect browser extensions (Chrome and Firefox at least).
+ */
+export function isBrowserExtension(): boolean {
+  return !!getBrowserExtensionRuntime();
 }
 
 /**

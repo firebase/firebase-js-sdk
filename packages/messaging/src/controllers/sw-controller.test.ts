@@ -18,6 +18,7 @@
 import '../testing/setup';
 
 import * as tokenManagementModule from '../core/token-management';
+import * as utilModule from '@firebase/util';
 
 import { BgMessageHandler, SwController } from './sw-controller';
 import {
@@ -232,7 +233,33 @@ describe('SwController', () => {
       expect(postMessageSpy).to.have.been.calledOnceWith(expectedMessage);
     });
 
-    it('does not send a message to window clients if window clients are hidden', async () => {
+    it('(extension) send to the onMessage hook if the extension is visible', async () => {
+      const client: Writable<WindowClient> = (await self.clients.openWindow(
+        'chrome-extension://testExtensionId/popup.html'
+      ))!;
+      const backgroundClient: Writable<WindowClient> = (await self.clients.openWindow(
+        'chrome-extension://testExtensionId/background_page.html'
+      ))!;
+      client.visibilityState = 'visible';
+      stub(utilModule, 'getBrowserExtensionRuntime').returns({
+        getBackgroundClient() {
+          return backgroundClient;
+        }
+      });
+      const postMessageSpy = spy(client, 'postMessage');
+
+      await callEventListener(
+        makeEvent('push', {
+          data: {
+            json: () => DISPLAY_MESSAGE
+          }
+        })
+      );
+
+      expect(postMessageSpy).to.have.been.called;
+    });
+
+    it('does not send a message to onMessage if the app is background', async () => {
       const client = (await self.clients.openWindow('https://example.org'))!;
       const postMessageSpy = spy(client, 'postMessage');
       const showNotificationSpy = spy(self.registration, 'showNotification');

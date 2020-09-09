@@ -23,7 +23,12 @@ import {
   MessageType,
   NotificationPayloadInternal
 } from '../interfaces/internal-message-payload';
-import { NextFn, Observer, Unsubscribe } from '@firebase/util';
+import {
+  NextFn,
+  Observer,
+  Unsubscribe,
+  getBrowserExtensionRuntime
+} from '@firebase/util';
 import { deleteToken, getToken } from '../core/token-management';
 
 import { FirebaseApp } from '@firebase/app-types';
@@ -182,7 +187,7 @@ export class SwController implements FirebaseMessaging, FirebaseService {
 
     // foreground handling: eventually passed to onMessage hook
     const clientList = await getClientList();
-    if (hasVisibleClients(clientList)) {
+    if (await hasVisibleClients(clientList)) {
       return sendMessagePayloadInternalToWindows(clientList, internalPayload);
     }
 
@@ -193,8 +198,8 @@ export class SwController implements FirebaseMessaging, FirebaseService {
       isNotificationShown = true;
     }
 
-    // MessagePayload is only passed to `onBackgroundMessage`. Skip passing MessagePayload for
-    // the legacy `setBackgroundMessageHandler` to preserve the SDK behaviors.
+    // MessagePayload is only passed to `onBackgroundMessage`. Skip passing MessagePayload for the
+    // legacy `setBackgroundMessageHandler` to preserve the SDK behaviors.
     if (
       isNotificationShown === true &&
       this.isOnBackgroundMessageUsed === false
@@ -337,14 +342,40 @@ async function getWindowClient(url: URL): Promise<WindowClient | null> {
  * @returns If there is currently a visible WindowClient, this method will resolve to true,
  * otherwise false.
  */
-function hasVisibleClients(clientList: WindowClient[]): boolean {
-  return clientList.some(
-    client =>
-      client.visibilityState === 'visible' &&
-      // Ignore chrome-extension clients as that matches the background pages of extensions, which
-      // are always considered visible for some reason.
-      !client.url.startsWith('chrome-extension://')
+async function hasVisibleClients(clientList: WindowClient[]): Promise<boolean> {
+  const checkedClientList = await Promise.all(
+    clientList.map(
+      async client =>
+        client.visibilityState === 'visible' &&
+        // Ignore browser extension clients as that matches the background pages of extensions,
+        // which are always considered visible for some reason.
+        !(await isExtensionBackgroundClient(client))
+    )
   );
+
+  return checkedClientList.some(item => item);
+}
+
+/**
+ * @returns If client is the background page of browser extension, this method will resolve to true,
+ * otherwise false.
+ */
+async function isExtensionBackgroundClient(
+  client: WindowClient
+): Promise<boolean> {
+  const runtime = getBrowserExtensionRuntime();
+
+  if (runtime && runtime.getBackgroundClient) {
+    try {
+      const backgroundClient = await runtime.getBackgroundClient();
+      return client === backgroundClient;
+    } catch (e) {
+      console.error('Error while calling "getBackgroundClient": ', e);
+      return false;
+    }
+  }
+
+  return false;
 }
 
 function sendMessagePayloadInternalToWindows(
