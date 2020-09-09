@@ -22,16 +22,14 @@ import * as firestore from '../../../exp-types';
 import { cast } from '../../../lite/src/api/util';
 import { WriteBatch } from '../../../lite/src/api/write_batch';
 import { Firestore } from './database';
-import { getSyncEngine } from './components';
-import { enqueueWrite } from '../../../src/core/firestore_client';
+import { executeWrite } from './reference';
 
 export function writeBatch(
   firestore: firestore.FirebaseFirestore
 ): firestore.WriteBatch {
   const firestoreImpl = cast(firestore, Firestore);
-  return new WriteBatch(firestoreImpl, writes =>
-    getSyncEngine(firestoreImpl).then(syncEngine =>
-      enqueueWrite(firestoreImpl._queue, syncEngine, writes)
-    )
+  firestoreImpl._verifyNotTerminated();
+  return new WriteBatch(firestoreImpl, mutations =>
+    executeWrite(firestoreImpl, mutations)
   );
 }

@@ -17,7 +17,6 @@
 
 import { Firestore } from './database';
 import { PersistenceSettings } from '../../../src/core/firestore_client';
-import { Code, FirestoreError } from '../../../src/util/error';
 import {
   MemoryOfflineComponentProvider,
   OfflineComponentProvider,
@@ -115,7 +114,7 @@ export async function setOnlineComponentProvider(
 function getOfflineComponentProvider(
   firestore: Firestore
 ): Promise<OfflineComponentProvider> {
-  verifyNotTerminated(firestore);
+  firestore._queue.verifyOperationInProgress();
 
   if (!offlineComponentProviders.has(firestore)) {
     logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
@@ -132,7 +131,7 @@ function getOfflineComponentProvider(
 function getOnlineComponentProvider(
   firestore: Firestore
 ): Promise<OnlineComponentProvider> {
-  verifyNotTerminated(firestore);
+  firestore._queue.verifyOperationInProgress();
 
   if (!onlineComponentProviders.has(firestore)) {
     logDebug(LOG_TAG, 'Using default OnlineComponentProvider');
@@ -140,15 +139,6 @@ function getOnlineComponentProvider(
     setOnlineComponentProvider(firestore, new OnlineComponentProvider());
   }
   return onlineComponentProviders.get(firestore)!;
-}
-
-function verifyNotTerminated(firestore: Firestore): void {
-  if (firestore._terminated) {
-    throw new FirestoreError(
-      Code.FAILED_PRECONDITION,
-      'The client has already been terminated.'
-    );
-  }
 }
 
 // Note: These functions cannot be `async` since we want to throw an exception

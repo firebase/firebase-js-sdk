@@ -44,7 +44,11 @@ import {
   Query
 } from '../../../lite/src/api/reference';
 import { Document } from '../../../src/model/document';
-import { DeleteMutation, Precondition } from '../../../src/model/mutation';
+import {
+  DeleteMutation,
+  Mutation,
+  Precondition
+} from '../../../src/model/mutation';
 import { FieldPath } from '../../../lite/src/api/field_path';
 import {
   CompleteFn,
@@ -56,27 +60,46 @@ import {
 } from '../../../src/api/observer';
 import { getEventManager, getLocalStore, getSyncEngine } from './components';
 import {
-  enqueueListen,
-  enqueueWrite,
-  enqueueExecuteQueryViaSnapshotListener,
-  enqueueReadDocumentViaSnapshotListener,
-  enqueueReadDocumentFromCache,
-  enqueueExecuteQueryFromCache,
-  enqueueSnapshotsInSyncListen
+  executeQueryViaSnapshotListener,
+  readDocumentViaSnapshotListener,
+  readDocumentFromCache,
+  executeQueryFromCache
 } from '../../../src/core/firestore_client';
-import { newQueryForPath } from '../../../src/core/query';
+import {
+  newQueryForPath,
+  Query as InternalQuery
+} from '../../../src/core/query';
+import { Deferred } from '../../../src/util/promise';
+import { syncEngineWrite } from '../../../src/core/sync_engine';
+import { AsyncObserver } from '../../../src/util/async_observer';
+import {
+  addSnapshotsInSyncListener,
+  eventManagerListen,
+  eventManagerUnlisten,
+  QueryListener,
+  removeSnapshotsInSyncListener
+} from '../../../src/core/event_manager';
 
 export function getDoc<T>(
   reference: firestore.DocumentReference<T>
 ): Promise<firestore.DocumentSnapshot<T>> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
-  return getEventManager(firestore).then(eventManager =>
-    enqueueReadDocumentViaSnapshotListener(
-      firestore._queue,
+  firestore._verifyNotTerminated();
+
+  const deferred = new Deferred<ViewSnapshot>();
+  firestore._queue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(firestore);
+    await readDocumentViaSnapshotListener(
       eventManager,
-      ref._key
-    ).then(doc => convertToDocSnapshot(firestore, ref, doc))
+      firestore._queue,
+      ref._key,
+      { source: 'default' },
+      deferred
+    );
+  });
+  return deferred.promise.then(snapshot =>
+    convertToDocSnapshot(firestore, ref, snapshot)
   );
 }
 
@@ -85,20 +108,25 @@ export function getDocFromCache<T>(
 ): Promise<firestore.DocumentSnapshot<T>> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
-  return getLocalStore(firestore).then(localStore =>
-    enqueueReadDocumentFromCache(firestore._queue, localStore, ref._key).then(
-      doc =>
-        new DocumentSnapshot(
-          firestore,
-          ref._key,
-          doc,
-          new SnapshotMetadata(
-            doc instanceof Document ? doc.hasLocalMutations : false,
-            /* fromCache= */ true
-          ),
-          ref._converter
-        )
-    )
+  firestore._verifyNotTerminated();
+
+  const deferred = new Deferred<Document | null>();
+  firestore._queue.enqueueAndForget(async () => {
+    const localStore = await getLocalStore(firestore);
+    await readDocumentFromCache(localStore, ref._key, deferred);
+  });
+  return deferred.promise.then(
+    doc =>
+      new DocumentSnapshot(
+        firestore,
+        ref._key,
+        doc,
+        new SnapshotMetadata(
+          doc instanceof Document ? doc.hasLocalMutations : false,
+          /* fromCache= */ true
+        ),
+        ref._converter
+      )
   );
 }
 
@@ -107,13 +135,21 @@ export function getDocFromServer<T>(
 ): Promise<firestore.DocumentSnapshot<T>> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast<Firestore>(ref.firestore, Firestore);
-  return getEventManager(firestore).then(eventManager =>
-    enqueueReadDocumentViaSnapshotListener(
-      firestore._queue,
+  firestore._verifyNotTerminated();
+
+  const deferred = new Deferred<ViewSnapshot>();
+  firestore._queue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(firestore);
+    await readDocumentViaSnapshotListener(
       eventManager,
+      firestore._queue,
       ref._key,
-      { source: 'server' }
-    ).then(viewSnapshot => convertToDocSnapshot(firestore, ref, viewSnapshot))
+      { source: 'server' },
+      deferred
+    );
+  });
+  return deferred.promise.then(snapshot =>
+    convertToDocSnapshot(firestore, ref, snapshot)
   );
 }
 
@@ -122,14 +158,23 @@ export function getDocs<T>(
 ): Promise<QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
   const firestore = cast<Firestore>(query.firestore, Firestore);
+  firestore._verifyNotTerminated();
 
   validateHasExplicitOrderByForLimitToLast(internalQuery._query);
-  return getEventManager(firestore).then(eventManager =>
-    enqueueExecuteQueryViaSnapshotListener(
-      firestore._queue,
+
+  const deferred = new Deferred<ViewSnapshot>();
+  firestore._queue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(firestore);
+    await executeQueryViaSnapshotListener(
       eventManager,
-      internalQuery._query
-    ).then(snapshot => new QuerySnapshot(firestore, internalQuery, snapshot))
+      firestore._queue,
+      internalQuery._query,
+      { source: 'default' },
+      deferred
+    );
+  });
+  return deferred.promise.then(
+    snapshot => new QuerySnapshot(firestore, internalQuery, snapshot)
   );
 }
 
@@ -138,12 +183,15 @@ export function getDocsFromCache<T>(
 ): Promise<QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
   const firestore = cast<Firestore>(query.firestore, Firestore);
-  return getLocalStore(firestore).then(localStore =>
-    enqueueExecuteQueryFromCache(
-      firestore._queue,
-      localStore,
-      internalQuery._query
-    ).then(snapshot => new QuerySnapshot(firestore, internalQuery, snapshot))
+  firestore._verifyNotTerminated();
+
+  const deferred = new Deferred<ViewSnapshot>();
+  firestore._queue.enqueueAndForget(async () => {
+    const localStore = await getLocalStore(firestore);
+    await executeQueryFromCache(localStore, internalQuery._query, deferred);
+  });
+  return deferred.promise.then(
+    snapshot => new QuerySnapshot(firestore, internalQuery, snapshot)
   );
 }
 
@@ -152,13 +200,21 @@ export function getDocsFromServer<T>(
 ): Promise<QuerySnapshot<T>> {
   const internalQuery = cast<Query<T>>(query, Query);
   const firestore = cast<Firestore>(query.firestore, Firestore);
-  return getEventManager(firestore).then(eventManager =>
-    enqueueExecuteQueryViaSnapshotListener(
-      firestore._queue,
+  firestore._verifyNotTerminated();
+
+  const deferred = new Deferred<ViewSnapshot>();
+  firestore._queue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(firestore);
+    await executeQueryViaSnapshotListener(
       eventManager,
+      firestore._queue,
       internalQuery._query,
-      { source: 'server' }
-    ).then(snapshot => new QuerySnapshot(firestore, internalQuery, snapshot))
+      { source: 'server' },
+      deferred
+    );
+  });
+  return deferred.promise.then(
+    snapshot => new QuerySnapshot(firestore, internalQuery, snapshot)
   );
 }
 
@@ -178,6 +234,7 @@ export function setDoc<T>(
 ): Promise<void> {
   const ref = cast<DocumentReference<T>>(reference, DocumentReference);
   const firestore = cast(ref.firestore, Firestore);
+  firestore._verifyNotTerminated();
 
   const convertedValue = applyFirestoreDataConverter(
     ref._converter,
@@ -194,13 +251,8 @@ export function setDoc<T>(
     options
   );
 
-  return getSyncEngine(firestore).then(syncEngine =>
-    enqueueWrite(
-      firestore._queue,
-      syncEngine,
-      parsed.toMutations(ref._key, Precondition.none())
-    )
-  );
+  const mutations = parsed.toMutations(ref._key, Precondition.none());
+  return executeWrite(firestore, mutations);
 }
 
 export function updateDoc(
@@ -221,6 +273,8 @@ export function updateDoc(
 ): Promise<void> {
   const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
   const firestore = cast(ref.firestore, Firestore);
+  firestore._verifyNotTerminated();
+
   const dataReader = newUserDataReader(firestore);
 
   let parsed: ParsedUpdateData;
@@ -245,13 +299,8 @@ export function updateDoc(
     );
   }
 
-  return getSyncEngine(firestore).then(syncEngine =>
-    enqueueWrite(
-      firestore._queue,
-      syncEngine,
-      parsed.toMutations(ref._key, Precondition.exists(true))
-    )
-  );
+  const mutations = parsed.toMutations(ref._key, Precondition.exists(true));
+  return executeWrite(firestore, mutations);
 }
 
 export function deleteDoc(
@@ -259,11 +308,10 @@ export function deleteDoc(
 ): Promise<void> {
   const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
   const firestore = cast(ref.firestore, Firestore);
-  return getSyncEngine(firestore).then(syncEngine =>
-    enqueueWrite(firestore._queue, syncEngine, [
-      new DeleteMutation(ref._key, Precondition.none())
-    ])
-  );
+  firestore._verifyNotTerminated();
+
+  const mutations = [new DeleteMutation(ref._key, Precondition.none())];
+  return executeWrite(firestore, mutations);
 }
 
 export function addDoc<T>(
@@ -272,8 +320,9 @@ export function addDoc<T>(
 ): Promise<firestore.DocumentReference<T>> {
   const collRef = cast<CollectionReference<T>>(reference, CollectionReference);
   const firestore = cast(collRef.firestore, Firestore);
-  const docRef = doc(collRef);
+  firestore._verifyNotTerminated();
 
+  const docRef = doc(collRef);
   const convertedValue = applyFirestoreDataConverter(collRef.converter, data);
 
   const dataReader = newUserDataReader(collRef.firestore);
@@ -286,15 +335,8 @@ export function addDoc<T>(
     {}
   );
 
-  return getSyncEngine(firestore)
-    .then(syncEngine =>
-      enqueueWrite(
-        firestore._queue,
-        syncEngine,
-        parsed.toMutations(docRef._key, Precondition.exists(false))
-      )
-    )
-    .then(() => docRef);
+  const mutations = parsed.toMutations(docRef._key, Precondition.exists(false));
+  return executeWrite(firestore, mutations).then(() => docRef);
 }
 
 // TODO(firestorexp): Make sure these overloads are tested via the Firestore
@@ -385,12 +427,15 @@ export function onSnapshot<T>(
     args[currArg + 2] = userObserver.complete?.bind(userObserver);
   }
 
-  let asyncUnsubscribe: Promise<Unsubscribe>;
+  let observer: PartialObserver<ViewSnapshot>;
+  let firestore: Firestore;
+  let internalQuery: InternalQuery;
 
   if (ref instanceof DocumentReference) {
-    const firestore = cast(ref.firestore, Firestore);
+    firestore = cast(ref.firestore, Firestore);
+    internalQuery = newQueryForPath(ref._key.path);
 
-    const observer: PartialObserver<ViewSnapshot> = {
+    observer = {
       next: snapshot => {
         if (args[currArg]) {
           (args[currArg] as NextFn<firestore.DocumentSnapshot<T>>)(
@@ -401,21 +446,12 @@ export function onSnapshot<T>(
       error: args[currArg + 1] as ErrorFn,
       complete: args[currArg + 2] as CompleteFn
     };
-
-    asyncUnsubscribe = getEventManager(firestore).then(eventManager =>
-      enqueueListen(
-        firestore._queue,
-        eventManager,
-        newQueryForPath(ref._key.path),
-        internalOptions,
-        observer
-      )
-    );
   } else {
     const query = cast<Query<T>>(ref, Query);
-    const firestore = cast(query.firestore, Firestore);
+    firestore = cast(query.firestore, Firestore);
+    internalQuery = query._query;
 
-    const observer: PartialObserver<ViewSnapshot> = {
+    observer = {
       next: snapshot => {
         if (args[currArg]) {
           (args[currArg] as NextFn<firestore.QuerySnapshot<T>>)(
@@ -428,23 +464,27 @@ export function onSnapshot<T>(
     };
 
     validateHasExplicitOrderByForLimitToLast(query._query);
-
-    asyncUnsubscribe = getEventManager(firestore).then(eventManager =>
-      enqueueListen(
-        firestore._queue,
-        eventManager,
-        query._query,
-        internalOptions,
-        observer
-      )
-    );
   }
 
-  // TODO(firestorexp): Add test that verifies that we don't raise a snapshot if
-  // unsubscribe is called before `asyncObserver` resolves.
+  firestore._verifyNotTerminated();
+
+  const wrappedObserver = new AsyncObserver(observer);
+  const listener = new QueryListener(
+    internalQuery,
+    wrappedObserver,
+    internalOptions
+  );
+  firestore._queue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(firestore);
+    return eventManagerListen(eventManager, listener);
+  });
+
   return () => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    asyncUnsubscribe.then(unsubscribe => unsubscribe());
+    wrappedObserver.mute();
+    firestore._queue.enqueueAndForget(async () => {
+      const eventManager = await getEventManager(firestore);
+      return eventManagerUnlisten(eventManager, listener);
+    });
   };
 }
 
@@ -467,22 +507,40 @@ export function onSnapshotsInSync(
   arg: unknown
 ): Unsubscribe {
   const firestoreImpl = cast(firestore, Firestore);
+  firestoreImpl._verifyNotTerminated();
+
   const observer = isPartialObserver(arg)
     ? (arg as PartialObserver<void>)
     : {
         next: arg as () => void
       };
 
-  const asyncObserver = getEventManager(firestoreImpl).then(eventManager =>
-    enqueueSnapshotsInSyncListen(firestoreImpl._queue, eventManager, observer)
-  );
+  const wrappedObserver = new AsyncObserver(observer);
+  firestoreImpl._queue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(firestoreImpl);
+    addSnapshotsInSyncListener(eventManager, wrappedObserver);
+  });
 
-  // TODO(firestorexp): Add test that verifies that we don't raise a snapshot if
-  // unsubscribe is called before `asyncObserver` resolves.
   return () => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    asyncObserver.then(unsubscribe => unsubscribe());
+    wrappedObserver.mute();
+    firestoreImpl._queue.enqueueAndForget(async () => {
+      const eventManager = await getEventManager(firestoreImpl);
+      removeSnapshotsInSyncListener(eventManager, wrappedObserver);
+    });
   };
+}
+
+/** Locally writes `mutations` on the async queue. */
+export function executeWrite(
+  firestore: Firestore,
+  mutations: Mutation[]
+): Promise<void> {
+  const deferred = new Deferred<void>();
+  firestore._queue.enqueueAndForget(async () => {
+    const syncEngine = await getSyncEngine(firestore);
+    return syncEngineWrite(syncEngine, mutations, deferred);
+  });
+  return deferred.promise;
 }
 
 /**

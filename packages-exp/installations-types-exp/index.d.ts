@@ -22,7 +22,7 @@ export interface FirebaseInstallations {}
 
 /**
  * An interface for Firebase internal SDKs use only.
- * 
+ *
  * @internal
  */
 export interface _FirebaseInstallationsInternal {

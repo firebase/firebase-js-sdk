@@ -52,7 +52,7 @@ export class Firestore
     readonly app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>
   ) {
-    this._databaseId = Firestore.databaseIdFromApp(app);
+    this._databaseId = Firestore._databaseIdFromApp(app);
     this._credentials = new FirebaseCredentialsProvider(authProvider);
   }
 
@@ -84,7 +84,7 @@ export class Firestore
     return this._settings;
   }
 
-  private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
+  private static _databaseIdFromApp(app: FirebaseApp): DatabaseId {
     if (!Object.prototype.hasOwnProperty.apply(app.options, ['projectId'])) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
