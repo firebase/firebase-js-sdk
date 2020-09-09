@@ -151,14 +151,13 @@ class RemoteStoreImpl implements RemoteStore {
   offlineCauses = new Set<OfflineCause>();
 
   /**
-   * Handler functions that get called when the network is disabled or
-   * enabled.
+   * Event handlers that get called when the network is disabled or enabled.
    *
    * PORTING NOTE: These functions are used on the Web client to create the
    * underlying streams (to support tree-shakeable streams). On Android and iOS,
    * the streams are created during construction of RemoteStore.
    */
-  networkStatusHandlers: Array<(enabled: boolean) => Promise<void>> = [];
+  onNetworkStatusChange: Array<(enabled: boolean) => Promise<void>> = [];
 
   onlineStateTracker: OnlineStateTracker;
 
@@ -225,7 +224,7 @@ async function enableNetworkInternal(
   remoteStoreImpl: RemoteStoreImpl
 ): Promise<void> {
   if (canUseNetwork(remoteStoreImpl)) {
-    for (const networkStatusHandler of remoteStoreImpl.networkStatusHandlers) {
+    for (const networkStatusHandler of remoteStoreImpl.onNetworkStatusChange) {
       await networkStatusHandler(/* enabled= */ true);
     }
   }
@@ -249,7 +248,7 @@ export async function remoteStoreDisableNetwork(
 async function disableNetworkInternal(
   remoteStoreImpl: RemoteStoreImpl
 ): Promise<void> {
-  for (const networkStatusHandler of remoteStoreImpl.networkStatusHandlers) {
+  for (const networkStatusHandler of remoteStoreImpl.onNetworkStatusChange) {
     await networkStatusHandler(/* enabled= */ false);
   }
 }
@@ -897,18 +896,6 @@ export async function remoteStoreApplyPrimaryState(
 }
 
 /**
- * Registers a callback function that is invoked when the network status
- * changes. Multiple callbacks are supported.
- */
-function addNetworkStatusChangedHandler(
-  remoteStore: RemoteStore,
-  handler: (enabled: boolean) => Promise<void>
-): void {
-  const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
-  remoteStoreImpl.networkStatusHandlers.push(handler);
-}
-
-/**
  * If not yet initialized, registers the WatchStream and its network state
  * callback with `remoteStoreImpl`. Returns the existing stream if one is
  * already available.
@@ -931,7 +918,7 @@ function ensureWatchStream(
       }
     );
 
-    addNetworkStatusChangedHandler(remoteStoreImpl, async enabled => {
+    remoteStoreImpl.onNetworkStatusChange.push(async enabled => {
       if (enabled) {
         remoteStoreImpl.watchStream!.inhibitBackoff();
         if (shouldStartWatchStream(remoteStoreImpl)) {
@@ -981,7 +968,7 @@ function ensureWriteStream(
       }
     );
 
-    addNetworkStatusChangedHandler(remoteStoreImpl, async enabled => {
+    remoteStoreImpl.onNetworkStatusChange.push(async enabled => {
       if (enabled) {
         remoteStoreImpl.writeStream!.inhibitBackoff();
 
