@@ -701,7 +701,8 @@ apiDescribe('Queries', (persistence: boolean) => {
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
-      let expected = { ...testDocs };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let expected: { [name: string]: any } = { ...testDocs };
       delete expected.a;
       delete expected.h;
       delete expected.i;
@@ -846,7 +847,8 @@ apiDescribe('Queries', (persistence: boolean) => {
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
-      let expected = { ...testDocs };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let expected: { [name: string]: any } = { ...testDocs };
       delete expected.a;
       delete expected.c;
       delete expected.g;
