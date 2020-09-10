@@ -1,5 +1,14 @@
 # @firebase/component
 
+## 0.1.19
+
+### Patch Changes
+
+- [`da1c7df79`](https://github.com/firebase/firebase-js-sdk/commit/da1c7df7982b08bbef82fcc8d93255f3e2d23cca) [#3601](https://github.com/firebase/firebase-js-sdk/pull/3601) - Correctly delete services created by modular SDKs when calling provider.delete()
+
+- Updated dependencies [[`fb3b095e4`](https://github.com/firebase/firebase-js-sdk/commit/fb3b095e4b7c8f57fdb3172bc039c84576abf290)]:
+  - @firebase/util@0.3.2
+
 ## 0.1.18
 
 ### Patch Changes

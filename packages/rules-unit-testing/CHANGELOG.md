@@ -1,5 +1,13 @@
 # @firebase/rules-unit-testing
 
+## 1.0.2
+
+### Patch Changes
+
+- Updated dependencies [[`fb3b095e4`](https://github.com/firebase/firebase-js-sdk/commit/fb3b095e4b7c8f57fdb3172bc039c84576abf290), [`fb3b095e4`](https://github.com/firebase/firebase-js-sdk/commit/fb3b095e4b7c8f57fdb3172bc039c84576abf290)]:
+  - @firebase/util@0.3.2
+  - firebase@7.20.0
+
 ## 1.0.1
 
 ### Patch Changes
