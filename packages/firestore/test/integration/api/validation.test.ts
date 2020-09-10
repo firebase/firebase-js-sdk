@@ -589,18 +589,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
         });
     });
 
-    validationIt(
-      persistence,
-      'validates CollectionReference.add with correct function name',
-      db => {
-        const coll = db.collection('foo');
-
-        expect(() => coll.add(new TestClass('foo'))).to.throw(
-          'Function CollectionReference.add() called with invalid data.'
-        );
-      }
-    );
-
     validationIt(persistence, 'must not contain undefined.', db => {
       // Note: This test uses the default setting for `ignoreUndefinedProperties`.
       return expectWriteToFail(
