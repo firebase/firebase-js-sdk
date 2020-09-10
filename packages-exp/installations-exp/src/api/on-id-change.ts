@@ -26,7 +26,7 @@ import { FirebaseInstallations } from '@firebase/installations-types-exp';
  */
 export type IdChangeCallbackFn = (installationId: string) => void;
 /**
- * An unsubscribe function that will remove the onIdChange callback when called.
+ * Unsubscribe a callback function previously added via {@link #IdChangeCallbackFn}.
  *
  * @public
  */
