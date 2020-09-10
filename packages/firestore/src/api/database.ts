@@ -2379,8 +2379,24 @@ export class CollectionReference<T = DocumentData>
       ? this._converter.toFirestore(value)
       : value;
     validateArgType('CollectionReference.add', 'object', 1, convertedValue);
+
+    // Call set() with the converted value directly to avoid calling toFirestore() a second time.
     const docRef = this.doc();
-    return docRef.set(value).then(() => docRef);
+    const defaultConverter: FirestoreDataConverter<DocumentData> = {
+      toFirestore(modelObject: DocumentData): DocumentData {
+        return modelObject;
+      },
+      fromFirestore(
+        snapshot: QueryDocumentSnapshot,
+        options: SnapshotOptions
+      ): DocumentData {
+        return snapshot.data(options)!;
+      }
+    };
+    return docRef
+      .withConverter(defaultConverter)
+      .set(convertedValue)
+      .then(() => docRef);
   }
 
   withConverter<U>(

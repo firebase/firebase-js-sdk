@@ -29,7 +29,8 @@ import { Transaction as InternalTransaction } from '../../../src/core/transactio
 import { validateReference } from '../../../lite/src/api/write_batch';
 import { getDatastore } from '../../../lite/src/api/components';
 
-export class Transaction extends LiteTransaction
+export class Transaction
+  extends LiteTransaction
   implements firestore.Transaction {
   // This class implements the same logic as the Transaction API in the Lite SDK
   // but is subclassed in order to return its own DocumentSnapshot types.
