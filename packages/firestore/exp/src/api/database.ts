@@ -62,6 +62,7 @@ import {
   remoteStoreDisableNetwork,
   remoteStoreEnableNetwork
 } from '../../../src/remote/remote_store';
+import { PersistenceSettings } from '../../../exp-types';
 
 const LOG_TAG = 'Firestore';
 
@@ -197,7 +198,8 @@ export function getFirestore(app: FirebaseApp): Firestore {
 }
 
 export function enableIndexedDbPersistence(
-  firestore: firestore.FirebaseFirestore
+  firestore: firestore.FirebaseFirestore,
+  persistenceSettings?: PersistenceSettings
 ): Promise<void> {
   const firestoreImpl = cast(firestore, Firestore);
   verifyNotInitialized(firestoreImpl);
@@ -214,7 +216,6 @@ export function enableIndexedDbPersistence(
   );
 
   return firestoreImpl._queue.enqueue(async () => {
-    // TODO(firestoreexp): Add forceOwningTab
     await setOfflineComponentProvider(
       firestoreImpl,
       {
@@ -222,7 +223,7 @@ export function enableIndexedDbPersistence(
         synchronizeTabs: false,
         cacheSizeBytes:
           settings.cacheSizeBytes || LruParams.DEFAULT_CACHE_SIZE_BYTES,
-        forceOwningTab: false
+        forceOwningTab: !!persistenceSettings?.forceOwnership
       },
       offlineComponentProvider
     );
