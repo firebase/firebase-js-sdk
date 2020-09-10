@@ -10,9 +10,7 @@
   "esm2017": "dist/index.esm2017.js",
   "lite": "dist/index.lite.js",
   "lite-esm2017": "dist/index.lite.esm2017.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
@@ -31,9 +29,9 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@firebase/app-exp": "0.0.800",
-    "@firebase/util": "0.3.1",
+    "@firebase/util": "0.3.2",
     "@firebase/logger": "0.2.6",
-    "@firebase/component": "0.1.18",
+    "@firebase/component": "0.1.19",
     "tslib": "^1.11.1",
     "dom-storage": "2.1.0",
     "xmlhttprequest": "1.8.0"
