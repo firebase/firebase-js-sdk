@@ -24,7 +24,7 @@ import {
 import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
 /**
- * Returns an authentication token for the current Firebase Installation.
+ * Returns an Installation auth token, identifying the current Firebase Installation.
  *
  * @public
  */

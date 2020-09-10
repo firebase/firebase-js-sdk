@@ -20,7 +20,7 @@ import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
 /**
- * An user defined callback function that takes action when Installations ID changes.
+ * An user defined callback function that gets called when Installations ID changes.
  *
  * @public
  */
