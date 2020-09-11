@@ -276,13 +276,3 @@ export function withTestCollectionSettings(
     }
   );
 }
-
-// TODO(ne-queries): This exists just so we don't have to do the cast
-// repeatedly. Once we expose '!=' publicly we can remove it and just use '!='
-// in all the tests.
-export const notEqualOp = '!=' as firestore.WhereFilterOp;
-
-// TODO(ne-queries): This exists just so we don't have to do the cast
-// repeatedly. Once we expose 'not-in' publicly we can remove it and just use 'in'
-// in all the tests.
-export const notInOp = 'not-in' as firestore.WhereFilterOp;
