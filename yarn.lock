@@ -7362,14 +7362,14 @@ git-remote-origin-url@^2.0.0:
     gitconfiglocal "^1.0.0"
     pify "^2.3.0"
 
-git-rev-sync@2.0.0:
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/git-rev-sync/-/git-rev-sync-2.0.0.tgz#82fb77d9281efe7e7947569380dda4d1c19f4cb3"
-  integrity sha512-vnHFv2eocTmt/wHqZm3ksxtVshK4vptT0cEoumk6hAYRFx3do6Qo7xHBTBCv29+r3ZZCQOQ1i328MUCsYF7AUw==
+git-rev-sync@3.0.1:
+  version "3.0.1"
+  resolved "https://registry.npmjs.org/git-rev-sync/-/git-rev-sync-3.0.1.tgz#a393a97f2e4b2a0cc41e512b48065e64f4d8ca3a"
+  integrity sha512-8xZzUwzukIuU3sasgYt3RELc3Ny7o+tbtvitnnU4a4j3djyZNpJ5JmqVX+K7Xv3gE/i7ln3hGdBfZ00T5WWoow==
   dependencies:
     escape-string-regexp "1.0.5"
     graceful-fs "4.1.15"
-    shelljs "0.7.7"
+    shelljs "0.8.4"
 
 git-semver-tags@^2.0.3:
   version "2.0.3"
@@ -13560,16 +13560,7 @@ shell-quote@^1.6.1:
   resolved "https://registry.npmjs.org/shell-quote/-/shell-quote-1.7.2.tgz#67a7d02c76c9da24f99d20808fcaded0e0e04be2"
   integrity sha512-mRz/m/JVscCrkMyPqHc/bczi3OQHkLTqXHEFu0zDhK/qfv3UcOA4SVmRCLmos4bhjr9ekVQubj/R7waKapmiQg==
 
-shelljs@0.7.7:
-  version "0.7.7"
-  resolved "https://registry.npmjs.org/shelljs/-/shelljs-0.7.7.tgz#b2f5c77ef97148f4b4f6e22682e10bba8667cff1"
-  integrity sha1-svXHfvlxSPS09uImguELuoZnz/E=
-  dependencies:
-    glob "^7.0.0"
-    interpret "^1.0.0"
-    rechoir "^0.6.2"
-
-shelljs@^0.8.3:
+shelljs@0.8.4, shelljs@^0.8.3:
   version "0.8.4"
   resolved "https://registry.npmjs.org/shelljs/-/shelljs-0.8.4.tgz#de7684feeb767f8716b326078a8a00875890e3c2"
   integrity sha512-7gk3UZ9kOfPLIAbslLzyWeGiEqx9e3rxwZM0KE6EL8GlGwjym9Mrlx5/p33bWTu9YG6vcS4MBxYZDHYr5lr8BQ==
