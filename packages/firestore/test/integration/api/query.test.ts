@@ -832,7 +832,8 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  it('can use NOT_IN filters', async () => {
+  // TODO(ne-queries): re-enable in next PR to make public.
+  it.skip('can use NOT_IN filters', async () => {
     const testDocs = {
       a: { zip: 98101 },
       b: { zip: 91102 },
