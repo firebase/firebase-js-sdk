@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../../exp-types';
-
 import { DocumentKey } from '../../../src/model/document_key';
 import { Document } from '../../../src/model/document';
 import {
@@ -24,15 +22,17 @@ import {
   UserDataWriter
 } from '../../../src/api/user_data_writer';
 import {
-  fieldPathFromArgument,
-  DocumentSnapshot as LiteDocumentSnapshot
+  DocumentSnapshot as LiteDocumentSnapshot,
+  fieldPathFromArgument
 } from '../../../lite/src/api/snapshot';
-import { Firestore } from './database';
+import { FirebaseFirestore } from './database';
 import { cast } from '../../../lite/src/api/util';
 import {
+  DocumentData,
   DocumentReference,
   Query,
-  queryEqual
+  queryEqual,
+  SetOptions
 } from '../../../lite/src/api/reference';
 import {
   changesFromSnapshot,
@@ -40,31 +40,55 @@ import {
 } from '../../../src/api/database';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { ViewSnapshot } from '../../../src/core/view_snapshot';
+import { FieldPath } from '../../../lite/src/api/field_path';
+import { SnapshotListenOptions } from './reference';
 import { Bytes } from '../../../lite/src/api/bytes';
 
 const DEFAULT_SERVER_TIMESTAMP_BEHAVIOR: ServerTimestampBehavior = 'none';
 
-export class DocumentSnapshot<T = firestore.DocumentData>
-  extends LiteDocumentSnapshot<T>
-  implements firestore.DocumentSnapshot<T> {
-  private readonly _firestoreImpl: Firestore;
+export interface FirestoreDataConverter<T> {
+  toFirestore(modelObject: T): DocumentData;
+  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+  fromFirestore(
+    snapshot: QueryDocumentSnapshot<DocumentData>,
+    options?: SnapshotOptions
+  ): T;
+}
+
+export interface SnapshotOptions {
+  readonly serverTimestamps?: 'estimate' | 'previous' | 'none';
+}
+
+export type DocumentChangeType = 'added' | 'removed' | 'modified';
+
+export interface DocumentChange<T = DocumentData> {
+  readonly type: DocumentChangeType;
+  readonly doc: QueryDocumentSnapshot<T>;
+  readonly oldIndex: number;
+  readonly newIndex: number;
+}
+
+export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
+  T
+> {
+  private readonly _firestoreImpl: FirebaseFirestore;
 
   constructor(
-    readonly _firestore: Firestore,
+    readonly _firestore: FirebaseFirestore,
     key: DocumentKey,
     document: Document | null,
-    readonly metadata: firestore.SnapshotMetadata,
-    converter: firestore.FirestoreDataConverter<T> | null
+    readonly metadata: SnapshotMetadata,
+    converter: FirestoreDataConverter<T> | null
   ) {
     super(_firestore, key, document, converter);
-    this._firestoreImpl = cast(_firestore, Firestore);
+    this._firestoreImpl = cast(_firestore, FirebaseFirestore);
   }
 
-  exists(): this is firestore.QueryDocumentSnapshot<T> {
+  exists(): this is QueryDocumentSnapshot<T> {
     return super.exists();
   }
 
-  data(options?: firestore.SnapshotOptions): T | undefined {
+  data(options?: SnapshotOptions): T | undefined {
     if (!this._document) {
       return undefined;
     } else if (this._converter) {
@@ -95,10 +119,10 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     }
   }
 
-  get(
-    fieldPath: string | firestore.FieldPath,
-    options: firestore.SnapshotOptions = {}
-  ): unknown {
+  // We are using `any` here, since `unknown` would require an explicit cast by
+  // our users.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  get(fieldPath: string | FieldPath, options: SnapshotOptions = {}): any {
     if (this._document) {
       const value = this._document
         .data()
@@ -119,23 +143,22 @@ export class DocumentSnapshot<T = firestore.DocumentData>
   }
 }
 
-export class QueryDocumentSnapshot<T = firestore.DocumentData>
-  extends DocumentSnapshot<T>
-  implements firestore.QueryDocumentSnapshot<T> {
-  data(options: firestore.SnapshotOptions = {}): T {
+export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
+  T
+> {
+  data(options: SnapshotOptions = {}): T {
     return super.data(options) as T;
   }
 }
 
-export class QuerySnapshot<T = firestore.DocumentData>
-  implements firestore.QuerySnapshot<T> {
+export class QuerySnapshot<T = DocumentData> {
   readonly metadata: SnapshotMetadata;
 
-  private _cachedChanges?: Array<firestore.DocumentChange<T>>;
+  private _cachedChanges?: Array<DocumentChange<T>>;
   private _cachedChangesIncludeMetadataChanges?: boolean;
 
   constructor(
-    readonly _firestore: Firestore,
+    readonly _firestore: FirebaseFirestore,
     readonly query: Query<T>,
     readonly _snapshot: ViewSnapshot
   ) {
@@ -145,8 +168,8 @@ export class QuerySnapshot<T = firestore.DocumentData>
     );
   }
 
-  get docs(): Array<firestore.QueryDocumentSnapshot<T>> {
-    const result: Array<firestore.QueryDocumentSnapshot<T>> = [];
+  get docs(): Array<QueryDocumentSnapshot<T>> {
+    const result: Array<QueryDocumentSnapshot<T>> = [];
     this.forEach(doc => result.push(doc));
     return result;
   }
@@ -160,7 +183,7 @@ export class QuerySnapshot<T = firestore.DocumentData>
   }
 
   forEach(
-    callback: (result: firestore.QueryDocumentSnapshot<T>) => void,
+    callback: (result: QueryDocumentSnapshot<T>) => void,
     thisArg?: unknown
   ): void {
     this._snapshot.docs.forEach(doc => {
@@ -175,9 +198,7 @@ export class QuerySnapshot<T = firestore.DocumentData>
     });
   }
 
-  docChanges(
-    options: firestore.SnapshotListenOptions = {}
-  ): Array<firestore.DocumentChange<T>> {
+  docChanges(options: SnapshotListenOptions = {}): Array<DocumentChange<T>> {
     const includeMetadataChanges = !!options.includeMetadataChanges;
 
     if (includeMetadataChanges && this._snapshot.excludesMetadataChanges) {
@@ -221,8 +242,8 @@ export class QuerySnapshot<T = firestore.DocumentData>
 // TODO(firestoreexp): Add tests for snapshotEqual with different snapshot
 // metadata
 export function snapshotEqual<T>(
-  left: firestore.DocumentSnapshot<T> | firestore.QuerySnapshot<T>,
-  right: firestore.DocumentSnapshot<T> | firestore.QuerySnapshot<T>
+  left: DocumentSnapshot<T> | QuerySnapshot<T>,
+  right: DocumentSnapshot<T> | QuerySnapshot<T>
 ): boolean {
   if (left instanceof DocumentSnapshot && right instanceof DocumentSnapshot) {
     return (

@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../../lite-types';
-
 import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
 import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
@@ -31,17 +29,28 @@ import {
 import { cast } from './util';
 import { removeComponents } from './components';
 
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'firestore/lite': FirebaseFirestore;
+  }
+}
+
+export interface Settings {
+  host?: string;
+  ssl?: boolean;
+  ignoreUndefinedProperties?: boolean;
+}
+
 /**
  * The root reference to the Firestore Lite database.
  */
-export class Firestore
-  implements firestore.FirebaseFirestore, _FirebaseService {
+export class FirebaseFirestore implements _FirebaseService {
   readonly _databaseId: DatabaseId;
   readonly _credentials: CredentialsProvider;
   readonly _persistenceKey: string = '(lite)';
 
   // Assigned via _configureClient()
-  protected _settings?: firestore.Settings;
+  protected _settings?: Settings;
   private _settingsFrozen = false;
 
   // A task that is assigned when the terminate() is invoked and resolved when
@@ -52,7 +61,7 @@ export class Firestore
     readonly app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>
   ) {
-    this._databaseId = Firestore._databaseIdFromApp(app);
+    this._databaseId = FirebaseFirestore._databaseIdFromApp(app);
     this._credentials = new FirebaseCredentialsProvider(authProvider);
   }
 
@@ -64,7 +73,7 @@ export class Firestore
     return this._terminateTask !== undefined;
   }
 
-  _configureClient(settings: firestore.Settings): void {
+  _configureClient(settings: Settings): void {
     if (this._settingsFrozen) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
@@ -76,7 +85,7 @@ export class Firestore
     this._settings = settings;
   }
 
-  _getSettings(): firestore.Settings {
+  _getSettings(): Settings {
     if (!this._settings) {
       this._settings = {};
     }
@@ -117,24 +126,25 @@ export class Firestore
 
 export function initializeFirestore(
   app: FirebaseApp,
-  settings: firestore.Settings
-): Firestore {
+  settings: Settings
+): FirebaseFirestore {
   const firestore = _getProvider(
     app,
     'firestore/lite'
-  ).getImmediate() as Firestore;
+  ).getImmediate() as FirebaseFirestore;
   firestore._configureClient(settings);
   return firestore;
 }
 
-export function getFirestore(app: FirebaseApp): Firestore {
-  return _getProvider(app, 'firestore/lite').getImmediate() as Firestore;
+export function getFirestore(app: FirebaseApp): FirebaseFirestore {
+  return _getProvider(
+    app,
+    'firestore/lite'
+  ).getImmediate() as FirebaseFirestore;
 }
 
-export function terminate(
-  firestore: firestore.FirebaseFirestore
-): Promise<void> {
+export function terminate(firestore: FirebaseFirestore): Promise<void> {
   _removeServiceInstance(firestore.app, 'firestore/lite');
-  const firestoreClient = cast(firestore, Firestore);
+  const firestoreClient = cast(firestore, FirebaseFirestore);
   return firestoreClient._delete();
 }

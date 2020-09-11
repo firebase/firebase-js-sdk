@@ -128,7 +128,7 @@ import {
   Unsubscribe
 } from './observer';
 import {
-  DocumentKeyReference,
+  _DocumentKeyReference,
   fieldPathFromArgument,
   parseQueryValue,
   parseSetData,
@@ -1021,7 +1021,7 @@ export class WriteBatch implements PublicWriteBatch {
  * A reference to a particular document in a collection in the database.
  */
 export class DocumentReference<T = DocumentData>
-  extends DocumentKeyReference<T>
+  extends _DocumentKeyReference<T>
   implements PublicDocumentReference<T> {
   private _firestoreClient: FirestoreClient;
 
@@ -1693,7 +1693,7 @@ function parseDocumentIdValue(
       );
     }
     return refValue(databaseId, new DocumentKey(path));
-  } else if (documentIdValue instanceof DocumentKeyReference) {
+  } else if (documentIdValue instanceof _DocumentKeyReference) {
     return refValue(databaseId, documentIdValue._key);
   } else {
     throw new FirestoreError(
@@ -2462,8 +2462,8 @@ function validateReference<T>(
   methodName: string,
   documentRef: PublicDocumentReference<T>,
   firestore: Firestore
-): DocumentKeyReference<T> {
-  if (!(documentRef instanceof DocumentKeyReference)) {
+): _DocumentKeyReference<T> {
+  if (!(documentRef instanceof _DocumentKeyReference)) {
     throw invalidClassError(methodName, 'DocumentReference', 1, documentRef);
   } else if (documentRef.firestore !== firestore) {
     throw new FirestoreError(

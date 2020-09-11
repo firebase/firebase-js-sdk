@@ -19,7 +19,7 @@ import { FirebaseApp as FirebaseAppLegacy } from '@firebase/app-types';
 import { FirebaseApp as FirebaseAppExp } from '@firebase/app-types-exp';
 import { deleteApp } from '@firebase/app-exp';
 import * as legacy from '@firebase/firestore-types';
-import * as exp from '../../exp-types';
+import * as exp from '../index';
 
 import {
   addDoc,
@@ -766,7 +766,10 @@ function wrap(value: any): any {
   } else if (value instanceof DocumentReferenceExp) {
     // TODO(mrschmidt): Ideally, we should use an existing instance of
     // FirebaseFirestore here rather than instantiating a new instance
-    return new DocumentReference(new FirebaseFirestore(value.firestore), value);
+    return new DocumentReference(
+      new FirebaseFirestore(value.firestore as exp.FirebaseFirestore),
+      value
+    );
   } else if (isPlainObject(value)) {
     const obj: any = {};
     for (const key in value) {
