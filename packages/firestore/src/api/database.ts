@@ -2380,21 +2380,15 @@ export class CollectionReference<T = DocumentData>
       : value;
     validateArgType('CollectionReference.add', 'object', 1, convertedValue);
 
-    // Call set() with the converted value directly to avoid calling toFirestore() a second time.
     const docRef = this.doc();
-    const defaultConverter: FirestoreDataConverter<DocumentData> = {
-      toFirestore(modelObject: DocumentData): DocumentData {
-        return modelObject;
-      },
-      fromFirestore(
-        snapshot: QueryDocumentSnapshot,
-        options: SnapshotOptions
-      ): DocumentData {
-        return snapshot.data(options)!;
-      }
-    };
-    return docRef
-      .withConverter(defaultConverter)
+
+    // Call set() with the converted value directly to avoid calling toFirestore() a second time.
+    // Cast to unknown in order to access the _key property.
+    return new DocumentReference(
+      ((docRef as unknown) as DocumentReference)._key,
+      this.firestore,
+      null
+    )
       .set(convertedValue)
       .then(() => docRef);
   }

@@ -2,4 +2,4 @@
 '@firebase/firestore': patch
 ---
 
-Fixed a bug that where CollectionReference.add() called FirestoreDataConverter.toFirestore() twice intead of once (#3742).
+Fixed a bug where CollectionReference.add() called FirestoreDataConverter.toFirestore() twice intead of once (#3742).
