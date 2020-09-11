@@ -24,6 +24,7 @@ import {
 } from '../core/errors';
 import { fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
+import { _emulatorUrl } from '../core/util/emulator';
 import { FetchProvider } from '../core/util/fetch_provider';
 import { Auth, AuthCore } from '../model/auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
@@ -191,14 +192,13 @@ export function _getFinalTarget(
   path: string,
   query: string
 ): string {
-  const { emulator } = auth.config;
   const base = `${host}${path}?${query}`;
 
-  if (!emulator) {
+  if (!auth.config.emulator) {
     return `${auth.config.apiScheme}://${base}`;
   }
 
-  return `http://${emulator.hostname}:${emulator.port}/${base}`;
+  return _emulatorUrl(auth.config, base);
 }
 
 function makeNetworkTimeout<T>(appName: string): Promise<T> {

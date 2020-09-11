@@ -21,11 +21,15 @@ import { querystring } from '@firebase/util';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
 import { assert } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
+import { _emulatorUrl } from '../../core/util/emulator';
 import { AuthCore } from '../../model/auth';
 import { _window } from '../auth_window';
 import * as gapiLoader from './gapi';
 
 const PING_TIMEOUT = new Delay(5000, 15000);
+const IFRAME_PATH = '__/auth/iframe';
+const EMULATED_IFRAME_PATH = 'emulator/auth/iframe';
+
 const IFRAME_ATTRIBUTES = {
   style: {
     position: 'absolute',
@@ -36,10 +40,13 @@ const IFRAME_ATTRIBUTES = {
 };
 
 function getIframeUrl(auth: AuthCore): string {
-  const url = `https://${auth.config.authDomain!}/__/auth/iframe`;
+  const config = auth.config;
+  const url = config.emulator
+    ? _emulatorUrl(config, EMULATED_IFRAME_PATH)
+    : `https://${auth.config.authDomain!}/${IFRAME_PATH}`;
 
   const params = {
-    apiKey: auth.config.apiKey,
+    apiKey: config.apiKey,
     appName: auth.name,
     v: SDK_VERSION
   };

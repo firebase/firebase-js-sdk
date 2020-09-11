@@ -23,6 +23,7 @@ import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
 import { OAuthProvider } from '../core/providers/oauth';
 import { assert, debugAssert } from '../core/util/assert';
+import { _emulatorUrl } from '../core/util/emulator';
 import { _generateEventId } from '../core/util/event_id';
 import { _getCurrentUrl } from '../core/util/location';
 import { _validateOrigin } from '../core/util/validate_origin';
@@ -42,7 +43,12 @@ import { _open, AuthPopup } from './util/popup';
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
  */
-const WIDGET_URL = '__/auth/handler';
+const WIDGET_PATH = '__/auth/handler';
+
+/**
+ * URL for emulated environment
+ */
+const EMULATOR_WIDGET_PATH = 'emulator/auth/handler';
 
 interface ManagerOrPromise {
   manager?: EventManager;
@@ -198,10 +204,18 @@ function getRedirectUrl(
   // TODO: maybe set fw as Frameworks.join(",")
 
   const url = new URL(
-    `https://${auth.config.authDomain}/${WIDGET_URL}?${querystring(
+    `${getHandlerBase(auth)}?${querystring(
       params as Record<string, string | number>
     ).slice(1)}`
   );
 
   return url.toString();
+}
+
+function getHandlerBase({ config }: Auth): string {
+  if (!config.emulator) {
+    return `https://${config.authDomain}/${WIDGET_PATH}`;
+  }
+
+  return _emulatorUrl(config, EMULATOR_WIDGET_PATH);
 }
