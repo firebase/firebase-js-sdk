@@ -42,7 +42,6 @@ import {
   UpdateData
 } from './reference';
 import { FieldPath } from './field_path';
-import { cast } from './util';
 import { getDatastore } from './components';
 
 // TODO(mrschmidt) Consider using `BaseTransaction` as the base class in the
@@ -174,14 +173,13 @@ export function runTransaction<T>(
   firestore: FirebaseFirestore,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
-  const firestoreClient = cast(firestore, FirebaseFirestore);
-  const datastore = getDatastore(firestoreClient);
+  const datastore = getDatastore(firestore);
   const deferred = new Deferred<T>();
   new TransactionRunner<T>(
     new AsyncQueue(),
     datastore,
     internalTransaction =>
-      updateFunction(new Transaction(firestoreClient, internalTransaction)),
+      updateFunction(new Transaction(firestore, internalTransaction)),
     deferred
   ).run();
   return deferred.promise;

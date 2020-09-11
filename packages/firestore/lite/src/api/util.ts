@@ -23,8 +23,6 @@ import { Code, FirestoreError } from '../../../src/util/error';
  * This cast is used in the Lite and Full SDK to verify instance types for
  * arguments passed to the public API.
  */
-// TODO(firestoreexp): We can probably remove this since we now use the classes
-// directly instead of an interface
 export function cast<T>(
   obj: object,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,8 +32,8 @@ export function cast<T>(
     if (constructor.name === obj.constructor.name) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        'Type does not match the expected instance. Did you pass ' +
-          `'${constructor.name}' from a different Firestore SDK?`
+        'Type does not match the expected instance. Did you pass a ' +
+          `reference from a different Firestore SDK?`
       );
     } else {
       throw new FirestoreError(

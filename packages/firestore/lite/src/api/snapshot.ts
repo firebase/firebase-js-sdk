@@ -24,7 +24,6 @@ import {
   SetOptions
 } from './reference';
 import { FieldPath } from './field_path';
-import { cast } from './util';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Document } from '../../../src/model/document';
 import { UserDataWriter } from '../../../src/api/user_data_writer';
@@ -101,8 +100,7 @@ export class DocumentSnapshot<T = DocumentData> {
     }
   }
 
-  // We are using `any` here, since `unknown` would require an explicit cast by
-  // our users.
+  // We are using `any` here to avoid an explicit cast by our users.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   get(fieldPath: string | FieldPath): any {
     if (this._document) {
@@ -192,7 +190,6 @@ export function fieldPathFromArgument(
   if (typeof arg === 'string') {
     return fieldPathFromDotSeparatedString(methodName, arg);
   } else {
-    const path = cast(arg, FieldPath);
-    return path._internalPath;
+    return arg._internalPath;
   }
 }

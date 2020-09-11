@@ -16,7 +16,6 @@
  */
 
 import { _BaseFieldPath } from '../../../src/api/field_path';
-import { cast } from './util';
 import { DOCUMENT_KEY_NAME } from '../../../src/model/path';
 
 /**
@@ -42,8 +41,7 @@ export class FieldPath extends _BaseFieldPath {
   }
 
   isEqual(other: FieldPath): boolean {
-    const path = cast(other, FieldPath);
-    return this._internalPath.isEqual(path._internalPath);
+    return this._internalPath.isEqual(other._internalPath);
   }
 }
 

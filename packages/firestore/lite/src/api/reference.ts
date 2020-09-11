@@ -70,7 +70,6 @@ import {
   validateHasExplicitOrderByForLimitToLast
 } from '../../../src/api/database';
 import { FieldPath } from './field_path';
-import { cast } from './util';
 import {
   validateCollectionPath,
   validateDocumentPath,
@@ -188,11 +187,10 @@ export function query<T>(
   query: Query<T>,
   ...queryConstraints: QueryConstraint[]
 ): Query<T> {
-  let queryImpl = cast<Query<T>>(query, Query);
   for (const constraint of queryConstraints) {
-    queryImpl = constraint._apply(queryImpl);
+    query = constraint._apply(query);
   }
-  return queryImpl;
+  return query;
 }
 
 class QueryFilterConstraint extends QueryConstraint {
@@ -517,8 +515,6 @@ export function collectionGroup(
   firestore: FirebaseFirestore,
   collectionId: string
 ): Query<DocumentData> {
-  const firestoreClient = cast(firestore, FirebaseFirestore);
-
   validateNonEmptyArgument('collectionGroup', 'collection id', collectionId);
   if (collectionId.indexOf('/') >= 0) {
     throw new FirestoreError(
@@ -529,7 +525,7 @@ export function collectionGroup(
   }
 
   return new Query(
-    firestoreClient,
+    firestore,
     /* converter= */ null,
     newQueryForCollectionGroup(collectionId)
   );
@@ -591,38 +587,37 @@ export function doc<T>(
 export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
-  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
-
-  const datastore = getDatastore(ref.firestore);
-  return invokeBatchGetDocumentsRpc(datastore, [ref._key]).then(result => {
-    hardAssert(result.length === 1, 'Expected a single document result');
-    const maybeDocument = result[0];
-    return new DocumentSnapshot<T>(
-      ref.firestore,
-      ref._key,
-      maybeDocument instanceof Document ? maybeDocument : null,
-      ref._converter
-    );
-  });
+  const datastore = getDatastore(reference.firestore);
+  return invokeBatchGetDocumentsRpc(datastore, [reference._key]).then(
+    result => {
+      hardAssert(result.length === 1, 'Expected a single document result');
+      const maybeDocument = result[0];
+      return new DocumentSnapshot<T>(
+        reference.firestore,
+        reference._key,
+        maybeDocument instanceof Document ? maybeDocument : null,
+        reference._converter
+      );
+    }
+  );
 }
 
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
-  const queryImpl = cast<Query<T>>(query, Query);
-  validateHasExplicitOrderByForLimitToLast(queryImpl._query);
+  validateHasExplicitOrderByForLimitToLast(query._query);
 
-  const datastore = getDatastore(queryImpl.firestore);
-  return invokeRunQueryRpc(datastore, queryImpl._query).then(result => {
+  const datastore = getDatastore(query.firestore);
+  return invokeRunQueryRpc(datastore, query._query).then(result => {
     const docs = result.map(
       doc =>
         new QueryDocumentSnapshot<T>(
-          queryImpl.firestore,
+          query.firestore,
           doc.key,
           doc,
-          queryImpl.converter
+          query.converter
         )
     );
 
-    if (hasLimitToLast(queryImpl._query)) {
+    if (hasLimitToLast(query._query)) {
       // Limit to last queries reverse the orderBy constraint that was
       // specified by the user. As such, we need to reverse the order of the
       // results to return the documents in the expected order.
@@ -647,27 +642,25 @@ export function setDoc<T>(
   data: T,
   options?: SetOptions
 ): Promise<void> {
-  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
-
   const convertedValue = applyFirestoreDataConverter(
-    ref._converter,
+    reference._converter,
     data,
     options
   );
-  const dataReader = newUserDataReader(ref.firestore);
+  const dataReader = newUserDataReader(reference.firestore);
   const parsed = parseSetData(
     dataReader,
     'setDoc',
-    ref._key,
+    reference._key,
     convertedValue,
-    ref._converter !== null,
+    reference._converter !== null,
     options
   );
 
-  const datastore = getDatastore(ref.firestore);
+  const datastore = getDatastore(reference.firestore);
   return invokeCommitRpc(
     datastore,
-    parsed.toMutations(ref._key, Precondition.none())
+    parsed.toMutations(reference._key, Precondition.none())
   );
 }
 
@@ -687,8 +680,7 @@ export function updateDoc(
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
-  const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
-  const dataReader = newUserDataReader(ref.firestore);
+  const dataReader = newUserDataReader(reference.firestore);
 
   let parsed: ParsedUpdateData;
   if (
@@ -698,7 +690,7 @@ export function updateDoc(
     parsed = parseUpdateVarargs(
       dataReader,
       'updateDoc',
-      ref._key,
+      reference._key,
       fieldOrUpdateData,
       value,
       moreFieldsAndValues
@@ -707,23 +699,22 @@ export function updateDoc(
     parsed = parseUpdateData(
       dataReader,
       'updateDoc',
-      ref._key,
+      reference._key,
       fieldOrUpdateData
     );
   }
 
-  const datastore = getDatastore(ref.firestore);
+  const datastore = getDatastore(reference.firestore);
   return invokeCommitRpc(
     datastore,
-    parsed.toMutations(ref._key, Precondition.exists(true))
+    parsed.toMutations(reference._key, Precondition.exists(true))
   );
 }
 
 export function deleteDoc(reference: DocumentReference): Promise<void> {
-  const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
-  const datastore = getDatastore(ref.firestore);
+  const datastore = getDatastore(reference.firestore);
   return invokeCommitRpc(datastore, [
-    new DeleteMutation(ref._key, Precondition.none())
+    new DeleteMutation(reference._key, Precondition.none())
   ]);
 }
 
@@ -731,12 +722,11 @@ export function addDoc<T>(
   reference: CollectionReference<T>,
   data: T
 ): Promise<DocumentReference<T>> {
-  const collRef = cast<CollectionReference<T>>(reference, CollectionReference);
-  const docRef = doc(collRef);
+  const docRef = doc(reference);
 
-  const convertedValue = applyFirestoreDataConverter(collRef.converter, data);
+  const convertedValue = applyFirestoreDataConverter(reference.converter, data);
 
-  const dataReader = newUserDataReader(collRef.firestore);
+  const dataReader = newUserDataReader(reference.firestore);
   const parsed = parseSetData(
     dataReader,
     'addDoc',
@@ -746,7 +736,7 @@ export function addDoc<T>(
     {}
   );
 
-  const datastore = getDatastore(collRef.firestore);
+  const datastore = getDatastore(reference.firestore);
   return invokeCommitRpc(
     datastore,
     parsed.toMutations(docRef._key, Precondition.exists(false))

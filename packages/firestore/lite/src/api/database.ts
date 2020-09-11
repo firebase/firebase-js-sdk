@@ -16,7 +16,7 @@
  */
 
 import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
-import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
+import { _FirebaseService, FirebaseApp } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
 
 import { Code, FirestoreError } from '../../../src/util/error';
@@ -26,7 +26,6 @@ import {
   CredentialsProvider,
   FirebaseCredentialsProvider
 } from '../../../src/api/credentials';
-import { cast } from './util';
 import { removeComponents } from './components';
 
 declare module '@firebase/component' {
@@ -145,6 +144,5 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
 
 export function terminate(firestore: FirebaseFirestore): Promise<void> {
   _removeServiceInstance(firestore.app, 'firestore/lite');
-  const firestoreClient = cast(firestore, FirebaseFirestore);
-  return firestoreClient._delete();
+  return firestore._delete();
 }

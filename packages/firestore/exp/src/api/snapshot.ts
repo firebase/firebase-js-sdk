@@ -26,7 +26,6 @@ import {
   fieldPathFromArgument
 } from '../../../lite/src/api/snapshot';
 import { FirebaseFirestore } from './database';
-import { cast } from '../../../lite/src/api/util';
 import {
   DocumentData,
   DocumentReference,
@@ -81,7 +80,7 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
     converter: FirestoreDataConverter<T> | null
   ) {
     super(_firestore, key, document, converter);
-    this._firestoreImpl = cast(_firestore, FirebaseFirestore);
+    this._firestoreImpl = _firestore;
   }
 
   exists(): this is QueryDocumentSnapshot<T> {
@@ -119,8 +118,7 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
     }
   }
 
-  // We are using `any` here, since `unknown` would require an explicit cast by
-  // our users.
+  // We are using `any` here to avoid an explicit cast by our users.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   get(fieldPath: string | FieldPath, options: SnapshotOptions = {}): any {
     if (this._document) {

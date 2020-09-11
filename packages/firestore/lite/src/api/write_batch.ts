@@ -28,7 +28,6 @@ import {
   parseUpdateVarargs,
   UserDataReader
 } from '../../../src/api/user_data_reader';
-import { cast } from './util';
 import {
   DocumentReference,
   newUserDataReader,
@@ -176,14 +175,13 @@ export function validateReference<T>(
       'Provided document reference is from a different Firestore instance.'
     );
   } else {
-    return cast(documentRef, DocumentReference) as DocumentReference<T>;
+    return documentRef as DocumentReference<T>;
   }
 }
 
 export function writeBatch(firestore: FirebaseFirestore): WriteBatch {
-  const firestoreImpl = cast(firestore, FirebaseFirestore);
-  const datastore = getDatastore(firestoreImpl);
-  return new WriteBatch(firestoreImpl, writes =>
+  const datastore = getDatastore(firestore);
+  return new WriteBatch(firestore, writes =>
     invokeCommitRpc(datastore, writes)
   );
 }

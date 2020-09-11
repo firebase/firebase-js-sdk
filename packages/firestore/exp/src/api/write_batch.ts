@@ -15,15 +15,13 @@
  * limitations under the License.
  */
 
-import { cast } from '../../../lite/src/api/util';
 import { WriteBatch } from '../../../lite/src/api/write_batch';
 import { FirebaseFirestore } from './database';
 import { executeWrite } from './reference';
 
 export function writeBatch(firestore: FirebaseFirestore): WriteBatch {
-  const firestoreImpl = cast(firestore, FirebaseFirestore);
-  firestoreImpl._verifyNotTerminated();
-  return new WriteBatch(firestoreImpl, mutations =>
-    executeWrite(firestoreImpl, mutations)
+  firestore._verifyNotTerminated();
+  return new WriteBatch(firestore, mutations =>
+    executeWrite(firestore, mutations)
   );
 }

@@ -19,7 +19,6 @@ import { Transaction as LiteTransaction } from '../../../lite/src/api/transactio
 import { DocumentSnapshot } from './snapshot';
 import { TransactionRunner } from '../../../src/core/transaction_runner';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { cast } from '../../../lite/src/api/util';
 import { FirebaseFirestore } from './database';
 import { Deferred } from '../../../src/util/promise';
 import { SnapshotMetadata } from '../../../src/api/database';
@@ -63,17 +62,16 @@ export function runTransaction<T>(
   firestore: FirebaseFirestore,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
-  const firestoreClient = cast(firestore, FirebaseFirestore);
-  firestoreClient._verifyNotTerminated();
+  firestore._verifyNotTerminated();
 
   const deferred = new Deferred<T>();
-  firestoreClient._queue.enqueueAndForget(async () => {
-    const datastore = await getDatastore(firestoreClient);
+  firestore._queue.enqueueAndForget(async () => {
+    const datastore = await getDatastore(firestore);
     new TransactionRunner<T>(
       new AsyncQueue(),
       datastore,
       internalTransaction =>
-        updateFunction(new Transaction(firestoreClient, internalTransaction)),
+        updateFunction(new Transaction(firestore, internalTransaction)),
       deferred
     ).run();
   });
