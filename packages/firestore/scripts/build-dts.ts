@@ -57,6 +57,14 @@ function main(input: string, output: string) {
   fs.writeFileSync(output, content);
 }
 
+function processDeclaration(node: ts.Node): string {
+  if (ts.isVariableDeclaration(node)) {
+    return `export const ${node.getText()};`;
+  } else {
+    return node.getText();
+  }
+}
+
 const bundleExports = (typeChecker: ts.TypeChecker) => {
   return (node: ts.SourceFile) => {
     let contents = PREAMBLE;
@@ -65,7 +73,7 @@ const bundleExports = (typeChecker: ts.TypeChecker) => {
       const symbol = (exportSpecifier as any).symbol;
       if (symbol) {
         let aliasedSymbol = typeChecker.getAliasedSymbol(symbol);
-        contents += aliasedSymbol?.declarations.map(n => n.getText());
+        contents += aliasedSymbol?.declarations.map(n => processDeclaration(n));
       }
     }
     return ts.createSourceFile(

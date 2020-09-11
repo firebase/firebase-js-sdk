@@ -515,8 +515,8 @@ export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
 export interface SnapshotListenOptions {
   readonly includeMetadataChanges?: boolean;
 }
-CACHE_SIZE_UNLIMITED = LruParams.COLLECTION_DISABLEDexport;
-type FirestoreErrorCode =
+export const CACHE_SIZE_UNLIMITED = -1;
+export type FirestoreErrorCode =
   | 'cancelled'
   | 'unknown'
   | 'invalid-argument'
