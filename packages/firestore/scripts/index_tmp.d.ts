@@ -397,8 +397,8 @@ export type FirestoreErrorCode =
   | 'data-loss'
   | 'unauthenticated';
 export class FirestoreError extends Error {
-  name = 'FirebaseError';
-  stack?: string;
+  readonly name = 'FirebaseError';
+  readonly stack?: string;
   readonly code: FirestoreErrorCode;
   readonly message: string;
 }

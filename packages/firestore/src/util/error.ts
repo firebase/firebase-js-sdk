@@ -175,8 +175,8 @@ export const Code = {
  * and compatible `code` and `message` fields.)
  */
 export class FirestoreError extends Error {
-  name = 'FirebaseError';
-  stack?: string;
+  readonly name = 'FirebaseError';
+  readonly stack?: string;
 
   constructor(readonly code: FirestoreErrorCode, readonly message: string) {
     super(message);
