@@ -89,6 +89,7 @@ export class FirebaseFirestore
   // SDK supports more settings.
   protected _settings?: Settings;
 
+  /** @hideconstructor */
   constructor(
     app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>

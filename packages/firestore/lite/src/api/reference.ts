@@ -106,6 +106,7 @@ export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<
 > {
   readonly type = 'document';
 
+  /** @hideconstructor */
   constructor(
     readonly firestore: FirebaseFirestore,
     readonly converter: FirestoreDataConverter<T> | null,
@@ -152,6 +153,8 @@ export class Query<T = DocumentData> {
   readonly type: 'query' | 'collection' = 'query';
 
   // This is the lite version of the Query class in the main SDK.
+
+  /** @hideconstructor protected */
   constructor(
     readonly firestore: FirebaseFirestore,
     readonly converter: FirestoreDataConverter<T> | null,
@@ -414,6 +417,7 @@ function newQueryBoundFromDocOrFields<T>(
 export class CollectionReference<T = DocumentData> extends Query<T> {
   readonly type = 'collection';
 
+  /** @hideconstructor */
   constructor(
     readonly firestore: FirebaseFirestore,
     converter: FirestoreDataConverter<T> | null,

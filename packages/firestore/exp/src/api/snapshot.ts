@@ -72,6 +72,7 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
 > {
   private readonly _firestoreImpl: FirebaseFirestore;
 
+  /** @hideconstructor protected */
   constructor(
     readonly _firestore: FirebaseFirestore,
     key: DocumentKey,
@@ -155,6 +156,7 @@ export class QuerySnapshot<T = DocumentData> {
   private _cachedChanges?: Array<DocumentChange<T>>;
   private _cachedChangesIncludeMetadataChanges?: boolean;
 
+  /** @hideconstructor */
   constructor(
     readonly _firestore: FirebaseFirestore,
     readonly query: Query<T>,

@@ -47,6 +47,7 @@ export class DocumentSnapshot<T = DocumentData> {
   // - No support for SnapshotMetadata.
   // - No support for SnapshotOptions.
 
+  /** @hideconstructor protected */
   constructor(
     public _firestore: FirebaseFirestore,
     public _key: DocumentKey,
@@ -132,6 +133,7 @@ export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
 }
 
 export class QuerySnapshot<T = DocumentData> {
+  /** @hideconstructor */
   constructor(
     readonly query: Query<T>,
     readonly _docs: Array<QueryDocumentSnapshot<T>>
