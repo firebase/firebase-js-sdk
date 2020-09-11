@@ -2383,9 +2383,8 @@ export class CollectionReference<T = DocumentData>
     const docRef = this.doc();
 
     // Call set() with the converted value directly to avoid calling toFirestore() a second time.
-    // Cast to unknown in order to access the _key property.
     return new DocumentReference(
-      ((docRef as unknown) as DocumentReference)._key,
+      (docRef as DocumentReference<T>)._key,
       this.firestore,
       null
     )
