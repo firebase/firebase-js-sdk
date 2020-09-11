@@ -30,7 +30,8 @@ import { ParseContext } from '../../../src/api/user_data_reader';
 import { FieldTransform } from '../../../src/model/mutation';
 
 /** The public FieldValue class of the lite API. */
-export abstract class FieldValue extends SerializableFieldValue
+export abstract class FieldValue
+  extends SerializableFieldValue
   implements firestore.FieldValue {}
 
 /**
