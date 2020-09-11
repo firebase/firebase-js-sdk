@@ -29,11 +29,16 @@ import * as mockFetch from '../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../core/errors';
 import { ConfigInternal } from '../model/auth';
 import {
-    _getFinalTarget, _performApiRequest, DEFAULT_API_TIMEOUT_MS, Endpoint, HttpHeader, HttpMethod
+  _getFinalTarget,
+  _performApiRequest,
+  DEFAULT_API_TIMEOUT_MS,
+  Endpoint,
+  HttpHeader,
+  HttpMethod
 } from './';
 import { ServerError } from './errors';
 
- use(sinonChai);
+use(sinonChai);
 use(chaiAsPromised);
 
 describe('api/_performApiRequest', () => {

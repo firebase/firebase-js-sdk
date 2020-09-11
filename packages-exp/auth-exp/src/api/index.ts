@@ -17,7 +17,11 @@
 
 import { FirebaseError, querystring } from '@firebase/util';
 
-import { AUTH_ERROR_FACTORY, AuthErrorCode, NamedErrorParams } from '../core/errors';
+import {
+  AUTH_ERROR_FACTORY,
+  AuthErrorCode,
+  NamedErrorParams
+} from '../core/errors';
 import { fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { _emulatorUrl } from '../core/util/emulator';
@@ -206,7 +210,7 @@ class NetworkTimeout<T> {
   // Node timers and browser timers are fundamentally incompatible, but we
   // don't care about the value here
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private timer: any|null = null;
+  private timer: any | null = null;
   readonly promise = new Promise<T>((_, reject) => {
     this.timer = setTimeout(() => {
       return reject(
@@ -217,7 +221,7 @@ class NetworkTimeout<T> {
     }, DEFAULT_API_TIMEOUT_MS.get());
   });
 
-  clearNetworkTimeout():void {
+  clearNetworkTimeout(): void {
     clearTimeout(this.timer);
   }
 
