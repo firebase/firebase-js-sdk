@@ -938,6 +938,29 @@ export function serializerTest(
         expect(roundtripped).to.be.instanceof(NotInFilter);
       });
 
+      it('converts not-in with null', () => {
+        const input = filter('field', 'not-in', [null]);
+        const actual = toUnaryOrFieldFilter(input);
+        expect(actual).to.deep.equal({
+          fieldFilter: {
+            field: { fieldPath: 'field' },
+            op: 'NOT_IN',
+            value: {
+              arrayValue: {
+                values: [
+                  {
+                    nullValue: 'NULL_VALUE'
+                  }
+                ]
+              }
+            }
+          }
+        });
+        const roundtripped = fromFieldFilter(actual);
+        expect(roundtripped).to.deep.equal(input);
+        expect(roundtripped).to.be.instanceof(NotInFilter);
+      });
+
       it('converts array-contains-any', () => {
         const input = filter('field', 'array-contains-any', [42]);
         const actual = toUnaryOrFieldFilter(input);

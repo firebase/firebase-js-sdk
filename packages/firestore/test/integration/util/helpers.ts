@@ -19,8 +19,7 @@ import * as firestore from '@firebase/firestore-types';
 import {
   ALT_PROJECT_ID,
   DEFAULT_PROJECT_ID,
-  DEFAULT_SETTINGS,
-  USE_EMULATOR
+  DEFAULT_SETTINGS
 } from './settings';
 import * as firebaseExport from './firebase_export';
 
@@ -287,7 +286,3 @@ export const notEqualOp = '!=' as firestore.WhereFilterOp;
 // repeatedly. Once we expose 'not-in' publicly we can remove it and just use 'in'
 // in all the tests.
 export const notInOp = 'not-in' as firestore.WhereFilterOp;
-
-export function isRunningAgainstEmulator(): boolean {
-  return USE_EMULATOR;
-}
