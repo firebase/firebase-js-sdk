@@ -832,9 +832,7 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  // TODO(ne-queries): re-enable in next PR to make public.
-  // eslint-disable-next-line no-restricted-properties
-  it.skip('can use NOT_IN filters', async () => {
+  it('can use NOT_IN filters', async () => {
     const testDocs = {
       a: { zip: 98101 },
       b: { zip: 91102 },
