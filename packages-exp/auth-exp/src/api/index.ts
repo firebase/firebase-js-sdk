@@ -17,11 +17,7 @@
 
 import { FirebaseError, querystring } from '@firebase/util';
 
-import {
-  AUTH_ERROR_FACTORY,
-  AuthErrorCode,
-  NamedErrorParams
-} from '../core/errors';
+import { AUTH_ERROR_FACTORY, AuthErrorCode, NamedErrorParams } from '../core/errors';
 import { fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { _emulatorUrl } from '../core/util/emulator';
@@ -120,10 +116,15 @@ export async function _performFetchWithErrorHandling<V>(
   (auth as Auth)._canInitEmulator = false;
   const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
   try {
+    const networkTimeout = new NetworkTimeout<Response>(auth.name);
     const response: Response = await Promise.race<Promise<Response>>([
       fetchFn(),
-      makeNetworkTimeout(auth.name)
+      networkTimeout.promise
     ]);
+
+    // If we've reached this point, the fetch succeeded and the networkTimeout
+    // didn't throw; clear the network timeout delay so that Node won't hang
+    networkTimeout.clearNetworkTimeout();
 
     const json = await response.json();
     if ('needConfirmation' in json) {
@@ -201,16 +202,26 @@ export function _getFinalTarget(
   return _emulatorUrl(auth.config, base);
 }
 
-function makeNetworkTimeout<T>(appName: string): Promise<T> {
-  return new Promise((_, reject) =>
-    setTimeout(() => {
+class NetworkTimeout<T> {
+  // Node timers and browser timers are fundamentally incompatible, but we
+  // don't care about the value here
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private timer: any|null = null;
+  readonly promise = new Promise<T>((_, reject) => {
+    this.timer = setTimeout(() => {
       return reject(
         AUTH_ERROR_FACTORY.create(AuthErrorCode.TIMEOUT, {
-          appName
+          appName: this.appName
         })
       );
-    }, DEFAULT_API_TIMEOUT_MS.get())
-  );
+    }, DEFAULT_API_TIMEOUT_MS.get());
+  });
+
+  clearNetworkTimeout():void {
+    clearTimeout(this.timer);
+  }
+
+  constructor(private readonly appName: string) {}
 }
 
 interface PotentialResponse extends IdTokenResponse {

@@ -17,7 +17,9 @@
 
 import { assert, expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import * as sinon from 'sinon';
 import { useFakeTimers } from 'sinon';
+import * as sinonChai from 'sinon-chai';
 
 import { FirebaseError } from '@firebase/util';
 
@@ -27,15 +29,11 @@ import * as mockFetch from '../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../core/errors';
 import { ConfigInternal } from '../model/auth';
 import {
-  _getFinalTarget,
-  _performApiRequest,
-  DEFAULT_API_TIMEOUT_MS,
-  Endpoint,
-  HttpHeader,
-  HttpMethod
+    _getFinalTarget, _performApiRequest, DEFAULT_API_TIMEOUT_MS, Endpoint, HttpHeader, HttpMethod
 } from './';
 import { ServerError } from './errors';
 
+ use(sinonChai);
 use(chaiAsPromised);
 
 describe('api/_performApiRequest', () => {
@@ -224,6 +222,22 @@ describe('api/_performApiRequest', () => {
       );
       clock.tick(DEFAULT_API_TIMEOUT_MS.get() + 1);
       await expect(promise).to.be.rejectedWith(FirebaseError, 'auth/timeout');
+      clock.restore();
+    });
+
+    it('should clear the network timeout on success', async () => {
+      const clock = useFakeTimers();
+      sinon.spy(clock, 'clearTimeout');
+      mockFetch.setUp();
+      mockEndpoint(Endpoint.SIGN_UP, {});
+      const promise = _performApiRequest(
+        auth,
+        HttpMethod.POST,
+        Endpoint.SIGN_UP,
+        request
+      );
+      await promise;
+      expect(clock.clearTimeout).to.have.been.called;
       clock.restore();
     });
 
