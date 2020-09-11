@@ -69,7 +69,7 @@ const bundleExports = (typeChecker: ts.TypeChecker) => {
       }
     }
     return ts.createSourceFile(
-      'indexdd.ts',
+      'index.ts',
       contents,
       ts.ScriptTarget.Latest,
       /* setParentNodes= */ true
