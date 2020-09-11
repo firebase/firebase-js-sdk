@@ -179,13 +179,15 @@ const dropConstructors = (context: ts.TransformationContext) => {
   return (rootNode: ts.SourceFile) => {
     function visit(node: ts.Node): any {
       if (ts.isConstructorDeclaration(node)) {
+        const properties: ts.Node[] = [];
+
         for (const param of node.parameters) {
           if (
             (param.name as ts.Identifier).escapedText.toString().startsWith('_')
           ) {
             continue;
           }
-          const properties: ts.Node[] = [];
+
           if (
             param.modifiers?.find(m => m.kind === ts.SyntaxKind.ReadonlyKeyword)
           ) {
@@ -199,13 +201,30 @@ const dropConstructors = (context: ts.TransformationContext) => {
                 undefined
               )
             );
-            return ts.createNodeArray(properties);
           }
         }
+
         const tags = ts.getJSDocTags(node);
-        if (tags?.find(t => t.tagName.escapedText === 'hideconstructor')) {
-          return ts.createToken(ts.SyntaxKind.WhitespaceTrivia);
+        const hideConstructorTag = tags?.find(
+          t => t.tagName.escapedText === 'hideconstructor'
+        );
+        if (hideConstructorTag) {
+          properties.push(
+            ts.createConstructor(
+              [],
+              [
+                ts.createModifier(
+                  hideConstructorTag.comment === 'protected'
+                    ? ts.SyntaxKind.ProtectedKeyword
+                    : ts.SyntaxKind.PrivateKeyword
+                )
+              ],
+              [],
+              undefined
+            )
+          );
         }
+        return ts.createNodeArray(properties);
       }
       return node;
     }
