@@ -15,14 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  CompleteFn,
-  ErrorFn,
-  FirebaseError,
-  NextFn,
-  Observer,
-  Unsubscribe
-} from '@firebase/util';
+import { CompleteFn, ErrorFn, FirebaseError, NextFn, Observer, Unsubscribe } from '@firebase/util';
 
 /**
  * Supported providers
@@ -137,6 +130,7 @@ export interface Auth {
   readonly currentUser: User | null;
   updateCurrentUser(user: User | null): Promise<void>;
   useDeviceLanguage(): void;
+  useEmulator(hostname: string, port: number): void;
   signOut(): Promise<void>;
 }
 
