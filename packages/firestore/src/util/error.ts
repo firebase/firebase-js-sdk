@@ -178,6 +178,7 @@ export class FirestoreError extends Error {
   readonly name = 'FirebaseError';
   readonly stack?: string;
 
+  /** @hideconstructor */
   constructor(readonly code: FirestoreErrorCode, readonly message: string) {
     super(message);
 

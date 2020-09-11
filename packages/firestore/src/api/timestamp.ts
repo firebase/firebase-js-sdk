@@ -36,6 +36,7 @@ export class Timestamp {
     return new Timestamp(seconds, nanos);
   }
 
+  /** @hideconstructor */
   constructor(readonly seconds: number, readonly nanoseconds: number) {
     if (nanoseconds < 0) {
       throw new FirestoreError(
