@@ -207,17 +207,17 @@ function getExportSpecifiers(node: ts.Node): ts.ExportSpecifier[] {
   return result;
 }
 
-// const argv = yargs.options({
-//   input: {
-//     type: 'string',
-//     demandOption: true,
-//     desc: 'The location of the index.ts file'
-//   },
-//   output: {
-//     type: 'string',
-//     demandOption: true,
-//     desc: 'The location for the index.d.ts file'
-//   }
-// }).argv;
+const argv = yargs.options({
+  input: {
+    type: 'string',
+    demandOption: true,
+    desc: 'The location of the index.ts file'
+  },
+  output: {
+    type: 'string',
+    demandOption: true,
+    desc: 'The location for the index.d.ts file'
+  }
+}).argv;
 
-main('lite/index.ts', 'lite-types/index.d.ts');
+main(argv.input, argv.output);

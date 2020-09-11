@@ -7,7 +7,8 @@
   "description": "The Cloud Firestore component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
-    "dts": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node scripts/build-dts.ts --input lite/index.ts --output lite-types/index.d.ts",
+    "dts:lite": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node scripts/build-dts.ts --input lite/index.ts --output lite-types/index.d.ts",
+    "dts:exp": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node scripts/build-dts.ts --input exp/index.ts --output exp-types/index.d.ts",
     "bundle": "rollup -c",
     "build": "run-p 'bundle rollup.config.browser.js' 'bundle rollup.config.browser.memory.js' 'bundle rollup.config.node.js' 'bundle rollup.config.node.memory.js' 'bundle rollup.config.rn.js' 'bundle rollup.config.rn.memory.js' build:lite build:exp",
     "build:scripts": "tsc -moduleResolution node --module commonjs scripts/*.ts && ls scripts/*.js | xargs -I % sh -c 'terser %  -o %'",

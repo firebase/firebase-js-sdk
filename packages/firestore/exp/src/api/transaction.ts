@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Transaction as LiteTransaction } from '../../../lite/src/api/transaction';
+import { Transaction as _LiteTransaction } from '../../../lite/src/api/transaction';
 import { DocumentSnapshot } from './snapshot';
 import { TransactionRunner } from '../../../src/core/transaction_runner';
 import { AsyncQueue } from '../../../src/util/async_queue';
@@ -27,7 +27,7 @@ import { validateReference } from '../../../lite/src/api/write_batch';
 import { getDatastore } from '../../../lite/src/api/components';
 import { DocumentReference } from '../../../lite/src/api/reference';
 
-export class Transaction extends LiteTransaction {
+export class Transaction extends _LiteTransaction {
   // This class implements the same logic as the Transaction API in the Lite SDK
   // but is subclassed in order to return its own DocumentSnapshot types.
 

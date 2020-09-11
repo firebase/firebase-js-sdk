@@ -32,7 +32,7 @@ import {
   OnlineComponentProvider
 } from '../../../src/core/component_provider';
 import {
-  FirebaseFirestore as LiteFirestore,
+  FirebaseFirestore as _LiteFirestore,
   Settings as LiteSettings
 } from '../../../lite/src/api/database';
 import { Code, FirestoreError } from '../../../src/util/error';
@@ -62,11 +62,17 @@ import {
   remoteStoreDisableNetwork,
   remoteStoreEnableNetwork
 } from '../../../src/remote/remote_store';
-import { PersistenceSettings } from '../../../exp-types';
 
 const LOG_TAG = 'Firestore';
 
-export interface Settings extends LiteSettings {
+export interface PersistenceSettings {
+  forceOwnership?: boolean;
+}
+
+export interface Settings {
+  host?: string;
+  ssl?: boolean;
+  ignoreUndefinedProperties?: boolean;
   cacheSizeBytes?: number;
 }
 
@@ -75,7 +81,7 @@ export interface Settings extends LiteSettings {
  * tree-shakeable SDK.
  */
 export class FirebaseFirestore
-  extends LiteFirestore
+  extends _LiteFirestore
   implements _FirebaseService {
   readonly _queue = new AsyncQueue();
   readonly _persistenceKey: string;

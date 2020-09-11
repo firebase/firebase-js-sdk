@@ -22,7 +22,7 @@ import {
   UserDataWriter
 } from '../../../src/api/user_data_writer';
 import {
-  DocumentSnapshot as LiteDocumentSnapshot,
+  DocumentSnapshot as _LiteDocumentSnapshot,
   fieldPathFromArgument
 } from '../../../lite/src/api/snapshot';
 import { FirebaseFirestore } from './database';
@@ -67,7 +67,7 @@ export interface DocumentChange<T = DocumentData> {
   readonly newIndex: number;
 }
 
-export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
+export class DocumentSnapshot<T = DocumentData> extends _LiteDocumentSnapshot<
   T
 > {
   private readonly _firestoreImpl: FirebaseFirestore;

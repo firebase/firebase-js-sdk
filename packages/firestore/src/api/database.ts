@@ -35,7 +35,7 @@ import {
   SetOptions,
   Settings as PublicSettings,
   SnapshotListenOptions,
-  SnapshotMetadata as PublicSnapshotMetadata,
+  SnapshotMetadata as _PublicSnapshotMetadata,
   SnapshotOptions as PublicSnapshotOptions,
   Transaction as PublicTransaction,
   UpdateData,
@@ -1320,13 +1320,14 @@ export class DocumentReference<T = DocumentData>
   }
 }
 
-export class SnapshotMetadata implements PublicSnapshotMetadata {
+export class SnapshotMetadata implements _PublicSnapshotMetadata {
+  /** @hideconstructor */
   constructor(
     readonly hasPendingWrites: boolean,
     readonly fromCache: boolean
   ) {}
 
-  isEqual(other: PublicSnapshotMetadata): boolean {
+  isEqual(other: SnapshotMetadata): boolean {
     return (
       this.hasPendingWrites === other.hasPendingWrites &&
       this.fromCache === other.fromCache
@@ -1425,7 +1426,7 @@ export class DocumentSnapshot<T = DocumentData>
     return this._document !== null;
   }
 
-  get metadata(): PublicSnapshotMetadata {
+  get metadata(): _PublicSnapshotMetadata {
     return new SnapshotMetadata(this._hasPendingWrites, this._fromCache);
   }
 
@@ -2192,7 +2193,7 @@ export class QuerySnapshot<T = DocumentData> implements PublicQuerySnapshot<T> {
   private _cachedChanges: Array<PublicDocumentChange<T>> | null = null;
   private _cachedChangesIncludeMetadataChanges: boolean | null = null;
 
-  readonly metadata: PublicSnapshotMetadata;
+  readonly metadata: _PublicSnapshotMetadata;
 
   constructor(
     private readonly _firestore: Firestore,
