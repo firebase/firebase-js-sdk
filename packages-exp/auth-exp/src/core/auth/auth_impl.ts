@@ -27,7 +27,7 @@ import {
   Unsubscribe
 } from '@firebase/util';
 
-import { Auth, AuthCore } from '../../model/auth';
+import { Auth, AuthCore, ConfigInternal } from '../../model/auth';
 import { PopupRedirectResolver } from '../../model/popup_redirect';
 import { User, UserParameters } from '../../model/user';
 import { AuthErrorCode } from '../errors';
@@ -82,7 +82,7 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
 
   constructor(
     public readonly app: FirebaseApp,
-    public readonly config: externs.Config,
+    public readonly config: ConfigInternal,
     private readonly _userProvider: UserProvider<T>
   ) {
     this.name = app.name;
@@ -187,6 +187,19 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
 
   useDeviceLanguage(): void {
     this.languageCode = _getUserLanguage();
+  }
+
+  useEmulator(hostname: string, port: number): void {
+    assert(this._canInitEmulator, AuthErrorCode.EMULATOR_CONFIG_FAILED, {
+      appName: this.name
+    });
+
+    this.config.emulator = {
+      hostname,
+      port
+    };
+
+    this.settings.appVerificationDisabledForTesting = true;
   }
 
   async _delete(): Promise<void> {
