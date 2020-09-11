@@ -25,7 +25,7 @@ export type AppName = string;
 export type ApiKey = string;
 export type AuthDomain = string;
 
-interface ConfigInternal extends externs.Config {
+export interface ConfigInternal extends externs.Config {
   emulator?: {
     hostname: string;
     port: number;
