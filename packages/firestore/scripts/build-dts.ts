@@ -73,7 +73,11 @@ const bundleExports = (typeChecker: ts.TypeChecker) => {
       const symbol = (exportSpecifier as any).symbol;
       if (symbol) {
         let aliasedSymbol = typeChecker.getAliasedSymbol(symbol);
-        contents += aliasedSymbol?.declarations.map(n => processDeclaration(n));
+        const declarations = aliasedSymbol?.declarations.map(n =>
+          processDeclaration(n)
+        );
+        // If more than one declaration exists, drop the catch-all declaration.
+        contents += declarations.slice(0, Math.max(1, declarations.length - 1));
       }
     }
     return ts.createSourceFile(

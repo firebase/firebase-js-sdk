@@ -553,7 +553,7 @@ export function doc<T>(
     | CollectionReference<T>
     | DocumentReference<unknown>,
   relativePath?: string
-): DocumentReference {
+): DocumentReference<T> {
   // We allow omission of 'pathString' but explicitly prohibit passing in both
   // 'undefined' and 'null'.
   if (arguments.length === 1) {

@@ -172,13 +172,6 @@ export function doc(
   reference: DocumentReference<unknown>,
   documentPath: string
 ): DocumentReference<DocumentData>;
-export function doc<T>(
-  parent:
-    | FirebaseFirestore
-    | CollectionReference<T>
-    | DocumentReference<unknown>,
-  relativePath?: string
-): DocumentReference;
 export function collection(
   firestore: FirebaseFirestore,
   collectionPath: string
@@ -190,13 +183,6 @@ export function collection(
 export function collection(
   reference: DocumentReference,
   collectionPath: string
-): CollectionReference<DocumentData>;
-export function collection(
-  parent:
-    | FirebaseFirestore
-    | DocumentReference<unknown>
-    | CollectionReference<unknown>,
-  relativePath: string
 ): CollectionReference<DocumentData>;
 export function collectionGroup(
   firestore: FirebaseFirestore,
@@ -351,10 +337,6 @@ export function onSnapshot<T>(
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
-export function onSnapshot<T>(
-  ref: Query<T> | DocumentReference<T>,
-  ...args: unknown[]
-): Unsubscribe;
 export function onSnapshotsInSync(
   firestore: FirebaseFirestore,
   observer: {
@@ -367,10 +349,6 @@ export function onSnapshotsInSync(
   firestore: FirebaseFirestore,
   onSync: () => void
 ): Unsubscribe;
-export function onSnapshotsInSync(
-  firestore: FirebaseFirestore,
-  arg: unknown
-): Unsubscribe;
 export function setDoc<T>(
   reference: DocumentReference<T>,
   data: T
@@ -380,11 +358,6 @@ export function setDoc<T>(
   data: Partial<T>,
   options: SetOptions
 ): Promise<void>;
-export function setDoc<T>(
-  reference: DocumentReference<T>,
-  data: T,
-  options?: SetOptions
-): Promise<void>;
 export function updateDoc(
   reference: DocumentReference<unknown>,
   data: UpdateData
@@ -393,12 +366,6 @@ export function updateDoc(
   reference: DocumentReference<unknown>,
   field: string | FieldPath,
   value: unknown,
-  ...moreFieldsAndValues: unknown[]
-): Promise<void>;
-export function updateDoc(
-  reference: DocumentReference<unknown>,
-  fieldOrUpdateData: string | FieldPath | UpdateData,
-  value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void>;
 export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
