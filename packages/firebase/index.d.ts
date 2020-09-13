@@ -4392,7 +4392,7 @@ declare namespace firebase.auth {
    */
   type UserCredential = {
     additionalUserInfo?: firebase.auth.AdditionalUserInfo | null;
-    credential: firebase.auth.AuthCredential | null;
+    credential: firebase.auth.OAuthCredential | null;
     operationType?: string | null;
     user: firebase.User | null;
   };

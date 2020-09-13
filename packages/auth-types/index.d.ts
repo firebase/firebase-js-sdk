@@ -313,7 +313,7 @@ export class TwitterAuthProvider_Instance implements AuthProvider {
 
 export type UserCredential = {
   additionalUserInfo?: AdditionalUserInfo | null;
-  credential: AuthCredential | null;
+  credential: OAuthCredential | null;
   operationType?: string | null;
   user: User | null;
 };
