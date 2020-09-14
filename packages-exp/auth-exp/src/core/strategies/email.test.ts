@@ -30,7 +30,9 @@ import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
 import { User } from '../../model/user';
 import {
-    fetchSignInMethodsForEmail, sendEmailVerification, verifyBeforeUpdateEmail
+  fetchSignInMethodsForEmail,
+  sendEmailVerification,
+  verifyBeforeUpdateEmail
 } from './email';
 
 use(chaiAsPromised);
@@ -73,7 +75,9 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
       const request = mock.calls[0].request as Record<string, string>;
       expect(request['identifier']).to.eq(email);
       // We can't rely on a fixed port number
-      expect(request['continueUri']).to.match(/http:\/\/localhost:[0-9]+\/context\.html/);
+      expect(request['continueUri']).to.match(
+        /http:\/\/localhost:[0-9]+\/context\.html/
+      );
     });
   }
 
