@@ -2379,8 +2379,17 @@ export class CollectionReference<T = DocumentData>
       ? this._converter.toFirestore(value)
       : value;
     validateArgType('CollectionReference.add', 'object', 1, convertedValue);
+
     const docRef = this.doc();
-    return docRef.set(value).then(() => docRef);
+
+    // Call set() with the converted value directly to avoid calling toFirestore() a second time.
+    return new DocumentReference(
+      (docRef as DocumentReference<T>)._key,
+      this.firestore,
+      null
+    )
+      .set(convertedValue)
+      .then(() => docRef);
   }
 
   withConverter<U>(

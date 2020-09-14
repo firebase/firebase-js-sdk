@@ -854,6 +854,11 @@ export class NotInFilter extends FieldFilter {
   }
 
   matches(doc: Document): boolean {
+    if (
+      arrayValueContains(this.value.arrayValue!, { nullValue: 'NULL_VALUE' })
+    ) {
+      return false;
+    }
     const other = doc.field(this.field);
     return other !== null && !arrayValueContains(this.value.arrayValue!, other);
   }

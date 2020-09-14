@@ -101,7 +101,7 @@
     "find-free-port": "2.0.0",
     "firebase-functions": "3.11.0",
     "firebase-tools": "8.9.2",
-    "git-rev-sync": "2.0.0",
+    "git-rev-sync": "3.0.1",
     "glob": "7.1.6",
     "http-server": "0.12.3",
     "husky": "4.2.5",
