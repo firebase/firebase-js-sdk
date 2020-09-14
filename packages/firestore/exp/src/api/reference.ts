@@ -396,7 +396,7 @@ export function onSnapshot<T>(
   onCompletion?: () => void
 ): Unsubscribe;
 export function onSnapshot<T>(
-  ref: Query<T> | DocumentReference<T>,
+  reference: Query<T> | DocumentReference<T>,
   ...args: unknown[]
 ): Unsubscribe {
   let options: SnapshotListenOptions = {
@@ -423,15 +423,15 @@ export function onSnapshot<T>(
   let firestore: FirebaseFirestore;
   let internalQuery: InternalQuery;
 
-  if (ref instanceof DocumentReference) {
-    firestore = cast(ref.firestore, FirebaseFirestore);
-    internalQuery = newQueryForPath(ref._key.path);
+  if (reference instanceof DocumentReference) {
+    firestore = cast(reference.firestore, FirebaseFirestore);
+    internalQuery = newQueryForPath(reference._key.path);
 
     observer = {
       next: snapshot => {
         if (args[currArg]) {
           (args[currArg] as NextFn<DocumentSnapshot<T>>)(
-            convertToDocSnapshot(firestore, ref, snapshot)
+            convertToDocSnapshot(firestore, reference, snapshot)
           );
         }
       },
@@ -439,14 +439,14 @@ export function onSnapshot<T>(
       complete: args[currArg + 2] as CompleteFn
     };
   } else {
-    firestore = cast(ref.firestore, FirebaseFirestore);
-    internalQuery = ref._query;
+    firestore = cast(reference.firestore, FirebaseFirestore);
+    internalQuery = reference._query;
 
     observer = {
       next: snapshot => {
         if (args[currArg]) {
           (args[currArg] as NextFn<QuerySnapshot<T>>)(
-            new QuerySnapshot(firestore, ref, snapshot)
+            new QuerySnapshot(firestore, reference, snapshot)
           );
         }
       },
@@ -454,7 +454,7 @@ export function onSnapshot<T>(
       complete: args[currArg + 2] as CompleteFn
     };
 
-    validateHasExplicitOrderByForLimitToLast(ref._query);
+    validateHasExplicitOrderByForLimitToLast(reference._query);
   }
 
   firestore._verifyNotTerminated();
