@@ -22,15 +22,15 @@
     "prettier": "prettier --write '{src,test}/**/*.{js,ts}'"
   },
   "peerDependencies": {
-    "@firebase/app": "0.x",
-    "@firebase/app-types": "0.x"
+    "@firebase/app-exp": "0.x",
+    "@firebase/app-types-exp": "0.x"
   },
   "dependencies": {
     "@firebase/app-exp": "0.0.800",
     "@firebase/logger": "0.2.6",
     "@firebase/installations": "0.4.15",
     "@firebase/util": "0.3.0",
-    "@firebase/performance-types": "0.0.13",
+    "@firebase/performance-types-exp": "0.0.13",
     "@firebase/component": "0.1.17",
     "tslib": "^1.11.1"
   },
