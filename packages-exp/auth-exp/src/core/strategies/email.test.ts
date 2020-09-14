@@ -24,15 +24,13 @@ import { Operation, ProviderId } from '@firebase/auth-types-exp';
 import { FirebaseError, isNode } from '@firebase/util';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
-import { testAuth, testUser, TestAuth } from '../../../test/helpers/mock_auth';
+import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { ServerError } from '../../api/errors';
 import { User } from '../../model/user';
 import {
-  fetchSignInMethodsForEmail,
-  sendEmailVerification,
-  verifyBeforeUpdateEmail
+    fetchSignInMethodsForEmail, sendEmailVerification, verifyBeforeUpdateEmail
 } from './email';
 
 use(chaiAsPromised);
@@ -72,10 +70,10 @@ describe('core/strategies/fetchSignInMethodsForEmail', () => {
       });
       const response = await fetchSignInMethodsForEmail(auth, email);
       expect(response).to.eql(expectedSignInMethods);
-      expect(mock.calls[0].request).to.eql({
-        identifier: email,
-        continueUri: 'http://localhost:8089/context.html'
-      });
+      const request = mock.calls[0].request as Record<string, string>;
+      expect(request['identifier']).to.eq(email);
+      // We can't rely on a fixed port number
+      expect(request['continueUri']).to.match(/http:\/\/localhost:[0-9]+\/context\.html/);
     });
   }
 
