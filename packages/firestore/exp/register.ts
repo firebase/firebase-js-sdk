@@ -18,7 +18,7 @@
 import { _registerComponent, registerVersion } from '@firebase/app-exp';
 import { Component, ComponentType } from '@firebase/component';
 
-import { Firestore } from './src/api/database';
+import { FirebaseFirestore } from './src/api/database';
 import { version } from '../package.json';
 
 export function registerFirestore(): void {
@@ -27,7 +27,7 @@ export function registerFirestore(): void {
       'firestore-exp',
       container => {
         const app = container.getProvider('app-exp').getImmediate()!;
-        return ((app, auth) => new Firestore(app, auth))(
+        return ((app, auth) => new FirebaseFirestore(app, auth))(
           app,
           container.getProvider('auth-internal')
         );

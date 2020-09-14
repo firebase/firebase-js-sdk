@@ -31,7 +31,7 @@ import {
   valueEquals
 } from '../model/values';
 import { FieldPath, ResourcePath } from '../model/path';
-import { debugAssert, fail } from '../util/assert';
+import { debugAssert, debugCast, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
 import {
@@ -41,7 +41,6 @@ import {
   Target,
   targetEquals
 } from './target';
-import { cast } from '../../lite/src/api/util';
 
 export const enum LimitType {
   First = 'F',
@@ -254,7 +253,7 @@ export function isCollectionGroupQuery(query: Query): boolean {
  * the SDK and backend always orders by `__name__`).
  */
 export function queryOrderBy(query: Query): OrderBy[] {
-  const queryImpl = cast(query, QueryImpl);
+  const queryImpl = debugCast(query, QueryImpl);
   if (queryImpl.memoizedOrderBy === null) {
     queryImpl.memoizedOrderBy = [];
 
@@ -305,7 +304,7 @@ export function queryOrderBy(query: Query): OrderBy[] {
  * Converts this `Query` instance to it's corresponding `Target` representation.
  */
 export function queryToTarget(query: Query): Target {
-  const queryImpl = cast(query, QueryImpl);
+  const queryImpl = debugCast(query, QueryImpl);
   if (!queryImpl.memoizedTarget) {
     if (queryImpl.limitType === LimitType.First) {
       queryImpl.memoizedTarget = newTarget(

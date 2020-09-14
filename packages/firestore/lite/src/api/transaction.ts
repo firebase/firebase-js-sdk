@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../../lite-types';
-
 import {
   parseSetData,
   parseUpdateData,
@@ -32,15 +30,18 @@ import {
 import { fail } from '../../../src/util/assert';
 import { applyFirestoreDataConverter } from '../../../src/api/database';
 import { DocumentSnapshot } from './snapshot';
-import { Firestore } from './database';
+import { FirebaseFirestore } from './database';
 import { TransactionRunner } from '../../../src/core/transaction_runner';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
-import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
 import { validateReference } from './write_batch';
-import { newUserDataReader } from './reference';
+import {
+  DocumentReference,
+  newUserDataReader,
+  SetOptions,
+  UpdateData
+} from './reference';
 import { FieldPath } from './field_path';
-import { cast } from './util';
 import { getDatastore } from './components';
 
 // TODO(mrschmidt) Consider using `BaseTransaction` as the base class in the
@@ -54,15 +55,13 @@ export class Transaction {
   private readonly _dataReader: UserDataReader;
 
   constructor(
-    protected readonly _firestore: Firestore,
+    protected readonly _firestore: FirebaseFirestore,
     private readonly _transaction: InternalTransaction
   ) {
     this._dataReader = newUserDataReader(_firestore);
   }
 
-  get<T>(
-    documentRef: firestore.DocumentReference<T>
-  ): Promise<DocumentSnapshot<T>> {
+  get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     const ref = validateReference(documentRef, this._firestore);
     return this._transaction
       .lookup([ref._key])
@@ -93,16 +92,16 @@ export class Transaction {
       });
   }
 
-  set<T>(documentRef: firestore.DocumentReference<T>, value: T): this;
+  set<T>(documentRef: DocumentReference<T>, value: T): this;
   set<T>(
-    documentRef: firestore.DocumentReference<T>,
+    documentRef: DocumentReference<T>,
     value: Partial<T>,
-    options: firestore.SetOptions
+    options: SetOptions
   ): this;
   set<T>(
-    documentRef: firestore.DocumentReference<T>,
+    documentRef: DocumentReference<T>,
     value: T,
-    options?: firestore.SetOptions
+    options?: SetOptions
   ): this {
     const ref = validateReference(documentRef, this._firestore);
     const convertedValue = applyFirestoreDataConverter(
@@ -122,19 +121,16 @@ export class Transaction {
     return this;
   }
 
+  update(documentRef: DocumentReference<unknown>, value: UpdateData): this;
   update(
-    documentRef: firestore.DocumentReference<unknown>,
-    value: firestore.UpdateData
-  ): this;
-  update(
-    documentRef: firestore.DocumentReference<unknown>,
-    field: string | ExternalFieldPath,
+    documentRef: DocumentReference<unknown>,
+    field: string | FieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): this;
   update(
-    documentRef: firestore.DocumentReference<unknown>,
-    fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
+    documentRef: DocumentReference<unknown>,
+    fieldOrUpdateData: string | FieldPath | UpdateData,
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): this {
@@ -166,7 +162,7 @@ export class Transaction {
     return this;
   }
 
-  delete(documentRef: firestore.DocumentReference<unknown>): this {
+  delete(documentRef: DocumentReference<unknown>): this {
     const ref = validateReference(documentRef, this._firestore);
     this._transaction.delete(ref._key);
     return this;
@@ -174,17 +170,16 @@ export class Transaction {
 }
 
 export function runTransaction<T>(
-  firestore: firestore.FirebaseFirestore,
-  updateFunction: (transaction: firestore.Transaction) => Promise<T>
+  firestore: FirebaseFirestore,
+  updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
-  const firestoreClient = cast(firestore, Firestore);
-  const datastore = getDatastore(firestoreClient);
+  const datastore = getDatastore(firestore);
   const deferred = new Deferred<T>();
   new TransactionRunner<T>(
     new AsyncQueue(),
     datastore,
     internalTransaction =>
-      updateFunction(new Transaction(firestoreClient, internalTransaction)),
+      updateFunction(new Transaction(firestore, internalTransaction)),
     deferred
   ).run();
   return deferred.promise;

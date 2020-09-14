@@ -21,14 +21,14 @@
                 "Bytes",
                 "DatabaseId",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 9277
+        "sizeInBytes": 9261
     },
     "CollectionReference": {
         "dependencies": {
@@ -54,20 +54,20 @@
                 "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "Query",
                 "QueryImpl",
                 "ResourcePath",
-                "User"
+                "User",
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 14009
+        "sizeInBytes": 13995
     },
     "DocumentReference": {
         "dependencies": {
@@ -93,27 +93,26 @@
                 "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "Query",
                 "QueryImpl",
                 "ResourcePath",
-                "User"
+                "User",
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 14007
+        "sizeInBytes": 13993
     },
     "DocumentSnapshot": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "binaryStringFromUint8Array",
-                "cast",
                 "createError",
                 "decodeBase64",
                 "encodeBase64",
@@ -157,21 +156,18 @@
             ],
             "classes": [
                 "AutoId",
-                "BaseFieldPath",
                 "BasePath",
                 "ByteString",
                 "Bytes",
                 "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "DocumentSnapshot",
                 "FieldPath",
                 "FieldPath$1",
-                "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "OAuthToken",
@@ -181,17 +177,18 @@
                 "ResourcePath",
                 "Timestamp",
                 "User",
-                "UserDataWriter"
+                "UserDataWriter",
+                "_BaseFieldPath",
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 31606
+        "sizeInBytes": 30960
     },
     "FieldPath": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "cast",
                 "fail",
                 "formatJSON",
                 "formatPlural",
@@ -210,20 +207,20 @@
                 "valueDescription"
             ],
             "classes": [
-                "BaseFieldPath",
                 "BasePath",
                 "DatabaseId",
                 "FieldPath",
                 "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
-                "User"
+                "User",
+                "_BaseFieldPath"
             ],
             "variables": []
         },
-        "sizeInBytes": 13900
+        "sizeInBytes": 13442
     },
     "FieldValue": {
         "dependencies": {
@@ -242,15 +239,15 @@
                 "DatabaseId",
                 "FieldValue",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
-                "SerializableFieldValue",
-                "User"
+                "User",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 7530
+        "sizeInBytes": 7516
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -268,14 +265,14 @@
             "classes": [
                 "DatabaseId",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 7437
+        "sizeInBytes": 7408
     },
     "GeoPoint": {
         "dependencies": {
@@ -301,7 +298,7 @@
             "classes": [
                 "DatabaseId",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "OAuthToken",
@@ -309,7 +306,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 10348
+        "sizeInBytes": 10332
     },
     "Query": {
         "dependencies": {
@@ -327,7 +324,7 @@
             "classes": [
                 "DatabaseId",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "Query",
@@ -335,7 +332,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7632
+        "sizeInBytes": 7616
     },
     "QueryConstraint": {
         "dependencies": {
@@ -353,7 +350,7 @@
             "classes": [
                 "DatabaseId",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "QueryConstraint",
@@ -361,14 +358,13 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7445
+        "sizeInBytes": 7429
     },
     "QueryDocumentSnapshot": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "binaryStringFromUint8Array",
-                "cast",
                 "createError",
                 "decodeBase64",
                 "encodeBase64",
@@ -412,21 +408,18 @@
             ],
             "classes": [
                 "AutoId",
-                "BaseFieldPath",
                 "BasePath",
                 "ByteString",
                 "Bytes",
                 "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "DocumentSnapshot",
                 "FieldPath",
                 "FieldPath$1",
-                "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "OAuthToken",
@@ -436,11 +429,13 @@
                 "ResourcePath",
                 "Timestamp",
                 "User",
-                "UserDataWriter"
+                "UserDataWriter",
+                "_BaseFieldPath",
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 31611
+        "sizeInBytes": 30965
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -458,7 +453,7 @@
             "classes": [
                 "DatabaseId",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "QuerySnapshot",
@@ -466,7 +461,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7671
+        "sizeInBytes": 7655
     },
     "Timestamp": {
         "dependencies": {
@@ -484,7 +479,7 @@
             "classes": [
                 "DatabaseId",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "Timestamp",
@@ -492,7 +487,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 9040
+        "sizeInBytes": 9024
     },
     "Transaction": {
         "dependencies": {
@@ -502,7 +497,6 @@
                 "arrayEquals",
                 "binaryStringFromUint8Array",
                 "blobEquals",
-                "cast",
                 "createError",
                 "decodeBase64",
                 "encodeBase64",
@@ -579,7 +573,6 @@
             ],
             "classes": [
                 "AutoId",
-                "BaseFieldPath",
                 "BasePath",
                 "ByteString",
                 "Bytes",
@@ -588,7 +581,6 @@
                 "DeleteFieldValueImpl",
                 "Document",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "DocumentSnapshot",
                 "FieldMask",
@@ -596,7 +588,7 @@
                 "FieldPath$1",
                 "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "JsonProtoSerializer",
@@ -615,18 +607,20 @@
                 "QueryDocumentSnapshot",
                 "QueryImpl",
                 "ResourcePath",
-                "SerializableFieldValue",
                 "SetMutation",
                 "Timestamp",
                 "Transaction$1",
                 "TransformMutation",
                 "User",
                 "UserDataReader",
-                "UserDataWriter"
+                "UserDataWriter",
+                "_BaseFieldPath",
+                "_DocumentKeyReference",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 54538
+        "sizeInBytes": 54035
     },
     "WriteBatch": {
         "dependencies": {
@@ -636,7 +630,6 @@
                 "arrayEquals",
                 "binaryStringFromUint8Array",
                 "blobEquals",
-                "cast",
                 "createError",
                 "decodeBase64",
                 "encodeBase64",
@@ -664,7 +657,6 @@
                 "logDebug",
                 "logError",
                 "looksLikeJsonObject",
-                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "normalizeByteString",
@@ -683,7 +675,6 @@
                 "parseUpdateData",
                 "parseUpdateVarargs",
                 "primitiveComparator",
-                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "timestampEquals",
@@ -697,11 +688,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateReference",
                 "validateType",
@@ -709,24 +697,18 @@
                 "valueEquals"
             ],
             "classes": [
-                "AutoId",
-                "BaseFieldPath",
                 "BasePath",
                 "ByteString",
                 "Bytes",
-                "CollectionReference",
                 "DatabaseId",
                 "DeleteFieldValueImpl",
                 "DeleteMutation",
-                "DocumentKey",
-                "DocumentKeyReference",
-                "DocumentReference",
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "JsonProtoSerializer",
@@ -739,20 +721,20 @@
                 "ParsedUpdateData",
                 "PatchMutation",
                 "Precondition",
-                "Query",
-                "QueryImpl",
                 "ResourcePath",
-                "SerializableFieldValue",
                 "SetMutation",
                 "Timestamp",
                 "TransformMutation",
                 "User",
                 "UserDataReader",
-                "WriteBatch"
+                "WriteBatch",
+                "_BaseFieldPath",
+                "_DocumentKeyReference",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 49199
+        "sizeInBytes": 44542
     },
     "addDoc": {
         "dependencies": {
@@ -763,7 +745,6 @@
                 "arrayEquals",
                 "binaryStringFromUint8Array",
                 "blobEquals",
-                "cast",
                 "createError",
                 "createMetadata",
                 "debugCast",
@@ -854,7 +835,6 @@
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AutoId",
-                "BaseFieldPath",
                 "BasePath",
                 "ByteString",
                 "Bytes",
@@ -866,13 +846,12 @@
                 "Deferred",
                 "DeleteMutation",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
@@ -888,7 +867,6 @@
                 "Query",
                 "QueryImpl",
                 "ResourcePath",
-                "SerializableFieldValue",
                 "ServerTimestampTransform",
                 "SetMutation",
                 "StreamBridge",
@@ -897,11 +875,14 @@
                 "TransformOperation",
                 "User",
                 "UserDataReader",
-                "VerifyMutation"
+                "VerifyMutation",
+                "_BaseFieldPath",
+                "_DocumentKeyReference",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 55080
+        "sizeInBytes": 54630
     },
     "arrayRemove": {
         "dependencies": {
@@ -958,25 +939,25 @@
                 "ByteString",
                 "Bytes",
                 "DatabaseId",
-                "DocumentKeyReference",
                 "FieldTransform",
                 "FieldValue",
                 "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "OAuthToken",
                 "ParseContext",
                 "ResourcePath",
-                "SerializableFieldValue",
                 "Timestamp",
                 "TransformOperation",
-                "User"
+                "User",
+                "_DocumentKeyReference",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 26035
+        "sizeInBytes": 26027
     },
     "arrayUnion": {
         "dependencies": {
@@ -1033,25 +1014,25 @@
                 "ByteString",
                 "Bytes",
                 "DatabaseId",
-                "DocumentKeyReference",
                 "FieldTransform",
                 "FieldValue",
                 "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "OAuthToken",
                 "ParseContext",
                 "ResourcePath",
-                "SerializableFieldValue",
                 "Timestamp",
                 "TransformOperation",
-                "User"
+                "User",
+                "_DocumentKeyReference",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 26027
+        "sizeInBytes": 26019
     },
     "collection": {
         "dependencies": {
@@ -1078,26 +1059,25 @@
                 "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "Query",
                 "QueryImpl",
                 "ResourcePath",
-                "User"
+                "User",
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 14742
+        "sizeInBytes": 14736
     },
     "collectionGroup": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "cast",
                 "collectionGroup",
                 "fail",
                 "formatJSON",
@@ -1114,7 +1094,7 @@
                 "BasePath",
                 "DatabaseId",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "Query",
@@ -1124,13 +1104,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 11488
+        "sizeInBytes": 11008
     },
     "deleteDoc": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "cast",
                 "createMetadata",
                 "debugCast",
                 "deleteDoc",
@@ -1148,11 +1127,9 @@
                 "mapCodeFromRpcCode",
                 "newConnection",
                 "newDatastore",
-                "newQueryForPath",
                 "newSerializer",
                 "nodePromise",
                 "primitiveComparator",
-                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "toDocumentMask",
@@ -1163,28 +1140,20 @@
                 "toPrecondition",
                 "toResourceName",
                 "toTimestamp",
-                "toVersion",
-                "validateCollectionPath",
-                "validateDocumentPath",
-                "validateNonEmptyArgument"
+                "toVersion"
             ],
             "classes": [
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
-                "AutoId",
                 "BasePath",
-                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteMutation",
-                "DocumentKey",
-                "DocumentKeyReference",
-                "DocumentReference",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GrpcConnection",
                 "JsonProtoSerializer",
@@ -1193,8 +1162,6 @@
                 "OAuthToken",
                 "PatchMutation",
                 "Precondition",
-                "Query",
-                "QueryImpl",
                 "ResourcePath",
                 "ServerTimestampTransform",
                 "SetMutation",
@@ -1206,7 +1173,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 28252
+        "sizeInBytes": 23467
     },
     "deleteField": {
         "dependencies": {
@@ -1228,15 +1195,15 @@
                 "FieldValue",
                 "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
-                "SerializableFieldValue",
-                "User"
+                "User",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 8496
+        "sizeInBytes": 8483
     },
     "doc": {
         "dependencies": {
@@ -1263,26 +1230,25 @@
                 "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "Query",
                 "QueryImpl",
                 "ResourcePath",
-                "User"
+                "User",
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 14797
+        "sizeInBytes": 14791
     },
     "documentId": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "cast",
                 "documentId",
                 "fail",
                 "formatJSON",
@@ -1302,28 +1268,28 @@
                 "valueDescription"
             ],
             "classes": [
-                "BaseFieldPath",
                 "BasePath",
                 "DatabaseId",
                 "FieldPath",
                 "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
-                "User"
+                "User",
+                "_BaseFieldPath"
             ],
             "variables": []
         },
-        "sizeInBytes": 13950
+        "sizeInBytes": 13492
     },
     "endAt": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "binaryStringFromUint8Array",
-                "cast",
                 "createError",
+                "debugCast",
                 "decodeBase64",
                 "encodeBase64",
                 "endAt",
@@ -1397,7 +1363,6 @@
             ],
             "classes": [
                 "AutoId",
-                "BaseFieldPath",
                 "BasePath",
                 "Bound",
                 "ByteString",
@@ -1405,14 +1370,12 @@
                 "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "DocumentSnapshot",
                 "FieldPath",
                 "FieldPath$1",
-                "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "JsonProtoSerializer",
@@ -1425,23 +1388,25 @@
                 "QueryEndAtConstraint",
                 "QueryImpl",
                 "ResourcePath",
-                "SerializableFieldValue",
                 "Timestamp",
                 "User",
                 "UserDataReader",
-                "UserDataWriter"
+                "UserDataWriter",
+                "_BaseFieldPath",
+                "_DocumentKeyReference",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 45251
+        "sizeInBytes": 44653
     },
     "endBefore": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "binaryStringFromUint8Array",
-                "cast",
                 "createError",
+                "debugCast",
                 "decodeBase64",
                 "encodeBase64",
                 "endBefore",
@@ -1515,7 +1480,6 @@
             ],
             "classes": [
                 "AutoId",
-                "BaseFieldPath",
                 "BasePath",
                 "Bound",
                 "ByteString",
@@ -1523,14 +1487,12 @@
                 "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "DocumentSnapshot",
                 "FieldPath",
                 "FieldPath$1",
-                "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "JsonProtoSerializer",
@@ -1543,15 +1505,17 @@
                 "QueryEndAtConstraint",
                 "QueryImpl",
                 "ResourcePath",
-                "SerializableFieldValue",
                 "Timestamp",
                 "User",
                 "UserDataReader",
-                "UserDataWriter"
+                "UserDataWriter",
+                "_BaseFieldPath",
+                "_DocumentKeyReference",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 45262
+        "sizeInBytes": 44664
     },
     "getDoc": {
         "dependencies": {
@@ -1561,7 +1525,6 @@
                 "assertPresent",
                 "binaryStringFromUint8Array",
                 "blobEquals",
-                "cast",
                 "createError",
                 "createMetadata",
                 "debugCast",
@@ -1637,7 +1600,6 @@
             ],
             "classes": [
                 "AutoId",
-                "BaseFieldPath",
                 "BasePath",
                 "ByteString",
                 "Bytes",
@@ -1649,14 +1611,12 @@
                 "Deferred",
                 "Document",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "DocumentSnapshot",
                 "FieldPath",
                 "FieldPath$1",
-                "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
@@ -1673,11 +1633,13 @@
                 "StreamBridge",
                 "Timestamp",
                 "User",
-                "UserDataWriter"
+                "UserDataWriter",
+                "_BaseFieldPath",
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 48208
+        "sizeInBytes": 47548
     },
     "getDocs": {
         "dependencies": {
@@ -1686,7 +1648,6 @@
                 "arrayEquals",
                 "binaryStringFromUint8Array",
                 "blobEquals",
-                "cast",
                 "createError",
                 "createMetadata",
                 "debugCast",
@@ -1779,7 +1740,6 @@
             ],
             "classes": [
                 "AutoId",
-                "BaseFieldPath",
                 "BasePath",
                 "Bound",
                 "ByteString",
@@ -1792,14 +1752,12 @@
                 "Deferred",
                 "Document",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "DocumentSnapshot",
                 "FieldPath",
                 "FieldPath$1",
-                "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
@@ -1818,11 +1776,13 @@
                 "TargetImpl",
                 "Timestamp",
                 "User",
-                "UserDataWriter"
+                "UserDataWriter",
+                "_BaseFieldPath",
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 53099
+        "sizeInBytes": 52385
     },
     "getFirestore": {
         "dependencies": {
@@ -1841,14 +1801,14 @@
             "classes": [
                 "DatabaseId",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 7516
+        "sizeInBytes": 7500
     },
     "increment": {
         "dependencies": {
@@ -1875,18 +1835,18 @@
                 "FieldValue",
                 "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "NumericIncrementFieldValueImpl",
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
-                "SerializableFieldValue",
                 "TransformOperation",
-                "User"
+                "User",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 9361
+        "sizeInBytes": 9348
     },
     "initializeFirestore": {
         "dependencies": {
@@ -1905,14 +1865,14 @@
             "classes": [
                 "DatabaseId",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 7602
+        "sizeInBytes": 7586
     },
     "limit": {
         "dependencies": {
@@ -1934,7 +1894,7 @@
             "classes": [
                 "DatabaseId",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "Query",
@@ -1945,7 +1905,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 8991
+        "sizeInBytes": 8976
     },
     "limitToLast": {
         "dependencies": {
@@ -1967,7 +1927,7 @@
             "classes": [
                 "DatabaseId",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "Query",
@@ -1978,13 +1938,12 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 9015
+        "sizeInBytes": 9000
     },
     "orderBy": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "cast",
                 "createError",
                 "errorMessage",
                 "fail",
@@ -2016,14 +1975,12 @@
                 "valueDescription"
             ],
             "classes": [
-                "BaseFieldPath",
                 "BasePath",
                 "DatabaseId",
                 "FieldPath",
                 "FieldPath$1",
-                "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "OrderBy",
@@ -2031,17 +1988,17 @@
                 "QueryConstraint",
                 "QueryImpl",
                 "QueryOrderByConstraint",
-                "User"
+                "User",
+                "_BaseFieldPath"
             ],
             "variables": []
         },
-        "sizeInBytes": 18880
+        "sizeInBytes": 18233
     },
     "query": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "cast",
                 "fail",
                 "formatJSON",
                 "hardAssert",
@@ -2055,15 +2012,14 @@
             "classes": [
                 "DatabaseId",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
-                "Query",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 8213
+        "sizeInBytes": 7524
     },
     "queryEqual": {
         "dependencies": {
@@ -2073,7 +2029,7 @@
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "boundEquals",
-                "cast",
+                "debugCast",
                 "decodeBase64",
                 "encodeBase64",
                 "fail",
@@ -2116,19 +2072,18 @@
                 "DatabaseId",
                 "FieldPath",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "OrderBy",
                 "Query",
-                "QueryImpl",
                 "TargetImpl",
                 "Timestamp",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 23451
+        "sizeInBytes": 22653
     },
     "refEqual": {
         "dependencies": {
@@ -2155,20 +2110,20 @@
                 "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "Query",
                 "QueryImpl",
                 "ResourcePath",
-                "User"
+                "User",
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 14292
+        "sizeInBytes": 14278
     },
     "runTransaction": {
         "dependencies": {
@@ -2179,7 +2134,6 @@
                 "assertPresent",
                 "binaryStringFromUint8Array",
                 "blobEquals",
-                "cast",
                 "createError",
                 "createMetadata",
                 "debugCast",
@@ -2291,7 +2245,6 @@
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
                 "AutoId",
-                "BaseFieldPath",
                 "BasePath",
                 "ByteString",
                 "Bytes",
@@ -2306,7 +2259,6 @@
                 "DeleteMutation",
                 "Document",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "DocumentSnapshot",
                 "ExponentialBackoff",
@@ -2315,7 +2267,7 @@
                 "FieldPath$1",
                 "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
@@ -2336,7 +2288,6 @@
                 "QueryDocumentSnapshot",
                 "QueryImpl",
                 "ResourcePath",
-                "SerializableFieldValue",
                 "ServerTimestampTransform",
                 "SetMutation",
                 "SnapshotVersion",
@@ -2350,11 +2301,14 @@
                 "User",
                 "UserDataReader",
                 "UserDataWriter",
-                "VerifyMutation"
+                "VerifyMutation",
+                "_BaseFieldPath",
+                "_DocumentKeyReference",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 79624
+        "sizeInBytes": 79061
     },
     "serverTimestamp": {
         "dependencies": {
@@ -2376,18 +2330,18 @@
                 "FieldValue",
                 "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
-                "SerializableFieldValue",
                 "ServerTimestampFieldValueImpl",
                 "ServerTimestampTransform",
                 "TransformOperation",
-                "User"
+                "User",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 8484
+        "sizeInBytes": 8471
     },
     "setDoc": {
         "dependencies": {
@@ -2397,7 +2351,6 @@
                 "arrayEquals",
                 "binaryStringFromUint8Array",
                 "blobEquals",
-                "cast",
                 "createError",
                 "createMetadata",
                 "debugCast",
@@ -2434,7 +2387,6 @@
                 "mapCodeFromRpcCode",
                 "newConnection",
                 "newDatastore",
-                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "nodePromise",
@@ -2452,7 +2404,6 @@
                 "parseSentinelFieldValue",
                 "parseSetData",
                 "primitiveComparator",
-                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "setDoc",
@@ -2474,11 +2425,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -2487,26 +2435,20 @@
             "classes": [
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
-                "AutoId",
-                "BaseFieldPath",
                 "BasePath",
                 "ByteString",
                 "Bytes",
-                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
                 "DatastoreImpl",
                 "Deferred",
                 "DeleteMutation",
-                "DocumentKey",
-                "DocumentKeyReference",
-                "DocumentReference",
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
@@ -2519,10 +2461,7 @@
                 "ParsedSetData",
                 "PatchMutation",
                 "Precondition",
-                "Query",
-                "QueryImpl",
                 "ResourcePath",
-                "SerializableFieldValue",
                 "ServerTimestampTransform",
                 "SetMutation",
                 "StreamBridge",
@@ -2531,11 +2470,14 @@
                 "TransformOperation",
                 "User",
                 "UserDataReader",
-                "VerifyMutation"
+                "VerifyMutation",
+                "_BaseFieldPath",
+                "_DocumentKeyReference",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 54221
+        "sizeInBytes": 49609
     },
     "setLogLevel": {
         "dependencies": {
@@ -2554,14 +2496,14 @@
             "classes": [
                 "DatabaseId",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 7481
+        "sizeInBytes": 7465
     },
     "snapshotEqual": {
         "dependencies": {
@@ -2571,8 +2513,8 @@
                 "binaryStringFromUint8Array",
                 "blobEquals",
                 "boundEquals",
-                "cast",
                 "createError",
+                "debugCast",
                 "decodeBase64",
                 "encodeBase64",
                 "errorMessage",
@@ -2633,7 +2575,6 @@
             ],
             "classes": [
                 "AutoId",
-                "BaseFieldPath",
                 "BasePath",
                 "Bound",
                 "ByteString",
@@ -2641,14 +2582,12 @@
                 "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "DocumentSnapshot",
                 "FieldPath",
                 "FieldPath$1",
-                "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "OAuthToken",
@@ -2661,19 +2600,21 @@
                 "TargetImpl",
                 "Timestamp",
                 "User",
-                "UserDataWriter"
+                "UserDataWriter",
+                "_BaseFieldPath",
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 39087
+        "sizeInBytes": 38478
     },
     "startAfter": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "binaryStringFromUint8Array",
-                "cast",
                 "createError",
+                "debugCast",
                 "decodeBase64",
                 "encodeBase64",
                 "errorMessage",
@@ -2747,7 +2688,6 @@
             ],
             "classes": [
                 "AutoId",
-                "BaseFieldPath",
                 "BasePath",
                 "Bound",
                 "ByteString",
@@ -2755,14 +2695,12 @@
                 "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "DocumentSnapshot",
                 "FieldPath",
                 "FieldPath$1",
-                "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "JsonProtoSerializer",
@@ -2775,23 +2713,25 @@
                 "QueryImpl",
                 "QueryStartAtConstraint",
                 "ResourcePath",
-                "SerializableFieldValue",
                 "Timestamp",
                 "User",
                 "UserDataReader",
-                "UserDataWriter"
+                "UserDataWriter",
+                "_BaseFieldPath",
+                "_DocumentKeyReference",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 45272
+        "sizeInBytes": 44674
     },
     "startAt": {
         "dependencies": {
             "functions": [
                 "argToString",
                 "binaryStringFromUint8Array",
-                "cast",
                 "createError",
+                "debugCast",
                 "decodeBase64",
                 "encodeBase64",
                 "errorMessage",
@@ -2865,7 +2805,6 @@
             ],
             "classes": [
                 "AutoId",
-                "BaseFieldPath",
                 "BasePath",
                 "Bound",
                 "ByteString",
@@ -2873,14 +2812,12 @@
                 "CollectionReference",
                 "DatabaseId",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "DocumentReference",
                 "DocumentSnapshot",
                 "FieldPath",
                 "FieldPath$1",
-                "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "JsonProtoSerializer",
@@ -2893,21 +2830,22 @@
                 "QueryImpl",
                 "QueryStartAtConstraint",
                 "ResourcePath",
-                "SerializableFieldValue",
                 "Timestamp",
                 "User",
                 "UserDataReader",
-                "UserDataWriter"
+                "UserDataWriter",
+                "_BaseFieldPath",
+                "_DocumentKeyReference",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 45262
+        "sizeInBytes": 44664
     },
     "terminate": {
         "dependencies": {
             "functions": [
                 "argToString",
-                "cast",
                 "fail",
                 "formatJSON",
                 "hardAssert",
@@ -2921,14 +2859,14 @@
             "classes": [
                 "DatabaseId",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
                 "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 8015
+        "sizeInBytes": 7535
     },
     "updateDoc": {
         "dependencies": {
@@ -2937,7 +2875,6 @@
                 "arrayEquals",
                 "binaryStringFromUint8Array",
                 "blobEquals",
-                "cast",
                 "createError",
                 "createMetadata",
                 "debugCast",
@@ -2975,7 +2912,6 @@
                 "mapCodeFromRpcCode",
                 "newConnection",
                 "newDatastore",
-                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "nodePromise",
@@ -2994,7 +2930,6 @@
                 "parseUpdateData",
                 "parseUpdateVarargs",
                 "primitiveComparator",
-                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "timestampEquals",
@@ -3016,11 +2951,8 @@
                 "uint8ArrayFromBinaryString",
                 "updateDoc",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -3029,12 +2961,9 @@
             "classes": [
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
-                "AutoId",
-                "BaseFieldPath",
                 "BasePath",
                 "ByteString",
                 "Bytes",
-                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -3042,15 +2971,12 @@
                 "Deferred",
                 "DeleteFieldValueImpl",
                 "DeleteMutation",
-                "DocumentKey",
-                "DocumentKeyReference",
-                "DocumentReference",
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
@@ -3064,10 +2990,7 @@
                 "ParsedUpdateData",
                 "PatchMutation",
                 "Precondition",
-                "Query",
-                "QueryImpl",
                 "ResourcePath",
-                "SerializableFieldValue",
                 "ServerTimestampTransform",
                 "SetMutation",
                 "StreamBridge",
@@ -3076,11 +2999,14 @@
                 "TransformOperation",
                 "User",
                 "UserDataReader",
-                "VerifyMutation"
+                "VerifyMutation",
+                "_BaseFieldPath",
+                "_DocumentKeyReference",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 57328
+        "sizeInBytes": 52680
     },
     "where": {
         "dependencies": {
@@ -3090,7 +3016,6 @@
                 "arrayValueContains",
                 "binaryStringFromUint8Array",
                 "blobEquals",
-                "cast",
                 "compareArrays",
                 "compareBlobs",
                 "compareGeoPoints",
@@ -3180,20 +3105,17 @@
             "classes": [
                 "ArrayContainsAnyFilter",
                 "ArrayContainsFilter",
-                "BaseFieldPath",
                 "BasePath",
                 "ByteString",
                 "Bytes",
                 "DatabaseId",
                 "DocumentKey",
-                "DocumentKeyReference",
                 "FieldFilter",
                 "FieldPath",
                 "FieldPath$1",
-                "FieldPath$2",
                 "Filter",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "InFilter",
@@ -3209,14 +3131,16 @@
                 "QueryFilterConstraint",
                 "QueryImpl",
                 "ResourcePath",
-                "SerializableFieldValue",
                 "Timestamp",
                 "User",
-                "UserDataReader"
+                "UserDataReader",
+                "_BaseFieldPath",
+                "_DocumentKeyReference",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 49248
+        "sizeInBytes": 48608
     },
     "writeBatch": {
         "dependencies": {
@@ -3226,7 +3150,6 @@
                 "arrayEquals",
                 "binaryStringFromUint8Array",
                 "blobEquals",
-                "cast",
                 "createError",
                 "createMetadata",
                 "debugCast",
@@ -3264,7 +3187,6 @@
                 "mapCodeFromRpcCode",
                 "newConnection",
                 "newDatastore",
-                "newQueryForPath",
                 "newSerializer",
                 "newUserDataReader",
                 "nodePromise",
@@ -3284,7 +3206,6 @@
                 "parseUpdateData",
                 "parseUpdateVarargs",
                 "primitiveComparator",
-                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "timestampEquals",
@@ -3305,11 +3226,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateReference",
                 "validateType",
@@ -3320,12 +3238,9 @@
             "classes": [
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
-                "AutoId",
-                "BaseFieldPath",
                 "BasePath",
                 "ByteString",
                 "Bytes",
-                "CollectionReference",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -3333,15 +3248,12 @@
                 "Deferred",
                 "DeleteFieldValueImpl",
                 "DeleteMutation",
-                "DocumentKey",
-                "DocumentKeyReference",
-                "DocumentReference",
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
                 "FirebaseCredentialsProvider",
-                "Firestore",
+                "FirebaseFirestore",
                 "FirestoreError",
                 "GeoPoint",
                 "GrpcConnection",
@@ -3356,10 +3268,7 @@
                 "ParsedUpdateData",
                 "PatchMutation",
                 "Precondition",
-                "Query",
-                "QueryImpl",
                 "ResourcePath",
-                "SerializableFieldValue",
                 "ServerTimestampTransform",
                 "SetMutation",
                 "StreamBridge",
@@ -3369,10 +3278,13 @@
                 "User",
                 "UserDataReader",
                 "VerifyMutation",
-                "WriteBatch"
+                "WriteBatch",
+                "_BaseFieldPath",
+                "_DocumentKeyReference",
+                "_SerializableFieldValue"
             ],
             "variables": []
         },
-        "sizeInBytes": 61029
+        "sizeInBytes": 56318
     }
 }
