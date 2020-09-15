@@ -19,28 +19,13 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import {
-  linkWithPhoneNumber,
-  PhoneAuthProvider,
-  reauthenticateWithPhoneNumber,
-  RecaptchaVerifier,
-  signInAnonymously,
-  signInWithPhoneNumber,
-  unlink,
-  updatePhoneNumber
-  // eslint-disable-next-line import/no-extraneous-dependencies
+    linkWithPhoneNumber, PhoneAuthProvider, reauthenticateWithPhoneNumber, RecaptchaVerifier,
+    signInAnonymously, signInWithPhoneNumber, unlink, updatePhoneNumber
 } from '@firebase/auth-exp';
-import {
-  Auth,
-  OperationType,
-  ProviderId,
-  UserCredential
-} from '@firebase/auth-types-exp';
+import { Auth, OperationType, ProviderId, UserCredential } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import {
-  cleanUpTestInstance,
-  getTestInstance
-} from '../../helpers/integration/helpers';
+import { cleanUpTestInstance, getTestInstance } from '../../helpers/integration/helpers';
 
 use(chaiAsPromised);
 
@@ -174,7 +159,7 @@ describe('Integration test: phone auth', () => {
     it('allows the user to reauthenticate with phone number', async () => {
       let cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier);
       const { user } = await cr.confirm(PHONE_A.code);
-      const oldToken = user.refreshToken;
+      const oldToken = await user.getIdToken();
 
       resetVerifier();
 
@@ -185,7 +170,7 @@ describe('Integration test: phone auth', () => {
       );
       await cr.confirm(PHONE_A.code);
 
-      expect(user.refreshToken).not.to.eq(oldToken);
+      expect(await user.getIdToken()).not.to.eq(oldToken);
     });
 
     it('prevents reauthentication with wrong phone number', async () => {
