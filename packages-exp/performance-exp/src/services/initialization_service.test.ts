@@ -23,7 +23,7 @@ import {
 } from './initialization_service';
 import { setupApi } from './api_service';
 import { SettingsService } from './settings_service';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import '../../test/setup';
 
 describe('Firebase Perofmrance > initialization_service', () => {

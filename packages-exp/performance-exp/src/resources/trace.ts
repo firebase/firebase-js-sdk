@@ -35,7 +35,7 @@ import {
   isValidMetricName,
   convertMetricValueToInteger
 } from '../utils/metric_utils';
-import { PerformanceTrace } from '@firebase/performance-types';
+import { PerformanceTrace } from '@firebase/performance-types-exp';
 
 const enum TraceState {
   UNINITIALIZED = 1,
