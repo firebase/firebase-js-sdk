@@ -299,7 +299,7 @@ export class Query {
    * Tries to get the server-value for the query, then falls back to local
    * cache.
    */
-  get(): Promise<DataSnapshot> {
+  get(): Promise<null> {
     return Promise.resolve(null);
   }
 
