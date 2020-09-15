@@ -46,7 +46,7 @@ const prompt = createPromptModule();
      * Use --ignoreUnstaged to skip, such as if release-cli is continuing from a
      * checkpoint.
      */
-    if (!argv.ignoreUnstaged || (await hasDiff())) {
+    if (!argv.ignoreUnstaged && (await hasDiff())) {
       throw new Error(
         'You have unstaged changes, stash your changes before attempting to publish'
       );
