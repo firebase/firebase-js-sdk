@@ -30,7 +30,8 @@ import { name, version } from './package.json';
  * node-fetch type deviates somewhat from fetch spec:
  * https://github.com/apollographql/apollo-link/issues/513#issuecomment-548219023
  */
-globalThis.fetch = (nodeFetch as unknown) as typeof fetch;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(global as any).fetch = (nodeFetch as unknown) as typeof fetch;
 
 registerFunctions(firebase as _FirebaseNamespace);
 firebase.registerVersion(name, version, 'node');
