@@ -677,7 +677,7 @@ describe('Query', () => {
     );
     assertCanonicalId(
       query('collection', filter('a', 'not-in', [1, 2, 3])),
-      'collection|f:anot-in[1,2,3]|ob:__name__asc'
+      'collection|f:anot-in[1,2,3]|ob:aasc,__name__asc'
     );
     assertCanonicalId(
       query('collection', filter('a', 'array-contains-any', [1, 2, 3])),
