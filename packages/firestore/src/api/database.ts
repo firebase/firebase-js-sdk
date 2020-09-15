@@ -1882,20 +1882,24 @@ export class Query<T = DocumentData> implements PublicQuery<T> {
     validateExactNumberOfArgs('Query.where', arguments, 3);
     validateDefined('Query.where', 3, value);
 
-    // Enumerated from the WhereFilterOp type in index.d.ts.
-    const whereFilterOpEnums = [
-      Operator.LESS_THAN,
-      Operator.LESS_THAN_OR_EQUAL,
-      Operator.EQUAL,
-      Operator.NOT_EQUAL,
-      Operator.GREATER_THAN_OR_EQUAL,
-      Operator.GREATER_THAN,
-      Operator.ARRAY_CONTAINS,
-      Operator.IN,
-      Operator.ARRAY_CONTAINS_ANY,
-      Operator.NOT_IN
-    ];
-    const op = validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
+    // TODO(ne-queries): Add 'not-in' and '!=' to validation.
+    let op: Operator;
+    if ((opStr as unknown) === 'not-in' || (opStr as unknown) === '!=') {
+      op = opStr as Operator;
+    } else {
+      // Enumerated from the WhereFilterOp type in index.d.ts.
+      const whereFilterOpEnums = [
+        Operator.LESS_THAN,
+        Operator.LESS_THAN_OR_EQUAL,
+        Operator.EQUAL,
+        Operator.GREATER_THAN_OR_EQUAL,
+        Operator.GREATER_THAN,
+        Operator.ARRAY_CONTAINS,
+        Operator.IN,
+        Operator.ARRAY_CONTAINS_ANY
+      ];
+      op = validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
+    }
 
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const filter = newQueryFilter(

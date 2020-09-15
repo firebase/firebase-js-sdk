@@ -227,13 +227,11 @@ export type WhereFilterOp =
   | '<'
   | '<='
   | '=='
-  | '!='
   | '>='
   | '>'
   | 'array-contains'
   | 'in'
-  | 'array-contains-any'
-  | 'not-in';
+  | 'array-contains-any';
 
 export class Query<T = DocumentData> {
   protected constructor();

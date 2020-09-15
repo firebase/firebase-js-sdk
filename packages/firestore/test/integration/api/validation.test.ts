@@ -24,7 +24,9 @@ import {
   apiDescribe,
   withAlternateTestDb,
   withTestCollection,
-  withTestDb
+  withTestDb,
+  notInOp,
+  notEqualOp
 } from '../util/helpers';
 import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
 
@@ -939,7 +941,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const collection = db.collection('test') as any;
         expect(() => collection.where('a', 'foo' as any, 'b')).to.throw(
           'Invalid value "foo" provided to function Query.where() for its second argument. ' +
-            'Acceptable values: <, <=, ==, !=, >=, >, array-contains, in, array-contains-any, not-in'
+            'Acceptable values: <, <=, ==, >=, >, array-contains, in, array-contains-any'
         );
       }
     );
@@ -950,15 +952,15 @@ apiDescribe('Validation:', (persistence: boolean) => {
       db => {
         const collection = db.collection('test');
         expect(() => collection.where('a', '>', null)).to.throw(
-          "Invalid query. Null only supports '==' and '!=' comparisons."
+          'Invalid query. Null supports only equality comparisons.'
         );
         expect(() => collection.where('a', 'array-contains', null)).to.throw(
-          "Invalid query. Null only supports '==' and '!=' comparisons."
+          'Invalid query. Null supports only equality comparisons.'
         );
         expect(() => collection.where('a', 'in', null)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' filters."
         );
-        expect(() => collection.where('a', 'not-in', null)).to.throw(
+        expect(() => collection.where('a', notInOp, null)).to.throw(
           "Invalid Query. A non-empty array is required for 'not-in' filters."
         );
         expect(() =>
@@ -968,17 +970,15 @@ apiDescribe('Validation:', (persistence: boolean) => {
         );
 
         expect(() => collection.where('a', '>', Number.NaN)).to.throw(
-          "Invalid query. NaN only supports '==' and '!=' comparisons."
+          'Invalid query. NaN supports only equality comparisons.'
         );
         expect(() =>
           collection.where('a', 'array-contains', Number.NaN)
-        ).to.throw(
-          "Invalid query. NaN only supports '==' and '!=' comparisons."
-        );
+        ).to.throw('Invalid query. NaN supports only equality comparisons.');
         expect(() => collection.where('a', 'in', Number.NaN)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' filters."
         );
-        expect(() => collection.where('a', 'not-in', Number.NaN)).to.throw(
+        expect(() => collection.where('a', notInOp, Number.NaN)).to.throw(
           "Invalid Query. A non-empty array is required for 'not-in' filters."
         );
         expect(() =>
@@ -1131,7 +1131,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
     validationIt(persistence, 'with more than one != query fail', db => {
       const collection = db.collection('test');
       expect(() =>
-        collection.where('x', '!=', 32).where('x', '!=', 33)
+        collection.where('x', notEqualOp, 32).where('x', notEqualOp, 33)
       ).to.throw("Invalid query. You cannot use more than one '!=' filter.");
     });
 
@@ -1141,22 +1141,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       db => {
         const collection = db.collection('test');
         expect(() =>
-          collection.where('y', '>', 32).where('x', '!=', 33)
-        ).to.throw(
-          'Invalid query. All where filters with an ' +
-            'inequality (<, <=, >, or >=) must be on the same field.' +
-            ` But you have inequality filters on 'y' and 'x`
-        );
-      }
-    );
-
-    validationIt(
-      persistence,
-      'with != and inequality queries on different fields fail',
-      db => {
-        const collection = db.collection('test');
-        expect(() =>
-          collection.where('y', '>', 32).where('x', 'not-in', [33])
+          collection.where('y', '>', 32).where('x', notEqualOp, 33)
         ).to.throw(
           'Invalid query. All where filters with an ' +
             'inequality (<, <=, >, or >=) must be on the same field.' +
@@ -1187,9 +1172,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expect(() =>
           collection.orderBy('y').orderBy('x').where('x', '>', 32)
         ).to.throw(reason);
-        expect(() => collection.where('x', '!=', 32).orderBy('y')).to.throw(
-          reason
-        );
+        expect(() =>
+          collection.where('x', notEqualOp, 32).orderBy('y')
+        ).to.throw(reason);
       }
     );
 
@@ -1226,7 +1211,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', 'not-in', [2, 3])
+          .where('foo', notInOp, [2, 3])
           .where('foo', 'array-contains', 1)
       ).to.throw(
         "Invalid query. You cannot use 'array-contains' filters with " +
@@ -1238,8 +1223,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', 'not-in', [2, 3])
-          .where('foo', '!=', 4)
+          .where('foo', notInOp, [2, 3])
+          .where('foo', notEqualOp, 4)
       ).to.throw(
         "Invalid query. You cannot use '!=' filters with 'not-in' filters."
       );
@@ -1247,8 +1232,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', '!=', 4)
-          .where('foo', 'not-in', [2, 3])
+          .where('foo', notEqualOp, 4)
+          .where('foo', notInOp, [2, 3])
       ).to.throw(
         "Invalid query. You cannot use 'not-in' filters with '!=' filters."
       );
@@ -1265,8 +1250,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', 'not-in', [1, 2])
-          .where('foo', 'not-in', [2, 3])
+          .where('foo', notInOp, [1, 2])
+          .where('foo', notInOp, [2, 3])
       ).to.throw(
         "Invalid query. You cannot use more than one 'not-in' filter."
       );
@@ -1304,7 +1289,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', 'not-in', [2, 3])
+          .where('foo', notInOp, [2, 3])
           .where('foo', 'array-contains-any', [2, 3])
       ).to.throw(
         "Invalid query. You cannot use 'array-contains-any' filters with " +
@@ -1315,7 +1300,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         db
           .collection('test')
           .where('foo', 'array-contains-any', [2, 3])
-          .where('foo', 'not-in', [2, 3])
+          .where('foo', notInOp, [2, 3])
       ).to.throw(
         "Invalid query. You cannot use 'not-in' filters with " +
           "'array-contains-any' filters."
@@ -1324,7 +1309,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', 'not-in', [2, 3])
+          .where('foo', notInOp, [2, 3])
           .where('foo', 'in', [2, 3])
       ).to.throw(
         "Invalid query. You cannot use 'in' filters with 'not-in' filters."
@@ -1334,7 +1319,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         db
           .collection('test')
           .where('foo', 'in', [2, 3])
-          .where('foo', 'not-in', [2, 3])
+          .where('foo', notInOp, [2, 3])
       ).to.throw(
         "Invalid query. You cannot use 'not-in' filters with 'in' filters."
       );
@@ -1365,7 +1350,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         db
           .collection('test')
-          .where('foo', 'not-in', [2, 3])
+          .where('foo', notInOp, [2, 3])
           .where('foo', 'array-contains', 2)
           .where('foo', 'array-contains-any', [2])
       ).to.throw(
@@ -1378,7 +1363,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .collection('test')
           .where('foo', 'array-contains', 2)
           .where('foo', 'in', [2])
-          .where('foo', 'not-in', [2, 3])
+          .where('foo', notInOp, [2, 3])
       ).to.throw(
         "Invalid query. You cannot use 'not-in' filters with " +
           "'array-contains' filters."

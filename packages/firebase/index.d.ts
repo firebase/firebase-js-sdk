@@ -9073,20 +9073,17 @@ declare namespace firebase.firestore {
 
   /**
    * Filter conditions in a `Query.where()` clause are specified using the
-   * strings '<', '<=', '==', '!=', '>=', '>', 'array-contains', 'in',
-   * 'array-contains-any', and 'not-in'.
+   * strings '<', '<=', '==', '>=', '>', 'array-contains', 'in', and 'array-contains-any'.
    */
   export type WhereFilterOp =
     | '<'
     | '<='
     | '=='
-    | '!='
     | '>='
     | '>'
     | 'array-contains'
     | 'in'
-    | 'array-contains-any'
-    | 'not-in';
+    | 'array-contains-any';
 
   /**
    * A `Query` refers to a Query which you can read or listen to. You can also

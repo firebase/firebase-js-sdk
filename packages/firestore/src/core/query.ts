@@ -605,17 +605,19 @@ export class FieldFilter extends Filter {
       }
     } else if (isNullValue(value)) {
       if (op !== Operator.EQUAL && op !== Operator.NOT_EQUAL) {
+        // TODO(ne-queries): Update error message to include != comparison.
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          "Invalid query. Null only supports '==' and '!=' comparisons."
+          'Invalid query. Null supports only equality comparisons.'
         );
       }
       return new FieldFilter(field, op, value);
     } else if (isNanValue(value)) {
       if (op !== Operator.EQUAL && op !== Operator.NOT_EQUAL) {
+        // TODO(ne-queries): Update error message to include != comparison.
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          "Invalid query. NaN only supports '==' and '!=' comparisons."
+          'Invalid query. NaN supports only equality comparisons.'
         );
       }
       return new FieldFilter(field, op, value);
@@ -709,8 +711,7 @@ export class FieldFilter extends Filter {
         Operator.LESS_THAN_OR_EQUAL,
         Operator.GREATER_THAN,
         Operator.GREATER_THAN_OR_EQUAL,
-        Operator.NOT_EQUAL,
-        Operator.NOT_IN
+        Operator.NOT_EQUAL
       ].indexOf(this.op) >= 0
     );
   }
