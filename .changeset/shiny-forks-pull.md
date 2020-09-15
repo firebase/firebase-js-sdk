@@ -1,4 +1,5 @@
 ---
+'firebase': minor
 '@firebase/firestore': minor
 '@firebase/firestore-types': minor
 ---
