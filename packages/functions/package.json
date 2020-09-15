@@ -7,7 +7,9 @@
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -45,11 +47,12 @@
   },
   "typings": "dist/index.d.ts",
   "dependencies": {
+    "@firebase/component": "0.1.19",
     "@firebase/functions-types": "0.3.17",
     "@firebase/messaging-types": "0.5.0",
-    "@firebase/component": "0.1.19",
-    "isomorphic-fetch": "2.2.1",
-    "tslib": "^1.11.1"
+    "node-fetch": "2.6.1",
+    "tslib": "^1.11.1",
+    "whatwg-fetch": "3.4.1"
   },
   "nyc": {
     "extension": [

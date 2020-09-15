@@ -17,9 +17,20 @@
 import firebase from '@firebase/app';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { registerFunctions } from './src/config';
-import 'isomorphic-fetch';
+import 'whatwg-fetch';
+import nodeFetch from 'node-fetch';
 
 import { name, version } from './package.json';
+
+/**
+ * Patch global object with node-fetch. whatwg-fetch polyfill patches other global
+ * fetch objects such as Headers. Then we override the implemenation of `fetch()`
+ * itself with node-fetch.
+ * https://github.com/node-fetch/node-fetch#loading-and-configuring-the-module
+ * node-fetch type deviates somewhat from fetch spec:
+ * https://github.com/apollographql/apollo-link/issues/513#issuecomment-548219023
+ */
+globalThis.fetch = (nodeFetch as unknown) as typeof fetch;
 
 registerFunctions(firebase as _FirebaseNamespace);
 firebase.registerVersion(name, version, 'node');
