@@ -96,7 +96,8 @@ export class Service implements FirebaseFunctions, FirebaseService {
     private app_: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
     messagingProvider: Provider<FirebaseMessagingName>,
-    private region_: string = 'us-central1'
+    private region_: string = 'us-central1',
+    readonly fetchImpl: typeof fetch
   ) {
     this.contextProvider = new ContextProvider(authProvider, messagingProvider);
     // Cancels all ongoing requests when resolved.
@@ -162,13 +163,13 @@ export class Service implements FirebaseFunctions, FirebaseService {
   private async postJSON(
     url: string,
     body: {},
-    headers: Headers
+    headers: { [key: string]: string }
   ): Promise<HttpResponse> {
-    headers.append('Content-Type', 'application/json');
+    headers['Content-Type'] = 'application/json';
 
     let response: Response;
     try {
-      response = await fetch(url, {
+      response = await this.fetchImpl(url, {
         method: 'POST',
         body: JSON.stringify(body),
         headers
@@ -212,13 +213,13 @@ export class Service implements FirebaseFunctions, FirebaseService {
     const body = { data };
 
     // Add a header for the authToken.
-    const headers = new Headers();
+    const headers: { [key: string]: string } = {};
     const context = await this.contextProvider.getContext();
     if (context.authToken) {
-      headers.append('Authorization', 'Bearer ' + context.authToken);
+      headers['Authorization'] = 'Bearer ' + context.authToken;
     }
     if (context.instanceIdToken) {
-      headers.append('Firebase-Instance-ID-Token', context.instanceIdToken);
+      headers['Firebase-Instance-ID-Token'] = context.instanceIdToken;
     }
 
     // Default timeout to 70s, but let the options override it.

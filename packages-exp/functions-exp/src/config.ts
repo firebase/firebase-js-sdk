@@ -27,23 +27,29 @@ import { FUNCTIONS_TYPE } from './constants';
 
 export const DEFAULT_REGION = 'us-central1';
 
-const factory: InstanceFactory<'functions'> = (
-  container: ComponentContainer,
-  region?: string
-) => {
-  // Dependencies
-  const app = container.getProvider('app-exp').getImmediate();
-  const authProvider = container.getProvider('auth-internal');
-  const messagingProvider = container.getProvider('messaging');
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new FunctionsService(app, authProvider, messagingProvider, region);
-};
-
-export function registerFunctions(): void {
+export function registerFunctions(fetchImpl: typeof fetch): void {
   const namespaceExports = {
     // no-inline
     Functions: FunctionsService
+  };
+
+  const factory: InstanceFactory<'functions'> = (
+    container: ComponentContainer,
+    region?: string
+  ) => {
+    // Dependencies
+    const app = container.getProvider('app-exp').getImmediate();
+    const authProvider = container.getProvider('auth-internal');
+    const messagingProvider = container.getProvider('messaging');
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return new FunctionsService(
+      app,
+      authProvider,
+      messagingProvider,
+      region,
+      fetchImpl
+    );
   };
 
   _registerComponent(

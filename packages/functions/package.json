@@ -51,8 +51,7 @@
     "@firebase/functions-types": "0.3.17",
     "@firebase/messaging-types": "0.5.0",
     "node-fetch": "2.6.1",
-    "tslib": "^1.11.1",
-    "whatwg-fetch": "3.4.1"
+    "tslib": "^1.11.1"
   },
   "nyc": {
     "extension": [
