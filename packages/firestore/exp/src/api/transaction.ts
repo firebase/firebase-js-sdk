@@ -27,6 +27,12 @@ import { validateReference } from '../../../lite/src/api/write_batch';
 import { getDatastore } from '../../../lite/src/api/components';
 import { DocumentReference } from '../../../lite/src/api/reference';
 
+/**
+ * A reference to a transaction.
+ * The `Transaction` object passed to a transaction's updateFunction provides
+ * the methods to read and write data within the transaction context. See
+ * `Firestore.runTransaction()`.
+ */
 export class Transaction extends LiteTransaction {
   // This class implements the same logic as the Transaction API in the Lite SDK
   // but is subclassed in order to return its own DocumentSnapshot types.
@@ -38,6 +44,12 @@ export class Transaction extends LiteTransaction {
     super(_firestore, _transaction);
   }
 
+  /**
+   * Reads the document referenced by the provided `DocumentReference.`
+   *
+   * @param documentRef A reference to the document to be read.
+   * @return A DocumentSnapshot for the read data.
+   */
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     const ref = validateReference<T>(documentRef, this._firestore);
     return super
@@ -58,6 +70,27 @@ export class Transaction extends LiteTransaction {
   }
 }
 
+/**
+ * Executes the given `updateFunction` and then attempts to commit the changes
+ * applied within the transaction. If any document read within the transaction
+ * has changed, Cloud Firestore retries the `updateFunction`. If it fails to
+ * commit after 5 attempts, the transaction fails.
+ *
+ * The maximum number of writes allowed in a single transaction is 500, but
+ * note that each usage of `FieldValue.serverTimestamp()`,
+ * `FieldValue.arrayUnion()`, `FieldValue.arrayRemove()`, or
+ * `FieldValue.increment()` inside a transaction counts as an additional write.
+ *
+ * @param updateFunction
+ *   The function to execute within the transaction context.
+ *
+ * @return
+ *   If the transaction completed successfully or was explicitly aborted
+ *   (the `updateFunction` returned a failed promise),
+ *   the promise returned by the updateFunction is returned here. Else, if the
+ *   transaction failed, a rejected promise with the corresponding failure
+ *   error will be returned.
+ */
 export function runTransaction<T>(
   firestore: FirebaseFirestore,
   updateFunction: (transaction: Transaction) => Promise<T>

@@ -46,6 +46,13 @@ import { getDatastore } from './components';
 
 // TODO(mrschmidt) Consider using `BaseTransaction` as the base class in the
 // legacy SDK.
+
+/**
+ * A reference to a transaction.
+ * The `Transaction` object passed to a transaction's updateFunction provides
+ * the methods to read and write data within the transaction context. See
+ * `Firestore.runTransaction()`.
+ */
 export class Transaction {
   // This is the tree-shakeable version of the Transaction class used in the
   // legacy SDK. The class is a close copy but takes different input and output
@@ -61,6 +68,12 @@ export class Transaction {
     this._dataReader = newUserDataReader(_firestore);
   }
 
+  /**
+   * Reads the document referenced by the provided `DocumentReference.`
+   *
+   * @param documentRef A reference to the document to be read.
+   * @return A DocumentSnapshot for the read data.
+   */
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     const ref = validateReference(documentRef, this._firestore);
     return this._transaction
@@ -92,7 +105,26 @@ export class Transaction {
       });
   }
 
+  /**
+   * Writes to the document referred to by the provided `DocumentReference`.
+   * If the document does not exist yet, it will be created. If you pass
+   * `SetOptions`, the provided data can be merged into the existing document.
+   *
+   * @param documentRef A reference to the document to be set.
+   * @param data An object of the fields and values for the document.
+   * @param options An object to configure the set behavior.
+   * @return This `Transaction` instance. Used for chaining method calls.
+   */
   set<T>(documentRef: DocumentReference<T>, value: T): this;
+  /**
+   * Writes to the document referred to by the provided `DocumentReference`.
+   * If the document does not exist yet, it will be created. If you pass
+   * `SetOptions`, the provided data can be merged into the existing document.
+   *
+   * @param documentRef A reference to the document to be set.
+   * @param data An object of the fields and values for the document.
+   * @return This `Transaction` instance. Used for chaining method calls.
+   */
   set<T>(
     documentRef: DocumentReference<T>,
     value: Partial<T>,
@@ -121,7 +153,33 @@ export class Transaction {
     return this;
   }
 
+  /**
+   * Updates fields in the document referred to by the provided
+   * `DocumentReference`. The update will fail if applied to a document that
+   * does not exist.
+   *
+   * @param documentRef A reference to the document to be updated.
+   * @param data An object containing the fields and values with which to
+   * update the document. Fields can contain dots to reference nested fields
+   * within the document.
+   * @return This `Transaction` instance. Used for chaining method calls.
+   */
   update(documentRef: DocumentReference<unknown>, value: UpdateData): this;
+  /**
+   * Updates fields in the document referred to by the provided
+   * `DocumentReference`. The update will fail if applied to a document that
+   * does not exist.
+   *
+   * Nested fields can be updated by providing dot-separated field path
+   * strings or by providing FieldPath objects.
+   *
+   * @param documentRef A reference to the document to be updated.
+   * @param field The first field to update.
+   * @param value The first value.
+   * @param moreFieldsAndValues Additional key/value pairs.
+   * @return A Promise resolved once the data has been successfully written
+   * to the backend (Note that it won't resolve while you're offline).
+   */
   update(
     documentRef: DocumentReference<unknown>,
     field: string | FieldPath,
@@ -162,6 +220,12 @@ export class Transaction {
     return this;
   }
 
+  /**
+   * Deletes the document referred to by the provided `DocumentReference`.
+   *
+   * @param documentRef A reference to the document to be deleted.
+   * @return This `Transaction` instance. Used for chaining method calls.
+   */
   delete(documentRef: DocumentReference<unknown>): this {
     const ref = validateReference(documentRef, this._firestore);
     this._transaction.delete(ref._key);

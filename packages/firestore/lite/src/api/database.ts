@@ -41,7 +41,10 @@ export interface Settings {
 }
 
 /**
- * The root reference to the Firestore Lite database.
+ * The Cloud Firestore service interface.
+ *
+ * Do not call this constructor directly. Instead, use {@link getFirestore()
+ * `getFirestore()`}.
  */
 export class FirebaseFirestore implements _FirebaseService {
   readonly _databaseId: DatabaseId;
@@ -56,10 +59,17 @@ export class FirebaseFirestore implements _FirebaseService {
   // all components have shut down.
   private _terminateTask?: Promise<void>;
 
+  /**
+   * The {@link firebase.app.App app} associated with this `Firestore` service
+   * instance.
+   */
+  readonly app: FirebaseApp;
+
   constructor(
-    readonly app: FirebaseApp,
+    app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>
   ) {
+    this.app = app;
     this._databaseId = FirebaseFirestore._databaseIdFromApp(app);
     this._credentials = new FirebaseCredentialsProvider(authProvider);
   }
