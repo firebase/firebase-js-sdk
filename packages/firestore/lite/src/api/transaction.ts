@@ -30,7 +30,7 @@ import {
 import { fail } from '../../../src/util/assert';
 import { applyFirestoreDataConverter } from '../../../src/api/database';
 import { DocumentSnapshot } from './snapshot';
-import { FirebaseFirestore } from './database';
+import { Firestore } from './database';
 import { TransactionRunner } from '../../../src/core/transaction_runner';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
@@ -55,7 +55,7 @@ export class Transaction {
   private readonly _dataReader: UserDataReader;
 
   constructor(
-    protected readonly _firestore: FirebaseFirestore,
+    protected readonly _firestore: Firestore,
     private readonly _transaction: InternalTransaction
   ) {
     this._dataReader = newUserDataReader(_firestore);
@@ -170,7 +170,7 @@ export class Transaction {
 }
 
 export function runTransaction<T>(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
   const datastore = getDatastore(firestore);

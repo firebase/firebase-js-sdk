@@ -17,9 +17,9 @@
 
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
-import { FirebaseFirestore } from './database';
+import { Firestore } from './database';
 import {
-  _DocumentKeyReference,
+  DocumentKeyReference,
   ParsedUpdateData,
   parseSetData,
   parseUpdateData,
@@ -101,13 +101,13 @@ export type SetOptions =
 /**
  * A reference to a particular document in a collection in the database.
  */
-export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<
+export class DocumentReference<T = DocumentData> extends DocumentKeyReference<
   T
 > {
   readonly type = 'document';
 
   constructor(
-    readonly firestore: FirebaseFirestore,
+    readonly firestore: Firestore,
     _converter: FirestoreDataConverter<T> | null,
     readonly _path: ResourcePath
   ) {
@@ -153,7 +153,7 @@ export class Query<T = DocumentData> {
 
   // This is the lite version of the Query class in the main SDK.
   constructor(
-    readonly firestore: FirebaseFirestore,
+    readonly firestore: Firestore,
     readonly _converter: FirestoreDataConverter<T> | null,
     readonly _query: InternalQuery
   ) {}
@@ -417,7 +417,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
   readonly type = 'collection';
 
   constructor(
-    readonly firestore: FirebaseFirestore,
+    readonly firestore: Firestore,
     converter: FirestoreDataConverter<T> | null,
     readonly _path: ResourcePath
   ) {
@@ -465,7 +465,7 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 }
 
 export function collection(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   collectionPath: string
 ): CollectionReference<DocumentData>;
 export function collection(
@@ -477,14 +477,11 @@ export function collection(
   collectionPath: string
 ): CollectionReference<DocumentData>;
 export function collection(
-  parent:
-    | FirebaseFirestore
-    | DocumentReference<unknown>
-    | CollectionReference<unknown>,
+  parent: Firestore | DocumentReference<unknown> | CollectionReference<unknown>,
   relativePath: string
 ): CollectionReference<DocumentData> {
   validateNonEmptyArgument('collection', 'path', relativePath);
-  if (parent instanceof FirebaseFirestore) {
+  if (parent instanceof Firestore) {
     const absolutePath = ResourcePath.fromString(relativePath);
     validateCollectionPath(absolutePath);
     return new CollectionReference(parent, /* converter= */ null, absolutePath);
@@ -514,7 +511,7 @@ export function collection(
 // TODO(firestorelite): Consider using ErrorFactory -
 // https://github.com/firebase/firebase-js-sdk/blob/0131e1f/packages/util/src/errors.ts#L106
 export function collectionGroup(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   collectionId: string
 ): Query<DocumentData> {
   validateNonEmptyArgument('collectionGroup', 'collection id', collectionId);
@@ -534,7 +531,7 @@ export function collectionGroup(
 }
 
 export function doc(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   documentPath: string
 ): DocumentReference<DocumentData>;
 export function doc<T>(
@@ -546,10 +543,7 @@ export function doc(
   documentPath: string
 ): DocumentReference<DocumentData>;
 export function doc<T>(
-  parent:
-    | FirebaseFirestore
-    | CollectionReference<T>
-    | DocumentReference<unknown>,
+  parent: Firestore | CollectionReference<T> | DocumentReference<unknown>,
   relativePath?: string
 ): DocumentReference {
   // We allow omission of 'pathString' but explicitly prohibit passing in both
@@ -559,7 +553,7 @@ export function doc<T>(
   }
   validateNonEmptyArgument('doc', 'path', relativePath);
 
-  if (parent instanceof FirebaseFirestore) {
+  if (parent instanceof Firestore) {
     const absolutePath = ResourcePath.fromString(relativePath);
     validateDocumentPath(absolutePath);
     return new DocumentReference(parent, /* converter= */ null, absolutePath);
@@ -777,9 +771,7 @@ export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean {
   return false;
 }
 
-export function newUserDataReader(
-  firestore: FirebaseFirestore
-): UserDataReader {
+export function newUserDataReader(firestore: Firestore): UserDataReader {
   const settings = firestore._getSettings();
   const serializer = newSerializer(firestore._databaseId);
   return new UserDataReader(

@@ -20,7 +20,7 @@ import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import {
-  FirebaseFirestore,
+  Firestore,
   getFirestore,
   initializeFirestore,
   terminate
@@ -92,7 +92,7 @@ describe('Firestore', () => {
       'test-app-initializeFirestore'
     );
     const fs1 = initializeFirestore(app, { host: 'localhost', ssl: false });
-    expect(fs1).to.be.an.instanceOf(FirebaseFirestore);
+    expect(fs1).to.be.an.instanceOf(Firestore);
   });
 
   it('returns same instance', () => {

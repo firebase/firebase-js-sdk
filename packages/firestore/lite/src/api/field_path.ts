@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _BaseFieldPath } from '../../../src/api/field_path';
+import { BaseFieldPath } from '../../../src/api/field_path';
 import { DOCUMENT_KEY_NAME } from '../../../src/model/path';
 
 /**
@@ -23,7 +23,7 @@ import { DOCUMENT_KEY_NAME } from '../../../src/model/path';
  * field name (referring to a top-level field in the document), or a list of
  * field names (referring to a nested field in the document).
  */
-export class FieldPath extends _BaseFieldPath {
+export class FieldPath extends BaseFieldPath {
   // Note: This class is stripped down a copy of the FieldPath class in the
   // legacy SDK. The changes are:
   // - The `documentId()` static method has been removed

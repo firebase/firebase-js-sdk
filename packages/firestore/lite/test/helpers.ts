@@ -17,7 +17,7 @@
 
 import { initializeApp } from '@firebase/app-exp';
 
-import { initializeFirestore, FirebaseFirestore } from '../src/api/database';
+import { initializeFirestore, Firestore } from '../src/api/database';
 import {
   doc,
   collection,
@@ -41,7 +41,7 @@ let appCount = 0;
 export async function withTestDbSettings(
   projectId: string,
   settings: Settings,
-  fn: (db: FirebaseFirestore) => void | Promise<void>
+  fn: (db: Firestore) => void | Promise<void>
 ): Promise<void> {
   const app = initializeApp(
     { apiKey: 'fake-api-key', projectId },
@@ -53,7 +53,7 @@ export async function withTestDbSettings(
 }
 
 export function withTestDb(
-  fn: (db: FirebaseFirestore) => void | Promise<void>
+  fn: (db: Firestore) => void | Promise<void>
 ): Promise<void> {
   return withTestDbSettings(DEFAULT_PROJECT_ID, DEFAULT_SETTINGS, fn);
 }

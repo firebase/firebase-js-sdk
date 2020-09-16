@@ -30,7 +30,7 @@ import { removeComponents } from './components';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'firestore/lite': FirebaseFirestore;
+    'firestore/lite': Firestore;
   }
 }
 
@@ -43,7 +43,7 @@ export interface Settings {
 /**
  * The root reference to the Firestore Lite database.
  */
-export class FirebaseFirestore implements _FirebaseService {
+export class Firestore implements _FirebaseService {
   readonly _databaseId: DatabaseId;
   readonly _credentials: CredentialsProvider;
   readonly _persistenceKey: string = '(lite)';
@@ -60,7 +60,7 @@ export class FirebaseFirestore implements _FirebaseService {
     readonly app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>
   ) {
-    this._databaseId = FirebaseFirestore._databaseIdFromApp(app);
+    this._databaseId = Firestore._databaseIdFromApp(app);
     this._credentials = new FirebaseCredentialsProvider(authProvider);
   }
 
@@ -126,23 +126,20 @@ export class FirebaseFirestore implements _FirebaseService {
 export function initializeFirestore(
   app: FirebaseApp,
   settings: Settings
-): FirebaseFirestore {
+): Firestore {
   const firestore = _getProvider(
     app,
     'firestore/lite'
-  ).getImmediate() as FirebaseFirestore;
+  ).getImmediate() as Firestore;
   firestore._configureClient(settings);
   return firestore;
 }
 
-export function getFirestore(app: FirebaseApp): FirebaseFirestore {
-  return _getProvider(
-    app,
-    'firestore/lite'
-  ).getImmediate() as FirebaseFirestore;
+export function getFirestore(app: FirebaseApp): Firestore {
+  return _getProvider(app, 'firestore/lite').getImmediate() as Firestore;
 }
 
-export function terminate(firestore: FirebaseFirestore): Promise<void> {
+export function terminate(firestore: Firestore): Promise<void> {
   _removeServiceInstance(firestore.app, 'firestore/lite');
   return firestore._delete();
 }

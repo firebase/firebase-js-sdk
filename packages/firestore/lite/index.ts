@@ -21,7 +21,7 @@ registerFirestore();
 
 export {
   Settings,
-  FirebaseFirestore,
+  Firestore as FirebaseFirestore,
   initializeFirestore,
   getFirestore,
   terminate

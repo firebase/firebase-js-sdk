@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseFirestore } from './database';
+import { Firestore } from './database';
 import {
   DocumentData,
   DocumentReference,
@@ -48,7 +48,7 @@ export class DocumentSnapshot<T = DocumentData> {
   // - No support for SnapshotOptions.
 
   constructor(
-    public _firestore: FirebaseFirestore,
+    public _firestore: Firestore,
     public _key: DocumentKey,
     public _document: Document | null,
     public _converter: UntypedFirestoreDataConverter<T> | null

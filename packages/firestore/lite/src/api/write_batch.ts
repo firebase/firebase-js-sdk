@@ -34,7 +34,7 @@ import {
   SetOptions,
   UpdateData
 } from './reference';
-import { FirebaseFirestore } from './database';
+import { Firestore } from './database';
 import { invokeCommitRpc } from '../../../src/remote/datastore';
 import { FieldPath } from './field_path';
 import { getDatastore } from './components';
@@ -48,7 +48,7 @@ export class WriteBatch {
   private _committed = false;
 
   constructor(
-    private readonly _firestore: FirebaseFirestore,
+    private readonly _firestore: Firestore,
     private readonly _commitHandler: (m: Mutation[]) => Promise<void>
   ) {
     this._dataReader = newUserDataReader(_firestore);
@@ -167,7 +167,7 @@ export class WriteBatch {
 
 export function validateReference<T>(
   documentRef: DocumentReference<T>,
-  firestore: FirebaseFirestore
+  firestore: Firestore
 ): DocumentReference<T> {
   if (documentRef.firestore !== firestore) {
     throw new FirestoreError(
@@ -179,7 +179,7 @@ export function validateReference<T>(
   }
 }
 
-export function writeBatch(firestore: FirebaseFirestore): WriteBatch {
+export function writeBatch(firestore: Firestore): WriteBatch {
   const datastore = getDatastore(firestore);
   return new WriteBatch(firestore, writes =>
     invokeCommitRpc(datastore, writes)

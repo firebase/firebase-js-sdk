@@ -46,7 +46,7 @@ import {
   toResourceName,
   toTimestamp
 } from '../remote/serializer';
-import { _BaseFieldPath, fromDotSeparatedString } from './field_path';
+import { BaseFieldPath, fromDotSeparatedString } from './field_path';
 import { DeleteFieldValueImpl, _SerializableFieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
 import { newSerializer } from '../platform/serializer';
@@ -70,9 +70,7 @@ export interface UntypedFirestoreDataConverter<T> {
  * This class serves as a common base class for the public DocumentReferences
  * exposed in the lite, full and legacy SDK.
  */
-// Use underscore prefix to hide this class from our Public API.
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export class _DocumentKeyReference<T> {
+export class DocumentKeyReference<T> {
   constructor(
     readonly _databaseId: DatabaseId,
     readonly _key: DocumentKey,
@@ -375,7 +373,7 @@ export function parseSetData(
     for (const stringOrFieldPath of options.mergeFields) {
       let fieldPath: FieldPath;
 
-      if (stringOrFieldPath instanceof _BaseFieldPath) {
+      if (stringOrFieldPath instanceof BaseFieldPath) {
         fieldPath = stringOrFieldPath._internalPath;
       } else if (typeof stringOrFieldPath === 'string') {
         fieldPath = fieldPathFromDotSeparatedString(
@@ -463,7 +461,7 @@ export function parseUpdateVarargs(
   userDataReader: UserDataReader,
   methodName: string,
   targetDoc: DocumentKey,
-  field: string | _BaseFieldPath,
+  field: string | BaseFieldPath,
   value: unknown,
   moreFieldsAndValues: unknown[]
 ): ParsedUpdateData {
@@ -487,7 +485,7 @@ export function parseUpdateVarargs(
     keys.push(
       fieldPathFromArgument(
         methodName,
-        moreFieldsAndValues[i] as string | _BaseFieldPath
+        moreFieldsAndValues[i] as string | BaseFieldPath
       )
     );
     values.push(moreFieldsAndValues[i + 1]);
@@ -715,7 +713,7 @@ function parseScalarValue(
     };
   } else if (value instanceof Bytes) {
     return { bytesValue: toBytes(context.serializer, value._byteString) };
-  } else if (value instanceof _DocumentKeyReference) {
+  } else if (value instanceof DocumentKeyReference) {
     const thisDb = context.databaseId;
     const otherDb = value._databaseId;
     if (!otherDb.isEqual(thisDb)) {
@@ -756,7 +754,7 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof Timestamp) &&
     !(input instanceof GeoPoint) &&
     !(input instanceof Bytes) &&
-    !(input instanceof _DocumentKeyReference) &&
+    !(input instanceof DocumentKeyReference) &&
     !(input instanceof _SerializableFieldValue)
   );
 }
@@ -782,10 +780,10 @@ function validatePlainObject(
  */
 export function fieldPathFromArgument(
   methodName: string,
-  path: string | _BaseFieldPath,
+  path: string | BaseFieldPath,
   targetDoc?: DocumentKey
 ): FieldPath {
-  if (path instanceof _BaseFieldPath) {
+  if (path instanceof BaseFieldPath) {
     return path._internalPath;
   } else if (typeof path === 'string') {
     return fieldPathFromDotSeparatedString(methodName, path);

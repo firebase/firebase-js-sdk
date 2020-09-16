@@ -17,7 +17,7 @@
 
 import { FirebaseFirestore } from './database';
 import {
-  _DocumentKeyReference,
+  DocumentKeyReference,
   ParsedUpdateData,
   parseSetData,
   parseUpdateData,
@@ -542,7 +542,7 @@ export function executeWrite(
  */
 function convertToDocSnapshot<T>(
   firestore: FirebaseFirestore,
-  ref: _DocumentKeyReference<T>,
+  ref: DocumentKeyReference<T>,
   snapshot: ViewSnapshot
 ): DocumentSnapshot<T> {
   debugAssert(

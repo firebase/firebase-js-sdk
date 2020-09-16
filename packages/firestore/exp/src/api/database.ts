@@ -32,7 +32,7 @@ import {
   OnlineComponentProvider
 } from '../../../src/core/component_provider';
 import {
-  FirebaseFirestore as LiteFirestore,
+  Firestore as LiteFirestore,
   Settings as LiteSettings
 } from '../../../lite/src/api/database';
 import { Code, FirestoreError } from '../../../src/util/error';

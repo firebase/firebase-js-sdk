@@ -18,7 +18,7 @@
 import { Datastore, newDatastore } from '../../../src/remote/datastore';
 import { newConnection } from '../../../src/platform/connection';
 import { newSerializer } from '../../../src/platform/serializer';
-import { FirebaseFirestore } from './database';
+import { Firestore } from './database';
 import { DatabaseInfo } from '../../../src/core/database_info';
 import { logDebug } from '../../../src/util/log';
 import { Code, FirestoreError } from '../../../src/util/error';
@@ -37,14 +37,14 @@ export const DEFAULT_SSL = true;
  * An instance map that ensures only one Datastore exists per Firestore
  * instance.
  */
-const datastoreInstances = new Map<FirebaseFirestore, Datastore>();
+const datastoreInstances = new Map<Firestore, Datastore>();
 
 /**
  * Returns an initialized and started Datastore for the given Firestore
  * instance. Callers must invoke removeDatastore() when the Firestore
  * instance is terminated.
  */
-export function getDatastore(firestore: FirebaseFirestore): Datastore {
+export function getDatastore(firestore: Firestore): Datastore {
   if (firestore._terminated) {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
@@ -79,7 +79,7 @@ export function getDatastore(firestore: FirebaseFirestore): Datastore {
  * Removes all components associated with the provided instance. Must be called
  * when the Firestore instance is terminated.
  */
-export function removeComponents(firestore: FirebaseFirestore): void {
+export function removeComponents(firestore: Firestore): void {
   const datastore = datastoreInstances.get(firestore);
   if (datastore) {
     logDebug(LOG_TAG, 'Removing Datastore');
