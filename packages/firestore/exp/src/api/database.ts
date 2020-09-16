@@ -74,9 +74,7 @@ export interface Settings extends LiteSettings {
  * The root reference to the Firestore database and the entry point for the
  * tree-shakeable SDK.
  */
-export class FirebaseFirestore
-  extends LiteFirestore
-  implements _FirebaseService {
+export class Firestore extends LiteFirestore implements _FirebaseService {
   readonly _queue = new AsyncQueue();
   readonly _persistenceKey: string;
   readonly _clientId = AutoId.newId();
@@ -176,11 +174,11 @@ export class FirebaseFirestore
 export function initializeFirestore(
   app: FirebaseApp,
   settings: Settings
-): FirebaseFirestore {
+): Firestore {
   const firestore = _getProvider(
     app,
     'firestore-exp'
-  ).getImmediate() as FirebaseFirestore;
+  ).getImmediate() as Firestore;
 
   if (
     settings.cacheSizeBytes !== undefined &&
@@ -197,12 +195,12 @@ export function initializeFirestore(
   return firestore;
 }
 
-export function getFirestore(app: FirebaseApp): FirebaseFirestore {
-  return _getProvider(app, 'firestore-exp').getImmediate() as FirebaseFirestore;
+export function getFirestore(app: FirebaseApp): Firestore {
+  return _getProvider(app, 'firestore-exp').getImmediate() as Firestore;
 }
 
 export function enableIndexedDbPersistence(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   persistenceSettings?: PersistenceSettings
 ): Promise<void> {
   verifyNotInitialized(firestore);
@@ -235,7 +233,7 @@ export function enableIndexedDbPersistence(
 }
 
 export function enableMultiTabIndexedDbPersistence(
-  firestore: FirebaseFirestore
+  firestore: Firestore
 ): Promise<void> {
   verifyNotInitialized(firestore);
 
@@ -265,9 +263,7 @@ export function enableMultiTabIndexedDbPersistence(
   });
 }
 
-export function clearIndexedDbPersistence(
-  firestore: FirebaseFirestore
-): Promise<void> {
+export function clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
   if (firestore._initialized && !firestore._terminated) {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
@@ -290,9 +286,7 @@ export function clearIndexedDbPersistence(
   return deferred.promise;
 }
 
-export function waitForPendingWrites(
-  firestore: FirebaseFirestore
-): Promise<void> {
+export function waitForPendingWrites(firestore: Firestore): Promise<void> {
   firestore._verifyNotTerminated();
 
   const deferred = new Deferred<void>();
@@ -303,7 +297,7 @@ export function waitForPendingWrites(
   return deferred.promise;
 }
 
-export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
+export function enableNetwork(firestore: Firestore): Promise<void> {
   firestore._verifyNotTerminated();
 
   return firestore._queue.enqueue(async () => {
@@ -314,7 +308,7 @@ export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
   });
 }
 
-export function disableNetwork(firestore: FirebaseFirestore): Promise<void> {
+export function disableNetwork(firestore: Firestore): Promise<void> {
   firestore._verifyNotTerminated();
 
   return firestore._queue.enqueue(async () => {
@@ -325,12 +319,12 @@ export function disableNetwork(firestore: FirebaseFirestore): Promise<void> {
   });
 }
 
-export function terminate(firestore: FirebaseFirestore): Promise<void> {
+export function terminate(firestore: Firestore): Promise<void> {
   _removeServiceInstance(firestore.app, 'firestore-exp');
   return firestore._delete();
 }
 
-function verifyNotInitialized(firestore: FirebaseFirestore): void {
+function verifyNotInitialized(firestore: Firestore): void {
   if (firestore._initialized || firestore._terminated) {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,

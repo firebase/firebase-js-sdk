@@ -16,10 +16,10 @@
  */
 
 import { WriteBatch } from '../../../lite/src/api/write_batch';
-import { FirebaseFirestore } from './database';
+import { Firestore } from './database';
 import { executeWrite } from './reference';
 
-export function writeBatch(firestore: FirebaseFirestore): WriteBatch {
+export function writeBatch(firestore: Firestore): WriteBatch {
   firestore._verifyNotTerminated();
   return new WriteBatch(firestore, mutations =>
     executeWrite(firestore, mutations)

@@ -25,7 +25,7 @@ import {
   DocumentSnapshot as LiteDocumentSnapshot,
   fieldPathFromArgument
 } from '../../../lite/src/api/snapshot';
-import { FirebaseFirestore } from './database';
+import { Firestore } from './database';
 import {
   DocumentData,
   DocumentReference,
@@ -70,10 +70,10 @@ export interface DocumentChange<T = DocumentData> {
 export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
   T
 > {
-  private readonly _firestoreImpl: FirebaseFirestore;
+  private readonly _firestoreImpl: Firestore;
 
   constructor(
-    readonly _firestore: FirebaseFirestore,
+    readonly _firestore: Firestore,
     key: DocumentKey,
     document: Document | null,
     readonly metadata: SnapshotMetadata,
@@ -156,7 +156,7 @@ export class QuerySnapshot<T = DocumentData> {
   private _cachedChangesIncludeMetadataChanges?: boolean;
 
   constructor(
-    readonly _firestore: FirebaseFirestore,
+    readonly _firestore: Firestore,
     readonly query: Query<T>,
     readonly _snapshot: ViewSnapshot
   ) {

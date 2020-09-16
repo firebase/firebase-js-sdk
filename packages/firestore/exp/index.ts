@@ -22,7 +22,7 @@ registerFirestore();
 export { FieldPath, documentId } from '../lite/src/api/field_path';
 
 export {
-  FirebaseFirestore,
+  Firestore as FirebaseFirestore,
   initializeFirestore,
   getFirestore,
   enableIndexedDbPersistence,

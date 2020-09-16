@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseFirestore } from './database';
+import { Firestore } from './database';
 import {
   DocumentKeyReference,
   ParsedUpdateData,
@@ -86,7 +86,7 @@ export interface SnapshotListenOptions {
 export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
-  const firestore = cast(reference.firestore, FirebaseFirestore);
+  const firestore = cast(reference.firestore, Firestore);
   firestore._verifyNotTerminated();
 
   const deferred = new Deferred<ViewSnapshot>();
@@ -108,7 +108,7 @@ export function getDoc<T>(
 export function getDocFromCache<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
-  const firestore = cast(reference.firestore, FirebaseFirestore);
+  const firestore = cast(reference.firestore, Firestore);
   firestore._verifyNotTerminated();
 
   const deferred = new Deferred<Document | null>();
@@ -134,7 +134,7 @@ export function getDocFromCache<T>(
 export function getDocFromServer<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
-  const firestore = cast(reference.firestore, FirebaseFirestore);
+  const firestore = cast(reference.firestore, Firestore);
   firestore._verifyNotTerminated();
 
   const deferred = new Deferred<ViewSnapshot>();
@@ -154,7 +154,7 @@ export function getDocFromServer<T>(
 }
 
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
-  const firestore = cast(query.firestore, FirebaseFirestore);
+  const firestore = cast(query.firestore, Firestore);
   firestore._verifyNotTerminated();
 
   validateHasExplicitOrderByForLimitToLast(query._query);
@@ -178,7 +178,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
 export function getDocsFromCache<T>(
   query: Query<T>
 ): Promise<QuerySnapshot<T>> {
-  const firestore = cast(query.firestore, FirebaseFirestore);
+  const firestore = cast(query.firestore, Firestore);
   firestore._verifyNotTerminated();
 
   const deferred = new Deferred<ViewSnapshot>();
@@ -194,7 +194,7 @@ export function getDocsFromCache<T>(
 export function getDocsFromServer<T>(
   query: Query<T>
 ): Promise<QuerySnapshot<T>> {
-  const firestore = cast(query.firestore, FirebaseFirestore);
+  const firestore = cast(query.firestore, Firestore);
   firestore._verifyNotTerminated();
 
   const deferred = new Deferred<ViewSnapshot>();
@@ -227,7 +227,7 @@ export function setDoc<T>(
   data: T,
   options?: SetOptions
 ): Promise<void> {
-  const firestore = cast(reference.firestore, FirebaseFirestore);
+  const firestore = cast(reference.firestore, Firestore);
   firestore._verifyNotTerminated();
 
   const convertedValue = applyFirestoreDataConverter(
@@ -265,7 +265,7 @@ export function updateDoc(
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
-  const firestore = cast(reference.firestore, FirebaseFirestore);
+  const firestore = cast(reference.firestore, Firestore);
   firestore._verifyNotTerminated();
 
   const dataReader = newUserDataReader(firestore);
@@ -302,7 +302,7 @@ export function updateDoc(
 export function deleteDoc(
   reference: DocumentReference<unknown>
 ): Promise<void> {
-  const firestore = cast(reference.firestore, FirebaseFirestore);
+  const firestore = cast(reference.firestore, Firestore);
   firestore._verifyNotTerminated();
 
   const mutations = [new DeleteMutation(reference._key, Precondition.none())];
@@ -313,7 +313,7 @@ export function addDoc<T>(
   reference: CollectionReference<T>,
   data: T
 ): Promise<DocumentReference<T>> {
-  const firestore = cast(reference.firestore, FirebaseFirestore);
+  const firestore = cast(reference.firestore, Firestore);
   firestore._verifyNotTerminated();
 
   const docRef = doc(reference);
@@ -423,11 +423,11 @@ export function onSnapshot<T>(
   }
 
   let observer: PartialObserver<ViewSnapshot>;
-  let firestore: FirebaseFirestore;
+  let firestore: Firestore;
   let internalQuery: InternalQuery;
 
   if (reference instanceof DocumentReference) {
-    firestore = cast(reference.firestore, FirebaseFirestore);
+    firestore = cast(reference.firestore, Firestore);
     internalQuery = newQueryForPath(reference._key.path);
 
     observer = {
@@ -442,7 +442,7 @@ export function onSnapshot<T>(
       complete: args[currArg + 2] as CompleteFn
     };
   } else {
-    firestore = cast(reference.firestore, FirebaseFirestore);
+    firestore = cast(reference.firestore, Firestore);
     internalQuery = reference._query;
 
     observer = {
@@ -485,7 +485,7 @@ export function onSnapshot<T>(
 // TODO(firestorexp): Make sure these overloads are tested via the Firestore
 // integration tests
 export function onSnapshotsInSync(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   observer: {
     next?: (value: void) => void;
     error?: (error: FirestoreError) => void;
@@ -493,11 +493,11 @@ export function onSnapshotsInSync(
   }
 ): Unsubscribe;
 export function onSnapshotsInSync(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   onSync: () => void
 ): Unsubscribe;
 export function onSnapshotsInSync(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   arg: unknown
 ): Unsubscribe {
   firestore._verifyNotTerminated();
@@ -525,7 +525,7 @@ export function onSnapshotsInSync(
 
 /** Locally writes `mutations` on the async queue. */
 export function executeWrite(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   mutations: Mutation[]
 ): Promise<void> {
   const deferred = new Deferred<void>();
@@ -541,7 +541,7 @@ export function executeWrite(
  * to a DocumentSnapshot.
  */
 function convertToDocSnapshot<T>(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   ref: DocumentKeyReference<T>,
   snapshot: ViewSnapshot
 ): DocumentSnapshot<T> {

@@ -94,7 +94,7 @@ export class FirebaseApp implements FirebaseAppLegacy {
 }
 
 export class FirebaseFirestore implements legacy.FirebaseFirestore {
-  constructor(private readonly _delegate: exp.FirebaseFirestore) {}
+  constructor(private readonly _delegate: exp.Firestore) {}
 
   app = new FirebaseApp(this._delegate.app);
 
@@ -767,7 +767,7 @@ function wrap(value: any): any {
     // TODO(mrschmidt): Ideally, we should use an existing instance of
     // FirebaseFirestore here rather than instantiating a new instance
     return new DocumentReference(
-      new FirebaseFirestore(value.firestore as exp.FirebaseFirestore),
+      new FirebaseFirestore(value.firestore as exp.Firestore),
       value
     );
   } else if (isPlainObject(value)) {

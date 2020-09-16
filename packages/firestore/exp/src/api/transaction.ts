@@ -19,7 +19,7 @@ import { Transaction as LiteTransaction } from '../../../lite/src/api/transactio
 import { DocumentSnapshot } from './snapshot';
 import { TransactionRunner } from '../../../src/core/transaction_runner';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { FirebaseFirestore } from './database';
+import { Firestore } from './database';
 import { Deferred } from '../../../src/util/promise';
 import { SnapshotMetadata } from '../../../src/api/database';
 import { Transaction as InternalTransaction } from '../../../src/core/transaction';
@@ -32,7 +32,7 @@ export class Transaction extends LiteTransaction {
   // but is subclassed in order to return its own DocumentSnapshot types.
 
   constructor(
-    protected readonly _firestore: FirebaseFirestore,
+    protected readonly _firestore: Firestore,
     _transaction: InternalTransaction
   ) {
     super(_firestore, _transaction);
@@ -59,7 +59,7 @@ export class Transaction extends LiteTransaction {
 }
 
 export function runTransaction<T>(
-  firestore: FirebaseFirestore,
+  firestore: Firestore,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
   firestore._verifyNotTerminated();
