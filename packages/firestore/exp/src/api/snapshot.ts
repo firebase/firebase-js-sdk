@@ -232,7 +232,7 @@ export class QuerySnapshot<T = DocumentData> {
       doc.key,
       doc,
       new SnapshotMetadata(hasPendingWrites, fromCache),
-      this.query.converter
+      this.query._converter
     );
   }
 }
