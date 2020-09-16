@@ -32,7 +32,7 @@ import * as fs from 'fs';
  * @param inputLocation The file path to the .d.ts produced by API explorer.
  * @param outputLocation The output location for the pruned .d.ts file.
  */
-function main(inputLocation: string, outputLocation: string) {
+function main(inputLocation: string, outputLocation: string): void {
   const compilerOptions = {};
   const host = ts.createCompilerHost(compilerOptions);
   const program = ts.createProgram([inputLocation], compilerOptions, host);
@@ -68,7 +68,9 @@ function isExported(modifiers?: ts.ModifiersArray): boolean {
  * Returns either the modified constructor or the existing constructor if no
  * modification was needed.
  */
-function maybeHideConstructor(node: ts.ConstructorDeclaration) {
+function maybeHideConstructor(
+  node: ts.ConstructorDeclaration
+): ts.ConstructorDeclaration {
   const hideConstructorTag = ts
     .getJSDocTags(node)
     ?.find(t => t.tagName.escapedText === 'hideconstructor');
@@ -132,7 +134,7 @@ function prunePrivateImports<
           sourceFile,
           type.expression
         );
-        if (publicName && publicName != currentName) {
+        if (publicName && publicName !== currentName) {
           // If there is a public type that we can refer to, update the import
           // statement to refer to the public type.
           exportedTypes.push(
@@ -225,7 +227,7 @@ function extractPublicName(
   // private type.
   for (const symbol of allPublicSymbols) {
     // Short circuit if the local types is already part of the public types.
-    if (symbol.name == localSymbolName) {
+    if (symbol.name === localSymbolName) {
       return symbol.name;
     }
 
@@ -238,7 +240,7 @@ function extractPublicName(
           for (const type of heritageClause.types || []) {
             if (ts.isIdentifier(type.expression)) {
               const subclassName = type.expression.escapedText;
-              if (subclassName == localSymbolName) {
+              if (subclassName === localSymbolName) {
                 publicSymbolsForLocalType.push(symbol.name);
               }
             }
@@ -256,7 +258,7 @@ const dropPrivateApiTransformer = (
   context: ts.TransformationContext
 ) => {
   return (sourceFile: ts.SourceFile) => {
-    function visit(node: ts.Node): any {
+    function visit(node: ts.Node): ts.Node {
       if (
         ts.isInterfaceDeclaration(node) ||
         ts.isClassDeclaration(node) ||
