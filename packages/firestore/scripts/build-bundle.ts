@@ -28,7 +28,7 @@ const argv = yargs.options({
   input: {
     type: 'string',
     demandOption: true,
-    desc: 'The location of the index.ts file'
+    desc: 'The location of the index.d.ts file'
   },
   output: {
     type: 'string',
