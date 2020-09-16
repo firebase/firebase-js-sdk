@@ -18,6 +18,8 @@
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
 import { isIndexedDBAvailable } from '@firebase/util';
 import { consoleLogger } from '../utils/console_logger';
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 declare global {
   interface Window {
     PerformanceObserver: typeof PerformanceObserver;
