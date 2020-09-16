@@ -54,6 +54,7 @@ export class Transaction {
 
   private readonly _dataReader: UserDataReader;
 
+  /** @hideconstructor */
   constructor(
     protected readonly _firestore: FirebaseFirestore,
     private readonly _transaction: InternalTransaction
@@ -92,21 +93,21 @@ export class Transaction {
       });
   }
 
-  set<T>(documentRef: DocumentReference<T>, value: T): this;
+  set<T>(documentRef: DocumentReference<T>, data: T): this;
   set<T>(
     documentRef: DocumentReference<T>,
-    value: Partial<T>,
+    data: Partial<T>,
     options: SetOptions
   ): this;
   set<T>(
     documentRef: DocumentReference<T>,
-    value: T,
+    data: T,
     options?: SetOptions
   ): this {
     const ref = validateReference(documentRef, this._firestore);
     const convertedValue = applyFirestoreDataConverter(
       ref._converter,
-      value,
+      data,
       options
     );
     const parsed = parseSetData(
@@ -121,17 +122,17 @@ export class Transaction {
     return this;
   }
 
-  update(documentRef: DocumentReference<unknown>, value: UpdateData): this;
+  update(documentRef: DocumentReference<unknown>, data: UpdateData): this;
   update(
     documentRef: DocumentReference<unknown>,
     field: string | FieldPath,
-    value: unknown,
+    data: unknown,
     ...moreFieldsAndValues: unknown[]
   ): this;
   update(
     documentRef: DocumentReference<unknown>,
     fieldOrUpdateData: string | FieldPath | UpdateData,
-    value?: unknown,
+    data?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): this {
     const ref = validateReference(documentRef, this._firestore);
@@ -146,7 +147,7 @@ export class Transaction {
         'Transaction.update',
         ref._key,
         fieldOrUpdateData,
-        value,
+        data,
         moreFieldsAndValues
       );
     } else {

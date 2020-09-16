@@ -23,6 +23,7 @@ import {
 } from '../../../src/api/user_data_writer';
 import {
   DocumentSnapshot as LiteDocumentSnapshot,
+  FirestoreDataConverter as LiteFirestoreDataConverter,
   fieldPathFromArgument
 } from '../../../lite/src/api/snapshot';
 import { FirebaseFirestore } from './database';
@@ -45,7 +46,8 @@ import { Bytes } from '../../../lite/src/api/bytes';
 
 const DEFAULT_SERVER_TIMESTAMP_BEHAVIOR: ServerTimestampBehavior = 'none';
 
-export interface FirestoreDataConverter<T> {
+export interface FirestoreDataConverter<T>
+  extends LiteFirestoreDataConverter<T> {
   toFirestore(modelObject: T): DocumentData;
   toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
   fromFirestore(
@@ -72,6 +74,7 @@ export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
 > {
   private readonly _firestoreImpl: FirebaseFirestore;
 
+  /** @hideconstructor protected */
   constructor(
     readonly _firestore: FirebaseFirestore,
     key: DocumentKey,
@@ -155,6 +158,7 @@ export class QuerySnapshot<T = DocumentData> {
   private _cachedChanges?: Array<DocumentChange<T>>;
   private _cachedChangesIncludeMetadataChanges?: boolean;
 
+  /** @hideconstructor */
   constructor(
     readonly _firestore: FirebaseFirestore,
     readonly query: Query<T>,

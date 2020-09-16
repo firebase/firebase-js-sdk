@@ -47,6 +47,7 @@ export class WriteBatch {
   private _mutations = [] as Mutation[];
   private _committed = false;
 
+  /** @hideconstructor */
   constructor(
     private readonly _firestore: FirebaseFirestore,
     private readonly _commitHandler: (m: Mutation[]) => Promise<void>
@@ -54,23 +55,23 @@ export class WriteBatch {
     this._dataReader = newUserDataReader(_firestore);
   }
 
-  set<T>(documentRef: DocumentReference<T>, value: T): WriteBatch;
+  set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
   set<T>(
     documentRef: DocumentReference<T>,
-    value: Partial<T>,
+    data: Partial<T>,
     options: SetOptions
   ): WriteBatch;
   set<T>(
     documentRef: DocumentReference<T>,
-    value: T,
+    data: T,
     options?: SetOptions
   ): WriteBatch {
-    this.verifyNotCommitted();
+    this._verifyNotCommitted();
     const ref = validateReference(documentRef, this._firestore);
 
     const convertedValue = applyFirestoreDataConverter(
       ref._converter,
-      value,
+      data,
       options
     );
     const parsed = parseSetData(
@@ -87,23 +88,20 @@ export class WriteBatch {
     return this;
   }
 
-  update(
-    documentRef: DocumentReference<unknown>,
-    value: UpdateData
-  ): WriteBatch;
+  update(documentRef: DocumentReference<unknown>, data: UpdateData): WriteBatch;
   update(
     documentRef: DocumentReference<unknown>,
     field: string | FieldPath,
-    value: unknown,
+    data: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch;
   update(
     documentRef: DocumentReference<unknown>,
     fieldOrUpdateData: string | FieldPath | UpdateData,
-    value?: unknown,
+    data?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch {
-    this.verifyNotCommitted();
+    this._verifyNotCommitted();
     const ref = validateReference(documentRef, this._firestore);
 
     let parsed;
@@ -117,7 +115,7 @@ export class WriteBatch {
         'WriteBatch.update',
         ref._key,
         fieldOrUpdateData,
-        value,
+        data,
         moreFieldsAndValues
       );
     } else {
@@ -136,7 +134,7 @@ export class WriteBatch {
   }
 
   delete(documentRef: DocumentReference<unknown>): WriteBatch {
-    this.verifyNotCommitted();
+    this._verifyNotCommitted();
     const ref = validateReference(documentRef, this._firestore);
     this._mutations = this._mutations.concat(
       new DeleteMutation(ref._key, Precondition.none())
@@ -145,7 +143,7 @@ export class WriteBatch {
   }
 
   commit(): Promise<void> {
-    this.verifyNotCommitted();
+    this._verifyNotCommitted();
     this._committed = true;
     if (this._mutations.length > 0) {
       return this._commitHandler(this._mutations);
@@ -154,7 +152,7 @@ export class WriteBatch {
     return Promise.resolve();
   }
 
-  private verifyNotCommitted(): void {
+  private _verifyNotCommitted(): void {
     if (this._committed) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,

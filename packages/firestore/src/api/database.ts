@@ -153,7 +153,7 @@ const DEFAULT_IGNORE_UNDEFINED_PROPERTIES = false;
  * Set this value as the `cacheSizeBytes` on the settings passed to the
  * `Firestore` instance.
  */
-export const CACHE_SIZE_UNLIMITED = LruParams.COLLECTION_DISABLED;
+export const CACHE_SIZE_UNLIMITED = -1;
 
 // enablePersistence() defaults:
 const DEFAULT_SYNCHRONIZE_TABS = false;
@@ -1321,12 +1321,13 @@ export class DocumentReference<T = DocumentData>
 }
 
 export class SnapshotMetadata implements PublicSnapshotMetadata {
+  /** @hideconstructor */
   constructor(
     readonly hasPendingWrites: boolean,
     readonly fromCache: boolean
   ) {}
 
-  isEqual(other: PublicSnapshotMetadata): boolean {
+  isEqual(other: SnapshotMetadata): boolean {
     return (
       this.hasPendingWrites === other.hasPendingWrites &&
       this.fromCache === other.fromCache

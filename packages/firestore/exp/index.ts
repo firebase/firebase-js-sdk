@@ -32,7 +32,8 @@ export {
   disableNetwork,
   enableNetwork,
   terminate,
-  Settings
+  Settings,
+  PersistenceSettings
 } from './src/api/database';
 
 export {
@@ -69,8 +70,11 @@ export {
   QueryConstraintType,
   DocumentData,
   UpdateData,
-  OrderByDirection
+  OrderByDirection,
+  WhereFilterOp
 } from '../lite/src/api/reference';
+
+export { Unsubscribe } from '../src/api/observer';
 
 export { runTransaction, Transaction } from './src/api/transaction';
 
@@ -98,7 +102,7 @@ export {
   serverTimestamp
 } from '../lite/src/api/field_value';
 
-export { setLogLevel, LogLevel } from '../src/util/log';
+export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
 
 export { Bytes } from '../lite/src/api/bytes';
 

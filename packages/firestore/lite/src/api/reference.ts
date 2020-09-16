@@ -106,6 +106,7 @@ export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<
 > {
   readonly type = 'document';
 
+  /** @hideconstructor */
   constructor(
     readonly firestore: FirebaseFirestore,
     readonly converter: FirestoreDataConverter<T> | null,
@@ -152,6 +153,8 @@ export class Query<T = DocumentData> {
   readonly type: 'query' | 'collection' = 'query';
 
   // This is the lite version of the Query class in the main SDK.
+
+  /** @hideconstructor protected */
   constructor(
     readonly firestore: FirebaseFirestore,
     readonly converter: FirestoreDataConverter<T> | null,
@@ -268,14 +271,14 @@ class QueryOrderByConstraint extends QueryConstraint {
 export type OrderByDirection = 'desc' | 'asc';
 
 export function orderBy(
-  field: string | FieldPath,
+  fieldPath: string | FieldPath,
   directionStr: OrderByDirection = 'asc'
 ): QueryConstraint {
   // TODO(firestorelite): Consider validating the enum strings (note that
   // TypeScript does not support passing invalid values).
   const direction = directionStr as Direction;
-  const fieldPath = fieldPathFromArgument('orderBy', field);
-  return new QueryOrderByConstraint(fieldPath, direction);
+  const field = fieldPathFromArgument('orderBy', fieldPath);
+  return new QueryOrderByConstraint(field, direction);
 }
 
 class QueryLimitConstraint extends QueryConstraint {
@@ -296,14 +299,14 @@ class QueryLimitConstraint extends QueryConstraint {
   }
 }
 
-export function limit(n: number): QueryConstraint {
-  validatePositiveNumber('limit', 1, n);
-  return new QueryLimitConstraint('limit', n, LimitType.First);
+export function limit(limit: number): QueryConstraint {
+  validatePositiveNumber('limit', 1, limit);
+  return new QueryLimitConstraint('limit', limit, LimitType.First);
 }
 
-export function limitToLast(n: number): QueryConstraint {
-  validatePositiveNumber('limitToLast', 1, n);
-  return new QueryLimitConstraint('limitToLast', n, LimitType.Last);
+export function limitToLast(limit: number): QueryConstraint {
+  validatePositiveNumber('limitToLast', 1, limit);
+  return new QueryLimitConstraint('limitToLast', limit, LimitType.Last);
 }
 
 class QueryStartAtConstraint extends QueryConstraint {
@@ -330,12 +333,18 @@ class QueryStartAtConstraint extends QueryConstraint {
   }
 }
 
+export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function startAt(...fieldValues: unknown[]): QueryConstraint;
 export function startAt(
   ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
 ): QueryConstraint {
   return new QueryStartAtConstraint('startAt', docOrFields, /*before=*/ true);
 }
 
+export function startAfter(
+  snapshot: DocumentSnapshot<unknown>
+): QueryConstraint;
+export function startAfter(...fieldValues: unknown[]): QueryConstraint;
 export function startAfter(
   ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
 ): QueryConstraint {
@@ -370,12 +379,16 @@ class QueryEndAtConstraint extends QueryConstraint {
   }
 }
 
+export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function endBefore(...fieldValues: unknown[]): QueryConstraint;
 export function endBefore(
   ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
 ): QueryConstraint {
   return new QueryEndAtConstraint('endBefore', docOrFields, /*before=*/ true);
 }
 
+export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+export function endAt(...fieldValues: unknown[]): QueryConstraint;
 export function endAt(
   ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
 ): QueryConstraint {
@@ -414,6 +427,7 @@ function newQueryBoundFromDocOrFields<T>(
 export class CollectionReference<T = DocumentData> extends Query<T> {
   readonly type = 'collection';
 
+  /** @hideconstructor */
   constructor(
     readonly firestore: FirebaseFirestore,
     converter: FirestoreDataConverter<T> | null,
@@ -549,7 +563,7 @@ export function doc<T>(
     | CollectionReference<T>
     | DocumentReference<unknown>,
   relativePath?: string
-): DocumentReference {
+): DocumentReference<T> {
   // We allow omission of 'pathString' but explicitly prohibit passing in both
   // 'undefined' and 'null'.
   if (arguments.length === 1) {

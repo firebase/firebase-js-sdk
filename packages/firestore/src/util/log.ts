@@ -28,7 +28,7 @@ export function getLogLevel(): LogLevel {
   return logClient.logLevel;
 }
 
-export function setLogLevel(newLevel: LogLevelString | LogLevel): void {
+export function setLogLevel(newLevel: LogLevelString): void {
   logClient.setLogLevel(newLevel);
 }
 

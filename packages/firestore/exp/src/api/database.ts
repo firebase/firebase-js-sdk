@@ -62,9 +62,18 @@ import {
   remoteStoreDisableNetwork,
   remoteStoreEnableNetwork
 } from '../../../src/remote/remote_store';
-import { PersistenceSettings } from '../../../exp-types';
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'firestore-exp': FirebaseFirestore;
+  }
+}
 
 const LOG_TAG = 'Firestore';
+
+export interface PersistenceSettings {
+  forceOwnership?: boolean;
+}
 
 export interface Settings extends LiteSettings {
   cacheSizeBytes?: number;
@@ -89,6 +98,7 @@ export class FirebaseFirestore
   // SDK supports more settings.
   protected _settings?: Settings;
 
+  /** @hideconstructor */
   constructor(
     app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>

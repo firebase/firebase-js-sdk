@@ -22,6 +22,7 @@ import { ByteString } from '../../../src/util/byte_string';
 export class Bytes {
   _byteString: ByteString;
 
+  /** @hideconstructor */
   constructor(byteString: ByteString) {
     this._byteString = byteString;
   }

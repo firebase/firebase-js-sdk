@@ -31,6 +31,7 @@ import {
 import { PersistencePromise } from './persistence_promise';
 import { TargetData } from './target_data';
 import { isIndexedDbTransactionError } from './simple_db';
+import { CACHE_SIZE_UNLIMITED } from '../api/database';
 
 const LOG_TAG = 'LruGarbageCollector';
 
@@ -172,7 +173,7 @@ const GC_DID_NOT_RUN: LruResults = {
 };
 
 export class LruParams {
-  static readonly COLLECTION_DISABLED = -1;
+  static readonly COLLECTION_DISABLED = CACHE_SIZE_UNLIMITED;
   static readonly MINIMUM_CACHE_SIZE_BYTES = 1 * 1024 * 1024;
   static readonly DEFAULT_CACHE_SIZE_BYTES = 40 * 1024 * 1024;
   private static readonly DEFAULT_COLLECTION_PERCENTILE = 10;

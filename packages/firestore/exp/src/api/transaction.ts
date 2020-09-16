@@ -31,6 +31,7 @@ export class Transaction extends LiteTransaction {
   // This class implements the same logic as the Transaction API in the Lite SDK
   // but is subclassed in order to return its own DocumentSnapshot types.
 
+  /** @hideconstructor */
   constructor(
     protected readonly _firestore: FirebaseFirestore,
     _transaction: InternalTransaction
