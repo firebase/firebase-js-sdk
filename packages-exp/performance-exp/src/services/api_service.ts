@@ -16,13 +16,14 @@
  */
 
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
+import { PerformanceController } from '../controllers/perf';
 import { isIndexedDBAvailable } from '@firebase/util';
 import { consoleLogger } from '../utils/console_logger';
+
 declare global {
   interface Window {
     PerformanceObserver: typeof PerformanceObserver;
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    perfMetrics?: { onFirstInputDelay: Function };
+    perfMetrics?: { onFirstInputDelay: (fn: (fid: number) => void) => void };
   }
 }
 
@@ -46,8 +47,7 @@ export class Api {
   /** PreformanceObserver constructor function. */
   private readonly PerformanceObserver: typeof PerformanceObserver;
   private readonly windowLocation: Location;
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  readonly onFirstInputDelay?: Function;
+  readonly onFirstInputDelay?: (fn: (fid: number) => void) => void;
   readonly localStorage?: Storage;
   readonly document: Document;
   readonly navigator: Navigator;
@@ -134,7 +134,8 @@ export class Api {
 
   setupObserver(
     entryType: EntryType,
-    callback: (entry: PerformanceEntry) => void
+    perfApp: PerformanceController,
+    callback: (perfApp: PerformanceController, entry: PerformanceEntry) => void
   ): void {
     if (!this.PerformanceObserver) {
       return;
@@ -142,7 +143,7 @@ export class Api {
     const observer = new this.PerformanceObserver(list => {
       for (const entry of list.getEntries()) {
         // `entry` is a PerformanceEntry instance.
-        callback(entry);
+        callback(perfApp, entry);
       }
     });
 
