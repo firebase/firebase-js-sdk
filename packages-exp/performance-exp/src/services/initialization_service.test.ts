@@ -22,9 +22,10 @@ import {
   isPerfInitialized
 } from './initialization_service';
 import { setupApi } from './api_service';
-import { SettingsService } from './settings_service';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import '../../test/setup';
+import { FirebaseInstallations } from '@firebase/installations-types';
+import { PerformanceController } from '../controllers/perf';
 
 describe('Firebase Perofmrance > initialization_service', () => {
   const IID = 'fid';
@@ -32,14 +33,33 @@ describe('Firebase Perofmrance > initialization_service', () => {
   const getId = stub();
   const getToken = stub();
 
+  const fakeFirebaseConfig = {
+    apiKey: 'api-key',
+    authDomain: 'project-id.firebaseapp.com',
+    databaseURL: 'https://project-id.firebaseio.com',
+    projectId: 'project-id',
+    storageBucket: 'project-id.appspot.com',
+    messagingSenderId: 'sender-id',
+    appId: '1:111:web:a1234'
+  };
+
+  const fakeFirebaseApp = ({
+    options: fakeFirebaseConfig
+  } as unknown) as FirebaseApp;
+
+  const fakeInstallations = ({
+    getId,
+    getToken
+  } as unknown) as FirebaseInstallations;
+  const performanceController = new PerformanceController(
+    fakeFirebaseApp,
+    fakeInstallations
+  );
+
   const mockWindow = { ...self };
   mockWindow.document = { ...mockWindow.document, readyState: 'complete' };
 
   beforeEach(() => {
-    SettingsService.prototype.firebaseAppInstance = ({
-      installations: () => ({ getId, getToken })
-    } as unknown) as FirebaseApp;
-
     stub(self, 'fetch').resolves(new Response('{}'));
     mockWindow.localStorage = { ...mockWindow.localStorage, setItem: stub() };
 
@@ -49,7 +69,7 @@ describe('Firebase Perofmrance > initialization_service', () => {
   it('changes initialization status after initialization is done', async () => {
     getId.resolves(IID);
     getToken.resolves(AUTH_TOKEN);
-    await getInitializationPromise();
+    await getInitializationPromise(performanceController);
 
     expect(isPerfInitialized()).to.be.true;
   });
@@ -58,7 +78,7 @@ describe('Firebase Perofmrance > initialization_service', () => {
     getId.resolves(IID);
     getToken.resolves(AUTH_TOKEN);
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    getInitializationPromise();
+    getInitializationPromise(performanceController);
 
     expect(isPerfInitialized()).to.be.false;
   });

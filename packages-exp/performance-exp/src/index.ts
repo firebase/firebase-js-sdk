@@ -16,7 +16,10 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types-exp';
-import { FirebasePerformance } from '@firebase/performance-types-exp';
+import {
+  FirebasePerformance,
+  PerformanceSettings
+} from '@firebase/performance-types-exp';
 import { ERROR_FACTORY, ErrorCode } from './utils/errors';
 import { setupApi } from './services/api_service';
 import { PerformanceController } from './controllers/perf';
@@ -31,14 +34,17 @@ import {
   Component,
   ComponentType
 } from '@firebase/component';
-import { SettingsService } from './services/settings_service';
 import { name, version } from '../package.json';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
-export function getPerformance(app: FirebaseApp): FirebasePerformance {
+export function getPerformance(
+  app: FirebaseApp,
+  settings?: PerformanceSettings
+): FirebasePerformance {
   const provider = _getProvider(app, 'performance-exp');
   const perfInstance = provider.getImmediate() as PerformanceController;
+  perfInstance._init(settings);
   return perfInstance;
 }
 
@@ -58,9 +64,7 @@ const factory: InstanceFactory<'performance-exp'> = (
     throw ERROR_FACTORY.create(ErrorCode.NO_WINDOW);
   }
   setupApi(window);
-  SettingsService.getInstance().firebaseAppInstance = app;
-  SettingsService.getInstance().installationsService = installations;
-  return new PerformanceController(app);
+  return new PerformanceController(app, installations);
 };
 
 export function registerPerformance(): void {
