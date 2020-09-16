@@ -17,9 +17,9 @@
 
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebasePerformance } from '@firebase/performance-types-exp';
-import { ERROR_FACTORY, ErrorCode } from './src/utils/errors';
-import { setupApi } from './src/services/api_service';
-import { PerformanceController } from './src/controllers/perf';
+import { ERROR_FACTORY, ErrorCode } from './utils/errors';
+import { setupApi } from './services/api_service';
+import { PerformanceController } from './controllers/perf';
 import {
   _registerComponent,
   _getProvider,
@@ -31,8 +31,8 @@ import {
   Component,
   ComponentType
 } from '@firebase/component';
-import { SettingsService } from './src/services/settings_service';
-import { name, version } from './package.json';
+import { SettingsService } from './services/settings_service';
+import { name, version } from '../package.json';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
