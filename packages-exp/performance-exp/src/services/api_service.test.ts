@@ -19,6 +19,7 @@ import { stub } from 'sinon';
 import { expect } from 'chai';
 import { Api, setupApi } from './api_service';
 import '../../test/setup';
+
 describe('Firebase Performance > api_service', () => {
   const PAGE_URL = 'http://www.test.com/abcd?a=2';
   const PERFORMANCE_ENTRY: PerformanceEntry = {

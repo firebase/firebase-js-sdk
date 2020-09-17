@@ -15,19 +15,20 @@
  * limitations under the License.
  */
 
-export interface FirebasePerformance {
-  /**
-   * Creates an uninitialized instance of trace and returns it.
-   *
-   * @param traceName The name of trace instance.
-   * @return The trace instance.
-   */
-  trace(traceName: string): PerformanceTrace;
+export interface PerformanceSettings {
+  /** Whether to collect custom events. */
+  dataCollectionEnabled?: boolean;
 
+  /** Whether to collect out of the box events. */
+  instrumentationEnabled?: boolean;
+}
+
+export interface FirebasePerformance {
   /**
    * Controls the logging of automatic traces and HTTP/S network monitoring.
    */
   instrumentationEnabled: boolean;
+
   /**
    * Controls the logging of custom traces.
    */
@@ -114,6 +115,6 @@ export interface PerformanceTrace {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'performance': FirebasePerformance;
+    'performance-exp': FirebasePerformance;
   }
 }

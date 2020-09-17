@@ -18,12 +18,12 @@
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { PerformanceController } from '../controllers/perf';
-import { Trace } from '../resources/trace';
 import { Api, setupApi } from '../services/api_service';
-import { FirebaseApp } from '@firebase/app-types';
 import * as initializationService from '../services/initialization_service';
-import * as FirebaseUtil from '@firebase/util';
+import { SettingsService } from '../services/settings_service';
 import { consoleLogger } from '../utils/console_logger';
+import { FirebaseApp } from '@firebase/app-types-exp';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 import '../../test/setup';
 
 describe('Firebase Performance Test', () => {
@@ -43,95 +43,107 @@ describe('Firebase Performance Test', () => {
     options: fakeFirebaseConfig
   } as unknown) as FirebaseApp;
 
+  const fakeInstallations = ({} as unknown) as _FirebaseInstallationsInternal;
+
   describe('#constructor', () => {
     it('does not initialize performance if the required apis are not available', () => {
       stub(Api.prototype, 'requiredApisAvailable').returns(false);
       stub(initializationService, 'getInitializationPromise');
-      new PerformanceController(fakeFirebaseApp);
-      expect(initializationService.getInitializationPromise).not.be.called;
-    });
-    it('does not initialize performance if validateIndexedDBOpenable return false', async () => {
-      stub(Api.prototype, 'requiredApisAvailable').returns(true);
-      const validateStub = stub(
-        FirebaseUtil,
-        'validateIndexedDBOpenable'
-      ).resolves(false);
-      stub(initializationService, 'getInitializationPromise');
-      new PerformanceController(fakeFirebaseApp);
-      await validateStub;
-      expect(initializationService.getInitializationPromise).not.be.called;
-    });
-
-    it('does not initialize performance if validateIndexedDBOpenable throws an error', async () => {
-      stub(Api.prototype, 'requiredApisAvailable').returns(true);
-      const validateStub = stub(
-        FirebaseUtil,
-        'validateIndexedDBOpenable'
-      ).rejects();
-
-      stub(initializationService, 'getInitializationPromise');
       stub(consoleLogger, 'info');
-      new PerformanceController(fakeFirebaseApp);
-      try {
-        await validateStub;
-        expect(initializationService.getInitializationPromise).not.be.called;
-        expect(consoleLogger.info).be.called;
-      } catch (ignored) {}
+      const performanceController = new PerformanceController(
+        fakeFirebaseApp,
+        fakeInstallations
+      );
+      performanceController._init();
+
+      expect(initializationService.getInitializationPromise).not.be.called;
+      expect(consoleLogger.info).be.called;
     });
   });
 
-  describe('#trace', () => {
-    it('creates a custom trace', () => {
-      const controller = new PerformanceController(fakeFirebaseApp);
-      const myTrace = controller.trace('myTrace');
+  describe('#settings', () => {
+    it('applies the settings if provided', async () => {
+      const settings = {
+        instrumentationEnabled: false,
+        dataCollectionEnabled: false
+      };
 
-      expect(myTrace).to.be.instanceOf(Trace);
+      const performance = new PerformanceController(
+        fakeFirebaseApp,
+        fakeInstallations
+      );
+      performance._init(settings);
+
+      expect(performance.instrumentationEnabled).is.equal(false);
+      expect(performance.dataCollectionEnabled).is.equal(false);
     });
 
-    it('custom trace has the correct name', () => {
-      const controller = new PerformanceController(fakeFirebaseApp);
-      const myTrace = controller.trace('myTrace');
+    it('uses defaults when settings are not provided', async () => {
+      const expectedInstrumentationEnabled = SettingsService.getInstance()
+        .instrumentationEnabled;
+      const expectedDataCollectionEnabled = SettingsService.getInstance()
+        .dataCollectionEnabled;
 
-      expect(myTrace.name).is.equal('myTrace');
+      const performance = new PerformanceController(
+        fakeFirebaseApp,
+        fakeInstallations
+      );
+      performance._init();
+
+      expect(performance.instrumentationEnabled).is.equal(
+        expectedInstrumentationEnabled
+      );
+      expect(performance.dataCollectionEnabled).is.equal(
+        expectedDataCollectionEnabled
+      );
     });
 
-    it('custom trace is not auto', () => {
-      const controller = new PerformanceController(fakeFirebaseApp);
-      const myTrace = controller.trace('myTrace');
+    describe('#instrumentationEnabled', () => {
+      it('sets instrumentationEnabled to enabled', async () => {
+        const performance = new PerformanceController(
+          fakeFirebaseApp,
+          fakeInstallations
+        );
+        performance._init();
 
-      expect(myTrace.isAuto).is.equal(false);
-    });
-  });
+        performance.instrumentationEnabled = true;
+        expect(performance.instrumentationEnabled).is.equal(true);
+      });
 
-  describe('#instrumentationEnabled', () => {
-    it('sets instrumentationEnabled to enabled', async () => {
-      const controller = new PerformanceController(fakeFirebaseApp);
+      it('sets instrumentationEnabled to disabled', async () => {
+        const performance = new PerformanceController(
+          fakeFirebaseApp,
+          fakeInstallations
+        );
+        performance._init();
 
-      controller.instrumentationEnabled = true;
-      expect(controller.instrumentationEnabled).is.equal(true);
-    });
-
-    it('sets instrumentationEnabled to disabled', async () => {
-      const controller = new PerformanceController(fakeFirebaseApp);
-
-      controller.instrumentationEnabled = false;
-      expect(controller.instrumentationEnabled).is.equal(false);
-    });
-  });
-
-  describe('#dataCollectionEnabled', () => {
-    it('sets dataCollectionEnabled to enabled', async () => {
-      const controller = new PerformanceController(fakeFirebaseApp);
-
-      controller.dataCollectionEnabled = true;
-      expect(controller.dataCollectionEnabled).is.equal(true);
+        performance.instrumentationEnabled = false;
+        expect(performance.instrumentationEnabled).is.equal(false);
+      });
     });
 
-    it('sets dataCollectionEnabled to disabled', () => {
-      const controller = new PerformanceController(fakeFirebaseApp);
+    describe('#dataCollectionEnabled', () => {
+      it('sets dataCollectionEnabled to enabled', async () => {
+        const performance = new PerformanceController(
+          fakeFirebaseApp,
+          fakeInstallations
+        );
+        performance._init();
 
-      controller.dataCollectionEnabled = false;
-      expect(controller.dataCollectionEnabled).is.equal(false);
+        performance.dataCollectionEnabled = true;
+        expect(performance.dataCollectionEnabled).is.equal(true);
+      });
+
+      it('sets dataCollectionEnabled to disabled', () => {
+        const performance = new PerformanceController(
+          fakeFirebaseApp,
+          fakeInstallations
+        );
+        performance._init();
+
+        performance.dataCollectionEnabled = false;
+        expect(performance.dataCollectionEnabled).is.equal(false);
+      });
     });
   });
 });
