@@ -1,5 +1,15 @@
 # @firebase/firestore
 
+## 1.16.7
+
+### Patch Changes
+
+- [`249d40cb6`](https://github.com/firebase/firebase-js-sdk/commit/249d40cb692366f686a50c06c44ec81e4cae23d7) [#3700](https://github.com/firebase/firebase-js-sdk/pull/3700) - Fixes a bug that caused the client to not raise snapshots from cache if a user change happened while the network connection was disabled.
+
+- Updated dependencies [[`da1c7df79`](https://github.com/firebase/firebase-js-sdk/commit/da1c7df7982b08bbef82fcc8d93255f3e2d23cca), [`fb3b095e4`](https://github.com/firebase/firebase-js-sdk/commit/fb3b095e4b7c8f57fdb3172bc039c84576abf290)]:
+  - @firebase/component@0.1.19
+  - @firebase/util@0.3.2
+
 ## 1.16.6
 
 ### Patch Changes

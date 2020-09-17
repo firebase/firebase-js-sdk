@@ -15,12 +15,15 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../../lite-types';
-
-import { Firestore } from './database';
-import { DocumentReference, queryEqual } from './reference';
+import { FirebaseFirestore } from './database';
+import {
+  DocumentData,
+  DocumentReference,
+  Query,
+  queryEqual,
+  SetOptions
+} from './reference';
 import { FieldPath } from './field_path';
-import { cast } from './util';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Document } from '../../../src/model/document';
 import { UserDataWriter } from '../../../src/api/user_data_writer';
@@ -32,15 +35,20 @@ import {
 import { arrayEquals } from '../../../src/util/misc';
 import { Bytes } from './bytes';
 
-export class DocumentSnapshot<T = firestore.DocumentData>
-  implements firestore.DocumentSnapshot<T> {
+export interface FirestoreDataConverter<T> {
+  toFirestore(modelObject: T): DocumentData;
+  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+  fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
+}
+
+export class DocumentSnapshot<T = DocumentData> {
   // Note: This class is stripped down version of the DocumentSnapshot in
   // the legacy SDK. The changes are:
   // - No support for SnapshotMetadata.
   // - No support for SnapshotOptions.
 
   constructor(
-    public _firestore: Firestore,
+    public _firestore: FirebaseFirestore,
     public _key: DocumentKey,
     public _document: Document | null,
     public _converter: UntypedFirestoreDataConverter<T> | null
@@ -50,7 +58,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     return this._key.path.lastSegment();
   }
 
-  get ref(): firestore.DocumentReference<T> {
+  get ref(): DocumentReference<T> {
     return new DocumentReference<T>(
       this._firestore,
       this._converter,
@@ -58,7 +66,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     );
   }
 
-  exists(): this is firestore.QueryDocumentSnapshot<T> {
+  exists(): this is QueryDocumentSnapshot<T> {
     return this._document !== null;
   }
 
@@ -92,7 +100,9 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     }
   }
 
-  get(fieldPath: string | firestore.FieldPath): unknown {
+  // We are using `any` here to avoid an explicit cast by our users.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  get(fieldPath: string | FieldPath): any {
     if (this._document) {
       const value = this._document
         .data()
@@ -113,22 +123,21 @@ export class DocumentSnapshot<T = firestore.DocumentData>
   }
 }
 
-export class QueryDocumentSnapshot<T = firestore.DocumentData>
-  extends DocumentSnapshot<T>
-  implements firestore.QueryDocumentSnapshot<T> {
+export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
+  T
+> {
   data(): T {
     return super.data() as T;
   }
 }
 
-export class QuerySnapshot<T = firestore.DocumentData>
-  implements firestore.QuerySnapshot<T> {
+export class QuerySnapshot<T = DocumentData> {
   constructor(
-    readonly query: firestore.Query<T>,
+    readonly query: Query<T>,
     readonly _docs: Array<QueryDocumentSnapshot<T>>
   ) {}
 
-  get docs(): Array<firestore.QueryDocumentSnapshot<T>> {
+  get docs(): Array<QueryDocumentSnapshot<T>> {
     return [...this._docs];
   }
 
@@ -141,7 +150,7 @@ export class QuerySnapshot<T = firestore.DocumentData>
   }
 
   forEach(
-    callback: (result: firestore.QueryDocumentSnapshot<T>) => void,
+    callback: (result: QueryDocumentSnapshot<T>) => void,
     thisArg?: unknown
   ): void {
     this._docs.forEach(callback, thisArg);
@@ -149,8 +158,8 @@ export class QuerySnapshot<T = firestore.DocumentData>
 }
 
 export function snapshotEqual<T>(
-  left: firestore.DocumentSnapshot<T> | firestore.QuerySnapshot<T>,
-  right: firestore.DocumentSnapshot<T> | firestore.QuerySnapshot<T>
+  left: DocumentSnapshot<T> | QuerySnapshot<T>,
+  right: DocumentSnapshot<T> | QuerySnapshot<T>
 ): boolean {
   if (left instanceof DocumentSnapshot && right instanceof DocumentSnapshot) {
     return (
@@ -176,12 +185,11 @@ export function snapshotEqual<T>(
  */
 export function fieldPathFromArgument(
   methodName: string,
-  arg: string | firestore.FieldPath
+  arg: string | FieldPath
 ): InternalFieldPath {
   if (typeof arg === 'string') {
     return fieldPathFromDotSeparatedString(methodName, arg);
   } else {
-    const path = cast(arg, FieldPath);
-    return path._internalPath;
+    return arg._internalPath;
   }
 }

@@ -96,13 +96,15 @@ export function initStandalone<T>({
   url,
   version,
   customAuthImpl,
-  namespace
+  namespace,
+  nodeAdmin = false
 }: {
   app: FirebaseApp;
   url: string;
   version: string;
   customAuthImpl: FirebaseAuthInternal;
   namespace: T;
+  nodeAdmin?: boolean;
 }): {
   instance: types.Database;
   namespace: T;
@@ -125,7 +127,8 @@ export function initStandalone<T>({
     instance: RepoManager.getInstance().databaseFromApp(
       app,
       authProvider,
-      url
+      url,
+      nodeAdmin
     ) as types.Database,
     namespace
   };

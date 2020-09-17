@@ -128,7 +128,7 @@ import {
   Unsubscribe
 } from './observer';
 import {
-  DocumentKeyReference,
+  _DocumentKeyReference,
   fieldPathFromArgument,
   parseQueryValue,
   parseSetData,
@@ -1021,7 +1021,7 @@ export class WriteBatch implements PublicWriteBatch {
  * A reference to a particular document in a collection in the database.
  */
 export class DocumentReference<T = DocumentData>
-  extends DocumentKeyReference<T>
+  extends _DocumentKeyReference<T>
   implements PublicDocumentReference<T> {
   private _firestoreClient: FirestoreClient;
 
@@ -1693,7 +1693,7 @@ function parseDocumentIdValue(
       );
     }
     return refValue(databaseId, new DocumentKey(path));
-  } else if (documentIdValue instanceof DocumentKeyReference) {
+  } else if (documentIdValue instanceof _DocumentKeyReference) {
     return refValue(databaseId, documentIdValue._key);
   } else {
     throw new FirestoreError(
@@ -1882,24 +1882,20 @@ export class Query<T = DocumentData> implements PublicQuery<T> {
     validateExactNumberOfArgs('Query.where', arguments, 3);
     validateDefined('Query.where', 3, value);
 
-    // TODO(ne-queries): Add 'not-in' and '!=' to validation.
-    let op: Operator;
-    if ((opStr as unknown) === 'not-in' || (opStr as unknown) === '!=') {
-      op = opStr as Operator;
-    } else {
-      // Enumerated from the WhereFilterOp type in index.d.ts.
-      const whereFilterOpEnums = [
-        Operator.LESS_THAN,
-        Operator.LESS_THAN_OR_EQUAL,
-        Operator.EQUAL,
-        Operator.GREATER_THAN_OR_EQUAL,
-        Operator.GREATER_THAN,
-        Operator.ARRAY_CONTAINS,
-        Operator.IN,
-        Operator.ARRAY_CONTAINS_ANY
-      ];
-      op = validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
-    }
+    // Enumerated from the WhereFilterOp type in index.d.ts.
+    const whereFilterOpEnums = [
+      Operator.LESS_THAN,
+      Operator.LESS_THAN_OR_EQUAL,
+      Operator.EQUAL,
+      Operator.NOT_EQUAL,
+      Operator.GREATER_THAN_OR_EQUAL,
+      Operator.GREATER_THAN,
+      Operator.ARRAY_CONTAINS,
+      Operator.IN,
+      Operator.ARRAY_CONTAINS_ANY,
+      Operator.NOT_IN
+    ];
+    const op = validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
 
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const filter = newQueryFilter(
@@ -2379,8 +2375,17 @@ export class CollectionReference<T = DocumentData>
       ? this._converter.toFirestore(value)
       : value;
     validateArgType('CollectionReference.add', 'object', 1, convertedValue);
+
     const docRef = this.doc();
-    return docRef.set(value).then(() => docRef);
+
+    // Call set() with the converted value directly to avoid calling toFirestore() a second time.
+    return new DocumentReference(
+      (docRef as DocumentReference<T>)._key,
+      this.firestore,
+      null
+    )
+      .set(convertedValue)
+      .then(() => docRef);
   }
 
   withConverter<U>(
@@ -2462,8 +2467,8 @@ function validateReference<T>(
   methodName: string,
   documentRef: PublicDocumentReference<T>,
   firestore: Firestore
-): DocumentKeyReference<T> {
-  if (!(documentRef instanceof DocumentKeyReference)) {
+): _DocumentKeyReference<T> {
+  if (!(documentRef instanceof _DocumentKeyReference)) {
     throw invalidClassError(methodName, 'DocumentReference', 1, documentRef);
   } else if (documentRef.firestore !== firestore) {
     throw new FirestoreError(

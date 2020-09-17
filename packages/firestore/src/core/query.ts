@@ -31,7 +31,7 @@ import {
   valueEquals
 } from '../model/values';
 import { FieldPath, ResourcePath } from '../model/path';
-import { debugAssert, fail } from '../util/assert';
+import { debugAssert, debugCast, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
 import {
@@ -41,7 +41,6 @@ import {
   Target,
   targetEquals
 } from './target';
-import { cast } from '../../lite/src/api/util';
 
 export const enum LimitType {
   First = 'F',
@@ -254,7 +253,7 @@ export function isCollectionGroupQuery(query: Query): boolean {
  * the SDK and backend always orders by `__name__`).
  */
 export function queryOrderBy(query: Query): OrderBy[] {
-  const queryImpl = cast(query, QueryImpl);
+  const queryImpl = debugCast(query, QueryImpl);
   if (queryImpl.memoizedOrderBy === null) {
     queryImpl.memoizedOrderBy = [];
 
@@ -305,7 +304,7 @@ export function queryOrderBy(query: Query): OrderBy[] {
  * Converts this `Query` instance to it's corresponding `Target` representation.
  */
 export function queryToTarget(query: Query): Target {
-  const queryImpl = cast(query, QueryImpl);
+  const queryImpl = debugCast(query, QueryImpl);
   if (!queryImpl.memoizedTarget) {
     if (queryImpl.limitType === LimitType.First) {
       queryImpl.memoizedTarget = newTarget(
@@ -606,19 +605,17 @@ export class FieldFilter extends Filter {
       }
     } else if (isNullValue(value)) {
       if (op !== Operator.EQUAL && op !== Operator.NOT_EQUAL) {
-        // TODO(ne-queries): Update error message to include != comparison.
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          'Invalid query. Null supports only equality comparisons.'
+          "Invalid query. Null only supports '==' and '!=' comparisons."
         );
       }
       return new FieldFilter(field, op, value);
     } else if (isNanValue(value)) {
       if (op !== Operator.EQUAL && op !== Operator.NOT_EQUAL) {
-        // TODO(ne-queries): Update error message to include != comparison.
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          'Invalid query. NaN supports only equality comparisons.'
+          "Invalid query. NaN only supports '==' and '!=' comparisons."
         );
       }
       return new FieldFilter(field, op, value);
@@ -712,7 +709,8 @@ export class FieldFilter extends Filter {
         Operator.LESS_THAN_OR_EQUAL,
         Operator.GREATER_THAN,
         Operator.GREATER_THAN_OR_EQUAL,
-        Operator.NOT_EQUAL
+        Operator.NOT_EQUAL,
+        Operator.NOT_IN
       ].indexOf(this.op) >= 0
     );
   }
@@ -855,6 +853,11 @@ export class NotInFilter extends FieldFilter {
   }
 
   matches(doc: Document): boolean {
+    if (
+      arrayValueContains(this.value.arrayValue!, { nullValue: 'NULL_VALUE' })
+    ) {
+      return false;
+    }
     const other = doc.field(this.field);
     return other !== null && !arrayValueContains(this.value.arrayValue!, other);
   }

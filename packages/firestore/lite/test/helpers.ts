@@ -17,23 +17,31 @@
 
 import { initializeApp } from '@firebase/app-exp';
 
-import * as firestore from '../../lite-types';
-
-import { initializeFirestore } from '../src/api/database';
-import { doc, collection, setDoc } from '../src/api/reference';
+import { initializeFirestore, FirebaseFirestore } from '../src/api/database';
+import {
+  doc,
+  collection,
+  setDoc,
+  DocumentData,
+  CollectionReference,
+  DocumentReference,
+  SetOptions
+} from '../src/api/reference';
 import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
 } from '../../test/integration/util/settings';
 import { AutoId } from '../../src/util/misc';
 import { expect } from 'chai';
+import { QueryDocumentSnapshot } from '../src/api/snapshot';
+import { Settings } from '../../exp/src/api/database';
 
 let appCount = 0;
 
 export async function withTestDbSettings(
   projectId: string,
-  settings: firestore.Settings,
-  fn: (db: firestore.FirebaseFirestore) => void | Promise<void>
+  settings: Settings,
+  fn: (db: FirebaseFirestore) => void | Promise<void>
 ): Promise<void> {
   const app = initializeApp(
     { apiKey: 'fake-api-key', projectId },
@@ -45,13 +53,13 @@ export async function withTestDbSettings(
 }
 
 export function withTestDb(
-  fn: (db: firestore.FirebaseFirestore) => void | Promise<void>
+  fn: (db: FirebaseFirestore) => void | Promise<void>
 ): Promise<void> {
   return withTestDbSettings(DEFAULT_PROJECT_ID, DEFAULT_SETTINGS, fn);
 }
 
 export function withTestDoc(
-  fn: (doc: firestore.DocumentReference) => void | Promise<void>
+  fn: (doc: DocumentReference) => void | Promise<void>
 ): Promise<void> {
   return withTestDb(db => {
     return fn(doc(collection(db, 'test-collection')));
@@ -59,8 +67,8 @@ export function withTestDoc(
 }
 
 export function withTestDocAndInitialData(
-  data: firestore.DocumentData,
-  fn: (doc: firestore.DocumentReference) => void | Promise<void>
+  data: DocumentData,
+  fn: (doc: DocumentReference<DocumentData>) => void | Promise<void>
 ): Promise<void> {
   return withTestDb(async db => {
     const ref = doc(collection(db, 'test-collection'));
@@ -70,8 +78,8 @@ export function withTestDocAndInitialData(
 }
 
 export function withTestCollectionAndInitialData(
-  data: firestore.DocumentData[],
-  fn: (collRef: firestore.CollectionReference) => void | Promise<void>
+  data: DocumentData[],
+  fn: (collRef: CollectionReference<DocumentData>) => void | Promise<void>
 ): Promise<void> {
   return withTestDb(async db => {
     const coll = collection(db, AutoId.newId());
@@ -84,7 +92,7 @@ export function withTestCollectionAndInitialData(
 }
 
 export function withTestCollection(
-  fn: (collRef: firestore.CollectionReference) => void | Promise<void>
+  fn: (collRef: CollectionReference) => void | Promise<void>
 ): Promise<void> {
   return withTestDb(db => {
     return fn(collection(db, AutoId.newId()));
@@ -100,20 +108,17 @@ export class Post {
 }
 
 export const postConverter = {
-  toFirestore(post: Post): firestore.DocumentData {
+  toFirestore(post: Post): DocumentData {
     return { title: post.title, author: post.author };
   },
-  fromFirestore(snapshot: firestore.QueryDocumentSnapshot): Post {
+  fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): Post {
     const data = snapshot.data();
     return new Post(data.title, data.author);
   }
 };
 
 export const postConverterMerge = {
-  toFirestore(
-    post: Partial<Post>,
-    options?: firestore.SetOptions
-  ): firestore.DocumentData {
+  toFirestore(post: Partial<Post>, options?: SetOptions): DocumentData {
     if (
       options &&
       ((options as { merge: true }).merge ||
@@ -123,7 +128,7 @@ export const postConverterMerge = {
     } else {
       expect(post).to.be.an.instanceof(Post);
     }
-    const result: firestore.DocumentData = {};
+    const result: DocumentData = {};
     if (post.title) {
       result.title = post.title;
     }
@@ -132,7 +137,7 @@ export const postConverterMerge = {
     }
     return result;
   },
-  fromFirestore(snapshot: firestore.QueryDocumentSnapshot): Post {
+  fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): Post {
     const data = snapshot.data();
     return new Post(data.title, data.author);
   }

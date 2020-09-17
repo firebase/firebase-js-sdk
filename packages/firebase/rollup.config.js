@@ -70,7 +70,8 @@ const plugins = [
   commonjs()
 ];
 
-const external = Object.keys(pkg.dependencies || {});
+const deps = Object.keys(pkg.dependencies || {});
+const external = id => deps.some(dep => id === dep || id.startsWith(`${dep}/`));
 
 /**
  * Global UMD Build

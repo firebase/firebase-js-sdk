@@ -121,7 +121,7 @@ ref.push({ name: 'David' });
 
 stateChanges(ref).subscribe(change => {
   const { event, snapshot, prevKey } = change;
-  console.log(event, ' the event type that just occured');
+  console.log(event, ' the event type that just occurred');
   console.log(snapshot.val(), ' the value of the change');
 });
 

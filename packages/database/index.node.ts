@@ -46,9 +46,15 @@ const ServerValue = Database.ServerValue;
  * @param app A valid FirebaseApp-like object
  * @param url A valid Firebase databaseURL
  * @param version custom version e.g. firebase-admin version
+ * @param nodeAdmin true if the SDK is being initialized from Firebase Admin.
  */
-export function initStandalone(app: FirebaseApp, url: string, version: string) {
-  CONSTANTS.NODE_ADMIN = true;
+export function initStandalone(
+  app: FirebaseApp,
+  url: string,
+  version: string,
+  nodeAdmin = true
+) {
+  CONSTANTS.NODE_ADMIN = nodeAdmin;
   return INTERNAL.initStandalone({
     app,
     url,
@@ -65,7 +71,8 @@ export function initStandalone(app: FirebaseApp, url: string, version: string) {
       INTERNAL,
       ServerValue,
       TEST_ACCESS
-    }
+    },
+    nodeAdmin
   });
 }
 

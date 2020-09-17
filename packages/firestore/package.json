@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.16.6",
+  "version": "1.16.7",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -60,14 +60,14 @@
     "memory/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.1.18",
+    "@firebase/component": "0.1.19",
     "@firebase/firestore-types": "1.12.1",
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.3.1",
+    "@firebase/util": "0.3.2",
     "@firebase/webchannel-wrapper": "0.3.0",
     "@grpc/grpc-js": "^1.0.0",
     "@grpc/proto-loader": "^0.5.0",
-    "node-fetch": "2.6.0",
+    "node-fetch": "2.6.1",
     "tslib": "^1.11.1"
   },
   "peerDependencies": {
@@ -75,7 +75,7 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.10",
+    "@firebase/app": "0.6.11",
     "@rollup/plugin-alias": "3.1.1",
     "@types/json-stable-stringify": "1.0.32",
     "json-stable-stringify": "1.0.1",
