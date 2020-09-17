@@ -129,19 +129,19 @@ function prunePrivateImports<
       if (isExported(type.modifiers)) {
         exportedTypes.push(type);
       } else {
-        const publicName = extractPublicName(
+        const publicSymbol = extractPublicSymbol(
           typeChecker,
           sourceFile,
           type.expression
         );
-        if (publicName && publicName !== currentName) {
+        if (publicSymbol && publicSymbol.name !== currentName) {
           // If there is a public type that we can refer to, update the import
           // statement to refer to the public type.
           exportedTypes.push(
             ts.updateExpressionWithTypeArguments(
               type,
               type.typeArguments,
-              ts.createIdentifier(publicName)
+              ts.createIdentifier(publicSymbol.name)
             )
           );
         } else {
@@ -206,11 +206,11 @@ function prunePrivateImports<
  * export class PublicFoo {}
  * export function doFoo(foo: PublicFoo);
  */
-function extractPublicName(
+function extractPublicSymbol(
   typeChecker: ts.TypeChecker,
   sourceFile: ts.SourceFile,
   typeName: ts.Node
-): string | undefined {
+): ts.Symbol | undefined {
   if (!ts.isIdentifier(typeName)) {
     return undefined;
   }
@@ -220,7 +220,7 @@ function extractPublicName(
   const allPublicSymbols = typeChecker.getExportsOfModule(
     typeChecker.getSymbolAtLocation(sourceFile)!
   );
-  const publicSymbolsForLocalType: string[] = [];
+  const publicSymbolsForLocalType: ts.Symbol[] = [];
 
   // Examine all exported types and check if they extend or implement the
   // provided local type. If so, we can use the exported type in lieu of the
@@ -228,7 +228,7 @@ function extractPublicName(
   for (const symbol of allPublicSymbols) {
     // Short circuit if the local types is already part of the public types.
     if (symbol.name === localSymbolName) {
-      return symbol.name;
+      return symbol;
     }
 
     for (const declaration of symbol.declarations) {
@@ -241,7 +241,7 @@ function extractPublicName(
             if (ts.isIdentifier(type.expression)) {
               const subclassName = type.expression.escapedText;
               if (subclassName === localSymbolName) {
-                publicSymbolsForLocalType.push(symbol.name);
+                publicSymbolsForLocalType.push(symbol);
               }
             }
           }
@@ -297,7 +297,7 @@ const dropPrivateApiTransformer = (
       } else if (ts.isTypeReferenceNode(node)) {
         // For public types that refer internal types, find a public type that
         // we can refer to instead.
-        const publicName = extractPublicName(
+        const publicName = extractPublicSymbol(
           typeChecker,
           sourceFile,
           node.typeName
@@ -305,7 +305,7 @@ const dropPrivateApiTransformer = (
         return publicName
           ? ts.updateTypeReferenceNode(
               node,
-              ts.createIdentifier(publicName),
+              ts.createIdentifier(publicName.name),
               node.typeArguments
             )
           : node;
