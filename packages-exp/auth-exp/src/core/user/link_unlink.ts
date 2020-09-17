@@ -19,13 +19,14 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { deleteLinkedAccounts } from '../../api/account_management/account';
 import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
+import { User, UserCredential } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { AuthErrorCode } from '../errors';
 import { assert } from '../util/assert';
 import { providerDataAsNames } from '../util/providers';
+import { _logoutIfInvalidated } from './invalidation';
 import { _reloadWithoutSaving } from './reload';
 import { UserCredentialImpl } from './user_credential_impl';
-import { User, UserCredential } from '../../model/user';
 
 /**
  *  This is the externally visible unlink function
@@ -61,10 +62,10 @@ export async function _link(
   user: User,
   credential: AuthCredential
 ): Promise<UserCredential> {
-  const response = await credential._linkToIdToken(
+  const response = await _logoutIfInvalidated(user, credential._linkToIdToken(
     user.auth,
     await user.getIdToken()
-  );
+  ));
   return UserCredentialImpl._forOperation(
     user,
     externs.OperationType.LINK,

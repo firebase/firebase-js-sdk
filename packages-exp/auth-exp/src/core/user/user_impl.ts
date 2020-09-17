@@ -17,10 +17,8 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import { NextFn } from '@firebase/util';
-import {
-  APIUserInfo,
-  deleteAccount
-} from '../../api/account_management/account';
+
+import { APIUserInfo, deleteAccount } from '../../api/account_management/account';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
@@ -29,8 +27,9 @@ import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
 import { assert } from '../util/assert';
 import { getIdTokenResult } from './id_token_result';
+import { _logoutIfInvalidated } from './invalidation';
 import { ProactiveRefresh } from './proactive_refresh';
-import { reload, _reloadWithoutSaving } from './reload';
+import { _reloadWithoutSaving, reload } from './reload';
 import { StsTokenManager } from './token_manager';
 import { UserMetadata } from './user_metadata';
 
@@ -83,10 +82,10 @@ export class UserImpl implements User {
   }
 
   async getIdToken(forceRefresh?: boolean): Promise<string> {
-    const accessToken = await this.stsTokenManager.getToken(
+    const accessToken = await _logoutIfInvalidated(this, this.stsTokenManager.getToken(
       this.auth,
       forceRefresh
-    );
+    ));
     assert(accessToken, AuthErrorCode.INTERNAL_ERROR, {
       appName: this.auth.name
     });
@@ -184,7 +183,7 @@ export class UserImpl implements User {
 
   async delete(): Promise<void> {
     const idToken = await this.getIdToken();
-    await deleteAccount(this.auth, { idToken });
+    await _logoutIfInvalidated(this, deleteAccount(this.auth, { idToken }));
     this.stsTokenManager.clearRefreshToken();
 
     // TODO: Determine if cancellable-promises are necessary to use in this class so that delete()

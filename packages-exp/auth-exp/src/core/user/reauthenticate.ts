@@ -16,12 +16,14 @@
  */
 
 import { OperationType } from '@firebase/auth-types-exp';
+
 import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_error';
 import { User } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { AuthErrorCode } from '../errors';
 import { assert, fail } from '../util/assert';
 import { _parseToken } from './id_token_result';
+import { _logoutIfInvalidated } from './invalidation';
 import { UserCredentialImpl } from './user_credential_impl';
 
 export async function _reauthenticate(
@@ -32,12 +34,12 @@ export async function _reauthenticate(
   const operationType = OperationType.REAUTHENTICATE;
 
   try {
-    const response = await _processCredentialSavingMfaContextIfNecessary(
+    const response = await _logoutIfInvalidated(user, _processCredentialSavingMfaContextIfNecessary(
       user.auth,
       operationType,
       credential,
       user
-    );
+    ));
     assert(response.idToken, AuthErrorCode.INTERNAL_ERROR, { appName });
     const parsed = _parseToken(response.idToken);
     assert(parsed, AuthErrorCode.INTERNAL_ERROR, { appName });
