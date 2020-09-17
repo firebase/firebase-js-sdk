@@ -62,10 +62,10 @@ export async function _link(
   user: User,
   credential: AuthCredential
 ): Promise<UserCredential> {
-  const response = await _logoutIfInvalidated(user, credential._linkToIdToken(
-    user.auth,
-    await user.getIdToken()
-  ));
+  const response = await _logoutIfInvalidated(
+    user,
+    credential._linkToIdToken(user.auth, await user.getIdToken())
+  );
   return UserCredentialImpl._forOperation(
     user,
     externs.OperationType.LINK,

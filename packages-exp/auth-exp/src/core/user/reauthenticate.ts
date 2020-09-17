@@ -34,12 +34,15 @@ export async function _reauthenticate(
   const operationType = OperationType.REAUTHENTICATE;
 
   try {
-    const response = await _logoutIfInvalidated(user, _processCredentialSavingMfaContextIfNecessary(
-      user.auth,
-      operationType,
-      credential,
-      user
-    ));
+    const response = await _logoutIfInvalidated(
+      user,
+      _processCredentialSavingMfaContextIfNecessary(
+        user.auth,
+        operationType,
+        credential,
+        user
+      )
+    );
     assert(response.idToken, AuthErrorCode.INTERNAL_ERROR, { appName });
     const parsed = _parseToken(response.idToken);
     assert(parsed, AuthErrorCode.INTERNAL_ERROR, { appName });

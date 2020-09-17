@@ -18,7 +18,8 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import {
-    updateEmailPassword as apiUpdateEmailPassword, UpdateEmailPasswordRequest
+  updateEmailPassword as apiUpdateEmailPassword,
+  UpdateEmailPasswordRequest
 } from '../../api/account_management/email_and_password';
 import { updateProfile as apiUpdateProfile } from '../../api/account_management/profile';
 import { User } from '../../model/user';
@@ -41,7 +42,10 @@ export async function updateProfile(
   const user = externUser as User;
   const idToken = await user.getIdToken();
   const profileRequest = { idToken, displayName, photoUrl };
-  const response = await _logoutIfInvalidated(user, apiUpdateProfile(user.auth, profileRequest));
+  const response = await _logoutIfInvalidated(
+    user,
+    apiUpdateProfile(user.auth, profileRequest)
+  );
 
   user.displayName = response.displayName || null;
   user.photoURL = response.photoUrl || null;
@@ -91,6 +95,9 @@ async function updateEmailOrPassword(
     request.password = password;
   }
 
-  const response = await _logoutIfInvalidated(user, apiUpdateEmailPassword(auth, request));
+  const response = await _logoutIfInvalidated(
+    user,
+    apiUpdateEmailPassword(auth, request)
+  );
   await user._updateTokensIfNecessary(response, /* reload */ true);
 }

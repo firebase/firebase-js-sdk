@@ -51,11 +51,10 @@ export class MultiFactorUser implements externs.MultiFactorUser {
   ): Promise<void> {
     const assertion = assertionExtern as MultiFactorAssertion;
     const session = (await this.getSession()) as MultiFactorSession;
-    const finalizeMfaResponse = await _logoutIfInvalidated(this.user, assertion._process(
-      this.user.auth,
-      session,
-      displayName
-    ));
+    const finalizeMfaResponse = await _logoutIfInvalidated(
+      this.user,
+      assertion._process(this.user.auth, session, displayName)
+    );
     // New tokens will be issued after enrollment of the new second factors.
     // They need to be updated on the user.
     await this.user._updateTokensIfNecessary(finalizeMfaResponse);
@@ -69,10 +68,13 @@ export class MultiFactorUser implements externs.MultiFactorUser {
     const mfaEnrollmentId =
       typeof infoOrUid === 'string' ? infoOrUid : infoOrUid.uid;
     const idToken = await this.user.getIdToken();
-    const idTokenResponse = await _logoutIfInvalidated(this.user, withdrawMfa(this.user.auth, {
-      idToken,
-      mfaEnrollmentId
-    }));
+    const idTokenResponse = await _logoutIfInvalidated(
+      this.user,
+      withdrawMfa(this.user.auth, {
+        idToken,
+        mfaEnrollmentId
+      })
+    );
     // Remove the second factor from the user's list.
     this.enrolledFactors = this.enrolledFactors.filter(
       ({ uid }) => uid !== mfaEnrollmentId

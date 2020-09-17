@@ -17,7 +17,10 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { getAccountInfo, ProviderUserInfo } from '../../api/account_management/account';
+import {
+  getAccountInfo,
+  ProviderUserInfo
+} from '../../api/account_management/account';
 import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { assert } from '../util/assert';
@@ -27,7 +30,10 @@ import { UserMetadata } from './user_metadata';
 export async function _reloadWithoutSaving(user: User): Promise<void> {
   const auth = user.auth;
   const idToken = await user.getIdToken();
-  const response = await _logoutIfInvalidated(user, getAccountInfo(auth, { idToken }));
+  const response = await _logoutIfInvalidated(
+    user,
+    getAccountInfo(auth, { idToken })
+  );
 
   assert(response?.users.length, AuthErrorCode.INTERNAL_ERROR, {
     appName: auth.name
