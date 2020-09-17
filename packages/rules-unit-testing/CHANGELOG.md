@@ -1,5 +1,14 @@
 # @firebase/rules-unit-testing
 
+## 1.0.3
+
+### Patch Changes
+
+- [`3d9b5a595`](https://github.com/firebase/firebase-js-sdk/commit/3d9b5a595813b6c4f7f6ef4e3625ae8856a9fa23) [#3736](https://github.com/firebase/firebase-js-sdk/pull/3736) - Fix detection of admin context in Realtime Database SDK
+
+- Updated dependencies [[`f9004177e`](https://github.com/firebase/firebase-js-sdk/commit/f9004177e76f00fc484d30c0c0e7b1bc2da033f9)]:
+  - firebase@7.21.0
+
 ## 1.0.2
 
 ### Patch Changes
