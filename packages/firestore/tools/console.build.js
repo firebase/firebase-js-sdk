@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc.
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,17 +22,23 @@
 const rollup = require('rollup');
 const typescriptPlugin = require('rollup-plugin-typescript2');
 const typescript = require('typescript');
+const json = require('rollup-plugin-json');
+const alias = require('@rollup/plugin-alias');
 const resolve = require('rollup-plugin-node-resolve');
 const { uglify } = require('rollup-plugin-uglify');
 const fs = require('fs');
 const util = require('util');
 const fs_writeFile = util.promisify(fs.writeFile);
 
+const rollupUtil = require('../rollup.shared');
+
 const plugins = [
+  alias(rollupUtil.generateAliasConfig('browser')),
   resolve(),
   typescriptPlugin({
     typescript
   }),
+  json(),
   uglify({
     output: {
       ascii_only: true // escape unicode chars
