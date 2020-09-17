@@ -1,5 +1,11 @@
 # Unreleased
 
+## 0.6.13
+
+### Patch Changes
+
+- [`3d9b5a595`](https://github.com/firebase/firebase-js-sdk/commit/3d9b5a595813b6c4f7f6ef4e3625ae8856a9fa23) [#3736](https://github.com/firebase/firebase-js-sdk/pull/3736) - Fix detection of admin context in Realtime Database SDK
+
 ## 0.6.12
 
 ### Patch Changes
