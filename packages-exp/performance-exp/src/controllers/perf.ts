@@ -19,11 +19,12 @@ import { setupOobResources } from '../services/oob_resources_service';
 import { SettingsService } from '../services/settings_service';
 import { getInitializationPromise } from '../services/initialization_service';
 import { Api } from '../services/api_service';
-import { FirebaseApp } from '@firebase/app-types';
-import { FirebasePerformance } from '@firebase/performance-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebasePerformance } from '@firebase/performance-types-exp';
 import { setupTransportService } from '../services/transport_service';
 import { validateIndexedDBOpenable } from '@firebase/util';
 import { consoleLogger } from '../utils/console_logger';
+
 export class PerformanceController implements FirebasePerformance {
   constructor(readonly app: FirebaseApp) {
     if (Api.getInstance().requiredApisAvailable()) {

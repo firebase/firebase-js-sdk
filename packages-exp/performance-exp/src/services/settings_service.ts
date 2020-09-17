@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
-import { FirebaseInstallations } from '@firebase/installations-types';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 import { mergeStrings } from '../utils/string_merger';
 
 let settingsServiceInstance: SettingsService | undefined;
@@ -59,7 +59,7 @@ export class SettingsService {
 
   firebaseAppInstance!: FirebaseApp;
 
-  installationsService!: FirebaseInstallations;
+  installationsService!: _FirebaseInstallationsInternal;
 
   getAppId(): string {
     const appId =

@@ -21,7 +21,7 @@ import { CONFIG_EXPIRY_LOCAL_STORAGE_KEY } from '../constants';
 import { setupApi, Api } from './api_service';
 import * as iidService from './iid_service';
 import { getConfig } from './remote_config_service';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import '../../test/setup';
 
 describe('Performance Monitoring > remote_config_service', () => {

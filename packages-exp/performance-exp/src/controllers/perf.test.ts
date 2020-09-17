@@ -20,7 +20,7 @@ import { stub } from 'sinon';
 import { PerformanceController } from '../controllers/perf';
 import { Trace } from '../resources/trace';
 import { Api, setupApi } from '../services/api_service';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import * as initializationService from '../services/initialization_service';
 import * as FirebaseUtil from '@firebase/util';
 import { consoleLogger } from '../utils/console_logger';
