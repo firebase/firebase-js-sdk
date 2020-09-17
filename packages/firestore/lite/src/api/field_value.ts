@@ -21,14 +21,14 @@ import {
   ArrayUnionFieldValueImpl,
   DeleteFieldValueImpl,
   NumericIncrementFieldValueImpl,
-  _SerializableFieldValue,
+  SerializableFieldValue,
   ServerTimestampFieldValueImpl
 } from '../../../src/api/field_value';
 import { ParseContext } from '../../../src/api/user_data_reader';
 import { FieldTransform } from '../../../src/model/mutation';
 
 /** The public FieldValue class of the lite API. */
-export abstract class FieldValue extends _SerializableFieldValue {}
+export abstract class FieldValue extends SerializableFieldValue {}
 
 /**
  * A delegate class that allows the FieldValue implementations returned by
@@ -42,7 +42,7 @@ export abstract class FieldValue extends _SerializableFieldValue {}
 class FieldValueDelegate extends FieldValue {
   readonly _methodName: string;
 
-  constructor(readonly _delegate: _SerializableFieldValue) {
+  constructor(readonly _delegate: SerializableFieldValue) {
     super();
     this._methodName = _delegate._methodName;
   }
