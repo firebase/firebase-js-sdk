@@ -46,6 +46,13 @@ export abstract class ServerActions {
   abstract unlisten(query: Query, tag: number | null): void;
 
   /**
+   * Get the server value satisfying this query.
+   * @param query
+   * @param onComplete
+   */
+  get(query: Query, onComplete: (a: string, b: unknown) => void): void {}
+
+  /**
    * @param {string} pathString
    * @param {*} data
    * @param {function(string, string)=} onComplete

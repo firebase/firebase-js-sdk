@@ -54,6 +54,10 @@ export interface SnapshotCallback {
   (a: DataSnapshot, b?: string | null): unknown;
 }
 
+export interface FailureCallback {
+  (a: Error): void;
+}
+
 /**
  * A Query represents a filter to be applied to a firebase location.  This object purely represents the
  * query expression (and exposes our public API to build the query).  The actual query logic is in ViewBase.js.
@@ -293,6 +297,26 @@ export class Query {
       container = new ChildEventRegistration(callbacks, null, context || null);
     }
     this.repo.removeEventCallbackForQuery(this, container);
+  }
+
+  get(
+    onComplete?: SnapshotCallback,
+    onCancelled?: FailureCallback
+  ): Promise<DataSnapshot> {
+    const deferred = new Deferred<DataSnapshot>();
+    const callback = (snapshot: DataSnapshot) => {
+      if (onComplete) {
+        onComplete(snapshot);
+      }
+      deferred.resolve(snapshot);
+    };
+    this.repo.get(this, callback, err => {
+      if (onCancelled) {
+        onCancelled(err);
+      }
+      deferred.reject(err);
+    });
+    return deferred.promise;
   }
 
   /**

@@ -75,6 +75,13 @@ interface OutstandingPut {
   onComplete: (a: string, b?: string) => void;
 }
 
+interface OutstandingGet {
+  action: string;
+  request: object;
+  queued?: boolean;
+  onComplete: (a: string, b?: string) => void;
+}
+
 /**
  * Firebase connection.  Abstracts wire protocol and handles reconnecting.
  *
@@ -92,6 +99,8 @@ export class PersistentConnection extends ServerActions {
     /* path */ string,
     Map</* queryId */ string, ListenSpec>
   > = new Map();
+  private outstandingGets_: OutstandingGet[] = [];
+  private outstandingGetCount_ = 0;
   private outstandingPuts_: OutstandingPut[] = [];
   private outstandingPutCount_ = 0;
   private onDisconnectRequestQueue_: OnDisconnectRequest[] = [];
@@ -184,6 +193,29 @@ export class PersistentConnection extends ServerActions {
     }
   }
 
+  get(query: Query, onComplete: (a: string, b: unknown) => void) {
+    const action = 'g';
+
+    const req: { [k: string]: unknown } = {
+      p: query.path.toString(),
+      q: query.queryObject()
+    };
+
+    this.outstandingGets_.push({
+      action,
+      request: req,
+      onComplete
+    });
+
+    this.outstandingGetCount_++;
+
+    if (this.connected_) {
+      this.sendGet_(this.outstandingGets_.length - 1);
+    } else {
+      this.log_('Buffering get: ' + query.path.toString());
+    }
+  }
+
   /**
    * @inheritDoc
    */
@@ -219,6 +251,26 @@ export class PersistentConnection extends ServerActions {
     if (this.connected_) {
       this.sendListen_(listenSpec);
     }
+  }
+
+  private sendGet_(index: number) {
+    const action = this.outstandingGets_[index].action;
+    const request = this.outstandingGets_[index].request;
+    const onComplete = this.outstandingGets_[index].onComplete;
+    this.outstandingGets_[index].queued = this.connected_;
+
+    this.sendRequest(action, request, (message: { [k: string]: unknown }) => {
+      delete this.outstandingGets_[index];
+      this.outstandingGetCount_--;
+
+      if (this.outstandingGetCount_ == 0) {
+        this.outstandingGets_ = [];
+      }
+
+      if (onComplete) {
+        onComplete(message['s'] as string, message['d'] as string);
+      }
+    });
   }
 
   private sendListen_(listenSpec: ListenSpec) {
@@ -932,6 +984,12 @@ export class PersistentConnection extends ServerActions {
     for (const queries of this.listens.values()) {
       for (const listenSpec of queries.values()) {
         this.sendListen_(listenSpec);
+      }
+    }
+
+    for (let i = 0; i < this.outstandingGets_.length; i++) {
+      if (this.outstandingGets_[i]) {
+        this.sendGet_(i);
       }
     }
 

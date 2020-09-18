@@ -25,6 +25,7 @@ import { Path } from './util/Path';
 import { SparseSnapshotTree } from './SparseSnapshotTree';
 import { SyncTree } from './SyncTree';
 import { SnapshotHolder } from './SnapshotHolder';
+import { SnapshotCallback, FailureCallback } from '../api/Query';
 import { stringify, map, isEmpty } from '@firebase/util';
 import { beingCrawled, each, exceptionGuard, warn, log } from './util/util';
 
@@ -38,6 +39,7 @@ import { ReadonlyRestClient } from './ReadonlyRestClient';
 import { FirebaseApp } from '@firebase/app-types';
 import { RepoInfo } from './RepoInfo';
 import { Database } from '../api/Database';
+import { DataSnapshot } from '../api/DataSnapshot';
 import { ServerActions } from './ServerActions';
 import { Query } from '../api/Query';
 import { EventRegistration } from './view/EventRegistration';
@@ -294,6 +296,25 @@ export class Repo {
 
   private getNextWriteId_(): number {
     return this.nextWriteId_++;
+  }
+
+  get(query: Query, onComplete: SnapshotCallback, onFailure: FailureCallback) {
+    this.server_.get(query, (status, payload) => {
+      if (status === 'ok') {
+        // TODO(wyszynski): How do we update catch so that
+        // future queries use the results we got here?
+        const newNode = nodeFromJSON(payload as string);
+        onComplete(
+          new DataSnapshot(
+            newNode,
+            query.getRef(),
+            query.getQueryParams().getIndex()
+          )
+        );
+      } else {
+        onFailure(Error(payload as string));
+      }
+    });
   }
 
   setWithPriority(
