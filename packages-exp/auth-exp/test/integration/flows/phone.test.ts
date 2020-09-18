@@ -27,7 +27,6 @@ import {
   signInWithPhoneNumber,
   unlink,
   updatePhoneNumber
-  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/auth-exp';
 import {
   Auth,
@@ -174,7 +173,7 @@ describe('Integration test: phone auth', () => {
     it('allows the user to reauthenticate with phone number', async () => {
       let cr = await signInWithPhoneNumber(auth, PHONE_A.phoneNumber, verifier);
       const { user } = await cr.confirm(PHONE_A.code);
-      const oldToken = user.refreshToken;
+      const oldToken = await user.getIdToken();
 
       resetVerifier();
 
@@ -185,7 +184,7 @@ describe('Integration test: phone auth', () => {
       );
       await cr.confirm(PHONE_A.code);
 
-      expect(user.refreshToken).not.to.eq(oldToken);
+      expect(await user.getIdToken()).not.to.eq(oldToken);
     });
 
     it('prevents reauthentication with wrong phone number', async () => {
