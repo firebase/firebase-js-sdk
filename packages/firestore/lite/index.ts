@@ -15,82 +15,9 @@
  * limitations under the License.
  */
 
-import { registerFirestore } from './register';
+class A1<T> {
+  // Non-exported class I want to hide
+  data?: T;
+}
 
-registerFirestore();
-
-export {
-  Settings,
-  FirebaseFirestore,
-  initializeFirestore,
-  getFirestore,
-  terminate
-} from './src/api/database';
-
-export {
-  SetOptions,
-  DocumentData,
-  UpdateData,
-  DocumentReference,
-  Query,
-  QueryConstraint,
-  QueryConstraintType,
-  CollectionReference,
-  OrderByDirection,
-  WhereFilterOp,
-  collection,
-  collectionGroup,
-  doc,
-  getDoc,
-  getDocs,
-  deleteDoc,
-  setDoc,
-  updateDoc,
-  addDoc,
-  refEqual,
-  queryEqual,
-  startAt,
-  startAfter,
-  endAt,
-  endBefore,
-  query,
-  limit,
-  limitToLast,
-  where,
-  orderBy
-} from './src/api/reference';
-
-// TOOD(firestorelite): Add tests when Queries are usable
-export { FieldPath, documentId } from './src/api/field_path';
-
-// TOOD(firestorelite): Add tests when setDoc() is available
-export {
-  FieldValue,
-  deleteField,
-  increment,
-  arrayRemove,
-  arrayUnion,
-  serverTimestamp
-} from './src/api/field_value';
-
-export {
-  FirestoreDataConverter,
-  DocumentSnapshot,
-  QueryDocumentSnapshot,
-  QuerySnapshot,
-  snapshotEqual
-} from './src/api/snapshot';
-
-export { WriteBatch, writeBatch } from './src/api/write_batch';
-
-export { Transaction, runTransaction } from './src/api/transaction';
-
-export { setLogLevel, LogLevelString as LogLevel } from '../src/util/log';
-
-export { Bytes } from './src/api/bytes';
-
-export { GeoPoint } from '../src/api/geo_point';
-
-export { Timestamp } from '../src/api/timestamp';
-
-export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
+export class B1 extends A1<string> {}

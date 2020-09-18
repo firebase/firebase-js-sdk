@@ -148,8 +148,12 @@ function prunePrivateImports<
           // Iterate all members of the private type and add them to the
           // public type if they are not already part of the public type.
           const privateType = typeChecker.getTypeAtLocation(type);
-          if (privateType?.symbol?.members) {
-            privateType.symbol.members.forEach((definition, memberName) => {
+          const symbolType = typeChecker.getTypeOfSymbolAtLocation(
+            privateType.getProperties()[0],
+            type
+          );
+          if (symbolType?.symbol?.members) {
+            privateType.symbol.members!.forEach((definition, memberName) => {
               if (!currentMembers || !currentMembers.has(memberName)) {
                 additionalMembers.push(...definition.declarations);
               }
