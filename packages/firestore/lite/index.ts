@@ -18,6 +18,7 @@
 class A1<T> {
   // Non-exported class I want to hide
   data?: T;
+  foo(data: T): T | void {}
 }
 
 export class B1 extends A1<string> {}

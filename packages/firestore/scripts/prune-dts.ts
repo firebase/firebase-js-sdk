@@ -44,6 +44,7 @@ function main(inputLocation: string, outputLocation: string): void {
   >(sourceFile, [dropPrivateApiTransformer.bind(null, typeChecker)]);
   const transformedSourceFile: ts.SourceFile = result.transformed[0];
   const content = printer.printFile(transformedSourceFile);
+  console.log(content);
   fs.writeFileSync(outputLocation, content);
 }
 
@@ -90,6 +91,16 @@ function maybeHideConstructor(
   } else {
     return node;
   }
+}
+
+function visit<T extends ts.Node>(
+  typeChecker: ts.TypeChecker,
+  originalLocation: ts.Node,
+  d: T
+): T {
+  return ts.transform(d, [
+    updateInheritedTypeTransformer.bind(null, typeChecker, originalLocation)
+  ]).transformed[0] as T;
 }
 
 /**
@@ -148,14 +159,14 @@ function prunePrivateImports<
           // Iterate all members of the private type and add them to the
           // public type if they are not already part of the public type.
           const privateType = typeChecker.getTypeAtLocation(type);
-          const symbolType = typeChecker.getTypeOfSymbolAtLocation(
-            privateType.getProperties()[0],
-            type
-          );
-          if (symbolType?.symbol?.members) {
+          if (privateType?.symbol?.members) {
             privateType.symbol.members!.forEach((definition, memberName) => {
               if (!currentMembers || !currentMembers.has(memberName)) {
-                additionalMembers.push(...definition.declarations);
+                additionalMembers.push(
+                  ...definition.declarations.map(d =>
+                    visit(typeChecker, type, d)
+                  )
+                );
               }
             });
           }
@@ -163,6 +174,17 @@ function prunePrivateImports<
       }
     }
 
+    // for (const property of privateType.getProperties()) {
+    //   for (const declaration of property.declarations) {
+    //     if (ts.isPropertyDeclaration(declaration)) {
+    //
+    //       const localType = typeChecker.typeToTypeNode(typeChecker.getTypeOfSymbolAtLocation(property, type), node, undefined);
+    //
+    //       const updatedElement = ts.updateProperty(declaration, declaration.decorators, declaration.modifiers, declaration.name, declaration.questionToken || declaration.exclamationToken, localType, declaration.initializer);
+    //       additionalMembers.push(updatedElement);
+    //     }
+    //   }
+    // }
     if (exportedTypes.length > 0) {
       prunedHeritageClauses.push(
         ts.updateHeritageClause(heritageClause, exportedTypes)
@@ -256,6 +278,44 @@ function extractPublicSymbol(
 
   return publicSymbolsForLocalType[0];
 }
+
+const updateInheritedTypeTransformer = (
+  typeChecker: ts.TypeChecker,
+  originalLocation: ts.Node,
+  context: ts.TransformationContext
+) => {
+  return (sourceFile: ts.Node) => {
+    function visit(node: ts.Node): ts.Node {
+      if (ts.isTypeReferenceNode(node)) {
+        const symbol = typeChecker.getSymbolAtLocation(node.typeName);
+        const replacement = typeChecker.getTypeOfSymbolAtLocation(
+          symbol!,
+          originalLocation
+        );
+        if (replacement) {
+          return ts.updateTypeReferenceNode(
+            node,
+            ts.createIdentifier('string'),
+            node.typeArguments
+          );
+        } else {
+          return node;
+        }
+      }
+
+      return node;
+    }
+
+    function visitNodeAndChildren<T extends ts.Node>(node: T): T {
+      return ts.visitEachChild(
+        visit(node),
+        childNode => visitNodeAndChildren(childNode),
+        context
+      ) as T;
+    }
+    return visitNodeAndChildren(sourceFile);
+  };
+};
 
 const dropPrivateApiTransformer = (
   typeChecker: ts.TypeChecker,

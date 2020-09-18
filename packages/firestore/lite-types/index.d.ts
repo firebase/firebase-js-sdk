@@ -15,5 +15,8 @@
  * limitations under the License.
  */
 
-export declare class B1 {}
+export declare class B1 {
+  T;
+  data?: string;
+}
 export {};
