@@ -19,8 +19,8 @@
  * Firebase console uses firestore in its special way.
  * This file creates a build target for it.
  */
-const tmp = require('tmp');
 const rollup = require('rollup');
+const { uglify } = require('rollup-plugin-uglify');
 const fs = require('fs');
 const util = require('util');
 const fs_writeFile = util.promisify(fs.writeFile);
@@ -29,13 +29,14 @@ const rollupUtil = require('../rollup.shared');
 
 const EXPORTNAME = '__firestore_exports__';
 
-const tmpFile = tmp.fileSync().name;
+const esm2017OutputFile = 'dist/standalone.esm2017.js';
+const esm5OutputFile = 'dist/standalone.js';
 
 const es2017InputOptions = {
   input: 'index.console.ts',
   // If I set mangled to true the build breaks, but all other build pipelines
   // use the same settings
-  plugins: rollupUtil.es2017Plugins('browser', /* mangled= */ false),
+  plugins: rollupUtil.es2017Plugins('browser', /* mangled= */ true),
   external: rollupUtil.resolveBrowserExterns,
   treeshake: {
     moduleSideEffects: false
@@ -43,13 +44,20 @@ const es2017InputOptions = {
 };
 
 const es2017OutputOptions = {
-  file: tmpFile,
+  file: esm2017OutputFile,
   format: 'es'
 };
 
 const es2017toEs5InputOptions = {
-  input: tmpFile,
-  plugins: rollupUtil.es2017ToEs5Plugins(/* mangled= */ true),
+  input: esm2017OutputFile,
+  plugins: [
+    ...rollupUtil.es2017ToEs5Plugins(/* mangled= */ true),
+    uglify({
+      output: {
+        ascii_only: true // escape unicode chars
+      }
+    })
+  ],
   external: rollupUtil.resolveBrowserExterns,
   treeshake: {
     moduleSideEffects: false
@@ -57,7 +65,7 @@ const es2017toEs5InputOptions = {
 };
 
 const es2017toEs5OutputOptions = {
-  file: 'dist/standalone.js',
+  file: esm5OutputFile,
   name: EXPORTNAME,
   format: 'iife'
 };
@@ -72,7 +80,6 @@ async function build() {
   // create an ES2017 bundle
   const es2017Bundle = await rollup.rollup(es2017InputOptions);
   await es2017Bundle.write(es2017OutputOptions);
-  console.log(tmpFile);
 
   const es5Bundle = await rollup.rollup(es2017toEs5InputOptions);
   const {
