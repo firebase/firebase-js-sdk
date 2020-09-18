@@ -23,7 +23,7 @@ import { consoleLogger } from '../utils/console_logger';
 declare global {
   interface Window {
     PerformanceObserver: typeof PerformanceObserver;
-    perfMetrics?: { onFirstInputDelay: (fn: (fid: number) => void) => void };
+    perfMetrics?: { onFirstInputDelay(fn: (fid: number) => void): void };
   }
 }
 
