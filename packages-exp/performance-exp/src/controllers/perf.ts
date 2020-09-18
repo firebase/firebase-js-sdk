@@ -30,6 +30,8 @@ import { setupTransportService } from '../services/transport_service';
 import { consoleLogger } from '../utils/console_logger';
 
 export class PerformanceController implements FirebasePerformance {
+  private initialized: boolean = false;
+
   constructor(
     readonly app: FirebaseApp,
     readonly installations: _FirebaseInstallationsInternal
@@ -45,6 +47,10 @@ export class PerformanceController implements FirebasePerformance {
    * consent.
    */
   _init(settings?: PerformanceSettings): void {
+    if (this.initialized) {
+      return;
+    }
+
     if (settings?.dataCollectionEnabled !== undefined) {
       this.dataCollectionEnabled = settings.dataCollectionEnabled;
     }
@@ -61,6 +67,7 @@ export class PerformanceController implements FirebasePerformance {
               () => setupOobResources(this),
               () => setupOobResources(this)
             );
+            this.initialized = true;
           }
         })
         .catch(error => {
