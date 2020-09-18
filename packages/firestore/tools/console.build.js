@@ -33,6 +33,8 @@ const tmpFile = tmp.fileSync().name;
 
 const es2017InputOptions = {
   input: 'index.console.ts',
+  // If I set mangled to true the build breaks, but all other build pipelines
+  // use the same settings
   plugins: rollupUtil.es2017Plugins('browser', /* mangled= */ false),
   external: rollupUtil.resolveBrowserExterns,
   treeshake: {
@@ -77,6 +79,7 @@ async function build() {
     output: [{ code }]
   } = await es5Bundle.generate(es2017toEs5OutputOptions);
 
+  // The output file is HUGE and uses classes still
   const output = `${PREFIX}${JSON.stringify(String(code))}${POSTFIX}`;
   await fs_writeFile(es2017toEs5OutputOptions.file, output, 'utf-8');
 }
