@@ -22,7 +22,7 @@ import * as iidService from './iid_service';
 import { expect } from 'chai';
 import { Api, setupApi } from './api_service';
 import { SettingsService } from './settings_service';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import * as initializationService from './initialization_service';
 import { SDK_VERSION } from '../constants';
 import * as attributeUtils from '../utils/attributes_utils';

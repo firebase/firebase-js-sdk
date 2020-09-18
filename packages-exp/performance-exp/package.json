@@ -22,12 +22,12 @@
     "prettier": "prettier --write '{src,test}/**/*.{js,ts}'"
   },
   "peerDependencies": {
-    "@firebase/app": "0.x",
-    "@firebase/app-types": "0.x"
+    "@firebase/app-exp": "0.x",
+    "@firebase/app-types-exp": "0.x"
   },
   "dependencies": {
     "@firebase/logger": "0.2.6",
-    "@firebase/installations": "0.4.17",
+    "@firebase/installations-exp": "0.0.800",
     "@firebase/util": "0.3.2",
     "@firebase/performance-types-exp": "0.0.800",
     "@firebase/component": "0.1.19",
@@ -35,7 +35,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app": "0.6.11",
+    "@firebase/app-exp": "0.0.800",
     "rollup": "2.26.7",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-typescript2": "0.27.2",

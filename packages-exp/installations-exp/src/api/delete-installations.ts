@@ -23,6 +23,8 @@ import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 import { FirebaseInstallations } from '@firebase/installations-types-exp';
 
 /**
+ * Deletes the Firebase Installation and all associated data.
+ *
  * @public
  */
 export async function deleteInstallations(
