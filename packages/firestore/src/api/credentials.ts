@@ -297,7 +297,8 @@ export class FirstPartyToken implements Token {
     const headers: { [header: string]: string } = {
       'X-Goog-AuthUser': this.sessionIndex
     };
-    const authHeader = this.gapi.auth.getAuthHeaderValueForFirstParty([]);
+    // Use array notation to prevent minification
+    const authHeader = this.gapi['auth']['getAuthHeaderValueForFirstParty']([]);
     if (authHeader) {
       headers['Authorization'] = authHeader;
     }
