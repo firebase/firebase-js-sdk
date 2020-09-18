@@ -636,6 +636,7 @@ export class PersistentConnection extends ServerActions {
   }
 
   private onDataPush_(action: string, body: { [k: string]: unknown }) {
+    console.log("onDataPush action: " + action + " body: " + JSON.stringify(body));
     this.log_('handleServerMessage', action, body);
     if (action === 'd') {
       this.onDataUpdate_(

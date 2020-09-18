@@ -221,7 +221,7 @@ export class WebSocketConnection implements Transport {
   /**
    * No-op for websockets, we don't need to do anything once the connection is confirmed as open
    */
-  start() {}
+  start() { }
 
   static forceDisallow_: boolean;
 

@@ -300,8 +300,13 @@ export class Repo {
   get(query: Query, onComplete: SnapshotCallback, onFailure: FailureCallback) {
     this.server_.get(query, (status, payload) => {
       if (status === 'ok') {
-        // TODO(wyszynski): How do we update catch so that
-        // future queries use the results we got here?
+        // TODO(wyszynski): Is this the correct way to update client SDK caches
+        // with the data that we've received from get()?
+        this.onDataUpdate_(
+          query.path.toString(),
+          payload,
+          /*isMerge=*/false,
+          /*tag=*/null);
         const newNode = nodeFromJSON(payload as string);
         onComplete(
           new DataSnapshot(
