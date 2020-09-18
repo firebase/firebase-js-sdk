@@ -34,8 +34,6 @@ const esm5OutputFile = 'dist/standalone.js';
 
 const es2017InputOptions = {
   input: 'index.console.ts',
-  // If I set mangled to true the build breaks, but all other build pipelines
-  // use the same settings
   plugins: rollupUtil.es2017Plugins('browser', /* mangled= */ true),
   external: rollupUtil.resolveBrowserExterns,
   treeshake: {
@@ -77,16 +75,16 @@ exports = eval(`;
 const POSTFIX = ` + '${EXPORTNAME};');`;
 
 async function build() {
-  // create an ES2017 bundle
+  // Create an ES2017 bundle
   const es2017Bundle = await rollup.rollup(es2017InputOptions);
   await es2017Bundle.write(es2017OutputOptions);
 
+  // Transpile down to ES5
   const es5Bundle = await rollup.rollup(es2017toEs5InputOptions);
   const {
     output: [{ code }]
   } = await es5Bundle.generate(es2017toEs5OutputOptions);
 
-  // The output file is HUGE and uses classes still
   const output = `${PREFIX}${JSON.stringify(String(code))}${POSTFIX}`;
   await fs_writeFile(es2017toEs5OutputOptions.file, output, 'utf-8');
 }
