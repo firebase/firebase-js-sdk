@@ -20,7 +20,10 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import {
-    AuthEvent, AuthEventConsumer, AuthEventError, AuthEventType
+  AuthEvent,
+  AuthEventConsumer,
+  AuthEventError,
+  AuthEventType
 } from '../../model/popup_redirect';
 import { AuthErrorCode } from '../errors';
 import { AuthEventManager } from './auth_event_manager';
