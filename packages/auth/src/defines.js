@@ -39,6 +39,8 @@ fireauth.constants.OperationType = {
  * @enum {string}
  */
 fireauth.constants.AuthEventType = {
+  /** Dispatched when emulator config is changed. */
+  EMULATOR_CONFIG_CHANGED: 'emulatorConfigChanged',
   /** Dispatched when Firebase framework is changed. */
   FRAMEWORK_CHANGED: 'frameworkChanged',
   /** Dispatched when language code is changed. */
@@ -166,3 +168,16 @@ fireauth.constants.SAML_PREFIX = 'saml.';
 
 /** @const {string} The required OIDC provider ID prefix. */
 fireauth.constants.OIDC_PREFIX = 'oidc.';
+
+/**
+ * The settings of an Auth emulator. The fields are:
+ * <ul>
+ * <li>hostname: defines the hostname where the emulator is running.</li>
+ * <li>port: defines the port where the emulator is running.</li>
+ * </ul>
+ * @typedef {{
+ *   hostname: string,
+ *   port: number
+ * }}
+ */
+fireauth.constants.EmulatorSettings;

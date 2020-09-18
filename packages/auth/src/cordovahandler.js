@@ -38,6 +38,7 @@ goog.require('fireauth.DynamicLink');
 goog.require('fireauth.OAuthSignInHandler');
 goog.require('fireauth.UniversalLinkSubscriber');
 goog.require('fireauth.authenum.Error');
+goog.require('fireauth.constants');
 goog.require('fireauth.iframeclient.IfcHandler');
 goog.require('fireauth.storage.AuthEventManager');
 goog.require('fireauth.storage.OAuthHandlerManager');
@@ -59,12 +60,14 @@ goog.require('goog.crypt.Sha256');
  * @param {number=} opt_initialTimeout Initial Auth event timeout.
  * @param {number=} opt_redirectTimeout Redirect result timeout.
  * @param {?string=} opt_endpointId The endpoint ID (staging, test Gaia, etc).
+ * @param {?fireauth.constants.EmulatorSettings=} emulatorConfig The emulator
+ *     configuration
  * @constructor
  * @implements {fireauth.OAuthSignInHandler}
  */
 fireauth.CordovaHandler = function(authDomain, apiKey, appName,
     opt_clientVersion, opt_initialTimeout, opt_redirectTimeout,
-    opt_endpointId) {
+    opt_endpointId, emulatorConfig) {
   /** @private {string} The application authDomain. */
   this.authDomain_ = authDomain;
   /** @private {string} The application API key. */
@@ -75,6 +78,11 @@ fireauth.CordovaHandler = function(authDomain, apiKey, appName,
   this.clientVersion_ = opt_clientVersion || null;
   /** @private {?string} The Auth endpoint ID. */
   this.endpointId_ = opt_endpointId || null;
+  /**
+   * @private @const {?fireauth.constants.EmulatorSettings|undefined}
+   * The emulator configuration
+   */
+  this.emulatorConfig_ = emulatorConfig;
   /** @private {string} The storage key. */
   this.storageKey_ = fireauth.util.createStorageKey(apiKey, appName);
   /**
@@ -544,7 +552,8 @@ fireauth.CordovaHandler.prototype.processRedirectInternal_ = function(
           this.clientVersion_,
           additionalParams,
           this.endpointId_,
-          opt_tenantId);
+          opt_tenantId,
+          this.emulatorConfig_);
   // Make sure handler initialized and ready.
   // This should also ensure all plugins are installed.
   return this.initializeAndWait().then(function() {

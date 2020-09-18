@@ -64,21 +64,36 @@ fireauth.iframeclient.PORT_NUMBER = null;
  * @param {string} authDomain The application authDomain.
  * @param {string} apiKey The API key.
  * @param {string} appName The App name.
+ * @param {?fireauth.constants.EmulatorSettings=} emulatorConfig The emulator
+ *     configuration.
  * @constructor
  */
-fireauth.iframeclient.IframeUrlBuilder = function(authDomain, apiKey, appName) {
+fireauth.iframeclient.IframeUrlBuilder = function(authDomain, apiKey, appName, emulatorConfig) {
   /** @private {string} The application authDomain. */
   this.authDomain_ = authDomain;
   /** @private {string} The API key. */
   this.apiKey_ = apiKey;
   /** @private {string} The App name. */
   this.appName_ = appName;
+  /**
+   * @private @const {?fireauth.constants.EmulatorSettings|undefined}
+   * The emulator configuration.
+   */
+  this.emulatorConfig_ = emulatorConfig;
   /** @private {?string|undefined} The client version. */
   this.v_ = null;
   /**
-   * @private {!goog.Uri} The URI object used to build the iframe URL.
+   * @private @const {!goog.Uri} The URI object used to build the iframe URL.
    */
-  this.uri_ = goog.Uri.create(
+  this.uri_ = this.emulatorConfig_ ? goog.Uri.create(
+      'http',
+      null,
+      this.emulatorConfig_.hostname,
+      this.emulatorConfig_.port,
+      '/emulator/auth/iframe',
+      null,
+      null) :
+    goog.Uri.create(
       fireauth.iframeclient.SCHEME,
       null,
       this.authDomain_,
@@ -169,10 +184,12 @@ fireauth.iframeclient.IframeUrlBuilder.prototype.toString = function() {
  * @param {string} authType The Auth operation type.
  * @param {!fireauth.AuthProvider} provider The Auth provider that the OAuth
  *     handler request is built to sign in to.
+ * @param {?fireauth.constants.EmulatorSettings=} emulatorConfig The emulator
+ *     configuration.
  * @constructor
  */
 fireauth.iframeclient.OAuthUrlBuilder =
-    function(authDomain, apiKey, appName, authType, provider) {
+    function(authDomain, apiKey, appName, authType, provider, emulatorConfig) {
   /** @private {string} The application authDomain. */
   this.authDomain_ = authDomain;
   /** @private {string} The API key. */
@@ -181,6 +198,11 @@ fireauth.iframeclient.OAuthUrlBuilder =
   this.appName_ = appName;
   /** @private {string} The Auth operation type. */
   this.authType_ = authType;
+  /**
+   * @private @const {?fireauth.constants.EmulatorSettings|undefined}
+   * The emulator configuration.
+   */
+  this.emulatorConfig_ = emulatorConfig;
   /**
    * @private {?string|undefined} The redirect URL used in redirect operations.
    */
@@ -285,7 +307,15 @@ fireauth.iframeclient.OAuthUrlBuilder.prototype.setAdditionalParameters =
  * @override
  */
 fireauth.iframeclient.OAuthUrlBuilder.prototype.toString = function() {
-  var uri = goog.Uri.create(
+  var uri = this.emulatorConfig_ ? goog.Uri.create(
+      'http',
+      null,
+      this.emulatorConfig_.hostname,
+      this.emulatorConfig_.port,
+      '/emulator/auth/handler',
+      null,
+      null) :
+    goog.Uri.create(
       fireauth.iframeclient.SCHEME,
       null,
       this.authDomain_,
@@ -426,17 +456,24 @@ fireauth.iframeclient.OAuthUrlBuilder.getAuthFrameworksForApp_ =
  *     request.
  * @param {?string=} opt_clientVersion The optional client version string.
  * @param {?string=} opt_endpointId The endpoint ID (staging, test Gaia, etc).
+ * @param {?fireauth.constants.EmulatorSettings=} emulatorConfig The emulator
+ *     configuration.
  * @constructor
  * @implements {fireauth.OAuthSignInHandler}
  */
 fireauth.iframeclient.IfcHandler = function(authDomain, apiKey, appName,
-    opt_clientVersion, opt_endpointId) {
+    opt_clientVersion, opt_endpointId, emulatorConfig) {
   /** @private {string} The Auth domain. */
   this.authDomain_ = authDomain;
   /** @private {string} The API key. */
   this.apiKey_ = apiKey;
   /** @private {string} The App name. */
   this.appName_ = appName;
+  /**
+   * @private @const {?fireauth.constants.EmulatorSettings|undefined}
+   * The emulator configuration.
+   */
+  this.emulatorConfig_ = emulatorConfig;
   /** @private {?string} The client version. */
   this.clientVersion_ = opt_clientVersion || null;
   /** @private {?string} The Auth endpoint ID. */
@@ -693,7 +730,8 @@ fireauth.iframeclient.IfcHandler.prototype.processPopup = function(
             self.clientVersion_,
             undefined,
             self.endpointId_,
-            opt_tenantId);
+            opt_tenantId,
+            self.emulatorConfig_);
     // Redirect popup to OAuth helper widget URL.
     fireauth.util.goTo(oauthHelperWidgetUrl, /** @type {!Window} */ (popupWin));
   }).thenCatch(function(e) {
@@ -763,7 +801,8 @@ fireauth.iframeclient.IfcHandler.prototype.processRedirect =
             self.clientVersion_,
             undefined,
             self.endpointId_,
-            opt_tenantId);
+            opt_tenantId,
+            self.emulatorConfig_);
     // Redirect to OAuth helper widget URL.
     fireauth.util.goTo(oauthHelperWidgetUrl);
   }).thenCatch(function(e) {
@@ -780,10 +819,14 @@ fireauth.iframeclient.IfcHandler.prototype.processRedirect =
 fireauth.iframeclient.IfcHandler.prototype.getIframeUrl = function() {
   if (!this.iframeUrl_) {
     this.iframeUrl_ = fireauth.iframeclient.IfcHandler.getAuthIframeUrl(
-        this.authDomain_, this.apiKey_, this.appName_, this.clientVersion_,
-        this.endpointId_,
-        fireauth.iframeclient.OAuthUrlBuilder.getAuthFrameworksForApp_(
-            this.appName_));
+      this.authDomain_,
+      this.apiKey_,
+      this.appName_,
+      this.clientVersion_,
+      this.endpointId_,
+      fireauth.iframeclient.OAuthUrlBuilder.getAuthFrameworksForApp_(
+        this.appName_),
+      this.emulatorConfig_);
   }
   return this.iframeUrl_;
 };
@@ -827,13 +870,15 @@ fireauth.iframeclient.IfcHandler.prototype.unloadsOnRedirect = function() {
  * @param {?string=} opt_clientVersion The optional client version string.
  * @param {?string=} opt_endpointId The endpoint ID (staging, test Gaia, etc).
  * @param {?Array<string>=} opt_frameworks The optional list of framework IDs.
+ * @param {?fireauth.constants.EmulatorSettings=} emulatorConfig The emulator
+ *     configuration.
  * @return {string} The data iframe src URL.
  */
 fireauth.iframeclient.IfcHandler.getAuthIframeUrl = function(authDomain, apiKey,
-    appName, opt_clientVersion, opt_endpointId, opt_frameworks) {
+    appName, opt_clientVersion, opt_endpointId, opt_frameworks, emulatorConfig) {
   // OAuth helper iframe URL.
   var builder = new fireauth.iframeclient.IframeUrlBuilder(
-      authDomain, apiKey, appName);
+      authDomain, apiKey, appName, emulatorConfig);
   return builder
       .setVersion(opt_clientVersion)
       .setEndpointId(opt_endpointId)
@@ -858,6 +903,8 @@ fireauth.iframeclient.IfcHandler.getAuthIframeUrl = function(authDomain, apiKey,
  *     additional parameters.
  * @param {?string=} opt_endpointId The endpoint ID (staging, test Gaia, etc).
  * @param {?string=} opt_tenantId The optional tenant ID.
+ * @param {?fireauth.constants.EmulatorSettings=} emulatorConfig The emulator
+ *     configuration.
  * @return {string} The OAuth helper widget URL.
  */
 fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl = function(
@@ -871,10 +918,11 @@ fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl = function(
     opt_clientVersion,
     opt_additionalParams,
     opt_endpointId,
-    opt_tenantId) {
+    opt_tenantId,
+    emulatorConfig) {
   // OAuth helper widget URL.
   var builder = new fireauth.iframeclient.OAuthUrlBuilder(
-      authDomain, apiKey, appName, authType, provider);
+      authDomain, apiKey, appName, authType, provider, emulatorConfig);
   return builder
       .setRedirectUrl(opt_redirectUrl)
       .setEventId(opt_eventId)

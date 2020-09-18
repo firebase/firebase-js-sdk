@@ -481,13 +481,32 @@ function testOAuthUrlBuilder_notOAuthProviderInstance() {
 
 
 /**
+ * Tests OAuth URL Builder with an emulator config
+ */
+function testOAuthUrlBuilder_withEmulatorConfig() {
+  var provider = new fireauth.GoogleAuthProvider();
+  var emulatorConfig = {
+    hostname: "emulator.host",
+    port: 1234
+  };
+  var builder = new fireauth.iframeclient.OAuthUrlBuilder(
+    'example.firebaseapp.com', 'API_KEY', 'APP_NAME', 'signInWithPopup',
+    provider, emulatorConfig);
+  var url = 'http://emulator.host:1234/emulator/auth/handler?' +
+    'apiKey=API_KEY&appName=APP_NAME&authType=signInWithPopup&' +
+    'providerId=google.com&scopes=profile';
+  assertEquals(url, builder.toString());
+}
+
+
+/**
  * Tests initialization of Auth iframe and its event listeners.
  */
 function testIfcHandler() {
   asyncTestCase.waitForSignals(6);
   // The expected iframe URL.
   var expectedUrl = fireauth.iframeclient.IfcHandler.getAuthIframeUrl(
-       authDomain, apiKey, appName, version);
+       authDomain, apiKey, appName, version, ignoreArgument);
   var authEvent = new fireauth.AuthEvent(
       'unknown', '1234', 'http://www.example.com/#oauthResponse', 'SESSION_ID');
   var resp = {
@@ -1481,6 +1500,34 @@ function testGetAuthIframeUrl() {
           'me=appName1&v=' + encodeURIComponent(version) + '&eid=' + endpointId,
       fireauth.iframeclient.IfcHandler.getAuthIframeUrl(
           authDomain, apiKey, appName, version, endpointId));
+}
+
+
+/**
+ * Tests getAuthIframeUrl with emulator.
+ */
+function testGetAuthIframeUrl_withEmulator() {
+  var authDomain = 'subdomain.firebaseapp.com';
+  var apiKey = 'apiKey1';
+  var appName = 'appName1';
+  var version = '3.0.0-rc.1';
+  var endpointId = 's';
+  var emulatorConfig = {
+    hostname: "emulator.host",
+    port: 1234
+  };
+  assertEquals(
+    'http://emulator.host:1234/emulator/auth/iframe?apiKey=apiKey1&appNa' +
+    'me=appName1&v=' + encodeURIComponent(version) + '&eid=' + endpointId,
+    fireauth.iframeclient.IfcHandler.getAuthIframeUrl(
+      authDomain,
+      apiKey,
+      appName,
+      version,
+      endpointId,
+      null,
+      emulatorConfig)
+  );
 }
 
 

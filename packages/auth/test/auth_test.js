@@ -898,6 +898,75 @@ function testUseDeviceLanguage() {
 }
 
 
+function testUseEmulator() {
+  // Listen to emulator config calls on RpcHandler.
+  stubs.replace(
+    fireauth.RpcHandler.prototype,
+    'updateEmulatorConfig',
+    goog.testing.recordFunction());
+  var handler = goog.testing.recordFunction();
+
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+
+  // Listen to all emulatorConfigChange events dispatched by the Auth instance.
+  goog.events.listen(
+    auth1,
+    fireauth.constants.AuthEventType.EMULATOR_CONFIG_CHANGED,
+    handler);
+
+  assertUndefined(fireauth.constants.emulatorConfig);
+  assertEquals(0, handler.getCallCount());
+  assertEquals(
+    0, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
+
+  // Update the emulator config.
+  auth1.useEmulator('emulator.test.domain', 1234);
+  assertObjectEquals(
+    auth1.getEmulatorConfig(), {
+    hostname: 'emulator.test.domain',
+    port: 1234
+  });
+  // Should notify the RPC handler.
+  assertEquals(
+    1, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
+  assertObjectEquals({
+    hostname: 'emulator.test.domain',
+    port: 1234
+  },
+    fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
+      .getArgument(0)
+  );
+
+  // Update to the same config should not trigger event again.
+  auth1.useEmulator('emulator.test.domain', 1234);
+  assertObjectEquals(
+    auth1.getEmulatorConfig(), {
+    hostname: 'emulator.test.domain',
+    port: 1234
+  });
+  assertEquals(
+    1, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
+
+  // Updating to different config should trigger event.
+  auth1.useEmulator('emulator.other.domain', 9876);
+  assertObjectEquals(
+    auth1.getEmulatorConfig(), {
+    hostname: 'emulator.other.domain',
+    port: 9876
+  });
+  assertEquals(
+    2, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
+  assertObjectEquals({
+    hostname: 'emulator.other.domain',
+    port: 9876
+  },
+    fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
+      .getArgument(0)
+  );
+}
+
+
 function testGetSetTenantId() {
   app1 = firebase.initializeApp(config1, appId1);
   auth1 = app1.auth();
@@ -2153,6 +2222,61 @@ function testAuth_authEventManager() {
     assertEquals(1, expectedManager.clearRedirectResult.getCallCount());
     assertEquals(
         auth1, expectedManager.unsubscribe.getLastCall().getArgument(0));
+    asyncTestCase.signal();
+  });
+}
+
+
+function testAuth_authEventManager_withEmulator() {
+  // Test Auth event manager.
+  fireauth.AuthEventManager.ENABLED = true;
+  stubs.reset();
+  initializeMockStorage();
+  var expectedManager = {
+    'subscribe': goog.testing.recordFunction(),
+    'unsubscribe': goog.testing.recordFunction(),
+    'clearRedirectResult': goog.testing.recordFunction()
+  };
+  // Return stub manager.
+  stubs.replace(
+    fireauth.AuthEventManager,
+    'getManager',
+    function (authDomain, apiKey, appName, emulatorConfig) {
+      assertEquals('subdomain.firebaseapp.com', authDomain);
+      assertEquals('API_KEY', apiKey);
+      assertEquals(appId1, appName);
+      assertObjectEquals(emulatorConfig, {
+        hostname: 'emulator.host',
+        port: 1234
+      });
+      return expectedManager;
+    });
+  asyncTestCase.waitForSignals(1);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  auth1.useEmulator('emulator.host', 1234);
+  // Test manager initialized and Auth subscribed.
+  auth1.onIdTokenChanged(function (user) {
+    var manager = fireauth.AuthEventManager.getManager(
+      config3['authDomain'], config3['apiKey'], app1.name, {
+      hostname: 'emulator.host',
+      port: 1234
+    });
+    assertEquals(expectedManager, manager);
+    assertEquals(0, expectedManager.unsubscribe.getCallCount());
+    assertEquals(1, expectedManager.subscribe.getCallCount());
+    assertEquals(
+      auth1, expectedManager.subscribe.getLastCall().getArgument(0));
+    assertEquals(0, expectedManager.clearRedirectResult.getCallCount());
+    // Delete should trigger unsubscribe and redirect result clearing.
+    auth1.delete();
+    // After destroy, Auth should be unsubscribed.
+    assertEquals(1, expectedManager.subscribe.getCallCount());
+    assertEquals(1, expectedManager.unsubscribe.getCallCount());
+    // Redirect result should also be cleared.
+    assertEquals(1, expectedManager.clearRedirectResult.getCallCount());
+    assertEquals(
+      auth1, expectedManager.unsubscribe.getLastCall().getArgument(0));
     asyncTestCase.signal();
   });
 }

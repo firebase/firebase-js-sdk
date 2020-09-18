@@ -13172,6 +13172,58 @@ function testUser_customLocaleChanges() {
 }
 
 
+function testUser_emulatorConfigChanges() {
+  // Listen to all custom locale header calls on RpcHandler.
+  stubs.replace(
+    fireauth.RpcHandler.prototype,
+    'updateEmulatorConfig',
+    goog.testing.recordFunction());
+  // Dummy event dispatchers.
+  var dispatcher1 = createEventDispatcher();
+  var dispatcher2 = createEventDispatcher();
+  user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  var emulatorConfig = {
+    hostname: 'emulator.test.domain',
+    port: 1234
+  };
+
+  var otherEmulatorConfig = {
+    hostname: 'other.emulator.host',
+    port: 9876
+  };
+
+  // Set emulator config.
+  user.setEmulatorConfig(emulatorConfig);
+  // Rpc handler emulator config should be updated.
+  assertEquals(
+    1,
+    fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount()
+  );
+  assertObjectEquals(
+    emulatorConfig,
+    fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
+      .getArgument(0)
+  );
+
+  // Set dispatcher1 as language code dispatcher.
+  user.setEmulatorConfigChangeDispatcher(dispatcher1);
+  dispatcher1.dispatchEvent(
+    new fireauth.Auth.EmulatorConfigChangeEvent(emulatorConfig));
+  dispatcher2.dispatchEvent(
+    new fireauth.Auth.EmulatorConfigChangeEvent(otherEmulatorConfig));
+  // Only first dispatcher should be detected.
+  assertEquals(
+    2,
+    fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount()
+  );
+  assertObjectEquals(
+    emulatorConfig,
+    fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
+      .getArgument(0)
+  );
+}
+
+
 function testUser_frameworkLoggingChanges() {
   // Helper function to get the client version for the test.
   var getVersion = function(frameworks) {
