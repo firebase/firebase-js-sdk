@@ -25,7 +25,6 @@ import { Path } from './util/Path';
 import { SparseSnapshotTree } from './SparseSnapshotTree';
 import { SyncTree } from './SyncTree';
 import { SnapshotHolder } from './SnapshotHolder';
-import { SnapshotCallback, FailureCallback } from '../api/Query';
 import { stringify, map, isEmpty } from '@firebase/util';
 import { beingCrawled, each, exceptionGuard, warn, log } from './util/util';
 
@@ -41,7 +40,7 @@ import { RepoInfo } from './RepoInfo';
 import { Database } from '../api/Database';
 import { DataSnapshot } from '../api/DataSnapshot';
 import { ServerActions } from './ServerActions';
-import { Query } from '../api/Query';
+import { FailureCallback, SnapshotCallback, Query } from '../api/Query';
 import { EventRegistration } from './view/EventRegistration';
 import { StatsCollection } from './stats/StatsCollection';
 import { Event } from './view/Event';
@@ -159,7 +158,7 @@ export class Repo {
         }
         return infoEvents;
       },
-      stopListening: () => {}
+      stopListening: () => { }
     });
     this.updateInfo_('connected', false);
 
