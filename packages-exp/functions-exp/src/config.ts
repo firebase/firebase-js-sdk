@@ -28,11 +28,6 @@ import { FUNCTIONS_TYPE } from './constants';
 export const DEFAULT_REGION = 'us-central1';
 
 export function registerFunctions(fetchImpl: typeof fetch): void {
-  const namespaceExports = {
-    // no-inline
-    Functions: FunctionsService
-  };
-
   const factory: InstanceFactory<'functions'> = (
     container: ComponentContainer,
     region?: string
@@ -53,8 +48,10 @@ export function registerFunctions(fetchImpl: typeof fetch): void {
   };
 
   _registerComponent(
-    new Component(FUNCTIONS_TYPE, factory, ComponentType.PUBLIC)
-      .setServiceProps(namespaceExports)
-      .setMultipleInstances(true)
+    new Component(
+      FUNCTIONS_TYPE,
+      factory,
+      ComponentType.PUBLIC
+    ).setMultipleInstances(true)
   );
 }
