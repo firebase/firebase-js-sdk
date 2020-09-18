@@ -158,7 +158,7 @@ export class Repo {
         }
         return infoEvents;
       },
-      stopListening: () => { }
+      stopListening: () => {}
     });
     this.updateInfo_('connected', false);
 
@@ -305,8 +305,9 @@ export class Repo {
         this.onDataUpdate_(
           query.path.toString(),
           payload,
-          /*isMerge=*/false,
-          /*tag=*/null);
+          /*isMerge=*/ false,
+          /*tag=*/ null
+        );
         const newNode = nodeFromJSON(payload as string);
         onComplete(
           new DataSnapshot(
