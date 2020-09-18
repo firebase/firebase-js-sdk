@@ -20,7 +20,10 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import {
-    AuthEvent, AuthEventConsumer, AuthEventError, AuthEventType
+  AuthEvent,
+  AuthEventConsumer,
+  AuthEventError,
+  AuthEventType
 } from '../../model/popup_redirect';
 import { AuthErrorCode } from '../errors';
 import { AuthEventManager } from './auth_event_manager';
@@ -198,24 +201,24 @@ describe.only('src/core/auth/auth_event_manager', () => {
 
     it('only runs the event once for the consumer', () => {
       const consumer = makeConsumer(AuthEventType.LINK_VIA_POPUP);
-  
+
       const evt = makeEvent(AuthEventType.LINK_VIA_POPUP);
       manager.registerConsumer(consumer);
       manager.onEvent(evt);
       manager.onEvent(evt);
-  
+
       expect(consumer.onAuthEvent).to.have.been.calledOnce;
     });
 
     it('clears the cache after ten minutes', () => {
       const consumer = makeConsumer(AuthEventType.LINK_VIA_POPUP);
-  
+
       const evt = makeEvent(AuthEventType.LINK_VIA_POPUP);
       manager.registerConsumer(consumer);
       manager.onEvent(evt);
       clock.tick(11 * 60 * 1000);
       manager.onEvent(evt);
-  
+
       expect(consumer.onAuthEvent).to.have.been.calledTwice;
     });
 

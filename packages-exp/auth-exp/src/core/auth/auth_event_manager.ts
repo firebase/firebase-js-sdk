@@ -16,7 +16,10 @@
  */
 
 import {
-    AuthEvent, AuthEventConsumer, AuthEventType, EventManager
+  AuthEvent,
+  AuthEventConsumer,
+  AuthEventType,
+  EventManager
 } from '../../model/popup_redirect';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 
@@ -108,7 +111,10 @@ export class AuthEventManager implements EventManager {
   }
 
   private hasEventBeenHandled(event: AuthEvent): boolean {
-    if (Date.now() - this.lastProcessedEventTime >= EVENT_DUPLICATION_CACHE_DURATION_MS) {
+    if (
+      Date.now() - this.lastProcessedEventTime >=
+      EVENT_DUPLICATION_CACHE_DURATION_MS
+    ) {
       this.cachedEventUids.clear();
     }
 
@@ -122,12 +128,7 @@ export class AuthEventManager implements EventManager {
 }
 
 function eventUid(e: AuthEvent): string {
-  return [
-    e.type,
-    e.eventId,
-    e.sessionId,
-    e.tenantId
-  ].filter(v => v).join('-');
+  return [e.type, e.eventId, e.sessionId, e.tenantId].filter(v => v).join('-');
 }
 
 function isNullRedirectEvent({ type, error }: AuthEvent): boolean {
