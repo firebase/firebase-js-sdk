@@ -29,18 +29,10 @@ import {
   updatePhoneNumber
   // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/auth-exp';
-import {
-  Auth,
-  OperationType,
-  ProviderId,
-  UserCredential
-} from '@firebase/auth-types-exp';
+import { Auth, OperationType, ProviderId, UserCredential } from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
-import {
-  cleanUpTestInstance,
-  getTestInstance
-} from '../../helpers/integration/helpers';
+import { cleanUpTestInstance, getTestInstance } from '../../helpers/integration/helpers';
 
 use(chaiAsPromised);
 
