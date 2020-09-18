@@ -18,7 +18,8 @@
 import { FirebaseApp } from '@firebase/app-types-exp';
 import {
   FirebasePerformance,
-  PerformanceSettings
+  PerformanceSettings,
+  PerformanceTrace
 } from '@firebase/performance-types-exp';
 import { ERROR_FACTORY, ErrorCode } from './utils/errors';
 import { setupApi } from './services/api_service';
@@ -35,6 +36,7 @@ import {
   ComponentType
 } from '@firebase/component';
 import { name, version } from '../package.json';
+import { Trace } from './resources/trace';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
@@ -46,6 +48,13 @@ export function getPerformance(
   const perfInstance = provider.getImmediate() as PerformanceController;
   perfInstance._init(settings);
   return perfInstance;
+}
+
+export function trace(
+  performance: FirebasePerformance,
+  name: string
+): PerformanceTrace {
+  return new Trace(performance as PerformanceController, name);
 }
 
 const factory: InstanceFactory<'performance-exp'> = (
