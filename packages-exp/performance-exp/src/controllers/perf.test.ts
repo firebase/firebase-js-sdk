@@ -57,7 +57,9 @@ describe('Firebase Performance Test', () => {
       performanceController._init();
 
       expect(initializationService.getInitializationPromise).not.be.called;
-      expect(consoleLogger.info).be.called;
+      expect(consoleLogger.info).to.be.calledWithMatch(
+        /.*Fetch.*Promise.*cookies.*/
+      );
     });
   });
 
