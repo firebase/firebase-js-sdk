@@ -262,7 +262,7 @@ export class Trace implements PerformanceTrace {
    * @param firstInputDelay First input delay in millisec
    */
   static createOobTrace(
-    performance: PerformanceController,
+    performanceController: PerformanceController,
     navigationTimings: PerformanceNavigationTiming[],
     paintTimings: PerformanceEntry[],
     firstInputDelay?: number
@@ -272,7 +272,7 @@ export class Trace implements PerformanceTrace {
       return;
     }
     const trace = new Trace(
-      performance,
+      performanceController,
       OOB_TRACE_PAGE_LOAD_PREFIX + route,
       true
     );
@@ -330,10 +330,15 @@ export class Trace implements PerformanceTrace {
   }
 
   static createUserTimingTrace(
-    performance: PerformanceController,
+    performanceController: PerformanceController,
     measureName: string
   ): void {
-    const trace = new Trace(performance, measureName, false, measureName);
+    const trace = new Trace(
+      performanceController,
+      measureName,
+      false,
+      measureName
+    );
     logTrace(trace);
   }
 }

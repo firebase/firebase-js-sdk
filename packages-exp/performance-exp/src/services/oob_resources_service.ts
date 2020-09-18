@@ -24,16 +24,18 @@ import { PerformanceController } from '../controllers/perf';
 
 const FID_WAIT_TIME_MS = 5000;
 
-export function setupOobResources(performance: PerformanceController): void {
+export function setupOobResources(
+  performanceController: PerformanceController
+): void {
   // Do not initialize unless iid is available.
   if (!getIid()) {
     return;
   }
   // The load event might not have fired yet, and that means performance navigation timing
   // object has a duration of 0. The setup should run after all current tasks in js queue.
-  setTimeout(() => setupOobTraces(performance), 0);
-  setTimeout(() => setupNetworkRequests(performance), 0);
-  setTimeout(() => setupUserTimingTraces(performance), 0);
+  setTimeout(() => setupOobTraces(performanceController), 0);
+  setTimeout(() => setupNetworkRequests(performanceController), 0);
+  setTimeout(() => setupUserTimingTraces(performanceController), 0);
 }
 
 function setupNetworkRequests(
