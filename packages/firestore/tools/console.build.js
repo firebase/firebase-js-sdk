@@ -20,40 +20,51 @@
  * This file creates a build target for it.
  */
 const rollup = require('rollup');
-const typescriptPlugin = require('rollup-plugin-typescript2');
-const typescript = require('typescript');
-const json = require('rollup-plugin-json');
-const alias = require('@rollup/plugin-alias');
-const resolve = require('rollup-plugin-node-resolve');
 const { uglify } = require('rollup-plugin-uglify');
+const resolve = require('rollup-plugin-node-resolve');
 const fs = require('fs');
 const util = require('util');
 const fs_writeFile = util.promisify(fs.writeFile);
 
 const rollupUtil = require('../rollup.shared');
 
-const plugins = [
-  alias(rollupUtil.generateAliasConfig('browser')),
-  resolve(),
-  typescriptPlugin({
-    typescript
-  }),
-  json(),
-  uglify({
-    output: {
-      ascii_only: true // escape unicode chars
-    }
-  })
-];
-
 const EXPORTNAME = '__firestore_exports__';
 
-const inputOptions = {
+const esm2017OutputFile = 'dist/standalone.esm2017.js';
+const esm5OutputFile = 'dist/standalone.js';
+
+const es2017InputOptions = {
   input: 'index.console.ts',
-  plugins
+  plugins: rollupUtil.es2017Plugins('browser', /* mangled= */ true),
+  external: rollupUtil.resolveBrowserExterns,
+  treeshake: {
+    moduleSideEffects: false
+  }
 };
-const outputOptions = {
-  file: 'dist/standalone.js',
+
+const es2017OutputOptions = {
+  file: esm2017OutputFile,
+  format: 'es'
+};
+
+const es2017toEs5InputOptions = {
+  input: esm2017OutputFile,
+  plugins: [
+    resolve(),
+    ...rollupUtil.es2017ToEs5Plugins(/* mangled= */ true),
+    uglify({
+      output: {
+        ascii_only: true // escape unicode chars
+      }
+    })
+  ],
+  treeshake: {
+    moduleSideEffects: false
+  }
+};
+
+const es2017toEs5OutputOptions = {
+  file: esm5OutputFile,
   name: EXPORTNAME,
   format: 'iife'
 };
@@ -65,17 +76,18 @@ exports = eval(`;
 const POSTFIX = ` + '${EXPORTNAME};');`;
 
 async function build() {
-  // create a bundle
-  const bundle = await rollup.rollup(inputOptions);
+  // Create an ES2017 bundle
+  const es2017Bundle = await rollup.rollup(es2017InputOptions);
+  await es2017Bundle.write(es2017OutputOptions);
 
-  // generate code
+  // Transpile down to ES5
+  const es5Bundle = await rollup.rollup(es2017toEs5InputOptions);
   const {
     output: [{ code }]
-  } = await bundle.generate(outputOptions);
+  } = await es5Bundle.generate(es2017toEs5OutputOptions);
 
   const output = `${PREFIX}${JSON.stringify(String(code))}${POSTFIX}`;
-
-  await fs_writeFile(outputOptions.file, output, 'utf-8');
+  await fs_writeFile(es2017toEs5OutputOptions.file, output, 'utf-8');
 }
 
 build();
