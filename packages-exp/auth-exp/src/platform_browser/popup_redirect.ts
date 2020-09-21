@@ -22,7 +22,7 @@ import { isEmpty, querystring } from '@firebase/util';
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
 import { OAuthProvider } from '../core/providers/oauth';
-import { assert, debugAssert } from '../core/util/assert';
+import { assert, debugAssert, fail } from '../core/util/assert';
 import { _emulatorUrl } from '../core/util/emulator';
 import { _generateEventId } from '../core/util/event_id';
 import { _getCurrentUrl } from '../core/util/location';
@@ -50,6 +50,15 @@ const WIDGET_PATH = '__/auth/handler';
  */
 const EMULATOR_WIDGET_PATH = 'emulator/auth/handler';
 
+/**
+ * The special web storage event
+ */
+const WEB_STORAGE_SUPPORT_KEY = 'webStorageSupport';
+
+interface WebStorageSupportMessage extends gapi.iframes.Message {
+  [index: number]: Record<string, boolean>;
+}
+
 interface ManagerOrPromise {
   manager?: EventManager;
   promise?: Promise<EventManager>;
@@ -57,6 +66,7 @@ interface ManagerOrPromise {
 
 class BrowserPopupRedirectResolver implements PopupRedirectResolver {
   private readonly eventManagers: Record<string, ManagerOrPromise> = {};
+  private readonly iframes: Record<string, gapi.iframes.Iframe> = {};
   private readonly originValidationPromises: Record<string, Promise<void>> = {};
 
   readonly _redirectPersistence = browserSessionPersistence;
@@ -73,6 +83,7 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
       this.eventManagers[auth._key()]?.manager,
       '_initialize() not called before _openPopup()'
     );
+
     await this.originValidation(auth);
     const url = getRedirectUrl(auth, provider, authType, eventId);
     return _open(auth.name, url, _generateEventId());
@@ -124,7 +135,22 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     );
 
     this.eventManagers[auth._key()] = { manager };
+    this.iframes[auth._key()] = iframe;
     return manager;
+  }
+
+  _isIframeWebStorageSupported(auth: Auth, cb: (supported: boolean) => unknown): void {
+    const iframe = this.iframes[auth._key()];
+    iframe.send<gapi.iframes.Message, WebStorageSupportMessage>(WEB_STORAGE_SUPPORT_KEY, {type: WEB_STORAGE_SUPPORT_KEY}, result => {
+      const isSupported = result?.[0]?.[WEB_STORAGE_SUPPORT_KEY];
+      if (isSupported !== undefined) {
+        cb(!!isSupported);
+      }
+
+      fail(AuthErrorCode.INTERNAL_ERROR, {
+        appName: auth.name
+      });
+    }, gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER);
   }
 
   private originValidation(auth: Auth): Promise<void> {
