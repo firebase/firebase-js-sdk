@@ -17,9 +17,10 @@
 import firebase from '@firebase/app';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { registerFunctions } from './src/config';
-import 'isomorphic-fetch';
+import nodeFetch from 'node-fetch';
 
 import { name, version } from './package.json';
 
-registerFunctions(firebase as _FirebaseNamespace);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+registerFunctions(firebase as _FirebaseNamespace, nodeFetch as any);
 firebase.registerVersion(name, version, 'node');
