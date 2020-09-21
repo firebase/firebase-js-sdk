@@ -1,0 +1,29 @@
+{
+  "name": "@firebase/messaging-types-exp",
+  "private": true,
+  "version": "0.0.800",
+  "description": "@firebase/messaging Types",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "tsc",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js"
+  },
+  "files": [
+    "index.d.ts"
+  ],
+  "peerDependencies": {
+    "@firebase/app-types": "0.x"
+  },
+  "repository": {
+    "directory": "packages/messaging-types",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "devDependencies": {
+    "typescript": "4.0.2"
+  }
+}
