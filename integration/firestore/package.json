@@ -29,6 +29,6 @@
     "ts-loader": "8.0.4",
     "typescript": "4.0.2",
     "webpack": "4.44.2",
-    "webpack-stream": "5.2.1"
+    "webpack-stream": "6.1.0"
   }
 }
