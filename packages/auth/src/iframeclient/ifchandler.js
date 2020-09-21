@@ -82,18 +82,19 @@ fireauth.iframeclient.IframeUrlBuilder = function(authDomain, apiKey, appName, e
   this.emulatorConfig_ = emulatorConfig;
   /** @private {?string|undefined} The client version. */
   this.v_ = null;
-  /**
-   * @private @const {!goog.Uri} The URI object used to build the iframe URL.
-   */
-  this.uri_ = this.emulatorConfig_ ? goog.Uri.create(
-      'http',
+  let uri;
+  if (this.emulatorConfig_) {
+    const emulatorUri = goog.Uri.parse(this.emulatorConfig_.url);
+    uri = goog.Uri.create(
+      emulatorUri.getScheme(),
       null,
-      this.emulatorConfig_.hostname,
-      this.emulatorConfig_.port,
+      emulatorUri.getDomain(),
+      emulatorUri.getPort(),
       '/emulator/auth/iframe',
       null,
-      null) :
-    goog.Uri.create(
+      null);
+  } else {
+    uri = goog.Uri.create(
       fireauth.iframeclient.SCHEME,
       null,
       this.authDomain_,
@@ -101,6 +102,11 @@ fireauth.iframeclient.IframeUrlBuilder = function(authDomain, apiKey, appName, e
       '/__/auth/iframe',
       null,
       null);
+  }
+  /**
+  * @private @const {!goog.Uri} The URI object used to build the iframe URL.
+  */
+  this.uri_ = uri;
   this.uri_.setParameterValue('apiKey', this.apiKey_);
   this.uri_.setParameterValue('appName', this.appName_);
   /** @private {?string|undefined} The endpoint ID. */
@@ -306,16 +312,20 @@ fireauth.iframeclient.OAuthUrlBuilder.prototype.setAdditionalParameters =
  * @return {string} The constructed OAuth URL string.
  * @override
  */
-fireauth.iframeclient.OAuthUrlBuilder.prototype.toString = function() {
-  var uri = this.emulatorConfig_ ? goog.Uri.create(
-      'http',
+fireauth.iframeclient.OAuthUrlBuilder.prototype.toString = function () {
+  var uri;
+  if (this.emulatorConfig_) {
+    const emulatorUri = goog.Uri.parse(this.emulatorConfig_.url);
+    uri = goog.Uri.create(
+      emulatorUri.getScheme(),
       null,
-      this.emulatorConfig_.hostname,
-      this.emulatorConfig_.port,
+      emulatorUri.getDomain(),
+      emulatorUri.getPort(),
       '/emulator/auth/handler',
       null,
-      null) :
-    goog.Uri.create(
+      null);
+  } else {
+    uri = goog.Uri.create(
       fireauth.iframeclient.SCHEME,
       null,
       this.authDomain_,
@@ -323,6 +333,7 @@ fireauth.iframeclient.OAuthUrlBuilder.prototype.toString = function() {
       '/__/auth/handler',
       null,
       null);
+  }
   uri.setParameterValue('apiKey', this.apiKey_);
   uri.setParameterValue('appName', this.appName_);
   uri.setParameterValue('authType', this.authType_);

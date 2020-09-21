@@ -470,10 +470,11 @@ fireauth.RpcHandler.prototype.updateEmulatorConfig = function(emulatorConfig) {
  */
 fireauth.RpcHandler.generateEmululatorEndpointUrl_ = function(endpoint, emulatorConfig) {
   const uri = goog.Uri.parse(endpoint);
-  uri.setScheme("http");
+  const endpointUri = goog.Uri.parse(emulatorConfig.url);
   uri.setPath(uri.getDomain() + uri.getPath());
-  uri.setDomain(emulatorConfig.hostname);
-  uri.setPort(emulatorConfig.port);
+  uri.setScheme(endpointUri.getScheme());
+  uri.setDomain(endpointUri.getDomain());
+  uri.setPort(endpointUri.getPort());
   return uri.toString();
 }
 

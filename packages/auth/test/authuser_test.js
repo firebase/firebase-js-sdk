@@ -13183,13 +13183,11 @@ function testUser_emulatorConfigChanges() {
   var dispatcher2 = createEventDispatcher();
   user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
   var emulatorConfig = {
-    hostname: 'emulator.test.domain',
-    port: 1234
+    url: 'http://emulator.test.domain:1234',
   };
 
   var otherEmulatorConfig = {
-    hostname: 'other.emulator.host',
-    port: 9876
+    url: 'http://other.emulator.host:9876'
   };
 
   // Set emulator config.

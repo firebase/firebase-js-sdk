@@ -172,12 +172,10 @@ fireauth.constants.OIDC_PREFIX = 'oidc.';
 /**
  * The settings of an Auth emulator. The fields are:
  * <ul>
- * <li>hostname: defines the hostname where the emulator is running.</li>
- * <li>port: defines the port where the emulator is running.</li>
+ * <li>url: defines the URL where the emulator is running.</li>
  * </ul>
  * @typedef {{
- *   hostname: string,
- *   port: number
+ *   url: string,
  * }}
  */
 fireauth.constants.EmulatorSettings;

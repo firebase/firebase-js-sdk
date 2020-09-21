@@ -1193,7 +1193,7 @@ function testRequestStsToken_emulator() {
     expectedStsTokenResponse);
   // Set an emulator config.
   rpcHandler.updateEmulatorConfig(
-    { hostname: 'emulator.test.domain', port: 1234 });
+    { url: 'http://emulator.test.domain:1234' });
   // Send STS token request, default config will be used.
   rpcHandler
     .requestStsToken({ 'grant_type': 'authorization_code', 'code': 'idToken' })
@@ -1248,7 +1248,7 @@ function testRequestFirebaseEndpoint_emulator() {
     expectedResponse);
   // Set an emulator config.
   rpcHandler.updateEmulatorConfig(
-    { hostname: 'emulator.test.domain', port: 1234 });
+    { url: 'http://emulator.test.domain:1234' });
 
   rpcHandler
     .requestFirebaseEndpoint(
@@ -1303,7 +1303,7 @@ function testRequestIdentityPlatformEndpoint_emulator() {
     expectedResponse);
   // Set an emulator config.
   rpcHandler.updateEmulatorConfig(
-    { hostname: 'emulator.test.domain', port: 1234 });
+    { url: 'http://emulator.test.domain:1234' });
   rpcHandler
     .requestIdentityPlatformEndpoint(
       'method1', 'POST', { 'key1': 'value1', 'key2': 'value2' })

@@ -200,8 +200,7 @@ fireauth.exportlib.exportPrototypeMethods(
       useEmulator: {
         name: 'useEmulator',
         args: [
-          fireauth.args.string('hostname'),
-          fireauth.args.number('port')
+          fireauth.args.string('url')
         ]
       },
       verifyPasswordResetCode: {

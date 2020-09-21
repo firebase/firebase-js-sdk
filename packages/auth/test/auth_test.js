@@ -921,45 +921,40 @@ function testUseEmulator() {
     0, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
 
   // Update the emulator config.
-  auth1.useEmulator('emulator.test.domain', 1234);
+  auth1.useEmulator('http://emulator.test.domain:1234');
   assertObjectEquals(
     auth1.getEmulatorConfig(), {
-    hostname: 'emulator.test.domain',
-    port: 1234
+    url: 'http://emulator.test.domain:1234',
   });
   // Should notify the RPC handler.
   assertEquals(
     1, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
   assertObjectEquals({
-    hostname: 'emulator.test.domain',
-    port: 1234
+    url: 'http://emulator.test.domain:1234',
   },
     fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
       .getArgument(0)
   );
 
   // Update to the same config should not trigger event again.
-  auth1.useEmulator('emulator.test.domain', 1234);
+  auth1.useEmulator('http://emulator.test.domain:1234');
   assertObjectEquals(
     auth1.getEmulatorConfig(), {
-    hostname: 'emulator.test.domain',
-    port: 1234
+    url: 'http://emulator.test.domain:1234',
   });
   assertEquals(
     1, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
 
   // Updating to different config should trigger event.
-  auth1.useEmulator('emulator.other.domain', 9876);
+  auth1.useEmulator('http://emulator.other.domain:9876');
   assertObjectEquals(
     auth1.getEmulatorConfig(), {
-    hostname: 'emulator.other.domain',
-    port: 9876
+    url: 'http://emulator.other.domain:9876'
   });
   assertEquals(
     2, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
   assertObjectEquals({
-    hostname: 'emulator.other.domain',
-    port: 9876
+    url: 'http://emulator.other.domain:9876',
   },
     fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
       .getArgument(0)
@@ -2246,21 +2241,19 @@ function testAuth_authEventManager_withEmulator() {
       assertEquals('API_KEY', apiKey);
       assertEquals(appId1, appName);
       assertObjectEquals(emulatorConfig, {
-        hostname: 'emulator.host',
-        port: 1234
+        url: 'http://emulator.test.domain:1234'
       });
       return expectedManager;
     });
   asyncTestCase.waitForSignals(1);
   app1 = firebase.initializeApp(config3, appId1);
   auth1 = app1.auth();
-  auth1.useEmulator('emulator.host', 1234);
+  auth1.useEmulator('http://emulator.test.domain:1234');
   // Test manager initialized and Auth subscribed.
   auth1.onIdTokenChanged(function (user) {
     var manager = fireauth.AuthEventManager.getManager(
       config3['authDomain'], config3['apiKey'], app1.name, {
-      hostname: 'emulator.host',
-      port: 1234
+      url: 'http://emulator.test.domain:1234',
     });
     assertEquals(expectedManager, manager);
     assertEquals(0, expectedManager.unsubscribe.getCallCount());

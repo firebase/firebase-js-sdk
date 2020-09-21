@@ -486,8 +486,7 @@ function testOAuthUrlBuilder_notOAuthProviderInstance() {
 function testOAuthUrlBuilder_withEmulatorConfig() {
   var provider = new fireauth.GoogleAuthProvider();
   var emulatorConfig = {
-    hostname: "emulator.host",
-    port: 1234
+    url: "http://emulator.host:1234"
   };
   var builder = new fireauth.iframeclient.OAuthUrlBuilder(
     'example.firebaseapp.com', 'API_KEY', 'APP_NAME', 'signInWithPopup',
@@ -1513,8 +1512,7 @@ function testGetAuthIframeUrl_withEmulator() {
   var version = '3.0.0-rc.1';
   var endpointId = 's';
   var emulatorConfig = {
-    hostname: "emulator.host",
-    port: 1234
+    url: "http://emulator.host:1234"
   };
   assertEquals(
     'http://emulator.host:1234/emulator/auth/iframe?apiKey=apiKey1&appNa' +

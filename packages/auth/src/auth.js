@@ -294,15 +294,17 @@ fireauth.Auth.prototype.useDeviceLanguage = function() {
 
 /**
  * Sets the emulator configuration (go/firebase-emulator-connection-api).
- * @param {string} hostname The hostname for the Auth emulator.
- * @param {number} port The port for the Auth emulator.
- */
-fireauth.Auth.prototype.useEmulator = function(hostname, port) {
+  /**
+   * Sets the emulator configuration (go/firebase-emulator-connection-api).
+   * @param {string} url The url for the Auth emulator.
+   */
+fireauth.Auth.prototype.useEmulator = function(url) {
   // Don't do anything if no change detected.
-  if (!this.emulatorConfig_ ||
-    hostname !== this.emulatorConfig_.hostname ||
-    port !== this.emulatorConfig_.port) {
-    this.emulatorConfig_ = { hostname: hostname, port: port };
+  if (!this.emulatorConfig_ || url !== this.emulatorConfig_.url) {
+    console.warn("WARNING: You are using the Auth Emulator, which is" +
+      " intended for local testing only.  Do not use with" +
+      " production credentials.");
+    this.emulatorConfig_ = { url: url };
     // Disable app verification.
     this.settings_().setAppVerificationDisabledForTesting(true);
     // Update custom Firebase locale field.
@@ -875,6 +877,7 @@ fireauth.Auth.prototype.updateCurrentUser = function(user) {
   options['apiKey'] = this.app_().options['apiKey'];
   options['authDomain'] = this.app_().options['authDomain'];
   options['appName'] = this.app_().name;
+  options['emulatorConfig'] = this.emulatorConfig_;
   var newUser = fireauth.AuthUser.copyUser(user, options,
       self.redirectUserStorageManager_, self.getFramework());
   return this.registerPendingPromise_(
