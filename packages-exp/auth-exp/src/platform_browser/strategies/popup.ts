@@ -155,9 +155,11 @@ class PopupOperation extends AbstractPopupRedirectOperation {
     // the popup closed by user poll will reject into the void.
     this.resolver._isIframeWebStorageSupported(this.auth, isSupported => {
       if (!isSupported) {
-        this.reject(AUTH_ERROR_FACTORY.create(AuthErrorCode.WEB_STORAGE_UNSUPPORTED, {
-          appName: this.auth.name
-        }));
+        this.reject(
+          AUTH_ERROR_FACTORY.create(AuthErrorCode.WEB_STORAGE_UNSUPPORTED, {
+            appName: this.auth.name
+          })
+        );
       }
     });
 

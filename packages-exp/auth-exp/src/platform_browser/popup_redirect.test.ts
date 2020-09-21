@@ -70,7 +70,7 @@ describe('src/platform_browser/popup_redirect', () => {
               _message: string,
               cb: (event: GapiAuthEvent) => Promise<void>
             ) => (onIframeMessage = cb),
-            send: iframeSendStub,
+            send: iframeSendStub
           })
       } as unknown) as gapi.iframes.Context)
     );
@@ -293,9 +293,15 @@ describe('src/platform_browser/popup_redirect', () => {
     });
 
     function setIframeResponse(value: unknown): void {
-      iframeSendStub.callsFake((_message: string, _event: unknown, callback: (response: unknown) => void) => {
-        callback(value);
-      });
+      iframeSendStub.callsFake(
+        (
+          _message: string,
+          _event: unknown,
+          callback: (response: unknown) => void
+        ) => {
+          callback(value);
+        }
+      );
     }
 
     it('calls the iframe send method with the correct parameters', () => {
@@ -304,13 +310,13 @@ describe('src/platform_browser/popup_redirect', () => {
       const args = iframeSendStub.getCalls()[0].args;
       expect(args[0]).to.eq('webStorageSupport');
       expect(args[1]).to.eql({
-        type: 'webStorageSupport',
+        type: 'webStorageSupport'
       });
       expect(args[3]).to.eq(gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER);
     });
 
     it('passes through true value from the response to the callback', done => {
-      setIframeResponse([{webStorageSupport: true}]);
+      setIframeResponse([{ webStorageSupport: true }]);
       resolver._isIframeWebStorageSupported(auth, supported => {
         expect(supported).to.be.true;
         done();
@@ -318,7 +324,7 @@ describe('src/platform_browser/popup_redirect', () => {
     });
 
     it('passes through false value from the response to callback', done => {
-      setIframeResponse([{webStorageSupport: false}]);
+      setIframeResponse([{ webStorageSupport: false }]);
       resolver._isIframeWebStorageSupported(auth, supported => {
         expect(supported).to.be.false;
         done();
@@ -327,7 +333,9 @@ describe('src/platform_browser/popup_redirect', () => {
 
     it('throws an error if the response is malformed', () => {
       setIframeResponse({});
-      expect(() => resolver._isIframeWebStorageSupported(auth, () => {})).to.throw(FirebaseError, 'auth/internal-error');
+      expect(() =>
+        resolver._isIframeWebStorageSupported(auth, () => {})
+      ).to.throw(FirebaseError, 'auth/internal-error');
     });
   });
 });

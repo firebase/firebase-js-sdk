@@ -28,7 +28,7 @@ import { EventManager } from '../../src/model/popup_redirect';
 export function makeMockPopupRedirectResolver(
   eventManager?: EventManager,
   authPopup?: AuthPopup,
-  webStorageSupported = true,
+  webStorageSupported = true
 ): PopupRedirectResolver {
   return class implements PopupRedirectResolver {
     async _initialize(): Promise<EventManager> {
@@ -41,7 +41,10 @@ export function makeMockPopupRedirectResolver(
 
     async _openRedirect(): Promise<void> {}
 
-    _isIframeWebStorageSupported(_auth: unknown, cb: (result: boolean)=>void ): void {
+    _isIframeWebStorageSupported(
+      _auth: unknown,
+      cb: (result: boolean) => void
+    ): void {
       cb(webStorageSupported);
     }
 

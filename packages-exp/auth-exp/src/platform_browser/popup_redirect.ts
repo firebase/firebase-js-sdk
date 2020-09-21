@@ -139,18 +139,26 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     return manager;
   }
 
-  _isIframeWebStorageSupported(auth: Auth, cb: (supported: boolean) => unknown): void {
+  _isIframeWebStorageSupported(
+    auth: Auth,
+    cb: (supported: boolean) => unknown
+  ): void {
     const iframe = this.iframes[auth._key()];
-    iframe.send<gapi.iframes.Message, WebStorageSupportMessage>(WEB_STORAGE_SUPPORT_KEY, {type: WEB_STORAGE_SUPPORT_KEY}, result => {
-      const isSupported = result?.[0]?.[WEB_STORAGE_SUPPORT_KEY];
-      if (isSupported !== undefined) {
-        cb(!!isSupported);
-      }
+    iframe.send<gapi.iframes.Message, WebStorageSupportMessage>(
+      WEB_STORAGE_SUPPORT_KEY,
+      { type: WEB_STORAGE_SUPPORT_KEY },
+      result => {
+        const isSupported = result?.[0]?.[WEB_STORAGE_SUPPORT_KEY];
+        if (isSupported !== undefined) {
+          cb(!!isSupported);
+        }
 
-      fail(AuthErrorCode.INTERNAL_ERROR, {
-        appName: auth.name
-      });
-    }, gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER);
+        fail(AuthErrorCode.INTERNAL_ERROR, {
+          appName: auth.name
+        });
+      },
+      gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER
+    );
   }
 
   private originValidation(auth: Auth): Promise<void> {
