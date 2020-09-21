@@ -23,7 +23,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "rollup": "2.26.7",
+    "rollup": "2.28.1",
     "rollup-plugin-typescript2": "0.27.2",
     "typescript": "4.0.2"
   },
