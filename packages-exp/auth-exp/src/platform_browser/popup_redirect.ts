@@ -111,9 +111,11 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
     const manager = new AuthEventManager(auth.name);
     iframe.register<GapiAuthEvent>(
       'authEvent',
-      ({ authEvent }: GapiAuthEvent) => {
+      (iframeEvent: GapiAuthEvent|null) => {
+        assert(iframeEvent?.authEvent, AuthErrorCode.INVALID_AUTH_EVENT, {appName: auth.name});
         // TODO: Consider splitting redirect and popup events earlier on
-        const handled = manager.onEvent(authEvent);
+
+        const handled = manager.onEvent(iframeEvent.authEvent);
         return { status: handled ? GapiOutcome.ACK : GapiOutcome.ERROR };
       },
       gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER
