@@ -51,6 +51,7 @@ import { DeleteFieldValueImpl, _SerializableFieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
 import { newSerializer } from '../platform/serializer';
 import { Bytes } from '../../lite/src/api/bytes';
+import { Compat } from '../compat/compat';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -436,8 +437,9 @@ export function parseUpdateData(
 
     const childContext = context.childContextForFieldPath(path);
     if (
-      value instanceof _SerializableFieldValue &&
-      value._delegate instanceof DeleteFieldValueImpl
+      value instanceof DeleteFieldValueImpl ||
+      (value instanceof Compat &&
+        value._delegate instanceof DeleteFieldValueImpl)
     ) {
       // Add it to the field mask, but don't add anything to updateData.
       fieldMaskPaths.push(path);
@@ -504,8 +506,9 @@ export function parseUpdateVarargs(
       const value = values[i];
       const childContext = context.childContextForFieldPath(path);
       if (
-        value instanceof _SerializableFieldValue &&
-        value._delegate instanceof DeleteFieldValueImpl
+        value instanceof DeleteFieldValueImpl ||
+        (value instanceof Compat &&
+          value._delegate instanceof DeleteFieldValueImpl)
       ) {
         // Add it to the field mask, but don't add anything to updateData.
         fieldMaskPaths.push(path);
@@ -566,6 +569,12 @@ export function parseData(
   input: unknown,
   context: ParseContext
 ): ProtoValue | null {
+  // Unwrap the API type from the Compat SDK. This will return the API type
+  // from firestore-exp.
+  if (input instanceof Compat) {
+    input = input._delegate;
+  }
+
   if (looksLikeJsonObject(input)) {
     validatePlainObject('Unsupported field value:', context, input);
     return parseObject(input, context);
