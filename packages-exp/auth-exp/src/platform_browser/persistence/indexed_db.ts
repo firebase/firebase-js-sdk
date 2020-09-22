@@ -25,6 +25,14 @@ import {
   STORAGE_AVAILABLE_KEY
 } from '../../core/persistence/';
 
+// PLEASE NOTE: This wrapper around indexed DB does not support transactional
+// operations. Even if you chain the promises returned from this file, the
+// chain of operations will NOT be atomic. Given how Auth uses indexed DB this
+// is not presently a concern; we only ever read out once or write in once.
+// Should you wish to add operations that require atomicity, you will need to
+// modify this to work like Firestore (where control is not given back to the
+// rendering loop until all operations complete).
+
 export const DB_NAME = 'firebaseLocalStorageDb';
 const DB_VERSION = 1;
 const DB_OBJECTSTORE_NAME = 'firebaseLocalStorage';
