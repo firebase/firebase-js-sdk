@@ -21,7 +21,6 @@ import {
   ArrayUnionFieldValueImpl,
   DeleteFieldValueImpl,
   NumericIncrementFieldValueImpl,
-  _SerializableFieldValue,
   ServerTimestampFieldValueImpl
 } from '../../../src/api/field_value';
 
