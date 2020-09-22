@@ -40,6 +40,31 @@ describe('Firebase Functions > Service', () => {
         'http://localhost:5005/my-project/us-central1/foo'
       );
     });
+
+    it('can use custom region', () => {
+      const customRegionService = createTestService(app, 'us-west2');     
+      assert.equal(
+        customRegionService._url('foo'),
+        'https://us-west2-my-project.cloudfunctions.net/foo'
+      );
+    });
+
+    it('can use custom domain', () => {
+      const customDomainService = createTestService(app, 'https://mydomain.com');
+      assert.equal(
+        customDomainService._url('foo'),
+        'https://mydomain.com/foo'
+      );
+    });
+
+    it('prefers emulator to custom domain', () => {
+      const customDomainService = createTestService(app, 'https://mydomain.com');
+      customDomainService.useFunctionsEmulator('http://localhost:5005');
+      assert.equal(
+        customDomainService._url('foo'),
+        'http://localhost:5005/my-project/us-central1/foo'
+      );
+    });
   });
 
   describe('custom region constructor', () => {

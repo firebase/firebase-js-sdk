@@ -32,6 +32,6 @@ declare module '@firebase/app-types' {
     };
   }
   interface FirebaseApp {
-    functions?(region?: string): types.FirebaseFunctions;
+    functions?(regionOrCustomDomain?: string): types.FirebaseFunctions;
   }
 }
