@@ -27,6 +27,7 @@ import {
   signInWithPhoneNumber,
   unlink,
   updatePhoneNumber
+  // eslint-disable-next-line import/no-extraneous-dependencies
 } from '@firebase/auth-exp';
 import {
   Auth,
