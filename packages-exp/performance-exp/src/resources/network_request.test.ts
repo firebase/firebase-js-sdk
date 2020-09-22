@@ -21,10 +21,23 @@ import { expect } from 'chai';
 import { Api, setupApi } from '../services/api_service';
 import * as perfLogger from '../services/perf_logger';
 
+import { FirebaseApp } from '@firebase/app-types-exp';
+import { PerformanceController } from '../controllers/perf';
+import { FirebaseInstallations } from '@firebase/installations-types';
 import '../../test/setup';
 
 describe('Firebase Performance > network_request', () => {
   setupApi(window);
+
+  const fakeFirebaseApp = ({
+    options: {}
+  } as unknown) as FirebaseApp;
+
+  const fakeInstallations = ({} as unknown) as FirebaseInstallations;
+  const performanceController = new PerformanceController(
+    fakeFirebaseApp,
+    fakeInstallations
+  );
 
   beforeEach(() => {
     stub(Api.prototype, 'getTimeOrigin').returns(1528521843799.5032);
@@ -46,6 +59,7 @@ describe('Firebase Performance > network_request', () => {
       } as unknown) as PerformanceResourceTiming;
 
       const EXPECTED_NETWORK_REQUEST = {
+        performanceController,
         url: 'http://some.test.website.com',
         responsePayloadBytes: 500,
         startTimeUs: 1528523489152135,
@@ -53,7 +67,7 @@ describe('Firebase Performance > network_request', () => {
         timeToResponseCompletedUs: 8200
       };
 
-      createNetworkRequestEntry(PERFORMANCE_ENTRY);
+      createNetworkRequestEntry(performanceController, PERFORMANCE_ENTRY);
 
       expect(
         (perfLogger.logNetworkRequest as any).calledWith(
@@ -70,7 +84,7 @@ describe('Firebase Performance > network_request', () => {
         responseEnd: 1645360.832443
       } as unknown) as PerformanceResourceTiming;
 
-      createNetworkRequestEntry(PERFORMANCE_ENTRY);
+      createNetworkRequestEntry(performanceController, PERFORMANCE_ENTRY);
 
       expect(perfLogger.logNetworkRequest).to.not.have.been.called;
     });
