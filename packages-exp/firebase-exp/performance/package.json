@@ -1,0 +1,8 @@
+{
+  "name": "firebase-exp/performance",
+  "main": "dist/index.cjs.js",
+  "browser": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "esm2017": "dist/index.esm2017.js",
+  "typings": "dist/index.d.ts"
+}

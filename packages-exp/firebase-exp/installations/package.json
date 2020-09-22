@@ -1,0 +1,7 @@
+{
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "browser": "dist/index.esm.js",
+  "esm2017": "dist/index.esm2017.js",
+  "typings": "dist/installations-exp.d.ts"
+}

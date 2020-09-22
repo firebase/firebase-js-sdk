@@ -40,7 +40,9 @@
     "@firebase/app-exp": "0.0.800",
     "@firebase/app-compat": "0.0.800",
     "@firebase/functions-exp": "0.0.800",
-    "@firebase/firestore": "1.17.0"
+    "@firebase/firestore": "1.17.0",
+    "@firebase/installations-exp": "0.0.800",
+    "@firebase/performance-exp": "0.0.800"
   },
   "devDependencies": {
     "rollup": "2.28.1",
@@ -60,6 +62,8 @@
     "app",
     "functions",
     "firestore",
-    "firestore/lite"
+    "firestore/lite",
+    "installations",
+    "performance"
   ]
 }
