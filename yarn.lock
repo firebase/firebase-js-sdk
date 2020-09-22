@@ -3734,7 +3734,7 @@ balanced-match@^1.0.0:
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
   integrity sha1-ibTRmasr7kneFk6gK4nORi1xt2c=
 
-base64-arraybuffer-es6@0.6.0:
+base64-arraybuffer-es6@^0.6.0:
   version "0.6.0"
   resolved "https://registry.npmjs.org/base64-arraybuffer-es6/-/base64-arraybuffer-es6-0.6.0.tgz#036f79f57588dca0018de7792ddf149299382007"
   integrity sha512-57nLqKj4ShsDwFJWJsM4sZx6u60WbCge35rWRSevUwqxDtRwwxiKAO800zD2upPv4CfdWjQp//wSLar35nDKvA==
@@ -8373,16 +8373,16 @@ indent-string@^4.0.0:
   resolved "https://registry.npmjs.org/indent-string/-/indent-string-4.0.0.tgz#624f8f4497d619b2d9768531d58f4122854d7251"
   integrity sha512-EdDDZu4A2OyIK7Lr/2zG+w5jmbuk1DVBnEwREQvBzspBJkCEbRa8GxU1lghYcaGJCnRWibjDXlq779X1/y5xwg==
 
-indexeddbshim@6.6.0:
-  version "6.6.0"
-  resolved "https://registry.npmjs.org/indexeddbshim/-/indexeddbshim-6.6.0.tgz#3321bfa45d207b69f727868a670d65a8b9d1e15d"
-  integrity sha512-w/IpVXjHmL7jpzNHHt/NAoyGOSmYwEsVNELPBu1RiqSZxJz30OKUKLOmq54z/ZCPLYJoqH2FGd36Ozb1UY3Oag==
+indexeddbshim@7.0.0:
+  version "7.0.0"
+  resolved "https://registry.npmjs.org/indexeddbshim/-/indexeddbshim-7.0.0.tgz#4398af5f172c77256982c38c2a643471c3ddf8f6"
+  integrity sha512-2/jdyXICFoWaoQgBMQflJSVxjWVKbNeISRhA8NRRiJtQBsjjwvT+YAOaZTixs30URK6Ty6ruWNcN2sjviuGqUw==
   dependencies:
     eventtargeter "0.8.0"
-    regenerator-runtime "^0.13.5"
+    regenerator-runtime "^0.13.7"
     sync-promise "git+https://github.com/brettz9/sync-promise.git#full-sync-missing-promise-features"
     typeson "5.18.2"
-    typeson-registry "1.0.0-alpha.37"
+    typeson-registry "1.0.0-alpha.38"
     websql "git+https://github.com/brettz9/node-websql.git#configurable-secure2"
 
 indexof@0.0.1:
@@ -12701,7 +12701,7 @@ regenerator-runtime@^0.11.0:
   resolved "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.11.1.tgz#be05ad7f9bf7d22e056f9726cee5017fbf19e2e9"
   integrity sha512-MguG95oij0fC3QV3URf4V2SDYGJhJnJGqvIIgdECeODCT98wSWDAJ94SSuVpYQUoTcGUIL6L4yNB7j1DFFHSBg==
 
-regenerator-runtime@^0.13.4, regenerator-runtime@^0.13.5:
+regenerator-runtime@^0.13.4, regenerator-runtime@^0.13.7:
   version "0.13.7"
   resolved "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.13.7.tgz#cac2dacc8a1ea675feaabaeb8ae833898ae46f55"
   integrity sha512-a54FxoJDIr27pgf7IgeQGxmqUNYrcV338lf/6gH456HZ/PhX+5BcwHXG9ajESmwe6WRO0tAzRUrRmNONWgkrew==
@@ -14669,6 +14669,13 @@ tr46@^1.0.1:
   dependencies:
     punycode "^2.1.0"
 
+tr46@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.npmjs.org/tr46/-/tr46-2.0.2.tgz#03273586def1595ae08fedb38d7733cee91d2479"
+  integrity sha512-3n1qG+/5kg+jrbTzwAykB5yRYtQCTqOGKq5U5PE3b0a1/mzo6snDhjGS0zJVJunO0NrT3Dg1MLy5TjWP/UJppg==
+  dependencies:
+    punycode "^2.1.1"
+
 "traverse@>=0.3.0 <0.4":
   version "0.3.9"
   resolved "https://registry.npmjs.org/traverse/-/traverse-0.3.9.tgz#717b8f220cc0bb7b44e40514c22b2e8bbc70d8b9"
@@ -14945,16 +14952,16 @@ typescript@~3.9.5:
   resolved "https://registry.npmjs.org/typescript/-/typescript-3.9.7.tgz#98d600a5ebdc38f40cb277522f12dc800e9e25fa"
   integrity sha512-BLbiRkiBzAwsjut4x/dsibSTB6yWpwT5qWmC2OfuCg3GgVQCSgMs4vEctYPhsaGtd0AeuuHMkjZ2h2WG8MSzRw==
 
-typeson-registry@1.0.0-alpha.37:
-  version "1.0.0-alpha.37"
-  resolved "https://registry.npmjs.org/typeson-registry/-/typeson-registry-1.0.0-alpha.37.tgz#23e6bffc264b4dfc80603e2a8545bd4750102d42"
-  integrity sha512-xXkriUyWzsBCNmMLyLXXFkc2UQbK7nDB8ItS3LJWlKMJvfzZfRBaZFPxH6cfjJYD4mQbv1mAxjk/9mRfyWe88g==
+typeson-registry@1.0.0-alpha.38:
+  version "1.0.0-alpha.38"
+  resolved "https://registry.npmjs.org/typeson-registry/-/typeson-registry-1.0.0-alpha.38.tgz#42b19c21997ab80e38b3c67d6c1aad1499fea5b9"
+  integrity sha512-6lt2IhbNT9hyow5hljZqjWtVDXBIaC1X8bBGlBva0Pod2f42g23bVqww09ruquwSC48I8BSSCPi+B2dFHM5ihQ==
   dependencies:
-    base64-arraybuffer-es6 "0.6.0"
-    typeson "5.18.2"
-    whatwg-url "7.1.0"
+    base64-arraybuffer-es6 "^0.6.0"
+    typeson "^5.18.2"
+    whatwg-url "^8.1.0"
 
-typeson@5.18.2:
+typeson@5.18.2, typeson@^5.18.2:
   version "5.18.2"
   resolved "https://registry.npmjs.org/typeson/-/typeson-5.18.2.tgz#0d217fc0e11184a66aa7ca0076d9aa7707eb7bc2"
   integrity sha512-Vetd+OGX05P4qHyHiSLdHZ5Z5GuQDrHHwSdjkqho9NSCYVSLSfRMjklD/unpHH8tXBR9Z/R05rwJSuMpMFrdsw==
@@ -15472,6 +15479,11 @@ webidl-conversions@^4.0.2:
   resolved "https://registry.npmjs.org/webidl-conversions/-/webidl-conversions-4.0.2.tgz#a855980b1f0b6b359ba1d5d9fb39ae941faa63ad"
   integrity sha512-YQ+BmxuTgd6UXZW3+ICGfyqRyHXVlD5GtQr5+qjiNW7bF0cqrzX500HVXPBOvgXb5YnzDd+h0zqyv61KUD7+Sg==
 
+webidl-conversions@^6.1.0:
+  version "6.1.0"
+  resolved "https://registry.npmjs.org/webidl-conversions/-/webidl-conversions-6.1.0.tgz#9111b4d7ea80acd40f5270d666621afa78b69514"
+  integrity sha512-qBIvFLGiBpLjfwmYAaHPXsn+ho5xZnGvyGvsarywGNc8VyQJUMHJ8OBKGGrPER0okBeMDaan4mNBlgBROxuI8w==
+
 webpack-dev-middleware@^3.7.0:
   version "3.7.2"
   resolved "https://registry.npmjs.org/webpack-dev-middleware/-/webpack-dev-middleware-3.7.2.tgz#0019c3db716e3fa5cecbf64f2ab88a74bab331f3"
@@ -15606,7 +15618,7 @@ whatwg-mimetype@^2.3.0:
   resolved "https://registry.npmjs.org/whatwg-mimetype/-/whatwg-mimetype-2.3.0.tgz#3d4b1e0312d2079879f826aff18dbeeca5960fbf"
   integrity sha512-M4yMwr6mAnQz76TbJm914+gPpB/nCwvZbJU28cUD6dR004SAxDLOOSUaB1JDRqLtaOV/vi0IC5lEAGFgrjGv/g==
 
-whatwg-url@7.1.0, whatwg-url@^7.0.0:
+whatwg-url@^7.0.0:
   version "7.1.0"
   resolved "https://registry.npmjs.org/whatwg-url/-/whatwg-url-7.1.0.tgz#c2c492f1eca612988efd3d2266be1b9fc6170d06"
   integrity sha512-WUu7Rg1DroM7oQvGWfOiAK21n74Gg+T4elXEQYkOhtyLeWiJFoOGLXPKI/9gzIie9CtwVLm8wtw6YJdKyxSjeg==
@@ -15614,6 +15626,15 @@ whatwg-url@7.1.0, whatwg-url@^7.0.0:
     lodash.sortby "^4.7.0"
     tr46 "^1.0.1"
     webidl-conversions "^4.0.2"
+
+whatwg-url@^8.1.0:
+  version "8.2.2"
+  resolved "https://registry.npmjs.org/whatwg-url/-/whatwg-url-8.2.2.tgz#85e7f9795108b53d554cec640b2e8aee2a0d4bfd"
+  integrity sha512-PcVnO6NiewhkmzV0qn7A+UZ9Xx4maNTI+O+TShmfE4pqjoCMwUMjkvoNhNHPTvgR7QH9Xt3R13iHuWy2sToFxQ==
+  dependencies:
+    lodash.sortby "^4.7.0"
+    tr46 "^2.0.2"
+    webidl-conversions "^6.1.0"
 
 which-module@^1.0.0:
   version "1.0.0"
