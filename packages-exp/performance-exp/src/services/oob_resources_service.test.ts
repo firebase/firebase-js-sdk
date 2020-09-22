@@ -27,7 +27,6 @@ import { expect } from 'chai';
 import { Api, setupApi, EntryType } from './api_service';
 import * as iidService from './iid_service';
 import { setupOobResources } from './oob_resources_service';
-import { createNetworkRequestEntry } from '../resources/network_request';
 import { Trace } from '../resources/trace';
 import '../../test/setup';
 import { PerformanceController } from '../controllers/perf';
@@ -84,11 +83,7 @@ describe('Firebase Performance > oob_resources_service', () => {
   let apiGetInstanceSpy: SinonSpy<[], Api>;
   let getEntriesByTypeStub: SinonStub<[EntryType], PerformanceEntry[]>;
   let setupObserverStub: SinonStub<
-    [
-      EntryType,
-      PerformanceController,
-      (perfApp: PerformanceController, entry: PerformanceEntry) => void
-    ],
+    [EntryType, (entry: PerformanceEntry) => void],
     void
   >;
   let createOobTraceStub: SinonStub<
@@ -159,11 +154,7 @@ describe('Firebase Performance > oob_resources_service', () => {
 
       expect(apiGetInstanceSpy).to.be.called;
       expect(getEntriesByTypeStub).to.be.calledWith('resource');
-      expect(setupObserverStub).to.be.calledWithExactly(
-        'resource',
-        performanceController,
-        createNetworkRequestEntry
-      );
+      expect(setupObserverStub).to.be.calledWith('resource');
     });
 
     it('sets up page load trace collection', () => {

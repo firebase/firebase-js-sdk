@@ -46,10 +46,8 @@ function setupNetworkRequests(
   for (const resource of resources) {
     createNetworkRequestEntry(performanceController, resource);
   }
-  api.setupObserver(
-    'resource',
-    performanceController,
-    createNetworkRequestEntry
+  api.setupObserver('resource', entry =>
+    createNetworkRequestEntry(performanceController, entry)
   );
 }
 
@@ -102,7 +100,9 @@ function setupUserTimingTraces(
     createUserTimingTrace(performanceController, measure);
   }
   // Setup an observer to capture the measures from this point on.
-  api.setupObserver('measure', performanceController, createUserTimingTrace);
+  api.setupObserver('measure', entry =>
+    createUserTimingTrace(performanceController, entry)
+  );
 }
 
 function createUserTimingTrace(

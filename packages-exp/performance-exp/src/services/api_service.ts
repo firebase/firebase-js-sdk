@@ -16,7 +16,6 @@
  */
 
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
-import { PerformanceController } from '../controllers/perf';
 import { isIndexedDBAvailable } from '@firebase/util';
 import { consoleLogger } from '../utils/console_logger';
 
@@ -134,8 +133,7 @@ export class Api {
 
   setupObserver(
     entryType: EntryType,
-    perfApp: PerformanceController,
-    callback: (perfApp: PerformanceController, entry: PerformanceEntry) => void
+    callback: (entry: PerformanceEntry) => void
   ): void {
     if (!this.PerformanceObserver) {
       return;
@@ -143,7 +141,7 @@ export class Api {
     const observer = new this.PerformanceObserver(list => {
       for (const entry of list.getEntries()) {
         // `entry` is a PerformanceEntry instance.
-        callback(perfApp, entry);
+        callback(entry);
       }
     });
 
