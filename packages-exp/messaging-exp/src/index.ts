@@ -25,7 +25,7 @@ import {
 } from '@firebase/component';
 import { ERROR_FACTORY, ErrorCode } from './util/errors';
 
-import { FirebaseMessaging } from '@firebase/messaging-types';
+import { FirebaseMessaging } from '@firebase/messaging-types-exp';
 import { MessagingService } from './api';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { _registerComponent } from '@firebase/app-exp';
@@ -38,7 +38,7 @@ const NAMESPACE_EXPORTS = {
 /**
  * Define extension behavior of `registerMessaging`
  */
-declare module '@firebase/app-types' {
+declare module '@firebase/app-types-exp' {
   interface FirebaseNamespace {
     messaging: {
       (app?: FirebaseApp): FirebaseMessaging;

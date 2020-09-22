@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { MessagePayload } from '@firebase/messaging-types';
+import { MessagePayload } from '@firebase/messaging-types-exp';
 import { MessagePayloadInternal } from '../interfaces/internal-message-payload';
 
 export function externalizePayload(

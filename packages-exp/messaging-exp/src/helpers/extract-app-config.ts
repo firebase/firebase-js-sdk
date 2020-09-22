@@ -16,7 +16,7 @@
  */
 
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
-import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
+import { FirebaseApp, FirebaseOptions } from '@firebase/app-types-exp';
 
 import { AppConfig } from '../interfaces/app-config';
 import { FirebaseError } from '@firebase/util';
