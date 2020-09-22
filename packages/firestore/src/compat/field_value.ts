@@ -38,16 +38,12 @@ export class FieldValue
   implements legacy.FieldValue {
   static serverTimestamp(): FieldValue {
     validateNoArgs('FieldValue.serverTimestamp', arguments);
-    const delegate = serverTimestamp() as _SerializableFieldValue;
-    delegate._methodName = 'FieldValue.serverTimestamp';
-    return new FieldValue(delegate);
+    return SERVER_TIMESTAMP_IMPL;
   }
 
   static delete(): FieldValue {
     validateNoArgs('FieldValue.delete', arguments);
-    const delegate = deleteField() as _SerializableFieldValue;
-    delegate._methodName = 'FieldValue.delete';
-    return new FieldValue(delegate);
+    return DELETE_FIELD_IMPL;
   }
 
   static arrayUnion(...elements: unknown[]): FieldValue {
@@ -76,3 +72,13 @@ export class FieldValue
     return this._delegate === other._delegate;
   }
 }
+
+// Define singleton instances for `delete()` and `serverTimestamp()` to match
+// current isEqual behavior (which checks by reference).
+const deleteFieldDelegate = deleteField() as _SerializableFieldValue;
+deleteFieldDelegate._methodName = 'FieldValue.delete';
+const DELETE_FIELD_IMPL = new FieldValue(deleteFieldDelegate);
+
+const serverTimestampDelegate = serverTimestamp() as _SerializableFieldValue;
+serverTimestampDelegate._methodName = 'FieldValue.serverTimestamp';
+const SERVER_TIMESTAMP_IMPL = new FieldValue(serverTimestampDelegate);
