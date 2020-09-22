@@ -4,7 +4,7 @@ on: pull_request
 
 jobs:
   test:
-    name: If Changed
+    name: Test Firestore Integration If Changed
     runs-on: ubuntu-latest
 
     steps:

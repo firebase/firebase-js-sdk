@@ -29,7 +29,7 @@ if (argv._[0]) {
   if (statSync(dirOrFile).isFile()) {
     removeExpSuffixFromFile(dirOrFile);
   } else {
-    removeExpSuffix(dir);
+    removeExpSuffix(dirOrFile);
   }
 }
 

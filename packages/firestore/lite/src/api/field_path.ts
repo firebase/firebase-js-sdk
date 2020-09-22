@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../../lite-types';
-
-import { BaseFieldPath } from '../../../src/api/field_path';
-import { cast } from './util';
+import { _BaseFieldPath } from '../../../src/api/field_path';
 import { DOCUMENT_KEY_NAME } from '../../../src/model/path';
 
 /**
@@ -26,7 +23,7 @@ import { DOCUMENT_KEY_NAME } from '../../../src/model/path';
  * field name (referring to a top-level field in the document), or a list of
  * field names (referring to a nested field in the document).
  */
-export class FieldPath extends BaseFieldPath implements firestore.FieldPath {
+export class FieldPath extends _BaseFieldPath {
   // Note: This class is stripped down a copy of the FieldPath class in the
   // legacy SDK. The changes are:
   // - The `documentId()` static method has been removed
@@ -43,12 +40,11 @@ export class FieldPath extends BaseFieldPath implements firestore.FieldPath {
     super(fieldNames);
   }
 
-  isEqual(other: firestore.FieldPath): boolean {
-    const path = cast(other, FieldPath);
-    return this._internalPath.isEqual(path._internalPath);
+  isEqual(other: FieldPath): boolean {
+    return this._internalPath.isEqual(other._internalPath);
   }
 }
 
-export function documentId(): firestore.FieldPath {
+export function documentId(): FieldPath {
   return new FieldPath(DOCUMENT_KEY_NAME);
 }

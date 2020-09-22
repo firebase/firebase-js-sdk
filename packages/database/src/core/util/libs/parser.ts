@@ -61,13 +61,9 @@ function decodeQuery(queryString: string): { [key: string]: string } {
   return results;
 }
 
-/**
- *
- * @param {!string} dataURL
- * @return {{repoInfo: !RepoInfo, path: !Path}}
- */
 export const parseRepoInfo = function (
-  dataURL: string
+  dataURL: string,
+  nodeAdmin: boolean
 ): { repoInfo: RepoInfo; path: Path } {
   const parsedUrl = parseDatabaseURL(dataURL),
     namespace = parsedUrl.namespace;
@@ -101,6 +97,7 @@ export const parseRepoInfo = function (
       parsedUrl.host,
       parsedUrl.secure,
       namespace,
+      nodeAdmin,
       webSocketOnly,
       /*persistenceKey=*/ '',
       /*includeNamespaceInQueryParams=*/ namespace !== parsedUrl.subdomain

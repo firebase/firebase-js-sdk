@@ -19,7 +19,7 @@ import { FirebaseApp as FirebaseAppLegacy } from '@firebase/app-types';
 import { FirebaseApp as FirebaseAppExp } from '@firebase/app-types-exp';
 import { deleteApp } from '@firebase/app-exp';
 import * as legacy from '@firebase/firestore-types';
-import * as exp from '../../exp-types';
+import * as exp from '../index';
 
 import {
   addDoc,
@@ -153,7 +153,7 @@ export class FirebaseFirestore implements legacy.FirebaseFirestore {
 
   onSnapshotsInSync(observer: {
     next?: (value: void) => void;
-    error?: (error: Error) => void;
+    error?: (error: legacy.FirestoreError) => void;
     complete?: () => void;
   }): () => void;
   onSnapshotsInSync(onSync: () => void): () => void;
@@ -370,19 +370,19 @@ export class DocumentReference<T = legacy.DocumentData>
     options: legacy.SnapshotListenOptions,
     observer: {
       next?: (snapshot: DocumentSnapshot<T>) => void;
-      error?: (error: Error) => void;
+      error?: (error: legacy.FirestoreError) => void;
       complete?: () => void;
     }
   ): () => void;
   onSnapshot(
     onNext: (snapshot: DocumentSnapshot<T>) => void,
-    onError?: (error: Error) => void,
+    onError?: (error: legacy.FirestoreError) => void,
     onCompletion?: () => void
   ): () => void;
   onSnapshot(
     options: legacy.SnapshotListenOptions,
     onNext: (snapshot: DocumentSnapshot<T>) => void,
-    onError?: (error: Error) => void,
+    onError?: (error: legacy.FirestoreError) => void,
     onCompletion?: () => void
   ): () => void;
   onSnapshot(...args: any): () => void {
@@ -530,26 +530,26 @@ export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
 
   onSnapshot(observer: {
     next?: (snapshot: QuerySnapshot<T>) => void;
-    error?: (error: Error) => void;
+    error?: (error: legacy.FirestoreError) => void;
     complete?: () => void;
   }): () => void;
   onSnapshot(
     options: legacy.SnapshotListenOptions,
     observer: {
       next?: (snapshot: QuerySnapshot<T>) => void;
-      error?: (error: Error) => void;
+      error?: (error: legacy.FirestoreError) => void;
       complete?: () => void;
     }
   ): () => void;
   onSnapshot(
     onNext: (snapshot: QuerySnapshot<T>) => void,
-    onError?: (error: Error) => void,
+    onError?: (error: legacy.FirestoreError) => void,
     onCompletion?: () => void
   ): () => void;
   onSnapshot(
     options: legacy.SnapshotListenOptions,
     onNext: (snapshot: QuerySnapshot<T>) => void,
-    onError?: (error: Error) => void,
+    onError?: (error: legacy.FirestoreError) => void,
     onCompletion?: () => void
   ): () => void;
   onSnapshot(...args: any): () => void {
@@ -766,7 +766,10 @@ function wrap(value: any): any {
   } else if (value instanceof DocumentReferenceExp) {
     // TODO(mrschmidt): Ideally, we should use an existing instance of
     // FirebaseFirestore here rather than instantiating a new instance
-    return new DocumentReference(new FirebaseFirestore(value.firestore), value);
+    return new DocumentReference(
+      new FirebaseFirestore(value.firestore as exp.FirebaseFirestore),
+      value
+    );
   } else if (isPlainObject(value)) {
     const obj: any = {};
     for (const key in value) {

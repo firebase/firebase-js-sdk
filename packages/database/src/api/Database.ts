@@ -105,11 +105,11 @@ export class Database implements FirebaseService {
     const apiName = 'database.refFromURL';
     this.checkDeleted_(apiName);
     validateArgCount(apiName, 1, 1, arguments.length);
-    const parsedURL = parseRepoInfo(url);
+    const parsedURL = parseRepoInfo(url, this.repo_.repoInfo_.nodeAdmin);
     validateUrl(apiName, 1, parsedURL);
 
     const repoInfo = parsedURL.repoInfo;
-    if (repoInfo.host !== (this.repo_.repoInfo_ as RepoInfo).host) {
+    if (repoInfo.host !== this.repo_.repoInfo_.host) {
       fatal(
         apiName +
           ': Host name does not match the current database: ' +

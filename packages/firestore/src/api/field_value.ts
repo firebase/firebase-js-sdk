@@ -37,19 +37,21 @@ import { toNumber } from '../remote/serializer';
  * An opaque base class for FieldValue sentinel objects in our public API that
  * is shared between the full, lite and legacy SDK.
  */
-export abstract class SerializableFieldValue {
+// Use underscore prefix to hide this class from our Public API.
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export abstract class _SerializableFieldValue {
   /** The public API endpoint that returns this class. */
   abstract readonly _methodName: string;
 
   /** A pointer to the implementing class. */
-  readonly _delegate: SerializableFieldValue = this;
+  readonly _delegate: _SerializableFieldValue = this;
 
   abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
 
-  abstract isEqual(other: SerializableFieldValue): boolean;
+  abstract isEqual(other: _SerializableFieldValue): boolean;
 }
 
-export class DeleteFieldValueImpl extends SerializableFieldValue {
+export class DeleteFieldValueImpl extends _SerializableFieldValue {
   constructor(readonly _methodName: string) {
     super();
   }
@@ -101,7 +103,7 @@ export class DeleteFieldValueImpl extends SerializableFieldValue {
  * @param arrayElement Whether or not the FieldValue has an array.
  */
 function createSentinelChildContext(
-  fieldValue: SerializableFieldValue,
+  fieldValue: _SerializableFieldValue,
   context: ParseContext,
   arrayElement: boolean
 ): ParseContext {
@@ -118,7 +120,7 @@ function createSentinelChildContext(
   );
 }
 
-export class ServerTimestampFieldValueImpl extends SerializableFieldValue {
+export class ServerTimestampFieldValueImpl extends _SerializableFieldValue {
   constructor(readonly _methodName: string) {
     super();
   }
@@ -132,7 +134,7 @@ export class ServerTimestampFieldValueImpl extends SerializableFieldValue {
   }
 }
 
-export class ArrayUnionFieldValueImpl extends SerializableFieldValue {
+export class ArrayUnionFieldValueImpl extends _SerializableFieldValue {
   constructor(
     readonly _methodName: string,
     private readonly _elements: unknown[]
@@ -159,7 +161,7 @@ export class ArrayUnionFieldValueImpl extends SerializableFieldValue {
   }
 }
 
-export class ArrayRemoveFieldValueImpl extends SerializableFieldValue {
+export class ArrayRemoveFieldValueImpl extends _SerializableFieldValue {
   constructor(readonly _methodName: string, readonly _elements: unknown[]) {
     super();
   }
@@ -183,7 +185,7 @@ export class ArrayRemoveFieldValueImpl extends SerializableFieldValue {
   }
 }
 
-export class NumericIncrementFieldValueImpl extends SerializableFieldValue {
+export class NumericIncrementFieldValueImpl extends _SerializableFieldValue {
   constructor(readonly _methodName: string, private readonly _operand: number) {
     super();
   }
@@ -204,7 +206,7 @@ export class NumericIncrementFieldValueImpl extends SerializableFieldValue {
 
 /** The public FieldValue class of the lite API. */
 export abstract class FieldValue
-  extends SerializableFieldValue
+  extends _SerializableFieldValue
   implements PublicFieldValue {
   protected constructor() {
     super();
@@ -263,7 +265,7 @@ export abstract class FieldValue
 class FieldValueDelegate extends FieldValue implements PublicFieldValue {
   readonly _methodName: string;
 
-  constructor(readonly _delegate: SerializableFieldValue) {
+  constructor(readonly _delegate: _SerializableFieldValue) {
     super();
     this._methodName = _delegate._methodName;
   }

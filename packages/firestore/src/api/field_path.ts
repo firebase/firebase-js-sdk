@@ -33,7 +33,9 @@ import {
  * A field class base class that is shared by the lite, full and legacy SDK,
  * which supports shared code that deals with FieldPaths.
  */
-export abstract class BaseFieldPath {
+// Use underscore prefix to hide this class from our Public API.
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export abstract class _BaseFieldPath {
   /** Internal representation of a Firestore field path. */
   readonly _internalPath: InternalFieldPath;
 
@@ -65,7 +67,7 @@ export abstract class BaseFieldPath {
  * field name (referring to a top-level field in the document), or a list of
  * field names (referring to a nested field in the document).
  */
-export class FieldPath extends BaseFieldPath implements PublicFieldPath {
+export class FieldPath extends _BaseFieldPath implements PublicFieldPath {
   /**
    * Creates a FieldPath from the provided field names. If more than one field
    * name is provided, the path will point to a nested field in a document.

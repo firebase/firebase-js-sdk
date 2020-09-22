@@ -36,6 +36,10 @@ export interface Settings {
   cacheSizeBytes?: number;
 }
 
+export interface PersistenceSettings {
+  forceOwnership?: boolean;
+}
+
 export interface SnapshotListenOptions {
   readonly includeMetadataChanges?: boolean;
 }
@@ -95,9 +99,9 @@ export function waitForPendingWrites(
 export function enableNetwork(firestore: FirebaseFirestore): Promise<void>;
 export function disableNetwork(firestore: FirebaseFirestore): Promise<void>;
 
-// TODO(firestoreexp): Add experimentalForceOwningTab support
 export function enableIndexedDbPersistence(
-  firestore: FirebaseFirestore
+  firestore: FirebaseFirestore,
+  persistenceSettings?: PersistenceSettings
 ): Promise<void>;
 export function enableMultiTabIndexedDbPersistence(
   firestore: FirebaseFirestore
@@ -273,11 +277,13 @@ export type WhereFilterOp =
   | '<'
   | '<='
   | '=='
+  | '!='
   | '>='
   | '>'
   | 'array-contains'
   | 'in'
-  | 'array-contains-any';
+  | 'array-contains-any'
+  | 'not-in';
 
 export class Query<T = DocumentData> {
   protected constructor();
@@ -405,8 +411,6 @@ export function updateDoc(
 ): Promise<void>;
 export function deleteDoc(reference: DocumentReference<unknown>): Promise<void>;
 
-// TODO(firestoreexp): Update API Proposal to use FirestoreError in these
-// callbacks
 export function onSnapshot<T>(
   reference: DocumentReference<T>,
   observer: {

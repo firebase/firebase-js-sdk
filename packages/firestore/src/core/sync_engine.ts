@@ -48,7 +48,14 @@ import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatchResult } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
-import { RemoteStore } from '../remote/remote_store';
+import {
+  canUseNetwork,
+  fillWritePipeline,
+  RemoteStore,
+  remoteStoreApplyPrimaryState,
+  remoteStoreListen,
+  remoteStoreUnlisten
+} from '../remote/remote_store';
 import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
@@ -89,6 +96,12 @@ import {
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
+import {
+  EventManager,
+  eventManagerOnOnlineStateChange,
+  eventManagerOnWatchChange,
+  eventManagerOnWatchError
+} from './event_manager';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -141,18 +154,15 @@ type ApplyDocChangesHandler = (
 ) => Promise<ViewSnapshot | undefined>;
 
 /**
- * Interface implemented by EventManager to handle notifications from
+ * Callbacks implemented by EventManager to handle notifications from
  * SyncEngine.
  */
-export interface SyncEngineListener {
+interface SyncEngineListener {
   /** Handles new view snapshots. */
-  onWatchChange(snapshots: ViewSnapshot[]): void;
+  onWatchChange?(snapshots: ViewSnapshot[]): void;
 
   /** Handles the failure of a query. */
-  onWatchError(query: Query, error: Error): void;
-
-  /** Handles a change in online state. */
-  onOnlineStateChange(onlineState: OnlineState): void;
+  onWatchError?(query: Query, error: FirestoreError): void;
 }
 
 /**
@@ -168,12 +178,13 @@ export interface SyncEngineListener {
  *
  * The SyncEngine’s methods should only ever be called by methods running in the
  * global async queue.
+ *
+ * PORTING NOTE: On Web, SyncEngine does not have an explicit subscribe()
+ * function. Instead, it directly depends on EventManager's tree-shakeable API
+ * (via `ensureWatchStream()`).
  */
 export interface SyncEngine {
   isPrimaryClient: boolean;
-
-  /** Subscribes to SyncEngine notifications. Has to be called exactly once. */
-  subscribe(syncEngineListener: SyncEngineListener): void;
 }
 
 /**
@@ -190,7 +201,7 @@ export interface SyncEngine {
  * functions, such that they are tree-shakeable.
  */
 class SyncEngineImpl implements SyncEngine {
-  syncEngineListener: SyncEngineListener | null = null;
+  syncEngineListener: SyncEngineListener = {};
 
   /**
    * A callback that updates the QueryView based on the provided change.
@@ -242,6 +253,7 @@ class SyncEngineImpl implements SyncEngine {
   constructor(
     readonly localStore: LocalStore,
     readonly remoteStore: RemoteStore,
+    readonly eventManager: EventManager,
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
     readonly sharedClientState: SharedClientState,
     public currentUser: User,
@@ -251,31 +263,12 @@ class SyncEngineImpl implements SyncEngine {
   get isPrimaryClient(): boolean {
     return this._isPrimaryClient === true;
   }
-
-  subscribe(syncEngineListener: SyncEngineListener): void {
-    debugAssert(
-      syncEngineListener !== null,
-      'SyncEngine listener cannot be null'
-    );
-    debugAssert(
-      this.syncEngineListener === null,
-      'SyncEngine already has a subscriber.'
-    );
-
-    this.syncEngineListener = syncEngineListener;
-  }
-
-  assertSubscribed(fnName: string): void {
-    debugAssert(
-      this.syncEngineListener !== null,
-      'Trying to call ' + fnName + ' before calling subscribe().'
-    );
-  }
 }
 
 export function newSyncEngine(
   localStore: LocalStore,
   remoteStore: RemoteStore,
+  eventManager: EventManager,
   // PORTING NOTE: Manages state synchronization in multi-tab environments.
   sharedClientState: SharedClientState,
   currentUser: User,
@@ -285,6 +278,7 @@ export function newSyncEngine(
   const syncEngine = new SyncEngineImpl(
     localStore,
     remoteStore,
+    eventManager,
     sharedClientState,
     currentUser,
     maxConcurrentLimboResolutions
@@ -305,7 +299,6 @@ export async function syncEngineListen(
   query: Query
 ): Promise<ViewSnapshot> {
   const syncEngineImpl = ensureWatchCallbacks(syncEngine);
-  syncEngineImpl.assertSubscribed('listen()');
 
   let targetId;
   let viewSnapshot;
@@ -338,7 +331,7 @@ export async function syncEngineListen(
       status === 'current'
     );
     if (syncEngineImpl.isPrimaryClient) {
-      syncEngineImpl.remoteStore.listen(targetData);
+      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
     }
   }
 
@@ -402,8 +395,6 @@ export async function syncEngineUnlisten(
   query: Query
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  syncEngineImpl.assertSubscribed('unlisten()');
-
   const queryView = syncEngineImpl.queryViewsByQuery.get(query)!;
   debugAssert(
     !!queryView,
@@ -439,7 +430,7 @@ export async function syncEngineUnlisten(
       )
         .then(() => {
           syncEngineImpl.sharedClientState.clearQueryState(queryView.targetId);
-          syncEngineImpl.remoteStore.unlisten(queryView.targetId);
+          remoteStoreUnlisten(syncEngineImpl.remoteStore, queryView.targetId);
           removeAndCleanupTarget(syncEngineImpl, queryView.targetId);
         })
         .catch(ignoreIfPrimaryLeaseLoss);
@@ -470,14 +461,13 @@ export async function syncEngineWrite(
   userCallback: Deferred<void>
 ): Promise<void> {
   const syncEngineImpl = ensureWriteCallbacks(syncEngine);
-  syncEngineImpl.assertSubscribed('write()');
 
   try {
     const result = await localWrite(syncEngineImpl.localStore, batch);
     syncEngineImpl.sharedClientState.addPendingMutation(result.batchId);
     addMutationCallback(syncEngineImpl, result.batchId, userCallback);
     await emitNewSnapsAndNotifyLocalStore(syncEngineImpl, result.changes);
-    await syncEngineImpl.remoteStore.fillWritePipeline();
+    await fillWritePipeline(syncEngineImpl.remoteStore);
   } catch (e) {
     // If we can't persist the mutation, we reject the user callback and
     // don't send the mutation. The user can then retry the write.
@@ -496,7 +486,7 @@ export async function applyRemoteEvent(
   remoteEvent: RemoteEvent
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  syncEngineImpl.assertSubscribed('applyRemoteEvent()');
+
   try {
     const changes = await applyRemoteEventToLocalCache(
       syncEngineImpl.localStore,
@@ -561,7 +551,6 @@ export function applyOnlineStateChange(
     (!syncEngineImpl.isPrimaryClient &&
       source === OnlineStateSource.SharedClientState)
   ) {
-    syncEngineImpl.assertSubscribed('applyOnlineStateChange()');
     const newViewSnapshots = [] as ViewSnapshot[];
     syncEngineImpl.queryViewsByQuery.forEach((query, queryView) => {
       const viewChange = queryView.view.applyOnlineStateChange(onlineState);
@@ -573,8 +562,17 @@ export function applyOnlineStateChange(
         newViewSnapshots.push(viewChange.snapshot);
       }
     });
-    syncEngineImpl.syncEngineListener!.onOnlineStateChange(onlineState);
-    syncEngineImpl.syncEngineListener!.onWatchChange(newViewSnapshots);
+
+    eventManagerOnOnlineStateChange(syncEngineImpl.eventManager, onlineState);
+
+    if (newViewSnapshots.length) {
+      debugAssert(
+        !!syncEngineImpl.syncEngineListener.onWatchChange,
+        'Active views but EventManager callbacks are not assigned'
+      );
+      syncEngineImpl.syncEngineListener.onWatchChange(newViewSnapshots);
+    }
+
     syncEngineImpl.onlineState = onlineState;
     if (syncEngineImpl.isPrimaryClient) {
       syncEngineImpl.sharedClientState.setOnlineState(onlineState);
@@ -599,7 +597,6 @@ export async function rejectListen(
   err: FirestoreError
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  syncEngineImpl.assertSubscribed('rejectListens()');
 
   // PORTING NOTE: Multi-tab only.
   syncEngineImpl.sharedClientState.updateQueryState(targetId, 'rejected', err);
@@ -660,8 +657,6 @@ export async function applySuccessfulWrite(
   mutationBatchResult: MutationBatchResult
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  syncEngineImpl.assertSubscribed('applySuccessfulWrite()');
-
   const batchId = mutationBatchResult.batch.batchId;
 
   try {
@@ -693,7 +688,6 @@ export async function rejectFailedWrite(
   error: FirestoreError
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  syncEngineImpl.assertSubscribed('rejectFailedWrite()');
 
   try {
     const changes = await rejectBatch(syncEngineImpl.localStore, batchId);
@@ -725,7 +719,7 @@ export async function registerPendingWritesCallback(
   callback: Deferred<void>
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  if (!syncEngineImpl.remoteStore.canUseNetwork()) {
+  if (!canUseNetwork(syncEngineImpl.remoteStore)) {
     logDebug(
       LOG_TAG,
       'The network is disabled. The task returned by ' +
@@ -810,7 +804,7 @@ function addMutationCallback(
 export function processUserCallback(
   syncEngine: SyncEngine,
   batchId: BatchId,
-  error: Error | null
+  error: FirestoreError | null
 ): void {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   let newCallbacks =
@@ -841,7 +835,7 @@ export function processUserCallback(
 function removeAndCleanupTarget(
   syncEngineImpl: SyncEngineImpl,
   targetId: number,
-  error: Error | null = null
+  error: FirestoreError | null = null
 ): void {
   syncEngineImpl.sharedClientState.removeLocalQueryTarget(targetId);
 
@@ -854,7 +848,7 @@ function removeAndCleanupTarget(
   for (const query of syncEngineImpl.queriesByTarget.get(targetId)!) {
     syncEngineImpl.queryViewsByQuery.delete(query);
     if (error) {
-      syncEngineImpl.syncEngineListener!.onWatchError(query, error);
+      syncEngineImpl.syncEngineListener.onWatchError!(query, error);
     }
   }
 
@@ -888,7 +882,7 @@ function removeLimboTarget(
     return;
   }
 
-  syncEngineImpl.remoteStore.unlisten(limboTargetId);
+  remoteStoreUnlisten(syncEngineImpl.remoteStore, limboTargetId);
   syncEngineImpl.activeLimboTargetsByKey = syncEngineImpl.activeLimboTargetsByKey.remove(
     key
   );
@@ -960,7 +954,8 @@ function pumpEnqueuedLimboResolutions(syncEngineImpl: SyncEngineImpl): void {
       key,
       limboTargetId
     );
-    syncEngineImpl.remoteStore.listen(
+    remoteStoreListen(
+      syncEngineImpl.remoteStore,
       new TargetData(
         queryToTarget(newQueryForPath(key.path)),
         limboTargetId,
@@ -997,6 +992,11 @@ export async function emitNewSnapsAndNotifyLocalStore(
   const docChangesInAllViews: LocalViewChanges[] = [];
   const queriesProcessed: Array<Promise<void>> = [];
 
+  if (syncEngineImpl.queryViewsByQuery.isEmpty()) {
+    // Return early since `onWatchChange()` might not have been assigned yet.
+    return;
+  }
+
   syncEngineImpl.queryViewsByQuery.forEach((_, queryView) => {
     debugAssert(
       !!syncEngineImpl.applyDocChanges,
@@ -1025,7 +1025,7 @@ export async function emitNewSnapsAndNotifyLocalStore(
   });
 
   await Promise.all(queriesProcessed);
-  syncEngineImpl.syncEngineListener!.onWatchChange(newSnaps);
+  syncEngineImpl.syncEngineListener.onWatchChange!(newSnaps);
   await notifyLocalViewChanges(syncEngineImpl.localStore, docChangesInAllViews);
 }
 
@@ -1064,7 +1064,7 @@ async function applyDocChanges(
   return viewChange.snapshot;
 }
 
-export async function handleCredentialChange(
+export async function syncEngineHandleCredentialChange(
   syncEngine: SyncEngine,
   user: User
 ): Promise<void> {
@@ -1159,7 +1159,6 @@ export async function applyBatchState(
   error?: FirestoreError
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  syncEngineImpl.assertSubscribed('applyBatchState()');
   const documents = await lookupMutationDocuments(
     syncEngineImpl.localStore,
     batchId
@@ -1181,7 +1180,7 @@ export async function applyBatchState(
     // If we are the primary client, we need to send this write to the
     // backend. Secondary clients will ignore these writes since their remote
     // connection is disabled.
-    await syncEngineImpl.remoteStore.fillWritePipeline();
+    await fillWritePipeline(syncEngineImpl.remoteStore);
   } else if (batchState === 'acknowledged' || batchState === 'rejected') {
     // NOTE: Both these methods are no-ops for batches that originated from
     // other clients.
@@ -1217,9 +1216,9 @@ export async function applyPrimaryState(
       /*transitionToPrimary=*/ true
     );
     syncEngineImpl._isPrimaryClient = true;
-    await syncEngineImpl.remoteStore.applyPrimaryState(true);
+    await remoteStoreApplyPrimaryState(syncEngineImpl.remoteStore, true);
     for (const targetData of activeQueries) {
-      syncEngineImpl.remoteStore.listen(targetData);
+      remoteStoreListen(syncEngineImpl.remoteStore, targetData);
     }
   } else if (isPrimary === false && syncEngineImpl._isPrimaryClient !== false) {
     const activeTargets: TargetId[] = [];
@@ -1238,7 +1237,7 @@ export async function applyPrimaryState(
           );
         });
       }
-      syncEngineImpl.remoteStore.unlisten(targetId);
+      remoteStoreUnlisten(syncEngineImpl.remoteStore, targetId);
     });
     await p;
 
@@ -1249,7 +1248,7 @@ export async function applyPrimaryState(
     );
     resetLimboDocuments(syncEngineImpl);
     syncEngineImpl._isPrimaryClient = false;
-    await syncEngineImpl.remoteStore.applyPrimaryState(false);
+    await remoteStoreApplyPrimaryState(syncEngineImpl.remoteStore, false);
   }
 }
 
@@ -1257,7 +1256,7 @@ export async function applyPrimaryState(
 function resetLimboDocuments(syncEngine: SyncEngine): void {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   syncEngineImpl.activeLimboResolutionsByTarget.forEach((_, targetId) => {
-    syncEngineImpl.remoteStore.unlisten(targetId);
+    remoteStoreUnlisten(syncEngineImpl.remoteStore, targetId);
   });
   syncEngineImpl.limboDocumentRefs.removeAllReferences();
   syncEngineImpl.activeLimboResolutionsByTarget = new Map<
@@ -1338,7 +1337,7 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
     activeQueries.push(targetData!);
   }
 
-  syncEngineImpl.syncEngineListener!.onWatchChange(newViewSnapshots);
+  syncEngineImpl.syncEngineListener.onWatchChange!(newViewSnapshots);
   return activeQueries;
 }
 
@@ -1447,7 +1446,7 @@ export async function applyActiveTargetsChange(
       targetData.targetId,
       /*current=*/ false
     );
-    syncEngineImpl.remoteStore.listen(targetData);
+    remoteStoreListen(syncEngineImpl.remoteStore, targetData);
   }
 
   for (const targetId of removed) {
@@ -1464,7 +1463,7 @@ export async function applyActiveTargetsChange(
       /* keepPersistedTargetData */ false
     )
       .then(() => {
-        syncEngineImpl.remoteStore.unlisten(targetId);
+        remoteStoreUnlisten(syncEngineImpl.remoteStore, targetId);
         removeAndCleanupTarget(syncEngineImpl, targetId);
       })
       .catch(ignoreIfPrimaryLeaseLoss);
@@ -1485,10 +1484,18 @@ function ensureWatchCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
     null,
     syncEngineImpl
   );
+  syncEngineImpl.syncEngineListener.onWatchChange = eventManagerOnWatchChange.bind(
+    null,
+    syncEngineImpl.eventManager
+  );
+  syncEngineImpl.syncEngineListener.onWatchError = eventManagerOnWatchError.bind(
+    null,
+    syncEngineImpl.eventManager
+  );
   return syncEngineImpl;
 }
 
-function ensureWriteCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
+export function ensureWriteCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
   syncEngineImpl.remoteStore.remoteSyncer.applySuccessfulWrite = applySuccessfulWrite.bind(
     null,

@@ -25,8 +25,6 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import * as firebaseExport from '../util/firebase_export';
 import {
   apiDescribe,
-  notEqualOp,
-  notInOp,
   withTestCollection,
   withTestDb,
   withTestDbs,
@@ -644,14 +642,6 @@ apiDescribe('Database', (persistence: boolean) => {
       });
     });
 
-    it('inequality and NOT_IN on different fields works', () => {
-      return withTestCollection(persistence, {}, async coll => {
-        expect(() =>
-          coll.where('x', '>=', 32).where('y', notInOp, [1, 2])
-        ).not.to.throw();
-      });
-    });
-
     it('inequality and array-contains-any on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
@@ -669,12 +659,8 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('!= same as orderBy works.', () => {
       return withTestCollection(persistence, {}, async coll => {
-        expect(() =>
-          coll.where('x', notEqualOp, 32).orderBy('x')
-        ).not.to.throw();
-        expect(() =>
-          coll.orderBy('x').where('x', notEqualOp, 32)
-        ).not.to.throw();
+        expect(() => coll.where('x', '!=', 32).orderBy('x')).not.to.throw();
+        expect(() => coll.orderBy('x').where('x', '!=', 32)).not.to.throw();
       });
     });
 
@@ -692,10 +678,10 @@ apiDescribe('Database', (persistence: boolean) => {
     it('!= same as first orderBy works.', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.where('x', notEqualOp, 32).orderBy('x').orderBy('y')
+          coll.where('x', '!=', 32).orderBy('x').orderBy('y')
         ).not.to.throw();
         expect(() =>
-          coll.orderBy('x').where('x', notEqualOp, 32).orderBy('y')
+          coll.orderBy('x').where('x', '!=', 32).orderBy('y')
         ).not.to.throw();
       });
     });
@@ -717,14 +703,6 @@ apiDescribe('Database', (persistence: boolean) => {
     it('IN different than orderBy works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() => coll.orderBy('x').where('y', 'in', [1, 2])).not.to.throw();
-      });
-    });
-
-    it('NOT_IN different than orderBy works', () => {
-      return withTestCollection(persistence, {}, async coll => {
-        expect(() =>
-          coll.orderBy('x').where('y', notInOp, [1, 2])
-        ).not.to.throw();
       });
     });
 
@@ -1065,6 +1043,37 @@ apiDescribe('Database', (persistence: boolean) => {
         .then(doc => {
           expect(doc.data()).to.deep.equal({ foo: 'bar' });
         });
+    });
+  });
+
+  // eslint-disable-next-line no-restricted-properties
+  (persistence ? it : it.skip)('offline writes are sent after restart', () => {
+    return withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+
+      const app = firestore.app;
+      const name = app.name;
+      const options = app.options;
+
+      await firestore.disableNetwork();
+
+      // We are merely adding to the cache.
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      docRef.set({ foo: 'bar' });
+
+      await app.delete();
+
+      const firestore2 = newTestFirestore(
+        options.projectId,
+        name,
+        DEFAULT_SETTINGS
+      );
+      await firestore2.enablePersistence();
+      await firestore2.waitForPendingWrites();
+      const doc = await firestore2.doc(docRef.path).get();
+
+      expect(doc.exists).to.be.true;
+      expect(doc.metadata.hasPendingWrites).to.be.false;
     });
   });
 

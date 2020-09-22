@@ -208,10 +208,7 @@ export function validateIsNotUsedTogether(
   optionName2: string,
   argument2: boolean | undefined
 ): void {
-  if (
-    argument1 === true &&
-    argument2 === true
-  ) {
+  if (argument1 === true && argument2 === true) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
       `${optionName1} and ${optionName2} cannot be used together.`
