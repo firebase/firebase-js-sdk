@@ -1,0 +1,14 @@
+on:
+    workflow_dispatch:
+        inputs:
+            pr:
+                description: 'PR number'
+                required: true
+
+jobs:
+    print:
+        runs-on: ubuntu-latest
+
+        steps:
+        - run: |
+            echo "PR number is ${{github.event.inputs.logLevel}}"
