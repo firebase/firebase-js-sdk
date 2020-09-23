@@ -2191,6 +2191,49 @@ describe('Query Tests', () => {
       });
   });
 
+  it('get() at empty root returns null', done => {
+    const node = getRandomNode() as Reference;
+    node.get().then(snapshot => {
+      const val = snapshot.val();
+      expect(val).to.be.null;
+      done();
+    });
+  });
+
+  it('get() at non-empty root returns correct value', done => {
+    const nodes = getRandomNode(2) as Reference;
+    const reader = nodes[0];
+    const writer = nodes[1];
+    writer.set({ foo: 'a', bar: 'b' }, (err, dummy) => {
+      reader.get().then(snapshot => {
+        const val = snapshot.val();
+        expect(val['foo']).to.equal('a');
+        expect(val['bar']).to.equal('b');
+        done();
+      });
+    });
+  });
+
+  it('get() for removed node returns correct value', done => {
+    const nodes = getRandomNode(2) as Reference;
+    const reader = nodes[0];
+    const writer = nodes[1];
+    writer.set({ foo: 'a', bar: 'b' }, (err, dummy) => {
+      reader.get().then(snapshot => {
+        const val = snapshot.val();
+        expect(val['foo']).to.equal('a');
+        expect(val['bar']).to.equal('b');
+        writer.remove().then(err => {
+          reader.get().then(snapshot => {
+            const val = snapshot.val();
+            expect(val).to.be.null;
+            done();
+          });
+        });
+      });
+    });
+  });
+
   it('set() at query root raises correct value event', done => {
     const nodePair = getRandomNode(2);
     const writer = nodePair[0];
