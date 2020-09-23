@@ -299,21 +299,12 @@ export class Query {
     this.repo.removeEventCallbackForQuery(this, container);
   }
 
-  get(
-    onComplete?: SnapshotCallback,
-    onCancelled?: FailureCallback
-  ): Promise<DataSnapshot> {
+  get(): Promise<DataSnapshot> {
     const deferred = new Deferred<DataSnapshot>();
     const callback = (snapshot: DataSnapshot) => {
-      if (onComplete) {
-        onComplete(snapshot);
-      }
       deferred.resolve(snapshot);
     };
     this.repo.get(this, callback, err => {
-      if (onCancelled) {
-        onCancelled(err);
-      }
       deferred.reject(err);
     });
     return deferred.promise;
