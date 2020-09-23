@@ -40,9 +40,9 @@ import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import {
   isIndexedDBAvailable,
-  validateIndexedDBOpenable,
   areCookiesEnabled,
-  isBrowserExtension
+  isBrowserExtension,
+  validateIndexedDBOpenable
 } from '@firebase/util';
 import { initializeIds } from './initialize-ids';
 import { logger } from './logger';
@@ -153,29 +153,44 @@ export function settings(options: SettingsOptions): void {
   }
 }
 
+function logWarningFromCode(errorCode: AnalyticsError): void {
+  const error = ERROR_FACTORY.create(errorCode);
+  logger.warn(error.message);
+}
+
 export function factory(
   app: FirebaseApp,
   installations: FirebaseInstallations
 ): FirebaseAnalytics {
+  const emptyAnalyticsInstance: FirebaseAnalyticsInternal = {
+    app,
+    // Public methods return void for API simplicity and to better match gtag,
+    // while internal implementations return promises.
+    logEvent: () => {},
+    setCurrentScreen: () => {},
+    setUserId: () => {},
+    setUserProperties: () => {},
+    setAnalyticsCollectionEnabled: () => {},
+    INTERNAL: {
+      delete: (): Promise<void> => {
+        return Promise.resolve();
+      }
+    }
+  };
+
   if (isBrowserExtension()) {
-    throw ERROR_FACTORY.create(AnalyticsError.INVALID_ANALYTICS_CONTEXT);
+    logWarningFromCode(AnalyticsError.INVALID_ANALYTICS_CONTEXT);
+    return emptyAnalyticsInstance;
   }
   if (!areCookiesEnabled()) {
-    throw ERROR_FACTORY.create(AnalyticsError.COOKIES_NOT_ENABLED);
+    logWarningFromCode(AnalyticsError.COOKIES_NOT_ENABLED);
+    return emptyAnalyticsInstance;
   }
   if (!isIndexedDBAvailable()) {
-    throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
+    logWarningFromCode(AnalyticsError.INDEXED_DB_UNSUPPORTED);
+    return emptyAnalyticsInstance;
   }
-  // Async but non-blocking.
-  validateIndexedDBOpenable().catch(error => {
-    const analyticsError = ERROR_FACTORY.create(
-      AnalyticsError.INVALID_INDEXED_DB_CONTEXT,
-      {
-        errorInfo: error
-      }
-    );
-    logger.warn(analyticsError.message);
-  });
+
   const appId = app.options.appId;
   if (!appId) {
     throw ERROR_FACTORY.create(AnalyticsError.NO_APP_ID);
@@ -221,13 +236,21 @@ export function factory(
   }
   // Async but non-blocking.
   // This map reflects the completion state of all promises for each appId.
-  initializationPromisesMap[appId] = initializeIds(
-    app,
-    dynamicConfigPromisesList,
-    measurementIdToAppId,
-    installations,
-    gtagCoreFunction
-  );
+  initializationPromisesMap[appId] = validateIndexedDBOpenable()
+    .then(() =>
+      initializeIds(
+        app,
+        dynamicConfigPromisesList,
+        measurementIdToAppId,
+        installations,
+        gtagCoreFunction
+      )
+    )
+    .catch(e => {
+      throw ERROR_FACTORY.create(AnalyticsError.INVALID_INDEXED_DB_CONTEXT, {
+        errorInfo: e
+      });
+    });
 
   const analyticsInstance: FirebaseAnalyticsInternal = {
     app,

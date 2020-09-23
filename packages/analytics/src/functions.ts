@@ -23,6 +23,22 @@ import {
   EventParams
 } from '@firebase/analytics-types';
 import { GtagCommand } from './constants';
+import { AnalyticsError } from './errors';
+import { logger } from './logger';
+
+async function handleInitializationPromiseErrors(
+  initializationPromise: Promise<string>
+): Promise<string | null> {
+  try {
+    return await initializationPromise;
+  } catch (e) {
+    if (e.message.includes(AnalyticsError.INVALID_INDEXED_DB_CONTEXT)) {
+      logger.warn(e.message);
+      return null;
+    }
+  }
+  return null;
+}
 /**
  * Logs an analytics event through the Firebase SDK.
  *
@@ -41,7 +57,12 @@ export async function logEvent(
     gtagFunction(GtagCommand.EVENT, eventName, eventParams);
     return;
   } else {
-    const measurementId = await initializationPromise;
+    const measurementId = await handleInitializationPromiseErrors(
+      initializationPromise
+    );
+    if (measurementId == null) {
+      return;
+    }
     const params: EventParams | ControlParams = {
       ...eventParams,
       'send_to': measurementId
@@ -66,7 +87,12 @@ export async function setCurrentScreen(
     gtagFunction(GtagCommand.SET, { 'screen_name': screenName });
     return Promise.resolve();
   } else {
-    const measurementId = await initializationPromise;
+    const measurementId = await handleInitializationPromiseErrors(
+      initializationPromise
+    );
+    if (measurementId == null) {
+      return;
+    }
     gtagFunction(GtagCommand.CONFIG, measurementId, {
       update: true,
       'screen_name': screenName
@@ -90,7 +116,12 @@ export async function setUserId(
     gtagFunction(GtagCommand.SET, { 'user_id': id });
     return Promise.resolve();
   } else {
-    const measurementId = await initializationPromise;
+    const measurementId = await handleInitializationPromiseErrors(
+      initializationPromise
+    );
+    if (measurementId == null) {
+      return;
+    }
     gtagFunction(GtagCommand.CONFIG, measurementId, {
       update: true,
       'user_id': id
@@ -119,7 +150,12 @@ export async function setUserProperties(
     gtagFunction(GtagCommand.SET, flatProperties);
     return Promise.resolve();
   } else {
-    const measurementId = await initializationPromise;
+    const measurementId = await handleInitializationPromiseErrors(
+      initializationPromise
+    );
+    if (measurementId == null) {
+      return;
+    }
     gtagFunction(GtagCommand.CONFIG, measurementId, {
       update: true,
       'user_properties': properties
@@ -136,6 +172,11 @@ export async function setAnalyticsCollectionEnabled(
   initializationPromise: Promise<string>,
   enabled: boolean
 ): Promise<void> {
-  const measurementId = await initializationPromise;
+  const measurementId = await handleInitializationPromiseErrors(
+    initializationPromise
+  );
+  if (measurementId == null) {
+    return;
+  }
   window[`ga-disable-${measurementId}`] = !enabled;
 }
