@@ -300,8 +300,6 @@ export class Repo {
   get(query: Query, onComplete: SnapshotCallback, onFailure: FailureCallback) {
     this.server_.get(query, (status, payload) => {
       if (status === 'ok') {
-        // TODO(wyszynski): Is this the correct way to update client SDK caches
-        // with the data that we've received from get()?
         this.onDataUpdate_(
           query.path.toString(),
           payload,
