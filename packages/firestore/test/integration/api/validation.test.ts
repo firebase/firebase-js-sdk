@@ -314,7 +314,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           'Function doc() cannot be called with an empty path.'
         );
         expect(() => baseCollectionRef.doc('')).to.throw(
-          'Function CollectionReference.doc() cannot be called with an empty path.'
+          'Function doc() cannot be called with an empty path.'
         );
       } else {
         expect(() => db.doc('')).to.throw(
