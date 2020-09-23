@@ -1185,6 +1185,7 @@ export async function applyBatchState(
     // NOTE: Both these methods are no-ops for batches that originated from
     // other clients.
     processUserCallback(syncEngineImpl, batchId, error ? error : null);
+    triggerPendingWritesCallbacks(syncEngineImpl, batchId);
     removeCachedMutationBatchMetadata(syncEngineImpl.localStore, batchId);
   } else {
     fail(`Unknown batchState: ${batchState}`);
