@@ -41,15 +41,10 @@
                 "logError",
                 "newQueryForPath",
                 "primitiveComparator",
-                "randomBytes",
                 "registerFirestore",
-                "removeComponents",
-                "validateCollectionPath",
-                "validateDocumentPath",
-                "validateNonEmptyArgument"
+                "removeComponents"
             ],
             "classes": [
-                "AutoId",
                 "BasePath",
                 "CollectionReference",
                 "DatabaseId",
@@ -67,7 +62,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 13976
+        "sizeInBytes": 12275
     },
     "DocumentReference": {
         "dependencies": {
@@ -80,15 +75,10 @@
                 "logError",
                 "newQueryForPath",
                 "primitiveComparator",
-                "randomBytes",
                 "registerFirestore",
-                "removeComponents",
-                "validateCollectionPath",
-                "validateDocumentPath",
-                "validateNonEmptyArgument"
+                "removeComponents"
             ],
             "classes": [
-                "AutoId",
                 "BasePath",
                 "CollectionReference",
                 "DatabaseId",
@@ -106,7 +96,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 13974
+        "sizeInBytes": 12273
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -139,23 +129,18 @@
                 "normalizeTimestamp",
                 "ordinal",
                 "primitiveComparator",
-                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription"
             ],
             "classes": [
-                "AutoId",
                 "BasePath",
                 "ByteString",
                 "Bytes",
@@ -183,7 +168,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 30941
+        "sizeInBytes": 29240
     },
     "FieldPath": {
         "dependencies": {
@@ -390,23 +375,18 @@
                 "normalizeTimestamp",
                 "ordinal",
                 "primitiveComparator",
-                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "tryGetCustomObjectType",
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription"
             ],
             "classes": [
-                "AutoId",
                 "BasePath",
                 "ByteString",
                 "Bytes",
@@ -434,7 +414,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 30946
+        "sizeInBytes": 29245
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -545,7 +525,6 @@
                 "parseUpdateData",
                 "parseUpdateVarargs",
                 "primitiveComparator",
-                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "timestampEquals",
@@ -559,11 +538,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateReference",
                 "validateType",
@@ -571,7 +547,6 @@
                 "valueEquals"
             ],
             "classes": [
-                "AutoId",
                 "BasePath",
                 "ByteString",
                 "Bytes",
@@ -620,7 +595,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 54078
+        "sizeInBytes": 52376
     },
     "WriteBatch": {
         "dependencies": {
@@ -735,7 +710,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 44604
+        "sizeInBytes": 44675
     },
     "addDoc": {
         "dependencies": {
@@ -822,7 +797,6 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
                 "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
@@ -884,7 +858,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 54706
+        "sizeInBytes": 53971
     },
     "arrayRemove": {
         "dependencies": {
@@ -958,7 +932,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 25679
+        "sizeInBytes": 25750
     },
     "arrayUnion": {
         "dependencies": {
@@ -1032,7 +1006,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 25671
+        "sizeInBytes": 25742
     },
     "collection": {
         "dependencies": {
@@ -1046,15 +1020,12 @@
                 "logError",
                 "newQueryForPath",
                 "primitiveComparator",
-                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "validateCollectionPath",
-                "validateDocumentPath",
                 "validateNonEmptyArgument"
             ],
             "classes": [
-                "AutoId",
                 "BasePath",
                 "CollectionReference",
                 "DatabaseId",
@@ -1072,7 +1043,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 14717
+        "sizeInBytes": 13494
     },
     "collectionGroup": {
         "dependencies": {
@@ -1104,7 +1075,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 11011
+        "sizeInBytes": 11083
     },
     "deleteDoc": {
         "dependencies": {
@@ -1173,7 +1144,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23467
+        "sizeInBytes": 23539
     },
     "deleteField": {
         "dependencies": {
@@ -1218,7 +1189,6 @@
                 "randomBytes",
                 "registerFirestore",
                 "removeComponents",
-                "validateCollectionPath",
                 "validateDocumentPath",
                 "validateNonEmptyArgument"
             ],
@@ -1241,7 +1211,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 14773
+        "sizeInBytes": 14039
     },
     "documentId": {
         "dependencies": {
@@ -1336,7 +1306,6 @@
                 "primitiveComparator",
                 "queryOrderBy",
                 "queryWithEndAt",
-                "randomBytes",
                 "refValue",
                 "registerFirestore",
                 "removeComponents",
@@ -1350,17 +1319,13 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription"
             ],
             "classes": [
-                "AutoId",
                 "BasePath",
                 "Bound",
                 "ByteString",
@@ -1397,7 +1362,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 44728
+        "sizeInBytes": 43026
     },
     "endBefore": {
         "dependencies": {
@@ -1454,7 +1419,6 @@
                 "primitiveComparator",
                 "queryOrderBy",
                 "queryWithEndAt",
-                "randomBytes",
                 "refValue",
                 "registerFirestore",
                 "removeComponents",
@@ -1468,17 +1432,13 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription"
             ],
             "classes": [
-                "AutoId",
                 "BasePath",
                 "Bound",
                 "ByteString",
@@ -1515,7 +1475,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 44739
+        "sizeInBytes": 43037
     },
     "getDoc": {
         "dependencies": {
@@ -1579,7 +1539,6 @@
                 "objectSize",
                 "ordinal",
                 "primitiveComparator",
-                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "timestampEquals",
@@ -1589,17 +1548,13 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "valueEquals"
             ],
             "classes": [
-                "AutoId",
                 "BasePath",
                 "ByteString",
                 "Bytes",
@@ -1639,7 +1594,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 47529
+        "sizeInBytes": 45827
     },
     "getDocs": {
         "dependencies": {
@@ -1708,7 +1663,6 @@
                 "primitiveComparator",
                 "queryOrderBy",
                 "queryToTarget",
-                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "timestampEquals",
@@ -1728,18 +1682,14 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateHasExplicitOrderByForLimitToLast",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "valueEquals"
             ],
             "classes": [
-                "AutoId",
                 "BasePath",
                 "Bound",
                 "ByteString",
@@ -1782,7 +1732,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 52367
+        "sizeInBytes": 50665
     },
     "getFirestore": {
         "dependencies": {
@@ -1844,7 +1794,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 8914
+        "sizeInBytes": 8913
     },
     "initializeFirestore": {
         "dependencies": {
@@ -2081,7 +2031,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22658
+        "sizeInBytes": 22657
     },
     "refEqual": {
         "dependencies": {
@@ -2094,16 +2044,11 @@
                 "logError",
                 "newQueryForPath",
                 "primitiveComparator",
-                "randomBytes",
                 "refEqual",
                 "registerFirestore",
-                "removeComponents",
-                "validateCollectionPath",
-                "validateDocumentPath",
-                "validateNonEmptyArgument"
+                "removeComponents"
             ],
             "classes": [
-                "AutoId",
                 "BasePath",
                 "CollectionReference",
                 "DatabaseId",
@@ -2121,7 +2066,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 14261
+        "sizeInBytes": 12560
     },
     "runTransaction": {
         "dependencies": {
@@ -2205,7 +2150,6 @@
                 "parseUpdateData",
                 "parseUpdateVarargs",
                 "primitiveComparator",
-                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "runTransaction",
@@ -2227,11 +2171,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateReference",
                 "validateType",
@@ -2242,7 +2183,6 @@
                 "ArrayRemoveTransformOperation",
                 "ArrayUnionTransformOperation",
                 "AsyncQueue",
-                "AutoId",
                 "BasePath",
                 "ByteString",
                 "Bytes",
@@ -2307,7 +2247,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 79104
+        "sizeInBytes": 77402
     },
     "serverTimestamp": {
         "dependencies": {
@@ -2475,7 +2415,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 49702
+        "sizeInBytes": 49773
     },
     "setLogLevel": {
         "dependencies": {
@@ -2552,7 +2492,6 @@
                 "queryEquals",
                 "queryOrderBy",
                 "queryToTarget",
-                "randomBytes",
                 "registerFirestore",
                 "removeComponents",
                 "snapshotEqual",
@@ -2562,17 +2501,13 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "valueEquals"
             ],
             "classes": [
-                "AutoId",
                 "BasePath",
                 "Bound",
                 "ByteString",
@@ -2604,7 +2539,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 38461
+        "sizeInBytes": 36759
     },
     "startAfter": {
         "dependencies": {
@@ -2660,7 +2595,6 @@
                 "primitiveComparator",
                 "queryOrderBy",
                 "queryWithStartAt",
-                "randomBytes",
                 "refValue",
                 "registerFirestore",
                 "removeComponents",
@@ -2675,17 +2609,13 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription"
             ],
             "classes": [
-                "AutoId",
                 "BasePath",
                 "Bound",
                 "ByteString",
@@ -2722,7 +2652,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 44749
+        "sizeInBytes": 43047
     },
     "startAt": {
         "dependencies": {
@@ -2778,7 +2708,6 @@
                 "primitiveComparator",
                 "queryOrderBy",
                 "queryWithStartAt",
-                "randomBytes",
                 "refValue",
                 "registerFirestore",
                 "removeComponents",
@@ -2793,17 +2722,13 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription"
             ],
             "classes": [
-                "AutoId",
                 "BasePath",
                 "Bound",
                 "ByteString",
@@ -2840,7 +2765,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 44739
+        "sizeInBytes": 43037
     },
     "terminate": {
         "dependencies": {
@@ -3007,7 +2932,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 52742
+        "sizeInBytes": 52813
     },
     "where": {
         "dependencies": {
@@ -3142,7 +3067,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 48808
+        "sizeInBytes": 48879
     },
     "writeBatch": {
         "dependencies": {
@@ -3288,6 +3213,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 56380
+        "sizeInBytes": 56451
     }
 }
