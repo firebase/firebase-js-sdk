@@ -1,3 +1,5 @@
+name: PR deploy
+
 on:
     workflow_dispatch:
         inputs:
@@ -11,4 +13,4 @@ jobs:
 
         steps:
         - run: |
-            echo "PR number is ${{github.event.inputs.logLevel}}"
+            echo "PR number is ${{github.event.inputs.pr}}"
