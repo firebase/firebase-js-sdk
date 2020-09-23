@@ -84,7 +84,8 @@ export class FunctionsService implements _FirebaseService {
     readonly app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
     messagingProvider: Provider<FirebaseMessagingName>,
-    readonly region: string = DEFAULT_REGION
+    readonly region: string = DEFAULT_REGION,
+    readonly fetchImpl: typeof fetch
   ) {
     this.contextProvider = new ContextProvider(authProvider, messagingProvider);
     // Cancels all ongoing requests when resolved.
@@ -155,13 +156,14 @@ export function httpsCallable(
 async function postJSON(
   url: string,
   body: unknown,
-  headers: Headers
+  headers: { [key: string]: string },
+  fetchImpl: typeof fetch
 ): Promise<HttpResponse> {
-  headers.append('Content-Type', 'application/json');
+  headers['Content-Type'] = 'application/json';
 
   let response: Response;
   try {
-    response = await fetch(url, {
+    response = await fetchImpl(url, {
       method: 'POST',
       body: JSON.stringify(body),
       headers
@@ -206,20 +208,20 @@ async function call(
   const body = { data };
 
   // Add a header for the authToken.
-  const headers = new Headers();
+  const headers: { [key: string]: string } = {};
   const context = await functionsInstance.contextProvider.getContext();
   if (context.authToken) {
-    headers.append('Authorization', 'Bearer ' + context.authToken);
+    headers['Authorization'] = 'Bearer ' + context.authToken;
   }
   if (context.messagingToken) {
-    headers.append('Firebase-Instance-ID-Token', context.messagingToken);
+    headers['Firebase-Instance-ID-Token'] = context.messagingToken;
   }
 
   // Default timeout to 70s, but let the options override it.
   const timeout = options.timeout || 70000;
 
   const response = await Promise.race([
-    postJSON(url, body, headers),
+    postJSON(url, body, headers, functionsInstance.fetchImpl),
     failAfter(timeout),
     functionsInstance.cancelAllRequests
   ]);

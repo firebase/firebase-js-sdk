@@ -42,9 +42,11 @@ const prompt = createPromptModule();
     await bannerText();
 
     /**
-     * If there are unstaged changes, error
+     * If there are unstaged changes, error.
+     * Use --ignoreUnstaged to skip, such as if release-cli is continuing from a
+     * checkpoint.
      */
-    if (await hasDiff()) {
+    if (!argv.ignoreUnstaged && (await hasDiff())) {
       throw new Error(
         'You have unstaged changes, stash your changes before attempting to publish'
       );

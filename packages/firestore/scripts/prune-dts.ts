@@ -159,16 +159,32 @@ function prunePrivateImports<
           // Iterate all members of the private type and add them to the
           // public type if they are not already part of the public type.
           const privateType = typeChecker.getTypeAtLocation(type);
-          if (privateType?.symbol?.members) {
-            privateType.symbol.members!.forEach((definition, memberName) => {
-              if (!currentMembers || !currentMembers.has(memberName)) {
-                additionalMembers.push(
-                  ...definition.declarations.map(d =>
-                    visit(typeChecker, type, d)
-                  )
-                );
-              }
-            });
+          for (const property of privateType.getProperties()) {
+            const propertyType = typeChecker.getTypeOfSymbolAtLocation(property, type);
+            console.log("Name:", property.name, "Type:", typeChecker.typeToString(propertyType));
+            let newType = typeChecker.typeToTypeNode(propertyType, undefined, undefined)!;
+            additionalMembers.push(ts.createPropertyAssignment( property.name,
+             
+             ts.createExpression newType));
+
+            //if (!currentMembers || !currentMembers.has(memberName)) {
+            //         additionalMembers.push(
+            //           ...property.declarations.map(d =>
+            //             visit(typeChecker, type, d)
+            //           )
+            //         );
+            //       }
+          // if (privateType?.symbol?.members) {
+          //  
+          //   privateType.symbol.members!.forEach((definition, memberName) => {
+          //     if (!currentMembers || !currentMembers.has(memberName)) {
+          //       additionalMembers.push(
+          //         ...definition.declarations.slice(0,1).map(d =>
+          //           visit(typeChecker, type, d)
+          //         )
+          //       );
+          //     }
+          //   });
           }
         }
       }
@@ -295,7 +311,7 @@ const updateInheritedTypeTransformer = (
         if (replacement) {
           return ts.updateTypeReferenceNode(
             node,
-            ts.createIdentifier('string'),
+            ts.createIdentifier('notstring'),
             node.typeArguments
           );
         } else {

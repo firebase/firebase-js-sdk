@@ -16,11 +16,12 @@
  */
 import { registerVersion } from '@firebase/app-exp';
 import { registerFunctions } from './config';
-import 'isomorphic-fetch';
+import nodeFetch from 'node-fetch';
 
 import { name, version } from '../package.json';
 
 export * from './api';
 
-registerFunctions();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+registerFunctions(nodeFetch as any);
 registerVersion(name, version, 'node');

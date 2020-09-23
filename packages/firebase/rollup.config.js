@@ -135,7 +135,14 @@ const componentBuilds = pkg.components
       {
         input: `${component}/index.ts`,
         output: createUmdOutputConfig(`firebase-${component}.js`),
-        plugins: [...plugins, uglify()],
+        plugins: [
+          ...plugins,
+          uglify({
+            output: {
+              ascii_only: true // escape unicode chars
+            }
+          })
+        ],
         external: ['@firebase/app']
       }
     ];
