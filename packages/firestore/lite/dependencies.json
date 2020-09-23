@@ -67,7 +67,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 13995
+        "sizeInBytes": 13976
     },
     "DocumentReference": {
         "dependencies": {
@@ -106,7 +106,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 13993
+        "sizeInBytes": 13974
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -183,7 +183,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 30960
+        "sizeInBytes": 30941
     },
     "FieldPath": {
         "dependencies": {
@@ -242,12 +242,11 @@
                 "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
-                "User",
-                "_SerializableFieldValue"
+                "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 7516
+        "sizeInBytes": 7473
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -332,7 +331,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 7616
+        "sizeInBytes": 7619
     },
     "QueryConstraint": {
         "dependencies": {
@@ -435,7 +434,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 30965
+        "sizeInBytes": 30946
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -577,6 +576,7 @@
                 "ByteString",
                 "Bytes",
                 "CollectionReference",
+                "Compat",
                 "DatabaseId",
                 "DeleteFieldValueImpl",
                 "Document",
@@ -587,6 +587,7 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirestoreError",
@@ -615,12 +616,11 @@
                 "UserDataReader",
                 "UserDataWriter",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 54035
+        "sizeInBytes": 54078
     },
     "WriteBatch": {
         "dependencies": {
@@ -700,6 +700,7 @@
                 "BasePath",
                 "ByteString",
                 "Bytes",
+                "Compat",
                 "DatabaseId",
                 "DeleteFieldValueImpl",
                 "DeleteMutation",
@@ -707,6 +708,7 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirestoreError",
@@ -729,12 +731,11 @@
                 "UserDataReader",
                 "WriteBatch",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 44542
+        "sizeInBytes": 44604
     },
     "addDoc": {
         "dependencies": {
@@ -839,6 +840,7 @@
                 "ByteString",
                 "Bytes",
                 "CollectionReference",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -850,6 +852,7 @@
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirestoreError",
@@ -877,12 +880,11 @@
                 "UserDataReader",
                 "VerifyMutation",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 54630
+        "sizeInBytes": 54706
     },
     "arrayRemove": {
         "dependencies": {
@@ -938,10 +940,10 @@
                 "BasePath",
                 "ByteString",
                 "Bytes",
+                "Compat",
                 "DatabaseId",
                 "FieldTransform",
                 "FieldValue",
-                "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirestoreError",
@@ -952,12 +954,11 @@
                 "Timestamp",
                 "TransformOperation",
                 "User",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 26027
+        "sizeInBytes": 25679
     },
     "arrayUnion": {
         "dependencies": {
@@ -1013,10 +1014,10 @@
                 "BasePath",
                 "ByteString",
                 "Bytes",
+                "Compat",
                 "DatabaseId",
                 "FieldTransform",
                 "FieldValue",
-                "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirestoreError",
@@ -1027,12 +1028,11 @@
                 "Timestamp",
                 "TransformOperation",
                 "User",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 26019
+        "sizeInBytes": 25671
     },
     "collection": {
         "dependencies": {
@@ -1072,7 +1072,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 14736
+        "sizeInBytes": 14717
     },
     "collectionGroup": {
         "dependencies": {
@@ -1104,7 +1104,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 11008
+        "sizeInBytes": 11011
     },
     "deleteDoc": {
         "dependencies": {
@@ -1193,17 +1193,15 @@
                 "DatabaseId",
                 "DeleteFieldValueImpl",
                 "FieldValue",
-                "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirestoreError",
                 "OAuthToken",
-                "User",
-                "_SerializableFieldValue"
+                "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 8483
+        "sizeInBytes": 8007
     },
     "doc": {
         "dependencies": {
@@ -1243,7 +1241,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 14791
+        "sizeInBytes": 14773
     },
     "documentId": {
         "dependencies": {
@@ -1368,12 +1366,14 @@
                 "ByteString",
                 "Bytes",
                 "CollectionReference",
+                "Compat",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentReference",
                 "DocumentSnapshot",
                 "FieldPath",
                 "FieldPath$1",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirestoreError",
@@ -1393,12 +1393,11 @@
                 "UserDataReader",
                 "UserDataWriter",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 44653
+        "sizeInBytes": 44728
     },
     "endBefore": {
         "dependencies": {
@@ -1485,12 +1484,14 @@
                 "ByteString",
                 "Bytes",
                 "CollectionReference",
+                "Compat",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentReference",
                 "DocumentSnapshot",
                 "FieldPath",
                 "FieldPath$1",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirestoreError",
@@ -1510,12 +1511,11 @@
                 "UserDataReader",
                 "UserDataWriter",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 44664
+        "sizeInBytes": 44739
     },
     "getDoc": {
         "dependencies": {
@@ -1639,7 +1639,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 47548
+        "sizeInBytes": 47529
     },
     "getDocs": {
         "dependencies": {
@@ -1782,7 +1782,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 52385
+        "sizeInBytes": 52367
     },
     "getFirestore": {
         "dependencies": {
@@ -1833,7 +1833,6 @@
                 "DatabaseId",
                 "FieldTransform",
                 "FieldValue",
-                "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirestoreError",
@@ -1841,12 +1840,11 @@
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
                 "TransformOperation",
-                "User",
-                "_SerializableFieldValue"
+                "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 9348
+        "sizeInBytes": 8914
     },
     "initializeFirestore": {
         "dependencies": {
@@ -1905,7 +1903,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 8976
+        "sizeInBytes": 8980
     },
     "limitToLast": {
         "dependencies": {
@@ -1938,7 +1936,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 9000
+        "sizeInBytes": 9004
     },
     "orderBy": {
         "dependencies": {
@@ -1993,7 +1991,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18233
+        "sizeInBytes": 18237
     },
     "query": {
         "dependencies": {
@@ -2083,7 +2081,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22653
+        "sizeInBytes": 22658
     },
     "refEqual": {
         "dependencies": {
@@ -2123,7 +2121,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 14278
+        "sizeInBytes": 14261
     },
     "runTransaction": {
         "dependencies": {
@@ -2249,6 +2247,7 @@
                 "ByteString",
                 "Bytes",
                 "CollectionReference",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -2266,6 +2265,7 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirestoreError",
@@ -2303,12 +2303,11 @@
                 "UserDataWriter",
                 "VerifyMutation",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 79061
+        "sizeInBytes": 79104
     },
     "serverTimestamp": {
         "dependencies": {
@@ -2328,7 +2327,6 @@
                 "DatabaseId",
                 "FieldTransform",
                 "FieldValue",
-                "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirestoreError",
@@ -2336,12 +2334,11 @@
                 "ServerTimestampFieldValueImpl",
                 "ServerTimestampTransform",
                 "TransformOperation",
-                "User",
-                "_SerializableFieldValue"
+                "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 8471
+        "sizeInBytes": 7995
     },
     "setDoc": {
         "dependencies": {
@@ -2438,6 +2435,7 @@
                 "BasePath",
                 "ByteString",
                 "Bytes",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -2447,6 +2445,7 @@
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirestoreError",
@@ -2472,12 +2471,11 @@
                 "UserDataReader",
                 "VerifyMutation",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 49609
+        "sizeInBytes": 49702
     },
     "setLogLevel": {
         "dependencies": {
@@ -2606,7 +2604,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 38478
+        "sizeInBytes": 38461
     },
     "startAfter": {
         "dependencies": {
@@ -2693,12 +2691,14 @@
                 "ByteString",
                 "Bytes",
                 "CollectionReference",
+                "Compat",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentReference",
                 "DocumentSnapshot",
                 "FieldPath",
                 "FieldPath$1",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirestoreError",
@@ -2718,12 +2718,11 @@
                 "UserDataReader",
                 "UserDataWriter",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 44674
+        "sizeInBytes": 44749
     },
     "startAt": {
         "dependencies": {
@@ -2810,12 +2809,14 @@
                 "ByteString",
                 "Bytes",
                 "CollectionReference",
+                "Compat",
                 "DatabaseId",
                 "DocumentKey",
                 "DocumentReference",
                 "DocumentSnapshot",
                 "FieldPath",
                 "FieldPath$1",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirestoreError",
@@ -2835,12 +2836,11 @@
                 "UserDataReader",
                 "UserDataWriter",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 44664
+        "sizeInBytes": 44739
     },
     "terminate": {
         "dependencies": {
@@ -2964,6 +2964,7 @@
                 "BasePath",
                 "ByteString",
                 "Bytes",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -2975,6 +2976,7 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirestoreError",
@@ -3001,12 +3003,11 @@
                 "UserDataReader",
                 "VerifyMutation",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 52680
+        "sizeInBytes": 52742
     },
     "where": {
         "dependencies": {
@@ -3108,11 +3109,13 @@
                 "BasePath",
                 "ByteString",
                 "Bytes",
+                "Compat",
                 "DatabaseId",
                 "DocumentKey",
                 "FieldFilter",
                 "FieldPath",
                 "FieldPath$1",
+                "FieldValue",
                 "Filter",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
@@ -3135,12 +3138,11 @@
                 "User",
                 "UserDataReader",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 48608
+        "sizeInBytes": 48808
     },
     "writeBatch": {
         "dependencies": {
@@ -3241,6 +3243,7 @@
                 "BasePath",
                 "ByteString",
                 "Bytes",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -3252,6 +3255,7 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirestoreError",
@@ -3280,11 +3284,10 @@
                 "VerifyMutation",
                 "WriteBatch",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 56318
+        "sizeInBytes": 56380
     }
 }
