@@ -172,7 +172,7 @@ export class Transaction
   implements legacy.Transaction {
   constructor(
     private readonly _firestore: FirebaseFirestore,
-    private readonly delegate: exp.Transaction
+    delegate: exp.Transaction
   ) {
     super(delegate);
   }

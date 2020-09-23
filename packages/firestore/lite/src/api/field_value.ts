@@ -23,9 +23,19 @@ import {
   NumericIncrementFieldValueImpl,
   ServerTimestampFieldValueImpl
 } from '../../../src/api/field_value';
+import { ParseContext } from '../../../src/api/user_data_reader';
+import { FieldTransform } from '../../../src/model/mutation';
 
 /** The public FieldValue class of the lite API. */
-export abstract class FieldValue {}
+export abstract class FieldValue {
+  /**
+   * @param _methodName The public API endpoint that returns this class.
+   */
+  constructor(public _methodName: string) {}
+
+  abstract isEqual(other: FieldValue): boolean;
+  abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
+}
 
 export function deleteField(): FieldValue {
   return new DeleteFieldValueImpl('deleteField');

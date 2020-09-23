@@ -27,26 +27,7 @@ import { debugAssert } from '../util/assert';
 import { toNumber } from '../remote/serializer';
 import { FieldValue } from '../../lite/src/api/field_value';
 
-/**
- * An opaque base class for FieldValue sentinel objects in our public API that
- * is shared between the full, lite and legacy SDK.
- */
-// Use underscore prefix to hide this class from our Public API.
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export abstract class _SerializableFieldValue extends FieldValue {
-  /**
-   * @param _methodName The public API endpoint that returns this class.
-   */
-  constructor(public _methodName: string) {
-    super();
-  }
-
-  abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
-
-  abstract isEqual(other: _SerializableFieldValue): boolean;
-}
-
-export class DeleteFieldValueImpl extends _SerializableFieldValue {
+export class DeleteFieldValueImpl extends FieldValue {
   _toFieldTransform(context: ParseContext): null {
     if (context.dataSource === UserDataSource.MergeSet) {
       // No transform to add for a delete, but we need to add it to our
@@ -72,7 +53,7 @@ export class DeleteFieldValueImpl extends _SerializableFieldValue {
     return null;
   }
 
-  isEqual(other: DeleteFieldValueImpl): boolean {
+  isEqual(other: FieldValue): boolean {
     return other instanceof DeleteFieldValueImpl;
   }
 }
@@ -94,7 +75,7 @@ export class DeleteFieldValueImpl extends _SerializableFieldValue {
  * @param arrayElement Whether or not the FieldValue has an array.
  */
 function createSentinelChildContext(
-  fieldValue: _SerializableFieldValue,
+  fieldValue: FieldValue,
   context: ParseContext,
   arrayElement: boolean
 ): ParseContext {
@@ -111,17 +92,17 @@ function createSentinelChildContext(
   );
 }
 
-export class ServerTimestampFieldValueImpl extends _SerializableFieldValue {
+export class ServerTimestampFieldValueImpl extends FieldValue {
   _toFieldTransform(context: ParseContext): FieldTransform {
     return new FieldTransform(context.path!, new ServerTimestampTransform());
   }
 
-  isEqual(other: ServerTimestampFieldValueImpl): boolean {
+  isEqual(other: FieldValue): boolean {
     return other instanceof ServerTimestampFieldValueImpl;
   }
 }
 
-export class ArrayUnionFieldValueImpl extends _SerializableFieldValue {
+export class ArrayUnionFieldValueImpl extends FieldValue {
   constructor(methodName: string, private readonly _elements: unknown[]) {
     super(methodName);
   }
@@ -139,13 +120,13 @@ export class ArrayUnionFieldValueImpl extends _SerializableFieldValue {
     return new FieldTransform(context.path!, arrayUnion);
   }
 
-  isEqual(other: ArrayUnionFieldValueImpl): boolean {
+  isEqual(other: FieldValue): boolean {
     // TODO(mrschmidt): Implement isEquals
     return this === other;
   }
 }
 
-export class ArrayRemoveFieldValueImpl extends _SerializableFieldValue {
+export class ArrayRemoveFieldValueImpl extends FieldValue {
   constructor(methodName: string, readonly _elements: unknown[]) {
     super(methodName);
   }
@@ -163,13 +144,13 @@ export class ArrayRemoveFieldValueImpl extends _SerializableFieldValue {
     return new FieldTransform(context.path!, arrayUnion);
   }
 
-  isEqual(other: ArrayRemoveFieldValueImpl): boolean {
+  isEqual(other: FieldValue): boolean {
     // TODO(mrschmidt): Implement isEquals
     return this === other;
   }
 }
 
-export class NumericIncrementFieldValueImpl extends _SerializableFieldValue {
+export class NumericIncrementFieldValueImpl extends FieldValue {
   constructor(methodName: string, private readonly _operand: number) {
     super(methodName);
   }
@@ -182,7 +163,7 @@ export class NumericIncrementFieldValueImpl extends _SerializableFieldValue {
     return new FieldTransform(context.path!, numericIncrement);
   }
 
-  isEqual(other: NumericIncrementFieldValueImpl): boolean {
+  isEqual(other: FieldValue): boolean {
     // TODO(mrschmidt): Implement isEquals
     return this === other;
   }

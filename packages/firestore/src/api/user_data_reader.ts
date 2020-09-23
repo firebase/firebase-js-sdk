@@ -47,11 +47,12 @@ import {
   toTimestamp
 } from '../remote/serializer';
 import { _BaseFieldPath, fromDotSeparatedString } from './field_path';
-import { DeleteFieldValueImpl, _SerializableFieldValue } from './field_value';
+import { DeleteFieldValueImpl } from './field_value';
 import { GeoPoint } from './geo_point';
 import { newSerializer } from '../platform/serializer';
 import { Bytes } from '../../lite/src/api/bytes';
 import { Compat } from '../compat/compat';
+import { FieldValue } from '../../lite/src/api/field_value';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -578,7 +579,7 @@ export function parseData(
   if (looksLikeJsonObject(input)) {
     validatePlainObject('Unsupported field value:', context, input);
     return parseObject(input, context);
-  } else if (input instanceof _SerializableFieldValue) {
+  } else if (input instanceof FieldValue) {
     // FieldValues usually parse into transforms (except FieldValue.delete())
     // in which case we do not want to include this field in our parsed data
     // (as doing so will overwrite the field directly prior to the transform
@@ -661,7 +662,7 @@ function parseArray(array: unknown[], context: ParseContext): ProtoValue {
  * context.fieldTransforms.
  */
 function parseSentinelFieldValue(
-  value: _SerializableFieldValue,
+  value: FieldValue,
   context: ParseContext
 ): void {
   // Sentinels are only supported with writes, and not within arrays.
@@ -766,7 +767,7 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof GeoPoint) &&
     !(input instanceof Bytes) &&
     !(input instanceof _DocumentKeyReference) &&
-    !(input instanceof _SerializableFieldValue)
+    !(input instanceof FieldValue)
   );
 }
 

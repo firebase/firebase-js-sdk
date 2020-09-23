@@ -31,31 +31,34 @@ import {
   validateNoArgs
 } from '../util/input_validation';
 import { Compat } from './compat';
-import { _SerializableFieldValue } from '../api/field_value';
 
 export class FieldValue
   extends Compat<exp.FieldValue>
   implements legacy.FieldValue {
   static serverTimestamp(): FieldValue {
     validateNoArgs('FieldValue.serverTimestamp', arguments);
-    return SERVER_TIMESTAMP_IMPL;
+    const delegate = serverTimestamp();
+    delegate._methodName = 'FieldValue.serverTimestamp';
+    return new FieldValue(delegate);
   }
 
   static delete(): FieldValue {
     validateNoArgs('FieldValue.delete', arguments);
-    return DELETE_FIELD_IMPL;
+    const delegate = deleteField();
+    delegate._methodName = 'FieldValue.delete';
+    return new FieldValue(delegate);
   }
 
   static arrayUnion(...elements: unknown[]): FieldValue {
     validateAtLeastNumberOfArgs('FieldValue.arrayUnion', arguments, 1);
-    const delegate = arrayUnion(...elements) as _SerializableFieldValue;
+    const delegate = arrayUnion(...elements);
     delegate._methodName = 'FieldValue.arrayUnion';
     return new FieldValue(delegate);
   }
 
   static arrayRemove(...elements: unknown[]): FieldValue {
     validateAtLeastNumberOfArgs('FieldValue.arrayRemove', arguments, 1);
-    const delegate = arrayRemove(...elements) as _SerializableFieldValue;
+    const delegate = arrayRemove(...elements);
     delegate._methodName = 'FieldValue.arrayRemove';
     return new FieldValue(delegate);
   }
@@ -63,22 +66,12 @@ export class FieldValue
   static increment(n: number): FieldValue {
     validateArgType('FieldValue.increment', 'number', 1, n);
     validateExactNumberOfArgs('FieldValue.increment', arguments, 1);
-    const delegate = increment(n) as _SerializableFieldValue;
+    const delegate = increment(n);
     delegate._methodName = 'FieldValue.increment';
     return new FieldValue(delegate);
   }
 
   isEqual(other: FieldValue): boolean {
-    return this._delegate === other._delegate;
+    return this._delegate.isEqual(other._delegate);
   }
 }
-
-// Define singleton instances for `delete()` and `serverTimestamp()` to match
-// current isEqual behavior (which checks by reference).
-const deleteFieldDelegate = deleteField() as _SerializableFieldValue;
-deleteFieldDelegate._methodName = 'FieldValue.delete';
-const DELETE_FIELD_IMPL = new FieldValue(deleteFieldDelegate);
-
-const serverTimestampDelegate = serverTimestamp() as _SerializableFieldValue;
-serverTimestampDelegate._methodName = 'FieldValue.serverTimestamp';
-const SERVER_TIMESTAMP_IMPL = new FieldValue(serverTimestampDelegate);
