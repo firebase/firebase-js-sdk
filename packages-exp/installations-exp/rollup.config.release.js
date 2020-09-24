@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,28 @@
 import json from 'rollup-plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import pkg from './package.json';
-import { es5BuildsNoPlugin, es2017BuildsNoPlugin } from './rollup.shared';
-
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
+import { es2017BuildsNoPlugin, es5BuildsNoPlugin } from './rollup.shared';
 
 /**
  * ES5 Builds
  */
-const es5BuildPlugins = [typescriptPlugin({ typescript }), json()];
+const es5BuildPlugins = [
+  typescriptPlugin({
+    typescript,
+    clean: true,
+    abortOnError: false,
+    transformers: [importPathTransformer]
+  }),
+  json()
+];
 
 const es5Builds = es5BuildsNoPlugin.map(build => ({
   ...build,
-  plugins: es5BuildPlugins
+  plugins: es5BuildPlugins,
+  treeshake: {
+    moduleSideEffects: false
+  }
 }));
 
 /**
@@ -45,14 +52,20 @@ const es2017BuildPlugins = [
       compilerOptions: {
         target: 'es2017'
       }
-    }
+    },
+    abortOnError: false,
+    clean: true,
+    transformers: [importPathTransformer]
   }),
   json({ preferConst: true })
 ];
 
 const es2017Builds = es2017BuildsNoPlugin.map(build => ({
   ...build,
-  plugins: es2017BuildPlugins
+  plugins: es2017BuildPlugins,
+  treeshake: {
+    moduleSideEffects: false
+  }
 }));
 
 export default [...es5Builds, ...es2017Builds];

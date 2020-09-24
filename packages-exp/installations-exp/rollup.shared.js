@@ -14,39 +14,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import pkg from './package.json';
 
-import json from 'rollup-plugin-json';
-import typescriptPlugin from 'rollup-plugin-typescript2';
-import typescript from 'typescript';
+const deps = Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies });
 
 /**
  * ES5 Builds
  */
-const es5BuildPlugins = [typescriptPlugin({ typescript }), json()];
-
-const es5Builds = es5BuildsNoPlugin.map(build => ({
-  ...build,
-  plugins: es5BuildPlugins
-}));
+export const es5BuildsNoPlugin = [
+  {
+    input: 'src/index.ts',
+    output: [
+      { file: pkg.main, format: 'cjs', sourcemap: true },
+      { file: pkg.module, format: 'es', sourcemap: true }
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
 
 /**
  * ES2017 Builds
  */
-const es2017BuildPlugins = [
-  typescriptPlugin({
-    typescript,
-    tsconfigOverride: {
-      compilerOptions: {
-        target: 'es2017'
-      }
-    }
-  }),
-  json({ preferConst: true })
+export const es2017BuildsNoPlugin = [
+  {
+    input: 'src/index.ts',
+    output: {
+      file: pkg.esm2017,
+      format: 'es',
+      sourcemap: true
+    },
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
 ];
-
-const es2017Builds = es2017BuildsNoPlugin.map(build => ({
-  ...build,
-  plugins: es2017BuildPlugins
-}));
-
-export default [...es5Builds, ...es2017Builds];
