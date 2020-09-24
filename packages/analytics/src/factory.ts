@@ -153,44 +153,45 @@ export function settings(options: SettingsOptions): void {
   }
 }
 
-function logWarningFromCode(errorCode: AnalyticsError): void {
-  const error = ERROR_FACTORY.create(errorCode);
-  logger.warn(error.message);
+/**
+ * Returns true if no environment mismatch is found.
+ * If environment mismatches are found, throws an INVALID_ANALYTICS_CONTEXT
+ * error that also lists details for each mismatch found.
+ */
+async function validateBrowserContext(): Promise<boolean> {
+  const mismatchedEnvMessages = [];
+  if (isBrowserExtension()) {
+    mismatchedEnvMessages.push('This is a browser extension environment.');
+  }
+  if (!areCookiesEnabled()) {
+    mismatchedEnvMessages.push('Cookies are not available.');
+  }
+  if (!isIndexedDBAvailable()) {
+    mismatchedEnvMessages.push(
+      'IndexedDB is not available in this environment.'
+    );
+  } else {
+    try {
+      await validateIndexedDBOpenable();
+    } catch (e) {
+      mismatchedEnvMessages.push(e);
+    }
+  }
+  if (mismatchedEnvMessages.length > 0) {
+    const details = mismatchedEnvMessages
+      .map((message, index) => `(${index + 1}) ${message}`)
+      .join(' ');
+    throw ERROR_FACTORY.create(AnalyticsError.INVALID_ANALYTICS_CONTEXT, {
+      errorInfo: details
+    });
+  }
+  return true;
 }
 
 export function factory(
   app: FirebaseApp,
   installations: FirebaseInstallations
 ): FirebaseAnalytics {
-  const emptyAnalyticsInstance: FirebaseAnalyticsInternal = {
-    app,
-    // Public methods return void for API simplicity and to better match gtag,
-    // while internal implementations return promises.
-    logEvent: () => {},
-    setCurrentScreen: () => {},
-    setUserId: () => {},
-    setUserProperties: () => {},
-    setAnalyticsCollectionEnabled: () => {},
-    INTERNAL: {
-      delete: (): Promise<void> => {
-        return Promise.resolve();
-      }
-    }
-  };
-
-  if (isBrowserExtension()) {
-    logWarningFromCode(AnalyticsError.INVALID_ANALYTICS_CONTEXT);
-    return emptyAnalyticsInstance;
-  }
-  if (!areCookiesEnabled()) {
-    logWarningFromCode(AnalyticsError.COOKIES_NOT_ENABLED);
-    return emptyAnalyticsInstance;
-  }
-  if (!isIndexedDBAvailable()) {
-    logWarningFromCode(AnalyticsError.INDEXED_DB_UNSUPPORTED);
-    return emptyAnalyticsInstance;
-  }
-
   const appId = app.options.appId;
   if (!appId) {
     throw ERROR_FACTORY.create(AnalyticsError.NO_APP_ID);
@@ -236,21 +237,15 @@ export function factory(
   }
   // Async but non-blocking.
   // This map reflects the completion state of all promises for each appId.
-  initializationPromisesMap[appId] = validateIndexedDBOpenable()
-    .then(() =>
-      initializeIds(
-        app,
-        dynamicConfigPromisesList,
-        measurementIdToAppId,
-        installations,
-        gtagCoreFunction
-      )
+  initializationPromisesMap[appId] = validateBrowserContext().then(() =>
+    initializeIds(
+      app,
+      dynamicConfigPromisesList,
+      measurementIdToAppId,
+      installations,
+      gtagCoreFunction
     )
-    .catch(e => {
-      throw ERROR_FACTORY.create(AnalyticsError.INVALID_INDEXED_DB_CONTEXT, {
-        errorInfo: e
-      });
-    });
+  );
 
   const analyticsInstance: FirebaseAnalyticsInternal = {
     app,

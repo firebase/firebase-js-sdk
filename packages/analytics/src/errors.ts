@@ -25,10 +25,7 @@ export const enum AnalyticsError {
   FETCH_THROTTLE = 'fetch-throttle',
   CONFIG_FETCH_FAILED = 'config-fetch-failed',
   NO_API_KEY = 'no-api-key',
-  NO_APP_ID = 'no-app-id',
-  INDEXED_DB_UNSUPPORTED = 'indexedDB-unsupported',
-  INVALID_INDEXED_DB_CONTEXT = 'invalid-indexedDB-context',
-  COOKIES_NOT_ENABLED = 'cookies-not-enabled'
+  NO_APP_ID = 'no-app-id'
 }
 
 const ERRORS: ErrorMap<AnalyticsError> = {
@@ -42,16 +39,10 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     'or it will have no effect.',
   [AnalyticsError.INTEROP_COMPONENT_REG_FAILED]:
     'Firebase Analytics Interop Component failed to instantiate: {$reason}',
-  [AnalyticsError.INDEXED_DB_UNSUPPORTED]:
-    'IndexedDB is not supported by current browser',
-  [AnalyticsError.INVALID_INDEXED_DB_CONTEXT]:
-    "Environment doesn't support IndexedDB: {$errorInfo}. " +
-    'Wrap initialization of analytics in analytics.isSupported() ' +
-    'to prevent initialization in unsupported environments',
-  [AnalyticsError.COOKIES_NOT_ENABLED]:
-    'Cookies are not enabled in this browser environment. Analytics requires cookies to be enabled.',
   [AnalyticsError.INVALID_ANALYTICS_CONTEXT]:
-    'Firebase Analytics is not supported in browser extensions.',
+    'Firebase Analytics is not supported in this environment. ' +
+    'Wrap initialization of analytics in analytics.isSupported() ' +
+    'to prevent initialization in unsupported environments. Details: {$errorInfo}',
   [AnalyticsError.FETCH_THROTTLE]:
     'The config fetch request timed out while in an exponential backoff state.' +
     ' Unix timestamp in milliseconds when fetch request throttling ends: {$throttleEndTimeMillis}.',
@@ -73,7 +64,7 @@ interface ErrorParams {
     httpStatus: number;
     responseMessage: string;
   };
-  [AnalyticsError.INVALID_INDEXED_DB_CONTEXT]: { errorInfo: string };
+  [AnalyticsError.INVALID_ANALYTICS_CONTEXT]: { errorInfo: string };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<AnalyticsError, ErrorParams>(

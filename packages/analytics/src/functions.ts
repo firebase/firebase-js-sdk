@@ -32,7 +32,7 @@ async function handleInitializationPromiseErrors(
   try {
     return await initializationPromise;
   } catch (e) {
-    if (e.message.includes(AnalyticsError.INVALID_INDEXED_DB_CONTEXT)) {
+    if (e.message.includes(AnalyticsError.INVALID_ANALYTICS_CONTEXT)) {
       logger.warn(e.message);
       return null;
     }

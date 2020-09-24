@@ -98,7 +98,7 @@ async function gtagOnConfig(
   } catch (e) {
     // Thrown by an initializeIds promise in initializationPromisesMap before
     // making any fetches if indexedDB.open() is unavailable in the environment.
-    if (e.message.includes(AnalyticsError.INVALID_INDEXED_DB_CONTEXT)) {
+    if (e.message.includes(AnalyticsError.INVALID_ANALYTICS_CONTEXT)) {
       logger.warn(e.message);
       return;
     }
@@ -175,7 +175,7 @@ async function gtagOnEvent(
   } catch (e) {
     // Thrown by an initializeIds promise in initializationPromisesMap before
     // making any fetches if indexedDB.open() is unavailable in the environment.
-    if (e.message.includes(AnalyticsError.INVALID_INDEXED_DB_CONTEXT)) {
+    if (e.message.includes(AnalyticsError.INVALID_ANALYTICS_CONTEXT)) {
       logger.warn(e.message);
       return;
     }

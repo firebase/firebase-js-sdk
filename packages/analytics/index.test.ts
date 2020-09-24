@@ -35,6 +35,7 @@ import { findGtagScriptOnPage } from './src/helpers';
 import { removeGtagScript } from './testing/gtag-script-util';
 import { Deferred } from '@firebase/util';
 import { AnalyticsError } from './src/errors';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 let analyticsInstance: FirebaseAnalytics = {} as FirebaseAnalytics;
 const fakeMeasurementId = 'abcd-efgh';
@@ -103,51 +104,6 @@ describe('FirebaseAnalytics instance tests', () => {
         `Falling back to the measurement ID ${fakeMeasurementId}`
       );
       warnStub.restore();
-    });
-    it('Warns if cookies are not enabled', () => {
-      const warnStub = stub(console, 'warn');
-      const cookieStub = stub(navigator, 'cookieEnabled').value(false);
-      const app = getFakeApp({
-        appId: fakeAppParams.appId,
-        apiKey: fakeAppParams.apiKey
-      });
-      const installations = getFakeInstallations();
-      analyticsFactory(app, installations);
-      expect(warnStub.args[0][1]).to.include(
-        AnalyticsError.COOKIES_NOT_ENABLED
-      );
-      warnStub.restore();
-      cookieStub.restore();
-    });
-    it('Warns if browser extension environment', () => {
-      const warnStub = stub(console, 'warn');
-      window.chrome = { runtime: { id: 'blah' } };
-      const app = getFakeApp({
-        appId: fakeAppParams.appId,
-        apiKey: fakeAppParams.apiKey
-      });
-      const installations = getFakeInstallations();
-      analyticsFactory(app, installations);
-      expect(warnStub.args[0][1]).to.include(
-        AnalyticsError.INVALID_ANALYTICS_CONTEXT
-      );
-      warnStub.restore();
-      window.chrome = undefined;
-    });
-    it('Warns if indexedDB does not exist', () => {
-      const warnStub = stub(console, 'warn');
-      const idbStub = stub(window, 'indexedDB').value(undefined);
-      const app = getFakeApp({
-        appId: fakeAppParams.appId,
-        apiKey: fakeAppParams.apiKey
-      });
-      const installations = getFakeInstallations();
-      analyticsFactory(app, installations);
-      expect(warnStub.args[0][1]).to.include(
-        AnalyticsError.INDEXED_DB_UNSUPPORTED
-      );
-      warnStub.restore();
-      idbStub.restore();
     });
     it('Throws if creating an instance with already-used appId', () => {
       const app = getFakeApp(fakeAppParams);
@@ -230,36 +186,72 @@ describe('FirebaseAnalytics instance tests', () => {
     });
   });
 
-  describe('Standard app, indexedDB.open not available', () => {
+  describe('Standard app, mismatched environment', () => {
     let app: FirebaseApp = {} as FirebaseApp;
-    let fidDeferred: Deferred<void>;
+    let installations: FirebaseInstallations = {} as FirebaseInstallations;
     const gtagStub: SinonStub = stub();
+    let fidDeferred: Deferred<void>;
     let warnStub: SinonStub;
-    before(() => {
+    let cookieStub: SinonStub;
+    beforeEach(() => {
       clock = useFakeTimers();
       resetGlobalVars();
       app = getFakeApp(fakeAppParams);
       fidDeferred = new Deferred<void>();
-      const installations = getFakeInstallations('fid-1234', () =>
+      installations = getFakeInstallations('fid-1234', () =>
         fidDeferred.resolve()
       );
       window['gtag'] = gtagStub;
       window['dataLayer'] = [];
       stubFetch(200, { measurementId: fakeMeasurementId });
       warnStub = stub(console, 'warn');
-      idbOpenStub = stub(indexedDB, 'open').throws('idb open error');
-      analyticsInstance = analyticsFactory(app, installations);
+      stubIdbOpen();
     });
-    after(() => {
+    afterEach(() => {
       delete window['gtag'];
       delete window['dataLayer'];
-      removeGtagScript();
       fetchStub.restore();
       clock.restore();
-      idbOpenStub.restore();
       warnStub.restore();
+      idbOpenStub.restore();
     });
-    it('Does not call gtag on logEvent but does not throw', async () => {
+    it('Warns on logEvent if cookies not available', async () => {
+      cookieStub = stub(navigator, 'cookieEnabled').value(false);
+      analyticsInstance = analyticsFactory(app, installations);
+      analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
+        currency: 'USD'
+      });
+      // Successfully resolves fake IDB open request.
+      fakeRequest.onsuccess();
+      // Clear promise chain started by logEvent.
+      await clock.runAllAsync();
+      expect(gtagStub).to.not.have.been.called;
+      expect(warnStub.args[0][1]).to.include(
+        AnalyticsError.INVALID_ANALYTICS_CONTEXT
+      );
+      expect(warnStub.args[0][1]).to.include('Cookies');
+      cookieStub.restore();
+    });
+    it('Warns on logEvent if in browser extension', async () => {
+      window.chrome = { runtime: { id: 'blah' } };
+      analyticsInstance = analyticsFactory(app, installations);
+      analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
+        currency: 'USD'
+      });
+      // Successfully resolves fake IDB open request.
+      fakeRequest.onsuccess();
+      // Clear promise chain started by logEvent.
+      await clock.runAllAsync();
+      expect(gtagStub).to.not.have.been.called;
+      expect(warnStub.args[0][1]).to.include(
+        AnalyticsError.INVALID_ANALYTICS_CONTEXT
+      );
+      expect(warnStub.args[0][1]).to.include('browser extension');
+      window.chrome = undefined;
+    });
+    it('Warns on logEvent if indexedDB API not available', async () => {
+      const idbStub = stub(window, 'indexedDB').value(undefined);
+      analyticsInstance = analyticsFactory(app, installations);
       analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
         currency: 'USD'
       });
@@ -267,8 +259,25 @@ describe('FirebaseAnalytics instance tests', () => {
       await clock.runAllAsync();
       expect(gtagStub).to.not.have.been.called;
       expect(warnStub.args[0][1]).to.include(
-        AnalyticsError.INVALID_INDEXED_DB_CONTEXT
+        AnalyticsError.INVALID_ANALYTICS_CONTEXT
       );
+      expect(warnStub.args[0][1]).to.include('IndexedDB is not available');
+      idbStub.restore();
+    });
+    it('Warns on logEvent if indexedDB.open() not allowed', async () => {
+      idbOpenStub.restore();
+      idbOpenStub = stub(indexedDB, 'open').throws('idb open error test');
+      analyticsInstance = analyticsFactory(app, installations);
+      analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
+        currency: 'USD'
+      });
+      // Clear promise chain started by logEvent.
+      await clock.runAllAsync();
+      expect(gtagStub).to.not.have.been.called;
+      expect(warnStub.args[0][1]).to.include(
+        AnalyticsError.INVALID_ANALYTICS_CONTEXT
+      );
+      expect(warnStub.args[0][1]).to.include('idb open error test');
     });
   });
 
