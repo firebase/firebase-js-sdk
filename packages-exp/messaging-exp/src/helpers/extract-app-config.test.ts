@@ -42,14 +42,12 @@ describe('extractAppConfig', () => {
     ).to.throw('Missing App configuration value: "App Configuration Object"');
 
     let firebaseApp = getFakeApp();
-    // @ts-expect-error
     delete firebaseApp.options;
     expect(() => extractAppConfig(firebaseApp)).to.throw(
       'Missing App configuration value: "App Configuration Object"'
     );
 
     firebaseApp = getFakeApp();
-    // @ts-expect-error
     delete firebaseApp.name;
     expect(() => extractAppConfig(firebaseApp)).to.throw(
       'Missing App configuration value: "App Name"'

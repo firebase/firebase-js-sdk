@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@firebase/component": "0.1.19",
-    "@firebase/installations-exp": "0.0.800",
+    "@firebase/installations": "0.4.17",
     "@firebase/messaging-types-exp": "0.0.800",
     "@firebase/util": "0.3.2",
     "eslint": "^7.3.1",

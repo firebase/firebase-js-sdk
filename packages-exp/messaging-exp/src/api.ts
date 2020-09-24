@@ -69,7 +69,7 @@ export class MessagingService implements _FirebaseService {
   readonly swController: SwController | null = null;
 
   constructor(container: ComponentContainer) {
-    const app = container.getProvider('app').getImmediate();
+    const app = container.getProvider('app-exp').getImmediate();
     const appConfig = extractAppConfig(app);
     const installations = container.getProvider('installations').getImmediate();
     const analyticsProvider = container.getProvider('analytics-internal');

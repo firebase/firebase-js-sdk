@@ -21,7 +21,7 @@ import {
 } from '@firebase/analytics-interop-types';
 import { FirebaseApp, FirebaseOptions } from '@firebase/app-types-exp';
 
-import { FirebaseInstallations } from '@firebase/installations-types-exp';
+import { FirebaseInstallations } from '@firebase/installations-types';
 import { FirebaseInternalDependencies } from '../../interfaces/internal-dependencies';
 import { Provider } from '@firebase/component';
 import { extractAppConfig } from '../../helpers/extract-app-config';
@@ -38,7 +38,7 @@ export function getFakeFirebaseDependencies(
   };
 }
 
-export function getFakeApp(options: FirebaseOptions = {}): FirebaseApp {
+export function getFakeApp(options: FirebaseOptions = {}): any {
   options = {
     apiKey: 'apiKey',
     projectId: 'projectId',
@@ -54,8 +54,8 @@ export function getFakeApp(options: FirebaseOptions = {}): FirebaseApp {
     options,
     automaticDataCollectionEnabled: true,
     delete: async () => {},
-    messaging: (() => null as unknown) as FirebaseApp['messaging']
-    // installations: () => getFakeInstallations()
+    messaging: (() => null as unknown) as FirebaseApp['messaging'],
+    installations: () => getFakeInstallations()
   };
 }
 

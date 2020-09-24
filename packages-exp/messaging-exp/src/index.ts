@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import '@firebase/installations-exp';
-
 import {
   Component,
   ComponentContainer,
