@@ -73,6 +73,11 @@ export interface FirebaseAnalytics {
    * window['ga-disable-analyticsId'] = true;
    */
   setAnalyticsCollectionEnabled(enabled: boolean): void;
+
+  /**
+   * Sets cookie flags on gtag
+   * */
+  setCookieFlags(flags: string, options?: AnalyticsCallOptions): void;
 }
 
 /**

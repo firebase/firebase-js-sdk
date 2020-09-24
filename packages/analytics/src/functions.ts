@@ -22,7 +22,7 @@ import {
   ControlParams,
   EventParams
 } from '@firebase/analytics-types';
-import { GtagCommand } from './constants';
+import { COOKIE_FLAGS, GtagCommand } from './constants';
 /**
  * Logs an analytics event through the Firebase SDK.
  *
@@ -94,6 +94,24 @@ export async function setUserId(
     gtagFunction(GtagCommand.CONFIG, measurementId, {
       update: true,
       'user_id': id
+    });
+  }
+}
+
+export async function setCookieFlags(
+  gtagFunction: Gtag,
+  initializationPromise: Promise<string>,
+  flags: string | null,
+  options?: AnalyticsCallOptions
+): Promise<void> {
+  if (options && options.global) {
+    gtagFunction(GtagCommand.SET, { [COOKIE_FLAGS]: flags });
+    return Promise.resolve();
+  } else {
+    const measurementId = await initializationPromise;
+    gtagFunction(GtagCommand.CONFIG, measurementId, {
+      update: true,
+      [COOKIE_FLAGS]: flags
     });
   }
 }
