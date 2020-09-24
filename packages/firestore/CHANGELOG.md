@@ -1,5 +1,13 @@
 # @firebase/firestore
 
+## 1.17.1
+
+### Patch Changes
+
+- [`4dc8817c3`](https://github.com/firebase/firebase-js-sdk/commit/4dc8817c3faf172152a5b1e7778d0ce844510f97) [#3821](https://github.com/firebase/firebase-js-sdk/pull/3821) - Fixes an issue that prevents `waitForPendingWrites()` from resolving in background tabs when multi-tab is used (https://github.com/firebase/firebase-js-sdk/issues/3816).
+
+* [`16c6ba979`](https://github.com/firebase/firebase-js-sdk/commit/16c6ba9793681f1695f855f22a19a618ceface5f) [#3820](https://github.com/firebase/firebase-js-sdk/pull/3820) (fixes [#3814](https://github.com/firebase/firebase-js-sdk/issues/3814)) - Fixes a "Comparison with -0" lint warning for customers that build from source.
+
 ## 1.17.0
 
 ### Minor Changes
