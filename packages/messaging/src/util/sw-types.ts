@@ -27,6 +27,7 @@
 
 // Not the whole interface, just the parts we're currently using. If TS claims that something does
 // not exist on this, feel free to add it.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface ServiceWorkerGlobalScope {
   readonly location: WorkerLocation;
   readonly clients: Clients;

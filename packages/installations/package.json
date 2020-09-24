@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@firebase/app": "0.6.11",
-    "rollup": "2.26.7",
+    "rollup": "2.28.1",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-node-resolve": "5.2.0",

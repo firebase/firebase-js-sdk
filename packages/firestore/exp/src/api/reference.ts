@@ -452,7 +452,10 @@ export function addDoc<T>(
   firestore._verifyNotTerminated();
 
   const docRef = doc(reference);
-  const convertedValue = applyFirestoreDataConverter(reference.converter, data);
+  const convertedValue = applyFirestoreDataConverter(
+    reference._converter,
+    data
+  );
 
   const dataReader = newUserDataReader(reference.firestore);
   const parsed = parseSetData(
@@ -460,7 +463,7 @@ export function addDoc<T>(
     'addDoc',
     docRef._key,
     convertedValue,
-    reference.converter !== null,
+    reference._converter !== null,
     {}
   );
 

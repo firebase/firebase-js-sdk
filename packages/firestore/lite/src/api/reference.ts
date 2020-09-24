@@ -144,10 +144,10 @@ export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<
 
   constructor(
     firestore: FirebaseFirestore,
-    readonly converter: FirestoreDataConverter<T> | null,
+    _converter: FirestoreDataConverter<T> | null,
     readonly _path: ResourcePath
   ) {
-    super(firestore._databaseId, new DocumentKey(_path), converter);
+    super(firestore._databaseId, new DocumentKey(_path), _converter);
     this.firestore = firestore;
   }
 
@@ -174,26 +174,6 @@ export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<
       this.firestore,
       this._converter,
       this._key.path.popLast()
-    );
-  }
-
-  /**
-   * Gets a `CollectionReference` instance that refers to the collection at
-   * the specified path.
-   *
-   * @param collectionPath A slash-separated path to a collection.
-   * @return The `CollectionReference` instance.
-   */
-  collection(path: string): CollectionReference<DocumentData> {
-    validateNonEmptyArgument('DocumentReference.collection', 'path', path);
-    const absolutePath = ResourcePath.fromString(this.path).child(
-      ResourcePath.fromString(path)
-    );
-    validateCollectionPath(absolutePath);
-    return new CollectionReference(
-      this.firestore,
-      /* converter= */ null,
-      absolutePath
     );
   }
 
@@ -228,7 +208,7 @@ export class Query<T = DocumentData> {
   // This is the lite version of the Query class in the main SDK.
   constructor(
     firestore: FirebaseFirestore,
-    readonly converter: FirestoreDataConverter<T> | null,
+    readonly _converter: FirestoreDataConverter<T> | null,
     readonly _query: InternalQuery
   ) {
     this.firestore = firestore;
@@ -302,7 +282,7 @@ class QueryFilterConstraint extends QueryConstraint {
     );
     return new Query(
       query.firestore,
-      query.converter,
+      query._converter,
       queryWithAddedFilter(query._query, filter)
     );
   }
@@ -317,11 +297,13 @@ export type WhereFilterOp =
   | '<'
   | '<='
   | '=='
+  | '!='
   | '>='
   | '>'
   | 'array-contains'
   | 'in'
-  | 'array-contains-any';
+  | 'array-contains-any'
+  | 'not-in';
 
 /**
  * Creates and returns a new Query with the additional filter that documents
@@ -359,7 +341,7 @@ class QueryOrderByConstraint extends QueryConstraint {
     const orderBy = newQueryOrderBy(query._query, this._field, this._direction);
     return new Query(
       query.firestore,
-      query.converter,
+      query._converter,
       queryWithAddedOrderBy(query._query, orderBy)
     );
   }
@@ -403,7 +385,7 @@ class QueryLimitConstraint extends QueryConstraint {
   _apply<T>(query: Query<T>): Query<T> {
     return new Query(
       query.firestore,
-      query.converter,
+      query._converter,
       queryWithLimit(query._query, this._limit, this._limitType)
     );
   }
@@ -454,7 +436,7 @@ class QueryStartAtConstraint extends QueryConstraint {
     );
     return new Query(
       query.firestore,
-      query.converter,
+      query._converter,
       queryWithStartAt(query._query, bound)
     );
   }
@@ -536,7 +518,7 @@ class QueryEndAtConstraint extends QueryConstraint {
     );
     return new Query(
       query.firestore,
-      query.converter,
+      query._converter,
       queryWithEndAt(query._query, bound)
     );
   }
@@ -670,26 +652,6 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
   }
 
   /**
-   * Get a `DocumentReference` for the document within the collection at the
-   * specified path. If no path is specified, an automatically-generated
-   * unique ID will be used for the returned DocumentReference.
-   *
-   * @param documentPath A slash-separated path to a document.
-   * @return The `DocumentReference` instance.
-   */
-  doc(path?: string): DocumentReference<T> {
-    // We allow omission of 'pathString' but explicitly prohibit passing in both
-    // 'undefined' and 'null'.
-    if (arguments.length === 0) {
-      path = AutoId.newId();
-    }
-    validateNonEmptyArgument('CollectionReference.doc', 'path', path);
-    const absolutePath = this._path.child(ResourcePath.fromString(path!));
-    validateDocumentPath(absolutePath);
-    return new DocumentReference(this.firestore, this.converter, absolutePath);
-  }
-
-  /**
    * Applies a custom data converter to this CollectionReference, allowing you
    * to use your own custom model objects with Firestore. When you call add()
    * on the returned CollectionReference instance, the provided converter will
@@ -714,26 +676,30 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
  */
 export function collection(
   firestore: FirebaseFirestore,
-  collectionPath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
 export function collection(
   reference: CollectionReference<unknown>,
-  collectionPath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
 export function collection(
   reference: DocumentReference,
-  collectionPath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
 export function collection(
   parent:
     | FirebaseFirestore
     | DocumentReference<unknown>
     | CollectionReference<unknown>,
-  relativePath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData> {
-  validateNonEmptyArgument('collection', 'path', relativePath);
+  validateNonEmptyArgument('collection', 'path', path);
   if (parent instanceof FirebaseFirestore) {
-    const absolutePath = ResourcePath.fromString(relativePath);
+    const absolutePath = ResourcePath.fromString(path, ...pathComponents);
     validateCollectionPath(absolutePath);
     return new CollectionReference(parent, /* converter= */ null, absolutePath);
   } else {
@@ -747,9 +713,10 @@ export function collection(
           'a DocumentReference or FirebaseFirestore'
       );
     }
-    const absolutePath = ResourcePath.fromString(parent.path).child(
-      ResourcePath.fromString(relativePath)
-    );
+    const absolutePath = ResourcePath.fromString(
+      parent.path,
+      ...pathComponents
+    ).child(ResourcePath.fromString(path));
     validateCollectionPath(absolutePath);
     return new CollectionReference(
       parent.firestore,
@@ -801,32 +768,36 @@ export function collectionGroup(
  */
 export function doc(
   firestore: FirebaseFirestore,
-  documentPath: string
+  path: string,
+  ...pathComponents: string[]
 ): DocumentReference<DocumentData>;
 export function doc<T>(
   reference: CollectionReference<T>,
-  documentPath?: string
+  path?: string,
+  ...pathComponents: string[]
 ): DocumentReference<T>;
 export function doc(
   reference: DocumentReference<unknown>,
-  documentPath: string
+  path: string,
+  ...pathComponents: string[]
 ): DocumentReference<DocumentData>;
 export function doc<T>(
   parent:
     | FirebaseFirestore
     | CollectionReference<T>
     | DocumentReference<unknown>,
-  relativePath?: string
+  path?: string,
+  ...pathComponents: string[]
 ): DocumentReference {
   // We allow omission of 'pathString' but explicitly prohibit passing in both
   // 'undefined' and 'null'.
   if (arguments.length === 1) {
-    relativePath = AutoId.newId();
+    path = AutoId.newId();
   }
-  validateNonEmptyArgument('doc', 'path', relativePath);
+  validateNonEmptyArgument('doc', 'path', path);
 
   if (parent instanceof FirebaseFirestore) {
-    const absolutePath = ResourcePath.fromString(relativePath);
+    const absolutePath = ResourcePath.fromString(path, ...pathComponents);
     validateDocumentPath(absolutePath);
     return new DocumentReference(parent, /* converter= */ null, absolutePath);
   } else {
@@ -841,12 +812,12 @@ export function doc<T>(
       );
     }
     const absolutePath = parent._path.child(
-      ResourcePath.fromString(relativePath)
+      ResourcePath.fromString(path, ...pathComponents)
     );
     validateDocumentPath(absolutePath);
     return new DocumentReference(
       parent.firestore,
-      parent instanceof CollectionReference ? parent.converter : null,
+      parent instanceof CollectionReference ? parent._converter : null,
       absolutePath
     );
   }
@@ -881,7 +852,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
           query.firestore,
           doc.key,
           doc,
-          query.converter
+          query._converter
         )
     );
 
@@ -992,7 +963,10 @@ export function addDoc<T>(
 ): Promise<DocumentReference<T>> {
   const docRef = doc(reference);
 
-  const convertedValue = applyFirestoreDataConverter(reference.converter, data);
+  const convertedValue = applyFirestoreDataConverter(
+    reference._converter,
+    data
+  );
 
   const dataReader = newUserDataReader(reference.firestore);
   const parsed = parseSetData(
@@ -1023,7 +997,7 @@ export function refEqual<T>(
     return (
       left.firestore === right.firestore &&
       left.path === right.path &&
-      left.converter === right.converter
+      left._converter === right._converter
     );
   }
   return false;
@@ -1040,7 +1014,7 @@ export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean {
     return (
       left.firestore === right.firestore &&
       queryEquals(left._query, right._query) &&
-      left.converter === right.converter
+      left._converter === right._converter
     );
   }
   return false;

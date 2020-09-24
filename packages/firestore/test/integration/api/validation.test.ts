@@ -242,7 +242,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           'Function collection() cannot be called with an empty path.'
         );
         expect(() => baseDocRef.collection('')).to.throw(
-          'Function DocumentReference.collection() cannot be called with an empty path.'
+          'Function collection() cannot be called with an empty path.'
         );
       } else {
         expect(() => db.collection('')).to.throw(
@@ -296,7 +296,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       const collection = db.collection('test-collection');
       const doc = collection.doc('test-document');
       for (const path of badPaths) {
-        const reason = `Invalid path (${path}). Paths must not contain // in them.`;
+        const reason = `Invalid segment (${path}). Paths must not contain // in them.`;
         expect(() => db.collection(path)).to.throw(reason);
         expect(() => db.doc(path)).to.throw(reason);
         expect(() => collection.doc(path)).to.throw(reason);
@@ -314,7 +314,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           'Function doc() cannot be called with an empty path.'
         );
         expect(() => baseCollectionRef.doc('')).to.throw(
-          'Function CollectionReference.doc() cannot be called with an empty path.'
+          'Function doc() cannot be called with an empty path.'
         );
       } else {
         expect(() => db.doc('')).to.throw(
@@ -540,11 +540,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         return expectWriteToFail(
           db,
           { 'array': [FieldValue.serverTimestamp()] },
-          `${
-            usesFunctionalApi()
-              ? 'serverTimestamp'
-              : 'FieldValue.serverTimestamp'
-          }() is not currently supported inside arrays`
+          'FieldValue.serverTimestamp() is not currently supported inside arrays'
         );
       }
     );
@@ -666,9 +662,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         return expectSetToFail(
           db,
           { foo: FieldValue.delete() },
-          `${
-            usesFunctionalApi() ? 'deleteField' : 'FieldValue.delete'
-          }() cannot be used with set() unless you pass ` +
+          'FieldValue.delete() cannot be used with set() unless you pass ' +
             '{merge:true} (found in field foo)'
         );
       }
@@ -681,9 +675,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         return expectUpdateToFail(
           db,
           { foo: { bar: FieldValue.delete() } },
-          `${
-            usesFunctionalApi() ? 'deleteField' : 'FieldValue.delete'
-          }() can only appear at the top level of your ` +
+          'FieldValue.delete() can only appear at the top level of your ' +
             'update data (found in field foo.bar)'
         );
       }
@@ -786,9 +778,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
         `Function ${
           usesFunctionalApi() ? 'where' : 'Query.where'
         }() called with invalid data. ` +
-          `${
-            usesFunctionalApi() ? 'arrayUnion' : 'FieldValue.arrayUnion'
-          }() can only be used with update() and set() (found in field test)`
+          'FieldValue.arrayUnion() can only be used with update() and set() ' +
+          '(found in field test)'
       );
 
       expect(() =>
@@ -797,9 +788,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
         `Function ${
           usesFunctionalApi() ? 'where' : 'Query.where'
         }() called with invalid data. ` +
-          `${
-            usesFunctionalApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
-          }() can only be used with update() and set() (found in field test)`
+          'FieldValue.arrayRemove() can only be used with update() and set() ' +
+          '(found in field test)'
       );
     });
 
@@ -808,25 +798,20 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         doc.set({ x: FieldValue.arrayUnion(1, new TestClass('foo')) })
       ).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'arrayUnion' : 'FieldValue.arrayUnion'
-        }() called with invalid data. Unsupported field value: a custom ` +
-          'TestClass object'
+        'Function FieldValue.arrayUnion() called with invalid data. ' +
+          'Unsupported field value: a custom TestClass object'
       );
 
       expect(() =>
         doc.set({ x: FieldValue.arrayRemove(1, new TestClass('foo')) })
       ).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
-        }() called with invalid data. Unsupported field value: a custom ` +
-          'TestClass object'
+        'Function FieldValue.arrayRemove() called with invalid data. ' +
+          'Unsupported field value: a custom TestClass object'
       );
 
       expect(() => doc.set({ x: FieldValue.arrayRemove(undefined) })).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
-        }() called with invalid data. Unsupported field value: undefined`
+        'Function FieldValue.arrayRemove() called with invalid data. ' +
+          'Unsupported field value: undefined'
       );
     });
 
@@ -836,17 +821,15 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         doc.set({ x: FieldValue.arrayUnion(1, ['nested']) })
       ).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'arrayUnion' : 'FieldValue.arrayUnion'
-        }() called with invalid data. Nested arrays are not supported`
+        'Function FieldValue.arrayUnion() called with invalid data. ' +
+          'Nested arrays are not supported'
       );
 
       expect(() =>
         doc.set({ x: FieldValue.arrayRemove(1, ['nested']) })
       ).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'arrayRemove' : 'FieldValue.arrayRemove'
-        }() called with invalid data. Nested arrays are not supported`
+        'Function FieldValue.arrayRemove() called with invalid data. ' +
+          'Nested arrays are not supported'
       );
     });
   });
@@ -875,10 +858,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
       ).to.throw(
         `Function ${
           usesFunctionalApi() ? 'where' : 'Query.where'
-        }() called with invalid data. ` +
-          `${
-            usesFunctionalApi() ? 'increment' : 'FieldValue.increment'
-          }() can only be used with update() and set() (found in field test)`
+        }() called with invalid data. FieldValue.increment() can only be ` +
+          'used with update() and set() (found in field test)'
       );
     });
 
