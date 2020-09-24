@@ -26,19 +26,6 @@ import { GtagCommand } from './constants';
 import { AnalyticsError } from './errors';
 import { logger } from './logger';
 
-async function handleInitializationPromiseErrors(
-  initializationPromise: Promise<string>
-): Promise<string | null> {
-  try {
-    return await initializationPromise;
-  } catch (e) {
-    if (e.message.includes(AnalyticsError.INVALID_ANALYTICS_CONTEXT)) {
-      logger.warn(e.message);
-      return null;
-    }
-  }
-  return null;
-}
 /**
  * Logs an analytics event through the Firebase SDK.
  *
@@ -53,21 +40,24 @@ export async function logEvent(
   eventParams?: EventParams,
   options?: AnalyticsCallOptions
 ): Promise<void> {
-  if (options && options.global) {
-    gtagFunction(GtagCommand.EVENT, eventName, eventParams);
-    return;
-  } else {
-    const measurementId = await handleInitializationPromiseErrors(
-      initializationPromise
-    );
-    if (measurementId == null) {
+  try {
+    if (options && options.global) {
+      gtagFunction(GtagCommand.EVENT, eventName, eventParams);
       return;
+    } else {
+      const measurementId = await initializationPromise;
+      const params: EventParams | ControlParams = {
+        ...eventParams,
+        'send_to': measurementId
+      };
+      gtagFunction(GtagCommand.EVENT, eventName, params);
     }
-    const params: EventParams | ControlParams = {
-      ...eventParams,
-      'send_to': measurementId
-    };
-    gtagFunction(GtagCommand.EVENT, eventName, params);
+  } catch (e) {
+    if (e.message.includes(AnalyticsError.INVALID_ANALYTICS_CONTEXT)) {
+      logger.warn(e.message);
+    } else {
+      throw e;
+    }
   }
 }
 
@@ -83,20 +73,23 @@ export async function setCurrentScreen(
   screenName: string | null,
   options?: AnalyticsCallOptions
 ): Promise<void> {
-  if (options && options.global) {
-    gtagFunction(GtagCommand.SET, { 'screen_name': screenName });
-    return Promise.resolve();
-  } else {
-    const measurementId = await handleInitializationPromiseErrors(
-      initializationPromise
-    );
-    if (measurementId == null) {
-      return;
+  try {
+    if (options && options.global) {
+      gtagFunction(GtagCommand.SET, { 'screen_name': screenName });
+      return Promise.resolve();
+    } else {
+      const measurementId = await initializationPromise;
+      gtagFunction(GtagCommand.CONFIG, measurementId, {
+        update: true,
+        'screen_name': screenName
+      });
     }
-    gtagFunction(GtagCommand.CONFIG, measurementId, {
-      update: true,
-      'screen_name': screenName
-    });
+  } catch (e) {
+    if (e.message.includes(AnalyticsError.INVALID_ANALYTICS_CONTEXT)) {
+      logger.warn(e.message);
+    } else {
+      throw e;
+    }
   }
 }
 
@@ -112,20 +105,23 @@ export async function setUserId(
   id: string | null,
   options?: AnalyticsCallOptions
 ): Promise<void> {
-  if (options && options.global) {
-    gtagFunction(GtagCommand.SET, { 'user_id': id });
-    return Promise.resolve();
-  } else {
-    const measurementId = await handleInitializationPromiseErrors(
-      initializationPromise
-    );
-    if (measurementId == null) {
-      return;
+  try {
+    if (options && options.global) {
+      gtagFunction(GtagCommand.SET, { 'user_id': id });
+      return Promise.resolve();
+    } else {
+      const measurementId = await initializationPromise;
+      gtagFunction(GtagCommand.CONFIG, measurementId, {
+        update: true,
+        'user_id': id
+      });
     }
-    gtagFunction(GtagCommand.CONFIG, measurementId, {
-      update: true,
-      'user_id': id
-    });
+  } catch (e) {
+    if (e.message.includes(AnalyticsError.INVALID_ANALYTICS_CONTEXT)) {
+      logger.warn(e.message);
+    } else {
+      throw e;
+    }
   }
 }
 
@@ -141,25 +137,28 @@ export async function setUserProperties(
   properties: CustomParams,
   options?: AnalyticsCallOptions
 ): Promise<void> {
-  if (options && options.global) {
-    const flatProperties: { [key: string]: unknown } = {};
-    for (const key of Object.keys(properties)) {
-      // use dot notation for merge behavior in gtag.js
-      flatProperties[`user_properties.${key}`] = properties[key];
+  try {
+    if (options && options.global) {
+      const flatProperties: { [key: string]: unknown } = {};
+      for (const key of Object.keys(properties)) {
+        // use dot notation for merge behavior in gtag.js
+        flatProperties[`user_properties.${key}`] = properties[key];
+      }
+      gtagFunction(GtagCommand.SET, flatProperties);
+      return Promise.resolve();
+    } else {
+      const measurementId = await initializationPromise;
+      gtagFunction(GtagCommand.CONFIG, measurementId, {
+        update: true,
+        'user_properties': properties
+      });
     }
-    gtagFunction(GtagCommand.SET, flatProperties);
-    return Promise.resolve();
-  } else {
-    const measurementId = await handleInitializationPromiseErrors(
-      initializationPromise
-    );
-    if (measurementId == null) {
-      return;
+  } catch (e) {
+    if (e.message.includes(AnalyticsError.INVALID_ANALYTICS_CONTEXT)) {
+      logger.warn(e.message);
+    } else {
+      throw e;
     }
-    gtagFunction(GtagCommand.CONFIG, measurementId, {
-      update: true,
-      'user_properties': properties
-    });
   }
 }
 
@@ -172,11 +171,14 @@ export async function setAnalyticsCollectionEnabled(
   initializationPromise: Promise<string>,
   enabled: boolean
 ): Promise<void> {
-  const measurementId = await handleInitializationPromiseErrors(
-    initializationPromise
-  );
-  if (measurementId == null) {
-    return;
+  try {
+    const measurementId = await initializationPromise;
+    window[`ga-disable-${measurementId}`] = !enabled;
+  } catch (e) {
+    if (e.message.includes(AnalyticsError.INVALID_ANALYTICS_CONTEXT)) {
+      logger.warn(e.message);
+    } else {
+      throw e;
+    }
   }
-  window[`ga-disable-${measurementId}`] = !enabled;
 }
