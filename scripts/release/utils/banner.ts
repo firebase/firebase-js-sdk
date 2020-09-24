@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,10 @@
  * limitations under the License.
  */
 
-const { readFile: _readFile } = require('fs');
-const { promisify } = require('util');
-const { resolve } = require('path');
-const readFile = promisify(_readFile);
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
-exports.bannerText = async () => {
-  let BANNER_TEXT = await readFile(resolve(__dirname, 'banner.txt'), 'utf8');
+export function bannerText() {
+  let BANNER_TEXT = readFileSync(resolve(__dirname, 'banner.txt'), 'utf8');
   console.log(BANNER_TEXT);
-};
+}

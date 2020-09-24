@@ -1,0 +1,66 @@
+name: Prerelease manual deploy
+
+on:
+    workflow_dispatch:
+        inputs:
+            prereleaseName:
+                description: 'Prerelease name. e.g. 1.0.0-<prereleaseName>'
+                required: true
+            npmTag:
+                description: 'Npm tag to publish to. e.g. npm install firebase@<npmTag>'
+                required: true
+jobs:
+    deploy:
+        name: Prerelease Deploy
+        runs-on: ubuntu-latest
+    
+        steps:
+        - name: Checkout Repo
+          uses: actions/checkout@master
+          with:
+            # Canary release script requires git history and tags.
+            fetch-depth: 0
+        - name: Set up Node (10)
+          uses: actions/setup-node@v1
+          with:
+            node-version: 10.x
+        - name: Yarn install
+          run: yarn
+        - name: Deploy canary
+          run: yarn release --canary
+          env:
+            NPM_TOKEN_ANALYTICS: ${{secrets.NPM_TOKEN_ANALYTICS}}
+            NPM_TOKEN_ANALYTICS_INTEROP_TYPES: ${{secrets.NPM_TOKEN_ANALYTICS_INTEROP_TYPES}}
+            NPM_TOKEN_ANALYTICS_TYPES: ${{secrets.NPM_TOKEN_ANALYTICS_TYPES}}
+            NPM_TOKEN_APP: ${{secrets.NPM_TOKEN_APP}}
+            NPM_TOKEN_APP_TYPES: ${{secrets.NPM_TOKEN_APP_TYPES}}
+            NPM_TOKEN_AUTH: ${{secrets.NPM_TOKEN_AUTH}}
+            NPM_TOKEN_AUTH_INTEROP_TYPES: ${{secrets.NPM_TOKEN_AUTH_INTEROP_TYPES}}
+            NPM_TOKEN_AUTH_TYPES: ${{secrets.NPM_TOKEN_AUTH_TYPES}}
+            NPM_TOKEN_COMPONENT: ${{secrets.NPM_TOKEN_COMPONENT}}
+            NPM_TOKEN_DATABASE: ${{secrets.NPM_TOKEN_DATABASE}}
+            NPM_TOKEN_DATABASE_TYPES: ${{secrets.NPM_TOKEN_DATABASE_TYPES}}
+            NPM_TOKEN_FIRESTORE: ${{secrets.NPM_TOKEN_FIRESTORE}}
+            NPM_TOKEN_FIRESTORE_TYPES: ${{secrets.NPM_TOKEN_FIRESTORE_TYPES}}
+            NPM_TOKEN_FUNCTIONS: ${{secrets.NPM_TOKEN_FUNCTIONS}}
+            NPM_TOKEN_FUNCTIONS_TYPES: ${{secrets.NPM_TOKEN_FUNCTIONS_TYPES}}
+            NPM_TOKEN_INSTALLATIONS: ${{secrets.NPM_TOKEN_INSTALLATIONS}}
+            NPM_TOKEN_INSTALLATIONS_TYPES: ${{secrets.NPM_TOKEN_INSTALLATIONS_TYPES}}
+            NPM_TOKEN_LOGGER: ${{secrets.NPM_TOKEN_LOGGER}}
+            NPM_TOKEN_MESSAGING: ${{secrets.NPM_TOKEN_MESSAGING}}
+            NPM_TOKEN_MESSAGING_TYPES: ${{secrets.NPM_TOKEN_MESSAGING_TYPES}}
+            NPM_TOKEN_PERFORMANCE: ${{secrets.NPM_TOKEN_PERFORMANCE}}
+            NPM_TOKEN_PERFORMANCE_TYPES: ${{secrets.NPM_TOKEN_PERFORMANCE_TYPES}}
+            NPM_TOKEN_POLYFILL: ${{secrets.NPM_TOKEN_POLYFILL}}
+            NPM_TOKEN_REMOTE_CONFIG: ${{secrets.NPM_TOKEN_REMOTE_CONFIG}}
+            NPM_TOKEN_REMOTE_CONFIG_TYPES: ${{secrets.NPM_TOKEN_REMOTE_CONFIG_TYPES}}
+            NPM_TOKEN_RULES_UNIT_TESTING: ${{secrets.NPM_TOKEN_RULES_UNIT_TESTING}}
+            NPM_TOKEN_STORAGE: ${{secrets.NPM_TOKEN_STORAGE}}
+            NPM_TOKEN_STORAGE_TYPES: ${{secrets.NPM_TOKEN_STORAGE_TYPES}}
+            NPM_TOKEN_TESTING: ${{secrets.NPM_TOKEN_TESTING}}
+            NPM_TOKEN_UTIL: ${{secrets.NPM_TOKEN_UTIL}}
+            NPM_TOKEN_WEBCHANNEL_WRAPPER: ${{secrets.NPM_TOKEN_WEBCHANNEL_WRAPPER}}
+            NPM_TOKEN_FIREBASE: ${{secrets.NPM_TOKEN_FIREBASE}}
+            NPM_TOKEN_RXFIRE: ${{secrets.NPM_TOKEN_RXFIRE}}
+            CI: true
+    

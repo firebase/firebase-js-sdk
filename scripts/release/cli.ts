@@ -15,149 +15,83 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { exec } from 'child-process-promise';
-import { createPromptModule } from 'inquirer';
-import { argv } from 'yargs';
+import * as yargs from 'yargs';
+import { runPrerelease } from './prerelease';
+import { runRelease } from './release';
+import { bannerText } from './utils/banner';
 
-import { runCanaryRelease } from './canary';
-import { ReleaseType } from './utils/enums';
-import { publish } from './utils/publish';
-import { pushReleaseTagsToGithub, cleanTree, hasDiff } from './utils/git';
-import {
-  releaseType as releaseTypePrompt,
-  validateVersions
-} from './utils/inquirer';
-import { reinstallDeps, buildPackages } from './utils/yarn';
-import { runTests, setupTestDeps } from './utils/tests';
-import { bumpVersionForStaging } from './staging';
+/**
+ * Welcome to the firebase release CLI!
+ */
+bannerText();
 
-const { bannerText } = require('./utils/banner');
-const prompt = createPromptModule();
-
-(async () => {
-  try {
-    /**
-     * Welcome to the firebase release CLI!
-     */
-    await bannerText();
-
-    /**
-     * If there are unstaged changes, error.
-     * Use --ignoreUnstaged to skip, such as if release-cli is continuing from a
-     * checkpoint.
-     */
-    if (!argv.ignoreUnstaged && (await hasDiff())) {
-      throw new Error(
-        'You have unstaged changes, stash your changes before attempting to publish'
-      );
-    }
-
-    /**
-     * Log the user who will be publishing the packages
-     */
-    if (!process.env.CI) {
-      const { stdout: whoami } = await exec('npm whoami');
-      console.log(`Publishing as ${whoami}`);
-    }
-
-    /**
-     * Determine if the current release is a staging or production release
-     */
-    const releaseType: string = await (async () => {
-      if (argv.canary) return ReleaseType.Canary;
-      /**
-       * Capture the release type if it was passed to the CLI via args
-       */
-      if (
-        argv.releaseType &&
-        (argv.releaseType === ReleaseType.Staging ||
-          argv.releaseType === ReleaseType.Production)
-      ) {
-        return argv.releaseType;
+yargs
+  .command(
+    '$0',
+    'Make a prod or staging release',
+    {
+      skipReinstall: {
+        type: 'boolean',
+        default: false
+      },
+      skipTests: {
+        type: 'boolean',
+        default: false
+      },
+      ignoreUnstaged: {
+        type: 'boolean',
+        default: false
+      },
+      releaseType: {
+        type: 'string'
+      },
+      dryRun: {
+        type: 'boolean',
+        default: false
       }
-
-      /**
-       * Prompt for the release type (i.e. staging/prod)
-       */
-      const responses = await prompt<{ [key: string]: string }>([
-        releaseTypePrompt
-      ]);
-      return responses.releaseType;
-    })();
-
-    if (releaseType === ReleaseType.Canary) {
-      await runCanaryRelease();
-    } else {
-      // Staging or Prod release
-
-      /**
-       * Bump versions for staging release
-       * NOTE: For prod, versions are bumped in a PR which should be merged before running this script
-       */
-      if (releaseType === ReleaseType.Staging) {
-        const updatedPackages = await bumpVersionForStaging();
-
-        // We don't need to validate versions for prod releases because prod releases
-        // are validated in the version bump PR which should be merged before running this script
-        const { versionCheck } = await prompt([
-          validateVersions(updatedPackages)
-        ]);
-
-        if (!versionCheck) {
-          throw new Error('Version check failed');
-        }
+    },
+    argv => runRelease(argv)
+  )
+  .command(
+    'canary',
+    'make a canary release',
+    {
+      dryRun: {
+        type: 'boolean',
+        default: false
       }
-
-      /**
-       * Users can pass --skipReinstall to skip the installation step
-       */
-      if (!argv.skipReinstall) {
-        /**
-         * Clean install dependencies
-         */
-        console.log('\r\nVerifying Build');
-        await cleanTree();
-        await reinstallDeps();
+    },
+    argv =>
+      runPrerelease({
+        prereleaseName: 'canary',
+        npmTag: 'canary',
+        dryRun: argv.dryRun
+      })
+  )
+  .command(
+    'custom',
+    'make a custom prerelease',
+    {
+      prereleaseName: {
+        type: 'string',
+        alias: 'p',
+        demandOption: true,
+        desc:
+          'The prerelease label used in verison number. e.g. 1.0.0-<prereleaseName>'
+      },
+      npmTag: {
+        type: 'string',
+        alias: 't',
+        demandOption: true,
+        desc:
+          'The npm tag the packages are published to. e.g. npm install firebase@<npmTag>'
+      },
+      dryRun: {
+        type: 'boolean',
+        default: false
       }
-
-      /**
-       * build packages
-       */
-      await buildPackages();
-
-      /**
-       * Users can pass --skipTests to skip the testing step
-       */
-      if (!argv.skipTests) {
-        await setupTestDeps();
-        await runTests();
-      }
-
-      /**
-       * Release new versions to NPM using changeset
-       * It will also create tags
-       */
-      await publish(releaseType);
-
-      /**
-       * Changeset creats tags for staging releases as well,
-       * but we should only push tags to Github for prod releases
-       */
-      if (releaseType === ReleaseType.Production) {
-        /**
-         * Push release tags created by changeset in publish() to Github
-         */
-        await pushReleaseTagsToGithub();
-      }
-    }
-  } catch (err) {
-    /**
-     * Log any errors that happened during the process
-     */
-    console.error(err);
-    /**
-     * Exit with an error code
-     */
-    process.exit(1);
-  }
-})();
+    },
+    argv => runPrerelease(argv)
+  )
+  .demandCommand()
+  .help().argv;
