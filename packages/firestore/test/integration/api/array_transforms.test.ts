@@ -21,6 +21,9 @@ import { expect } from 'chai';
 import { EventsAccumulator } from '../util/events_accumulator';
 import * as firebaseExport from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
+import { addEqualityMatcher } from '../../util/equality_matcher';
+
+addEqualityMatcher();
 
 const FieldValue = firebaseExport.FieldValue;
 
@@ -141,6 +144,13 @@ apiDescribe('Array Transforms:', (persistence: boolean) => {
       await writeInitialData({ array: [{ a: 'hi' }, { a: 'bye' }] });
       await docRef.update({ array: FieldValue.arrayRemove({ a: 'hi' }) });
       await expectLocalAndRemoteEvent({ array: [{ a: 'bye' }] });
+    });
+  });
+
+  it('arrayUnion() supports DocumentReference', async () => {
+    await withTestSetup(async () => {
+      await docRef.set({ array: FieldValue.arrayUnion(docRef) });
+      await expectLocalAndRemoteEvent({ array: [docRef] });
     });
   });
 

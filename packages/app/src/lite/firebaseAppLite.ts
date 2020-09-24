@@ -35,12 +35,6 @@ import {
   Name
 } from '@firebase/component';
 
-interface ServicesCache {
-  [name: string]: {
-    [serviceName: string]: FirebaseService;
-  };
-}
-
 /**
  * Global context object for a collection of services using
  * a shared authentication state.

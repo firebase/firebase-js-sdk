@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,12 @@
  * limitations under the License.
  */
 
-export { Firestore } from './src/api/database';
-export {
-  CollectionReference,
-  DocumentReference,
-  DocumentSnapshot,
-  QuerySnapshot
-} from './src/api/database';
-export { Blob } from './src/api/blob';
-export { GeoPoint } from './src/api/geo_point';
-export { FieldPath } from './src/api/field_path';
-export { FieldValue } from './src/compat/field_value';
-export { Timestamp } from './src/api/timestamp';
+/**
+ * A class implemented by all API types of the legacy Firestore API which
+ * contains a reference to the API type in the firestore-exp API. All internal
+ * code unwraps these references, which allows us to only use firestore-exp
+ * types in the SDK.
+ */
+export abstract class Compat<T> {
+  constructor(readonly _delegate: T) {}
+}

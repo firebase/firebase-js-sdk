@@ -144,7 +144,7 @@ export abstract class RestConnection implements Connection {
     body: Req
   ): Promise<Resp>;
 
-  private makeUrl<Req>(rpcName: string, path: string): string {
+  private makeUrl(rpcName: string, path: string): string {
     const urlRpcName = RPC_NAME_URL_MAPPING[rpcName];
     debugAssert(
       urlRpcName !== undefined,

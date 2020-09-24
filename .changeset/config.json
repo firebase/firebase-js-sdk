@@ -16,6 +16,8 @@
     "@firebase/functions-types-exp",
     "@firebase/installations-exp",
     "@firebase/installations-types-exp",
+    "@firebase/performance-exp",
+    "@firebase/performance-types-exp",
     "@firebase/testing",
     "firebase-exp",
     "@firebase/app-compat",
