@@ -87,7 +87,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
   private cancelAllRequests: Promise<void>;
   private deleteService!: () => void;
   private region: string;
-  private customDomain: string | null = null;
+  private customDomain: string | null;
 
   /**
    * Creates a new Functions service for the given app and (optional) region or custom domain.
@@ -117,6 +117,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
       this.customDomain = url.origin;
       this.region = 'us-central1';
     } catch (e) {
+      this.customDomain = null;
       this.region = regionOrCustomDomain_;
     }
   }
@@ -137,17 +138,16 @@ export class Service implements FirebaseFunctions, FirebaseService {
    */
   _url(name: string): string {
     const projectId = this.app_.options.projectId;
-    const region = this.region;
     if (this.emulatorOrigin !== null) {
       const origin = this.emulatorOrigin;
-      return `${origin}/${projectId}/${region}/${name}`;
+      return `${origin}/${projectId}/${this.region}/${name}`;
     }
 
     if (this.customDomain !== null) {
       return `${this.customDomain}/${name}`;
     }
 
-    return `https://${region}-${projectId}.cloudfunctions.net/${name}`;
+    return `https://${this.region}-${projectId}.cloudfunctions.net/${name}`;
   }
 
   /**

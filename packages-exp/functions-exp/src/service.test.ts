@@ -64,5 +64,22 @@ describe('Firebase Functions > Service', () => {
         'http://localhost:5005/my-project/my-region/foo'
       );
     });
+
+    it('correctly sets custom domain', () => {
+      service = createTestService(app, 'https://mydomain.com');
+      assert.equal(
+        service._url('foo'),
+        'https://mydomain.com/foo'
+      );
+    });
+
+    it('prefers emulator to custom domain', () => {
+      const service = createTestService(app, 'https://mydomain.com');
+      useFunctionsEmulator(service, 'http://localhost:5005');
+      assert.equal(
+        service._url('foo'),
+        'http://localhost:5005/my-project/us-central1/foo'
+      );
+    });
   });
 });
