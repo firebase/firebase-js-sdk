@@ -64,7 +64,7 @@ export async function runPrerelease({
       `Invalid npm tag name: ${npmTag}. It must comprise only ASCII alphanumerics and hyphens.`
     );
   }
-  console.log(prereleaseName, npmTag, dryRun);
+
   const sha = await getCurrentSha();
   const updates = await getAllPackages();
   const pkgJsons = await Promise.all(
