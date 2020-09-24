@@ -361,15 +361,17 @@ export function clearIndexedDbPersistence(
 }
 
 /**
- * Waits until all currently pending writes for the active user have been acknowledged by the
- * backend.
+ * Waits until all currently pending writes for the active user have been
+ * acknowledged by the backend.
  *
- * The returned Promise resolves immediately if there are no outstanding writes. Otherwise, the
- * Promise waits for all previously issued writes (including those written in a previous app
- * session), but it does not wait for writes that were added after the method is called. If you
- * want to wait for additional writes, call `waitForPendingWrites()` again.
+ * The returned Promise resolves immediately if there are no outstanding writes.
+ * Otherwise, the Promise waits for all previously issued writes (including
+ * those written in a previous app session), but it does not wait for writes
+ * that were added after the method is called. If you want to wait for
+ * additional writes, call `waitForPendingWrites()` again.
  *
- * Any outstanding `waitForPendingWrites()` Promises are rejected during user changes.
+ * Any outstanding `waitForPendingWrites()` Promises are rejected during user
+ * changes.
  *
  * @return A Promise which resolves when all currently pending writes have been
  * acknowledged by the backend.
@@ -413,8 +415,7 @@ export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
  * results from cache, and any write operations will be queued until the network
  * is restored.
  *
- * @return A promise that is resolved once the network has been
- *   disabled.
+ * @return A promise that is resolved once the network has been disabled.
  */
 export function disableNetwork(firestore: FirebaseFirestore): Promise<void> {
   firestore._verifyNotTerminated();
@@ -430,22 +431,24 @@ export function disableNetwork(firestore: FirebaseFirestore): Promise<void> {
 /**
  * Terminates this Firestore instance.
  *
- * After calling `terminate()` only the `clearPersistence()` method may be used. Any other method
- * will throw a `FirestoreError`.
+ * After calling `terminate()` only the `clearPersistence()` method may be used.
+ * Any other method will throw a `FirestoreError`.
  *
  * To restart after termination, create a new instance of FirebaseFirestore with
  * `firebase.firestore()`.
  *
- * Termination does not cancel any pending writes, and any promises that are awaiting a response
- * from the server will not be resolved. If you have persistence enabled, the next time you
- * start this instance, it will resume sending these writes to the server.
+ * Termination does not cancel any pending writes, and any promises that are
+ * awaiting a response from the server will not be resolved. If you have
+ * persistence enabled, the next time you start this instance, it will resume
+ * sending these writes to the server.
  *
  * Note: Under normal circumstances, calling `terminate()` is not required. This
- * method is useful only when you want to force this instance to release all of its resources or
- * in combination with `clearPersistence()` to ensure that all local state is destroyed
- * between test runs.
+ * method is useful only when you want to force this instance to release all of
+ * its resources or in combination with `clearPersistence()` to ensure that all
+ * local state is destroyed between test runs.
  *
- * @return A promise that is resolved when the instance has been successfully terminated.
+ * @return A promise that is resolved when the instance has been successfully
+ * terminated.
  */
 export function terminate(firestore: FirebaseFirestore): Promise<void> {
   _removeServiceInstance(firestore.app, 'firestore-exp');

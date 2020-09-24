@@ -81,15 +81,11 @@ export class Transaction extends LiteTransaction {
  * `FieldValue.arrayUnion()`, `FieldValue.arrayRemove()`, or
  * `FieldValue.increment()` inside a transaction counts as an additional write.
  *
- * @param updateFunction
- *   The function to execute within the transaction context.
- *
- * @return
- *   If the transaction completed successfully or was explicitly aborted
- *   (the `updateFunction` returned a failed promise),
- *   the promise returned by the updateFunction is returned here. Else, if the
- *   transaction failed, a rejected promise with the corresponding failure
- *   error will be returned.
+ * @param updateFunction The function to execute within the transaction context.
+ * @return If the transaction completed successfully or was explicitly aborted
+ * (the `updateFunction` returned a failed promise), the promise returned by the
+ * updateFunction is returned here. Else, if the transaction failed, a rejected
+ * promise with the corresponding failure error will be returned.
  */
 export function runTransaction<T>(
   firestore: FirebaseFirestore,

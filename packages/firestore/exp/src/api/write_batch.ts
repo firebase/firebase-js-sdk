@@ -26,8 +26,8 @@ import { executeWrite } from './reference';
  * `FieldValue.arrayUnion()`, `FieldValue.arrayRemove()`, or
  * `FieldValue.increment()` inside a WriteBatch counts as an additional write.
  *
- * @return
- *   A `WriteBatch` that can be used to atomically execute multiple writes.
+ * @return A `WriteBatch` that can be used to atomically execute multiple
+ * writes.
  */
 export function writeBatch(firestore: FirebaseFirestore): WriteBatch {
   firestore._verifyNotTerminated();

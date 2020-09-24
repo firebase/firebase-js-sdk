@@ -32,8 +32,7 @@ export class Bytes {
    * Creates a new Blob from the given Base64 string, converting it to
    * bytes.
    *
-   * @param base64
-   *   The Base64 string used to create the Blob object.
+   * @param base64 The Base64 string used to create the Blob object.
    */
   static fromBase64String(base64: string): Bytes {
     try {
@@ -49,8 +48,7 @@ export class Bytes {
   /**
    * Creates a new Blob from the given Uint8Array.
    *
-   * @param array
-   *   The Uint8Array used to create the Blob object.
+   * @param array The Uint8Array used to create the Blob object.
    */
   static fromUint8Array(array: Uint8Array): Bytes {
     return new Bytes(ByteString.fromUint8Array(array));
@@ -59,8 +57,7 @@ export class Bytes {
   /**
    * Returns the bytes of a Blob as a Base64-encoded string.
    *
-   * @return
-   *   The Base64-encoded string created from the Blob object.
+   * @return The Base64-encoded string created from the Blob object.
    */
   toBase64(): string {
     return this._byteString.toBase64();
@@ -69,8 +66,7 @@ export class Bytes {
   /**
    * Returns the bytes of a Blob in a new Uint8Array.
    *
-   * @return
-   *   The Uint8Array created from the Blob object.
+   * @return The Uint8Array created from the Blob object.
    */
   toUint8Array(): Uint8Array {
     return this._byteString.toUint8Array();

@@ -106,22 +106,19 @@ export interface UpdateData {
  * firebase.firestore.Transaction.set Transaction}. These calls can be
  * configured to perform granular merges instead of overwriting the target
  * documents in their entirety by providing a `SetOptions` with `merge: true`.
+ *
+ * @param merge Changes the behavior of a `setDoc()` call to only replace the
+ * values specified in its data argument. Fields omitted from the setDoc() call
+ * remain untouched.
+ * @param mergeFields Changes the behavior of set() calls to only replace the
+ * specified field paths. Any field path that is not specified is ignored and
+ * remains untouched.
  */
 export type SetOptions =
   | {
-      /**
-       * Changes the behavior of a set() call to only replace the values specified
-       * in its data argument. Fields omitted from the set() call remain
-       * untouched.
-       */
       readonly merge?: boolean;
     }
   | {
-      /**
-       * Changes the behavior of set() calls to only replace the specified field
-       * paths. Any field path that is not specified is ignored and remains
-       * untouched.
-       */
       readonly mergeFields?: Array<string | FieldPath>;
     };
 
@@ -679,11 +676,25 @@ export function collection(
   path: string,
   ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
+/**
+ * Gets a `CollectionReference` instance that refers to the collection at
+ * the specified path.
+ *
+ * @param collectionPath A slash-separated path to a collection.
+ * @return The `CollectionReference` instance.
+ */
 export function collection(
   reference: CollectionReference<unknown>,
   path: string,
   ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
+/**
+ * Gets a `CollectionReference` instance that refers to the collection at
+ * the specified path.
+ *
+ * @param collectionPath A slash-separated path to a collection.
+ * @return The `CollectionReference` instance.
+ */
 export function collection(
   reference: DocumentReference,
   path: string,
@@ -771,11 +782,25 @@ export function doc(
   path: string,
   ...pathComponents: string[]
 ): DocumentReference<DocumentData>;
+/**
+ * Gets a `DocumentReference` instance that refers to the document at the
+ * specified path.
+ *
+ * @param documentPath A slash-separated path to a document.
+ * @return The `DocumentReference` instance.
+ */
 export function doc<T>(
   reference: CollectionReference<T>,
   path?: string,
   ...pathComponents: string[]
 ): DocumentReference<T>;
+/**
+ * Gets a `DocumentReference` instance that refers to the document at the
+ * specified path.
+ *
+ * @param documentPath A slash-separated path to a document.
+ * @return The `DocumentReference` instance.
+ */
 export function doc(
   reference: DocumentReference<unknown>,
   path: string,
@@ -823,6 +848,18 @@ export function doc<T>(
   }
 }
 
+/**
+ * Reads the document referred to by this `DocumentReference`.
+ *
+ * Note: By default, get() attempts to provide up-to-date data when possible
+ * by waiting for data from the server, but it may return cached data or fail
+ * if you are offline and the server cannot be reached. This behavior can be
+ * altered via the `GetOptions` parameter.
+ *
+ * @param options An object to configure the get behavior.
+ * @return A Promise resolved with a DocumentSnapshot containing the
+ * current document contents.
+ */
 export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
@@ -841,6 +878,17 @@ export function getDoc<T>(
   );
 }
 
+/**
+ * Executes the query and returns the results as a `QuerySnapshot`.
+ *
+ * Note: By default, get() attempts to provide up-to-date data when possible
+ * by waiting for data from the server, but it may return cached data or fail
+ * if you are offline and the server cannot be reached. This behavior can be
+ * altered via the `GetOptions` parameter.
+ *
+ * @param options An object to configure the get behavior.
+ * @return A Promise that will be resolved with the results of the Query.
+ */
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   validateHasExplicitOrderByForLimitToLast(query._query);
 
@@ -867,10 +915,28 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   });
 }
 
+/**
+ * Writes to the document referred to by this `DocumentReference`. If the
+ * document does not yet exist, it will be created. If you pass
+ * `SetOptions`, the provided data can be merged into an existing document.
+ *
+ * @param data A map of the fields and values for the document.
+ * @return A Promise resolved once the data has been successfully written
+ * to the backend (Note that it won't resolve while you're offline).
+ */
 export function setDoc<T>(
   reference: DocumentReference<T>,
   data: T
 ): Promise<void>;
+/**
+ * Writes to the document referred to by this `DocumentReference`. If the
+ * document does not yet exist, it will be created. If you pass
+ * `SetOptions`, the provided data can be merged into an existing document.
+ *
+ * @param data A map of the fields and values for the document.
+ * @return A Promise resolved once the data has been successfully written
+ * to the backend (Note that it won't resolve while you're offline).
+ */
 export function setDoc<T>(
   reference: DocumentReference<T>,
   data: Partial<T>,
@@ -903,10 +969,33 @@ export function setDoc<T>(
   );
 }
 
+/**
+ * Updates fields in the document referred to by this `DocumentReference`.
+ * The update will fail if applied to a document that does not exist.
+ *
+ * @param data An object containing the fields and values with which to
+ * update the document. Fields can contain dots to reference nested fields
+ * within the document.
+ * @return A Promise resolved once the data has been successfully written
+ * to the backend (Note that it won't resolve while you're offline).
+ */
 export function updateDoc(
   reference: DocumentReference<unknown>,
   data: UpdateData
 ): Promise<void>;
+/**
+ * Updates fields in the document referred to by this `DocumentReference`.
+ * The update will fail if applied to a document that does not exist.
+ *
+ * Nested fields can be updated by providing dot-separated field path
+ * strings or by providing FieldPath objects.
+ *
+ * @param field The first field to update.
+ * @param value The first value.
+ * @param moreFieldsAndValues Additional key value pairs.
+ * @return A Promise resolved once the data has been successfully written
+ * to the backend (Note that it won't resolve while you're offline).
+ */
 export function updateDoc(
   reference: DocumentReference<unknown>,
   field: string | FieldPath,
@@ -950,6 +1039,13 @@ export function updateDoc(
   );
 }
 
+/**
+ * Deletes the document referred to by this `DocumentReference`.
+ *
+ * @return A Promise resolved once the document has been successfully
+ * deleted from the backend (Note that it won't resolve while you're
+ * offline).
+ */
 export function deleteDoc(reference: DocumentReference): Promise<void> {
   const datastore = getDatastore(reference.firestore);
   return invokeCommitRpc(datastore, [
@@ -957,6 +1053,14 @@ export function deleteDoc(reference: DocumentReference): Promise<void> {
   ]);
 }
 
+/**
+ * Add a new document to this collection with the specified data, assigning
+ * it a document ID automatically.
+ *
+ * @param data An Object containing the data for the new document.
+ * @return A Promise resolved with a `DocumentReference` pointing to the
+ * newly created document after it has been written to the backend.
+ */
 export function addDoc<T>(
   reference: CollectionReference<T>,
   data: T
@@ -985,6 +1089,12 @@ export function addDoc<T>(
   ).then(() => docRef);
 }
 
+/**
+ * Returns true if this `DocumentReference` is equal to the provided one.
+ *
+ * @param other The `DocumentReference` to compare against.
+ * @return true if this `DocumentReference` is equal to the provided one.
+ */
 export function refEqual<T>(
   left: DocumentReference<T> | CollectionReference<T>,
   right: DocumentReference<T> | CollectionReference<T>

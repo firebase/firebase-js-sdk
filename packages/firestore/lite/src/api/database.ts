@@ -152,6 +152,28 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
   ).getImmediate() as FirebaseFirestore;
 }
 
+/**
+ * Terminates this Firestore instance.
+ *
+ * After calling `terminate()` only the `clearPersistence()` method may be used.
+ * Any other method will throw a `FirestoreError`.
+ *
+ * To restart after termination, create a new instance of FirebaseFirestore with
+ * `firebase.firestore()`.
+ *
+ * Termination does not cancel any pending writes, and any promises that are
+ * awaiting a response from the server will not be resolved. If you have
+ * persistence enabled, the next time you start this instance, it will resume
+ * sending these writes to the server.
+ *
+ * Note: Under normal circumstances, calling `terminate()` is not required. This
+ * method is useful only when you want to force this instance to release all of
+ * its resources or in combination with `clearPersistence()` to ensure that all
+ * local state is destroyed between test runs.
+ *
+ * @return A promise that is resolved when the instance has been successfully
+ * terminated.
+ */
 export function terminate(firestore: FirebaseFirestore): Promise<void> {
   _removeServiceInstance(firestore.app, 'firestore/lite');
   return firestore._delete();
