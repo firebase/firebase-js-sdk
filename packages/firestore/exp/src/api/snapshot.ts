@@ -171,7 +171,7 @@ export interface DocumentChange<T = DocumentData> {
  * get a specific field.
  *
  * For a `DocumentSnapshot` that points to a non-existing document, any data
- * access will return 'undefined'. You can use the `exists` property to
+ * access will return 'undefined'. You can use the `exists()` method to
  * explicitly verify a document's existence.
  */
 export class DocumentSnapshot<T = DocumentData> extends LiteDocumentSnapshot<
@@ -447,10 +447,11 @@ export class QuerySnapshot<T = DocumentData> {
 // TODO(firestoreexp): Add tests for snapshotEqual with different snapshot
 // metadata
 /**
- * Returns true if this `DocumentSnapshot` is equal to the provided one.
+ * Returns true if the provided snapshots are equal.
  *
- * @param other The `DocumentSnapshot` to compare against.
- * @return true if this `DocumentSnapshot` is equal to the provided one.
+ * @param left A snapshot to compare.
+ * @param right A snapshot` to compare.
+ * @return true if the snapshots are equal.
  */
 export function snapshotEqual<T>(
   left: DocumentSnapshot<T> | QuerySnapshot<T>,

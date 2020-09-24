@@ -34,7 +34,6 @@ import {
 } from '../../../src/api/user_data_reader';
 import { arrayEquals } from '../../../src/util/misc';
 import { Bytes } from './bytes';
-import { SnapshotOptions } from '../../../exp/src/api/snapshot';
 
 /**
  * Converter used by `withConverter()` to transform user objects of type T
@@ -57,10 +56,7 @@ import { SnapshotOptions } from '../../../exp/src/api/snapshot';
  *   toFirestore(post: Post): firebase.firestore.DocumentData {
  *     return {title: post.title, author: post.author};
  *   },
- *   fromFirestore(
- *     snapshot: firebase.firestore.QueryDocumentSnapshot,
- *     options: firebase.firestore.SnapshotOptions
- *   ): Post {
+ *   fromFirestore(snapshot: firebase.firestore.QueryDocumentSnapshot): Post {
  *     const data = snapshot.data(options)!;
  *     return new Post(data.title, data.author);
  *   }
@@ -82,23 +78,26 @@ export interface FirestoreDataConverter<T> {
   /**
    * Called by the Firestore SDK to convert a custom model object of type T
    * into a plain Javascript object (suitable for writing directly to the
-   * Firestore database). To use `set()` with `merge` and `mergeFields`,
-   * `toFirestore()` must be defined with `Partial<T>`.
+   * Firestore database). Used with {@link setData()}, {@link WriteBatch#set()}
+   * and {@link Transaction#set()}}.
    */
   toFirestore(modelObject: T): DocumentData;
+
+  /**
+   * Called by the Firestore SDK to convert a custom model object of type T
+   * into a plain Javascript object (suitable for writing directly to the
+   * Firestore database). Used with {@link setData()}, {@link WriteBatch#set()}
+   * and {@link Transaction#set()}} with `merge:true` or `mergeFields`.
+   */
   toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
 
   /**
    * Called by the Firestore SDK to convert Firestore data into an object of
-   * type T. You can access your data by calling: `snapshot.data(options)`.
+   * type T. You can access your data by calling: `snapshot.data()`.
    *
    * @param snapshot A QueryDocumentSnapshot containing your data and metadata.
-   * @param options The SnapshotOptions from the initial call to `data()`.
    */
-  fromFirestore(
-    snapshot: QueryDocumentSnapshot<DocumentData>,
-    options?: SnapshotOptions
-  ): T;
+  fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
 }
 
 /**
@@ -107,7 +106,7 @@ export interface FirestoreDataConverter<T> {
  * get a specific field.
  *
  * For a `DocumentSnapshot` that points to a non-existing document, any data
- * access will return 'undefined'. You can use the `exists` property to
+ * access will return 'undefined'. You can use the `exists()` method to
  * explicitly verify a document's existence.
  */
 export class DocumentSnapshot<T = DocumentData> {
@@ -215,6 +214,7 @@ export class DocumentSnapshot<T = DocumentData> {
     return undefined;
   }
 }
+
 /**
  * A `QueryDocumentSnapshot` contains data read from a document in your
  * Firestore database as part of a query. The document is guaranteed to exist
@@ -248,10 +248,18 @@ export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
  * properties.
  */
 export class QuerySnapshot<T = DocumentData> {
+  /**
+   * The query on which you called {@link getDocs} in order to get this
+   * `QuerySnapshot`.
+   */
+  readonly query: Query<T>;
+
   constructor(
-    readonly query: Query<T>,
+    _query: Query<T>,
     readonly _docs: Array<QueryDocumentSnapshot<T>>
-  ) {}
+  ) {
+    this.query = _query;
+  }
 
   /** An array of all the documents in the `QuerySnapshot`. */
   get docs(): Array<QueryDocumentSnapshot<T>> {
@@ -284,10 +292,11 @@ export class QuerySnapshot<T = DocumentData> {
 }
 
 /**
- * Returns true if this `DocumentSnapshot` is equal to the provided one.
+ * Returns true if the provided snapshots are equal.
  *
- * @param other The `DocumentSnapshot` to compare against.
- * @return true if this `DocumentSnapshot` is equal to the provided one.
+ * @param left A snapshot to compare.
+ * @param right A snapshot` to compare.
+ * @return true if the snapshots are equal.
  */
 export function snapshotEqual<T>(
   left: DocumentSnapshot<T> | QuerySnapshot<T>,

@@ -29,9 +29,10 @@ import { DocumentReference } from '../../../lite/src/api/reference';
 
 /**
  * A reference to a transaction.
+ *
  * The `Transaction` object passed to a transaction's updateFunction provides
  * the methods to read and write data within the transaction context. See
- * `Firestore.runTransaction()`.
+ * {@link runTransaction()}.
  */
 export class Transaction extends LiteTransaction {
   // This class implements the same logic as the Transaction API in the Lite SDK
@@ -45,7 +46,7 @@ export class Transaction extends LiteTransaction {
   }
 
   /**
-   * Reads the document referenced by the provided `DocumentReference.`
+   * Reads the document referenced by the provided {@link DocumentReference}.
    *
    * @param documentRef A reference to the document to be read.
    * @return A DocumentSnapshot for the read data.
@@ -76,11 +77,10 @@ export class Transaction extends LiteTransaction {
  * has changed, Cloud Firestore retries the `updateFunction`. If it fails to
  * commit after 5 attempts, the transaction fails.
  *
- * The maximum number of writes allowed in a single transaction is 500, but
- * note that each usage of `FieldValue.serverTimestamp()`,
- * `FieldValue.arrayUnion()`, `FieldValue.arrayRemove()`, or
- * `FieldValue.increment()` inside a transaction counts as an additional write.
+ * The maximum number of writes allowed in a single transaction is 500.
  *
+ * @param firestore A reference to the Firestore database to run this
+ * transaction against.
  * @param updateFunction The function to execute within the transaction context.
  * @return If the transaction completed successfully or was explicitly aborted
  * (the `updateFunction` returned a failed promise), the promise returned by the

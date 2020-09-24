@@ -60,7 +60,7 @@ export class FirebaseFirestore implements _FirebaseService {
   private _terminateTask?: Promise<void>;
 
   /**
-   * The {@link firebase.app.App app} associated with this `Firestore` service
+   * The {@link FirebaseApp app} associated with this `Firestore` service
    * instance.
    */
   readonly app: FirebaseApp;
@@ -133,6 +133,17 @@ export class FirebaseFirestore implements _FirebaseService {
   }
 }
 
+/**
+ * Initializes a new instance of Cloud Firestore with the provided settings.
+ * Can only be called before any other methods, including
+ * {@link getFirestore()}. If the custom settings are empty, this method is
+ * equivalent to calling {@link getFirestore()}.
+ *
+ * @param app The {@link FirebaseApp} that the Firestore instance will be
+ * associated with.
+ * @param settings A settings object to configure the Firestore instance.
+ * @return A newly initialized Firestore instance.
+ */
 export function initializeFirestore(
   app: FirebaseApp,
   settings: Settings
@@ -145,6 +156,15 @@ export function initializeFirestore(
   return firestore;
 }
 
+/**
+ * Returns the existing instance of Firestore that is associated with the
+ * provided {@link FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @param app The {@link FirebaseApp} instance that the returned Firestore
+ * instance is associated with.
+ * @return The Firestore instance of the provided app.
+ */
 export function getFirestore(app: FirebaseApp): FirebaseFirestore {
   return _getProvider(
     app,
@@ -153,23 +173,20 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
 }
 
 /**
- * Terminates this Firestore instance.
+ * Terminates the provided Firestore instance.
  *
- * After calling `terminate()` only the `clearPersistence()` method may be used.
- * Any other method will throw a `FirestoreError`.
+ * After calling `terminate()` only the `clearIndexedDbPersistence()` method may
+ * be used. Any other method will throw a `FirestoreError`. Termination does not
+ * cancel any pending writes, and any promises that are awaiting a response from
+ * the server will not be resolved.
  *
  * To restart after termination, create a new instance of FirebaseFirestore with
- * `firebase.firestore()`.
- *
- * Termination does not cancel any pending writes, and any promises that are
- * awaiting a response from the server will not be resolved. If you have
- * persistence enabled, the next time you start this instance, it will resume
- * sending these writes to the server.
+ * {@link getFirestore()}.
  *
  * Note: Under normal circumstances, calling `terminate()` is not required. This
  * method is useful only when you want to force this instance to release all of
- * its resources or in combination with `clearPersistence()` to ensure that all
- * local state is destroyed between test runs.
+ * its resources or in combination with {@link clearIndexedDbPersistence()} to
+ * ensure that all local state is destroyed between test runs.
  *
  * @return A promise that is resolved when the instance has been successfully
  * terminated.

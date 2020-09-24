@@ -41,30 +41,32 @@ export abstract class FieldValue {
 }
 
 /**
- * Returns a sentinel for use with `update()` to mark a field for deletion.
+ * Returns a sentinel for use with {@link updateDoc()} of
+ * {@link setDoc setDoc({}, { merge: true })} to mark a field for deletion.
  */
 export function deleteField(): FieldValue {
   return new DeleteFieldValueImpl('deleteField');
 }
 
 /**
- * Returns a sentinel used with `set()` or `update()` to include a
- * server-generated timestamp in the written data.
+ * Returns a sentinel used with {@link setDoc()} or {@link updateDoc()} to
+ * include a server-generated timestamp in the written data.
  */
 export function serverTimestamp(): FieldValue {
   return new ServerTimestampFieldValueImpl('serverTimestamp');
 }
 
 /**
- * Returns a special value that can be used with `set()` or `update()` that
- * tells the server to union the given elements with any array value that
- * already exists on the server. Each specified element that doesn't already
- * exist in the array will be added to the end. If the field being modified is
- * not already an array it will be overwritten with an array containing exactly
- * the specified elements.
+ * Returns a special value that can be used with {@link setDoc()} or {@link
+ * updateDoc()} that tells the server to union the given elements with any array
+ * value that already exists on the server. Each specified element that doesn't
+ * already exist in the array will be added to the end. If the field being
+ * modified is not already an array it will be overwritten with an array
+ * containing exactly the specified elements.
  *
  * @param elements The elements to union into the array.
- * @return The FieldValue sentinel for use in a call to `set()` or `update()`.
+ * @return The FieldValue sentinel for use in a call to `setDoc()` or
+ * `updateDoc()`.
  */
 export function arrayUnion(...elements: unknown[]): FieldValue {
   validateAtLeastNumberOfArgs('arrayUnion()', arguments, 1);
@@ -74,14 +76,15 @@ export function arrayUnion(...elements: unknown[]): FieldValue {
 }
 
 /**
- * Returns a special value that can be used with `set()` or `update()` that
- * tells the server to remove the given elements from any array value that
- * already exists on the server. All instances of each element specified will be
- * removed from the array. If the field being modified is not already an array
- * it will be overwritten with an empty array.
+ * Returns a special value that can be used with {@link setDoc()} or {@link
+ * updateDoc()} that tells the server to remove the given elements from any
+ * array value that already exists on the server. All instances of each element
+ * specified will be removed from the array. If the field being modified is not
+ * already an array it will be overwritten with an empty array.
  *
  * @param elements The elements to remove from the array.
- * @return The FieldValue sentinel for use in a call to `set()` or `update()`.
+ * @return The FieldValue sentinel for use in a call to `setDoc()` or
+ * `updateDoc()`
  */
 export function arrayRemove(...elements: unknown[]): FieldValue {
   validateAtLeastNumberOfArgs('arrayRemove()', arguments, 1);
@@ -91,8 +94,9 @@ export function arrayRemove(...elements: unknown[]): FieldValue {
 }
 
 /**
- * Returns a special value that can be used with `set()` or `update()` that
- * tells the server to increment the field's current value by the given value.
+ * Returns a special value that can be used with {@link setDoc()} or {@link
+ * updateDoc()} that tells the server to increment the field's current value by
+ * the given value.
  *
  * If either the operand or the current field value uses floating point
  * precision, all arithmetic follows IEEE 754 semantics. If both values are
@@ -105,7 +109,8 @@ export function arrayRemove(...elements: unknown[]): FieldValue {
  * yet exist, the transformation sets the field to the given value.
  *
  * @param n The value to increment by.
- * @return The FieldValue sentinel for use in a call to `set()` or `update()`.
+ * @return The FieldValue sentinel for use in a call to `setDoc()` or
+ * `updateDoc()`
  */
 export function increment(n: number): FieldValue {
   return new NumericIncrementFieldValueImpl('increment', n);

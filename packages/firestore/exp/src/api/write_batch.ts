@@ -22,9 +22,7 @@ import { executeWrite } from './reference';
 /**
  * Creates a write batch, used for performing multiple writes as a single
  * atomic operation. The maximum number of writes allowed in a single WriteBatch
- * is 500, but note that each usage of `FieldValue.serverTimestamp()`,
- * `FieldValue.arrayUnion()`, `FieldValue.arrayRemove()`, or
- * `FieldValue.increment()` inside a WriteBatch counts as an additional write.
+ * is 500.
  *
  * @return A `WriteBatch` that can be used to atomically execute multiple
  * writes.
