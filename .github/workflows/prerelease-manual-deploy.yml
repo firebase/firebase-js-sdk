@@ -4,10 +4,10 @@ on:
     workflow_dispatch:
         inputs:
             prereleaseName:
-                description: 'Prerelease name. e.g. 1.0.0-<prereleaseName>'
+                description: 'The prerelease name, as in 1.0.0-<prereleaseName>'
                 required: true
             npmTag:
-                description: 'Npm tag to publish to. e.g. npm install firebase@<npmTag>'
+                description: 'The npm tag to publish to, as in npm install firebase@<npmTag>'
                 required: true
 jobs:
     deploy:
@@ -27,7 +27,7 @@ jobs:
         - name: Yarn install
           run: yarn
         - name: Deploy prerelease
-          run: yarn release custom -p ${{ github.event.inputs.prereleaseName }} -n ${{ github.event.inputs.npmTag }} --dryRun
+          run: yarn release custom -p ${{ github.event.inputs.prereleaseName }} -t ${{ github.event.inputs.npmTag }} --dryRun
           env:
             NPM_TOKEN_ANALYTICS: ${{secrets.NPM_TOKEN_ANALYTICS}}
             NPM_TOKEN_ANALYTICS_INTEROP_TYPES: ${{secrets.NPM_TOKEN_ANALYTICS_INTEROP_TYPES}}
