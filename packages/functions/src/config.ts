@@ -37,14 +37,23 @@ export function registerFunctions(
     Functions: Service
   };
 
-  function factory(container: ComponentContainer, regionOrCustomDomain?: string): Service {
+  function factory(
+    container: ComponentContainer,
+    regionOrCustomDomain?: string
+  ): Service {
     // Dependencies
     const app = container.getProvider('app').getImmediate();
     const authProvider = container.getProvider('auth-internal');
     const messagingProvider = container.getProvider('messaging');
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return new Service(app, authProvider, messagingProvider, regionOrCustomDomain, fetchImpl);
+    return new Service(
+      app,
+      authProvider,
+      messagingProvider,
+      regionOrCustomDomain,
+      fetchImpl
+    );
   }
   instance.INTERNAL.registerComponent(
     new Component(FUNCTIONS_TYPE, factory, ComponentType.PUBLIC)

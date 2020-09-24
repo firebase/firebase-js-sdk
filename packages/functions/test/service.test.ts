@@ -59,10 +59,7 @@ describe('Firebase Functions > Service', () => {
 
     it('can use custom domain', () => {
       const service = createTestService(app, 'https://mydomain.com');
-      assert.equal(
-        service._url('foo'),
-        'https://mydomain.com/foo'
-      );
+      assert.equal(service._url('foo'), 'https://mydomain.com/foo');
     });
 
     it('prefers emulator to custom domain', () => {
