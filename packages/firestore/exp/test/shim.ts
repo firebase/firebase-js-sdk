@@ -310,7 +310,7 @@ export class DocumentReference<T = legacy.DocumentData>
   ): legacy.CollectionReference<legacy.DocumentData> {
     return new CollectionReference(
       this.firestore,
-      this._delegate.collection(collectionPath)
+      collection(this._delegate, collectionPath)
     );
   }
 
@@ -659,10 +659,10 @@ export class CollectionReference<T = legacy.DocumentData>
     if (documentPath !== undefined) {
       return new DocumentReference(
         this.firestore,
-        this._delegate.doc(documentPath)
+        doc(this._delegate, documentPath)
       );
     } else {
-      return new DocumentReference(this.firestore, this._delegate.doc());
+      return new DocumentReference(this.firestore, doc(this._delegate));
     }
   }
 

@@ -59,9 +59,6 @@
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "validateCollectionPath",
-                "validateDocumentPath",
-                "validateNonEmptyArgument",
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
@@ -89,7 +86,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22810
+        "sizeInBytes": 21610
     },
     "DocumentReference": {
         "dependencies": {
@@ -108,9 +105,6 @@
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "validateCollectionPath",
-                "validateDocumentPath",
-                "validateNonEmptyArgument",
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
@@ -138,7 +132,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22808
+        "sizeInBytes": 21608
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -181,11 +175,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "wrapInUserErrorIfRecoverable"
@@ -227,7 +218,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 41222
+        "sizeInBytes": 40022
     },
     "FieldPath": {
         "dependencies": {
@@ -516,11 +507,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "wrapInUserErrorIfRecoverable"
@@ -562,7 +550,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 41232
+        "sizeInBytes": 40032
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -607,11 +595,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "wrapInUserErrorIfRecoverable"
@@ -655,7 +640,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 43864
+        "sizeInBytes": 42664
     },
     "SnapshotMetadata": {
         "dependencies": {
@@ -807,11 +792,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateReference",
                 "validateType",
@@ -879,7 +861,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 64967
+        "sizeInBytes": 63766
     },
     "WriteBatch": {
         "dependencies": {
@@ -1006,7 +988,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53939
+        "sizeInBytes": 54010
     },
     "addDoc": {
         "dependencies": {
@@ -1250,7 +1232,6 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
                 "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
@@ -1367,7 +1348,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 168238
+        "sizeInBytes": 167503
     },
     "arrayRemove": {
         "dependencies": {
@@ -1453,7 +1434,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 35014
+        "sizeInBytes": 35085
     },
     "arrayUnion": {
         "dependencies": {
@@ -1539,7 +1520,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 35006
+        "sizeInBytes": 35077
     },
     "clearIndexedDbPersistence": {
         "dependencies": {
@@ -1608,7 +1589,6 @@
                 "removeComponents",
                 "removeComponents$1",
                 "validateCollectionPath",
-                "validateDocumentPath",
                 "validateNonEmptyArgument",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -1637,7 +1617,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23551
+        "sizeInBytes": 22829
     },
     "collectionGroup": {
         "dependencies": {
@@ -1681,7 +1661,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 20346
+        "sizeInBytes": 20418
     },
     "deleteDoc": {
         "dependencies": {
@@ -1995,7 +1975,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 149069
+        "sizeInBytes": 149140
     },
     "deleteField": {
         "dependencies": {
@@ -2293,7 +2273,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 126626
+        "sizeInBytes": 126697
     },
     "doc": {
         "dependencies": {
@@ -2313,7 +2293,6 @@
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "validateCollectionPath",
                 "validateDocumentPath",
                 "validateNonEmptyArgument",
                 "wrapInUserErrorIfRecoverable"
@@ -2343,7 +2322,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23607
+        "sizeInBytes": 22873
     },
     "documentId": {
         "dependencies": {
@@ -2840,7 +2819,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 237038
+        "sizeInBytes": 237109
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -3376,7 +3355,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 304677
+        "sizeInBytes": 304802
     },
     "enableNetwork": {
         "dependencies": {
@@ -3634,7 +3613,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 126568
+        "sizeInBytes": 126639
     },
     "endAt": {
         "dependencies": {
@@ -3708,11 +3687,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -3762,7 +3738,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53562
+        "sizeInBytes": 52361
     },
     "endBefore": {
         "dependencies": {
@@ -3836,11 +3812,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -3890,7 +3863,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53573
+        "sizeInBytes": 52372
     },
     "getDoc": {
         "dependencies": {
@@ -4149,11 +4122,8 @@
                 "uint8ArrayFromBinaryString",
                 "updateTrackedLimbos",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -4282,7 +4252,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 202548
+        "sizeInBytes": 201347
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4436,11 +4406,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -4534,7 +4501,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 121330
+        "sizeInBytes": 120129
     },
     "getDocFromServer": {
         "dependencies": {
@@ -4793,11 +4760,8 @@
                 "uint8ArrayFromBinaryString",
                 "updateTrackedLimbos",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -4926,7 +4890,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 202567
+        "sizeInBytes": 201366
     },
     "getDocs": {
         "dependencies": {
@@ -5186,12 +5150,9 @@
                 "uint8ArrayFromBinaryString",
                 "updateTrackedLimbos",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateHasExplicitOrderByForLimitToLast",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -5321,7 +5282,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 204839
+        "sizeInBytes": 203638
     },
     "getDocsFromCache": {
         "dependencies": {
@@ -5480,11 +5441,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -5585,7 +5543,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 134256
+        "sizeInBytes": 133055
     },
     "getDocsFromServer": {
         "dependencies": {
@@ -5845,11 +5803,8 @@
                 "uint8ArrayFromBinaryString",
                 "updateTrackedLimbos",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -5979,7 +5934,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 204567
+        "sizeInBytes": 203366
     },
     "getFirestore": {
         "dependencies": {
@@ -6065,7 +6020,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18249
+        "sizeInBytes": 18248
     },
     "initializeFirestore": {
         "dependencies": {
@@ -6456,12 +6411,9 @@
                 "uint8ArrayFromBinaryString",
                 "updateTrackedLimbos",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateHasExplicitOrderByForLimitToLast",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -6591,7 +6543,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 205951
+        "sizeInBytes": 204750
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -6947,7 +6899,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 184102
+        "sizeInBytes": 184173
     },
     "orderBy": {
         "dependencies": {
@@ -7128,7 +7080,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 31993
+        "sizeInBytes": 31992
     },
     "refEqual": {
         "dependencies": {
@@ -7148,9 +7100,6 @@
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "validateCollectionPath",
-                "validateDocumentPath",
-                "validateNonEmptyArgument",
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
@@ -7178,7 +7127,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23095
+        "sizeInBytes": 21895
     },
     "runTransaction": {
         "dependencies": {
@@ -7285,11 +7234,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateReference",
                 "validateType",
@@ -7371,7 +7317,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 83956
+        "sizeInBytes": 82755
     },
     "serverTimestamp": {
         "dependencies": {
@@ -7767,7 +7713,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 164793
+        "sizeInBytes": 164864
     },
     "setLogLevel": {
         "dependencies": {
@@ -7871,11 +7817,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "valueEquals",
@@ -7923,7 +7866,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 51207
+        "sizeInBytes": 50006
     },
     "startAfter": {
         "dependencies": {
@@ -7997,11 +7940,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -8051,7 +7991,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53583
+        "sizeInBytes": 52382
     },
     "startAt": {
         "dependencies": {
@@ -8125,11 +8065,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -8179,7 +8116,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 53573
+        "sizeInBytes": 52372
     },
     "terminate": {
         "dependencies": {
@@ -8573,7 +8510,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 166225
+        "sizeInBytes": 166296
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -8831,7 +8768,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 127302
+        "sizeInBytes": 127373
     },
     "where": {
         "dependencies": {
@@ -8978,7 +8915,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 58143
+        "sizeInBytes": 58214
     },
     "writeBatch": {
         "dependencies": {
@@ -9338,6 +9275,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 169401
+        "sizeInBytes": 169472
     }
 }

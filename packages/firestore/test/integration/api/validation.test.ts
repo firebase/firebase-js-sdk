@@ -242,7 +242,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           'Function collection() cannot be called with an empty path.'
         );
         expect(() => baseDocRef.collection('')).to.throw(
-          'Function DocumentReference.collection() cannot be called with an empty path.'
+          'Function collection() cannot be called with an empty path.'
         );
       } else {
         expect(() => db.collection('')).to.throw(
@@ -296,7 +296,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       const collection = db.collection('test-collection');
       const doc = collection.doc('test-document');
       for (const path of badPaths) {
-        const reason = `Invalid path (${path}). Paths must not contain // in them.`;
+        const reason = `Invalid segment (${path}). Paths must not contain // in them.`;
         expect(() => db.collection(path)).to.throw(reason);
         expect(() => db.doc(path)).to.throw(reason);
         expect(() => collection.doc(path)).to.throw(reason);
@@ -314,7 +314,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           'Function doc() cannot be called with an empty path.'
         );
         expect(() => baseCollectionRef.doc('')).to.throw(
-          'Function CollectionReference.doc() cannot be called with an empty path.'
+          'Function doc() cannot be called with an empty path.'
         );
       } else {
         expect(() => db.doc('')).to.throw(
