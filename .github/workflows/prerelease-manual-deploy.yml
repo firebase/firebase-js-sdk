@@ -26,8 +26,8 @@ jobs:
             node-version: 10.x
         - name: Yarn install
           run: yarn
-        - name: Deploy canary
-          run: yarn release --canary
+        - name: Deploy prerelease
+          run: yarn release custom -p ${{ github.event.inputs.prereleaseName }} -n ${{ github.event.inputs.npmTag }}
           env:
             NPM_TOKEN_ANALYTICS: ${{secrets.NPM_TOKEN_ANALYTICS}}
             NPM_TOKEN_ANALYTICS_INTEROP_TYPES: ${{secrets.NPM_TOKEN_ANALYTICS_INTEROP_TYPES}}
