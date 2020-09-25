@@ -375,13 +375,17 @@ export class DbPrimaryClient {
    * older clients that only supported single locked access to the persistence
    * layer.
    */
-  static store = 'owner';
+  static get store() {
+    return 'owner';
+  }
 
   /**
    * The key string used for the single object that exists in the
    * DbPrimaryClient store.
    */
-  static key = 'owner';
+  static get key() {
+    return 'owner';
+  }
 
   constructor(
     public ownerId: string,
@@ -663,7 +667,9 @@ export class DbUnknownDocument {
  * be made more general if necessary.
  */
 export class DbRemoteDocument {
-  static store = 'remoteDocuments';
+  static get store() {
+    return 'remoteDocuments';
+  }
 
   /**
    * An index that provides access to all entries sorted by read time (which
@@ -671,9 +677,13 @@ export class DbRemoteDocument {
    *
    * This index is used to provide a changelog for Multi-Tab.
    */
-  static readTimeIndex = 'readTimeIndex';
+  static get readTimeIndex() {
+    return 'readTimeIndex';
+  }
 
-  static readTimeIndexPath = 'readTime';
+  static get readTimeIndexPath() {
+    return 'readTime';
+  }
 
   /**
    * An index that provides access to documents in a collection sorted by read
@@ -682,9 +692,13 @@ export class DbRemoteDocument {
    * This index is used to allow the RemoteDocumentCache to fetch newly changed
    * documents in a collection.
    */
-  static collectionReadTimeIndex = 'collectionReadTimeIndex';
+  static get collectionReadTimeIndex() {
+    return 'collectionReadTimeIndex';
+  }
 
-  static collectionReadTimeIndexPath = ['parentPath', 'readTime'];
+  static get collectionReadTimeIndexPath() {
+    return ['parentPath', 'readTime'];
+  }
 
   // TODO: We are currently storing full document keys almost three times
   // (once as part of the primary key, once - partly - as `parentPath` and once
@@ -735,9 +749,13 @@ export class DbRemoteDocument {
  * Contains a single entry that has metadata about the remote document cache.
  */
 export class DbRemoteDocumentGlobal {
-  static store = 'remoteDocumentGlobal';
+  static get store() {
+    return 'remoteDocumentGlobal';
+  }
 
-  static key = 'remoteDocumentGlobalKey';
+  static get key() {
+    return 'remoteDocumentGlobalKey';
+  }
 
   /**
    * @param byteSize Approximately the total size in bytes of all the documents in the document
@@ -774,20 +792,28 @@ export type DbQuery = ProtoQueryTarget | ProtoDocumentsTarget;
  * that the query can be efficiently resumed on restart.
  */
 export class DbTarget {
-  static store = 'targets';
+  static get store() {
+    return 'targets';
+  }
 
   /** Keys are automatically assigned via the targetId property. */
-  static keyPath = 'targetId';
+  static get keyPath() {
+    return 'targetId';
+  }
 
   /** The name of the queryTargets index. */
-  static queryTargetsIndexName = 'queryTargetsIndex';
+  static get queryTargetsIndexName() {
+    return 'queryTargetsIndex';
+  }
 
   /**
    * The index of all canonicalIds to the targets that they match. This is not
    * a unique mapping because canonicalId does not promise a unique name for all
    * possible queries, so we append the targetId to make the mapping unique.
    */
-  static queryTargetsKeyPath = ['canonicalId', 'targetId'];
+  static get queryTargetsKeyPath() {
+    return ['canonicalId', 'targetId'];
+  }
 
   constructor(
     /**
@@ -877,16 +903,24 @@ export type DbTargetDocumentKey = [TargetId, EncodedResourcePath];
  */
 export class DbTargetDocument {
   /** Name of the IndexedDb object store.  */
-  static store = 'targetDocuments';
+  static get store() {
+    return 'targetDocuments';
+  }
 
   /** Keys are automatically assigned via the targetId, path properties. */
-  static keyPath = ['targetId', 'path'];
+  static get keyPath() {
+    return ['targetId', 'path'];
+  }
 
   /** The index name for the reverse index. */
-  static documentTargetsIndex = 'documentTargetsIndex';
+  static get documentTargetsIndex() {
+    return 'documentTargetsIndex';
+  }
 
   /** We also need to create the reverse index for these properties. */
-  static documentTargetsKeyPath = ['path', 'targetId'];
+  static get documentTargetsKeyPath() {
+    return ['path', 'targetId'];
+  }
 
   constructor(
     /**
@@ -927,8 +961,12 @@ export class DbTargetGlobal {
    * The key string used for the single object that exists in the
    * DbTargetGlobal store.
    */
-  static key = 'targetGlobalKey';
-  static store = 'targetGlobal';
+  static get key() {
+    return 'targetGlobalKey';
+  }
+  static get store() {
+    return 'targetGlobal';
+  }
 
   constructor(
     /**
@@ -974,10 +1012,14 @@ export type DbCollectionParentKey = [string, EncodedResourcePath];
  */
 export class DbCollectionParent {
   /** Name of the IndexedDb object store. */
-  static store = 'collectionParents';
+  static get store() {
+    return 'collectionParents';
+  }
 
   /** Keys are automatically assigned via the collectionId, parent properties. */
-  static keyPath = ['collectionId', 'parent'];
+  static get keyPath() {
+    return ['collectionId', 'parent'];
+  }
 
   constructor(
     /**
@@ -1073,10 +1115,14 @@ function createRemoteDocumentReadTimeIndex(txn: IDBTransaction): void {
  */
 export class DbClientMetadata {
   /** Name of the IndexedDb object store. */
-  static store = 'clientMetadata';
+  static get store() {
+    return 'clientMetadata';
+  }
 
   /** Keys are automatically assigned via the clientId properties. */
-  static keyPath = 'clientId';
+  static get keyPath() {
+    return 'clientId';
+  }
 
   constructor(
     // Note: Previous schema versions included a field
