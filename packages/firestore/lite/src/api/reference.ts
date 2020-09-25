@@ -131,19 +131,6 @@ export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<
     );
   }
 
-  collection(path: string): CollectionReference<DocumentData> {
-    validateNonEmptyArgument('DocumentReference.collection', 'path', path);
-    const absolutePath = ResourcePath.fromString(this.path).child(
-      ResourcePath.fromString(path)
-    );
-    validateCollectionPath(absolutePath);
-    return new CollectionReference(
-      this.firestore,
-      /* converter= */ null,
-      absolutePath
-    );
-  }
-
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U> {
     return new DocumentReference<U>(this.firestore, converter, this._path);
   }
@@ -459,18 +446,6 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
     }
   }
 
-  doc(path?: string): DocumentReference<T> {
-    // We allow omission of 'pathString' but explicitly prohibit passing in both
-    // 'undefined' and 'null'.
-    if (arguments.length === 0) {
-      path = AutoId.newId();
-    }
-    validateNonEmptyArgument('CollectionReference.doc', 'path', path);
-    const absolutePath = this._path.child(ResourcePath.fromString(path!));
-    validateDocumentPath(absolutePath);
-    return new DocumentReference(this.firestore, this._converter, absolutePath);
-  }
-
   withConverter<U>(
     converter: FirestoreDataConverter<U>
   ): CollectionReference<U> {
@@ -480,26 +455,30 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 
 export function collection(
   firestore: FirebaseFirestore,
-  collectionPath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
 export function collection(
   reference: CollectionReference<unknown>,
-  collectionPath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
 export function collection(
   reference: DocumentReference,
-  collectionPath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
 export function collection(
   parent:
     | FirebaseFirestore
     | DocumentReference<unknown>
     | CollectionReference<unknown>,
-  relativePath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData> {
-  validateNonEmptyArgument('collection', 'path', relativePath);
+  validateNonEmptyArgument('collection', 'path', path);
   if (parent instanceof FirebaseFirestore) {
-    const absolutePath = ResourcePath.fromString(relativePath);
+    const absolutePath = ResourcePath.fromString(path, ...pathComponents);
     validateCollectionPath(absolutePath);
     return new CollectionReference(parent, /* converter= */ null, absolutePath);
   } else {
@@ -513,9 +492,10 @@ export function collection(
           'a DocumentReference or FirebaseFirestore'
       );
     }
-    const absolutePath = ResourcePath.fromString(parent.path).child(
-      ResourcePath.fromString(relativePath)
-    );
+    const absolutePath = ResourcePath.fromString(
+      parent.path,
+      ...pathComponents
+    ).child(ResourcePath.fromString(path));
     validateCollectionPath(absolutePath);
     return new CollectionReference(
       parent.firestore,
@@ -549,32 +529,36 @@ export function collectionGroup(
 
 export function doc(
   firestore: FirebaseFirestore,
-  documentPath: string
+  path: string,
+  ...pathComponents: string[]
 ): DocumentReference<DocumentData>;
 export function doc<T>(
   reference: CollectionReference<T>,
-  documentPath?: string
+  path?: string,
+  ...pathComponents: string[]
 ): DocumentReference<T>;
 export function doc(
   reference: DocumentReference<unknown>,
-  documentPath: string
+  path: string,
+  ...pathComponents: string[]
 ): DocumentReference<DocumentData>;
 export function doc<T>(
   parent:
     | FirebaseFirestore
     | CollectionReference<T>
     | DocumentReference<unknown>,
-  relativePath?: string
-): DocumentReference<T> {
+  path?: string,
+  ...pathComponents: string[]
+): DocumentReference {
   // We allow omission of 'pathString' but explicitly prohibit passing in both
   // 'undefined' and 'null'.
   if (arguments.length === 1) {
-    relativePath = AutoId.newId();
+    path = AutoId.newId();
   }
-  validateNonEmptyArgument('doc', 'path', relativePath);
+  validateNonEmptyArgument('doc', 'path', path);
 
   if (parent instanceof FirebaseFirestore) {
-    const absolutePath = ResourcePath.fromString(relativePath);
+    const absolutePath = ResourcePath.fromString(path, ...pathComponents);
     validateDocumentPath(absolutePath);
     return new DocumentReference(parent, /* converter= */ null, absolutePath);
   } else {
@@ -589,7 +573,7 @@ export function doc<T>(
       );
     }
     const absolutePath = parent._path.child(
-      ResourcePath.fromString(relativePath)
+      ResourcePath.fromString(path, ...pathComponents)
     );
     validateDocumentPath(absolutePath);
     return new DocumentReference(

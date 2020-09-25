@@ -21,74 +21,44 @@ import {
   ArrayUnionFieldValueImpl,
   DeleteFieldValueImpl,
   NumericIncrementFieldValueImpl,
-  _SerializableFieldValue,
   ServerTimestampFieldValueImpl
 } from '../../../src/api/field_value';
 import { ParseContext } from '../../../src/api/user_data_reader';
 import { FieldTransform } from '../../../src/model/mutation';
 
 /** The public FieldValue class of the lite API. */
-export abstract class FieldValue extends _SerializableFieldValue {}
+export abstract class FieldValue {
+  /**
+   * @param _methodName The public API endpoint that returns this class.
+   */
+  constructor(public _methodName: string) {}
 
-/**
- * A delegate class that allows the FieldValue implementations returned by
- * deleteField(), serverTimestamp(), arrayUnion(), arrayRemove() and
- * increment() to be an instance of the lite FieldValue class declared above.
- *
- * We don't directly subclass `FieldValue` in the various field value
- * implementations as the base FieldValue class differs between the lite, full
- * and legacy SDK.
- */
-class FieldValueDelegate extends FieldValue {
-  readonly _methodName: string;
-
-  constructor(readonly _delegate: _SerializableFieldValue) {
-    super();
-    this._methodName = _delegate._methodName;
-  }
-
-  _toFieldTransform(context: ParseContext): FieldTransform | null {
-    return this._delegate._toFieldTransform(context);
-  }
-
-  isEqual(other: FieldValue): boolean {
-    if (!(other instanceof FieldValueDelegate)) {
-      return false;
-    }
-    return this._delegate.isEqual(other._delegate);
-  }
+  abstract isEqual(other: FieldValue): boolean;
+  abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
 }
 
 export function deleteField(): FieldValue {
-  return new FieldValueDelegate(new DeleteFieldValueImpl('deleteField'));
+  return new DeleteFieldValueImpl('deleteField');
 }
 
 export function serverTimestamp(): FieldValue {
-  return new FieldValueDelegate(
-    new ServerTimestampFieldValueImpl('serverTimestamp')
-  );
+  return new ServerTimestampFieldValueImpl('serverTimestamp');
 }
 
 export function arrayUnion(...elements: unknown[]): FieldValue {
   validateAtLeastNumberOfArgs('arrayUnion()', arguments, 1);
   // NOTE: We don't actually parse the data until it's used in set() or
   // update() since we'd need the Firestore instance to do this.
-  return new FieldValueDelegate(
-    new ArrayUnionFieldValueImpl('arrayUnion', elements)
-  );
+  return new ArrayUnionFieldValueImpl('arrayUnion', elements);
 }
 
 export function arrayRemove(...elements: unknown[]): FieldValue {
   validateAtLeastNumberOfArgs('arrayRemove()', arguments, 1);
   // NOTE: We don't actually parse the data until it's used in set() or
   // update() since we'd need the Firestore instance to do this.
-  return new FieldValueDelegate(
-    new ArrayRemoveFieldValueImpl('arrayRemove', elements)
-  );
+  return new ArrayRemoveFieldValueImpl('arrayRemove', elements);
 }
 
 export function increment(n: number): FieldValue {
-  return new FieldValueDelegate(
-    new NumericIncrementFieldValueImpl('increment', n)
-  );
+  return new NumericIncrementFieldValueImpl('increment', n);
 }

@@ -33,15 +33,18 @@ export declare function clearIndexedDbPersistence(
 ): Promise<void>;
 export declare function collection(
   firestore: FirebaseFirestore,
-  collectionPath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
 export declare function collection(
   reference: CollectionReference<unknown>,
-  collectionPath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
 export declare function collection(
   reference: DocumentReference,
-  collectionPath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
 export declare function collectionGroup(
   firestore: FirebaseFirestore,
@@ -68,15 +71,18 @@ export declare function disableNetwork(
 ): Promise<void>;
 export declare function doc(
   firestore: FirebaseFirestore,
-  documentPath: string
+  path: string,
+  ...pathComponents: string[]
 ): DocumentReference<DocumentData>;
 export declare function doc<T>(
   reference: CollectionReference<T>,
-  documentPath?: string
+  path?: string,
+  ...pathComponents: string[]
 ): DocumentReference<T>;
 export declare function doc(
   reference: DocumentReference<unknown>,
-  documentPath: string
+  path: string,
+  ...pathComponents: string[]
 ): DocumentReference<DocumentData>;
 export declare interface DocumentChange<T = DocumentData> {
   readonly type: DocumentChangeType;
@@ -99,7 +105,11 @@ export declare class DocumentReference<T = DocumentData> {
   get id(): string;
   get path(): string;
   get parent(): CollectionReference<T>;
+<<<<<<< HEAD
   collection(path: string): CollectionReference<DocumentData>;
+=======
+
+>>>>>>> master
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 export declare class DocumentSnapshot<T = DocumentData> {
@@ -171,6 +181,18 @@ export declare class FirestoreError {
   readonly name: string;
   readonly stack?: string;
   private constructor();
+<<<<<<< HEAD
+=======
+  readonly type: 'collection';
+  readonly id: string;
+  readonly path: string;
+
+  get parent(): DocumentReference<DocumentData> | null;
+
+  withConverter<U>(
+    converter: FirestoreDataConverter<U>
+  ): CollectionReference<U>;
+>>>>>>> master
 }
 /**
  * @license

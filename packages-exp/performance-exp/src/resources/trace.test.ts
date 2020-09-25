@@ -20,14 +20,37 @@ import { Trace } from '../resources/trace';
 import { expect } from 'chai';
 import { Api, setupApi } from '../services/api_service';
 import * as perfLogger from '../services/perf_logger';
+import { PerformanceController } from '../controllers/perf';
+import { FirebaseApp } from '@firebase/app-types-exp';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 import '../../test/setup';
 
 describe('Firebase Performance > trace', () => {
   setupApi(window);
+  const fakeFirebaseConfig = {
+    apiKey: 'api-key',
+    authDomain: 'project-id.firebaseapp.com',
+    databaseURL: 'https://project-id.firebaseio.com',
+    projectId: 'project-id',
+    storageBucket: 'project-id.appspot.com',
+    messagingSenderId: 'sender-id',
+    appId: '1:111:web:a1234'
+  };
+
+  const fakeFirebaseApp = ({
+    options: fakeFirebaseConfig
+  } as unknown) as FirebaseApp;
+
+  const fakeInstallations = ({} as unknown) as FirebaseInstallations;
+  const performanceController = new PerformanceController(
+    fakeFirebaseApp,
+    fakeInstallations
+  );
+
   let trace: Trace;
   const createTrace = (): Trace => {
-    return new Trace('test');
+    return new Trace(performanceController, 'test');
   };
 
   beforeEach(() => {

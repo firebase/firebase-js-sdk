@@ -135,6 +135,7 @@ function prunePrivateImports<
           type.expression
         );
         const hasTypeParameters = (publicSymbol?.valueDeclaration as ts.ClassDeclaration|ts.InterfaceDeclaration).typeParameters;
+        type.typeArguments
         if (publicSymbol && publicSymbol.name !== currentName && !hasTypeParameters) {
           // If there is a public type that we can refer to, update the import
           // statement to refer to the public type. Note that we cannot do

@@ -21,13 +21,13 @@ export function arrayRemove(...elements: unknown[]): FieldValue;
 export function arrayUnion(...elements: unknown[]): FieldValue;
 
 // @public (undocumented)
-export function collection(firestore: FirebaseFirestore, collectionPath: string): CollectionReference<DocumentData>;
+export function collection(firestore: FirebaseFirestore, path: string, ...pathComponents: string[]): CollectionReference<DocumentData>;
 
 // @public (undocumented)
-export function collection(reference: CollectionReference<unknown>, collectionPath: string): CollectionReference<DocumentData>;
+export function collection(reference: CollectionReference<unknown>, path: string, ...pathComponents: string[]): CollectionReference<DocumentData>;
 
 // @public (undocumented)
-export function collection(reference: DocumentReference, collectionPath: string): CollectionReference<DocumentData>;
+export function collection(reference: DocumentReference, path: string, ...pathComponents: string[]): CollectionReference<DocumentData>;
 
 // @public (undocumented)
 export function collectionGroup(firestore: FirebaseFirestore, collectionId: string): Query<DocumentData>;
@@ -35,8 +35,6 @@ export function collectionGroup(firestore: FirebaseFirestore, collectionId: stri
 // @public (undocumented)
 export class CollectionReference<T = DocumentData> extends Query<T> {
     constructor(firestore: FirebaseFirestore, converter: FirestoreDataConverter<T> | null, _path: ResourcePath);
-    // (undocumented)
-    doc(path?: string): DocumentReference<T>;
     // (undocumented)
     readonly firestore: FirebaseFirestore;
     // (undocumented)
@@ -62,13 +60,13 @@ export function deleteDoc(reference: DocumentReference): Promise<void>;
 export function deleteField(): FieldValue;
 
 // @public (undocumented)
-export function doc(firestore: FirebaseFirestore, documentPath: string): DocumentReference<DocumentData>;
+export function doc(firestore: FirebaseFirestore, path: string, ...pathComponents: string[]): DocumentReference<DocumentData>;
 
 // @public (undocumented)
-export function doc<T>(reference: CollectionReference<T>, documentPath?: string): DocumentReference<T>;
+export function doc<T>(reference: CollectionReference<T>, path?: string, ...pathComponents: string[]): DocumentReference<T>;
 
 // @public (undocumented)
-export function doc(reference: DocumentReference<unknown>, documentPath: string): DocumentReference<DocumentData>;
+export function doc(reference: DocumentReference<unknown>, path: string, ...pathComponents: string[]): DocumentReference<DocumentData>;
 
 // @public (undocumented)
 export interface DocumentData {
@@ -84,8 +82,6 @@ export function documentId(): FieldPath;
 // @public
 export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<T> {
     constructor(firestore: FirebaseFirestore, _converter: FirestoreDataConverter<T> | null, _path: ResourcePath);
-    // (undocumented)
-    collection(path: string): CollectionReference<DocumentData>;
     // (undocumented)
     readonly firestore: FirebaseFirestore;
     // (undocumented)
@@ -152,10 +148,18 @@ export class FieldPath extends _BaseFieldPath {
     isEqual(other: FieldPath): boolean;
 }
 
-// Warning: (ae-forgotten-export) The symbol "_SerializableFieldValue" needs to be exported by the entry point index.d.ts
-//
 // @public
-export abstract class FieldValue extends _SerializableFieldValue {
+export abstract class FieldValue {
+    constructor(_methodName: string);
+    // (undocumented)
+    abstract isEqual(other: FieldValue): boolean;
+    // (undocumented)
+    _methodName: string;
+    // Warning: (ae-forgotten-export) The symbol "ParseContext" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "FieldTransform" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
 }
 
 // @public

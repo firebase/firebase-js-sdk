@@ -15,13 +15,6 @@
  * limitations under the License.
  */
 
-import { FieldValue as PublicFieldValue } from '@firebase/firestore-types';
-import {
-  validateArgType,
-  validateAtLeastNumberOfArgs,
-  validateExactNumberOfArgs,
-  validateNoArgs
-} from '../util/input_validation';
 import { FieldTransform } from '../model/mutation';
 import {
   ArrayRemoveTransformOperation,
@@ -32,30 +25,9 @@ import {
 import { ParseContext, parseData, UserDataSource } from './user_data_reader';
 import { debugAssert } from '../util/assert';
 import { toNumber } from '../remote/serializer';
+import { FieldValue } from '../../lite/src/api/field_value';
 
-/**
- * An opaque base class for FieldValue sentinel objects in our public API that
- * is shared between the full, lite and legacy SDK.
- */
-// Use underscore prefix to hide this class from our Public API.
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export abstract class _SerializableFieldValue {
-  /** The public API endpoint that returns this class. */
-  abstract readonly _methodName: string;
-
-  /** A pointer to the implementing class. */
-  readonly _delegate: _SerializableFieldValue = this;
-
-  abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
-
-  abstract isEqual(other: _SerializableFieldValue): boolean;
-}
-
-export class DeleteFieldValueImpl extends _SerializableFieldValue {
-  constructor(readonly _methodName: string) {
-    super();
-  }
-
+export class DeleteFieldValueImpl extends FieldValue {
   _toFieldTransform(context: ParseContext): null {
     if (context.dataSource === UserDataSource.MergeSet) {
       // No transform to add for a delete, but we need to add it to our
@@ -103,7 +75,7 @@ export class DeleteFieldValueImpl extends _SerializableFieldValue {
  * @param arrayElement Whether or not the FieldValue has an array.
  */
 function createSentinelChildContext(
-  fieldValue: _SerializableFieldValue,
+  fieldValue: FieldValue,
   context: ParseContext,
   arrayElement: boolean
 ): ParseContext {
@@ -120,11 +92,7 @@ function createSentinelChildContext(
   );
 }
 
-export class ServerTimestampFieldValueImpl extends _SerializableFieldValue {
-  constructor(readonly _methodName: string) {
-    super();
-  }
-
+export class ServerTimestampFieldValueImpl extends FieldValue {
   _toFieldTransform(context: ParseContext): FieldTransform {
     return new FieldTransform(context.path!, new ServerTimestampTransform());
   }
@@ -134,12 +102,9 @@ export class ServerTimestampFieldValueImpl extends _SerializableFieldValue {
   }
 }
 
-export class ArrayUnionFieldValueImpl extends _SerializableFieldValue {
-  constructor(
-    readonly _methodName: string,
-    private readonly _elements: unknown[]
-  ) {
-    super();
+export class ArrayUnionFieldValueImpl extends FieldValue {
+  constructor(methodName: string, private readonly _elements: unknown[]) {
+    super(methodName);
   }
 
   _toFieldTransform(context: ParseContext): FieldTransform {
@@ -161,9 +126,9 @@ export class ArrayUnionFieldValueImpl extends _SerializableFieldValue {
   }
 }
 
-export class ArrayRemoveFieldValueImpl extends _SerializableFieldValue {
-  constructor(readonly _methodName: string, readonly _elements: unknown[]) {
-    super();
+export class ArrayRemoveFieldValueImpl extends FieldValue {
+  constructor(methodName: string, readonly _elements: unknown[]) {
+    super(methodName);
   }
 
   _toFieldTransform(context: ParseContext): FieldTransform {
@@ -185,9 +150,9 @@ export class ArrayRemoveFieldValueImpl extends _SerializableFieldValue {
   }
 }
 
-export class NumericIncrementFieldValueImpl extends _SerializableFieldValue {
-  constructor(readonly _methodName: string, private readonly _operand: number) {
-    super();
+export class NumericIncrementFieldValueImpl extends FieldValue {
+  constructor(methodName: string, private readonly _operand: number) {
+    super(methodName);
   }
 
   _toFieldTransform(context: ParseContext): FieldTransform {
@@ -201,83 +166,5 @@ export class NumericIncrementFieldValueImpl extends _SerializableFieldValue {
   isEqual(other: FieldValue): boolean {
     // TODO(mrschmidt): Implement isEquals
     return this === other;
-  }
-}
-
-/** The public FieldValue class of the lite API. */
-export abstract class FieldValue
-  extends _SerializableFieldValue
-  implements PublicFieldValue {
-  protected constructor() {
-    super();
-  }
-
-  static delete(): PublicFieldValue {
-    validateNoArgs('FieldValue.delete', arguments);
-    return new FieldValueDelegate(
-      new DeleteFieldValueImpl('FieldValue.delete')
-    );
-  }
-
-  static serverTimestamp(): PublicFieldValue {
-    validateNoArgs('FieldValue.serverTimestamp', arguments);
-    return new FieldValueDelegate(
-      new ServerTimestampFieldValueImpl('FieldValue.serverTimestamp')
-    );
-  }
-
-  static arrayUnion(...elements: unknown[]): PublicFieldValue {
-    validateAtLeastNumberOfArgs('FieldValue.arrayUnion', arguments, 1);
-    // NOTE: We don't actually parse the data until it's used in set() or
-    // update() since we'd need the Firestore instance to do this.
-    return new FieldValueDelegate(
-      new ArrayUnionFieldValueImpl('FieldValue.arrayUnion', elements)
-    );
-  }
-
-  static arrayRemove(...elements: unknown[]): PublicFieldValue {
-    validateAtLeastNumberOfArgs('FieldValue.arrayRemove', arguments, 1);
-    // NOTE: We don't actually parse the data until it's used in set() or
-    // update() since we'd need the Firestore instance to do this.
-    return new FieldValueDelegate(
-      new ArrayRemoveFieldValueImpl('FieldValue.arrayRemove', elements)
-    );
-  }
-
-  static increment(n: number): PublicFieldValue {
-    validateArgType('FieldValue.increment', 'number', 1, n);
-    validateExactNumberOfArgs('FieldValue.increment', arguments, 1);
-    return new FieldValueDelegate(
-      new NumericIncrementFieldValueImpl('FieldValue.increment', n)
-    );
-  }
-}
-
-/**
- * A delegate class that allows the FieldValue implementations returned by
- * deleteField(), serverTimestamp(), arrayUnion(), arrayRemove() and
- * increment() to be an instance of the legacy FieldValue class declared above.
- *
- * We don't directly subclass `FieldValue` in the various field value
- * implementations as the base FieldValue class differs between the lite, full
- * and legacy SDK.
- */
-class FieldValueDelegate extends FieldValue implements PublicFieldValue {
-  readonly _methodName: string;
-
-  constructor(readonly _delegate: _SerializableFieldValue) {
-    super();
-    this._methodName = _delegate._methodName;
-  }
-
-  _toFieldTransform(context: ParseContext): FieldTransform | null {
-    return this._delegate._toFieldTransform(context);
-  }
-
-  isEqual(other: PublicFieldValue): boolean {
-    if (!(other instanceof FieldValueDelegate)) {
-      return false;
-    }
-    return this._delegate.isEqual(other._delegate);
   }
 }
