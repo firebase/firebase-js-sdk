@@ -30,7 +30,7 @@ import {
   getFakeInstallations
 } from './testing/get-fake-firebase-services';
 import { FirebaseApp } from '@firebase/app-types';
-import { GtagCommand, EventName } from './src/constants';
+import { GtagCommand, EventName, GA_FID_KEY } from './src/constants';
 import { findGtagScriptOnPage } from './src/helpers';
 import { removeGtagScript } from './testing/gtag-script-util';
 import { Deferred } from '@firebase/util';
@@ -214,35 +214,20 @@ describe('FirebaseAnalytics instance tests', () => {
       clock.restore();
       warnStub.restore();
       idbOpenStub.restore();
+      gtagStub.resetHistory();
     });
-    it('Warns on logEvent if cookies not available', async () => {
+    it('Warns on initialization if cookies not available', async () => {
       cookieStub = stub(navigator, 'cookieEnabled').value(false);
       analyticsInstance = analyticsFactory(app, installations);
-      analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
-        currency: 'USD'
-      });
-      // Successfully resolves fake IDB open request.
-      fakeRequest.onsuccess();
-      // Clear promise chain started by logEvent.
-      await clock.runAllAsync();
-      expect(gtagStub).to.not.have.been.called;
       expect(warnStub.args[0][1]).to.include(
         AnalyticsError.INVALID_ANALYTICS_CONTEXT
       );
       expect(warnStub.args[0][1]).to.include('Cookies');
       cookieStub.restore();
     });
-    it('Warns on logEvent if in browser extension', async () => {
+    it('Warns on initialization if in browser extension', async () => {
       window.chrome = { runtime: { id: 'blah' } };
       analyticsInstance = analyticsFactory(app, installations);
-      analyticsInstance.logEvent(EventName.ADD_PAYMENT_INFO, {
-        currency: 'USD'
-      });
-      // Successfully resolves fake IDB open request.
-      fakeRequest.onsuccess();
-      // Clear promise chain started by logEvent.
-      await clock.runAllAsync();
-      expect(gtagStub).to.not.have.been.called;
       expect(warnStub.args[0][1]).to.include(
         AnalyticsError.INVALID_ANALYTICS_CONTEXT
       );
@@ -257,7 +242,11 @@ describe('FirebaseAnalytics instance tests', () => {
       });
       // Clear promise chain started by logEvent.
       await clock.runAllAsync();
-      expect(gtagStub).to.not.have.been.called;
+      // gtag config call omits FID
+      expect(gtagStub).to.be.calledWith('config', 'abcd-efgh', {
+        update: true,
+        origin: 'firebase'
+      });
       expect(warnStub.args[0][1]).to.include(
         AnalyticsError.INVALID_ANALYTICS_CONTEXT
       );
@@ -273,7 +262,11 @@ describe('FirebaseAnalytics instance tests', () => {
       });
       // Clear promise chain started by logEvent.
       await clock.runAllAsync();
-      expect(gtagStub).to.not.have.been.called;
+      // gtag config call omits FID
+      expect(gtagStub).to.be.calledWith('config', 'abcd-efgh', {
+        update: true,
+        origin: 'firebase'
+      });
       expect(warnStub.args[0][1]).to.include(
         AnalyticsError.INVALID_ANALYTICS_CONTEXT
       );

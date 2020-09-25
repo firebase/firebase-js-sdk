@@ -38,12 +38,7 @@ import {
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
-import {
-  isIndexedDBAvailable,
-  areCookiesEnabled,
-  isBrowserExtension,
-  validateIndexedDBOpenable
-} from '@firebase/util';
+import { areCookiesEnabled, isBrowserExtension } from '@firebase/util';
 import { initializeIds } from './initialize-ids';
 import { logger } from './logger';
 import { FirebaseService } from '@firebase/app-types/private';
@@ -158,7 +153,7 @@ export function settings(options: SettingsOptions): void {
  * If environment mismatches are found, throws an INVALID_ANALYTICS_CONTEXT
  * error that also lists details for each mismatch found.
  */
-async function validateBrowserContext(): Promise<boolean> {
+function warnOnBrowserContextMismatch(): void {
   const mismatchedEnvMessages = [];
   if (isBrowserExtension()) {
     mismatchedEnvMessages.push('This is a browser extension environment.');
@@ -166,32 +161,22 @@ async function validateBrowserContext(): Promise<boolean> {
   if (!areCookiesEnabled()) {
     mismatchedEnvMessages.push('Cookies are not available.');
   }
-  if (!isIndexedDBAvailable()) {
-    mismatchedEnvMessages.push(
-      'IndexedDB is not available in this environment.'
-    );
-  } else {
-    try {
-      await validateIndexedDBOpenable();
-    } catch (e) {
-      mismatchedEnvMessages.push(e);
-    }
-  }
   if (mismatchedEnvMessages.length > 0) {
     const details = mismatchedEnvMessages
       .map((message, index) => `(${index + 1}) ${message}`)
       .join(' ');
-    throw ERROR_FACTORY.create(AnalyticsError.INVALID_ANALYTICS_CONTEXT, {
+    const err = ERROR_FACTORY.create(AnalyticsError.INVALID_ANALYTICS_CONTEXT, {
       errorInfo: details
     });
+    logger.warn(err.message);
   }
-  return true;
 }
 
 export function factory(
   app: FirebaseApp,
   installations: FirebaseInstallations
 ): FirebaseAnalytics {
+  warnOnBrowserContextMismatch();
   const appId = app.options.appId;
   if (!appId) {
     throw ERROR_FACTORY.create(AnalyticsError.NO_APP_ID);
@@ -237,14 +222,12 @@ export function factory(
   }
   // Async but non-blocking.
   // This map reflects the completion state of all promises for each appId.
-  initializationPromisesMap[appId] = validateBrowserContext().then(() =>
-    initializeIds(
-      app,
-      dynamicConfigPromisesList,
-      measurementIdToAppId,
-      installations,
-      gtagCoreFunction
-    )
+  initializationPromisesMap[appId] = initializeIds(
+    app,
+    dynamicConfigPromisesList,
+    measurementIdToAppId,
+    installations,
+    gtagCoreFunction
   );
 
   const analyticsInstance: FirebaseAnalyticsInternal = {

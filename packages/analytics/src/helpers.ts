@@ -25,7 +25,6 @@ import {
   MinimalDynamicConfig
 } from '@firebase/analytics-types';
 import { GtagCommand, GTAG_URL } from './constants';
-import { AnalyticsError } from './errors';
 import { logger } from './logger';
 
 /**
@@ -96,12 +95,6 @@ async function gtagOnConfig(
       }
     }
   } catch (e) {
-    // Thrown by an initializeIds promise in initializationPromisesMap before
-    // making any fetches if indexedDB.open() is unavailable in the environment.
-    if (e.message.includes(AnalyticsError.INVALID_ANALYTICS_CONTEXT)) {
-      logger.warn(e.message);
-      return;
-    }
     logger.error(e);
   }
   gtagCore(GtagCommand.CONFIG, measurementId, gtagParams);
@@ -173,12 +166,6 @@ async function gtagOnEvent(
     // Workaround for http://b/141370449 - third argument cannot be undefined.
     gtagCore(GtagCommand.EVENT, measurementId, gtagParams || {});
   } catch (e) {
-    // Thrown by an initializeIds promise in initializationPromisesMap before
-    // making any fetches if indexedDB.open() is unavailable in the environment.
-    if (e.message.includes(AnalyticsError.INVALID_ANALYTICS_CONTEXT)) {
-      logger.warn(e.message);
-      return;
-    }
     logger.error(e);
   }
 }
