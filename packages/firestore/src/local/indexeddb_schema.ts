@@ -410,10 +410,14 @@ export type DbMutationQueueKey = string;
  */
 export class DbMutationQueue {
   /** Name of the IndexedDb object store.  */
-  static store = 'mutationQueues';
+  static get store() {
+    return 'mutationQueues';
+  }
 
   /** Keys are automatically assigned via the userId property. */
-  static keyPath = 'userId';
+  static get keyPath() {
+    return 'userId';
+  }
 
   constructor(
     /**
