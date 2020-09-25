@@ -424,129 +424,133 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
    * delta for all submitted changes. This avoids having to re-read all documents from IndexedDb
    * when we apply the changes.
    */
-  private static RemoteDocumentChangeBuffer = class extends RemoteDocumentChangeBuffer {
-    // A map of document sizes prior to applying the changes in this buffer.
-    protected documentSizes: ObjectMap<DocumentKey, number> = new ObjectMap(
-      key => key.toString(),
-      (l, r) => l.isEqual(r)
-    );
-
-    /**
-     * @param documentCache The IndexedDbRemoteDocumentCache to apply the changes to.
-     * @param trackRemovals Whether to create sentinel deletes that can be tracked by
-     * `getNewDocumentChanges()`.
-     */
-    constructor(
-      private readonly documentCache: IndexedDbRemoteDocumentCache,
-      private readonly trackRemovals: boolean
-    ) {
-      super();
-    }
-
-    protected applyChanges(
-      transaction: PersistenceTransaction
-    ): PersistencePromise<void> {
-      const promises: Array<PersistencePromise<void>> = [];
-
-      let sizeDelta = 0;
-
-      let collectionParents = new SortedSet<ResourcePath>((l, r) =>
-        primitiveComparator(l.canonicalString(), r.canonicalString())
+  private static get RemoteDocumentChangeBuffer() {
+    return class extends RemoteDocumentChangeBuffer {
+      // A map of document sizes prior to applying the changes in this buffer.
+      protected documentSizes: ObjectMap<DocumentKey, number> = new ObjectMap(
+        key => key.toString(),
+        (l, r) => l.isEqual(r)
       );
 
-      this.changes.forEach((key, maybeDocument) => {
-        const previousSize = this.documentSizes.get(key);
-        debugAssert(
-          previousSize !== undefined,
-          `Cannot modify a document that wasn't read (for ${key})`
-        );
-        if (maybeDocument) {
-          debugAssert(
-            !this.readTime.isEqual(SnapshotVersion.min()),
-            'Cannot add a document with a read time of zero'
-          );
-          const doc = toDbRemoteDocument(
-            this.documentCache.serializer,
-            maybeDocument,
-            this.readTime
-          );
-          collectionParents = collectionParents.add(key.path.popLast());
+      /**
+       * @param documentCache The IndexedDbRemoteDocumentCache to apply the changes to.
+       * @param trackRemovals Whether to create sentinel deletes that can be tracked by
+       * `getNewDocumentChanges()`.
+       */
+      constructor(
+        private readonly documentCache: IndexedDbRemoteDocumentCache,
+        private readonly trackRemovals: boolean
+      ) {
+        super();
+      }
 
-          const size = dbDocumentSize(doc);
-          sizeDelta += size - previousSize!;
-          promises.push(this.documentCache.addEntry(transaction, key, doc));
-        } else {
-          sizeDelta -= previousSize!;
-          if (this.trackRemovals) {
-            // In order to track removals, we store a "sentinel delete" in the
-            // RemoteDocumentCache. This entry is represented by a NoDocument
-            // with a version of 0 and ignored by `maybeDecodeDocument()` but
-            // preserved in `getNewDocumentChanges()`.
-            const deletedDoc = toDbRemoteDocument(
+      protected applyChanges(
+        transaction: PersistenceTransaction
+      ): PersistencePromise<void> {
+        const promises: Array<PersistencePromise<void>> = [];
+
+        let sizeDelta = 0;
+
+        let collectionParents = new SortedSet<ResourcePath>((l, r) =>
+          primitiveComparator(l.canonicalString(), r.canonicalString())
+        );
+
+        this.changes.forEach((key, maybeDocument) => {
+          const previousSize = this.documentSizes.get(key);
+          debugAssert(
+            previousSize !== undefined,
+            `Cannot modify a document that wasn't read (for ${key})`
+          );
+          if (maybeDocument) {
+            debugAssert(
+              !this.readTime.isEqual(SnapshotVersion.min()),
+              'Cannot add a document with a read time of zero'
+            );
+            const doc = toDbRemoteDocument(
               this.documentCache.serializer,
-              new NoDocument(key, SnapshotVersion.min()),
+              maybeDocument,
               this.readTime
             );
-            promises.push(
-              this.documentCache.addEntry(transaction, key, deletedDoc)
-            );
-          } else {
-            promises.push(this.documentCache.removeEntry(transaction, key));
-          }
-        }
-      });
+            collectionParents = collectionParents.add(key.path.popLast());
 
-      collectionParents.forEach(parent => {
+            const size = dbDocumentSize(doc);
+            sizeDelta += size - previousSize!;
+            promises.push(this.documentCache.addEntry(transaction, key, doc));
+          } else {
+            sizeDelta -= previousSize!;
+            if (this.trackRemovals) {
+              // In order to track removals, we store a "sentinel delete" in the
+              // RemoteDocumentCache. This entry is represented by a NoDocument
+              // with a version of 0 and ignored by `maybeDecodeDocument()` but
+              // preserved in `getNewDocumentChanges()`.
+              const deletedDoc = toDbRemoteDocument(
+                this.documentCache.serializer,
+                new NoDocument(key, SnapshotVersion.min()),
+                this.readTime
+              );
+              promises.push(
+                this.documentCache.addEntry(transaction, key, deletedDoc)
+              );
+            } else {
+              promises.push(this.documentCache.removeEntry(transaction, key));
+            }
+          }
+        });
+
+        collectionParents.forEach(parent => {
+          promises.push(
+            this.documentCache.indexManager.addToCollectionParentIndex(
+              transaction,
+              parent
+            )
+          );
+        });
+
         promises.push(
-          this.documentCache.indexManager.addToCollectionParentIndex(
-            transaction,
-            parent
-          )
+          this.documentCache.updateMetadata(transaction, sizeDelta)
         );
-      });
 
-      promises.push(this.documentCache.updateMetadata(transaction, sizeDelta));
+        return PersistencePromise.waitFor(promises);
+      }
 
-      return PersistencePromise.waitFor(promises);
-    }
-
-    protected getFromCache(
-      transaction: PersistenceTransaction,
-      documentKey: DocumentKey
-    ): PersistencePromise<MaybeDocument | null> {
-      // Record the size of everything we load from the cache so we can compute a delta later.
-      return this.documentCache
-        .getSizedEntry(transaction, documentKey)
-        .next(getResult => {
-          if (getResult === null) {
-            this.documentSizes.set(documentKey, 0);
-            return null;
-          } else {
-            this.documentSizes.set(documentKey, getResult.size);
-            return getResult.maybeDocument;
-          }
-        });
-    }
-
-    protected getAllFromCache(
-      transaction: PersistenceTransaction,
-      documentKeys: DocumentKeySet
-    ): PersistencePromise<NullableMaybeDocumentMap> {
-      // Record the size of everything we load from the cache so we can compute
-      // a delta later.
-      return this.documentCache
-        .getSizedEntries(transaction, documentKeys)
-        .next(({ maybeDocuments, sizeMap }) => {
-          // Note: `getAllFromCache` returns two maps instead of a single map from
-          // keys to `DocumentSizeEntry`s. This is to allow returning the
-          // `NullableMaybeDocumentMap` directly, without a conversion.
-          sizeMap.forEach((documentKey, size) => {
-            this.documentSizes.set(documentKey, size);
+      protected getFromCache(
+        transaction: PersistenceTransaction,
+        documentKey: DocumentKey
+      ): PersistencePromise<MaybeDocument | null> {
+        // Record the size of everything we load from the cache so we can compute a delta later.
+        return this.documentCache
+          .getSizedEntry(transaction, documentKey)
+          .next(getResult => {
+            if (getResult === null) {
+              this.documentSizes.set(documentKey, 0);
+              return null;
+            } else {
+              this.documentSizes.set(documentKey, getResult.size);
+              return getResult.maybeDocument;
+            }
           });
-          return maybeDocuments;
-        });
-    }
-  };
+      }
+
+      protected getAllFromCache(
+        transaction: PersistenceTransaction,
+        documentKeys: DocumentKeySet
+      ): PersistencePromise<NullableMaybeDocumentMap> {
+        // Record the size of everything we load from the cache so we can compute
+        // a delta later.
+        return this.documentCache
+          .getSizedEntries(transaction, documentKeys)
+          .next(({ maybeDocuments, sizeMap }) => {
+            // Note: `getAllFromCache` returns two maps instead of a single map from
+            // keys to `DocumentSizeEntry`s. This is to allow returning the
+            // `NullableMaybeDocumentMap` directly, without a conversion.
+            sizeMap.forEach((documentKey, size) => {
+              this.documentSizes.set(documentKey, size);
+            });
+            return maybeDocuments;
+          });
+      }
+    };
+  }
 }
 
 function documentGlobalStore(

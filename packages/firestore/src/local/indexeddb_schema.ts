@@ -452,16 +452,24 @@ export type DbMutationBatchKey = BatchId;
  */
 export class DbMutationBatch {
   /** Name of the IndexedDb object store.  */
-  static store = 'mutations';
+  static get store() {
+    return 'mutations';
+  }
 
   /** Keys are automatically assigned via the userId, batchId properties. */
-  static keyPath = 'batchId';
+  static get keyPath() {
+    return 'batchId';
+  }
 
   /** The index name for lookup of mutations by user. */
-  static userMutationsIndex = 'userMutationsIndex';
+  static get userMutationsIndex() {
+    return 'userMutationsIndex';
+  }
 
   /** The user mutations index is keyed by [userId, batchId] pairs. */
-  static userMutationsKeyPath = ['userId', 'batchId'];
+  static get userMutationsKeyPath() {
+    return ['userId', 'batchId'];
+  }
 
   constructor(
     /**
@@ -567,7 +575,9 @@ function upgradeMutationBatchSchemaAndMigrateData(
  * DbMutationBatch.mutations.
  */
 export class DbDocumentMutation {
-  static store = 'documentMutations';
+  static get store() {
+    return 'documentMutations';
+  }
 
   /**
    * Creates a [userId] key for use in the DbDocumentMutations index to iterate
@@ -606,7 +616,9 @@ export class DbDocumentMutation {
    * path cannot be stored because IndexedDb doesn't store prototype
    * information.
    */
-  static PLACEHOLDER = new DbDocumentMutation();
+  static get PLACEHOLDER() {
+    return new DbDocumentMutation();
+  }
 
   private constructor() {}
 }
