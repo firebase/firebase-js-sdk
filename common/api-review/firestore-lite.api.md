@@ -4,17 +4,347 @@
 
 ```ts
 
-// Warning: (ae-forgotten-export) The symbol "Foo" needs to be exported by the entry point index.d.ts
-//
+import { DocumentData as DocumentData_2 } from '@firebase/firestore-types';
+import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { _FirebaseService } from '@firebase/app-types';
+import { Provider } from '@firebase/component';
+import { SetOptions as SetOptions_2 } from '@firebase/firestore-types';
+
 // @public (undocumented)
-export class BarPublic extends Foo<number> {
+export function addDoc<T>(reference: CollectionReference<T>, data: T): Promise<DocumentReference<T>>;
+
+// @public (undocumented)
+export function arrayRemove(...elements: unknown[]): FieldValue;
+
+// @public (undocumented)
+export function arrayUnion(...elements: unknown[]): FieldValue;
+
+// @public (undocumented)
+export function collection(firestore: FirebaseFirestore, collectionPath: string): CollectionReference<DocumentData>;
+
+// @public (undocumented)
+export function collection(reference: CollectionReference<unknown>, collectionPath: string): CollectionReference<DocumentData>;
+
+// @public (undocumented)
+export function collection(reference: DocumentReference, collectionPath: string): CollectionReference<DocumentData>;
+
+// @public (undocumented)
+export function collectionGroup(firestore: FirebaseFirestore, collectionId: string): Query<DocumentData>;
+
+// @public (undocumented)
+export class CollectionReference<T = DocumentData> extends Query<T> {
+    constructor(firestore: FirebaseFirestore, converter: FirestoreDataConverter<T> | null, _path: ResourcePath);
+    // (undocumented)
+    doc(path?: string): DocumentReference<T>;
+    // (undocumented)
+    readonly firestore: FirebaseFirestore;
+    // (undocumented)
+    get id(): string;
+    // (undocumented)
+    get parent(): DocumentReference<DocumentData> | null;
+    // (undocumented)
+    get path(): string;
+    // Warning: (ae-forgotten-export) The symbol "ResourcePath" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly _path: ResourcePath;
+    // (undocumented)
+    readonly type = "collection";
+    // (undocumented)
+    withConverter<U>(converter: FirestoreDataConverter<U>): CollectionReference<U>;
 }
 
 // @public (undocumented)
-export class FooPublic<T> extends Foo<string> {
+export function deleteDoc(reference: DocumentReference): Promise<void>;
+
+// @public (undocumented)
+export function deleteField(): FieldValue;
+
+// @public (undocumented)
+export function doc(firestore: FirebaseFirestore, documentPath: string): DocumentReference<DocumentData>;
+
+// @public (undocumented)
+export function doc<T>(reference: CollectionReference<T>, documentPath?: string): DocumentReference<T>;
+
+// @public (undocumented)
+export function doc(reference: DocumentReference<unknown>, documentPath: string): DocumentReference<DocumentData>;
+
+// @public (undocumented)
+export interface DocumentData {
     // (undocumented)
-    randomData?: T;
+    [field: string]: any;
 }
+
+// @public (undocumented)
+export function documentId(): FieldPath;
+
+// Warning: (ae-forgotten-export) The symbol "_DocumentKeyReference" needs to be exported by the entry point index.d.ts
+//
+// @public
+export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<T> {
+    constructor(firestore: FirebaseFirestore, _converter: FirestoreDataConverter<T> | null, _path: ResourcePath);
+    // (undocumented)
+    collection(path: string): CollectionReference<DocumentData>;
+    // (undocumented)
+    readonly firestore: FirebaseFirestore;
+    // (undocumented)
+    get id(): string;
+    // (undocumented)
+    get parent(): CollectionReference<T>;
+    // (undocumented)
+    get path(): string;
+    // (undocumented)
+    readonly _path: ResourcePath;
+    // (undocumented)
+    readonly type = "document";
+    // (undocumented)
+    withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
+}
+
+// @public (undocumented)
+export class DocumentSnapshot<T = DocumentData> {
+    constructor(_firestore: FirebaseFirestore, _key: DocumentKey, _document: Document_2 | null, _converter: UntypedFirestoreDataConverter<T> | null);
+    // Warning: (ae-forgotten-export) The symbol "UntypedFirestoreDataConverter" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    _converter: UntypedFirestoreDataConverter<T> | null;
+    // (undocumented)
+    data(): T | undefined;
+    // Warning: (ae-forgotten-export) The symbol "Document" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    _document: Document_2 | null;
+    // (undocumented)
+    exists(): this is QueryDocumentSnapshot<T>;
+    // (undocumented)
+    _firestore: FirebaseFirestore;
+    // (undocumented)
+    get(fieldPath: string | FieldPath): any;
+    // (undocumented)
+    get id(): string;
+    // Warning: (ae-forgotten-export) The symbol "DocumentKey" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    _key: DocumentKey;
+    // (undocumented)
+    get ref(): DocumentReference<T>;
+}
+
+// @public (undocumented)
+export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+
+// @public (undocumented)
+export function endAt(...fieldValues: unknown[]): QueryConstraint;
+
+// @public (undocumented)
+export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+
+// @public (undocumented)
+export function endBefore(...fieldValues: unknown[]): QueryConstraint;
+
+// Warning: (ae-forgotten-export) The symbol "_BaseFieldPath" needs to be exported by the entry point index.d.ts
+//
+// @public
+export class FieldPath extends _BaseFieldPath {
+    constructor(...fieldNames: string[]);
+    // (undocumented)
+    isEqual(other: FieldPath): boolean;
+}
+
+// Warning: (ae-forgotten-export) The symbol "_SerializableFieldValue" needs to be exported by the entry point index.d.ts
+//
+// @public
+export abstract class FieldValue extends _SerializableFieldValue {
+}
+
+// @public
+export class FirebaseFirestore implements _FirebaseService {
+    constructor(app: FirebaseApp, authProvider: Provider<FirebaseAuthInternalName>);
+    // (undocumented)
+    readonly app: FirebaseApp;
+    // (undocumented)
+    _configureClient(settings: Settings): void;
+    // Warning: (ae-forgotten-export) The symbol "CredentialsProvider" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly _credentials: CredentialsProvider;
+    // Warning: (ae-forgotten-export) The symbol "DatabaseId" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly _databaseId: DatabaseId;
+    // (undocumented)
+    _delete(): Promise<void>;
+    // (undocumented)
+    _getSettings(): Settings;
+    // (undocumented)
+    get _initialized(): boolean;
+    // (undocumented)
+    readonly _persistenceKey: string;
+    // (undocumented)
+    protected _settings?: Settings;
+    protected _terminate(): Promise<void>;
+    // (undocumented)
+    get _terminated(): boolean;
+    }
+
+// @public (undocumented)
+export interface FirestoreDataConverter<T> {
+    // (undocumented)
+    fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
+    // (undocumented)
+    toFirestore(modelObject: T): DocumentData;
+    // (undocumented)
+    toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+}
+
+// @public (undocumented)
+export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
+
+// @public (undocumented)
+export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
+
+// @public (undocumented)
+export function getFirestore(app: FirebaseApp): FirebaseFirestore;
+
+// @public (undocumented)
+export function increment(n: number): FieldValue;
+
+// @public (undocumented)
+export function initializeFirestore(app: FirebaseApp, settings: Settings): FirebaseFirestore;
+
+// @public (undocumented)
+export function limit(limit: number): QueryConstraint;
+
+// @public (undocumented)
+export function limitToLast(limit: number): QueryConstraint;
+
+// @public (undocumented)
+export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryConstraint;
+
+// @public (undocumented)
+export type OrderByDirection = 'desc' | 'asc';
+
+// @public (undocumented)
+export class Query<T = DocumentData> {
+    constructor(firestore: FirebaseFirestore, _converter: FirestoreDataConverter<T> | null, _query: Query_2);
+    // (undocumented)
+    readonly _converter: FirestoreDataConverter<T> | null;
+    // (undocumented)
+    readonly firestore: FirebaseFirestore;
+    // Warning: (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly _query: Query_2;
+    // (undocumented)
+    readonly type: 'query' | 'collection';
+    // (undocumented)
+    withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
+}
+
+// @public (undocumented)
+export function query<T>(query: Query<T>, ...queryConstraints: QueryConstraint[]): Query<T>;
+
+// @public (undocumented)
+export abstract class QueryConstraint {
+    abstract _apply<T>(query: Query<T>): Query<T>;
+    // (undocumented)
+    abstract readonly type: QueryConstraintType;
+}
+
+// @public (undocumented)
+export type QueryConstraintType = 'where' | 'orderBy' | 'limit' | 'limitToLast' | 'startAt' | 'startAfter' | 'endAt' | 'endBefore';
+
+// @public (undocumented)
+export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T> {
+    // (undocumented)
+    data(): T;
+}
+
+// @public (undocumented)
+export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
+
+// @public (undocumented)
+export class QuerySnapshot<T = DocumentData> {
+    constructor(query: Query<T>, _docs: Array<QueryDocumentSnapshot<T>>);
+    // (undocumented)
+    get docs(): Array<QueryDocumentSnapshot<T>>;
+    // (undocumented)
+    readonly _docs: Array<QueryDocumentSnapshot<T>>;
+    // (undocumented)
+    get empty(): boolean;
+    // (undocumented)
+    forEach(callback: (result: QueryDocumentSnapshot<T>) => void, thisArg?: unknown): void;
+    // (undocumented)
+    readonly query: Query<T>;
+    // (undocumented)
+    get size(): number;
+}
+
+// @public (undocumented)
+export function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
+
+// @public (undocumented)
+export function serverTimestamp(): FieldValue;
+
+// @public (undocumented)
+export function setDoc<T>(reference: DocumentReference<T>, data: T): Promise<void>;
+
+// @public (undocumented)
+export function setDoc<T>(reference: DocumentReference<T>, data: Partial<T>, options: SetOptions): Promise<void>;
+
+// @public (undocumented)
+export type SetOptions = {
+    readonly merge?: boolean;
+} | {
+    readonly mergeFields?: Array<string | FieldPath>;
+};
+
+// @public (undocumented)
+export interface Settings {
+    // (undocumented)
+    host?: string;
+    // (undocumented)
+    ignoreUndefinedProperties?: boolean;
+    // (undocumented)
+    ssl?: boolean;
+}
+
+// @public (undocumented)
+export function snapshotEqual<T>(left: DocumentSnapshot<T> | QuerySnapshot<T>, right: DocumentSnapshot<T> | QuerySnapshot<T>): boolean;
+
+// @public (undocumented)
+export function startAfter(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+
+// @public (undocumented)
+export function startAfter(...fieldValues: unknown[]): QueryConstraint;
+
+// @public (undocumented)
+export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+
+// @public (undocumented)
+export function startAt(...fieldValues: unknown[]): QueryConstraint;
+
+// @public (undocumented)
+export function terminate(firestore: FirebaseFirestore): Promise<void>;
+
+// @public (undocumented)
+export interface UpdateData {
+    // (undocumented)
+    [fieldPath: string]: any;
+}
+
+// @public (undocumented)
+export function updateDoc(reference: DocumentReference<unknown>, data: UpdateData): Promise<void>;
+
+// @public (undocumented)
+export function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
+
+// @public (undocumented)
+export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryConstraint;
+
+// @public (undocumented)
+export type WhereFilterOp = '<' | '<=' | '==' | '!=' | '>=' | '>' | 'array-contains' | 'in' | 'array-contains-any' | 'not-in';
 
 
 // (No @packageDocumentation comment for this package)

@@ -44,7 +44,6 @@ function main(inputLocation: string, outputLocation: string): void {
   >(sourceFile, [dropPrivateApiTransformer.bind(null, typeChecker)]);
   const transformedSourceFile: ts.SourceFile = result.transformed[0];
   const content = printer.printFile(transformedSourceFile);
-  console.log(content);
   fs.writeFileSync(outputLocation, content);
 }
 
@@ -93,22 +92,6 @@ function maybeHideConstructor(
   }
 }
 
-function visit<T extends ts.Node>(
-  typeChecker: ts.TypeChecker,
-  originalLocation: ts.Node,
-  d: T
-): T {
-  return ts.transform(d, [
-    updateInheritedTypeTransformer.bind(null, typeChecker, originalLocation)
-  ]).transformed[0] as T;
-}
-
-function convertParams(params?: ts.ParameterDeclaration[]):ts.ParameterDeclaration[]|undefined {
-  return params?.map(t => {
-    return ts.createParameter(t.decorators, t.modifiers, t.dotDotDotToken, t.name, t.questionToken, t.type, t.initializer) 
-  });
-}
-
 /**
  * Examines `extends` and `implements` clauses and removes or replaces them if
  * they refer to a non-exported type. When an export is removed, all members
@@ -151,13 +134,16 @@ function prunePrivateImports<
           sourceFile,
           type.expression
         );
-        if (publicSymbol && publicSymbol.name !== currentName && !!type.typeArguments?.length) {
+        const hasTypeParameters = (publicSymbol?.valueDeclaration as ts.ClassDeclaration|ts.InterfaceDeclaration).typeParameters;
+        if (publicSymbol && publicSymbol.name !== currentName && !hasTypeParameters) {
           // If there is a public type that we can refer to, update the import
-          // statement to refer to the public type.
+          // statement to refer to the public type. Note that we cannot do
+          // this if the new type has type arguments, as the type of the
+          // generic symbol can be different in the public and private type.
           exportedTypes.push(
             ts.updateExpressionWithTypeArguments(
               type,
-              type.typeArguments,
+              /* typeArguments=*/ [],
               ts.createIdentifier(publicSymbol.name)
             )
           );
@@ -166,7 +152,9 @@ function prunePrivateImports<
           // public type if they are not already part of the public type.
           const privateType = typeChecker.getTypeAtLocation(type);
           for (const privateProperty of privateType.getProperties()) {
-            additionalMembers.push(...getPublicPropertyDeclarations(typeChecker, privateProperty, type));
+            if (!currentMembers || !currentMembers.has(privateProperty.escapedName)) {
+              additionalMembers.push(...getPublicPropertyDeclarations(typeChecker, privateProperty, type));
+            }
           }
         }
       }
@@ -205,24 +193,28 @@ function prunePrivateImports<
 }
 
 
-function getPublicPropertyDeclarations(typeChecker: ts.TypeChecker, property: ts.Symbol, location: ts.Node) : Array<ts.NamedDeclaration> {
-  const declaredType = typeChecker.getTypeOfSymbolAtLocation(property, location);
+/**
+ * Resolves the type of a property declaration with any type arguments that may
+ * have been specified at the provided location. This removes generics from
+ * private types that get pulled into the public API.
+ * 
+ * This is heavily based on the internal implementation that can be found in
+ * https://github.com/microsoft/TypeScript/blob/8e9de9bed2e0170f7c43ef17b292cea29b46befb/src/services/codefixes/helpers.ts#L34.
+ */
+function getPublicPropertyDeclarations(typeChecker: ts.TypeChecker, privateProperty: ts.Symbol, location: ts.Node) : Array<ts.NamedDeclaration> {
+  const declaredType = typeChecker.getTypeOfSymbolAtLocation(privateProperty, location);
   const resolvedType = typeChecker.typeToTypeNode(declaredType, location, undefined)!;
-
-  const declaration = property.declarations[0];
-  const optional = !!(property.flags & ts.SymbolFlags.Optional) ? ts.createToken(ts.SyntaxKind.QuestionToken) : undefined;
-
-  // Based on https://github.com/microsoft/TypeScript/blob/8e9de9bed2e0170f7c43ef17b292cea29b46befb/src/services/codefixes/helpers.ts#L34
-
+  const optionalToken = !!(resolvedType.flags & ts.SymbolFlags.Optional) ? ts.createToken(ts.SyntaxKind.QuestionToken) : undefined;
+  
+  const declaration = privateProperty.declarations[0];
   switch (declaration.kind) {
     case ts.SyntaxKind.PropertySignature:
     case ts.SyntaxKind.PropertyDeclaration:
-      const modifiers =declaration.modifiers;
      return [ts.createProperty(
-        /*decorators*/ undefined,
-        modifiers,
-        property.name,
-        optional,
+        resolvedType.decorators,
+       declaration.modifiers,
+        privateProperty.name,
+        optionalToken,
         resolvedType,
         /*initializer*/ undefined)];
     case ts.SyntaxKind.MethodSignature:
@@ -233,11 +225,11 @@ function getPublicPropertyDeclarations(typeChecker: ts.TypeChecker, property: ts
           methodDeclaration.decorators,
           methodDeclaration.modifiers,
           methodDeclaration.asteriskToken,
-          property.name,
-          optional,
+          methodDeclaration.name,
+          optionalToken,
           methodDeclaration.typeParameters?.map(t => {
-            return ts.createTypeParameterDeclaration(t.name, t.constraint, t.default) // Fix
-          }), // this should be newType
+            return ts.createTypeParameterDeclaration(t.name, t.constraint, t.default) 
+          }),
           methodDeclaration.parameters,
           typeChecker.typeToTypeNode(callSignature.getReturnType(), undefined, undefined),
           /*block*/ undefined);
@@ -311,44 +303,6 @@ function extractPublicSymbol(
 
   return publicSymbolsForLocalType[0];
 }
-
-const updateInheritedTypeTransformer = (
-  typeChecker: ts.TypeChecker,
-  originalLocation: ts.Node,
-  context: ts.TransformationContext
-) => {
-  return (sourceFile: ts.Node) => {
-    function visit(node: ts.Node): ts.Node {
-      if (ts.isTypeReferenceNode(node)) {
-        const symbol = typeChecker.getSymbolAtLocation(node.typeName);
-        const replacement = typeChecker.getTypeOfSymbolAtLocation(
-          symbol!,
-          originalLocation
-        );
-        if (replacement) {
-          return ts.updateTypeReferenceNode(
-            node,
-            ts.createIdentifier('notstring'),
-            node.typeArguments
-          );
-        } else {
-          return node;
-        }
-      }
-
-      return node;
-    }
-
-    function visitNodeAndChildren<T extends ts.Node>(node: T): T {
-      return ts.visitEachChild(
-        visit(node),
-        childNode => visitNodeAndChildren(childNode),
-        context
-      ) as T;
-    }
-    return visitNodeAndChildren(sourceFile);
-  };
-};
 
 const dropPrivateApiTransformer = (
   typeChecker: ts.TypeChecker,

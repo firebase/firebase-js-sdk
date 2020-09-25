@@ -15,22 +15,68 @@
  * limitations under the License.
  */
 
-// class A1<T> {
-//   // Non-exported class I want to hide
-//   data?: T;
-//   foo(data: T | null): T | null;
-//   foo(data: T): T | void;
-//   foo(data: T | null): T | null | void {}
-// }
-//
-// export class B1 extends A1<string> {}
+import { registerFirestore } from './register';
 
-class Foo<T> {
-  stringOrNumberData?: T;
-}
+registerFirestore();
 
-export class FooPublic<T> extends Foo<string> {
-  randomData?: T;
-}
+export {
+  Settings,
+  FirebaseFirestore,
+  initializeFirestore,
+  getFirestore,
+  terminate
+} from './src/api/database';
 
-export class BarPublic extends Foo<number> {}
+export {
+  SetOptions,
+  DocumentData,
+  UpdateData,
+  DocumentReference,
+  Query,
+  QueryConstraint,
+  QueryConstraintType,
+  CollectionReference,
+  OrderByDirection,
+  WhereFilterOp,
+  collection,
+  collectionGroup,
+  doc,
+  getDoc,
+  getDocs,
+  deleteDoc,
+  setDoc,
+  updateDoc,
+  addDoc,
+  refEqual,
+  queryEqual,
+  startAt,
+  startAfter,
+  endAt,
+  endBefore,
+  query,
+  limit,
+  limitToLast,
+  where,
+  orderBy
+} from './src/api/reference';
+
+// TOOD(firestorelite): Add tests when Queries are usable
+export { FieldPath, documentId } from './src/api/field_path';
+
+// TOOD(firestorelite): Add tests when setDoc() is available
+export {
+  FieldValue,
+  deleteField,
+  increment,
+  arrayRemove,
+  arrayUnion,
+  serverTimestamp
+} from './src/api/field_value';
+
+export {
+  FirestoreDataConverter,
+  DocumentSnapshot,
+  QueryDocumentSnapshot,
+  QuerySnapshot,
+  snapshotEqual
+} from './src/api/snapshot';
