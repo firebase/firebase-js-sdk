@@ -109,11 +109,11 @@ exports.removeAssertTransformer = removeAssertTransformer;
  */
 const removeAssertAndPrefixInternalTransformer = service => ({
   before: [
-    removeAsserts(service.getProgram()),
-    renameInternals(service.getProgram(), {
-      publicIdentifiers,
-      prefix: '__PRIVATE_'
-    })
+    removeAsserts(service.getProgram())
+    // renameInternals(service.getProgram(), {
+    //   publicIdentifiers,
+    //   prefix: '__PRIVATE_'
+    // })
   ],
   after: []
 });
@@ -127,11 +127,7 @@ const manglePrivatePropertiesOptions = {
     comments: 'all',
     beautify: true
   },
-  mangle: {
-    properties: {
-      regex: /^__PRIVATE_/
-    }
-  }
+  mangle: false
 };
 exports.manglePrivatePropertiesOptions = manglePrivatePropertiesOptions;
 
