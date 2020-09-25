@@ -295,7 +295,7 @@ export class QuerySnapshot<T = DocumentData> {
  * Returns true if the provided snapshots are equal.
  *
  * @param left A snapshot to compare.
- * @param right A snapshot` to compare.
+ * @param right A snapshot to compare.
  * @return true if the snapshots are equal.
  */
 export function snapshotEqual<T>(

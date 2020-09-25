@@ -84,8 +84,8 @@ export class Transaction extends LiteTransaction {
  * @param updateFunction The function to execute within the transaction context.
  * @return If the transaction completed successfully or was explicitly aborted
  * (the `updateFunction` returned a failed promise), the promise returned by the
- * updateFunction is returned here. Else, if the transaction failed, a rejected
- * promise with the corresponding failure error will be returned.
+ * `updateFunction `is returned here. Otherwise, if the transaction failed, a
+ * rejected promise with the corresponding failure error is returned.
  */
 export function runTransaction<T>(
   firestore: FirebaseFirestore,
