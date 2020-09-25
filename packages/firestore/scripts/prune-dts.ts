@@ -41,7 +41,7 @@ function main(inputLocation: string, outputLocation: string): void {
   const sourceFile = program.getSourceFile(inputLocation)!;
   const result: ts.TransformationResult<ts.SourceFile> = ts.transform<
     ts.SourceFile
-  >(sourceFile, [dropPrivateApiTransformer.bind(null, typeChecker)]);
+  >(sourceFile, [dropPrivateApiTransformer.bind(null, typeChecker, program, host)]);
   const transformedSourceFile: ts.SourceFile = result.transformed[0];
   const content = printer.printFile(transformedSourceFile);
   fs.writeFileSync(outputLocation, content);
@@ -93,6 +93,30 @@ function maybeHideConstructor(
 }
 
 /**
+ * Verifies that the provided private type has the same type arguments as the
+ * symbol we are trying to replace it with. Types can only be replaced directly
+ * with one another if their type arguments match.
+ */
+function verifyMatchingTypeArguments( privateType: ts.NodeWithTypeArguments, publicSymbol: ts.Symbol)  : boolean {
+  const privateTypeArguments = (privateType.typeArguments as (ts.TypeReferenceNode[]|undefined)) ?? [];
+  const publicTypeArguments= ((publicSymbol.valueDeclaration as ts.ClassDeclaration|ts.InterfaceDeclaration).typeParameters) ?? [];
+  
+  if (privateTypeArguments.length !== publicTypeArguments.length) {
+    return false;
+  }
+  
+  // Make sure that the names of the types match. We could probably be smarter
+  // about this if the types are re-ordered, but we don't need this support yet.
+  for (let i = 0; i < privateTypeArguments.length; ++i) {
+    if (privateTypeArguments[i].typeName.getText() !== publicTypeArguments[i].name.escapedText) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+/**
  * Examines `extends` and `implements` clauses and removes or replaces them if
  * they refer to a non-exported type. When an export is removed, all members
  * from the removed class are merged into the provided class or interface
@@ -112,10 +136,9 @@ function maybeHideConstructor(
  */
 function prunePrivateImports<
   T extends ts.InterfaceDeclaration | ts.ClassDeclaration
->(typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile, node: T): T {
+>(typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile, program: ts.Program, host: ts.CompilerHost, node: T): T {
   const currentType = typeChecker.getTypeAtLocation(node);
   const currentName = currentType?.symbol?.name;
-  const currentMembers = currentType?.symbol?.members;
 
   // The list of heritage clauses after all private symbols are removed.
   const prunedHeritageClauses: ts.HeritageClause[] = [];
@@ -134,17 +157,13 @@ function prunePrivateImports<
           sourceFile,
           type.expression
         );
-        const hasTypeParameters = (publicSymbol?.valueDeclaration as ts.ClassDeclaration|ts.InterfaceDeclaration).typeParameters;
-        type.typeArguments
-        if (publicSymbol && publicSymbol.name !== currentName && !hasTypeParameters) {
+        if (publicSymbol && publicSymbol.name !== currentName && verifyMatchingTypeArguments(type, publicSymbol)) {
           // If there is a public type that we can refer to, update the import
-          // statement to refer to the public type. Note that we cannot do
-          // this if the new type has type arguments, as the type of the
-          // generic symbol can be different in the public and private type.
+          // statement to refer to the public type.
           exportedTypes.push(
             ts.updateExpressionWithTypeArguments(
               type,
-              /* typeArguments=*/ [],
+              type.typeArguments,
               ts.createIdentifier(publicSymbol.name)
             )
           );
@@ -152,11 +171,7 @@ function prunePrivateImports<
           // Iterate all members of the private type and add them to the
           // public type if they are not already part of the public type.
           const privateType = typeChecker.getTypeAtLocation(type);
-          for (const privateProperty of privateType.getProperties()) {
-            if (!currentMembers || !currentMembers.has(privateProperty.escapedName)) {
-              additionalMembers.push(...getPublicPropertyDeclarations(typeChecker, privateProperty, type));
-            }
-          }
+          additionalMembers.push(...getPublicPropertyDeclarations(typeChecker, privateType.getProperties(), node as ts.ClassDeclaration, {program, host}, sourceFile));
         }
       }
     }
@@ -198,49 +213,11 @@ function prunePrivateImports<
  * Resolves the type of a property declaration with any type arguments that may
  * have been specified at the provided location. This removes generics from
  * private types that get pulled into the public API.
- * 
- * This is heavily based on the internal implementation that can be found in
- * https://github.com/microsoft/TypeScript/blob/8e9de9bed2e0170f7c43ef17b292cea29b46befb/src/services/codefixes/helpers.ts#L34.
  */
-function getPublicPropertyDeclarations(typeChecker: ts.TypeChecker, privateProperty: ts.Symbol, location: ts.Node) : Array<ts.NamedDeclaration> {
-  const declaredType = typeChecker.getTypeOfSymbolAtLocation(privateProperty, location);
-  const resolvedType = typeChecker.typeToTypeNode(declaredType, location, undefined)!;
-  const optionalToken = !!(resolvedType.flags & ts.SymbolFlags.Optional) ? ts.createToken(ts.SyntaxKind.QuestionToken) : undefined;
-  
-  const declaration = privateProperty.declarations[0];
-  switch (declaration.kind) {
-    case ts.SyntaxKind.PropertySignature:
-    case ts.SyntaxKind.PropertyDeclaration:
-     return [ts.createProperty(
-        resolvedType.decorators,
-       declaration.modifiers,
-        privateProperty.name,
-        optionalToken,
-        resolvedType,
-        /*initializer*/ undefined)];
-    case ts.SyntaxKind.MethodSignature:
-    case ts.SyntaxKind.MethodDeclaration:
-      return declaredType.getCallSignatures().map(callSignature => {
-        const methodDeclaration = typeChecker.signatureToSignatureDeclaration(callSignature, ts.SyntaxKind.MethodDeclaration, location, undefined)! as ts.MethodDeclaration;
-        return ts.createMethod(
-          methodDeclaration.decorators,
-          methodDeclaration.modifiers,
-          methodDeclaration.asteriskToken,
-          methodDeclaration.name,
-          optionalToken,
-          methodDeclaration.typeParameters?.map(t => {
-            return ts.createTypeParameterDeclaration(t.name, t.constraint, t.default) 
-          }),
-          methodDeclaration.parameters,
-          typeChecker.typeToTypeNode(callSignature.getReturnType(), undefined, undefined),
-          /*block*/ undefined);
-      });
-    case ts.SyntaxKind.GetAccessor:
-    case ts.SyntaxKind.SetAccessor:
-      // TODO: Port set and get accessor support from https://github.com/microsoft/TypeScript/blob/8e9de9bed2e0170f7c43ef17b292cea29b46befb/src/services/codefixes/helpers.ts#L34
-      throw new Error("get() and set() accessors are not supported yet by the Prune API script.");
-  }
-  
+function getPublicPropertyDeclarations(typeChecker: ts.TypeChecker, possiblyMissingSymbols: ts.Symbol[], location: ts.ClassDeclaration, context: {  program: ts.Program; host:ts.CompilerHost }, sourceFile:ts.SourceFile) : Array<ts.NamedDeclaration> {
+  const newMembers : ts.NamedDeclaration[] = [];
+  // The `codefix` package is not public but it does exactly what we want.
+  (ts as any).codefix.createMissingMemberNodes(location, possiblyMissingSymbols, sourceFile, context, {}, undefined, (c:ts.ClassElement) => newMembers.push(c))
   return [];
 }
 /**
@@ -307,6 +284,8 @@ function extractPublicSymbol(
 
 const dropPrivateApiTransformer = (
   typeChecker: ts.TypeChecker,
+  program: ts.Program,
+  host: ts.CompilerHost, 
   context: ts.TransformationContext
 ) => {
   return (sourceFile: ts.SourceFile) => {
@@ -335,7 +314,7 @@ const dropPrivateApiTransformer = (
       ) {
         // Remove any imports that reference internal APIs, while retaining
         // their public members.
-        return prunePrivateImports(typeChecker, sourceFile, node);
+        return prunePrivateImports(typeChecker, sourceFile,program,host, node);
       } else if (
         ts.isPropertyDeclaration(node) ||
         ts.isMethodDeclaration(node) ||

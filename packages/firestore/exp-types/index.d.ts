@@ -57,7 +57,6 @@ export declare class CollectionReference<T = DocumentData> extends Query<T> {
   get id(): string;
   get path(): string;
   get parent(): DocumentReference<DocumentData> | null;
-  doc(path?: string): DocumentReference<T>;
   withConverter<U>(
     converter: FirestoreDataConverter<U>
   ): CollectionReference<U>;
@@ -105,11 +104,6 @@ export declare class DocumentReference<T = DocumentData> {
   get id(): string;
   get path(): string;
   get parent(): CollectionReference<T>;
-<<<<<<< HEAD
-  collection(path: string): CollectionReference<DocumentData>;
-=======
-
->>>>>>> master
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 export declare class DocumentSnapshot<T = DocumentData> {
@@ -153,7 +147,13 @@ export declare class FieldPath {
   isEqual(other: FieldPath): boolean;
 }
 /** The public FieldValue class of the lite API. */
-export declare abstract class FieldValue {}
+export declare abstract class FieldValue {
+  /**
+   * @param _methodName The public API endpoint that returns this class.
+   */
+  constructor(_methodName: string);
+  abstract isEqual(other: FieldValue): boolean;
+}
 /**
  * The root reference to the Firestore database and the entry point for the
  * tree-shakeable SDK.
@@ -181,18 +181,6 @@ export declare class FirestoreError {
   readonly name: string;
   readonly stack?: string;
   private constructor();
-<<<<<<< HEAD
-=======
-  readonly type: 'collection';
-  readonly id: string;
-  readonly path: string;
-
-  get parent(): DocumentReference<DocumentData> | null;
-
-  withConverter<U>(
-    converter: FirestoreDataConverter<U>
-  ): CollectionReference<U>;
->>>>>>> master
 }
 /**
  * @license

@@ -52,13 +52,13 @@ export function clearIndexedDbPersistence(firestore: FirebaseFirestore): Promise
 // Warning: (ae-forgotten-export) The symbol "FirebaseFirestore" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export function collection(firestore: FirebaseFirestore_2, collectionPath: string): CollectionReference<DocumentData>;
+export function collection(firestore: FirebaseFirestore_2, path: string, ...pathComponents: string[]): CollectionReference<DocumentData>;
 
 // @public (undocumented)
-export function collection(reference: CollectionReference<unknown>, collectionPath: string): CollectionReference<DocumentData>;
+export function collection(reference: CollectionReference<unknown>, path: string, ...pathComponents: string[]): CollectionReference<DocumentData>;
 
 // @public (undocumented)
-export function collection(reference: DocumentReference, collectionPath: string): CollectionReference<DocumentData>;
+export function collection(reference: DocumentReference, path: string, ...pathComponents: string[]): CollectionReference<DocumentData>;
 
 // @public (undocumented)
 export function collectionGroup(firestore: FirebaseFirestore_2, collectionId: string): Query<DocumentData>;
@@ -67,8 +67,6 @@ export function collectionGroup(firestore: FirebaseFirestore_2, collectionId: st
 export class CollectionReference<T = DocumentData> extends Query<T> {
     // Warning: (ae-forgotten-export) The symbol "FirestoreDataConverter" needs to be exported by the entry point index.d.ts
     constructor(firestore: FirebaseFirestore_2, converter: FirestoreDataConverter_2<T> | null, _path: ResourcePath);
-    // (undocumented)
-    doc(path?: string): DocumentReference<T>;
     // (undocumented)
     readonly firestore: FirebaseFirestore_2;
     // (undocumented)
@@ -97,13 +95,13 @@ export function deleteField(): FieldValue;
 export function disableNetwork(firestore: FirebaseFirestore): Promise<void>;
 
 // @public (undocumented)
-export function doc(firestore: FirebaseFirestore_2, documentPath: string): DocumentReference<DocumentData>;
+export function doc(firestore: FirebaseFirestore_2, path: string, ...pathComponents: string[]): DocumentReference<DocumentData>;
 
 // @public (undocumented)
-export function doc<T>(reference: CollectionReference<T>, documentPath?: string): DocumentReference<T>;
+export function doc<T>(reference: CollectionReference<T>, path?: string, ...pathComponents: string[]): DocumentReference<T>;
 
 // @public (undocumented)
-export function doc(reference: DocumentReference<unknown>, documentPath: string): DocumentReference<DocumentData>;
+export function doc(reference: DocumentReference<unknown>, path: string, ...pathComponents: string[]): DocumentReference<DocumentData>;
 
 // @public (undocumented)
 export interface DocumentChange<T = DocumentData> {
@@ -134,8 +132,6 @@ export function documentId(): FieldPath;
 // @public
 export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<T> {
     constructor(firestore: FirebaseFirestore_2, _converter: FirestoreDataConverter_2<T> | null, _path: ResourcePath);
-    // (undocumented)
-    collection(path: string): CollectionReference<DocumentData>;
     // (undocumented)
     readonly firestore: FirebaseFirestore_2;
     // (undocumented)
@@ -201,10 +197,18 @@ export class FieldPath extends _BaseFieldPath {
     isEqual(other: FieldPath): boolean;
 }
 
-// Warning: (ae-forgotten-export) The symbol "_SerializableFieldValue" needs to be exported by the entry point index.d.ts
-//
 // @public
-export abstract class FieldValue extends _SerializableFieldValue {
+export abstract class FieldValue {
+    constructor(_methodName: string);
+    // (undocumented)
+    abstract isEqual(other: FieldValue): boolean;
+    // (undocumented)
+    _methodName: string;
+    // Warning: (ae-forgotten-export) The symbol "ParseContext" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "FieldTransform" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    abstract _toFieldTransform(context: ParseContext): FieldTransform | null;
 }
 
 // @public
