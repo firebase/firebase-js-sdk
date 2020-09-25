@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-export declare class B1 {
-  data?: string;
-  foo(data: string): string;
-  foo(data: string): string | void;
+export declare class BarPublic {
+  stringOrNumberData?: number;
+}
+export declare class FooPublic<T> {
+  randomData?: T;
+  stringOrNumberData?: string;
 }
 export {};

@@ -151,7 +151,7 @@ function prunePrivateImports<
           sourceFile,
           type.expression
         );
-        if (publicSymbol && publicSymbol.name !== currentName) {
+        if (publicSymbol && publicSymbol.name !== currentName && !!type.typeArguments?.length) {
           // If there is a public type that we can refer to, update the import
           // statement to refer to the public type.
           exportedTypes.push(

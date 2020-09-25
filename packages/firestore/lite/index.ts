@@ -15,12 +15,22 @@
  * limitations under the License.
  */
 
-class A1<T> {
-  // Non-exported class I want to hide
-  data?: T;
-  foo(data: T | null): T | null;
-  foo(data: T): T | void;
-  foo(data: T | null): T | null | void {}
+// class A1<T> {
+//   // Non-exported class I want to hide
+//   data?: T;
+//   foo(data: T | null): T | null;
+//   foo(data: T): T | void;
+//   foo(data: T | null): T | null | void {}
+// }
+//
+// export class B1 extends A1<string> {}
+
+class Foo<T> {
+  stringOrNumberData?: T;
 }
 
-export class B1 extends A1<string> {}
+export class FooPublic<T> extends Foo<string> {
+  randomData?: T;
+}
+
+export class BarPublic extends Foo<number> {}

@@ -4,10 +4,16 @@
 
 ```ts
 
-// Warning: (ae-forgotten-export) The symbol "A1" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "Foo" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export class B1 extends A1<string> {
+export class BarPublic extends Foo<number> {
+}
+
+// @public (undocumented)
+export class FooPublic<T> extends Foo<string> {
+    // (undocumented)
+    randomData?: T;
 }
 
 
