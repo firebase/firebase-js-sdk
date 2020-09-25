@@ -221,6 +221,11 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
   }
 
   async signOut(): Promise<void> {
+    // Clear the redirect user when signOut is called
+    if (this.redirectPersistenceManager || this._popupRedirectResolver) {
+      await this._setRedirectUser(null);
+    }
+
     return this.updateCurrentUser(null);
   }
 
