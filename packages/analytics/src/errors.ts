@@ -22,6 +22,7 @@ export const enum AnalyticsError {
   ALREADY_INITIALIZED = 'already-initialized',
   INTEROP_COMPONENT_REG_FAILED = 'interop-component-reg-failed',
   INVALID_ANALYTICS_CONTEXT = 'invalid-analytics-context',
+  INDEXEDDB_UNAVAILABLE = 'indexeddb-unavailable',
   FETCH_THROTTLE = 'fetch-throttle',
   CONFIG_FETCH_FAILED = 'config-fetch-failed',
   NO_API_KEY = 'no-api-key',
@@ -41,6 +42,10 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     'Firebase Analytics Interop Component failed to instantiate: {$reason}',
   [AnalyticsError.INVALID_ANALYTICS_CONTEXT]:
     'Firebase Analytics is not supported in this environment. ' +
+    'Wrap initialization of analytics in analytics.isSupported() ' +
+    'to prevent initialization in unsupported environments. Details: {$errorInfo}',
+  [AnalyticsError.INDEXEDDB_UNAVAILABLE]:
+    'IndexedDB unavailable or restricted in this environment. ' +
     'Wrap initialization of analytics in analytics.isSupported() ' +
     'to prevent initialization in unsupported environments. Details: {$errorInfo}',
   [AnalyticsError.FETCH_THROTTLE]:
@@ -65,6 +70,7 @@ interface ErrorParams {
     responseMessage: string;
   };
   [AnalyticsError.INVALID_ANALYTICS_CONTEXT]: { errorInfo: string };
+  [AnalyticsError.INDEXEDDB_UNAVAILABLE]: { errorInfo: string };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<AnalyticsError, ErrorParams>(

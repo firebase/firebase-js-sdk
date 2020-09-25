@@ -34,7 +34,7 @@ import { ERROR_FACTORY, AnalyticsError } from './errors';
 async function validateIndexedDB(): Promise<boolean> {
   if (!isIndexedDBAvailable()) {
     logger.warn(
-      ERROR_FACTORY.create(AnalyticsError.INVALID_ANALYTICS_CONTEXT, {
+      ERROR_FACTORY.create(AnalyticsError.INDEXEDDB_UNAVAILABLE, {
         errorInfo: 'IndexedDB is not available in this environment.'
       }).message
     );
@@ -44,7 +44,7 @@ async function validateIndexedDB(): Promise<boolean> {
       await validateIndexedDBOpenable();
     } catch (e) {
       logger.warn(
-        ERROR_FACTORY.create(AnalyticsError.INVALID_ANALYTICS_CONTEXT, {
+        ERROR_FACTORY.create(AnalyticsError.INDEXEDDB_UNAVAILABLE, {
           errorInfo: e
         }).message
       );

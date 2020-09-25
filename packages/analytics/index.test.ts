@@ -30,7 +30,7 @@ import {
   getFakeInstallations
 } from './testing/get-fake-firebase-services';
 import { FirebaseApp } from '@firebase/app-types';
-import { GtagCommand, EventName, GA_FID_KEY } from './src/constants';
+import { GtagCommand, EventName } from './src/constants';
 import { findGtagScriptOnPage } from './src/helpers';
 import { removeGtagScript } from './testing/gtag-script-util';
 import { Deferred } from '@firebase/util';
@@ -248,7 +248,7 @@ describe('FirebaseAnalytics instance tests', () => {
         origin: 'firebase'
       });
       expect(warnStub.args[0][1]).to.include(
-        AnalyticsError.INVALID_ANALYTICS_CONTEXT
+        AnalyticsError.INDEXEDDB_UNAVAILABLE
       );
       expect(warnStub.args[0][1]).to.include('IndexedDB is not available');
       idbStub.restore();
@@ -268,7 +268,7 @@ describe('FirebaseAnalytics instance tests', () => {
         origin: 'firebase'
       });
       expect(warnStub.args[0][1]).to.include(
-        AnalyticsError.INVALID_ANALYTICS_CONTEXT
+        AnalyticsError.INDEXEDDB_UNAVAILABLE
       );
       expect(warnStub.args[0][1]).to.include('idb open error test');
     });
