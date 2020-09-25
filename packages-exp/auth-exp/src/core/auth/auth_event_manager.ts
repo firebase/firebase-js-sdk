@@ -23,10 +23,16 @@ import {
 } from '../../model/popup_redirect';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 
+// The amount of time to store the UIDs of seen events; this is
+// set to 10 min by default
+const EVENT_DUPLICATION_CACHE_DURATION_MS = 10 * 60 * 1000;
+
 export class AuthEventManager implements EventManager {
+  private readonly cachedEventUids: Set<string> = new Set();
   private readonly consumers: Set<AuthEventConsumer> = new Set();
   private queuedRedirectEvent: AuthEvent | null = null;
   private hasHandledPotentialRedirect = false;
+  private lastProcessedEventTime = Date.now();
 
   constructor(private readonly appName: string) {}
 
@@ -38,6 +44,7 @@ export class AuthEventManager implements EventManager {
       this.isEventForConsumer(this.queuedRedirectEvent, authEventConsumer)
     ) {
       this.sendToConsumer(this.queuedRedirectEvent, authEventConsumer);
+      this.saveEventToCache(this.queuedRedirectEvent);
       this.queuedRedirectEvent = null;
     }
   }
@@ -47,11 +54,17 @@ export class AuthEventManager implements EventManager {
   }
 
   onEvent(event: AuthEvent): boolean {
+    // Check if the event has already been handled
+    if (this.hasEventBeenHandled(event)) {
+      return false;
+    }
+
     let handled = false;
     this.consumers.forEach(consumer => {
       if (this.isEventForConsumer(event, consumer)) {
         handled = true;
         this.sendToConsumer(event, consumer);
+        this.saveEventToCache(event);
       }
     });
 
@@ -96,6 +109,26 @@ export class AuthEventManager implements EventManager {
       (!!event.eventId && event.eventId === consumer.eventId);
     return consumer.filter.includes(event.type) && eventIdMatches;
   }
+
+  private hasEventBeenHandled(event: AuthEvent): boolean {
+    if (
+      Date.now() - this.lastProcessedEventTime >=
+      EVENT_DUPLICATION_CACHE_DURATION_MS
+    ) {
+      this.cachedEventUids.clear();
+    }
+
+    return this.cachedEventUids.has(eventUid(event));
+  }
+
+  private saveEventToCache(event: AuthEvent): void {
+    this.cachedEventUids.add(eventUid(event));
+    this.lastProcessedEventTime = Date.now();
+  }
+}
+
+function eventUid(e: AuthEvent): string {
+  return [e.type, e.eventId, e.sessionId, e.tenantId].filter(v => v).join('-');
 }
 
 function isNullRedirectEvent({ type, error }: AuthEvent): boolean {

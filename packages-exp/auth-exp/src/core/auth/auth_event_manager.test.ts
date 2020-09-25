@@ -191,4 +191,53 @@ describe('src/core/auth/auth_event_manager', () => {
       expect(consumer.onAuthEvent).to.have.been.calledWith(event);
     });
   });
+
+  context('caching', () => {
+    let clock: sinon.SinonFakeTimers;
+
+    beforeEach(() => {
+      clock = sinon.useFakeTimers();
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('only runs the event once for the consumer', () => {
+      const consumer = makeConsumer(AuthEventType.LINK_VIA_POPUP);
+
+      const evt = makeEvent(AuthEventType.LINK_VIA_POPUP);
+      manager.registerConsumer(consumer);
+      manager.onEvent(evt);
+      manager.onEvent(evt);
+
+      expect(consumer.onAuthEvent).to.have.been.calledOnce;
+    });
+
+    it('clears the cache after ten minutes', () => {
+      const consumer = makeConsumer(AuthEventType.LINK_VIA_POPUP);
+
+      const evt = makeEvent(AuthEventType.LINK_VIA_POPUP);
+      manager.registerConsumer(consumer);
+      manager.onEvent(evt);
+      clock.tick(11 * 60 * 1000);
+      manager.onEvent(evt);
+
+      expect(consumer.onAuthEvent).to.have.been.calledTwice;
+    });
+
+    it('also caches stored redirects', () => {
+      const consumer = makeConsumer([
+        AuthEventType.SIGN_IN_VIA_REDIRECT,
+        AuthEventType.LINK_VIA_REDIRECT,
+        AuthEventType.REAUTH_VIA_REDIRECT,
+        AuthEventType.UNKNOWN
+      ]);
+      const event = makeEvent(AuthEventType.REAUTH_VIA_REDIRECT);
+      manager.onEvent(event);
+      manager.registerConsumer(consumer);
+      manager.onEvent(event);
+      expect(consumer.onAuthEvent).to.have.been.calledOnce;
+    });
+  });
 });
