@@ -103,6 +103,12 @@ function visit<T extends ts.Node>(
   ]).transformed[0] as T;
 }
 
+function convertParams(params?: ts.ParameterDeclaration[]):ts.ParameterDeclaration[]|undefined {
+  return params?.map(t => {
+    return ts.createParameter(t.decorators, t.modifiers, t.dotDotDotToken, t.name, t.questionToken, t.type, t.initializer) 
+  });
+}
+
 /**
  * Examines `extends` and `implements` clauses and removes or replaces them if
  * they refer to a non-exported type. When an export is removed, all members
@@ -159,48 +165,13 @@ function prunePrivateImports<
           // Iterate all members of the private type and add them to the
           // public type if they are not already part of the public type.
           const privateType = typeChecker.getTypeAtLocation(type);
-          for (const property of privateType.getProperties()) {
-            const propertyType = typeChecker.getTypeOfSymbolAtLocation(property, type);
-            console.log("Name:", property.name, "Type:", typeChecker.typeToString(propertyType));
-            let newType = typeChecker.typeToTypeNode(propertyType, undefined, undefined)!;
-            additionalMembers.push(ts.createPropertyAssignment( property.name,
-             
-             ts.createExpression newType));
-
-            //if (!currentMembers || !currentMembers.has(memberName)) {
-            //         additionalMembers.push(
-            //           ...property.declarations.map(d =>
-            //             visit(typeChecker, type, d)
-            //           )
-            //         );
-            //       }
-          // if (privateType?.symbol?.members) {
-          //  
-          //   privateType.symbol.members!.forEach((definition, memberName) => {
-          //     if (!currentMembers || !currentMembers.has(memberName)) {
-          //       additionalMembers.push(
-          //         ...definition.declarations.slice(0,1).map(d =>
-          //           visit(typeChecker, type, d)
-          //         )
-          //       );
-          //     }
-          //   });
+          for (const privateProperty of privateType.getProperties()) {
+            additionalMembers.push(...getPublicPropertyDeclarations(typeChecker, privateProperty, type));
           }
         }
       }
     }
-
-    // for (const property of privateType.getProperties()) {
-    //   for (const declaration of property.declarations) {
-    //     if (ts.isPropertyDeclaration(declaration)) {
-    //
-    //       const localType = typeChecker.typeToTypeNode(typeChecker.getTypeOfSymbolAtLocation(property, type), node, undefined);
-    //
-    //       const updatedElement = ts.updateProperty(declaration, declaration.decorators, declaration.modifiers, declaration.name, declaration.questionToken || declaration.exclamationToken, localType, declaration.initializer);
-    //       additionalMembers.push(updatedElement);
-    //     }
-    //   }
-    // }
+    
     if (exportedTypes.length > 0) {
       prunedHeritageClauses.push(
         ts.updateHeritageClause(heritageClause, exportedTypes)
@@ -233,6 +204,52 @@ function prunePrivateImports<
   }
 }
 
+
+function getPublicPropertyDeclarations(typeChecker: ts.TypeChecker, property: ts.Symbol, location: ts.Node) : Array<ts.NamedDeclaration> {
+  const declaredType = typeChecker.getTypeOfSymbolAtLocation(property, location);
+  const resolvedType = typeChecker.typeToTypeNode(declaredType, location, undefined)!;
+
+  const declaration = property.declarations[0];
+  const optional = !!(property.flags & ts.SymbolFlags.Optional) ? ts.createToken(ts.SyntaxKind.QuestionToken) : undefined;
+
+  // Based on https://github.com/microsoft/TypeScript/blob/8e9de9bed2e0170f7c43ef17b292cea29b46befb/src/services/codefixes/helpers.ts#L34
+
+  switch (declaration.kind) {
+    case ts.SyntaxKind.PropertySignature:
+    case ts.SyntaxKind.PropertyDeclaration:
+      const modifiers =declaration.modifiers;
+     return [ts.createProperty(
+        /*decorators*/ undefined,
+        modifiers,
+        property.name,
+        optional,
+        resolvedType,
+        /*initializer*/ undefined)];
+    case ts.SyntaxKind.MethodSignature:
+    case ts.SyntaxKind.MethodDeclaration:
+      return declaredType.getCallSignatures().map(callSignature => {
+        const methodDeclaration = typeChecker.signatureToSignatureDeclaration(callSignature, ts.SyntaxKind.MethodDeclaration, location, undefined)! as ts.MethodDeclaration;
+        return ts.createMethod(
+          methodDeclaration.decorators,
+          methodDeclaration.modifiers,
+          methodDeclaration.asteriskToken,
+          property.name,
+          optional,
+          methodDeclaration.typeParameters?.map(t => {
+            return ts.createTypeParameterDeclaration(t.name, t.constraint, t.default) // Fix
+          }), // this should be newType
+          methodDeclaration.parameters,
+          typeChecker.typeToTypeNode(callSignature.getReturnType(), undefined, undefined),
+          /*block*/ undefined);
+      });
+    case ts.SyntaxKind.GetAccessor:
+    case ts.SyntaxKind.SetAccessor:
+      // TODO: Port set and get accessor support from https://github.com/microsoft/TypeScript/blob/8e9de9bed2e0170f7c43ef17b292cea29b46befb/src/services/codefixes/helpers.ts#L34
+      throw new Error("get() and set() accessors are not supported yet by the Prune API script.");
+  }
+  
+  return [];
+}
 /**
  * Replaces input types of public APIs that consume non-exported types, which
  * allows us to exclude private types from the pruned definitions. Returns the

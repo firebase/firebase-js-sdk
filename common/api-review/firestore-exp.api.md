@@ -133,11 +133,9 @@ export function documentId(): FieldPath;
 //
 // @public
 export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<T> {
-    constructor(firestore: FirebaseFirestore_2, converter: FirestoreDataConverter_2<T> | null, _path: ResourcePath);
+    constructor(firestore: FirebaseFirestore_2, _converter: FirestoreDataConverter_2<T> | null, _path: ResourcePath);
     // (undocumented)
     collection(path: string): CollectionReference<DocumentData>;
-    // (undocumented)
-    readonly converter: FirestoreDataConverter_2<T> | null;
     // (undocumented)
     readonly firestore: FirebaseFirestore_2;
     // (undocumented)
@@ -378,9 +376,9 @@ export interface PersistenceSettings {
 
 // @public (undocumented)
 export class Query<T = DocumentData> {
-    constructor(firestore: FirebaseFirestore_2, converter: FirestoreDataConverter_2<T> | null, _query: Query_2);
+    constructor(firestore: FirebaseFirestore_2, _converter: FirestoreDataConverter_2<T> | null, _query: Query_2);
     // (undocumented)
-    readonly converter: FirestoreDataConverter_2<T> | null;
+    readonly _converter: FirestoreDataConverter_2<T> | null;
     // (undocumented)
     readonly firestore: FirebaseFirestore_2;
     // Warning: (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point index.d.ts
@@ -583,7 +581,7 @@ export function waitForPendingWrites(firestore: FirebaseFirestore): Promise<void
 export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryConstraint;
 
 // @public (undocumented)
-export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>' | 'array-contains' | 'in' | 'array-contains-any';
+export type WhereFilterOp = '<' | '<=' | '==' | '!=' | '>=' | '>' | 'array-contains' | 'in' | 'array-contains-any' | 'not-in';
 
 // @public (undocumented)
 export class WriteBatch {

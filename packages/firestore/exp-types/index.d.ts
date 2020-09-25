@@ -94,7 +94,6 @@ export declare function documentId(): FieldPath;
  */
 export declare class DocumentReference<T = DocumentData> {
   readonly firestore: FirebaseFirestore;
-  readonly converter: FirestoreDataConverter<T> | null;
   readonly type = 'document';
   private constructor();
   get id(): string;
@@ -109,8 +108,6 @@ export declare class DocumentSnapshot<T = DocumentData> {
   exists(): this is QueryDocumentSnapshot<T>;
   data(options?: SnapshotOptions): T | undefined;
   get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
-  get id(): string;
-  get ref(): DocumentReference<T>;
 }
 export declare function enableIndexedDbPersistence(
   firestore: FirebaseFirestore,
@@ -146,16 +143,13 @@ export declare class FieldPath {
   isEqual(other: FieldPath): boolean;
 }
 /** The public FieldValue class of the lite API. */
-export declare abstract class FieldValue {
-  abstract isEqual(other: FieldValue): boolean;
-}
+export declare abstract class FieldValue {}
 /**
  * The root reference to the Firestore database and the entry point for the
  * tree-shakeable SDK.
  */
 export declare class FirebaseFirestore {
   private constructor();
-  readonly app: FirebaseApp;
 }
 export declare interface FirestoreDataConverter<T> {
   toFirestore(modelObject: T): DocumentData;
@@ -354,7 +348,6 @@ export declare interface PersistenceSettings {
 }
 export declare class Query<T = DocumentData> {
   readonly firestore: FirebaseFirestore;
-  readonly converter: FirestoreDataConverter<T> | null;
   readonly type: 'query' | 'collection';
   protected constructor();
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
@@ -422,9 +415,6 @@ export declare type SetOptions =
     };
 export declare interface Settings {
   cacheSizeBytes?: number;
-  host?: string;
-  ssl?: boolean;
-  ignoreUndefinedProperties?: boolean;
 }
 export declare function snapshotEqual<T>(
   left: DocumentSnapshot<T> | QuerySnapshot<T>,
@@ -487,20 +477,6 @@ export declare class Timestamp {
 export declare class Transaction {
   private constructor();
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
-  set<T>(documentRef: DocumentReference<T>, data: T): this;
-  set<T>(
-    documentRef: DocumentReference<T>,
-    data: Partial<T>,
-    options: SetOptions
-  ): this;
-  update(documentRef: DocumentReference<unknown>, data: UpdateData): this;
-  update(
-    documentRef: DocumentReference<unknown>,
-    field: string | FieldPath,
-    data: unknown,
-    ...moreFieldsAndValues: unknown[]
-  ): this;
-  delete(documentRef: DocumentReference<unknown>): this;
 }
 export declare interface Unsubscribe {
   (): void;
@@ -530,11 +506,13 @@ export declare type WhereFilterOp =
   | '<'
   | '<='
   | '=='
+  | '!='
   | '>='
   | '>'
   | 'array-contains'
   | 'in'
-  | 'array-contains-any';
+  | 'array-contains-any'
+  | 'not-in';
 export declare class WriteBatch {
   private constructor();
   set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
