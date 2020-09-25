@@ -101,10 +101,10 @@ export class FunctionsService implements _FirebaseService {
     try {
       const url = new URL(regionOrCustomDomain);
       this.customDomain = url.origin;
-      this.region = 'us-central1';
+      this.region = DEFAULT_REGION;
     } catch (e) {
       this.customDomain = null;
-      this.region = DEFAULT_REGION;
+      this.region = regionOrCustomDomain;
     }
   }
 
