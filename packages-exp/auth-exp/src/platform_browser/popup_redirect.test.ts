@@ -251,16 +251,20 @@ describe('src/platform_browser/popup_redirect', () => {
       const manager = (await resolver._initialize(auth)) as AuthEventManager;
       sinon.stub(manager, 'onEvent').returns(true);
 
-      expect(() => onIframeMessage({
-        type: 'authEvent',
-        authEvent: null as unknown as AuthEvent,
-      })).to.throw(FirebaseError, 'auth/invalid-auth-event');
+      expect(() =>
+        onIframeMessage({
+          type: 'authEvent',
+          authEvent: (null as unknown) as AuthEvent
+        })
+      ).to.throw(FirebaseError, 'auth/invalid-auth-event');
     });
 
     it('errors with invalid event if everything is null', async () => {
       const manager = (await resolver._initialize(auth)) as AuthEventManager;
       sinon.stub(manager, 'onEvent').returns(true);
-      expect(() => onIframeMessage(null as unknown as GapiAuthEvent)).to.throw(FirebaseError, 'auth/invalid-auth-event');
+      expect(() =>
+        onIframeMessage((null as unknown) as GapiAuthEvent)
+      ).to.throw(FirebaseError, 'auth/invalid-auth-event');
     });
 
     it('returns error to the iframe if the event was not handled', async () => {
