@@ -51,6 +51,7 @@ describe('src/platform_browser/popup_redirect', () => {
   let resolver: PopupRedirectResolver;
   let auth: TestAuth;
   let onIframeMessage: (event: GapiAuthEvent) => Promise<void>;
+  let iframeSendStub: sinon.SinonStub;
 
   beforeEach(async () => {
     auth = await testAuth();
@@ -59,6 +60,7 @@ describe('src/platform_browser/popup_redirect', () => {
     >)();
 
     sinon.stub(validateOrigin, '_validateOrigin').returns(Promise.resolve());
+    iframeSendStub = sinon.stub();
 
     sinon.stub(gapiLoader, '_loadGapi').returns(
       Promise.resolve(({
@@ -67,7 +69,8 @@ describe('src/platform_browser/popup_redirect', () => {
             register: (
               _message: string,
               cb: (event: GapiAuthEvent) => Promise<void>
-            ) => (onIframeMessage = cb)
+            ) => (onIframeMessage = cb),
+            send: iframeSendStub
           })
       } as unknown) as gapi.iframes.Context)
     );
@@ -281,6 +284,58 @@ describe('src/platform_browser/popup_redirect', () => {
       expect(response).to.eql({
         status: 'ERROR'
       });
+    });
+  });
+
+  context('#_isIframeWebStorageSupported', () => {
+    beforeEach(async () => {
+      await resolver._initialize(auth);
+    });
+
+    function setIframeResponse(value: unknown): void {
+      iframeSendStub.callsFake(
+        (
+          _message: string,
+          _event: unknown,
+          callback: (response: unknown) => void
+        ) => {
+          callback(value);
+        }
+      );
+    }
+
+    it('calls the iframe send method with the correct parameters', () => {
+      resolver._isIframeWebStorageSupported(auth, () => {});
+      expect(iframeSendStub).to.have.been.calledOnce;
+      const args = iframeSendStub.getCalls()[0].args;
+      expect(args[0]).to.eq('webStorageSupport');
+      expect(args[1]).to.eql({
+        type: 'webStorageSupport'
+      });
+      expect(args[3]).to.eq(gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER);
+    });
+
+    it('passes through true value from the response to the callback', done => {
+      setIframeResponse([{ webStorageSupport: true }]);
+      resolver._isIframeWebStorageSupported(auth, supported => {
+        expect(supported).to.be.true;
+        done();
+      });
+    });
+
+    it('passes through false value from the response to callback', done => {
+      setIframeResponse([{ webStorageSupport: false }]);
+      resolver._isIframeWebStorageSupported(auth, supported => {
+        expect(supported).to.be.false;
+        done();
+      });
+    });
+
+    it('throws an error if the response is malformed', () => {
+      setIframeResponse({});
+      expect(() =>
+        resolver._isIframeWebStorageSupported(auth, () => {})
+      ).to.throw(FirebaseError, 'auth/internal-error');
     });
   });
 });

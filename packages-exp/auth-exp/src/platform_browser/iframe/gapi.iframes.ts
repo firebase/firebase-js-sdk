@@ -54,6 +54,12 @@ declare namespace gapi.iframes {
       handler: MessageHandler<T>,
       filter?: IframesFilter
     ): void;
+    send<T extends Message, U extends Message>(
+      type: string,
+      data: T,
+      callback?: MessageHandler<U>,
+      filter?: IframesFilter
+    ): void;
     ping(callback: SendCallback, data?: unknown): Promise<unknown[]>;
     restyle(
       style: Record<string, string | boolean>,
