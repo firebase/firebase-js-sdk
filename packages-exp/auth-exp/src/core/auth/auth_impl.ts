@@ -225,7 +225,7 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
     if (this.redirectPersistenceManager || this._popupRedirectResolver) {
       await this._setRedirectUser(null);
     }
-    
+
     return this.updateCurrentUser(null);
   }
 
