@@ -48,6 +48,7 @@ import {
   reauthenticateWithPopup,
   signInWithPopup
 } from './popup';
+import { _getInstance } from '../../../internal';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -195,6 +196,13 @@ describe('src/core/strategies/popup', () => {
         FirebaseError,
         'auth/popup-closed-by-user'
       );
+    });
+
+    it('errors if webstorage support comes back negative', async () => {
+      resolver = makeMockPopupRedirectResolver(eventManager, authPopup, false);
+      await expect(
+        signInWithPopup(auth, provider, resolver)
+      ).to.be.rejectedWith(FirebaseError, 'auth/web-storage-unsupported');
     });
 
     it('passes any errors from idp task', async () => {
@@ -346,6 +354,14 @@ describe('src/core/strategies/popup', () => {
       );
     });
 
+    it('errors if webstorage support comes back negative', async () => {
+      resolver = makeMockPopupRedirectResolver(eventManager, authPopup, false);
+      await expect(linkWithPopup(user, provider, resolver)).to.be.rejectedWith(
+        FirebaseError,
+        'auth/web-storage-unsupported'
+      );
+    });
+
     it('passes any errors from idp task', async () => {
       idpStubs._link.returns(
         Promise.reject(
@@ -471,6 +487,13 @@ describe('src/core/strategies/popup', () => {
         type: AuthEventType.REAUTH_VIA_POPUP
       });
       expect(await promise).to.eq(cred);
+    });
+
+    it('errors if webstorage support comes back negative', async () => {
+      resolver = makeMockPopupRedirectResolver(eventManager, authPopup, false);
+      await expect(
+        reauthenticateWithPopup(user, provider, resolver)
+      ).to.be.rejectedWith(FirebaseError, 'auth/web-storage-unsupported');
     });
 
     it('does error if the poll timeout and event timeout trip', async () => {
