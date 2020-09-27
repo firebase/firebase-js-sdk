@@ -55,9 +55,9 @@ yargs
     'bundle',
     'Analyze bundle size',
     {
-      bundleDefinition: {
+      input: {
         type: 'string',
-        alias: 'd',
+        alias: 'i',
         required: true,
         desc: 'Path to the JSON file that describes the bundles to be analyzed'
       },
