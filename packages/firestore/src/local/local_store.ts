@@ -418,9 +418,7 @@ export function acknowledgeBatch(
     'readwrite-primary',
     txn => {
       const affected = batchResult.batch.keys();
-      const documentBuffer = localStoreImpl.remoteDocuments.newChangeBuffer({
-        trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
-      });
+      const documentBuffer = localStoreImpl.remoteDocuments.newChangeBuffer();
       return applyWriteToRemoteDocuments(
         localStoreImpl,
         txn,
@@ -515,9 +513,7 @@ export function applyRemoteEventToLocalCache(
 
   return localStoreImpl.persistence
     .runTransaction('Apply remote event', 'readwrite-primary', txn => {
-      const documentBuffer = localStoreImpl.remoteDocuments.newChangeBuffer({
-        trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
-      });
+      const documentBuffer = localStoreImpl.remoteDocuments.newChangeBuffer();
 
       // Reset newTargetDataByTargetMap in case this transaction gets re-run.
       newTargetDataByTargetMap = localStoreImpl.targetDataByTarget;

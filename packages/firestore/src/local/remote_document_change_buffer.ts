@@ -24,6 +24,7 @@ import { ObjectMap } from '../util/obj_map';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { RemoteDocumentCache } from './remote_document_cache';
 
 /**
  * An in-memory buffer of entries to be written to a RemoteDocumentCache.
@@ -39,7 +40,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
  * If byte-counting ends up being needed on the other platforms, consider
  * porting this class as part of that implementation work.
  */
-export abstract class RemoteDocumentChangeBuffer {
+export class RemoteDocumentChangeBuffer {
   // A mapping of document key to the new cache entry that should be written (or null if any
   // existing cache entry should be removed).
   protected changes: ObjectMap<
@@ -55,19 +56,7 @@ export abstract class RemoteDocumentChangeBuffer {
 
   private changesApplied = false;
 
-  protected abstract getFromCache(
-    transaction: PersistenceTransaction,
-    documentKey: DocumentKey
-  ): PersistencePromise<MaybeDocument | null>;
-
-  protected abstract getAllFromCache(
-    transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
-  ): PersistencePromise<NullableMaybeDocumentMap>;
-
-  protected abstract applyChanges(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<void>;
+  constructor(private documentCache: RemoteDocumentCache) {}
 
   protected set readTime(value: SnapshotVersion) {
     // Right now (for simplicity) we just track a single readTime for all the
@@ -134,7 +123,7 @@ export abstract class RemoteDocumentChangeBuffer {
     if (bufferedEntry !== undefined) {
       return PersistencePromise.resolve<MaybeDocument | null>(bufferedEntry);
     } else {
-      return this.getFromCache(transaction, documentKey);
+      return this.documentCache.getEntry(transaction, documentKey);
     }
   }
 
@@ -153,7 +142,7 @@ export abstract class RemoteDocumentChangeBuffer {
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
   ): PersistencePromise<NullableMaybeDocumentMap> {
-    return this.getAllFromCache(transaction, documentKeys);
+    return this.documentCache.getEntries(transaction, documentKeys);
   }
 
   /**
@@ -163,7 +152,12 @@ export abstract class RemoteDocumentChangeBuffer {
   apply(transaction: PersistenceTransaction): PersistencePromise<void> {
     this.assertNotApplied();
     this.changesApplied = true;
-    return this.applyChanges(transaction);
+    return this.documentCache.applyChanges(
+      transaction,
+      this.changes,
+      this.readTime,
+      0
+    );
   }
 
   /** Helper to assert this.changes is not null  */

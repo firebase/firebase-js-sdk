@@ -28,6 +28,7 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { ObjectMap } from '../util/obj_map';
 
 /**
  * Represents cached documents received from the remote backend.
@@ -86,18 +87,19 @@ export interface RemoteDocumentCache {
    * handles proper size accounting for the change.
    *
    * Multi-Tab Note: This should only be called by the primary client.
-   *
-   * @param options.trackRemovals Whether to create sentinel entries for
-   * removed documents, which allows removals to be tracked by
-   * `getNewDocumentChanges()`.
    */
-  newChangeBuffer(options?: {
-    trackRemovals: boolean;
-  }): RemoteDocumentChangeBuffer;
+  newChangeBuffer(): RemoteDocumentChangeBuffer;
 
   /**
    * Get an estimate of the size of the document cache. Note that for eager
    * garbage collection, we don't track sizes so this will return 0.
    */
   getSize(transaction: PersistenceTransaction): PersistencePromise<number>;
+
+  applyChanges(
+    transaction: PersistenceTransaction,
+    changes: ObjectMap<DocumentKey, MaybeDocument | null>,
+    readTime: SnapshotVersion,
+    sizeDelta: number
+  ): PersistencePromise<void>;
 }
