@@ -41,7 +41,9 @@ function main(inputLocation: string, outputLocation: string): void {
   const sourceFile = program.getSourceFile(inputLocation)!;
   const result: ts.TransformationResult<ts.SourceFile> = ts.transform<
     ts.SourceFile
-  >(sourceFile, [dropPrivateApiTransformer.bind(null, typeChecker, program, host)]);
+  >(sourceFile, [
+    dropPrivateApiTransformer.bind(null,  program, host )
+  ]);
   const transformedSourceFile: ts.SourceFile = result.transformed[0];
   const content = printer.printFile(transformedSourceFile);
   fs.writeFileSync(outputLocation, content);
@@ -97,22 +99,32 @@ function maybeHideConstructor(
  * symbol we are trying to replace it with. Types can only be replaced directly
  * with one another if their type arguments match.
  */
-function verifyMatchingTypeArguments( privateType: ts.NodeWithTypeArguments, publicSymbol: ts.Symbol)  : boolean {
-  const privateTypeArguments = (privateType.typeArguments as (ts.TypeReferenceNode[]|undefined)) ?? [];
-  const publicTypeArguments= ((publicSymbol.valueDeclaration as ts.ClassDeclaration|ts.InterfaceDeclaration).typeParameters) ?? [];
+function verifyMatchingTypeArguments(
+  privateType: ts.NodeWithTypeArguments,
+  publicSymbol: ts.Symbol
+): boolean {
+  if (!ts.isClassDeclaration(publicSymbol.valueDeclaration) || !ts.isInterfaceDeclaration(publicSymbol.valueDeclaration)) {
+    return false;
+  }
+  
+  const privateTypeArguments = (privateType.typeArguments as ts.TypeReferenceNode[] | undefined) ?? [];
+  const publicTypeArguments = publicSymbol.valueDeclaration.typeParameters ?? [];
   
   if (privateTypeArguments.length !== publicTypeArguments.length) {
     return false;
   }
-  
+
   // Make sure that the names of the types match. We could probably be smarter
   // about this if the types are re-ordered, but we don't need this support yet.
   for (let i = 0; i < privateTypeArguments.length; ++i) {
-    if (privateTypeArguments[i].typeName.getText() !== publicTypeArguments[i].name.escapedText) {
+    if (
+      privateTypeArguments[i].typeName.getText() !==
+      publicTypeArguments[i].name.escapedText
+    ) {
       return false;
     }
   }
-  
+
   return true;
 }
 
@@ -136,7 +148,13 @@ function verifyMatchingTypeArguments( privateType: ts.NodeWithTypeArguments, pub
  */
 function prunePrivateImports<
   T extends ts.InterfaceDeclaration | ts.ClassDeclaration
->(typeChecker: ts.TypeChecker, sourceFile: ts.SourceFile, program: ts.Program, host: ts.CompilerHost, node: T): T {
+>(
+  program: ts.Program,
+  host: ts.CompilerHost,
+  sourceFile: ts.SourceFile,
+  node: T
+): T {
+  const typeChecker =  program.getTypeChecker();
   const currentType = typeChecker.getTypeAtLocation(node);
   const currentName = currentType?.symbol?.name;
 
@@ -157,7 +175,11 @@ function prunePrivateImports<
           sourceFile,
           type.expression
         );
-        if (publicSymbol && publicSymbol.name !== currentName && verifyMatchingTypeArguments(type, publicSymbol)) {
+        if (
+          publicSymbol &&
+          publicSymbol.name !== currentName &&
+          verifyMatchingTypeArguments(type, publicSymbol)
+        ) {
           // If there is a public type that we can refer to, update the import
           // statement to refer to the public type.
           exportedTypes.push(
@@ -168,14 +190,21 @@ function prunePrivateImports<
             )
           );
         } else {
-          // Iterate all members of the private type and add them to the
-          // public type if they are not already part of the public type.
+          // Hide the type we are inheriting from and merge its declarations
+          // into the current class.
           const privateType = typeChecker.getTypeAtLocation(type);
-          additionalMembers.push(...getPublicPropertyDeclarations(typeChecker, privateType.getProperties(), node as ts.ClassDeclaration, {program, host}, sourceFile));
+          additionalMembers.push(
+            ...convertPropertiesForEnclosingClass(
+              program,
+              host,sourceFile,
+              privateType.getProperties(),
+              node,
+            )
+          );
         }
       }
     }
-    
+
     if (exportedTypes.length > 0) {
       prunedHeritageClauses.push(
         ts.updateHeritageClause(heritageClause, exportedTypes)
@@ -208,16 +237,35 @@ function prunePrivateImports<
   }
 }
 
-
 /**
- * Resolves the type of a property declaration with any type arguments that may
- * have been specified at the provided location. This removes generics from
- * private types that get pulled into the public API.
+ * Iterates the provided symbols and returns named declarations for these
+ * symbols if they are missing from `currentClass`. This allows us to merge
+ * class hierarchies for classes whose inherited types are not part of the
+ * public API.
+ * 
+ * This method relies on a private API in TypeScript's `codefix` package.
  */
-function getPublicPropertyDeclarations(typeChecker: ts.TypeChecker, possiblyMissingSymbols: ts.Symbol[], location: ts.ClassDeclaration, context: {  program: ts.Program; host:ts.CompilerHost }, sourceFile:ts.SourceFile) : Array<ts.NamedDeclaration> {
-  const newMembers : ts.NamedDeclaration[] = [];
-  // The `codefix` package is not public but it does exactly what we want.
-  (ts as any).codefix.createMissingMemberNodes(location, possiblyMissingSymbols, sourceFile, context, {}, undefined, (c:ts.ClassElement) => newMembers.push(c))
+function convertPropertiesForEnclosingClass(
+  program: ts.Program,
+host: ts.CompilerHost,
+  sourceFile: ts.SourceFile,
+  parentClassSymbols: ts.Symbol[],
+  currentClass: ts.ClassDeclaration | ts.InterfaceDeclaration,
+): Array<ts.NamedDeclaration> {
+  const newMembers: ts.NamedDeclaration[] = [];
+  // The `codefix` package is not public but it does exactly what we want. We 
+  // can explore adding a slimmed down version of this package to our repository
+  // if this dependency should ever break.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (ts as any).codefix.createMissingMemberNodes(
+    currentClass,
+    parentClassSymbols,
+    sourceFile,
+    { program, host },
+    /* userPreferences= */ {},
+    /* importAdder= */ undefined,
+    (c: ts.ClassElement) => newMembers.push(c)
+  );
   return [];
 }
 /**
@@ -283,9 +331,8 @@ function extractPublicSymbol(
 }
 
 const dropPrivateApiTransformer = (
-  typeChecker: ts.TypeChecker,
   program: ts.Program,
-  host: ts.CompilerHost, 
+  host: ts.CompilerHost,
   context: ts.TransformationContext
 ) => {
   return (sourceFile: ts.SourceFile) => {
@@ -314,7 +361,12 @@ const dropPrivateApiTransformer = (
       ) {
         // Remove any imports that reference internal APIs, while retaining
         // their public members.
-        return prunePrivateImports(typeChecker, sourceFile,program,host, node);
+        return prunePrivateImports(
+          program,
+          host,
+          sourceFile,
+          node
+        );
       } else if (
         ts.isPropertyDeclaration(node) ||
         ts.isMethodDeclaration(node) ||
@@ -329,7 +381,7 @@ const dropPrivateApiTransformer = (
         // For public types that refer internal types, find a public type that
         // we can refer to instead.
         const publicName = extractPublicSymbol(
-          typeChecker,
+          program.getTypeChecker(),
           sourceFile,
           node.typeName
         );
