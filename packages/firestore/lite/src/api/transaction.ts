@@ -124,6 +124,7 @@ export class Transaction {
    *
    * @param documentRef A reference to the document to be set.
    * @param data An object of the fields and values for the document.
+   * @param options An object to configure the set behavior.
    * @return This `Transaction` instance. Used for chaining method calls.
    */
   set<T>(
@@ -183,7 +184,7 @@ export class Transaction {
   update(
     documentRef: DocumentReference<unknown>,
     field: string | FieldPath,
-    data: unknown,
+    value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): this;
   update(

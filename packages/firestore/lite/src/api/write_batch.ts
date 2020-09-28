@@ -144,7 +144,7 @@ export class WriteBatch {
   update(
     documentRef: DocumentReference<unknown>,
     field: string | FieldPath,
-    data: unknown,
+    value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch;
   update(

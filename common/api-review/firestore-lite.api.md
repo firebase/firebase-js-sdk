@@ -13,13 +13,13 @@ import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 import { SetOptions as SetOptions_2 } from '@firebase/firestore-types';
 
-// @public (undocumented)
+// @public
 export function addDoc<T>(reference: CollectionReference<T>, data: T): Promise<DocumentReference<T>>;
 
-// @public (undocumented)
+// @public
 export function arrayRemove(...elements: unknown[]): FieldValue;
 
-// @public (undocumented)
+// @public
 export function arrayUnion(...elements: unknown[]): FieldValue;
 
 // @public
@@ -29,42 +29,33 @@ export class Bytes {
     //
     // (undocumented)
     _byteString: ByteString;
-    // (undocumented)
     static fromBase64String(base64: string): Bytes;
-    // (undocumented)
     static fromUint8Array(array: Uint8Array): Bytes;
-    // (undocumented)
     isEqual(other: Bytes): boolean;
-    // (undocumented)
     toBase64(): string;
-    // (undocumented)
     toString(): string;
-    // (undocumented)
     toUint8Array(): Uint8Array;
 }
 
-// @public (undocumented)
-export function collection(firestore: FirebaseFirestore, path: string, ...pathComponents: string[]): CollectionReference<DocumentData>;
+// @public
+export function collection(firestore: FirebaseFirestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
 
-// @public (undocumented)
-export function collection(reference: CollectionReference<unknown>, path: string, ...pathComponents: string[]): CollectionReference<DocumentData>;
+// @public
+export function collection(reference: CollectionReference<unknown>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
 
-// @public (undocumented)
-export function collection(reference: DocumentReference, path: string, ...pathComponents: string[]): CollectionReference<DocumentData>;
+// @public
+export function collection(reference: DocumentReference, path: string, ...pathSegments: string[]): CollectionReference<DocumentData>;
 
-// @public (undocumented)
+// @public
 export function collectionGroup(firestore: FirebaseFirestore, collectionId: string): Query<DocumentData>;
 
-// @public (undocumented)
+// @public
 export class CollectionReference<T = DocumentData> extends Query<T> {
     constructor(firestore: FirebaseFirestore, converter: FirestoreDataConverter<T> | null, _path: ResourcePath);
     // (undocumented)
     readonly firestore: FirebaseFirestore;
-    // (undocumented)
     get id(): string;
-    // (undocumented)
     get parent(): DocumentReference<DocumentData> | null;
-    // (undocumented)
     get path(): string;
     // Warning: (ae-forgotten-export) The symbol "ResourcePath" needs to be exported by the entry point index.d.ts
     //
@@ -72,32 +63,31 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
     readonly _path: ResourcePath;
     // (undocumented)
     readonly type = "collection";
-    // (undocumented)
     withConverter<U>(converter: FirestoreDataConverter<U>): CollectionReference<U>;
 }
 
-// @public (undocumented)
+// @public
 export function deleteDoc(reference: DocumentReference): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function deleteField(): FieldValue;
 
-// @public (undocumented)
-export function doc(firestore: FirebaseFirestore, path: string, ...pathComponents: string[]): DocumentReference<DocumentData>;
+// @public
+export function doc(firestore: FirebaseFirestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
 
-// @public (undocumented)
-export function doc<T>(reference: CollectionReference<T>, path?: string, ...pathComponents: string[]): DocumentReference<T>;
+// @public
+export function doc<T>(reference: CollectionReference<T>, path?: string, ...pathSegments: string[]): DocumentReference<T>;
 
-// @public (undocumented)
-export function doc(reference: DocumentReference<unknown>, path: string, ...pathComponents: string[]): DocumentReference<DocumentData>;
+// @public
+export function doc(reference: DocumentReference<unknown>, path: string, ...pathSegments: string[]): DocumentReference<DocumentData>;
 
-// @public (undocumented)
+// @public
 export interface DocumentData {
     // (undocumented)
     [field: string]: any;
 }
 
-// @public (undocumented)
+// @public
 export function documentId(): FieldPath;
 
 // Warning: (ae-forgotten-export) The symbol "_DocumentKeyReference" needs to be exported by the entry point index.d.ts
@@ -105,61 +95,50 @@ export function documentId(): FieldPath;
 // @public
 export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<T> {
     constructor(firestore: FirebaseFirestore, _converter: FirestoreDataConverter<T> | null, _path: ResourcePath);
-    // (undocumented)
     readonly firestore: FirebaseFirestore;
-    // (undocumented)
     get id(): string;
-    // (undocumented)
     get parent(): CollectionReference<T>;
-    // (undocumented)
     get path(): string;
     // (undocumented)
     readonly _path: ResourcePath;
-    // (undocumented)
     readonly type = "document";
-    // (undocumented)
     withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
-// @public (undocumented)
+// @public
 export class DocumentSnapshot<T = DocumentData> {
     constructor(_firestore: FirebaseFirestore, _key: DocumentKey, _document: Document_2 | null, _converter: UntypedFirestoreDataConverter<T> | null);
     // Warning: (ae-forgotten-export) The symbol "UntypedFirestoreDataConverter" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     _converter: UntypedFirestoreDataConverter<T> | null;
-    // (undocumented)
     data(): T | undefined;
     // Warning: (ae-forgotten-export) The symbol "Document" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     _document: Document_2 | null;
-    // (undocumented)
     exists(): this is QueryDocumentSnapshot<T>;
     // (undocumented)
     _firestore: FirebaseFirestore;
-    // (undocumented)
     get(fieldPath: string | FieldPath): any;
-    // (undocumented)
     get id(): string;
     // Warning: (ae-forgotten-export) The symbol "DocumentKey" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     _key: DocumentKey;
-    // (undocumented)
     get ref(): DocumentReference<T>;
 }
 
-// @public (undocumented)
+// @public
 export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 
-// @public (undocumented)
+// @public
 export function endAt(...fieldValues: unknown[]): QueryConstraint;
 
-// @public (undocumented)
+// @public
 export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 
-// @public (undocumented)
+// @public
 export function endBefore(...fieldValues: unknown[]): QueryConstraint;
 
 // Warning: (ae-forgotten-export) The symbol "_BaseFieldPath" needs to be exported by the entry point index.d.ts
@@ -167,7 +146,6 @@ export function endBefore(...fieldValues: unknown[]): QueryConstraint;
 // @public
 export class FieldPath extends _BaseFieldPath {
     constructor(...fieldNames: string[]);
-    // (undocumented)
     isEqual(other: FieldPath): boolean;
 }
 
@@ -188,7 +166,6 @@ export abstract class FieldValue {
 // @public
 export class FirebaseFirestore implements _FirebaseService {
     constructor(app: FirebaseApp, authProvider: Provider<FirebaseAuthInternalName>);
-    // (undocumented)
     readonly app: FirebaseApp;
     // (undocumented)
     _configureClient(settings: Settings): void;
@@ -215,13 +192,10 @@ export class FirebaseFirestore implements _FirebaseService {
     get _terminated(): boolean;
     }
 
-// @public (undocumented)
+// @public
 export interface FirestoreDataConverter<T> {
-    // (undocumented)
     fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
-    // (undocumented)
     toFirestore(modelObject: T): DocumentData;
-    // (undocumented)
     toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
 }
 
@@ -245,7 +219,6 @@ export type FirestoreErrorCode = 'cancelled' | 'unknown' | 'invalid-argument' | 
 export class GeoPoint {
     constructor(latitude: number, longitude: number);
     _compareTo(other: GeoPoint): number;
-    // (undocumented)
     isEqual(other: GeoPoint): boolean;
     get latitude(): number;
     get longitude(): number;
@@ -256,112 +229,103 @@ export class GeoPoint {
     };
 }
 
-// @public (undocumented)
+// @public
 export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 
-// @public (undocumented)
+// @public
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>>;
 
-// @public (undocumented)
+// @public
 export function getFirestore(app: FirebaseApp): FirebaseFirestore;
 
-// @public (undocumented)
+// @public
 export function increment(n: number): FieldValue;
 
-// @public (undocumented)
+// @public
 export function initializeFirestore(app: FirebaseApp, settings: Settings): FirebaseFirestore;
 
-// @public (undocumented)
+// @public
 export function limit(limit: number): QueryConstraint;
 
-// @public (undocumented)
+// @public
 export function limitToLast(limit: number): QueryConstraint;
 
 export { LogLevel }
 
 export { LogLevelString }
 
-// @public (undocumented)
+// @public
 export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryConstraint;
 
-// @public (undocumented)
+// @public
 export type OrderByDirection = 'desc' | 'asc';
 
-// @public (undocumented)
+// @public
 export class Query<T = DocumentData> {
     constructor(firestore: FirebaseFirestore, _converter: FirestoreDataConverter<T> | null, _query: Query_2);
     // (undocumented)
     readonly _converter: FirestoreDataConverter<T> | null;
-    // (undocumented)
     readonly firestore: FirebaseFirestore;
     // Warning: (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
     readonly _query: Query_2;
-    // (undocumented)
     readonly type: 'query' | 'collection';
-    // (undocumented)
     withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
 
-// @public (undocumented)
+// @public
 export function query<T>(query: Query<T>, ...queryConstraints: QueryConstraint[]): Query<T>;
 
-// @public (undocumented)
+// @public
 export abstract class QueryConstraint {
     abstract _apply<T>(query: Query<T>): Query<T>;
-    // (undocumented)
     abstract readonly type: QueryConstraintType;
 }
 
-// @public (undocumented)
+// @public
 export type QueryConstraintType = 'where' | 'orderBy' | 'limit' | 'limitToLast' | 'startAt' | 'startAfter' | 'endAt' | 'endBefore';
 
-// @public (undocumented)
+// @public
 export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T> {
-    // (undocumented)
+    // @override
     data(): T;
 }
 
-// @public (undocumented)
+// @public
 export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean;
 
-// @public (undocumented)
+// @public
 export class QuerySnapshot<T = DocumentData> {
-    constructor(query: Query<T>, _docs: Array<QueryDocumentSnapshot<T>>);
-    // (undocumented)
+    constructor(_query: Query<T>, _docs: Array<QueryDocumentSnapshot<T>>);
     get docs(): Array<QueryDocumentSnapshot<T>>;
     // (undocumented)
     readonly _docs: Array<QueryDocumentSnapshot<T>>;
-    // (undocumented)
     get empty(): boolean;
-    // (undocumented)
     forEach(callback: (result: QueryDocumentSnapshot<T>) => void, thisArg?: unknown): void;
-    // (undocumented)
     readonly query: Query<T>;
-    // (undocumented)
     get size(): number;
 }
 
-// @public (undocumented)
+// @public
 export function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
 
-// @public (undocumented)
+// @public
 export function runTransaction<T>(firestore: FirebaseFirestore, updateFunction: (transaction: Transaction) => Promise<T>): Promise<T>;
 
-// @public (undocumented)
+// @public
 export function serverTimestamp(): FieldValue;
 
-// @public (undocumented)
+// @public
 export function setDoc<T>(reference: DocumentReference<T>, data: T): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function setDoc<T>(reference: DocumentReference<T>, data: Partial<T>, options: SetOptions): Promise<void>;
 
-// @public (undocumented)
-export function setLogLevel(newLevel: LogLevelString): void;
+// @public
+export function setLogLevel(logLevel: LogLevelString): void;
 
-// @public (undocumented)
+// @public
 export type SetOptions = {
     readonly merge?: boolean;
 } | {
@@ -378,8 +342,14 @@ export interface Settings {
     ssl?: boolean;
 }
 
-// @public (undocumented)
+// @public
 export function snapshotEqual<T>(left: DocumentSnapshot<T> | QuerySnapshot<T>, right: DocumentSnapshot<T> | QuerySnapshot<T>): boolean;
+
+// @public
+export function startAfter(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+
+// @public
+export function startAfter(...fieldValues: unknown[]): QueryConstraint;
 
 // @public (undocumented)
 export function startAfter(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
@@ -387,13 +357,13 @@ export function startAfter(snapshot: DocumentSnapshot<unknown>): QueryConstraint
 // @public (undocumented)
 export function startAfter(...fieldValues: unknown[]): QueryConstraint;
 
-// @public (undocumented)
+// @public
 export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
 
-// @public (undocumented)
+// @public
 export function startAt(...fieldValues: unknown[]): QueryConstraint;
 
-// @public (undocumented)
+// @public
 export function terminate(firestore: FirebaseFirestore): Promise<void>;
 
 // @public
@@ -401,90 +371,71 @@ export class Timestamp {
     constructor(seconds: number, nanoseconds: number);
     // (undocumented)
     _compareTo(other: Timestamp): number;
-    // (undocumented)
     static fromDate(date: Date): Timestamp;
-    // (undocumented)
     static fromMillis(milliseconds: number): Timestamp;
-    // (undocumented)
     isEqual(other: Timestamp): boolean;
     // (undocumented)
     readonly nanoseconds: number;
-    // (undocumented)
     static now(): Timestamp;
     // (undocumented)
     readonly seconds: number;
-    // (undocumented)
     toDate(): Date;
     // (undocumented)
     toJSON(): {
         seconds: number;
         nanoseconds: number;
     };
-    // (undocumented)
     toMillis(): number;
     // (undocumented)
     toString(): string;
-    // (undocumented)
     valueOf(): string;
 }
 
-// @public (undocumented)
+// @public
 export class Transaction {
     // Warning: (ae-forgotten-export) The symbol "Transaction" needs to be exported by the entry point index.d.ts
     constructor(_firestore: FirebaseFirestore, _transaction: Transaction_2);
-    // (undocumented)
     delete(documentRef: DocumentReference<unknown>): this;
     // (undocumented)
     protected readonly _firestore: FirebaseFirestore;
-    // (undocumented)
     get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
-    // (undocumented)
     set<T>(documentRef: DocumentReference<T>, data: T): this;
-    // (undocumented)
     set<T>(documentRef: DocumentReference<T>, data: Partial<T>, options: SetOptions): this;
-    // (undocumented)
     update(documentRef: DocumentReference<unknown>, data: UpdateData): this;
-    // (undocumented)
-    update(documentRef: DocumentReference<unknown>, field: string | FieldPath, data: unknown, ...moreFieldsAndValues: unknown[]): this;
+    update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): this;
 }
 
-// @public (undocumented)
+// @public
 export interface UpdateData {
     // (undocumented)
     [fieldPath: string]: any;
 }
 
-// @public (undocumented)
+// @public
 export function updateDoc(reference: DocumentReference<unknown>, data: UpdateData): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function updateDoc(reference: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: unknown): QueryConstraint;
 
-// @public (undocumented)
+// @public
 export type WhereFilterOp = '<' | '<=' | '==' | '!=' | '>=' | '>' | 'array-contains' | 'in' | 'array-contains-any' | 'not-in';
 
-// @public (undocumented)
+// @public
 export class WriteBatch {
     // Warning: (ae-forgotten-export) The symbol "Mutation" needs to be exported by the entry point index.d.ts
     constructor(_firestore: FirebaseFirestore, _commitHandler: (m: Mutation[]) => Promise<void>);
-    // (undocumented)
     commit(): Promise<void>;
-    // (undocumented)
     delete(documentRef: DocumentReference<unknown>): WriteBatch;
-    // (undocumented)
     set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
-    // (undocumented)
     set<T>(documentRef: DocumentReference<T>, data: Partial<T>, options: SetOptions): WriteBatch;
-    // (undocumented)
     update(documentRef: DocumentReference<unknown>, data: UpdateData): WriteBatch;
-    // (undocumented)
-    update(documentRef: DocumentReference<unknown>, field: string | FieldPath, data: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
+    update(documentRef: DocumentReference<unknown>, field: string | FieldPath, value: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
     }
 
-// @public (undocumented)
+// @public
 export function writeBatch(firestore: FirebaseFirestore): WriteBatch;
 
 
