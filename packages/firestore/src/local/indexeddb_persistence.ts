@@ -35,7 +35,10 @@ import {
   IndexedDbMutationQueue,
   mutationQueuesContainKey
 } from './indexeddb_mutation_queue';
-import { newIndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
+import {
+  IndexedDbRemoteDocumentCache,
+  newIndexedDbRemoteDocumentCache
+} from './indexeddb_remote_document_cache';
 import {
   ALL_STORES,
   DbClientMetadata,
