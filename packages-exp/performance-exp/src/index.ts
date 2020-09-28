@@ -37,6 +37,7 @@ import {
 } from '@firebase/component';
 import { name, version } from '../package.json';
 import { Trace } from './resources/trace';
+import '@firebase/installations-exp';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
