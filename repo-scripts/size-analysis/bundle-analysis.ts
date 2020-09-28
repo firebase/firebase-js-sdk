@@ -15,39 +15,58 @@
  * limitations under the License.
  */
 
-import { existsSync, lstatSync, readFileSync } from 'fs';
+import { existsSync, lstatSync, readFileSync, writeFileSync } from 'fs';
 import { ordinal } from '@firebase/util';
 
 interface BundleAnalysisArgs {
   input: string;
-  bundler: string;
+  bundler: 'webpack' | 'rollup' | 'both';
+  mode: 'npm' | 'local';
   output: string;
 }
 
 interface BundleAnalysisOptions {
   bundleDefinitions: BundleDefinition[];
-  bundler: string;
+  bundler: Bundler;
+  mode: Mode;
   output: string;
 }
 
 interface BundleDefinition {
-  description: string;
+  name: string;
   dependencies: BundleDependency[];
 }
 
 interface BundleDependency {
   packageName: string; // TODO: support local packages
+  /**
+   * npm version or tag
+   */
+  versionOrTag: string;
   imports: string[];
+}
+
+enum Bundler {
+  Rollup = 'rollup',
+  Webpack = 'webpack',
+  Both = 'both'
+}
+
+enum Mode {
+  Npm = 'npm',
+  Local = 'local'
 }
 
 export async function analyzeBundleSize({
   input,
   bundler,
+  mode,
   output
 }: BundleAnalysisArgs): Promise<void> {
   const options = {
     bundleDefinitions: loadBundleDefinitions(input),
-    bundler: bundler,
+    bundler: toBundlerEnum(bundler),
+    mode: toModeEnum(mode),
     output: output
   };
 
@@ -67,15 +86,33 @@ function loadBundleDefinitions(path: string): BundleDefinition[] {
     );
   }
 
-  const def = JSON.parse(readFileSync(path, { encoding: 'utf-8' }));
-
-  const errorMessages = validateBundleDefinition(def);
-
-  if (errorMessages.length > 0) {
-    throw new Error(errorMessages.join('\n'));
-  }
+  const def = parseBundleDefinition(readFileSync(path, { encoding: 'utf-8' }));
 
   return def;
+}
+
+function toBundlerEnum(bundler: 'webpack' | 'rollup' | 'both'): Bundler {
+  switch (bundler) {
+    case 'rollup':
+      return Bundler.Rollup;
+    case 'webpack':
+      return Bundler.Webpack;
+    case 'both':
+      return Bundler.Both;
+    default:
+      throw new Error('impossible!');
+  }
+}
+
+function toModeEnum(mode: 'npm' | 'local'): Mode {
+  switch (mode) {
+    case 'npm':
+      return Mode.Npm;
+    case 'local':
+      return Mode.Local;
+    default:
+      throw new Error('impossible');
+  }
 }
 
 /**
@@ -83,18 +120,19 @@ function loadBundleDefinitions(path: string): BundleDefinition[] {
  * @param input
  * @returns - an array of error messages. Empty if the bundle definition is valid
  */
-function validateBundleDefinition(input: BundleDefinition[]): string[] {
+function parseBundleDefinition(input: string): BundleDefinition[] {
+  const inputDefinitions: BundleDefinition[] = JSON.parse(input);
+
   const errorMessages = [];
-  if (!Array.isArray(input)) {
-    errorMessages.push('Bundle definition must be defined in an array');
-    return errorMessages;
+  if (!Array.isArray(inputDefinitions)) {
+    throw new Error('Bundle definition must be defined in an array');
   }
 
-  for (let i = 0; i < input.length; i++) {
-    const bundleDefinition = input[i];
-    if (!bundleDefinition.description) {
+  for (let i = 0; i < inputDefinitions.length; i++) {
+    const bundleDefinition = inputDefinitions[i];
+    if (!bundleDefinition.name) {
       errorMessages.push(
-        `Missing field 'description' in the ${ordinal(i + 1)} bundle definition`
+        `Missing field 'name' in the ${ordinal(i + 1)} bundle definition`
       );
     }
 
@@ -140,10 +178,43 @@ function validateBundleDefinition(input: BundleDefinition[]): string[] {
           )} dependency of the ${ordinal(i + 1)} bundle definition`
         );
       }
+
+      if (!dependency.versionOrTag) {
+        dependency.versionOrTag = 'latest';
+      }
     }
   }
 
   return errorMessages;
 }
 
-async function analyze(options: BundleAnalysisOptions) {}
+async function analyze({
+  bundleDefinitions,
+  bundler,
+  output
+}: BundleAnalysisOptions) {
+  const analyses: BundleAnalysis[] = [];
+  for (const bundleDefinition of bundleDefinitions) {
+    analyses.push(await analyzeBundle(bundleDefinition, bundler));
+  }
+
+  writeFileSync(output, JSON.stringify(analyses, null, 2), {
+    encoding: 'utf-8'
+  });
+}
+
+async function analyzeBundle(
+  bundleDefinition: BundleDefinition,
+  bundler: Bundler
+): Promise<BundleAnalysis> {}
+
+interface BundleAnalysis {
+  name: string; // the bundle name defined in the bundle definition
+  results: BundleAnalysisResult[];
+}
+
+interface BundleAnalysisResult {
+  bundler: 'rollup' | 'webpack';
+  size: number;
+  gzipSize: number;
+}

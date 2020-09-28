@@ -61,6 +61,12 @@ yargs
         required: true,
         desc: 'Path to the JSON file that describes the bundles to be analyzed'
       },
+      mode: {
+        choices: ['npm', 'local'],
+        alias: 'm',
+        default: 'npm',
+        desc: 'Use Firebase packages from npm or the local repo'
+      },
       bundler: {
         choices: ['rollup', 'webpack', 'both'],
         alias: 'b',
