@@ -41,9 +41,7 @@ function main(inputLocation: string, outputLocation: string): void {
   const sourceFile = program.getSourceFile(inputLocation)!;
   const result: ts.TransformationResult<ts.SourceFile> = ts.transform<
     ts.SourceFile
-  >(sourceFile, [
-    dropPrivateApiTransformer.bind(null,  program, host )
-  ]);
+  >(sourceFile, [dropPrivateApiTransformer.bind(null, program, host)]);
   const transformedSourceFile: ts.SourceFile = result.transformed[0];
   const content = printer.printFile(transformedSourceFile);
   fs.writeFileSync(outputLocation, content);
@@ -103,13 +101,18 @@ function verifyMatchingTypeArguments(
   privateType: ts.NodeWithTypeArguments,
   publicSymbol: ts.Symbol
 ): boolean {
-  if (!ts.isClassDeclaration(publicSymbol.valueDeclaration) || !ts.isInterfaceDeclaration(publicSymbol.valueDeclaration)) {
+  if (
+    !ts.isClassDeclaration(publicSymbol.valueDeclaration) ||
+    !ts.isInterfaceDeclaration(publicSymbol.valueDeclaration)
+  ) {
     return false;
   }
-  
-  const privateTypeArguments = (privateType.typeArguments as ts.TypeReferenceNode[] | undefined) ?? [];
-  const publicTypeArguments = publicSymbol.valueDeclaration.typeParameters ?? [];
-  
+
+  const privateTypeArguments =
+    (privateType.typeArguments as ts.TypeReferenceNode[] | undefined) ?? [];
+  const publicTypeArguments =
+    publicSymbol.valueDeclaration.typeParameters ?? [];
+
   if (privateTypeArguments.length !== publicTypeArguments.length) {
     return false;
   }
@@ -154,7 +157,7 @@ function prunePrivateImports<
   sourceFile: ts.SourceFile,
   node: T
 ): T {
-  const typeChecker =  program.getTypeChecker();
+  const typeChecker = program.getTypeChecker();
   const currentType = typeChecker.getTypeAtLocation(node);
   const currentName = currentType?.symbol?.name;
 
@@ -196,9 +199,10 @@ function prunePrivateImports<
           additionalMembers.push(
             ...convertPropertiesForEnclosingClass(
               program,
-              host,sourceFile,
+              host,
+              sourceFile,
               privateType.getProperties(),
-              node,
+              node
             )
           );
         }
@@ -242,18 +246,18 @@ function prunePrivateImports<
  * symbols if they are missing from `currentClass`. This allows us to merge
  * class hierarchies for classes whose inherited types are not part of the
  * public API.
- * 
+ *
  * This method relies on a private API in TypeScript's `codefix` package.
  */
 function convertPropertiesForEnclosingClass(
   program: ts.Program,
-host: ts.CompilerHost,
+  host: ts.CompilerHost,
   sourceFile: ts.SourceFile,
   parentClassSymbols: ts.Symbol[],
-  currentClass: ts.ClassDeclaration | ts.InterfaceDeclaration,
+  currentClass: ts.ClassDeclaration | ts.InterfaceDeclaration
 ): Array<ts.NamedDeclaration> {
   const newMembers: ts.NamedDeclaration[] = [];
-  // The `codefix` package is not public but it does exactly what we want. We 
+  // The `codefix` package is not public but it does exactly what we want. We
   // can explore adding a slimmed down version of this package to our repository
   // if this dependency should ever break.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -361,12 +365,7 @@ const dropPrivateApiTransformer = (
       ) {
         // Remove any imports that reference internal APIs, while retaining
         // their public members.
-        return prunePrivateImports(
-          program,
-          host,
-          sourceFile,
-          node
-        );
+        return prunePrivateImports(program, host, sourceFile, node);
       } else if (
         ts.isPropertyDeclaration(node) ||
         ts.isMethodDeclaration(node) ||
