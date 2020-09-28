@@ -88,31 +88,25 @@ describe('Performance Monitoring > perf_logger', () => {
   });
 
   describe('logTrace', () => {
-    it('will not drop event before initialization finishes', () => {
+    it('will not drop event before initialization finishes', async () => {
       getIidStub.returns(IID);
+      SettingsService.getInstance().loggingEnabled = true;
+      SettingsService.getInstance().logTraceAfterSampling = true;
       stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
-
       stub(initializationService, 'isPerfInitialized').returns(false);
-      const getInitializationPromiseStub = stub(
-        initializationService,
-        'getInitializationPromise'
-      );
 
-      const resolvePerfInitialization = function (): Promise<void> {
-        SettingsService.getInstance().loggingEnabled = true;
-        SettingsService.getInstance().logTraceAfterSampling = true;
-        return new Promise<void>(resolve => {
-          resolve();
-        });
-      };
-      getInitializationPromiseStub.callsFake(resolvePerfInitialization);
-      // getInitializationPromiseStub.resolves();
+      const initializationPromise = Promise.resolve();
+      stub(initializationService, 'getInitializationPromise').returns(
+        initializationPromise
+      );
 
       const trace = new Trace(TRACE_NAME);
       trace.record(START_TIME, DURATION);
-      process.nextTick;
+      await initializationPromise.then(() => {
+        clock.tick(1);
+      });
 
-      setTimeout(expect(addToQueueStub).to.be.called, 0);
+      expect(addToQueueStub).to.be.called;
     });
 
     it('creates, serializes and sends a trace to transport service', () => {
