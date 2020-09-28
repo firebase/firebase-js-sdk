@@ -63,9 +63,9 @@ export abstract class _BaseFieldPath {
 }
 
 /**
- * A FieldPath refers to a field in a document. The path may consist of a single
- * field name (referring to a top-level field in the document), or a list of
- * field names (referring to a nested field in the document).
+ * A `FieldPath` refers to a field in a document. The path may consist of a
+ * single field name (referring to a top-level field in the document), or a list
+ * of field names (referring to a nested field in the document).
  */
 export class FieldPath extends _BaseFieldPath implements PublicFieldPath {
   /**
