@@ -13,8 +13,8 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "build": "rollup -c",
-    "build:deps": "lerna run --scope @firebase/'{app,messaging}' --include-dependencies build",
+    "build": "rollup -c && yarn api-report",
+    "build:deps": "lerna run --scope @firebase/'{app-exp,messaging-exp}' --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p test:karma type-check lint ",
     "test:integration": "run-p test:karma type-check lint && cd ../../integration/messaging && npm run-script test",
@@ -22,6 +22,7 @@
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "prepare": "yarn build",
+    "api-report": "api-extractor run --local --verbose",
     "type-check": "tsc --noEmit"
   },
   "license": "Apache-2.0",
