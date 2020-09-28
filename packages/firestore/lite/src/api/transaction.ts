@@ -50,7 +50,7 @@ import { getDatastore } from './components';
 /**
  * A reference to a transaction.
  *
- * The `Transaction` object passed to a transaction's updateFunction provides
+ * The `Transaction` object passed to a transaction's `updateFunction` provides
  * the methods to read and write data within the transaction context. See
  * {@link runTransaction()}.
  */
@@ -73,7 +73,7 @@ export class Transaction {
    * Reads the document referenced by the provided {@link DocumentReference}.
    *
    * @param documentRef A reference to the document to be read.
-   * @return A DocumentSnapshot for the read data.
+   * @return A `DocumentSnapshot` with the read data.
    */
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     const ref = validateReference(documentRef, this._firestore);
@@ -167,14 +167,13 @@ export class Transaction {
    * not exist.
    *
    * Nested fields can be updated by providing dot-separated field path
-   * strings or by providing FieldPath objects.
+   * strings or by providing `FieldPath` objects.
    *
    * @param documentRef A reference to the document to be updated.
    * @param field The first field to update.
    * @param value The first value.
    * @param moreFieldsAndValues Additional key/value pairs.
-   * @return A Promise resolved once the data has been successfully written
-   * to the backend (Note that it won't resolve while you're offline).
+   * @return This `Transaction` instance. Used for chaining method calls.
    */
   update(
     documentRef: DocumentReference<unknown>,

@@ -42,13 +42,10 @@ import { getDatastore } from './components';
 /**
  * A write batch, used to perform multiple writes as a single atomic unit.
  *
- * A `WriteBatch` object can be acquired by calling `Firestore.batch()`. It
- * provides methods for adding writes to the write batch. None of the
- * writes will be committed (or visible locally) until `WriteBatch.commit()`
- * is called.
- *
- * Unlike transactions, write batches are persisted offline and therefore are
- * preferable when you don't need to condition your writes on read data.
+ * A `WriteBatch` object can be acquired by calling {@link writeBatch()}. It
+ * provides methods for adding writes to the write batch. None of the writes
+ * will be committed (or visible locally) until {@link WriteBatch#commit()} is
+ * called.
  */
 export class WriteBatch {
   // This is the lite version of the WriteBatch API used in the legacy SDK. The
@@ -135,14 +132,13 @@ export class WriteBatch {
    * not exist.
    *
    * Nested fields can be update by providing dot-separated field path strings
-   * or by providing FieldPath objects.
+   * or by providing `FieldPath` objects.
    *
    * @param documentRef A reference to the document to be updated.
    * @param field The first field to update.
    * @param value The first value.
    * @param moreFieldsAndValues Additional key value pairs.
-   * @return A Promise resolved once the data has been successfully written
-   * to the backend (Note that it won't resolve while you're offline).
+   * @return This `WriteBatch` instance. Used for chaining method calls.
    */
   update(
     documentRef: DocumentReference<unknown>,
@@ -207,11 +203,13 @@ export class WriteBatch {
    * Commits all of the writes in this write batch as a single atomic unit.
    *
    * The result of these writes will only be reflected in document reads that
-   * occur after the returned Promise resolves. If you would like to see local
-   * modifications, use the full Firestore SDK.
+   * occur after the returned Promise resolves. If the client is offline, the
+   * write fails. If you would like to see local modifications or buffer writes
+   * until the client is online, use the full Firestore SDK.
    *
    * @return A Promise resolved once all of the writes in the batch have been
-   * successfully written to the backend as an atomic unit.
+   * successfully written to the backend as an atomic unit (note that it won't
+   * resolve while you're offline).
    */
   commit(): Promise<void> {
     this.verifyNotCommitted();
@@ -252,6 +250,11 @@ export function validateReference<T>(
  * Creates a write batch, used for performing multiple writes as a single
  * atomic operation. The maximum number of writes allowed in a single WriteBatch
  * is 500.
+ *
+ * The result of these writes will only be reflected in document reads that
+ * occur after the returned Promise resolves. If the client is offline, the
+ * write fails. If you would like to see local modifications or buffer writes
+ * until the client is online, use the full Firestore SDK.
  *
  * @return A `WriteBatch` that can be used to atomically execute multiple
  * writes.

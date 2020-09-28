@@ -19,11 +19,11 @@ import { _BaseFieldPath } from '../../../src/api/field_path';
 import { DOCUMENT_KEY_NAME } from '../../../src/model/path';
 
 /**
- * A FieldPath refers to a field in a document. The path may consist of a
+ * A `FieldPath` refers to a field in a document. The path may consist of a
  * single field name (referring to a top-level field in the document), or a
  * list of field names (referring to a nested field in the document).
  *
- * Create a FieldPath by providing field names. If more than one field
+ * Create a `FieldPath` by providing field names. If more than one field
  * name is provided, the path will point to a nested field in a document.
  */
 export class FieldPath extends _BaseFieldPath {

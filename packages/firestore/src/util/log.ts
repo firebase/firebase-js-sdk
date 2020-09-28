@@ -36,14 +36,14 @@ export function getLogLevel(): LogLevel {
  *   the following values:
  *
  *   <ul>
- *     <li><code>debug</code> for the most verbose logging level, primarily for
+ *     <li>`debug` for the most verbose logging level, primarily for
  *     debugging.</li>
- *     <li><code>error</code> to log errors only.</li>
- *     <li><code>silent</code> to turn off logging.</li>
+ *     <li>`error` to log errors only.</li>
+ *     <li><code>`silent` to turn off logging.</li>
  *   </ul>
  */
-export function setLogLevel(newLevel: LogLevelString | LogLevel): void {
-  logClient.setLogLevel(newLevel);
+export function setLogLevel(logLevel: LogLevelString | LogLevel): void {
+  logClient.setLogLevel(logLevel);
 }
 
 export function logDebug(msg: string, ...obj: unknown[]): void {

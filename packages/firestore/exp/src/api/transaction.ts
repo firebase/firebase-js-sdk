@@ -30,7 +30,7 @@ import { DocumentReference } from '../../../lite/src/api/reference';
 /**
  * A reference to a transaction.
  *
- * The `Transaction` object passed to a transaction's updateFunction provides
+ * The `Transaction` object passed to a transaction's `updateFunction` provides
  * the methods to read and write data within the transaction context. See
  * {@link runTransaction()}.
  */
@@ -49,7 +49,7 @@ export class Transaction extends LiteTransaction {
    * Reads the document referenced by the provided {@link DocumentReference}.
    *
    * @param documentRef A reference to the document to be read.
-   * @return A DocumentSnapshot for the read data.
+   * @return A `DocumentSnapshot` with the read data.
    */
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     const ref = validateReference<T>(documentRef, this._firestore);

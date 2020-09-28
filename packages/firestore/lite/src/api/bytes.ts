@@ -64,7 +64,7 @@ export class Bytes {
   }
 
   /**
-   * Returns the underlying bytes in a new Uint8Array.
+   * Returns the underlying bytes in a new `Uint8Array`.
    *
    * @return The Uint8Array created from the `Bytes` object.
    */

@@ -41,8 +41,8 @@ export abstract class FieldValue {
 }
 
 /**
- * Returns a sentinel for use with {@link updateDoc()} of
- * {@link setDoc setDoc({}, { merge: true })} to mark a field for deletion.
+ * Returns a sentinel for use with {@link updateDoc()} or
+ * {@link setDoc `setDoc({}, { merge: true })`} to mark a field for deletion.
  */
 export function deleteField(): FieldValue {
   return new DeleteFieldValueImpl('deleteField');

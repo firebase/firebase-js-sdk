@@ -98,10 +98,10 @@ export interface SnapshotListenOptions {
  * Note: `getDoc()` attempts to provide up-to-date data when possible by waiting
  * for data from the server, but it may return cached data or fail if you are
  * offline and the server cannot be reached. To specify this behavior, invoke
- * {@link getDocFromCache()} or @link getDocFromServer()}.
+ * {@link getDocFromCache()} or {@link getDocFromServer()}.
  *
  * @param reference The reference of the document to fetch.
- * @return A Promise resolved with a DocumentSnapshot containing the
+ * @return A Promise resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
 export function getDoc<T>(
@@ -130,7 +130,7 @@ export function getDoc<T>(
  * Reads the document referred to by this `DocumentReference` from cache.
  * Returns an error if the document is not currently cached.
  *
- * @return A Promise resolved with a DocumentSnapshot containing the
+ * @return A Promise resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
 export function getDocFromCache<T>(
@@ -163,7 +163,7 @@ export function getDocFromCache<T>(
  * Reads the document referred to by this `DocumentReference` from the server.
  * Returns an error if the network is not available.
  *
- * @return A Promise resolved with a DocumentSnapshot containing the
+ * @return A Promise resolved with a `DocumentSnapshot` containing the
  * current document contents.
  */
 export function getDocFromServer<T>(
@@ -196,7 +196,7 @@ export function getDocFromServer<T>(
  * you are offline and the server cannot be reached. To specify this behavior,
  * invoke {@link getDocsFromCache()} or {@link getDocsFromServer()}.
  *
- * @return A Promise that will be resolved with the results of the Query.
+ * @return A Promise that will be resolved with the results of the query.
  */
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   const firestore = cast(query.firestore, FirebaseFirestore);
@@ -224,7 +224,7 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
  * Executes the query and returns the results as a `QuerySnapshot` from cache.
  * Returns an error if the document is not currently cached.
  *
- * @return A Promise that will be resolved with the results of the Query.
+ * @return A Promise that will be resolved with the results of the query.
  */
 export function getDocsFromCache<T>(
   query: Query<T>
@@ -244,9 +244,9 @@ export function getDocsFromCache<T>(
 
 /**
  * Executes the query and returns the results as a `QuerySnapshot` from the
- * server. Returns an error if the network is not available..
+ * server. Returns an error if the network is not available.
  *
- * @return A Promise that will be resolved with the results of the Query.
+ * @return A Promise that will be resolved with the results of the query.
  */
 export function getDocsFromServer<T>(
   query: Query<T>
@@ -277,7 +277,7 @@ export function getDocsFromServer<T>(
  * @param reference A reference to the document to write.
  * @param data A map of the fields and values for the document.
  * @return A Promise resolved once the data has been successfully written
- * to the backend (Note that it won't resolve while you're offline).
+ * to the backend (note that it won't resolve while you're offline).
  */
 export function setDoc<T>(
   reference: DocumentReference<T>,
@@ -292,7 +292,7 @@ export function setDoc<T>(
  * @param data A map of the fields and values for the document.
  * @param options An object to configure the set behavior.
  * @return A Promise resolved once the data has been successfully written
- * to the backend (Note that it won't resolve while you're offline).
+ * to the backend (note that it won't resolve while you're offline).
  */
 export function setDoc<T>(
   reference: DocumentReference<T>,
@@ -336,7 +336,7 @@ export function setDoc<T>(
  * update the document. Fields can contain dots to reference nested fields
  * within the document.
  * @return A Promise resolved once the data has been successfully written
- * to the backend (Note that it won't resolve while you're offline).
+ * to the backend (note that it won't resolve while you're offline).
  */
 export function updateDoc(
   reference: DocumentReference<unknown>,
@@ -348,14 +348,14 @@ export function updateDoc(
  * not exist.
  *
  * Nested fields can be updated by providing dot-separated field path
- * strings or by providing FieldPath objects.
+ * strings or by providing `FieldPath` objects.
  *
  * @param reference A reference to the document to update.
  * @param field The first field to update.
  * @param value The first value.
  * @param moreFieldsAndValues Additional key value pairs.
  * @return A Promise resolved once the data has been successfully written
- * to the backend (Note that it won't resolve while you're offline).
+ * to the backend (note that it won't resolve while you're offline).
  */
 export function updateDoc(
   reference: DocumentReference<unknown>,
@@ -408,7 +408,7 @@ export function updateDoc(
  *
  * @param reference A reference to the document to delete.
  * @return A Promise resolved once the document has been successfully
- * deleted from the backend (Note that it won't resolve while you're offline).
+ * deleted from the backend (note that it won't resolve while you're offline).
  */
 export function deleteDoc(
   reference: DocumentReference<unknown>
@@ -424,7 +424,7 @@ export function deleteDoc(
  * Add a new document to specified `CollectionReference` with the given data,
  * assigning it a document ID automatically.
  *
- * @param reference A reference to the Collection to add this document to.
+ * @param reference A reference to the collection to add this document to.
  * @param data An Object containing the data for the new document.
  * @return A Promise resolved with a `DocumentReference` pointing to the
  * newly created document after it has been written to the backend (Note that it
@@ -461,7 +461,7 @@ export function addDoc<T>(
 // integration tests
 
 /**
- * Attaches a listener for DocumentSnapshot events. You may either pass
+ * Attaches a listener for `DocumentSnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
  * object with `next` and `error` callbacks.
  *
@@ -482,7 +482,7 @@ export function onSnapshot<T>(
   }
 ): Unsubscribe;
 /**
- * Attaches a listener for DocumentSnapshot events. You may either pass
+ * Attaches a listener for `DocumentSnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
  * object with `next` and `error` callbacks.
  *
@@ -505,7 +505,7 @@ export function onSnapshot<T>(
   }
 ): Unsubscribe;
 /**
- * Attaches a listener for DocumentSnapshot events. You may either pass
+ * Attaches a listener for `DocumentSnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
  * object with `next` and `error` callbacks.
  *
@@ -529,7 +529,7 @@ export function onSnapshot<T>(
   onCompletion?: () => void
 ): Unsubscribe;
 /**
- * Attaches a listener for DocumentSnapshot events. You may either pass
+ * Attaches a listener for `DocumentSnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
  * object with `next` and `error` callbacks.
  *
@@ -555,7 +555,7 @@ export function onSnapshot<T>(
   onCompletion?: () => void
 ): Unsubscribe;
 /**
- * Attaches a listener for QuerySnapshot events. You may either pass
+ * Attaches a listener for `QuerySnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
  * object with `next` and `error` callbacks. The listener can be cancelled by
  * calling the function that is returned when `onSnapshot` is called.
@@ -577,7 +577,7 @@ export function onSnapshot<T>(
   }
 ): Unsubscribe;
 /**
- * Attaches a listener for QuerySnapshot events. You may either pass
+ * Attaches a listener for `QuerySnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
  * object with `next` and `error` callbacks. The listener can be cancelled by
  * calling the function that is returned when `onSnapshot` is called.
@@ -601,7 +601,7 @@ export function onSnapshot<T>(
   }
 ): Unsubscribe;
 /**
- * Attaches a listener for QuerySnapshot events. You may either pass
+ * Attaches a listener for `QuerySnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
  * object with `next` and `error` callbacks. The listener can be cancelled by
  * calling the function that is returned when `onSnapshot` is called.
@@ -626,7 +626,7 @@ export function onSnapshot<T>(
   onCompletion?: () => void
 ): Unsubscribe;
 /**
- * Attaches a listener for QuerySnapshot events. You may either pass
+ * Attaches a listener for `QuerySnapshot` events. You may either pass
  * individual `onNext` and `onError` callbacks or pass a single observer
  * object with `next` and `error` callbacks. The listener can be cancelled by
  * calling the function that is returned when `onSnapshot` is called.

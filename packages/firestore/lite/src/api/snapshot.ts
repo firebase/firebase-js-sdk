@@ -36,7 +36,7 @@ import { arrayEquals } from '../../../src/util/misc';
 import { Bytes } from './bytes';
 
 /**
- * Converter used by `withConverter()` to transform user objects of type T
+ * Converter used by `withConverter()` to transform user objects of type `T`
  * into Firestore data.
  *
  * Using the converter allows you to specify generic type arguments when
@@ -76,7 +76,7 @@ import { Bytes } from './bytes';
  */
 export interface FirestoreDataConverter<T> {
   /**
-   * Called by the Firestore SDK to convert a custom model object of type T
+   * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain Javascript object (suitable for writing directly to the
    * Firestore database). Used with {@link setData()}, {@link WriteBatch#set()}
    * and {@link Transaction#set()}}.
@@ -84,7 +84,7 @@ export interface FirestoreDataConverter<T> {
   toFirestore(modelObject: T): DocumentData;
 
   /**
-   * Called by the Firestore SDK to convert a custom model object of type T
+   * Called by the Firestore SDK to convert a custom model object of type `T`
    * into a plain Javascript object (suitable for writing directly to the
    * Firestore database). Used with {@link setData()}, {@link WriteBatch#set()}
    * and {@link Transaction#set()}} with `merge:true` or `mergeFields`.
@@ -95,7 +95,8 @@ export interface FirestoreDataConverter<T> {
    * Called by the Firestore SDK to convert Firestore data into an object of
    * type T. You can access your data by calling: `snapshot.data()`.
    *
-   * @param snapshot A QueryDocumentSnapshot containing your data and metadata.
+   * @param snapshot A `QueryDocumentSnapshot` containing your data and
+   * metadata.
    */
   fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
 }
@@ -148,11 +149,11 @@ export class DocumentSnapshot<T = DocumentData> {
   }
 
   /**
-   * Retrieves all fields in the document as an Object. Returns 'undefined' if
+   * Retrieves all fields in the document as an `Object`. Returns `undefined` if
    * the document doesn't exist.
    *
-   * @return An Object containing all fields in the document or 'undefined' if
-   * the document doesn't exist.
+   * @return An `Object` containing all fields in the document or `undefined`
+   * if the document doesn't exist.
    */
   data(): T | undefined {
     if (!this._document) {
@@ -188,7 +189,8 @@ export class DocumentSnapshot<T = DocumentData> {
    * Retrieves the field specified by `fieldPath`. Returns `undefined` if the
    * document or field doesn't exist.
    *
-   * @param fieldPath The path (e.g. 'foo' or 'foo.bar') to a specific field.
+   * @param fieldPath The path (for example 'foo' or 'foo.bar') to a specific
+   * field.
    * @return The data at the specified field location or undefined if no such
    * field exists in the document.
    */
@@ -230,10 +232,10 @@ export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
   T
 > {
   /**
-   * Retrieves all fields in the document as an Object.
+   * Retrieves all fields in the document as an `Object`.
    *
    * @override
-   * @return An Object containing all fields in the document.
+   * @return An `Object` containing all fields in the document.
    */
   data(): T {
     return super.data() as T;

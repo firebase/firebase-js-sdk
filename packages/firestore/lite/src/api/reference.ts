@@ -106,11 +106,11 @@ export interface UpdateData {
  * documents in their entirety by providing a `SetOptions` with `merge: true`.
  *
  * @param merge Changes the behavior of a `setDoc()` call to only replace the
- * values specified in its data argument. Fields omitted from the setDoc() call
- * remain untouched.
- * @param mergeFields Changes the behavior of set() calls to only replace the
- * specified field paths. Any field path that is not specified is ignored and
- * remains untouched.
+ * values specified in its data argument. Fields omitted from the `setDoc()`
+ * call remain untouched.
+ * @param mergeFields Changes the behavior of `setDoc()` calls to only replace
+ * the specified field paths. Any field path that is not specified is ignored
+ * and remains untouched.
  */
 export type SetOptions =
   | {
@@ -162,7 +162,7 @@ export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<
   }
 
   /**
-   * The Collection this `DocumentReference` belongs to.
+   * The collection this `DocumentReference` belongs to.
    */
   get parent(): CollectionReference<T> {
     return new CollectionReference<T>(
@@ -177,10 +177,10 @@ export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<
    * to use your own custom model objects with Firestore. When you call {@link
    * setDoc()}, {@link getDoc()}, etc. with the returned `DocumentReference`
    * instance, the provided converter will convert between Firestore data and
-   * your custom type U.
+   * your custom type `U`.
    *
    * @param converter Converts objects to and from Firestore.
-   * @return A DocumentReference<U> that uses the provided converter.
+   * @return A `DocumentReference<U>` that uses the provided converter.
    */
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U> {
     return new DocumentReference<U>(this.firestore, converter, this._path);
@@ -213,11 +213,11 @@ export class Query<T = DocumentData> {
   /**
    * Applies a custom data converter to this query, allowing you to use your own
    * custom model objects with Firestore. When you call {@link getDocs()} with
-   * the returned Query, the provided converter will convert between Firestore
-   * data and your custom type U.
+   * the returned query, the provided converter will convert between Firestore
+   * data and your custom type `U`.
    *
    * @param converter Converts objects to and from Firestore.
-   * @return A Query<U> that uses the provided converter.
+   * @return A `Query<U>` that uses the provided converter.
    */
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U> {
     return new Query<U>(this.firestore, converter, this._query);
@@ -238,7 +238,7 @@ export type QueryConstraintType =
 /**
  * A `QueryConstraint` is used to narrow the set of documents returned by a
  * Firestore query. `QueryConstraint`s are created by invoking {@link where()},
- * {@link orderBy()}, {@link startAt()},{@link startAfter()},{@link
+ * {@link orderBy()}, {@link startAt()}, {@link startAfter()}, {@link
  * endBefore()}, {@link endAt()}, {@link limit()} or {@link limitToLast()} and
  * can then be passed to {@link query()} to create a new query instance that
  * also contains this `QueryConstraint`.
@@ -328,7 +328,7 @@ export type WhereFilterOp =
  * @param fieldPath The path to compare
  * @param opStr The operation string (e.g "<", "<=", "==", ">", ">=", "!=").
  * @param value The value for comparison
- * @return The created Query.
+ * @return The created `Query`.
  */
 export function where(
   fieldPath: string | FieldPath,
@@ -373,9 +373,9 @@ export type OrderByDirection = 'desc' | 'asc';
  * specified field, optionally in descending order instead of ascending.
  *
  * @param fieldPath The field to sort by.
- * @param directionStr Optional direction to sort by (`asc` or `desc`). If
+ * @param directionStr Optional direction to sort by ('asc' or 'desc'). If
  * not specified, order will be ascending.
- * @return The created Query.
+ * @return The created `Query`.
  */
 export function orderBy(
   fieldPath: string | FieldPath,
@@ -410,7 +410,7 @@ class QueryLimitConstraint extends QueryConstraint {
  * Creates a `QueryConstraint` that only returns the first matching documents.
  *
  * @param limit The maximum number of items to return.
- * @return The created Query.
+ * @return The created `Query`.
  */
 export function limit(limit: number): QueryConstraint {
   validatePositiveNumber('limit', 1, limit);
@@ -424,7 +424,7 @@ export function limit(limit: number): QueryConstraint {
  * otherwise an exception will be thrown during execution.
  *
  * @param limit The maximum number of items to return.
- * @return The created Query.
+ * @return The created `Query`.
  */
 export function limitToLast(limit: number): QueryConstraint {
   validatePositiveNumber('limitToLast', 1, limit);
@@ -667,10 +667,10 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
    * Applies a custom data converter to this CollectionReference, allowing you
    * to use your own custom model objects with Firestore. When you call {@link
    * addDoc()} with the returned `CollectionReference` instance, the provided
-   * converter will convert between Firestore data and your custom type U.
+   * converter will convert between Firestore data and your custom type `U`.
    *
    * @param converter Converts objects to and from Firestore.
-   * @return A CollectionReference<U> that uses the provided converter.
+   * @return A `CollectionReference<U>` that uses the provided converter.
    */
   withConverter<U>(
     converter: FirestoreDataConverter<U>
@@ -700,7 +700,7 @@ export function collection(
  * Gets a `CollectionReference` instance that refers to a subcollection of
  * `reference` at the the specified relative path.
  *
- * @param reference A reference to a Collection.
+ * @param reference A reference to a collection.
  * @param path A slash-separated path to a collection.
  * @param pathSegments Additional path segments to apply relative to the first
  * argument.
@@ -771,15 +771,15 @@ export function collection(
 // https://github.com/firebase/firebase-js-sdk/blob/0131e1f/packages/util/src/errors.ts#L106
 
 /**
- * Creates and returns a new Query that includes all documents in the
+ * Creates and returns a new `Query` instance that includes all documents in the
  * database that are contained in a collection or subcollection with the
- * given collectionId.
+ * given `collectionId`.
  *
  * @param firestore A reference to the root Firestore instance.
  * @param collectionId Identifies the collections to query over. Every
  * collection or subcollection with this ID as the last segment of its path
  * will be included. Cannot contain a slash.
- * @return The created Query.
+ * @return The created `Query`.
  */
 export function collectionGroup(
   firestore: FirebaseFirestore,
@@ -824,7 +824,7 @@ export function doc(
  * automatically-generated unique ID will be used for the returned
  * `DocumentReference`.
  *
- * @param reference A reference to a Collection.
+ * @param reference A reference to a collection.
  * @param path A slash-separated path to a document. Has to be omitted to use
  * auto-genrated IDs.
  * @param pathSegments Additional path segments that will be applied relative
@@ -903,11 +903,11 @@ export function doc<T>(
  * All documents are directly fetched from the server, even if the document was
  * previously read or modified. Recent modifications are only reflected in the
  * retrieved `DocumentSnapshot` if they have already been applied by the
- * backend. If you like to use caching or see local modifications, please use
- * the full Firestore SDK.
+ * backend.  If the client is offline, the read fails. If you like to use
+ * caching or see local modifications, please use the full Firestore SDK.
  *
  * @param reference The reference of the document to fetch.
- * @return A Promise resolved with a DocumentSnapshot containing the
+ * @return A Promise resolved with a  DocumentSnapshot   containing the
  * current document contents.
  */
 export function getDoc<T>(
@@ -933,11 +933,12 @@ export function getDoc<T>(
  *
  * All queries are executed directly by the server, even if the the query was
  * previously executed. Recent modifications are only reflected in the retrieved
- * results if they have already been applied by the backend. To see previously
- * cached result and local modifications, use the full Firestore SDK.
+ * results if they have already been applied by the backend. If the client is
+ * offline, the operation fails. To see previously cached result and local
+ * modifications, use the full Firestore SDK.
  *
- * @param query The Query to execute.
- * @return A Promise that will be resolved with the results of the Query.
+ * @param query The `Query` to execute.
+ * @return A Promise that will be resolved with the results of the query.
  */
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   validateHasExplicitOrderByForLimitToLast(query._query);
@@ -970,8 +971,9 @@ export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
  * the document does not yet exist, it will be created.
  *
  * The result of this write will only be reflected in document reads that occur
- * after the returned Promise resolves. To see previously cached result and
- * local modifications, use the full Firestore SDK.
+ * after the returned Promise resolves. If the client is offline, the
+ * write fails. If you would like to see local modifications or buffer writes
+ * until the client is online, use the full Firestore SDK.
  *
  * @param reference A reference to the document to write.
  * @param data A map of the fields and values for the document.
@@ -988,8 +990,9 @@ export function setDoc<T>(
  * or `mergeFields`, the provided data can be merged into an existing document.
  *
  * The result of this write will only be reflected in document reads that occur
- * after the returned Promise resolves. To see previously cached result and
- * local modifications, use the full Firestore SDK.
+ * after the returned Promise resolves. If the client is offline, the
+ * write fails. If you would like to see local modifications or buffer writes
+ * until the client is online, use the full Firestore SDK.
  *
  * @param reference A reference to the document to write.
  * @param data A map of the fields and values for the document.
@@ -1035,8 +1038,9 @@ export function setDoc<T>(
  * not exist.
  *
  * The result of this update will only be reflected in document reads that occur
- * after the returned Promise resolves. To see previously cached result and
- * local modifications, use the full Firestore SDK.
+ * after the returned Promise resolves. If the client is offline, the
+ * update fails. If you would like to see local modifications or buffer writes
+ * until the client is online, use the full Firestore SDK.
  *
  * @param reference A reference to the document to update.
  * @param data An object containing the fields and values with which to
@@ -1055,11 +1059,12 @@ export function updateDoc(
  * not exist.
  *
  * Nested fields can be updated by providing dot-separated field path
- * strings or by providing FieldPath objects.
+ * strings or by providing `FieldPath` objects.
  *
  * The result of this update will only be reflected in document reads that occur
- * after the returned Promise resolves. To see previously cached result and
- * local modifications, use the full Firestore SDK.
+ * after the returned Promise resolves. If the client is offline, the
+ * update fails. If you would like to see local modifications or buffer writes
+ * until the client is online, use the full Firestore SDK.
  *
  * @param reference A reference to the document to update.
  * @param field The first field to update.
@@ -1115,8 +1120,9 @@ export function updateDoc(
  * Deletes the document referred to by the specified `DocumentReference`.
  *
  * The deletion will only be reflected in document reads that occur after the
- * returned Promise resolves. To see previously cached result and local
- * modifications, use the full Firestore SDK.
+ * returned Promise resolves. If the client is offline, the
+ * delete fails. If you would like to see local modifications or buffer writes
+ * until the client is online, use the full Firestore SDK.
  *
  * @param reference A reference to the document to delete.
  * @return A Promise resolved once the document has been successfully
@@ -1134,10 +1140,11 @@ export function deleteDoc(reference: DocumentReference): Promise<void> {
  * assigning it a document ID automatically.
  *
  * The result of this write will only be reflected in document reads that occur
- * after the returned Promise resolves. To see previously cached result and
- * local modifications, use the full Firestore SDK.
+ * after the returned Promise resolves. If the client is offline, the
+ * write fails. If you would like to see local modifications or buffer writes
+ * until the client is online, use the full Firestore SDK.
  *
- * @param reference A reference to the Collection to add this document to.
+ * @param reference A reference to the collection to add this document to.
  * @param data An Object containing the data for the new document.
  * @return A Promise resolved with a `DocumentReference` pointing to the
  * newly created document after it has been written to the backend.

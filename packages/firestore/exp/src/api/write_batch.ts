@@ -24,6 +24,9 @@ import { executeWrite } from './reference';
  * atomic operation. The maximum number of writes allowed in a single WriteBatch
  * is 500.
  *
+ * Unlike transactions, write batches are persisted offline and therefore are
+ * preferable when you don't need to condition your writes on read data.
+ *
  * @return A `WriteBatch` that can be used to atomically execute multiple
  * writes.
  */

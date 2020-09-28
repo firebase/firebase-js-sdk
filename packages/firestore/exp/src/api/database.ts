@@ -176,14 +176,14 @@ export class FirebaseFirestore
 
 /**
  * Initializes a new instance of Cloud Firestore with the provided settings.
- * Can only be called before any other methods, including
- * {@link getFirestore()}. If the custom settings are empty, this method is
+ * Can only be called before any other function, including
+ * {@link getFirestore()}. If the custom settings are empty, this function is
  * equivalent to calling {@link getFirestore()}.
  *
- * @param app The {@link FirebaseApp} that the Firestore instance will be
- * associated with.
- * @param settings A settings object to configure the Firestore instance.
- * @return A newly initialized Firestore instance.
+ * @param app The {@link FirebaseApp} with which the `Firestore` instance will
+ * be associated.
+ * @param settings A settings object to configure the `Firestore` instance.
+ * @return A newly initialized `Firestore` instance.
  */
 export function initializeFirestore(
   app: FirebaseApp,
@@ -216,7 +216,7 @@ export function initializeFirestore(
  *
  * @param app The {@link FirebaseApp} instance that the returned Firestore
  * instance is associated with.
- * @return The Firestore instance of the provided app.
+ * @return The `Firestore` instance of the provided app.
  */
 export function getFirestore(app: FirebaseApp): FirebaseFirestore {
   return _getProvider(app, 'firestore-exp').getImmediate() as FirebaseFirestore;
@@ -225,12 +225,12 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
 /**
  * Attempts to enable persistent storage, if possible.
  *
- * Must be called before any other methods (other than
+ * Must be called before any other functions (other than
  * {@link initializeFirestore()}, {@link getFirestore()} or
  * {@link clearIndexedDbPersistence()}.
  *
- * If this fails, enableIndexedDbPersistence() will reject the promise it
- * returns. Note that even after this failure, the firestore instance will
+ * If this fails, `enableIndexedDbPersistence()` will reject the promise it
+ * returns. Note that even after this failure, the `Firestore` instance will
  * remain usable, however offline persistence will be disabled.
  *
  * There are several reasons why this can fail, which can be identified by
@@ -240,7 +240,7 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
  *   * unimplemented: The browser is incompatible with the offline
  *     persistence implementation.
  *
- * @param firestore The Firestore instance to enable persistence for.
+ * @param firestore The `Firestore` instance to enable persistence for.
  * @param persistenceSettings Optional settings object to configure persistence.
  * @return A promise that represents successfully enabling persistent storage.
  */
@@ -283,8 +283,8 @@ export function enableIndexedDbPersistence(
  * shared execution of queries and latency-compensated local document updates
  * across all connected instances.
  *
- * If this fails, enableMultiTabIndexedDbPersistence() will reject the promise
- * it returns. Note that even after this failure, the firestore instance will
+ * If this fails, `enableMultiTabIndexedDbPersistence()` will reject the promise
+ * it returns. Note that even after this failure, the `Firestore` instance will
  * remain usable, however offline persistence will be disabled.
  *
  * There are several reasons why this can fail, which can be identified by
@@ -295,7 +295,7 @@ export function enableIndexedDbPersistence(
  *   * unimplemented: The browser is incompatible with the offline
  *     persistence implementation.
  *
- * @param firestore The Firestore instance to enable persistence for.
+ * @param firestore The `Firestore` instance to enable persistence for.
  * @return A promise that represents successfully enabling persistent
  * storage.
  */
@@ -334,20 +334,21 @@ export function enableMultiTabIndexedDbPersistence(
  * Clears the persistent storage. This includes pending writes and cached
  * documents.
  *
- * Must be called while the firestore instance is not started (after the app is
- * shutdown or when the app is first initialized). On startup, this method must
- * be called before other methods (other than {@link initializeFirestore()} or
- * {@link getFirestore()})). If the firestore instance is still running, the
- * promise will be rejected with the error code of `failed-precondition`.
+ * Must be called while the `Firestore` instance is not started (after the app is
+ * terminated or when the app is first initialized). On startup, this function
+ * must be called before other functions (other than {@link
+ * initializeFirestore()} or {@link getFirestore()})). If the `Firestore`
+ * instance is still running, the promise will be rejected with the error code
+ * of `failed-precondition`.
  *
- * Note: clearIndexedDbPersistence() is primarily intended to help write
+ * Note: `clearIndexedDbPersistence()` is primarily intended to help write
  * reliable tests that use Cloud Firestore. It uses an efficient mechanism for
  * dropping existing data but does not attempt to securely overwrite or
  * otherwise make cached data unrecoverable. For applications that are sensitive
  * to the disclosure of cached data in between user sessions, we strongly
  * recommend not enabling persistence at all.
  *
- * @param firestore The Firestore instance to clear persistence for.
+ * @param firestore The `Firestore` instance to clear persistence for.
  * @return A promise that is resolved when the persistent storage is
  * cleared. Otherwise, the promise is rejected with an error.
  */
@@ -383,7 +384,7 @@ export function clearIndexedDbPersistence(
  * The returned Promise resolves immediately if there are no outstanding writes.
  * Otherwise, the Promise waits for all previously issued writes (including
  * those written in a previous app session), but it does not wait for writes
- * that were added after the method is called. If you want to wait for
+ * that were added after the function is called. If you want to wait for
  * additional writes, call `waitForPendingWrites()` again.
  *
  * Any outstanding `waitForPendingWrites()` Promises are rejected during user
@@ -425,7 +426,7 @@ export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
 /**
  * Disables network usage for this instance. It can be re-enabled via {@link
  * enableNetwork()}. While the network is disabled, any snapshot listeners,
- * getDoc() or getDocs() calls will return results from cache, and any write
+ * `getDoc()` or `getDocs()` calls will return results from cache, and any write
  * operations will be queued until the network is restored.
  *
  * @return A promise that is resolved once the network has been disabled.
@@ -444,8 +445,8 @@ export function disableNetwork(firestore: FirebaseFirestore): Promise<void> {
 /**
  * Terminates the provided Firestore instance.
  *
- * After calling `terminate()` only the `clearIndexedDbPersistence()` method may
- * be used. Any other method will throw a `FirestoreError`.
+ * After calling `terminate()` only the `clearIndexedDbPersistence()` function
+ * may be used. Any other function will throw a `FirestoreError`.
  *
  * To restart after termination, create a new instance of FirebaseFirestore with
  * {@link getFirestore()}.
@@ -456,9 +457,9 @@ export function disableNetwork(firestore: FirebaseFirestore): Promise<void> {
  * sending these writes to the server.
  *
  * Note: Under normal circumstances, calling `terminate()` is not required. This
- * method is useful only when you want to force this instance to release all of
- * its resources or in combination with `clearIndexedDbPersistence()` to ensure
- * that all local state is destroyed between test runs.
+ * function is useful only when you want to force this instance to release all
+ * of its resources or in combination with `clearIndexedDbPersistence()` to
+ * ensure that all local state is destroyed between test runs.
  *
  * @return A promise that is resolved when the instance has been successfully
  * terminated.
