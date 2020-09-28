@@ -34,6 +34,7 @@ import {
 } from '../../../src/model/collections';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestRemoteDocumentCache } from './test_remote_document_cache';
+import { remoteDocumentCacheGetLastReadTime } from '../../../src/local/indexeddb_remote_document_cache';
 
 // Helpers for use throughout tests.
 const DOC_PATH = 'a/b';
@@ -91,8 +92,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
 
   function getLastReadTime(): Promise<SnapshotVersion> {
     return persistence.runTransaction('getLastReadTime', 'readonly', txn => {
-      const remoteDocuments = persistence.getRemoteDocumentCache();
-      return remoteDocuments.getLastReadTime(txn);
+      return remoteDocumentCacheGetLastReadTime(txn);
     });
   }
 
