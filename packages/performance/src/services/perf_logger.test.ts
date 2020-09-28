@@ -97,7 +97,7 @@ describe('Performance Monitoring > perf_logger', () => {
         'getInitializationPromise'
       );
 
-      const resolvePerfInitialization = function () {
+      const resolvePerfInitialization = function (): Promise<void> {
         SettingsService.getInstance().loggingEnabled = true;
         SettingsService.getInstance().logTraceAfterSampling = true;
         return new Promise<void>(resolve => {
