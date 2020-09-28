@@ -36,7 +36,6 @@ function main(inputLocation: string, outputLocation: string): void {
   const compilerOptions = {};
   const host = ts.createCompilerHost(compilerOptions);
   const program = ts.createProgram([inputLocation], compilerOptions, host);
-  const typeChecker = program.getTypeChecker();
   const printer: ts.Printer = ts.createPrinter();
   const sourceFile = program.getSourceFile(inputLocation)!;
   const result: ts.TransformationResult<ts.SourceFile> = ts.transform<
@@ -98,20 +97,11 @@ function maybeHideConstructor(
  * with one another if their type arguments match.
  */
 function verifyMatchingTypeArguments(
-  privateType: ts.NodeWithTypeArguments,
-  publicSymbol: ts.Symbol
+  privateImportDeclaration: ts.NodeWithTypeArguments,
+  publicType: ts.ClassDeclaration | ts.InterfaceDeclaration
 ): boolean {
-  if (
-    !ts.isClassDeclaration(publicSymbol.valueDeclaration) ||
-    !ts.isInterfaceDeclaration(publicSymbol.valueDeclaration)
-  ) {
-    return false;
-  }
-
-  const privateTypeArguments =
-    (privateType.typeArguments as ts.TypeReferenceNode[] | undefined) ?? [];
-  const publicTypeArguments =
-    publicSymbol.valueDeclaration.typeParameters ?? [];
+  const privateTypeArguments = privateImportDeclaration.typeArguments ?? [];
+  const publicTypeArguments = publicType.typeParameters ?? [];
 
   if (privateTypeArguments.length !== publicTypeArguments.length) {
     return false;
@@ -121,7 +111,7 @@ function verifyMatchingTypeArguments(
   // about this if the types are re-ordered, but we don't need this support yet.
   for (let i = 0; i < privateTypeArguments.length; ++i) {
     if (
-      privateTypeArguments[i].typeName.getText() !==
+      privateTypeArguments[i].getText() !==
       publicTypeArguments[i].name.escapedText
     ) {
       return false;
@@ -181,7 +171,12 @@ function prunePrivateImports<
         if (
           publicSymbol &&
           publicSymbol.name !== currentName &&
-          verifyMatchingTypeArguments(type, publicSymbol)
+          verifyMatchingTypeArguments(
+            type,
+            publicSymbol.declarations[0] as
+              | ts.ClassDeclaration
+              | ts.InterfaceDeclaration
+          )
         ) {
           // If there is a public type that we can refer to, update the import
           // statement to refer to the public type.
@@ -339,6 +334,8 @@ const dropPrivateApiTransformer = (
   host: ts.CompilerHost,
   context: ts.TransformationContext
 ) => {
+  const typeChecker = program.getTypeChecker();
+
   return (sourceFile: ts.SourceFile) => {
     function visit(node: ts.Node): ts.Node {
       if (
@@ -380,7 +377,7 @@ const dropPrivateApiTransformer = (
         // For public types that refer internal types, find a public type that
         // we can refer to instead.
         const publicName = extractPublicSymbol(
-          program.getTypeChecker(),
+          typeChecker,
           sourceFile,
           node.typeName
         );

@@ -8,6 +8,8 @@ import { DocumentData as DocumentData_2 } from '@firebase/firestore-types';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { _FirebaseService } from '@firebase/app-types';
+import { LogLevel } from '@firebase/logger';
+import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 import { SetOptions as SetOptions_2 } from '@firebase/firestore-types';
 
@@ -19,6 +21,27 @@ export function arrayRemove(...elements: unknown[]): FieldValue;
 
 // @public (undocumented)
 export function arrayUnion(...elements: unknown[]): FieldValue;
+
+// @public
+export class Bytes {
+    constructor(byteString: ByteString);
+    // Warning: (ae-forgotten-export) The symbol "ByteString" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    _byteString: ByteString;
+    // (undocumented)
+    static fromBase64String(base64: string): Bytes;
+    // (undocumented)
+    static fromUint8Array(array: Uint8Array): Bytes;
+    // (undocumented)
+    isEqual(other: Bytes): boolean;
+    // (undocumented)
+    toBase64(): string;
+    // (undocumented)
+    toString(): string;
+    // (undocumented)
+    toUint8Array(): Uint8Array;
+}
 
 // @public (undocumented)
 export function collection(firestore: FirebaseFirestore, path: string, ...pathComponents: string[]): CollectionReference<DocumentData>;
@@ -202,6 +225,37 @@ export interface FirestoreDataConverter<T> {
     toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
 }
 
+// @public
+export class FirestoreError extends Error {
+    constructor(code: FirestoreErrorCode, message: string);
+    // (undocumented)
+    readonly code: FirestoreErrorCode;
+    // (undocumented)
+    readonly message: string;
+    // (undocumented)
+    readonly name: string;
+    // (undocumented)
+    readonly stack?: string;
+}
+
+// @public
+export type FirestoreErrorCode = 'cancelled' | 'unknown' | 'invalid-argument' | 'deadline-exceeded' | 'not-found' | 'already-exists' | 'permission-denied' | 'resource-exhausted' | 'failed-precondition' | 'aborted' | 'out-of-range' | 'unimplemented' | 'internal' | 'unavailable' | 'data-loss' | 'unauthenticated';
+
+// @public
+export class GeoPoint {
+    constructor(latitude: number, longitude: number);
+    _compareTo(other: GeoPoint): number;
+    // (undocumented)
+    isEqual(other: GeoPoint): boolean;
+    get latitude(): number;
+    get longitude(): number;
+    // (undocumented)
+    toJSON(): {
+        latitude: number;
+        longitude: number;
+    };
+}
+
 // @public (undocumented)
 export function getDoc<T>(reference: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 
@@ -222,6 +276,10 @@ export function limit(limit: number): QueryConstraint;
 
 // @public (undocumented)
 export function limitToLast(limit: number): QueryConstraint;
+
+export { LogLevel }
+
+export { LogLevelString }
 
 // @public (undocumented)
 export function orderBy(fieldPath: string | FieldPath, directionStr?: OrderByDirection): QueryConstraint;
@@ -289,6 +347,9 @@ export class QuerySnapshot<T = DocumentData> {
 export function refEqual<T>(left: DocumentReference<T> | CollectionReference<T>, right: DocumentReference<T> | CollectionReference<T>): boolean;
 
 // @public (undocumented)
+export function runTransaction<T>(firestore: FirebaseFirestore, updateFunction: (transaction: Transaction) => Promise<T>): Promise<T>;
+
+// @public (undocumented)
 export function serverTimestamp(): FieldValue;
 
 // @public (undocumented)
@@ -296,6 +357,9 @@ export function setDoc<T>(reference: DocumentReference<T>, data: T): Promise<voi
 
 // @public (undocumented)
 export function setDoc<T>(reference: DocumentReference<T>, data: Partial<T>, options: SetOptions): Promise<void>;
+
+// @public (undocumented)
+export function setLogLevel(newLevel: LogLevelString): void;
 
 // @public (undocumented)
 export type SetOptions = {
@@ -332,6 +396,58 @@ export function startAt(...fieldValues: unknown[]): QueryConstraint;
 // @public (undocumented)
 export function terminate(firestore: FirebaseFirestore): Promise<void>;
 
+// @public
+export class Timestamp {
+    constructor(seconds: number, nanoseconds: number);
+    // (undocumented)
+    _compareTo(other: Timestamp): number;
+    // (undocumented)
+    static fromDate(date: Date): Timestamp;
+    // (undocumented)
+    static fromMillis(milliseconds: number): Timestamp;
+    // (undocumented)
+    isEqual(other: Timestamp): boolean;
+    // (undocumented)
+    readonly nanoseconds: number;
+    // (undocumented)
+    static now(): Timestamp;
+    // (undocumented)
+    readonly seconds: number;
+    // (undocumented)
+    toDate(): Date;
+    // (undocumented)
+    toJSON(): {
+        seconds: number;
+        nanoseconds: number;
+    };
+    // (undocumented)
+    toMillis(): number;
+    // (undocumented)
+    toString(): string;
+    // (undocumented)
+    valueOf(): string;
+}
+
+// @public (undocumented)
+export class Transaction {
+    // Warning: (ae-forgotten-export) The symbol "Transaction" needs to be exported by the entry point index.d.ts
+    constructor(_firestore: FirebaseFirestore, _transaction: Transaction_2);
+    // (undocumented)
+    delete(documentRef: DocumentReference<unknown>): this;
+    // (undocumented)
+    protected readonly _firestore: FirebaseFirestore;
+    // (undocumented)
+    get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
+    // (undocumented)
+    set<T>(documentRef: DocumentReference<T>, data: T): this;
+    // (undocumented)
+    set<T>(documentRef: DocumentReference<T>, data: Partial<T>, options: SetOptions): this;
+    // (undocumented)
+    update(documentRef: DocumentReference<unknown>, data: UpdateData): this;
+    // (undocumented)
+    update(documentRef: DocumentReference<unknown>, field: string | FieldPath, data: unknown, ...moreFieldsAndValues: unknown[]): this;
+}
+
 // @public (undocumented)
 export interface UpdateData {
     // (undocumented)
@@ -349,6 +465,27 @@ export function where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value
 
 // @public (undocumented)
 export type WhereFilterOp = '<' | '<=' | '==' | '!=' | '>=' | '>' | 'array-contains' | 'in' | 'array-contains-any' | 'not-in';
+
+// @public (undocumented)
+export class WriteBatch {
+    // Warning: (ae-forgotten-export) The symbol "Mutation" needs to be exported by the entry point index.d.ts
+    constructor(_firestore: FirebaseFirestore, _commitHandler: (m: Mutation[]) => Promise<void>);
+    // (undocumented)
+    commit(): Promise<void>;
+    // (undocumented)
+    delete(documentRef: DocumentReference<unknown>): WriteBatch;
+    // (undocumented)
+    set<T>(documentRef: DocumentReference<T>, data: T): WriteBatch;
+    // (undocumented)
+    set<T>(documentRef: DocumentReference<T>, data: Partial<T>, options: SetOptions): WriteBatch;
+    // (undocumented)
+    update(documentRef: DocumentReference<unknown>, data: UpdateData): WriteBatch;
+    // (undocumented)
+    update(documentRef: DocumentReference<unknown>, field: string | FieldPath, data: unknown, ...moreFieldsAndValues: unknown[]): WriteBatch;
+    }
+
+// @public (undocumented)
+export function writeBatch(firestore: FirebaseFirestore): WriteBatch;
 
 
 // (No @packageDocumentation comment for this package)

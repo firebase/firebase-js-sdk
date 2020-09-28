@@ -80,3 +80,17 @@ export {
   QuerySnapshot,
   snapshotEqual
 } from './src/api/snapshot';
+
+export { WriteBatch, writeBatch } from './src/api/write_batch';
+
+export { Transaction, runTransaction } from './src/api/transaction';
+
+export { setLogLevel, LogLevel, LogLevelString } from '../src/util/log';
+
+export { Bytes } from './src/api/bytes';
+
+export { GeoPoint } from '../src/api/geo_point';
+
+export { Timestamp } from '../src/api/timestamp';
+
+export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
