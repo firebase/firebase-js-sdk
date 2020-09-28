@@ -903,12 +903,12 @@ export function doc<T>(
  * All documents are directly fetched from the server, even if the document was
  * previously read or modified. Recent modifications are only reflected in the
  * retrieved `DocumentSnapshot` if they have already been applied by the
- * backend.  If the client is offline, the read fails. If you like to use
+ * backend. If the client is offline, the read fails. If you like to use
  * caching or see local modifications, please use the full Firestore SDK.
  *
  * @param reference The reference of the document to fetch.
- * @return A Promise resolved with a  DocumentSnapshot   containing the
- * current document contents.
+ * @return A Promise resolved with a `DocumentSnapshot` containing the current
+ * document contents.
  */
 export function getDoc<T>(
   reference: DocumentReference<T>
