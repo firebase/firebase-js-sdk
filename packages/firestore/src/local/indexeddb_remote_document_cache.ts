@@ -35,7 +35,7 @@ import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { debugAssert, fail, hardAssert } from '../util/assert';
+import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
 import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
@@ -58,14 +58,23 @@ import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { IterateOptions, SimpleDbStore } from './simple_db';
 import { ObjectMap } from '../util/obj_map';
 
-export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
+export interface IndexedDbRemoteDocumentCache extends RemoteDocumentCache {
+  // The IndexedDbRemoteDocumentCache doesn't implement any methods on top
+  // of RemoteDocumentCache. This class exists for consistency.
+}
+
+/**
+ * The RemoteDocumentCache for IndexedDb. To construct, invoke
+ * `newIndexedDbRemoteDocumentCache()`.
+ */
+export class IndexedDbRemoteDocumentCacheImpl implements RemoteDocumentCache {
   /**
-   * @param {LocalSerializer} serializer The document serializer.
-   * @param {IndexManager} indexManager The query indexes that need to be maintained.
+   * @param serializer The document serializer.
+   * @param indexManager The query indexes that need to be maintained.
    */
   constructor(
     readonly serializer: LocalSerializer,
-    private readonly indexManager: IndexManager
+    readonly indexManager: IndexManager
   ) {}
 
   /**
@@ -74,7 +83,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
    * All calls of `addEntry` are required to go through the RemoteDocumentChangeBuffer
    * returned by `newChangeBuffer()` to ensure proper accounting of metadata.
    */
-  private addEntry(
+  addEntry(
     transaction: PersistenceTransaction,
     key: DocumentKey,
     doc: DbRemoteDocument
@@ -89,7 +98,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
    * All calls of `removeEntry`  are required to go through the RemoteDocumentChangeBuffer
    * returned by `newChangeBuffer()` to ensure proper accounting of metadata.
    */
-  private removeEntry(
+  removeEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<void> {
@@ -104,7 +113,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
    * Callers to `addEntry()` and `removeEntry()` *must* call this afterwards to update the
    * cache's metadata.
    */
-  private updateMetadata(
+  updateMetadata(
     transaction: PersistenceTransaction,
     sizeDelta: number
   ): PersistencePromise<void> {
@@ -300,73 +309,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       .next(() => results);
   }
 
-  /**
-   * Returns the set of documents that have changed since the specified read
-   * time.
-   */
-  // PORTING NOTE: This is only used for multi-tab synchronization.
-  getNewDocumentChanges(
-    transaction: PersistenceTransaction,
-    sinceReadTime: SnapshotVersion
-  ): PersistencePromise<{
-    changedDocs: MaybeDocumentMap;
-    readTime: SnapshotVersion;
-  }> {
-    let changedDocs = maybeDocumentMap();
-
-    let lastReadTime = toDbTimestampKey(sinceReadTime);
-
-    const documentsStore = remoteDocumentsStore(transaction);
-    const range = IDBKeyRange.lowerBound(lastReadTime, true);
-    return documentsStore
-      .iterate(
-        { index: DbRemoteDocument.readTimeIndex, range },
-        (_, dbRemoteDoc) => {
-          // Unlike `getEntry()` and others, `getNewDocumentChanges()` parses
-          // the documents directly since we want to keep sentinel deletes.
-          const doc = fromDbRemoteDocument(this.serializer, dbRemoteDoc);
-          changedDocs = changedDocs.insert(doc.key, doc);
-          lastReadTime = dbRemoteDoc.readTime!;
-        }
-      )
-      .next(() => {
-        return {
-          changedDocs,
-          readTime: fromDbTimestampKey(lastReadTime)
-        };
-      });
-  }
-
-  /**
-   * Returns the read time of the most recently read document in the cache, or
-   * SnapshotVersion.min() if not available.
-   */
-  // PORTING NOTE: This is only used for multi-tab synchronization.
-  getLastReadTime(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<SnapshotVersion> {
-    const documentsStore = remoteDocumentsStore(transaction);
-
-    // If there are no existing entries, we return SnapshotVersion.min().
-    let readTime = SnapshotVersion.min();
-
-    return documentsStore
-      .iterate(
-        { index: DbRemoteDocument.readTimeIndex, reverse: true },
-        (key, dbRemoteDoc, control) => {
-          if (dbRemoteDoc.readTime) {
-            readTime = fromDbTimestampKey(dbRemoteDoc.readTime);
-          }
-          control.done();
-        }
-      )
-      .next(() => readTime);
-  }
-
   newChangeBuffer(options?: {
     trackRemovals: boolean;
   }): RemoteDocumentChangeBuffer {
-    return new IndexedDbRemoteDocumentCache.RemoteDocumentChangeBuffer(
+    return new IndexedDbRemoteDocumentChangeBuffer(
       this,
       !!options && options.trackRemovals
     );
@@ -416,137 +362,221 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     }
     return null;
   }
+}
+
+/**
+ * Creates a new IndexedDbRemoteDocumentCache.
+ *
+ * @param serializer The document serializer.
+ * @param indexManager The query indexes that need to be maintained.
+ */
+export function newIndexedDbRemoteDocumentCache(
+  serializer: LocalSerializer,
+  indexManager: IndexManager
+): IndexedDbRemoteDocumentCache {
+  return new IndexedDbRemoteDocumentCacheImpl(serializer, indexManager);
+}
+
+/**
+ * Returns the set of documents that have changed since the specified read
+ * time.
+ */
+// PORTING NOTE: This is only used for multi-tab synchronization.
+export function remoteDocumentCacheGetNewDocumentChanges(
+  remoteDocumentCache: IndexedDbRemoteDocumentCache,
+  transaction: PersistenceTransaction,
+  sinceReadTime: SnapshotVersion
+): PersistencePromise<{
+  changedDocs: MaybeDocumentMap;
+  readTime: SnapshotVersion;
+}> {
+  const remoteDocumentCacheImpl = debugCast(
+    remoteDocumentCache,
+    IndexedDbRemoteDocumentCacheImpl // We only support IndexedDb in multi-tab mode.
+  );
+  let changedDocs = maybeDocumentMap();
+
+  let lastReadTime = toDbTimestampKey(sinceReadTime);
+
+  const documentsStore = remoteDocumentsStore(transaction);
+  const range = IDBKeyRange.lowerBound(lastReadTime, true);
+  return documentsStore
+    .iterate(
+      { index: DbRemoteDocument.readTimeIndex, range },
+      (_, dbRemoteDoc) => {
+        // Unlike `getEntry()` and others, `getNewDocumentChanges()` parses
+        // the documents directly since we want to keep sentinel deletes.
+        const doc = fromDbRemoteDocument(
+          remoteDocumentCacheImpl.serializer,
+          dbRemoteDoc
+        );
+        changedDocs = changedDocs.insert(doc.key, doc);
+        lastReadTime = dbRemoteDoc.readTime!;
+      }
+    )
+    .next(() => {
+      return {
+        changedDocs,
+        readTime: fromDbTimestampKey(lastReadTime)
+      };
+    });
+}
+
+/**
+ * Returns the read time of the most recently read document in the cache, or
+ * SnapshotVersion.min() if not available.
+ */
+// PORTING NOTE: This is only used for multi-tab synchronization.
+export function remoteDocumentCacheGetLastReadTime(
+  transaction: PersistenceTransaction
+): PersistencePromise<SnapshotVersion> {
+  const documentsStore = remoteDocumentsStore(transaction);
+
+  // If there are no existing entries, we return SnapshotVersion.min().
+  let readTime = SnapshotVersion.min();
+
+  return documentsStore
+    .iterate(
+      { index: DbRemoteDocument.readTimeIndex, reverse: true },
+      (key, dbRemoteDoc, control) => {
+        if (dbRemoteDoc.readTime) {
+          readTime = fromDbTimestampKey(dbRemoteDoc.readTime);
+        }
+        control.done();
+      }
+    )
+    .next(() => readTime);
+}
+
+/**
+ * Handles the details of adding and updating documents in the IndexedDbRemoteDocumentCache.
+ *
+ * Unlike the MemoryRemoteDocumentChangeBuffer, the IndexedDb implementation computes the size
+ * delta for all submitted changes. This avoids having to re-read all documents from IndexedDb
+ * when we apply the changes.
+ */
+class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
+  // A map of document sizes prior to applying the changes in this buffer.
+  protected documentSizes: ObjectMap<DocumentKey, number> = new ObjectMap(
+    key => key.toString(),
+    (l, r) => l.isEqual(r)
+  );
 
   /**
-   * Handles the details of adding and updating documents in the IndexedDbRemoteDocumentCache.
-   *
-   * Unlike the MemoryRemoteDocumentChangeBuffer, the IndexedDb implementation computes the size
-   * delta for all submitted changes. This avoids having to re-read all documents from IndexedDb
-   * when we apply the changes.
+   * @param documentCache The IndexedDbRemoteDocumentCache to apply the changes to.
+   * @param trackRemovals Whether to create sentinel deletes that can be tracked by
+   * `getNewDocumentChanges()`.
    */
-  private static RemoteDocumentChangeBuffer = class extends RemoteDocumentChangeBuffer {
-    // A map of document sizes prior to applying the changes in this buffer.
-    protected documentSizes: ObjectMap<DocumentKey, number> = new ObjectMap(
-      key => key.toString(),
-      (l, r) => l.isEqual(r)
+  constructor(
+    private readonly documentCache: IndexedDbRemoteDocumentCacheImpl,
+    private readonly trackRemovals: boolean
+  ) {
+    super();
+  }
+
+  protected applyChanges(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<void> {
+    const promises: Array<PersistencePromise<void>> = [];
+
+    let sizeDelta = 0;
+
+    let collectionParents = new SortedSet<ResourcePath>((l, r) =>
+      primitiveComparator(l.canonicalString(), r.canonicalString())
     );
 
-    /**
-     * @param documentCache The IndexedDbRemoteDocumentCache to apply the changes to.
-     * @param trackRemovals Whether to create sentinel deletes that can be tracked by
-     * `getNewDocumentChanges()`.
-     */
-    constructor(
-      private readonly documentCache: IndexedDbRemoteDocumentCache,
-      private readonly trackRemovals: boolean
-    ) {
-      super();
-    }
-
-    protected applyChanges(
-      transaction: PersistenceTransaction
-    ): PersistencePromise<void> {
-      const promises: Array<PersistencePromise<void>> = [];
-
-      let sizeDelta = 0;
-
-      let collectionParents = new SortedSet<ResourcePath>((l, r) =>
-        primitiveComparator(l.canonicalString(), r.canonicalString())
+    this.changes.forEach((key, maybeDocument) => {
+      const previousSize = this.documentSizes.get(key);
+      debugAssert(
+        previousSize !== undefined,
+        `Cannot modify a document that wasn't read (for ${key})`
       );
-
-      this.changes.forEach((key, maybeDocument) => {
-        const previousSize = this.documentSizes.get(key);
+      if (maybeDocument) {
         debugAssert(
-          previousSize !== undefined,
-          `Cannot modify a document that wasn't read (for ${key})`
+          !this.readTime.isEqual(SnapshotVersion.min()),
+          'Cannot add a document with a read time of zero'
         );
-        if (maybeDocument) {
-          debugAssert(
-            !this.readTime.isEqual(SnapshotVersion.min()),
-            'Cannot add a document with a read time of zero'
-          );
-          const doc = toDbRemoteDocument(
+        const doc = toDbRemoteDocument(
+          this.documentCache.serializer,
+          maybeDocument,
+          this.readTime
+        );
+        collectionParents = collectionParents.add(key.path.popLast());
+
+        const size = dbDocumentSize(doc);
+        sizeDelta += size - previousSize!;
+        promises.push(this.documentCache.addEntry(transaction, key, doc));
+      } else {
+        sizeDelta -= previousSize!;
+        if (this.trackRemovals) {
+          // In order to track removals, we store a "sentinel delete" in the
+          // RemoteDocumentCache. This entry is represented by a NoDocument
+          // with a version of 0 and ignored by `maybeDecodeDocument()` but
+          // preserved in `getNewDocumentChanges()`.
+          const deletedDoc = toDbRemoteDocument(
             this.documentCache.serializer,
-            maybeDocument,
+            new NoDocument(key, SnapshotVersion.min()),
             this.readTime
           );
-          collectionParents = collectionParents.add(key.path.popLast());
-
-          const size = dbDocumentSize(doc);
-          sizeDelta += size - previousSize!;
-          promises.push(this.documentCache.addEntry(transaction, key, doc));
+          promises.push(
+            this.documentCache.addEntry(transaction, key, deletedDoc)
+          );
         } else {
-          sizeDelta -= previousSize!;
-          if (this.trackRemovals) {
-            // In order to track removals, we store a "sentinel delete" in the
-            // RemoteDocumentCache. This entry is represented by a NoDocument
-            // with a version of 0 and ignored by `maybeDecodeDocument()` but
-            // preserved in `getNewDocumentChanges()`.
-            const deletedDoc = toDbRemoteDocument(
-              this.documentCache.serializer,
-              new NoDocument(key, SnapshotVersion.min()),
-              this.readTime
-            );
-            promises.push(
-              this.documentCache.addEntry(transaction, key, deletedDoc)
-            );
-          } else {
-            promises.push(this.documentCache.removeEntry(transaction, key));
-          }
+          promises.push(this.documentCache.removeEntry(transaction, key));
+        }
+      }
+    });
+
+    collectionParents.forEach(parent => {
+      promises.push(
+        this.documentCache.indexManager.addToCollectionParentIndex(
+          transaction,
+          parent
+        )
+      );
+    });
+
+    promises.push(this.documentCache.updateMetadata(transaction, sizeDelta));
+
+    return PersistencePromise.waitFor(promises);
+  }
+
+  protected getFromCache(
+    transaction: PersistenceTransaction,
+    documentKey: DocumentKey
+  ): PersistencePromise<MaybeDocument | null> {
+    // Record the size of everything we load from the cache so we can compute a delta later.
+    return this.documentCache
+      .getSizedEntry(transaction, documentKey)
+      .next(getResult => {
+        if (getResult === null) {
+          this.documentSizes.set(documentKey, 0);
+          return null;
+        } else {
+          this.documentSizes.set(documentKey, getResult.size);
+          return getResult.maybeDocument;
         }
       });
+  }
 
-      collectionParents.forEach(parent => {
-        promises.push(
-          this.documentCache.indexManager.addToCollectionParentIndex(
-            transaction,
-            parent
-          )
-        );
+  protected getAllFromCache(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<NullableMaybeDocumentMap> {
+    // Record the size of everything we load from the cache so we can compute
+    // a delta later.
+    return this.documentCache
+      .getSizedEntries(transaction, documentKeys)
+      .next(({ maybeDocuments, sizeMap }) => {
+        // Note: `getAllFromCache` returns two maps instead of a single map from
+        // keys to `DocumentSizeEntry`s. This is to allow returning the
+        // `NullableMaybeDocumentMap` directly, without a conversion.
+        sizeMap.forEach((documentKey, size) => {
+          this.documentSizes.set(documentKey, size);
+        });
+        return maybeDocuments;
       });
-
-      promises.push(this.documentCache.updateMetadata(transaction, sizeDelta));
-
-      return PersistencePromise.waitFor(promises);
-    }
-
-    protected getFromCache(
-      transaction: PersistenceTransaction,
-      documentKey: DocumentKey
-    ): PersistencePromise<MaybeDocument | null> {
-      // Record the size of everything we load from the cache so we can compute a delta later.
-      return this.documentCache
-        .getSizedEntry(transaction, documentKey)
-        .next(getResult => {
-          if (getResult === null) {
-            this.documentSizes.set(documentKey, 0);
-            return null;
-          } else {
-            this.documentSizes.set(documentKey, getResult.size);
-            return getResult.maybeDocument;
-          }
-        });
-    }
-
-    protected getAllFromCache(
-      transaction: PersistenceTransaction,
-      documentKeys: DocumentKeySet
-    ): PersistencePromise<NullableMaybeDocumentMap> {
-      // Record the size of everything we load from the cache so we can compute
-      // a delta later.
-      return this.documentCache
-        .getSizedEntries(transaction, documentKeys)
-        .next(({ maybeDocuments, sizeMap }) => {
-          // Note: `getAllFromCache` returns two maps instead of a single map from
-          // keys to `DocumentSizeEntry`s. This is to allow returning the
-          // `NullableMaybeDocumentMap` directly, without a conversion.
-          sizeMap.forEach((documentKey, size) => {
-            this.documentSizes.set(documentKey, size);
-          });
-          return maybeDocuments;
-        });
-    }
-  };
+  }
 }
 
 function documentGlobalStore(
