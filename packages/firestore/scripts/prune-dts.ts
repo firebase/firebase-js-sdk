@@ -250,7 +250,7 @@ function convertPropertiesForEnclosingClass(
   sourceFile: ts.SourceFile,
   parentClassSymbols: ts.Symbol[],
   currentClass: ts.ClassDeclaration | ts.InterfaceDeclaration
-): Array<ts.NamedDeclaration> {
+): ts.NamedDeclaration[] {
   const newMembers: ts.NamedDeclaration[] = [];
   // The `codefix` package is not public but it does exactly what we want. We
   // can explore adding a slimmed down version of this package to our repository
@@ -329,11 +329,11 @@ function extractPublicSymbol(
   return publicSymbolsForLocalType[0];
 }
 
-const dropPrivateApiTransformer = (
+function dropPrivateApiTransformer(
   program: ts.Program,
   host: ts.CompilerHost,
   context: ts.TransformationContext
-) => {
+): ts.Transformer<ts.SourceFile> {
   const typeChecker = program.getTypeChecker();
 
   return (sourceFile: ts.SourceFile) => {
@@ -402,7 +402,7 @@ const dropPrivateApiTransformer = (
     }
     return visitNodeAndChildren(sourceFile);
   };
-};
+}
 
 const argv = yargs.options({
   input: {
