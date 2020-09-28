@@ -183,49 +183,49 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   }): RemoteDocumentChangeBuffer {
     // `trackRemovals` is ignores since the MemoryRemoteDocumentCache keeps
     // a separate changelog and does not need special handling for removals.
-    return new MemoryRemoteDocumentCache.RemoteDocumentChangeBuffer(this);
+    return new MemoryRemoteDocumentChangeBuffer(this);
   }
 
   getSize(txn: PersistenceTransaction): PersistencePromise<number> {
     return PersistencePromise.resolve(this.size);
   }
+}
 
-  /**
-   * Handles the details of adding and updating documents in the MemoryRemoteDocumentCache.
-   */
-  private static RemoteDocumentChangeBuffer = class extends RemoteDocumentChangeBuffer {
-    constructor(private readonly documentCache: MemoryRemoteDocumentCache) {
-      super();
-    }
+/**
+ * Handles the details of adding and updating documents in the MemoryRemoteDocumentCache.
+ */
+class MemoryRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
+  constructor(private readonly documentCache: MemoryRemoteDocumentCache) {
+    super();
+  }
 
-    protected applyChanges(
-      transaction: PersistenceTransaction
-    ): PersistencePromise<void> {
-      const promises: Array<PersistencePromise<void>> = [];
-      this.changes.forEach((key, doc) => {
-        if (doc) {
-          promises.push(
-            this.documentCache.addEntry(transaction, doc, this.readTime)
-          );
-        } else {
-          this.documentCache.removeEntry(key);
-        }
-      });
-      return PersistencePromise.waitFor(promises);
-    }
+  protected applyChanges(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<void> {
+    const promises: Array<PersistencePromise<void>> = [];
+    this.changes.forEach((key, doc) => {
+      if (doc) {
+        promises.push(
+          this.documentCache.addEntry(transaction, doc, this.readTime)
+        );
+      } else {
+        this.documentCache.removeEntry(key);
+      }
+    });
+    return PersistencePromise.waitFor(promises);
+  }
 
-    protected getFromCache(
-      transaction: PersistenceTransaction,
-      documentKey: DocumentKey
-    ): PersistencePromise<MaybeDocument | null> {
-      return this.documentCache.getEntry(transaction, documentKey);
-    }
+  protected getFromCache(
+    transaction: PersistenceTransaction,
+    documentKey: DocumentKey
+  ): PersistencePromise<MaybeDocument | null> {
+    return this.documentCache.getEntry(transaction, documentKey);
+  }
 
-    protected getAllFromCache(
-      transaction: PersistenceTransaction,
-      documentKeys: DocumentKeySet
-    ): PersistencePromise<NullableMaybeDocumentMap> {
-      return this.documentCache.getEntries(transaction, documentKeys);
-    }
-  };
+  protected getAllFromCache(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<NullableMaybeDocumentMap> {
+    return this.documentCache.getEntries(transaction, documentKeys);
+  }
 }

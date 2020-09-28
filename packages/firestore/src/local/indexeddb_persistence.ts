@@ -274,7 +274,7 @@ export class IndexedDbPersistence implements Persistence {
       this.webStorage = this.window.localStorage;
     } else {
       this.webStorage = null;
-      if (forceOwningTab === false) {
+      if (!forceOwningTab) {
         logError(
           LOG_TAG,
           'LocalStorage is unavailable. As a result, persistence may not work ' +

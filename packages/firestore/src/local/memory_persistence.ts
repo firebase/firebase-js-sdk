@@ -45,6 +45,7 @@ import {
 import { PersistencePromise } from './persistence_promise';
 import { ReferenceSet } from './reference_set';
 import { TargetData } from './target_data';
+import { RemoteDocumentCache } from './remote_document_cache';
 
 const LOG_TAG = 'MemoryPersistence';
 /**
