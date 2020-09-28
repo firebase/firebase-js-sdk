@@ -3,8 +3,9 @@
   "version": "0.0.800",
   "description": "Firebase performance for web",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "private": true,
   "main": "dist/index.cjs.js",
-  "browser": "dist/index.cjs.js",
+  "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
   "files": ["dist"],
@@ -13,12 +14,13 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'",
     "build": "rollup -c",
     "build:deps": "lerna run --scope @firebase/performance-exp --include-dependencies build",
+    "build:release": "rollup -c rollup.config.release.js",
     "dev": "rollup -c -w",
     "test": "run-p lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
-    "prepare": "yarn build",
+    "prepare": "yarn build:release",
     "prettier": "prettier --write '{src,test}/**/*.{js,ts}'"
   },
   "peerDependencies": {
@@ -49,7 +51,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/index.d.ts",
+  "typings": "dist/src/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"

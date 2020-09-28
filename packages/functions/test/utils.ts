@@ -43,7 +43,7 @@ export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
 
 export function createTestService(
   app: FirebaseApp,
-  region?: string,
+  regionOrCustomDomain?: string,
   authProvider = new Provider<FirebaseAuthInternalName>(
     'auth-internal',
     new ComponentContainer('test')
@@ -59,7 +59,7 @@ export function createTestService(
     app,
     authProvider,
     messagingProvider,
-    region,
+    regionOrCustomDomain,
     fetchImpl
   );
   const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;

@@ -30,7 +30,7 @@ export const DEFAULT_REGION = 'us-central1';
 export function registerFunctions(fetchImpl: typeof fetch): void {
   const factory: InstanceFactory<'functions'> = (
     container: ComponentContainer,
-    region?: string
+    regionOrCustomDomain?: string
   ) => {
     // Dependencies
     const app = container.getProvider('app-exp').getImmediate();
@@ -42,7 +42,7 @@ export function registerFunctions(fetchImpl: typeof fetch): void {
       app,
       authProvider,
       messagingProvider,
-      region,
+      regionOrCustomDomain,
       fetchImpl
     );
   };

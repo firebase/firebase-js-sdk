@@ -57,6 +57,7 @@ export class Trace implements PerformanceTrace {
   private traceMeasure!: string;
 
   /**
+   * @param performanceController The performance controller running.
    * @param name The name of the trace.
    * @param isAuto If the trace is auto-instrumented.
    * @param traceMeasureName The name of the measure marker in user timing specification. This field

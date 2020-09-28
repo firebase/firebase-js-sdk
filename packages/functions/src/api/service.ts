@@ -86,17 +86,21 @@ export class Service implements FirebaseFunctions, FirebaseService {
   private emulatorOrigin: string | null = null;
   private cancelAllRequests: Promise<void>;
   private deleteService!: () => void;
+  private region: string;
+  private customDomain: string | null;
 
   /**
-   * Creates a new Functions service for the given app and (optional) region.
+   * Creates a new Functions service for the given app and (optional) region or custom domain.
    * @param app_ The FirebaseApp to use.
-   * @param region_ The region to call functions in.
+   * @param regionOrCustomDomain_ one of:
+   *   a) A region to call functions from, such as us-central1
+   *   b) A custom domain to use as a functions prefix, such as https://mydomain.com
    */
   constructor(
     private app_: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
     messagingProvider: Provider<FirebaseMessagingName>,
-    private region_: string = 'us-central1',
+    regionOrCustomDomain_: string = 'us-central1',
     readonly fetchImpl: typeof fetch
   ) {
     this.contextProvider = new ContextProvider(authProvider, messagingProvider);
@@ -106,6 +110,16 @@ export class Service implements FirebaseFunctions, FirebaseService {
         return resolve();
       };
     });
+
+    // Resolve the region or custom domain overload by attempting to parse it.
+    try {
+      const url = new URL(regionOrCustomDomain_);
+      this.customDomain = url.origin;
+      this.region = 'us-central1';
+    } catch (e) {
+      this.customDomain = null;
+      this.region = regionOrCustomDomain_;
+    }
   }
 
   get app(): FirebaseApp {
@@ -124,12 +138,16 @@ export class Service implements FirebaseFunctions, FirebaseService {
    */
   _url(name: string): string {
     const projectId = this.app_.options.projectId;
-    const region = this.region_;
     if (this.emulatorOrigin !== null) {
       const origin = this.emulatorOrigin;
-      return `${origin}/${projectId}/${region}/${name}`;
+      return `${origin}/${projectId}/${this.region}/${name}`;
     }
-    return `https://${region}-${projectId}.cloudfunctions.net/${name}`;
+
+    if (this.customDomain !== null) {
+      return `${this.customDomain}/${name}`;
+    }
+
+    return `https://${this.region}-${projectId}.cloudfunctions.net/${name}`;
   }
 
   /**

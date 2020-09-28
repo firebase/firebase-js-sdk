@@ -23,7 +23,7 @@ jobs:
     - name: Yarn install
       run: yarn
     - name: Deploy canary
-      run: yarn release --canary
+      run: yarn release canary
       env:
         NPM_TOKEN_ANALYTICS: ${{secrets.NPM_TOKEN_ANALYTICS}}
         NPM_TOKEN_ANALYTICS_INTEROP_TYPES: ${{secrets.NPM_TOKEN_ANALYTICS_INTEROP_TYPES}}

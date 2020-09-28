@@ -35,12 +35,81 @@ import {
 import { arrayEquals } from '../../../src/util/misc';
 import { Bytes } from './bytes';
 
+/**
+ * Converter used by `withConverter()` to transform user objects of type `T`
+ * into Firestore data.
+ *
+ * Using the converter allows you to specify generic type arguments when
+ * storing and retrieving objects from Firestore.
+ *
+ * @example
+ * ```typescript
+ * class Post {
+ *   constructor(readonly title: string, readonly author: string) {}
+ *
+ *   toString(): string {
+ *     return this.title + ', by ' + this.author;
+ *   }
+ * }
+ *
+ * const postConverter = {
+ *   toFirestore(post: Post): firebase.firestore.DocumentData {
+ *     return {title: post.title, author: post.author};
+ *   },
+ *   fromFirestore(snapshot: firebase.firestore.QueryDocumentSnapshot): Post {
+ *     const data = snapshot.data(options)!;
+ *     return new Post(data.title, data.author);
+ *   }
+ * };
+ *
+ * const postSnap = await firebase.firestore()
+ *   .collection('posts')
+ *   .withConverter(postConverter)
+ *   .doc().get();
+ * const post = postSnap.data();
+ * if (post !== undefined) {
+ *   post.title; // string
+ *   post.toString(); // Should be defined
+ *   post.someNonExistentProperty; // TS error
+ * }
+ * ```
+ */
 export interface FirestoreDataConverter<T> {
+  /**
+   * Called by the Firestore SDK to convert a custom model object of type `T`
+   * into a plain Javascript object (suitable for writing directly to the
+   * Firestore database). Used with {@link setData()}, {@link WriteBatch#set()}
+   * and {@link Transaction#set()}}.
+   */
   toFirestore(modelObject: T): DocumentData;
+
+  /**
+   * Called by the Firestore SDK to convert a custom model object of type `T`
+   * into a plain Javascript object (suitable for writing directly to the
+   * Firestore database). Used with {@link setData()}, {@link WriteBatch#set()}
+   * and {@link Transaction#set()}} with `merge:true` or `mergeFields`.
+   */
   toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
+
+  /**
+   * Called by the Firestore SDK to convert Firestore data into an object of
+   * type T. You can access your data by calling: `snapshot.data()`.
+   *
+   * @param snapshot A `QueryDocumentSnapshot` containing your data and
+   * metadata.
+   */
   fromFirestore(snapshot: QueryDocumentSnapshot<DocumentData>): T;
 }
 
+/**
+ * A `DocumentSnapshot` contains data read from a document in your Firestore
+ * database. The data can be extracted with `.data()` or `.get(<field>)` to
+ * get a specific field.
+ *
+ * For a `DocumentSnapshot` that points to a non-existing document, any data
+ * access will return 'undefined'. You can use the `exists()` method to
+ * explicitly verify a document's existence.
+ */
 export class DocumentSnapshot<T = DocumentData> {
   // Note: This class is stripped down version of the DocumentSnapshot in
   // the legacy SDK. The changes are:
@@ -55,10 +124,14 @@ export class DocumentSnapshot<T = DocumentData> {
     public _converter: UntypedFirestoreDataConverter<T> | null
   ) {}
 
+  /** Property of the `DocumentSnapshot` that provides the document's ID. */
   get id(): string {
     return this._key.path.lastSegment();
   }
 
+  /**
+   * The `DocumentReference` for the document included in the `DocumentSnapshot`.
+   */
   get ref(): DocumentReference<T> {
     return new DocumentReference<T>(
       this._firestore,
@@ -67,10 +140,22 @@ export class DocumentSnapshot<T = DocumentData> {
     );
   }
 
+  /**
+   * Signals whether or not the document at the snapshot's location exists.
+   *
+   * @return true if the document exists.
+   */
   exists(): this is QueryDocumentSnapshot<T> {
     return this._document !== null;
   }
 
+  /**
+   * Retrieves all fields in the document as an `Object`. Returns `undefined` if
+   * the document doesn't exist.
+   *
+   * @return An `Object` containing all fields in the document or `undefined`
+   * if the document doesn't exist.
+   */
   data(): T | undefined {
     if (!this._document) {
       return undefined;
@@ -101,6 +186,15 @@ export class DocumentSnapshot<T = DocumentData> {
     }
   }
 
+  /**
+   * Retrieves the field specified by `fieldPath`. Returns `undefined` if the
+   * document or field doesn't exist.
+   *
+   * @param fieldPath The path (for example 'foo' or 'foo.bar') to a specific
+   * field.
+   * @return The data at the specified field location or undefined if no such
+   * field exists in the document.
+   */
   // We are using `any` here to avoid an explicit cast by our users.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   get(fieldPath: string | FieldPath): any {
@@ -124,33 +218,75 @@ export class DocumentSnapshot<T = DocumentData> {
   }
 }
 
+/**
+ * A `QueryDocumentSnapshot` contains data read from a document in your
+ * Firestore database as part of a query. The document is guaranteed to exist
+ * and its data can be extracted with `.data()` or `.get(<field>)` to get a
+ * specific field.
+ *
+ * A `QueryDocumentSnapshot` offers the same API surface as a
+ * `DocumentSnapshot`. Since query results contain only existing documents, the
+ * `exists` property will always be true and `data()` will never return
+ * 'undefined'.
+ */
 export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
   T
 > {
+  /**
+   * Retrieves all fields in the document as an `Object`.
+   *
+   * @override
+   * @return An `Object` containing all fields in the document.
+   */
   data(): T {
     return super.data() as T;
   }
 }
 
+/**
+ * A `QuerySnapshot` contains zero or more `DocumentSnapshot` objects
+ * representing the results of a query. The documents can be accessed as an
+ * array via the `docs` property or enumerated using the `forEach` method. The
+ * number of documents can be determined via the `empty` and `size`
+ * properties.
+ */
 export class QuerySnapshot<T = DocumentData> {
+  /**
+   * The query on which you called {@link getDocs} in order to get this
+   * `QuerySnapshot`.
+   */
+  readonly query: Query<T>;
+
   /** @hideconstructor */
   constructor(
-    readonly query: Query<T>,
+    _query: Query<T>,
     readonly _docs: Array<QueryDocumentSnapshot<T>>
-  ) {}
+  ) {
+    this.query = _query;
+  }
 
+  /** An array of all the documents in the `QuerySnapshot`. */
   get docs(): Array<QueryDocumentSnapshot<T>> {
     return [...this._docs];
   }
 
+  /** The number of documents in the `QuerySnapshot`. */
   get size(): number {
     return this.docs.length;
   }
 
+  /** True if there are no documents in the `QuerySnapshot`. */
   get empty(): boolean {
     return this.docs.length === 0;
   }
 
+  /**
+   * Enumerates all of the documents in the `QuerySnapshot`.
+   *
+   * @param callback A callback to be called with a `QueryDocumentSnapshot` for
+   * each document in the snapshot.
+   * @param thisArg The `this` binding for the callback.
+   */
   forEach(
     callback: (result: QueryDocumentSnapshot<T>) => void,
     thisArg?: unknown
@@ -159,6 +295,13 @@ export class QuerySnapshot<T = DocumentData> {
   }
 }
 
+/**
+ * Returns true if the provided snapshots are equal.
+ *
+ * @param left A snapshot to compare.
+ * @param right A snapshot to compare.
+ * @return true if the snapshots are equal.
+ */
 export function snapshotEqual<T>(
   left: DocumentSnapshot<T> | QuerySnapshot<T>,
   right: DocumentSnapshot<T> | QuerySnapshot<T>
