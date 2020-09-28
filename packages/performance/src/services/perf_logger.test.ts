@@ -89,6 +89,7 @@ describe('Performance Monitoring > perf_logger', () => {
 
   describe('logTrace', () => {
     it('will not drop event before initialization finishes', () => {
+      getIidStub.returns(IID);
       stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
 
       stub(initializationService, 'isPerfInitialized').returns(false);
@@ -112,8 +113,6 @@ describe('Performance Monitoring > perf_logger', () => {
       process.nextTick;
 
       setTimeout(expect(addToQueueStub).to.be.called, 0);
-      // process.nextTick;
-      // clock.tick(10000);
     });
 
     it('creates, serializes and sends a trace to transport service', () => {
