@@ -18,6 +18,11 @@ import * as tmp from 'tmp';
 import { existsSync, lstatSync, readFileSync, writeFileSync } from 'fs';
 import { spawn } from 'child-process-promise';
 import { ordinal } from '@firebase/util';
+import * as rollup from 'rollup';
+import resolve from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
+import { bundleWithRollup } from './bundle';
+import { calculateContentSize } from './util';
 
 interface BundleAnalysisArgs {
   input: string;
@@ -63,7 +68,7 @@ enum Mode {
   Local = 'local'
 }
 
-export async function analyzeBundleSize({
+export async function run({
   input,
   bundler,
   mode,
@@ -300,6 +305,16 @@ async function analyzeBundleWithBundler(
     const bundleContent = contentArray.join('\n');
 
     if (bundler === Bundler.Rollup) {
+      const bundle = await bundleWithRollup(bundleContent);
+      const { size, gzipSize } = calculateContentSize(bundle);
+
+      return {
+        bundler,
+        size,
+        gzipSize
+      };
+    } else {
+      throw new Error('not implemented');
     }
 
     tmpDir.removeCallback();

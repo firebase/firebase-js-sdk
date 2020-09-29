@@ -16,7 +16,7 @@
  */
 
 import * as yargs from 'yargs';
-import { analyzeBundleSize } from './bundle-analysis';
+import { run as runBundleAnalysis } from './bundle-analysis';
 import { analyzePackageSize } from './package-analysis';
 
 yargs
@@ -80,7 +80,6 @@ yargs
         desc: 'The output location'
       }
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    argv => analyzeBundleSize(argv as any)
+    argv => runBundleAnalysis(argv as any)
   )
   .help().argv;
