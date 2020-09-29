@@ -29,7 +29,7 @@ export class DatabaseInfo {
    * @param ssl Whether to use SSL when connecting.
    * @param forceLongPolling Whether to use the forceLongPolling option
    * when using WebChannel as the network transport.
-   * @param autoDetectLongPolling Whether to use the autoDetectLongPolling
+   * @param autoDetectLongPolling Whether to use the detectBufferingProxy
    * option when using WebChannel as the network transport.
    */
   constructor(
