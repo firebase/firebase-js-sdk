@@ -1614,9 +1614,8 @@ apiDescribe('Database', (persistence: boolean) => {
       settings,
       1,
       async ([db]) => {
-        const doc = await db.collection('users').doc();
-
         const data = { name: 'Rafi', email: 'abc@xyz.com' };
+        const doc = await db.collection('users').doc();
 
         return doc
           .set(data)
