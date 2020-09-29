@@ -14,10 +14,10 @@ export declare function trace(performance: FirebasePerformance, name: string): P
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  performance | FirebasePerformance |  |
+|  performance | [FirebasePerformance](./performance-types.firebaseperformance.md) |  |
 |  name | string |  |
 
 <b>Returns:</b>
 
-PerformanceTrace
+[PerformanceTrace](./performance-types.performancetrace.md)
 

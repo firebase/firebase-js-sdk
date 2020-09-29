@@ -15,4 +15,5 @@
 |  [@firebase/installations](./installations.md) |  |
 |  [@firebase/installations-types](./installations-types.md) |  |
 |  [@firebase/performance](./performance.md) |  |
+|  [@firebase/performance-types](./performance-types.md) |  |
 

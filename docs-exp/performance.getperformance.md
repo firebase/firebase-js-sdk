@@ -15,9 +15,9 @@ export declare function getPerformance(app: FirebaseApp, settings?: PerformanceS
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  app | [FirebaseApp](./app-types.firebaseapp.md) |  |
-|  settings | PerformanceSettings |  |
+|  settings | [PerformanceSettings](./performance-types.performancesettings.md) |  |
 
 <b>Returns:</b>
 
-FirebasePerformance
+[FirebasePerformance](./performance-types.firebaseperformance.md)
 
