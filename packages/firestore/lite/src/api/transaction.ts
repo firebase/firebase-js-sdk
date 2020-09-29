@@ -123,9 +123,14 @@ export class Transaction {
    *
    * @param documentRef A reference to the document to be set.
    * @param data An object of the fields and values for the document.
+   * @param options An object to configure the set behavior.
    * @return This `Transaction` instance. Used for chaining method calls.
    */
-  set<T>(documentRef: DocumentReference<T>, data: Partial<T>): this;
+  set<T>(
+    documentRef: DocumentReference<T>,
+    data: Partial<T>,
+    options: SetOptions
+  ): this;
   set<T>(
     documentRef: DocumentReference<T>,
     value: T,
