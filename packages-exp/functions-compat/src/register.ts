@@ -17,8 +17,6 @@
 
 import firebase from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { registerVersion } from '@firebase/app-exp';
-import { name, version } from '../package.json';
 import { FunctionsService } from './service';
 import {
   Component,
@@ -28,16 +26,20 @@ import {
 } from '@firebase/component';
 import { FirebaseApp } from '@firebase/app-types';
 
-registerVersion(name, version);
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'functions-compat': FunctionsService;
+  }
+}
 
-const factory: InstanceFactory<'functions'> = (
+const factory: InstanceFactory<'functions-compat'> = (
   container: ComponentContainer,
-  region?: string
+  regionOrCustomDomain?: string
 ) => {
   // Dependencies
   const app = container.getProvider('app-exp').getImmediate();
 
-  return new FunctionsService(app as FirebaseApp, region);
+  return new FunctionsService(app as FirebaseApp, regionOrCustomDomain);
 };
 
 export function registerFunctions(): void {
@@ -46,7 +48,7 @@ export function registerFunctions(): void {
     Functions: FunctionsService
   };
   (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
-    new Component('functions', factory, ComponentType.PUBLIC)
+    new Component('functions-compat', factory, ComponentType.PUBLIC)
       .setServiceProps(namespaceExports)
       .setMultipleInstances(true)
   );

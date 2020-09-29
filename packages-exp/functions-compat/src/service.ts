@@ -25,14 +25,27 @@ import { HttpsCallableOptions, Functions } from '@firebase/functions-types-exp';
 import { FirebaseApp } from '@firebase/app-types';
 
 export class FunctionsService implements FirebaseFunctions {
-  private functionsInstance: Functions;
-  constructor(public app: FirebaseApp, public region?: string) {
-    this.functionsInstance = getFunctions(app, region);
+  private _functionsInstance: Functions;
+  /**
+   * For testing.
+   * @internal
+   */
+  _region: string;
+  /**
+   * For testing.
+   * @internal
+   */
+  _customDomain: string | null;
+
+  constructor(public app: FirebaseApp, regionOrCustomDomain?: string) {
+    this._functionsInstance = getFunctions(app, regionOrCustomDomain);
+    this._region = this._functionsInstance.region;
+    this._customDomain = this._functionsInstance.customDomain;
   }
-  httpsCallable(name: string, options: HttpsCallableOptions): HttpsCallable {
-    return httpsCallableExp(this.functionsInstance, name, options);
+  httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable {
+    return httpsCallableExp(this._functionsInstance, name, options);
   }
   useFunctionsEmulator(origin: string): void {
-    return useFunctionsEmulatorExp(this.functionsInstance, origin);
+    return useFunctionsEmulatorExp(this._functionsInstance, origin);
   }
 }
