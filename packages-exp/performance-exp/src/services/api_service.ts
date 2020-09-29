@@ -125,7 +125,7 @@ export class Api {
     }
 
     if (!isIndexedDBAvailable()) {
-      consoleLogger.info('IndexedDB is not supported by current browswer');
+      consoleLogger.info('IndexedDB is not supported by current browser');
       return false;
     }
     return true;

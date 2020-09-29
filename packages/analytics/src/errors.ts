@@ -43,7 +43,7 @@ const ERRORS: ErrorMap<AnalyticsError> = {
   [AnalyticsError.INTEROP_COMPONENT_REG_FAILED]:
     'Firebase Analytics Interop Component failed to instantiate: {$reason}',
   [AnalyticsError.INDEXED_DB_UNSUPPORTED]:
-    'IndexedDB is not supported by current browswer',
+    'IndexedDB is not supported by current browser',
   [AnalyticsError.INVALID_INDEXED_DB_CONTEXT]:
     "Environment doesn't support IndexedDB: {$errorInfo}. " +
     'Wrap initialization of analytics in analytics.isSupported() ' +
@@ -64,7 +64,7 @@ const ERRORS: ErrorMap<AnalyticsError> = {
     'The "appId" field is empty in the local Firebase config. Firebase Analytics requires this field to' +
     'contain a valid app ID.',
   [AnalyticsError.INDEXED_DB_UNSUPPORTED]:
-    'IndexedDB is not supported by current browswer',
+    'IndexedDB is not supported by current browser',
   [AnalyticsError.INVALID_INDEXED_DB_CONTEXT]:
     "Environment doesn't support IndexedDB: {$errorInfo}. " +
     'Wrap initialization of analytics in analytics.isSupported() ' +
