@@ -90,12 +90,14 @@ describe('Performance Monitoring > perf_logger', () => {
   describe('logTrace', () => {
     it('will not drop event before initialization finishes', async () => {
       getIidStub.returns(IID);
-      SettingsService.getInstance().loggingEnabled = true;
-      SettingsService.getInstance().logTraceAfterSampling = true;
       stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
       stub(initializationService, 'isPerfInitialized').returns(false);
 
-      const initializationPromise = Promise.resolve();
+      // Simulates logging being enabled after initialization completes.
+      const initializationPromise = Promise.resolve().then(() => {
+        SettingsService.getInstance().loggingEnabled = true;
+        SettingsService.getInstance().logTraceAfterSampling = true;
+      });
       stub(initializationService, 'getInitializationPromise').returns(
         initializationPromise
       );
