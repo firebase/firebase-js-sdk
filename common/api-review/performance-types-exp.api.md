@@ -11,7 +11,7 @@ export interface FirebasePerformance {
   instrumentationEnabled: boolean;
 }
 
-// @public
+// @public (undocumented)
 export interface PerformanceSettings {
   dataCollectionEnabled?: boolean;
 
