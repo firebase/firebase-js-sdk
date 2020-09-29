@@ -16,36 +16,48 @@
  */
 
 import * as rollup from 'rollup';
-import resolve from 'rollup-plugin-node-resolve';
+import resolve, { Options } from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 // @ts-ignore
 import virtual from '@rollup/plugin-virtual';
 
-export async function bundleWithRollup(fileContent: string): Promise<string> {
+/**
+ *
+ * @param fileContent
+ * @param moduleDirectory - the path to the node_modules folder of the temporary project in npm mode.
+ *                          undefined in local mode
+ */
+export async function bundleWithRollup(
+  fileContent: string,
+  moduleDirectory?: string
+): Promise<string> {
+  const resolveOptions: Options = {
+    mainFields: ['esm2017', 'module', 'main']
+  };
+
+  if (moduleDirectory) {
+    resolveOptions.customResolveOptions = {
+      moduleDirectory
+    };
+  }
+
   const bundle = await rollup.rollup({
     input: 'entry',
     plugins: [
-      resolve({
-        mainFields: ['esm2017', 'module', 'main']
-      }),
-      commonjs(),
       virtual({
         entry: fileContent
-      })
+      }),
+      resolve(resolveOptions),
+      commonjs()
     ]
   });
 
   const { output } = await bundle.generate({
     format: 'es'
   });
-
   return output[0].code;
 }
 
 export async function bundleWithWebpack(fileContent: string): Promise<string> {
-  throw new Error('not implemented!');
-}
-
-export async function minifyWithTerser(fileContent: string): Promise<string> {
   throw new Error('not implemented!');
 }

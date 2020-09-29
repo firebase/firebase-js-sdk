@@ -18,11 +18,9 @@ import * as tmp from 'tmp';
 import { existsSync, lstatSync, readFileSync, writeFileSync } from 'fs';
 import { spawn } from 'child-process-promise';
 import { ordinal } from '@firebase/util';
-import * as rollup from 'rollup';
-import resolve from 'rollup-plugin-node-resolve';
-import commonjs from 'rollup-plugin-commonjs';
 import { bundleWithRollup } from './bundle';
 import { calculateContentSize } from './util';
+import { minify } from './minify';
 
 interface BundleAnalysisArgs {
   input: string;
@@ -49,12 +47,12 @@ interface BundleDependency {
    * npm version or tag
    */
   versionOrTag: string;
-  imports: string | Import[];
+  imports: string | SubModuleImport[];
 }
 
-interface Import {
+interface SubModuleImport {
   path: string;
-  symbol: string;
+  imports: string[];
 }
 
 enum Bundler {
@@ -208,7 +206,7 @@ async function analyze({
   bundler,
   output,
   mode
-}: BundleAnalysisOptions) {
+}: BundleAnalysisOptions): Promise<void> {
   const analyses: BundleAnalysis[] = [];
   for (const bundleDefinition of bundleDefinitions) {
     analyses.push(await analyzeBundle(bundleDefinition, bundler, mode));
@@ -255,10 +253,12 @@ async function analyzeBundleWithBundler(
   bundler: Exclude<Bundler, 'both'>,
   mode: Mode
 ): Promise<BundleAnalysisResult> {
+  let moduleDirectory: string | undefined;
+  let tmpDir: tmp.DirResult | undefined;
+  /// set up a temporary project to install dependencies
   if (mode === Mode.Npm) {
-    // set up a temporary project
-    const tmpDir = tmp.dirSync();
-
+    tmpDir = tmp.dirSync({ unsafeCleanup: true });
+    console.log(tmpDir.name);
     // create package.json
     const pkgJson: {
       name: string;
@@ -288,40 +288,51 @@ async function analyzeBundleWithBundler(
       stdio: 'inherit'
     });
 
-    const contentArray = [];
-    for (const dep of bundleDefinition.dependencies) {
-      for (const imp of dep.imports) {
-        if (typeof imp === 'string') {
-          contentArray.push(`export {${imp}} from '${dep.packageName}';`);
-        } else {
-          // Import object
+    moduleDirectory = `${tmpDir.name}/node_modules`;
+  }
+
+  const bundleContent = createBundleContent(bundleDefinition);
+  let result: BundleAnalysisResult;
+  if (bundler === Bundler.Rollup) {
+    console.log(moduleDirectory);
+    const bundle = await bundleWithRollup(bundleContent, moduleDirectory);
+    const minifiedBundle = await minify(bundle);
+    const { size, gzipSize } = calculateContentSize(minifiedBundle);
+
+    result = {
+      bundler,
+      size,
+      gzipSize
+    };
+  } else {
+    throw new Error('not implemented');
+  }
+
+  if (tmpDir) {
+    tmpDir.removeCallback();
+  }
+
+  return result;
+}
+
+function createBundleContent(bundleDefinition: BundleDefinition): string {
+  const contentArray = [];
+  for (const dep of bundleDefinition.dependencies) {
+    for (const imp of dep.imports) {
+      if (typeof imp === 'string') {
+        contentArray.push(`export {${imp}} from '${dep.packageName}';`);
+      } else {
+        // Import object
+        for (const subImp of imp.imports) {
           contentArray.push(
-            `export {${imp.symbol}} from '${dep.packageName}/${imp.path}';`
+            `export {${subImp}} from '${dep.packageName}/${imp.path}';`
           );
         }
       }
     }
-
-    const bundleContent = contentArray.join('\n');
-
-    if (bundler === Bundler.Rollup) {
-      const bundle = await bundleWithRollup(bundleContent);
-      const { size, gzipSize } = calculateContentSize(bundle);
-
-      return {
-        bundler,
-        size,
-        gzipSize
-      };
-    } else {
-      throw new Error('not implemented');
-    }
-
-    tmpDir.removeCallback();
-  } else {
-    // mode === 'local'
-    throw new Error('not implemented!');
   }
+
+  return contentArray.join('\n');
 }
 
 interface BundleAnalysis {

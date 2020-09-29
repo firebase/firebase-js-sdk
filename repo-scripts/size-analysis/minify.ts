@@ -14,18 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import calculateGzipSize from 'gzip-size';
 
-interface ContentSize {
-  size: number;
-  gzipSize: number;
-}
+import * as terser from 'terser';
 
-export function calculateContentSize(content: string): ContentSize {
-  const size = Buffer.byteLength(content, 'utf-8');
-  const gzipSize = calculateGzipSize.sync(content);
-  return {
-    size,
-    gzipSize
-  };
+export async function minify(content: string): Promise<string> {
+  const minified = await terser.minify(content, {
+    format: {
+      comments: false
+    },
+    mangle: { toplevel: true },
+    compress: false
+  });
+
+  return minified.code ?? '';
 }
