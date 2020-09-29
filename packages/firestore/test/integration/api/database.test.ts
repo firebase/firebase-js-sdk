@@ -26,12 +26,13 @@ import * as firebaseExport from '../util/firebase_export';
 import {
   apiDescribe,
   withTestCollection,
+  withTestDbsSettings,
   withTestDb,
   withTestDbs,
   withTestDoc,
   withTestDocAndInitialData
 } from '../util/helpers';
-import { DEFAULT_SETTINGS } from '../util/settings';
+import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
 use(chaiAsPromised);
 
@@ -1599,5 +1600,32 @@ apiDescribe('Database', (persistence: boolean) => {
         expect(docRef.isEqual(docRef2)).to.be.false;
       });
     });
+  });
+
+  it('can set and get data with auto detect long polling enabled', () => {
+    const settings = {
+      ...DEFAULT_SETTINGS,
+      experimentalAutoDetectLongPolling: true
+    };
+
+    return withTestDbsSettings(
+      persistence,
+      DEFAULT_PROJECT_ID,
+      settings,
+      1,
+      async ([db]) => {
+        const doc = await db.collection('users').doc();
+
+        const data = { name: 'Rafi', email: 'abc@xyz.com' };
+
+        return doc
+          .set(data)
+          .then(() => doc.get())
+          .then(snapshot => {
+            expect(snapshot.exists).to.be.ok;
+            expect(snapshot.data()).to.deep.equal(data);
+          });
+      }
+    );
   });
 });
