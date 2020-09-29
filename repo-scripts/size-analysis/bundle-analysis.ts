@@ -14,8 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import * as tmp from 'tmp';
 import { existsSync, lstatSync, readFileSync, writeFileSync } from 'fs';
+import { spawn } from 'child-process-promise';
 import { ordinal } from '@firebase/util';
 
 interface BundleAnalysisArgs {
@@ -43,7 +44,12 @@ interface BundleDependency {
    * npm version or tag
    */
   versionOrTag: string;
-  imports: string[];
+  imports: string | Import[];
+}
+
+interface Import {
+  path: string;
+  symbol: string;
 }
 
 enum Bundler {
@@ -121,15 +127,15 @@ function toModeEnum(mode: 'npm' | 'local'): Mode {
  * @returns - an array of error messages. Empty if the bundle definition is valid
  */
 function parseBundleDefinition(input: string): BundleDefinition[] {
-  const inputDefinitions: BundleDefinition[] = JSON.parse(input);
+  const bundleDefinitions: BundleDefinition[] = JSON.parse(input);
 
   const errorMessages = [];
-  if (!Array.isArray(inputDefinitions)) {
+  if (!Array.isArray(bundleDefinitions)) {
     throw new Error('Bundle definition must be defined in an array');
   }
 
-  for (let i = 0; i < inputDefinitions.length; i++) {
-    const bundleDefinition = inputDefinitions[i];
+  for (let i = 0; i < bundleDefinitions.length; i++) {
+    const bundleDefinition = bundleDefinitions[i];
     if (!bundleDefinition.name) {
       errorMessages.push(
         `Missing field 'name' in the ${ordinal(i + 1)} bundle definition`
@@ -185,17 +191,22 @@ function parseBundleDefinition(input: string): BundleDefinition[] {
     }
   }
 
-  return errorMessages;
+  if (errorMessages.length > 0) {
+    throw new Error(errorMessages.join('\n'));
+  }
+
+  return bundleDefinitions;
 }
 
 async function analyze({
   bundleDefinitions,
   bundler,
-  output
+  output,
+  mode
 }: BundleAnalysisOptions) {
   const analyses: BundleAnalysis[] = [];
   for (const bundleDefinition of bundleDefinitions) {
-    analyses.push(await analyzeBundle(bundleDefinition, bundler));
+    analyses.push(await analyzeBundle(bundleDefinition, bundler, mode));
   }
 
   writeFileSync(output, JSON.stringify(analyses, null, 2), {
@@ -205,8 +216,98 @@ async function analyze({
 
 async function analyzeBundle(
   bundleDefinition: BundleDefinition,
-  bundler: Bundler
-): Promise<BundleAnalysis> {}
+  bundler: Bundler,
+  mode: Mode
+): Promise<BundleAnalysis> {
+  const analysis: BundleAnalysis = {
+    name: bundleDefinition.name,
+    results: []
+  };
+  switch (bundler) {
+    case Bundler.Rollup:
+    case Bundler.Webpack:
+      analysis.results.push(
+        await analyzeBundleWithBundler(bundleDefinition, bundler, mode)
+      );
+      break;
+    case Bundler.Both:
+      analysis.results.push(
+        await analyzeBundleWithBundler(bundleDefinition, Bundler.Rollup, mode)
+      );
+      analysis.results.push(
+        await analyzeBundleWithBundler(bundleDefinition, Bundler.Webpack, mode)
+      );
+      break;
+    default:
+      throw new Error('impossible!');
+  }
+
+  return analysis;
+}
+
+async function analyzeBundleWithBundler(
+  bundleDefinition: BundleDefinition,
+  bundler: Exclude<Bundler, 'both'>,
+  mode: Mode
+): Promise<BundleAnalysisResult> {
+  if (mode === Mode.Npm) {
+    // set up a temporary project
+    const tmpDir = tmp.dirSync();
+
+    // create package.json
+    const pkgJson: {
+      name: string;
+      version: string;
+      dependencies: Record<string, string>;
+    } = {
+      name: 'size-analysis',
+      version: '0.0.0',
+      dependencies: {
+        [bundler]: 'latest'
+      }
+    };
+
+    for (const dep of bundleDefinition.dependencies) {
+      pkgJson.dependencies[dep.packageName] = dep.versionOrTag;
+    }
+
+    writeFileSync(
+      `${tmpDir.name}/package.json`,
+      `${JSON.stringify(pkgJson, null, 2)}\n`,
+      { encoding: 'utf-8' }
+    );
+
+    // install dependencies
+    await spawn('npm', ['install'], {
+      cwd: tmpDir.name,
+      stdio: 'inherit'
+    });
+
+    const contentArray = [];
+    for (const dep of bundleDefinition.dependencies) {
+      for (const imp of dep.imports) {
+        if (typeof imp === 'string') {
+          contentArray.push(`export {${imp}} from '${dep.packageName}';`);
+        } else {
+          // Import object
+          contentArray.push(
+            `export {${imp.symbol}} from '${dep.packageName}/${imp.path}';`
+          );
+        }
+      }
+    }
+
+    const bundleContent = contentArray.join('\n');
+
+    if (bundler === Bundler.Rollup) {
+    }
+
+    tmpDir.removeCallback();
+  } else {
+    // mode === 'local'
+    throw new Error('not implemented!');
+  }
+}
 
 interface BundleAnalysis {
   name: string; // the bundle name defined in the bundle definition

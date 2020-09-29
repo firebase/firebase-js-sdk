@@ -80,6 +80,7 @@ yargs
         desc: 'The output location'
       }
     },
-    argv => analyzeBundleSize(argv)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    argv => analyzeBundleSize(argv as any)
   )
   .help().argv;
