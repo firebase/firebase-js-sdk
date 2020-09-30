@@ -1,8 +1,7 @@
 ---
-"firebase": patch
-"@firebase/firestore-types": patch
-"@firebase/firestore": patch
-"@firebase/webchannel-wrapper": patch
+"@firebase/firestore-types": minor
+"@firebase/firestore": minor
+"@firebase/webchannel-wrapper": minor
 ---
 
 Adds a new `experimentalAutoDetectLongPolling` to FirestoreSettings.  When
