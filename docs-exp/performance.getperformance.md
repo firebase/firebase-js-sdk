@@ -4,6 +4,8 @@
 
 ## getPerformance() function
 
+Returns a FirebasePerformance instance for the given app.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,8 +16,8 @@ export declare function getPerformance(app: FirebaseApp, settings?: PerformanceS
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app-types.firebaseapp.md) |  |
-|  settings | [PerformanceSettings](./performance-types.performancesettings.md) |  |
+|  app | [FirebaseApp](./app-types.firebaseapp.md) | The FirebaseApp to use. |
+|  settings | [PerformanceSettings](./performance-types.performancesettings.md) | Optional settings for the Performance instance. |
 
 <b>Returns:</b>
 

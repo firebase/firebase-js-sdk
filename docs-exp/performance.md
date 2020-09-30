@@ -8,7 +8,6 @@
 
 |  Function | Description |
 |  --- | --- |
-|  [getPerformance(app, settings)](./performance.getperformance.md) |  |
-|  [registerPerformance()](./performance.registerperformance.md) |  |
-|  [trace(performance, name)](./performance.trace.md) |  |
+|  [getPerformance(app, settings)](./performance.getperformance.md) | Returns a FirebasePerformance instance for the given app. |
+|  [trace(performance, name)](./performance.trace.md) | Returns a new PerformanceTrace instance. |
 
