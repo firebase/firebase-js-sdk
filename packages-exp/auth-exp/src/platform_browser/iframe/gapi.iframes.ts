@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+ // For some reason, the linter doesn't recognize that these are used elsewhere
+ // in the SDK
+ /* eslint-disable @typescript-eslint/no-unused-vars */
+
 declare namespace gapi {
   type LoadCallback = () => void;
   interface LoadConfig {}
