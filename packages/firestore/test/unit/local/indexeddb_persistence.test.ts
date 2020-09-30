@@ -85,6 +85,8 @@ import { getWindow } from '../../../src/platform/dom';
 
 use(chaiAsPromised);
 
+export const TEST_ACTION = 'IndexedDbPersistenceTest';
+
 /* eslint-disable no-restricted-globals */
 async function withDb(
   schemaVersion: number,
@@ -96,7 +98,7 @@ async function withDb(
     schemaVersion,
     schemaConverter
   );
-  const database = await simpleDb.ensureDb();
+  const database = await simpleDb.ensureDb(TEST_ACTION);
   await fn(simpleDb, database.version, Array.from(database.objectStoreNames));
   await simpleDb.close();
 }
@@ -262,6 +264,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     return withDb(2, db => {
       return db.runTransaction(
+        TEST_ACTION,
         'readwrite',
         [DbTarget.store, DbTargetGlobal.store, DbMutationBatch.store],
         txn => {
@@ -290,6 +293,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         expect(objectStores).to.have.members(V3_STORES);
 
         return db.runTransaction(
+          TEST_ACTION,
           'readwrite',
           [DbTarget.store, DbTargetGlobal.store, DbMutationBatch.store],
           txn => {
@@ -354,37 +358,47 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     ];
 
     return withDb(3, db => {
-      return db.runTransaction('readwrite', [DbMutationBatch.store], txn => {
-        const store = txn.store(DbMutationBatch.store);
-        return PersistencePromise.forEach(
-          testMutations,
-          (testMutation: DbMutationBatch) => store.put(testMutation)
-        );
-      });
+      return db.runTransaction(
+        TEST_ACTION,
+        'readwrite',
+        [DbMutationBatch.store],
+        txn => {
+          const store = txn.store(DbMutationBatch.store);
+          return PersistencePromise.forEach(
+            testMutations,
+            (testMutation: DbMutationBatch) => store.put(testMutation)
+          );
+        }
+      );
     }).then(() =>
       withDb(4, (db, version, objectStores) => {
         expect(version).to.be.equal(4);
         expect(objectStores).to.have.members(V4_STORES);
-        return db.runTransaction('readwrite', [DbMutationBatch.store], txn => {
-          const store = txn.store<DbMutationBatchKey, DbMutationBatch>(
-            DbMutationBatch.store
-          );
-          let p = PersistencePromise.forEach(
-            testMutations,
-            (testMutation: DbMutationBatch) =>
-              store.get(testMutation.batchId).next(mutationBatch => {
-                expect(mutationBatch).to.deep.equal(testMutation);
-              })
-          );
-          p = p.next(() => {
-            store
-              .add({} as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-              .next(batchId => {
-                expect(batchId).to.equal(43);
-              });
-          });
-          return p;
-        });
+        return db.runTransaction(
+          TEST_ACTION,
+          'readwrite',
+          [DbMutationBatch.store],
+          txn => {
+            const store = txn.store<DbMutationBatchKey, DbMutationBatch>(
+              DbMutationBatch.store
+            );
+            let p = PersistencePromise.forEach(
+              testMutations,
+              (testMutation: DbMutationBatch) =>
+                store.get(testMutation.batchId).next(mutationBatch => {
+                  expect(mutationBatch).to.deep.equal(testMutation);
+                })
+            );
+            p = p.next(() => {
+              store
+                .add({} as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+                .next(batchId => {
+                  expect(batchId).to.equal(43);
+                });
+            });
+            return p;
+          }
+        );
       })
     );
   });
@@ -456,7 +470,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     return withDb(4, db => {
       // We can only use the V4 stores here, since that's as far as we've upgraded.
-      return db.runTransaction('readwrite', V4_STORES, txn => {
+      return db.runTransaction(TEST_ACTION, 'readwrite', V4_STORES, txn => {
         const mutationBatchStore = txn.store<
           DbMutationBatchKey,
           DbMutationBatch
@@ -504,7 +518,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         expect(version).to.be.equal(5);
 
         // There is no V5_STORES, continue using V4.
-        return db.runTransaction('readwrite', V4_STORES, txn => {
+        return db.runTransaction(TEST_ACTION, 'readwrite', V4_STORES, txn => {
           const mutationBatchStore = txn.store<
             DbMutationBatchKey,
             DbMutationBatch
@@ -555,7 +569,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         dbDoc: toDbRemoteDocument(TEST_SERIALIZER, doc, doc.version)
       }));
       // V5 stores doesn't exist
-      return db.runTransaction('readwrite', V4_STORES, txn => {
+      return db.runTransaction(TEST_ACTION, 'readwrite', V4_STORES, txn => {
         const store = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
           DbRemoteDocument.store
         );
@@ -567,7 +581,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       });
     });
     await withDb(6, db => {
-      return db.runTransaction('readwrite', V6_STORES, txn => {
+      return db.runTransaction(TEST_ACTION, 'readwrite', V6_STORES, txn => {
         const store = txn.store<
           DbRemoteDocumentGlobalKey,
           DbRemoteDocumentGlobal
@@ -588,7 +602,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     const newSequenceNumber = 2;
     await withDb(6, db => {
       const serializer = TEST_SERIALIZER;
-      return db.runTransaction('readwrite', V6_STORES, txn => {
+      return db.runTransaction(TEST_ACTION, 'readwrite', V6_STORES, txn => {
         const targetGlobalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
           DbTargetGlobal.store
         );
@@ -638,7 +652,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     // Now run the migration and verify
     await withDb(7, db => {
-      return db.runTransaction('readwrite', V6_STORES, txn => {
+      return db.runTransaction(TEST_ACTION, 'readwrite', V6_STORES, txn => {
         const targetDocumentStore = txn.store<
           DbTargetDocumentKey,
           DbTargetDocument
@@ -688,7 +702,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     };
 
     await withDb(7, db => {
-      return db.runTransaction('readwrite', V6_STORES, txn => {
+      return db.runTransaction(TEST_ACTION, 'readwrite', V6_STORES, txn => {
         const remoteDocumentStore = txn.store<
           DbRemoteDocumentKey,
           DbRemoteDocument
@@ -724,7 +738,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     // Migrate to v8 and verify index entries.
     await withDb(8, db => {
-      return db.runTransaction('readwrite', V8_STORES, txn => {
+      return db.runTransaction(TEST_ACTION, 'readwrite', V8_STORES, txn => {
         const collectionParentsStore = txn.store<
           DbCollectionParentKey,
           DbCollectionParent
@@ -748,7 +762,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
   it('rewrites canonical IDs during upgrade from version 9 to 10', async () => {
     await withDb(9, db => {
-      return db.runTransaction('readwrite', V8_STORES, txn => {
+      return db.runTransaction(TEST_ACTION, 'readwrite', V8_STORES, txn => {
         const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
 
         const filteredQuery = query('collection', filter('foo', '==', 'bar'));
@@ -767,7 +781,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     });
 
     await withDb(10, db => {
-      return db.runTransaction('readwrite', V8_STORES, txn => {
+      return db.runTransaction(TEST_ACTION, 'readwrite', V8_STORES, txn => {
         const targetsStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
         return targetsStore.iterate((key, value) => {
           const targetData = fromDbTarget(value).target;
@@ -799,7 +813,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     ];
 
     await withDb(8, db => {
-      return db.runTransaction('readwrite', V8_STORES, txn => {
+      return db.runTransaction(TEST_ACTION, 'readwrite', V8_STORES, txn => {
         const remoteDocumentStore = txn.store<
           DbRemoteDocumentKey,
           DbRemoteDocument
@@ -828,7 +842,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     // Migrate to v9 and verify that new documents are indexed.
     await withDb(9, db => {
-      return db.runTransaction('readwrite', V8_STORES, txn => {
+      return db.runTransaction(TEST_ACTION, 'readwrite', V8_STORES, txn => {
         const remoteDocumentStore = txn.store<
           DbRemoteDocumentKey,
           DbRemoteDocument
@@ -874,7 +888,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     const newDocPaths = ['coll/doc3', 'coll/doc4', 'abc/doc2'];
 
     await withDb(9, db => {
-      return db.runTransaction('readwrite', V8_STORES, txn => {
+      return db.runTransaction(TEST_ACTION, 'readwrite', V8_STORES, txn => {
         return addDocs(txn, oldDocPaths, /* version= */ 1).next(() =>
           addDocs(txn, newDocPaths, /* version= */ 2).next(() => {
             const remoteDocumentStore = txn.store<
@@ -907,7 +921,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     const newDocPaths = ['coll1/new', 'coll2/new'];
 
     await withDb(9, db => {
-      return db.runTransaction('readwrite', V8_STORES, txn => {
+      return db.runTransaction(TEST_ACTION, 'readwrite', V8_STORES, txn => {
         return addDocs(txn, oldDocPaths, /* version= */ 1).next(() =>
           addDocs(txn, newDocPaths, /* version= */ 2).next(() => {
             const remoteDocumentStore = txn.store<
@@ -947,7 +961,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         downgradeVersion,
         schemaConverter
       );
-      await db.ensureDb();
+      await db.ensureDb(TEST_ACTION);
     } catch (e) {
       error = e;
       expect(
@@ -970,12 +984,17 @@ describe('IndexedDb: canActAsPrimary', () => {
       SCHEMA_VERSION,
       new SchemaConverter(TEST_SERIALIZER)
     );
-    await simpleDb.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
-      const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
-        DbPrimaryClient.store
-      );
-      return primaryStore.delete(DbPrimaryClient.key);
-    });
+    await simpleDb.runTransaction(
+      TEST_ACTION,
+      'readwrite',
+      [DbPrimaryClient.store],
+      txn => {
+        const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
+          DbPrimaryClient.store
+        );
+        return primaryStore.delete(DbPrimaryClient.key);
+      }
+    );
     simpleDb.close();
   }
 
@@ -986,6 +1005,7 @@ describe('IndexedDb: canActAsPrimary', () => {
       new SchemaConverter(TEST_SERIALIZER)
     );
     const leaseOwner = await simpleDb.runTransaction(
+      TEST_ACTION,
       'readonly',
       [DbPrimaryClient.store],
       txn => {
@@ -1228,7 +1248,7 @@ describe('IndexedDb', () => {
       db.close();
       // Running a new IndexedDB transaction should re-open the database and not
       // throw.
-      await db.runTransaction('readwrite', V1_STORES, () =>
+      await db.runTransaction(TEST_ACTION, 'readwrite', V1_STORES, () =>
         PersistencePromise.resolve()
       );
     });

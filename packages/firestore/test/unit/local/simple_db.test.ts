@@ -32,6 +32,8 @@ import { Code, FirestoreError } from '../../../src/util/error';
 
 use(chaiAsPromised);
 
+const TEST_ACTION = 'SimpleDbTest';
+
 interface User {
   id: number;
   name: string;
@@ -94,7 +96,7 @@ describe('SimpleDb', () => {
       transaction: SimpleDbTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    return db.runTransaction<T>('readwrite', ['users'], txn => {
+    return db.runTransaction<T>(TEST_ACTION, 'readwrite', ['users'], txn => {
       return fn(txn.store<number, User>('users'), txn);
     });
   }
@@ -480,17 +482,22 @@ describe('SimpleDb', () => {
       ['foo', 'd'],
       ['foob']
     ];
-    await db.runTransaction('readwrite', ['users', 'docs'], txn => {
-      const docsStore = txn.store<string[], string>('docs');
-      return PersistencePromise.waitFor(
-        keys.map(key => {
-          const value = 'doc ' + key.join('/');
-          return docsStore.put(key, value);
-        })
-      );
-    });
+    await db.runTransaction(
+      TEST_ACTION,
+      'readwrite',
+      ['users', 'docs'],
+      txn => {
+        const docsStore = txn.store<string[], string>('docs');
+        return PersistencePromise.waitFor(
+          keys.map(key => {
+            const value = 'doc ' + key.join('/');
+            return docsStore.put(key, value);
+          })
+        );
+      }
+    );
 
-    await db.runTransaction('readonly', ['docs'], txn => {
+    await db.runTransaction(TEST_ACTION, 'readonly', ['docs'], txn => {
       const store = txn.store<string[], string>('docs');
       const range = IDBKeyRange.bound(['foo'], ['foo', 'c']);
       return store.loadAll(range).next(results => {
@@ -502,20 +509,25 @@ describe('SimpleDb', () => {
   it('retries transactions', async () => {
     let attemptCount = 0;
 
-    const result = await db.runTransaction('readwrite', ['users'], txn => {
-      ++attemptCount;
-      if (attemptCount === 1) {
-        const store = txn.store<string[], typeof dummyUser>('users');
-        return store
-          .add(dummyUser)
-          .next(() => {
-            return store.add(dummyUser); // Fails with a unique key violation
-          })
-          .next(() => 'Aborted');
-      } else {
-        return PersistencePromise.resolve('success');
+    const result = await db.runTransaction(
+      TEST_ACTION,
+      'readwrite',
+      ['users'],
+      txn => {
+        ++attemptCount;
+        if (attemptCount === 1) {
+          const store = txn.store<string[], typeof dummyUser>('users');
+          return store
+            .add(dummyUser)
+            .next(() => {
+              return store.add(dummyUser); // Fails with a unique key violation
+            })
+            .next(() => 'Aborted');
+        } else {
+          return PersistencePromise.resolve('success');
+        }
       }
-    });
+    );
 
     expect(result).to.equal('success');
     expect(attemptCount).to.equal(2);
@@ -525,7 +537,7 @@ describe('SimpleDb', () => {
     let attemptCount = 0;
 
     await expect(
-      db.runTransaction('readwrite', ['users'], txn => {
+      db.runTransaction(TEST_ACTION, 'readwrite', ['users'], txn => {
         ++attemptCount;
         const store = txn.store<string[], typeof dummyUser>('users');
         return store
@@ -544,7 +556,7 @@ describe('SimpleDb', () => {
     let attemptCount = 0;
 
     await expect(
-      db.runTransaction('readwrite', ['users'], txn => {
+      db.runTransaction(TEST_ACTION, 'readwrite', ['users'], txn => {
         ++attemptCount;
         txn.abort(new FirestoreError(Code.ABORTED, 'Aborted'));
         return PersistencePromise.reject(new Error());
