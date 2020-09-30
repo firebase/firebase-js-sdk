@@ -96,7 +96,7 @@ describe('Performance Monitoring > perf_logger', () => {
   });
 
   describe('logTrace', () => {
-    it('will not drop event before initialization finishes', async () => {
+    it('will not drop custom events sent before initialization finishes', async () => {
       getIidStub.returns(IID);
       stub(attributeUtils, 'getVisibilityState').returns(VISIBILITY_STATE);
       stub(initializationService, 'isPerfInitialized').returns(false);
