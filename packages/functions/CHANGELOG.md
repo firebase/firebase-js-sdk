@@ -1,5 +1,11 @@
 # @firebase/functions
 
+## 0.5.0
+
+### Minor Changes
+
+- [`a6af7c279`](https://github.com/firebase/firebase-js-sdk/commit/a6af7c27925da47fa62ee3b7b0a267a272c52220) [#3825](https://github.com/firebase/firebase-js-sdk/pull/3825) - Allow setting a custom domain for callable Cloud Functions.
+
 ## 0.4.51
 
 ### Patch Changes
