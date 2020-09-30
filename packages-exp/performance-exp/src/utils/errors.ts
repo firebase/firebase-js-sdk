@@ -21,6 +21,8 @@ import { SERVICE, SERVICE_NAME } from '../constants';
 export const enum ErrorCode {
   TRACE_STARTED_BEFORE = 'trace started',
   TRACE_STOPPED_BEFORE = 'trace stopped',
+  NONPOSITIVE_TRACE_START_TIME = '',
+  NONPOSITIVE_TRACE_DURATION = '',
   NO_WINDOW = 'no window',
   NO_APP_ID = 'no app id',
   NO_PROJECT_ID = 'no project id',
@@ -37,6 +39,10 @@ export const enum ErrorCode {
 const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
   [ErrorCode.TRACE_STARTED_BEFORE]: 'Trace {$traceName} was started before.',
   [ErrorCode.TRACE_STOPPED_BEFORE]: 'Trace {$traceName} is not running.',
+  [ErrorCode.NONPOSITIVE_TRACE_START_TIME]:
+    'Trace {$traceName} startTime should be positive.',
+  [ErrorCode.NONPOSITIVE_TRACE_DURATION]:
+    'Trace {$traceName} duration should be positive.',
   [ErrorCode.NO_WINDOW]: 'Window is not available.',
   [ErrorCode.NO_APP_ID]: 'App id is not available.',
   [ErrorCode.NO_PROJECT_ID]: 'Project id is not available.',
@@ -58,6 +64,8 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
 interface ErrorParams {
   [ErrorCode.TRACE_STARTED_BEFORE]: { traceName: string };
   [ErrorCode.TRACE_STOPPED_BEFORE]: { traceName: string };
+  [ErrorCode.NONPOSITIVE_TRACE_START_TIME]: { traceName: string };
+  [ErrorCode.NONPOSITIVE_TRACE_DURATION]: { traceName: string };
   [ErrorCode.INVALID_ATTRIBUTE_NAME]: { attributeName: string };
   [ErrorCode.INVALID_ATTRIBUTE_VALUE]: { attributeValue: string };
   [ErrorCode.INVALID_CUSTOM_METRIC_NAME]: { customMetricName: string };
