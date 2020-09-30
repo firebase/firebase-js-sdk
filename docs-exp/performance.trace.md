@@ -4,6 +4,8 @@
 
 ## trace() function
 
+Returns a new PerformanceTrace instance.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,8 +16,8 @@ export declare function trace(performance: FirebasePerformance, name: string): P
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  performance | [FirebasePerformance](./performance-types.firebaseperformance.md) |  |
-|  name | string |  |
+|  performance | [FirebasePerformance](./performance-types.firebaseperformance.md) | The FirebasePerformance instance to use. |
+|  name | string | The name of the trace. |
 
 <b>Returns:</b>
 
