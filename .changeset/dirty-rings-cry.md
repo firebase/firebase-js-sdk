@@ -1,5 +1,4 @@
 ---
-'@firebase/functions-exp': patch
 '@firebase/functions': patch
 ---
 
