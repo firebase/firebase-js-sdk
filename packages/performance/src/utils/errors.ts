@@ -21,8 +21,8 @@ import { SERVICE, SERVICE_NAME } from '../constants';
 export const enum ErrorCode {
   TRACE_STARTED_BEFORE = 'trace started',
   TRACE_STOPPED_BEFORE = 'trace stopped',
-  NONPOSITIVE_TRACE_START_TIME = '',
-  NONPOSITIVE_TRACE_DURATION = '',
+  NONPOSITIVE_TRACE_START_TIME = 'nonpositive trace startTime',
+  NONPOSITIVE_TRACE_DURATION = 'nonpositive trace duration',
   NO_WINDOW = 'no window',
   NO_APP_ID = 'no app id',
   NO_PROJECT_ID = 'no project id',
