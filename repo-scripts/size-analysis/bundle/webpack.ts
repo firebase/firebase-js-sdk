@@ -20,7 +20,7 @@ import webpack from 'webpack';
 import virtualModulesPlugin from 'webpack-virtual-modules';
 import { createFsFromVolume, Volume } from 'memfs';
 import path from 'path';
-import { projectRoot } from './util';
+import { projectRoot } from '../util';
 
 /**
  *

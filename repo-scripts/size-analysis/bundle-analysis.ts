@@ -18,10 +18,10 @@ import * as tmp from 'tmp';
 import { existsSync, lstatSync, readFileSync, writeFileSync } from 'fs';
 import { spawn } from 'child-process-promise';
 import { ordinal } from '@firebase/util';
-import { bundleWithRollup } from './rollup';
-import { bundleWithWebpack } from './webpack';
+import { bundleWithRollup } from './bundle/rollup';
+import { bundleWithWebpack } from './bundle/webpack';
 import { calculateContentSize } from './util';
-import { minify } from './minify';
+import { minify } from './bundle/minify';
 
 interface BundleAnalysisArgs {
   input: string;
