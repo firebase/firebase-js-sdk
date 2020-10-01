@@ -1282,7 +1282,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
       async db1 => {
         db1.injectFailures = ['getHighestListenSequenceNumber'];
         await expect(db1.start()).to.eventually.be.rejectedWith(
-          'IndexedDB transaction failed'
+          "IndexedDB transaction 'Simulated error' failed"
         );
         await db1.shutdown();
       }

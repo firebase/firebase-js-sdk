@@ -461,7 +461,10 @@ export class SimpleDbTransaction {
     objectStoreNames: string[]
   ): SimpleDbTransaction {
     try {
-      return new SimpleDbTransaction(action, db.transaction(mode));
+      return new SimpleDbTransaction(
+        action,
+        db.transaction(objectStoreNames, mode)
+      );
     } catch (e) {
       throw new IndexedDbTransactionError(action, e);
     }
