@@ -35,7 +35,10 @@ import {
   IndexedDbMutationQueue,
   mutationQueuesContainKey
 } from './indexeddb_mutation_queue';
-import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
+import {
+  IndexedDbRemoteDocumentCache,
+  newIndexedDbRemoteDocumentCache
+} from './indexeddb_remote_document_cache';
 import {
   ALL_STORES,
   DbClientMetadata,
@@ -266,7 +269,7 @@ export class IndexedDbPersistence implements Persistence {
       this.serializer
     );
     this.indexManager = new IndexedDbIndexManager();
-    this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
+    this.remoteDocumentCache = newIndexedDbRemoteDocumentCache(
       this.serializer,
       this.indexManager
     );
