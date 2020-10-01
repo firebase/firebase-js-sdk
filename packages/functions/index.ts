@@ -21,7 +21,7 @@ import { registerFunctions } from './src/config';
 
 import { name, version } from './package.json';
 
-registerFunctions(firebase as _FirebaseNamespace, fetch);
+registerFunctions(firebase as _FirebaseNamespace, fetch.bind(self));
 firebase.registerVersion(name, version);
 
 declare module '@firebase/app-types' {
