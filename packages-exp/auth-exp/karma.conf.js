@@ -36,7 +36,13 @@ function getTestFiles(argv) {
   } else if (argv.integration) {
     return ['test/integration/**/*.test.ts'];
   } else {
-    return ['src/**/*.test.ts', 'test/**/*.test.ts'];
+    // For the catch-all yarn:test, ignore the phone integration test
+    return [
+      'src/**/*.test.ts',
+      'test/helpers/**/*.test.ts',
+      'test/integration/flows/anonymous.test.ts',
+      'test/integration/flows/email.test.ts'
+    ];
   }
 }
 
