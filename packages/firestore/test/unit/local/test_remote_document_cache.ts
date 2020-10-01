@@ -20,10 +20,7 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
-import {
-  IndexedDbRemoteDocumentCache,
-  remoteDocumentCacheGetNewDocumentChanges
-} from '../../../src/local/indexeddb_remote_document_cache';
+import { remoteDocumentCacheGetNewDocumentChanges } from '../../../src/local/indexeddb_remote_document_cache';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
 import {
   DocumentKeySet,
@@ -33,7 +30,6 @@ import {
 } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
-import { debugAssert } from '../../../src/util/assert';
 
 /**
  * A wrapper around a RemoteDocumentCache that automatically creates a

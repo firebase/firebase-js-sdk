@@ -61,7 +61,7 @@ export interface MemoryRemoteDocumentCache extends RemoteDocumentCache {
  * The memory-only RemoteDocumentCache for IndexedDb. To construct, invoke
  * `newMemoryRemoteDocumentCache()`.
  */
-class MemoryRemoteDocumentCacheImpl implements RemoteDocumentCache {
+class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
   /** Underlying cache of documents and their read times. */
   private docs = documentEntryMap();
 

@@ -67,7 +67,7 @@ export interface IndexedDbRemoteDocumentCache extends RemoteDocumentCache {
  * The RemoteDocumentCache for IndexedDb. To construct, invoke
  * `newIndexedDbRemoteDocumentCache()`.
  */
-export class IndexedDbRemoteDocumentCacheImpl implements RemoteDocumentCache {
+class IndexedDbRemoteDocumentCacheImpl implements IndexedDbRemoteDocumentCache {
   /**
    * @param serializer The document serializer.
    * @param indexManager The query indexes that need to be maintained.
