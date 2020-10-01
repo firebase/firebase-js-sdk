@@ -17,5 +17,6 @@ export interface Functions
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [app](./functions-types.functions.app.md) | [FirebaseApp](./app-types.firebaseapp.md) | The FirebaseApp this Functions instance is associated with. |
+|  [customDomain](./functions-types.functions.customdomain.md) | string \| null | A custom domain hosting the callable Cloud Functions. ex: https://mydomain.com |
 |  [region](./functions-types.functions.region.md) | string | The region the callable Cloud Functions are located in. Default is <code>us-central-1</code>. |
 

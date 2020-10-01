@@ -1,0 +1,55 @@
+{
+  "name": "@firebase/auth-compat-exp-demo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Demo for Auth SDK Compatibility Layer",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "browser": "public/index.js",
+  "scripts": {
+    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../../.gitignore'",
+    "demo": "rollup -c && firebase serve",
+    "build": "rollup -c",
+    "build:deps": "lerna run --scope @firebase/'{app-exp,auth-compat-exp}' --include-dependencies build",
+    "dev": "rollup -c -w"
+  },
+  "peerDependencies": {
+    "@firebase/app": "0.x",
+    "@firebase/auth-types": "0.x",
+    "@firebase/auth-exp": "0.x"
+  },
+  "dependencies": {
+    "@firebase/logger": "^0.2.2",
+    "@firebase/util": "^0.2.44",
+    "lerna": "^3.22.1",
+    "tslib": "1.11.1"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "rollup": "1.32.1",
+    "rollup-plugin-json": "4.0.0",
+    "rollup-plugin-replace": "2.2.0",
+    "rollup-plugin-commonjs": "10.1.0",
+    "rollup-plugin-license": "0.14.0",
+    "rollup-plugin-node-resolve": "5.2.0",
+    "rollup-plugin-sourcemaps": "0.6.1",
+    "rollup-plugin-typescript2": "0.27.0",
+    "rollup-plugin-uglify": "6.0.4",
+    "typescript": "3.9.5"
+  },
+  "repository": {
+    "directory": "packages-exp/auth-compat-exp/demo",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "typings": "dist/index.d.ts",
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reportDir": "./coverage/node"
+  }
+}

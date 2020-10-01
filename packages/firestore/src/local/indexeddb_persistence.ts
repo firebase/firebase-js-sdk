@@ -35,7 +35,10 @@ import {
   IndexedDbMutationQueue,
   mutationQueuesContainKey
 } from './indexeddb_mutation_queue';
-import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
+import {
+  IndexedDbRemoteDocumentCache,
+  newIndexedDbRemoteDocumentCache
+} from './indexeddb_remote_document_cache';
 import {
   ALL_STORES,
   DbClientMetadata,
@@ -266,7 +269,7 @@ export class IndexedDbPersistence implements Persistence {
       this.serializer
     );
     this.indexManager = new IndexedDbIndexManager();
-    this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
+    this.remoteDocumentCache = newIndexedDbRemoteDocumentCache(
       this.serializer,
       this.indexManager
     );
@@ -684,6 +687,7 @@ export class IndexedDbPersistence implements Persistence {
     // Use `SimpleDb.runTransaction` directly to avoid failing if another tab
     // has obtained the primary lease.
     await this.simpleDb.runTransaction(
+      'shutdown',
       'readwrite',
       [DbPrimaryClient.store, DbClientMetadata.store],
       simpleDbTxn => {
@@ -794,7 +798,7 @@ export class IndexedDbPersistence implements Persistence {
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
     return this.simpleDb
-      .runTransaction(simpleDbMode, ALL_STORES, simpleDbTxn => {
+      .runTransaction(action, simpleDbMode, ALL_STORES, simpleDbTxn => {
         persistenceTransaction = new IndexedDbTransaction(
           simpleDbTxn,
           this.listenSequence

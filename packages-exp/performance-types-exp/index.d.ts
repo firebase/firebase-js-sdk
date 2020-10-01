@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+/**
+ * @public
+ */
 export interface PerformanceSettings {
   /** Whether to collect custom events. */
   dataCollectionEnabled?: boolean;
