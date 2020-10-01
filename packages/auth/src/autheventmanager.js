@@ -672,12 +672,18 @@ fireauth.AuthEventManager.KEY_SEPARATOR_ = ':';
 /**
  * @param {string} apiKey The API key for sending backend Auth requests.
  * @param {string} appName The Auth instance that initiated the Auth event.
- * @return {string} The key identifying the Auth event manager instance.
- * @private
- */
-fireauth.AuthEventManager.getKey_ = function(apiKey, appName) {
-  return apiKey + fireauth.AuthEventManager.KEY_SEPARATOR_ + appName;
-};
+   * @param {?fireauth.constants.EmulatorSettings=} emulatorConfig The emulator
+   *   configuration.
+   * @return {string} The key identifying the Auth event manager instance.
+   * @private
+   */
+fireauth.AuthEventManager.getKey_ = function(apiKey, appName, emulatorConfig) {
+  var key = apiKey + fireauth.AuthEventManager.KEY_SEPARATOR_ + appName;
+  if (emulatorConfig) {
+    key = key + fireauth.AuthEventManager.KEY_SEPARATOR_ + emulatorConfig.url;
+  }
+  return key;
+}
 
 
 /**
@@ -690,16 +696,24 @@ fireauth.AuthEventManager.getKey_ = function(apiKey, appName) {
  *     configuration.
  * @return {!fireauth.AuthEventManager} the requested manager instance.
  */
-fireauth.AuthEventManager.getManager = function(authDomain, apiKey, appName, emulatorConfig) {
+fireauth.AuthEventManager.getManager = function (authDomain, apiKey, appName, emulatorConfig) {
   // Construct storage key.
-  var key = fireauth.AuthEventManager.getKey_(apiKey, appName);
+  var key = fireauth.AuthEventManager.getKey_(
+    apiKey,
+    appName,
+    emulatorConfig
+  );
   if (!fireauth.AuthEventManager.manager_[key]) {
     fireauth.AuthEventManager.manager_[key] =
-        new fireauth.AuthEventManager(authDomain, apiKey, appName, emulatorConfig);
+      new fireauth.AuthEventManager(
+        authDomain,
+        apiKey,
+        appName,
+        emulatorConfig
+      );
   }
   return fireauth.AuthEventManager.manager_[key];
 };
-
 
 
 /**

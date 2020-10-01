@@ -67,6 +67,7 @@ goog.provide('fireauth.storage.UserManager');
 
 goog.require('fireauth.AuthUser');
 goog.require('fireauth.authStorage');
+goog.require('fireauth.constants');
 goog.require('goog.Promise');
 
 
@@ -399,13 +400,14 @@ fireauth.storage.UserManager.prototype.removeCurrentUser = function() {
 
 
 /**
- * @param {?string=} opt_authDomain The optional Auth domain to override if
+ * @param {?string=} authDomain The optional Auth domain to override if
  *     provided.
+ * @param {?fireauth.constants.EmulatorSettings=} emulatorConfig The current
+ *     emulator config to use in user requests.
  * @return {!goog.Promise<?fireauth.AuthUser>} A promise that resolves with
  *     the stored current user for the provided app ID.
  */
-fireauth.storage.UserManager.prototype.getCurrentUser =
-    function(opt_authDomain) {
+fireauth.storage.UserManager.prototype.getCurrentUser = function(authDomain, emulatorConfig) {
   var self = this;
   // Wait for any pending persistence change to be resolved.
   return this.waitForReady_(function() {
@@ -420,8 +422,11 @@ fireauth.storage.UserManager.prototype.getCurrentUser =
           // authDomain for the purpose of linking with a popup. The loaded user
           // (stored without the authDomain) must have this field updated with
           // the current authDomain.
-          if (response && opt_authDomain) {
-            response['authDomain'] = opt_authDomain;
+          if (response && authDomain) {
+            response['authDomain'] = authDomain;
+          }
+          if (response && emulatorConfig) {
+            response['emulatorConfig'] = emulatorConfig;
           }
           return fireauth.AuthUser.fromPlainObject(response || {});
         });

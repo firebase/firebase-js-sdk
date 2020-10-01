@@ -1248,6 +1248,103 @@ function testCordovaHandler_processRedirect_success_parallelCalls_tenantId() {
 }
 
 
+function testCordovaHandler_processRedirect_success_withEmulator() {
+  var emulatorConfig = {
+    url: 'http://emulator.test.domain:1234'
+  };
+  return installAndRunTest(
+    'testCordovaHandler_processRedirect_success_withEmulator',
+    function () {
+      var provider = new fireauth.GoogleAuthProvider();
+      // Construct OAuth handler URL.
+      var expectedUrl =
+        fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+          authDomain,
+          apiKey,
+          appName,
+          'linkViaRedirect',
+          provider,
+          null,
+          '1234',
+          version,
+          {
+            apn: 'com.example.app',
+            appDisplayName: 'Test App',
+            sessionId: sha256('11111111111111111111')
+          },
+          // Confirm expected endpoint ID passed.
+          fireauth.constants.Endpoint.STAGING.id,
+          null,
+          emulatorConfig);
+      // Stub this so the session ID generated can be predictable.
+      stubs.replace(
+        Math,
+        'random',
+        function () {
+          return 0;
+        });
+      // Simulate Android environment.
+      stubs.replace(
+        fireauth.util,
+        'getUserAgentString',
+        function () {
+          return androidUA;
+        });
+      var incomingUrl =
+        'http://emulator.test.domain:1234/__/auth/callback#oauthResponse';
+      // Completed event.
+      var completeEvent = new fireauth.AuthEvent(
+        'linkViaRedirect',
+        '1234',
+        incomingUrl,
+        '11111111111111111111');
+      // Initial unknown event.
+      var noEvent = new fireauth.AuthEvent(
+        fireauth.AuthEvent.Type.UNKNOWN,
+        null,
+        null,
+        null,
+        new fireauth.AuthError(fireauth.authenum.Error.NO_AUTH_EVENT));
+      var savedCb = null;
+      // Save the universal link callback on subscription.
+      universalLinks.subscribe = function (eventType, cb) {
+        savedCb = cb;
+      };
+      cordova.plugins.browsertab.openUrl = function (url) {
+        // Confirm expected URL.
+        assertEquals(expectedUrl, url);
+        // On openUrl, simulate completion by triggering the universal link
+        // callback with the OAuth response.
+        savedCb({ url: incomingUrl });
+      };
+      var handler = goog.testing.recordFunction();
+      cordovaHandler = new fireauth.CordovaHandler(
+        authDomain, apiKey, appName, version, 10, undefined,
+        fireauth.constants.Endpoint.STAGING.id, emulatorConfig);
+      cordovaHandler.addAuthEventListener(handler);
+      return cordovaHandler.processRedirect('linkViaRedirect', provider, '1234')
+        .then(function () {
+          // Confirm browsertab close called.
+          assertEquals(1, cordova.plugins.browsertab.close.getCallCount());
+          // Handler triggered twice.
+          assertEquals(2, handler.getCallCount());
+          // First with no event.
+          assertAuthEventEquals(
+            noEvent,
+            handler.getCalls()[0].getArgument(0));
+          // Then with resolved event.
+          assertAuthEventEquals(
+            completeEvent,
+            handler.getLastCall().getArgument(0));
+          // Confirm event deleted from storage.
+          return getAndDeletePartialEventManager.getAuthEvent();
+        }).then(function (event) {
+          assertNull(event);
+        });
+    });
+}
+
+
 function testCordovaHandler_processRedirect_success_ios() {
   return installAndRunTest('processRedirect_success_ios', function() {
     var provider = new fireauth.GoogleAuthProvider();

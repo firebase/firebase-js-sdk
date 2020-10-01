@@ -449,6 +449,12 @@ function tearDown() {
   fireauth.authStorage.Manager.clear();
   currentUserStorageManager = null;
   redirectUserStorageManager = null;
+  if (goog.global.document) {
+    var el = goog.global.document.querySelector('.firebase-emulator-warning');
+    if (el) {
+      el.parentNode.removeChild(el);
+    }
+  }
 }
 
 
@@ -904,8 +910,16 @@ function testUseEmulator() {
     fireauth.RpcHandler.prototype,
     'updateEmulatorConfig',
     goog.testing.recordFunction());
+  stubs.replace(
+    fireauth.util,
+    'consoleWarn',
+    goog.testing.recordFunction());
   var handler = goog.testing.recordFunction();
-
+  stubs.replace(
+    fireauth.AuthSettings.prototype,
+    'setAppVerificationDisabledForTesting',
+    goog.testing.recordFunction());
+  
   app1 = firebase.initializeApp(config1, appId1);
   auth1 = app1.auth();
 
@@ -919,46 +933,57 @@ function testUseEmulator() {
   assertEquals(0, handler.getCallCount());
   assertEquals(
     0, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
+  assertEquals(0, fireauth.util.consoleWarn.getCallCount());
+  assertEquals(
+    0,
+    fireauth.AuthSettings.prototype.setAppVerificationDisabledForTesting.
+      getCallCount());
 
   // Update the emulator config.
   auth1.useEmulator('http://emulator.test.domain:1234');
   assertObjectEquals(
-    auth1.getEmulatorConfig(), {
-    url: 'http://emulator.test.domain:1234',
-  });
+    {
+      url: 'http://emulator.test.domain:1234',
+    },
+    auth1.getEmulatorConfig());
   // Should notify the RPC handler.
   assertEquals(
     1, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
-  assertObjectEquals({
-    url: 'http://emulator.test.domain:1234',
-  },
+  assertObjectEquals(
+    {
+      url: 'http://emulator.test.domain:1234',
+    },
     fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
       .getArgument(0)
   );
+  // Should emit a console warning.
+  assertEquals(1, fireauth.util.consoleWarn.getCallCount());
+  // Should disable App verification.
+  assertEquals(
+    true,
+    fireauth.AuthSettings.prototype.setAppVerificationDisabledForTesting.
+      getLastCall().getArgument(0));
 
   // Update to the same config should not trigger event again.
   auth1.useEmulator('http://emulator.test.domain:1234');
   assertObjectEquals(
-    auth1.getEmulatorConfig(), {
-    url: 'http://emulator.test.domain:1234',
-  });
+    {
+      url: 'http://emulator.test.domain:1234',
+    },
+    auth1.getEmulatorConfig());
   assertEquals(
     1, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
+  assertEquals(1, fireauth.util.consoleWarn.getCallCount());
 
-  // Updating to different config should trigger event.
+  // Updating to different config should still not trigger event.
   auth1.useEmulator('http://emulator.other.domain:9876');
   assertObjectEquals(
-    auth1.getEmulatorConfig(), {
-    url: 'http://emulator.other.domain:9876'
-  });
+    {
+      url: 'http://emulator.test.domain:1234',
+    },
+    auth1.getEmulatorConfig());
   assertEquals(
-    2, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
-  assertObjectEquals({
-    url: 'http://emulator.other.domain:9876',
-  },
-    fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
-      .getArgument(0)
-  );
+    1, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
 }
 
 
@@ -2275,6 +2300,60 @@ function testAuth_authEventManager_withEmulator() {
 }
 
 
+/** Asserts that AuthEventManager can pass through emulator settings. */
+function testAuth_authEventManager_withEmulator() {
+  // Test Auth event manager.
+  fireauth.AuthEventManager.ENABLED = true;
+  stubs.reset();
+  initializeMockStorage();
+  var expectedManager = {
+    'subscribe': goog.testing.recordFunction(),
+    'unsubscribe': goog.testing.recordFunction(),
+    'clearRedirectResult': goog.testing.recordFunction()
+  };
+  // Return stub manager.
+  stubs.replace(
+    fireauth.AuthEventManager,
+    'getManager',
+    function (authDomain, apiKey, appName, emulatorConfig) {
+      assertEquals('subdomain.firebaseapp.com', authDomain);
+      assertEquals('API_KEY', apiKey);
+      assertEquals(appId1, appName);
+      assertObjectEquals(emulatorConfig, {
+        url: 'http://emulator.host:1234'
+      });
+      return expectedManager;
+    });
+  asyncTestCase.waitForSignals(1);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  auth1.useEmulator('http://emulator.host:1234');
+  // Test manager initialized and Auth subscribed.
+  auth1.onIdTokenChanged(function (user) {
+    var manager = fireauth.AuthEventManager.getManager(
+      config3['authDomain'], config3['apiKey'], app1.name, {
+      url: 'http://emulator.host:1234'
+    });
+    assertEquals(expectedManager, manager);
+    assertEquals(0, expectedManager.unsubscribe.getCallCount());
+    assertEquals(1, expectedManager.subscribe.getCallCount());
+    assertEquals(
+      auth1, expectedManager.subscribe.getLastCall().getArgument(0));
+    assertEquals(0, expectedManager.clearRedirectResult.getCallCount());
+    // Delete should trigger unsubscribe and redirect result clearing.
+    auth1.delete();
+    // After destroy, Auth should be unsubscribed.
+    assertEquals(1, expectedManager.subscribe.getCallCount());
+    assertEquals(1, expectedManager.unsubscribe.getCallCount());
+    // Redirect result should also be cleared.
+    assertEquals(1, expectedManager.clearRedirectResult.getCallCount());
+    assertEquals(
+      auth1, expectedManager.unsubscribe.getLastCall().getArgument(0));
+    asyncTestCase.signal();
+  });
+}
+
+
 function testAuth_signout() {
   // Test successful sign out.
   fireauth.AuthEventManager.ENABLED = true;
@@ -2457,6 +2536,71 @@ function testAuth_initState_signedInStatus() {
     // User state change triggered with user.
     auth1.onAuthStateChanged(function(user) {
       assertNotNull(user);
+      asyncTestCase.signal();
+    });
+  });
+}
+
+
+function testAuth_initState_signedInStatus_withEmulator() {
+  // Test init state with previously signed in user.
+  fireauth.AuthEventManager.ENABLED = true;
+  stubs.reset();
+  // Simulate current origin is whitelisted.
+  simulateWhitelistedOrigin();
+  stubs.replace(
+    goog,
+    'now',
+    function () {
+      return now;
+    });
+  initializeMockStorage();
+  // Stub OAuth sign in handler.
+  fakeOAuthSignInHandler();
+  // New loaded user should be reloaded before being set as current user.
+  stubs.replace(
+    fireauth.AuthUser.prototype,
+    'reload',
+    function () {
+      // Access token unchanged, should trigger notifyAuthListeners_.
+      return goog.Promise.resolve();
+    });
+  // Listen to calls on RPC Handler.
+  stubs.replace(
+    fireauth.RpcHandler.prototype,
+    'updateEmulatorConfig',
+    goog.testing.recordFunction(
+      fireauth.RpcHandler.prototype.updateEmulatorConfig));
+  asyncTestCase.waitForSignals(1);
+  // Logged in user to be detected in initState.
+  var user1 = new fireauth.AuthUser(
+    config3, expectedTokenResponse, accountInfo);
+  // Save signed in user to storage.
+  currentUserStorageManager = new fireauth.storage.UserManager(
+    config3['apiKey'] + ':' + appId1);
+  currentUserStorageManager.setCurrentUser(user1).then(function () {
+    app1 = firebase.initializeApp(config3, appId1);
+    auth1 = app1.auth();
+    // Set emulator.
+    auth1.useEmulator('http://emulator.test.domain:1234');
+    // Before init state current user is null.
+    assertNull(auth1['currentUser']);
+    // User state change triggered with user.
+    auth1.onAuthStateChanged(function (user) {
+      // Signed in user should be detected.
+      assertUserEquals(user1, auth1['currentUser']);
+      // Emulator config should propagate to currentUser.
+      assertEquals(
+        3, fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
+      assertEquals(auth1['currentUser'].getRpcHandler(),
+        fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
+          .getThis());
+      assertObjectEquals(
+        {
+          url: 'http://emulator.test.domain:1234'
+        },
+        fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
+          .getArgument(0));
       asyncTestCase.signal();
     });
   });
@@ -4275,6 +4419,57 @@ function testAuth_signInWithIdTokenResponse_newUserDifferentFromCurrent() {
     } else {
       assertEquals(user2['uid'], currentUser['uid']);
     }
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Asserts that a new signed in user gets emulator configuration set correctly.
+ */
+function testAuth_signInWithIdTokenResponse_withEmulator() {
+  // Test signInWithIdTokenResponse returning a new user.
+  fireauth.AuthEventManager.ENABLED = true;
+  stubs.reset();
+  // Simulate current origin is whitelisted.
+  simulateWhitelistedOrigin();
+  stubs.replace(
+    goog,
+    'now',
+    function () {
+      return now;
+    });
+  initializeMockStorage();
+  // Stub OAuth sign in handler.
+  fakeOAuthSignInHandler();
+  // Initialize from ID token response should be called and resolved with the
+  // new signed in user.
+  stubs.replace(
+    fireauth.AuthUser,
+    'initializeFromIdTokenResponse',
+    function (options, idTokenResponse) {
+      // Confirm emulatorConfig set on user's app options.
+      assertObjectEquals(expectedOptions, options);
+      return goog.Promise.resolve(user1);
+    });
+  asyncTestCase.waitForSignals(1);
+  var expectedOptions = Object.assign({}, config3);
+  expectedOptions['emulatorConfig'] = {
+    url: 'http://emulator.test.domain:1234',
+  };
+  // The newly signed in user.
+  var user1 = new fireauth.AuthUser(
+    config3, expectedTokenResponse, accountInfo);
+
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  // Set emulator.
+  auth1.useEmulator('http://emulator.test.domain:1234');
+  // User not logged in yet. Run sign in with ID token response.
+  // The user should be initialized with the emulator config.
+  auth1.signInWithIdTokenResponse(expectedTokenResponse).then(function () {
+    // Current user should be set to user1.
+    assertEquals(user1, auth1['currentUser']);
     asyncTestCase.signal();
   });
 }

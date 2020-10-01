@@ -272,6 +272,19 @@ function testGetManager() {
   assertEquals(
       fireauth.AuthEventManager.getManager(authDomain2, apiKey2, appName2),
       manager2);
+  var emulatorConfig = {
+    url: 'http://emulator.test.domain:1234'
+  };
+  var managerWithEmulator = fireauth.AuthEventManager.getManager(
+      authDomain1, apiKey1, appName1, emulatorConfig);
+  assertEquals(
+      fireauth.AuthEventManager.manager_[
+      fireauth.AuthEventManager.getKey_(apiKey1, appName1)],
+      manager1);
+  assertEquals(
+      fireauth.AuthEventManager.manager_[
+      fireauth.AuthEventManager.getKey_(apiKey1, appName1, emulatorConfig)],
+      managerWithEmulator);
 }
 
 
@@ -286,12 +299,37 @@ function testInstantiateOAuthSignInHandler_ifcHandler() {
   // Confirm expected endpoint used.
   ifcHandlerConstructor(
       authDomain1, apiKey1, appName1, firebase.SDK_VERSION,
-      fireauth.constants.Endpoint.STAGING.id).$returns(ifcHandler);
+      fireauth.constants.Endpoint.STAGING.id, ignoreArgument).$returns(ifcHandler);
   mockControl.$replayAll();
 
   fireauth.AuthEventManager.instantiateOAuthSignInHandler(
         authDomain1, apiKey1, appName1, firebase.SDK_VERSION,
         fireauth.constants.Endpoint.STAGING.id);
+}
+
+
+/** Asserts that emulator config is propagated to ifcHandler. */
+function testInstantiateOAuthSignInHandler_ifcHandler_withEmulator() {
+  // Simulate browser environment.
+  setOAuthSignInHandlerEnvironment(false);
+  // IfcHandler should be instantiated.
+  var ifcHandler = mockControl.createStrictMock(
+    fireauth.iframeclient.IfcHandler);
+  var ifcHandlerConstructor = mockControl.createConstructorMock(
+    fireauth.iframeclient, 'IfcHandler');
+  var emulatorConfig = {
+    url: 'http://emulator.test.domain:1234'
+  };
+  // Confirm expected endpoint used.
+  ifcHandlerConstructor(
+    authDomain1, apiKey1, appName1, firebase.SDK_VERSION,
+    fireauth.constants.Endpoint.STAGING.id,
+    emulatorConfig).$returns(ifcHandler);
+  mockControl.$replayAll();
+
+  fireauth.AuthEventManager.instantiateOAuthSignInHandler(
+    authDomain1, apiKey1, appName1, firebase.SDK_VERSION,
+    fireauth.constants.Endpoint.STAGING.id, emulatorConfig);
 }
 
 
@@ -306,7 +344,7 @@ function testInstantiateOAuthSignInHandler_cordovaHandler() {
   // Confirm expected endpoint used.
   cordovaHandlerConstructor(
       authDomain1, apiKey1, appName1, firebase.SDK_VERSION, undefined,
-      undefined, fireauth.constants.Endpoint.STAGING.id)
+      undefined, fireauth.constants.Endpoint.STAGING.id, ignoreArgument)
       .$returns(cordovaHandler);
   mockControl.$replayAll();
 
@@ -315,6 +353,30 @@ function testInstantiateOAuthSignInHandler_cordovaHandler() {
         fireauth.constants.Endpoint.STAGING.id);
 }
 
+
+/** Asserts that emulator config is propagated to cordovaHandler. */
+function testInstantiateOAuthSignInHandler_cordovaHandler_withEmulator() {
+  // Simulate Cordova environment
+  setOAuthSignInHandlerEnvironment(true);
+  // CordovaHandler should be instantiated.
+  var cordovaHandler = mockControl.createStrictMock(
+    fireauth.CordovaHandler);
+  var cordovaHandlerConstructor = mockControl.createConstructorMock(
+    fireauth, 'CordovaHandler');
+  var emulatorConfig = {
+    url: 'http://emulator.test.domain:1234'
+  };
+  // Confirm expected endpoint used.
+  cordovaHandlerConstructor(
+    authDomain1, apiKey1, appName1, firebase.SDK_VERSION, undefined,
+    undefined, fireauth.constants.Endpoint.STAGING.id, emulatorConfig)
+    .$returns(cordovaHandler);
+  mockControl.$replayAll();
+
+  fireauth.AuthEventManager.instantiateOAuthSignInHandler(
+    authDomain1, apiKey1, appName1, firebase.SDK_VERSION,
+    fireauth.constants.Endpoint.STAGING.id, emulatorConfig);
+}
 
 
 function testAuthEventManager_initialize_manually_withSubscriber() {
@@ -390,6 +452,48 @@ function testAuthEventManager_initialize_manually_withNoSubscriber() {
   // This will return the above cached response and should not try to
   // initialize a new handler.
   manager.initialize().then(function() {
+    assertTrue(isReady);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testAuthEventManager_initialize_manually_withEmulator() {
+  var expectedEmulatorConfig = {
+    url: 'http://emulator.test.domain:1234'
+  };
+  var expectedAuthEvent = new fireauth.AuthEvent(
+    'linkViaPopup', '1234', 'http://www.example.com/#response', 'SESSION_ID');
+  var isReady = false;
+  // This test is not environment specific.
+  stubs.replace(
+    fireauth.AuthEventManager,
+    'instantiateOAuthSignInHandler',
+    function (authDomain, apiKey, appName, version, endpoint, emulatorConfig) {
+      assertEquals('subdomain1.firebaseapp.com', authDomain);
+      assertEquals('API_KEY1', apiKey);
+      assertEquals('APP1', appName);
+      assertEquals(firebase.SDK_VERSION, version);
+      assertUndefined(endpoint);
+      assertObjectEquals(emulatorConfig, expectedEmulatorConfig);
+      isReady = true;
+      return {
+        'addAuthEventListener': function (handler) {
+          handler(expectedAuthEvent);
+        },
+        'initializeAndWait': function () { return goog.Promise.resolve(); },
+        'shouldBeInitializedEarly': function () {
+          return false;
+        },
+        'hasVolatileStorage': function () {
+          return false;
+        }
+      };
+    });
+  asyncTestCase.waitForSignals(1);
+  var manager = fireauth.AuthEventManager.getManager(
+    authDomain1, apiKey1, appName1, expectedEmulatorConfig);
+  manager.initialize().then(function () {
     assertTrue(isReady);
     asyncTestCase.signal();
   });

@@ -104,8 +104,8 @@ fireauth.iframeclient.IframeUrlBuilder = function(authDomain, apiKey, appName, e
       null);
   }
   /**
-  * @private @const {!goog.Uri} The URI object used to build the iframe URL.
-  */
+   * @private @const {!goog.Uri} The URI object used to build the iframe URL.
+   */
   this.uri_ = uri;
   this.uri_.setParameterValue('apiKey', this.apiKey_);
   this.uri_.setParameterValue('appName', this.appName_);
@@ -774,6 +774,9 @@ fireauth.iframeclient.IfcHandler.prototype.getRpcHandler_ = function() {
         // Get the client Auth endpoint used.
         fireauth.constants.getEndpointConfig(this.endpointId_),
         this.fullClientVersion_);
+    if (this.emulatorConfig_) {
+        this.rpcHandler_.updateEmulatorConfig(this.emulatorConfig_);
+    }
   }
   return this.rpcHandler_;
 };

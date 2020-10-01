@@ -1194,7 +1194,7 @@ function testRequestStsToken_emulator() {
   // Set an emulator config.
   rpcHandler.updateEmulatorConfig(
     { url: 'http://emulator.test.domain:1234' });
-  // Send STS token request, default config will be used.
+  // Send STS token request, emulator config will be used.
   rpcHandler
     .requestStsToken({ 'grant_type': 'authorization_code', 'code': 'idToken' })
     .then(function (response) {

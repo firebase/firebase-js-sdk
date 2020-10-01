@@ -351,10 +351,10 @@ fireauth.AuthUser.prototype.setLanguageCodeChangeDispatcher =
 
 
 /**
-* Listens to emulator config changes triggered by the provided dispatcher.
-* @param {?goog.events.EventTarget} dispatcher The emulator config changed
-*     event dispatcher.
-*/
+  * Listens to emulator config changes triggered by the provided dispatcher.
+  * @param {?goog.events.EventTarget} dispatcher The emulator config changed
+  *     event dispatcher.
+  */
 fireauth.AuthUser.prototype.setEmulatorConfigChangeDispatcher = function(dispatcher) {
   // Remove any previous listener.
   if (this.emulatorConfigChangeEventDispatcher_) {
@@ -367,7 +367,7 @@ fireauth.AuthUser.prototype.setEmulatorConfigChangeDispatcher = function(dispatc
   this.emulatorConfigChangeEventDispatcher_ = dispatcher;
   // Using an event listener makes it easy for non-currentUsers to detect
   // emulator changes on the parent Auth instance. A developer could still
-  // call APIs that require localization on signed out user references.
+  // call APIs that require emulation on signed out user references.
   if (dispatcher) {
     goog.events.listen(
       dispatcher, fireauth.constants.AuthEventType.EMULATOR_CONFIG_CHANGED,
@@ -2423,7 +2423,8 @@ fireauth.AuthUser.fromPlainObject = function(user) {
   var options = {
     'apiKey': user['apiKey'],
     'authDomain': user['authDomain'],
-    'appName': user['appName']
+    'appName': user['appName'],
+    'emulatorConfig': user['emulatorConfig']
   };
   // Convert to server response format. Constructor does not take
   // stsTokenManager toPlainObject as that format is different than the return

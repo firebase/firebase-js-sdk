@@ -437,10 +437,10 @@ fireauth.RpcHandler.prototype.updateCustomLocaleHeader =
 
 
 /**
-* Updates the emulator configuration.
-* @param {?fireauth.constants.EmulatorSettings} emulatorConfig The new
-*     emulator config.
-*/
+ * Updates the emulator configuration.
+ * @param {?fireauth.constants.EmulatorSettings} emulatorConfig The new
+ *     emulator config.
+ */
 fireauth.RpcHandler.prototype.updateEmulatorConfig = function(emulatorConfig) {
   if (!emulatorConfig) {
     return;
@@ -457,24 +457,21 @@ fireauth.RpcHandler.prototype.updateEmulatorConfig = function(emulatorConfig) {
       fireauth.RpcHandler.IDENTITY_PLATFORM_ENDPOINT_, emulatorConfig);
 }
 
-
-/**
- * Creates an endpoint URL intended for use by the emulator.
- *
- * According to go/firebase-auth-emulator-dd
- * @param {string} endpoint the production endpoint URL.
- * @param {?fireauth.constants.EmulatorSettings} emulatorConfig The emulator
- *     config.
- * @return {string} The emulator endpoint URL.
- * @private
- */
+  /**
+   * Creates an endpoint URL intended for use by the emulator.
+   * @param {string} endpoint the production endpoint URL.
+   * @param {?fireauth.constants.EmulatorSettings} emulatorConfig The emulator
+   *     config.
+   * @return {string} The emulator endpoint URL.
+   * @private
+   */
 fireauth.RpcHandler.generateEmululatorEndpointUrl_ = function(endpoint, emulatorConfig) {
   const uri = goog.Uri.parse(endpoint);
-  const endpointUri = goog.Uri.parse(emulatorConfig.url);
+  const emulatorUri = goog.Uri.parse(emulatorConfig.url);
   uri.setPath(uri.getDomain() + uri.getPath());
-  uri.setScheme(endpointUri.getScheme());
-  uri.setDomain(endpointUri.getDomain());
-  uri.setPort(endpointUri.getPort());
+  uri.setScheme(emulatorUri.getScheme());
+  uri.setDomain(emulatorUri.getDomain());
+  uri.setPort(emulatorUri.getPort());
   return uri.toString();
 }
 

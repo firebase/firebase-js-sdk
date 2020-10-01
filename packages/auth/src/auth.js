@@ -294,30 +294,57 @@ fireauth.Auth.prototype.useDeviceLanguage = function() {
 
 /**
  * Sets the emulator configuration (go/firebase-emulator-connection-api).
-  /**
-   * Sets the emulator configuration (go/firebase-emulator-connection-api).
-   * @param {string} url The url for the Auth emulator.
-   */
+ * @param {string} url The url for the Auth emulator.
+ */
 fireauth.Auth.prototype.useEmulator = function(url) {
-  // Don't do anything if no change detected.
-  if (!this.emulatorConfig_ || url !== this.emulatorConfig_.url) {
-    console.warn("WARNING: You are using the Auth Emulator, which is" +
-      " intended for local testing only.  Do not use with" +
-      " production credentials.");
-    this.emulatorConfig_ = { url: url };
+  // Emulator config can only be set once.
+  if (!this.emulatorConfig_) {
+    // Emit a warning so dev knows we are now in test mode.
+    this.emitEmulatorWarning_();
+    // Persist the config.
+    this.emulatorConfig_ = { url };
     // Disable app verification.
-    this.settings_().setAppVerificationDisabledForTesting(true);
-    // Update custom Firebase locale field.
+    this.settings.setAppVerificationDisabledForTesting(true);
+    // Update RPC handler endpoints.
     this.rpcHandler_.updateEmulatorConfig(this.emulatorConfig_);
-    // Notify external language code change listeners.
+    // Notify external event listeners.
     this.notifyEmulatorConfigListeners_();
   }
 }
 
+
+/**
+ * Emits a console warning and a visual banner if emulator integration is
+ * enabled.
+ */
+fireauth.Auth.prototype.emitEmulatorWarning_ = function() {
+  fireauth.util.consoleWarn('WARNING: You are using the Auth Emulator,' +
+    ' which is intended for local testing only.  Do not use with' +
+    ' production credentials.');
+  if (goog.global.document) {
+    const ele = goog.global.document.createElement('p');
+    ele.innerText = 'Running in emulator mode. Do not use with production' +
+      ' credentials.';
+    ele.style.position = 'fixed';
+    ele.style.width = '100%';
+    ele.style.backgroundColor = '#ffffff';
+    ele.style.border = '.1em solid #000000';
+    ele.style.color = '#ff0000';
+    ele.style.bottom = '0px';
+    ele.style.left = '0px';
+    ele.style.margin = '0px';
+    ele.style.zIndex = 10000;
+    ele.style.textAlign = 'center';
+    ele.classList.add('firebase-emulator-warning');
+    goog.global.document.body.appendChild(ele);
+  }
+}
+
+
 /**
  * @return {?fireauth.constants.EmulatorSettings}
  */
-fireauth.Auth.prototype.getEmulatorConfig = function () {
+fireauth.Auth.prototype.getEmulatorConfig = function() {
   return this.emulatorConfig_;
 }
 
@@ -451,7 +478,7 @@ fireauth.Auth.prototype.notifyLanguageCodeListeners_ = function() {
  * @private
  */
 fireauth.Auth.prototype.notifyEmulatorConfigListeners_ = function() {
-  // Notify external listeners on the language code change.
+  // Notify external listeners on the emulator config change.
   this.dispatchEvent(
     new fireauth.Auth.EmulatorConfigChangeEvent(this.emulatorConfig_));
 }
@@ -877,7 +904,6 @@ fireauth.Auth.prototype.updateCurrentUser = function(user) {
   options['apiKey'] = this.app_().options['apiKey'];
   options['authDomain'] = this.app_().options['authDomain'];
   options['appName'] = this.app_().name;
-  options['emulatorConfig'] = this.emulatorConfig_;
   var newUser = fireauth.AuthUser.copyUser(user, options,
       self.redirectUserStorageManager_, self.getFramework());
   return this.registerPendingPromise_(
@@ -922,7 +948,9 @@ fireauth.Auth.prototype.signInWithIdTokenResponse =
   options['apiKey'] = self.app_().options['apiKey'];
   options['authDomain'] = self.app_().options['authDomain'];
   options['appName'] = self.app_().name;
-  options['emulatorConfig'] = self.emulatorConfig_;
+  if (self.emulatorConfig_) {
+      options['emulatorConfig'] = self.emulatorConfig_;
+  }
   // Wait for state to be ready.
   // This is used internally and is also used for redirect sign in so there is
   // no need for waiting for redirect result to resolve since redirect result
@@ -1071,7 +1099,7 @@ fireauth.Auth.prototype.initAuthState_ = function() {
   var p = this.initRedirectUser_().then(function() {
     // Override user's authDomain with app's authDomain if there is a mismatch.
     return /** @type {!fireauth.storage.UserManager} */ (
-        self.userStorageManager_).getCurrentUser(authDomain);
+      self.userStorageManager_).getCurrentUser(authDomain, self.emulatorConfig_);
   }).then(function(user) {
     // Logged in user.
     if (user) {
@@ -1763,17 +1791,6 @@ fireauth.Auth.prototype.getStorageKey = function() {
 fireauth.Auth.prototype.app_ = function() {
   return this['app'];
 };
-
-
-
-/**
- * @return {!fireauth.AuthSettings} The AuthSettings object this auth object
- *   is connected to.
- * @private
- */
-fireauth.Auth.prototype.settings_ = function() {
-  return this['settings'];
-}
 
 
 /**

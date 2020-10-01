@@ -190,7 +190,13 @@ function testGetSetRemoveCurrentUser() {
   expectedUser = new fireauth.AuthUser(config, tokenResponse, accountInfo);
   // Expected user with authDomain.
   expectedUserWithAuthDomain =
-      new fireauth.AuthUser(configWithAuthDomain, tokenResponse, accountInfo);
+    new fireauth.AuthUser(configWithAuthDomain, tokenResponse, accountInfo);
+  // Listen to calls on RPC Handler.
+  stubs.replace(
+    fireauth.RpcHandler.prototype,
+    'updateEmulatorConfig',
+    goog.testing.recordFunction(
+      fireauth.RpcHandler.prototype.updateEmulatorConfig));
   var storageKey = 'firebase:authUser:appId1';
   return goog.Promise.resolve()
       .then(function() {
@@ -210,7 +216,23 @@ function testGetSetRemoveCurrentUser() {
       })
       .then(function(user) {
         fireauth.common.testHelper.assertUserEquals(
-            expectedUserWithAuthDomain, user);
+          expectedUserWithAuthDomain, user);
+        // Get user with authDomain & emulator config.
+        return userManager.getCurrentUser('project.firebaseapp.com',
+          {
+            url: 'http://emulator.test.domain:1234'
+          });
+      })
+    .then(function () {
+      // Verify RpcHandler was notified of config change.
+      assertEquals(1,
+        fireauth.RpcHandler.prototype.updateEmulatorConfig.getCallCount());
+      assertObjectEquals(
+        {
+          url: 'http://emulator.test.domain:1234'
+        },
+        fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
+          .getArgument(0));
         return userManager.removeCurrentUser();
       })
       .then(function() {
