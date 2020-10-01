@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import rollup from 'rollup';
+import * as rollup from 'rollup';
 import resolve, { Options } from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 // @ts-ignore
@@ -26,6 +26,7 @@ import webpack from 'webpack';
 import virtualModulesPlugin from 'webpack-virtual-modules';
 import { createFsFromVolume, Volume } from 'memfs';
 import path from 'path';
+import { projectRoot } from './util';
 
 /**
  *
@@ -74,15 +75,18 @@ export async function bundleWithWebpack(
   fileContent: string,
   moduleDirectory?: string
 ): Promise<string> {
-  const entryFileName = '/haha/something.js';
+  const entryFileName = '/virtual_path_to_in_memory_file/index.js';
   const outputFileName = 'o.js';
 
-  let resolveConfig: webpack.Resolve | undefined;
+  let resolveConfig: webpack.Resolve = {
+    mainFields: ['esm2017', 'module', 'main']
+  };
 
   if (moduleDirectory) {
-    resolveConfig = {
-      modules: [moduleDirectory]
-    };
+    resolveConfig.modules = [moduleDirectory];
+  } else {
+    // local mode
+    resolveConfig.modules = [`${projectRoot}/node_modules`];
   }
 
   const compiler = webpack({
@@ -110,7 +114,7 @@ export async function bundleWithWebpack(
         return;
       }
 
-      // Hack to get string output without reading the output file  using an internal API from webpack
+      // Hack to get string output without reading the output file using an internal API from webpack
       res(stats.compilation.assets[outputFileName]._value);
     });
   });

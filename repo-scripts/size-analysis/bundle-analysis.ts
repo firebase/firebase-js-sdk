@@ -42,7 +42,7 @@ interface BundleDefinition {
 }
 
 interface BundleDependency {
-  packageName: string; // TODO: support local packages
+  packageName: string;
   /**
    * npm version or tag
    */

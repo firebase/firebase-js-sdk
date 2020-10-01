@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import calculateGzipSize from 'gzip-size';
+import { dirname, resolve } from 'path';
 
 interface ContentSize {
   size: number;
@@ -29,3 +30,5 @@ export function calculateContentSize(content: string): ContentSize {
     gzipSize
   };
 }
+
+export const projectRoot = dirname(resolve(__dirname, '../../package.json'));
