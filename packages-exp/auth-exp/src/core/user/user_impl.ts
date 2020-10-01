@@ -232,7 +232,7 @@ export class UserImpl implements User {
       emailVerified,
       isAnonymous,
       providerData,
-      stsTokenManager: plainObjectTokenManager,
+      stsTokenManager: plainObjectTokenManager
     } = object;
 
     assert(uid && plainObjectTokenManager, AuthErrorCode.INTERNAL_ERROR, {
