@@ -357,15 +357,18 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
-    if (this._isInitialized) {
-      const cb =
-        typeof nextOrObserver === 'function'
-          ? nextOrObserver
-          : nextOrObserver.next;
-      // The callback needs to be called asynchronously per the spec.
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      Promise.resolve().then(() => cb(this.currentUser));
-    }
+    const cb =
+      typeof nextOrObserver === 'function'
+        ? nextOrObserver
+        : nextOrObserver.next;
+
+    const promise = this._isInitialized
+      ? Promise.resolve()
+      : this._initializationPromise;
+    assert(promise, AuthErrorCode.INTERNAL_ERROR, { appName: this.name });
+    // The callback needs to be called asynchronously per the spec.
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    promise.then(() => cb(this.currentUser));
 
     if (typeof nextOrObserver === 'function') {
       return subscription.addObserver(nextOrObserver, error, completed);
