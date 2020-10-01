@@ -16,7 +16,7 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "build": "rollup -c",
+    "build": "rollup -c && yarn api-report",
     "build:deps": "lerna run --scope @firebase/auth-exp --include-dependencies build",
     "build:release": "rollup -c rollup.config.release.js",
     "dev": "rollup -c -w",
@@ -29,7 +29,11 @@
     "test:browser:debug": "karma start --auto-watch",
     "test:browser:unit:debug": "karma start --auto-watch --unit",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'src/!(platform_browser|platform_react_native)/**/*.test.ts' --file index.node.ts --config ../../config/mocharc.node.js",
-    "prepare": "rollup -c rollup.config.release.js"
+    "prepare": "rollup -c rollup.config.release.js",
+    "api-report": "api-extractor run --local --verbose",
+    "predoc": "node ../../scripts/exp/remove-exp.js temp",
+    "doc": "api-documenter markdown --input temp --output docs",
+    "build:doc": "yarn build && yarn doc"
   },
   "peerDependencies": {
     "@firebase/app-exp": "0.x",
