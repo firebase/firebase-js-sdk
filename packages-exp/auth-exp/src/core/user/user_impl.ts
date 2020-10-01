@@ -219,20 +219,20 @@ export class UserImpl implements User {
   }
 
   static _fromJSON(auth: Auth, object: PersistedBlob): User {
+    const displayName = object.displayName ?? undefined;
+    const email = object.email ?? undefined;
+    const phoneNumber = object.phoneNumber ?? undefined;
+    const photoURL = object.photoURL ?? undefined;
+    const tenantId = object.tenantId ?? undefined;
+    const _redirectEventId = object._redirectEventId ?? undefined;
+    const createdAt = object.createdAt ?? undefined;
+    const lastLoginAt = object.lastLoginAt ?? undefined;
     const {
       uid,
-      email,
       emailVerified,
-      displayName,
       isAnonymous,
-      photoURL,
-      phoneNumber,
-      tenantId,
       providerData,
       stsTokenManager: plainObjectTokenManager,
-      _redirectEventId,
-      createdAt,
-      lastLoginAt
     } = object;
 
     assert(uid && plainObjectTokenManager, AuthErrorCode.INTERNAL_ERROR, {
