@@ -15,55 +15,12 @@
  * limitations under the License.
  */
 
-import * as rollup from 'rollup';
-import resolve, { Options } from 'rollup-plugin-node-resolve';
-import commonjs from 'rollup-plugin-commonjs';
-// @ts-ignore
-import virtual from '@rollup/plugin-virtual';
-
 import webpack from 'webpack';
 // @ts-ignore
 import virtualModulesPlugin from 'webpack-virtual-modules';
 import { createFsFromVolume, Volume } from 'memfs';
 import path from 'path';
 import { projectRoot } from './util';
-
-/**
- *
- * @param fileContent
- * @param moduleDirectory - the path to the node_modules folder of the temporary project in npm mode.
- *                          undefined in local mode
- */
-export async function bundleWithRollup(
-  fileContent: string,
-  moduleDirectory?: string
-): Promise<string> {
-  const resolveOptions: Options = {
-    mainFields: ['esm2017', 'module', 'main']
-  };
-
-  if (moduleDirectory) {
-    resolveOptions.customResolveOptions = {
-      moduleDirectory
-    };
-  }
-
-  const bundle = await rollup.rollup({
-    input: 'entry',
-    plugins: [
-      virtual({
-        entry: fileContent
-      }),
-      resolve(resolveOptions),
-      commonjs()
-    ]
-  });
-
-  const { output } = await bundle.generate({
-    format: 'es'
-  });
-  return output[0].code;
-}
 
 /**
  *
@@ -103,6 +60,7 @@ export async function bundleWithWebpack(
     mode: 'production'
   });
 
+  // use virtual file system for output to save on I/O
   const fs = getMemoryFileSystem();
   (fs as any).join = path.join.bind(path);
   compiler.outputFileSystem = (fs as unknown) as webpack.OutputFileSystem;
