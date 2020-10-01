@@ -227,72 +227,99 @@ async function analyzeBundle(
     name: bundleDefinition.name,
     results: []
   };
+
+  let moduleDirectory: string | undefined;
+  let tmpDir: tmp.DirResult | undefined;
+  if (mode === Mode.Npm) {
+    tmpDir = await setupTempProject(bundleDefinition);
+    moduleDirectory = `${tmpDir.name}/node_modules`;
+  }
+
+  const entryFileContent = createEntryFileContent(bundleDefinition);
+
   switch (bundler) {
     case Bundler.Rollup:
     case Bundler.Webpack:
       analysis.results.push(
-        await analyzeBundleWithBundler(bundleDefinition, bundler, mode)
+        await analyzeBundleWithBundler(
+          entryFileContent,
+          bundler,
+          moduleDirectory
+        )
       );
       break;
     case Bundler.Both:
       analysis.results.push(
-        await analyzeBundleWithBundler(bundleDefinition, Bundler.Rollup, mode)
+        await analyzeBundleWithBundler(
+          entryFileContent,
+          Bundler.Rollup,
+          moduleDirectory
+        )
       );
       analysis.results.push(
-        await analyzeBundleWithBundler(bundleDefinition, Bundler.Webpack, mode)
+        await analyzeBundleWithBundler(
+          entryFileContent,
+          Bundler.Webpack,
+          moduleDirectory
+        )
       );
       break;
     default:
       throw new Error('impossible!');
   }
 
+  if (tmpDir) {
+    tmpDir.removeCallback();
+  }
+
   return analysis;
 }
 
-async function analyzeBundleWithBundler(
-  bundleDefinition: BundleDefinition,
-  bundler: Exclude<Bundler, 'both'>,
-  mode: Mode
-): Promise<BundleAnalysisResult> {
-  let moduleDirectory: string | undefined;
-  let tmpDir: tmp.DirResult | undefined;
+/**
+ * Create a temp project and install dependencies the bundleDefinition defines
+ * @returns - the path to the temp project
+ */
+async function setupTempProject(
+  bundleDefinition: BundleDefinition
+): Promise<tmp.DirResult> {
   /// set up a temporary project to install dependencies
-  if (mode === Mode.Npm) {
-    tmpDir = tmp.dirSync({ unsafeCleanup: true });
-    console.log(tmpDir.name);
-    // create package.json
-    const pkgJson: {
-      name: string;
-      version: string;
-      dependencies: Record<string, string>;
-    } = {
-      name: 'size-analysis',
-      version: '0.0.0',
-      dependencies: {
-        [bundler]: 'latest'
-      }
-    };
+  const tmpDir = tmp.dirSync({ unsafeCleanup: true });
+  console.log(tmpDir.name);
+  // create package.json
+  const pkgJson: {
+    name: string;
+    version: string;
+    dependencies: Record<string, string>;
+  } = {
+    name: 'size-analysis',
+    version: '0.0.0',
+    dependencies: {}
+  };
 
-    for (const dep of bundleDefinition.dependencies) {
-      pkgJson.dependencies[dep.packageName] = dep.versionOrTag;
-    }
-
-    writeFileSync(
-      `${tmpDir.name}/package.json`,
-      `${JSON.stringify(pkgJson, null, 2)}\n`,
-      { encoding: 'utf-8' }
-    );
-
-    // install dependencies
-    await spawn('npm', ['install'], {
-      cwd: tmpDir.name,
-      stdio: 'inherit'
-    });
-
-    moduleDirectory = `${tmpDir.name}/node_modules`;
+  for (const dep of bundleDefinition.dependencies) {
+    pkgJson.dependencies[dep.packageName] = dep.versionOrTag;
   }
 
-  const entryFileContent = createEntryFileContent(bundleDefinition);
+  writeFileSync(
+    `${tmpDir.name}/package.json`,
+    `${JSON.stringify(pkgJson, null, 2)}\n`,
+    { encoding: 'utf-8' }
+  );
+
+  // install dependencies
+  await spawn('npm', ['install'], {
+    cwd: tmpDir.name,
+    stdio: 'inherit'
+  });
+
+  return tmpDir;
+}
+
+async function analyzeBundleWithBundler(
+  entryFileContent: string,
+  bundler: Exclude<Bundler, 'both'>,
+  moduleDirectory?: string
+): Promise<BundleAnalysisResult> {
   let bundledContent = '';
 
   // bundle using bundlers
@@ -304,10 +331,6 @@ async function analyzeBundleWithBundler(
 
   const minifiedBundle = await minify(bundledContent);
   const { size, gzipSize } = calculateContentSize(minifiedBundle);
-
-  if (tmpDir) {
-    tmpDir.removeCallback();
-  }
 
   return {
     bundler,
