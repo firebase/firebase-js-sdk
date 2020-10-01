@@ -10,7 +10,10 @@
 |  --- | --- |
 |  [@firebase/app](./app.md) | Firebase App |
 |  [@firebase/app-types](./app-types.md) |  |
-|  [@firebase/firestore](./firestore.md) |  |
 |  [@firebase/functions](./functions.md) |  |
 |  [@firebase/functions-types](./functions-types.md) |  |
+|  [@firebase/installations](./installations.md) |  |
+|  [@firebase/installations-types](./installations-types.md) |  |
+|  [@firebase/performance](./performance.md) |  |
+|  [@firebase/performance-types](./performance-types.md) |  |
 
