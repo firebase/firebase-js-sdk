@@ -129,7 +129,6 @@ describe('Testing Module Tests', function () {
       auth_time: 0,
       sub: 'alice',
       user_id: 'alice',
-      provider_id: 'custom',
       firebase: {
         sign_in_provider: 'custom',
         identities: {}
