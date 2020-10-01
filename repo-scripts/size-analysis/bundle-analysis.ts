@@ -18,7 +18,7 @@ import * as tmp from 'tmp';
 import { existsSync, lstatSync, readFileSync, writeFileSync } from 'fs';
 import { spawn } from 'child-process-promise';
 import { ordinal } from '@firebase/util';
-import { bundleWithRollup } from './bundle';
+import { bundleWithRollup, bundleWithWebpack } from './bundle';
 import { calculateContentSize } from './util';
 import { minify } from './minify';
 
@@ -291,31 +291,31 @@ async function analyzeBundleWithBundler(
     moduleDirectory = `${tmpDir.name}/node_modules`;
   }
 
-  const bundleContent = createBundleContent(bundleDefinition);
-  let result: BundleAnalysisResult;
-  if (bundler === Bundler.Rollup) {
-    console.log(moduleDirectory);
-    const bundle = await bundleWithRollup(bundleContent, moduleDirectory);
-    const minifiedBundle = await minify(bundle);
-    const { size, gzipSize } = calculateContentSize(minifiedBundle);
+  const entryFileContent = createEntryFileContent(bundleDefinition);
+  let bundledContent = '';
 
-    result = {
-      bundler,
-      size,
-      gzipSize
-    };
+  // bundle using bundlers
+  if (bundler === Bundler.Rollup) {
+    bundledContent = await bundleWithRollup(entryFileContent, moduleDirectory);
   } else {
-    throw new Error('not implemented');
+    bundledContent = await bundleWithWebpack(entryFileContent, moduleDirectory);
   }
+
+  const minifiedBundle = await minify(bundledContent);
+  const { size, gzipSize } = calculateContentSize(minifiedBundle);
 
   if (tmpDir) {
     tmpDir.removeCallback();
   }
 
-  return result;
+  return {
+    bundler,
+    size,
+    gzipSize
+  };
 }
 
-function createBundleContent(bundleDefinition: BundleDefinition): string {
+function createEntryFileContent(bundleDefinition: BundleDefinition): string {
   const contentArray = [];
   for (const dep of bundleDefinition.dependencies) {
     for (const imp of dep.imports) {

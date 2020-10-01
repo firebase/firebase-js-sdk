@@ -15,11 +15,17 @@
  * limitations under the License.
  */
 
-import * as rollup from 'rollup';
+import rollup from 'rollup';
 import resolve, { Options } from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 // @ts-ignore
 import virtual from '@rollup/plugin-virtual';
+
+import webpack from 'webpack';
+// @ts-ignore
+import virtualModulesPlugin from 'webpack-virtual-modules';
+import { createFsFromVolume, Volume } from 'memfs';
+import path from 'path';
 
 /**
  *
@@ -58,6 +64,58 @@ export async function bundleWithRollup(
   return output[0].code;
 }
 
-export async function bundleWithWebpack(fileContent: string): Promise<string> {
-  throw new Error('not implemented!');
+/**
+ *
+ * @param fileContent
+ * @param moduleDirectory - the path to the node_modules folder of the temporary project in npm mode.
+ *                          undefined in local mode
+ */
+export async function bundleWithWebpack(
+  fileContent: string,
+  moduleDirectory?: string
+): Promise<string> {
+  const entryFileName = '/haha/something.js';
+  const outputFileName = 'o.js';
+
+  let resolveConfig: webpack.Resolve | undefined;
+
+  if (moduleDirectory) {
+    resolveConfig = {
+      modules: [moduleDirectory]
+    };
+  }
+
+  const compiler = webpack({
+    entry: entryFileName,
+    output: {
+      filename: outputFileName
+    },
+    resolve: resolveConfig,
+    plugins: [
+      new virtualModulesPlugin({
+        [entryFileName]: fileContent
+      })
+    ],
+    mode: 'production'
+  });
+
+  const fs = getMemoryFileSystem();
+  (fs as any).join = path.join.bind(path);
+  compiler.outputFileSystem = (fs as unknown) as webpack.OutputFileSystem;
+
+  return new Promise<string>((res, rej) => {
+    compiler.run((err, stats) => {
+      if (err) {
+        rej(err);
+        return;
+      }
+
+      // Hack to get string output without reading the output file  using an internal API from webpack
+      res(stats.compilation.assets[outputFileName]._value);
+    });
+  });
+}
+
+function getMemoryFileSystem() {
+  return createFsFromVolume(new Volume());
 }
