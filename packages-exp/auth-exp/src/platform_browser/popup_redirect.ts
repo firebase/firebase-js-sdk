@@ -70,7 +70,7 @@ interface ManagerOrPromise {
  * is directly passed in), and falls back to the property set on the auth
  * object. If neither are available, this function errors w/ an argument error.
  */
-export function _resolverOrError(
+export function _withDefaultResolver(
   auth: Auth,
   resolverOverride: externs.PopupRedirectResolver | undefined
 ): PopupRedirectResolver {

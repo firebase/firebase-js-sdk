@@ -30,7 +30,7 @@ import {
   PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { User } from '../../model/user';
-import { _resolverOrError } from '../popup_redirect';
+import { _withDefaultResolver } from '../popup_redirect';
 import { AuthPopup } from '../util/popup';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 
@@ -48,7 +48,7 @@ export async function signInWithPopup(
     appName: auth.name
   });
 
-  const resolver = _resolverOrError(auth, resolverExtern);
+  const resolver = _withDefaultResolver(auth, resolverExtern);
   const action = new PopupOperation(
     auth,
     AuthEventType.SIGN_IN_VIA_POPUP,
@@ -68,7 +68,7 @@ export async function reauthenticateWithPopup(
     appName: user.auth.name
   });
 
-  const resolver = _resolverOrError(user.auth, resolverExtern);
+  const resolver = _withDefaultResolver(user.auth, resolverExtern);
   const action = new PopupOperation(
     user.auth,
     AuthEventType.REAUTH_VIA_POPUP,
@@ -89,7 +89,7 @@ export async function linkWithPopup(
     appName: user.auth.name
   });
 
-  const resolver = _resolverOrError(user.auth, resolverExtern);
+  const resolver = _withDefaultResolver(user.auth, resolverExtern);
 
   const action = new PopupOperation(
     user.auth,
