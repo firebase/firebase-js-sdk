@@ -53,6 +53,7 @@ import {
   reauthenticateWithRedirect,
   signInWithRedirect
 } from './redirect';
+import { FirebaseError } from '@firebase/util';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -98,6 +99,24 @@ describe('src/core/strategies/redirect', () => {
         AuthEventType.SIGN_IN_VIA_REDIRECT
       );
     });
+
+    it('redirects the window with auth fallback resolver', async () => {
+      const spy = sinon.spy(
+        _getInstance<PopupRedirectResolver>(resolver),
+        '_openRedirect'
+      );
+      await signInWithRedirect(auth, provider);
+      expect(spy).to.have.been.calledWith(
+        auth,
+        provider,
+        AuthEventType.SIGN_IN_VIA_REDIRECT
+      );
+    });
+
+    it('errors if no resolver available', async () => {
+      auth._popupRedirectResolver = null;
+      await expect(signInWithRedirect(auth, provider)).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
+    });
   });
 
   context('linkWithRedirect', () => {
@@ -120,6 +139,24 @@ describe('src/core/strategies/redirect', () => {
         provider,
         AuthEventType.LINK_VIA_REDIRECT
       );
+    });
+
+    it('redirects the window with auth fallback resolver', async () => {
+      const spy = sinon.spy(
+        _getInstance<PopupRedirectResolver>(resolver),
+        '_openRedirect'
+      );
+      await linkWithRedirect(user, provider);
+      expect(spy).to.have.been.calledWith(
+        auth,
+        provider,
+        AuthEventType.LINK_VIA_REDIRECT
+      );
+    });
+
+    it('errors if no resolver available', async () => {
+      auth._popupRedirectResolver = null;
+      await expect(linkWithRedirect(user, provider)).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
     });
 
     it('persists the redirect user and current user', async () => {
@@ -178,6 +215,24 @@ describe('src/core/strategies/redirect', () => {
         provider,
         AuthEventType.REAUTH_VIA_REDIRECT
       );
+    });
+
+    it('redirects the window with auth fallback resolver', async () => {
+      const spy = sinon.spy(
+        _getInstance<PopupRedirectResolver>(resolver),
+        '_openRedirect'
+      );
+      await reauthenticateWithRedirect(user, provider);
+      expect(spy).to.have.been.calledWith(
+        auth,
+        provider,
+        AuthEventType.REAUTH_VIA_REDIRECT
+      );
+    });
+
+    it('errors if no resolver available', async () => {
+      auth._popupRedirectResolver = null;
+      await expect(reauthenticateWithRedirect(user, provider)).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
     });
 
     it('persists the redirect user and current user', async () => {

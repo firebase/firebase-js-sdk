@@ -109,6 +109,31 @@ describe('src/core/strategies/popup', () => {
       expect(await promise).to.eq(cred);
     });
 
+    it('completes the full flow with default resolver', async () => {
+      const cred = new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.SIGN_IN
+      });
+      auth._popupRedirectResolver = _getInstance(resolver);
+      idpStubs._signIn.returns(Promise.resolve(cred));
+      const promise = signInWithPopup(auth, provider);
+      iframeEvent({
+        type: AuthEventType.SIGN_IN_VIA_POPUP
+      });
+      expect(await promise).to.eq(cred);
+    });
+
+    it('errors if resolver not provided and not on auth', async () => {
+      const cred = new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.SIGN_IN
+      });
+      idpStubs._signIn.returns(Promise.resolve(cred));
+      await expect(signInWithPopup(auth, provider)).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
+    });
+
     it('ignores events for another event id', async () => {
       const cred = new UserCredentialImpl({
         user: testUser(auth, 'uid'),
@@ -263,6 +288,31 @@ describe('src/core/strategies/popup', () => {
         type: AuthEventType.LINK_VIA_POPUP
       });
       expect(await promise).to.eq(cred);
+    });
+
+    it('completes the full flow with default resolver', async () => {
+      const cred = new UserCredentialImpl({
+        user,
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.LINK
+      });
+      user.auth._popupRedirectResolver = _getInstance(resolver);
+      idpStubs._link.returns(Promise.resolve(cred));
+      const promise = linkWithPopup(user, provider);
+      iframeEvent({
+        type: AuthEventType.LINK_VIA_POPUP
+      });
+      expect(await promise).to.eq(cred);
+    });
+
+    it('errors if resolver not provided and not on auth', async () => {
+      const cred = new UserCredentialImpl({
+        user,
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.LINK
+      });
+      idpStubs._link.returns(Promise.resolve(cred));
+      await expect(linkWithPopup(user, provider)).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
     });
 
     it('ignores events for another event id', async () => {
@@ -420,6 +470,31 @@ describe('src/core/strategies/popup', () => {
         type: AuthEventType.REAUTH_VIA_POPUP
       });
       expect(await promise).to.eq(cred);
+    });
+
+    it('completes the full flow with default resolver', async () => {
+      const cred = new UserCredentialImpl({
+        user,
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.REAUTHENTICATE
+      });
+      user.auth._popupRedirectResolver = _getInstance(resolver);
+      idpStubs._reauth.returns(Promise.resolve(cred));
+      const promise = reauthenticateWithPopup(user, provider);
+      iframeEvent({
+        type: AuthEventType.REAUTH_VIA_POPUP
+      });
+      expect(await promise).to.eq(cred);
+    });
+
+    it('errors if resolver not provided and not on auth', async () => {
+      const cred = new UserCredentialImpl({
+        user,
+        providerId: ProviderId.GOOGLE,
+        operationType: OperationType.REAUTHENTICATE
+      });
+      idpStubs._reauth.returns(Promise.resolve(cred));
+      await expect(reauthenticateWithPopup(user, provider)).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
     });
 
     it('ignores events for another event id', async () => {
