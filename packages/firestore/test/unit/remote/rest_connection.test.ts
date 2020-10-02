@@ -91,6 +91,7 @@ describe('RestConnection', () => {
     expect(connection.lastHeaders).to.deep.equal({
       'Authorization': 'Bearer owner',
       'Content-Type': 'text/plain',
+      'X-Firebase-GMPID': 'test-app-id',
       'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`
     });
   });
