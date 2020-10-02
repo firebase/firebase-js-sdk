@@ -37,9 +37,16 @@ import {
 } from '@firebase/component';
 import { name, version } from '../package.json';
 import { Trace } from './resources/trace';
+import '@firebase/installations-exp';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
+/**
+ * Returns a FirebasePerformance instance for the given app.
+ * @param app - The FirebaseApp to use.
+ * @param settings - Optional settings for the Performance instance.
+ * @public
+ */
 export function getPerformance(
   app: FirebaseApp,
   settings?: PerformanceSettings
@@ -50,6 +57,12 @@ export function getPerformance(
   return perfInstance;
 }
 
+/**
+ * Returns a new PerformanceTrace instance.
+ * @param performance - The FirebasePerformance instance to use.
+ * @param name - The name of the trace.
+ * @public
+ */
 export function trace(
   performance: FirebasePerformance,
   name: string
@@ -76,7 +89,7 @@ const factory: InstanceFactory<'performance-exp'> = (
   return new PerformanceController(app, installations);
 };
 
-export function registerPerformance(): void {
+function registerPerformance(): void {
   _registerComponent(
     new Component('performance-exp', factory, ComponentType.PUBLIC)
   );

@@ -29,6 +29,7 @@ import { PersistencePromise } from '../../../src/local/persistence_promise';
 
 import { fail } from '../../../src/util/assert';
 import { Code, FirestoreError } from '../../../src/util/error';
+import { Context } from 'mocha';
 
 use(chaiAsPromised);
 
@@ -94,9 +95,14 @@ describe('SimpleDb', () => {
       transaction: SimpleDbTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    return db.runTransaction<T>('readwrite', ['users'], txn => {
-      return fn(txn.store<number, User>('users'), txn);
-    });
+    return db.runTransaction<T>(
+      'SimpleDbTests',
+      'readwrite',
+      ['users'],
+      txn => {
+        return fn(txn.store<number, User>('users'), txn);
+      }
+    );
   }
 
   function writeTestData(): Promise<void> {
@@ -472,7 +478,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  it('can use arrays as keys and do partial bounds ranges', async () => {
+  it('can use arrays as keys and do partial bounds ranges', async function (this: Context) {
     const keys = [
       ['fo'],
       ['foo'],
@@ -480,52 +486,67 @@ describe('SimpleDb', () => {
       ['foo', 'd'],
       ['foob']
     ];
-    await db.runTransaction('readwrite', ['users', 'docs'], txn => {
-      const docsStore = txn.store<string[], string>('docs');
-      return PersistencePromise.waitFor(
-        keys.map(key => {
-          const value = 'doc ' + key.join('/');
-          return docsStore.put(key, value);
-        })
-      );
-    });
+    await db.runTransaction(
+      this.test!.fullTitle(),
+      'readwrite',
+      ['users', 'docs'],
+      txn => {
+        const docsStore = txn.store<string[], string>('docs');
+        return PersistencePromise.waitFor(
+          keys.map(key => {
+            const value = 'doc ' + key.join('/');
+            return docsStore.put(key, value);
+          })
+        );
+      }
+    );
 
-    await db.runTransaction('readonly', ['docs'], txn => {
-      const store = txn.store<string[], string>('docs');
-      const range = IDBKeyRange.bound(['foo'], ['foo', 'c']);
-      return store.loadAll(range).next(results => {
-        expect(results).to.deep.equal(['doc foo', 'doc foo/bar/baz']);
-      });
-    });
+    await db.runTransaction(
+      this.test!.fullTitle(),
+      'readonly',
+      ['docs'],
+      txn => {
+        const store = txn.store<string[], string>('docs');
+        const range = IDBKeyRange.bound(['foo'], ['foo', 'c']);
+        return store.loadAll(range).next(results => {
+          expect(results).to.deep.equal(['doc foo', 'doc foo/bar/baz']);
+        });
+      }
+    );
   });
 
-  it('retries transactions', async () => {
+  it('retries transactions', async function (this: Context) {
     let attemptCount = 0;
 
-    const result = await db.runTransaction('readwrite', ['users'], txn => {
-      ++attemptCount;
-      if (attemptCount === 1) {
-        const store = txn.store<string[], typeof dummyUser>('users');
-        return store
-          .add(dummyUser)
-          .next(() => {
-            return store.add(dummyUser); // Fails with a unique key violation
-          })
-          .next(() => 'Aborted');
-      } else {
-        return PersistencePromise.resolve('success');
+    const result = await db.runTransaction(
+      this.test!.fullTitle(),
+      'readwrite',
+      ['users'],
+      txn => {
+        ++attemptCount;
+        if (attemptCount === 1) {
+          const store = txn.store<string[], typeof dummyUser>('users');
+          return store
+            .add(dummyUser)
+            .next(() => {
+              return store.add(dummyUser); // Fails with a unique key violation
+            })
+            .next(() => 'Aborted');
+        } else {
+          return PersistencePromise.resolve('success');
+        }
       }
-    });
+    );
 
     expect(result).to.equal('success');
     expect(attemptCount).to.equal(2);
   });
 
-  it('retries transactions only three times', async () => {
+  it('retries transactions only three times', async function (this: Context) {
     let attemptCount = 0;
 
     await expect(
-      db.runTransaction('readwrite', ['users'], txn => {
+      db.runTransaction(this.test!.fullTitle(), 'readwrite', ['users'], txn => {
         ++attemptCount;
         const store = txn.store<string[], typeof dummyUser>('users');
         return store
@@ -540,11 +561,11 @@ describe('SimpleDb', () => {
     expect(attemptCount).to.equal(3);
   });
 
-  it('does not retry explicitly aborted transactions', async () => {
+  it('does not retry explicitly aborted transactions', async function (this: Context) {
     let attemptCount = 0;
 
     await expect(
-      db.runTransaction('readwrite', ['users'], txn => {
+      db.runTransaction(this.test!.fullTitle(), 'readwrite', ['users'], txn => {
         ++attemptCount;
         txn.abort(new FirestoreError(Code.ABORTED, 'Aborted'));
         return PersistencePromise.reject(new Error());

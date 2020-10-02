@@ -86,7 +86,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 21610
+        "sizeInBytes": 21609
     },
     "DocumentReference": {
         "dependencies": {
@@ -132,7 +132,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 21608
+        "sizeInBytes": 21607
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -218,7 +218,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 40022
+        "sizeInBytes": 40021
     },
     "FieldPath": {
         "dependencies": {
@@ -550,7 +550,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 40032
+        "sizeInBytes": 40031
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -640,7 +640,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 42664
+        "sizeInBytes": 42663
     },
     "SnapshotMetadata": {
         "dependencies": {
@@ -861,7 +861,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 63766
+        "sizeInBytes": 63765
     },
     "WriteBatch": {
         "dependencies": {
@@ -988,7 +988,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 54010
+        "sizeInBytes": 54009
     },
     "addDoc": {
         "dependencies": {
@@ -1348,7 +1348,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 167503
+        "sizeInBytes": 167169
     },
     "arrayRemove": {
         "dependencies": {
@@ -1434,7 +1434,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 35085
+        "sizeInBytes": 35084
     },
     "arrayUnion": {
         "dependencies": {
@@ -1520,7 +1520,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 35077
+        "sizeInBytes": 35076
     },
     "clearIndexedDbPersistence": {
         "dependencies": {
@@ -1617,7 +1617,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22829
+        "sizeInBytes": 22828
     },
     "collectionGroup": {
         "dependencies": {
@@ -1661,7 +1661,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 20418
+        "sizeInBytes": 20417
     },
     "deleteDoc": {
         "dependencies": {
@@ -1975,7 +1975,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 149140
+        "sizeInBytes": 148806
     },
     "deleteField": {
         "dependencies": {
@@ -2273,7 +2273,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 126697
+        "sizeInBytes": 126383
     },
     "doc": {
         "dependencies": {
@@ -2322,7 +2322,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22873
+        "sizeInBytes": 22872
     },
     "documentId": {
         "dependencies": {
@@ -2819,7 +2819,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 237109
+        "sizeInBytes": 235442
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -3355,7 +3355,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 304802
+        "sizeInBytes": 303115
     },
     "enableNetwork": {
         "dependencies": {
@@ -3613,7 +3613,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 126639
+        "sizeInBytes": 126325
     },
     "endAt": {
         "dependencies": {
@@ -3738,7 +3738,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 52361
+        "sizeInBytes": 52360
     },
     "endBefore": {
         "dependencies": {
@@ -3863,7 +3863,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 52372
+        "sizeInBytes": 52371
     },
     "getDoc": {
         "dependencies": {
@@ -4252,7 +4252,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 201347
+        "sizeInBytes": 201013
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4501,7 +4501,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 120129
+        "sizeInBytes": 119815
     },
     "getDocFromServer": {
         "dependencies": {
@@ -4890,7 +4890,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 201366
+        "sizeInBytes": 201032
     },
     "getDocs": {
         "dependencies": {
@@ -5282,7 +5282,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 203638
+        "sizeInBytes": 203304
     },
     "getDocsFromCache": {
         "dependencies": {
@@ -5543,7 +5543,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 133055
+        "sizeInBytes": 132741
     },
     "getDocsFromServer": {
         "dependencies": {
@@ -5934,7 +5934,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 203366
+        "sizeInBytes": 203032
     },
     "getFirestore": {
         "dependencies": {
@@ -6543,7 +6543,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 204750
+        "sizeInBytes": 204416
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -6899,7 +6899,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 184173
+        "sizeInBytes": 183839
     },
     "orderBy": {
         "dependencies": {
@@ -7127,7 +7127,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 21895
+        "sizeInBytes": 21894
     },
     "runTransaction": {
         "dependencies": {
@@ -7317,7 +7317,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 82755
+        "sizeInBytes": 82754
     },
     "serverTimestamp": {
         "dependencies": {
@@ -7713,7 +7713,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 164864
+        "sizeInBytes": 164530
     },
     "setLogLevel": {
         "dependencies": {
@@ -7866,7 +7866,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 50006
+        "sizeInBytes": 50005
     },
     "startAfter": {
         "dependencies": {
@@ -7991,7 +7991,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 52382
+        "sizeInBytes": 52381
     },
     "startAt": {
         "dependencies": {
@@ -8116,7 +8116,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 52372
+        "sizeInBytes": 52371
     },
     "terminate": {
         "dependencies": {
@@ -8510,7 +8510,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 166296
+        "sizeInBytes": 165962
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -8768,7 +8768,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 127373
+        "sizeInBytes": 127059
     },
     "where": {
         "dependencies": {
@@ -8915,7 +8915,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 58214
+        "sizeInBytes": 58213
     },
     "writeBatch": {
         "dependencies": {
@@ -9275,6 +9275,6 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 169472
+        "sizeInBytes": 169138
     }
 }

@@ -4,7 +4,7 @@
 
 ```ts
 
-// @public (undocumented)
+// @public
 export interface FirebaseInstallations {}
 
 // @internal
