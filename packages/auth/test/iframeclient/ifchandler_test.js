@@ -520,7 +520,7 @@ function testIfcHandler() {
   asyncTestCase.waitForSignals(6);
   // The expected iframe URL.
   var expectedUrl = fireauth.iframeclient.IfcHandler.getAuthIframeUrl(
-       authDomain, apiKey, appName, version, ignoreArgument);
+      authDomain, apiKey, appName, version);
   var authEvent = new fireauth.AuthEvent(
       'unknown', '1234', 'http://www.example.com/#oauthResponse', 'SESSION_ID');
   var resp = {

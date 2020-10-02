@@ -304,7 +304,7 @@ fireauth.Auth.prototype.useEmulator = function(url) {
     // Persist the config.
     this.emulatorConfig_ = { url };
     // Disable app verification.
-    this.settings.setAppVerificationDisabledForTesting(true);
+    this.settings_().setAppVerificationDisabledForTesting(true);
     // Update RPC handler endpoints.
     this.rpcHandler_.updateEmulatorConfig(this.emulatorConfig_);
     // Notify external event listeners.
@@ -1790,6 +1790,15 @@ fireauth.Auth.prototype.getStorageKey = function() {
  */
 fireauth.Auth.prototype.app_ = function() {
   return this['app'];
+};
+
+
+/**
+ * @return {!fireauth.AuthSettings} The settings for this Auth object.
+ * @private
+ */
+fireauth.Auth.prototype.settings_ = function () {
+  return this['settings'];
 };
 
 
