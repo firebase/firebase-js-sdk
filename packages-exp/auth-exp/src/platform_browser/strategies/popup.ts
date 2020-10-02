@@ -30,6 +30,7 @@ import {
   PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { User } from '../../model/user';
+import { _withDefaultResolver } from '../popup_redirect';
 import { AuthPopup } from '../util/popup';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 
@@ -38,17 +39,18 @@ export const _AUTH_EVENT_TIMEOUT = 2020;
 export const _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
 
 export async function signInWithPopup(
-  auth: externs.Auth,
+  authExtern: externs.Auth,
   provider: externs.AuthProvider,
-  resolverExtern: externs.PopupRedirectResolver
+  resolverExtern?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
+  const auth = _castAuth(authExtern);
   assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
     appName: auth.name
   });
-  const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
+  const resolver = _withDefaultResolver(auth, resolverExtern);
   const action = new PopupOperation(
-    _castAuth(auth),
+    auth,
     AuthEventType.SIGN_IN_VIA_POPUP,
     provider,
     resolver
@@ -59,15 +61,14 @@ export async function signInWithPopup(
 export async function reauthenticateWithPopup(
   userExtern: externs.User,
   provider: externs.AuthProvider,
-  resolverExtern: externs.PopupRedirectResolver
+  resolverExtern?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
   const user = userExtern as User;
   assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
     appName: user.auth.name
   });
 
-  const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
-
+  const resolver = _withDefaultResolver(user.auth, resolverExtern);
   const action = new PopupOperation(
     user.auth,
     AuthEventType.REAUTH_VIA_POPUP,
@@ -81,14 +82,14 @@ export async function reauthenticateWithPopup(
 export async function linkWithPopup(
   userExtern: externs.User,
   provider: externs.AuthProvider,
-  resolverExtern: externs.PopupRedirectResolver
+  resolverExtern?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
   const user = userExtern as User;
   assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
     appName: user.auth.name
   });
 
-  const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
+  const resolver = _withDefaultResolver(user.auth, resolverExtern);
 
   const action = new PopupOperation(
     user.auth,
