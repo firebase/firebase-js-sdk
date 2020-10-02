@@ -65,7 +65,15 @@ interface ManagerOrPromise {
   promise?: Promise<EventManager>;
 }
 
-export function _resolverOrError(auth: Auth, resolverOverride: externs.PopupRedirectResolver|undefined): PopupRedirectResolver {
+/**
+ * Chooses a popup/redirect resolver to use. This prefers the override (which
+ * is directly passed in), and falls back to the property set on the auth
+ * object. If neither are available, this function errors w/ an argument error.
+ */
+export function _resolverOrError(
+  auth: Auth,
+  resolverOverride: externs.PopupRedirectResolver | undefined
+): PopupRedirectResolver {
   if (resolverOverride) {
     return _getInstance(resolverOverride);
   }

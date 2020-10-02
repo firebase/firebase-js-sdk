@@ -34,7 +34,6 @@ import { User, UserCredential } from '../../model/user';
 import { _resolverOrError } from '../popup_redirect';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 
-
 export async function signInWithRedirect(
   authExtern: externs.Auth,
   provider: externs.AuthProvider,

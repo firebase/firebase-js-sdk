@@ -115,7 +115,10 @@ describe('src/core/strategies/redirect', () => {
 
     it('errors if no resolver available', async () => {
       auth._popupRedirectResolver = null;
-      await expect(signInWithRedirect(auth, provider)).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
+      await expect(signInWithRedirect(auth, provider)).to.be.rejectedWith(
+        FirebaseError,
+        'auth/argument-error'
+      );
     });
   });
 
@@ -156,7 +159,10 @@ describe('src/core/strategies/redirect', () => {
 
     it('errors if no resolver available', async () => {
       auth._popupRedirectResolver = null;
-      await expect(linkWithRedirect(user, provider)).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
+      await expect(linkWithRedirect(user, provider)).to.be.rejectedWith(
+        FirebaseError,
+        'auth/argument-error'
+      );
     });
 
     it('persists the redirect user and current user', async () => {
@@ -232,7 +238,9 @@ describe('src/core/strategies/redirect', () => {
 
     it('errors if no resolver available', async () => {
       auth._popupRedirectResolver = null;
-      await expect(reauthenticateWithRedirect(user, provider)).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
+      await expect(
+        reauthenticateWithRedirect(user, provider)
+      ).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
     });
 
     it('persists the redirect user and current user', async () => {

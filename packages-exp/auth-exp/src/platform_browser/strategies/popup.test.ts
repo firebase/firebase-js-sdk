@@ -131,7 +131,10 @@ describe('src/core/strategies/popup', () => {
         operationType: OperationType.SIGN_IN
       });
       idpStubs._signIn.returns(Promise.resolve(cred));
-      await expect(signInWithPopup(auth, provider)).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
+      await expect(signInWithPopup(auth, provider)).to.be.rejectedWith(
+        FirebaseError,
+        'auth/argument-error'
+      );
     });
 
     it('ignores events for another event id', async () => {
@@ -312,7 +315,10 @@ describe('src/core/strategies/popup', () => {
         operationType: OperationType.LINK
       });
       idpStubs._link.returns(Promise.resolve(cred));
-      await expect(linkWithPopup(user, provider)).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
+      await expect(linkWithPopup(user, provider)).to.be.rejectedWith(
+        FirebaseError,
+        'auth/argument-error'
+      );
     });
 
     it('ignores events for another event id', async () => {
@@ -494,7 +500,10 @@ describe('src/core/strategies/popup', () => {
         operationType: OperationType.REAUTHENTICATE
       });
       idpStubs._reauth.returns(Promise.resolve(cred));
-      await expect(reauthenticateWithPopup(user, provider)).to.be.rejectedWith(FirebaseError, 'auth/argument-error');
+      await expect(reauthenticateWithPopup(user, provider)).to.be.rejectedWith(
+        FirebaseError,
+        'auth/argument-error'
+      );
     });
 
     it('ignores events for another event id', async () => {
