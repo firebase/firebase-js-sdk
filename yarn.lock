@@ -14430,7 +14430,6 @@ symbol-observable@^1.1.0:
 
 "sync-promise@git+https://github.com/brettz9/sync-promise.git#full-sync-missing-promise-features":
   version "1.0.1"
-  uid "25845a49a00aa2d2c985a5149b97c86a1fcdc75a"
   resolved "git+https://github.com/brettz9/sync-promise.git#25845a49a00aa2d2c985a5149b97c86a1fcdc75a"
 
 table@^5.2.3:
@@ -15686,6 +15685,13 @@ webpack-stream@6.1.0:
     vinyl "^2.1.0"
     webpack "^4.26.1"
 
+webpack-virtual-modules@0.3.1:
+  version "0.3.1"
+  resolved "https://registry.npmjs.org/webpack-virtual-modules/-/webpack-virtual-modules-0.3.1.tgz#78cbf1a41a699890a706e789a682dd1120558bf4"
+  integrity sha512-C9Zbb9rny/SaZJ7gTgJjyB2Qt4G4dbT5rVZywYpyk3L6qyf006RepODREXC4rcQCiTPdZnqnebRq5Chsxg+SgQ==
+  dependencies:
+    debug "^3.0.0"
+
 webpack@4.44.2, webpack@^4.26.1:
   version "4.44.2"
   resolved "https://registry.npmjs.org/webpack/-/webpack-4.44.2.tgz#6bfe2b0af055c8b2d1e90ed2cd9363f841266b72"
@@ -15731,7 +15737,6 @@ websocket-extensions@>=0.1.1:
 
 "websql@git+https://github.com/brettz9/node-websql.git#configurable-secure2":
   version "1.0.0"
-  uid "5149bc0763376ca757fc32dc74345ada0467bfbb"
   resolved "git+https://github.com/brettz9/node-websql.git#5149bc0763376ca757fc32dc74345ada0467bfbb"
   dependencies:
     argsarray "^0.0.1"
