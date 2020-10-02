@@ -150,10 +150,30 @@ describe('core/auth/auth_impl', () => {
       });
     });
 
+    it('waits for initialization for authStateChange', done => {
+      const user = testUser(auth, 'uid');
+      auth.currentUser = user;
+      auth._isInitialized = false;
+      auth._onAuthStateChanged(user => {
+        expect(user).to.eq(user);
+        done();
+      });
+    });
+
     it('immediately calls idTokenChange if initialization finished', done => {
       const user = testUser(auth, 'uid');
       auth.currentUser = user;
       auth._isInitialized = true;
+      auth._onIdTokenChanged(user => {
+        expect(user).to.eq(user);
+        done();
+      });
+    });
+
+    it('waits for initialization for idTokenChanged', done => {
+      const user = testUser(auth, 'uid');
+      auth.currentUser = user;
+      auth._isInitialized = false;
       auth._onIdTokenChanged(user => {
         expect(user).to.eq(user);
         done();

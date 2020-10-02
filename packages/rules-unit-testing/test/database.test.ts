@@ -121,7 +121,19 @@ describe('Testing Module Tests', function () {
       base64.decodeString(token!.accessToken.split('.')[1], /*webSafe=*/ false)
     );
     // We add an 'iat' field.
-    expect(claims).to.deep.equal({ uid: auth.uid, iat: 0, sub: auth.uid });
+    expect(claims).to.deep.equal({
+      iss: 'https://securetoken.google.com/foo',
+      aud: 'foo',
+      iat: 0,
+      exp: 3600,
+      auth_time: 0,
+      sub: 'alice',
+      user_id: 'alice',
+      firebase: {
+        sign_in_provider: 'custom',
+        identities: {}
+      }
+    });
   });
 
   it('initializeAdminApp() has admin access', async function () {
