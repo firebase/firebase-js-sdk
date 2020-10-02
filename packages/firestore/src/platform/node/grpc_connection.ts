@@ -55,11 +55,11 @@ function createMetadata(
       }
     }
   }
-  metadata.set('x-firebase-gmpid', appId);
-  metadata.set('x-goog-api-client', X_GOOG_API_CLIENT_VALUE);
+  metadata.set('X-Firebase-GMPID', appId);
+  metadata.set('X-Goog-Api-Client', X_GOOG_API_CLIENT_VALUE);
   // This header is used to improve routing and project isolation by the
   // backend.
-  metadata.set('google-cloud-resource-prefix', databasePath);
+  metadata.set('Google-Cloud-Resource-Prefix', databasePath);
   return metadata;
 }
 
