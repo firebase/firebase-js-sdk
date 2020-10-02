@@ -59,6 +59,7 @@ export const MOCK_SEQUENCE_NUMBER_SYNCER: SequenceNumberSyncer = {
 export const TEST_PROJECT = 'test-project';
 export const TEST_DATABASE_ID = new DatabaseId(TEST_PROJECT);
 export const TEST_PERSISTENCE_KEY = '[PersistenceTestHelpers]';
+export const TEST_APP_ID = 'test-app-id';
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
 export const TEST_PERSISTENCE_PREFIX = indexedDbStoragePrefix(

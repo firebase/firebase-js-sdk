@@ -37,7 +37,11 @@ import { SDK_VERSION } from '../../core/version';
 const LOG_TAG = 'Connection';
 const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${SDK_VERSION} grpc/${grpcVersion}`;
 
-function createMetadata(databasePath: string, token: Token | null): Metadata {
+function createMetadata(
+  databasePath: string,
+  token: Token | null,
+  appId: string
+): Metadata {
   hardAssert(
     token === null || token.type === 'OAuth',
     'If provided, token must be OAuth'
@@ -51,6 +55,7 @@ function createMetadata(databasePath: string, token: Token | null): Metadata {
       }
     }
   }
+  metadata.set('x-firebase-gmpid', appId);
   metadata.set('x-goog-api-client', X_GOOG_API_CLIENT_VALUE);
   // This header is used to improve routing and project isolation by the
   // backend.
@@ -101,7 +106,11 @@ export class GrpcConnection implements Connection {
     token: Token | null
   ): Promise<Resp> {
     const stub = this.ensureActiveStub();
-    const metadata = createMetadata(this.databasePath, token);
+    const metadata = createMetadata(
+      this.databasePath,
+      token,
+      this.databaseInfo.appId
+    );
     const jsonRequest = { database: this.databasePath, ...request };
 
     return nodePromise((callback: NodeCallback<Resp>) => {
@@ -146,7 +155,11 @@ export class GrpcConnection implements Connection {
       request
     );
     const stub = this.ensureActiveStub();
-    const metadata = createMetadata(this.databasePath, token);
+    const metadata = createMetadata(
+      this.databasePath,
+      token,
+      this.databaseInfo.appId
+    );
     const jsonRequest = { ...request, database: this.databasePath };
     const stream = stub[rpcName](jsonRequest, metadata);
     stream.on('data', (response: Resp) => {
@@ -172,7 +185,11 @@ export class GrpcConnection implements Connection {
     token: Token | null
   ): Stream<Req, Resp> {
     const stub = this.ensureActiveStub();
-    const metadata = createMetadata(this.databasePath, token);
+    const metadata = createMetadata(
+      this.databasePath,
+      token,
+      this.databaseInfo.appId
+    );
     const grpcStream = stub[rpcName](metadata);
 
     let closed = false;

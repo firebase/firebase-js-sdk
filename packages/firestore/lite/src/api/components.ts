@@ -56,6 +56,7 @@ export function getDatastore(firestore: FirebaseFirestore): Datastore {
     const settings = firestore._getSettings();
     const databaseInfo = new DatabaseInfo(
       firestore._databaseId,
+      firestore.app.options.appId || '',
       firestore._persistenceKey,
       settings.host ?? DEFAULT_HOST,
       settings.ssl ?? DEFAULT_SSL,

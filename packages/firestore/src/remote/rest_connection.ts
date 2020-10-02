@@ -118,6 +118,7 @@ export abstract class RestConnection implements Connection {
     token: Token | null
   ): void {
     headers['X-Goog-Api-Client'] = X_GOOG_API_CLIENT_VALUE;
+    headers['X-Firebase-GMPID'] = this.databaseInfo.appId;
 
     // Content-Type: text/plain will avoid preflight requests which might
     // mess with CORS and redirects by proxies. If we add custom headers

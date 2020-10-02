@@ -23,6 +23,7 @@ export class DatabaseInfo {
    * persistenceKey.
    *
    * @param databaseId The database to use.
+   * @param appId The Firebase App Id.
    * @param persistenceKey A unique identifier for this Firestore's local
    * storage (used in conjunction with the databaseId).
    * @param host The Firestore backend host to connect to.
@@ -32,6 +33,7 @@ export class DatabaseInfo {
    */
   constructor(
     readonly databaseId: DatabaseId,
+    readonly appId: string,
     readonly persistenceKey: string,
     readonly host: string,
     readonly ssl: boolean,

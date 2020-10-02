@@ -549,6 +549,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
   private makeDatabaseInfo(): DatabaseInfo {
     return new DatabaseInfo(
       this._databaseId,
+      this._firebaseApp?.options.appId || '',
       this._persistenceKey,
       this._settings.host,
       this._settings.ssl,

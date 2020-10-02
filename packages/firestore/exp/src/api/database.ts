@@ -118,6 +118,7 @@ export class FirebaseFirestore
     await this._receivedInitialUser.promise;
     const databaseInfo = new DatabaseInfo(
       this._databaseId,
+      this.app.options.appId || '',
       this._persistenceKey,
       settings.host ?? DEFAULT_HOST,
       settings.ssl ?? DEFAULT_SSL,

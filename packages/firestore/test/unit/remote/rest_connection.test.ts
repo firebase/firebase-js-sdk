@@ -57,6 +57,7 @@ export class TestRestConnection extends RestConnection {
 describe('RestConnection', () => {
   const testDatabaseInfo = new DatabaseInfo(
     new DatabaseId('testproject'),
+    'test-app-id',
     'persistenceKey',
     'example.com',
     /*ssl=*/ false,

@@ -124,6 +124,7 @@ import { encodeWatchChange } from '../../util/spec_test_helpers';
 import {
   clearTestPersistence,
   INDEXEDDB_TEST_DATABASE_NAME,
+  TEST_APP_ID,
   TEST_DATABASE_ID,
   TEST_PERSISTENCE_KEY,
   TEST_SERIALIZER
@@ -238,6 +239,7 @@ abstract class TestRunner {
     this.clientId = `client${clientIndex}`;
     this.databaseInfo = new DatabaseInfo(
       TEST_DATABASE_ID,
+      TEST_APP_ID,
       TEST_PERSISTENCE_KEY,
       'host',
       /*ssl=*/ false,
