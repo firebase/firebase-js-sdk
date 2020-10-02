@@ -15,7 +15,13 @@
  * limitations under the License.
  */
 
-import { DEFAULT_VAPID_KEY, FCM_MSG, TAG } from '../util/constants';
+import {
+  BACKGROUND_HANDLE_EXECUTION_TIME_LIMIT_MS,
+  DEFAULT_VAPID_KEY,
+  FCM_MSG,
+  FOREGROUND_HANDLE_PREPARATION_TIME_MS,
+  TAG
+} from '../util/constants';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { FirebaseMessaging, MessagePayload } from '@firebase/messaging-types';
 import {
@@ -47,8 +53,8 @@ export class SwController implements FirebaseMessaging, FirebaseService {
   private isOnBackgroundMessageUsed: boolean | null = null;
   private vapidKey: string | null = null;
   private bgMessageHandler:
-    | BgMessageHandler
     | null
+    | BgMessageHandler
     | NextFn<MessagePayload>
     | Observer<MessagePayload> = null;
 
@@ -206,11 +212,15 @@ export class SwController implements FirebaseMessaging, FirebaseService {
       const payload = externalizePayload(internalPayload);
 
       if (typeof this.bgMessageHandler === 'function') {
-        await this.bgMessageHandler(payload);
+        this.bgMessageHandler(payload);
       } else {
-        await this.bgMessageHandler.next(payload);
+        this.bgMessageHandler.next(payload);
       }
     }
+
+    // block to allow onBackgroundMessage to run to showNotification before browser check for
+    // silent push kicks in.
+    await sleep(BACKGROUND_HANDLE_EXECUTION_TIME_LIMIT_MS);
   }
 
   async onSubChange(event: PushSubscriptionChangeEvent): Promise<void> {
@@ -267,7 +277,7 @@ export class SwController implements FirebaseMessaging, FirebaseService {
 
       // Wait three seconds for the client to initialize and set up the message handler so that it
       // can receive the message.
-      await sleep(3000);
+      await sleep(FOREGROUND_HANDLE_PREPARATION_TIME_MS);
     } else {
       client = await client.focus();
     }
