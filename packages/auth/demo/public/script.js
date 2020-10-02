@@ -1623,7 +1623,7 @@ function initApp(){
   log('Initializing app...');
   app = firebase.initializeApp(config);
   auth = app.auth();
-  if (emulatorUrl) {
+  if (window.emulatorUrl) {
     auth.useEmulator(emulatorUrl);
   }
 
@@ -1632,7 +1632,7 @@ function initApp(){
     'authDomain': config['authDomain']
   }, auth['app']['name'] + '-temp');
   tempAuth = tempApp.auth();
-  if (emulatorUrl) {
+  if (window.emulatorUrl) {
     tempAuth.useEmulator(emulatorUrl);
   }
 

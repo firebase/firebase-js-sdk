@@ -155,7 +155,7 @@ self.addEventListener('fetch', function (event) {
 });
 
 self.addEventListener('activate', function (event) {
-  if (emulatorUrl) {
+  if (window.emulatorUrl) {
     firebase.auth().useEmulator(emulatorUrl);
   }
   // Update this list with all caches that need to remain cached.
