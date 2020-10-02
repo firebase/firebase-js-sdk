@@ -77,7 +77,7 @@ export async function run({
     bundleDefinitions: loadBundleDefinitions(input),
     bundler: toBundlerEnum(bundler),
     mode: toModeEnum(mode),
-    output: output
+    output
   };
 
   return analyze(options);

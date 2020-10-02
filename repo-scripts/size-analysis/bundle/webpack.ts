@@ -35,7 +35,7 @@ export async function bundleWithWebpack(
   const entryFileName = '/virtual_path_to_in_memory_file/index.js';
   const outputFileName = 'o.js';
 
-  let resolveConfig: webpack.Resolve = {
+  const resolveConfig: webpack.Resolve = {
     mainFields: ['esm2017', 'module', 'main']
   };
 
@@ -60,10 +60,8 @@ export async function bundleWithWebpack(
     mode: 'production'
   });
 
-  // use virtual file system for output to save on I/O
-  const fs = getMemoryFileSystem();
-  (fs as any).join = path.join.bind(path);
-  compiler.outputFileSystem = (fs as unknown) as webpack.OutputFileSystem;
+  // use virtual file system for output to avoid I/O
+  compiler.outputFileSystem = getMemoryFileSystem();
 
   return new Promise<string>((res, rej) => {
     compiler.run((err, stats) => {
@@ -78,6 +76,10 @@ export async function bundleWithWebpack(
   });
 }
 
-function getMemoryFileSystem() {
-  return createFsFromVolume(new Volume());
+function getMemoryFileSystem(): webpack.OutputFileSystem {
+  const fs = createFsFromVolume(new Volume());
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (fs as any).join = path.join.bind(path);
+
+  return (fs as unknown) as webpack.OutputFileSystem;
 }

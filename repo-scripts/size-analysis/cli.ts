@@ -19,6 +19,7 @@ import * as yargs from 'yargs';
 import { run as runBundleAnalysis } from './bundle-analysis';
 import { analyzePackageSize } from './package-analysis';
 
+// eslint-disable-next-line no-unused-expressions
 yargs
   .command(
     '$0',
@@ -80,6 +81,7 @@ yargs
         desc: 'The output location'
       }
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     argv => runBundleAnalysis(argv as any)
   )
   .help().argv;
