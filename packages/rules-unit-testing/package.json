@@ -1,6 +1,6 @@
 {
   "name": "@firebase/rules-unit-testing",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -19,7 +19,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "firebase": "7.22.0",
+    "firebase": "7.22.1",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "0.3.2",
     "request": "2.88.2"
