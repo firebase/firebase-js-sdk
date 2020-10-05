@@ -1,5 +1,12 @@
 # firebase
 
+## 7.22.1
+
+### Patch Changes
+
+- Updated dependencies [[`b6b1fd95c`](https://github.com/firebase/firebase-js-sdk/commit/b6b1fd95cbeeabc38daa574ce7cf0b7dd34cf550)]:
+  - @firebase/functions@0.5.1
+
 ## 7.22.0
 
 ### Minor Changes
