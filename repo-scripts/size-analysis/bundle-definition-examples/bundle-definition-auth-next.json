@@ -1,0 +1,27 @@
+[
+    {
+        "name": "EmailAndPassword",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app-exp",
+                "versionOrTag": "exp",
+                "imports": [
+                    "initializeApp"
+                ]
+            },
+            {
+                "packageName": "@firebase/auth-exp",
+                "versionOrTag": "exp",
+                "imports": [
+                    "getAuth",
+                    "createUserWithEmailAndPassword",
+                    "signInWithEmailAndPassword",
+                    "onAuthStateChanged"
+                ]
+            }
+        ]
+    },
+    {
+        
+    }
+]
