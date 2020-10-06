@@ -28,6 +28,7 @@ import {
 import { version } from './package.json';
 import { Auth } from './src/auth';
 import { Persistence } from './src/persistence';
+import { PhoneAuthProvider } from './src/phone_auth_provider';
 import { _getClientPlatform } from './src/platform';
 import { RecaptchaVerifier } from './src/recaptcha_verifier';
 
@@ -64,7 +65,7 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
         GoogleAuthProvider: impl.GoogleAuthProvider,
         OAuthProvider: impl.OAuthProvider,
         //   SAMLAuthProvider,
-        PhoneAuthProvider: impl.PhoneAuthProvider,
+        PhoneAuthProvider: PhoneAuthProvider,
         PhoneMultiFactorGenerator: impl.PhoneMultiFactorGenerator,
         RecaptchaVerifier,
         TwitterAuthProvider: impl.TwitterAuthProvider,

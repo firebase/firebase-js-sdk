@@ -17,7 +17,7 @@
 
 import { Endpoint, HttpMethod, _performApiRequest } from '..';
 import { IdTokenResponse } from '../../model/id_token';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '@firebase/auth-types-exp';
 
 export interface UpdateProfileRequest {
   idToken: string;
@@ -31,7 +31,7 @@ export interface UpdateProfileResponse extends IdTokenResponse {
 }
 
 export async function updateProfile(
-  auth: AuthCore,
+  auth: Auth,
   request: UpdateProfileRequest
 ): Promise<UpdateProfileResponse> {
   return _performApiRequest<UpdateProfileRequest, UpdateProfileResponse>(

@@ -22,20 +22,41 @@ import {
   convertConfirmationResult,
   convertCredential
 } from './user_credential';
+import { unwrap, Wrapper } from './wrap';
 
-export class User extends impl.UserImpl implements compat.User {
+export class User implements compat.User, Wrapper<externs.User> {
+  // Maintain a map so that there's always a 1:1 mapping between new User and
+  // legacy compat users
+  private static readonly USER_MAP = new Map<externs.User, User>();
+
   readonly multiFactor: compat.MultiFactorUser;
 
-  constructor(params: impl.UserParameters) {
-    super(params);
-    this.multiFactor = impl.multiFactor(this);
+  private constructor(private readonly user: externs.User) {
+    this.multiFactor = impl.multiFactor(user);
   }
 
+  static getOrCreate(user: externs.User): User {
+    if (!User.USER_MAP.has(user)) {
+      User.USER_MAP.set(user, new User(user));
+    }
+
+    return User.USER_MAP.get(user)!;
+  }
+
+  delete(): Promise<void> {
+    return this.user.delete();
+  }
+  reload(): Promise<void> {
+    return this.user.reload();
+  }
+  toJSON(): Object {
+    return this.user.toJSON();
+  }
   getIdTokenResult(forceRefresh?: boolean): Promise<compat.IdTokenResult> {
-    return super.getIdTokenResult(forceRefresh);
+    return this.user.getIdTokenResult(forceRefresh);
   }
   getIdToken(forceRefresh?: boolean): Promise<string> {
-    return super.getIdToken(forceRefresh);
+    return this.user.getIdToken(forceRefresh);
   }
   linkAndRetrieveDataWithCredential(
     credential: compat.AuthCredential
@@ -46,8 +67,8 @@ export class User extends impl.UserImpl implements compat.User {
     credential: compat.AuthCredential
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      (this.auth as unknown) as externs.Auth,
-      impl.linkWithCredential(this, credential as externs.AuthCredential)
+      this.auth,
+      impl.linkWithCredential(this.user, credential as externs.AuthCredential)
     );
   }
   async linkWithPhoneNumber(
@@ -55,17 +76,17 @@ export class User extends impl.UserImpl implements compat.User {
     applicationVerifier: compat.ApplicationVerifier
   ): Promise<compat.ConfirmationResult> {
     return convertConfirmationResult(
-      (this.auth as unknown) as externs.Auth,
-      impl.linkWithPhoneNumber(this, phoneNumber, applicationVerifier)
+      this.auth,
+      impl.linkWithPhoneNumber(this.user, phoneNumber, unwrap(applicationVerifier))
     );
   }
   async linkWithPopup(
     provider: compat.AuthProvider
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      (this.auth as unknown) as externs.Auth,
+      this.auth,
       impl.linkWithPopup(
-        this,
+        this.user,
         provider as externs.AuthProvider,
         impl.browserPopupRedirectResolver
       )
@@ -73,7 +94,7 @@ export class User extends impl.UserImpl implements compat.User {
   }
   linkWithRedirect(provider: compat.AuthProvider): Promise<void> {
     return impl.linkWithRedirect(
-      this,
+      this.user,
       provider as externs.AuthProvider,
       impl.browserPopupRedirectResolver
     );
@@ -89,7 +110,7 @@ export class User extends impl.UserImpl implements compat.User {
     return convertCredential(
       (this.auth as unknown) as externs.Auth,
       impl.reauthenticateWithCredential(
-        this,
+        this.user,
         credential as externs.AuthCredential
       )
     );
@@ -99,17 +120,17 @@ export class User extends impl.UserImpl implements compat.User {
     applicationVerifier: compat.ApplicationVerifier
   ): Promise<compat.ConfirmationResult> {
     return convertConfirmationResult(
-      (this.auth as unknown) as externs.Auth,
-      impl.reauthenticateWithPhoneNumber(this, phoneNumber, applicationVerifier)
+      this.auth,
+      impl.reauthenticateWithPhoneNumber(this.user, phoneNumber, unwrap(applicationVerifier))
     );
   }
   reauthenticateWithPopup(
     provider: compat.AuthProvider
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      (this.auth as unknown) as externs.Auth,
+      this.auth,
       impl.reauthenticateWithPopup(
-        this,
+        this.user,
         provider as externs.AuthProvider,
         impl.browserPopupRedirectResolver
       )
@@ -117,7 +138,7 @@ export class User extends impl.UserImpl implements compat.User {
   }
   reauthenticateWithRedirect(provider: compat.AuthProvider): Promise<void> {
     return impl.reauthenticateWithRedirect(
-      this,
+      this.user,
       provider as externs.AuthProvider,
       impl.browserPopupRedirectResolver
     );
@@ -125,21 +146,21 @@ export class User extends impl.UserImpl implements compat.User {
   sendEmailVerification(
     actionCodeSettings?: compat.ActionCodeSettings | null
   ): Promise<void> {
-    return impl.sendEmailVerification(this, actionCodeSettings);
+    return impl.sendEmailVerification(this.user, actionCodeSettings);
   }
   async unlink(providerId: string): Promise<compat.User> {
-    await impl.unlink(this, providerId as externs.ProviderId);
+    await impl.unlink(this.user, providerId as externs.ProviderId);
     return this;
   }
   updateEmail(newEmail: string): Promise<void> {
-    return impl.updateEmail(this, newEmail);
+    return impl.updateEmail(this.user, newEmail);
   }
   updatePassword(newPassword: string): Promise<void> {
-    return impl.updatePassword(this, newPassword);
+    return impl.updatePassword(this.user, newPassword);
   }
   updatePhoneNumber(phoneCredential: compat.AuthCredential): Promise<void> {
     return impl.updatePhoneNumber(
-      this,
+      this.user,
       phoneCredential as externs.AuthCredential
     );
   }
@@ -147,12 +168,54 @@ export class User extends impl.UserImpl implements compat.User {
     displayName?: string | null;
     photoURL?: string | null;
   }): Promise<void> {
-    return impl.updateProfile(this, profile);
+    return impl.updateProfile(this.user, profile);
   }
   verifyBeforeUpdateEmail(
     newEmail: string,
     actionCodeSettings?: compat.ActionCodeSettings | null
   ): Promise<void> {
-    return impl.verifyBeforeUpdateEmail(this, newEmail, actionCodeSettings);
+    return impl.verifyBeforeUpdateEmail(this.user, newEmail, actionCodeSettings);
+  }
+  unwrap(): externs.User {
+    return this.user;
+  }
+  get emailVerified(): boolean {
+    return this.user.emailVerified;
+  }
+  get isAnonymous(): boolean {
+    return this.user.isAnonymous;
+  }
+  get metadata(): compat.UserMetadata {
+    return this.user.metadata;
+  }
+  get phoneNumber(): string | null {
+    return this.user.phoneNumber;
+  }
+  get providerData(): (compat.UserInfo | null)[] {
+    return this.user.providerData;
+  }
+  get refreshToken(): string {
+    return this.user.refreshToken;
+  }
+  get tenantId(): string | null {
+    return this.user.tenantId;
+  }
+  get displayName(): string | null {
+    return this.user.displayName;
+  }
+  get email(): string | null {
+    return this.user.email;
+  }
+  get photoURL(): string | null {
+    return this.user.photoURL;
+  }
+  get providerId(): string {
+    return this.user.providerId;
+  }
+  get uid(): string {
+    return this.user.uid;
+  }
+  private get auth(): externs.Auth {
+    return (this.user as impl.UserImpl).auth as unknown as externs.Auth;
   }
 }

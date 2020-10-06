@@ -23,7 +23,7 @@ import {
   signInWithEmailLink,
   signInWithEmailLinkForLinking
 } from '../../api/authentication/email_link';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { fail } from '../util/assert';
@@ -86,7 +86,7 @@ export class EmailAuthCredential
     return null;
   }
 
-  async _getIdTokenResponse(auth: AuthCore): Promise<IdTokenResponse> {
+  async _getIdTokenResponse(auth: Auth): Promise<IdTokenResponse> {
     switch (this.signInMethod) {
       case externs.SignInMethod.EMAIL_PASSWORD:
         return signInWithPassword(auth, {
@@ -105,7 +105,7 @@ export class EmailAuthCredential
   }
 
   async _linkToIdToken(
-    auth: AuthCore,
+    auth: Auth,
     idToken: string
   ): Promise<IdTokenResponse> {
     switch (this.signInMethod) {
@@ -127,7 +127,7 @@ export class EmailAuthCredential
     }
   }
 
-  _getReauthenticationResolver(auth: AuthCore): Promise<IdTokenResponse> {
+  _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
     return this._getIdTokenResponse(auth);
   }
 }

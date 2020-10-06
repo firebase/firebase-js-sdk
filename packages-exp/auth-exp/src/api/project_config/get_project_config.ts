@@ -16,7 +16,7 @@
  */
 
 import { _performApiRequest, Endpoint, HttpMethod } from '../';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '@firebase/auth-types-exp';
 
 export interface GetProjectConfigRequest {}
 
@@ -25,7 +25,7 @@ export interface GetProjectConfigResponse {
 }
 
 export async function _getProjectConfig(
-  auth: AuthCore
+  auth: Auth
 ): Promise<GetProjectConfigResponse> {
   return _performApiRequest<GetProjectConfigRequest, GetProjectConfigResponse>(
     auth,

@@ -22,7 +22,7 @@ import {
   signInWithIdp,
   SignInWithIdpRequest
 } from '../../api/authentication/idp';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { fail } from '../util/assert';
@@ -114,18 +114,18 @@ export class OAuthCredential
     return cred;
   }
 
-  _getIdTokenResponse(auth: AuthCore): Promise<IdTokenResponse> {
+  _getIdTokenResponse(auth: Auth): Promise<IdTokenResponse> {
     const request = this.buildRequest();
     return signInWithIdp(auth, request);
   }
 
-  _linkToIdToken(auth: AuthCore, idToken: string): Promise<IdTokenResponse> {
+  _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
     const request = this.buildRequest();
     request.idToken = idToken;
     return signInWithIdp(auth, request);
   }
 
-  _getReauthenticationResolver(auth: AuthCore): Promise<IdTokenResponse> {
+  _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
     const request = this.buildRequest();
     request.autoCreate = false;
     return signInWithIdp(auth, request);

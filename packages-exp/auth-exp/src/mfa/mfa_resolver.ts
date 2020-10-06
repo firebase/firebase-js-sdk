@@ -41,7 +41,7 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
     error: MultiFactorError
   ): MultiFactorResolver {
     const hints = (error.serverResponse.mfaInfo || []).map(enrollment =>
-      MultiFactorInfo._fromServerResponse(auth, enrollment)
+      MultiFactorInfo._fromServerResponse(_castAuth(auth), enrollment)
     );
 
     assert(
@@ -57,7 +57,7 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
       session,
       hints,
       async (assertion: MultiFactorAssertion): Promise<UserCredential> => {
-        const mfaResponse = await assertion._process(auth, session);
+        const mfaResponse = await assertion._process(_castAuth(auth), session);
         // Clear out the unneeded fields from the old login response
         delete error.serverResponse.mfaInfo;
         delete error.serverResponse.mfaPendingCredential;

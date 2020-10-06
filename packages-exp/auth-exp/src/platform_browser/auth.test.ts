@@ -84,7 +84,7 @@ describe('core/auth/auth_impl', () => {
         Promise.resolve(testUser(auth, 'test').toJSON())
       );
 
-      await auth._setPersistence(newPersistence);
+      await auth.setPersistence(newPersistence);
       expect(persistenceStub._get).to.have.been.called;
       expect(persistenceStub._remove).to.have.been.called;
       expect(newStub._set).to.have.been.calledWith(
