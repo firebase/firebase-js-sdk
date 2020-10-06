@@ -32,7 +32,7 @@ import * as fs from 'fs';
  * @param inputLocation The file path to the .d.ts produced by API explorer.
  * @param outputLocation The output location for the pruned .d.ts file.
  */
-function main(inputLocation: string, outputLocation: string): void {
+export function pruneDts(inputLocation: string, outputLocation: string): void {
   const compilerOptions = {};
   const host = ts.createCompilerHost(compilerOptions);
   const program = ts.createProgram([inputLocation], compilerOptions, host);
@@ -92,36 +92,6 @@ function maybeHideConstructor(
 }
 
 /**
- * Verifies that the provided private type has the same type arguments as the
- * symbol we are trying to replace it with. Types can only be replaced directly
- * with one another if their type arguments match.
- */
-function verifyMatchingTypeArguments(
-  privateImportDeclaration: ts.NodeWithTypeArguments,
-  publicType: ts.ClassDeclaration | ts.InterfaceDeclaration
-): boolean {
-  const privateTypeArguments = privateImportDeclaration.typeArguments ?? [];
-  const publicTypeArguments = publicType.typeParameters ?? [];
-
-  if (privateTypeArguments.length !== publicTypeArguments.length) {
-    return false;
-  }
-
-  // Make sure that the names of the types match. We could probably be smarter
-  // about this if the types are re-ordered, but we don't need this support yet.
-  for (let i = 0; i < privateTypeArguments.length; ++i) {
-    if (
-      privateTypeArguments[i].getText() !==
-      publicTypeArguments[i].name.escapedText
-    ) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-/**
  * Examines `extends` and `implements` clauses and removes or replaces them if
  * they refer to a non-exported type. When an export is removed, all members
  * from the removed class are merged into the provided class or interface
@@ -163,44 +133,36 @@ function prunePrivateImports<
       if (isExported(type.modifiers)) {
         exportedTypes.push(type);
       } else {
-        const publicSymbol = extractPublicSymbol(
+        const exportedSymbol = extractExportedSymbol(
           typeChecker,
           sourceFile,
           type.expression
         );
-        if (
-          publicSymbol &&
-          publicSymbol.name !== currentName &&
-          verifyMatchingTypeArguments(
-            type,
-            publicSymbol.declarations[0] as
-              | ts.ClassDeclaration
-              | ts.InterfaceDeclaration
-          )
-        ) {
+
+        if (exportedSymbol && exportedSymbol.name !== currentName) {
           // If there is a public type that we can refer to, update the import
           // statement to refer to the public type.
           exportedTypes.push(
             ts.updateExpressionWithTypeArguments(
               type,
               type.typeArguments,
-              ts.createIdentifier(publicSymbol.name)
-            )
-          );
-        } else {
-          // Hide the type we are inheriting from and merge its declarations
-          // into the current class.
-          const privateType = typeChecker.getTypeAtLocation(type);
-          additionalMembers.push(
-            ...convertPropertiesForEnclosingClass(
-              program,
-              host,
-              sourceFile,
-              privateType.getProperties(),
-              node
+              ts.createIdentifier(exportedSymbol.name)
             )
           );
         }
+
+        // Hide the type we are inheriting from and merge its declarations
+        // into the current class.
+        const privateType = typeChecker.getTypeAtLocation(type);
+        additionalMembers.push(
+          ...convertPropertiesForEnclosingClass(
+            program,
+            host,
+            sourceFile,
+            privateType.getProperties(),
+            node
+          )
+        );
       }
     }
 
@@ -282,7 +244,7 @@ function convertPropertiesForEnclosingClass(
  * export class PublicFoo {}
  * export function doFoo(foo: PublicFoo);
  */
-function extractPublicSymbol(
+function extractExportedSymbol(
   typeChecker: ts.TypeChecker,
   sourceFile: ts.SourceFile,
   typeName: ts.Node
@@ -292,16 +254,15 @@ function extractPublicSymbol(
   }
 
   const localSymbolName = typeName.escapedText;
-
-  const allPublicSymbols = typeChecker.getExportsOfModule(
+  const allExportedSymbols = typeChecker.getExportsOfModule(
     typeChecker.getSymbolAtLocation(sourceFile)!
   );
-  const publicSymbolsForLocalType: ts.Symbol[] = [];
+  const exportedSymbolsForLocalType: ts.Symbol[] = [];
 
   // Examine all exported types and check if they extend or implement the
   // provided local type. If so, we can use the exported type in lieu of the
   // private type.
-  for (const symbol of allPublicSymbols) {
+  for (const symbol of allExportedSymbols) {
     // Short circuit if the local types is already part of the public types.
     if (symbol.name === localSymbolName) {
       return symbol;
@@ -317,7 +278,7 @@ function extractPublicSymbol(
             if (ts.isIdentifier(type.expression)) {
               const subclassName = type.expression.escapedText;
               if (subclassName === localSymbolName) {
-                publicSymbolsForLocalType.push(symbol);
+                exportedSymbolsForLocalType.push(symbol);
               }
             }
           }
@@ -326,7 +287,7 @@ function extractPublicSymbol(
     }
   }
 
-  return publicSymbolsForLocalType[0];
+  return exportedSymbolsForLocalType[0];
 }
 
 function dropPrivateApiTransformer(
@@ -376,7 +337,7 @@ function dropPrivateApiTransformer(
       } else if (ts.isTypeReferenceNode(node)) {
         // For public types that refer internal types, find a public type that
         // we can refer to instead.
-        const publicName = extractPublicSymbol(
+        const publicName = extractExportedSymbol(
           typeChecker,
           sourceFile,
           node.typeName
@@ -407,14 +368,14 @@ function dropPrivateApiTransformer(
 const argv = yargs.options({
   input: {
     type: 'string',
-    demandOption: true,
     desc: 'The location of the index.ts file'
   },
   output: {
     type: 'string',
-    demandOption: true,
     desc: 'The location for the index.d.ts file'
   }
 }).argv;
 
-main(argv.input, argv.output);
+if (argv.input && argv.output) {
+  pruneDts(argv.input, argv.output);
+}

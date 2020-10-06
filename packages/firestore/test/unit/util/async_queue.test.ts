@@ -83,7 +83,7 @@ describe('AsyncQueue', () => {
 
     // Disable logging for this test to avoid the assertion being logged
     const oldLogLevel = getLogLevel();
-    setLogLevel(LogLevel.SILENT);
+    setLogLevel('silent');
 
     // Schedule a failing operation and make sure it's handled correctly.
     const op1Promise = queue
@@ -134,7 +134,7 @@ describe('AsyncQueue', () => {
       }).to.throw(/already failed:.*Simulated Error/);
 
       // Finally, restore log level.
-      setLogLevel(oldLogLevel);
+      setLogLevel('info');
     });
   });
 

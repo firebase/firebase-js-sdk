@@ -163,7 +163,7 @@ export declare function collectionGroup(
  * A `CollectionReference` object can be used for adding documents, getting
  * document references, and querying for documents (using {@link query()}`).
  */
-export declare class CollectionReference<T = DocumentData> extends Query<T> {
+export declare class CollectionReference<T = DocumentData> {
   readonly firestore: FirebaseFirestore;
   readonly type = 'collection';
   private constructor();
@@ -824,9 +824,7 @@ export declare type QueryConstraintType =
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export declare class QueryDocumentSnapshot<
-  T = DocumentData
-> extends DocumentSnapshot<T> {
+export declare class QueryDocumentSnapshot<T = DocumentData> {
   /**
    * Retrieves all fields in the document as an `Object`.
    *
