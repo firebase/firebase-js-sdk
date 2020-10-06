@@ -108,7 +108,7 @@ export async function convertCredential(
     additionalUserInfo: impl.getAdditionalUserInfo(
       credential as impl.UserCredential
     ),
-    user: user as User
+    user: User.getOrCreate(user)
   };
 }
 

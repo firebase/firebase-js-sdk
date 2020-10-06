@@ -16,7 +16,7 @@
  */
 
 import { _performApiRequest, Endpoint, HttpMethod } from '../';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '@firebase/auth-types-exp';
 import { IdTokenResponse } from '../../model/id_token';
 import { MfaEnrollment } from '../account_management/mfa';
 import { SignInWithIdpResponse } from './idp';
@@ -51,7 +51,7 @@ export interface StartPhoneMfaSignInResponse {
 }
 
 export function startSignInPhoneMfa(
-  auth: AuthCore,
+  auth: Auth,
   request: Omit<StartPhoneMfaSignInRequest, 'tenantId'>
 ): Promise<StartPhoneMfaSignInResponse> {
   return _performApiRequest<
@@ -72,7 +72,7 @@ export interface FinalizePhoneMfaSignInRequest {
 export interface FinalizePhoneMfaSignInResponse extends FinalizeMfaResponse {}
 
 export function finalizeSignInPhoneMfa(
-  auth: AuthCore,
+  auth: Auth,
   request: Omit<FinalizePhoneMfaSignInRequest, 'tenantId'>
 ): Promise<FinalizePhoneMfaSignInResponse> {
   return _performApiRequest<

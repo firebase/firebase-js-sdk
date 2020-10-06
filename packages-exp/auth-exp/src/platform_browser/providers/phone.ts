@@ -19,20 +19,24 @@ import * as externs from '@firebase/auth-types-exp';
 
 import { SignInWithPhoneNumberResponse } from '../../api/authentication/sms';
 import { ApplicationVerifier } from '../../model/application_verifier';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '../../model/auth';
 import { UserCredential } from '../../model/user';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { AuthErrorCode } from '../../core/errors';
 import { _verifyPhoneNumber } from '../strategies/phone';
 import { assert, fail } from '../../core/util/assert';
+import { _castAuth } from '../../core/auth/auth_impl';
 
 export class PhoneAuthProvider implements externs.PhoneAuthProvider {
   static readonly PROVIDER_ID = externs.ProviderId.PHONE;
   static readonly PHONE_SIGN_IN_METHOD = externs.SignInMethod.PHONE;
 
   readonly providerId = PhoneAuthProvider.PROVIDER_ID;
+  private readonly auth: Auth;
 
-  constructor(private readonly auth: AuthCore) {}
+  constructor(auth: externs.Auth) {
+    this.auth = _castAuth(auth);
+  }
 
   verifyPhoneNumber(
     phoneOptions: externs.PhoneInfoOptions | string,

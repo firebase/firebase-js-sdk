@@ -101,7 +101,7 @@ export async function checkActionCode(
   let multiFactorInfo: MultiFactorInfo | null = null;
   if (response.mfaInfo) {
     multiFactorInfo = MultiFactorInfo._fromServerResponse(
-      auth,
+      _castAuth(auth),
       response.mfaInfo
     );
   }

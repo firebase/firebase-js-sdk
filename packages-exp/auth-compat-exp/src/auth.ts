@@ -33,13 +33,12 @@ import {
   convertConfirmationResult,
   convertCredential
 } from './user_credential';
+import { unwrap, Wrapper } from './wrap';
 
-export class Auth
-  extends impl.AuthImplCompat<User>
-  implements compat.FirebaseAuth {
-  readonly app: FirebaseApp;
+export class Auth implements compat.FirebaseAuth, Wrapper<externs.Auth> {
+  private readonly auth: impl.AuthImpl;
 
-  constructor(app: FirebaseApp) {
+  constructor(readonly app: FirebaseApp) {
     const { apiKey, authDomain } = app.options;
 
     // TODO(avolkovi): Implement proper persistence fallback
@@ -60,34 +59,50 @@ export class Auth
       sdkClientVersion: impl._getClientVersion(_getClientPlatform())
     };
 
-    super(app, config, User);
-    this.app = app;
+    this.auth = new impl.AuthImpl(app, config);
 
     // This promise is intended to float; auth initialization happens in the
     // background, meanwhile the auth object may be used by the app.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this._initializeWithPersistence(
+    this.auth._initializeWithPersistence(
       hierarchy,
       impl.browserPopupRedirectResolver
     );
   }
 
-  _asExtern(): externs.Auth {
-    // We need this unsafe cast before calling impl.* methods since our implementation of
-    // setPersistence, onAuthStateChanged and onIdTokenChanged has a different signature
-    return (this as unknown) as externs.Auth;
+  get currentUser(): compat.User | null {
+    if (!this.auth.currentUser) {
+      return null;
+    }
+
+    return User.getOrCreate(this.auth.currentUser);
+  }
+  get languageCode(): string | null {
+    return this.auth.languageCode;
+  }
+  get settings(): compat.AuthSettings {
+    return this.auth.settings;
+  };
+  get tenantId(): string | null {
+    return this.auth.tenantId;
+  };
+  useDeviceLanguage(): void {
+    this.auth.useDeviceLanguage();
+  }
+  signOut(): Promise<void> {
+    return this.auth.signOut();
   }
 
   applyActionCode(code: string): Promise<void> {
-    return impl.applyActionCode(this._asExtern(), code);
+    return impl.applyActionCode(this.auth, code);
   }
 
   checkActionCode(code: string): Promise<compat.ActionCodeInfo> {
-    return impl.checkActionCode(this._asExtern(), code);
+    return impl.checkActionCode(this.auth, code);
   }
 
   confirmPasswordReset(code: string, newPassword: string): Promise<void> {
-    return impl.confirmPasswordReset(this._asExtern(), code, newPassword);
+    return impl.confirmPasswordReset(this.auth, code, newPassword);
   }
 
   async createUserWithEmailAndPassword(
@@ -95,18 +110,18 @@ export class Auth
     password: string
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      this._asExtern(),
-      impl.createUserWithEmailAndPassword(this._asExtern(), email, password)
+      this.auth,
+      impl.createUserWithEmailAndPassword(this.auth, email, password)
     );
   }
   fetchProvidersForEmail(email: string): Promise<string[]> {
     return this.fetchSignInMethodsForEmail(email);
   }
   fetchSignInMethodsForEmail(email: string): Promise<string[]> {
-    return impl.fetchSignInMethodsForEmail(this._asExtern(), email);
+    return impl.fetchSignInMethodsForEmail(this.auth, email);
   }
   isSignInWithEmailLink(emailLink: string): boolean {
-    return impl.isSignInWithEmailLink(this._asExtern(), emailLink);
+    return impl.isSignInWithEmailLink(this.auth, emailLink);
   }
   async getRedirectResult(): Promise<compat.UserCredential> {
     impl.assertFn(
@@ -115,7 +130,7 @@ export class Auth
       { appName: this.app.name }
     );
     const credential = await impl.getRedirectResult(
-      this._asExtern(),
+      this.auth,
       impl.browserPopupRedirectResolver
     );
     if (!credential) {
@@ -124,28 +139,30 @@ export class Auth
         user: null
       };
     }
-    return convertCredential(this._asExtern(), Promise.resolve(credential));
+    return convertCredential(this.auth, Promise.resolve(credential));
   }
   onAuthStateChanged(
     nextOrObserver: Observer<unknown> | ((a: compat.User | null) => unknown),
-    error?: (error: compat.Error) => unknown,
+    errorFn?: (error: compat.Error) => unknown,
     completed?: Unsubscribe
   ): Unsubscribe {
-    return super._onAuthStateChanged(
-      nextOrObserver as externs.NextOrObserver<externs.User | null>,
-      error as ErrorFn,
-      completed
+    const {next, error, complete} = wrapObservers(nextOrObserver, errorFn, completed);
+    return this.auth.onAuthStateChanged(
+      next!,
+      error,
+      complete
     );
   }
   onIdTokenChanged(
     nextOrObserver: Observer<unknown> | ((a: compat.User | null) => unknown),
-    error?: (error: compat.Error) => unknown,
+    errorFn?: (error: compat.Error) => unknown,
     completed?: Unsubscribe
   ): Unsubscribe {
-    return super._onIdTokenChanged(
-      nextOrObserver as externs.NextOrObserver<externs.User | null>,
-      error as ErrorFn,
-      completed
+    const {next, error, complete} = wrapObservers(nextOrObserver, errorFn, completed);
+    return this.auth.onIdTokenChanged(
+      next!,
+      error,
+      complete
     );
   }
   sendSignInLinkToEmail(
@@ -153,7 +170,7 @@ export class Auth
     actionCodeSettings: compat.ActionCodeSettings
   ): Promise<void> {
     return impl.sendSignInLinkToEmail(
-      this._asExtern(),
+      this.auth,
       email,
       actionCodeSettings
     );
@@ -163,7 +180,7 @@ export class Auth
     actionCodeSettings?: compat.ActionCodeSettings | null
   ): Promise<void> {
     return impl.sendPasswordResetEmail(
-      this._asExtern(),
+      this.auth,
       email,
       actionCodeSettings || undefined
     );
@@ -190,8 +207,8 @@ export class Auth
       }
     }
 
-    return super._setPersistence(
-      convertPersistence(this._asExtern(), persistence)
+    return this.auth.setPersistence(
+      convertPersistence(this.auth, persistence)
     );
   }
 
@@ -202,25 +219,25 @@ export class Auth
   }
   signInAnonymously(): Promise<compat.UserCredential> {
     return convertCredential(
-      this._asExtern(),
-      impl.signInAnonymously(this._asExtern())
+      this.auth,
+      impl.signInAnonymously(this.auth)
     );
   }
   signInWithCredential(
     credential: compat.AuthCredential
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      this._asExtern(),
+      this.auth,
       impl.signInWithCredential(
-        this._asExtern(),
+        this.auth,
         credential as externs.AuthCredential
       )
     );
   }
   signInWithCustomToken(token: string): Promise<compat.UserCredential> {
     return convertCredential(
-      this._asExtern(),
-      impl.signInWithCustomToken(this._asExtern(), token)
+      this.auth,
+      impl.signInWithCustomToken(this.auth, token)
     );
   }
   signInWithEmailAndPassword(
@@ -228,8 +245,8 @@ export class Auth
     password: string
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      this._asExtern(),
-      impl.signInWithEmailAndPassword(this._asExtern(), email, password)
+      this.auth,
+      impl.signInWithEmailAndPassword(this.auth, email, password)
     );
   }
   signInWithEmailLink(
@@ -237,8 +254,8 @@ export class Auth
     emailLink?: string
   ): Promise<compat.UserCredential> {
     return convertCredential(
-      this._asExtern(),
-      impl.signInWithEmailLink(this._asExtern(), email, emailLink)
+      this.auth,
+      impl.signInWithEmailLink(this.auth, email, emailLink)
     );
   }
   signInWithPhoneNumber(
@@ -246,11 +263,11 @@ export class Auth
     applicationVerifier: compat.ApplicationVerifier
   ): Promise<compat.ConfirmationResult> {
     return convertConfirmationResult(
-      this._asExtern(),
+      this.auth,
       impl.signInWithPhoneNumber(
-        this._asExtern(),
+        this.auth,
         phoneNumber,
-        applicationVerifier
+        unwrap(applicationVerifier)
       )
     );
   }
@@ -263,9 +280,9 @@ export class Auth
       { appName: this.app.name }
     );
     return convertCredential(
-      this._asExtern(),
+      this.auth,
       impl.signInWithPopup(
-        this._asExtern(),
+        this.auth,
         provider as externs.AuthProvider,
         impl.browserPopupRedirectResolver
       )
@@ -278,15 +295,35 @@ export class Auth
       { appName: this.app.name }
     );
     return impl.signInWithRedirect(
-      this._asExtern(),
+      this.auth,
       provider as externs.AuthProvider,
       impl.browserPopupRedirectResolver
     );
   }
-  updateCurrentUser(user: User | null): Promise<void> {
-    return super.updateCurrentUser(user);
+  updateCurrentUser(user: compat.User | null): Promise<void> {
+    return this.auth.updateCurrentUser(unwrap(user));
   }
   verifyPasswordResetCode(code: string): Promise<string> {
-    return impl.verifyPasswordResetCode(this._asExtern(), code);
+    return impl.verifyPasswordResetCode(this.auth, code);
   }
+  unwrap(): externs.Auth {
+    return this.auth;
+  }
+}
+
+function wrapObservers(nextOrObserver: Observer<unknown> | ((a: compat.User|null) => unknown),
+error?: (error: compat.Error) => unknown,
+complete?: Unsubscribe): Partial<Observer<externs.User|null>> {
+  let next = nextOrObserver;
+  if (typeof nextOrObserver !== 'function') {
+    ({next, error, complete} = nextOrObserver);
+  }
+
+  // We know 'next' is now a function
+  const oldNext = next as ((a: compat.User|null) => unknown);
+
+  const newNext = (user: externs.User|null) => oldNext(user && User.getOrCreate(user as externs.User));
+  return {
+    next: newNext, error: error as ErrorFn, complete
+  };
 }

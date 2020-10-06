@@ -17,7 +17,7 @@
 
 import { _performSignInRequest, Endpoint, HttpMethod } from '../';
 import { IdTokenResponse } from '../../model/id_token';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '@firebase/auth-types-exp';
 
 export interface SignInWithEmailLinkRequest {
   email: string;
@@ -30,7 +30,7 @@ export interface SignInWithEmailLinkResponse extends IdTokenResponse {
 }
 
 export async function signInWithEmailLink(
-  auth: AuthCore,
+  auth: Auth,
   request: SignInWithEmailLinkRequest
 ): Promise<SignInWithEmailLinkResponse> {
   return _performSignInRequest<
@@ -45,7 +45,7 @@ export interface SignInWithEmailLinkForLinkingRequest
 }
 
 export async function signInWithEmailLinkForLinking(
-  auth: AuthCore,
+  auth: Auth,
   request: SignInWithEmailLinkForLinkingRequest
 ): Promise<SignInWithEmailLinkResponse> {
   return _performSignInRequest<

@@ -18,14 +18,14 @@ import * as externs from '@firebase/auth-types-exp';
 import { debugFail } from '../../core/util/assert';
 import { MultiFactorSession, MultiFactorSessionType } from '../mfa_session';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '../../model/auth';
 
 export abstract class MultiFactorAssertion
   implements externs.MultiFactorAssertion {
   protected constructor(readonly factorId: string) {}
 
   _process(
-    auth: AuthCore,
+    auth: Auth,
     session: MultiFactorSession,
     displayName?: string | null
   ): Promise<FinalizeMfaResponse> {
@@ -40,12 +40,12 @@ export abstract class MultiFactorAssertion
   }
 
   abstract _finalizeEnroll(
-    auth: AuthCore,
+    auth: Auth,
     idToken: string,
     displayName?: string | null
   ): Promise<FinalizeMfaResponse>;
   abstract _finalizeSignIn(
-    auth: AuthCore,
+    auth: Auth,
     mfaPendingCredential: string
   ): Promise<FinalizeMfaResponse>;
 }

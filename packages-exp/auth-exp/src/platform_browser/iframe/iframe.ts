@@ -22,7 +22,7 @@ import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
 import { assert } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
 import { _emulatorUrl } from '../../core/util/emulator';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '../../model/auth';
 import { _window } from '../auth_window';
 import * as gapiLoader from './gapi';
 
@@ -39,7 +39,7 @@ const IFRAME_ATTRIBUTES = {
   }
 };
 
-function getIframeUrl(auth: AuthCore): string {
+function getIframeUrl(auth: Auth): string {
   const config = auth.config;
   const url = config.emulator
     ? _emulatorUrl(config, EMULATED_IFRAME_PATH)
@@ -57,7 +57,7 @@ function getIframeUrl(auth: AuthCore): string {
 }
 
 export async function _openIframe(
-  auth: AuthCore
+  auth: Auth
 ): Promise<gapi.iframes.Iframe> {
   const context = await gapiLoader._loadGapi(auth);
   const gapi = _window().gapi;
