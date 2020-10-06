@@ -378,11 +378,11 @@ async function analyzeBundleWithBundler(
     const bundleFilePath = `${debugOptions.output}/${bundleName.replace(
       / +/g,
       '-'
-    )}.js`;
+    )}.${bundler}.js`;
     const minifiedBundleFilePath = `${debugOptions.output}/${bundleName.replace(
       / +/g,
       '-'
-    )}.minified.js`;
+    )}.${bundler}.minified.js`;
     writeFileSync(bundleFilePath, bundledContent, { encoding: 'utf8' });
     writeFileSync(minifiedBundleFilePath, minifiedBundle, { encoding: 'utf8' });
 

@@ -82,7 +82,7 @@ yargs
       },
       debug: {
         type: 'boolean',
-        alia: 'd',
+        alias: 'd',
         default: false,
         desc: 'debug mode'
       }
