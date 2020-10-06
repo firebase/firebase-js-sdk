@@ -77,7 +77,7 @@ export class AuthImpl implements Auth, _FirebaseService {
 
   constructor(
     public readonly app: FirebaseApp,
-    public readonly config: ConfigInternal,
+    public readonly config: ConfigInternal
   ) {
     this.name = app.name;
   }
@@ -276,7 +276,7 @@ export class AuthImpl implements Auth, _FirebaseService {
         [_getInstance(resolver._redirectPersistence)],
         _REDIRECT_USER_KEY_NAME
       );
-      this.redirectUser = (await this.redirectPersistenceManager.getCurrentUser());
+      this.redirectUser = await this.redirectPersistenceManager.getCurrentUser();
     }
 
     return this.redirectPersistenceManager;

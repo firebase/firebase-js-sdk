@@ -56,9 +56,7 @@ function getIframeUrl(auth: Auth): string {
   return `${url}?${querystring(params).slice(1)}`;
 }
 
-export async function _openIframe(
-  auth: Auth
-): Promise<gapi.iframes.Iframe> {
+export async function _openIframe(auth: Auth): Promise<gapi.iframes.Iframe> {
   const context = await gapiLoader._loadGapi(auth);
   const gapi = _window().gapi;
   assert(gapi, AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });

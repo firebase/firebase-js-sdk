@@ -104,10 +104,7 @@ export class EmailAuthCredential
     }
   }
 
-  async _linkToIdToken(
-    auth: Auth,
-    idToken: string
-  ): Promise<IdTokenResponse> {
+  async _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
     switch (this.signInMethod) {
       case externs.SignInMethod.EMAIL_PASSWORD:
         return updateEmailPassword(auth, {
