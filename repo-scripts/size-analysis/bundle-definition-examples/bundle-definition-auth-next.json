@@ -1,5 +1,17 @@
 [
     {
+        "name": "EmailAndPasswordOnly",
+        "dependencies": [
+            {
+                "packageName": "@firebase/auth-exp",
+                "versionOrTag": "exp",
+                "imports": [
+                    "signInWithEmailAndPassword"
+                ]
+            }
+        ]
+    },
+    {
         "name": "EmailAndPassword",
         "dependencies": [
             {
@@ -22,6 +34,89 @@
         ]
     },
     {
-        
+        "name": "GooglePopup",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app-exp",
+                "versionOrTag": "exp",
+                "imports": [
+                    "initializeApp"
+                ]
+            },
+            {
+                "packageName": "@firebase/auth-exp",
+                "versionOrTag": "exp",
+                "imports": [
+                    "getAuth",
+                    "GoogleAuthProvider",
+                    "signInWithPopup",
+                    "onAuthStateChanged"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "GoogleRedirect",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app-exp",
+                "versionOrTag": "exp",
+                "imports": [
+                    "initializeApp"
+                ]
+            },
+            {
+                "packageName": "@firebase/auth-exp",
+                "versionOrTag": "exp",
+                "imports": [
+                    "getAuth",
+                    "GoogleAuthProvider",
+                    "getRedirectResult",
+                    "signInWithRedirect",
+                    "onAuthStateChanged"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Phone",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app-exp",
+                "versionOrTag": "exp",
+                "imports": [
+                    "initializeApp"
+                ]
+            },
+            {
+                "packageName": "@firebase/auth-exp",
+                "versionOrTag": "exp",
+                "imports": [
+                    "getAuth",
+                    "RecaptchaVerifier",
+                    "signInWithPhoneNumber"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "Anonymous",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app-exp",
+                "versionOrTag": "exp",
+                "imports": [
+                    "initializeApp"
+                ]
+            },
+            {
+                "packageName": "@firebase/auth-exp",
+                "versionOrTag": "exp",
+                "imports": [
+                    "getAuth",
+                    "signInAnonymously"
+                ]
+            }
+        ]
     }
 ]
