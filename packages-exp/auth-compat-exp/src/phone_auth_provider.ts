@@ -48,9 +48,9 @@ export class PhoneAuthProvider
       | compat.PhoneMultiFactorSignInInfoOptions,
     applicationVerifier: compat.ApplicationVerifier
   ): Promise<string> {
-    // The implementation matches but the types are subtly incompatible
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return this.phoneProvider.verifyPhoneNumber(
+      // The implementation matches but the types are subtly incompatible
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       phoneInfoOptions as any,
       unwrap(applicationVerifier)
     );
