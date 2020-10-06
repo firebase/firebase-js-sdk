@@ -65,7 +65,7 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
         GoogleAuthProvider: impl.GoogleAuthProvider,
         OAuthProvider: impl.OAuthProvider,
         //   SAMLAuthProvider,
-        PhoneAuthProvider: PhoneAuthProvider,
+        PhoneAuthProvider,
         PhoneMultiFactorGenerator: impl.PhoneMultiFactorGenerator,
         RecaptchaVerifier,
         TwitterAuthProvider: impl.TwitterAuthProvider,
