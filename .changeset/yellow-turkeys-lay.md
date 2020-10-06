@@ -2,6 +2,7 @@
 "@firebase/firestore-types": minor
 "@firebase/firestore": minor
 "@firebase/webchannel-wrapper": minor
+"firebase": minor
 ---
 
 Adds a new `experimentalAutoDetectLongPolling` to FirestoreSettings.  When
