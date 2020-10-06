@@ -15,19 +15,27 @@
  * limitations under the License.
  */
 import * as tmp from 'tmp';
-import { existsSync, lstatSync, readFileSync, writeFileSync } from 'fs';
+import {
+  existsSync,
+  lstatSync,
+  readFileSync,
+  writeFile,
+  writeFileSync
+} from 'fs';
 import { spawn } from 'child-process-promise';
 import { ordinal } from '@firebase/util';
 import { bundleWithRollup } from './bundle/rollup';
 import { bundleWithWebpack } from './bundle/webpack';
 import { calculateContentSize } from './util';
 import { minify } from './bundle/minify';
+import { extractDeclarations, MemberList } from './analysis-helper';
 
 interface BundleAnalysisArgs {
   input: string;
   bundler: 'webpack' | 'rollup' | 'both';
   mode: 'npm' | 'local';
   output: string;
+  debug: boolean;
 }
 
 interface BundleAnalysisOptions {
@@ -35,6 +43,11 @@ interface BundleAnalysisOptions {
   bundler: Bundler;
   mode: Mode;
   output: string;
+  debug: boolean;
+}
+
+interface DebugOptions {
+  output: string; // output folder for debug files
 }
 
 interface BundleDefinition {
@@ -71,13 +84,15 @@ export async function run({
   input,
   bundler,
   mode,
-  output
+  output,
+  debug
 }: BundleAnalysisArgs): Promise<void> {
   const options = {
     bundleDefinitions: loadBundleDefinitions(input),
     bundler: toBundlerEnum(bundler),
     mode: toModeEnum(mode),
-    output
+    output,
+    debug
   };
 
   return analyze(options);
@@ -206,11 +221,23 @@ async function analyze({
   bundleDefinitions,
   bundler,
   output,
-  mode
+  mode,
+  debug
 }: BundleAnalysisOptions): Promise<void> {
   const analyses: BundleAnalysis[] = [];
+
+  let debugOptions: DebugOptions | undefined;
+  if (debug) {
+    const tmpDir = tmp.dirSync();
+    debugOptions = {
+      output: tmpDir.name
+    };
+  }
+
   for (const bundleDefinition of bundleDefinitions) {
-    analyses.push(await analyzeBundle(bundleDefinition, bundler, mode));
+    analyses.push(
+      await analyzeBundle(bundleDefinition, bundler, mode, debugOptions)
+    );
   }
 
   writeFileSync(output, JSON.stringify(analyses, null, 2), {
@@ -221,7 +248,8 @@ async function analyze({
 async function analyzeBundle(
   bundleDefinition: BundleDefinition,
   bundler: Bundler,
-  mode: Mode
+  mode: Mode,
+  debugOptions?: DebugOptions
 ): Promise<BundleAnalysis> {
   const analysis: BundleAnalysis = {
     name: bundleDefinition.name,
@@ -242,25 +270,31 @@ async function analyzeBundle(
     case Bundler.Webpack:
       analysis.results.push(
         await analyzeBundleWithBundler(
+          bundleDefinition.name,
           entryFileContent,
           bundler,
-          moduleDirectory
+          moduleDirectory,
+          debugOptions
         )
       );
       break;
     case Bundler.Both:
       analysis.results.push(
         await analyzeBundleWithBundler(
+          bundleDefinition.name,
           entryFileContent,
           Bundler.Rollup,
-          moduleDirectory
+          moduleDirectory,
+          debugOptions
         )
       );
       analysis.results.push(
         await analyzeBundleWithBundler(
+          bundleDefinition.name,
           entryFileContent,
           Bundler.Webpack,
-          moduleDirectory
+          moduleDirectory,
+          debugOptions
         )
       );
       break;
@@ -316,9 +350,11 @@ async function setupTempProject(
 }
 
 async function analyzeBundleWithBundler(
+  bundleName: string,
   entryFileContent: string,
   bundler: Exclude<Bundler, 'both'>,
-  moduleDirectory?: string
+  moduleDirectory?: string,
+  debugOptions?: DebugOptions
 ): Promise<BundleAnalysisResult> {
   let bundledContent = '';
 
@@ -332,11 +368,32 @@ async function analyzeBundleWithBundler(
   const minifiedBundle = await minify(bundledContent);
   const { size, gzipSize } = calculateContentSize(minifiedBundle);
 
-  return {
+  const analysisResult: BundleAnalysisResult = {
     bundler,
     size,
     gzipSize
   };
+
+  if (debugOptions) {
+    const bundleFilePath = `${debugOptions.output}/${bundleName.replace(
+      / +/g,
+      '-'
+    )}.js`;
+    const minifiedBundleFilePath = `${debugOptions.output}/${bundleName.replace(
+      / +/g,
+      '-'
+    )}.minified.js`;
+    writeFileSync(bundleFilePath, bundledContent, { encoding: 'utf8' });
+    writeFileSync(minifiedBundleFilePath, minifiedBundle, { encoding: 'utf8' });
+
+    analysisResult.debugInfo = {
+      pathToBundle: bundleFilePath,
+      pathToMinifiedBundle: minifiedBundleFilePath,
+      dependencies: extractDeclarations(bundleFilePath)
+    };
+  }
+
+  return analysisResult;
 }
 
 function createEntryFileContent(bundleDefinition: BundleDefinition): string {
@@ -368,4 +425,9 @@ interface BundleAnalysisResult {
   bundler: 'rollup' | 'webpack';
   size: number;
   gzipSize: number;
+  debugInfo?: {
+    pathToBundle?: string;
+    pathToMinifiedBundle?: string;
+    dependencies?: MemberList;
+  };
 }
