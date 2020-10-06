@@ -60,7 +60,7 @@ export class AuthInternal {
     }
 
     const unsubscribe = this.auth.onIdTokenChanged(user => {
-      listener((user as User|null)?.stsTokenManager.accessToken || null);
+      listener((user as User | null)?.stsTokenManager.accessToken || null);
     });
     this.internalListeners.set(listener, unsubscribe);
     this.updateProactiveRefresh();

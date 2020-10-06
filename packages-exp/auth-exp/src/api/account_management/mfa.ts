@@ -18,7 +18,7 @@
 import { Endpoint, HttpMethod, _performApiRequest } from '..';
 import { SignInWithPhoneNumberRequest } from '../authentication/sms';
 import { FinalizeMfaResponse } from '../authentication/mfa';
-import {Auth} from '../../model/auth';
+import { Auth } from '../../model/auth';
 
 /**
  * MFA Info as returned by the API

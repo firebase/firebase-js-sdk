@@ -82,10 +82,10 @@ export class Auth implements compat.FirebaseAuth, Wrapper<externs.Auth> {
   }
   get settings(): compat.AuthSettings {
     return this.auth.settings;
-  };
+  }
   get tenantId(): string | null {
     return this.auth.tenantId;
-  };
+  }
   useDeviceLanguage(): void {
     this.auth.useDeviceLanguage();
   }
@@ -146,34 +146,30 @@ export class Auth implements compat.FirebaseAuth, Wrapper<externs.Auth> {
     errorFn?: (error: compat.Error) => unknown,
     completed?: Unsubscribe
   ): Unsubscribe {
-    const {next, error, complete} = wrapObservers(nextOrObserver, errorFn, completed);
-    return this.auth.onAuthStateChanged(
-      next!,
-      error,
-      complete
+    const { next, error, complete } = wrapObservers(
+      nextOrObserver,
+      errorFn,
+      completed
     );
+    return this.auth.onAuthStateChanged(next!, error, complete);
   }
   onIdTokenChanged(
     nextOrObserver: Observer<unknown> | ((a: compat.User | null) => unknown),
     errorFn?: (error: compat.Error) => unknown,
     completed?: Unsubscribe
   ): Unsubscribe {
-    const {next, error, complete} = wrapObservers(nextOrObserver, errorFn, completed);
-    return this.auth.onIdTokenChanged(
-      next!,
-      error,
-      complete
+    const { next, error, complete } = wrapObservers(
+      nextOrObserver,
+      errorFn,
+      completed
     );
+    return this.auth.onIdTokenChanged(next!, error, complete);
   }
   sendSignInLinkToEmail(
     email: string,
     actionCodeSettings: compat.ActionCodeSettings
   ): Promise<void> {
-    return impl.sendSignInLinkToEmail(
-      this.auth,
-      email,
-      actionCodeSettings
-    );
+    return impl.sendSignInLinkToEmail(this.auth, email, actionCodeSettings);
   }
   sendPasswordResetEmail(
     email: string,
@@ -207,9 +203,7 @@ export class Auth implements compat.FirebaseAuth, Wrapper<externs.Auth> {
       }
     }
 
-    return this.auth.setPersistence(
-      convertPersistence(this.auth, persistence)
-    );
+    return this.auth.setPersistence(convertPersistence(this.auth, persistence));
   }
 
   signInAndRetrieveDataWithCredential(
@@ -218,20 +212,14 @@ export class Auth implements compat.FirebaseAuth, Wrapper<externs.Auth> {
     return this.signInWithCredential(credential);
   }
   signInAnonymously(): Promise<compat.UserCredential> {
-    return convertCredential(
-      this.auth,
-      impl.signInAnonymously(this.auth)
-    );
+    return convertCredential(this.auth, impl.signInAnonymously(this.auth));
   }
   signInWithCredential(
     credential: compat.AuthCredential
   ): Promise<compat.UserCredential> {
     return convertCredential(
       this.auth,
-      impl.signInWithCredential(
-        this.auth,
-        credential as externs.AuthCredential
-      )
+      impl.signInWithCredential(this.auth, credential as externs.AuthCredential)
     );
   }
   signInWithCustomToken(token: string): Promise<compat.UserCredential> {
@@ -311,19 +299,24 @@ export class Auth implements compat.FirebaseAuth, Wrapper<externs.Auth> {
   }
 }
 
-function wrapObservers(nextOrObserver: Observer<unknown> | ((a: compat.User|null) => unknown),
-error?: (error: compat.Error) => unknown,
-complete?: Unsubscribe): Partial<Observer<externs.User|null>> {
+function wrapObservers(
+  nextOrObserver: Observer<unknown> | ((a: compat.User | null) => unknown),
+  error?: (error: compat.Error) => unknown,
+  complete?: Unsubscribe
+): Partial<Observer<externs.User | null>> {
   let next = nextOrObserver;
   if (typeof nextOrObserver !== 'function') {
-    ({next, error, complete} = nextOrObserver);
+    ({ next, error, complete } = nextOrObserver);
   }
 
   // We know 'next' is now a function
-  const oldNext = next as ((a: compat.User|null) => unknown);
+  const oldNext = next as (a: compat.User | null) => unknown;
 
-  const newNext = (user: externs.User|null) => oldNext(user && User.getOrCreate(user as externs.User));
+  const newNext = (user: externs.User | null) =>
+    oldNext(user && User.getOrCreate(user as externs.User));
   return {
-    next: newNext, error: error as ErrorFn, complete
+    next: newNext,
+    error: error as ErrorFn,
+    complete
   };
 }

@@ -40,7 +40,8 @@ export class RecaptchaVerifier
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       parameters as any,
 
-      unwrap(app.auth!()));
+      unwrap(app.auth!())
+    );
     this.type = this.verifier.type;
   }
   clear(): void {

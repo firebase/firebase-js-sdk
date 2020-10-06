@@ -77,7 +77,11 @@ export class User implements compat.User, Wrapper<externs.User> {
   ): Promise<compat.ConfirmationResult> {
     return convertConfirmationResult(
       this.auth,
-      impl.linkWithPhoneNumber(this.user, phoneNumber, unwrap(applicationVerifier))
+      impl.linkWithPhoneNumber(
+        this.user,
+        phoneNumber,
+        unwrap(applicationVerifier)
+      )
     );
   }
   async linkWithPopup(
@@ -121,7 +125,11 @@ export class User implements compat.User, Wrapper<externs.User> {
   ): Promise<compat.ConfirmationResult> {
     return convertConfirmationResult(
       this.auth,
-      impl.reauthenticateWithPhoneNumber(this.user, phoneNumber, unwrap(applicationVerifier))
+      impl.reauthenticateWithPhoneNumber(
+        this.user,
+        phoneNumber,
+        unwrap(applicationVerifier)
+      )
     );
   }
   reauthenticateWithPopup(
@@ -174,7 +182,11 @@ export class User implements compat.User, Wrapper<externs.User> {
     newEmail: string,
     actionCodeSettings?: compat.ActionCodeSettings | null
   ): Promise<void> {
-    return impl.verifyBeforeUpdateEmail(this.user, newEmail, actionCodeSettings);
+    return impl.verifyBeforeUpdateEmail(
+      this.user,
+      newEmail,
+      actionCodeSettings
+    );
   }
   unwrap(): externs.User {
     return this.user;
@@ -216,6 +228,6 @@ export class User implements compat.User, Wrapper<externs.User> {
     return this.user.uid;
   }
   private get auth(): externs.Auth {
-    return (this.user as impl.UserImpl).auth as unknown as externs.Auth;
+    return ((this.user as impl.UserImpl).auth as unknown) as externs.Auth;
   }
 }
