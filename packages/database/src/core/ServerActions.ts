@@ -16,6 +16,7 @@
  */
 
 import { Query } from '../api/Query';
+import { DataSnapshot } from '../api/DataSnapshot';
 
 /**
  * Interface defining the set of actions that can be performed against the Firebase server
@@ -50,7 +51,7 @@ export abstract class ServerActions {
    * @param query
    * @param onComplete
    */
-  get(query: Query, onComplete: (a: string, b: unknown) => void): void {}
+  abstract get(query: Query): Promise<string>;
 
   /**
    * @param {string} pathString

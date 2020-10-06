@@ -15,12 +15,19 @@
  * limitations under the License.
  */
 
-import { assert, jsonEval, safeGet, querystring } from '@firebase/util';
+import {
+  assert,
+  jsonEval,
+  safeGet,
+  querystring,
+  Deferred
+} from '@firebase/util';
 import { logWrapper, warn } from './util/util';
 
 import { ServerActions } from './ServerActions';
 import { RepoInfo } from './RepoInfo';
 import { AuthTokenProvider } from './AuthTokenProvider';
+import { DataSnapshot } from '../api/DataSnapshot';
 import { Query } from '../api/Query';
 
 /**
@@ -137,6 +144,42 @@ export class ReadonlyRestClient extends ServerActions {
   unlisten(query: Query, tag: number | null) {
     const listenId = ReadonlyRestClient.getListenId_(query, tag);
     delete this.listens_[listenId];
+  }
+
+  get(query: Query): Promise<string> {
+    const queryStringParameters = query
+      .getQueryParams()
+      .toRestQueryStringParameters();
+
+    const pathString = query.path.toString();
+
+    const deferred = new Deferred<string>();
+
+    this.restRequest_(
+      pathString + '.json',
+      queryStringParameters,
+      (error, result) => {
+        let data = result;
+
+        if (error === 404) {
+          data = null;
+          error = null;
+        }
+
+        if (error === null) {
+          this.onDataUpdate_(
+            pathString,
+            data,
+            /*isMerge=*/ false,
+            /*tag=*/ null
+          );
+          deferred.resolve(data as string);
+        } else {
+          deferred.reject(new Error(data as string));
+        }
+      }
+    );
+    return deferred.promise;
   }
 
   /** @inheritDoc */

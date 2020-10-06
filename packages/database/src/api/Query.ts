@@ -300,14 +300,7 @@ export class Query {
   }
 
   get(): Promise<DataSnapshot> {
-    const deferred = new Deferred<DataSnapshot>();
-    const callback = (snapshot: DataSnapshot) => {
-      deferred.resolve(snapshot);
-    };
-    this.repo.get(this, callback, err => {
-      deferred.reject(err);
-    });
-    return deferred.promise;
+    return this.repo.get(this);
   }
 
   /**

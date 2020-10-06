@@ -47,6 +47,7 @@ import { Event } from './view/Event';
 import { Node } from './snap/Node';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { Deferred } from '@firebase/util';
 import { Indexable } from './util/misc';
 
 const INTERRUPT_REASON = 'repo_interrupt';
@@ -297,27 +298,21 @@ export class Repo {
     return this.nextWriteId_++;
   }
 
-  get(query: Query, onComplete: SnapshotCallback, onFailure: FailureCallback) {
-    this.server_.get(query, (status, payload) => {
-      if (status === 'ok') {
-        this.onDataUpdate_(
-          query.path.toString(),
-          payload,
-          /*isMerge=*/ false,
-          /*tag=*/ null
-        );
-        const newNode = nodeFromJSON(payload as string);
-        onComplete(
+  get(query: Query): Promise<DataSnapshot> {
+    return this.server_.get(query).then(
+      payload => {
+        return Promise.resolve(
           new DataSnapshot(
-            newNode,
+            nodeFromJSON(payload as string),
             query.getRef(),
             query.getQueryParams().getIndex()
           )
         );
-      } else {
-        onFailure(Error(payload as string));
+      },
+      err => {
+        return Promise.reject(new Error(err as string));
       }
-    });
+    );
   }
 
   setWithPriority(

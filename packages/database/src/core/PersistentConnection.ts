@@ -26,7 +26,8 @@ import {
   isValidFormat,
   isMobileCordova,
   isReactNative,
-  isNodeSdk
+  isNodeSdk,
+  Deferred
 } from '@firebase/util';
 
 import { error, log, logWrapper, warn, ObjectToUniqueKey } from './util/util';
@@ -35,6 +36,8 @@ import { VisibilityMonitor } from './util/VisibilityMonitor';
 import { OnlineMonitor } from './util/OnlineMonitor';
 
 import { Connection } from '../realtime/Connection';
+
+import { DataSnapshot } from '../api/DataSnapshot';
 
 import { ServerActions } from './ServerActions';
 import { AuthTokenProvider } from './AuthTokenProvider';
@@ -79,7 +82,7 @@ interface OutstandingGet {
   action: string;
   request: object;
   queued?: boolean;
-  onComplete: (a: string, b?: string) => void;
+  deferred: Deferred<string>;
 }
 
 /**
@@ -193,7 +196,7 @@ export class PersistentConnection extends ServerActions {
     }
   }
 
-  get(query: Query, onComplete: (a: string, b: unknown) => void) {
+  get(query: Query): Promise<string> {
     const action = 'g';
 
     const req: { [k: string]: unknown } = {
@@ -201,10 +204,12 @@ export class PersistentConnection extends ServerActions {
       q: query.queryObject()
     };
 
+    const deferred = new Deferred<string>();
+
     this.outstandingGets_.push({
       action,
       request: req,
-      onComplete
+      deferred: deferred
     });
 
     this.outstandingGetCount_++;
@@ -214,6 +219,8 @@ export class PersistentConnection extends ServerActions {
     } else {
       this.log_('Buffering get: ' + query.path.toString());
     }
+
+    return deferred.promise;
   }
 
   /**
@@ -256,7 +263,7 @@ export class PersistentConnection extends ServerActions {
   private sendGet_(index: number) {
     const action = this.outstandingGets_[index].action;
     const request = this.outstandingGets_[index].request;
-    const onComplete = this.outstandingGets_[index].onComplete;
+    const deferred = this.outstandingGets_[index].deferred;
     this.outstandingGets_[index].queued = this.connected_;
 
     this.sendRequest(action, request, (message: { [k: string]: unknown }) => {
@@ -267,8 +274,19 @@ export class PersistentConnection extends ServerActions {
         this.outstandingGets_ = [];
       }
 
-      if (onComplete) {
-        onComplete(message['s'] as string, message['d'] as string);
+      if (deferred) {
+        const payload = message['d'] as string;
+        if (message['s'] == 'ok') {
+          this.onDataUpdate_(
+            request['p'],
+            payload,
+            /*isMerge*/ false,
+            /*tag*/ null
+          );
+          deferred.resolve(payload);
+        } else {
+          deferred.reject(payload);
+        }
       }
     });
   }
