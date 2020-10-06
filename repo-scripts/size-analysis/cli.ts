@@ -79,6 +79,12 @@ yargs
         alias: 'o',
         default: './size-analysis-bundles.json',
         desc: 'The output location'
+      },
+      debug: {
+        type: 'boolean',
+        alias: 'd',
+        default: false,
+        desc: 'debug mode'
       }
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
