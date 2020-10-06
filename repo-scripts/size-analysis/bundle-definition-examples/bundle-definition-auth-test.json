@@ -1,0 +1,27 @@
+[
+    {
+        "name": "EmailAndPasswordOnly",
+        "dependencies": [
+            {
+                "packageName": "@firebase/auth-exp",
+                "versionOrTag": "exp",
+                "imports": [
+                    "signInWithEmailAndPassword"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "GooglePopup",
+        "dependencies": [
+            {
+                "packageName": "@firebase/auth-exp",
+                "versionOrTag": "exp",
+                "imports": [
+                    "GoogleAuthProvider",
+                    "signInWithPopup"
+                ]
+            }
+        ]
+    }
+]
