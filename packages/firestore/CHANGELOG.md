@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 1.17.3
+
+### Patch Changes
+
+- [`a10c18f89`](https://github.com/firebase/firebase-js-sdk/commit/a10c18f8996fc35942779f5fea5690ae5d102bb0) [#3871](https://github.com/firebase/firebase-js-sdk/pull/3871) - The SDK now include more information in the error message for failed IndexedDB transactions.
+
 ## 1.17.2
 
 ### Patch Changes
