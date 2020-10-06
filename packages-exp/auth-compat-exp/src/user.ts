@@ -49,7 +49,7 @@ export class User implements compat.User, Wrapper<externs.User> {
   reload(): Promise<void> {
     return this.user.reload();
   }
-  toJSON(): Object {
+  toJSON(): object {
     return this.user.toJSON();
   }
   getIdTokenResult(forceRefresh?: boolean): Promise<compat.IdTokenResult> {
@@ -203,7 +203,7 @@ export class User implements compat.User, Wrapper<externs.User> {
   get phoneNumber(): string | null {
     return this.user.phoneNumber;
   }
-  get providerData(): (compat.UserInfo | null)[] {
+  get providerData(): Array<compat.UserInfo | null> {
     return this.user.providerData;
   }
   get refreshToken(): string {

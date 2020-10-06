@@ -312,7 +312,7 @@ function wrapObservers(
   // We know 'next' is now a function
   const oldNext = next as (a: compat.User | null) => unknown;
 
-  const newNext = (user: externs.User | null) =>
+  const newNext = (user: externs.User | null): unknown =>
     oldNext(user && User.getOrCreate(user as externs.User));
   return {
     next: newNext,
