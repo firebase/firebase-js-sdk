@@ -209,7 +209,7 @@ export class PersistentConnection extends ServerActions {
     this.outstandingGets_.push({
       action,
       request: req,
-      deferred: deferred
+      deferred
     });
 
     this.outstandingGetCount_++;
@@ -276,7 +276,7 @@ export class PersistentConnection extends ServerActions {
 
       if (deferred) {
         const payload = message['d'] as string;
-        if (message['s'] == 'ok') {
+        if (message['s'] === 'ok') {
           this.onDataUpdate_(
             request['p'],
             payload,

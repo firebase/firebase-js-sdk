@@ -19,14 +19,13 @@ import { expect } from 'chai';
 import { Reference } from '../src/api/Reference';
 import { Query } from '../src/api/Query';
 import '../src/core/snap/ChildrenNode';
-import { getRandomNode, getPath, pause } from './helpers/util';
+import { getRandomNode, getFreshRepo, getPath, pause } from './helpers/util';
 import {
   EventAccumulator,
   EventAccumulatorFactory
 } from './helpers/EventAccumulator';
 import * as _ from 'lodash';
 
-import { getFreshRepo } from './helpers/util';
 import { SnapshotHolder } from '../src/core/SnapshotHolder';
 
 type TaskList = Array<[Query, any]>;
@@ -1494,7 +1493,7 @@ describe('Query Tests', () => {
 
   it('Ensure on() returns callback function.', () => {
     const node = getRandomNode() as Reference;
-    const callback = function () { };
+    const callback = function () {};
     const ret = node.on('value', callback);
     expect(ret).to.equal(callback);
   });
@@ -1609,10 +1608,10 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     expect(dumpListens(node)).to.equal('');
 
-    const aOn = node.child('a').on('value', () => { });
+    const aOn = node.child('a').on('value', () => {});
     expect(dumpListens(node)).to.equal('/a:default');
 
-    const rootOn = node.on('value', () => { });
+    const rootOn = node.on('value', () => {});
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
@@ -1625,10 +1624,10 @@ describe('Query Tests', () => {
   it('Dedupe listens: listen on grandchild.', () => {
     const node = getRandomNode() as Reference;
 
-    const rootOn = node.on('value', () => { });
+    const rootOn = node.on('value', () => {});
     expect(dumpListens(node)).to.equal(':default');
 
-    const aaOn = node.child('a/aa').on('value', () => { });
+    const aaOn = node.child('a/aa').on('value', () => {});
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
@@ -1640,13 +1639,13 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     expect(dumpListens(node)).to.equal('');
 
-    const aaOn = node.child('a/aa').on('value', () => { });
+    const aaOn = node.child('a/aa').on('value', () => {});
     expect(dumpListens(node)).to.equal('/a/aa:default');
 
-    const bbOn = node.child('a/bb').on('value', () => { });
+    const bbOn = node.child('a/bb').on('value', () => {});
     expect(dumpListens(node)).to.equal('/a/aa:default;/a/bb:default');
 
-    const rootOn = node.on('value', () => { });
+    const rootOn = node.on('value', () => {});
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
@@ -1666,16 +1665,16 @@ describe('Query Tests', () => {
     const aLim1On = node
       .child('a')
       .limitToLast(1)
-      .on('value', () => { });
+      .on('value', () => {});
     expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"}');
 
-    const rootLim1On = node.limitToLast(1).on('value', () => { });
+    const rootLim1On = node.limitToLast(1).on('value', () => {});
     expect(dumpListens(node)).to.equal(':{"l":1,"vf":"r"};/a:{"l":1,"vf":"r"}');
 
     const aLim5On = node
       .child('a')
       .limitToLast(5)
-      .on('value', () => { });
+      .on('value', () => {});
     expect(dumpListens(node)).to.equal(
       ':{"l":1,"vf":"r"};/a:{"l":1,"vf":"r"},{"l":5,"vf":"r"}'
     );
@@ -1694,18 +1693,18 @@ describe('Query Tests', () => {
     const aLim1On = node
       .child('a')
       .limitToLast(1)
-      .on('value', () => { });
+      .on('value', () => {});
     expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"}');
 
     const bLim1On = node
       .child('b')
       .limitToLast(1)
-      .on('value', () => { });
+      .on('value', () => {});
     expect(dumpListens(node)).to.equal(
       '/a:{"l":1,"vf":"r"};/b:{"l":1,"vf":"r"}'
     );
 
-    const rootOn = node.on('value', () => { });
+    const rootOn = node.on('value', () => {});
     expect(dumpListens(node)).to.equal(':default');
 
     // remove in slightly random order.
@@ -2217,8 +2216,8 @@ describe('Query Tests', () => {
     const reader = nodes[0];
     const writer = nodes[1];
     await writer.set({ foo: 'a', bar: 'b' });
-    var snapshot = await reader.get();
-    var val = snapshot.val();
+    let snapshot = await reader.get();
+    let val = snapshot.val();
     expect(val['foo']).to.equal('a');
     expect(val['bar']).to.equal('b');
     await writer.remove();
@@ -2227,7 +2226,7 @@ describe('Query Tests', () => {
     expect(val).to.be.null;
   });
 
-  it('get() caches results', async () => {
+  it('get() caches results at path', async () => {
     const reader = getFreshRepo('reader');
     const writer = getFreshRepo('writer');
 
@@ -2235,6 +2234,18 @@ describe('Query Tests', () => {
     const snapshot = await reader.get();
     reader.database.goOffline();
     reader.once('value', snap => {
+      expect(snap.val()).to.equal(snapshot.val());
+    });
+  });
+
+  it('get above path caches data', async () => {
+    const reader = getFreshRepo('reader');
+    const writer = getFreshRepo('writer');
+
+    await writer.set({ foo: { bar: 'baz' } });
+    let snapshot = await reader.get();
+    reader.database.goOffline();
+    reader.child('foo/bar').once('value', snap => {
       expect(snap.val()).to.equal(snapshot.val());
     });
   });

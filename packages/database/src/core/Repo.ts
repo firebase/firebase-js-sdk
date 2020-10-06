@@ -25,7 +25,7 @@ import { Path } from './util/Path';
 import { SparseSnapshotTree } from './SparseSnapshotTree';
 import { SyncTree } from './SyncTree';
 import { SnapshotHolder } from './SnapshotHolder';
-import { stringify, map, isEmpty } from '@firebase/util';
+import { stringify, map, isEmpty, Deferred } from '@firebase/util';
 import { beingCrawled, each, exceptionGuard, warn, log } from './util/util';
 
 import { AuthTokenProvider } from './AuthTokenProvider';
@@ -47,7 +47,6 @@ import { Event } from './view/Event';
 import { Node } from './snap/Node';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
-import { Deferred } from '@firebase/util';
 import { Indexable } from './util/misc';
 
 const INTERRUPT_REASON = 'repo_interrupt';
