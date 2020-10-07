@@ -44,6 +44,7 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
   activeLimboDocumentResolutions,
   enqueuedLimboDocumentResolutions,
+  registerPendingWritesCallback,
   SyncEngine,
   syncEngineListen,
   syncEngineUnlisten,
@@ -195,6 +196,7 @@ abstract class TestRunner {
   private eventList: QueryEvent[] = [];
   private acknowledgedDocs: string[];
   private rejectedDocs: string[];
+  private waitForPendingWritesEvents = 0;
   private snapshotsInSyncListeners: Array<Observer<void>>;
   private snapshotsInSyncEvents = 0;
 
@@ -343,6 +345,9 @@ abstract class TestRunner {
     this.validateExpectedSnapshotEvents(step.expectedSnapshotEvents!);
     await this.validateExpectedState(step.expectedState!);
     this.validateSnapshotsInSyncEvents(step.expectedSnapshotsInSyncEvents);
+    this.validateWaitForPendingWritesEvents(
+      step.expectedWaitForPendingWritesEvents
+    );
     this.eventList = [];
     this.rejectedDocs = [];
     this.acknowledgedDocs = [];
@@ -383,6 +388,8 @@ abstract class TestRunner {
       return this.doWriteAck(step.writeAck!);
     } else if ('failWrite' in step) {
       return this.doFailWrite(step.failWrite!);
+    } else if ('waitForPendingWrites' in step) {
+      return this.doWaitForPendingWrites();
     } else if ('runTimer' in step) {
       return this.doRunTimer(step.runTimer!);
     } else if ('drainQueue' in step) {
@@ -717,6 +724,14 @@ abstract class TestRunner {
     });
   }
 
+  private async doWaitForPendingWrites(): Promise<void> {
+    const deferred = new Deferred();
+    void deferred.promise.then(() => ++this.waitForPendingWritesEvents);
+    return this.queue.enqueue(() =>
+      registerPendingWritesCallback(this.syncEngine, deferred)
+    );
+  }
+
   private async doRunTimer(timer: string): Promise<void> {
     // We assume the timer string is a valid TimerID enum value, but if it's
     // not, then there won't be a matching item on the queue and
@@ -913,10 +928,23 @@ abstract class TestRunner {
     }
   }
 
+  private validateWaitForPendingWritesEvents(
+    expectedCount: number | undefined
+  ): void {
+    expect(this.waitForPendingWritesEvents).to.eq(
+      expectedCount || 0,
+      'for waitForPendingWritesEvents'
+    );
+    this.waitForPendingWritesEvents = 0;
+  }
+
   private validateSnapshotsInSyncEvents(
     expectedCount: number | undefined
   ): void {
-    expect(this.snapshotsInSyncEvents).to.eq(expectedCount || 0);
+    expect(this.snapshotsInSyncEvents).to.eq(
+      expectedCount || 0,
+      'for snapshotsInSyncEvents'
+    );
     this.snapshotsInSyncEvents = 0;
   }
 
@@ -1335,6 +1363,8 @@ export interface SpecStep {
   writeAck?: SpecWriteAck;
   /** Fail a write */
   failWrite?: SpecWriteFailure;
+  /** Add a new `waitForPendingWrites` listener. */
+  waitForPendingWrites?: true;
 
   /** Fails the listed database actions. */
   failDatabase?: false | PersistenceAction[];
@@ -1388,6 +1418,12 @@ export interface SpecStep {
    * If not provided, the test will fail if the step causes events to be raised.
    */
   expectedSnapshotsInSyncEvents?: number;
+
+  /**
+   * Optional expected number of waitForPendingWrite callbacks to be called.
+   * If not provided, the test will fail if the step causes events to be raised.
+   */
+  expectedWaitForPendingWritesEvents?: number;
 }
 
 /** [<target-id>, <query-path>] */
@@ -1589,11 +1625,16 @@ async function clearCurrentPrimaryLease(): Promise<void> {
     SCHEMA_VERSION,
     new SchemaConverter(TEST_SERIALIZER)
   );
-  await db.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
-    const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
-      DbPrimaryClient.store
-    );
-    return primaryClientStore.delete(DbPrimaryClient.key);
-  });
+  await db.runTransaction(
+    'clearCurrentPrimaryLease',
+    'readwrite',
+    [DbPrimaryClient.store],
+    txn => {
+      const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
+        DbPrimaryClient.store
+      );
+      return primaryClientStore.delete(DbPrimaryClient.key);
+    }
+  );
   db.close();
 }

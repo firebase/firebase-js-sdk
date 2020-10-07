@@ -9,7 +9,7 @@ Returns a Functions instance for the given app.
 <b>Signature:</b>
 
 ```typescript
-export declare function getFunctions(app: FirebaseApp, region?: string): Functions;
+export declare function getFunctions(app: FirebaseApp, regionOrCustomDomain?: string): Functions;
 ```
 
 ## Parameters
@@ -17,7 +17,7 @@ export declare function getFunctions(app: FirebaseApp, region?: string): Functio
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  app | [FirebaseApp](./app-types.firebaseapp.md) | The FirebaseApp to use. |
-|  region | string | The region the callable functions are located in. |
+|  regionOrCustomDomain | string | one of: a) The region the callable functions are located in (ex: us-central1) b) A custom domain hosting the callable functions (ex: https://mydomain.com) |
 
 <b>Returns:</b>
 

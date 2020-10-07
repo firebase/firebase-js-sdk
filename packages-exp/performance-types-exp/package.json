@@ -3,10 +3,15 @@
   "version": "0.0.800",
   "description": "@firebase/performance Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "private": true,
   "license": "Apache-2.0",
   "scripts": {
     "test": "tsc",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js"
+    "test:ci": "node ../../scripts/run_tests_in_ci.js",
+    "api-report": "api-extractor run --local --verbose",
+    "predoc": "node ../../scripts/exp/remove-exp.js temp",
+    "doc": "api-documenter markdown --input temp --output docs",
+    "build:doc": "yarn api-report && yarn doc"
   },
   "files": [
     "index.d.ts"

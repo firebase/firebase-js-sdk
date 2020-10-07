@@ -3,23 +3,29 @@
   "version": "0.0.800",
   "description": "Firebase performance for web",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "private": true,
   "main": "dist/index.cjs.js",
-  "browser": "dist/index.cjs.js",
+  "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
   "files": ["dist"],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'",
-    "build": "rollup -c",
+    "build": "rollup -c && yarn api-report",
     "build:deps": "lerna run --scope @firebase/performance-exp --include-dependencies build",
+    "build:release": "rollup -c rollup.config.release.js",
     "dev": "rollup -c -w",
     "test": "run-p lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
-    "prepare": "yarn build",
-    "prettier": "prettier --write '{src,test}/**/*.{js,ts}'"
+    "prepare": "yarn build:release",
+    "prettier": "prettier --write '{src,test}/**/*.{js,ts}'",
+    "api-report": "api-extractor run --local --verbose",
+    "predoc": "node ../../scripts/exp/remove-exp.js temp",
+    "doc": "api-documenter markdown --input temp --output docs",
+    "build:doc": "yarn build && yarn doc"
   },
   "peerDependencies": {
     "@firebase/app-exp": "0.x",
@@ -36,7 +42,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@firebase/app-exp": "0.0.800",
-    "rollup": "2.26.7",
+    "rollup": "2.28.1",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-typescript2": "0.27.2",
     "typescript": "4.0.2"
@@ -49,7 +55,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/index.d.ts",
+  "typings": "dist/src/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"

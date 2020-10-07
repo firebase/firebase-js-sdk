@@ -8,7 +8,7 @@
 
 |  Function | Description |
 |  --- | --- |
-|  [getFunctions(app, region)](./functions.getfunctions.md) | Returns a Functions instance for the given app. |
+|  [getFunctions(app, regionOrCustomDomain)](./functions.getfunctions.md) | Returns a Functions instance for the given app. |
 |  [httpsCallable(functionsInstance, name, options)](./functions.httpscallable.md) | Returns a reference to the callable https trigger with the given name. |
 |  [useFunctionsEmulator(functionsInstance, origin)](./functions.usefunctionsemulator.md) | Changes this instance to point to a Cloud Functions emulator running locally. See https://firebase.google.com/docs/functions/local-emulator |
 

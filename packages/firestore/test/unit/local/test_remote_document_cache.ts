@@ -20,7 +20,7 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
-import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
+import { remoteDocumentCacheGetNewDocumentChanges } from '../../../src/local/indexeddb_remote_document_cache';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
 import {
   DocumentKeySet,
@@ -30,7 +30,6 @@ import {
 } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
-import { debugAssert } from '../../../src/util/assert';
 
 /**
  * A wrapper around a RemoteDocumentCache that automatically creates a
@@ -132,11 +131,11 @@ export class TestRemoteDocumentCache {
       'getNewDocumentChanges',
       'readonly',
       txn => {
-        debugAssert(
-          this.cache instanceof IndexedDbRemoteDocumentCache,
-          'getNewDocumentChanges() requires IndexedDB'
+        return remoteDocumentCacheGetNewDocumentChanges(
+          this.cache,
+          txn,
+          sinceReadTime
         );
-        return this.cache.getNewDocumentChanges(txn, sinceReadTime);
       }
     );
   }

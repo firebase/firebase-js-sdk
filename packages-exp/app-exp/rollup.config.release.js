@@ -18,12 +18,8 @@
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import json from 'rollup-plugin-json';
-import pkg from './package.json';
 import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
-
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+import { es2017BuildsNoPlugin, es5BuildsNoPlugin } from './rollup.shared';
 
 /**
  * ES5 Builds
@@ -37,32 +33,13 @@ const es5BuildPlugins = [
   json()
 ];
 
-const es5Builds = [
-  /**
-   * Browser Builds
-   */
-  {
-    input: 'src/index.ts',
-    output: [{ file: pkg.browser, format: 'es', sourcemap: true }],
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    treeshake: {
-      moduleSideEffects: false
-    }
-  },
-  /**
-   * Node.js Build
-   */
-  {
-    input: 'src/index.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    treeshake: {
-      moduleSideEffects: false
-    }
+const es5Builds = es5BuildsNoPlugin.map(build => ({
+  ...build,
+  plugins: es5BuildPlugins,
+  treeshake: {
+    moduleSideEffects: false
   }
-];
+}));
 
 /**
  * ES2017 Builds
@@ -83,23 +60,12 @@ const es2017BuildPlugins = [
   })
 ];
 
-const es2017Builds = [
-  /**
-   *  Browser Builds
-   */
-  {
-    input: 'src/index.ts',
-    output: {
-      file: pkg.esm2017,
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: es2017BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`)),
-    treeshake: {
-      moduleSideEffects: false
-    }
+const es2017Builds = es2017BuildsNoPlugin.map(build => ({
+  ...build,
+  plugins: es2017BuildPlugins,
+  treeshake: {
+    moduleSideEffects: false
   }
-];
+}));
 
 export default [...es5Builds, ...es2017Builds];

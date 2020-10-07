@@ -19,9 +19,12 @@ import { _BaseFieldPath } from '../../../src/api/field_path';
 import { DOCUMENT_KEY_NAME } from '../../../src/model/path';
 
 /**
- * A FieldPath refers to a field in a document. The path may consist of a single
- * field name (referring to a top-level field in the document), or a list of
- * field names (referring to a nested field in the document).
+ * A `FieldPath` refers to a field in a document. The path may consist of a
+ * single field name (referring to a top-level field in the document), or a
+ * list of field names (referring to a nested field in the document).
+ *
+ * Create a `FieldPath` by providing field names. If more than one field
+ * name is provided, the path will point to a nested field in a document.
  */
 export class FieldPath extends _BaseFieldPath {
   // Note: This class is stripped down a copy of the FieldPath class in the
@@ -40,11 +43,21 @@ export class FieldPath extends _BaseFieldPath {
     super(fieldNames);
   }
 
+  /**
+   * Returns true if this `FieldPath` is equal to the provided one.
+   *
+   * @param other The `FieldPath` to compare against.
+   * @return true if this `FieldPath` is equal to the provided one.
+   */
   isEqual(other: FieldPath): boolean {
     return this._internalPath.isEqual(other._internalPath);
   }
 }
 
+/**
+ * Returns a special sentinel `FieldPath` to refer to the ID of a document.
+ * It can be used in queries to sort or filter by the document ID.
+ */
 export function documentId(): FieldPath {
   return new FieldPath(DOCUMENT_KEY_NAME);
 }

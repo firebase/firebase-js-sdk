@@ -21,7 +21,7 @@ import { registerFunctions } from './src/config';
 
 import { name, version } from './package.json';
 
-registerFunctions(firebase as _FirebaseNamespace, fetch);
+registerFunctions(firebase as _FirebaseNamespace, fetch.bind(self));
 firebase.registerVersion(name, version);
 
 declare module '@firebase/app-types' {
@@ -32,6 +32,6 @@ declare module '@firebase/app-types' {
     };
   }
   interface FirebaseApp {
-    functions?(region?: string): types.FirebaseFunctions;
+    functions?(regionOrCustomDomain?: string): types.FirebaseFunctions;
   }
 }

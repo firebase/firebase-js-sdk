@@ -793,6 +793,14 @@ export class SpecBuilder {
     return this;
   }
 
+  waitForPendingWrites(): this {
+    this.nextStep();
+    this.currentStep = {
+      waitForPendingWrites: true
+    };
+    return this;
+  }
+
   expectUserCallbacks(docs: {
     acknowledged?: string[];
     rejected?: string[];
@@ -941,6 +949,13 @@ export class SpecBuilder {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
     currentStep.expectedSnapshotsInSyncEvents = count;
+    return this;
+  }
+
+  expectWaitForPendingWritesEvent(count = 1): this {
+    this.assertStep('Expectations require previous step');
+    const currentStep = this.currentStep!;
+    currentStep.expectedWaitForPendingWritesEvents = count;
     return this;
   }
 

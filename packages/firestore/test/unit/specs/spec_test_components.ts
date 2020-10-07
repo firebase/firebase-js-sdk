@@ -115,6 +115,7 @@ function failTransactionIfNeeded(
     failActions.indexOf(actionName as PersistenceAction) !== -1;
   if (shouldFail) {
     throw new IndexedDbTransactionError(
+      'Simulated error',
       new Error('Simulated retryable error: ' + actionName)
     );
   }

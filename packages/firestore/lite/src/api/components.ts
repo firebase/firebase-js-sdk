@@ -78,7 +78,7 @@ export function getDatastore(firestore: FirebaseFirestore): Datastore {
 
 /**
  * Removes all components associated with the provided instance. Must be called
- * when the Firestore instance is terminated.
+ * when the `Firestore` instance is terminated.
  */
 export function removeComponents(firestore: FirebaseFirestore): void {
   const datastore = datastoreInstances.get(firestore);

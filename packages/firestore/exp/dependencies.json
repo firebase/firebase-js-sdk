@@ -59,9 +59,6 @@
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "validateCollectionPath",
-                "validateDocumentPath",
-                "validateNonEmptyArgument",
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
@@ -89,7 +86,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22829
+        "sizeInBytes": 21609
     },
     "DocumentReference": {
         "dependencies": {
@@ -108,9 +105,6 @@
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "validateCollectionPath",
-                "validateDocumentPath",
-                "validateNonEmptyArgument",
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
@@ -138,7 +132,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 22827
+        "sizeInBytes": 21607
     },
     "DocumentSnapshot": {
         "dependencies": {
@@ -181,11 +175,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "wrapInUserErrorIfRecoverable"
@@ -227,7 +218,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 41241
+        "sizeInBytes": 40021
     },
     "FieldPath": {
         "dependencies": {
@@ -310,12 +301,11 @@
                 "FirebaseFirestore$1",
                 "FirestoreError",
                 "OAuthToken",
-                "User",
-                "_SerializableFieldValue"
+                "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 16851
+        "sizeInBytes": 16808
     },
     "FirebaseFirestore": {
         "dependencies": {
@@ -436,7 +426,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 16951
+        "sizeInBytes": 16954
     },
     "QueryConstraint": {
         "dependencies": {
@@ -517,11 +507,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "wrapInUserErrorIfRecoverable"
@@ -563,7 +550,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 41251
+        "sizeInBytes": 40031
     },
     "QuerySnapshot": {
         "dependencies": {
@@ -608,11 +595,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "wrapInUserErrorIfRecoverable"
@@ -656,7 +640,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 43882
+        "sizeInBytes": 42663
     },
     "SnapshotMetadata": {
         "dependencies": {
@@ -808,11 +792,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateReference",
                 "validateType",
@@ -827,6 +808,7 @@
                 "ByteString",
                 "Bytes",
                 "CollectionReference",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -842,6 +824,7 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirebaseFirestore$1",
@@ -874,12 +857,11 @@
                 "UserDataReader",
                 "UserDataWriter",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 64924
+        "sizeInBytes": 63765
     },
     "WriteBatch": {
         "dependencies": {
@@ -966,6 +948,7 @@
                 "BasePath",
                 "ByteString",
                 "Bytes",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -977,6 +960,7 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirebaseFirestore$1",
@@ -1000,12 +984,11 @@
                 "UserDataReader",
                 "WriteBatch",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 53877
+        "sizeInBytes": 54009
     },
     "addDoc": {
         "dependencies": {
@@ -1249,7 +1232,6 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
                 "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
@@ -1271,6 +1253,7 @@
                 "ByteString",
                 "Bytes",
                 "CollectionReference",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -1287,6 +1270,7 @@
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirebaseFirestore$1",
@@ -1360,12 +1344,11 @@
                 "UserDataReader",
                 "VerifyMutation",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 168161
+        "sizeInBytes": 167169
     },
     "arrayRemove": {
         "dependencies": {
@@ -1428,6 +1411,7 @@
                 "BasePath",
                 "ByteString",
                 "Bytes",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -1435,7 +1419,6 @@
                 "ExponentialBackoff",
                 "FieldTransform",
                 "FieldValue",
-                "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirebaseFirestore$1",
@@ -1447,12 +1430,11 @@
                 "Timestamp",
                 "TransformOperation",
                 "User",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 35362
+        "sizeInBytes": 35084
     },
     "arrayUnion": {
         "dependencies": {
@@ -1515,6 +1497,7 @@
                 "BasePath",
                 "ByteString",
                 "Bytes",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -1522,7 +1505,6 @@
                 "ExponentialBackoff",
                 "FieldTransform",
                 "FieldValue",
-                "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirebaseFirestore$1",
@@ -1534,12 +1516,11 @@
                 "Timestamp",
                 "TransformOperation",
                 "User",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 35354
+        "sizeInBytes": 35076
     },
     "clearIndexedDbPersistence": {
         "dependencies": {
@@ -1608,7 +1589,6 @@
                 "removeComponents",
                 "removeComponents$1",
                 "validateCollectionPath",
-                "validateDocumentPath",
                 "validateNonEmptyArgument",
                 "wrapInUserErrorIfRecoverable"
             ],
@@ -1637,7 +1617,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23570
+        "sizeInBytes": 22828
     },
     "collectionGroup": {
         "dependencies": {
@@ -1681,7 +1661,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 20343
+        "sizeInBytes": 20417
     },
     "deleteDoc": {
         "dependencies": {
@@ -1995,7 +1975,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 149069
+        "sizeInBytes": 148806
     },
     "deleteField": {
         "dependencies": {
@@ -2026,18 +2006,16 @@
                 "DeleteFieldValueImpl",
                 "ExponentialBackoff",
                 "FieldValue",
-                "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirebaseFirestore$1",
                 "FirestoreError",
                 "OAuthToken",
-                "User",
-                "_SerializableFieldValue"
+                "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 17818
+        "sizeInBytes": 17342
     },
     "disableNetwork": {
         "dependencies": {
@@ -2295,7 +2273,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 126626
+        "sizeInBytes": 126383
     },
     "doc": {
         "dependencies": {
@@ -2315,7 +2293,6 @@
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "validateCollectionPath",
                 "validateDocumentPath",
                 "validateNonEmptyArgument",
                 "wrapInUserErrorIfRecoverable"
@@ -2345,7 +2322,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23625
+        "sizeInBytes": 22872
     },
     "documentId": {
         "dependencies": {
@@ -2842,7 +2819,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 236935
+        "sizeInBytes": 235442
     },
     "enableMultiTabIndexedDbPersistence": {
         "dependencies": {
@@ -3378,7 +3355,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 304574
+        "sizeInBytes": 303115
     },
     "enableNetwork": {
         "dependencies": {
@@ -3636,7 +3613,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 126568
+        "sizeInBytes": 126325
     },
     "endAt": {
         "dependencies": {
@@ -3710,11 +3687,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -3728,6 +3702,7 @@
                 "ByteString",
                 "Bytes",
                 "CollectionReference",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -3738,6 +3713,7 @@
                 "ExponentialBackoff",
                 "FieldPath",
                 "FieldPath$1",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirebaseFirestore$1",
@@ -3758,12 +3734,11 @@
                 "UserDataReader",
                 "UserDataWriter",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 53487
+        "sizeInBytes": 52360
     },
     "endBefore": {
         "dependencies": {
@@ -3837,11 +3812,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -3855,6 +3827,7 @@
                 "ByteString",
                 "Bytes",
                 "CollectionReference",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -3865,6 +3838,7 @@
                 "ExponentialBackoff",
                 "FieldPath",
                 "FieldPath$1",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirebaseFirestore$1",
@@ -3885,12 +3859,11 @@
                 "UserDataReader",
                 "UserDataWriter",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 53498
+        "sizeInBytes": 52371
     },
     "getDoc": {
         "dependencies": {
@@ -4149,11 +4122,8 @@
                 "uint8ArrayFromBinaryString",
                 "updateTrackedLimbos",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -4282,7 +4252,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 202567
+        "sizeInBytes": 201013
     },
     "getDocFromCache": {
         "dependencies": {
@@ -4436,11 +4406,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -4534,7 +4501,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 121349
+        "sizeInBytes": 119815
     },
     "getDocFromServer": {
         "dependencies": {
@@ -4793,11 +4760,8 @@
                 "uint8ArrayFromBinaryString",
                 "updateTrackedLimbos",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -4926,7 +4890,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 202586
+        "sizeInBytes": 201032
     },
     "getDocs": {
         "dependencies": {
@@ -5186,12 +5150,9 @@
                 "uint8ArrayFromBinaryString",
                 "updateTrackedLimbos",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateHasExplicitOrderByForLimitToLast",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -5321,7 +5282,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 204857
+        "sizeInBytes": 203304
     },
     "getDocsFromCache": {
         "dependencies": {
@@ -5480,11 +5441,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -5585,7 +5543,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 134274
+        "sizeInBytes": 132741
     },
     "getDocsFromServer": {
         "dependencies": {
@@ -5845,11 +5803,8 @@
                 "uint8ArrayFromBinaryString",
                 "updateTrackedLimbos",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -5979,7 +5934,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 204585
+        "sizeInBytes": 203032
     },
     "getFirestore": {
         "dependencies": {
@@ -6053,7 +6008,6 @@
                 "ExponentialBackoff",
                 "FieldTransform",
                 "FieldValue",
-                "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirebaseFirestore$1",
@@ -6062,12 +6016,11 @@
                 "NumericIncrementTransformOperation",
                 "OAuthToken",
                 "TransformOperation",
-                "User",
-                "_SerializableFieldValue"
+                "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 18683
+        "sizeInBytes": 18248
     },
     "initializeFirestore": {
         "dependencies": {
@@ -6151,7 +6104,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18311
+        "sizeInBytes": 18315
     },
     "limitToLast": {
         "dependencies": {
@@ -6196,7 +6149,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 18335
+        "sizeInBytes": 18339
     },
     "onSnapshot": {
         "dependencies": {
@@ -6458,12 +6411,9 @@
                 "uint8ArrayFromBinaryString",
                 "updateTrackedLimbos",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateHasExplicitOrderByForLimitToLast",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueCompare",
                 "valueDescription",
@@ -6593,7 +6543,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 205915
+        "sizeInBytes": 204416
     },
     "onSnapshotsInSync": {
         "dependencies": {
@@ -6949,7 +6899,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 184102
+        "sizeInBytes": 183839
     },
     "orderBy": {
         "dependencies": {
@@ -7016,7 +6966,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 27568
+        "sizeInBytes": 27572
     },
     "query": {
         "dependencies": {
@@ -7130,7 +7080,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 31988
+        "sizeInBytes": 31992
     },
     "refEqual": {
         "dependencies": {
@@ -7150,9 +7100,6 @@
                 "registerFirestore",
                 "removeComponents",
                 "removeComponents$1",
-                "validateCollectionPath",
-                "validateDocumentPath",
-                "validateNonEmptyArgument",
                 "wrapInUserErrorIfRecoverable"
             ],
             "classes": [
@@ -7180,7 +7127,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 23112
+        "sizeInBytes": 21894
     },
     "runTransaction": {
         "dependencies": {
@@ -7287,11 +7234,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateReference",
                 "validateType",
@@ -7308,6 +7252,7 @@
                 "ByteString",
                 "Bytes",
                 "CollectionReference",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -7326,6 +7271,7 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirebaseFirestore$1",
@@ -7367,12 +7313,11 @@
                 "UserDataWriter",
                 "VerifyMutation",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 83913
+        "sizeInBytes": 82754
     },
     "serverTimestamp": {
         "dependencies": {
@@ -7403,7 +7348,6 @@
                 "ExponentialBackoff",
                 "FieldTransform",
                 "FieldValue",
-                "FieldValueDelegate",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirebaseFirestore$1",
@@ -7412,12 +7356,11 @@
                 "ServerTimestampFieldValueImpl",
                 "ServerTimestampTransform",
                 "TransformOperation",
-                "User",
-                "_SerializableFieldValue"
+                "User"
             ],
             "variables": []
         },
-        "sizeInBytes": 17829
+        "sizeInBytes": 17353
     },
     "setDoc": {
         "dependencies": {
@@ -7677,6 +7620,7 @@
                 "Bound",
                 "ByteString",
                 "Bytes",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -7692,6 +7636,7 @@
                 "FieldMask",
                 "FieldPath",
                 "FieldPath$1",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirebaseFirestore$1",
@@ -7764,12 +7709,11 @@
                 "UserDataReader",
                 "VerifyMutation",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 164700
+        "sizeInBytes": 164530
     },
     "setLogLevel": {
         "dependencies": {
@@ -7873,11 +7817,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validateType",
                 "valueDescription",
                 "valueEquals",
@@ -7925,7 +7866,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 51223
+        "sizeInBytes": 50005
     },
     "startAfter": {
         "dependencies": {
@@ -7999,11 +7940,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -8017,6 +7955,7 @@
                 "ByteString",
                 "Bytes",
                 "CollectionReference",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -8027,6 +7966,7 @@
                 "ExponentialBackoff",
                 "FieldPath",
                 "FieldPath$1",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirebaseFirestore$1",
@@ -8047,12 +7987,11 @@
                 "UserDataReader",
                 "UserDataWriter",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 53508
+        "sizeInBytes": 52381
     },
     "startAt": {
         "dependencies": {
@@ -8126,11 +8065,8 @@
                 "typeOrder",
                 "uint8ArrayFromBinaryString",
                 "validateArgType",
-                "validateCollectionPath",
-                "validateDocumentPath",
                 "validateExactNumberOfArgs",
                 "validateNamedArrayAtLeastNumberOfElements",
-                "validateNonEmptyArgument",
                 "validatePlainObject",
                 "validateType",
                 "valueDescription",
@@ -8144,6 +8080,7 @@
                 "ByteString",
                 "Bytes",
                 "CollectionReference",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -8154,6 +8091,7 @@
                 "ExponentialBackoff",
                 "FieldPath",
                 "FieldPath$1",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirebaseFirestore$1",
@@ -8174,12 +8112,11 @@
                 "UserDataReader",
                 "UserDataWriter",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 53498
+        "sizeInBytes": 52371
     },
     "terminate": {
         "dependencies": {
@@ -8478,6 +8415,7 @@
                 "Bound",
                 "ByteString",
                 "Bytes",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -8495,6 +8433,7 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirebaseFirestore$1",
@@ -8567,12 +8506,11 @@
                 "UserDataReader",
                 "VerifyMutation",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 166163
+        "sizeInBytes": 165962
     },
     "waitForPendingWrites": {
         "dependencies": {
@@ -8830,7 +8768,7 @@
             ],
             "variables": []
         },
-        "sizeInBytes": 127302
+        "sizeInBytes": 127059
     },
     "where": {
         "dependencies": {
@@ -8939,6 +8877,7 @@
                 "BasePath",
                 "ByteString",
                 "Bytes",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Deferred",
@@ -8948,6 +8887,7 @@
                 "FieldFilter",
                 "FieldPath",
                 "FieldPath$1",
+                "FieldValue",
                 "Filter",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
@@ -8971,12 +8911,11 @@
                 "User",
                 "UserDataReader",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 57943
+        "sizeInBytes": 58213
     },
     "writeBatch": {
         "dependencies": {
@@ -9239,6 +9178,7 @@
                 "Bound",
                 "ByteString",
                 "Bytes",
+                "Compat",
                 "DatabaseId",
                 "DatabaseInfo",
                 "Datastore",
@@ -9256,6 +9196,7 @@
                 "FieldPath",
                 "FieldPath$1",
                 "FieldPath$2",
+                "FieldValue",
                 "FirebaseCredentialsProvider",
                 "FirebaseFirestore",
                 "FirebaseFirestore$1",
@@ -9330,11 +9271,10 @@
                 "VerifyMutation",
                 "WriteBatch",
                 "_BaseFieldPath",
-                "_DocumentKeyReference",
-                "_SerializableFieldValue"
+                "_DocumentKeyReference"
             ],
             "variables": []
         },
-        "sizeInBytes": 169339
+        "sizeInBytes": 169138
     }
 }

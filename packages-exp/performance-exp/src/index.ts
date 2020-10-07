@@ -16,7 +16,11 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types-exp';
-import { FirebasePerformance } from '@firebase/performance-types-exp';
+import {
+  FirebasePerformance,
+  PerformanceSettings,
+  PerformanceTrace
+} from '@firebase/performance-types-exp';
 import { ERROR_FACTORY, ErrorCode } from './utils/errors';
 import { setupApi } from './services/api_service';
 import { PerformanceController } from './controllers/perf';
@@ -31,15 +35,39 @@ import {
   Component,
   ComponentType
 } from '@firebase/component';
-import { SettingsService } from './services/settings_service';
 import { name, version } from '../package.json';
+import { Trace } from './resources/trace';
+import '@firebase/installations-exp';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
-export function getPerformance(app: FirebaseApp): FirebasePerformance {
+/**
+ * Returns a FirebasePerformance instance for the given app.
+ * @param app - The FirebaseApp to use.
+ * @param settings - Optional settings for the Performance instance.
+ * @public
+ */
+export function getPerformance(
+  app: FirebaseApp,
+  settings?: PerformanceSettings
+): FirebasePerformance {
   const provider = _getProvider(app, 'performance-exp');
   const perfInstance = provider.getImmediate() as PerformanceController;
+  perfInstance._init(settings);
   return perfInstance;
+}
+
+/**
+ * Returns a new PerformanceTrace instance.
+ * @param performance - The FirebasePerformance instance to use.
+ * @param name - The name of the trace.
+ * @public
+ */
+export function trace(
+  performance: FirebasePerformance,
+  name: string
+): PerformanceTrace {
+  return new Trace(performance as PerformanceController, name);
 }
 
 const factory: InstanceFactory<'performance-exp'> = (
@@ -58,12 +86,10 @@ const factory: InstanceFactory<'performance-exp'> = (
     throw ERROR_FACTORY.create(ErrorCode.NO_WINDOW);
   }
   setupApi(window);
-  SettingsService.getInstance().firebaseAppInstance = app;
-  SettingsService.getInstance().installationsService = installations;
-  return new PerformanceController(app);
+  return new PerformanceController(app, installations);
 };
 
-export function registerPerformance(): void {
+function registerPerformance(): void {
   _registerComponent(
     new Component('performance-exp', factory, ComponentType.PUBLIC)
   );

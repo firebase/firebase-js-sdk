@@ -36,6 +36,7 @@ import {
   convertMetricValueToInteger
 } from '../utils/metric_utils';
 import { PerformanceTrace } from '@firebase/performance-types-exp';
+import { PerformanceController } from '../controllers/perf';
 
 const enum TraceState {
   UNINITIALIZED = 1,
@@ -56,6 +57,7 @@ export class Trace implements PerformanceTrace {
   private traceMeasure!: string;
 
   /**
+   * @param performanceController The performance controller running.
    * @param name The name of the trace.
    * @param isAuto If the trace is auto-instrumented.
    * @param traceMeasureName The name of the measure marker in user timing specification. This field
@@ -63,6 +65,7 @@ export class Trace implements PerformanceTrace {
    * api (performance.mark and performance.measure).
    */
   constructor(
+    readonly performanceController: PerformanceController,
     readonly name: string,
     readonly isAuto = false,
     traceMeasureName?: string
@@ -131,6 +134,17 @@ export class Trace implements PerformanceTrace {
       attributes?: { [key: string]: string };
     }
   ): void {
+    if (startTime <= 0) {
+      throw ERROR_FACTORY.create(ErrorCode.NONPOSITIVE_TRACE_START_TIME, {
+        traceName: this.name
+      });
+    }
+    if (duration <= 0) {
+      throw ERROR_FACTORY.create(ErrorCode.NONPOSITIVE_TRACE_DURATION, {
+        traceName: this.name
+      });
+    }
+
     this.durationUs = Math.floor(duration * 1000);
     this.startTimeUs = Math.floor(startTime * 1000);
     if (options && options.attributes) {
@@ -260,6 +274,7 @@ export class Trace implements PerformanceTrace {
    * @param firstInputDelay First input delay in millisec
    */
   static createOobTrace(
+    performanceController: PerformanceController,
     navigationTimings: PerformanceNavigationTiming[],
     paintTimings: PerformanceEntry[],
     firstInputDelay?: number
@@ -268,7 +283,11 @@ export class Trace implements PerformanceTrace {
     if (!route) {
       return;
     }
-    const trace = new Trace(OOB_TRACE_PAGE_LOAD_PREFIX + route, true);
+    const trace = new Trace(
+      performanceController,
+      OOB_TRACE_PAGE_LOAD_PREFIX + route,
+      true
+    );
     const timeOriginUs = Math.floor(Api.getInstance().getTimeOrigin() * 1000);
     trace.setStartTime(timeOriginUs);
 
@@ -322,8 +341,16 @@ export class Trace implements PerformanceTrace {
     logTrace(trace);
   }
 
-  static createUserTimingTrace(measureName: string): void {
-    const trace = new Trace(measureName, false, measureName);
+  static createUserTimingTrace(
+    performanceController: PerformanceController,
+    measureName: string
+  ): void {
+    const trace = new Trace(
+      performanceController,
+      measureName,
+      false,
+      measureName
+    );
     logTrace(trace);
   }
 }
