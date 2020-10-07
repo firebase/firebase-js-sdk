@@ -34,7 +34,12 @@ import { FirebaseDatabase } from '@firebase/database-types';
  */
 export class Database implements FirebaseService {
   INTERNAL: DatabaseInternals;
-  private root_: Reference;
+
+  /** Track if the instance has been used (root or repo accessed) */
+  private instanceUsed_: boolean = false;
+
+  /** Backing state for root_ */
+  private rootInternal_: Reference;
 
   static readonly ServerValue = {
     TIMESTAMP: {
@@ -51,23 +56,67 @@ export class Database implements FirebaseService {
 
   /**
    * The constructor should not be called by users of our public API.
-   * @param {!Repo} repo_
+   * @param {!Repo} repoInternal_
    */
-  constructor(private repo_: Repo) {
-    if (!(repo_ instanceof Repo)) {
+  constructor(private repoInternal_: Repo) {
+    if (!(repoInternal_ instanceof Repo)) {
       fatal(
         "Don't call new Database() directly - please use firebase.database()."
       );
     }
 
-    /** @type {Reference} */
-    this.root_ = new Reference(repo_, Path.Empty);
-
+    this.repo_ = repoInternal_;
     this.INTERNAL = new DatabaseInternals(this);
+  }
+
+  private get repo_(): Repo {
+    this.instanceUsed_ = true;
+    return this.repoInternal_;
+  }
+
+  private set repo_(repo: Repo) {
+    if (repo instanceof Repo) {
+      this.root_ = new Reference(repo, Path.Empty);
+    }
+
+    this.repoInternal_ = repo;
+  }
+
+  get root_(): Reference {
+    this.instanceUsed_ = true;
+    return this.rootInternal_;
+  }
+
+  set root_(root: Reference) {
+    this.rootInternal_ = root;
   }
 
   get app(): FirebaseApp {
     return this.repo_.app;
+  }
+
+  /**
+   * Modify this instance to communicate with the Realtime Database emulator.
+   *
+   * <p>Note: this must be called before this instance has been used to do any operations.
+   *
+   * @param host the emulator host (ex: localhost)
+   * @param port the emulator port (ex: 8080)
+   */
+  useEmulator(host: string, port: number) {
+    if (this.instanceUsed_) {
+      fatal(
+        'Cannot call useEmulator() after instance has already been initialized.'
+      );
+      return;
+    }
+
+    // Get a new Repo which has the emulator settings applied
+    const manager = RepoManager.getInstance();
+    const oldRepo = this.repo_;
+
+    this.repo_ = manager.cloneRepoForEmulator(oldRepo, host, port);
+    manager.deleteRepo(oldRepo);
   }
 
   /**

@@ -260,4 +260,22 @@ describe('Database Tests', () => {
       const ref = (db as any).refFromURL();
     }).to.throw(/Expects at least 1/);
   });
+
+  it('can call useEmulator before use', () => {
+    const db = (firebase as any).database();
+    db.useEmulator('localhost', 1234);
+    expect(db.ref().toString()).to.equal('http://localhost:1234/');
+  });
+
+  it('cannot call useEmulator after use', () => {
+    const db = (firebase as any).database();
+
+    db.ref().set({
+      hello: 'world'
+    });
+
+    expect(() => {
+      db.useEmulator('localhost', 1234);
+    }).to.throw(/Cannot call useEmulator/);
+  });
 });

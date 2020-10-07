@@ -88,6 +88,21 @@ export class RepoManager {
   }
 
   /**
+   * Create a new repo based on an old one but pointing to a particular host and port.
+   */
+  cloneRepoForEmulator(repo: Repo, host: string, port: number): Repo {
+    const nodeAdmin = repo.repoInfo_.nodeAdmin;
+    const url = `http://${host}:${port}?ns=${repo.repoInfo_.namespace}`;
+    const authTokenProvider = nodeAdmin
+      ? new EmulatorAdminTokenProvider()
+      : repo.authTokenProvider;
+
+    const parsedUrl = parseRepoInfo(url, nodeAdmin);
+
+    return this.createRepo(parsedUrl.repoInfo, repo.app, authTokenProvider);
+  }
+
+  /**
    * This function should only ever be called to CREATE a new database instance.
    *
    * @param {!FirebaseApp} app
