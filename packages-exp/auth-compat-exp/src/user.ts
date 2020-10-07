@@ -27,7 +27,7 @@ import { unwrap, Wrapper } from './wrap';
 export class User implements compat.User, Wrapper<externs.User> {
   // Maintain a map so that there's always a 1:1 mapping between new User and
   // legacy compat users
-  private static readonly USER_MAP = new Map<externs.User, User>();
+  private static readonly USER_MAP = new WeakMap<externs.User, User>();
 
   readonly multiFactor: compat.MultiFactorUser;
 
