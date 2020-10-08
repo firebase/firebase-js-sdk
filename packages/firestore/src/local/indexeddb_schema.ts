@@ -90,7 +90,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       `Unexpected schema upgrade from v${fromVersion} to v${toVersion}.`
     );
 
-    const simpleDbTransaction = new SimpleDbTransaction(txn);
+    const simpleDbTransaction = new SimpleDbTransaction('createOrUpgrade', txn);
 
     if (fromVersion < 1 && toVersion >= 1) {
       createPrimaryClientStore(db);

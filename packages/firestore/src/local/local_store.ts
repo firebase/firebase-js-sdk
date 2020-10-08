@@ -69,7 +69,10 @@ import { ClientId } from './shared_client_state';
 import { TargetData, TargetPurpose } from './target_data';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
-import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
+import {
+  remoteDocumentCacheGetLastReadTime,
+  remoteDocumentCacheGetNewDocumentChanges
+} from './indexeddb_remote_document_cache';
 import { IndexedDbTargetCache } from './indexeddb_target_cache';
 import { extractFieldMask } from '../model/object_value';
 import { isIndexedDbTransactionError } from './simple_db';
@@ -1211,13 +1214,10 @@ export function getNewDocumentChanges(
   localStore: LocalStore
 ): Promise<MaybeDocumentMap> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  const remoteDocumentCacheImpl = debugCast(
-    localStoreImpl.remoteDocuments,
-    IndexedDbRemoteDocumentCache // We only support IndexedDb in multi-tab mode.
-  );
   return localStoreImpl.persistence
     .runTransaction('Get new document changes', 'readonly', txn =>
-      remoteDocumentCacheImpl.getNewDocumentChanges(
+      remoteDocumentCacheGetNewDocumentChanges(
+        localStoreImpl.remoteDocuments,
         txn,
         localStoreImpl.lastDocumentChangeReadTime
       )
@@ -1238,15 +1238,11 @@ export async function synchronizeLastDocumentChangeReadTime(
   localStore: LocalStore
 ): Promise<void> {
   const localStoreImpl = debugCast(localStore, LocalStoreImpl);
-  const remoteDocumentCacheImpl = debugCast(
-    localStoreImpl.remoteDocuments,
-    IndexedDbRemoteDocumentCache // We only support IndexedDb in multi-tab mode.
-  );
   return localStoreImpl.persistence
     .runTransaction(
       'Synchronize last document change read time',
       'readonly',
-      txn => remoteDocumentCacheImpl.getLastReadTime(txn)
+      txn => remoteDocumentCacheGetLastReadTime(txn)
     )
     .then(readTime => {
       localStoreImpl.lastDocumentChangeReadTime = readTime;

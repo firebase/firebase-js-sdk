@@ -55,12 +55,12 @@ packages/messaging-types @zwu52 @firebase/jssdk-global-approvers
 integration/messaging @zwu52 @firebase/jssdk-global-approvers
 
 # Auth Code
-packages/auth  @bojeil-google @avolkovi @samhorlbeck @scottcrossen @firebase/jssdk-global-approvers
-packages/auth-types  @bojeil-google @avolkovi @samhorlbeck @scottcrossen @firebase/jssdk-global-approvers
+packages/auth  @bojeil-google @avolkovi @samhorlbeck @firebase/jssdk-global-approvers
+packages/auth-types  @bojeil-google @avolkovi @samhorlbeck @firebase/jssdk-global-approvers
 
 # Testing Code
-packages/testing  @avolkovi @samhorlbeck @scottcrossen @yuchenshi @firebase/jssdk-global-approvers
-packages/rules-unit-testing  @avolkovi @samhorlbeck @scottcrossen @yuchenshi @firebase/jssdk-global-approvers
+packages/testing  @avolkovi @samhorlbeck @yuchenshi @firebase/jssdk-global-approvers
+packages/rules-unit-testing  @avolkovi @samhorlbeck @yuchenshi @firebase/jssdk-global-approvers
 
 # RxFire Code
 packages/rxfire @davideast @jamesdaniels @firebase/jssdk-global-approvers
@@ -87,3 +87,16 @@ scripts/docgen/content-sources/ @firebase/firebase-techwriters @firebase/jssdk-g
 
 # Changeset
 .changeset @firebase/firebase-techwriters @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers
+
+# Auth-Exp Code
+packages-exp/auth-exp  @avolkovi @samhorlbeck @firebase/jssdk-global-approvers
+packages-exp/auth-types-exp  @avolkovi @samhorlbeck @firebase/jssdk-global-approvers
+packages-exp/auth-compat-exp @avolkovi @samhorlbeck @firebase/jssdk-global-approvers
+
+# Installations-Exp Code
+packages/installations-exp @andirayo @ChaoqunCHEN @firebase/jssdk-global-approvers
+packages/installations-types-exp @andirayo @ChaoqunCHEN @firebase/jssdk-global-approvers
+
+# Perf-Exp Code
+packages/performance-exp  @alikn @zijianjoy @firebase/jssdk-global-approvers
+packages/performance-types-exp  @alikn @zijianjoy @firebase/jssdk-global-approvers

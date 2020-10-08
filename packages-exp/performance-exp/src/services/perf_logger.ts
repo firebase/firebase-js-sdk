@@ -122,13 +122,6 @@ export function logTrace(trace: Trace): void {
     return;
   }
 
-  if (
-    !settingsService.loggingEnabled ||
-    !settingsService.logTraceAfterSampling
-  ) {
-    return;
-  }
-
   if (isPerfInitialized()) {
     sendTraceLog(trace);
   } else {
@@ -142,9 +135,19 @@ export function logTrace(trace: Trace): void {
 }
 
 function sendTraceLog(trace: Trace): void {
-  if (getIid()) {
-    setTimeout(() => sendLog(trace, ResourceType.Trace), 0);
+  if (!getIid()) {
+    return;
   }
+
+  const settingsService = SettingsService.getInstance();
+  if (
+    !settingsService.loggingEnabled ||
+    !settingsService.logTraceAfterSampling
+  ) {
+    return;
+  }
+
+  setTimeout(() => sendLog(trace, ResourceType.Trace), 0);
 }
 
 export function logNetworkRequest(networkRequest: NetworkRequest): void {

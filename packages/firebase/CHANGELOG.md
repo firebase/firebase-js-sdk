@@ -1,5 +1,24 @@
 # firebase
 
+## 7.22.1
+
+### Patch Changes
+
+- Updated dependencies [[`b6b1fd95c`](https://github.com/firebase/firebase-js-sdk/commit/b6b1fd95cbeeabc38daa574ce7cf0b7dd34cf550)]:
+  - @firebase/functions@0.5.1
+
+## 7.22.0
+
+### Minor Changes
+
+- [`a6af7c279`](https://github.com/firebase/firebase-js-sdk/commit/a6af7c27925da47fa62ee3b7b0a267a272c52220) [#3825](https://github.com/firebase/firebase-js-sdk/pull/3825) - Allow setting a custom domain for callable Cloud Functions.
+
+### Patch Changes
+
+- Updated dependencies [[`2be43eadf`](https://github.com/firebase/firebase-js-sdk/commit/2be43eadf756e45da7ad3ae7ba104ac5f0e557fa), [`a6af7c279`](https://github.com/firebase/firebase-js-sdk/commit/a6af7c27925da47fa62ee3b7b0a267a272c52220)]:
+  - @firebase/firestore@1.17.2
+  - @firebase/functions@0.5.0
+
 ## 7.21.1
 
 ### Patch Changes

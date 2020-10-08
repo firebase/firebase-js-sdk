@@ -33,7 +33,10 @@ import { ListenSequenceNumber, TargetId } from '../core/types';
 import { estimateByteSize } from '../model/values';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
-import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
+import {
+  MemoryRemoteDocumentCache,
+  newMemoryRemoteDocumentCache
+} from './memory_remote_document_cache';
 import { MemoryTargetCache } from './memory_target_cache';
 import { MutationQueue } from './mutation_queue';
 import {
@@ -90,7 +93,7 @@ export class MemoryPersistence implements Persistence {
     const sizer = (doc: MaybeDocument): number =>
       this.referenceDelegate.documentSize(doc);
     this.indexManager = new MemoryIndexManager();
-    this.remoteDocumentCache = new MemoryRemoteDocumentCache(
+    this.remoteDocumentCache = newMemoryRemoteDocumentCache(
       this.indexManager,
       sizer
     );

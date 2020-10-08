@@ -38,7 +38,7 @@ const es5Builds = es5BuildsNoPlugin.map(build => ({
   ...build,
   plugins: es5BuildPlugins,
   treeshake: {
-    moduleSideEffects: false
+    moduleSideEffects: ['@firebase/installations']
   }
 }));
 
@@ -64,7 +64,7 @@ const es2017Builds = es2017BuildsNoPlugin.map(build => ({
   ...build,
   plugins: es2017BuildPlugins,
   treeshake: {
-    moduleSideEffects: false
+    moduleSideEffects: ['@firebase/installations']
   }
 }));
 
