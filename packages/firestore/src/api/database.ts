@@ -427,7 +427,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
     if (this._firestoreClient) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
-        'Firestore hass already been started and its settings can no longer be changed. ' +
+        'Firestore has already been started and its settings can no longer be changed. ' +
           'You can only call useEmulator() before calling any other methods on a Firestore object.'
       );
     }
