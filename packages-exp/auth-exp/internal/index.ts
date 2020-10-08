@@ -28,6 +28,7 @@ export { Persistence } from '../src/core/persistence';
 export { UserImpl } from '../src/core/user/user_impl';
 export { _getInstance } from '../src/core/util/instantiator';
 export { UserCredential, UserParameters } from '../src/model/user';
+export { registerAuth } from '../src/core/auth/register';
 export {
   DEFAULT_API_HOST,
   DEFAULT_API_SCHEME,
