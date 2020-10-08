@@ -178,7 +178,9 @@ describe('Settings', () => {
         experimentalForceLongPolling: true,
         experimentalAutoDetectLongPolling: true
       })
-    ).to.throw(`can not be used together.`);
+    ).to.throw(
+      `experimentalForceLongPolling and experimentalAutoDetectLongPolling cannot be used together.`
+    );
   });
 
   it('can merge settings', () => {
