@@ -2312,10 +2312,10 @@
   dependencies:
     slash "^3.0.0"
 
-"@rollup/plugin-strip@1.3.3":
-  version "1.3.3"
-  resolved "https://registry.npmjs.org/@rollup/plugin-strip/-/plugin-strip-1.3.3.tgz#cf4380020414217affd467da14ebb65a303a7848"
-  integrity sha512-jBZYNi9Wa5lSv8wXUepgqLFcv5PMJiP2VcWSIqjAzYOwZiQA09e3vwtar9EYHSYfIONyc1hG0IkSDz2VvGBZcA==
+"@rollup/plugin-strip@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.npmjs.org/@rollup/plugin-strip/-/plugin-strip-2.0.0.tgz#46014ca2bc30bfff4ac289c52d7174671418173d"
+  integrity sha512-1xtE2FDk7Wwr2dEPugkQp3M2FGtSVYeRQaJnHJIkHzcXpBlxT/z+jJoVUvm8LGXso+bLWgO65WrmQ6bC6e/x+A==
   dependencies:
     "@rollup/pluginutils" "^3.0.4"
     estree-walker "^1.0.1"
