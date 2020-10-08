@@ -103,7 +103,7 @@ export class Database implements FirebaseService {
    * @param host the emulator host (ex: localhost)
    * @param port the emulator port (ex: 8080)
    */
-  useEmulator(host: string, port: number) {
+  useEmulator(host: string, port: number): void {
     if (this.instanceUsed_) {
       fatal(
         'Cannot call useEmulator() after instance has already been initialized.'

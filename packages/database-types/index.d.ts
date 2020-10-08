@@ -34,6 +34,7 @@ export interface DataSnapshot {
 
 export interface Database {
   app: FirebaseApp;
+  useEmulator(host: string, port: number): void;
   goOffline(): void;
   goOnline(): void;
   ref(path?: string | Reference): Reference;
@@ -43,6 +44,7 @@ export interface Database {
 export class FirebaseDatabase implements Database {
   private constructor();
   app: FirebaseApp;
+  useEmulator(host: string, port: number): void;
   goOffline(): void;
   goOnline(): void;
   ref(path?: string | Reference): Reference;
