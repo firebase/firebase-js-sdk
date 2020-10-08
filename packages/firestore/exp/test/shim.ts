@@ -99,7 +99,7 @@ export class FirebaseFirestore
     initializeFirestore(this.app._delegate, settings);
   }
 
-  useEmulator(host: string, port: number) {
+  useEmulator(host: string, port: number): void {
     this.settings({ host: `${host}:${port}`, ssl: false, merge: true });
   }
 

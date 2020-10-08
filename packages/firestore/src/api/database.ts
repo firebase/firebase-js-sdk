@@ -419,7 +419,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
     }
   }
 
-  useEmulator(host: string, port: number) {
+  useEmulator(host: string, port: number): void {
     validateExactNumberOfArgs('Firestore.useEmulator', arguments, 2);
     validateArgType('Firestore.useEmulator', 'string', 1, host);
     validateArgType('Firestore.useEmulator', 'number', 2, port);
