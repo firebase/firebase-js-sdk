@@ -42,7 +42,6 @@ import {
   getDocsFromServer,
   initializeFirestore,
   loadBundle,
-  namedQuery,
   onSnapshot,
   onSnapshotsInSync,
   query,
