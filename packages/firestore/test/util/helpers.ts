@@ -125,7 +125,8 @@ export function testUserDataWriter(): UserDataWriter {
     TEST_DATABASE_ID,
     /* timestampsInSnapshots= */ false,
     'none',
-    key => new DocumentReference(key, FIRESTORE, /* converter= */ null)
+    key => new DocumentReference(key, FIRESTORE, /* converter= */ null),
+    bytes => new Blob(bytes)
   );
 }
 

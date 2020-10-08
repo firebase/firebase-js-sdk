@@ -122,7 +122,7 @@ export abstract class RestConnection implements Connection {
     // Content-Type: text/plain will avoid preflight requests which might
     // mess with CORS and redirects by proxies. If we add custom headers
     // we will need to change this code to potentially use the $httpOverwrite
-    // parameter supported by ESF to avoid	triggering preflight requests.
+    // parameter supported by ESF to avoid triggering preflight requests.
     headers['Content-Type'] = 'text/plain';
 
     if (token) {
@@ -144,7 +144,7 @@ export abstract class RestConnection implements Connection {
     body: Req
   ): Promise<Resp>;
 
-  private makeUrl<Req>(rpcName: string, path: string): string {
+  private makeUrl(rpcName: string, path: string): string {
     const urlRpcName = RPC_NAME_URL_MAPPING[rpcName];
     debugAssert(
       urlRpcName !== undefined,

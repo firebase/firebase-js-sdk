@@ -20,21 +20,27 @@ import { registerFirestore } from './register';
 registerFirestore();
 
 export {
-  Firestore as FirebaseFirestore,
+  Settings,
+  FirebaseFirestore,
   initializeFirestore,
   getFirestore,
   terminate
 } from './src/api/database';
 
 export {
+  SetOptions,
+  DocumentData,
+  UpdateData,
   DocumentReference,
   Query,
   QueryConstraint,
+  QueryConstraintType,
   CollectionReference,
+  OrderByDirection,
+  WhereFilterOp,
   collection,
   collectionGroup,
   doc,
-  parent,
   getDoc,
   getDocs,
   deleteDoc,
@@ -68,6 +74,7 @@ export {
 } from './src/api/field_value';
 
 export {
+  FirestoreDataConverter,
   DocumentSnapshot,
   QueryDocumentSnapshot,
   QuerySnapshot,
@@ -78,10 +85,12 @@ export { WriteBatch, writeBatch } from './src/api/write_batch';
 
 export { Transaction, runTransaction } from './src/api/transaction';
 
-export { setLogLevel } from '../src/util/log';
+export { setLogLevel, LogLevel, LogLevelString } from '../src/util/log';
 
-export { Blob } from '../src/api/blob';
+export { Bytes } from './src/api/bytes';
 
 export { GeoPoint } from '../src/api/geo_point';
 
 export { Timestamp } from '../src/api/timestamp';
+
+export { FirestoreErrorCode, FirestoreError } from '../src/util/error';

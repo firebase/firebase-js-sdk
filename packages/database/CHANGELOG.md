@@ -1,5 +1,21 @@
 # Unreleased
 
+## 0.6.13
+
+### Patch Changes
+
+- [`3d9b5a595`](https://github.com/firebase/firebase-js-sdk/commit/3d9b5a595813b6c4f7f6ef4e3625ae8856a9fa23) [#3736](https://github.com/firebase/firebase-js-sdk/pull/3736) - Fix detection of admin context in Realtime Database SDK
+
+## 0.6.12
+
+### Patch Changes
+
+- [`d347c6ca1`](https://github.com/firebase/firebase-js-sdk/commit/d347c6ca1bcb7cd48ab2e4f7954cabafe761aea7) [#3650](https://github.com/firebase/firebase-js-sdk/pull/3650) - The SDK can now infer a default database URL if none is provided in the config.
+
+- Updated dependencies [[`da1c7df79`](https://github.com/firebase/firebase-js-sdk/commit/da1c7df7982b08bbef82fcc8d93255f3e2d23cca), [`fb3b095e4`](https://github.com/firebase/firebase-js-sdk/commit/fb3b095e4b7c8f57fdb3172bc039c84576abf290)]:
+  - @firebase/component@0.1.19
+  - @firebase/util@0.3.2
+
 ## 0.6.11
 
 ### Patch Changes

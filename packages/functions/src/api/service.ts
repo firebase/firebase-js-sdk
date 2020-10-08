@@ -85,18 +85,23 @@ export class Service implements FirebaseFunctions, FirebaseService {
   private readonly serializer = new Serializer();
   private emulatorOrigin: string | null = null;
   private cancelAllRequests: Promise<void>;
-  private deleteService!: Function;
+  private deleteService!: () => void;
+  private region: string;
+  private customDomain: string | null;
 
   /**
-   * Creates a new Functions service for the given app and (optional) region.
+   * Creates a new Functions service for the given app and (optional) region or custom domain.
    * @param app_ The FirebaseApp to use.
-   * @param region_ The region to call functions in.
+   * @param regionOrCustomDomain_ one of:
+   *   a) A region to call functions from, such as us-central1
+   *   b) A custom domain to use as a functions prefix, such as https://mydomain.com
    */
   constructor(
     private app_: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
     messagingProvider: Provider<FirebaseMessagingName>,
-    private region_: string = 'us-central1'
+    regionOrCustomDomain_: string = 'us-central1',
+    readonly fetchImpl: typeof fetch
   ) {
     this.contextProvider = new ContextProvider(authProvider, messagingProvider);
     // Cancels all ongoing requests when resolved.
@@ -105,6 +110,16 @@ export class Service implements FirebaseFunctions, FirebaseService {
         return resolve();
       };
     });
+
+    // Resolve the region or custom domain overload by attempting to parse it.
+    try {
+      const url = new URL(regionOrCustomDomain_);
+      this.customDomain = url.origin;
+      this.region = 'us-central1';
+    } catch (e) {
+      this.customDomain = null;
+      this.region = regionOrCustomDomain_;
+    }
   }
 
   get app(): FirebaseApp {
@@ -113,7 +128,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
 
   INTERNAL = {
     delete: (): Promise<void> => {
-      return this.deleteService();
+      return Promise.resolve(this.deleteService());
     }
   };
 
@@ -123,12 +138,16 @@ export class Service implements FirebaseFunctions, FirebaseService {
    */
   _url(name: string): string {
     const projectId = this.app_.options.projectId;
-    const region = this.region_;
     if (this.emulatorOrigin !== null) {
       const origin = this.emulatorOrigin;
-      return `${origin}/${projectId}/${region}/${name}`;
+      return `${origin}/${projectId}/${this.region}/${name}`;
     }
-    return `https://${region}-${projectId}.cloudfunctions.net/${name}`;
+
+    if (this.customDomain !== null) {
+      return `${this.customDomain}/${name}`;
+    }
+
+    return `https://${this.region}-${projectId}.cloudfunctions.net/${name}`;
   }
 
   /**
@@ -162,13 +181,13 @@ export class Service implements FirebaseFunctions, FirebaseService {
   private async postJSON(
     url: string,
     body: {},
-    headers: Headers
+    headers: { [key: string]: string }
   ): Promise<HttpResponse> {
-    headers.append('Content-Type', 'application/json');
+    headers['Content-Type'] = 'application/json';
 
     let response: Response;
     try {
-      response = await fetch(url, {
+      response = await this.fetchImpl(url, {
         method: 'POST',
         body: JSON.stringify(body),
         headers
@@ -183,7 +202,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
         json: null
       };
     }
-    let json: {} | null = null;
+    let json: HttpResponseBody | null = null;
     try {
       json = await response.json();
     } catch (e) {
@@ -212,13 +231,13 @@ export class Service implements FirebaseFunctions, FirebaseService {
     const body = { data };
 
     // Add a header for the authToken.
-    const headers = new Headers();
+    const headers: { [key: string]: string } = {};
     const context = await this.contextProvider.getContext();
     if (context.authToken) {
-      headers.append('Authorization', 'Bearer ' + context.authToken);
+      headers['Authorization'] = 'Bearer ' + context.authToken;
     }
     if (context.instanceIdToken) {
-      headers.append('Firebase-Instance-ID-Token', context.instanceIdToken);
+      headers['Firebase-Instance-ID-Token'] = context.instanceIdToken;
     }
 
     // Default timeout to 70s, but let the options override it.
@@ -269,7 +288,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
     }
 
     // Decode any special types, such as dates, in the returned data.
-    const decodedData = this.serializer.decode(responseData as {} | null);
+    const decodedData = this.serializer.decode(responseData);
 
     return { data: decodedData };
   }

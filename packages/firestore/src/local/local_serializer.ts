@@ -25,7 +25,7 @@ import {
 } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
-import * as api from '../protos/firestore_proto_api';
+import { DocumentsTarget as PublicDocumentsTarget } from '../protos/firestore_proto_api';
 import {
   convertQueryTargetToQuery,
   fromDocument,
@@ -275,8 +275,8 @@ export function toDbTarget(
 /**
  * A helper function for figuring out what kind of query has been stored.
  */
-function isDocumentQuery(dbQuery: DbQuery): dbQuery is api.DocumentsTarget {
-  return (dbQuery as api.DocumentsTarget).documents !== undefined;
+function isDocumentQuery(dbQuery: DbQuery): dbQuery is PublicDocumentsTarget {
+  return (dbQuery as PublicDocumentsTarget).documents !== undefined;
 }
 
 /** Encodes a DbBundle to a Bundle. */

@@ -176,10 +176,12 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
     return [
       typescriptPlugin({
         typescript,
-        compilerOptions: {
-          allowJs: true
+        tsconfigOverride: {
+          compilerOptions: {
+            allowJs: true
+          }
         },
-        include: ['dist/*.js']
+        include: ['dist/*.js', 'dist/exp/*.js']
       }),
       terser({
         output: {
@@ -194,10 +196,12 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
     return [
       typescriptPlugin({
         typescript,
-        compilerOptions: {
-          allowJs: true
+        tsconfigOverride: {
+          compilerOptions: {
+            allowJs: true
+          }
         },
-        include: ['dist/*.js']
+        include: ['dist/*.js', 'dist/exp/*.js']
       }),
       sourcemaps()
     ];

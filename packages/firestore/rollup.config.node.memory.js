@@ -17,7 +17,6 @@
 
 import * as path from 'path';
 import replace from 'rollup-plugin-replace';
-import copy from 'rollup-plugin-copy-assets';
 import memoryPkg from './memory/package.json';
 
 const util = require('./rollup.shared');
@@ -32,15 +31,14 @@ export default [
     },
     plugins: [
       ...util.es2017Plugins('node'),
-      // Needed as we also use the *.proto files
-      copy({
-        assets: ['./src/protos']
-      }),
       replace({
         'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
       })
     ],
-    external: util.resolveNodeExterns
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   },
   {
     input: path.resolve('./memory', memoryPkg['main-esm2017']),
@@ -50,6 +48,9 @@ export default [
       sourcemap: true
     },
     plugins: util.es2017ToEs5Plugins(),
-    external: util.resolveNodeExterns
+    external: util.resolveNodeExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
   }
 ];

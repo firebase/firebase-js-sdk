@@ -15,16 +15,19 @@
  * limitations under the License.
  */
 
-import { resolve } from 'path';
+import { resolve, basename } from 'path';
 import {
   generateReport,
   generateReportForModules,
   writeReportToFile,
-  ErrorCode
+  Report,
+  ErrorCode,
+  writeReportToDirectory
 } from './analysis-helper';
 import { mapWorkspaceToPackages } from '../../scripts/release/utils/workspace';
 import { projectRoot } from '../../scripts/utils';
 import * as yargs from 'yargs';
+import * as fs from 'fs';
 
 /**
  * Support Command Line Options
@@ -79,7 +82,8 @@ async function main(): Promise<void> {
   // check if it's an adhoc run
   // adhoc run report can only be redirected to files
   if (argv.inputDtsFile && argv.inputBundleFile && argv.output) {
-    const jsonReport = await generateReport(
+    const jsonReport: Report = await generateReport(
+      'adhoc',
       argv.inputDtsFile,
       argv.inputBundleFile
     );
@@ -89,9 +93,21 @@ async function main(): Promise<void> {
     let allModulesLocation = await mapWorkspaceToPackages([
       `${projectRoot}/packages-exp/*`
     ]);
+    allModulesLocation = allModulesLocation.filter(path => {
+      const json = JSON.parse(
+        fs.readFileSync(`${path}/package.json`, { encoding: 'utf-8' })
+      );
+      return (
+        json.name.startsWith('@firebase') &&
+        !json.name.includes('-compat') &&
+        !json.name.includes('-types')
+      );
+    });
     if (argv.inputModule) {
       allModulesLocation = allModulesLocation.filter(path => {
-        const json = require(`${path}/package.json`);
+        const json = JSON.parse(
+          fs.readFileSync(`${path}/package.json`, { encoding: 'utf-8' })
+        );
         return argv.inputModule.includes(json.name);
       });
     }
@@ -99,10 +115,24 @@ async function main(): Promise<void> {
     if (argv.output) {
       writeFiles = true;
     }
-    generateReportForModules(allModulesLocation, argv.output, writeFiles);
+
+    const reports: Report[] = await generateReportForModules(
+      allModulesLocation
+    );
+    if (writeFiles) {
+      for (const report of reports) {
+        writeReportToDirectory(
+          report,
+          `${basename(report.name)}-dependencies.json`,
+          resolve(argv.output)
+        );
+      }
+    }
   } else {
     throw new Error(ErrorCode.INVALID_FLAG_COMBINATION);
   }
 }
 
-main();
+main().catch(error => {
+  console.log(error);
+});

@@ -16,6 +16,7 @@
  */
 
 import { JsonObject } from '../model/object_value';
+import { FirestoreError } from '../util/error';
 
 /**
  * Observer/Subscribe interfaces.

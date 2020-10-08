@@ -113,7 +113,7 @@ export interface _FirebaseService {
    * Delete the service and free it's resources - called from
    * {@link @firebase/app-exp#deleteApp | deleteApp()}
    */
-  delete(): Promise<void>;
+  _delete(): Promise<void>;
 }
 
 export interface VersionService {

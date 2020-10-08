@@ -15,10 +15,8 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../../lite-types';
-
 import { _getProvider, _removeServiceInstance } from '@firebase/app-exp';
-import { FirebaseApp, _FirebaseService } from '@firebase/app-types-exp';
+import { _FirebaseService, FirebaseApp } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
 
 import { Code, FirestoreError } from '../../../src/util/error';
@@ -28,31 +26,50 @@ import {
   CredentialsProvider,
   FirebaseCredentialsProvider
 } from '../../../src/api/credentials';
-import { cast } from './util';
 import { removeComponents } from './components';
 
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'firestore/lite': FirebaseFirestore;
+  }
+}
+
+export interface Settings {
+  host?: string;
+  ssl?: boolean;
+  ignoreUndefinedProperties?: boolean;
+}
+
 /**
- * The root reference to the Firestore Lite database.
+ * The Cloud Firestore service interface.
+ *
+ * Do not call this constructor directly. Instead, use {@link getFirestore()}.
  */
-export class Firestore
-  implements firestore.FirebaseFirestore, _FirebaseService {
+export class FirebaseFirestore implements _FirebaseService {
   readonly _databaseId: DatabaseId;
   readonly _credentials: CredentialsProvider;
   readonly _persistenceKey: string = '(lite)';
 
   // Assigned via _configureClient()
-  protected _settings?: firestore.Settings;
+  protected _settings?: Settings;
   private _settingsFrozen = false;
 
   // A task that is assigned when the terminate() is invoked and resolved when
   // all components have shut down.
   private _terminateTask?: Promise<void>;
 
+  /**
+   * The {@link FirebaseApp app} associated with this `Firestore` service
+   * instance.
+   */
+  readonly app: FirebaseApp;
+
   constructor(
-    readonly app: FirebaseApp,
+    app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>
   ) {
-    this._databaseId = Firestore.databaseIdFromApp(app);
+    this.app = app;
+    this._databaseId = FirebaseFirestore._databaseIdFromApp(app);
     this._credentials = new FirebaseCredentialsProvider(authProvider);
   }
 
@@ -64,7 +81,7 @@ export class Firestore
     return this._terminateTask !== undefined;
   }
 
-  _configureClient(settings: firestore.Settings): void {
+  _configureClient(settings: Settings): void {
     if (this._settingsFrozen) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
@@ -76,7 +93,7 @@ export class Firestore
     this._settings = settings;
   }
 
-  _getSettings(): firestore.Settings {
+  _getSettings(): Settings {
     if (!this._settings) {
       this._settings = {};
     }
@@ -84,7 +101,7 @@ export class Firestore
     return this._settings;
   }
 
-  private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
+  private static _databaseIdFromApp(app: FirebaseApp): DatabaseId {
     if (!Object.prototype.hasOwnProperty.apply(app.options, ['projectId'])) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -95,7 +112,7 @@ export class Firestore
     return new DatabaseId(app.options.projectId!);
   }
 
-  delete(): Promise<void> {
+  _delete(): Promise<void> {
     if (!this._terminateTask) {
       this._terminateTask = this._terminate();
     }
@@ -113,34 +130,67 @@ export class Firestore
     removeComponents(this);
     return Promise.resolve();
   }
-
-  // TODO(firestoreexp): `deleteApp()` should call the delete method above,
-  // but it still calls INTERNAL.delete().
-  INTERNAL = {
-    delete: () => this.delete()
-  };
 }
 
+/**
+ * Initializes a new instance of Cloud Firestore with the provided settings.
+ * Can only be called before any other functions, including
+ * {@link getFirestore()}. If the custom settings are empty, this function is
+ * equivalent to calling {@link getFirestore()}.
+ *
+ * @param app The {@link FirebaseApp} with which the `Firestore` instance will be
+ * associated.
+ * @param settings A settings object to configure the `Firestore` instance.
+ * @return A newly initialized Firestore instance.
+ */
 export function initializeFirestore(
   app: FirebaseApp,
-  settings: firestore.Settings
-): Firestore {
+  settings: Settings
+): FirebaseFirestore {
   const firestore = _getProvider(
     app,
     'firestore/lite'
-  ).getImmediate() as Firestore;
+  ).getImmediate() as FirebaseFirestore;
   firestore._configureClient(settings);
   return firestore;
 }
 
-export function getFirestore(app: FirebaseApp): Firestore {
-  return _getProvider(app, 'firestore/lite').getImmediate() as Firestore;
+/**
+ * Returns the existing instance of Firestore that is associated with the
+ * provided {@link FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @param app The {@link FirebaseApp} instance that the returned Firestore
+ * instance is associated with.
+ * @return The `Firestore` instance of the provided app.
+ */
+export function getFirestore(app: FirebaseApp): FirebaseFirestore {
+  return _getProvider(
+    app,
+    'firestore/lite'
+  ).getImmediate() as FirebaseFirestore;
 }
 
-export function terminate(
-  firestore: firestore.FirebaseFirestore
-): Promise<void> {
+/**
+ * Terminates the provided Firestore instance.
+ *
+ * After calling `terminate()` only the `clearIndexedDbPersistence()` functions
+ * may be used. Any other function will throw a `FirestoreError`. Termination
+ * does not cancel any pending writes, and any promises that are awaiting a
+ * response from the server will not be resolved.
+ *
+ * To restart after termination, create a new instance of FirebaseFirestore with
+ * {@link getFirestore()}.
+ *
+ * Note: Under normal circumstances, calling `terminate()` is not required. This
+ * function is useful only when you want to force this instance to release all of
+ * its resources or in combination with {@link clearIndexedDbPersistence()} to
+ * ensure that all local state is destroyed between test runs.
+ *
+ * @return A promise that is resolved when the instance has been successfully
+ * terminated.
+ */
+export function terminate(firestore: FirebaseFirestore): Promise<void> {
   _removeServiceInstance(firestore.app, 'firestore/lite');
-  const firestoreClient = cast(firestore, Firestore);
-  return firestoreClient.delete();
+  return firestore._delete();
 }

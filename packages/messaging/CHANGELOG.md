@@ -1,5 +1,16 @@
 # @firebase/messaging
 
+## 0.7.1
+
+### Patch Changes
+
+- [`dc9892565`](https://github.com/firebase/firebase-js-sdk/commit/dc989256566b8379f475c722370ccbd8f47527c3) [#3710](https://github.com/firebase/firebase-js-sdk/pull/3710) - stops redirecting user to non-origin urls.
+
+- Updated dependencies [[`da1c7df79`](https://github.com/firebase/firebase-js-sdk/commit/da1c7df7982b08bbef82fcc8d93255f3e2d23cca), [`fb3b095e4`](https://github.com/firebase/firebase-js-sdk/commit/fb3b095e4b7c8f57fdb3172bc039c84576abf290)]:
+  - @firebase/component@0.1.19
+  - @firebase/util@0.3.2
+  - @firebase/installations@0.4.17
+
 ## 0.7.0
 
 ### Minor Changes

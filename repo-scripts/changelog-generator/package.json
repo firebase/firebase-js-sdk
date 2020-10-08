@@ -13,19 +13,18 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "tsc",
     "build:dev": "tsc -w",
-    "test": "yarn type-check",
-    "prepare": "yarn build",
-    "type-check": "tsc -p . --noEmit"
+    "test": "tsc -p . --noEmit",
+    "prepare": "yarn build"
   },
   "dependencies": {
-    "@changesets/types": "3.1.0",
-    "@changesets/get-github-info": "0.4.3",
-    "node-fetch": "2.6.0",
+    "@changesets/types": "3.1.1",
+    "@changesets/get-github-info": "0.4.4",
+    "node-fetch": "2.6.1",
     "@types/node-fetch": "2.5.7"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "typescript": "3.9.7"
+    "typescript": "4.0.2"
   },
   "repository": {
     "directory": "repo-scripts/changelog-generator",

@@ -68,34 +68,34 @@ export function runTransaction<T>(
 
 export function collection(
   firestore: FirebaseFirestore,
-  collectionPath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
 export function collection(
   reference: CollectionReference<unknown>,
-  collectionPath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
 export function collection(
   reference: DocumentReference,
-  collectionPath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
 export function doc(
   firestore: FirebaseFirestore,
-  documentPath: string
+  path: string,
+  ...pathComponents: string[]
 ): DocumentReference<DocumentData>;
 export function doc<T>(
   reference: CollectionReference<T>,
-  documentPath?: string
+  path?: string,
+  ...pathComponents: string[]
 ): DocumentReference<T>;
 export function doc(
   reference: DocumentReference<unknown>,
-  documentPath: string
+  path: string,
+  ...pathComponents: string[]
 ): DocumentReference<DocumentData>;
-export function parent(
-  reference: CollectionReference<unknown>
-): DocumentReference<DocumentData> | null;
-export function parent<T>(
-  reference: DocumentReference<T>
-): CollectionReference<T>;
 export function collectionGroup(
   firestore: FirebaseFirestore,
   collectionId: string
@@ -131,7 +131,7 @@ export class Timestamp {
   valueOf(): string;
 }
 
-export class Blob {
+export class Bytes {
   private constructor();
 
   static fromBase64String(base64: string): Blob;
@@ -207,6 +207,8 @@ export class DocumentReference<T = DocumentData> {
   readonly path: string;
   readonly id: string;
 
+  get parent(): CollectionReference<T>;
+
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
@@ -230,11 +232,13 @@ export type WhereFilterOp =
   | '<'
   | '<='
   | '=='
+  | '!='
   | '>='
   | '>'
   | 'array-contains'
   | 'in'
-  | 'array-contains-any';
+  | 'array-contains-any'
+  | 'not-in';
 
 export class Query<T = DocumentData> {
   protected constructor();
@@ -302,6 +306,9 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
   readonly type: 'collection';
   readonly id: string;
   readonly path: string;
+
+  get parent(): DocumentReference<DocumentData> | null;
+
   withConverter<U>(
     converter: FirestoreDataConverter<U>
   ): CollectionReference<U>;

@@ -62,6 +62,14 @@ export async function prepare() {
 
   delete packageJson.scripts.prepare;
 
+  // include files to be published
+  packageJson.files = [
+    ...packageJson.files,
+    packageJson.typings,
+    'lite/package.json',
+    litePackageJson.typings.replace('../', '')
+  ];
+
   // update package.json files
   await writeFile(
     `${packagePath}/package.json`,

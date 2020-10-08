@@ -22,9 +22,8 @@ import {
   FetchRequest
 } from './remote_config_fetch_client';
 import { ThrottleMetadata, Storage } from '../storage/storage';
-import { calculateBackoffMillis } from './exponential_backoff';
 import { ErrorCode, ERROR_FACTORY } from '../errors';
-import { FirebaseError } from '@firebase/util';
+import { FirebaseError, calculateBackoffMillis } from '@firebase/util';
 
 /**
  * Supports waiting on a backoff by:

@@ -72,7 +72,7 @@ async function parseChangesetFile(changesetFile: string) {
     .filter(line => line)
     .map(line => {
       const [packageName] = line.split(':');
-      return packageName.replace(/'/g, '');
+      return packageName.replace(/['"]/g, '');
     });
   return changesetPackages;
 }

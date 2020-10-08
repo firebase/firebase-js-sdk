@@ -19,7 +19,7 @@ import { expect } from 'chai';
 
 import { Blob } from '../../../src/api/blob';
 import { DocumentReference } from '../../../src/api/database';
-import { FieldValue } from '../../../src/api/field_value';
+import { FieldValue } from '../../../src/compat/field_value';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
 import { DatabaseId } from '../../../src/core/database_info';
@@ -927,6 +927,29 @@ export function serializerTest(
                 values: [
                   {
                     integerValue: '42'
+                  }
+                ]
+              }
+            }
+          }
+        });
+        const roundtripped = fromFieldFilter(actual);
+        expect(roundtripped).to.deep.equal(input);
+        expect(roundtripped).to.be.instanceof(NotInFilter);
+      });
+
+      it('converts not-in with null', () => {
+        const input = filter('field', 'not-in', [null]);
+        const actual = toUnaryOrFieldFilter(input);
+        expect(actual).to.deep.equal({
+          fieldFilter: {
+            field: { fieldPath: 'field' },
+            op: 'NOT_IN',
+            value: {
+              arrayValue: {
+                values: [
+                  {
+                    nullValue: 'NULL_VALUE'
                   }
                 ]
               }

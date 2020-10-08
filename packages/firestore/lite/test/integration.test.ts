@@ -15,14 +15,12 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../lite-types';
-
 import { initializeApp } from '@firebase/app-exp';
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import {
-  Firestore,
+  FirebaseFirestore,
   getFirestore,
   initializeFirestore,
   terminate
@@ -39,7 +37,6 @@ import {
   withTestDocAndInitialData
 } from './helpers';
 import {
-  parent,
   collection,
   CollectionReference,
   doc,
@@ -61,7 +58,10 @@ import {
   endBefore,
   startAt,
   limitToLast,
-  where
+  where,
+  SetOptions,
+  UpdateData,
+  DocumentData
 } from '../src/api/reference';
 import {
   FieldValue,
@@ -74,13 +74,14 @@ import {
 import { FieldPath } from '../src/api/field_path';
 import { writeBatch } from '../src/api/write_batch';
 import { runTransaction } from '../src/api/transaction';
-import { snapshotEqual } from '../src/api/snapshot';
+import { snapshotEqual, QuerySnapshot } from '../src/api/snapshot';
 import {
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS
 } from '../../test/integration/util/settings';
 import { expectEqual, expectNotEqual } from '../../test/util/helpers';
 import { Timestamp } from '../../src/api/timestamp';
+import { Bytes } from '../src/api/bytes';
 
 use(chaiAsPromised);
 
@@ -91,7 +92,7 @@ describe('Firestore', () => {
       'test-app-initializeFirestore'
     );
     const fs1 = initializeFirestore(app, { host: 'localhost', ssl: false });
-    expect(fs1).to.be.an.instanceOf(Firestore);
+    expect(fs1).to.be.an.instanceOf(FirebaseFirestore);
   });
 
   it('returns same instance', () => {
@@ -178,6 +179,24 @@ describe('doc', () => {
     });
   });
 
+  it('can be used with multiple arguments', () => {
+    return withTestDb(db => {
+      const result = doc(db, 'coll1/doc1', 'coll2', 'doc2');
+      expect(result).to.be.an.instanceOf(DocumentReference);
+      expect(result.id).to.equal('doc2');
+      expect(result.path).to.equal('coll1/doc1/coll2/doc2');
+    });
+  });
+
+  it('strips leading and trailing slashes', () => {
+    return withTestDb(db => {
+      const result = doc(db, '/coll', 'doc/');
+      expect(result).to.be.an.instanceOf(DocumentReference);
+      expect(result.id).to.equal('doc');
+      expect(result.path).to.equal('coll/doc');
+    });
+  });
+
   it('can be relative to doc', () => {
     return withTestDb(db => {
       const result = doc(doc(db, 'coll/doc'), 'subcoll/subdoc');
@@ -194,15 +213,14 @@ describe('doc', () => {
           'number of segments, but coll has 1.'
       );
       expect(() => doc(db, '')).to.throw(
-        'Function doc() requires its second argument to be of type non-empty ' +
-          'string, but it was: ""'
+        'Function doc() cannot be called with an empty path.'
       );
       expect(() => doc(collection(db, 'coll'), 'doc/coll')).to.throw(
         'Invalid document reference. Document references must have an even ' +
           'number of segments, but coll/doc/coll has 3.'
       );
       expect(() => doc(db, 'coll//doc')).to.throw(
-        'Invalid path (coll//doc). Paths must not contain // in them.'
+        'Invalid segment (coll//doc). Paths must not contain // in them.'
       );
     });
   });
@@ -244,17 +262,23 @@ describe('collection', () => {
     });
   });
 
+  it('can be used with multiple arguments', () => {
+    return withTestDb(db => {
+      const result = collection(db, 'coll1/doc1', 'coll2');
+      expect(result).to.be.an.instanceOf(CollectionReference);
+      expect(result.id).to.equal('coll2');
+      expect(result.path).to.equal('coll1/doc1/coll2');
+    });
+  });
+
   it('validates path', () => {
     return withTestDb(db => {
       expect(() => collection(db, 'coll/doc')).to.throw(
         'Invalid collection reference. Collection references must have an odd ' +
           'number of segments, but coll/doc has 2.'
       );
-      // TODO(firestorelite): Explore returning a more helpful message
-      // (e.g. "Empty document paths are not supported.")
       expect(() => collection(doc(db, 'coll/doc'), '')).to.throw(
-        'Function collection() requires its second argument to be of type ' +
-          'non-empty string, but it was: ""'
+        'Function collection() cannot be called with an empty path'
       );
       expect(() => collection(doc(db, 'coll/doc'), 'coll/doc')).to.throw(
         'Invalid collection reference. Collection references must have an odd ' +
@@ -268,7 +292,7 @@ describe('parent', () => {
   it('returns CollectionReferences for DocumentReferences', () => {
     return withTestDb(db => {
       const coll = collection(db, 'coll/doc/coll');
-      const result = parent(coll);
+      const result = coll.parent;
       expect(result).to.be.an.instanceOf(DocumentReference);
       expect(result!.path).to.equal('coll/doc');
     });
@@ -277,7 +301,7 @@ describe('parent', () => {
   it('returns DocumentReferences for CollectionReferences', () => {
     return withTestDb(db => {
       const coll = doc(db, 'coll/doc');
-      const result = parent(coll);
+      const result = coll.parent;
       expect(result).to.be.an.instanceOf(CollectionReference);
       expect(result.path).to.equal('coll');
     });
@@ -286,7 +310,7 @@ describe('parent', () => {
   it('returns null for root collection', () => {
     return withTestDb(db => {
       const coll = collection(db, 'coll');
-      const result = parent(coll);
+      const result = coll.parent;
       expect(result).to.be.null;
     });
   });
@@ -313,23 +337,23 @@ describe('getDoc()', () => {
  * DocumentReference-based mutation API.
  */
 interface MutationTester {
-  set<T>(documentRef: firestore.DocumentReference<T>, data: T): Promise<void>;
+  set<T>(documentRef: DocumentReference<T>, data: T): Promise<void>;
   set<T>(
-    documentRef: firestore.DocumentReference<T>,
+    documentRef: DocumentReference<T>,
     data: Partial<T>,
-    options: firestore.SetOptions
+    options: SetOptions
   ): Promise<void>;
   update(
-    documentRef: firestore.DocumentReference<unknown>,
-    data: firestore.UpdateData
+    documentRef: DocumentReference<unknown>,
+    data: UpdateData
   ): Promise<void>;
   update(
-    documentRef: firestore.DocumentReference<unknown>,
-    field: string | firestore.FieldPath,
+    documentRef: DocumentReference<unknown>,
+    field: string | FieldPath,
     value: unknown,
     ...moreFieldsAndValues: unknown[]
   ): Promise<void>;
-  delete(documentRef: firestore.DocumentReference<unknown>): Promise<void>;
+  delete(documentRef: DocumentReference<unknown>): Promise<void>;
 }
 
 genericMutationTests({
@@ -340,16 +364,16 @@ genericMutationTests({
 
 describe('WriteBatch', () => {
   class WriteBatchTester implements MutationTester {
-    delete(ref: firestore.DocumentReference<unknown>): Promise<void> {
+    delete(ref: DocumentReference<unknown>): Promise<void> {
       const batch = writeBatch(ref.firestore);
       batch.delete(ref);
       return batch.commit();
     }
 
     set<T>(
-      ref: firestore.DocumentReference<T>,
+      ref: DocumentReference<T>,
       data: T | Partial<T>,
-      options?: firestore.SetOptions
+      options?: SetOptions
     ): Promise<void> {
       const batch = writeBatch(ref.firestore);
       // TODO(mrschmidt): Find a way to remove the `any` cast here
@@ -359,8 +383,8 @@ describe('WriteBatch', () => {
     }
 
     update(
-      ref: firestore.DocumentReference<unknown>,
-      dataOrField: firestore.UpdateData | string | firestore.FieldPath,
+      ref: DocumentReference<unknown>,
+      dataOrField: UpdateData | string | FieldPath,
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {
@@ -403,16 +427,16 @@ describe('WriteBatch', () => {
 
 describe('Transaction', () => {
   class TransactionTester implements MutationTester {
-    delete(ref: firestore.DocumentReference<unknown>): Promise<void> {
+    delete(ref: DocumentReference<unknown>): Promise<void> {
       return runTransaction(ref.firestore, async transaction => {
         transaction.delete(ref);
       });
     }
 
     set<T>(
-      ref: firestore.DocumentReference<T>,
+      ref: DocumentReference<T>,
       data: T | Partial<T>,
-      options?: firestore.SetOptions
+      options?: SetOptions
     ): Promise<void> {
       return runTransaction(ref.firestore, async transaction => {
         if (options) {
@@ -424,8 +448,8 @@ describe('Transaction', () => {
     }
 
     update(
-      ref: firestore.DocumentReference<unknown>,
-      dataOrField: firestore.UpdateData | string | firestore.FieldPath,
+      ref: DocumentReference<unknown>,
+      dataOrField: UpdateData | string | FieldPath,
       value?: unknown,
       ...moreFieldsAndValues: unknown[]
     ): Promise<void> {
@@ -433,12 +457,12 @@ describe('Transaction', () => {
         if (value) {
           transaction.update(
             ref,
-            dataOrField as string | firestore.FieldPath,
+            dataOrField as string | FieldPath,
             value,
             ...moreFieldsAndValues
           );
         } else {
-          transaction.update(ref, dataOrField as firestore.UpdateData);
+          transaction.update(ref, dataOrField as UpdateData);
         }
       });
     }
@@ -714,6 +738,17 @@ describe('DocumentSnapshot', () => {
       expect(documentData).to.deep.equal({ foo: 1 });
     });
   });
+
+  it('returns Bytes', () => {
+    return withTestDocAndInitialData(
+      { bytes: Bytes.fromBase64String('aa') },
+      async docRef => {
+        const docSnap = await getDoc(docRef);
+        const bytes = docSnap.get('bytes');
+        expect(bytes.constructor.name).to.equal('Bytes');
+      }
+    );
+  });
 });
 
 describe('deleteDoc()', () => {
@@ -775,8 +810,8 @@ describe('FieldValue', () => {
 
 describe('Query', () => {
   function verifyResults(
-    actual: firestore.QuerySnapshot<firestore.DocumentData>,
-    ...expected: firestore.DocumentData[]
+    actual: QuerySnapshot<DocumentData>,
+    ...expected: DocumentData[]
   ): void {
     expect(actual.empty).to.equal(expected.length === 0);
     expect(actual.size).to.equal(expected.length);
@@ -962,7 +997,7 @@ describe('Query', () => {
   it('validates collection groups', () => {
     return withTestDb(firestore => {
       expect(() => collectionGroup(firestore, '')).to.throw(
-        'Function collectionGroup() requires its first argument to be of type non-empty string, but it was: ""'
+        'Function collectionGroup() cannot be called with an empty collection id.'
       );
       expect(() => collectionGroup(firestore, '/')).to.throw(
         "Invalid collection ID '/' passed to function collectionGroup(). Collection IDs must not contain '/'."
@@ -975,15 +1010,14 @@ describe('equality', () => {
   it('for collection references', () => {
     return withTestDb(firestore => {
       const coll1a = collection(firestore, 'a');
-      const coll1b = parent(doc(firestore, 'a/b'));
+      const coll1b = doc(firestore, 'a/b').parent;
       const coll2 = collection(firestore, 'c');
 
       expect(refEqual(coll1a, coll1b)).to.be.true;
       expect(refEqual(coll1a, coll2)).to.be.false;
 
       const coll1c = collection(firestore, 'a').withConverter({
-        toFirestore: (data: firestore.DocumentData) =>
-          data as firestore.DocumentData,
+        toFirestore: (data: DocumentData) => data as DocumentData,
         fromFirestore: snap => snap.data()
       });
       expect(refEqual(coll1a, coll1c)).to.be.false;
@@ -1002,8 +1036,7 @@ describe('equality', () => {
       expect(refEqual(doc1a, doc2)).to.be.false;
 
       const doc1c = collection(firestore, 'a').withConverter({
-        toFirestore: (data: firestore.DocumentData) =>
-          data as firestore.DocumentData,
+        toFirestore: (data: DocumentData) => data as DocumentData,
         fromFirestore: snap => snap.data()
       });
       expect(refEqual(doc1a, doc1c)).to.be.false;
@@ -1105,7 +1138,7 @@ describe('withConverter() support', () => {
   it('keeps the converter when calling parent() with a DocumentReference', () => {
     return withTestDb(async db => {
       const coll = doc(db, 'root/doc').withConverter(postConverter);
-      const typedColl = parent(coll)!;
+      const typedColl = coll.parent!;
       expect(
         refEqual(typedColl, collection(db, 'root').withConverter(postConverter))
       ).to.be.true;
@@ -1117,7 +1150,7 @@ describe('withConverter() support', () => {
       const coll = collection(db, 'root/doc/parent').withConverter(
         postConverter
       );
-      const untypedDoc = parent(coll)!;
+      const untypedDoc = coll.parent!;
       expect(refEqual(untypedDoc, doc(db, 'root/doc'))).to.be.true;
     });
   });

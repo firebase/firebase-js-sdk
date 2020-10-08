@@ -26,9 +26,9 @@ import {
   writeReportToFile,
   ErrorCode,
   writeReportToDirectory,
-  External,
   extractExternalDependencies,
-  buildMap
+  buildMap,
+  Report
 } from '../analysis-helper';
 
 import {
@@ -199,7 +199,8 @@ describe('extractDeclarations on .d.ts file', () => {
 describe('extractDeclarations on js bundle file', () => {
   let subsetExportsBundleFile: string;
   let extractedDeclarations: MemberList;
-  before(() => {
+  before(function () {
+    this.timeout(120000);
     const start = Date.now();
     const testModuleDtsFile: string = getTestModuleDtsFilePath();
     const map: Map<string, string> = buildMap(
@@ -256,8 +257,7 @@ describe('test dedup helper function', () => {
       functions: ['aFunc', 'aFunc', 'bFunc', 'cFunc'],
       classes: ['aClass', 'bClass', 'aClass', 'cClass'],
       variables: ['aVar', 'bVar', 'cVar', 'aVar'],
-      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum'],
-      externals: []
+      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum']
     };
     memberList = dedup(memberList);
 
@@ -287,8 +287,7 @@ describe('test dedup helper function', () => {
       functions: [],
       classes: [],
       variables: ['aVar', 'bVar', 'cVar', 'aVar'],
-      enums: [],
-      externals: []
+      enums: []
     };
     memberList = dedup(memberList);
     expect(memberList.functions).to.have.length(0);
@@ -309,8 +308,7 @@ describe('test replaceAll helper function', () => {
       functions: ['aFunc', 'aFunc', 'bFunc', 'cFunc'],
       classes: ['aClass', 'bClass', 'aClass', 'cClass'],
       variables: ['aVar', 'bVar', 'cVar', 'aVar'],
-      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum'],
-      externals: []
+      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum']
     };
     const original: string = 'aFunc';
     const replaceTo: string = 'replacedFunc';
@@ -333,8 +331,7 @@ describe('test replaceAll helper function', () => {
       functions: ['aFunc', 'aFunc', 'bFunc', 'cFunc'],
       classes: ['aClass', 'bClass', 'aClass', 'cClass'],
       variables: ['aVar', 'bVar', 'cVar', 'aVar'],
-      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum'],
-      externals: []
+      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum']
     };
     const replaceTo: string = 'replacedClass';
     const original: string = 'bClass';
@@ -357,8 +354,7 @@ describe('test replaceAll helper function', () => {
       functions: ['aFunc', 'aFunc', 'bFunc', 'cFunc'],
       classes: ['aClass', 'bClass', 'aClass', 'cClass'],
       variables: ['aVar', 'bVar', 'cVar', 'aVar'],
-      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum'],
-      externals: []
+      enums: ['aEnum', 'bEnum', 'cEnum', 'dEnum']
     };
     const replaceTo: string = 'replacedEnum';
     const original: string = 'eEnum';
@@ -381,8 +377,7 @@ describe('test mapSymbolToType helper function', () => {
       functions: ['aVar', 'bFunc', 'cFunc'],
       classes: ['bClass', 'cClass'],
       variables: ['aClass', 'bVar', 'cVar', 'aEnum'],
-      enums: ['bEnum', 'cEnum', 'dEnum', 'aFunc'],
-      externals: []
+      enums: ['bEnum', 'cEnum', 'dEnum', 'aFunc']
     };
 
     const map: Map<string, string> = new Map([
@@ -418,17 +413,25 @@ describe('test mapSymbolToType helper function', () => {
 });
 
 describe('test writeReportToFile helper function', () => {
+  let fileContent: Report;
+
+  before(() => {
+    fileContent = {
+      name: 'name',
+      symbols: []
+    };
+  });
   it('should throw error when given path exists and points to directory', () => {
     const aDir = resolve('./a-dir/a-sub-dir');
     fs.mkdirSync(aDir, { recursive: true });
-    expect(() => writeReportToFile('content', aDir)).to.throw(
+    expect(() => writeReportToFile(fileContent, aDir)).to.throw(
       ErrorCode.OUTPUT_FILE_REQUIRED
     );
   });
 
   it('should not throw error when given path does not pre-exist', () => {
     const aPathToFile = resolve('./a-dir/a-sub-dir/a-file');
-    expect(() => writeReportToFile('content', aPathToFile)).to.not.throw();
+    expect(() => writeReportToFile(fileContent, aPathToFile)).to.not.throw();
     fs.unlinkSync(aPathToFile);
   });
   after(() => {
@@ -438,21 +441,31 @@ describe('test writeReportToFile helper function', () => {
 });
 
 describe('test writeReportToDirectory helper function', () => {
+  let fileContent: Report;
+
+  before(() => {
+    fileContent = {
+      name: 'name',
+      symbols: []
+    };
+  });
   it('should throw error when given path exists and points to a file', () => {
     const aDir = resolve('./a-dir/a-sub-dir');
     fs.mkdirSync(aDir, { recursive: true });
     const aFile = `a-file`;
     const aPathToFile = `${aDir}/${aFile}`;
-    fs.writeFileSync(aPathToFile, 'content');
+    fs.writeFileSync(aPathToFile, fileContent);
     expect(() =>
-      writeReportToDirectory('content', aFile, aPathToFile)
+      writeReportToDirectory(fileContent, aFile, aPathToFile)
     ).to.throw(ErrorCode.OUTPUT_DIRECTORY_REQUIRED);
   });
 
   it('should not throw error when given path does not pre-exist', () => {
     const aDir = resolve('./a-dir/a-sub-dir');
     const aFile = `a-file`;
-    expect(() => writeReportToDirectory('content', aFile, aDir)).to.not.throw();
+    expect(() =>
+      writeReportToDirectory(fileContent, aFile, aDir)
+    ).to.not.throw();
   });
   after(() => {
     fs.unlinkSync(`${resolve('./a-dir/a-sub-dir')}/a-file`);
@@ -464,31 +477,17 @@ describe('test writeReportToDirectory helper function', () => {
 describe('test extractExternalDependencies helper function', () => {
   it('should correctly extract all symbols listed in import statements', () => {
     const assortedImports: string = getAssortedImportsJsFilePath();
-    const externals: External[] = extractExternalDependencies(assortedImports);
-    const barFilter: External[] = externals.filter(
-      each => each.moduleName.localeCompare("'./bar'") === 0
+    const externals: { [key: string]: string[] } = extractExternalDependencies(
+      assortedImports
     );
-    expect(barFilter.length).to.equal(1);
-    expect(barFilter[0].symbols).to.have.members([
+
+    expect(externals['./bar']).to.have.members([
       'basicFuncExternalDependenciesBar',
       'basicFuncExportEnumDependenciesBar',
       'BasicClassExportBar' // extract original name if renamed
     ]);
-    const loggerFilter: External[] = externals.filter(
-      each => each.moduleName.localeCompare("'@firebase/logger'") === 0
-    );
-    expect(loggerFilter.length).to.equal(0);
-
-    const fsFilter: External[] = externals.filter(
-      each => each.moduleName.localeCompare("'fs'") === 0
-    );
-    expect(fsFilter.length).to.equal(1);
-    expect(fsFilter[0].symbols).to.have.members(['*']); // namespace export
-
-    const defaultExportFilter: External[] = externals.filter(
-      each => each.moduleName.localeCompare("'@firebase/app'") === 0
-    );
-    expect(defaultExportFilter.length).to.equal(1);
-    expect(defaultExportFilter[0].symbols).to.have.members(['default export']); // default export
+    expect(externals['@firebase/logger']).to.be.undefined;
+    expect(externals['fs']).to.have.members(['*']); // namespace export
+    expect(externals['@firebase/app']).to.have.members(['default export']); // default export
   });
 });

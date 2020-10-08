@@ -21,7 +21,9 @@ import {
   queryEquals,
   Filter,
   newQueryForPath,
-  queryToTarget
+  queryToTarget,
+  hasLimitToLast,
+  hasLimitToFirst
 } from '../../../src/core/query';
 import { canonifyTarget, Target, targetEquals } from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
@@ -822,6 +824,14 @@ export class SpecBuilder {
     return this;
   }
 
+  waitForPendingWrites(): this {
+    this.nextStep();
+    this.currentStep = {
+      waitForPendingWrites: true
+    };
+    return this;
+  }
+
   expectUserCallbacks(docs: {
     acknowledged?: string[];
     rejected?: string[];
@@ -981,17 +991,24 @@ export class SpecBuilder {
     return this;
   }
 
+  expectWaitForPendingWritesEvent(count = 1): this {
+    this.assertStep('Expectations require previous step');
+    const currentStep = this.currentStep!;
+    currentStep.expectedWaitForPendingWritesEvents = count;
+    return this;
+  }
+
   private static queryToSpec(query: Query): SpecQuery {
     // TODO(dimond): full query support
     const spec: SpecQuery = { path: query.path.canonicalString() };
     if (query.collectionGroup !== null) {
       spec.collectionGroup = query.collectionGroup;
     }
-    if (query.hasLimitToFirst()) {
+    if (hasLimitToFirst(query)) {
       spec.limit = query.limit!;
       spec.limitType = 'LimitToFirst';
     }
-    if (query.hasLimitToLast()) {
+    if (hasLimitToLast(query)) {
       spec.limit = query.limit!;
       spec.limitType = 'LimitToLast';
     }

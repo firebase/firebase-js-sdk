@@ -6952,9 +6952,9 @@ declare namespace firebase.messaging {
    * Do not call this constructor directly. Instead, use
    * {@link firebase.messaging `firebase.messaging()`}.
    *
-   * See {@link https://firebase.google.com/docs/cloud-messaging/js/client Set Up a JavaScript
-   * Firebase Cloud Messaging Client App} for a full guide on how to use the Firebase Messaging
-   * service.
+   * See {@link https://firebase.google.com/docs/cloud-messaging/js/client
+   * Set Up a JavaScript Firebase Cloud Messaging Client App} for a full guide on how to use the
+   * Firebase Messaging service.
    *
    */
   interface Messaging {
@@ -7109,13 +7109,13 @@ declare namespace firebase.messaging {
 
   /**
    * Message payload that contains the notification payload that is represented with
-   * {@link firebase.Messaging.NotificationPayload} and the data payload that contains an arbitrary
+   * {@link firebase.messaging.NotificationPayload} and the data payload that contains an arbitrary
    * number of key-value pairs sent by developers through the
    * {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification Send API}
    */
   export interface MessagePayload {
     /**
-     * See {@link firebase.Messaging.NotificationPayload}.
+     * See {@link firebase.messaging.NotificationPayload}.
      */
     notification?: NotificationPayload;
 
@@ -7125,7 +7125,7 @@ declare namespace firebase.messaging {
     data?: { [key: string]: string };
 
     /**
-     * See {@link firebase.Messaging.FcmOptions}.
+     * See {@link firebase.messaging.FcmOptions}.
      */
     fcmOptions?: FcmOptions;
 
@@ -7135,15 +7135,17 @@ declare namespace firebase.messaging {
     from: string;
 
     /**
-     * The collapse key of this message. See more
-     * {@link https://firebase.google.com/docs/cloud-messaging/concept-options#collapsible_and_non-collapsible_messages}.
+     * The collapse key of this message. See
+     * {@link https://firebase.google.com/docs/cloud-messaging/concept-options#collapsible_and_non-collapsible_messages
+     * Collapsible and non-collapsible messages}.
      */
     collapseKey: string;
   }
 
   /**
-   * Options for features provided by the FCM SDK for Web. See more
-   * {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions}.
+   * Options for features provided by the FCM SDK for Web. See
+   * {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#webpushfcmoptions
+   * WebpushFcmOptions}.
    */
   export interface FcmOptions {
     /**
@@ -7154,8 +7156,9 @@ declare namespace firebase.messaging {
     link?: string;
 
     /**
-     * Label associated with the message's analytics data. See more
-     * {@link https://firebase.google.com/docs/cloud-messaging/understand-delivery#adding-analytics-labels-to-messages}.
+     * Label associated with the message's analytics data. See
+     * {@link https://firebase.google.com/docs/cloud-messaging/understand-delivery#adding-analytics-labels-to-messages
+     * Adding analytics labels}.
      */
     analyticsLabel?: string;
   }
@@ -7176,8 +7179,8 @@ declare namespace firebase.messaging {
 
     /**
      * The URL of the image that is shown with the notification. See
-     * {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification}
-     * for supported image format.
+     * {@link https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#notification
+     * `notification.image`} for supported image format.
      */
     image?: string;
   }
@@ -7888,10 +7891,18 @@ declare namespace firebase.firestore {
     /**
      * Whether to skip nested properties that are set to `undefined` during
      * object serialization. If set to `true`, these properties are skipped
-     * and not written to Firestore. If set `false` or omitted, the SDK throws
-     * an exception when it encounters properties of type `undefined`.
+     * and not written to Firestore. If set to `false` or omitted, the SDK
+     * throws an exception when it encounters properties of type `undefined`.
      */
     ignoreUndefinedProperties?: boolean;
+
+    /**
+     * Whether to merge the provided settings with the existing settings. If
+     * set to `true`, the settings are merged with existing settings. If
+     * set to `false` or left unset, the settings replace the existing
+     * settings.
+     */
+    merge?: boolean;
   }
 
   /**
@@ -8204,7 +8215,7 @@ declare namespace firebase.firestore {
      */
     onSnapshotsInSync(observer: {
       next?: (value: void) => void;
-      error?: (error: Error) => void;
+      error?: (error: FirestoreError) => void;
       complete?: () => void;
     }): () => void;
 
@@ -8838,7 +8849,7 @@ declare namespace firebase.firestore {
       options: SnapshotListenOptions,
       observer: {
         next?: (snapshot: DocumentSnapshot<T>) => void;
-        error?: (error: Error) => void;
+        error?: (error: FirestoreError) => void;
         complete?: () => void;
       }
     ): () => void;
@@ -8859,7 +8870,7 @@ declare namespace firebase.firestore {
      */
     onSnapshot(
       onNext: (snapshot: DocumentSnapshot<T>) => void,
-      onError?: (error: Error) => void,
+      onError?: (error: FirestoreError) => void,
       onCompletion?: () => void
     ): () => void;
     /**
@@ -8881,7 +8892,7 @@ declare namespace firebase.firestore {
     onSnapshot(
       options: SnapshotListenOptions,
       onNext: (snapshot: DocumentSnapshot<T>) => void,
-      onError?: (error: Error) => void,
+      onError?: (error: FirestoreError) => void,
       onCompletion?: () => void
     ): () => void;
 
@@ -9068,17 +9079,20 @@ declare namespace firebase.firestore {
 
   /**
    * Filter conditions in a `Query.where()` clause are specified using the
-   * strings '<', '<=', '==', '>=', '>', 'array-contains', 'in', and 'array-contains-any'.
+   * strings '<', '<=', '==', '!=', '>=', '>', 'array-contains', 'in',
+   * 'array-contains-any', and 'not-in'.
    */
   export type WhereFilterOp =
     | '<'
     | '<='
     | '=='
+    | '!='
     | '>='
     | '>'
     | 'array-contains'
     | 'in'
-    | 'array-contains-any';
+    | 'array-contains-any'
+    | 'not-in';
 
   /**
    * A `Query` refers to a Query which you can read or listen to. You can also
@@ -9268,7 +9282,7 @@ declare namespace firebase.firestore {
      */
     onSnapshot(observer: {
       next?: (snapshot: QuerySnapshot<T>) => void;
-      error?: (error: Error) => void;
+      error?: (error: FirestoreError) => void;
       complete?: () => void;
     }): () => void;
     /**
@@ -9289,7 +9303,7 @@ declare namespace firebase.firestore {
       options: SnapshotListenOptions,
       observer: {
         next?: (snapshot: QuerySnapshot<T>) => void;
-        error?: (error: Error) => void;
+        error?: (error: FirestoreError) => void;
         complete?: () => void;
       }
     ): () => void;
@@ -9311,7 +9325,7 @@ declare namespace firebase.firestore {
      */
     onSnapshot(
       onNext: (snapshot: QuerySnapshot<T>) => void,
-      onError?: (error: Error) => void,
+      onError?: (error: FirestoreError) => void,
       onCompletion?: () => void
     ): () => void;
     /**
@@ -9334,7 +9348,7 @@ declare namespace firebase.firestore {
     onSnapshot(
       options: SnapshotListenOptions,
       onNext: (snapshot: QuerySnapshot<T>) => void,
-      onError?: (error: Error) => void,
+      onError?: (error: FirestoreError) => void,
       onCompletion?: () => void
     ): () => void;
 

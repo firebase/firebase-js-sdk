@@ -31,7 +31,8 @@ export { id };
  */
 export function start(
   f: (p1: (success: boolean) => void, canceled: boolean) => void,
-  callback: Function,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  callback: (...args: any[]) => unknown,
   timeout: number
 ): id {
   // TODO(andysoto): make this code cleaner (probably refactor into an actual

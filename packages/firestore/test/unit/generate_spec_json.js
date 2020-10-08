@@ -29,8 +29,6 @@ var fs = require('fs');
 var mkdirp = require('mkdirp');
 
 const describeSpec = require('./specs/describe_spec');
-const nodePlatform = require('../../src/platform_node/node_platform');
-const platform = require('../../src/platform/platform');
 
 /**
  * Write the spec test at the given path as a JSON file.
@@ -51,8 +49,6 @@ function writeToJSON(testFile, jsonFile) {
  * @param {array} args The command line arguments.
  */
 function main(args) {
-  platform.PlatformSupport.setPlatform(new nodePlatform.NodePlatform());
-
   if (args.length !== 3) {
     console.error('usage: ./generate_spec_json.sh path/to/output');
     return;

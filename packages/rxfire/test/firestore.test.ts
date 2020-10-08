@@ -216,7 +216,7 @@ describe('RxFire Firestore', () => {
   describe('auditTrail', () => {
     /**
      * The `auditTrail()` method returns an array of every change that has
-     * occured in the application. This test seeds two "people" into the
+     * occurred in the application. This test seeds two "people" into the
      * collection and checks that the two added events are there. It then
      * modifies a "person" and makes sure that event is on the array as well.
      */
@@ -265,7 +265,7 @@ describe('RxFire Firestore', () => {
   describe('auditTrail', () => {
     /**
      * The `auditTrail()` method returns an array of every change that has
-     * occured in the application. This test seeds two "people" into the
+     * occurred in the application. This test seeds two "people" into the
      * collection and checks that the two added events are there. It then
      * modifies a "person" and makes sure that event is on the array as well.
      */

@@ -15,10 +15,12 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
+import { DocumentData, SetOptions } from '@firebase/firestore-types';
 
-import * as api from '../protos/firestore_proto_api';
-
+import {
+  Value as ProtoValue,
+  MapValue as ProtoMapValue
+} from '../protos/firestore_proto_api';
 import { Timestamp } from './timestamp';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
@@ -44,11 +46,13 @@ import {
   toResourceName,
   toTimestamp
 } from '../remote/serializer';
-import { Blob } from './blob';
-import { BaseFieldPath, fromDotSeparatedString } from './field_path';
-import { DeleteFieldValueImpl, SerializableFieldValue } from './field_value';
+import { _BaseFieldPath, fromDotSeparatedString } from './field_path';
+import { DeleteFieldValueImpl } from './field_value';
 import { GeoPoint } from './geo_point';
 import { newSerializer } from '../platform/serializer';
+import { Bytes } from '../../lite/src/api/bytes';
+import { Compat } from '../compat/compat';
+import { FieldValue } from '../../lite/src/api/field_value';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -57,11 +61,8 @@ const RESERVED_FIELD_REGEX = /^__.*__$/;
  * lite, full and legacy SDK.
  */
 export interface UntypedFirestoreDataConverter<T> {
-  toFirestore(modelObject: T): firestore.DocumentData;
-  toFirestore(
-    modelObject: Partial<T>,
-    options: firestore.SetOptions
-  ): firestore.DocumentData;
+  toFirestore(modelObject: T): DocumentData;
+  toFirestore(modelObject: Partial<T>, options: SetOptions): DocumentData;
   fromFirestore(snapshot: unknown, options?: unknown): T;
 }
 
@@ -71,7 +72,9 @@ export interface UntypedFirestoreDataConverter<T> {
  * This class serves as a common base class for the public DocumentReferences
  * exposed in the lite, full and legacy SDK.
  */
-export class DocumentKeyReference<T> {
+// Use underscore prefix to hide this class from our Public API.
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export class _DocumentKeyReference<T> {
   constructor(
     readonly _databaseId: DatabaseId,
     readonly _key: DocumentKey,
@@ -263,7 +266,7 @@ export class ParseContext {
     return this.contextWith({ path: undefined, arrayElement: true });
   }
 
-  createError(reason: string): Error {
+  createError(reason: string): FirestoreError {
     return createError(
       reason,
       this.settings.methodName,
@@ -349,7 +352,7 @@ export function parseSetData(
   targetDoc: DocumentKey,
   input: unknown,
   hasConverter: boolean,
-  options: firestore.SetOptions = {}
+  options: SetOptions = {}
 ): ParsedSetData {
   const context = userDataReader.createContext(
     options.merge || options.mergeFields
@@ -374,7 +377,7 @@ export function parseSetData(
     for (const stringOrFieldPath of options.mergeFields) {
       let fieldPath: FieldPath;
 
-      if (stringOrFieldPath instanceof BaseFieldPath) {
+      if (stringOrFieldPath instanceof _BaseFieldPath) {
         fieldPath = stringOrFieldPath._internalPath;
       } else if (typeof stringOrFieldPath === 'string') {
         fieldPath = fieldPathFromDotSeparatedString(
@@ -435,8 +438,9 @@ export function parseUpdateData(
 
     const childContext = context.childContextForFieldPath(path);
     if (
-      value instanceof SerializableFieldValue &&
-      value._delegate instanceof DeleteFieldValueImpl
+      value instanceof DeleteFieldValueImpl ||
+      (value instanceof Compat &&
+        value._delegate instanceof DeleteFieldValueImpl)
     ) {
       // Add it to the field mask, but don't add anything to updateData.
       fieldMaskPaths.push(path);
@@ -462,7 +466,7 @@ export function parseUpdateVarargs(
   userDataReader: UserDataReader,
   methodName: string,
   targetDoc: DocumentKey,
-  field: string | BaseFieldPath,
+  field: string | _BaseFieldPath,
   value: unknown,
   moreFieldsAndValues: unknown[]
 ): ParsedUpdateData {
@@ -486,7 +490,7 @@ export function parseUpdateVarargs(
     keys.push(
       fieldPathFromArgument(
         methodName,
-        moreFieldsAndValues[i] as string | BaseFieldPath
+        moreFieldsAndValues[i] as string | _BaseFieldPath
       )
     );
     values.push(moreFieldsAndValues[i + 1]);
@@ -503,8 +507,9 @@ export function parseUpdateVarargs(
       const value = values[i];
       const childContext = context.childContextForFieldPath(path);
       if (
-        value instanceof SerializableFieldValue &&
-        value._delegate instanceof DeleteFieldValueImpl
+        value instanceof DeleteFieldValueImpl ||
+        (value instanceof Compat &&
+          value._delegate instanceof DeleteFieldValueImpl)
       ) {
         // Add it to the field mask, but don't add anything to updateData.
         fieldMaskPaths.push(path);
@@ -538,7 +543,7 @@ export function parseQueryValue(
   methodName: string,
   input: unknown,
   allowArrays = false
-): api.Value {
+): ProtoValue {
   const context = userDataReader.createContext(
     allowArrays ? UserDataSource.ArrayArgument : UserDataSource.Argument,
     methodName
@@ -564,11 +569,17 @@ export function parseQueryValue(
 export function parseData(
   input: unknown,
   context: ParseContext
-): api.Value | null {
+): ProtoValue | null {
+  // Unwrap the API type from the Compat SDK. This will return the API type
+  // from firestore-exp.
+  if (input instanceof Compat) {
+    input = input._delegate;
+  }
+
   if (looksLikeJsonObject(input)) {
     validatePlainObject('Unsupported field value:', context, input);
     return parseObject(input, context);
-  } else if (input instanceof SerializableFieldValue) {
+  } else if (input instanceof FieldValue) {
     // FieldValues usually parse into transforms (except FieldValue.delete())
     // in which case we do not want to include this field in our parsed data
     // (as doing so will overwrite the field directly prior to the transform
@@ -606,8 +617,8 @@ export function parseData(
 function parseObject(
   obj: Dict<unknown>,
   context: ParseContext
-): { mapValue: api.MapValue } {
-  const fields: Dict<api.Value> = {};
+): { mapValue: ProtoMapValue } {
+  const fields: Dict<ProtoValue> = {};
 
   if (isEmpty(obj)) {
     // If we encounter an empty object, we explicitly add it to the update
@@ -627,8 +638,8 @@ function parseObject(
   return { mapValue: { fields } };
 }
 
-function parseArray(array: unknown[], context: ParseContext): api.Value {
-  const values: api.Value[] = [];
+function parseArray(array: unknown[], context: ParseContext): ProtoValue {
+  const values: ProtoValue[] = [];
   let entryIndex = 0;
   for (const entry of array) {
     let parsedEntry = parseData(
@@ -651,7 +662,7 @@ function parseArray(array: unknown[], context: ParseContext): api.Value {
  * context.fieldTransforms.
  */
 function parseSentinelFieldValue(
-  value: SerializableFieldValue,
+  value: FieldValue,
   context: ParseContext
 ): void {
   // Sentinels are only supported with writes, and not within arrays.
@@ -680,7 +691,7 @@ function parseSentinelFieldValue(
 function parseScalarValue(
   value: unknown,
   context: ParseContext
-): api.Value | null {
+): ProtoValue | null {
   if (value === null) {
     return { nullValue: 'NULL_VALUE' };
   } else if (typeof value === 'number') {
@@ -712,9 +723,9 @@ function parseScalarValue(
         longitude: value.longitude
       }
     };
-  } else if (value instanceof Blob) {
-    return { bytesValue: toBytes(context.serializer, value) };
-  } else if (value instanceof DocumentKeyReference) {
+  } else if (value instanceof Bytes) {
+    return { bytesValue: toBytes(context.serializer, value._byteString) };
+  } else if (value instanceof _DocumentKeyReference) {
     const thisDb = context.databaseId;
     const otherDb = value._databaseId;
     if (!otherDb.isEqual(thisDb)) {
@@ -754,9 +765,9 @@ function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof Date) &&
     !(input instanceof Timestamp) &&
     !(input instanceof GeoPoint) &&
-    !(input instanceof Blob) &&
-    !(input instanceof DocumentKeyReference) &&
-    !(input instanceof SerializableFieldValue)
+    !(input instanceof Bytes) &&
+    !(input instanceof _DocumentKeyReference) &&
+    !(input instanceof FieldValue)
   );
 }
 
@@ -781,10 +792,10 @@ function validatePlainObject(
  */
 export function fieldPathFromArgument(
   methodName: string,
-  path: string | BaseFieldPath,
+  path: string | _BaseFieldPath,
   targetDoc?: DocumentKey
 ): FieldPath {
-  if (path instanceof BaseFieldPath) {
+  if (path instanceof _BaseFieldPath) {
     return path._internalPath;
   } else if (typeof path === 'string') {
     return fieldPathFromDotSeparatedString(methodName, path);
@@ -833,7 +844,7 @@ function createError(
   hasConverter: boolean,
   path?: FieldPath,
   targetDoc?: DocumentKey
-): Error {
+): FirestoreError {
   const hasPath = path && !path.isEmpty();
   const hasDocument = targetDoc !== undefined;
   let message = `Function ${methodName}() called with invalid data`;

@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import { Firestore } from './database';
+import { FirebaseFirestore } from './database';
 import { PersistenceSettings } from '../../../src/core/firestore_client';
-import { Code, FirestoreError } from '../../../src/util/error';
 import {
   MemoryOfflineComponentProvider,
   OfflineComponentProvider,
@@ -26,8 +25,15 @@ import {
 import { handleUserChange, LocalStore } from '../../../src/local/local_store';
 import { Deferred } from '../../../src/util/promise';
 import { logDebug } from '../../../src/util/log';
-import { SyncEngine } from '../../../src/core/sync_engine';
-import { RemoteStore } from '../../../src/remote/remote_store';
+import {
+  RemoteStore,
+  remoteStoreHandleCredentialChange
+} from '../../../src/remote/remote_store';
+import {
+  SyncEngine,
+  syncEngineListen,
+  syncEngineUnlisten
+} from '../../../src/core/sync_engine';
 import { Persistence } from '../../../src/local/persistence';
 import { EventManager } from '../../../src/core/event_manager';
 export const LOG_TAG = 'ComponentProvider';
@@ -39,16 +45,16 @@ export const LOG_TAG = 'ComponentProvider';
 // Instance maps that ensure that only one component provider exists per
 // Firestore instance.
 const offlineComponentProviders = new Map<
-  Firestore,
+  FirebaseFirestore,
   Promise<OfflineComponentProvider>
 >();
 const onlineComponentProviders = new Map<
-  Firestore,
+  FirebaseFirestore,
   Promise<OnlineComponentProvider>
 >();
 
 export async function setOfflineComponentProvider(
-  firestore: Firestore,
+  firestore: FirebaseFirestore,
   persistenceSettings: PersistenceSettings,
   offlineComponentProvider: OfflineComponentProvider
 ): Promise<void> {
@@ -71,13 +77,13 @@ export async function setOfflineComponentProvider(
   // When a user calls clearPersistence() in one client, all other clients
   // need to be terminated to allow the delete to succeed.
   offlineComponentProvider.persistence.setDatabaseDeletedListener(() =>
-    firestore.delete()
+    firestore._delete()
   );
   offlineDeferred.resolve(offlineComponentProvider);
 }
 
 export async function setOnlineComponentProvider(
-  firestore: Firestore,
+  firestore: FirebaseFirestore,
   onlineComponentProvider: OnlineComponentProvider
 ): Promise<void> {
   const onlineDeferred = new Deferred<OnlineComponentProvider>();
@@ -94,17 +100,21 @@ export async function setOnlineComponentProvider(
   // The CredentialChangeListener of the online component provider takes
   // precedence over the offline component provider.
   firestore._setCredentialChangeListener(user =>
+    // TODO(firestoreexp): This should be enqueueRetryable.
     firestore._queue.enqueueAndForget(() =>
-      onlineComponentProvider.remoteStore.handleCredentialChange(user)
+      remoteStoreHandleCredentialChange(
+        onlineComponentProvider.remoteStore,
+        user
+      )
     )
   );
   onlineDeferred.resolve(onlineComponentProvider);
 }
 
 function getOfflineComponentProvider(
-  firestore: Firestore
+  firestore: FirebaseFirestore
 ): Promise<OfflineComponentProvider> {
-  verifyNotTerminated(firestore);
+  firestore._queue.verifyOperationInProgress();
 
   if (!offlineComponentProviders.has(firestore)) {
     logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
@@ -119,9 +129,9 @@ function getOfflineComponentProvider(
 }
 
 function getOnlineComponentProvider(
-  firestore: Firestore
+  firestore: FirebaseFirestore
 ): Promise<OnlineComponentProvider> {
-  verifyNotTerminated(firestore);
+  firestore._queue.verifyOperationInProgress();
 
   if (!onlineComponentProviders.has(firestore)) {
     logDebug(LOG_TAG, 'Using default OnlineComponentProvider');
@@ -131,40 +141,50 @@ function getOnlineComponentProvider(
   return onlineComponentProviders.get(firestore)!;
 }
 
-function verifyNotTerminated(firestore: Firestore): void {
-  if (firestore._terminated) {
-    throw new FirestoreError(
-      Code.FAILED_PRECONDITION,
-      'The client has already been terminated.'
-    );
-  }
-}
+// Note: These functions cannot be `async` since we want to throw an exception
+// when Firestore is terminated (via `getOnlineComponentProvider()`).
 
-export function getSyncEngine(firestore: Firestore): Promise<SyncEngine> {
+export function getSyncEngine(
+  firestore: FirebaseFirestore
+): Promise<SyncEngine> {
   return getOnlineComponentProvider(firestore).then(
     components => components.syncEngine
   );
 }
 
-export function getRemoteStore(firestore: Firestore): Promise<RemoteStore> {
+export function getRemoteStore(
+  firestore: FirebaseFirestore
+): Promise<RemoteStore> {
   return getOnlineComponentProvider(firestore).then(
     components => components.remoteStore
   );
 }
 
-export function getEventManager(firestore: Firestore): Promise<EventManager> {
-  return getOnlineComponentProvider(firestore).then(
-    components => components.eventManager
-  );
+export function getEventManager(
+  firestore: FirebaseFirestore
+): Promise<EventManager> {
+  return getOnlineComponentProvider(firestore).then(components => {
+    const eventManager = components.eventManager;
+    eventManager.onListen = syncEngineListen.bind(null, components.syncEngine);
+    eventManager.onUnlisten = syncEngineUnlisten.bind(
+      null,
+      components.syncEngine
+    );
+    return eventManager;
+  });
 }
 
-export function getPersistence(firestore: Firestore): Promise<Persistence> {
+export function getPersistence(
+  firestore: FirebaseFirestore
+): Promise<Persistence> {
   return getOfflineComponentProvider(firestore).then(
     components => components.persistence
   );
 }
 
-export function getLocalStore(firestore: Firestore): Promise<LocalStore> {
+export function getLocalStore(
+  firestore: FirebaseFirestore
+): Promise<LocalStore> {
   return getOfflineComponentProvider(firestore).then(
     provider => provider.localStore
   );
@@ -174,7 +194,9 @@ export function getLocalStore(firestore: Firestore): Promise<LocalStore> {
  * Removes all components associated with the provided instance. Must be called
  * when the Firestore instance is terminated.
  */
-export async function removeComponents(firestore: Firestore): Promise<void> {
+export async function removeComponents(
+  firestore: FirebaseFirestore
+): Promise<void> {
   const onlineComponentProviderPromise = onlineComponentProviders.get(
     firestore
   );

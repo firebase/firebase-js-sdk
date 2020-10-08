@@ -70,7 +70,8 @@ const plugins = [
   commonjs()
 ];
 
-const external = Object.keys(pkg.dependencies || {});
+const deps = Object.keys(pkg.dependencies || {});
+const external = id => deps.some(dep => id === dep || id.startsWith(`${dep}/`));
 
 /**
  * Global UMD Build
@@ -134,7 +135,14 @@ const componentBuilds = pkg.components
       {
         input: `${component}/index.ts`,
         output: createUmdOutputConfig(`firebase-${component}.js`),
-        plugins: [...plugins, uglify()],
+        plugins: [
+          ...plugins,
+          uglify({
+            output: {
+              ascii_only: true // escape unicode chars
+            }
+          })
+        ],
         external: ['@firebase/app']
       }
     ];
