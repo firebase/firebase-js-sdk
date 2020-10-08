@@ -304,7 +304,7 @@ export class PhoneAuthCredential extends AuthCredential implements externs.Phone
 
 // @public (undocumented)
 export class PhoneAuthProvider implements externs.PhoneAuthProvider {
-    constructor(auth: Auth_2);
+    constructor(auth: externs.Auth);
     // (undocumented)
     static credential(verificationId: string, verificationCode: string): PhoneAuthCredential;
     // (undocumented)

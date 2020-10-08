@@ -36,9 +36,9 @@ import {
 import { unwrap, Wrapper } from './wrap';
 
 export class Auth implements compat.FirebaseAuth, Wrapper<externs.Auth> {
-  private readonly auth: impl.AuthImpl;
+  // private readonly auth: impl.AuthImpl;
 
-  constructor(readonly app: FirebaseApp) {
+  constructor(readonly app: FirebaseApp, private readonly auth: impl.AuthImpl) {
     const { apiKey, authDomain } = app.options;
 
     // TODO(avolkovi): Implement proper persistence fallback
@@ -59,7 +59,7 @@ export class Auth implements compat.FirebaseAuth, Wrapper<externs.Auth> {
       sdkClientVersion: impl._getClientVersion(_getClientPlatform())
     };
 
-    this.auth = new impl.AuthImpl(app, config);
+    // this.auth = new impl.AuthImpl(app, config);
 
     // This promise is intended to float; auth initialization happens in the
     // background, meanwhile the auth object may be used by the app.

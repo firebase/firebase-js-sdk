@@ -43,7 +43,8 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
       container => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
-        return new Auth(app);
+        const auth = container.getProvider('auth-exp').getImmediate();
+        return new Auth(app, auth as impl.AuthImpl);
       },
       ComponentType.PUBLIC
     )
@@ -82,4 +83,5 @@ function registerAuthCompat(instance: _FirebaseNamespace): void {
   instance.registerVersion('auth', version);
 }
 
+impl.registerAuth(_getClientPlatform());
 registerAuthCompat(firebase as _FirebaseNamespace);
