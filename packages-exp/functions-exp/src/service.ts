@@ -133,9 +133,27 @@ export class FunctionsService implements _FirebaseService {
 }
 
 /**
+ * Modify this instance to communicate with the Cloudd Functions emulator.
+ *
+ * <p> Note: this must be called before this instance has been used to do any operations.
+ *
+ * @param host the emulator host (ex: localhost)
+ * @param port the emulator port (ex: 5001)
+ * @public
+ */
+export function useEmulator(
+  functionsInstance: FunctionsService,
+  host: string,
+  port: number
+): void {
+  functionsInstance.emulatorOrigin = `http://${host}:${port}`;
+}
+
+/**
  * Changes this instance to point to a Cloud Functions emulator running
  * locally. See https://firebase.google.com/docs/functions/local-emulator
  *
+ * @deprecated prefer the useEmulator(host, port) method.
  * @param origin - The origin of the local emulator, such as
  * "http://localhost:5005".
  * @public

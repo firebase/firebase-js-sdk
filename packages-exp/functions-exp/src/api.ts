@@ -29,6 +29,7 @@ import {
   FunctionsService,
   DEFAULT_REGION,
   useFunctionsEmulator as _useFunctionsEmulator,
+  useEmulator as _useEmulator,
   httpsCallable as _httpsCallable
 } from './service';
 
@@ -53,6 +54,23 @@ export function getFunctions(
     identifier: regionOrCustomDomain
   });
   return functionsInstance;
+}
+
+/**
+ * Modify this instance to communicate with the Cloudd Functions emulator.
+ *
+ * <p> Note: this must be called before this instance has been used to do any operations.
+ *
+ * @param host the emulator host (ex: localhost)
+ * @param port the emulator port (ex: 5001)
+ * @public
+ */
+export function useEmulator(
+  functionsInstance: Functions,
+  host: string,
+  port: number
+): void {
+  _useEmulator(functionsInstance as FunctionsService, host, port);
 }
 
 /**

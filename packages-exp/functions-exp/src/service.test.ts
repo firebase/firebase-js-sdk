@@ -16,7 +16,7 @@
  */
 import { assert } from 'chai';
 import { createTestService } from '../test/utils';
-import { FunctionsService, useFunctionsEmulator } from './service';
+import { FunctionsService, useFunctionsEmulator, useEmulator } from './service';
 
 describe('Firebase Functions > Service', () => {
   describe('simple constructor', () => {
@@ -39,9 +39,18 @@ describe('Firebase Functions > Service', () => {
       );
     });
 
-    it('can use emulator', () => {
+    it('can use emulator (deprecated)', () => {
       service = createTestService(app);
       useFunctionsEmulator(service, 'http://localhost:5005');
+      assert.equal(
+        service._url('foo'),
+        'http://localhost:5005/my-project/us-central1/foo'
+      );
+    });
+
+    it('can use emulator', () => {
+      service = createTestService(app);
+      useEmulator(service, 'localhost', 5005);
       assert.equal(
         service._url('foo'),
         'http://localhost:5005/my-project/us-central1/foo'
@@ -70,9 +79,18 @@ describe('Firebase Functions > Service', () => {
       assert.equal(service._url('foo'), 'https://mydomain.com/foo');
     });
 
-    it('prefers emulator to custom domain', () => {
+    it('prefers emulator to custom domain (deprecated)', () => {
       const service = createTestService(app, 'https://mydomain.com');
       useFunctionsEmulator(service, 'http://localhost:5005');
+      assert.equal(
+        service._url('foo'),
+        'http://localhost:5005/my-project/us-central1/foo'
+      );
+    });
+
+    it('prefers emulator to custom domain', () => {
+      const service = createTestService(app, 'https://mydomain.com');
+      useEmulator(service, 'localhost', 5005);
       assert.equal(
         service._url('foo'),
         'http://localhost:5005/my-project/us-central1/foo'
