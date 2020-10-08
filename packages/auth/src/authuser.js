@@ -1098,7 +1098,6 @@ fireauth.AuthUser.prototype.notifyUserInvalidatedListeners_ = function() {
  * @private
  */
 fireauth.AuthUser.prototype.setUserAccountInfoFromToken_ = function (idToken) {
-  debugger
   return this.rpcHandler_.getAccountInfoByIdToken(idToken)
       .then(goog.bind(this.parseAccountInfo_, this));
 };
