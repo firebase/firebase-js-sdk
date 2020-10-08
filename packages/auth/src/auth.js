@@ -321,7 +321,7 @@ fireauth.Auth.prototype.emitEmulatorWarning_ = function() {
   fireauth.util.consoleWarn('WARNING: You are using the Auth Emulator,' +
     ' which is intended for local testing only.  Do not use with' +
     ' production credentials.');
-  if (goog.global.document) {
+  if (goog.global.document && goog.global.document.body) {
     const ele = goog.global.document.createElement('p');
     ele.innerText = 'Running in emulator mode. Do not use with production' +
       ' credentials.';
