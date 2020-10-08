@@ -108,7 +108,13 @@ import {
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
-import { getLogLevel, logError, LogLevel, setLogLevel } from '../util/log';
+import {
+  getLogLevel,
+  logError,
+  LogLevel,
+  setLogLevel,
+  logWarn
+} from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
@@ -411,6 +417,32 @@ export class Firestore implements PublicFirestore, FirebaseService {
     if (newSettings.credentials !== undefined) {
       this._credentials = makeCredentialsProvider(newSettings.credentials);
     }
+  }
+
+  useEmulator(host: string, port: number) {
+    validateExactNumberOfArgs('Firestore.useEmulator', arguments, 2);
+    validateArgType('Firestore.useEmulator', 'string', 1, host);
+    validateArgType('Firestore.useEmulator', 'number', 2, port);
+
+    if (this._firestoreClient) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'Firestore hass already been started and its settings can no longer be changed. ' +
+          'You can only call useEmulator() before calling any other methods on a Firestore object.'
+      );
+    }
+
+    if (this._settings.host !== DEFAULT_HOST) {
+      logWarn(
+        'Host has been set in both settings() and useEmulator(), emulator host will be used'
+      );
+    }
+
+    this.settings({
+      host: `${host}:${port}`,
+      ssl: false,
+      merge: true
+    });
   }
 
   enableNetwork(): Promise<void> {

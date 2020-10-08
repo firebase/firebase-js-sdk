@@ -8044,6 +8044,16 @@ declare namespace firebase.firestore {
     settings(settings: Settings): void;
 
     /**
+     * Modify this instance to communicate with the Cloud Firestore emulator.
+     *
+     * <p>Note: this must be called before this instance has been used to do any operations.
+     *
+     * @param host the emulator host (ex: localhost).
+     * @param port the emulator port (ex: 9000).
+     */
+    useEmulator(host: string, port: number): void;
+
+    /**
      * Attempts to enable persistent storage, if possible.
      *
      * Must be called before any other methods (other than settings() and

@@ -61,6 +61,8 @@ export class FirebaseFirestore {
 
   settings(settings: Settings): void;
 
+  useEmulator(host: string, port: number): void;
+
   enablePersistence(settings?: PersistenceSettings): Promise<void>;
 
   collection(collectionPath: string): CollectionReference<DocumentData>;
