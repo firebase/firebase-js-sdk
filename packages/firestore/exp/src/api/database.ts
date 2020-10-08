@@ -21,7 +21,7 @@ import { Provider } from '@firebase/component';
 
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import {
-  enqueueLoadBundle,
+  createBundleReader,
   MAX_CONCURRENT_LIMBO_RESOLUTIONS
 } from '../../../src/core/firestore_client';
 import {
@@ -41,7 +41,7 @@ import {
 import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
-import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
+import { CACHE_SIZE_UNLIMITED, Query } from '../../../src/api/database';
 import {
   indexedDbClearPersistence,
   indexedDbStoragePrefix
@@ -61,14 +61,18 @@ import { DatabaseInfo } from '../../../src/core/database_info';
 import { AutoId } from '../../../src/util/misc';
 import { User } from '../../../src/auth/user';
 import { CredentialChangeListener } from '../../../src/api/credentials';
-import { logDebug } from '../../../src/util/log';
-import { registerPendingWritesCallback } from '../../../src/core/sync_engine';
+import { logDebug, logWarn } from '../../../src/util/log';
+import {
+  loadBundle as loadBundleSyncEngine,
+  registerPendingWritesCallback
+} from '../../../src/core/sync_engine';
 import {
   remoteStoreDisableNetwork,
   remoteStoreEnableNetwork
 } from '../../../src/remote/remote_store';
 import { PersistenceSettings } from '../../../exp-types';
 import { getNamedQuery } from '../../../src/local/local_store';
+import { newSerializer } from '../../../src/platform/serializer';
 
 const LOG_TAG = 'Firestore';
 
@@ -487,38 +491,39 @@ function verifyNotInitialized(firestore: FirebaseFirestore): void {
 }
 
 export function loadBundle(
-  firestore: firestore.FirebaseFirestore,
+  firestore: FirebaseFirestore,
   bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
 ): LoadBundleTask {
-  const firestoreImpl = cast(firestore, Firestore);
-  const resultTask = new LoadBundleTask();
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  getSyncEngine(firestoreImpl).then(async syncEngine => {
-    const databaseId = (await firestoreImpl._getConfiguration()).databaseInfo
-      .databaseId;
-    enqueueLoadBundle(
-      databaseId,
-      firestoreImpl._queue,
-      syncEngine,
-      bundleData,
-      resultTask
-    );
-  });
+  firestore._verifyNotTerminated();
 
+  const resultTask = new LoadBundleTask();
+
+  firestore._queue.enqueueAndForget(async () => {
+    const databaseId = (await firestore._getConfiguration()).databaseInfo
+      .databaseId;
+    const reader = createBundleReader(bundleData, newSerializer(databaseId));
+    const syncEngine = await getSyncEngine(firestore);
+
+    loadBundleSyncEngine(syncEngine, reader, resultTask);
+    return resultTask.catch((e: Error) => {
+      logWarn(LOG_TAG, `Loading bundle failed with ${e}`);
+    });
+  });
   return resultTask;
 }
 
-export async function namedQuery(
-  firestore: firestore.FirebaseFirestore,
+export function namedQuery(
+  firestore: FirebaseFirestore,
   name: string
-): Promise<firestore.Query | null> {
-  const firestoreImpl = cast(firestore, Firestore);
-  const localStore = await getLocalStore(firestoreImpl);
-  const namedQuery = await getNamedQuery(localStore, name);
-  if (!namedQuery) {
-    return null;
-  }
+): Promise<Query | null> {
+  return getLocalStore(firestore).then(localStore => {
+    return getNamedQuery(localStore, name).then(namedQuery => {
+      if (!namedQuery) {
+        return null;
+      }
 
-  return null;
-  // return new Query(firestoreImpl, null, namedQuery.query);
+      return null;
+      // return new Query(namedQuery.query, firestore, null);
+    });
+  });
 }

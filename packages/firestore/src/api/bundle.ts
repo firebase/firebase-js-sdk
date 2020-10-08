@@ -19,6 +19,7 @@ import * as firestore from '@firebase/firestore-types';
 import { Deferred } from '../util/promise';
 import { PartialObserver } from './observer';
 import { debugAssert } from '../util/assert';
+import { FirestoreError } from '../util/error';
 
 export class LoadBundleTask
   implements
@@ -85,7 +86,7 @@ export class LoadBundleTask
    * Notifies all observers that bundle loading has failed, with a provided
    * `Error` as the reason.
    */
-  _failWith(error: Error): void {
+  _failWith(error: FirestoreError): void {
     this._lastProgress.taskState = 'Error';
 
     if (this._progressObserver.next) {

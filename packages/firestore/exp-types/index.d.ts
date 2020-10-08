@@ -551,7 +551,7 @@ export function loadBundle(
 export function namedQuery(
   firestore: FirebaseFirestore,
   name: string
-): Promise<Query | null>;
+): Promise<Query<DocumentData> | null>;
 
 export type FirestoreErrorCode =
   | 'cancelled'

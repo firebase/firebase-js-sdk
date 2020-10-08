@@ -778,7 +778,7 @@ export function executeQueryViaSnapshotListener(
   return eventManagerListen(eventManager, listener);
 }
 
-function createBundleReader(
+export function createBundleReader(
   data: ReadableStream<Uint8Array> | ArrayBuffer | string,
   serializer: JsonProtoSerializer
 ): BundleReader {
@@ -789,20 +789,4 @@ function createBundleReader(
     content = data;
   }
   return new BundleReader(toByteStreamReader(content), serializer);
-}
-
-export function enqueueLoadBundle(
-  databaseId: DatabaseId,
-  asyncQueue: AsyncQueue,
-  syncEngine: SyncEngine,
-  data: ReadableStream<Uint8Array> | ArrayBuffer | string,
-  resultTask: LoadBundleTask
-): void {
-  const reader = createBundleReader(data, newSerializer(databaseId));
-  asyncQueue.enqueueAndForget(async () => {
-    loadBundle(syncEngine, reader, resultTask);
-    return resultTask.catch(e => {
-      logWarn(LOG_TAG, `Loading bundle failed with ${e}`);
-    });
-  });
 }

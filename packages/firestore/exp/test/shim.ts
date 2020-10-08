@@ -69,6 +69,7 @@ import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
 import { isPartialObserver, PartialObserver } from '../../src/api/observer';
 import { isPlainObject } from '../../src/util/input_validation';
 import { Compat } from '../../src/compat/compat';
+import { LoadBundleTask } from '../../exp-types';
 
 export { GeoPoint, Timestamp } from '../index';
 export { FieldValue } from '../../src/compat/field_value';
@@ -166,14 +167,13 @@ export class FirebaseFirestore
 
   loadBundle(
     bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
-  ): legacy.LoadBundleTask {
+  ): LoadBundleTask {
     return loadBundle(this._delegate, bundleData)!;
   }
 
-  async namedQuery(name: string): Promise<legacy.Query | null> {
-    return namedQuery(this._delegate, name).then(query => {
-      return query ? new Query(this, query) : null;
-    });
+  async namedQuery(name: string): Promise<Query | null> {
+    return null;
+    // return namedQuery(this._delegate, name);
   }
 
   INTERNAL = {
