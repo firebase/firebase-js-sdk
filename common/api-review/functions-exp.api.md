@@ -10,7 +10,7 @@ import { HttpsCallable } from '@firebase/functions-types-exp';
 import { HttpsCallableOptions } from '@firebase/functions-types-exp';
 
 // @public
-export function getFunctions(app: FirebaseApp, regionOrCustomDomain?: string): Functions;
+export function getFunctions(app: FirebaseApp, region?: string): Functions;
 
 // @public
 export function httpsCallable(functionsInstance: Functions, name: string, options?: HttpsCallableOptions): HttpsCallable;
