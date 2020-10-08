@@ -20,9 +20,9 @@
   },
   "dependencies": {
     "@firebase/logger": "^0.2.2",
-    "@firebase/util": "^0.2.44",
+    "@firebase/util": "^0.3.0",
     "lerna": "^3.22.1",
-    "tslib": "1.11.1"
+    "tslib": "1.14.0"
   },
   "license": "Apache-2.0",
   "devDependencies": {
@@ -32,8 +32,8 @@
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-license": "0.14.0",
     "rollup-plugin-node-resolve": "5.2.0",
-    "rollup-plugin-sourcemaps": "0.6.1",
-    "rollup-plugin-typescript2": "0.27.0",
+    "rollup-plugin-sourcemaps": "0.6.3",
+    "rollup-plugin-typescript2": "0.27.3",
     "rollup-plugin-uglify": "6.0.4",
     "typescript": "3.9.5"
   },
