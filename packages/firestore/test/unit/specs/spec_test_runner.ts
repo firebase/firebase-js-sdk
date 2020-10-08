@@ -241,7 +241,8 @@ abstract class TestRunner {
       TEST_PERSISTENCE_KEY,
       'host',
       /*ssl=*/ false,
-      /*forceLongPolling=*/ false
+      /*forceLongPolling=*/ false,
+      /*autoDetectLongPolling=*/ false
     );
 
     // TODO(mrschmidt): During client startup in `firestore_client`, we block
