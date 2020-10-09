@@ -29,6 +29,7 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import { TestBundleBuilder } from '../../unit/util/bundle_data';
 import { newTextEncoder } from '../../../src/platform/serializer';
 import { collectionReference } from '../../util/api_helpers';
+import { LoadBundleTask } from '../../../src/api/bundle';
 
 // TODO(b/162594908): Move this to api/ instead of api_internal.
 
@@ -114,7 +115,8 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
       const progressEvents: firestore.LoadBundleTaskProgress[] = [];
       let completeCalled = false;
-      const task = db.loadBundle(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const task: LoadBundleTask = (db as any)._loadBundle(
         builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
       );
       task.onProgress(
@@ -145,10 +147,14 @@ apiDescribe('Bundles', (persistence: boolean) => {
       let snap = await db.collection('coll-1').get({ source: 'cache' });
       verifySnapEqualTestDocs(snap);
 
-      snap = await (await db.namedQuery('limit'))!.get({ source: 'cache' });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      snap = await (await (db as any)._namedQuery('limit'))!.get({
+        source: 'cache'
+      });
       expect(toDataArray(snap)).to.deep.equal([{ k: 'b', bar: 2 }]);
 
-      snap = await (await db.namedQuery('limit-to-last'))!.get({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      snap = await (await (db as any)._namedQuery('limit-to-last'))!.get({
         source: 'cache'
       });
       expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 1 }]);
@@ -159,7 +165,8 @@ apiDescribe('Bundles', (persistence: boolean) => {
     return withTestDb(persistence, async db => {
       const builder = bundleWithTestDocsAndQueries(db);
 
-      const fulfillProgress: firestore.LoadBundleTaskProgress = await db.loadBundle(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fulfillProgress: firestore.LoadBundleTaskProgress = await (db as any)._loadBundle(
         builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
       );
 
@@ -176,13 +183,15 @@ apiDescribe('Bundles', (persistence: boolean) => {
     return withTestDb(persistence, async db => {
       const builder = bundleWithTestDocsAndQueries(db);
 
-      await db.loadBundle(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (db as any)._loadBundle(
         builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
       );
 
       let completeCalled = false;
       const progressEvents: firestore.LoadBundleTaskProgress[] = [];
-      const task = db.loadBundle(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const task: LoadBundleTask = (db as any)._loadBundle(
         encoder.encode(
           builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
         )
@@ -221,7 +230,8 @@ apiDescribe('Bundles', (persistence: boolean) => {
       await accumulator.awaitEvent();
 
       const builder = bundleWithTestDocsAndQueries(db);
-      const progress = await db.loadBundle(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const progress = await (db as any)._loadBundle(
         // Testing passing in non-string bundles.
         encoder.encode(
           builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
@@ -234,10 +244,12 @@ apiDescribe('Bundles', (persistence: boolean) => {
       // cache can only be tested in spec tests.
       await accumulator.assertNoAdditionalEvents();
 
-      let snap = await (await db.namedQuery('limit'))!.get();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let snap = await (await (db as any)._namedQuery('limit'))!.get();
       expect(toDataArray(snap)).to.deep.equal([{ k: 'b', bar: 0 }]);
 
-      snap = await (await db.namedQuery('limit-to-last'))!.get();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      snap = await (await (db as any)._namedQuery('limit-to-last'))!.get();
       expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 0 }]);
     });
   });
@@ -246,7 +258,8 @@ apiDescribe('Bundles', (persistence: boolean) => {
     return withTestDb(persistence, async db => {
       const builder = bundleWithTestDocsAndQueries(db);
 
-      const fulfillProgress: firestore.LoadBundleTaskProgress = await db.loadBundle(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fulfillProgress: firestore.LoadBundleTaskProgress = await (db as any)._loadBundle(
         builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
       );
 
@@ -270,14 +283,16 @@ apiDescribe('Bundles', (persistence: boolean) => {
       return withAlternateTestDb(persistence, async otherDb => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         await expect(
-          otherDb.loadBundle(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (otherDb as any)._loadBundle(
             builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
           )
         ).to.be.rejectedWith('Tried to deserialize key from different project');
 
         // Verify otherDb still functions, despite loaded a problematic bundle.
         builder = bundleWithTestDocsAndQueries(otherDb);
-        const finalProgress = await otherDb.loadBundle(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const finalProgress = await (otherDb as any)._loadBundle(
           builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
         );
         verifySuccessProgress(finalProgress);

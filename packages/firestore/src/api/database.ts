@@ -532,7 +532,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
     }
   }
 
-  loadBundle(
+  _loadBundle(
     bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
   ): LoadBundleTask {
     this.ensureClientConfigured();
@@ -541,14 +541,15 @@ export class Firestore implements PublicFirestore, FirebaseService {
     return resultTask;
   }
 
-  async namedQuery(name: string): Promise<PublicQuery | null> {
+  _namedQuery(name: string): Promise<PublicQuery | null> {
     this.ensureClientConfigured();
-    const namedQuery = await this._firestoreClient!.getNamedQuery(name);
-    if (!namedQuery) {
-      return null;
-    }
+    return this._firestoreClient!.getNamedQuery(name).then(namedQuery => {
+      if (!namedQuery) {
+        return null;
+      }
 
-    return new Query(namedQuery.query, this, null);
+      return new Query(namedQuery.query, this, null);
+    });
   }
 
   ensureClientConfigured(): FirestoreClient {

@@ -41,7 +41,7 @@ import {
   getDocsFromCache,
   getDocsFromServer,
   initializeFirestore,
-  loadBundle,
+  _loadBundle,
   onSnapshot,
   onSnapshotsInSync,
   query,
@@ -167,7 +167,7 @@ export class FirebaseFirestore
   loadBundle(
     bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
   ): LoadBundleTask {
-    return loadBundle(this._delegate, bundleData)!;
+    return _loadBundle(this._delegate, bundleData)!;
   }
 
   async namedQuery(name: string): Promise<Query | null> {

@@ -8258,12 +8258,6 @@ declare namespace firebase.firestore {
      */
     terminate(): Promise<void>;
 
-    loadBundle(
-      bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
-    ): LoadBundleTask;
-
-    namedQuery(name: string): Promise<Query<DocumentData> | null>;
-
     /**
      * @hidden
      */

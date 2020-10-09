@@ -490,7 +490,7 @@ function verifyNotInitialized(firestore: FirebaseFirestore): void {
   }
 }
 
-export function loadBundle(
+export function _loadBundle(
   firestore: FirebaseFirestore,
   bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
 ): LoadBundleTask {
@@ -512,7 +512,7 @@ export function loadBundle(
   return resultTask;
 }
 
-export function namedQuery(
+export function _namedQuery(
   firestore: FirebaseFirestore,
   name: string
 ): Promise<Query | null> {
