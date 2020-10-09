@@ -33,8 +33,7 @@ export {
   enableNetwork,
   _namedQuery,
   _loadBundle,
-  terminate,
-  Settings
+  terminate
 } from './src/api/database';
 
 export {
