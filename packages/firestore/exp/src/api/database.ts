@@ -62,10 +62,7 @@ import { AutoId } from '../../../src/util/misc';
 import { User } from '../../../src/auth/user';
 import { CredentialChangeListener } from '../../../src/api/credentials';
 import { logDebug, logWarn } from '../../../src/util/log';
-import {
-  loadBundle as loadBundleSyncEngine,
-  registerPendingWritesCallback
-} from '../../../src/core/sync_engine';
+import { registerPendingWritesCallback } from '../../../src/core/sync_engine';
 import {
   remoteStoreDisableNetwork,
   remoteStoreEnableNetwork
@@ -504,7 +501,7 @@ export function loadBundle(
     const reader = createBundleReader(bundleData, newSerializer(databaseId));
     const syncEngine = await getSyncEngine(firestore);
 
-    loadBundleSyncEngine(syncEngine, reader, resultTask);
+    // loadBundleSyncEngine(syncEngine, reader, resultTask);
     return resultTask.catch((e: Error) => {
       logWarn(LOG_TAG, `Loading bundle failed with ${e}`);
     });
