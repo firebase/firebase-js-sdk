@@ -7396,7 +7396,7 @@ declare namespace firebase.storage {
     prefixes: Reference[];
     /**
      * Objects in this directory.
-     * You can call getMetadate() and getDownloadUrl() on them.
+     * You can call getMetadata() and getDownloadUrl() on them.
      */
     items: Reference[];
     /**
