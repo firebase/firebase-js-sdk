@@ -39,7 +39,7 @@ export class Auth implements compat.FirebaseAuth, Wrapper<externs.Auth> {
   // private readonly auth: impl.AuthImpl;
 
   constructor(readonly app: FirebaseApp, private readonly auth: impl.AuthImpl) {
-    const { apiKey, authDomain } = app.options;
+    const { apiKey } = app.options;
 
     // TODO(avolkovi): Implement proper persistence fallback
     const hierarchy = [impl.indexedDBLocalPersistence].map<impl.Persistence>(
@@ -50,16 +50,6 @@ export class Auth implements compat.FirebaseAuth, Wrapper<externs.Auth> {
     impl.assertFn(apiKey, impl.AuthErrorCode.INVALID_API_KEY, {
       appName: app.name
     });
-    const config: externs.Config = {
-      apiKey,
-      authDomain,
-      apiHost: impl.DEFAULT_API_HOST,
-      tokenApiHost: impl.DEFAULT_TOKEN_API_HOST,
-      apiScheme: impl.DEFAULT_API_SCHEME,
-      sdkClientVersion: impl._getClientVersion(_getClientPlatform())
-    };
-
-    // this.auth = new impl.AuthImpl(app, config);
 
     // This promise is intended to float; auth initialization happens in the
     // background, meanwhile the auth object may be used by the app.
