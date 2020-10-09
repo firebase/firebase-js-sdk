@@ -80,7 +80,7 @@ export class Query {
     public path: Path,
     private queryParams_: QueryParams,
     private orderByCalled_: boolean
-  ) { }
+  ) {}
 
   /**
    * Validates start/end values for queries.
@@ -127,13 +127,13 @@ export class Query {
       ) {
         throw new Error(
           'Query: When ordering by priority, the first argument passed to startAt(), ' +
-          'endAt(), or equalTo() must be a valid priority value (null, a number, or a string).'
+            'endAt(), or equalTo() must be a valid priority value (null, a number, or a string).'
         );
       }
     } else {
       assert(
         params.getIndex() instanceof PathIndex ||
-        params.getIndex() === VALUE_INDEX,
+          params.getIndex() === VALUE_INDEX,
         'unknown index type.'
       );
       if (
@@ -142,7 +142,7 @@ export class Query {
       ) {
         throw new Error(
           'Query: First argument passed to startAt(), endAt(), or equalTo() cannot be ' +
-          'an object.'
+            'an object.'
         );
       }
     }
@@ -305,7 +305,7 @@ export class Query {
    * @return {!firebase.Promise}
    */
   get(): Promise<DataSnapshot> {
-    return this.repo.get(this).catch(_ => this.once('value'));
+    return this.repo.get(this);
   }
 
   /**
@@ -322,7 +322,6 @@ export class Query {
     failureCallbackOrContext?: ((a: Error) => void) | object | null,
     context?: object | null
   ): Promise<DataSnapshot> {
-    console.log('Calling once!');
     validateArgCount('Query.once', 1, 4, arguments.length);
     validateEventType('Query.once', 1, eventType, false);
     validateCallback('Query.once', 2, userCallback, true);
@@ -341,7 +340,7 @@ export class Query {
     const deferred = new Deferred<DataSnapshot>();
 
     // A dummy error handler in case a user wasn't expecting promises
-    deferred.promise.catch(() => { });
+    deferred.promise.catch(() => {});
 
     const onceCallback = (snapshot: DataSnapshot) => {
       // NOTE: Even though we unsubscribe, we may get called multiple times if a single action (e.g. set() with JSON)
@@ -353,7 +352,6 @@ export class Query {
         if (userCallback) {
           userCallback.bind(ret.context)(snapshot);
         }
-        console.log('once resolved!');
         deferred.resolve(snapshot);
       }
     };
@@ -362,7 +360,6 @@ export class Query {
       eventType,
       onceCallback,
       /*cancel=*/ err => {
-        console.log('once rejected!');
         this.off(eventType, onceCallback);
 
         if (ret.cancel) {
@@ -393,7 +390,7 @@ export class Query {
     if (this.queryParams_.hasLimit()) {
       throw new Error(
         'Query.limitToFirst: Limit was already set (by another call to limit, ' +
-        'limitToFirst, or limitToLast).'
+          'limitToFirst, or limitToLast).'
       );
     }
 
@@ -424,7 +421,7 @@ export class Query {
     if (this.queryParams_.hasLimit()) {
       throw new Error(
         'Query.limitToLast: Limit was already set (by another call to limit, ' +
-        'limitToFirst, or limitToLast).'
+          'limitToFirst, or limitToLast).'
       );
     }
 
@@ -526,7 +523,7 @@ export class Query {
     if (this.queryParams_.hasStart()) {
       throw new Error(
         'Query.startAt: Starting point was already set (by another call to startAt ' +
-        'or equalTo).'
+          'or equalTo).'
       );
     }
 
@@ -557,7 +554,7 @@ export class Query {
     if (this.queryParams_.hasEnd()) {
       throw new Error(
         'Query.endAt: Ending point was already set (by another call to endAt or ' +
-        'equalTo).'
+          'equalTo).'
       );
     }
 
@@ -578,13 +575,13 @@ export class Query {
     if (this.queryParams_.hasStart()) {
       throw new Error(
         'Query.equalTo: Starting point was already set (by another call to startAt or ' +
-        'equalTo).'
+          'equalTo).'
       );
     }
     if (this.queryParams_.hasEnd()) {
       throw new Error(
         'Query.equalTo: Ending point was already set (by another call to endAt or ' +
-        'equalTo).'
+          'equalTo).'
       );
     }
     return this.startAt(value, name).endAt(value, name);
@@ -678,7 +675,7 @@ export class Query {
       } else {
         throw new Error(
           errorPrefix(fnName, 3, true) +
-          ' must either be a cancel callback or a context object.'
+            ' must either be a cancel callback or a context object.'
         );
       }
     }

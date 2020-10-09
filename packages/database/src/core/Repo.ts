@@ -307,7 +307,19 @@ export class Repo {
             query.getQueryParams().getIndex()
           )
         ),
-      err => Promise.reject(new Error(err as string))
+      err => {
+        const cached = this.serverSyncTree_.calcCompleteEventCache(query.path);
+        if (cached) {
+          return Promise.resolve(
+            new DataSnapshot(
+              cached,
+              query.getRef(),
+              query.getQueryParams().getIndex()
+            )
+          );
+        }
+        return Promise.reject(new Error(err as string));
+      }
     );
   }
 

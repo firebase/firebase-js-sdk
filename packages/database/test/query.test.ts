@@ -16,7 +16,7 @@
  */
 
 import * as chai from 'chai';
-let expect = chai.expect;
+const expect = chai.expect;
 import * as chaiAsPromised from 'chai-as-promised';
 chai.use(chaiAsPromised);
 import { Reference } from '../src/api/Reference';
@@ -2225,23 +2225,11 @@ describe('Query Tests', () => {
     expect(val).to.be.null;
   });
 
-  it('get while offline is rejected', async () => {
+  it('get while offline is null', async () => {
     const node = getRandomNode() as Reference;
     node.database.goOffline();
-    let prom = new Promise((resolve, reject) => {
-      let done = false;
-      setTimeout(function () {
-        if (done) {
-          return;
-        }
-        done = true;
-        reject();
-      }, 3000);
-      node.get().then(function (snap) {
-        resolve();
-      });
-    });
-    expect(prom).to.eventually.be.rejected;
+    let snapshot = await node.get();
+    expect(snapshot.val()).to.be.null;
   });
 
   it('get caches results at path', async () => {
@@ -2261,7 +2249,7 @@ describe('Query Tests', () => {
     const writer = getFreshRepo('db');
 
     await writer.set({ foo: { bar: 'baz' } });
-    let snapshot = await reader.get();
+    const snapshot = await reader.get();
     reader.database.goOffline();
     reader.child('foo/bar').once('value', snap => {
       expect(snap.val()).to.equal(snapshot.val());
@@ -2272,19 +2260,19 @@ describe('Query Tests', () => {
     const reader = getFreshRepo('db');
     const writer = getFreshRepo('db');
     await writer.set({ foo: { bar: { data: '1' }, baz: { data: '2' } } });
-    let snapshot = await reader.child('foo/bar').get();
+    const snapshot = await reader.child('foo/bar').get();
     expect(snapshot.val().data).to.equal('1');
     reader.database.goOffline();
     let prom = new Promise((resolve, reject) => {
       let done = false;
-      setTimeout(function () {
+      setTimeout(() => {
         if (done) {
           return;
         }
         done = true;
         reject();
       }, 3000);
-      reader.child('foo/baz').once('value', function (snapshot) {
+      reader.child('foo/baz').once('value', snapshot => {
         if (done) {
           return;
         }
