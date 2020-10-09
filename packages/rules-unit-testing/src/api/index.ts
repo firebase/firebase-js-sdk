@@ -105,7 +105,7 @@ export type FirebaseIdToken = {
   };
 
   // Custom claims set by the developer
-  claims?: object;
+  [claim: string]: any;
 };
 
 // To avoid a breaking change, we accept the 'uid' option here, but
