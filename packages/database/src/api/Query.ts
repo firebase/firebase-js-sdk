@@ -47,6 +47,7 @@ import { Repo } from '../core/Repo';
 import { QueryParams } from '../core/view/QueryParams';
 import { Reference } from './Reference';
 import { DataSnapshot } from './DataSnapshot';
+import { FirebaseApp } from '@firebase/app-types';
 
 let __referenceConstructor: new (repo: Repo, path: Path) => Query;
 
@@ -299,8 +300,12 @@ export class Query {
     this.repo.removeEventCallbackForQuery(this, container);
   }
 
+  /**
+   * Get the server-value for this query, or return a cached value if not connected.
+   * @return {!firebase.Promise}
+   */
   get(): Promise<DataSnapshot> {
-    return this.repo.get(this);
+    return this.once('value');
   }
 
   /**
@@ -317,6 +322,7 @@ export class Query {
     failureCallbackOrContext?: ((a: Error) => void) | object | null,
     context?: object | null
   ): Promise<DataSnapshot> {
+    console.log('Calling once!');
     validateArgCount('Query.once', 1, 4, arguments.length);
     validateEventType('Query.once', 1, eventType, false);
     validateCallback('Query.once', 2, userCallback, true);
@@ -347,6 +353,7 @@ export class Query {
         if (userCallback) {
           userCallback.bind(ret.context)(snapshot);
         }
+        console.log('once resolved!');
         deferred.resolve(snapshot);
       }
     };
@@ -355,6 +362,7 @@ export class Query {
       eventType,
       onceCallback,
       /*cancel=*/ err => {
+        console.log('once rejected!');
         this.off(eventType, onceCallback);
 
         if (ret.cancel) {

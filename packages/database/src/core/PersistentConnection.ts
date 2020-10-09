@@ -197,29 +197,16 @@ export class PersistentConnection extends ServerActions {
   }
 
   get(query: Query): Promise<string> {
-    const action = 'g';
-
     const req: { [k: string]: unknown } = {
       p: query.path.toString(),
       q: query.queryObject()
     };
-
     const deferred = new Deferred<string>();
-
-    this.outstandingGets_.push({
-      action,
-      request: req,
-      deferred
-    });
-
-    this.outstandingGetCount_++;
-
     if (this.connected_) {
-      this.sendGet_(this.outstandingGets_.length - 1);
+      this.sendGet_(req, deferred);
     } else {
-      this.log_('Buffering get: ' + query.path.toString());
+      deferred.reject();
     }
-
     return deferred.promise;
   }
 
@@ -260,33 +247,19 @@ export class PersistentConnection extends ServerActions {
     }
   }
 
-  private sendGet_(index: number) {
-    const action = this.outstandingGets_[index].action;
-    const request = this.outstandingGets_[index].request;
-    const deferred = this.outstandingGets_[index].deferred;
-    this.outstandingGets_[index].queued = this.connected_;
-
-    this.sendRequest(action, request, (message: { [k: string]: unknown }) => {
-      delete this.outstandingGets_[index];
-      this.outstandingGetCount_--;
-
-      if (this.outstandingGetCount_ === 0) {
-        this.outstandingGets_ = [];
-      }
-
-      if (deferred) {
-        const payload = message['d'] as string;
-        if (message['s'] === 'ok') {
-          this.onDataUpdate_(
-            request['p'],
-            payload,
-            /*isMerge*/ false,
-            /*tag*/ null
-          );
-          deferred.resolve(payload);
-        } else {
-          deferred.reject(payload);
-        }
+  private sendGet_(request: object, deferred: Deferred<string>) {
+    this.sendRequest('g', request, (message: { [k: string]: unknown }) => {
+      const payload = message['d'] as string;
+      if (message['s'] === 'ok') {
+        this.onDataUpdate_(
+          request['p'],
+          payload,
+          /*isMerge*/ false,
+          /*tag*/ null
+        );
+        deferred.resolve(payload);
+      } else {
+        deferred.reject(payload);
       }
     });
   }
@@ -1002,12 +975,6 @@ export class PersistentConnection extends ServerActions {
     for (const queries of this.listens.values()) {
       for (const listenSpec of queries.values()) {
         this.sendListen_(listenSpec);
-      }
-    }
-
-    for (let i = 0; i < this.outstandingGets_.length; i++) {
-      if (this.outstandingGets_[i]) {
-        this.sendGet_(i);
       }
     }
 

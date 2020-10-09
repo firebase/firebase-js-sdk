@@ -299,18 +299,15 @@ export class Repo {
 
   get(query: Query): Promise<DataSnapshot> {
     return this.server_.get(query).then(
-      payload => {
-        return Promise.resolve(
+      payload =>
+        Promise.resolve(
           new DataSnapshot(
             nodeFromJSON(payload as string),
             query.getRef(),
             query.getQueryParams().getIndex()
           )
-        );
-      },
-      err => {
-        return Promise.reject(new Error(err as string));
-      }
+        ),
+      err => Promise.reject(new Error(err as string))
     );
   }
 

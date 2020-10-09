@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import * as chai from 'chai';
+let expect = chai.expect;
+import * as chaiAsPromised from 'chai-as-promised';
+chai.use(chaiAsPromised);
 import { Reference } from '../src/api/Reference';
 import { Query } from '../src/api/Query';
 import '../src/core/snap/ChildrenNode';
@@ -2193,42 +2196,57 @@ describe('Query Tests', () => {
       });
   });
 
-  it('get() at empty root returns null', async () => {
+  it('get at empty node returns null', async () => {
     const node = getRandomNode() as Reference;
     const snapshot = await node.get();
     const val = snapshot.val();
     expect(val).to.be.null;
   });
 
-  it('get() at non-empty root returns correct value', async () => {
-    const nodes = getRandomNode(2) as Reference;
-    const reader = nodes[0];
-    const writer = nodes[1];
-    await writer.set({ foo: 'a', bar: 'b' });
-    const snapshot = await reader.get();
+  it('get at non-empty root returns correct value', async () => {
+    const node = getRandomNode() as Reference;
+    await node.set({ foo: 'a', bar: 'b' });
+    const snapshot = await node.get();
     const val = snapshot.val();
     expect(val['foo']).to.equal('a');
     expect(val['bar']).to.equal('b');
   });
 
-  it('get() for removed node returns correct value', async () => {
-    const nodes = getRandomNode(2) as Reference;
-    const reader = nodes[0];
-    const writer = nodes[1];
-    await writer.set({ foo: 'a', bar: 'b' });
-    let snapshot = await reader.get();
+  it('get for removed node returns correct value', async () => {
+    const node = getRandomNode() as Reference;
+    await node.set({ foo: 'a', bar: 'b' });
+    let snapshot = await node.get();
     let val = snapshot.val();
     expect(val['foo']).to.equal('a');
     expect(val['bar']).to.equal('b');
-    await writer.remove();
-    snapshot = await reader.get();
+    await node.remove();
+    snapshot = await node.get();
     val = snapshot.val();
     expect(val).to.be.null;
   });
 
-  it('get() caches results at path', async () => {
-    const reader = getFreshRepo('reader');
-    const writer = getFreshRepo('writer');
+  it('get while offline is rejected', async () => {
+    const node = getRandomNode() as Reference;
+    node.database.goOffline();
+    let prom = new Promise((resolve, reject) => {
+      let done = false;
+      setTimeout(function () {
+        if (done) {
+          return;
+        }
+        done = true;
+        reject();
+      }, 3000);
+      node.get().then(function (snap) {
+        resolve();
+      });
+    });
+    expect(prom).to.eventually.be.rejected;
+  });
+
+  it('get caches results at path', async () => {
+    const reader = getFreshRepo('db');
+    const writer = getFreshRepo('db');
 
     await writer.set({ foo: 'bar' });
     const snapshot = await reader.get();
@@ -2239,8 +2257,8 @@ describe('Query Tests', () => {
   });
 
   it('get above path caches data', async () => {
-    const reader = getFreshRepo('reader');
-    const writer = getFreshRepo('writer');
+    const reader = getFreshRepo('db');
+    const writer = getFreshRepo('db');
 
     await writer.set({ foo: { bar: 'baz' } });
     let snapshot = await reader.get();
@@ -2248,6 +2266,33 @@ describe('Query Tests', () => {
     reader.child('foo/bar').once('value', snap => {
       expect(snap.val()).to.equal(snapshot.val());
     });
+  });
+
+  it('get does not cache sibling data', async () => {
+    const reader = getFreshRepo('db');
+    const writer = getFreshRepo('db');
+    await writer.set({ foo: { bar: { data: '1' }, baz: { data: '2' } } });
+    let snapshot = await reader.child('foo/bar').get();
+    expect(snapshot.val().data).to.equal('1');
+    reader.database.goOffline();
+    let prom = new Promise((resolve, reject) => {
+      let done = false;
+      setTimeout(function () {
+        if (done) {
+          return;
+        }
+        done = true;
+        reject();
+      }, 3000);
+      reader.child('foo/baz').once('value', function (snapshot) {
+        if (done) {
+          return;
+        }
+        done = true;
+        resolve(snapshot);
+      });
+    });
+    expect(prom).to.eventually.be.rejected;
   });
 
   it('set() at query root raises correct value event', done => {
