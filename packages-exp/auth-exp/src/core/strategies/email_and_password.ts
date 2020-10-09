@@ -24,7 +24,7 @@ import { MultiFactorInfo } from '../../mfa/mfa_info';
 import { EmailAuthProvider } from '../providers/email';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { assert } from '../util/assert';
-import { setActionCodeSettingsOnRequest_ } from './action_code_settings';
+import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
 import { _castAuth } from '../auth/auth_impl';
 import { AuthErrorCode } from '../errors';
@@ -39,7 +39,7 @@ export async function sendPasswordResetEmail(
     email
   };
   if (actionCodeSettings) {
-    setActionCodeSettingsOnRequest_(auth, request, actionCodeSettings);
+    _setActionCodeSettingsOnRequest(auth, request, actionCodeSettings);
   }
 
   await authentication.sendPasswordResetEmail(auth, request);

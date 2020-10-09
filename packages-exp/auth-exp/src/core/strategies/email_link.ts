@@ -21,7 +21,7 @@ import * as api from '../../api/authentication/email_and_password';
 import { ActionCodeURL } from '../action_code_url';
 import { EmailAuthProvider } from '../providers/email';
 import { _getCurrentUrl } from '../util/location';
-import { setActionCodeSettingsOnRequest_ } from './action_code_settings';
+import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
 import { AuthErrorCode } from '../errors';
 import { assert } from '../util/assert';
@@ -36,7 +36,7 @@ export async function sendSignInLinkToEmail(
     email
   };
   if (actionCodeSettings) {
-    setActionCodeSettingsOnRequest_(auth ,request, actionCodeSettings);
+    _setActionCodeSettingsOnRequest(auth, request, actionCodeSettings);
   }
 
   await api.sendSignInLinkToEmail(auth, request);
