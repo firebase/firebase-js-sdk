@@ -24,7 +24,7 @@ import {
 import * as api from '../../api/authentication/email_and_password';
 import { User } from '../../model/user';
 import { _getCurrentUrl, _isHttpOrHttps } from '../util/location';
-import { setActionCodeSettingsOnRequest } from './action_code_settings';
+import { setActionCodeSettingsOnRequest_ } from './action_code_settings';
 import { _castAuth } from '../auth/auth_impl';
 
 export async function fetchSignInMethodsForEmail(
@@ -56,7 +56,7 @@ export async function sendEmailVerification(
     idToken
   };
   if (actionCodeSettings) {
-    setActionCodeSettingsOnRequest(request, actionCodeSettings);
+    setActionCodeSettingsOnRequest_(user.auth, request, actionCodeSettings);
   }
 
   const { email } = await api.sendEmailVerification(user.auth, request);
@@ -79,7 +79,7 @@ export async function verifyBeforeUpdateEmail(
     newEmail
   };
   if (actionCodeSettings) {
-    setActionCodeSettingsOnRequest(request, actionCodeSettings);
+    setActionCodeSettingsOnRequest_(user.auth, request, actionCodeSettings);
   }
 
   const { email } = await api.verifyAndChangeEmail(user.auth, request);
