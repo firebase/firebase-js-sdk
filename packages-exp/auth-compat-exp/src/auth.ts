@@ -36,7 +36,8 @@ import {
 } from './user_credential';
 import { unwrap, Wrapper } from './wrap';
 
-export class Auth implements compat.FirebaseAuth, Wrapper<externs.Auth>, _FirebaseService {
+export class Auth
+  implements compat.FirebaseAuth, Wrapper<externs.Auth>, _FirebaseService {
   // private readonly auth: impl.AuthImpl;
 
   constructor(readonly app: FirebaseApp, private readonly auth: impl.AuthImpl) {
