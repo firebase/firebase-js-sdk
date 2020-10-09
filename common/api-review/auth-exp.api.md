@@ -10,6 +10,7 @@ import { ErrorFn } from '@firebase/util';
 import * as externs from '@firebase/auth-types-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseError } from '@firebase/util';
+import { NextFn } from '@firebase/util';
 import { ProviderId } from '@firebase/auth-types-exp';
 import { Unsubscribe } from '@firebase/util';
 import { UserCredential } from '@firebase/auth-types-exp';
@@ -39,17 +40,17 @@ export function applyActionCode(auth: externs.Auth, oobCode: string): Promise<vo
 // @public (undocumented)
 export class AuthCredential {
     protected constructor(providerId: string, signInMethod: string);
-    // Warning: (ae-forgotten-export) The symbol "AuthCore" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "Auth" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "PhoneOrOauthTokenResponse" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    _getIdTokenResponse(_auth: AuthCore): Promise<PhoneOrOauthTokenResponse>;
+    _getIdTokenResponse(_auth: Auth_2): Promise<PhoneOrOauthTokenResponse>;
     // (undocumented)
-    _getReauthenticationResolver(_auth: AuthCore): Promise<IdTokenResponse>;
+    _getReauthenticationResolver(_auth: Auth_2): Promise<IdTokenResponse>;
     // Warning: (ae-forgotten-export) The symbol "IdTokenResponse" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    _linkToIdToken(_auth: AuthCore, _idToken: string): Promise<IdTokenResponse>;
+    _linkToIdToken(_auth: Auth_2, _idToken: string): Promise<IdTokenResponse>;
     // (undocumented)
     readonly providerId: string;
     // (undocumented)
@@ -90,11 +91,11 @@ export class EmailAuthCredential extends AuthCredential implements externs.AuthC
     // (undocumented)
     static fromJSON(json: object | string): EmailAuthCredential | null;
     // (undocumented)
-    _getIdTokenResponse(auth: AuthCore): Promise<IdTokenResponse>;
+    _getIdTokenResponse(auth: Auth_2): Promise<IdTokenResponse>;
     // (undocumented)
-    _getReauthenticationResolver(auth: AuthCore): Promise<IdTokenResponse>;
+    _getReauthenticationResolver(auth: Auth_2): Promise<IdTokenResponse>;
     // (undocumented)
-    _linkToIdToken(auth: AuthCore, idToken: string): Promise<IdTokenResponse>;
+    _linkToIdToken(auth: Auth_2, idToken: string): Promise<IdTokenResponse>;
     // (undocumented)
     readonly password: string;
     // (undocumented)
@@ -154,7 +155,7 @@ export function getIdTokenResult(externUser: externs.User, forceRefresh?: boolea
 export function getMultiFactorResolver(auth: externs.Auth, errorExtern: externs.MultiFactorError): externs.MultiFactorResolver;
 
 // @public (undocumented)
-export function getRedirectResult(authExtern: externs.Auth, resolverExtern: externs.PopupRedirectResolver): Promise<externs.UserCredential | null>;
+export function getRedirectResult(authExtern: externs.Auth, resolverExtern?: externs.PopupRedirectResolver): Promise<externs.UserCredential | null>;
 
 // @public (undocumented)
 export class GithubAuthProvider extends OAuthProvider {
@@ -209,10 +210,10 @@ export function linkWithCredential(userExtern: externs.User, credentialExtern: e
 export function linkWithPhoneNumber(userExtern: externs.User, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
 
 // @public (undocumented)
-export function linkWithPopup(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
+export function linkWithPopup(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
 
 // @public (undocumented)
-export function linkWithRedirect(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<never>;
+export function linkWithRedirect(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<never>;
 
 // @public (undocumented)
 export function multiFactor(user: externs.User): externs.MultiFactorUser;
@@ -228,13 +229,13 @@ export class OAuthCredential extends AuthCredential implements externs.OAuthCred
     // (undocumented)
     static _fromParams(params: OAuthCredentialParams): OAuthCredential;
     // (undocumented)
-    _getIdTokenResponse(auth: AuthCore): Promise<IdTokenResponse>;
+    _getIdTokenResponse(auth: Auth_2): Promise<IdTokenResponse>;
     // (undocumented)
-    _getReauthenticationResolver(auth: AuthCore): Promise<IdTokenResponse>;
+    _getReauthenticationResolver(auth: Auth_2): Promise<IdTokenResponse>;
     // (undocumented)
     idToken?: string;
     // (undocumented)
-    _linkToIdToken(auth: AuthCore, idToken: string): Promise<IdTokenResponse>;
+    _linkToIdToken(auth: Auth_2, idToken: string): Promise<IdTokenResponse>;
     // (undocumented)
     nonce?: string;
     // (undocumented)
@@ -288,11 +289,11 @@ export class PhoneAuthCredential extends AuthCredential implements externs.Phone
     // (undocumented)
     static _fromVerification(verificationId: string, verificationCode: string): PhoneAuthCredential;
     // (undocumented)
-    _getIdTokenResponse(auth: AuthCore): Promise<PhoneOrOauthTokenResponse>;
+    _getIdTokenResponse(auth: Auth_2): Promise<PhoneOrOauthTokenResponse>;
     // (undocumented)
-    _getReauthenticationResolver(auth: AuthCore): Promise<IdTokenResponse>;
+    _getReauthenticationResolver(auth: Auth_2): Promise<IdTokenResponse>;
     // (undocumented)
-    _linkToIdToken(auth: AuthCore, idToken: string): Promise<IdTokenResponse>;
+    _linkToIdToken(auth: Auth_2, idToken: string): Promise<IdTokenResponse>;
     // Warning: (ae-forgotten-export) The symbol "SignInWithPhoneNumberRequest" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -303,7 +304,7 @@ export class PhoneAuthCredential extends AuthCredential implements externs.Phone
 
 // @public (undocumented)
 export class PhoneAuthProvider implements externs.PhoneAuthProvider {
-    constructor(auth: AuthCore);
+    constructor(auth: externs.Auth);
     // (undocumented)
     static credential(verificationId: string, verificationCode: string): PhoneAuthCredential;
     // (undocumented)
@@ -331,17 +332,17 @@ export function reauthenticateWithCredential(userExtern: externs.User, credentia
 export function reauthenticateWithPhoneNumber(userExtern: externs.User, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
 
 // @public (undocumented)
-export function reauthenticateWithPopup(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
+export function reauthenticateWithPopup(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
 
 // @public (undocumented)
-export function reauthenticateWithRedirect(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<never>;
+export function reauthenticateWithRedirect(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<never>;
 
 // Warning: (ae-forgotten-export) The symbol "ApplicationVerifier" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
 export class RecaptchaVerifier implements externs.RecaptchaVerifier, ApplicationVerifier {
     // Warning: (ae-forgotten-export) The symbol "Parameters" needs to be exported by the entry point index.d.ts
-    constructor(containerOrId: HTMLElement | string, parameters: Parameters_2, auth: AuthCore);
+    constructor(containerOrId: HTMLElement | string, parameters: Parameters_2, authExtern: externs.Auth);
     // (undocumented)
     clear(): void;
     // Warning: (ae-forgotten-export) The symbol "ReCaptchaLoader" needs to be exported by the entry point index.d.ts
@@ -392,10 +393,10 @@ export function signInWithEmailLink(auth: externs.Auth, email: string, emailLink
 export function signInWithPhoneNumber(auth: externs.Auth, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
 
 // @public (undocumented)
-export function signInWithPopup(auth: externs.Auth, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
+export function signInWithPopup(authExtern: externs.Auth, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
 
 // @public (undocumented)
-export function signInWithRedirect(auth: externs.Auth, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<never>;
+export function signInWithRedirect(authExtern: externs.Auth, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<never>;
 
 // @public (undocumented)
 export function signOut(auth: externs.Auth): Promise<void>;

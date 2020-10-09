@@ -16,7 +16,7 @@
  */
 
 import { Endpoint, HttpMethod, _performApiRequest } from '..';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '@firebase/auth-types-exp';
 
 export interface CreateAuthUriRequest {
   identifier: string;
@@ -28,7 +28,7 @@ export interface CreateAuthUriResponse {
 }
 
 export async function createAuthUri(
-  auth: AuthCore,
+  auth: Auth,
   request: CreateAuthUriRequest
 ): Promise<CreateAuthUriResponse> {
   return _performApiRequest<CreateAuthUriRequest, CreateAuthUriResponse>(

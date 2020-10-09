@@ -15,21 +15,10 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performApiRequest } from '..';
-import { Auth } from '@firebase/auth-types-exp';
-
-interface GetRecaptchaParamResponse {
-  recaptchaSiteKey?: string;
+export interface Wrapper<T> {
+  unwrap(): T;
 }
 
-export async function getRecaptchaParams(auth: Auth): Promise<string> {
-  return (
-    (
-      await _performApiRequest<void, GetRecaptchaParamResponse>(
-        auth,
-        HttpMethod.GET,
-        Endpoint.GET_RECAPTCHA_PARAM
-      )
-    ).recaptchaSiteKey || ''
-  );
+export function unwrap<T>(object: unknown): T {
+  return (object as Wrapper<T>).unwrap();
 }

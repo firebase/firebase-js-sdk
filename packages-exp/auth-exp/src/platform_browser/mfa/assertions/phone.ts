@@ -17,7 +17,7 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { MultiFactorAssertion } from '../../../mfa/assertions';
-import { AuthCore } from '../../../model/auth';
+import { Auth } from '../../../model/auth';
 import { finalizeEnrollPhoneMfa } from '../../../api/account_management/mfa';
 import { PhoneAuthCredential } from '../../../core/credentials/phone';
 import {
@@ -39,7 +39,7 @@ export class PhoneMultiFactorAssertion
   }
 
   _finalizeEnroll(
-    auth: AuthCore,
+    auth: Auth,
     idToken: string,
     displayName?: string | null
   ): Promise<FinalizeMfaResponse> {
@@ -51,7 +51,7 @@ export class PhoneMultiFactorAssertion
   }
 
   _finalizeSignIn(
-    auth: AuthCore,
+    auth: Auth,
     mfaPendingCredential: string
   ): Promise<FinalizeMfaResponse> {
     return finalizeSignInPhoneMfa(auth, {

@@ -10,11 +10,11 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../../.gitignore'",
     "demo": "rollup -c && firebase serve",
     "build": "rollup -c",
-    "build:deps": "lerna run --scope @firebase/'{app-exp,auth-compat-exp}' --include-dependencies build",
+    "build:deps": "lerna run --scope @firebase/'{app-compat,app-exp,auth-compat-exp}' --include-dependencies build",
     "dev": "rollup -c -w"
   },
   "peerDependencies": {
-    "@firebase/app": "0.x",
+    "@firebase/app-compat": "0.x",
     "@firebase/auth-types": "0.x",
     "@firebase/auth-exp": "0.x"
   },
