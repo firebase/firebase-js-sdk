@@ -202,6 +202,50 @@ describe('Testing Module Tests', function () {
     );
   });
 
+  it('initializeAdminApp() works with custom claims', async function () {
+    await firebase.loadFirestoreRules({
+      projectId: 'foo',
+      rules: `service cloud.firestore {
+        match /databases/{db}/documents/{doc=**} {
+          allow read, write: if request.auth.token.custom_claim == 'foo';
+        }
+      }`
+    });
+
+    const noClaim = firebase.initializeTestApp({
+      projectId: 'foo',
+      auth: {
+        uid: 'noClaim'
+      }
+    });
+
+    const hasClaim = firebase.initializeTestApp({
+      projectId: 'foo',
+      auth: {
+        uid: 'hasClaim',
+        custom_claim: 'foo'
+      }
+    });
+
+    const wrongClaim = firebase.initializeTestApp({
+      projectId: 'foo',
+      auth: {
+        uid: 'wrongClaim',
+        custom_claim: 'bar'
+      }
+    });
+
+    await firebase.assertSucceeds(
+      hasClaim.firestore().doc('test/test').set({ hello: 'test' })
+    );
+    await firebase.assertFails(
+      noClaim.firestore().doc('test/test').set({ hello: 'test' })
+    );
+    await firebase.assertFails(
+      wrongClaim.firestore().doc('test/test').set({ hello: 'test' })
+    );
+  });
+  
   it('loadDatabaseRules() throws if no databaseName or rules', async function () {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await expect((firebase as any).loadDatabaseRules.bind(null, {})).to.throw(
