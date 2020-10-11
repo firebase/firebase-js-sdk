@@ -154,7 +154,7 @@ export function getIdTokenResult(externUser: externs.User, forceRefresh?: boolea
 export function getMultiFactorResolver(auth: externs.Auth, errorExtern: externs.MultiFactorError): externs.MultiFactorResolver;
 
 // @public (undocumented)
-export function getRedirectResult(authExtern: externs.Auth, resolverExtern: externs.PopupRedirectResolver): Promise<externs.UserCredential | null>;
+export function getRedirectResult(authExtern: externs.Auth, resolverExtern?: externs.PopupRedirectResolver): Promise<externs.UserCredential | null>;
 
 // @public (undocumented)
 export class GithubAuthProvider extends OAuthProvider {
@@ -209,10 +209,10 @@ export function linkWithCredential(userExtern: externs.User, credentialExtern: e
 export function linkWithPhoneNumber(userExtern: externs.User, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
 
 // @public (undocumented)
-export function linkWithPopup(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
+export function linkWithPopup(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
 
 // @public (undocumented)
-export function linkWithRedirect(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<never>;
+export function linkWithRedirect(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<never>;
 
 // @public (undocumented)
 export function multiFactor(user: externs.User): externs.MultiFactorUser;
@@ -331,10 +331,10 @@ export function reauthenticateWithCredential(userExtern: externs.User, credentia
 export function reauthenticateWithPhoneNumber(userExtern: externs.User, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
 
 // @public (undocumented)
-export function reauthenticateWithPopup(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
+export function reauthenticateWithPopup(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
 
 // @public (undocumented)
-export function reauthenticateWithRedirect(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<never>;
+export function reauthenticateWithRedirect(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<never>;
 
 // Warning: (ae-forgotten-export) The symbol "ApplicationVerifier" needs to be exported by the entry point index.d.ts
 //
@@ -392,10 +392,10 @@ export function signInWithEmailLink(auth: externs.Auth, email: string, emailLink
 export function signInWithPhoneNumber(auth: externs.Auth, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
 
 // @public (undocumented)
-export function signInWithPopup(auth: externs.Auth, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
+export function signInWithPopup(authExtern: externs.Auth, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
 
 // @public (undocumented)
-export function signInWithRedirect(auth: externs.Auth, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<never>;
+export function signInWithRedirect(authExtern: externs.Auth, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<never>;
 
 // @public (undocumented)
 export function signOut(auth: externs.Auth): Promise<void>;
