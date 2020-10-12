@@ -37,8 +37,6 @@ import { OnlineMonitor } from './util/OnlineMonitor';
 
 import { Connection } from '../realtime/Connection';
 
-import { DataSnapshot } from '../api/DataSnapshot';
-
 import { ServerActions } from './ServerActions';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { RepoInfo } from './RepoInfo';
@@ -218,7 +216,7 @@ export class PersistentConnection extends ServerActions {
     }
     assert(
       query.getQueryParams().isDefault() ||
-        !query.getQueryParams().loadsAllData(),
+      !query.getQueryParams().loadsAllData(),
       'listen() called for non-default but complete query'
     );
     assert(
@@ -307,8 +305,8 @@ export class PersistentConnection extends ServerActions {
         const indexPath = query.path.toString();
         warn(
           `Using an unspecified index. Your data will be downloaded and ` +
-            `filtered on the client. Consider adding ${indexSpec} at ` +
-            `${indexPath} to your security rules for better performance.`
+          `filtered on the client. Consider adding ${indexSpec} at ` +
+          `${indexPath} to your security rules for better performance.`
         );
       }
     }
@@ -326,7 +324,7 @@ export class PersistentConnection extends ServerActions {
       //If we're connected we want to let the server know to unauthenticate us. If we're not connected, simply delete
       //the credential so we dont become authenticated next time we connect.
       if (this.connected_) {
-        this.sendRequest('unauth', {}, () => {});
+        this.sendRequest('unauth', {}, () => { });
       }
     }
 
@@ -390,7 +388,7 @@ export class PersistentConnection extends ServerActions {
 
     assert(
       query.getQueryParams().isDefault() ||
-        !query.getQueryParams().loadsAllData(),
+      !query.getQueryParams().loadsAllData(),
       'unlisten() called for non-default but complete query'
     );
     const listen = this.removeListen_(pathString, queryId);
@@ -648,8 +646,8 @@ export class PersistentConnection extends ServerActions {
     } else {
       error(
         'Unrecognized action received from server: ' +
-          stringify(action) +
-          '\nAre you using the latest client?'
+        stringify(action) +
+        '\nAre you using the latest client?'
       );
     }
   }

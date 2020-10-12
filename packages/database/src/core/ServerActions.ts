@@ -16,7 +16,6 @@
  */
 
 import { Query } from '../api/Query';
-import { DataSnapshot } from '../api/DataSnapshot';
 
 /**
  * Interface defining the set of actions that can be performed against the Firebase server
@@ -64,7 +63,7 @@ export abstract class ServerActions {
     data: unknown,
     onComplete?: (a: string, b: string) => void,
     hash?: string
-  ) {}
+  ) { }
 
   /**
    * @param {string} pathString
@@ -77,13 +76,13 @@ export abstract class ServerActions {
     data: unknown,
     onComplete: (a: string, b: string | null) => void,
     hash?: string
-  ) {}
+  ) { }
 
   /**
    * Refreshes the auth token for the current connection.
    * @param {string} token The authentication token
    */
-  refreshAuthToken(token: string) {}
+  refreshAuthToken(token: string) { }
 
   /**
    * @param {string} pathString
@@ -94,7 +93,7 @@ export abstract class ServerActions {
     pathString: string,
     data: unknown,
     onComplete?: (a: string, b: string) => void
-  ) {}
+  ) { }
 
   /**
    * @param {string} pathString
@@ -105,7 +104,7 @@ export abstract class ServerActions {
     pathString: string,
     data: unknown,
     onComplete?: (a: string, b: string) => void
-  ) {}
+  ) { }
 
   /**
    * @param {string} pathString
@@ -114,10 +113,10 @@ export abstract class ServerActions {
   onDisconnectCancel(
     pathString: string,
     onComplete?: (a: string, b: string) => void
-  ) {}
+  ) { }
 
   /**
    * @param {Object.<string, *>} stats
    */
-  reportStats(stats: { [k: string]: unknown }) {}
+  reportStats(stats: { [k: string]: unknown }) { }
 }
