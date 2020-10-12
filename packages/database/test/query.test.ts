@@ -2195,37 +2195,6 @@ describe('Query Tests', () => {
       });
   });
 
-  it('set() at query root raises correct value event', done => {
-    const nodePair = getRandomNode(2);
-    const writer = nodePair[0];
-    const reader = nodePair[1];
-
-    let readerLoaded = false;
-    writer
-      .child('foo')
-      .set({ bar: 'a', baz: 'b', bam: 'c' }, (error, dummy) => {
-        reader
-          .child('foo')
-          .limitToLast(10)
-          .on('value', snapshot => {
-            const val = snapshot.val();
-            if (!readerLoaded) {
-              readerLoaded = true;
-              expect(val.bar).to.equal('a');
-              expect(val.baz).to.equal('b');
-              expect(val.bam).to.equal('c');
-              writer.child('foo').set({ bar: 'd', baz: 'b', bat: 'e' });
-            } else {
-              expect(val.bar).to.equal('d');
-              expect(val.baz).to.equal('b');
-              expect(val.bat).to.equal('e');
-              expect(val.bam).to.equal(undefined);
-              done();
-            }
-          });
-      });
-  });
-
   it('get at empty node returns null', async () => {
     const node = getRandomNode() as Reference;
     const snapshot = await node.get();
@@ -2258,8 +2227,10 @@ describe('Query Tests', () => {
   it('get while offline is null', async () => {
     const node = getRandomNode() as Reference;
     node.database.goOffline();
-    let snapshot = await node.get();
+    const snapshot = await node.get();
     expect(snapshot.val()).to.be.null;
+    // Required for test isolation.
+    node.database.goOnline();
   });
 
   it('get caches results at path', async () => {
@@ -2275,7 +2246,7 @@ describe('Query Tests', () => {
   });
 
   it('get reads from cache if database is not connected', async () => {
-    const node = getFreshRepo('db', true);
+    const node = getFreshRepo('db');
     const node2 = getFreshRepo('db');
     await node2.set({ foo: 'bar' });
     const prom = new Promise((resolve, _) => {
