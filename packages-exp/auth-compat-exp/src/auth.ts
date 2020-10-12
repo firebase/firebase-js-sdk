@@ -82,7 +82,9 @@ export class Auth implements compat.FirebaseAuth, Wrapper<externs.Auth> {
   signOut(): Promise<void> {
     return this.auth.signOut();
   }
-
+  useEmulator(host: string): void {
+    this.auth.useEmulator(host);
+  }
   applyActionCode(code: string): Promise<void> {
     return impl.applyActionCode(this.auth, code);
   }
