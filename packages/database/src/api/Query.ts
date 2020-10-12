@@ -47,7 +47,6 @@ import { Repo } from '../core/Repo';
 import { QueryParams } from '../core/view/QueryParams';
 import { Reference } from './Reference';
 import { DataSnapshot } from './DataSnapshot';
-import { FirebaseApp } from '@firebase/app-types';
 
 let __referenceConstructor: new (repo: Repo, path: Path) => Query;
 

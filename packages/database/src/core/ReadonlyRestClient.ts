@@ -27,7 +27,6 @@ import { logWrapper, warn } from './util/util';
 import { ServerActions } from './ServerActions';
 import { RepoInfo } from './RepoInfo';
 import { AuthTokenProvider } from './AuthTokenProvider';
-import { DataSnapshot } from '../api/DataSnapshot';
 import { Query } from '../api/Query';
 
 /**

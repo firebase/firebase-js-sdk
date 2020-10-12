@@ -25,7 +25,7 @@ import { Path } from './util/Path';
 import { SparseSnapshotTree } from './SparseSnapshotTree';
 import { SyncTree } from './SyncTree';
 import { SnapshotHolder } from './SnapshotHolder';
-import { stringify, map, isEmpty, Deferred } from '@firebase/util';
+import { stringify, map, isEmpty } from '@firebase/util';
 import { beingCrawled, each, exceptionGuard, warn, log } from './util/util';
 
 import { AuthTokenProvider } from './AuthTokenProvider';
