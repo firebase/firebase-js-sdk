@@ -65,6 +65,12 @@ export async function runPrerelease({
     );
   }
 
+  if (FORBIDDEN_TAGS.includes(npmTag)) {
+    throw Error(
+      `Publishing to npm tag ${npmTag} is not allowed for prereleases`
+    );
+  }
+
   const sha = await getCurrentSha();
   const updates = await getAllPackages();
   const pkgJsons = await Promise.all(
@@ -96,6 +102,8 @@ export async function runPrerelease({
     await publishInCI(updates, npmTag);
   }
 }
+
+const FORBIDDEN_TAGS = ['latest'];
 
 interface PrereleaseOptions {
   prereleaseName: string;
