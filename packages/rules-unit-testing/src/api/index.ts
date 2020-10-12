@@ -127,9 +127,6 @@ function createUnsecuredJwt(token: TokenOptions, projectId?: string): string {
     throw new Error("Auth must contain 'sub', 'uid', or 'user_id' field!");
   }
 
-  // Remove the uid option since it's not actually part of the token spec
-  delete token.uid;
-
   const payload: FirebaseIdToken = {
     // Set all required fields to decent defaults
     iss: `https://securetoken.google.com/${project}`,
@@ -147,6 +144,11 @@ function createUnsecuredJwt(token: TokenOptions, projectId?: string): string {
     // Override with user options
     ...token
   };
+
+  // Remove the uid option since it's not actually part of the token spec.
+  if (payload.uid) {
+    delete payload.uid;
+  }
 
   // Unsecured JWTs use the empty string as a signature.
   const signature = '';

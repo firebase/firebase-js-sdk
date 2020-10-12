@@ -245,7 +245,21 @@ describe('Testing Module Tests', function () {
       wrongClaim.firestore().doc('test/test').set({ hello: 'test' })
     );
   });
-  
+
+  it('initializeTestApp() does not destroy user input', function () {
+    const options = {
+      projectId: 'fakeproject',
+      auth: {
+        uid: 'sam',
+        email: 'sam@sam.com'
+      }
+    };
+    const optionsCopy = Object.assign({}, options);
+
+    firebase.initializeTestApp(options);
+    expect(options).to.deep.equal(optionsCopy);
+  });
+
   it('loadDatabaseRules() throws if no databaseName or rules', async function () {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await expect((firebase as any).loadDatabaseRules.bind(null, {})).to.throw(
