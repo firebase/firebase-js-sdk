@@ -358,7 +358,7 @@ describe('api/_performApiRequest', () => {
 
     it('works properly with an emulated environment', () => {
       (auth.config as ConfigInternal).emulator = {
-        host: 'http://localhost:5000'
+        url: 'http://localhost:5000'
       };
       expect(_getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq(
         'http://localhost:5000/host/path?query=test'

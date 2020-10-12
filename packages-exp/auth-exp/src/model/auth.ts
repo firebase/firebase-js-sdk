@@ -26,7 +26,7 @@ export type AuthDomain = string;
 
 export interface ConfigInternal extends externs.Config {
   emulator?: {
-    host: string;
+    url: string;
   };
 }
 

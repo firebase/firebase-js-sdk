@@ -23,12 +23,12 @@ import { _emulatorUrl } from './emulator';
 describe('core/util/emulator', () => {
   const config: ConfigInternal = {
     emulator: {
-      host: 'http://localhost:4000'
+      url: 'http://localhost:4000'
     }
   } as ConfigInternal;
 
   it('builds the proper URL with no path', () => {
-    expect(_emulatorUrl(config)).to.eq('http://localhost:4000');
+    expect(_emulatorUrl(config)).to.eq('http://localhost:4000/');
   });
 
   it('builds the proper URL with a path', () => {

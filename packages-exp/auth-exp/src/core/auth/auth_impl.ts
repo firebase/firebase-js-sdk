@@ -179,12 +179,12 @@ export class AuthImpl implements Auth, _FirebaseService {
     this.languageCode = _getUserLanguage();
   }
 
-  useEmulator(host: string): void {
+  useEmulator(url: string): void {
     assert(this._canInitEmulator, AuthErrorCode.EMULATOR_CONFIG_FAILED, {
       appName: this.name
     });
 
-    this.config.emulator = { host };
+    this.config.emulator = { url };
     this.settings.appVerificationDisabledForTesting = true;
   }
 
