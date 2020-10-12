@@ -441,14 +441,14 @@ describe('core/auth/auth_impl useEmulator', () => {
   context('useEmulator', () => {
     it('fails if a network request has already been made', async () => {
       await user.delete();
-      expect(() => auth.useEmulator('localhost', 2020)).to.throw(
+      expect(() => auth.useEmulator('http://localhost:2020')).to.throw(
         FirebaseError,
         'auth/emulator-config-failed'
       );
     });
 
     it('updates the endpoint appropriately', async () => {
-      auth.useEmulator('localhost', 2020);
+      auth.useEmulator('http://localhost:2020');
       await user.delete();
       expect(normalEndpoint.calls.length).to.eq(0);
       expect(emulatorEndpoint.calls.length).to.eq(1);

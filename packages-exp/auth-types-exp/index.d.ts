@@ -137,7 +137,7 @@ export interface Auth {
   readonly currentUser: User | null;
   updateCurrentUser(user: User | null): Promise<void>;
   useDeviceLanguage(): void;
-  useEmulator(hostname: string, port: number): void;
+  useEmulator(url: string): void;
   signOut(): Promise<void>;
 }
 
