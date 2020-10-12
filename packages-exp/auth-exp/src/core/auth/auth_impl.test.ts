@@ -425,10 +425,14 @@ describe('core/auth/auth_impl', () => {
         tokenApiHost: DEFAULT_TOKEN_API_HOST,
         sdkClientVersion: 'v'
       });
-  
-      persistenceStub._get.returns(Promise.resolve(testUser(auth, 'uid').toJSON()));
+
+      persistenceStub._get.returns(
+        Promise.resolve(testUser(auth, 'uid').toJSON())
+      );
       await authImpl._delete();
-      await authImpl._initializeWithPersistence([persistenceStub as Persistence]);
+      await authImpl._initializeWithPersistence([
+        persistenceStub as Persistence
+      ]);
       expect(authImpl.currentUser).to.be.null;
     });
 
