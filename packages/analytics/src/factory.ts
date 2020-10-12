@@ -38,12 +38,7 @@ import {
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
-import {
-  isIndexedDBAvailable,
-  validateIndexedDBOpenable,
-  areCookiesEnabled,
-  isBrowserExtension
-} from '@firebase/util';
+import { areCookiesEnabled, isBrowserExtension } from '@firebase/util';
 import { initializeIds } from './initialize-ids';
 import { logger } from './logger';
 import { FirebaseService } from '@firebase/app-types/private';
@@ -153,29 +148,35 @@ export function settings(options: SettingsOptions): void {
   }
 }
 
+/**
+ * Returns true if no environment mismatch is found.
+ * If environment mismatches are found, throws an INVALID_ANALYTICS_CONTEXT
+ * error that also lists details for each mismatch found.
+ */
+function warnOnBrowserContextMismatch(): void {
+  const mismatchedEnvMessages = [];
+  if (isBrowserExtension()) {
+    mismatchedEnvMessages.push('This is a browser extension environment.');
+  }
+  if (!areCookiesEnabled()) {
+    mismatchedEnvMessages.push('Cookies are not available.');
+  }
+  if (mismatchedEnvMessages.length > 0) {
+    const details = mismatchedEnvMessages
+      .map((message, index) => `(${index + 1}) ${message}`)
+      .join(' ');
+    const err = ERROR_FACTORY.create(AnalyticsError.INVALID_ANALYTICS_CONTEXT, {
+      errorInfo: details
+    });
+    logger.warn(err.message);
+  }
+}
+
 export function factory(
   app: FirebaseApp,
   installations: FirebaseInstallations
 ): FirebaseAnalytics {
-  if (isBrowserExtension()) {
-    throw ERROR_FACTORY.create(AnalyticsError.INVALID_ANALYTICS_CONTEXT);
-  }
-  if (!areCookiesEnabled()) {
-    throw ERROR_FACTORY.create(AnalyticsError.COOKIES_NOT_ENABLED);
-  }
-  if (!isIndexedDBAvailable()) {
-    throw ERROR_FACTORY.create(AnalyticsError.INDEXED_DB_UNSUPPORTED);
-  }
-  // Async but non-blocking.
-  validateIndexedDBOpenable().catch(error => {
-    const analyticsError = ERROR_FACTORY.create(
-      AnalyticsError.INVALID_INDEXED_DB_CONTEXT,
-      {
-        errorInfo: error
-      }
-    );
-    logger.warn(analyticsError.message);
-  });
+  warnOnBrowserContextMismatch();
   const appId = app.options.appId;
   if (!appId) {
     throw ERROR_FACTORY.create(AnalyticsError.NO_APP_ID);

@@ -1,5 +1,44 @@
 # @firebase/rules-unit-testing
 
+## 1.0.7
+
+### Patch Changes
+
+- [`b9087b90f`](https://github.com/firebase/firebase-js-sdk/commit/b9087b90ff99b85acab6928459783c5683620737) [#3876](https://github.com/firebase/firebase-js-sdk/pull/3876) - Add stronger types to the 'options.auth' option for initializeTestApp
+
+- Updated dependencies [[`48b0b0f7c`](https://github.com/firebase/firebase-js-sdk/commit/48b0b0f7c9137652f438cf04395debddeb3711d0), [`d4db75ff8`](https://github.com/firebase/firebase-js-sdk/commit/d4db75ff81388430489bd561ac2247fe9e0b6eb5), [`8728e1a0f`](https://github.com/firebase/firebase-js-sdk/commit/8728e1a0fc9027a21e3b77e4a058a7e8513a4646)]:
+  - firebase@7.23.0
+
+## 1.0.6
+
+### Patch Changes
+
+- Updated dependencies []:
+  - firebase@7.22.1
+
+## 1.0.5
+
+### Patch Changes
+
+- Updated dependencies [[`a6af7c279`](https://github.com/firebase/firebase-js-sdk/commit/a6af7c27925da47fa62ee3b7b0a267a272c52220)]:
+  - firebase@7.22.0
+
+## 1.0.4
+
+### Patch Changes
+
+- Updated dependencies [[`7bf73797d`](https://github.com/firebase/firebase-js-sdk/commit/7bf73797dfe5271b8f380ce4bd2497d8589f05d9)]:
+  - firebase@7.21.1
+
+## 1.0.3
+
+### Patch Changes
+
+- [`3d9b5a595`](https://github.com/firebase/firebase-js-sdk/commit/3d9b5a595813b6c4f7f6ef4e3625ae8856a9fa23) [#3736](https://github.com/firebase/firebase-js-sdk/pull/3736) - Fix detection of admin context in Realtime Database SDK
+
+- Updated dependencies [[`f9004177e`](https://github.com/firebase/firebase-js-sdk/commit/f9004177e76f00fc484d30c0c0e7b1bc2da033f9)]:
+  - firebase@7.21.0
+
 ## 1.0.2
 
 ### Patch Changes

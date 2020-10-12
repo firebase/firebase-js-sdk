@@ -41,7 +41,9 @@ export interface Settings {
 }
 
 /**
- * The root reference to the Firestore Lite database.
+ * The Cloud Firestore service interface.
+ *
+ * Do not call this constructor directly. Instead, use {@link getFirestore()}.
  */
 export class FirebaseFirestore implements _FirebaseService {
   readonly _databaseId: DatabaseId;
@@ -56,10 +58,17 @@ export class FirebaseFirestore implements _FirebaseService {
   // all components have shut down.
   private _terminateTask?: Promise<void>;
 
+  /**
+   * The {@link FirebaseApp app} associated with this `Firestore` service
+   * instance.
+   */
+  readonly app: FirebaseApp;
+
   constructor(
-    readonly app: FirebaseApp,
+    app: FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>
   ) {
+    this.app = app;
     this._databaseId = FirebaseFirestore._databaseIdFromApp(app);
     this._credentials = new FirebaseCredentialsProvider(authProvider);
   }
@@ -123,6 +132,17 @@ export class FirebaseFirestore implements _FirebaseService {
   }
 }
 
+/**
+ * Initializes a new instance of Cloud Firestore with the provided settings.
+ * Can only be called before any other functions, including
+ * {@link getFirestore()}. If the custom settings are empty, this function is
+ * equivalent to calling {@link getFirestore()}.
+ *
+ * @param app The {@link FirebaseApp} with which the `Firestore` instance will be
+ * associated.
+ * @param settings A settings object to configure the `Firestore` instance.
+ * @return A newly initialized Firestore instance.
+ */
 export function initializeFirestore(
   app: FirebaseApp,
   settings: Settings
@@ -135,6 +155,15 @@ export function initializeFirestore(
   return firestore;
 }
 
+/**
+ * Returns the existing instance of Firestore that is associated with the
+ * provided {@link FirebaseApp}. If no instance exists, initializes a new
+ * instance with default settings.
+ *
+ * @param app The {@link FirebaseApp} instance that the returned Firestore
+ * instance is associated with.
+ * @return The `Firestore` instance of the provided app.
+ */
 export function getFirestore(app: FirebaseApp): FirebaseFirestore {
   return _getProvider(
     app,
@@ -142,6 +171,25 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
   ).getImmediate() as FirebaseFirestore;
 }
 
+/**
+ * Terminates the provided Firestore instance.
+ *
+ * After calling `terminate()` only the `clearIndexedDbPersistence()` functions
+ * may be used. Any other function will throw a `FirestoreError`. Termination
+ * does not cancel any pending writes, and any promises that are awaiting a
+ * response from the server will not be resolved.
+ *
+ * To restart after termination, create a new instance of FirebaseFirestore with
+ * {@link getFirestore()}.
+ *
+ * Note: Under normal circumstances, calling `terminate()` is not required. This
+ * function is useful only when you want to force this instance to release all of
+ * its resources or in combination with {@link clearIndexedDbPersistence()} to
+ * ensure that all local state is destroyed between test runs.
+ *
+ * @return A promise that is resolved when the instance has been successfully
+ * terminated.
+ */
 export function terminate(firestore: FirebaseFirestore): Promise<void> {
   _removeServiceInstance(firestore.app, 'firestore/lite');
   return firestore._delete();

@@ -43,11 +43,11 @@
     "rxjs": "6.x.x"
   },
   "devDependencies": {
-    "firebase": "7.20.0",
-    "rollup": "2.26.7",
+    "firebase": "7.23.0",
+    "rollup": "2.29.0",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-node-resolve": "5.2.0",
-    "rollup-plugin-typescript2": "0.27.2",
+    "rollup-plugin-typescript2": "0.27.3",
     "rollup-plugin-uglify": "6.0.4",
     "typescript": "4.0.2"
   },

@@ -21,5 +21,5 @@ import { name, version } from '../package.json';
 
 export * from './api';
 
-registerFunctions();
+registerFunctions(fetch.bind(self));
 registerVersion(name, version);

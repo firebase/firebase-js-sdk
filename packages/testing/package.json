@@ -19,16 +19,16 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "firebase": "7.20.0",
+    "firebase": "7.23.0",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "0.3.2",
     "request": "2.88.2"
   },
   "devDependencies": {
     "@types/request": "2.48.5",
-    "firebase-tools": "8.9.2",
-    "rollup": "2.26.7",
-    "rollup-plugin-typescript2": "0.27.2"
+    "firebase-tools": "8.12.0",
+    "rollup": "2.29.0",
+    "rollup-plugin-typescript2": "0.27.3"
   },
   "repository": {
     "directory": "packages/testing",

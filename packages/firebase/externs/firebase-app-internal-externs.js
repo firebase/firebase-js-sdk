@@ -20,7 +20,7 @@
  */
 
 /**
- * @param {!firebase.FirebaseComponent}
+ * @param {!Object} component
  */
 firebase.INTERNAL.registerComponent = function (component) {};
 

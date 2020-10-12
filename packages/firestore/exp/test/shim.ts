@@ -23,13 +23,10 @@ import * as exp from '../index';
 
 import {
   addDoc,
-  arrayRemove,
-  arrayUnion,
   clearIndexedDbPersistence,
   collection,
   collectionGroup,
   deleteDoc,
-  deleteField,
   disableNetwork,
   doc,
   DocumentReference as DocumentReferenceExp,
@@ -43,7 +40,6 @@ import {
   getDocs,
   getDocsFromCache,
   getDocsFromServer,
-  increment,
   initializeFirestore,
   onSnapshot,
   onSnapshotsInSync,
@@ -51,7 +47,6 @@ import {
   queryEqual,
   refEqual,
   runTransaction,
-  serverTimestamp,
   setDoc,
   snapshotEqual,
   terminate,
@@ -71,8 +66,10 @@ import {
 import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
 import { isPartialObserver, PartialObserver } from '../../src/api/observer';
 import { isPlainObject } from '../../src/util/input_validation';
+import { Compat } from '../../src/compat/compat';
 
 export { GeoPoint, Timestamp } from '../index';
+export { FieldValue } from '../../src/compat/field_value';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -80,9 +77,9 @@ export { GeoPoint, Timestamp } from '../index';
 // of the experimental SDK. This shim is used to run integration tests against
 // both SDK versions.
 
-export class FirebaseApp implements FirebaseAppLegacy {
-  constructor(readonly _delegate: FirebaseAppExp) {}
-
+export class FirebaseApp
+  extends Compat<FirebaseAppExp>
+  implements FirebaseAppLegacy {
   name = this._delegate.name;
   options = this._delegate.options;
   automaticDataCollectionEnabled = this._delegate
@@ -93,9 +90,9 @@ export class FirebaseApp implements FirebaseAppLegacy {
   }
 }
 
-export class FirebaseFirestore implements legacy.FirebaseFirestore {
-  constructor(private readonly _delegate: exp.FirebaseFirestore) {}
-
+export class FirebaseFirestore
+  extends Compat<exp.FirebaseFirestore>
+  implements legacy.FirebaseFirestore {
   app = new FirebaseApp(this._delegate.app);
 
   settings(settings: legacy.Settings): void {
@@ -170,11 +167,15 @@ export class FirebaseFirestore implements legacy.FirebaseFirestore {
   };
 }
 
-export class Transaction implements legacy.Transaction {
+export class Transaction
+  extends Compat<exp.Transaction>
+  implements legacy.Transaction {
   constructor(
     private readonly _firestore: FirebaseFirestore,
-    private readonly _delegate: exp.Transaction
-  ) {}
+    delegate: exp.Transaction
+  ) {
+    super(delegate);
+  }
 
   get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>> {
     return this._delegate
@@ -231,9 +232,9 @@ export class Transaction implements legacy.Transaction {
   }
 }
 
-export class WriteBatch implements legacy.WriteBatch {
-  constructor(private readonly _delegate: exp.WriteBatch) {}
-
+export class WriteBatch
+  extends Compat<exp.WriteBatch>
+  implements legacy.WriteBatch {
   set<T>(
     documentRef: DocumentReference<T>,
     data: T,
@@ -288,11 +289,14 @@ export class WriteBatch implements legacy.WriteBatch {
 }
 
 export class DocumentReference<T = legacy.DocumentData>
+  extends Compat<exp.DocumentReference<T>>
   implements legacy.DocumentReference<T> {
   constructor(
     readonly firestore: FirebaseFirestore,
-    readonly _delegate: exp.DocumentReference<T>
-  ) {}
+    delegate: exp.DocumentReference<T>
+  ) {
+    super(delegate);
+  }
 
   readonly id = this._delegate.id;
   readonly path = this._delegate.path;
@@ -306,7 +310,7 @@ export class DocumentReference<T = legacy.DocumentData>
   ): legacy.CollectionReference<legacy.DocumentData> {
     return new CollectionReference(
       this.firestore,
-      this._delegate.collection(collectionPath)
+      collection(this._delegate, collectionPath)
     );
   }
 
@@ -407,11 +411,14 @@ export class DocumentReference<T = legacy.DocumentData>
 }
 
 export class DocumentSnapshot<T = legacy.DocumentData>
+  extends Compat<exp.DocumentSnapshot<T>>
   implements legacy.DocumentSnapshot<T> {
   constructor(
     private readonly _firestore: FirebaseFirestore,
-    readonly _delegate: exp.DocumentSnapshot<T>
-  ) {}
+    delegate: exp.DocumentSnapshot<T>
+  ) {
+    super(delegate);
+  }
 
   readonly ref = new DocumentReference<T>(this._firestore, this._delegate.ref);
   readonly id = this._delegate.id;
@@ -449,11 +456,12 @@ export class QueryDocumentSnapshot<T = legacy.DocumentData>
   }
 }
 
-export class Query<T = legacy.DocumentData> implements legacy.Query<T> {
-  constructor(
-    readonly firestore: FirebaseFirestore,
-    readonly _delegate: exp.Query<T>
-  ) {}
+export class Query<T = legacy.DocumentData>
+  extends Compat<exp.Query<T>>
+  implements legacy.Query<T> {
+  constructor(readonly firestore: FirebaseFirestore, delegate: exp.Query<T>) {
+    super(delegate);
+  }
 
   where(
     fieldPath: string | FieldPath,
@@ -651,10 +659,10 @@ export class CollectionReference<T = legacy.DocumentData>
     if (documentPath !== undefined) {
       return new DocumentReference(
         this.firestore,
-        this._delegate.doc(documentPath)
+        doc(this._delegate, documentPath)
       );
     } else {
-      return new DocumentReference(this.firestore, this._delegate.doc());
+      return new DocumentReference(this.firestore, doc(this._delegate));
     }
   }
 
@@ -680,34 +688,6 @@ export class CollectionReference<T = legacy.DocumentData>
   }
 }
 
-export class FieldValue implements legacy.FieldValue {
-  constructor(readonly _delegate: exp.FieldValue) {}
-
-  static serverTimestamp(): FieldValue {
-    return new FieldValue(serverTimestamp());
-  }
-
-  static delete(): FieldValue {
-    return new FieldValue(deleteField());
-  }
-
-  static arrayUnion(...elements: any[]): FieldValue {
-    return new FieldValue(arrayUnion(...unwrap(elements)));
-  }
-
-  static arrayRemove(...elements: any[]): FieldValue {
-    return new FieldValue(arrayRemove(...unwrap(elements)));
-  }
-
-  static increment(n: number): FieldValue {
-    return new FieldValue(increment(n));
-  }
-
-  isEqual(other: FieldValue): boolean {
-    return this._delegate.isEqual(other._delegate);
-  }
-}
-
 export class FieldPath implements legacy.FieldPath {
   private readonly fieldNames: string[];
 
@@ -728,9 +708,7 @@ export class FieldPath implements legacy.FieldPath {
   }
 }
 
-export class Blob implements legacy.Blob {
-  constructor(readonly _delegate: BytesExp) {}
-
+export class Blob extends Compat<BytesExp> implements legacy.Blob {
   static fromBase64String(base64: string): Blob {
     return new Blob(BytesExp.fromBase64String(base64));
   }
@@ -790,17 +768,9 @@ function wrap(value: any): any {
 function unwrap(value: any): any {
   if (Array.isArray(value)) {
     return value.map(v => unwrap(v));
+  } else if (value instanceof Compat) {
+    return value._delegate;
   } else if (value instanceof FieldPath) {
-    return value._delegate;
-  } else if (value instanceof FieldValue) {
-    return value._delegate;
-  } else if (value instanceof Blob) {
-    return value._delegate;
-  } else if (value instanceof DocumentReference) {
-    return value._delegate;
-  } else if (value instanceof DocumentSnapshot) {
-    return value._delegate;
-  } else if (value instanceof QueryDocumentSnapshot) {
     return value._delegate;
   } else if (isPlainObject(value)) {
     const obj: any = {};

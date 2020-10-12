@@ -179,9 +179,18 @@ describe('doc', () => {
     });
   });
 
-  it('can be used relative to collection (via CollectionReference.doc())', () => {
+  it('can be used with multiple arguments', () => {
     return withTestDb(db => {
-      const result = collection(db, 'coll').doc('doc');
+      const result = doc(db, 'coll1/doc1', 'coll2', 'doc2');
+      expect(result).to.be.an.instanceOf(DocumentReference);
+      expect(result.id).to.equal('doc2');
+      expect(result.path).to.equal('coll1/doc1/coll2/doc2');
+    });
+  });
+
+  it('strips leading and trailing slashes', () => {
+    return withTestDb(db => {
+      const result = doc(db, '/coll', 'doc/');
       expect(result).to.be.an.instanceOf(DocumentReference);
       expect(result.id).to.equal('doc');
       expect(result.path).to.equal('coll/doc');
@@ -211,7 +220,7 @@ describe('doc', () => {
           'number of segments, but coll/doc/coll has 3.'
       );
       expect(() => doc(db, 'coll//doc')).to.throw(
-        'Invalid path (coll//doc). Paths must not contain // in them.'
+        'Invalid segment (coll//doc). Paths must not contain // in them.'
       );
     });
   });
@@ -220,14 +229,6 @@ describe('doc', () => {
     return withTestDb(db => {
       const coll = collection(db, 'coll');
       const ref = doc(coll);
-      expect(ref.id.length).to.equal(20);
-    });
-  });
-
-  it('supports AutoId (via CollectionReference.doc())', () => {
-    return withTestDb(db => {
-      const coll = collection(db, 'coll');
-      const ref = coll.doc();
       expect(ref.id.length).to.equal(20);
     });
   });
@@ -261,12 +262,12 @@ describe('collection', () => {
     });
   });
 
-  it('can be used relative to doc (via DocumentReference.collection())', () => {
+  it('can be used with multiple arguments', () => {
     return withTestDb(db => {
-      const result = doc(db, 'coll/doc').collection('subcoll');
+      const result = collection(db, 'coll1/doc1', 'coll2');
       expect(result).to.be.an.instanceOf(CollectionReference);
-      expect(result.id).to.equal('subcoll');
-      expect(result.path).to.equal('coll/doc/subcoll');
+      expect(result.id).to.equal('coll2');
+      expect(result.path).to.equal('coll1/doc1/coll2');
     });
   });
 

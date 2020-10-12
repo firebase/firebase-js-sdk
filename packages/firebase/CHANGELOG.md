@@ -1,5 +1,62 @@
 # firebase
 
+## 7.23.0
+
+### Minor Changes
+
+- [`d4db75ff8`](https://github.com/firebase/firebase-js-sdk/commit/d4db75ff81388430489bd561ac2247fe9e0b6eb5) [#3836](https://github.com/firebase/firebase-js-sdk/pull/3836) (fixes [#3573](https://github.com/firebase/firebase-js-sdk/issues/3573)) - Analytics now warns instead of throwing if it detects a browser environment where analytics does not work.
+
+### Patch Changes
+
+- [`48b0b0f7c`](https://github.com/firebase/firebase-js-sdk/commit/48b0b0f7c9137652f438cf04395debddeb3711d0) [#3850](https://github.com/firebase/firebase-js-sdk/pull/3850) - Moved `loggingEnabled` check to wait until performance initialization finishes, thus avoid dropping custom traces right after getting `performance` object.
+
+* [`8728e1a0f`](https://github.com/firebase/firebase-js-sdk/commit/8728e1a0fc9027a21e3b77e4a058a7e8513a4646) [#3866](https://github.com/firebase/firebase-js-sdk/pull/3866) - Throws exception when startTime or duration is not positive value in `trace.record()` API.
+
+* Updated dependencies [[`48b0b0f7c`](https://github.com/firebase/firebase-js-sdk/commit/48b0b0f7c9137652f438cf04395debddeb3711d0), [`a10c18f89`](https://github.com/firebase/firebase-js-sdk/commit/a10c18f8996fc35942779f5fea5690ae5d102bb0), [`d4db75ff8`](https://github.com/firebase/firebase-js-sdk/commit/d4db75ff81388430489bd561ac2247fe9e0b6eb5), [`8728e1a0f`](https://github.com/firebase/firebase-js-sdk/commit/8728e1a0fc9027a21e3b77e4a058a7e8513a4646)]:
+  - @firebase/performance@0.4.2
+  - @firebase/firestore@1.17.3
+  - @firebase/analytics@0.6.0
+
+## 7.22.1
+
+### Patch Changes
+
+- Updated dependencies [[`b6b1fd95c`](https://github.com/firebase/firebase-js-sdk/commit/b6b1fd95cbeeabc38daa574ce7cf0b7dd34cf550)]:
+  - @firebase/functions@0.5.1
+
+## 7.22.0
+
+### Minor Changes
+
+- [`a6af7c279`](https://github.com/firebase/firebase-js-sdk/commit/a6af7c27925da47fa62ee3b7b0a267a272c52220) [#3825](https://github.com/firebase/firebase-js-sdk/pull/3825) - Allow setting a custom domain for callable Cloud Functions.
+
+### Patch Changes
+
+- Updated dependencies [[`2be43eadf`](https://github.com/firebase/firebase-js-sdk/commit/2be43eadf756e45da7ad3ae7ba104ac5f0e557fa), [`a6af7c279`](https://github.com/firebase/firebase-js-sdk/commit/a6af7c27925da47fa62ee3b7b0a267a272c52220)]:
+  - @firebase/firestore@1.17.2
+  - @firebase/functions@0.5.0
+
+## 7.21.1
+
+### Patch Changes
+
+- [`7bf73797d`](https://github.com/firebase/firebase-js-sdk/commit/7bf73797dfe5271b8f380ce4bd2497d8589f05d9) [#3813](https://github.com/firebase/firebase-js-sdk/pull/3813) (fixes [#414](https://github.com/firebase/firebase-js-sdk/issues/414)) - Escape unicodes when generating CDN scripts, so they work correctly in environments that requires UTF-8, for example, in Chrome extension.
+
+- Updated dependencies [[`4dc8817c3`](https://github.com/firebase/firebase-js-sdk/commit/4dc8817c3faf172152a5b1e7778d0ce844510f97), [`16c6ba979`](https://github.com/firebase/firebase-js-sdk/commit/16c6ba9793681f1695f855f22a19a618ceface5f)]:
+  - @firebase/firestore@1.17.1
+
+## 7.21.0
+
+### Minor Changes
+
+- [`f9004177e`](https://github.com/firebase/firebase-js-sdk/commit/f9004177e76f00fc484d30c0c0e7b1bc2da033f9) [#3772](https://github.com/firebase/firebase-js-sdk/pull/3772) - [feature] Added `not-in` and `!=` query operators for use with `.where()`. `not-in` finds documents where a specified field’s value is not in a specified array. `!=` finds documents where a specified field's value does not equal the specified value. Neither query operator will match documents where the specified field is not present.
+
+### Patch Changes
+
+- Updated dependencies [[`3d9b5a595`](https://github.com/firebase/firebase-js-sdk/commit/3d9b5a595813b6c4f7f6ef4e3625ae8856a9fa23), [`f9004177e`](https://github.com/firebase/firebase-js-sdk/commit/f9004177e76f00fc484d30c0c0e7b1bc2da033f9), [`e81c429ae`](https://github.com/firebase/firebase-js-sdk/commit/e81c429aec43cd4467089bfed68eafafba6e8ee2), [`a8ff3dbaa`](https://github.com/firebase/firebase-js-sdk/commit/a8ff3dbaacd06371e6652a6d639ef2d9bead612b)]:
+  - @firebase/database@0.6.13
+  - @firebase/firestore@1.17.0
+
 ## 7.20.0
 
 ### Minor Changes

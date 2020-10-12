@@ -121,7 +121,19 @@ describe('Testing Module Tests', function () {
       base64.decodeString(token!.accessToken.split('.')[1], /*webSafe=*/ false)
     );
     // We add an 'iat' field.
-    expect(claims).to.deep.equal({ uid: auth.uid, iat: 0, sub: auth.uid });
+    expect(claims).to.deep.equal({
+      iss: 'https://securetoken.google.com/foo',
+      aud: 'foo',
+      iat: 0,
+      exp: 3600,
+      auth_time: 0,
+      sub: 'alice',
+      user_id: 'alice',
+      firebase: {
+        sign_in_provider: 'custom',
+        identities: {}
+      }
+    });
   });
 
   it('initializeAdminApp() has admin access', async function () {
@@ -188,6 +200,64 @@ describe('Testing Module Tests', function () {
     await firebase.assertFails(
       testApp.database().ref().child('/private/doc').set({ hello: 'test' })
     );
+  });
+
+  it('initializeAdminApp() works with custom claims', async function () {
+    await firebase.loadFirestoreRules({
+      projectId: 'foo',
+      rules: `service cloud.firestore {
+        match /databases/{db}/documents/{doc=**} {
+          allow read, write: if request.auth.token.custom_claim == 'foo';
+        }
+      }`
+    });
+
+    const noClaim = firebase.initializeTestApp({
+      projectId: 'foo',
+      auth: {
+        uid: 'noClaim'
+      }
+    });
+
+    const hasClaim = firebase.initializeTestApp({
+      projectId: 'foo',
+      auth: {
+        uid: 'hasClaim',
+        custom_claim: 'foo'
+      }
+    });
+
+    const wrongClaim = firebase.initializeTestApp({
+      projectId: 'foo',
+      auth: {
+        uid: 'wrongClaim',
+        custom_claim: 'bar'
+      }
+    });
+
+    await firebase.assertSucceeds(
+      hasClaim.firestore().doc('test/test').set({ hello: 'test' })
+    );
+    await firebase.assertFails(
+      noClaim.firestore().doc('test/test').set({ hello: 'test' })
+    );
+    await firebase.assertFails(
+      wrongClaim.firestore().doc('test/test').set({ hello: 'test' })
+    );
+  });
+
+  it('initializeTestApp() does not destroy user input', function () {
+    const options = {
+      projectId: 'fakeproject',
+      auth: {
+        uid: 'sam',
+        email: 'sam@sam.com'
+      }
+    };
+    const optionsCopy = Object.assign({}, options);
+
+    firebase.initializeTestApp(options);
+    expect(options).to.deep.equal(optionsCopy);
   });
 
   it('loadDatabaseRules() throws if no databaseName or rules', async function () {

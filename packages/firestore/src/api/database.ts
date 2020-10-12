@@ -106,7 +106,8 @@ import {
   validateOptionNames,
   validatePositiveNumber,
   validateStringEnum,
-  valueDescription
+  valueDescription,
+  validateIsNotUsedTogether
 } from '../util/input_validation';
 import { getLogLevel, logError, LogLevel, setLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
@@ -146,6 +147,7 @@ const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
 const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = true;
 const DEFAULT_FORCE_LONG_POLLING = false;
+const DEFAULT_FORCE_AUTO_DETECT_LONG_POLLING = false;
 const DEFAULT_IGNORE_UNDEFINED_PROPERTIES = false;
 
 /**
@@ -191,6 +193,8 @@ class FirestoreSettings {
 
   readonly experimentalForceLongPolling: boolean;
 
+  readonly experimentalAutoDetectLongPolling: boolean;
+
   readonly ignoreUndefinedProperties: boolean;
 
   // Can be a google-auth-library or gapi client.
@@ -221,6 +225,7 @@ class FirestoreSettings {
       'timestampsInSnapshots',
       'cacheSizeBytes',
       'experimentalForceLongPolling',
+      'experimentalAutoDetectLongPolling',
       'ignoreUndefinedProperties'
     ]);
 
@@ -294,6 +299,23 @@ class FirestoreSettings {
     );
     this.experimentalForceLongPolling =
       settings.experimentalForceLongPolling ?? DEFAULT_FORCE_LONG_POLLING;
+
+    validateNamedOptionalType(
+      'settings',
+      'boolean',
+      'experimentalAutoDetectLongPolling',
+      settings.experimentalAutoDetectLongPolling
+    );
+    this.experimentalAutoDetectLongPolling =
+      settings.experimentalAutoDetectLongPolling ??
+      DEFAULT_FORCE_AUTO_DETECT_LONG_POLLING;
+
+    validateIsNotUsedTogether(
+      'experimentalForceLongPolling',
+      settings.experimentalForceLongPolling,
+      'experimentalAutoDetectLongPolling',
+      settings.experimentalAutoDetectLongPolling
+    );
   }
 
   isEqual(other: FirestoreSettings): boolean {
@@ -305,6 +327,8 @@ class FirestoreSettings {
       this.cacheSizeBytes === other.cacheSizeBytes &&
       this.experimentalForceLongPolling ===
         other.experimentalForceLongPolling &&
+      this.experimentalAutoDetectLongPolling ===
+        other.experimentalAutoDetectLongPolling &&
       this.ignoreUndefinedProperties === other.ignoreUndefinedProperties
     );
   }
@@ -552,7 +576,8 @@ export class Firestore implements PublicFirestore, FirebaseService {
       this._persistenceKey,
       this._settings.host,
       this._settings.ssl,
-      this._settings.experimentalForceLongPolling
+      this._settings.experimentalForceLongPolling,
+      this._settings.experimentalAutoDetectLongPolling
     );
   }
 
@@ -1320,12 +1345,40 @@ export class DocumentReference<T = DocumentData>
   }
 }
 
+/**
+ * Metadata about a snapshot, describing the state of the snapshot.
+ */
 export class SnapshotMetadata implements PublicSnapshotMetadata {
-  constructor(
-    readonly hasPendingWrites: boolean,
-    readonly fromCache: boolean
-  ) {}
+  /**
+   * True if the snapshot contains the result of local writes (for example
+   * `set()` or `update()` calls) that have not yet been committed to the
+   * backend. If your listener has opted into metadata updates (via
+   * `SnapshotListenOptions`) you will receive another snapshot with
+   * `hasPendingWrites` equal to false once the writes have been committed to
+   * the backend.
+   */
+  readonly hasPendingWrites: boolean;
 
+  /**
+   * True if the snapshot was created from cached data rather than guaranteed
+   * up-to-date server data. If your listener has opted into metadata updates
+   * (via `SnapshotListenOptions`) you will receive another snapshot with
+   * `fromCache` set to false once the client has received up-to-date data from
+   * the backend.
+   */
+  readonly fromCache: boolean;
+
+  constructor(hasPendingWrites: boolean, fromCache: boolean) {
+    this.hasPendingWrites = hasPendingWrites;
+    this.fromCache = fromCache;
+  }
+
+  /**
+   * Returns true if this `SnapshotMetadata` is equal to the provided one.
+   *
+   * @param other The `SnapshotMetadata` to compare against.
+   * @return true if this `SnapshotMetadata` is equal to the provided one.
+   */
   isEqual(other: PublicSnapshotMetadata): boolean {
     return (
       this.hasPendingWrites === other.hasPendingWrites &&

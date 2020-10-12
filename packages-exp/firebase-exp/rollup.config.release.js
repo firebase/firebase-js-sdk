@@ -20,6 +20,7 @@ import resolveModule from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
+import alias from '@rollup/plugin-alias';
 import typescript from 'typescript';
 import { uglify } from 'rollup-plugin-uglify';
 import json from 'rollup-plugin-json';
@@ -148,7 +149,21 @@ const componentBuilds = pkg.components
           `firebase-${componentName}.js`,
           componentName
         ),
-        plugins: [...plugins, typescriptPluginUMD],
+        plugins: [
+          ...plugins,
+          typescriptPluginUMD,
+          /**
+           * Hack to bundle @firebase/installations-exp
+           */
+          alias({
+            entries: [
+              {
+                find: '@firebase/installations',
+                replacement: '@firebase/installations-exp'
+              }
+            ]
+          })
+        ],
         external: ['@firebase/app']
       }
     ];

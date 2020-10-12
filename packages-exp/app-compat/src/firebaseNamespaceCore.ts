@@ -26,15 +26,7 @@ import {
   FirebaseService,
   FirebaseServiceNamespace
 } from '@firebase/app-types/private';
-import {
-  SDK_VERSION,
-  initializeApp,
-  registerVersion,
-  onLog,
-  setLogLevel,
-  _registerComponent,
-  _DEFAULT_ENTRY_NAME
-} from '@firebase/app-exp';
+import * as modularAPIs from '@firebase/app-exp';
 import { _FirebaseAppInternal } from '@firebase/app-types-exp';
 import { Component, ComponentType } from '@firebase/component';
 
@@ -66,16 +58,17 @@ export function createFirebaseNamespaceCore(
     initializeApp: initializeAppCompat,
     // @ts-ignore
     app,
-    registerVersion,
-    setLogLevel,
-    onLog,
+    registerVersion: modularAPIs.registerVersion,
+    setLogLevel: modularAPIs.setLogLevel,
+    onLog: modularAPIs.onLog,
     // @ts-ignore
     apps: null,
-    SDK_VERSION,
+    SDK_VERSION: modularAPIs.SDK_VERSION,
     INTERNAL: {
       registerComponent: registerComponentCompat,
       removeApp,
-      useAsService
+      useAsService,
+      modularAPIs
     }
   };
 
@@ -109,7 +102,7 @@ export function createFirebaseNamespaceCore(
    * Get the App object for a given name (or DEFAULT).
    */
   function app(name?: string): FirebaseApp {
-    name = name || _DEFAULT_ENTRY_NAME;
+    name = name || modularAPIs._DEFAULT_ENTRY_NAME;
     if (!contains(apps, name)) {
       throw ERROR_FACTORY.create(AppError.NO_APP, { appName: name });
     }
@@ -126,7 +119,10 @@ export function createFirebaseNamespaceCore(
     options: FirebaseOptions,
     rawConfig = {}
   ): FirebaseApp {
-    const app = initializeApp(options, rawConfig) as _FirebaseAppInternal;
+    const app = modularAPIs.initializeApp(
+      options,
+      rawConfig
+    ) as _FirebaseAppInternal;
     const appCompat = new firebaseAppImpl(app, namespace as _FirebaseNamespace);
     apps[app.name] = appCompat;
     return appCompat;
@@ -145,7 +141,7 @@ export function createFirebaseNamespaceCore(
   ): FirebaseServiceNamespace<FirebaseService> | null {
     const componentName = component.name;
     if (
-      _registerComponent(component) &&
+      modularAPIs._registerComponent(component) &&
       component.type === ComponentType.PUBLIC
     ) {
       // create service namespace for public components
