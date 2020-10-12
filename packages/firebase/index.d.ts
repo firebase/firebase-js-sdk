@@ -1801,9 +1801,9 @@ declare namespace firebase.functions {
     private constructor();
 
     /**
-     * Modify this instance to communicate with the Cloudd Functions emulator.
+     * Modify this instance to communicate with the Cloud Functions emulator.
      *
-     * <p>Note: this must be called before this instance has been used to do any operations.
+     * Note: this must be called before this instance has been used to do any operations.
      *
      * @param host the emulator host (ex: localhost)
      * @param port the emulator port (ex: 5001)
@@ -1814,7 +1814,7 @@ declare namespace firebase.functions {
      * Changes this instance to point to a Cloud Functions emulator running
      * locally. See https://firebase.google.com/docs/functions/local-emulator
      * 
-     * @deprecated prefer the useEmulator(host, port) method.
+     * @deprecated Prefer the useEmulator(host, port) method.
      * @param origin The origin of the local emulator, such as
      * "http://localhost:5005".
      */
