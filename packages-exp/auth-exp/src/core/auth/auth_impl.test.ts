@@ -457,12 +457,18 @@ describe('core/auth/auth_impl useEmulator', () => {
 
   context('toJSON', () => {
     it('works when theres no current user', () => {
-      expect(JSON.stringify(auth)).to.eq('{"apiKey":"test-api-key","authDomain":"localhost","appName":"test-app"}');
+      expect(JSON.stringify(auth)).to.eq(
+        '{"apiKey":"test-api-key","authDomain":"localhost","appName":"test-app"}'
+      );
     });
 
     it('also stringifies the current user', () => {
-      auth.currentUser = {toJSON: (): object => ({foo: 'bar'})} as unknown as User;
-      expect(JSON.stringify(auth)).to.eq('{"apiKey":"test-api-key","authDomain":"localhost","appName":"test-app","currentUser":{"foo":"bar"}}');
+      auth.currentUser = ({
+        toJSON: (): object => ({ foo: 'bar' })
+      } as unknown) as User;
+      expect(JSON.stringify(auth)).to.eq(
+        '{"apiKey":"test-api-key","authDomain":"localhost",' + '"appName":"test-app","currentUser":{"foo":"bar"}}'
+      );
     });
   });
 });
