@@ -467,7 +467,8 @@ describe('core/auth/auth_impl useEmulator', () => {
         toJSON: (): object => ({ foo: 'bar' })
       } as unknown) as User;
       expect(JSON.stringify(auth)).to.eq(
-        '{"apiKey":"test-api-key","authDomain":"localhost",' + '"appName":"test-app","currentUser":{"foo":"bar"}}'
+        '{"apiKey":"test-api-key","authDomain":"localhost",' +
+          '"appName":"test-app","currentUser":{"foo":"bar"}}'
       );
     });
   });
