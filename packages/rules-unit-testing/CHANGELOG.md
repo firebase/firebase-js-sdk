@@ -1,5 +1,14 @@
 # @firebase/rules-unit-testing
 
+## 1.0.7
+
+### Patch Changes
+
+- [`b9087b90f`](https://github.com/firebase/firebase-js-sdk/commit/b9087b90ff99b85acab6928459783c5683620737) [#3876](https://github.com/firebase/firebase-js-sdk/pull/3876) - Add stronger types to the 'options.auth' option for initializeTestApp
+
+- Updated dependencies [[`48b0b0f7c`](https://github.com/firebase/firebase-js-sdk/commit/48b0b0f7c9137652f438cf04395debddeb3711d0), [`d4db75ff8`](https://github.com/firebase/firebase-js-sdk/commit/d4db75ff81388430489bd561ac2247fe9e0b6eb5), [`8728e1a0f`](https://github.com/firebase/firebase-js-sdk/commit/8728e1a0fc9027a21e3b77e4a058a7e8513a4646)]:
+  - firebase@7.23.0
+
 ## 1.0.6
 
 ### Patch Changes
