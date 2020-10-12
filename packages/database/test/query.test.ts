@@ -20,6 +20,7 @@ const expect = chai.expect;
 import * as chaiAsPromised from 'chai-as-promised';
 chai.use(chaiAsPromised);
 import { Reference } from '../src/api/Reference';
+import { DataSnapshot } from '../src/api/DataSnapshot';
 import { Query } from '../src/api/Query';
 import '../src/core/snap/ChildrenNode';
 import { getRandomNode, getFreshRepo, getPath, pause } from './helpers/util';
@@ -28,8 +29,6 @@ import {
   EventAccumulatorFactory
 } from './helpers/EventAccumulator';
 import * as _ from 'lodash';
-
-import { SnapshotHolder } from '../src/core/SnapshotHolder';
 
 type TaskList = Array<[Query, any]>;
 
@@ -2196,6 +2195,37 @@ describe('Query Tests', () => {
       });
   });
 
+  it('set() at query root raises correct value event', done => {
+    const nodePair = getRandomNode(2);
+    const writer = nodePair[0];
+    const reader = nodePair[1];
+
+    let readerLoaded = false;
+    writer
+      .child('foo')
+      .set({ bar: 'a', baz: 'b', bam: 'c' }, (error, dummy) => {
+        reader
+          .child('foo')
+          .limitToLast(10)
+          .on('value', snapshot => {
+            const val = snapshot.val();
+            if (!readerLoaded) {
+              readerLoaded = true;
+              expect(val.bar).to.equal('a');
+              expect(val.baz).to.equal('b');
+              expect(val.bam).to.equal('c');
+              writer.child('foo').set({ bar: 'd', baz: 'b', bat: 'e' });
+            } else {
+              expect(val.bar).to.equal('d');
+              expect(val.baz).to.equal('b');
+              expect(val.bat).to.equal('e');
+              expect(val.bam).to.equal(undefined);
+              done();
+            }
+          });
+      });
+  });
+
   it('get at empty node returns null', async () => {
     const node = getRandomNode() as Reference;
     const snapshot = await node.get();
@@ -2242,6 +2272,24 @@ describe('Query Tests', () => {
     reader.once('value', snap => {
       expect(snap.val()).to.equal(snapshot.val());
     });
+  });
+
+  it('get reads from cache if database is not connected', async () => {
+    const node = getFreshRepo('db', true);
+    const node2 = getFreshRepo('db');
+    await node2.set({ foo: 'bar' });
+    const prom = new Promise((resolve, _) => {
+      node.on('value', snap => {
+        resolve(snap);
+      });
+    });
+    let onSnapshot = await prom;
+    node.database.goOffline();
+    const getSnapshot = await node.get();
+    node.off();
+    expect(JSON.stringify(getSnapshot.val())).to.equal(
+      JSON.stringify((onSnapshot as DataSnapshot).val())
+    );
   });
 
   it('get above path caches data', async () => {
