@@ -212,6 +212,9 @@ export class AuthImpl implements Auth, _FirebaseService {
   }
 
   async updateCurrentUser(user: externs.User | null): Promise<void> {
+    if (this._deleted) {
+      return;
+    }
     if (user) {
       assert(
         this.tenantId === user.tenantId,
