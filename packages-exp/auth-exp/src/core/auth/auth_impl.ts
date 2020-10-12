@@ -184,7 +184,7 @@ export class AuthImpl implements Auth, _FirebaseService {
       appName: this.name
     });
 
-    this.config.emulator = {host};
+    this.config.emulator = { host };
     this.settings.appVerificationDisabledForTesting = true;
   }
 
