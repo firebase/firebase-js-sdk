@@ -5,4 +5,4 @@
 '@firebase/functions-types': minor
 ---
 
-Add a useEmulator(host, port) method
+Add a useEmulator(host, port) method to Cloud Functions
