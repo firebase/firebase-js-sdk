@@ -93,7 +93,7 @@
     "child-process-promise": "2.2.1",
     "clone": "2.1.2",
     "coveralls": "3.1.0",
-    "del": "5.1.0",
+    "del": "6.0.0",
     "dependency-graph": "0.9.0",
     "eslint": "7.10.0",
     "eslint-plugin-import": "2.22.1",
