@@ -247,6 +247,15 @@ export class AuthImpl implements Auth, _FirebaseService {
     );
   }
 
+  toJSON(): object {
+    return {
+      apiKey: this.config.apiKey,
+      authDomain: this.config.authDomain,
+      appName: this.name,
+      currentUser: this._currentUser?.toJSON()
+    };
+  }
+
   async _setRedirectUser(
     user: User | null,
     popupRedirectResolver?: externs.PopupRedirectResolver
