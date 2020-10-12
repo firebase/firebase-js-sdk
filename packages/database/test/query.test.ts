@@ -2254,7 +2254,7 @@ describe('Query Tests', () => {
         resolve(snap);
       });
     });
-    let onSnapshot = await prom;
+    const onSnapshot = await prom;
     node.database.goOffline();
     const getSnapshot = await node.get();
     node.off();
@@ -2280,7 +2280,7 @@ describe('Query Tests', () => {
     const snapshot = await reader.child('foo/bar').get();
     expect(snapshot.val().data).to.equal('1');
     reader.database.goOffline();
-    let prom = new Promise((resolve, reject) => {
+    const prom = new Promise((resolve, reject) => {
       let done = false;
       setTimeout(() => {
         if (done) {
