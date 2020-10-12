@@ -40,7 +40,7 @@ import { RepoInfo } from './RepoInfo';
 import { Database } from '../api/Database';
 import { DataSnapshot } from '../api/DataSnapshot';
 import { ServerActions } from './ServerActions';
-import { FailureCallback, SnapshotCallback, Query } from '../api/Query';
+import { Query } from '../api/Query';
 import { EventRegistration } from './view/EventRegistration';
 import { StatsCollection } from './stats/StatsCollection';
 import { Event } from './view/Event';

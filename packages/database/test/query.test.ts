@@ -2258,9 +2258,7 @@ describe('Query Tests', () => {
     node.database.goOffline();
     const getSnapshot = await node.get();
     node.off();
-    expect(JSON.stringify(getSnapshot.val())).to.equal(
-      JSON.stringify((onSnapshot as DataSnapshot).val())
-    );
+    expect(getSnapshot.val()).to.deep.equal((onSnapshot as DataSnapshot).val());
   });
 
   it('get above path caches data', async () => {
