@@ -318,4 +318,12 @@ describe('Testing Module Tests', function () {
   it('there is a way to get firestore timestamps', function () {
     expect(firebase.firestore.FieldValue.serverTimestamp()).not.to.be.null;
   });
+
+  it('disabling function triggers does not throw, returns value', function () {
+    const res = firebase.withFunctionTriggersDisabled(() => {
+      return new Promise((res) => res(1234));
+    });
+
+    expect(res).to.eq(1234);
+  });
 });

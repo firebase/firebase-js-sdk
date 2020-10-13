@@ -35,6 +35,11 @@ const FIRESTORE_ADDRESS_ENV: string = 'FIRESTORE_EMULATOR_HOST';
 /** The default address for the local Firestore emulator. */
 const FIRESTORE_ADDRESS_DEFAULT: string = 'localhost:8080';
 
+/** Environment variable to locate the Emulator Hub */
+const HUB_HOST_ENV: string = 'FIREBASE_EMULATOR_HUB';
+/** The default address for the Emulator hub */
+const HUB_HOST_DEFAULT: string = 'localhost:4040';
+
 /** The actual address for the database emulator */
 let _databaseHost: string | undefined = undefined;
 
@@ -306,7 +311,7 @@ export type LoadDatabaseRulesOptions = {
   databaseName: string;
   rules: string;
 };
-export function loadDatabaseRules(
+export async function loadDatabaseRules(
   options: LoadDatabaseRulesOptions
 ): Promise<void> {
   if (!options.databaseName) {
@@ -317,33 +322,25 @@ export function loadDatabaseRules(
     throw Error('must provide rules to loadDatabaseRules');
   }
 
-  return new Promise((resolve, reject) => {
-    request.put(
-      {
-        uri: `http://${getDatabaseHost()}/.settings/rules.json?ns=${
-          options.databaseName
-        }`,
-        headers: { Authorization: 'Bearer owner' },
-        body: options.rules
-      },
-      (err, resp, body) => {
-        if (err) {
-          reject(err);
-        } else if (resp.statusCode !== 200) {
-          reject(JSON.parse(body).error);
-        } else {
-          resolve();
-        }
-      }
-    );
+  const resp = await requestPromise({
+    method: 'PUT',
+    uri: `http://${getDatabaseHost()}/.settings/rules.json?ns=${
+      options.databaseName
+    }`,
+    headers: { Authorization: 'Bearer owner' },
+    body: options.rules
   });
+
+  if (resp.statusCode !== 200) {
+    throw new Error(JSON.parse(resp.body.error));
+  }
 }
 
 export type LoadFirestoreRulesOptions = {
   projectId: string;
   rules: string;
 };
-export function loadFirestoreRules(
+export async function loadFirestoreRules(
   options: LoadFirestoreRulesOptions
 ): Promise<void> {
   if (!options.projectId) {
@@ -354,64 +351,96 @@ export function loadFirestoreRules(
     throw new Error('must provide rules to loadFirestoreRules');
   }
 
-  return new Promise((resolve, reject) => {
-    request.put(
-      {
-        uri: `http://${getFirestoreHost()}/emulator/v1/projects/${
-          options.projectId
-        }:securityRules`,
-        body: JSON.stringify({
-          rules: {
-            files: [{ content: options.rules }]
-          }
-        })
-      },
-      (err, resp, body) => {
-        if (err) {
-          reject(err);
-        } else if (resp.statusCode !== 200) {
-          console.log('body', body);
-          reject(JSON.parse(body).error);
-        } else {
-          resolve();
-        }
+  const resp = await requestPromise({
+    method: 'PUT',
+    uri: `http://${getFirestoreHost()}/emulator/v1/projects/${
+      options.projectId
+    }:securityRules`,
+    body: JSON.stringify({
+      rules: {
+        files: [{ content: options.rules }]
       }
-    );
+    })
   });
+
+  if (resp.statusCode !== 200) {
+    throw new Error(JSON.parse(resp.body.error));
+  }
 }
 
 export type ClearFirestoreDataOptions = {
   projectId: string;
 };
-export function clearFirestoreData(
+export async function clearFirestoreData(
   options: ClearFirestoreDataOptions
 ): Promise<void> {
   if (!options.projectId) {
     throw new Error('projectId not specified');
   }
 
-  return new Promise((resolve, reject) => {
-    request.delete(
-      {
-        uri: `http://${getFirestoreHost()}/emulator/v1/projects/${
-          options.projectId
-        }/databases/(default)/documents`,
-        body: JSON.stringify({
-          database: `projects/${options.projectId}/databases/(default)`
-        })
-      },
-      (err, resp, body) => {
-        if (err) {
-          reject(err);
-        } else if (resp.statusCode !== 200) {
-          console.log('body', body);
-          reject(JSON.parse(body).error);
-        } else {
-          resolve();
-        }
-      }
-    );
+  const resp = await requestPromise({
+    method: 'DELETE',
+    uri: `http://${getFirestoreHost()}/emulator/v1/projects/${
+      options.projectId
+    }/databases/(default)/documents`,
+    body: JSON.stringify({
+      database: `projects/${options.projectId}/databases/(default)`
+    })
   });
+
+  if (resp.statusCode !== 200) {
+    throw new Error(JSON.parse(resp.body.error));
+  }
+}
+
+/**
+ * Run a setup function with background Cloud Functions triggers disabled. This can be used to
+ * import data into the Realtime Database or Cloud Firestore emulator without triggering locally
+ * emulated Cloud Functions.
+ *
+ * This method only works with Firebase CLI version {TODO} or higher.
+ *
+ * @param fn an function which returns a promise.
+ */
+export async function withFunctionTriggersDisabled<TResult>(
+  fn: () => TResult | Promise<TResult>
+): Promise<TResult> {
+  // TODO: Find the hub
+  let hubHost = process.env[HUB_HOST_ENV];
+  if (!hubHost) {
+    console.warn(
+      `${HUB_HOST_ENV} is not set, assuming the Emulator hub is running at ${HUB_HOST_DEFAULT}`
+    );
+    hubHost = HUB_HOST_DEFAULT;
+  }
+
+  // Disable background triggers
+  const disableRes = await requestPromise({
+    method: 'PUT',
+    uri: `http://${hubHost}/functions/disableBackgroundTriggers/`
+  });
+  if (disableRes.statusCode !== 200) {
+    throw new Error(
+      `HTTP Error ${disableRes.statusCode} when disabling functions triggers, are you using the latest version of the Firebase CLI?`
+    );
+  }
+
+  // Run the user's function
+  const result = await fn();
+
+  // Re-enable background triggers
+  const enableRes = await requestPromise({
+    method: 'PUT',
+    uri: `http://${hubHost}/functions/enableBackgroundTriggers/`
+  });
+  if (enableRes.statusCode !== 200) {
+    throw new Error(
+      `HTTP Error ${enableRes.statusCode} when enabling functions triggers, are you using the latest version of the Firebase CLI?`
+    );
+  }
+
+  // Return the user's function result
+  return result;
 }
 
 export function assertFails(pr: Promise<any>): any {
@@ -439,4 +468,18 @@ export function assertFails(pr: Promise<any>): any {
 
 export function assertSucceeds(pr: Promise<any>): any {
   return pr;
+}
+
+function requestPromise(
+  options: request.CoreOptions & request.UriOptions
+): Promise<{ statusCode: number; body: any }> {
+  return new Promise((resolve, reject) => {
+    request(options, (err, resp, body) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({ statusCode: resp.statusCode, body });
+      }
+    });
+  });
 }
