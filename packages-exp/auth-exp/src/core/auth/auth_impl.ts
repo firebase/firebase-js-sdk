@@ -243,6 +243,10 @@ export class AuthImpl implements Auth, _FirebaseService {
     });
   }
 
+  _getPersistence(): string {
+    return this.assertedPersistence.persistence.type;
+  }
+
   onAuthStateChanged(
     nextOrObserver: externs.NextOrObserver<externs.User>,
     error?: ErrorFn,

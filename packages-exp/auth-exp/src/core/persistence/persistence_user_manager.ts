@@ -27,7 +27,7 @@ export const _REDIRECT_USER_KEY_NAME = 'redirectUser';
 export const _PERSISTENCE_KEY_NAME = 'persistence';
 const PERSISTENCE_NAMESPACE = 'firebase';
 
-function _persistenceKeyName(
+export function _persistenceKeyName(
   key: string,
   apiKey: ApiKey,
   appName: AppName

@@ -36,6 +36,8 @@ import {
 } from './user_credential';
 import { unwrap, Wrapper } from './wrap';
 
+const PERSISTENCE_KEY = 'persistence';
+
 export class Auth
   implements compat.FirebaseAuth, Wrapper<externs.Auth>, _FirebaseService {
   // private readonly auth: impl.AuthImpl;
@@ -46,8 +48,15 @@ export class Auth
       return;
     }
 
+    // Note this is slightly different behavior: in this case, the stored
+    // persistence is checked *first* rather than last. This is because we want
+    // the fallback (if no user is found) to be the stored persistence type
+    const storedPersistence = this.getPersistenceFromRedirect();
+    const persistences = storedPersistence ? [storedPersistence] : [];
+    persistences.push(impl.indexedDBLocalPersistence);
+
     // TODO(avolkovi): Implement proper persistence fallback
-    const hierarchy = [impl.indexedDBLocalPersistence].map<impl.Persistence>(
+    const hierarchy = persistences.map<impl.Persistence>(
       impl._getInstance
     );
 
@@ -279,6 +288,7 @@ export class Auth
       impl.AuthErrorCode.OPERATION_NOT_SUPPORTED,
       { appName: this.app.name }
     );
+    this.savePersistenceForRedirect();
     return impl.signInWithRedirect(
       this.auth,
       provider as externs.AuthProvider,
@@ -297,6 +307,41 @@ export class Auth
   _delete(): Promise<void> {
     return this.auth._delete();
   }
+
+  private savePersistenceForRedirect(): void {
+    const win = getSelfWindow();
+    const key = impl._persistenceKeyName(PERSISTENCE_KEY, this.auth.config.apiKey, this.auth.name);
+    if (win && win.sessionStorage) {
+      win.sessionStorage.setItem(key, this.auth._getPersistence());
+    }
+  }
+
+  private getPersistenceFromRedirect(): externs.Persistence | null {
+    const win = getSelfWindow();
+    if (!win || !win.sessionStorage) {
+      return null;
+    }
+
+    const key = impl._persistenceKeyName(PERSISTENCE_KEY, this.auth.config.apiKey, this.auth.name);
+    const persistence = win.sessionStorage.getItem(key);
+
+    switch (persistence) {
+      case impl.inMemoryPersistence.type:
+        return impl.inMemoryPersistence;
+      case impl.indexedDBLocalPersistence.type:
+        return impl.indexedDBLocalPersistence;
+      case impl.browserSessionPersistence.type:
+        return impl.browserSessionPersistence;
+      case impl.browserLocalPersistence.type:
+        return impl.browserLocalPersistence;
+      default:
+        return null;
+    }
+  }
+}
+
+function getSelfWindow(): Window|null {
+  return typeof self !== 'undefined' ? self : null;
 }
 
 function wrapObservers(

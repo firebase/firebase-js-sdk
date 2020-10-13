@@ -50,6 +50,7 @@ export interface Auth extends externs.Auth {
   _key(): string;
   _startProactiveRefresh(): void;
   _stopProactiveRefresh(): void;
+  _getPersistence(): string;
 
   readonly name: AppName;
   readonly config: ConfigInternal;
