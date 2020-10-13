@@ -51,7 +51,7 @@
   "devDependencies": {
     "@firebase/app-exp": "0.0.800",
     "rollup": "2.29.0",
-    "rollup-plugin-json": "4.0.0",
+    "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-sourcemaps": "0.6.3",
     "rollup-plugin-typescript2": "0.27.3",
     "@rollup/plugin-strip": "2.0.0",
