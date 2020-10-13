@@ -33,5 +33,5 @@ export interface Auth
 |  [signOut()](./auth-types.auth.signout.md) |  |
 |  [updateCurrentUser(user)](./auth-types.auth.updatecurrentuser.md) |  |
 |  [useDeviceLanguage()](./auth-types.auth.usedevicelanguage.md) |  |
-|  [useEmulator(hostname, port)](./auth-types.auth.useemulator.md) |  |
+|  [useEmulator(url)](./auth-types.auth.useemulator.md) |  |
 

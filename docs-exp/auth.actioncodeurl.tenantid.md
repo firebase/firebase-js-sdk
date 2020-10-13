@@ -4,6 +4,8 @@
 
 ## ActionCodeURL.tenantId property
 
+The tenant ID of the email action link. Null if the email action is from the parent project.
+
 <b>Signature:</b>
 
 ```typescript

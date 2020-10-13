@@ -8,7 +8,7 @@
 
 |  Class | Description |
 |  --- | --- |
-|  [ActionCodeURL](./auth-types.actioncodeurl.md) | https://firebase.google.com/docs/reference/js/firebase.auth.ActionCodeURL |
+|  [ActionCodeURL](./auth-types.actioncodeurl.md) | A utility class to parse email action URLs such as password reset, email verification, email link sign in, etc. |
 |  [AuthCredential](./auth-types.authcredential.md) | https://firebase.google.com/docs/reference/js/firebase.auth.AuthCredential |
 |  [EmailAuthProvider](./auth-types.emailauthprovider.md) | A provider for generating email &amp; password and email link credentials<!-- -->https://firebase.google.com/docs/reference/js/firebase.auth.EmailAuthProvider |
 |  [MultiFactorResolver](./auth-types.multifactorresolver.md) | https://firebase.google.com/docs/reference/js/firebase.auth.multifactorresolver |

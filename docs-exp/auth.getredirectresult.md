@@ -7,7 +7,7 @@
 <b>Signature:</b>
 
 ```typescript
-export declare function getRedirectResult(authExtern: externs.Auth, resolverExtern: externs.PopupRedirectResolver): Promise<externs.UserCredential | null>;
+export declare function getRedirectResult(authExtern: externs.Auth, resolverExtern?: externs.PopupRedirectResolver): Promise<externs.UserCredential | null>;
 ```
 
 ## Parameters

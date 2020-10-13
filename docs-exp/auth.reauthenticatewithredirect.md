@@ -7,7 +7,7 @@
 <b>Signature:</b>
 
 ```typescript
-export declare function reauthenticateWithRedirect(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<never>;
+export declare function reauthenticateWithRedirect(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<never>;
 ```
 
 ## Parameters

@@ -15,7 +15,7 @@ export declare class RecaptchaVerifier implements externs.RecaptchaVerifier, App
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(containerOrId, parameters, auth)](./auth.recaptchaverifier._constructor_.md) |  | Constructs a new instance of the <code>RecaptchaVerifier</code> class |
+|  [(constructor)(containerOrId, parameters, authExtern)](./auth.recaptchaverifier._constructor_.md) |  | Constructs a new instance of the <code>RecaptchaVerifier</code> class |
 
 ## Properties
 

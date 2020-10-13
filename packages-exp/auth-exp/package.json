@@ -32,7 +32,7 @@
     "prepare": "rollup -c rollup.config.release.js",
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
-    "doc": "api-documenter markdown --input temp --output docs",
+    "doc": "api-documenter markdown --input temp --input ../auth-types-exp/temp --output docs",
     "build:doc": "yarn build && yarn doc"
   },
   "peerDependencies": {

@@ -205,16 +205,45 @@ export interface ActionCodeSettings {
 }
 
 /**
- * https://firebase.google.com/docs/reference/js/firebase.auth.ActionCodeURL
+ * A utility class to parse email action URLs such as password reset, email verification,
+ * email link sign in, etc.
+ *
+ * @public
  */
 export abstract class ActionCodeURL {
+  /**
+   * The API key of the email action link.
+   */
   readonly apiKey: string;
+  /**
+   * The action code of the email action link.
+   */
   readonly code: string;
+  /**
+   * The continue URL of the email action link. Null if not provided.
+   */
   readonly continueUrl: string | null;
+  /**
+   * The language code of the email action link. Null if not provided.
+   */
   readonly languageCode: string | null;
+  /**
+   * The action performed by the email action link. It returns from one of the types from {@link ActionCodeInfo}
+   */
   readonly operation: Operation;
+  /**
+   * The tenant ID of the email action link. Null if the email action is from the parent project.
+   */
   readonly tenantId: string | null;
 
+  /**
+   * Parses the email action link string and returns an ActionCodeURL object if the link is valid, otherwise returns null.
+   *
+   * @param link  - The email action link string.
+   * @returns The ActionCodeURL object, or null if the link is invalid.
+   *
+   * @public
+   */
   static parseLink(link: string): ActionCodeURL | null;
 }
 

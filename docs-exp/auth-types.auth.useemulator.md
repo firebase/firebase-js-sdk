@@ -7,15 +7,14 @@
 <b>Signature:</b>
 
 ```typescript
-useEmulator(hostname: string, port: number): void;
+useEmulator(url: string): void;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  hostname | string |  |
-|  port | number |  |
+|  url | string |  |
 
 <b>Returns:</b>
 
