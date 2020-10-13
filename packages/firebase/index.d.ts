@@ -3120,6 +3120,14 @@ declare namespace firebase.auth {
      */
     useDeviceLanguage(): void;
     /**
+     * Modify this Auth instance to communicate with the Firebase Auth emulator.  This must be 
+     * called synchronously immediately following the first call to `firebase.auth()`.  Do not use
+     * with production credentials as emulator traffic is not encrypted.
+     * 
+     * @param url The URL at which the emulator is running (eg, 'http://localhost:9099')
+     */
+    useEmulator(url: string): void;
+    /**
      * Checks a password reset code sent to the user by email or other out-of-band
      * mechanism.
      *

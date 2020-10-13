@@ -47,9 +47,11 @@ goog.require('goog.array');
  * @param {string} apiKey The API key for sending backend Auth requests.
  * @param {string} appName The App ID for the Auth instance that triggered this
  *     request.
+ *  @param {?fireauth.constants.EmulatorSettings=} emulatorConfig The emulator
+ *     configuration.
  * @constructor
  */
-fireauth.AuthEventManager = function(authDomain, apiKey, appName) {
+fireauth.AuthEventManager = function(authDomain, apiKey, appName, emulatorConfig) {
   /**
    * @private {!Object<string, boolean>} The map of processed auth event IDs.
    */
@@ -62,6 +64,8 @@ fireauth.AuthEventManager = function(authDomain, apiKey, appName) {
   this.apiKey_ = apiKey;
   /** @private {string} The App name. */
   this.appName_ = appName;
+  /** @private @const {?fireauth.constants.EmulatorSettings|undefined} The emulator config. */
+  this.emulatorConfig_ = emulatorConfig;
   /**
    * @private {!Array<!fireauth.AuthEventHandler>} List of subscribed handlers.
    */
@@ -111,9 +115,12 @@ fireauth.AuthEventManager = function(authDomain, apiKey, appName) {
    */
   this.oauthSignInHandler_ =
       fireauth.AuthEventManager.instantiateOAuthSignInHandler(
-          this.authDomain_, this.apiKey_, this.appName_,
-          firebase.SDK_VERSION || null,
-          fireauth.constants.clientEndpoint);
+        this.authDomain_,
+        this.apiKey_,
+        this.appName_,
+        firebase.SDK_VERSION || null,
+        fireauth.constants.clientEndpoint,
+        this.emulatorConfig_);
 };
 
 
@@ -149,11 +156,13 @@ fireauth.AuthEventManager.prototype.getPopupAuthEventProcessor = function() {
  *     request.
  * @param {?string} version The SDK client version.
  * @param {?string=} opt_endpointId The endpoint ID (staging, test Gaia, etc).
+ *  @param {?fireauth.constants.EmulatorSettings=} emulatorConfig The emulator
+ *     configuration.
  * @return {!fireauth.OAuthSignInHandler} The OAuth sign in handler depending
  *     on the current environment.
  */
 fireauth.AuthEventManager.instantiateOAuthSignInHandler =
-    function(authDomain, apiKey, appName, version, opt_endpointId) {
+    function(authDomain, apiKey, appName, version, opt_endpointId, emulatorConfig) {
   // This assumes that android/iOS file environment must be a Cordova
   // environment which is not true. This is the best way currently available
   // to instantiate this synchronously without waiting for checkIfCordova to
@@ -161,10 +170,21 @@ fireauth.AuthEventManager.instantiateOAuthSignInHandler =
   // be caught via actionable public popup and redirect methods.
   return fireauth.util.isAndroidOrIosCordovaScheme() ?
       new fireauth.CordovaHandler(
-          authDomain, apiKey, appName, version, undefined, undefined,
-          opt_endpointId) :
+        authDomain,
+        apiKey,
+        appName,
+        version,
+        undefined,
+        undefined,
+        opt_endpointId,
+        emulatorConfig) :
       new fireauth.iframeclient.IfcHandler(
-          authDomain, apiKey, appName, version, opt_endpointId);
+        authDomain,
+        apiKey,
+        appName,
+        version,
+        opt_endpointId,
+        emulatorConfig);
 };
 
 
@@ -179,8 +199,12 @@ fireauth.AuthEventManager.prototype.reset = function() {
 
   this.oauthSignInHandler_ =
       fireauth.AuthEventManager.instantiateOAuthSignInHandler(
-          this.authDomain_, this.apiKey_, this.appName_,
-          firebase.SDK_VERSION || null);
+        this.authDomain_,
+        this.apiKey_,
+        this.appName_,
+        firebase.SDK_VERSION || null,
+        null,
+        this.emulatorConfig_);
   this.processedEvents_ = {};
 };
 
@@ -648,12 +672,18 @@ fireauth.AuthEventManager.KEY_SEPARATOR_ = ':';
 /**
  * @param {string} apiKey The API key for sending backend Auth requests.
  * @param {string} appName The Auth instance that initiated the Auth event.
- * @return {string} The key identifying the Auth event manager instance.
- * @private
- */
-fireauth.AuthEventManager.getKey_ = function(apiKey, appName) {
-  return apiKey + fireauth.AuthEventManager.KEY_SEPARATOR_ + appName;
-};
+   * @param {?fireauth.constants.EmulatorSettings=} emulatorConfig The emulator
+   *   configuration.
+   * @return {string} The key identifying the Auth event manager instance.
+   * @private
+   */
+fireauth.AuthEventManager.getKey_ = function(apiKey, appName, emulatorConfig) {
+  var key = apiKey + fireauth.AuthEventManager.KEY_SEPARATOR_ + appName;
+  if (emulatorConfig) {
+    key = key + fireauth.AuthEventManager.KEY_SEPARATOR_ + emulatorConfig.url;
+  }
+  return key;
+}
 
 
 /**
@@ -662,18 +692,28 @@ fireauth.AuthEventManager.getKey_ = function(apiKey, appName) {
  * @param {string} apiKey The API key for sending backend Auth requests.
  * @param {string} appName The Auth instance that initiated the Auth event
  *     manager.
+ * @param {?fireauth.constants.EmulatorSettings=} emulatorConfig The emulator
+ *     configuration.
  * @return {!fireauth.AuthEventManager} the requested manager instance.
  */
-fireauth.AuthEventManager.getManager = function(authDomain, apiKey, appName) {
+fireauth.AuthEventManager.getManager = function (authDomain, apiKey, appName, emulatorConfig) {
   // Construct storage key.
-  var key = fireauth.AuthEventManager.getKey_(apiKey, appName);
+  var key = fireauth.AuthEventManager.getKey_(
+    apiKey,
+    appName,
+    emulatorConfig
+  );
   if (!fireauth.AuthEventManager.manager_[key]) {
     fireauth.AuthEventManager.manager_[key] =
-        new fireauth.AuthEventManager(authDomain, apiKey, appName);
+      new fireauth.AuthEventManager(
+        authDomain,
+        apiKey,
+        appName,
+        emulatorConfig
+      );
   }
   return fireauth.AuthEventManager.manager_[key];
 };
-
 
 
 /**
