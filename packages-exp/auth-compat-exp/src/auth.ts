@@ -56,9 +56,7 @@ export class Auth
     persistences.push(impl.indexedDBLocalPersistence);
 
     // TODO(avolkovi): Implement proper persistence fallback
-    const hierarchy = persistences.map<impl.Persistence>(
-      impl._getInstance
-    );
+    const hierarchy = persistences.map<impl.Persistence>(impl._getInstance);
 
     // TODO: platform needs to be determined using heuristics
     impl.assertFn(apiKey, impl.AuthErrorCode.INVALID_API_KEY, {
@@ -310,7 +308,11 @@ export class Auth
 
   private savePersistenceForRedirect(): void {
     const win = getSelfWindow();
-    const key = impl._persistenceKeyName(PERSISTENCE_KEY, this.auth.config.apiKey, this.auth.name);
+    const key = impl._persistenceKeyName(
+      PERSISTENCE_KEY,
+      this.auth.config.apiKey,
+      this.auth.name
+    );
     if (win && win.sessionStorage) {
       win.sessionStorage.setItem(key, this.auth._getPersistence());
     }
@@ -322,7 +324,11 @@ export class Auth
       return null;
     }
 
-    const key = impl._persistenceKeyName(PERSISTENCE_KEY, this.auth.config.apiKey, this.auth.name);
+    const key = impl._persistenceKeyName(
+      PERSISTENCE_KEY,
+      this.auth.config.apiKey,
+      this.auth.name
+    );
     const persistence = win.sessionStorage.getItem(key);
 
     switch (persistence) {
@@ -340,7 +346,7 @@ export class Auth
   }
 }
 
-function getSelfWindow(): Window|null {
+function getSelfWindow(): Window | null {
   return typeof self !== 'undefined' ? self : null;
 }
 
