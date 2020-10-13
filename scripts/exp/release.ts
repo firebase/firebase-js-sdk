@@ -60,9 +60,12 @@ async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
     await buildPackages();
 
     // path to exp packages
-    const packagePaths = await mapWorkspaceToPackages([
+    let packagePaths = await mapWorkspaceToPackages([
       `${projectRoot}/packages-exp/*`
     ]);
+
+    // exclude auth packages until we are ready to release
+    packagePaths = packagePaths.filter(path => !path.includes('auth'));
 
     packagePaths.push(`${projectRoot}/packages/firestore`);
 

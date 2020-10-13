@@ -17,7 +17,7 @@
 
 import tmp from 'tmp';
 import path from 'path';
-import json from 'rollup-plugin-json';
+import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';

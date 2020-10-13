@@ -59,7 +59,8 @@ export function getDatastore(firestore: FirebaseFirestore): Datastore {
       firestore._persistenceKey,
       settings.host ?? DEFAULT_HOST,
       settings.ssl ?? DEFAULT_SSL,
-      /* forceLongPolling= */ false
+      /* forceLongPolling= */ false,
+      /* forceAutoDetectLongPolling= */ true
     );
 
     const connection = newConnection(databaseInfo);

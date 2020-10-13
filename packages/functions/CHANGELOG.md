@@ -1,5 +1,11 @@
 # @firebase/functions
 
+## 0.5.1
+
+### Patch Changes
+
+- [`b6b1fd95c`](https://github.com/firebase/firebase-js-sdk/commit/b6b1fd95cbeeabc38daa574ce7cf0b7dd34cf550) - Fixes a bug introduced in #3782 that causes callable functions to throw an error in browser extensions.
+
 ## 0.5.0
 
 ### Minor Changes

@@ -17,14 +17,14 @@
 
 import { Endpoint, HttpMethod, _performApiRequest } from '../';
 import { MfaEnrollment } from './mfa';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '@firebase/auth-types-exp';
 
 export interface DeleteAccountRequest {
   idToken: string;
 }
 
 export async function deleteAccount(
-  auth: AuthCore,
+  auth: Auth,
   request: DeleteAccountRequest
 ): Promise<void> {
   return _performApiRequest<DeleteAccountRequest, void>(
@@ -54,7 +54,7 @@ export interface DeleteLinkedAccountsResponse {
 }
 
 export async function deleteLinkedAccounts(
-  auth: AuthCore,
+  auth: Auth,
   request: DeleteLinkedAccountsRequest
 ): Promise<DeleteLinkedAccountsResponse> {
   return _performApiRequest<
@@ -87,7 +87,7 @@ export interface GetAccountInfoResponse {
 }
 
 export async function getAccountInfo(
-  auth: AuthCore,
+  auth: Auth,
   request: GetAccountInfoRequest
 ): Promise<GetAccountInfoResponse> {
   return _performApiRequest<GetAccountInfoRequest, GetAccountInfoResponse>(

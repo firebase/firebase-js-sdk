@@ -27,9 +27,9 @@ import {
   Unsubscribe
 } from '@firebase/util';
 
-import { Auth, AuthCore, ConfigInternal } from '../../model/auth';
+import { Auth, ConfigInternal } from '../../model/auth';
 import { PopupRedirectResolver } from '../../model/popup_redirect';
-import { User, UserParameters } from '../../model/user';
+import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
 import {
@@ -37,7 +37,6 @@ import {
   PersistenceUserManager
 } from '../persistence/persistence_user_manager';
 import { _reloadWithoutSaving } from '../user/reload';
-import { UserImpl } from '../user/user_impl';
 import { assert } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
@@ -46,28 +45,25 @@ interface AsyncAction {
   (): Promise<void>;
 }
 
-export interface UserProvider<T extends User> {
-  new (params: UserParameters): T;
-}
-
 export const DEFAULT_TOKEN_API_HOST = 'securetoken.googleapis.com';
 export const DEFAULT_API_HOST = 'identitytoolkit.googleapis.com';
 export const DEFAULT_API_SCHEME = 'https';
 
-export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
-  currentUser: T | null = null;
+export class AuthImpl implements Auth, _FirebaseService {
+  currentUser: externs.User | null = null;
   private operations = Promise.resolve();
   private persistenceManager?: PersistenceUserManager;
   private redirectPersistenceManager?: PersistenceUserManager;
-  private authStateSubscription = new Subscription<T>(this);
-  private idTokenSubscription = new Subscription<T>(this);
-  private redirectUser: T | null = null;
+  private authStateSubscription = new Subscription<externs.User>(this);
+  private idTokenSubscription = new Subscription<externs.User>(this);
+  private redirectUser: User | null = null;
   private isProactiveRefreshEnabled = false;
 
   // Any network calls will set this to true and prevent subsequent emulator
   // initialization
   _canInitEmulator = true;
   _isInitialized = false;
+  _deleted = false;
   _initializationPromise: Promise<void> | null = null;
   _popupRedirectResolver: PopupRedirectResolver | null = null;
   readonly name: string;
@@ -82,8 +78,7 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
 
   constructor(
     public readonly app: FirebaseApp,
-    public readonly config: ConfigInternal,
-    private readonly _userProvider: UserProvider<T>
+    public readonly config: ConfigInternal
   ) {
     this.name = app.name;
   }
@@ -92,7 +87,13 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
     persistenceHierarchy: Persistence[],
     popupRedirectResolver?: externs.PopupRedirectResolver
   ): Promise<void> {
+    // Have to check for app deletion throughout initialization (after each
+    // promise resolution)
     this._initializationPromise = this.queue(async () => {
+      if (this._deleted) {
+        return;
+      }
+
       if (popupRedirectResolver) {
         this._popupRedirectResolver = _getInstance(popupRedirectResolver);
       }
@@ -102,7 +103,15 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
         persistenceHierarchy
       );
 
+      if (this._deleted) {
+        return;
+      }
+
       await this.initializeCurrentUser();
+
+      if (this._deleted) {
+        return;
+      }
 
       this._isInitialized = true;
       this.notifyAuthListeners();
@@ -115,6 +124,10 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
    * If the persistence is changed in another window, the user manager will let us know
    */
   async _onStorageEvent(): Promise<void> {
+    if (this._deleted) {
+      return;
+    }
+
     const user = await this.assertedPersistence.getCurrentUser();
 
     if (!this.currentUser && !user) {
@@ -125,7 +138,7 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
     // If the same user is to be synchronized.
     if (this.currentUser && user && this.currentUser.uid === user.uid) {
       // Data update, simply copy data changes.
-      this.currentUser._copy(user);
+      this._currentUser._copy(user);
       // If tokens changed from previous user tokens, this will trigger
       // notifyAuthListeners_.
       await this.currentUser.getIdToken();
@@ -138,12 +151,8 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
     this.notifyAuthListeners();
   }
 
-  _createUser(params: UserParameters): T {
-    return new this._userProvider(params);
-  }
-
   private async initializeCurrentUser(): Promise<void> {
-    const storedUser = (await this.assertedPersistence.getCurrentUser()) as T | null;
+    const storedUser = (await this.assertedPersistence.getCurrentUser()) as User | null;
     if (!storedUser) {
       return this.directlySetCurrentUser(storedUser);
     }
@@ -171,7 +180,7 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
     return this.reloadAndSetCurrentUserOrClear(storedUser);
   }
 
-  private async reloadAndSetCurrentUserOrClear(user: T): Promise<void> {
+  private async reloadAndSetCurrentUserOrClear(user: User): Promise<void> {
     try {
       await _reloadWithoutSaving(user);
     } catch (e) {
@@ -189,24 +198,23 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
     this.languageCode = _getUserLanguage();
   }
 
-  useEmulator(hostname: string, port: number): void {
+  useEmulator(url: string): void {
     assert(this._canInitEmulator, AuthErrorCode.EMULATOR_CONFIG_FAILED, {
       appName: this.name
     });
 
-    this.config.emulator = {
-      hostname,
-      port
-    };
-
+    this.config.emulator = { url };
     this.settings.appVerificationDisabledForTesting = true;
   }
 
   async _delete(): Promise<void> {
-    // TODO: Determine what we want to do in this case
+    this._deleted = true;
   }
 
   async updateCurrentUser(user: externs.User | null): Promise<void> {
+    if (this._deleted) {
+      return;
+    }
     if (user) {
       assert(
         this.tenantId === user.tenantId,
@@ -215,7 +223,7 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
       );
     }
     return this.queue(async () => {
-      await this.directlySetCurrentUser(user as T | null);
+      await this.directlySetCurrentUser(user as User | null);
       this.notifyAuthListeners();
     });
   }
@@ -229,14 +237,14 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
     return this.updateCurrentUser(null);
   }
 
-  _setPersistence(persistence: externs.Persistence): Promise<void> {
+  setPersistence(persistence: externs.Persistence): Promise<void> {
     return this.queue(async () => {
       await this.assertedPersistence.setPersistence(_getInstance(persistence));
     });
   }
 
-  _onAuthStateChanged(
-    nextOrObserver: externs.NextOrObserver<T>,
+  onAuthStateChanged(
+    nextOrObserver: externs.NextOrObserver<externs.User>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
@@ -248,8 +256,8 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
     );
   }
 
-  _onIdTokenChanged(
-    nextOrObserver: externs.NextOrObserver<T>,
+  onIdTokenChanged(
+    nextOrObserver: externs.NextOrObserver<externs.User>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
@@ -261,8 +269,17 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
     );
   }
 
+  toJSON(): object {
+    return {
+      apiKey: this.config.apiKey,
+      authDomain: this.config.authDomain,
+      appName: this.name,
+      currentUser: this._currentUser?.toJSON()
+    };
+  }
+
   async _setRedirectUser(
-    user: T | null,
+    user: User | null,
     popupRedirectResolver?: externs.PopupRedirectResolver
   ): Promise<void> {
     const redirectManager = await this.getOrInitRedirectPersistenceManager(
@@ -286,18 +303,18 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
         [_getInstance(resolver._redirectPersistence)],
         _REDIRECT_USER_KEY_NAME
       );
-      this.redirectUser = (await this.redirectPersistenceManager.getCurrentUser()) as T;
+      this.redirectUser = await this.redirectPersistenceManager.getCurrentUser();
     }
 
     return this.redirectPersistenceManager;
   }
 
-  async _redirectUserForId(id: string): Promise<T | null> {
+  async _redirectUserForId(id: string): Promise<User | null> {
     // Make sure we've cleared any pending ppersistence actions
     await this.queue(async () => {});
 
-    if (this.currentUser?._redirectEventId === id) {
-      return this.currentUser;
+    if (this._currentUser?._redirectEventId === id) {
+      return this._currentUser;
     }
 
     if (this.redirectUser?._redirectEventId === id) {
@@ -307,14 +324,14 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
     return null;
   }
 
-  async _persistUserIfCurrent(user: T): Promise<void> {
+  async _persistUserIfCurrent(user: User): Promise<void> {
     if (user === this.currentUser) {
       return this.queue(async () => this.directlySetCurrentUser(user));
     }
   }
 
   /** Notifies listeners only if the user is current */
-  _notifyListenersIfCurrent(user: T): void {
+  _notifyListenersIfCurrent(user: User): void {
     if (user === this.currentUser) {
       this.notifyAuthListeners();
     }
@@ -327,15 +344,20 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
   _startProactiveRefresh(): void {
     this.isProactiveRefreshEnabled = true;
     if (this.currentUser) {
-      this.currentUser._startProactiveRefresh();
+      this._currentUser._startProactiveRefresh();
     }
   }
 
   _stopProactiveRefresh(): void {
     this.isProactiveRefreshEnabled = false;
     if (this.currentUser) {
-      this.currentUser._stopProactiveRefresh();
+      this._currentUser._stopProactiveRefresh();
     }
+  }
+
+  /** Returns the current user cast as the internal type */
+  get _currentUser(): User {
+    return this.currentUser as User;
   }
 
   private notifyAuthListeners(): void {
@@ -352,11 +374,15 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
   }
 
   private registerStateListener(
-    subscription: Subscription<T>,
-    nextOrObserver: externs.NextOrObserver<T>,
+    subscription: Subscription<externs.User>,
+    nextOrObserver: externs.NextOrObserver<externs.User>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
+    if (this._deleted) {
+      return () => {};
+    }
+
     const cb =
       typeof nextOrObserver === 'function'
         ? nextOrObserver
@@ -382,9 +408,9 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
    * should only be called from within a queued callback. This is necessary
    * because the queue shouldn't rely on another queued callback.
    */
-  private async directlySetCurrentUser(user: T | null): Promise<void> {
+  private async directlySetCurrentUser(user: User | null): Promise<void> {
     if (this.currentUser && this.currentUser !== user) {
-      this.currentUser._stopProactiveRefresh();
+      this._currentUser._stopProactiveRefresh();
       if (user && this.isProactiveRefreshEnabled) {
         user._startProactiveRefresh();
       }
@@ -415,37 +441,6 @@ export class AuthImplCompat<T extends User> implements Auth, _FirebaseService {
 }
 
 /**
- * This is the implementation we make public in the new SDK, note the changed interface on these methods
- *
- * Don't instantiate this class directly, use initializeAuth()
- */
-export class AuthImpl extends AuthImplCompat<UserImpl> implements externs.Auth {
-  constructor(app: FirebaseApp, config: externs.Config) {
-    super(app, config, UserImpl);
-  }
-
-  onAuthStateChanged(
-    nextOrObserver: externs.NextOrObserver<externs.User>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe {
-    return super._onAuthStateChanged(nextOrObserver, error, completed);
-  }
-
-  onIdTokenChanged(
-    nextOrObserver: externs.NextOrObserver<externs.User>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe {
-    return super._onIdTokenChanged(nextOrObserver, error, completed);
-  }
-
-  setPersistence(persistence: externs.Persistence): Promise<void> {
-    return super._setPersistence(persistence);
-  }
-}
-
-/**
  * Method to be used to cast down to our private implmentation of Auth
  *
  * @param auth Auth object passed in from developer
@@ -461,7 +456,7 @@ class Subscription<T> {
     observer => (this.observer = observer)
   );
 
-  constructor(readonly auth: AuthCore) {}
+  constructor(readonly auth: Auth) {}
 
   get next(): NextFn<T | null> {
     assert(this.observer, AuthErrorCode.INTERNAL_ERROR, {

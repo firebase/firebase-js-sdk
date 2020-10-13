@@ -92,3 +92,11 @@ scripts/docgen/content-sources/ @firebase/firebase-techwriters @firebase/jssdk-g
 packages-exp/auth-exp  @avolkovi @samhorlbeck @firebase/jssdk-global-approvers
 packages-exp/auth-types-exp  @avolkovi @samhorlbeck @firebase/jssdk-global-approvers
 packages-exp/auth-compat-exp @avolkovi @samhorlbeck @firebase/jssdk-global-approvers
+
+# Installations-Exp Code
+packages/installations-exp @andirayo @ChaoqunCHEN @firebase/jssdk-global-approvers
+packages/installations-types-exp @andirayo @ChaoqunCHEN @firebase/jssdk-global-approvers
+
+# Perf-Exp Code
+packages/performance-exp  @alikn @zijianjoy @firebase/jssdk-global-approvers
+packages/performance-types-exp  @alikn @zijianjoy @firebase/jssdk-global-approvers

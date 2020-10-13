@@ -18,6 +18,7 @@
 import { SDK_VERSION } from '@firebase/app-exp';
 import * as externs from '@firebase/auth-types-exp';
 import { isEmpty, querystring } from '@firebase/util';
+import { _getInstance } from '../core/util/instantiator';
 
 import { AuthEventManager } from '../core/auth/auth_event_manager';
 import { AuthErrorCode } from '../core/errors';
@@ -62,6 +63,26 @@ interface WebStorageSupportMessage extends gapi.iframes.Message {
 interface ManagerOrPromise {
   manager?: EventManager;
   promise?: Promise<EventManager>;
+}
+
+/**
+ * Chooses a popup/redirect resolver to use. This prefers the override (which
+ * is directly passed in), and falls back to the property set on the auth
+ * object. If neither are available, this function errors w/ an argument error.
+ */
+export function _withDefaultResolver(
+  auth: Auth,
+  resolverOverride: externs.PopupRedirectResolver | undefined
+): PopupRedirectResolver {
+  if (resolverOverride) {
+    return _getInstance(resolverOverride);
+  }
+
+  assert(auth._popupRedirectResolver, AuthErrorCode.ARGUMENT_ERROR, {
+    appName: auth.name
+  });
+
+  return auth._popupRedirectResolver;
 }
 
 class BrowserPopupRedirectResolver implements PopupRedirectResolver {

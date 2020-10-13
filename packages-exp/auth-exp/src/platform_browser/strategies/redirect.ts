@@ -31,19 +31,20 @@ import {
   PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { User, UserCredential } from '../../model/user';
+import { _withDefaultResolver } from '../popup_redirect';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 
 export async function signInWithRedirect(
-  auth: externs.Auth,
+  authExtern: externs.Auth,
   provider: externs.AuthProvider,
-  resolverExtern: externs.PopupRedirectResolver
+  resolverExtern?: externs.PopupRedirectResolver
 ): Promise<never> {
+  const auth = _castAuth(authExtern);
   assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
     appName: auth.name
   });
-  const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
 
-  return resolver._openRedirect(
+  return _withDefaultResolver(auth, resolverExtern)._openRedirect(
     auth,
     provider,
     AuthEventType.SIGN_IN_VIA_REDIRECT
@@ -53,13 +54,15 @@ export async function signInWithRedirect(
 export async function reauthenticateWithRedirect(
   userExtern: externs.User,
   provider: externs.AuthProvider,
-  resolverExtern: externs.PopupRedirectResolver
+  resolverExtern?: externs.PopupRedirectResolver
 ): Promise<never> {
   const user = userExtern as User;
   assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
     appName: user.auth.name
   });
-  const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
+
+  // Allow the resolver to error before persisting the redirect user
+  const resolver = _withDefaultResolver(user.auth, resolverExtern);
 
   const eventId = await prepareUserForRedirect(user.auth, user);
   return resolver._openRedirect(
@@ -73,13 +76,15 @@ export async function reauthenticateWithRedirect(
 export async function linkWithRedirect(
   userExtern: externs.User,
   provider: externs.AuthProvider,
-  resolverExtern: externs.PopupRedirectResolver
+  resolverExtern?: externs.PopupRedirectResolver
 ): Promise<never> {
   const user = userExtern as User;
   assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
     appName: user.auth.name
   });
-  const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
+
+  // Allow the resolver to error before persisting the redirect user
+  const resolver = _withDefaultResolver(user.auth, resolverExtern);
 
   await _assertLinkedStatus(false, user, provider.providerId);
   const eventId = await prepareUserForRedirect(user.auth, user);
@@ -93,10 +98,10 @@ export async function linkWithRedirect(
 
 export async function getRedirectResult(
   authExtern: externs.Auth,
-  resolverExtern: externs.PopupRedirectResolver
+  resolverExtern?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential | null> {
   const auth = _castAuth(authExtern);
-  const resolver: PopupRedirectResolver = _getInstance(resolverExtern);
+  const resolver = _withDefaultResolver(auth, resolverExtern);
   const action = new RedirectAction(auth, resolver);
   const result = await action.execute();
 

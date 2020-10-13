@@ -21,7 +21,7 @@ import {
   SignInWithIdpRequest
 } from '../../api/authentication/idp';
 import { PhoneOrOauthTokenResponse } from '../../api/authentication/mfa';
-import { Auth, AuthCore } from '../../model/auth';
+import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { User, UserCredential } from '../../model/user';
 import { AuthCredential } from '../credentials';
@@ -51,15 +51,15 @@ class IdpCredential extends AuthCredential {
     super(externs.ProviderId.CUSTOM, externs.ProviderId.CUSTOM);
   }
 
-  _getIdTokenResponse(auth: AuthCore): Promise<PhoneOrOauthTokenResponse> {
+  _getIdTokenResponse(auth: Auth): Promise<PhoneOrOauthTokenResponse> {
     return signInWithIdp(auth, this._buildIdpRequest());
   }
 
-  _linkToIdToken(auth: AuthCore, idToken: string): Promise<IdTokenResponse> {
+  _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
     return signInWithIdp(auth, this._buildIdpRequest(idToken));
   }
 
-  _getReauthenticationResolver(auth: AuthCore): Promise<IdTokenResponse> {
+  _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
     return signInWithIdp(auth, this._buildIdpRequest());
   }
 
