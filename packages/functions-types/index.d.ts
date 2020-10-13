@@ -58,8 +58,8 @@ export class FirebaseFunctions {
    *
    * Note: this must be called before this instance has been used to do any operations.
    *
-   * @param host the emulator host (ex: localhost)
-   * @param port the emulator port (ex: 5001)
+   * @param host The emulator host (ex: localhost)
+   * @param port The emulator port (ex: 5001)
    */
   useEmulator(host: string, port: number): void;
 
