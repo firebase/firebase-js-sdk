@@ -543,6 +543,16 @@ export interface LoadBundleTaskProgress {
 
 export type TaskState = 'Error' | 'Running' | 'Success';
 
+export function loadBundle(
+  firestore: FirebaseFirestore,
+  bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
+): LoadBundleTask;
+
+export function namedQuery(
+  firestore: FirebaseFirestore,
+  name: string
+): Promise<Query<DocumentData> | null>;
+
 export type FirestoreErrorCode =
   | 'cancelled'
   | 'unknown'
