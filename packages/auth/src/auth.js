@@ -321,22 +321,24 @@ fireauth.Auth.prototype.emitEmulatorWarning_ = function() {
   fireauth.util.consoleWarn('WARNING: You are using the Auth Emulator,' +
     ' which is intended for local testing only.  Do not use with' +
     ' production credentials.');
-  if (goog.global.document && goog.global.document.body) {
-    const ele = goog.global.document.createElement('p');
-    ele.innerText = 'Running in emulator mode. Do not use with production' +
-      ' credentials.';
-    ele.style.position = 'fixed';
-    ele.style.width = '100%';
-    ele.style.backgroundColor = '#ffffff';
-    ele.style.border = '.1em solid #000000';
-    ele.style.color = '#ff0000';
-    ele.style.bottom = '0px';
-    ele.style.left = '0px';
-    ele.style.margin = '0px';
-    ele.style.zIndex = 10000;
-    ele.style.textAlign = 'center';
-    ele.classList.add('firebase-emulator-warning');
-    goog.global.document.body.appendChild(ele);
+  if (goog.global.document) {
+    fireauth.util.onDomReady().then(() => {
+      const ele = goog.global.document.createElement('div');
+      ele.innerText = 'Running in emulator mode. Do not use with production' +
+        ' credentials.';
+      ele.style.position = 'fixed';
+      ele.style.width = '100%';
+      ele.style.backgroundColor = '#ffffff';
+      ele.style.border = '.1em solid #000000';
+      ele.style.color = '#ff0000';
+      ele.style.bottom = '0px';
+      ele.style.left = '0px';
+      ele.style.margin = '0px';
+      ele.style.zIndex = 10000;
+      ele.style.textAlign = 'center';
+      ele.classList.add('firebase-emulator-warning');
+      goog.global.document.body.appendChild(ele);
+    });
   }
 }
 

@@ -450,10 +450,12 @@ function tearDown() {
   currentUserStorageManager = null;
   redirectUserStorageManager = null;
   if (goog.global.document) {
-    var el = goog.global.document.querySelector('.firebase-emulator-warning');
-    if (el) {
-      el.parentNode.removeChild(el);
-    }
+    fireauth.util.onDomReady().then(function () {
+      var el = goog.global.document.querySelector('.firebase-emulator-warning');
+      if (el) {
+        el.parentNode.removeChild(el);
+      }
+    });
   }
 }
 
