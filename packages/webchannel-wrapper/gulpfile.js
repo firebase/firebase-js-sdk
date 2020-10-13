@@ -61,7 +61,7 @@ const closureDefines = [
  * @param {string} prefix prefix to the compiled code
  * @param {string} suffix suffix to the compiled code
  */
-function createBuildTask(filename, prefix, suffix) {
+function createBuildTask(filename, prefix, suffix, languageout) {
   return function closureBuild() {
     return gulp
       .src(
@@ -83,7 +83,7 @@ function createBuildTask(filename, prefix, suffix) {
             resolve(__dirname, './externs/overrides.js'),
             resolve(__dirname, './externs/module.js')
           ],
-          language_out: 'ECMASCRIPT_2017',
+          language_out: languageout,
           dependency_mode: 'PRUNE',
           define: closureDefines
         })
@@ -134,28 +134,27 @@ async function deleteIntermediateFiles() {
   await del('dist/temp');
 }
 
-// Closure-generated ES2017 intermediate file (CJS format)
-const intermediateCjsFile = 'temp/cjs.js';
-const intermediateCjsPath = resolve(__dirname, 'dist/', intermediateCjsFile);
-const cjsBuild = createBuildTask(
-  intermediateCjsFile,
-  CJS_WRAPPER_PREFIX,
-  CJS_WRAPPER_SUFFIX
-);
-
 // Closure-generated ES2017 intermediate file (no wrapper text)
 const intermediateEsmFile = 'temp/esm.js';
 const intermediateEsmPath = resolve(__dirname, 'dist/', intermediateEsmFile);
-const esmBuild = createBuildTask(intermediateEsmFile, '', '');
+const esmBuild = createBuildTask(
+  intermediateEsmFile,
+  '',
+  '',
+  'ECMASCRIPT_2017'
+);
 
 // cjs output
-const rollupCjsTask = createRollupTask({
-  inputPath: intermediateCjsPath,
-  outputExtension: '',
-  compileToES5: true,
-  format: 'cjs'
-});
-gulp.task('cjs', gulp.series(cjsBuild, rollupCjsTask));
+// Closure-generated ES5 CJS build
+const cjsBuildOutput = 'index.js';
+const cjsBuild = createBuildTask(
+  cjsBuildOutput,
+  CJS_WRAPPER_PREFIX,
+  CJS_WRAPPER_SUFFIX,
+  'ECMASCRIPT5'
+);
+
+gulp.task('cjs', cjsBuild);
 
 // esm intermediateEsmPath
 const rollupEsmTask = createRollupTask({
