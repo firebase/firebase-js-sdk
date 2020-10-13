@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import json from 'rollup-plugin-json';
+import json from '@rollup/plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import { es2017BuildsNoPlugin, es5BuildsNoPlugin } from './rollup.shared';

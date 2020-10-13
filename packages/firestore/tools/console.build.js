@@ -21,7 +21,7 @@
  */
 const rollup = require('rollup');
 const { uglify } = require('rollup-plugin-uglify');
-const resolve = require('rollup-plugin-node-resolve');
+const resolve = require('@rollup/plugin-node-resolve');
 const fs = require('fs');
 const util = require('util');
 const fs_writeFile = util.promisify(fs.writeFile);
