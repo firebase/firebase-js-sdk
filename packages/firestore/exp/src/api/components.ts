@@ -105,6 +105,7 @@ export async function setOnlineComponentProvider(
       )
     )
   );
+
   onlineComponentProviders.set(firestore, onlineComponentProvider);
 }
 
@@ -121,6 +122,7 @@ async function getOfflineComponentProvider(
       new MemoryOfflineComponentProvider()
     );
   }
+
   return offlineComponentProviders.get(firestore)!;
 }
 
@@ -133,53 +135,52 @@ async function getOnlineComponentProvider(
     logDebug(LOG_TAG, 'Using default OnlineComponentProvider');
     await setOnlineComponentProvider(firestore, new OnlineComponentProvider());
   }
+
   return onlineComponentProviders.get(firestore)!;
 }
 
-export function getSyncEngine(
+export async function getSyncEngine(
   firestore: FirebaseFirestore
 ): Promise<SyncEngine> {
-  return getOnlineComponentProvider(firestore).then(
-    components => components.syncEngine
-  );
+  const onlineComponentProvider = await getOnlineComponentProvider(firestore);
+  return onlineComponentProvider.syncEngine;
 }
 
-export function getRemoteStore(
+export async function getRemoteStore(
   firestore: FirebaseFirestore
 ): Promise<RemoteStore> {
-  return getOnlineComponentProvider(firestore).then(
-    components => components.remoteStore
-  );
+  const onlineComponentProvider = await getOnlineComponentProvider(firestore);
+  return onlineComponentProvider.remoteStore;
 }
 
-export function getEventManager(
+export async function getEventManager(
   firestore: FirebaseFirestore
 ): Promise<EventManager> {
-  return getOnlineComponentProvider(firestore).then(components => {
-    const eventManager = components.eventManager;
-    eventManager.onListen = syncEngineListen.bind(null, components.syncEngine);
-    eventManager.onUnlisten = syncEngineUnlisten.bind(
-      null,
-      components.syncEngine
-    );
-    return eventManager;
-  });
+  const onlineComponentProvider = await getOnlineComponentProvider(firestore);
+  const eventManager = onlineComponentProvider.eventManager;
+  eventManager.onListen = syncEngineListen.bind(
+    null,
+    onlineComponentProvider.syncEngine
+  );
+  eventManager.onUnlisten = syncEngineUnlisten.bind(
+    null,
+    onlineComponentProvider.syncEngine
+  );
+  return eventManager;
 }
 
-export function getPersistence(
+export async function getPersistence(
   firestore: FirebaseFirestore
 ): Promise<Persistence> {
-  return getOfflineComponentProvider(firestore).then(
-    components => components.persistence
-  );
+  const offlineComponentProvider = await getOfflineComponentProvider(firestore);
+  return offlineComponentProvider.persistence;
 }
 
-export function getLocalStore(
+export async function getLocalStore(
   firestore: FirebaseFirestore
 ): Promise<LocalStore> {
-  return getOfflineComponentProvider(firestore).then(
-    provider => provider.localStore
-  );
+  const offlineComponentProvider = await getOfflineComponentProvider(firestore);
+  return offlineComponentProvider.localStore;
 }
 
 /**
