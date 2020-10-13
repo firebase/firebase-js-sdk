@@ -103,7 +103,7 @@ export async function runPrerelease({
   }
 }
 
-const FORBIDDEN_TAGS = ['latest', 'canary', 'next', 'exp'];
+const FORBIDDEN_TAGS = ['latest', 'next', 'exp'];
 
 interface PrereleaseOptions {
   prereleaseName: string;
