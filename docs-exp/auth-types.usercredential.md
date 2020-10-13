@@ -4,7 +4,7 @@
 
 ## UserCredential interface
 
-https://firebase.google.com/docs/reference/js/firebase.auth\#usercredential
+A structure containing a User, an AuthCredential, the `operationType`<!-- -->, and any additional user information that was returned from the identity provider. operationType could be [OperationType.SIGN\_IN](./auth-types.operationtype.sign_in.md) for a sign-in operation, [OperationType.LINK](./auth-types.operationtype.link.md) for a linking operation and [OperationType.REAUTHENTICATE](./auth-types.operationtype.reauthenticate.md) for a reauthentication operation.
 
 <b>Signature:</b>
 

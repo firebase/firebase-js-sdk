@@ -4,7 +4,7 @@
 
 ## AdditionalUserInfo interface
 
-Additional user information.
+A structure containing additional user information from a federated identity provider.
 
 <b>Signature:</b>
 

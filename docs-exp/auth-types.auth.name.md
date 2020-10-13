@@ -4,6 +4,8 @@
 
 ## Auth.name property
 
+The name of the app associated with the Auth service instance.
+
 <b>Signature:</b>
 
 ```typescript

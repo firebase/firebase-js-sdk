@@ -4,6 +4,8 @@
 
 ## ConfirmationResult.confirm() method
 
+Finishes a phone number sign-in, link, or reauthentication.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +16,7 @@ confirm(verificationCode: string): Promise<UserCredential>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  verificationCode | string |  |
+|  verificationCode | string | The code that was sent to the user's mobile device. |
 
 <b>Returns:</b>
 

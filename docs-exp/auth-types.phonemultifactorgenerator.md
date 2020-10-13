@@ -4,7 +4,7 @@
 
 ## PhoneMultiFactorGenerator class
 
-https://firebase.google.com/docs/reference/js/firebase.auth.phonemultifactorgenerator
+The class used to initialize a [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -16,11 +16,11 @@ export abstract class PhoneMultiFactorGenerator
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [FACTOR\_ID](./auth-types.phonemultifactorgenerator.factor_id.md) | <code>static</code> | [ProviderId](./auth-types.providerid.md) |  |
+|  [FACTOR\_ID](./auth-types.phonemultifactorgenerator.factor_id.md) | <code>static</code> | [ProviderId](./auth-types.providerid.md) | The identifier of the phone second factor: [ProviderId.PHONE](./auth-types.providerid.phone.md)<!-- -->. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [assertion(phoneAuthCredential)](./auth-types.phonemultifactorgenerator.assertion.md) | <code>static</code> |  |
+|  [assertion(phoneAuthCredential)](./auth-types.phonemultifactorgenerator.assertion.md) | <code>static</code> | Initializes the [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md) to confirm ownership of the phone second factor. |
 

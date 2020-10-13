@@ -4,6 +4,8 @@
 
 ## EmailAuthProvider.credentialWithLink() method
 
+Initialize an [EmailAuthProvider](./auth-types.emailauthprovider.md) credential using an email and an email link after a sign in with email link operation.
+
 <b>Signature:</b>
 
 ```typescript
@@ -18,11 +20,25 @@ static credentialWithLink(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | [Auth](./auth-types.auth.md) |  |
-|  email | string |  |
-|  emailLink | string |  |
+|  auth | [Auth](./auth-types.auth.md) | The Auth instance used to verify the link. |
+|  email | string | Email address. |
+|  emailLink | string | Sign-in email link. |
 
 <b>Returns:</b>
 
 [AuthCredential](./auth-types.authcredential.md)
+
+- The auth provider credential.
+
+## Example
+
+
+```
+const cred = EmailAuthProvider.credentialWithLink(
+    auth,
+    email,
+    emailLink
+);
+
+```
 

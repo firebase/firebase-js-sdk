@@ -4,6 +4,8 @@
 
 ## ActionCodeSettings.iOS property
 
+Sets the iOS bundle ID. This will try to open the link in an iOS app if it is installed.
+
 <b>Signature:</b>
 
 ```typescript

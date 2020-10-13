@@ -4,6 +4,10 @@
 
 ## User.delete() method
 
+Deletes and signs out the user.
+
+Important: this is a security-sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call `reauthenticateWithCredential`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

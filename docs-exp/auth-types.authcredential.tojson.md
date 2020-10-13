@@ -13,3 +13,5 @@ toJSON(): object;
 
 object
 
+a JSON-serializable representation of this object.
+

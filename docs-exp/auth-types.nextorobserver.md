@@ -4,7 +4,6 @@
 
 ## NextOrObserver type
 
-TODO(avolkovi): should we consolidate with Subscribe<T> since we're changing the API anyway?
 
 <b>Signature:</b>
 

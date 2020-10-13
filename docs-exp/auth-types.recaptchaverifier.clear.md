@@ -4,6 +4,8 @@
 
 ## RecaptchaVerifier.clear() method
 
+Clears the reCAPTCHA widget from the page and destroys the current instance.
+
 <b>Signature:</b>
 
 ```typescript

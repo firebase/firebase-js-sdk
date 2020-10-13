@@ -4,6 +4,8 @@
 
 ## MultiFactorUser.getSession() method
 
+Returns the session identifier for a second factor enrollment operation. This is used to identify the current user trying to enroll a second factor.
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,4 +14,6 @@ getSession(): Promise<MultiFactorSession>;
 <b>Returns:</b>
 
 Promise&lt;[MultiFactorSession](./auth-types.multifactorsession.md)<!-- -->&gt;
+
+The promise that resolves with the [MultiFactorSession](./auth-types.multifactorsession.md)<!-- -->.
 

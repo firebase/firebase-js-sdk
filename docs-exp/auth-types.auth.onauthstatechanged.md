@@ -4,6 +4,12 @@
 
 ## Auth.onAuthStateChanged() method
 
+Adds an observer for changes to the user's sign-in state.
+
+Prior to 4.0.0, this triggered the observer when users were signed in, signed out, or when the user's ID token changed in situations such as token expiry or password change. After 4.0.0, the observer is only triggered on sign-in or sign-out.
+
+To keep the old behavior, see [Auth.onIdTokenChanged()](./auth-types.auth.onidtokenchanged.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -18,9 +24,9 @@ onAuthStateChanged(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  nextOrObserver | [NextOrObserver](./auth-types.nextorobserver.md)<!-- -->&lt;[User](./auth-types.user.md)<!-- -->&gt; |  |
-|  error | ErrorFn |  |
-|  completed | CompleteFn |  |
+|  nextOrObserver | [NextOrObserver](./auth-types.nextorobserver.md)<!-- -->&lt;[User](./auth-types.user.md)<!-- -->&gt; | callback triggere on change. |
+|  error | ErrorFn | callback triggered on error. |
+|  completed | CompleteFn | callback triggered when observer is removed. |
 
 <b>Returns:</b>
 

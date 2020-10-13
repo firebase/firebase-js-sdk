@@ -9,62 +9,62 @@
 |  Class | Description |
 |  --- | --- |
 |  [ActionCodeURL](./auth-types.actioncodeurl.md) | A utility class to parse email action URLs such as password reset, email verification, email link sign in, etc. |
-|  [AuthCredential](./auth-types.authcredential.md) | https://firebase.google.com/docs/reference/js/firebase.auth.AuthCredential |
-|  [EmailAuthProvider](./auth-types.emailauthprovider.md) | A provider for generating email &amp; password and email link credentials<!-- -->https://firebase.google.com/docs/reference/js/firebase.auth.EmailAuthProvider |
-|  [MultiFactorResolver](./auth-types.multifactorresolver.md) | https://firebase.google.com/docs/reference/js/firebase.auth.multifactorresolver |
-|  [OAuthCredential](./auth-types.oauthcredential.md) | https://firebase.google.com/docs/reference/js/firebase.auth.OAuthCredential |
-|  [PhoneAuthCredential](./auth-types.phoneauthcredential.md) | https://firebase.google.com/docs/reference/js/firebase.auth.phoneauthcredential |
-|  [PhoneAuthProvider](./auth-types.phoneauthprovider.md) | A provider for generating phone credentials<!-- -->https://firebase.google.com/docs/reference/js/firebase.auth.PhoneAuthProvider |
-|  [PhoneMultiFactorGenerator](./auth-types.phonemultifactorgenerator.md) | https://firebase.google.com/docs/reference/js/firebase.auth.phonemultifactorgenerator |
-|  [RecaptchaVerifier](./auth-types.recaptchaverifier.md) | https://firebase.google.com/docs/reference/js/firebase.auth.RecaptchaVerifier |
+|  [AuthCredential](./auth-types.authcredential.md) | Interface that represents the credentials returned by an auth provider. Implementations specify the details about each auth provider's credential requirements. |
+|  [EmailAuthProvider](./auth-types.emailauthprovider.md) | Email and password auth provider implementation. |
+|  [MultiFactorResolver](./auth-types.multifactorresolver.md) | The class used to facilitate recovery from [MultiFactorError](./auth-types.multifactorerror.md) when a user needs to provide a second factor to sign in.<!-- -->error.resolver; |
+|  [OAuthCredential](./auth-types.oauthcredential.md) | Interface that represents the OAuth credentials returned by an OAuth provider. Implementations specify the details about each auth provider's credential requirements. |
+|  [PhoneAuthCredential](./auth-types.phoneauthcredential.md) | Class that represents the Phone Auth credentials returned by a [PhoneAuthProvider](./auth-types.phoneauthprovider.md)<!-- -->. |
+|  [PhoneAuthProvider](./auth-types.phoneauthprovider.md) | A provider for generating phone credentials. |
+|  [PhoneMultiFactorGenerator](./auth-types.phonemultifactorgenerator.md) | The class used to initialize a [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md)<!-- -->. |
+|  [RecaptchaVerifier](./auth-types.recaptchaverifier.md) | An [reCAPTCHA](https://www.google.com/recaptcha/)<!-- -->-based application verifier. |
 
 ## Enumerations
 
 |  Enumeration | Description |
 |  --- | --- |
-|  [Operation](./auth-types.operation.md) | https://firebase.google.com/docs/reference/js/firebase.auth.ActionCodeInfo\#operation\_2 |
-|  [OperationType](./auth-types.operationtype.md) | Supported operation types |
-|  [ProviderId](./auth-types.providerid.md) | Supported providers |
-|  [SignInMethod](./auth-types.signinmethod.md) | Supported sign in methods |
+|  [Operation](./auth-types.operation.md) | An enumeration of the possible email action types. |
+|  [OperationType](./auth-types.operationtype.md) | Supported operation types. |
+|  [ProviderId](./auth-types.providerid.md) | Supported providers. |
+|  [SignInMethod](./auth-types.signinmethod.md) | Supported sign in methods. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [ActionCodeInfo](./auth-types.actioncodeinfo.md) | https://firebase.google.com/docs/reference/js/firebase.auth.ActionCodeInfo |
-|  [ActionCodeSettings](./auth-types.actioncodesettings.md) | https://firebase.google.com/docs/reference/js/firebase.auth\#actioncodesettings |
-|  [AdditionalUserInfo](./auth-types.additionaluserinfo.md) | Additional user information. |
-|  [ApplicationVerifier](./auth-types.applicationverifier.md) | https://firebase.google.com/docs/reference/js/firebase.auth.ApplicationVerifier |
-|  [Auth](./auth-types.auth.md) | https://firebase.google.com/docs/reference/js/firebase.auth.Auth |
-|  [AuthError](./auth-types.autherror.md) | https://firebase.google.com/docs/reference/js/firebase.auth.AuthError |
-|  [AuthProvider](./auth-types.authprovider.md) | A provider for generating credentials<!-- -->https://firebase.google.com/docs/reference/js/firebase.auth.AuthProvider |
-|  [AuthSettings](./auth-types.authsettings.md) | https://firebase.google.com/docs/reference/js/firebase.auth.AuthSettings |
-|  [Config](./auth-types.config.md) | Auth config object |
-|  [ConfirmationResult](./auth-types.confirmationresult.md) | https://firebase.google.com/docs/reference/js/firebase.auth.ConfirmationResult |
-|  [IdTokenResult](./auth-types.idtokenresult.md) | Parsed IdToken for use in public API<!-- -->https://firebase.google.com/docs/reference/js/firebase.auth.IDTokenResult |
-|  [MultiFactorAssertion](./auth-types.multifactorassertion.md) | https://firebase.google.com/docs/reference/js/firebase.auth.multifactorassertion |
-|  [MultiFactorError](./auth-types.multifactorerror.md) | https://firebase.google.com/docs/reference/js/firebase.auth.multifactorerror |
-|  [MultiFactorInfo](./auth-types.multifactorinfo.md) | https://firebase.google.com/docs/reference/js/firebase.auth.multifactorinfo |
-|  [MultiFactorSession](./auth-types.multifactorsession.md) | https://firebase.google.com/docs/reference/js/firebase.auth.multifactorsession |
-|  [MultiFactorUser](./auth-types.multifactoruser.md) | https://firebase.google.com/docs/reference/js/firebase.user.multifactoruser |
-|  [ParsedToken](./auth-types.parsedtoken.md) | Parsed Id Token<!-- -->TODO(avolkovi): consolidate with parsed\_token in implementation |
-|  [Persistence](./auth-types.persistence.md) | https://firebase.google.com/docs/reference/js/firebase.auth.Auth\#persistence |
-|  [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md) | https://firebase.google.com/docs/reference/js/firebase.auth.phonemultifactorassertion |
+|  [ActionCodeInfo](./auth-types.actioncodeinfo.md) | A response from <code>checkActionCode</code>. |
+|  [ActionCodeSettings](./auth-types.actioncodesettings.md) | This is the interface that defines the required continue/state URL with optional Android and iOS bundle identifiers. |
+|  [AdditionalUserInfo](./auth-types.additionaluserinfo.md) | A structure containing additional user information from a federated identity provider. |
+|  [ApplicationVerifier](./auth-types.applicationverifier.md) | A verifier for domain verification and abuse prevention. Currently, the only implementation is [RecaptchaVerifier](./auth-types.recaptchaverifier.md)<!-- -->. |
+|  [Auth](./auth-types.auth.md) | The Firebase Auth service interface.<!-- -->See [Firebase Authentication](https://firebase.google.com/docs/auth/) for a full guide on how to use the Firebase Auth service. |
+|  [AuthError](./auth-types.autherror.md) |  |
+|  [AuthProvider](./auth-types.authprovider.md) | Interface that represents an auth provider. |
+|  [AuthSettings](./auth-types.authsettings.md) | Interface representing an Auth instance's settings, currently used for enabling/disabling app verification for phone Auth testing. |
+|  [Config](./auth-types.config.md) | Auth config object. |
+|  [ConfirmationResult](./auth-types.confirmationresult.md) | A result from a phone number sign-in, link, or reauthenticate call. |
+|  [IdTokenResult](./auth-types.idtokenresult.md) | Interface representing ID token result obtained from <code>getIdTokenResult</code>. It contains the ID token JWT string and other helper properties for getting different data associated with the token as well as all the decoded payload claims.<!-- -->Note that these claims are not to be trusted as they are parsed client side. Only server side verification can guarantee the integrity of the token claims. |
+|  [MultiFactorAssertion](./auth-types.multifactorassertion.md) | The base class for asserting ownership of a second factor. This is used to facilitate enrollment of a second factor on an existing user or sign-in of a user who already verified the first factor. |
+|  [MultiFactorError](./auth-types.multifactorerror.md) | The error thrown when the user needs to provide a second factor to sign in successfully. The error code for this error is <code>auth/multi-factor-auth-required</code>. |
+|  [MultiFactorInfo](./auth-types.multifactorinfo.md) | A structure containing the information of a second factor entity. |
+|  [MultiFactorSession](./auth-types.multifactorsession.md) | The multi-factor session object used for enrolling a second factor on a user or helping sign in an enrolled user with a second factor. |
+|  [MultiFactorUser](./auth-types.multifactoruser.md) | This is the interface that defines the multi-factor related properties and operations pertaining to a [User](./auth-types.user.md)<!-- -->. |
+|  [ParsedToken](./auth-types.parsedtoken.md) | Parsed Id Token. |
+|  [Persistence](./auth-types.persistence.md) | An enumeration of the possible persistence mechanism types. |
+|  [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md) | The class for asserting ownership of a phone second factor. Provider by [PhoneMultiFactorGenerator.assertion()](./auth-types.phonemultifactorgenerator.assertion.md)<!-- -->. |
 |  [PhoneMultiFactorEnrollInfoOptions](./auth-types.phonemultifactorenrollinfooptions.md) |  |
 |  [PhoneMultiFactorSignInInfoOptions](./auth-types.phonemultifactorsignininfooptions.md) |  |
 |  [PhoneSingleFactorInfoOptions](./auth-types.phonesinglefactorinfooptions.md) |  |
-|  [PopupRedirectResolver](./auth-types.popupredirectresolver.md) | No documentation for this yet |
+|  [PopupRedirectResolver](./auth-types.popupredirectresolver.md) | A resolver used for handling DOM specific operations like <code>signInWithPopup()</code> or <code>signInWithRedirect()</code> |
 |  [ReactNativeAsyncStorage](./auth-types.reactnativeasyncstorage.md) |  |
-|  [User](./auth-types.user.md) | https://firebase.google.com/docs/reference/js/firebase.User |
-|  [UserCredential](./auth-types.usercredential.md) | https://firebase.google.com/docs/reference/js/firebase.auth\#usercredential |
-|  [UserInfo](./auth-types.userinfo.md) | https://firebase.google.com/docs/reference/js/firebase.UserInfo |
-|  [UserMetadata](./auth-types.usermetadata.md) | https://firebase.google.com/docs/reference/js/firebase.auth.UserMetadata |
+|  [User](./auth-types.user.md) | A user account. |
+|  [UserCredential](./auth-types.usercredential.md) | A structure containing a User, an AuthCredential, the <code>operationType</code>, and any additional user information that was returned from the identity provider. operationType could be [OperationType.SIGN\_IN](./auth-types.operationtype.sign_in.md) for a sign-in operation, [OperationType.LINK](./auth-types.operationtype.link.md) for a linking operation and [OperationType.REAUTHENTICATE](./auth-types.operationtype.reauthenticate.md) for a reauthentication operation. |
+|  [UserInfo](./auth-types.userinfo.md) | User profile information, visible only to the Firebase project's apps. |
+|  [UserMetadata](./auth-types.usermetadata.md) | Interface representing a user's metadata. |
 
 ## Type Aliases
 
 |  Type Alias | Description |
 |  --- | --- |
-|  [NextOrObserver](./auth-types.nextorobserver.md) | TODO(avolkovi): should we consolidate with Subscribe<T> since we're changing the API anyway? |
-|  [PhoneInfoOptions](./auth-types.phoneinfooptions.md) | https://firebase.google.com/docs/reference/js/firebase.auth\#phoneinfooptions |
-|  [UserProfile](./auth-types.userprofile.md) | User profile used in <code>AdditionalUserInfo</code> |
+|  [NextOrObserver](./auth-types.nextorobserver.md) |  |
+|  [PhoneInfoOptions](./auth-types.phoneinfooptions.md) | The information required to verify the ownership of a phone number. The information that's required depends on whether you are doing single-factor sign-in, multi-factor enrollment or multi-factor sign-in. |
+|  [UserProfile](./auth-types.userprofile.md) | User profile used in [AdditionalUserInfo](./auth-types.additionaluserinfo.md)<!-- -->. |
 

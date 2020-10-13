@@ -4,6 +4,8 @@
 
 ## IdTokenResult.signInSecondFactor property
 
+The type of second factor associated with this session, provided the user was multi-factor authenticated (eg. phone, etc).
+
 <b>Signature:</b>
 
 ```typescript

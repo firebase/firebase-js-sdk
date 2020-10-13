@@ -4,7 +4,7 @@
 
 ## Persistence interface
 
-https://firebase.google.com/docs/reference/js/firebase.auth.Auth\#persistence
+An enumeration of the possible persistence mechanism types.
 
 <b>Signature:</b>
 

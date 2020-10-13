@@ -4,8 +4,24 @@
 
 ## User.tenantId property
 
+The current user's tenant ID. This is a read-only property, which indicates the tenant ID used to sign in the current user. This is null if the user is signed in from the parent project.
+
 <b>Signature:</b>
 
 ```typescript
 readonly tenantId: string | null;
 ```
+
+## Example
+
+
+```
+// Set the tenant ID on Auth instance.
+auth.tenantId = ‘TENANT_PROJECT_ID’;
+
+// All future sign-in request now include tenant ID.
+const result = await signInWithEmailAndPassword(auth, email, password);
+// result.user.tenantId should be ‘TENANT_PROJECT_ID’.
+
+```
+

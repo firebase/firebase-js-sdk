@@ -4,9 +4,7 @@
 
 ## EmailAuthProvider class
 
-A provider for generating email &amp; password and email link credentials
-
-https://firebase.google.com/docs/reference/js/firebase.auth.EmailAuthProvider
+Email and password auth provider implementation.
 
 <b>Signature:</b>
 
@@ -29,5 +27,5 @@ export abstract class EmailAuthProvider implements AuthProvider
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [credential(email, password)](./auth-types.emailauthprovider.credential.md) | <code>static</code> |  |
-|  [credentialWithLink(auth, email, emailLink)](./auth-types.emailauthprovider.credentialwithlink.md) | <code>static</code> |  |
+|  [credentialWithLink(auth, email, emailLink)](./auth-types.emailauthprovider.credentialwithlink.md) | <code>static</code> | Initialize an [EmailAuthProvider](./auth-types.emailauthprovider.md) credential using an email and an email link after a sign in with email link operation. |
 

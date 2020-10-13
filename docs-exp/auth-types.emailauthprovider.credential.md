@@ -14,10 +14,23 @@ static credential(email: string, password: string): AuthCredential;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  email | string |  |
-|  password | string |  |
+|  email | string | Email address. |
+|  password | string | User account password. |
 
 <b>Returns:</b>
 
 [AuthCredential](./auth-types.authcredential.md)
+
+The auth provider credential.
+
+## Example
+
+
+```
+const cred = EmailAuthProvider.credential(
+    email,
+    password
+);
+
+```
 

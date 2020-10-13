@@ -4,7 +4,7 @@
 
 ## Config interface
 
-Auth config object
+Auth config object.
 
 <b>Signature:</b>
 

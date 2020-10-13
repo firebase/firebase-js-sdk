@@ -4,9 +4,7 @@
 
 ## AuthProvider interface
 
-A provider for generating credentials
-
-https://firebase.google.com/docs/reference/js/firebase.auth.AuthProvider
+Interface that represents an auth provider.
 
 <b>Signature:</b>
 

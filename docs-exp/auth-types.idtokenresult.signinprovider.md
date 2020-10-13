@@ -4,6 +4,8 @@
 
 ## IdTokenResult.signInProvider property
 
+The sign-in provider through which the ID token was obtained (anonymous, custom, phone, password, etc). Note, this does not map to provider IDs.
+
 <b>Signature:</b>
 
 ```typescript

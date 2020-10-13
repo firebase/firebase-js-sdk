@@ -4,7 +4,7 @@
 
 ## UserMetadata interface
 
-https://firebase.google.com/docs/reference/js/firebase.auth.UserMetadata
+Interface representing a user's metadata.
 
 <b>Signature:</b>
 

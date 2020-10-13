@@ -4,9 +4,7 @@
 
 ## ParsedToken interface
 
-Parsed Id Token
-
-TODO(avolkovi): consolidate with parsed\_token in implementation
+Parsed Id Token.
 
 <b>Signature:</b>
 

@@ -16,5 +16,5 @@ constructor(auth?: Auth | null);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | [Auth](./auth-types.auth.md) \| null |  |
+|  auth | [Auth](./auth-types.auth.md) \| null | The Firebase Auth instance in which sign-ins should occur. Uses the default Auth instance if unspecified. |
 

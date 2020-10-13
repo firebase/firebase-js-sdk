@@ -4,6 +4,8 @@
 
 ## ActionCodeSettings.url property
 
+Sets the link continue/state URL, which has different meanings in different contexts: - When the link is handled in the web action widgets, this is the deep link in the `continueUrl` query parameter. - When the link is handled in the app directly, this is the continueUrl query parameter in the deep link of the Dynamic Link.
+
 <b>Signature:</b>
 
 ```typescript

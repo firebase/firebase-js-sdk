@@ -4,7 +4,7 @@
 
 ## MultiFactorError interface
 
-https://firebase.google.com/docs/reference/js/firebase.auth.multifactorerror
+The error thrown when the user needs to provide a second factor to sign in successfully. The error code for this error is `auth/multi-factor-auth-required`<!-- -->.
 
 <b>Signature:</b>
 
@@ -12,6 +12,33 @@ https://firebase.google.com/docs/reference/js/firebase.auth.multifactorerror
 export interface MultiFactorError extends AuthError 
 ```
 <b>Extends:</b> [AuthError](./auth-types.autherror.md)
+
+## Example
+
+
+```
+let resolver;
+let multiFactorHints;
+
+signInWithEmailAndPassword(auth, email, password)
+    .then((result) => {
+      // User signed in. No 2nd factor challenge is needed.
+    })
+    .catch((error) => {
+      if (error.code == 'auth/multi-factor-auth-required') {
+        resolver = getMultiFactorResolver(auth, error);
+        multiFactorHints = resolver.hints;
+      } else {
+        // Handle other errors.
+      }
+    });
+
+resolver.resolveSignIn(multiFactorAssertion)
+    .then(function(userCredential) {
+      // User signed in.
+    });
+
+```
 
 ## Properties
 

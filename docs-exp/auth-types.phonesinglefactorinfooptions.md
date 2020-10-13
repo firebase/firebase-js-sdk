@@ -4,6 +4,7 @@
 
 ## PhoneSingleFactorInfoOptions interface
 
+
 <b>Signature:</b>
 
 ```typescript

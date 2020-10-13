@@ -4,6 +4,8 @@
 
 ## RecaptchaVerifier.verify() method
 
+Waits for the user to solve the reCAPTCHA and resolves with the reCAPTCHA token.
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,4 +14,6 @@ verify(): Promise<string>;
 <b>Returns:</b>
 
 Promise&lt;string&gt;
+
+A Promise for the reCAPTCHA token.
 
