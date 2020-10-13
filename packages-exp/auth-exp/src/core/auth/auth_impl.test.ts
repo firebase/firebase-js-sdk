@@ -33,6 +33,7 @@ import { Persistence } from '../persistence';
 import { inMemoryPersistence } from '../persistence/in_memory';
 import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
+import * as reload from '../user/reload';
 import {
   _castAuth,
   AuthImpl,
@@ -408,6 +409,41 @@ describe('core/auth/auth_impl', () => {
           expect(idTokenCallback).to.have.been.called;
         });
       });
+    });
+  });
+
+  context('#_delete', () => {
+    beforeEach(async () => {
+      sinon.stub(reload, '_reloadWithoutSaving').returns(Promise.resolve());
+    });
+
+    it('prevents initialization from completing', async () => {
+      const authImpl = new AuthImpl(FAKE_APP, {
+        apiKey: FAKE_APP.options.apiKey!,
+        apiHost: DEFAULT_API_HOST,
+        apiScheme: DEFAULT_API_SCHEME,
+        tokenApiHost: DEFAULT_TOKEN_API_HOST,
+        sdkClientVersion: 'v'
+      });
+
+      persistenceStub._get.returns(
+        Promise.resolve(testUser(auth, 'uid').toJSON())
+      );
+      await authImpl._delete();
+      await authImpl._initializeWithPersistence([
+        persistenceStub as Persistence
+      ]);
+      expect(authImpl.currentUser).to.be.null;
+    });
+
+    it('no longer calls listeners', async () => {
+      const spy = sinon.spy();
+      auth.onAuthStateChanged(spy);
+      await Promise.resolve();
+      spy.resetHistory();
+      await (auth as AuthImpl)._delete();
+      await auth.updateCurrentUser(testUser(auth, 'blah'));
+      expect(spy).not.to.have.been.called;
     });
   });
 });

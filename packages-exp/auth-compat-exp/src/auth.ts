@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
+import { _FirebaseService } from '@firebase/app-types-exp';
 import * as impl from '@firebase/auth-exp/internal';
 import * as compat from '@firebase/auth-types';
 import * as externs from '@firebase/auth-types-exp';
@@ -35,11 +36,15 @@ import {
 } from './user_credential';
 import { unwrap, Wrapper } from './wrap';
 
-export class Auth implements compat.FirebaseAuth, Wrapper<externs.Auth> {
+export class Auth
+  implements compat.FirebaseAuth, Wrapper<externs.Auth>, _FirebaseService {
   // private readonly auth: impl.AuthImpl;
 
   constructor(readonly app: FirebaseApp, private readonly auth: impl.AuthImpl) {
     const { apiKey } = app.options;
+    if (this.auth._deleted) {
+      return;
+    }
 
     // TODO(avolkovi): Implement proper persistence fallback
     const hierarchy = [impl.indexedDBLocalPersistence].map<impl.Persistence>(
@@ -288,6 +293,9 @@ export class Auth implements compat.FirebaseAuth, Wrapper<externs.Auth> {
   }
   unwrap(): externs.Auth {
     return this.auth;
+  }
+  _delete(): Promise<void> {
+    return this.auth._delete();
   }
 }
 

@@ -63,6 +63,7 @@ export class AuthImpl implements Auth, _FirebaseService {
   // initialization
   _canInitEmulator = true;
   _isInitialized = false;
+  _deleted = false;
   _initializationPromise: Promise<void> | null = null;
   _popupRedirectResolver: PopupRedirectResolver | null = null;
   readonly name: string;
@@ -86,7 +87,13 @@ export class AuthImpl implements Auth, _FirebaseService {
     persistenceHierarchy: Persistence[],
     popupRedirectResolver?: externs.PopupRedirectResolver
   ): Promise<void> {
+    // Have to check for app deletion throughout initialization (after each
+    // promise resolution)
     this._initializationPromise = this.queue(async () => {
+      if (this._deleted) {
+        return;
+      }
+
       if (popupRedirectResolver) {
         this._popupRedirectResolver = _getInstance(popupRedirectResolver);
       }
@@ -96,7 +103,15 @@ export class AuthImpl implements Auth, _FirebaseService {
         persistenceHierarchy
       );
 
+      if (this._deleted) {
+        return;
+      }
+
       await this.initializeCurrentUser();
+
+      if (this._deleted) {
+        return;
+      }
 
       this._isInitialized = true;
       this.notifyAuthListeners();
@@ -109,6 +124,10 @@ export class AuthImpl implements Auth, _FirebaseService {
    * If the persistence is changed in another window, the user manager will let us know
    */
   async _onStorageEvent(): Promise<void> {
+    if (this._deleted) {
+      return;
+    }
+
     const user = await this.assertedPersistence.getCurrentUser();
 
     if (!this.currentUser && !user) {
@@ -189,10 +208,13 @@ export class AuthImpl implements Auth, _FirebaseService {
   }
 
   async _delete(): Promise<void> {
-    // TODO: Determine what we want to do in this case
+    this._deleted = true;
   }
 
   async updateCurrentUser(user: externs.User | null): Promise<void> {
+    if (this._deleted) {
+      return;
+    }
     if (user) {
       assert(
         this.tenantId === user.tenantId,
@@ -357,6 +379,10 @@ export class AuthImpl implements Auth, _FirebaseService {
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
+    if (this._deleted) {
+      return () => {};
+    }
+
     const cb =
       typeof nextOrObserver === 'function'
         ? nextOrObserver
