@@ -23,7 +23,6 @@ import {
   OnlineComponentProvider
 } from '../../../src/core/component_provider';
 import { handleUserChange, LocalStore } from '../../../src/local/local_store';
-import { Deferred } from '../../../src/util/promise';
 import { logDebug } from '../../../src/util/log';
 import {
   RemoteStore,
@@ -36,7 +35,8 @@ import {
 } from '../../../src/core/sync_engine';
 import { Persistence } from '../../../src/local/persistence';
 import { EventManager } from '../../../src/core/event_manager';
-export const LOG_TAG = 'ComponentProvider';
+
+const LOG_TAG = 'ComponentProvider';
 
 // The components module manages the lifetime of dependencies of the Firestore
 // client. Dependencies can be lazily constructed and only one exists per
@@ -46,11 +46,11 @@ export const LOG_TAG = 'ComponentProvider';
 // Firestore instance.
 const offlineComponentProviders = new Map<
   FirebaseFirestore,
-  Promise<OfflineComponentProvider>
+  OfflineComponentProvider
 >();
 const onlineComponentProviders = new Map<
   FirebaseFirestore,
-  Promise<OnlineComponentProvider>
+  OnlineComponentProvider
 >();
 
 export async function setOfflineComponentProvider(
@@ -58,13 +58,10 @@ export async function setOfflineComponentProvider(
   persistenceSettings: PersistenceSettings,
   offlineComponentProvider: OfflineComponentProvider
 ): Promise<void> {
-  const offlineDeferred = new Deferred<OfflineComponentProvider>();
-  offlineComponentProviders.set(firestore, offlineDeferred.promise);
-
+  logDebug(LOG_TAG, 'Initializing OfflineComponentProvider');
   const configuration = await firestore._getConfiguration();
   configuration.persistenceSettings = persistenceSettings;
 
-  logDebug(LOG_TAG, 'Initializing OfflineComponentProvider');
   await offlineComponentProvider.initialize(configuration);
   firestore._setCredentialChangeListener(user =>
     // TODO(firestorexp): This should be a retryable IndexedDB operation
@@ -79,15 +76,15 @@ export async function setOfflineComponentProvider(
   offlineComponentProvider.persistence.setDatabaseDeletedListener(() =>
     firestore._delete()
   );
-  offlineDeferred.resolve(offlineComponentProvider);
+
+  offlineComponentProviders.set(firestore, offlineComponentProvider);
 }
 
 export async function setOnlineComponentProvider(
   firestore: FirebaseFirestore,
   onlineComponentProvider: OnlineComponentProvider
 ): Promise<void> {
-  const onlineDeferred = new Deferred<OnlineComponentProvider>();
-  onlineComponentProviders.set(firestore, onlineDeferred.promise);
+  firestore._queue.verifyOperationInProgress();
 
   const configuration = await firestore._getConfiguration();
   const offlineComponentProvider = await getOfflineComponentProvider(firestore);
@@ -108,18 +105,17 @@ export async function setOnlineComponentProvider(
       )
     )
   );
-  onlineDeferred.resolve(onlineComponentProvider);
+  onlineComponentProviders.set(firestore, onlineComponentProvider);
 }
 
-function getOfflineComponentProvider(
+async function getOfflineComponentProvider(
   firestore: FirebaseFirestore
 ): Promise<OfflineComponentProvider> {
   firestore._queue.verifyOperationInProgress();
 
   if (!offlineComponentProviders.has(firestore)) {
     logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    setOfflineComponentProvider(
+    await setOfflineComponentProvider(
       firestore,
       { durable: false },
       new MemoryOfflineComponentProvider()
@@ -128,21 +124,17 @@ function getOfflineComponentProvider(
   return offlineComponentProviders.get(firestore)!;
 }
 
-function getOnlineComponentProvider(
+async function getOnlineComponentProvider(
   firestore: FirebaseFirestore
 ): Promise<OnlineComponentProvider> {
   firestore._queue.verifyOperationInProgress();
 
   if (!onlineComponentProviders.has(firestore)) {
     logDebug(LOG_TAG, 'Using default OnlineComponentProvider');
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    setOnlineComponentProvider(firestore, new OnlineComponentProvider());
+    await setOnlineComponentProvider(firestore, new OnlineComponentProvider());
   }
   return onlineComponentProviders.get(firestore)!;
 }
-
-// Note: These functions cannot be `async` since we want to throw an exception
-// when Firestore is terminated (via `getOnlineComponentProvider()`).
 
 export function getSyncEngine(
   firestore: FirebaseFirestore
