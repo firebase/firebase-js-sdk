@@ -16,7 +16,6 @@
  */
 
 import { FirebaseFirestore } from './database';
-import { PersistenceSettings } from '../../../src/core/firestore_client';
 import {
   MemoryOfflineComponentProvider,
   OfflineComponentProvider,
@@ -55,16 +54,13 @@ const onlineComponentProviders = new Map<
 
 export async function setOfflineComponentProvider(
   firestore: FirebaseFirestore,
-  persistenceSettings: PersistenceSettings,
   offlineComponentProvider: OfflineComponentProvider
 ): Promise<void> {
   const offlineDeferred = new Deferred<OfflineComponentProvider>();
   offlineComponentProviders.set(firestore, offlineDeferred.promise);
 
-  const configuration = await firestore._getConfiguration();
-  configuration.persistenceSettings = persistenceSettings;
-
   logDebug(LOG_TAG, 'Initializing OfflineComponentProvider');
+  const configuration = await firestore._getConfiguration();
   await offlineComponentProvider.initialize(configuration);
   firestore._setCredentialChangeListener(user =>
     // TODO(firestorexp): This should be a retryable IndexedDB operation
@@ -121,7 +117,6 @@ function getOfflineComponentProvider(
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     setOfflineComponentProvider(
       firestore,
-      { durable: false },
       new MemoryOfflineComponentProvider()
     );
   }
