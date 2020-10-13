@@ -4,6 +4,8 @@
 
 ## ActionCodeURL.continueUrl property
 
+The continue URL of the email action link. Null if not provided.
+
 <b>Signature:</b>
 
 ```typescript

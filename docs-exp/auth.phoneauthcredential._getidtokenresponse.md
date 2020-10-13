@@ -7,14 +7,14 @@
 <b>Signature:</b>
 
 ```typescript
-_getIdTokenResponse(auth: AuthCore): Promise<PhoneOrOauthTokenResponse>;
+_getIdTokenResponse(auth: Auth): Promise<PhoneOrOauthTokenResponse>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | AuthCore |  |
+|  auth | Auth |  |
 
 <b>Returns:</b>
 

@@ -17,6 +17,7 @@ import { UserCredential } from '@firebase/auth-types-exp';
 
 // @public (undocumented)
 export class ActionCodeURL implements externs.ActionCodeURL {
+    // @internal
     constructor(actionLink: string);
     // (undocumented)
     readonly apiKey: string;

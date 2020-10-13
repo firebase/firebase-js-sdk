@@ -7,14 +7,14 @@
 <b>Signature:</b>
 
 ```typescript
-_getReauthenticationResolver(auth: AuthCore): Promise<IdTokenResponse>;
+_getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | AuthCore |  |
+|  auth | Auth |  |
 
 <b>Returns:</b>
 

@@ -45,19 +45,12 @@ export interface ActionCodeSettings {
 
 // @public
 export abstract class ActionCodeURL {
-  // (undocumented)
   readonly apiKey: string;
-  // (undocumented)
   readonly code: string;
-  // (undocumented)
   readonly continueUrl: string | null;
-  // (undocumented)
   readonly languageCode: string | null;
-  // (undocumented)
   readonly operation: Operation;
-  // (undocumented)
   static parseLink(link: string): ActionCodeURL | null;
-  // (undocumented)
   readonly tenantId: string | null;
 }
 
@@ -116,7 +109,7 @@ export interface Auth {
   // (undocumented)
   useDeviceLanguage(): void;
   // (undocumented)
-  useEmulator(hostname: string, port: number): void;
+  useEmulator(url: string): void;
 }
 
 // @public
