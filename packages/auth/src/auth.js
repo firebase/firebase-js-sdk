@@ -299,6 +299,11 @@ fireauth.Auth.prototype.useDeviceLanguage = function() {
 fireauth.Auth.prototype.useEmulator = function(url) {
   // Emulator config can only be set once.
   if (!this.emulatorConfig_) {
+    if (!/^https?:\/\//.test(url)) {
+      throw new fireauth.AuthError(
+          fireauth.authenum.Error.ARGUMENT_ERROR,
+          'Emulator URL must start with a valid scheme (http:// or https://).');
+    }
     // Emit a warning so dev knows we are now in test mode.
     this.emitEmulatorWarning_();
     // Persist the config.
