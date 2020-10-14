@@ -214,10 +214,14 @@ export class AuthImpl implements Auth, _FirebaseService {
   async updateCurrentUser(userExtern: externs.User | null): Promise<void> {
     // The public updateCurrentUser method needs to make a copy of the user,
     // and also needs to verify that the app matches
-    const user = userExtern as User|null;
-    assert(!user || user.auth.name === this.name, AuthErrorCode.ARGUMENT_ERROR, {
-      appName: this.name
-    });
+    const user = userExtern as User | null;
+    assert(
+      !user || user.auth.name === this.name,
+      AuthErrorCode.ARGUMENT_ERROR,
+      {
+        appName: this.name
+      }
+    );
 
     return this._updateCurrentUser(user && user._clone());
   }

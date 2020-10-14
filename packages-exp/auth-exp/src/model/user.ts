@@ -34,16 +34,16 @@ export interface UserParameters {
   auth: Auth;
   stsTokenManager: StsTokenManager;
 
-  displayName?: string|null;
-  email?: string|null;
-  phoneNumber?: string|null;
-  photoURL?: string|null;
-  isAnonymous?: boolean|null;
-  emailVerified?: boolean|null;
-  tenantId?: string|null;
+  displayName?: string | null;
+  email?: string | null;
+  phoneNumber?: string | null;
+  photoURL?: string | null;
+  isAnonymous?: boolean | null;
+  emailVerified?: boolean | null;
+  tenantId?: string | null;
 
-  createdAt?: string|null;
-  lastLoginAt?: string|null;
+  createdAt?: string | null;
+  lastLoginAt?: string | null;
 }
 
 export interface User extends externs.User {

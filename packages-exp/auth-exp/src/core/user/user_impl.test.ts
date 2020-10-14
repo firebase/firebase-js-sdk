@@ -245,12 +245,12 @@ describe('core/user/user_impl', () => {
 
   describe('_clone', () => {
     it('copies the user to a new object', () => {
-      const stsTokenManager = Object.assign(new StsTokenManager(),  {
+      const stsTokenManager = Object.assign(new StsTokenManager(), {
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
         expirationTime: 3
       });
-      
+
       const user = new UserImpl({
         auth,
         uid: 'uid',

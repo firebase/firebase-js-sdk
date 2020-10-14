@@ -163,7 +163,7 @@ describe('core/user/token_manager', () => {
       Object.assign(stsTokenManager, {
         accessToken: 'token',
         refreshToken: 'refresh',
-        expirationTime: now,
+        expirationTime: now
       });
 
       const copy = stsTokenManager._clone();

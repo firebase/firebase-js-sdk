@@ -81,7 +81,10 @@ export class UserImpl implements User {
     this.phoneNumber = opt.phoneNumber || null;
     this.photoURL = opt.photoURL || null;
     this.isAnonymous = opt.isAnonymous || false;
-    this.metadata = new UserMetadata(opt.createdAt || undefined, opt.lastLoginAt || undefined);
+    this.metadata = new UserMetadata(
+      opt.createdAt || undefined,
+      opt.lastLoginAt || undefined
+    );
   }
 
   async getIdToken(forceRefresh?: boolean): Promise<string> {
@@ -133,7 +136,10 @@ export class UserImpl implements User {
   }
 
   _clone(): User {
-    return new UserImpl({...this, stsTokenManager: this.stsTokenManager._clone()});
+    return new UserImpl({
+      ...this,
+      stsTokenManager: this.stsTokenManager._clone()
+    });
   }
 
   _onReload(callback: NextFn<APIUserInfo>): void {
