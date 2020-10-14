@@ -38,7 +38,7 @@ const FIRESTORE_ADDRESS_DEFAULT: string = 'localhost:8080';
 /** Environment variable to locate the Emulator Hub */
 const HUB_HOST_ENV: string = 'FIREBASE_EMULATOR_HUB';
 /** The default address for the Emulator hub */
-const HUB_HOST_DEFAULT: string = 'localhost:4040';
+const HUB_HOST_DEFAULT: string = 'localhost:4400';
 
 /** The actual address for the database emulator */
 let _databaseHost: string | undefined = undefined;
@@ -477,12 +477,31 @@ function requestPromise(
   options: request.CoreOptions & request.UriOptions
 ): Promise<{ statusCode: number; body: any }> {
   return new Promise((resolve, reject) => {
-    request(options, (err, resp, body) => {
+    const callback: request.RequestCallback = (err, resp, body) => {
       if (err) {
         reject(err);
       } else {
         resolve({ statusCode: resp.statusCode, body });
       }
-    });
+    };
+
+    // Unfortunately request() is not stub-compatible, this is to make things testable
+    switch (options.method) {
+      case 'GET':
+        request.get(options, callback);
+        break;
+      case 'PUT':
+        request.put(options, callback);
+        break;
+      case 'POST':
+        request.post(options, callback);
+        break;
+      case 'DELETE':
+        request.delete(options, callback);
+        break;
+      default:
+        request(options, callback);
+        break;
+    }
   });
 }

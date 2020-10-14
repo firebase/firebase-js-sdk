@@ -17,6 +17,8 @@
 
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import * as request from 'request';
+import * as sinon from 'sinon';
 import * as firebase from '../src/api';
 import { base64 } from '@firebase/util';
 import { _FirebaseApp } from '@firebase/app-types/private';
@@ -28,6 +30,15 @@ before(() => {
 });
 
 describe('Testing Module Tests', function () {
+  let sandbox: sinon.SinonSandbox;
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
+  });
+
+  afterEach(function () {
+    sandbox && sandbox.restore();
+  });
+
   it('assertSucceeds() iff success', async function () {
     const success = Promise.resolve('success');
     const failure = Promise.reject('failure');
@@ -262,19 +273,19 @@ describe('Testing Module Tests', function () {
 
   it('loadDatabaseRules() throws if no databaseName or rules', async function () {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await expect((firebase as any).loadDatabaseRules.bind(null, {})).to.throw(
-      /databaseName not specified/
-    );
+    await expect(
+      firebase.loadDatabaseRules({} as any)
+    ).to.eventually.be.rejectedWith(/databaseName not specified/);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await expect(
-      (firebase as any).loadDatabaseRules.bind(null, {
+      firebase.loadDatabaseRules({
         databaseName: 'foo'
-      }) as Promise<void>
-    ).to.throw(/must provide rules/);
+      } as any)
+    ).to.eventually.be.rejectedWith(/must provide rules/);
     await expect(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (firebase as any).loadDatabaseRules.bind(null, { rules: '{}' })
-    ).to.throw(/databaseName not specified/);
+      firebase.loadDatabaseRules({ rules: '{}' } as any)
+    ).to.eventually.be.rejectedWith(/databaseName not specified/);
   });
 
   it('loadDatabaseRules() succeeds on valid input', async function () {
@@ -319,11 +330,29 @@ describe('Testing Module Tests', function () {
     expect(firebase.firestore.FieldValue.serverTimestamp()).not.to.be.null;
   });
 
-  it('disabling function triggers does not throw, returns value', function () {
-    const res = firebase.withFunctionTriggersDisabled(() => {
-      return new Promise((res) => res(1234));
+  it('disabling function triggers does not throw, returns value', async function () {
+    const putStub = sandbox
+      .stub(request, 'put')
+      .yields(undefined, { statusCode: 200 }, {});
+
+    const res = await firebase.withFunctionTriggersDisabled(() => {
+      return Promise.resolve(1234);
     });
 
     expect(res).to.eq(1234);
+    expect(putStub.callCount).to.equal(2);
+  });
+
+  it('disabling function triggers always re-enables, event when the function throws', async function () {
+    const putStub = sandbox
+      .stub(request, 'put')
+      .yields(undefined, { statusCode: 200 }, {});
+
+    const res = firebase.withFunctionTriggersDisabled(() => {
+      throw new Error('I throw!');
+    });
+
+    await expect(res).to.eventually.be.rejectedWith('I throw!');
+    expect(putStub.callCount).to.equal(2);
   });
 });
