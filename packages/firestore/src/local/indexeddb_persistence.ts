@@ -105,15 +105,11 @@ const MAX_PRIMARY_ELIGIBLE_AGE_MS = 5000;
 const CLIENT_METADATA_REFRESH_INTERVAL_MS = 4000;
 /** User-facing error when the primary lease is required but not available. */
 const PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG =
-  'Failed to obtain exclusive access to the persistence layer. ' +
-  'To allow shared access, make sure to invoke ' +
-  '`enablePersistence()` with `synchronizeTabs:true` in all tabs. ' +
-  'If you are using `experimentalForceOwningTab:true`, make sure that only ' +
-  'one tab has persistence enabled at any given time.';
+  'Failed to obtain exclusive access to the persistence layer. To allow ' +
+  'shared access, multi-tab synchronization has to be enabled in all tabs.';
 const UNSUPPORTED_PLATFORM_ERROR_MSG =
-  'This platform is either missing' +
-  ' IndexedDB or is known to have an incomplete implementation. Offline' +
-  ' persistence has been disabled.';
+  'This platform is either missing IndexedDB or is known to have ' +
+  'an incomplete implementation. Offline persistence has been disabled.';
 
 // The format of the LocalStorage key that stores zombied client is:
 //     firestore_zombie_<persistence_prefix>_<instance_key>
