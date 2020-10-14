@@ -132,10 +132,11 @@ export async function verifyPasswordResetCode(
 }
 
 export async function createUserWithEmailAndPassword(
-  auth: externs.Auth,
+  authExtern: externs.Auth,
   email: string,
   password: string
 ): Promise<externs.UserCredential> {
+  const auth = _castAuth(authExtern);
   const response = await signUp(auth, {
     returnSecureToken: true,
     email,
@@ -143,11 +144,11 @@ export async function createUserWithEmailAndPassword(
   });
 
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
-    _castAuth(auth),
+    auth,
     externs.OperationType.SIGN_IN,
     response
   );
-  await auth.updateCurrentUser(userCredential.user);
+  await auth._updateCurrentUser(userCredential.user);
 
   return userCredential;
 }

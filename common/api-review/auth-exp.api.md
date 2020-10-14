@@ -76,7 +76,7 @@ export function checkActionCode(auth: externs.Auth, oobCode: string): Promise<ex
 export function confirmPasswordReset(auth: externs.Auth, oobCode: string, newPassword: string): Promise<void>;
 
 // @public (undocumented)
-export function createUserWithEmailAndPassword(auth: externs.Auth, email: string, password: string): Promise<externs.UserCredential>;
+export function createUserWithEmailAndPassword(authExtern: externs.Auth, email: string, password: string): Promise<externs.UserCredential>;
 
 // @public (undocumented)
 export function deleteUser(user: externs.User): Promise<void>;
@@ -376,7 +376,7 @@ export function sendSignInLinkToEmail(auth: externs.Auth, email: string, actionC
 export function setPersistence(auth: externs.Auth, persistence: externs.Persistence): void;
 
 // @public (undocumented)
-export function signInAnonymously(auth: externs.Auth): Promise<externs.UserCredential>;
+export function signInAnonymously(authExtern: externs.Auth): Promise<externs.UserCredential>;
 
 // @public (undocumented)
 export function signInWithCredential(auth: externs.Auth, credential: externs.AuthCredential): Promise<externs.UserCredential>;

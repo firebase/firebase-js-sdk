@@ -158,6 +158,20 @@ describe('core/user/token_manager', () => {
     });
   });
 
+  describe('#_clone', () => {
+    it('copies the manager to a new object', () => {
+      Object.assign(stsTokenManager, {
+        accessToken: 'token',
+        refreshToken: 'refresh',
+        expirationTime: now,
+      });
+
+      const copy = stsTokenManager._clone();
+      expect(copy).not.to.eq(stsTokenManager);
+      expect(copy.toJSON()).to.eql(stsTokenManager.toJSON());
+    });
+  });
+
   describe('.fromJSON', () => {
     const errorString =
       'Firebase: An internal AuthError has occurred. (auth/internal-error).';
