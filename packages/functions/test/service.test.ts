@@ -33,8 +33,16 @@ describe('Firebase Functions > Service', () => {
       );
     });
 
-    it('can use emulator', () => {
+    it('can use emulator (deprecated)', () => {
       service.useFunctionsEmulator('http://localhost:5005');
+      assert.equal(
+        service._url('foo'),
+        'http://localhost:5005/my-project/us-central1/foo'
+      );
+    });
+
+    it('can use emulator', () => {
+      service.useEmulator('localhost', 5005);
       assert.equal(
         service._url('foo'),
         'http://localhost:5005/my-project/us-central1/foo'
@@ -62,9 +70,18 @@ describe('Firebase Functions > Service', () => {
       assert.equal(service._url('foo'), 'https://mydomain.com/foo');
     });
 
-    it('prefers emulator to custom domain', () => {
+    it('prefers emulator to custom domain (deprecated)', () => {
       const service = createTestService(app, 'https://mydomain.com');
       service.useFunctionsEmulator('http://localhost:5005');
+      assert.equal(
+        service._url('foo'),
+        'http://localhost:5005/my-project/us-central1/foo'
+      );
+    });
+
+    it('prefers emulator to custom domain', () => {
+      const service = createTestService(app, 'https://mydomain.com');
+      service.useEmulator('localhost', 5005);
       assert.equal(
         service._url('foo'),
         'http://localhost:5005/my-project/us-central1/foo'
