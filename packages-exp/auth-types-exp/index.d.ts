@@ -117,7 +117,7 @@ export interface AuthError extends FirebaseError {
 
   /** The email of the user's account, used for sign-in/linking. */
   readonly email?: string;
-  /** The phone number of the user's account used for sign-in/linking. */
+  /** The phone number of the user's account, used for sign-in/linking. */
   readonly phoneNumber?: string;
   /** 
    * The tenant ID being used for sign-in/linking. If you use `signInWithRedirect` to sign in, 
