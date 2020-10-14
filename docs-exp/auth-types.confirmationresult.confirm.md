@@ -27,7 +27,7 @@ Promise&lt;[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
 
 ```javascript
 const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
-// obtain verificationCode from the user
+// Obtain verificationCode from the user.
 const userCredential = await confirmationResult.confirm(verificationCode);
 
 ```

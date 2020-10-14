@@ -4,7 +4,7 @@
 
 ## PopupRedirectResolver interface
 
-A resolver used for handling DOM specific operations like `signInWithPopup()` or `signInWithRedirect()`
+A resolver used for handling DOM specific operations like `signInWithPopup()` or `signInWithRedirect()`<!-- -->.
 
 <b>Signature:</b>
 

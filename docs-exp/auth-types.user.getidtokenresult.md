@@ -4,9 +4,9 @@
 
 ## User.getIdTokenResult() method
 
-Returns a de-serialized JSON Web Token (JWT) used to identitfy the user to a Firebase service.
+Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Firebase service.
 
-Returns the current token if it has not expired. Otherwise, this will refresh the token and return a new one.
+Returns the current token if it has not expired or if it will not expire in the next five minutes. Otherwise, this will refresh the token and return a new one.
 
 <b>Signature:</b>
 

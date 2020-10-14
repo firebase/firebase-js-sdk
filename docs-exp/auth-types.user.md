@@ -29,8 +29,8 @@ export interface User extends UserInfo
 |  Method | Description |
 |  --- | --- |
 |  [delete()](./auth-types.user.delete.md) | Deletes and signs out the user.<!-- -->Important: this is a security-sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call one of the reauthentication methods like <code>reauthenticateWithCredential</code>. |
-|  [getIdToken(forceRefresh)](./auth-types.user.getidtoken.md) | Returns a JSON Web Token (JWT) used to identify the user to a Firebase service.<!-- -->Returns the current token if it has not expired. Otherwise, this will refresh the token and return a new one. |
-|  [getIdTokenResult(forceRefresh)](./auth-types.user.getidtokenresult.md) | Returns a de-serialized JSON Web Token (JWT) used to identitfy the user to a Firebase service.<!-- -->Returns the current token if it has not expired. Otherwise, this will refresh the token and return a new one. |
+|  [getIdToken(forceRefresh)](./auth-types.user.getidtoken.md) | Returns a JSON Web Token (JWT) used to identify the user to a Firebase service.<!-- -->Returns the current token if it has not expired or if it will not expire in the next five minutes. Otherwise, this will refresh the token and return a new one. |
+|  [getIdTokenResult(forceRefresh)](./auth-types.user.getidtokenresult.md) | Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Firebase service.<!-- -->Returns the current token if it has not expired or if it will not expire in the next five minutes. Otherwise, this will refresh the token and return a new one. |
 |  [reload()](./auth-types.user.reload.md) | Refreshes the user, if signed in. |
 |  [toJSON()](./auth-types.user.tojson.md) | Returns a JSON-serializable representation of this object. |
 

@@ -45,14 +45,13 @@ const phoneInfoOptions = {
   session: resolver.session
 };
 const verificationId = phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, appVerifier);
-// store `verificationId` and show UI to let user enter verification code.
+// Store `verificationId` and show UI to let user enter verification code.
 
 // UI to enter verification code and continue.
 // Continue button click handler
 const phoneAuthCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
 const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
 const userCredential = await resolver.resolveSignIn(multiFactorAssertion);
-// User signed in.
 
 ```
 

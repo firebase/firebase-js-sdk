@@ -19,7 +19,7 @@ export interface UserInfo
 |  [displayName](./auth-types.userinfo.displayname.md) | string \| null | The display name of the user. |
 |  [email](./auth-types.userinfo.email.md) | string \| null | The email of the user. |
 |  [phoneNumber](./auth-types.userinfo.phonenumber.md) | string \| null | The phone number normalized based on the E.164 standard (e.g. +16505550101) for the user. This is null if the user has no phone credential linked to the account. |
-|  [photoURL](./auth-types.userinfo.photourl.md) | string \| null | The profile photo URL of the user |
+|  [photoURL](./auth-types.userinfo.photourl.md) | string \| null | The profile photo URL of the user. |
 |  [providerId](./auth-types.userinfo.providerid.md) | string | The provider used to authenticate the user. |
 |  [uid](./auth-types.userinfo.uid.md) | string | The user's unique ID, scoped to the project. |
 

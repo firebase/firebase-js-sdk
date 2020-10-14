@@ -53,7 +53,7 @@
 |  [PhoneMultiFactorEnrollInfoOptions](./auth-types.phonemultifactorenrollinfooptions.md) | Options used for enrolling a second factor. |
 |  [PhoneMultiFactorSignInInfoOptions](./auth-types.phonemultifactorsignininfooptions.md) | Options used for signing-in with a second factor. |
 |  [PhoneSingleFactorInfoOptions](./auth-types.phonesinglefactorinfooptions.md) | Options used for single-factor sign-in. |
-|  [PopupRedirectResolver](./auth-types.popupredirectresolver.md) | A resolver used for handling DOM specific operations like <code>signInWithPopup()</code> or <code>signInWithRedirect()</code> |
+|  [PopupRedirectResolver](./auth-types.popupredirectresolver.md) | A resolver used for handling DOM specific operations like <code>signInWithPopup()</code> or <code>signInWithRedirect()</code>. |
 |  [ReactNativeAsyncStorage](./auth-types.reactnativeasyncstorage.md) | Interface for a supplied AsyncStorage. |
 |  [User](./auth-types.user.md) | A user account. |
 |  [UserCredential](./auth-types.usercredential.md) | A structure containing a [User](./auth-types.user.md)<!-- -->, an [AuthCredential](./auth-types.authcredential.md)<!-- -->, the [OperationType](./auth-types.operationtype.md)<!-- -->, and any additional user information that was returned from the identity provider. <code>operationType</code> could be [OperationType.SIGN\_IN](./auth-types.operationtype.sign_in.md) for a sign-in operation, [OperationType.LINK](./auth-types.operationtype.link.md) for a linking operation and [OperationType.REAUTHENTICATE](./auth-types.operationtype.reauthenticate.md) for a reauthentication operation. |

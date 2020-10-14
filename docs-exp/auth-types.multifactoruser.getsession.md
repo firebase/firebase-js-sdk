@@ -24,7 +24,7 @@ The promise that resolves with the [MultiFactorSession](./auth-types.multifactor
 const multiFactorUser = multiFactor(auth.currentUser);
 const multiFactorSession = await multiFactorUser.getSession();
 
-// Send verification code
+// Send verification code.
 const phoneAuthProvider = new PhoneAuthProvider(auth);
 const phoneInfoOptions = {
   phoneNumber: phoneNumber,

@@ -20,7 +20,7 @@ onIdTokenChanged(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  nextOrObserver | [NextOrObserver](./auth-types.nextorobserver.md)<!-- -->&lt;[User](./auth-types.user.md)<!-- -->&gt; | callback triggere on change. |
+|  nextOrObserver | [NextOrObserver](./auth-types.nextorobserver.md)<!-- -->&lt;[User](./auth-types.user.md)<!-- -->&gt; | callback triggered on change. |
 |  error | ErrorFn | callback triggered on error. |
 |  completed | CompleteFn | callback triggered when observer is removed. |
 

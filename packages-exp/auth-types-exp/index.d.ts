@@ -243,7 +243,7 @@ export interface Auth {
    *
    * To keep the old behavior, see {@link Auth.onIdTokenChanged}.
    *
-   * @param nextOrObserver - callback triggere on change.
+   * @param nextOrObserver - callback triggered on change.
    * @param error - callback triggered on error.
    * @param completed - callback triggered when observer is removed.
    */
@@ -256,7 +256,7 @@ export interface Auth {
    * Adds an observer for changes to the signed-in user's ID token, which includes sign-in,
    * sign-out, and token refresh events.
    *
-   * @param nextOrObserver - callback triggere on change.
+   * @param nextOrObserver - callback triggered on change.
    * @param error - callback triggered on error.
    * @param completed - callback triggered when observer is removed.
    */
@@ -286,10 +286,10 @@ export interface Auth {
   useDeviceLanguage(): void;
   /**
    * Modify this Auth instance to communicate with the Firebase Auth emulator.  This must be
-   * called synchronously immediately following the first call to `firebase.auth()`.  Do not use
+   * called synchronously immediately following the first call to `initializeAuth()`.  Do not use
    * with production credentials as emulator traffic is not encrypted.
    *
-   * @param url - The URL at which the emulator is running (eg, 'http://localhost:9099')
+   * @param url - The URL at which the emulator is running (eg, 'http://localhost:9099').
    */
   useEmulator(url: string): void;
   /**
@@ -396,13 +396,13 @@ export interface ActionCodeInfo {
  * @public
  */
 export const enum Operation {
-  /** The email link sign-in action.  */
+  /** The email link sign-in action. */
   EMAIL_SIGNIN = 'EMAIL_SIGNIN',
   /** The password reset action. */
   PASSWORD_RESET = 'PASSWORD_RESET',
   /** The email revocation action. */
   RECOVER_EMAIL = 'RECOVER_EMAIL',
-  /** The revert second factor addition email action.  */
+  /** The revert second factor addition email action. */
   REVERT_SECOND_FACTOR_ADDITION = 'REVERT_SECOND_FACTOR_ADDITION',
   /** The revert second factor addition email action. */
   VERIFY_AND_CHANGE_EMAIL = 'VERIFY_AND_CHANGE_EMAIL',
@@ -495,7 +495,8 @@ export abstract class ActionCodeURL {
   readonly tenantId: string | null;
 
   /**
-   * Parses the email action link string and returns an ActionCodeURL object if the link is valid, otherwise returns null.
+   * Parses the email action link string and returns an ActionCodeURL object if the link is valid,
+   * otherwise returns null.
    *
    * @param link  - The email action link string.
    * @returns The ActionCodeURL object, or null if the link is invalid.
@@ -768,7 +769,7 @@ export class PhoneAuthProvider implements AuthProvider {
    * ```javascript
    * const provider = new PhoneAuthProvider(auth);
    * const verificationId = provider.verifyPhoneNumber(phoneNumber, applicationVerifier);
-   * // obtain verificationCode from the user
+   * // Obtain verificationCode from the user.
    * const authCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
    * const userCredential = signInWithCredential(auth, authCredential);
    * ```
@@ -777,7 +778,7 @@ export class PhoneAuthProvider implements AuthProvider {
    * An alternative flow is provided using the `signInWithPhoneNumber` method.
    * ```javascript
    * const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
-   * // obtain verificationCode from the user
+   * // Obtain verificationCode from the user.
    * const userCredential = await confirmationResult.confirm(verificationCode);
    * ```
    *
@@ -809,7 +810,7 @@ export class PhoneAuthProvider implements AuthProvider {
    * ```javascript
    * const provider = new PhoneAuthProvider(auth);
    * const verificationId = await provider.verifyPhoneNumber(phoneNumber, applicationVerifier);
-   * // obtain verificationCode from the user
+   * // Obtain verificationCode from the user.
    * const authCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
    * const userCredential = await signInWithCredential(auth, authCredential);
    * ```
@@ -818,7 +819,7 @@ export class PhoneAuthProvider implements AuthProvider {
    * An alternative flow is provided using the `signInWithPhoneNumber` method.
    * ```javascript
    * const confirmationResult = signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
-   * // obtain verificationCode from the user
+   * // Obtain verificationCode from the user.
    * const userCredential = confirmationResult.confirm(verificationCode);
    * ```
    *
@@ -853,7 +854,7 @@ export interface ConfirmationResult {
    * @example
    * ```javascript
    * const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
-   * // obtain verificationCode from the user
+   * // Obtain verificationCode from the user.
    * const userCredential = await confirmationResult.confirm(verificationCode);
    * ```
    *
@@ -965,14 +966,13 @@ export interface MultiFactorInfo {
  *   session: resolver.session
  * };
  * const verificationId = phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, appVerifier);
- * // store `verificationId` and show UI to let user enter verification code.
+ * // Store `verificationId` and show UI to let user enter verification code.
  *
  * // UI to enter verification code and continue.
  * // Continue button click handler
  * const phoneAuthCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
  * const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
  * const userCredential = await resolver.resolveSignIn(multiFactorAssertion);
- * // User signed in.
  * ```
  *
  * @public
@@ -1032,7 +1032,7 @@ export interface MultiFactorUser {
    * const multiFactorUser = multiFactor(auth.currentUser);
    * const multiFactorSession = await multiFactorUser.getSession();
    *
-   * // Send verification code
+   * // Send verification code.
    * const phoneAuthProvider = new PhoneAuthProvider(auth);
    * const phoneInfoOptions = {
    *   phoneNumber: phoneNumber,
@@ -1063,7 +1063,7 @@ export interface MultiFactorUser {
    * const multiFactorUser = multiFactor(auth.currentUser);
    * const multiFactorSession = await multiFactorUser.getSession();
    *
-   * // Send verification code
+   * // Send verification code.
    * const phoneAuthProvider = new PhoneAuthProvider(auth);
    * const phoneInfoOptions = {
    *   phoneNumber: phoneNumber,
@@ -1271,17 +1271,17 @@ export interface User extends UserInfo {
   /**
    * Returns a JSON Web Token (JWT) used to identify the user to a Firebase service.
    *
-   * Returns the current token if it has not expired. Otherwise, this will refresh the token and
-   * return a new one.
+   * Returns the current token if it has not expired or if it will not expire in the next five
+   * minutes. Otherwise, this will refresh the token and return a new one.
    *
    * @param forceRefresh - Force refresh regardless of token expiration.
    */
   getIdToken(forceRefresh?: boolean): Promise<string>;
   /**
-   * Returns a de-serialized JSON Web Token (JWT) used to identitfy the user to a Firebase service.
+   * Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Firebase service.
    *
-   * Returns the current token if it has not expired. Otherwise, this will refresh the token and
-   * return a new one.
+   * Returns the current token if it has not expired or if it will not expire in the next five
+   * minutes. Otherwise, this will refresh the token and return a new one.
    *
    * @param forceRefresh - Force refresh regardless of token expiration.
    */
@@ -1341,7 +1341,7 @@ export interface UserInfo {
    */
   readonly phoneNumber: string | null;
   /**
-   * The profile photo URL of the user
+   * The profile photo URL of the user.
    */
   readonly photoURL: string | null;
   /**
@@ -1399,7 +1399,7 @@ export type UserProfile = Record<string, unknown>;
 
 /**
  * A resolver used for handling DOM specific operations like `signInWithPopup()` or
- * `signInWithRedirect()`
+ * `signInWithRedirect()`.
  *
  * @public
  */
