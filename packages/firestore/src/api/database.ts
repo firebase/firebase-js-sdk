@@ -408,7 +408,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Firestore has already been started and its settings can no longer ' +
-          'be changed. You can only call settings() before calling any other ' +
+          'be changed. You can only modify settings before calling any other ' +
           'methods on a Firestore object.'
       );
     }
@@ -423,14 +423,6 @@ export class Firestore implements PublicFirestore, FirebaseService {
     validateExactNumberOfArgs('Firestore.useEmulator', arguments, 2);
     validateArgType('Firestore.useEmulator', 'string', 1, host);
     validateArgType('Firestore.useEmulator', 'number', 2, port);
-
-    if (this._firestoreClient) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        'Firestore has already been started and its settings can no longer be changed. ' +
-          'You can only call useEmulator() before calling any other methods on a Firestore object.'
-      );
-    }
 
     if (this._settings.host !== DEFAULT_HOST) {
       logWarn(

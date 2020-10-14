@@ -159,7 +159,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
             'getFirestore()';
         } else {
           errorMsg +=
-            'You can only call settings() before calling any other ' +
+            'You can only modify settings before calling any other ' +
             'methods on a Firestore object.';
         }
 
@@ -195,7 +195,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       async db => {
         const errorMsg =
           'Firestore has already been started and its settings can no longer be changed. ' +
-          'You can only call useEmulator() before calling any other methods on a Firestore object.';
+          'You can only modify settings before calling any other methods on a Firestore object.';
 
         await db.doc('foo/bar').set({});
         expect(() => db.useEmulator('localhost', 9000)).to.throw(errorMsg);
