@@ -27,9 +27,9 @@ Promise&lt;void&gt;
 ## Example
 
 
-```
+```javascript
 const multiFactorUser = multiFactor(auth.currentUser);
-// Present user the option to unenroll.
+// Present user the option to choose which factor to unenroll.
 await multiFactorUser.unenroll(multiFactorUser.enrolledFactors[i])
 
 ```

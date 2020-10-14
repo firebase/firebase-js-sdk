@@ -4,7 +4,7 @@
 
 ## AuthProvider interface
 
-Interface that represents an auth provider.
+Interface that represents an auth provider, used to facilitate creating [AuthCredential](./auth-types.authcredential.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -16,5 +16,5 @@ export interface AuthProvider
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [providerId](./auth-types.authprovider.providerid.md) | string |  |
+|  [providerId](./auth-types.authprovider.providerid.md) | string | Provider for which credentials can be constructed. |
 

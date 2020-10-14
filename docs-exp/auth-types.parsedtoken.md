@@ -4,7 +4,7 @@
 
 ## ParsedToken interface
 
-Parsed Id Token.
+Parsed ID token.
 
 <b>Signature:</b>
 
@@ -16,9 +16,9 @@ export interface ParsedToken
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [auth\_time](./auth-types.parsedtoken.auth_time.md) | string |  |
-|  [exp](./auth-types.parsedtoken.exp.md) | string |  |
-|  [firebase](./auth-types.parsedtoken.firebase.md) | { 'sign\_in\_provider'?: string; 'sign\_in\_second\_factor'?: string; } |  |
-|  [iat](./auth-types.parsedtoken.iat.md) | string |  |
-|  [sub](./auth-types.parsedtoken.sub.md) | string |  |
+|  [auth\_time](./auth-types.parsedtoken.auth_time.md) | string | Time at which authentication was performed. |
+|  [exp](./auth-types.parsedtoken.exp.md) | string | Expiration time of the token. |
+|  [firebase](./auth-types.parsedtoken.firebase.md) | { 'sign\_in\_provider'?: string; 'sign\_in\_second\_factor'?: string; } | Firebase specific claims, containing the provider(s) used to authenticate the user. |
+|  [iat](./auth-types.parsedtoken.iat.md) | string | Issuance time of the token. |
+|  [sub](./auth-types.parsedtoken.sub.md) | string | UID of the user. |
 

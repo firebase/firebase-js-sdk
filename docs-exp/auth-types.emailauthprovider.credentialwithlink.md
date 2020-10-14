@@ -4,7 +4,7 @@
 
 ## EmailAuthProvider.credentialWithLink() method
 
-Initialize an [EmailAuthProvider](./auth-types.emailauthprovider.md) credential using an email and an email link after a sign in with email link operation.
+Initialize an [AuthCredential](./auth-types.authcredential.md) using an email and an email link after a sign in with email link operation.
 
 <b>Signature:</b>
 
@@ -30,15 +30,22 @@ static credentialWithLink(
 
 - The auth provider credential.
 
-## Example
+## Example 1
 
+
+```javascript
+const authCredential = EmailAuthProvider.credentialWithLink(auth, email, emailLink);
+const userCredential = await signInWithCredential(auth, authCredential);
 
 ```
-const cred = EmailAuthProvider.credentialWithLink(
-    auth,
-    email,
-    emailLink
-);
+
+## Example 2
+
+
+```javascript
+await sendSignInLinkToEmail(auth, email);
+// Obtain emailLink from user.
+const userCredential = await signInWithEmailLink(auth, email, emailLink);
 
 ```
 

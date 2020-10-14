@@ -22,3 +22,13 @@ confirm(verificationCode: string): Promise<UserCredential>;
 
 Promise&lt;[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
 
+## Example
+
+
+```javascript
+const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+// obtain verificationCode from the user
+const userCredential = await confirmationResult.confirm(verificationCode);
+
+```
+

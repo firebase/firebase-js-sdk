@@ -4,7 +4,7 @@
 
 ## SignInMethod enum
 
-Supported sign in methods.
+Supported sign-in methods.
 
 <b>Signature:</b>
 

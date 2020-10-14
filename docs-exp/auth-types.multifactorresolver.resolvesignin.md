@@ -24,3 +24,13 @@ Promise&lt;[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
 
 The promise that resolves with the user credential object.
 
+## Example
+
+
+```javascript
+const phoneAuthCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
+const userCredential = await resolver.resolveSignIn(multiFactorAssertion);
+
+```
+

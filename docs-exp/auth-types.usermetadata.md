@@ -16,6 +16,6 @@ export interface UserMetadata
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [creationTime](./auth-types.usermetadata.creationtime.md) | string |  |
-|  [lastSignInTime](./auth-types.usermetadata.lastsignintime.md) | string |  |
+|  [creationTime](./auth-types.usermetadata.creationtime.md) | string | Time the user was created. |
+|  [lastSignInTime](./auth-types.usermetadata.lastsignintime.md) | string | Time the user last signed in. |
 

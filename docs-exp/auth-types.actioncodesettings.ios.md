@@ -6,6 +6,8 @@
 
 Sets the iOS bundle ID. This will try to open the link in an iOS app if it is installed.
 
+App installation is not supported for iOS.
+
 <b>Signature:</b>
 
 ```typescript

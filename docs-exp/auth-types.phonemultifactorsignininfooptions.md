@@ -4,6 +4,7 @@
 
 ## PhoneMultiFactorSignInInfoOptions interface
 
+Options used for signing-in with a second-factor.
 
 <b>Signature:</b>
 
@@ -15,7 +16,7 @@ export interface PhoneMultiFactorSignInInfoOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [multiFactorHint](./auth-types.phonemultifactorsignininfooptions.multifactorhint.md) | [MultiFactorInfo](./auth-types.multifactorinfo.md) |  |
-|  [multiFactorUid](./auth-types.phonemultifactorsignininfooptions.multifactoruid.md) | string |  |
-|  [session](./auth-types.phonemultifactorsignininfooptions.session.md) | [MultiFactorSession](./auth-types.multifactorsession.md) |  |
+|  [multiFactorHint](./auth-types.phonemultifactorsignininfooptions.multifactorhint.md) | [MultiFactorInfo](./auth-types.multifactorinfo.md) | The [MultiFactorInfo](./auth-types.multifactorinfo.md) obtained via [MultiFactorResolver.hints](./auth-types.multifactorresolver.hints.md)<!-- -->.<!-- -->One of <code>multiFactorHint</code> or <code>multiFactorUid</code> is required. |
+|  [multiFactorUid](./auth-types.phonemultifactorsignininfooptions.multifactoruid.md) | string | The uid of the second-factor.<!-- -->One of <code>multiFactorHint</code> or <code>multiFactorUid</code> is required. |
+|  [session](./auth-types.phonemultifactorsignininfooptions.session.md) | [MultiFactorSession](./auth-types.multifactorsession.md) | The [MultiFactorSession](./auth-types.multifactorsession.md) obtained via [MultiFactorResolver.session](./auth-types.multifactorresolver.session.md)<!-- -->. |
 

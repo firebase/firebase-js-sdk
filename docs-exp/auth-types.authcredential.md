@@ -24,5 +24,5 @@ export abstract class AuthCredential
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [fromJSON(json)](./auth-types.authcredential.fromjson.md) | <code>static</code> | Static method to deserialize a JSON representation of an object into an [AuthCredential](./auth-types.authcredential.md)<!-- -->. |
-|  [toJSON()](./auth-types.authcredential.tojson.md) |  |  |
+|  [toJSON()](./auth-types.authcredential.tojson.md) |  | Returns a JSON-serializable representation of this object. |
 

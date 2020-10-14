@@ -4,7 +4,7 @@
 
 ## PhoneMultiFactorGenerator.assertion() method
 
-Initializes the [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md) to confirm ownership of the phone second factor.
+Provides a [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md) to confirm ownership of the phone second factor.
 
 <b>Signature:</b>
 

@@ -28,3 +28,26 @@ static credential(
 
 The auth provider credential.
 
+## Example 1
+
+
+```javascript
+const provider = new PhoneAuthProvider(auth);
+const verificationId = provider.verifyPhoneNumber(phoneNumber, applicationVerifier);
+// obtain verificationCode from the user
+const authCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+const userCredential = signInWithCredential(auth, authCredential);
+
+```
+
+## Example 2
+
+An alternative flow is provided using the `signInWithPhoneNumber` method.
+
+```javascript
+const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+// obtain verificationCode from the user
+const userCredential = await confirmationResult.confirm(verificationCode);
+
+```
+

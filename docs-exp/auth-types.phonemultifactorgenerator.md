@@ -22,5 +22,5 @@ export abstract class PhoneMultiFactorGenerator
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [assertion(phoneAuthCredential)](./auth-types.phonemultifactorgenerator.assertion.md) | <code>static</code> | Initializes the [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md) to confirm ownership of the phone second factor. |
+|  [assertion(phoneAuthCredential)](./auth-types.phonemultifactorgenerator.assertion.md) | <code>static</code> | Provides a [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md) to confirm ownership of the phone second factor. |
 

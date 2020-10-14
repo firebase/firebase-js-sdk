@@ -4,6 +4,7 @@
 
 ## PhoneMultiFactorEnrollInfoOptions interface
 
+Options used for enrolling a second-factor.
 
 <b>Signature:</b>
 
@@ -15,6 +16,6 @@ export interface PhoneMultiFactorEnrollInfoOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [phoneNumber](./auth-types.phonemultifactorenrollinfooptions.phonenumber.md) | string |  |
-|  [session](./auth-types.phonemultifactorenrollinfooptions.session.md) | [MultiFactorSession](./auth-types.multifactorsession.md) |  |
+|  [phoneNumber](./auth-types.phonemultifactorenrollinfooptions.phonenumber.md) | string | Phone number to send a verification code to. |
+|  [session](./auth-types.phonemultifactorenrollinfooptions.session.md) | [MultiFactorSession](./auth-types.multifactorsession.md) | The [MultiFactorSession](./auth-types.multifactorsession.md) obtained via [MultiFactorUser.getSession()](./auth-types.multifactoruser.getsession.md)<!-- -->. |
 

@@ -27,7 +27,7 @@ void
 ## Example
 
 
-```
+```javascript
 auth.setPersistence(browserSessionPersistence);
 
 ```

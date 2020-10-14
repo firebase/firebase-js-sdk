@@ -11,7 +11,7 @@
 |  [ActionCodeURL](./auth-types.actioncodeurl.md) | A utility class to parse email action URLs such as password reset, email verification, email link sign in, etc. |
 |  [AuthCredential](./auth-types.authcredential.md) | Interface that represents the credentials returned by an auth provider. Implementations specify the details about each auth provider's credential requirements. |
 |  [EmailAuthProvider](./auth-types.emailauthprovider.md) | Email and password auth provider implementation. |
-|  [MultiFactorResolver](./auth-types.multifactorresolver.md) | The class used to facilitate recovery from [MultiFactorError](./auth-types.multifactorerror.md) when a user needs to provide a second factor to sign in.<!-- -->error.resolver; |
+|  [MultiFactorResolver](./auth-types.multifactorresolver.md) | The class used to facilitate recovery from [MultiFactorError](./auth-types.multifactorerror.md) when a user needs to provide a second factor to sign in. |
 |  [OAuthCredential](./auth-types.oauthcredential.md) | Interface that represents the OAuth credentials returned by an OAuth provider. Implementations specify the details about each auth provider's credential requirements. |
 |  [PhoneAuthCredential](./auth-types.phoneauthcredential.md) | Class that represents the Phone Auth credentials returned by a [PhoneAuthProvider](./auth-types.phoneauthprovider.md)<!-- -->. |
 |  [PhoneAuthProvider](./auth-types.phoneauthprovider.md) | A provider for generating phone credentials. |
@@ -25,7 +25,7 @@
 |  [Operation](./auth-types.operation.md) | An enumeration of the possible email action types. |
 |  [OperationType](./auth-types.operationtype.md) | Supported operation types. |
 |  [ProviderId](./auth-types.providerid.md) | Supported providers. |
-|  [SignInMethod](./auth-types.signinmethod.md) | Supported sign in methods. |
+|  [SignInMethod](./auth-types.signinmethod.md) | Supported sign-in methods. |
 
 ## Interfaces
 
@@ -37,7 +37,7 @@
 |  [ApplicationVerifier](./auth-types.applicationverifier.md) | A verifier for domain verification and abuse prevention. Currently, the only implementation is [RecaptchaVerifier](./auth-types.recaptchaverifier.md)<!-- -->. |
 |  [Auth](./auth-types.auth.md) | The Firebase Auth service interface.<!-- -->See [Firebase Authentication](https://firebase.google.com/docs/auth/) for a full guide on how to use the Firebase Auth service. |
 |  [AuthError](./auth-types.autherror.md) |  |
-|  [AuthProvider](./auth-types.authprovider.md) | Interface that represents an auth provider. |
+|  [AuthProvider](./auth-types.authprovider.md) | Interface that represents an auth provider, used to facilitate creating [AuthCredential](./auth-types.authcredential.md)<!-- -->. |
 |  [AuthSettings](./auth-types.authsettings.md) | Interface representing an Auth instance's settings, currently used for enabling/disabling app verification for phone Auth testing. |
 |  [Config](./auth-types.config.md) | Auth config object. |
 |  [ConfirmationResult](./auth-types.confirmationresult.md) | A result from a phone number sign-in, link, or reauthenticate call. |
@@ -47,16 +47,16 @@
 |  [MultiFactorInfo](./auth-types.multifactorinfo.md) | A structure containing the information of a second factor entity. |
 |  [MultiFactorSession](./auth-types.multifactorsession.md) | The multi-factor session object used for enrolling a second factor on a user or helping sign in an enrolled user with a second factor. |
 |  [MultiFactorUser](./auth-types.multifactoruser.md) | This is the interface that defines the multi-factor related properties and operations pertaining to a [User](./auth-types.user.md)<!-- -->. |
-|  [ParsedToken](./auth-types.parsedtoken.md) | Parsed Id Token. |
+|  [ParsedToken](./auth-types.parsedtoken.md) | Parsed ID token. |
 |  [Persistence](./auth-types.persistence.md) | An enumeration of the possible persistence mechanism types. |
-|  [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md) | The class for asserting ownership of a phone second factor. Provider by [PhoneMultiFactorGenerator.assertion()](./auth-types.phonemultifactorgenerator.assertion.md)<!-- -->. |
-|  [PhoneMultiFactorEnrollInfoOptions](./auth-types.phonemultifactorenrollinfooptions.md) |  |
-|  [PhoneMultiFactorSignInInfoOptions](./auth-types.phonemultifactorsignininfooptions.md) |  |
-|  [PhoneSingleFactorInfoOptions](./auth-types.phonesinglefactorinfooptions.md) |  |
+|  [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md) | The class for asserting ownership of a phone second factor. Provided by [PhoneMultiFactorGenerator.assertion()](./auth-types.phonemultifactorgenerator.assertion.md)<!-- -->. |
+|  [PhoneMultiFactorEnrollInfoOptions](./auth-types.phonemultifactorenrollinfooptions.md) | Options used for enrolling a second-factor. |
+|  [PhoneMultiFactorSignInInfoOptions](./auth-types.phonemultifactorsignininfooptions.md) | Options used for signing-in with a second-factor. |
+|  [PhoneSingleFactorInfoOptions](./auth-types.phonesinglefactorinfooptions.md) | Options used for single-factor sign-in. |
 |  [PopupRedirectResolver](./auth-types.popupredirectresolver.md) | A resolver used for handling DOM specific operations like <code>signInWithPopup()</code> or <code>signInWithRedirect()</code> |
-|  [ReactNativeAsyncStorage](./auth-types.reactnativeasyncstorage.md) |  |
+|  [ReactNativeAsyncStorage](./auth-types.reactnativeasyncstorage.md) | Interface for a supplied AsyncStorage. |
 |  [User](./auth-types.user.md) | A user account. |
-|  [UserCredential](./auth-types.usercredential.md) | A structure containing a User, an AuthCredential, the <code>operationType</code>, and any additional user information that was returned from the identity provider. <code>operationType</code> could be [OperationType.SIGN\_IN](./auth-types.operationtype.sign_in.md) for a sign-in operation, [OperationType.LINK](./auth-types.operationtype.link.md) for a linking operation and [OperationType.REAUTHENTICATE](./auth-types.operationtype.reauthenticate.md) for a reauthentication operation. |
+|  [UserCredential](./auth-types.usercredential.md) | A structure containing a [User](./auth-types.user.md)<!-- -->, an [AuthCredential](./auth-types.authcredential.md)<!-- -->, the [OperationType](./auth-types.operationtype.md)<!-- -->, and any additional user information that was returned from the identity provider. <code>operationType</code> could be [OperationType.SIGN\_IN](./auth-types.operationtype.sign_in.md) for a sign-in operation, [OperationType.LINK](./auth-types.operationtype.link.md) for a linking operation and [OperationType.REAUTHENTICATE](./auth-types.operationtype.reauthenticate.md) for a reauthentication operation. |
 |  [UserInfo](./auth-types.userinfo.md) | User profile information, visible only to the Firebase project's apps. |
 |  [UserMetadata](./auth-types.usermetadata.md) | Interface representing a user's metadata. |
 
@@ -64,7 +64,7 @@
 
 |  Type Alias | Description |
 |  --- | --- |
-|  [NextOrObserver](./auth-types.nextorobserver.md) |  |
+|  [NextOrObserver](./auth-types.nextorobserver.md) | Type definition for an event callback. |
 |  [PhoneInfoOptions](./auth-types.phoneinfooptions.md) | The information required to verify the ownership of a phone number. The information that's required depends on whether you are doing single-factor sign-in, multi-factor enrollment or multi-factor sign-in. |
 |  [UserProfile](./auth-types.userprofile.md) | User profile used in [AdditionalUserInfo](./auth-types.additionaluserinfo.md)<!-- -->. |
 

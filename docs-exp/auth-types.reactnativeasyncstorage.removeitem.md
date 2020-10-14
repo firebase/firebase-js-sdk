@@ -4,6 +4,8 @@
 
 ## ReactNativeAsyncStorage.removeItem() method
 
+Remove an item from storage.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +16,7 @@ removeItem(key: string): Promise<void>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  key | string |  |
+|  key | string | storage key. |
 
 <b>Returns:</b>
 

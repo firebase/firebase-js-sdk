@@ -4,6 +4,10 @@
 
 ## User.getIdTokenResult() method
 
+Returns a de-serialized JSON Web Token (JWT) used to identitfy the user to a Firebase service.
+
+Returns the current token if it has not expired. Otherwise, this will refresh the token and return a new one.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +18,7 @@ getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  forceRefresh | boolean |  |
+|  forceRefresh | boolean | Force refresh regardless of token expiration. |
 
 <b>Returns:</b>
 

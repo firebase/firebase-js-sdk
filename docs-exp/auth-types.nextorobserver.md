@@ -4,6 +4,7 @@
 
 ## NextOrObserver type
 
+Type definition for an event callback.
 
 <b>Signature:</b>
 

@@ -28,7 +28,6 @@ export interface ActionCodeSettings {
     minimumVersion?: string;
     packageName: string;
   };
-  // (undocumented)
   dynamicLinkDomain?: string;
   handleCodeInApp?: boolean;
   iOS?: {
@@ -50,13 +49,9 @@ export abstract class ActionCodeURL {
 
 // @public
 export interface AdditionalUserInfo {
-  // (undocumented)
   readonly isNewUser: boolean;
-  // (undocumented)
   readonly profile: UserProfile | null;
-  // (undocumented)
   readonly providerId: ProviderId | null;
-  // (undocumented)
   readonly username?: string | null;
 }
 
@@ -99,24 +94,19 @@ export abstract class AuthCredential {
 
   readonly signInMethod: string;
 
-  // (undocumented)
   toJSON(): object;
 }
 
 // @public (undocumented)
 export interface AuthError extends FirebaseError {
   readonly appName: string;
-
   readonly email?: string;
-
   readonly phoneNumber?: string;
-
   readonly tenantid?: string;
 }
 
 // @public
 export interface AuthProvider {
-  // (undocumented)
   readonly providerId: string;
 }
 
@@ -127,17 +117,11 @@ export interface AuthSettings {
 
 // @public
 export interface Config {
-  // (undocumented)
   apiHost: string;
-  // (undocumented)
   apiKey: string;
-  // (undocumented)
   apiScheme: string;
-  // (undocumented)
   authDomain?: string;
-  // (undocumented)
   sdkClientVersion: string;
-  // (undocumented)
   tokenApiHost: string;
 }
 
@@ -149,20 +133,15 @@ export interface ConfirmationResult {
 
 // @public
 export abstract class EmailAuthProvider implements AuthProvider {
-  // (undocumented)
   static credential(email: string, password: string): AuthCredential;
   static credentialWithLink(
     auth: Auth,
     email: string,
     emailLink: string
   ): AuthCredential;
-  // (undocumented)
   static readonly EMAIL_LINK_SIGN_IN_METHOD: SignInMethod;
-  // (undocumented)
   static readonly EMAIL_PASSWORD_SIGN_IN_METHOD: SignInMethod;
-  // (undocumented)
   static readonly PROVIDER_ID: ProviderId;
-  // (undocumented)
   readonly providerId: ProviderId;
 }
 
@@ -184,9 +163,7 @@ export interface MultiFactorAssertion {
 
 // @public
 export interface MultiFactorError extends AuthError {
-  // (undocumented)
   readonly credential: AuthCredential;
-  // (undocumented)
   readonly operationType: OperationType;
 }
 
@@ -219,7 +196,7 @@ export interface MultiFactorUser {
   unenroll(option: MultiFactorInfo | string): Promise<void>;
 }
 
-// @public (undocumented)
+// @public
 export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
 
 // @public
@@ -245,36 +222,26 @@ export const enum Operation {
 
 // @public
 export const enum OperationType {
-  // (undocumented)
   LINK = 'link',
-  // (undocumented)
   REAUTHENTICATE = 'reauthenticate',
-  // (undocumented)
   SIGN_IN = 'signIn'
 }
 
 // @public
 export interface ParsedToken {
-  // (undocumented)
   [key: string]: string | object | undefined;
-  // (undocumented)
   'auth_time'?: string;
-  // (undocumented)
   'exp'?: string;
-  // (undocumented)
   'firebase'?: {
     'sign_in_provider'?: string;
     'sign_in_second_factor'?: string;
   };
-  // (undocumented)
   'iat'?: string;
-  // (undocumented)
   'sub'?: string;
 }
 
 // @public
 export interface Persistence {
-  // (undocumented)
   readonly type: 'SESSION' | 'LOCAL' | 'NONE';
 }
 
@@ -290,11 +257,8 @@ export class PhoneAuthProvider implements AuthProvider {
     verificationId: string,
     verificationCode: string
   ): AuthCredential;
-  // (undocumented)
   static readonly PHONE_SIGN_IN_METHOD: SignInMethod;
-  // (undocumented)
   static readonly PROVIDER_ID: ProviderId;
-  // (undocumented)
   readonly providerId: ProviderId;
   verifyPhoneNumber(
     phoneInfoOptions: PhoneInfoOptions | string,
@@ -311,11 +275,9 @@ export type PhoneInfoOptions =
 // @public
 export interface PhoneMultiFactorAssertion extends MultiFactorAssertion {}
 
-// @public (undocumented)
+// @public
 export interface PhoneMultiFactorEnrollInfoOptions {
-  // (undocumented)
   phoneNumber: string;
-  // (undocumented)
   session: MultiFactorSession;
 }
 
@@ -327,19 +289,15 @@ export abstract class PhoneMultiFactorGenerator {
   static FACTOR_ID: ProviderId;
 }
 
-// @public (undocumented)
+// @public
 export interface PhoneMultiFactorSignInInfoOptions {
-  // (undocumented)
   multiFactorHint?: MultiFactorInfo;
-  // (undocumented)
   multiFactorUid?: string;
-  // (undocumented)
   session: MultiFactorSession;
 }
 
-// @public (undocumented)
+// @public
 export interface PhoneSingleFactorInfoOptions {
-  // (undocumented)
   phoneNumber: string;
 }
 
@@ -368,13 +326,10 @@ export const enum ProviderId {
   TWITTER = 'twitter.com'
 }
 
-// @public (undocumented)
+// @public
 export interface ReactNativeAsyncStorage {
-  // (undocumented)
   getItem(key: string): Promise<string | null>;
-  // (undocumented)
   removeItem(key: string): Promise<void>;
-  // (undocumented)
   setItem(key: string, value: string): Promise<void>;
 }
 
@@ -414,18 +369,12 @@ export const enum SignInMethod {
 // @public
 export interface User extends UserInfo {
   delete(): Promise<void>;
-  // (undocumented)
   readonly emailVerified: boolean;
   getIdToken(forceRefresh?: boolean): Promise<string>;
-  // (undocumented)
   getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
-  // (undocumented)
   readonly isAnonymous: boolean;
-  // (undocumented)
   readonly metadata: UserMetadata;
-  // (undocumented)
   readonly providerData: UserInfo[];
-  // (undocumented)
   readonly refreshToken: string;
   reload(): Promise<void>;
   readonly tenantId: string | null;
@@ -434,33 +383,24 @@ export interface User extends UserInfo {
 
 // @public
 export interface UserCredential {
-  // (undocumented)
   operationType: OperationType;
-  // (undocumented)
   providerId: ProviderId | null;
-  // (undocumented)
   user: User;
 }
 
 // @public
 export interface UserInfo {
-  // (undocumented)
   readonly displayName: string | null;
-  // (undocumented)
   readonly email: string | null;
   readonly phoneNumber: string | null;
-  // (undocumented)
   readonly photoURL: string | null;
-  // (undocumented)
   readonly providerId: string;
   readonly uid: string;
 }
 
 // @public
 export interface UserMetadata {
-  // (undocumented)
   readonly creationTime?: string;
-  // (undocumented)
   readonly lastSignInTime?: string;
 }
 

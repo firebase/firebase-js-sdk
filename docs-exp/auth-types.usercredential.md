@@ -4,7 +4,7 @@
 
 ## UserCredential interface
 
-A structure containing a User, an AuthCredential, the `operationType`<!-- -->, and any additional user information that was returned from the identity provider. `operationType` could be [OperationType.SIGN\_IN](./auth-types.operationtype.sign_in.md) for a sign-in operation, [OperationType.LINK](./auth-types.operationtype.link.md) for a linking operation and [OperationType.REAUTHENTICATE](./auth-types.operationtype.reauthenticate.md) for a reauthentication operation.
+A structure containing a [User](./auth-types.user.md)<!-- -->, an [AuthCredential](./auth-types.authcredential.md)<!-- -->, the [OperationType](./auth-types.operationtype.md)<!-- -->, and any additional user information that was returned from the identity provider. `operationType` could be [OperationType.SIGN\_IN](./auth-types.operationtype.sign_in.md) for a sign-in operation, [OperationType.LINK](./auth-types.operationtype.link.md) for a linking operation and [OperationType.REAUTHENTICATE](./auth-types.operationtype.reauthenticate.md) for a reauthentication operation.
 
 <b>Signature:</b>
 
@@ -16,7 +16,7 @@ export interface UserCredential
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [operationType](./auth-types.usercredential.operationtype.md) | [OperationType](./auth-types.operationtype.md) |  |
-|  [providerId](./auth-types.usercredential.providerid.md) | [ProviderId](./auth-types.providerid.md) \| null |  |
-|  [user](./auth-types.usercredential.user.md) | [User](./auth-types.user.md) |  |
+|  [operationType](./auth-types.usercredential.operationtype.md) | [OperationType](./auth-types.operationtype.md) | The type of operation which was used to authenticate the user (such as sign-in or link). |
+|  [providerId](./auth-types.usercredential.providerid.md) | [ProviderId](./auth-types.providerid.md) \| null | The provider which was used to authenticate the user. |
+|  [user](./auth-types.usercredential.user.md) | [User](./auth-types.user.md) | The user authenticated by this credential. |
 

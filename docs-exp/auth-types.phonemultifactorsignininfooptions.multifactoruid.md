@@ -4,6 +4,10 @@
 
 ## PhoneMultiFactorSignInInfoOptions.multiFactorUid property
 
+The uid of the second-factor.
+
+One of `multiFactorHint` or `multiFactorUid` is required.
+
 <b>Signature:</b>
 
 ```typescript

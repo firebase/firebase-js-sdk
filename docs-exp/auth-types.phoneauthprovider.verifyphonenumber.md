@@ -28,3 +28,26 @@ Promise&lt;string&gt;
 
 A Promise for the verification ID.
 
+## Example 1
+
+
+```javascript
+const provider = new PhoneAuthProvider(auth);
+const verificationId = await provider.verifyPhoneNumber(phoneNumber, applicationVerifier);
+// obtain verificationCode from the user
+const authCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+const userCredential = await signInWithCredential(auth, authCredential);
+
+```
+
+## Example 2
+
+An alternative flow is provided using the `signInWithPhoneNumber` method.
+
+```javascript
+const confirmationResult = signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+// obtain verificationCode from the user
+const userCredential = confirmationResult.confirm(verificationCode);
+
+```
+

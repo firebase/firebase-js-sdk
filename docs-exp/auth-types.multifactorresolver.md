@@ -6,8 +6,6 @@
 
 The class used to facilitate recovery from [MultiFactorError](./auth-types.multifactorerror.md) when a user needs to provide a second factor to sign in.
 
-error.resolver;
-
 <b>Signature:</b>
 
 ```typescript
@@ -17,7 +15,7 @@ export abstract class MultiFactorResolver
 ## Example
 
 
-```
+```javascript
 let resolver;
 let multiFactorHints;
 
@@ -47,7 +45,7 @@ const phoneInfoOptions = {
   session: resolver.session
 };
 const verificationId = phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, appVerifier);
-// store verificationID and show UI to let user enter verification code.
+// store `verificationId` and show UI to let user enter verification code.
 
 // UI to enter verification code and continue.
 // Continue button click handler

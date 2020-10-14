@@ -15,7 +15,7 @@ readonly tenantId: string | null;
 ## Example
 
 
-```
+```javascript
 // Set the tenant ID on Auth instance.
 auth.tenantId = 'TENANT_PROJECT_ID';
 

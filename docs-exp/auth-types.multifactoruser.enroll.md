@@ -29,18 +29,19 @@ Promise&lt;void&gt;
 ## Example
 
 
-```
+```javascript
 const multiFactorUser = multiFactor(auth.currentUser);
 const multiFactorSession = await multiFactorUser.getSession();
+
 // Send verification code
-const phoneAuthProvider = new PhoneAuthProvider();
+const phoneAuthProvider = new PhoneAuthProvider(auth);
 const phoneInfoOptions = {
   phoneNumber: phoneNumber,
   session: multiFactorSession
 };
 const verificationId = await phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, appVerifier);
-// Store verificationID and show UI to let user enter verification code.
 
+// Obtain verification code from user.
 const phoneAuthCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
 const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
 await multiFactorUser.enroll(multiFactorAssertion);

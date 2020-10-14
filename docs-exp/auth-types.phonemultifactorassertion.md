@@ -4,7 +4,7 @@
 
 ## PhoneMultiFactorAssertion interface
 
-The class for asserting ownership of a phone second factor. Provider by [PhoneMultiFactorGenerator.assertion()](./auth-types.phonemultifactorgenerator.assertion.md)<!-- -->.
+The class for asserting ownership of a phone second factor. Provided by [PhoneMultiFactorGenerator.assertion()](./auth-types.phonemultifactorgenerator.assertion.md)<!-- -->.
 
 <b>Signature:</b>
 

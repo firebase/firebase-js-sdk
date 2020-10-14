@@ -4,6 +4,7 @@
 
 ## PhoneSingleFactorInfoOptions interface
 
+Options used for single-factor sign-in.
 
 <b>Signature:</b>
 
@@ -15,5 +16,5 @@ export interface PhoneSingleFactorInfoOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [phoneNumber](./auth-types.phonesinglefactorinfooptions.phonenumber.md) | string |  |
+|  [phoneNumber](./auth-types.phonesinglefactorinfooptions.phonenumber.md) | string | Phone number to send a verification code to. |
 

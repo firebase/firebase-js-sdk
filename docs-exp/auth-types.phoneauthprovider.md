@@ -16,10 +16,10 @@ export class PhoneAuthProvider implements AuthProvider
 ## Example
 
 
-```
+```javascript
 // 'recaptcha-container' is the ID of an element in the DOM.
 const applicationVerifier = new RecaptchaVerifier('recaptcha-container');
-const provider = new PhoneAuthProvider();
+const provider = new PhoneAuthProvider(auth);
 const verificationId = await provider.verifyPhoneNumber('+16505550101', applicationVerifier);
 const verificationCode = window.prompt('Please enter the verification code that was sent to your mobile device.');
 const phoneCredential = await PhoneAuthProvider.credential(verificationId, verificationCode);
@@ -37,9 +37,9 @@ const userCredential = await signInWithCredential(auth, phoneCredential);
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [PHONE\_SIGN\_IN\_METHOD](./auth-types.phoneauthprovider.phone_sign_in_method.md) | <code>static</code> | [SignInMethod](./auth-types.signinmethod.md) |  |
-|  [PROVIDER\_ID](./auth-types.phoneauthprovider.provider_id.md) | <code>static</code> | [ProviderId](./auth-types.providerid.md) |  |
-|  [providerId](./auth-types.phoneauthprovider.providerid.md) |  | [ProviderId](./auth-types.providerid.md) |  |
+|  [PHONE\_SIGN\_IN\_METHOD](./auth-types.phoneauthprovider.phone_sign_in_method.md) | <code>static</code> | [SignInMethod](./auth-types.signinmethod.md) | Always set to [SignInMethod.PHONE](./auth-types.signinmethod.phone.md)<!-- -->. |
+|  [PROVIDER\_ID](./auth-types.phoneauthprovider.provider_id.md) | <code>static</code> | [ProviderId](./auth-types.providerid.md) | Always set to [ProviderId.PHONE](./auth-types.providerid.phone.md)<!-- -->. |
+|  [providerId](./auth-types.phoneauthprovider.providerid.md) |  | [ProviderId](./auth-types.providerid.md) | Always set to [ProviderId.PHONE](./auth-types.providerid.phone.md)<!-- -->. |
 
 ## Methods
 
