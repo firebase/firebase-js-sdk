@@ -417,7 +417,7 @@ export async function withFunctionTriggersDisabled<TResult>(
   // Disable background triggers
   const disableRes = await requestPromise({
     method: 'PUT',
-    uri: `http://${hubHost}/functions/disableBackgroundTriggers/`
+    uri: `http://${hubHost}/functions/disableBackgroundTriggers`
   });
   if (disableRes.statusCode !== 200) {
     throw new Error(
@@ -431,7 +431,7 @@ export async function withFunctionTriggersDisabled<TResult>(
   // Re-enable background triggers
   const enableRes = await requestPromise({
     method: 'PUT',
-    uri: `http://${hubHost}/functions/enableBackgroundTriggers/`
+    uri: `http://${hubHost}/functions/enableBackgroundTriggers`
   });
   if (enableRes.statusCode !== 200) {
     throw new Error(
