@@ -1069,7 +1069,7 @@ export interface User extends UserInfo {
    * @example
    * ```
    * // Set the tenant ID on Auth instance.
-   * auth.tenantId = ‘TENANT_PROJECT_ID’;
+   * auth.tenantId = 'TENANT_PROJECT_ID';
    *
    * // All future sign-in request now include tenant ID.
    * const result = await signInWithEmailAndPassword(auth, email, password);
