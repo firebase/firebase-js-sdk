@@ -790,7 +790,7 @@ export interface MultiFactorAssertion {
  *     });
  * 
  * resolver.resolveSignIn(multiFactorAssertion)
- *     .then(function(userCredential) {
+ *     .then((userCredential) => {
  *       // User signed in.
  *     });
  * ```
