@@ -426,17 +426,20 @@ export async function withFunctionTriggersDisabled<TResult>(
   }
 
   // Run the user's function
-  const result = await fn();
-
-  // Re-enable background triggers
-  const enableRes = await requestPromise({
-    method: 'PUT',
-    uri: `http://${hubHost}/functions/enableBackgroundTriggers`
-  });
-  if (enableRes.statusCode !== 200) {
-    throw new Error(
-      `HTTP Error ${enableRes.statusCode} when enabling functions triggers, are you using the latest version of the Firebase CLI?`
-    );
+  let result: TResult | undefined = undefined;
+  try {
+    result = await fn();
+  } finally {
+    // Re-enable background triggers
+    const enableRes = await requestPromise({
+      method: 'PUT',
+      uri: `http://${hubHost}/functions/enableBackgroundTriggers`
+    });
+    if (enableRes.statusCode !== 200) {
+      throw new Error(
+        `HTTP Error ${enableRes.statusCode} when enabling functions triggers, are you using the latest version of the Firebase CLI?`
+      );
+    }
   }
 
   // Return the user's function result
