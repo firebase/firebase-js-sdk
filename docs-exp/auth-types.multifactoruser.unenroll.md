@@ -4,7 +4,7 @@
 
 ## MultiFactorUser.unenroll() method
 
-Unenrolls the specified second factor. To specify the factor to remove, pass a [MultiFactorInfo](./auth-types.multifactorinfo.md) object (retrieved from `enrolledFactors()`<!-- -->) or the factor's UID string. Sessions are not revoked when the account is downgraded. An email notification is likely to be sent to the user notifying them of the change. Recent re-authentication is required for this operation to succeed. When an existing factor is unenrolled, an email notification is sent to the user’s email.
+Unenrolls the specified second factor. To specify the factor to remove, pass a [MultiFactorInfo](./auth-types.multifactorinfo.md) object (retrieved from [MultiFactorUser.enrolledFactors](./auth-types.multifactoruser.enrolledfactors.md)<!-- -->) or the factor's UID string. Sessions are not revoked when the account is unenrolled. An email notification is likely to be sent to the user notifying them of the change. Recent re-authentication is required for this operation to succeed. When an existing factor is unenrolled, an email notification is sent to the user’s email.
 
 <b>Signature:</b>
 
@@ -22,11 +22,13 @@ unenroll(option: MultiFactorInfo | string): Promise<void>;
 
 Promise&lt;void&gt;
 
+- A promise which resolves when the unenroll operation is complete.
+
 ## Example
 
 
 ```
-const multiFactorUser = multiFactor(firebase.auth().currentUser);
+const multiFactorUser = multiFactor(auth.currentUser);
 // Present user the option to unenroll.
 await multiFactorUser.unenroll(multiFactorUser.enrolledFactors[i])
 

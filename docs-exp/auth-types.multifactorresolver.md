@@ -40,29 +40,21 @@ signInWithEmailAndPassword(auth, email, password)
 // UI needs to be presented to allow the user to select a second factor
 // from that list.
 
-var selectedHint = // ; selected from multiFactorHints
-var phoneAuthProvider = new PhoneAuthProvider();
-var phoneInfoOptions = {
+const selectedHint = // ; selected from multiFactorHints
+const phoneAuthProvider = new PhoneAuthProvider();
+const phoneInfoOptions = {
   multiFactorHint: selectedHint,
   session: resolver.session
 };
-phoneAuthProvider.verifyPhoneNumber(
-  phoneInfoOptions,
-  appVerifier
-).then((verificationId) => {
-  // store verificationID and show UI to let user enter verification code.
-});
+const verificationId = phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, appVerifier);
+// store verificationID and show UI to let user enter verification code.
 
 // UI to enter verification code and continue.
 // Continue button click handler
-var phoneAuthCredential =
-    PhoneAuthProvider.credential(verificationId, verificationCode);
-var multiFactorAssertion =
-    PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
-resolver.resolveSignIn(multiFactorAssertion)
-    .then((userCredential) => {
-      // User signed in.
-    });
+const phoneAuthCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
+const userCredential = await resolver.resolveSignIn(multiFactorAssertion);
+// User signed in.
 
 ```
 

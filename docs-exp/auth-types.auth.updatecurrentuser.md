@@ -4,7 +4,7 @@
 
 ## Auth.updateCurrentUser() method
 
-Asynchronously sets the provided user as `currentUser` on the current Auth instance. A new instance copy of the user provided will be made and set as currentUser.
+Asynchronously sets the provided user as `currentUser` on the Auth instance. A new instance copy of the user provided will be made and set as currentUser.
 
 This will trigger [Auth.onAuthStateChanged()](./auth-types.auth.onauthstatechanged.md) and [Auth.onIdTokenChanged()](./auth-types.auth.onidtokenchanged.md) listeners like other sign in methods.
 

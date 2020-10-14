@@ -4,7 +4,7 @@
 
 ## User.reload() method
 
-Refreshes the current user, if signed in.
+Refreshes the user, if signed in.
 
 <b>Signature:</b>
 

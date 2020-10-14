@@ -6,8 +6,6 @@
 
 Adds an observer for changes to the user's sign-in state.
 
-Prior to 4.0.0, this triggered the observer when users were signed in, signed out, or when the user's ID token changed in situations such as token expiry or password change. After 4.0.0, the observer is only triggered on sign-in or sign-out.
-
 To keep the old behavior, see [Auth.onIdTokenChanged()](./auth-types.auth.onidtokenchanged.md)<!-- -->.
 
 <b>Signature:</b>

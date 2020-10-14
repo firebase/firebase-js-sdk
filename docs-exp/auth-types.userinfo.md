@@ -18,7 +18,7 @@ export interface UserInfo
 |  --- | --- | --- |
 |  [displayName](./auth-types.userinfo.displayname.md) | string \| null |  |
 |  [email](./auth-types.userinfo.email.md) | string \| null |  |
-|  [phoneNumber](./auth-types.userinfo.phonenumber.md) | string \| null | The phone number normalized based on the E.164 standard (e.g. +16505550101) for the current user. This is null if the user has no phone credential linked to the account. |
+|  [phoneNumber](./auth-types.userinfo.phonenumber.md) | string \| null | The phone number normalized based on the E.164 standard (e.g. +16505550101) for the user. This is null if the user has no phone credential linked to the account. |
 |  [photoURL](./auth-types.userinfo.photourl.md) | string \| null |  |
 |  [providerId](./auth-types.userinfo.providerid.md) | string |  |
 |  [uid](./auth-types.userinfo.uid.md) | string | The user's unique ID, scoped to the project. |

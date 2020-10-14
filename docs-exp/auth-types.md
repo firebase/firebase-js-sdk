@@ -56,7 +56,7 @@
 |  [PopupRedirectResolver](./auth-types.popupredirectresolver.md) | A resolver used for handling DOM specific operations like <code>signInWithPopup()</code> or <code>signInWithRedirect()</code> |
 |  [ReactNativeAsyncStorage](./auth-types.reactnativeasyncstorage.md) |  |
 |  [User](./auth-types.user.md) | A user account. |
-|  [UserCredential](./auth-types.usercredential.md) | A structure containing a User, an AuthCredential, the <code>operationType</code>, and any additional user information that was returned from the identity provider. operationType could be [OperationType.SIGN\_IN](./auth-types.operationtype.sign_in.md) for a sign-in operation, [OperationType.LINK](./auth-types.operationtype.link.md) for a linking operation and [OperationType.REAUTHENTICATE](./auth-types.operationtype.reauthenticate.md) for a reauthentication operation. |
+|  [UserCredential](./auth-types.usercredential.md) | A structure containing a User, an AuthCredential, the <code>operationType</code>, and any additional user information that was returned from the identity provider. <code>operationType</code> could be [OperationType.SIGN\_IN](./auth-types.operationtype.sign_in.md) for a sign-in operation, [OperationType.LINK](./auth-types.operationtype.link.md) for a linking operation and [OperationType.REAUTHENTICATE](./auth-types.operationtype.reauthenticate.md) for a reauthentication operation. |
 |  [UserInfo](./auth-types.userinfo.md) | User profile information, visible only to the Firebase project's apps. |
 |  [UserMetadata](./auth-types.usermetadata.md) | Interface representing a user's metadata. |
 

@@ -4,7 +4,7 @@
 
 ## Auth.settings property
 
-The current Auth instance's settings. This is used to edit/read configuration related options like app verification mode for phone authentication.
+The Auth instance's settings. This is used to edit/read configuration related options like app verification mode for phone authentication.
 
 <b>Signature:</b>
 

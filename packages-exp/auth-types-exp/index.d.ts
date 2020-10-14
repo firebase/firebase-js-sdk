@@ -26,7 +26,7 @@ import {
 
 /**
  * Supported providers.
- * 
+ *
  * @public
  */
 export const enum ProviderId {
@@ -43,7 +43,7 @@ export const enum ProviderId {
 
 /**
  * Supported sign in methods.
- * 
+ *
  * @public
  */
 export const enum SignInMethod {
@@ -59,7 +59,7 @@ export const enum SignInMethod {
 
 /**
  * Supported operation types.
- * 
+ *
  * @public
  */
 export const enum OperationType {
@@ -70,7 +70,7 @@ export const enum OperationType {
 
 /**
  * Auth config object.
- * 
+ *
  * @public
  */
 export interface Config {
@@ -86,7 +86,7 @@ export interface Config {
  * Parsed Id Token.
  *
  * @privateRemarks TODO(avolkovi): consolidate with parsed_token in implementation.
- * 
+ *
  * @public
  */
 export interface ParsedToken {
@@ -103,7 +103,7 @@ export interface ParsedToken {
 
 /**
  * @privateRemarks TODO(avolkovi): should we consolidate with Subscribe<T> since we're changing the API anyway?
- * 
+ *
  * @public
  */
 export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
@@ -119,31 +119,31 @@ export interface AuthError extends FirebaseError {
   readonly email?: string;
   /** The phone number of the user's account, used for sign-in/linking. */
   readonly phoneNumber?: string;
-  /** 
-   * The tenant ID being used for sign-in/linking. If you use `signInWithRedirect` to sign in, 
-   * you have to set the tenant ID on {@link Auth} instance again as the tenant ID is not persisted 
-   * after redirection. 
+  /**
+   * The tenant ID being used for sign-in/linking. If you use `signInWithRedirect` to sign in,
+   * you have to set the tenant ID on {@link Auth} instance again as the tenant ID is not persisted
+   * after redirection.
    */
   readonly tenantid?: string;
 }
 
 /**
- * Interface representing an Auth instance's settings, currently used for enabling/disabling app 
+ * Interface representing an Auth instance's settings, currently used for enabling/disabling app
  * verification for phone Auth testing.
- * 
+ *
  * @public
  */
 export interface AuthSettings {
   /**
-   * When set, this property disables app verification for the purpose of testing phone 
-   * authentication. For this property to take effect, it needs to be set before rendering a 
-   * reCAPTCHA app verifier. When this is disabled, a mock reCAPTCHA is rendered instead. This is 
+   * When set, this property disables app verification for the purpose of testing phone
+   * authentication. For this property to take effect, it needs to be set before rendering a
+   * reCAPTCHA app verifier. When this is disabled, a mock reCAPTCHA is rendered instead. This is
    * useful for manual testing during development or for automated integration tests.
-   * 
-   * In order to use this feature, you will need to 
-   * {@link https://firebase.google.com/docs/auth/web/phone-auth#test-with-whitelisted-phone-numbers | whitelist your phone number} 
+   *
+   * In order to use this feature, you will need to
+   * {@link https://firebase.google.com/docs/auth/web/phone-auth#test-with-whitelisted-phone-numbers | whitelist your phone number}
    * via the Firebase Console.
-   * 
+   *
    * The default value is false (app verification is enabled).
    */
   appVerificationDisabledForTesting: boolean;
@@ -151,10 +151,10 @@ export interface AuthSettings {
 
 /**
  * The Firebase Auth service interface.
- * 
- * See {@link https://firebase.google.com/docs/auth/ | Firebase Authentication} for a full guide 
+ *
+ * See {@link https://firebase.google.com/docs/auth/ | Firebase Authentication} for a full guide
  * on how to use the Firebase Auth service.
- * 
+ *
  * @public
  */
 export interface Auth {
@@ -164,41 +164,41 @@ export interface Auth {
   readonly config: Config;
   /**
    * Changes the type of persistence on the Auth instance for the currently saved
-   * Auth session and applies this type of persistence for future sign-in requests, including 
-   * sign-in with redirect requests. 
-   * 
-   * This makes it easy for a user signing in to specify whether their session should be 
-   * remembered or not. It also makes it easier to never persist the Auth state for applications 
+   * Auth session and applies this type of persistence for future sign-in requests, including
+   * sign-in with redirect requests.
+   *
+   * This makes it easy for a user signing in to specify whether their session should be
+   * remembered or not. It also makes it easier to never persist the Auth state for applications
    * that are shared by other users or have sensitive data.
-   * 
+   *
    * @example
    * ```
    * auth.setPersistence(browserSessionPersistence);
    * ```
-   * 
+   *
    * @param persistence - The {@link Persistence} to use.
    */
   setPersistence(persistence: Persistence): void;
   /**
-   * The current Auth instance's language code. This is a readable/writable property. When set to 
-   * null, the default Firebase Console language setting is applied. The language code will 
-   * propagate to email action templates (password reset, email verification and email change 
-   * revocation), SMS templates for phone authentication, reCAPTCHA verifier and OAuth 
-   * popup/redirect operations provided the specified providers support localization with the 
+   * The Auth instance's language code. This is a readable/writable property. When set to
+   * null, the default Firebase Console language setting is applied. The language code will
+   * propagate to email action templates (password reset, email verification and email change
+   * revocation), SMS templates for phone authentication, reCAPTCHA verifier and OAuth
+   * popup/redirect operations provided the specified providers support localization with the
    * language code specified.
    */
   languageCode: string | null;
   /**
-   * The current Auth instance's tenant ID. This is a readable/writable property. When you set 
-   * the tenant ID of an Auth instance, all future sign-in/sign-up operations will pass this 
-   * tenant ID and sign in or sign up users to the specified tenant project. When set to null, 
+   * The Auth instance's tenant ID. This is a readable/writable property. When you set
+   * the tenant ID of an Auth instance, all future sign-in/sign-up operations will pass this
+   * tenant ID and sign in or sign up users to the specified tenant project. When set to null,
    * users are signed in to the parent project. By default, this is set to null.
-   * 
+   *
    * @example
    * ```
    * // Set the tenant ID on Auth instance.
    * auth.tenantId = 'TENANT_PROJECT_ID';
-   * 
+   *
    * // All future sign-in request now include tenant ID.
    * const result = await signInWithEmailAndPassword(auth, email, password);
    * // result.user.tenantId should be 'TENANT_PROJECT_ID'.
@@ -206,19 +206,15 @@ export interface Auth {
    */
   tenantId: string | null;
   /**
-   * The current Auth instance's settings. This is used to edit/read configuration related options 
+   * The Auth instance's settings. This is used to edit/read configuration related options
    * like app verification mode for phone authentication.
    */
   readonly settings: AuthSettings;
   /**
    * Adds an observer for changes to the user's sign-in state.
-   * 
-   * Prior to 4.0.0, this triggered the observer when users were signed in, signed out, or when 
-   * the user's ID token changed in situations such as token expiry or password change. After 
-   * 4.0.0, the observer is only triggered on sign-in or sign-out.
-   * 
+   *
    * To keep the old behavior, see {@link Auth.onIdTokenChanged}.
-   * 
+   *
    * @param nextOrObserver - callback triggere on change.
    * @param error - callback triggered on error.
    * @param completed - callback triggered when observer is removed.
@@ -229,11 +225,9 @@ export interface Auth {
     completed?: CompleteFn
   ): Unsubscribe;
   /**
-   * 
-   * Adds an observer for changes to the signed-in user's ID token, which includes sign-in, 
-   * sign-out, and token refresh events. This method has the same behavior as 
-   * {@link Auth.onAuthStateChanged} had prior to 4.0.0.
-   * 
+   * Adds an observer for changes to the signed-in user's ID token, which includes sign-in,
+   * sign-out, and token refresh events.
+   *
    * @param nextOrObserver - callback triggere on change.
    * @param error - callback triggered on error.
    * @param completed - callback triggered when observer is removed.
@@ -246,15 +240,15 @@ export interface Auth {
   /** The currently signed-in user (or null). */
   readonly currentUser: User | null;
   /**
-   * Asynchronously sets the provided user as `currentUser` on the current Auth instance. A new 
+   * Asynchronously sets the provided user as `currentUser` on the Auth instance. A new
    * instance copy of the user provided will be made and set as currentUser.
-   * 
-   * This will trigger {@link Auth.onAuthStateChanged} and {@link Auth.onIdTokenChanged} listeners 
+   *
+   * This will trigger {@link Auth.onAuthStateChanged} and {@link Auth.onIdTokenChanged} listeners
    * like other sign in methods.
-   * 
-   * The operation fails with an error if the user to be updated belongs to a different Firebase 
+   *
+   * The operation fails with an error if the user to be updated belongs to a different Firebase
    * project.
-   * 
+   *
    * @param user - The new {@link User}.
    */
   updateCurrentUser(user: User | null): Promise<void>;
@@ -263,10 +257,10 @@ export interface Auth {
    */
   useDeviceLanguage(): void;
   /**
-   * Modify this Auth instance to communicate with the Firebase Auth emulator.  This must be 
+   * Modify this Auth instance to communicate with the Firebase Auth emulator.  This must be
    * called synchronously immediately following the first call to `firebase.auth()`.  Do not use
    * with production credentials as emulator traffic is not encrypted.
-   * 
+   *
    * @param url - The URL at which the emulator is running (eg, 'http://localhost:9099')
    */
   useEmulator(url: string): void;
@@ -278,7 +272,7 @@ export interface Auth {
 
 /**
  * An enumeration of the possible persistence mechanism types.
- * 
+ *
  * @public
  */
 export interface Persistence {
@@ -286,27 +280,27 @@ export interface Persistence {
 }
 
 /**
- * Interface representing ID token result obtained from `getIdTokenResult`. It contains the ID 
- * token JWT string and other helper properties for getting different data associated with the 
+ * Interface representing ID token result obtained from `getIdTokenResult`. It contains the ID
+ * token JWT string and other helper properties for getting different data associated with the
  * token as well as all the decoded payload claims.
- * 
- * Note that these claims are not to be trusted as they are parsed client side. Only server side 
+ *
+ * Note that these claims are not to be trusted as they are parsed client side. Only server side
  * verification can guarantee the integrity of the token claims.
- * 
+ *
  * @public
  */
 export interface IdTokenResult {
   /**
-   * The authentication time formatted as a UTC string. This is the time the user authenticated 
+   * The authentication time formatted as a UTC string. This is the time the user authenticated
    * (signed in) and not the time the token was refreshed.
    */
   authTime: string;
   /** The ID token expiration time formatted as a UTC string. */
   expirationTime: string;
-  /** The ID token issued at time formatted as a UTC string. */
+  /** The ID token issuance time formatted as a UTC string. */
   issuedAtTime: string;
   /**
-   * The sign-in provider through which the ID token was obtained (anonymous, custom, phone, 
+   * The sign-in provider through which the ID token was obtained (anonymous, custom, phone,
    * password, etc). Note, this does not map to provider IDs.
    */
   signInProvider: string | null;
@@ -318,7 +312,7 @@ export interface IdTokenResult {
   /** The Firebase Auth ID token JWT string. */
   token: string;
   /**
-   * The entire payload claims of the ID token including the standard reserved claims as well as 
+   * The entire payload claims of the ID token including the standard reserved claims as well as
    * the custom claims.
    */
   claims: ParsedToken;
@@ -326,29 +320,29 @@ export interface IdTokenResult {
 
 /**
  * A response from `checkActionCode`.
- * 
+ *
  * @public
  */
 export interface ActionCodeInfo {
   /**
    * The data associated with the action code.
    * For the {@link Operation.PASSWORD_RESET}, {@link Operation.VERIFY_EMAIL}, and
-   * {@link Operation.RECOVER_EMAIL} actions, this object contains an email field with the address 
+   * {@link Operation.RECOVER_EMAIL} actions, this object contains an email field with the address
    * the email was sent to.
-   * 
-   * For the {@link Operation.RECOVER_EMAIL} action, which allows a user to undo an email address 
-   * change, this object also contains a `previousEmail` field with the user account's current 
+   *
+   * For the {@link Operation.RECOVER_EMAIL} action, which allows a user to undo an email address
+   * change, this object also contains a `previousEmail` field with the user account's current
    * email address. After the action completes, the user's email address will revert to the value
    * in the `email` field from the value in `previousEmail` field.
-   * 
+   *
    * For the {@link Operation.VERIFY_AND_CHANGE_EMAIL} action, which allows a user to verify the
-   * email before updating it, this object contains a `previousEmail` field with the user account's 
-   * email address before updating. After the action completes, the user's email address will be 
+   * email before updating it, this object contains a `previousEmail` field with the user account's
+   * email address before updating. After the action completes, the user's email address will be
    * updated to the value in the `email` field from the value in `previousEmail` field.
-   * 
-   * For the {@link Operation.REVERT_SECOND_FACTOR_ADDITION} action, which allows a user to 
-   * unenroll a newly added second factor, this object contains a `multiFactorInfo` field with 
-   * the information about the second factor. For phone second factor, the `multiFactorInfo` 
+   *
+   * For the {@link Operation.REVERT_SECOND_FACTOR_ADDITION} action, which allows a user to
+   * unenroll a newly added second factor, this object contains a `multiFactorInfo` field with
+   * the information about the second factor. For phone second factor, the `multiFactorInfo`
    * is a {@link MultiFactorInfo} object, which contains the phone number.
    */
   data: {
@@ -364,7 +358,7 @@ export interface ActionCodeInfo {
 
 /**
  * An enumeration of the possible email action types.
- * 
+ *
  * @public
  */
 export const enum Operation {
@@ -383,17 +377,17 @@ export const enum Operation {
 }
 
 /**
- * This is the interface that defines the required continue/state URL with optional Android and iOS 
+ * This is the interface that defines the required continue/state URL with optional Android and iOS
  * bundle identifiers.
- * 
+ *
  * @public
  */
 export interface ActionCodeSettings {
   /**
    * Sets the Android package name. This will try to open the link in an android app if it is
-   * installed. If `installApp` is passed, it specifies whether to install the Android app if the 
-   * device supports it and the app is not already installed. If this field is provided without 
-   * a `packageName`, an error is thrown explaining that the `packageName` must be provided in 
+   * installed. If `installApp` is passed, it specifies whether to install the Android app if the
+   * device supports it and the app is not already installed. If this field is provided without
+   * a `packageName`, an error is thrown explaining that the `packageName` must be provided in
    * conjunction with this field. If `minimumVersion` is specified, and an older version of the
    * app is installed, the user is taken to the Play Store to upgrade the app.
    */
@@ -404,8 +398,8 @@ export interface ActionCodeSettings {
   };
   /**
    * The default is false. When set to true, the action code link will be be sent as a Universal
-   * Link or Android App Link and will be opened by the app if installed. In the false case, 
-   * the code will be sent to the web widget first and then on continue will redirect to the app 
+   * Link or Android App Link and will be opened by the app if installed. In the false case,
+   * the code will be sent to the web widget first and then on continue will redirect to the app
    * if installed.
    */
   handleCodeInApp?: boolean;
@@ -417,7 +411,7 @@ export interface ActionCodeSettings {
    * Sets the link continue/state URL, which has different meanings in different contexts:
    * - When the link is handled in the web action widgets, this is the deep link in the
    * `continueUrl` query parameter.
-   * - When the link is handled in the app directly, this is the continueUrl query parameter in 
+   * - When the link is handled in the app directly, this is the continueUrl query parameter in
    * the deep link of the Dynamic Link.
    */
   url: string;
@@ -468,9 +462,9 @@ export abstract class ActionCodeURL {
 }
 
 /**
- * A verifier for domain verification and abuse prevention. Currently, the only implementation is 
+ * A verifier for domain verification and abuse prevention. Currently, the only implementation is
  * {@link RecaptchaVerifier}.
- * 
+ *
  * @public
  */
 export interface ApplicationVerifier {
@@ -478,7 +472,7 @@ export interface ApplicationVerifier {
   readonly type: string;
   /**
    * Executes the verification process.
-   * 
+   *
    * @returns A Promise for a token that can be used to assert the validity of a request.
    */
   verify(): Promise<string>;
@@ -486,39 +480,39 @@ export interface ApplicationVerifier {
 
 /**
  * An {@link https://www.google.com/recaptcha/ | reCAPTCHA}-based application verifier.
- * 
+ *
  * @public
  */
 export abstract class RecaptchaVerifier implements ApplicationVerifier {
   constructor(
     /**
-     * The reCAPTCHA container parameter. This has different meaning depending on whether the 
-     * reCAPTCHA is hidden or visible. For a visible reCAPTCHA the container must be empty. If a 
+     * The reCAPTCHA container parameter. This has different meaning depending on whether the
+     * reCAPTCHA is hidden or visible. For a visible reCAPTCHA the container must be empty. If a
      * string is used, it has to correspond to an element ID. The corresponding element must also
      * must be in the DOM at the time of initialization.
      */
     container: any | string,
-    /** 
-     * The optional reCAPTCHA parameters. Check the reCAPTCHA docs for a comprehensive list. 
-     * All parameters are accepted except for the sitekey. Firebase Auth backend provisions a 
-     * reCAPTCHA for each project and will configure this upon rendering. For an invisible 
-     * reCAPTCHA, a size key must have the value 'invisible'. 
+    /**
+     * The optional reCAPTCHA parameters. Check the reCAPTCHA docs for a comprehensive list.
+     * All parameters are accepted except for the sitekey. Firebase Auth backend provisions a
+     * reCAPTCHA for each project and will configure this upon rendering. For an invisible
+     * reCAPTCHA, a size key must have the value 'invisible'.
      */
     parameters?: Object | null,
     /**
-     * The corresponding Firebase Auth instance. If none is provided, the default Firebase Auth 
-     * instance is used. A Firebase Auth instance must be initialized with an API key, otherwise 
+     * The corresponding Firebase Auth instance. If none is provided, the default Firebase Auth
+     * instance is used. A Firebase Auth instance must be initialized with an API key, otherwise
      * an error will be thrown.
      */
     auth?: Auth | null
   );
   /**
-   * Clears the reCAPTCHA widget from the page and destroys the current instance.
+   * Clears the reCAPTCHA widget from the page and destroys the instance.
    */
   clear(): void;
   /**
    * Renders the reCAPTCHA widget on the page.
-   * 
+   *
    * @returns A Promise that resolves with the reCAPTCHA widget ID.
    */
   render(): Promise<number>;
@@ -528,7 +522,7 @@ export abstract class RecaptchaVerifier implements ApplicationVerifier {
   readonly type: string;
   /**
    * Waits for the user to solve the reCAPTCHA and resolves with the reCAPTCHA token.
-   * 
+   *
    * @returns A Promise for the reCAPTCHA token.
    */
   verify(): Promise<string>;
@@ -537,52 +531,51 @@ export abstract class RecaptchaVerifier implements ApplicationVerifier {
 /**
  * Interface that represents the credentials returned by an auth provider. Implementations specify
  * the details about each auth provider's credential requirements.
- * 
+ *
  * @public
  */
 export abstract class AuthCredential {
   /**
-   * 
    * Static method to deserialize a JSON representation of an object into an {@link AuthCredential}.
-   *  
-   * @param json - Either `object` or the stringified representation of the object. When string is 
-   * provided, `JSON.parse` would be called first. 
-   * 
+   *
+   * @param json - Either `object` or the stringified representation of the object. When string is
+   * provided, `JSON.parse` would be called first.
+   *
    * @returns If the JSON input does not represent an {@link AuthCredential}, null is returned.
    */
   static fromJSON(json: object | string): AuthCredential | null;
 
-  /** 
-   * The authentication provider ID for the credential. For example, 'facebook.com', or 
-   * 'google.com'. 
+  /**
+   * The authentication provider ID for the credential. For example, 'facebook.com', or
+   * 'google.com'.
    */
   readonly providerId: string;
   /**
-   * The authentication sign in method for the credential. For example, 
-   * {@link SignInMethod.EMAIL_PASSWORD}, or {@link SignInMethod.EMAIL_LINK}. This corresponds to 
+   * The authentication sign in method for the credential. For example,
+   * {@link SignInMethod.EMAIL_PASSWORD}, or {@link SignInMethod.EMAIL_LINK}. This corresponds to
    * the sign-in method identifier as returned in `fetchSignInMethodsForEmail`.
    */
   readonly signInMethod: string;
-  /** 
-   * @returns a JSON-serializable representation of this object. 
+  /**
+   * @returns a JSON-serializable representation of this object.
    */
   toJSON(): object;
 }
 
 /**
- * Interface that represents the OAuth credentials returned by an OAuth provider. Implementations 
+ * Interface that represents the OAuth credentials returned by an OAuth provider. Implementations
  * specify the details about each auth provider's credential requirements.
- * 
+ *
  * @public
  */
 export abstract class OAuthCredential extends AuthCredential {
   /**
-   * Static method to deserialize a JSON representation of an object into an 
-   * {@link AuthCredential}. 
-   * 
-   * @param json - Input can be either Object or the stringified representation of the object. 
+   * Static method to deserialize a JSON representation of an object into an
+   * {@link AuthCredential}.
+   *
+   * @param json - Input can be either Object or the stringified representation of the object.
    * When string is provided, JSON.parse would be called first.
-   * 
+   *
    * @returns If the JSON input does not represent an {@link AuthCredential}, null is returned.
    */
   static fromJSON(json: object | string): OAuthCredential | null;
@@ -593,12 +586,12 @@ export abstract class OAuthCredential extends AuthCredential {
    */
   readonly accessToken?: string;
   /**
-   * The OAuth ID token associated with the credential if it belongs to an OIDC provider, 
+   * The OAuth ID token associated with the credential if it belongs to an OIDC provider,
    * such as `google.com`.
    */
   readonly idToken?: string;
   /**
-   * The OAuth access token secret associated with the credential if it belongs to an OAuth 1.0 
+   * The OAuth access token secret associated with the credential if it belongs to an OAuth 1.0
    * provider, such as `twitter.com`.
    */
   readonly secret?: string;
@@ -606,7 +599,7 @@ export abstract class OAuthCredential extends AuthCredential {
 
 /**
  * Class that represents the Phone Auth credentials returned by a {@link PhoneAuthProvider}.
- * 
+ *
  * @public
  */
 export abstract class PhoneAuthCredential extends AuthCredential {
@@ -616,7 +609,7 @@ export abstract class PhoneAuthCredential extends AuthCredential {
 
 /**
  * Interface that represents an auth provider.
- * 
+ *
  * @public
  */
 export interface AuthProvider {
@@ -625,7 +618,7 @@ export interface AuthProvider {
 
 /**
  * Email and password auth provider implementation.
- * 
+ *
  * @public
  */
 export abstract class EmailAuthProvider implements AuthProvider {
@@ -641,16 +634,16 @@ export abstract class EmailAuthProvider implements AuthProvider {
    *     password
    * );
    * ```
-   * 
+   *
    * @param email - Email address.
    * @param password - User account password.
    * @returns The auth provider credential.
    */
   static credential(email: string, password: string): AuthCredential;
   /**
-   * Initialize an {@link EmailAuthProvider} credential using an email and an email link after a 
+   * Initialize an {@link EmailAuthProvider} credential using an email and an email link after a
    * sign in with email link operation.
-   * 
+   *
    * @example
    * ```
    * const cred = EmailAuthProvider.credentialWithLink(
@@ -659,7 +652,7 @@ export abstract class EmailAuthProvider implements AuthProvider {
    *     emailLink
    * );
    * ```
-   * 
+   *
    * @param auth - The Auth instance used to verify the link.
    * @param email - Email address.
    * @param emailLink - Sign-in email link.
@@ -686,21 +679,21 @@ export abstract class EmailAuthProvider implements AuthProvider {
  * const phoneCredential = await PhoneAuthProvider.credential(verificationId, verificationCode);
  * const userCredential = await signInWithCredential(auth, phoneCredential);
  * ```
- * 
+ *
  * @public
  */
 export class PhoneAuthProvider implements AuthProvider {
   static readonly PROVIDER_ID: ProviderId;
   static readonly PHONE_SIGN_IN_METHOD: SignInMethod;
   /**
-   * Creates a phone auth credential, given the verification ID from 
-   * {@link PhoneAuthProvider.verifyPhoneNumber} and the code that was sent to the user's 
+   * Creates a phone auth credential, given the verification ID from
+   * {@link PhoneAuthProvider.verifyPhoneNumber} and the code that was sent to the user's
    * mobile device.
-   * 
-   * @param verificationId - The verification ID returned from 
+   *
+   * @param verificationId - The verification ID returned from
    * {@link PhoneAuthProvider.verifyPhoneNumber}.
    * @param verificationCode - The verification code sent to the user's mobile device.
-   * 
+   *
    * @returns The auth provider credential.
    */
   static credential(
@@ -709,7 +702,7 @@ export class PhoneAuthProvider implements AuthProvider {
   ): AuthCredential;
 
   /**
-   * @param auth - The Firebase Auth instance in which sign-ins should occur. Uses the default Auth 
+   * @param auth - The Firebase Auth instance in which sign-ins should occur. Uses the default Auth
    * instance if unspecified.
    */
   constructor(auth?: Auth | null);
@@ -717,17 +710,17 @@ export class PhoneAuthProvider implements AuthProvider {
   readonly providerId: ProviderId;
 
   /**
-   * 
-   * Starts a phone number authentication flow by sending a verification code to the given phone 
-   * number. Returns an ID that can be passed to {@link PhoneAuthProvider.credential} to identify 
+   *
+   * Starts a phone number authentication flow by sending a verification code to the given phone
+   * number. Returns an ID that can be passed to {@link PhoneAuthProvider.credential} to identify
    * this flow.
-   * 
-   * @param phoneInfoOptions - The user's {@link PhoneInfoOptions}. The phone number should be in 
+   *
+   * @param phoneInfoOptions - The user's {@link PhoneInfoOptions}. The phone number should be in
    * E.164 format (e.g. +16505550101).
-   * @param applicationVerifier - For abuse prevention, this method also requires a 
-   * {@link ApplicationVerifier}. This SDK includes a reCAPTCHA-based implementation, 
+   * @param applicationVerifier - For abuse prevention, this method also requires a
+   * {@link ApplicationVerifier}. This SDK includes a reCAPTCHA-based implementation,
    * {@link RecaptchaVerifier}.
-   * 
+   *
    * @returns A Promise for the verification ID.
    */
   verifyPhoneNumber(
@@ -738,28 +731,28 @@ export class PhoneAuthProvider implements AuthProvider {
 
 /**
  * A result from a phone number sign-in, link, or reauthenticate call.
- * 
+ *
  * @public
  */
 export interface ConfirmationResult {
   /**
-   * The phone number authentication operation's verification ID. This can be used along with the 
+   * The phone number authentication operation's verification ID. This can be used along with the
    * verification code to initialize a phone auth credential.
    */
   readonly verificationId: string;
   /**
-   * Finishes a phone number sign-in, link, or reauthentication. 
-   * 
+   * Finishes a phone number sign-in, link, or reauthentication.
+   *
    * @param verificationCode - The code that was sent to the user's mobile device.
    */
   confirm(verificationCode: string): Promise<UserCredential>;
 }
 
 /**
- * The base class for asserting ownership of a second factor. This is used to facilitate enrollment 
- * of a second factor on an existing user or sign-in of a user who already verified the first 
+ * The base class for asserting ownership of a second factor. This is used to facilitate enrollment
+ * of a second factor on an existing user or sign-in of a user who already verified the first
  * factor.
- * 
+ *
  * @public
  */
 export interface MultiFactorAssertion {
@@ -768,14 +761,14 @@ export interface MultiFactorAssertion {
 }
 
 /**
- * The error thrown when the user needs to provide a second factor to sign in successfully. The 
+ * The error thrown when the user needs to provide a second factor to sign in successfully. The
  * error code for this error is `auth/multi-factor-auth-required`.
- * 
+ *
  * @example
  * ```
  * let resolver;
  * let multiFactorHints;
- * 
+ *
  * signInWithEmailAndPassword(auth, email, password)
  *     .then((result) => {
  *       // User signed in. No 2nd factor challenge is needed.
@@ -788,13 +781,11 @@ export interface MultiFactorAssertion {
  *         // Handle other errors.
  *       }
  *     });
- * 
- * resolver.resolveSignIn(multiFactorAssertion)
- *     .then((userCredential) => {
- *       // User signed in.
- *     });
+ *
+ * const userCredential = await resolver.resolveSignIn(multiFactorAssertion);
+ * // User signed in.
  * ```
- * 
+ *
  * @public
  */
 export interface MultiFactorError extends AuthError {
@@ -804,7 +795,7 @@ export interface MultiFactorError extends AuthError {
 
 /**
  * A structure containing the information of a second factor entity.
- * 
+ *
  * @public
  */
 export interface MultiFactorInfo {
@@ -821,15 +812,15 @@ export interface MultiFactorInfo {
 /**
  * The class used to facilitate recovery from {@link MultiFactorError} when a user needs to
  * provide a second factor to sign in.
- * 
+ *
  * error.resolver;
- *         
- * 
+ *
+ *
  * @example
  * ```
  * let resolver;
  * let multiFactorHints;
- * 
+ *
  * signInWithEmailAndPassword(auth, email, password)
  *     .then((result) => {
  *       // User signed in. No 2nd factor challenge is needed.
@@ -843,55 +834,47 @@ export interface MultiFactorInfo {
  *         // Handle other errors.
  *       }
  *     });
- * 
+ *
  * // The enrolled second factors that can be used to complete
  * // sign-in are returned in the `MultiFactorResolver.hints` list.
  * // UI needs to be presented to allow the user to select a second factor
  * // from that list.
- * 
- * var selectedHint = // ; selected from multiFactorHints
- * var phoneAuthProvider = new PhoneAuthProvider();
- * var phoneInfoOptions = {
+ *
+ * const selectedHint = // ; selected from multiFactorHints
+ * const phoneAuthProvider = new PhoneAuthProvider();
+ * const phoneInfoOptions = {
  *   multiFactorHint: selectedHint,
  *   session: resolver.session
  * };
- * phoneAuthProvider.verifyPhoneNumber(
- *   phoneInfoOptions,
- *   appVerifier
- * ).then((verificationId) => {
- *   // store verificationID and show UI to let user enter verification code.
- * });
- * 
+ * const verificationId = phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, appVerifier);
+ * // store verificationID and show UI to let user enter verification code.
+ *
  * // UI to enter verification code and continue.
  * // Continue button click handler
- * var phoneAuthCredential =
- *     PhoneAuthProvider.credential(verificationId, verificationCode);
- * var multiFactorAssertion =
- *     PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
- * resolver.resolveSignIn(multiFactorAssertion)
- *     .then((userCredential) => {
- *       // User signed in.
- *     });
+ * const phoneAuthCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+ * const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
+ * const userCredential = await resolver.resolveSignIn(multiFactorAssertion);
+ * // User signed in.
  * ```
  *
  * @public
  */
 export abstract class MultiFactorResolver {
   /**
-   * The list of hints for the second factors needed to complete the sign-in for the current 
+   * The list of hints for the second factors needed to complete the sign-in for the current
    * session.
    */
   hints: MultiFactorInfo[];
   /**
-   * The session identifier for the current sign-in flow, which can be used to complete the second 
+   * The session identifier for the current sign-in flow, which can be used to complete the second
    * factor sign-in.
    */
   session: MultiFactorSession;
   /**
-   * A helper function to help users complete sign in with a second factor using an 
-   * {@link MultiFactorAssertion} confirming the user successfully completed the second factor 
+   * A helper function to help users complete sign in with a second factor using an
+   * {@link MultiFactorAssertion} confirming the user successfully completed the second factor
    * challenge.
-   * 
+   *
    * @param assertion - The multi-factor assertion to resolve sign-in with.
    * @returns The promise that resolves with the user credential object.
    */
@@ -899,38 +882,38 @@ export abstract class MultiFactorResolver {
 }
 
 /**
- * The multi-factor session object used for enrolling a second factor on a user or helping sign in 
+ * The multi-factor session object used for enrolling a second factor on a user or helping sign in
  * an enrolled user with a second factor.
- * 
+ *
  * @public
  */
 export interface MultiFactorSession {}
 
 /**
- * This is the interface that defines the multi-factor related properties and operations pertaining 
+ * This is the interface that defines the multi-factor related properties and operations pertaining
  * to a {@link User}.
- * 
+ *
  * @public
  */
 export interface MultiFactorUser {
   /** Returns a list of the user's enrolled second factors. */
   readonly enrolledFactors: MultiFactorInfo[];
   /**
-   * Returns the session identifier for a second factor enrollment operation. This is used to 
-   * identify the current user trying to enroll a second factor.
-   * 
+   * Returns the session identifier for a second factor enrollment operation. This is used to
+   * identify the user trying to enroll a second factor.
+   *
    * @returns The promise that resolves with the {@link MultiFactorSession}.
    */
   getSession(): Promise<MultiFactorSession>;
   /**
-   * 
-   * Enrolls a second factor as identified by the {@link MultiFactorAssertion} for the current 
-   * user. On resolution, the user tokens are updated to reflect the change in the JWT payload. 
-   * Accepts an additional display name parameter used to identify the second factor to the end 
-   * user. Recent re-authentication is required for this operation to succeed. On successful 
-   * enrollment, existing Firebase sessions (refresh tokens) are revoked. When a new factor is 
+   *
+   * Enrolls a second factor as identified by the {@link MultiFactorAssertion} for the
+   * user. On resolution, the user tokens are updated to reflect the change in the JWT payload.
+   * Accepts an additional display name parameter used to identify the second factor to the end
+   * user. Recent re-authentication is required for this operation to succeed. On successful
+   * enrollment, existing Firebase sessions (refresh tokens) are revoked. When a new factor is
    * enrolled, an email notification is sent to the user’s email.
-   * 
+   *
    * @example
    * ```
    * const multiFactorUser = multiFactor(auth.currentUser);
@@ -943,13 +926,13 @@ export interface MultiFactorUser {
    * };
    * const verificationId = await phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, appVerifier);
    * // Store verificationID and show UI to let user enter verification code.
-   * 
+   *
    * const phoneAuthCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
    * const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
    * await multiFactorUser.enroll(multiFactorAssertion);
    * // Second factor enrolled.
    * ```
-   * 
+   *
    * @param assertion - The multi-factor assertion to enroll with.
    * @param displayName - The display name of the second factor.
    */
@@ -958,58 +941,60 @@ export interface MultiFactorUser {
     displayName?: string | null
   ): Promise<void>;
   /**
-   * Unenrolls the specified second factor. To specify the factor to remove, pass a 
-   * {@link MultiFactorInfo} object (retrieved from `enrolledFactors()`) or the factor's UID 
-   * string. Sessions are not revoked when the account is downgraded. An email notification is 
-   * likely to be sent to the user notifying them of the change. Recent re-authentication is 
-   * required for this operation to succeed. When an existing factor is unenrolled, an email 
-   * notification is sent to the user’s email.
-   * 
+   * Unenrolls the specified second factor. To specify the factor to remove, pass a
+   * {@link MultiFactorInfo} object (retrieved from {@link MultiFactorUser.enrolledFactors}) or the
+   * factor's UID string. Sessions are not revoked when the account is unenrolled. An email
+   * notification is  likely to be sent to the user notifying them of the change. Recent
+   * re-authentication is required for this operation to succeed. When an existing factor is
+   * unenrolled, an email notification is sent to the user’s email.
+   *
    * @example
    * ```
    * const multiFactorUser = multiFactor(auth.currentUser);
    * // Present user the option to unenroll.
    * await multiFactorUser.unenroll(multiFactorUser.enrolledFactors[i])
    * ```
-   * 
+   *
    * @param option - The multi-factor option to unenroll.
+   * @returns - A promise which resolves when the unenroll operation is complete.
    */
   unenroll(option: MultiFactorInfo | string): Promise<void>;
 }
 
 /**
- * The class for asserting ownership of a phone second factor. Provider by 
+ * The class for asserting ownership of a phone second factor. Provider by
  * {@link PhoneMultiFactorGenerator.assertion}.
- * 
+ *
  * @public
  */
 export interface PhoneMultiFactorAssertion extends MultiFactorAssertion {}
 
 /**
  * The class used to initialize a {@link PhoneMultiFactorAssertion}.
- * 
+ *
  * @public
  */
 export abstract class PhoneMultiFactorGenerator {
-  /** 
-   * The identifier of the phone second factor: {@link ProviderId.PHONE}. 
+  /**
+   * The identifier of the phone second factor: {@link ProviderId.PHONE}.
    */
   static FACTOR_ID: ProviderId;
   /**
    * Initializes the {@link PhoneMultiFactorAssertion} to confirm ownership of the phone second factor.
-   * 
+   *
    * @param phoneAuthCredential - A credential provided by {@link PhoneAuthProvider.credential}.
+   * @returns A {@link PhoneMultiFactorAssertion} which can be used with {@link MultiFactorResolver.resolveSignIn}
    */
   static assertion(
     phoneAuthCredential: PhoneAuthCredential
   ): PhoneMultiFactorAssertion;
 }
 
-/** 
- * The information required to verify the ownership of a phone number. The information that's 
+/**
+ * The information required to verify the ownership of a phone number. The information that's
  * required depends on whether you are doing single-factor sign-in, multi-factor enrollment or
  * multi-factor sign-in.
- * 
+ *
  * @public
  */
 export type PhoneInfoOptions =
@@ -1052,7 +1037,7 @@ export interface ReactNativeAsyncStorage {
 
 /**
  * A user account.
- * 
+ *
  * @public
  */
 export interface User extends UserInfo {
@@ -1062,10 +1047,10 @@ export interface User extends UserInfo {
   readonly providerData: UserInfo[];
   readonly refreshToken: string;
   /**
-   * The current user's tenant ID. This is a read-only property, which indicates the tenant ID 
-   * used to sign in the current user. This is null if the user is signed in from the parent 
+   * The user's tenant ID. This is a read-only property, which indicates the tenant ID
+   * used to sign in the user. This is null if the user is signed in from the parent
    * project.
-   * 
+   *
    * @example
    * ```
    * // Set the tenant ID on Auth instance.
@@ -1080,40 +1065,40 @@ export interface User extends UserInfo {
 
   /**
    * Deletes and signs out the user.
-   * 
-   * Important: this is a security-sensitive operation that requires the user to have recently 
-   * signed in. If this requirement isn't met, ask the user to authenticate again and then call 
+   *
+   * Important: this is a security-sensitive operation that requires the user to have recently
+   * signed in. If this requirement isn't met, ask the user to authenticate again and then call
    * one of the reauthentication methods like `reauthenticateWithCredential`.
    */
   delete(): Promise<void>;
   /**
    * Returns a JSON Web Token (JWT) used to identify the user to a Firebase service.
-   * 
-   * Returns the current token if it has not expired. Otherwise, this will refresh the token and 
+   *
+   * Returns the current token if it has not expired. Otherwise, this will refresh the token and
    * return a new one.
-   * 
+   *
    * @param forceRefresh - Force refresh regardless of token expiration.
    */
   getIdToken(forceRefresh?: boolean): Promise<string>;
   getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
   /**
-   * Refreshes the current user, if signed in.
+   * Refreshes the user, if signed in.
    */
   reload(): Promise<void>;
   /**
    * Returns a JSON-serializable representation of this object.
-   * 
+   *
    * @returns A JSON-serializable representation of this object.
    */
   toJSON(): object;
 }
 
-/** 
- * A structure containing a User, an AuthCredential, the `operationType`, and any additional user 
- * information that was returned from the identity provider. `operationType` could be 
+/**
+ * A structure containing a User, an AuthCredential, the `operationType`, and any additional user
+ * information that was returned from the identity provider. `operationType` could be
  * {@link OperationType.SIGN_IN} for a sign-in operation, {@link OperationType.LINK} for a linking
  * operation and {@link OperationType.REAUTHENTICATE} for a reauthentication operation.
- * 
+ *
  * @public
  */
 export interface UserCredential {
@@ -1124,15 +1109,15 @@ export interface UserCredential {
 
 /**
  * User profile information, visible only to the Firebase project's apps.
- * 
+ *
  * @public
  */
 export interface UserInfo {
   readonly displayName: string | null;
   readonly email: string | null;
   /**
-   * The phone number normalized based on the E.164 standard (e.g. +16505550101) for the 
-   * current user. This is null if the user has no phone credential linked to the account.
+   * The phone number normalized based on the E.164 standard (e.g. +16505550101) for the
+   * user. This is null if the user has no phone credential linked to the account.
    */
   readonly phoneNumber: string | null;
   readonly photoURL: string | null;
@@ -1145,7 +1130,7 @@ export interface UserInfo {
 
 /**
  * Interface representing a user's metadata.
- * 
+ *
  * @public
  */
 export interface UserMetadata {
@@ -1167,15 +1152,15 @@ export interface AdditionalUserInfo {
 
 /**
  * User profile used in {@link AdditionalUserInfo}.
- * 
+ *
  * @public
  */
 export type UserProfile = Record<string, unknown>;
 
 /**
- * A resolver used for handling DOM specific operations like `signInWithPopup()` or 
+ * A resolver used for handling DOM specific operations like `signInWithPopup()` or
  * `signInWithRedirect()`
- * 
+ *
  * @public
  */
 export interface PopupRedirectResolver {}

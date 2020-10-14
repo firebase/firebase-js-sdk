@@ -21,7 +21,7 @@ export interface IdTokenResult
 |  [authTime](./auth-types.idtokenresult.authtime.md) | string | The authentication time formatted as a UTC string. This is the time the user authenticated (signed in) and not the time the token was refreshed. |
 |  [claims](./auth-types.idtokenresult.claims.md) | [ParsedToken](./auth-types.parsedtoken.md) | The entire payload claims of the ID token including the standard reserved claims as well as the custom claims. |
 |  [expirationTime](./auth-types.idtokenresult.expirationtime.md) | string | The ID token expiration time formatted as a UTC string. |
-|  [issuedAtTime](./auth-types.idtokenresult.issuedattime.md) | string | The ID token issued at time formatted as a UTC string. |
+|  [issuedAtTime](./auth-types.idtokenresult.issuedattime.md) | string | The ID token issuance time formatted as a UTC string. |
 |  [signInProvider](./auth-types.idtokenresult.signinprovider.md) | string \| null | The sign-in provider through which the ID token was obtained (anonymous, custom, phone, password, etc). Note, this does not map to provider IDs. |
 |  [signInSecondFactor](./auth-types.idtokenresult.signinsecondfactor.md) | string \| null | The type of second factor associated with this session, provided the user was multi-factor authenticated (eg. phone, etc). |
 |  [token](./auth-types.idtokenresult.token.md) | string | The Firebase Auth ID token JWT string. |

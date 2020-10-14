@@ -33,10 +33,8 @@ signInWithEmailAndPassword(auth, email, password)
       }
     });
 
-resolver.resolveSignIn(multiFactorAssertion)
-    .then(function(userCredential) {
-      // User signed in.
-    });
+const userCredential = await resolver.resolveSignIn(multiFactorAssertion);
+// User signed in.
 
 ```
 

@@ -4,7 +4,7 @@
 
 ## IdTokenResult.issuedAtTime property
 
-The ID token issued at time formatted as a UTC string.
+The ID token issuance time formatted as a UTC string.
 
 <b>Signature:</b>
 

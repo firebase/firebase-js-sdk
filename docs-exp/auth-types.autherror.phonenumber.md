@@ -4,7 +4,7 @@
 
 ## AuthError.phoneNumber property
 
-The phone number of the user's account used for sign-in/linking.
+The phone number of the user's account, used for sign-in/linking.
 
 <b>Signature:</b>
 

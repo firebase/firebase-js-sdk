@@ -22,15 +22,15 @@ export interface User extends UserInfo
 |  [metadata](./auth-types.user.metadata.md) | [UserMetadata](./auth-types.usermetadata.md) |  |
 |  [providerData](./auth-types.user.providerdata.md) | [UserInfo](./auth-types.userinfo.md)<!-- -->\[\] |  |
 |  [refreshToken](./auth-types.user.refreshtoken.md) | string |  |
-|  [tenantId](./auth-types.user.tenantid.md) | string \| null | The current user's tenant ID. This is a read-only property, which indicates the tenant ID used to sign in the current user. This is null if the user is signed in from the parent project. |
+|  [tenantId](./auth-types.user.tenantid.md) | string \| null | The user's tenant ID. This is a read-only property, which indicates the tenant ID used to sign in the user. This is null if the user is signed in from the parent project. |
 
 ## Methods
 
 |  Method | Description |
 |  --- | --- |
-|  [delete()](./auth-types.user.delete.md) | Deletes and signs out the user.<!-- -->Important: this is a security-sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call <code>reauthenticateWithCredential</code>. |
+|  [delete()](./auth-types.user.delete.md) | Deletes and signs out the user.<!-- -->Important: this is a security-sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call one of the reauthentication methods like <code>reauthenticateWithCredential</code>. |
 |  [getIdToken(forceRefresh)](./auth-types.user.getidtoken.md) | Returns a JSON Web Token (JWT) used to identify the user to a Firebase service.<!-- -->Returns the current token if it has not expired. Otherwise, this will refresh the token and return a new one. |
 |  [getIdTokenResult(forceRefresh)](./auth-types.user.getidtokenresult.md) |  |
-|  [reload()](./auth-types.user.reload.md) | Refreshes the current user, if signed in. |
+|  [reload()](./auth-types.user.reload.md) | Refreshes the user, if signed in. |
 |  [toJSON()](./auth-types.user.tojson.md) | Returns a JSON-serializable representation of this object. |
 

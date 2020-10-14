@@ -29,7 +29,7 @@ export abstract class RecaptchaVerifier implements ApplicationVerifier
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [clear()](./auth-types.recaptchaverifier.clear.md) |  | Clears the reCAPTCHA widget from the page and destroys the current instance. |
+|  [clear()](./auth-types.recaptchaverifier.clear.md) |  | Clears the reCAPTCHA widget from the page and destroys the instance. |
 |  [render()](./auth-types.recaptchaverifier.render.md) |  | Renders the reCAPTCHA widget on the page. |
 |  [verify()](./auth-types.recaptchaverifier.verify.md) |  | Waits for the user to solve the reCAPTCHA and resolves with the reCAPTCHA token. |
 

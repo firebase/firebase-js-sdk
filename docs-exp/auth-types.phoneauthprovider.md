@@ -23,7 +23,7 @@ const provider = new PhoneAuthProvider();
 const verificationId = await provider.verifyPhoneNumber('+16505550101', applicationVerifier);
 const verificationCode = window.prompt('Please enter the verification code that was sent to your mobile device.');
 const phoneCredential = await PhoneAuthProvider.credential(verificationId, verificationCode);
-const userCredential = await signInWithCredential(phoneCredential);
+const userCredential = await signInWithCredential(auth, phoneCredential);
 
 ```
 

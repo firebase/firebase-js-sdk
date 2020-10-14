@@ -4,7 +4,7 @@
 
 ## UserInfo.phoneNumber property
 
-The phone number normalized based on the E.164 standard (e.g. +16505550101) for the current user. This is null if the user has no phone credential linked to the account.
+The phone number normalized based on the E.164 standard (e.g. +16505550101) for the user. This is null if the user has no phone credential linked to the account.
 
 <b>Signature:</b>
 

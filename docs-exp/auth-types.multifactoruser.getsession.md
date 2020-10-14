@@ -4,7 +4,7 @@
 
 ## MultiFactorUser.getSession() method
 
-Returns the session identifier for a second factor enrollment operation. This is used to identify the current user trying to enroll a second factor.
+Returns the session identifier for a second factor enrollment operation. This is used to identify the user trying to enroll a second factor.
 
 <b>Signature:</b>
 

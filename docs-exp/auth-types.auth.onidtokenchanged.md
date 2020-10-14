@@ -4,7 +4,7 @@
 
 ## Auth.onIdTokenChanged() method
 
-Adds an observer for changes to the signed-in user's ID token, which includes sign-in, sign-out, and token refresh events. This method has the same behavior as [Auth.onAuthStateChanged()](./auth-types.auth.onauthstatechanged.md) had prior to 4.0.0.
+Adds an observer for changes to the signed-in user's ID token, which includes sign-in, sign-out, and token refresh events.
 
 <b>Signature:</b>
 
