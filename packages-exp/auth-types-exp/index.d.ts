@@ -933,7 +933,7 @@ export interface MultiFactorUser {
    * 
    * @example
    * ```
-   * const multiFactorUser = multiFactor(firebase.auth().currentUser);
+   * const multiFactorUser = multiFactor(auth.currentUser);
    * const multiFactorSession = await multiFactorUser.getSession();
    * // Send verification code
    * const phoneAuthProvider = new PhoneAuthProvider();
