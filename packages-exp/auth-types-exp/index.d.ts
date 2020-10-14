@@ -1073,7 +1073,7 @@ export interface User extends UserInfo {
    *
    * // All future sign-in request now include tenant ID.
    * const result = await signInWithEmailAndPassword(auth, email, password);
-   * // result.user.tenantId should be ‘TENANT_PROJECT_ID’.
+   * // result.user.tenantId should be 'TENANT_PROJECT_ID'.
    * ```
    */
   readonly tenantId: string | null;
