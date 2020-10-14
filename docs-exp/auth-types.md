@@ -50,8 +50,8 @@
 |  [ParsedToken](./auth-types.parsedtoken.md) | Parsed ID token. |
 |  [Persistence](./auth-types.persistence.md) | An enumeration of the possible persistence mechanism types. |
 |  [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md) | The class for asserting ownership of a phone second factor. Provided by [PhoneMultiFactorGenerator.assertion()](./auth-types.phonemultifactorgenerator.assertion.md)<!-- -->. |
-|  [PhoneMultiFactorEnrollInfoOptions](./auth-types.phonemultifactorenrollinfooptions.md) | Options used for enrolling a second-factor. |
-|  [PhoneMultiFactorSignInInfoOptions](./auth-types.phonemultifactorsignininfooptions.md) | Options used for signing-in with a second-factor. |
+|  [PhoneMultiFactorEnrollInfoOptions](./auth-types.phonemultifactorenrollinfooptions.md) | Options used for enrolling a second factor. |
+|  [PhoneMultiFactorSignInInfoOptions](./auth-types.phonemultifactorsignininfooptions.md) | Options used for signing-in with a second factor. |
 |  [PhoneSingleFactorInfoOptions](./auth-types.phonesinglefactorinfooptions.md) | Options used for single-factor sign-in. |
 |  [PopupRedirectResolver](./auth-types.popupredirectresolver.md) | A resolver used for handling DOM specific operations like <code>signInWithPopup()</code> or <code>signInWithRedirect()</code> |
 |  [ReactNativeAsyncStorage](./auth-types.reactnativeasyncstorage.md) | Interface for a supplied AsyncStorage. |

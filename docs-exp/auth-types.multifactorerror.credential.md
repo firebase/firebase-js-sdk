@@ -4,7 +4,7 @@
 
 ## MultiFactorError.credential property
 
-The original redential used as a first-factor.
+The original credential used as a first factor.
 
 <b>Signature:</b>
 

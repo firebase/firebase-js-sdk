@@ -4,7 +4,7 @@
 
 ## PhoneMultiFactorEnrollInfoOptions interface
 
-Options used for enrolling a second-factor.
+Options used for enrolling a second factor.
 
 <b>Signature:</b>
 

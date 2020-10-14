@@ -39,7 +39,7 @@ signInWithEmailAndPassword(auth, email, password)
 // from that list.
 
 const selectedHint = // ; selected from multiFactorHints
-const phoneAuthProvider = new PhoneAuthProvider();
+const phoneAuthProvider = new PhoneAuthProvider(auth);
 const phoneInfoOptions = {
   multiFactorHint: selectedHint,
   session: resolver.session

@@ -896,7 +896,7 @@ export interface MultiFactorAssertion {
  *       }
  *     });
  *
- * // Obtain a multiFactorAssertion by verifying the second-factor.
+ * // Obtain a multiFactorAssertion by verifying the second factor.
  *
  * const userCredential = await resolver.resolveSignIn(multiFactorAssertion);
  * ```
@@ -905,7 +905,7 @@ export interface MultiFactorAssertion {
  */
 export interface MultiFactorError extends AuthError {
   /**
-   * The original redential used as a first-factor.
+   * The original credential used as a first factor.
    */
   readonly credential: AuthCredential;
   /**
@@ -959,7 +959,7 @@ export interface MultiFactorInfo {
  * // from that list.
  *
  * const selectedHint = // ; selected from multiFactorHints
- * const phoneAuthProvider = new PhoneAuthProvider();
+ * const phoneAuthProvider = new PhoneAuthProvider(auth);
  * const phoneInfoOptions = {
  *   multiFactorHint: selectedHint,
  *   session: resolver.session
@@ -1158,7 +1158,7 @@ export interface PhoneSingleFactorInfoOptions {
 }
 
 /**
- * Options used for enrolling a second-factor.
+ * Options used for enrolling a second factor.
  *
  * @public
  */
@@ -1169,7 +1169,7 @@ export interface PhoneMultiFactorEnrollInfoOptions {
   session: MultiFactorSession;
 }
 /**
- * Options used for signing-in with a second-factor.
+ * Options used for signing-in with a second factor.
  *
  * @public
  */
@@ -1181,7 +1181,7 @@ export interface PhoneMultiFactorSignInInfoOptions {
    */
   multiFactorHint?: MultiFactorInfo;
   /**
-   * The uid of the second-factor.
+   * The uid of the second factor.
    *
    * One of `multiFactorHint` or `multiFactorUid` is required.
    */

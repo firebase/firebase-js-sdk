@@ -33,7 +33,7 @@ signInWithEmailAndPassword(auth, email, password)
       }
     });
 
-// Obtain a multiFactorAssertion by verifying the second-factor.
+// Obtain a multiFactorAssertion by verifying the second factor.
 
 const userCredential = await resolver.resolveSignIn(multiFactorAssertion);
 
@@ -43,6 +43,6 @@ const userCredential = await resolver.resolveSignIn(multiFactorAssertion);
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [credential](./auth-types.multifactorerror.credential.md) | [AuthCredential](./auth-types.authcredential.md) | The original redential used as a first-factor. |
+|  [credential](./auth-types.multifactorerror.credential.md) | [AuthCredential](./auth-types.authcredential.md) | The original credential used as a first factor. |
 |  [operationType](./auth-types.multifactorerror.operationtype.md) | [OperationType](./auth-types.operationtype.md) | The type of operation (e.g., sign-in, link, or reauthenticate) during which the error was raised. |
 
