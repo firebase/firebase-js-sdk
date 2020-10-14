@@ -23,6 +23,7 @@ import {
 import { FirebaseFunctions, HttpsCallable } from '@firebase/functions-types';
 import { HttpsCallableOptions, Functions } from '@firebase/functions-types-exp';
 import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseError } from '@firebase/util';
 
 export class FunctionsService implements FirebaseFunctions {
   private _functionsInstance: Functions;
@@ -45,7 +46,33 @@ export class FunctionsService implements FirebaseFunctions {
   httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable {
     return httpsCallableExp(this._functionsInstance, name, options);
   }
+  /**
+   * Deprecated in pre-modularized repo, does not exist in modularized
+   * functions package, need to convert to "host" and "port" args that
+   * `useFunctionsEmulatorExp` takes.
+   * @deprecated
+   */
   useFunctionsEmulator(origin: string): void {
-    return useFunctionsEmulatorExp(this._functionsInstance, origin);
+    const match = origin.match('[a-zA-Z]+://([a-zA-Z0-9.-]+)(?::([0-9]+))?');
+    if (match == null) {
+      throw new FirebaseError(
+        'functions',
+        'No origin provided to useFunctionsEmulator()'
+      );
+    }
+    if (match[2] == null) {
+      throw new FirebaseError(
+        'functions',
+        'Port missing in origin provided to useFunctionsEmulator()'
+      );
+    }
+    return useFunctionsEmulatorExp(
+      this._functionsInstance,
+      match[1],
+      Number(match[2])
+    );
+  }
+  useEmulator(host: string, port: number): void {
+    return useFunctionsEmulatorExp(this._functionsInstance, host, port);
   }
 }
