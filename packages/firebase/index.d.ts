@@ -1813,7 +1813,7 @@ declare namespace firebase.functions {
     /**
      * Changes this instance to point to a Cloud Functions emulator running
      * locally. See https://firebase.google.com/docs/functions/local-emulator
-     * 
+     *
      * @deprecated Prefer the useEmulator(host, port) method.
      * @param origin The origin of the local emulator, such as
      * "http://localhost:5005".
@@ -3132,10 +3132,10 @@ declare namespace firebase.auth {
      */
     useDeviceLanguage(): void;
     /**
-     * Modify this Auth instance to communicate with the Firebase Auth emulator.  This must be 
+     * Modify this Auth instance to communicate with the Firebase Auth emulator.  This must be
      * called synchronously immediately following the first call to `firebase.auth()`.  Do not use
      * with production credentials as emulator traffic is not encrypted.
-     * 
+     *
      * @param url The URL at which the emulator is running (eg, 'http://localhost:9099')
      */
     useEmulator(url: string): void;
@@ -7953,17 +7953,6 @@ declare namespace firebase.firestore {
      * in all but the first tab.
      */
     synchronizeTabs?: boolean;
-
-    /**
-     * Whether to synchronize the in-memory state of multiple tabs. Setting this
-     * to `true` in all open tabs enables shared access to local persistence,
-     * shared execution of queries and latency-compensated local document updates
-     * across all connected instances.
-     *
-     * @deprecated This setting is deprecated. To enable synchronization between
-     * multiple tabs, please use `synchronizeTabs: true` instead.
-     */
-    experimentalTabSynchronization?: boolean;
 
     /**
      * Whether to force enable persistence for the client. This cannot be used
