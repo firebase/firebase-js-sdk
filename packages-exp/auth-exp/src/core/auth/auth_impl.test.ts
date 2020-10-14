@@ -495,7 +495,10 @@ describe('core/auth/auth_impl useEmulator', () => {
       delete auth.config.emulator;
       expect(() => auth.useEmulator('https://localhost:2020')).not.to.throw;
       delete auth.config.emulator;
-      expect(() => auth.useEmulator('ssh://localhost:2020')).to.throw(FirebaseError, 'auth/invalid-emulator-scheme');
+      expect(() => auth.useEmulator('ssh://localhost:2020')).to.throw(
+        FirebaseError,
+        'auth/invalid-emulator-scheme'
+      );
     });
   });
 

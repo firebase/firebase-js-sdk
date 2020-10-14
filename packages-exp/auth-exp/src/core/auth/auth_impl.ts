@@ -204,7 +204,7 @@ export class AuthImpl implements Auth, _FirebaseService {
     });
 
     assert(/^https?:\/\//.test(url), AuthErrorCode.INVALID_EMULATOR_SCHEME, {
-      appName: this.name,
+      appName: this.name
     });
 
     this.config.emulator = { url };
