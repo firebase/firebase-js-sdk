@@ -115,7 +115,7 @@ export interface AuthError extends FirebaseError {
   /** The name of the Firebase App which triggered this error.  */
   readonly appName: string;
 
-  /** The email of the user's account used for sign-in/linking. */
+  /** The email of the user's account, used for sign-in/linking. */
   readonly email?: string;
   /** The phone number of the user's account used for sign-in/linking. */
   readonly phoneNumber?: string;
