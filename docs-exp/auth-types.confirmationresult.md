@@ -4,7 +4,7 @@
 
 ## ConfirmationResult interface
 
-https://firebase.google.com/docs/reference/js/firebase.auth.ConfirmationResult
+A result from a phone number sign-in, link, or reauthenticate call.
 
 <b>Signature:</b>
 
@@ -16,11 +16,11 @@ export interface ConfirmationResult
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [verificationId](./auth-types.confirmationresult.verificationid.md) | string |  |
+|  [verificationId](./auth-types.confirmationresult.verificationid.md) | string | The phone number authentication operation's verification ID. This can be used along with the verification code to initialize a phone auth credential. |
 
 ## Methods
 
 |  Method | Description |
 |  --- | --- |
-|  [confirm(verificationCode)](./auth-types.confirmationresult.confirm.md) |  |
+|  [confirm(verificationCode)](./auth-types.confirmationresult.confirm.md) | Finishes a phone number sign-in, link, or reauthentication. |
 

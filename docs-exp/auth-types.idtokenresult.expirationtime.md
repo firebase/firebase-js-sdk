@@ -4,6 +4,8 @@
 
 ## IdTokenResult.expirationTime property
 
+The ID token expiration time formatted as a UTC string.
+
 <b>Signature:</b>
 
 ```typescript

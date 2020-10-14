@@ -4,7 +4,7 @@
 
 ## PhoneAuthCredential class
 
-https://firebase.google.com/docs/reference/js/firebase.auth.phoneauthcredential
+Class that represents the Phone Auth credentials returned by a [PhoneAuthProvider](./auth-types.phoneauthprovider.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -17,5 +17,5 @@ export abstract class PhoneAuthCredential extends AuthCredential
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [fromJSON(json)](./auth-types.phoneauthcredential.fromjson.md) | <code>static</code> |  |
+|  [fromJSON(json)](./auth-types.phoneauthcredential.fromjson.md) | <code>static</code> | Interface that represents the credentials returned by an auth provider. Implementations specify the details about each auth provider's credential requirements. |
 

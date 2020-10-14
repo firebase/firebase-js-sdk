@@ -4,6 +4,8 @@
 
 ## ApplicationVerifier.verify() method
 
+Executes the verification process.
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,4 +14,6 @@ verify(): Promise<string>;
 <b>Returns:</b>
 
 Promise&lt;string&gt;
+
+A Promise for a token that can be used to assert the validity of a request.
 
