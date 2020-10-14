@@ -163,7 +163,7 @@ export interface Auth {
   /** The {@link Config} used to initialize this instance. */
   readonly config: Config;
   /**
-   * Changes the current type of persistence on the current Auth instance for the currently saved
+   * Changes the type of persistence on the Auth instance for the currently saved
    * Auth session and applies this type of persistence for future sign-in requests, including 
    * sign-in with redirect requests. 
    * 
