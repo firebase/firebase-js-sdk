@@ -706,37 +706,6 @@ export class Firestore implements PublicFirestore, FirebaseService {
     return new WriteBatch(this);
   }
 
-  static get logLevel(): PublicLogLevel {
-    switch (getLogLevel()) {
-      case LogLevel.DEBUG:
-        return 'debug';
-      case LogLevel.ERROR:
-        return 'error';
-      case LogLevel.SILENT:
-        return 'silent';
-      case LogLevel.WARN:
-        return 'warn';
-      case LogLevel.INFO:
-        return 'info';
-      case LogLevel.VERBOSE:
-        return 'verbose';
-      default:
-        // The default log level is error
-        return 'error';
-    }
-  }
-
-  static setLogLevel(level: PublicLogLevel): void {
-    validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
-    validateStringEnum(
-      'setLogLevel',
-      ['debug', 'error', 'silent', 'warn', 'info', 'verbose'],
-      1,
-      level
-    );
-    setLogLevel(level);
-  }
-
   // Note: this is not a property because the minifier can't work correctly with
   // the way TypeScript compiler outputs properties.
   _areTimestampsInSnapshotsEnabled(): boolean {
@@ -747,6 +716,17 @@ export class Firestore implements PublicFirestore, FirebaseService {
   _getSettings(): PublicSettings {
     return this._settings;
   }
+}
+
+export function setLogLevel(level: PublicLogLevel): void {
+  validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
+  validateStringEnum(
+    'setLogLevel',
+    ['debug', 'error', 'silent', 'warn', 'info', 'verbose'],
+    1,
+    level
+  );
+  setLogLevel(level);
 }
 
 /**
