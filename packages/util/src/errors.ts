@@ -88,7 +88,11 @@ export interface FirebaseError extends Error, ErrorData {
 export class FirebaseError extends Error {
   readonly name = ERROR_NAME;
 
-  constructor(readonly code: string, message: string) {
+  constructor(
+    readonly code: string,
+    message: string,
+    readonly customData?: Record<string, unknown>
+  ) {
     super(message);
 
     // Fix For ES5
@@ -125,21 +129,7 @@ export class ErrorFactory<
     // Service Name: Error message (service/code).
     const fullMessage = `${this.serviceName}: ${message} (${fullCode}).`;
 
-    const error = new FirebaseError(fullCode, fullMessage);
-
-    // Keys with an underscore at the end of their name are not included in
-    // error.data for some reason.
-    // TODO: Replace with Object.entries when lib is updated to es2017.
-    for (const key of Object.keys(customData)) {
-      if (key.slice(-1) !== '_') {
-        if (key in error) {
-          console.warn(
-            `Overwriting FirebaseError base field "${key}" can cause unexpected behavior.`
-          );
-        }
-        error[key] = customData[key];
-      }
-    }
+    const error = new FirebaseError(fullCode, fullMessage, customData);
 
     return error;
   }
