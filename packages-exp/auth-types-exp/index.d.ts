@@ -1110,7 +1110,7 @@ export interface User extends UserInfo {
 
 /** 
  * A structure containing a User, an AuthCredential, the `operationType`, and any additional user 
- * information that was returned from the identity provider. operationType could be 
+ * information that was returned from the identity provider. `operationType` could be 
  * {@link OperationType.SIGN_IN} for a sign-in operation, {@link OperationType.LINK} for a linking
  * operation and {@link OperationType.REAUTHENTICATE} for a reauthentication operation.
  * 
