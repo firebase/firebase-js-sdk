@@ -967,7 +967,7 @@ export interface MultiFactorUser {
    * 
    * @example
    * ```
-   * const multiFactorUser = multiFactor(firebase.auth().currentUser);
+   * const multiFactorUser = multiFactor(auth.currentUser);
    * // Present user the option to unenroll.
    * await multiFactorUser.unenroll(multiFactorUser.enrolledFactors[i])
    * ```
