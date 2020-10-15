@@ -1,6 +1,6 @@
 {
   "name": "@firebase/analytics",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A analytics package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -35,12 +35,11 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@firebase/app": "0.6.11",
-    "rollup": "2.28.1",
-    "rollup-plugin-commonjs": "10.1.0",
-    "rollup-plugin-json": "4.0.0",
-    "rollup-plugin-node-resolve": "5.2.0",
-    "rollup-plugin-typescript2": "0.27.2",
-    "rollup-plugin-uglify": "6.0.4",
+    "rollup": "2.29.0",
+    "@rollup/plugin-commonjs": "15.1.0",
+    "@rollup/plugin-json": "4.1.0",
+    "@rollup/plugin-node-resolve": "9.0.0",
+    "rollup-plugin-typescript2": "0.27.3",
     "typescript": "4.0.2"
   },
   "repository": {

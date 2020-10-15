@@ -4,6 +4,8 @@
 
 ## User.isAnonymous property
 
+Whether the user is authenticated using the [ProviderId.ANONYMOUS](./auth-types.providerid.anonymous.md) provider.
+
 <b>Signature:</b>
 
 ```typescript

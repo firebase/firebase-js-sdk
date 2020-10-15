@@ -4,6 +4,8 @@
 
 ## ParsedToken.firebase property
 
+Firebase specific claims, containing the provider(s) used to authenticate the user.
+
 <b>Signature:</b>
 
 ```typescript

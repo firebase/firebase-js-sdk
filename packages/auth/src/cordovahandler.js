@@ -38,6 +38,7 @@ goog.require('fireauth.DynamicLink');
 goog.require('fireauth.OAuthSignInHandler');
 goog.require('fireauth.UniversalLinkSubscriber');
 goog.require('fireauth.authenum.Error');
+goog.require('fireauth.constants');
 goog.require('fireauth.iframeclient.IfcHandler');
 goog.require('fireauth.storage.AuthEventManager');
 goog.require('fireauth.storage.OAuthHandlerManager');
@@ -55,16 +56,17 @@ goog.require('goog.crypt.Sha256');
  * @param {string} authDomain The application authDomain.
  * @param {string} apiKey The API key.
  * @param {string} appName The App name.
- * @param {?string=} opt_clientVersion The optional client version string.
- * @param {number=} opt_initialTimeout Initial Auth event timeout.
- * @param {number=} opt_redirectTimeout Redirect result timeout.
- * @param {?string=} opt_endpointId The endpoint ID (staging, test Gaia, etc).
+ * @param {?string=} clientVersion The optional client version string.
+ * @param {number=} initialTimeout Initial Auth event timeout.
+ * @param {number=} redirectTimeout Redirect result timeout.
+ * @param {?string=} endpointId The endpoint ID (staging, test Gaia, etc).
+ * @param {?fireauth.constants.EmulatorSettings=} emulatorConfig The emulator
+ *     configuration
  * @constructor
  * @implements {fireauth.OAuthSignInHandler}
  */
 fireauth.CordovaHandler = function(authDomain, apiKey, appName,
-    opt_clientVersion, opt_initialTimeout, opt_redirectTimeout,
-    opt_endpointId) {
+    clientVersion, initialTimeout, redirectTimeout, endpointId, emulatorConfig) {
   /** @private {string} The application authDomain. */
   this.authDomain_ = authDomain;
   /** @private {string} The application API key. */
@@ -72,9 +74,14 @@ fireauth.CordovaHandler = function(authDomain, apiKey, appName,
   /** @private {string} The application name. */
   this.appName_ = appName;
   /** @private {?string} The client version */
-  this.clientVersion_ = opt_clientVersion || null;
+  this.clientVersion_ = clientVersion || null;
   /** @private {?string} The Auth endpoint ID. */
-  this.endpointId_ = opt_endpointId || null;
+  this.endpointId_ = endpointId || null;
+  /**
+   * @private @const {?fireauth.constants.EmulatorSettings|undefined}
+   * The emulator configuration
+   */
+  this.emulatorConfig_ = emulatorConfig;
   /** @private {string} The storage key. */
   this.storageKey_ = fireauth.util.createStorageKey(apiKey, appName);
   /**
@@ -101,10 +108,10 @@ fireauth.CordovaHandler = function(authDomain, apiKey, appName,
    */
   this.authEventListeners_ = [];
   /** @private {number} The initial Auth event timeout. */
-  this.initialTimeout_ = opt_initialTimeout ||
+  this.initialTimeout_ = initialTimeout ||
       fireauth.CordovaHandler.INITIAL_TIMEOUT_MS_;
   /** @private {number} The return to app after redirect timeout. */
-  this.redirectTimeout_ = opt_redirectTimeout ||
+  this.redirectTimeout_ = redirectTimeout ||
       fireauth.CordovaHandler.REDIRECT_TIMEOUT_MS_;
   /**
    * @private {?goog.Promise} The last pending redirect promise. This is null if
@@ -544,7 +551,8 @@ fireauth.CordovaHandler.prototype.processRedirectInternal_ = function(
           this.clientVersion_,
           additionalParams,
           this.endpointId_,
-          opt_tenantId);
+          opt_tenantId,
+          this.emulatorConfig_);
   // Make sure handler initialized and ready.
   // This should also ensure all plugins are installed.
   return this.initializeAndWait().then(function() {

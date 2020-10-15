@@ -4,6 +4,8 @@
 
 ## OAuthCredential.fromJSON() method
 
+Static method to deserialize a JSON representation of an object into an [AuthCredential](./auth-types.authcredential.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,11 @@ static fromJSON(json: object | string): OAuthCredential | null;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  json | object \| string |  |
+|  json | object \| string | Input can be either Object or the stringified representation of the object. When string is provided, JSON.parse would be called first. |
 
 <b>Returns:</b>
 
 [OAuthCredential](./auth-types.oauthcredential.md) \| null
+
+If the JSON input does not represent an [AuthCredential](./auth-types.authcredential.md)<!-- -->, null is returned.
 

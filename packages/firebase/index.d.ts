@@ -1799,10 +1799,22 @@ declare namespace firebase.functions {
    */
   export class Functions {
     private constructor();
+
+    /**
+     * Modify this instance to communicate with the Cloud Functions emulator.
+     *
+     * Note: this must be called before this instance has been used to do any operations.
+     *
+     * @param host The emulator host (ex: localhost)
+     * @param port The emulator port (ex: 5001)
+     */
+    useEmulator(host: string, port: number): void;
+
     /**
      * Changes this instance to point to a Cloud Functions emulator running
      * locally. See https://firebase.google.com/docs/functions/local-emulator
-     *
+     * 
+     * @deprecated Prefer the useEmulator(host, port) method.
      * @param origin The origin of the local emulator, such as
      * "http://localhost:5005".
      */
@@ -3119,6 +3131,14 @@ declare namespace firebase.auth {
      * Sets the current language to the default device/browser preference.
      */
     useDeviceLanguage(): void;
+    /**
+     * Modify this Auth instance to communicate with the Firebase Auth emulator.  This must be 
+     * called synchronously immediately following the first call to `firebase.auth()`.  Do not use
+     * with production credentials as emulator traffic is not encrypted.
+     * 
+     * @param url The URL at which the emulator is running (eg, 'http://localhost:9099')
+     */
+    useEmulator(url: string): void;
     /**
      * Checks a password reset code sent to the user by email or other out-of-band
      * mechanism.
@@ -7396,7 +7416,7 @@ declare namespace firebase.storage {
     prefixes: Reference[];
     /**
      * Objects in this directory.
-     * You can call getMetadate() and getDownloadUrl() on them.
+     * You can call getMetadata() and getDownloadUrl() on them.
      */
     items: Reference[];
     /**
@@ -7879,14 +7899,26 @@ declare namespace firebase.firestore {
      * buffer traffic indefinitely. Use of this option will cause some
      * performance degradation though.
      *
-     * This setting may be removed in a future release. If you find yourself
-     * using it to work around a specific network reliability issue, please
-     * tell us about it in
-     * https://github.com/firebase/firebase-js-sdk/issues/1674.
+     * This setting cannot be used with `experimentalAutoDetectLongPolling` and
+     * may be removed in a future release. If you find yourself using it to
+     * work around a specific network reliability issue, please tell us about
+     * it in https://github.com/firebase/firebase-js-sdk/issues/1674.
      *
      * @webonly
      */
     experimentalForceLongPolling?: boolean;
+
+    /**
+     * Configures the SDK's underlying transport (WebChannel) to automatically detect if
+     * long-polling should be used. This is very similar to `experimentalForceLongPolling`,
+     * but only uses long-polling if required.
+     *
+     * This setting will likely be enabled by default in future releases and cannot be
+     * combined with `experimentalForceLongPolling`.
+     *
+     * @webonly
+     */
+    experimentalAutoDetectLongPolling?: boolean;
 
     /**
      * Whether to skip nested properties that are set to `undefined` during

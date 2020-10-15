@@ -16,10 +16,9 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { CompleteFn, ErrorFn, Unsubscribe } from '@firebase/util';
 
 import { PopupRedirectResolver } from './popup_redirect';
-import { User, UserParameters } from './user';
+import { User } from './user';
 
 export type AppName = string;
 export type ApiKey = string;
@@ -27,46 +26,19 @@ export type AuthDomain = string;
 
 export interface ConfigInternal extends externs.Config {
   emulator?: {
-    hostname: string;
-    port: number;
+    url: string;
   };
 }
 
-/**
- * Core implementation of the Auth object, the signatures here should match across both legacy
- * and modern implementations
- */
-export interface AuthCore {
-  readonly name: AppName;
-  readonly config: ConfigInternal;
-  languageCode: string | null;
-  tenantId: string | null;
-  readonly settings: externs.AuthSettings;
-
-  useDeviceLanguage(): void;
-  signOut(): Promise<void>;
-}
-
-export interface Auth extends AuthCore {
-  currentUser: User | null;
+export interface Auth extends externs.Auth {
+  currentUser: externs.User | null;
   _canInitEmulator: boolean;
   _isInitialized: boolean;
   _initializationPromise: Promise<void> | null;
   updateCurrentUser(user: User | null): Promise<void>;
 
   _onStorageEvent(): void;
-  _createUser(params: UserParameters): User;
-  _setPersistence(persistence: externs.Persistence): void;
-  _onAuthStateChanged(
-    nextOrObserver: externs.NextOrObserver<User>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe;
-  _onIdTokenChanged(
-    nextOrObserver: externs.NextOrObserver<User>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe;
+
   _notifyListenersIfCurrent(user: User): void;
   _persistUserIfCurrent(user: User): Promise<void>;
   _setRedirectUser(
@@ -78,6 +50,15 @@ export interface Auth extends AuthCore {
   _key(): string;
   _startProactiveRefresh(): void;
   _stopProactiveRefresh(): void;
+
+  readonly name: AppName;
+  readonly config: ConfigInternal;
+  languageCode: string | null;
+  tenantId: string | null;
+  readonly settings: externs.AuthSettings;
+
+  useDeviceLanguage(): void;
+  signOut(): Promise<void>;
 }
 
 export interface Dependencies {

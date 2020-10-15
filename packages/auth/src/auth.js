@@ -184,6 +184,12 @@ fireauth.Auth = function(app) {
    *     is currently only used to log FirebaseUI.
    */
   this.frameworks_ = [];
+
+  /**
+   * @private {?fireauth.constants.EmulatorSettings} The current
+   *     emulator settings.
+   */
+  this.emulatorConfig_ = null;
 };
 goog.inherits(fireauth.Auth, goog.events.EventTarget);
 
@@ -200,6 +206,20 @@ fireauth.Auth.LanguageCodeChangeEvent = function(languageCode) {
   this.languageCode = languageCode;
 };
 goog.inherits(fireauth.Auth.LanguageCodeChangeEvent, goog.events.Event);
+
+
+/**
+ * Emulator config change custom event.
+ * @param {?fireauth.constants.EmulatorSettings} emulatorConfig The new
+ *     emulator settings.
+ * @constructor
+ * @extends {goog.events.Event}
+ */
+fireauth.Auth.EmulatorConfigChangeEvent = function(emulatorConfig) {
+  goog.events.Event.call(this, fireauth.constants.AuthEventType.EMULATOR_CONFIG_CHANGED);
+  this.emulatorConfig = emulatorConfig;
+};
+goog.inherits(fireauth.Auth.EmulatorConfigChangeEvent, goog.events.Event);
 
 
 /**
@@ -270,6 +290,70 @@ fireauth.Auth.prototype.getLanguageCode = function() {
 fireauth.Auth.prototype.useDeviceLanguage = function() {
   this.setLanguageCode(fireauth.util.getUserLanguage());
 };
+
+
+/**
+ * Sets the emulator configuration (go/firebase-emulator-connection-api).
+ * @param {string} url The url for the Auth emulator.
+ */
+fireauth.Auth.prototype.useEmulator = function(url) {
+  // Emulator config can only be set once.
+  if (!this.emulatorConfig_) {
+    if (!/^https?:\/\//.test(url)) {
+      throw new fireauth.AuthError(
+          fireauth.authenum.Error.ARGUMENT_ERROR,
+          'Emulator URL must start with a valid scheme (http:// or https://).');
+    }
+    // Emit a warning so dev knows we are now in test mode.
+    this.emitEmulatorWarning_();
+    // Persist the config.
+    this.emulatorConfig_ = { url };
+    // Disable app verification.
+    this.settings_().setAppVerificationDisabledForTesting(true);
+    // Update RPC handler endpoints.
+    this.rpcHandler_.updateEmulatorConfig(this.emulatorConfig_);
+    // Notify external event listeners.
+    this.notifyEmulatorConfigListeners_();
+  }
+}
+
+
+/**
+ * Emits a console warning and a visual banner if emulator integration is
+ * enabled.
+ */
+fireauth.Auth.prototype.emitEmulatorWarning_ = function() {
+  fireauth.util.consoleWarn('WARNING: You are using the Auth Emulator,' +
+    ' which is intended for local testing only.  Do not use with' +
+    ' production credentials.');
+  if (goog.global.document) {
+    fireauth.util.onDomReady().then(() => {
+      const ele = goog.global.document.createElement('div');
+      ele.innerText = 'Running in emulator mode. Do not use with production' +
+        ' credentials.';
+      ele.style.position = 'fixed';
+      ele.style.width = '100%';
+      ele.style.backgroundColor = '#ffffff';
+      ele.style.border = '.1em solid #000000';
+      ele.style.color = '#ff0000';
+      ele.style.bottom = '0px';
+      ele.style.left = '0px';
+      ele.style.margin = '0px';
+      ele.style.zIndex = 10000;
+      ele.style.textAlign = 'center';
+      ele.classList.add('firebase-emulator-warning');
+      goog.global.document.body.appendChild(ele);
+    });
+  }
+}
+
+
+/**
+ * @return {?fireauth.constants.EmulatorSettings}
+ */
+fireauth.Auth.prototype.getEmulatorConfig = function() {
+  return this.emulatorConfig_;
+}
 
 
 /**
@@ -396,7 +480,15 @@ fireauth.Auth.prototype.notifyLanguageCodeListeners_ = function() {
 };
 
 
-
+/**
+ * Notifies all external listeners of the emulator config change.
+ * @private
+ */
+fireauth.Auth.prototype.notifyEmulatorConfigListeners_ = function() {
+  // Notify external listeners on the emulator config change.
+  this.dispatchEvent(
+    new fireauth.Auth.EmulatorConfigChangeEvent(this.emulatorConfig_));
+}
 
 
 /**
@@ -449,7 +541,10 @@ fireauth.Auth.prototype.initAuthEventManager_ = function() {
       // By this time currentUser should be ready if available and will be able
       // to resolve linkWithRedirect if detected.
       self.authEventManager_ = fireauth.AuthEventManager.getManager(
-          authDomain, apiKey, self.app_().name);
+        authDomain,
+        apiKey,
+        self.app_().name,
+        self.emulatorConfig_);
       // Subscribe Auth instance.
       self.authEventManager_.subscribe(self);
       // Subscribe current user by enabling popup and redirect on that user.
@@ -471,7 +566,10 @@ fireauth.Auth.prototype.initAuthEventManager_ = function() {
             /** @type {!fireauth.AuthUser} */ (self.redirectUser_));
         // Set the user Firebase frameworks for the redirect user.
         self.setUserFramework_(
-            /** @type {!fireauth.AuthUser} */ (self.redirectUser_));
+            /** @type {!fireauth.AuthUser} */(self.redirectUser_));
+        // Set the user Emulator configuration for the redirect user.
+        self.setUserEmulatorConfig_(
+            /** @type {!fireauth.AuthUser} */(self.redirectUser_));
         // Reference to redirect user no longer needed.
         self.redirectUser_ = null;
       }
@@ -650,7 +748,8 @@ fireauth.Auth.prototype.signInWithPopup = function(provider) {
             firebase.SDK_VERSION || null,
             null,
             null,
-            this.getTenantId());
+            this.getTenantId(),
+            this.emulatorConfig_);
   }
   // The popup must have a name, otherwise when successive popups are triggered
   // they will all render in the same instance and none will succeed since the
@@ -856,6 +955,9 @@ fireauth.Auth.prototype.signInWithIdTokenResponse =
   options['apiKey'] = self.app_().options['apiKey'];
   options['authDomain'] = self.app_().options['authDomain'];
   options['appName'] = self.app_().name;
+  if (self.emulatorConfig_) {
+      options['emulatorConfig'] = self.emulatorConfig_;
+  }
   // Wait for state to be ready.
   // This is used internally and is also used for redirect sign in so there is
   // no need for waiting for redirect result to resolve since redirect result
@@ -911,6 +1013,9 @@ fireauth.Auth.prototype.setCurrentUser_ = function(user) {
     // Set the current frameworks used on the user and set current Auth instance
     // as the framework change dispatcher.
     this.setUserFramework_(user);
+    // If a user is available, set the emulator config on it and set current
+    // Auth instance as emulator config change dispatcher.
+    this.setUserEmulatorConfig_(user);
   }
 };
 
@@ -1001,7 +1106,7 @@ fireauth.Auth.prototype.initAuthState_ = function() {
   var p = this.initRedirectUser_().then(function() {
     // Override user's authDomain with app's authDomain if there is a mismatch.
     return /** @type {!fireauth.storage.UserManager} */ (
-        self.userStorageManager_).getCurrentUser(authDomain);
+      self.userStorageManager_).getCurrentUser(authDomain, self.emulatorConfig_);
   }).then(function(user) {
     // Logged in user.
     if (user) {
@@ -1177,6 +1282,22 @@ fireauth.Auth.prototype.setUserLanguage_ = function(user) {
   // Sets current Auth instance as language code change dispatcher on the user.
   user.setLanguageCodeChangeDispatcher(this);
 };
+
+
+/**
+ * Updates the emulator config on the provided user and configures the user
+ *   to listen to the Auth instance for any emulator config changes.
+ * @param {!fireauth.AuthUser} user The user to whose emulator config needs
+ *   to be set.
+ * @private
+ */
+fireauth.Auth.prototype.setUserEmulatorConfig_ = function(user) {
+  // Sets the current emulator config on the user.
+  user.setEmulatorConfig(this.emulatorConfig_);
+  // Sets current Auth instance as emulator config change dispatcher on the
+  // user.
+  user.setEmulatorConfigChangeDispatcher(this);
+}
 
 
 /**
@@ -1676,6 +1797,15 @@ fireauth.Auth.prototype.getStorageKey = function() {
  */
 fireauth.Auth.prototype.app_ = function() {
   return this['app'];
+};
+
+
+/**
+ * @return {!fireauth.AuthSettings} The settings for this Auth object.
+ * @private
+ */
+fireauth.Auth.prototype.settings_ = function () {
+  return this['settings'];
 };
 
 

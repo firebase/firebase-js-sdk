@@ -4,6 +4,8 @@
 
 ## MultiFactorUser.enrolledFactors property
 
+Returns a list of the user's enrolled second factors.
+
 <b>Signature:</b>
 
 ```typescript

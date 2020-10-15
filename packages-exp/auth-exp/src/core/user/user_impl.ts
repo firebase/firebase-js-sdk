@@ -261,7 +261,7 @@ export class UserImpl implements User {
     assertStringOrUndefined(_redirectEventId, auth.name);
     assertStringOrUndefined(createdAt, auth.name);
     assertStringOrUndefined(lastLoginAt, auth.name);
-    const user = auth._createUser({
+    const user = new UserImpl({
       uid,
       auth,
       email,
@@ -301,7 +301,7 @@ export class UserImpl implements User {
     stsTokenManager.updateFromServerResponse(idTokenResponse);
 
     // Initialize the Firebase Auth user.
-    const user = auth._createUser({
+    const user = new UserImpl({
       uid: idTokenResponse.localId,
       auth,
       stsTokenManager,

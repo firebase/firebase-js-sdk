@@ -21,3 +21,6 @@ var config = {
   storageBucket: "your-app.appspot.com",
   messagingSenderId: "MESSAGING_SENDER_ID"
 };
+
+// Uncomment the following line to use with emulator
+// var emulatorUrl = 'http://localhost:9099';

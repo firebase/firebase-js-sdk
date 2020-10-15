@@ -4,6 +4,8 @@
 
 ## User.reload() method
 
+Refreshes the user, if signed in.
+
 <b>Signature:</b>
 
 ```typescript

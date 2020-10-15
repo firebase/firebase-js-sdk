@@ -4,6 +4,8 @@
 
 ## Config.apiKey property
 
+The API Key used to communicate with the Firebase Auth backend.
+
 <b>Signature:</b>
 
 ```typescript

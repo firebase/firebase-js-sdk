@@ -57,10 +57,12 @@ const XHR_TIMEOUT_SECS = 15;
 
 export class WebChannelConnection extends RestConnection {
   private readonly forceLongPolling: boolean;
+  private readonly autoDetectLongPolling: boolean;
 
   constructor(info: DatabaseInfo) {
     super(info);
     this.forceLongPolling = info.forceLongPolling;
+    this.autoDetectLongPolling = info.autoDetectLongPolling;
   }
 
   protected performRPCRequest<Req, Resp>(
@@ -183,7 +185,8 @@ export class WebChannelConnection extends RestConnection {
         // timeouts to kick in if the request isn't working.
         forwardChannelRequestTimeoutMs: 10 * 60 * 1000
       },
-      forceLongPolling: this.forceLongPolling
+      forceLongPolling: this.forceLongPolling,
+      detectBufferingProxy: this.autoDetectLongPolling
     };
 
     this.modifyHeadersForRequest(request.initMessageHeaders!, token);

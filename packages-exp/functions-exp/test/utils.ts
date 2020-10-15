@@ -64,10 +64,11 @@ export function createTestService(
   );
   const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
   if (useEmulator) {
+    const url = new URL(process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN!);
     useFunctionsEmulator(
       functions,
-      process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN!
-    );
+      url.hostname,
+      Number.parseInt(url.port, 10));
   }
   return functions;
 }

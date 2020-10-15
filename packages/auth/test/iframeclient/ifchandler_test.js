@@ -205,6 +205,21 @@ function testIframeUrlBuilder() {
 }
 
 
+/**
+ * Asserts IframeUrlBuilder.prototype.toString handles emulator URLs.
+ */
+function testIframeUrlBuilder_withEmulator() {
+  var builder = new fireauth.iframeclient.IframeUrlBuilder(
+    'example.firebaseapp.com', 'API_KEY', 'MY_APP', {
+    url: 'http://emulator.test.domain:1234'
+  });
+  assertEquals(
+    'http://emulator.test.domain:1234/emulator/auth/iframe?' +
+    'apiKey=API_KEY&appName=MY_APP',
+    builder.setVersion(null).toString());
+}
+
+
 function testOAuthUrlBuilder() {
   var redirectUrl = 'http://www.example.com/redirect?a=b#c';
   var redirectUrl2 = 'http://www.example.com/redirect2?d=e#f';
@@ -481,13 +496,31 @@ function testOAuthUrlBuilder_notOAuthProviderInstance() {
 
 
 /**
+ * Tests OAuth URL Builder with an emulator config
+ */
+function testOAuthUrlBuilder_withEmulatorConfig() {
+  var provider = new fireauth.GoogleAuthProvider();
+  var emulatorConfig = {
+    url: "http://emulator.host:1234"
+  };
+  var builder = new fireauth.iframeclient.OAuthUrlBuilder(
+    'example.firebaseapp.com', 'API_KEY', 'APP_NAME', 'signInWithPopup',
+    provider, emulatorConfig);
+  var url = 'http://emulator.host:1234/emulator/auth/handler?' +
+    'apiKey=API_KEY&appName=APP_NAME&authType=signInWithPopup&' +
+    'providerId=google.com&scopes=profile';
+  assertEquals(url, builder.toString());
+}
+
+
+/**
  * Tests initialization of Auth iframe and its event listeners.
  */
 function testIfcHandler() {
   asyncTestCase.waitForSignals(6);
   // The expected iframe URL.
   var expectedUrl = fireauth.iframeclient.IfcHandler.getAuthIframeUrl(
-       authDomain, apiKey, appName, version);
+      authDomain, apiKey, appName, version);
   var authEvent = new fireauth.AuthEvent(
       'unknown', '1234', 'http://www.example.com/#oauthResponse', 'SESSION_ID');
   var resp = {
@@ -584,6 +617,25 @@ function testIfcHandler() {
       asyncTestCase.signal();
     });
   });
+}
+
+
+/**
+ * Asserts getIframeUrl handles emulator URLs.
+ */
+function testIfcHandler_withEmulator() {
+  var emulatorConfig = {
+    url: 'http://emulator.test.domain:1234'
+  };
+  // The expected iframe URL.
+  var expectedUrl = fireauth.iframeclient.IfcHandler.getAuthIframeUrl(
+    authDomain, apiKey, appName, version, undefined, undefined,
+    emulatorConfig);
+  // Initialize the ifcHandler.
+  ifcHandler = new fireauth.iframeclient.IfcHandler(
+    authDomain, apiKey, appName, version, undefined, emulatorConfig);
+  // Confirm expected iframe URL.
+  assertEquals(ifcHandler.getIframeUrl(), expectedUrl);
 }
 
 
@@ -690,7 +742,7 @@ function testIfcHandler_initializeAndWait_success() {
       fireauth.iframeclient, 'IframeWrapper');
   // Iframe initialized with expected endpoint ID.
   getAuthIframeUrl(authDomain, apiKey, appName, ignoreArgument,
-      fireauth.constants.Endpoint.STAGING.id, expectedFrameworks)
+      fireauth.constants.Endpoint.STAGING.id, expectedFrameworks, ignoreArgument)
       .$returns('https://url');
   // Confirm iframe URL returned by getAuthIframeUrl used to initialize the
   // IframeWrapper.
@@ -917,7 +969,7 @@ function testIfcHandler_processPopup_notAlreadyRedirected_success() {
 }
 
 
-function testIfcHandler_processPopup_notAlreadyRedirected_tenentId_success() {
+function testIfcHandler_processPopup_notAlreadyRedirected_tenantId_success() {
   asyncTestCase.waitForSignals(1);
   var popupWin = {
     close: goog.testing.recordFunction()
@@ -972,6 +1024,77 @@ function testIfcHandler_processPopup_notAlreadyRedirected_tenentId_success() {
             fireauth.util.goTo.getLastCall().getArgument(1));
         asyncTestCase.signal();
       });
+}
+
+
+/** Asserts processRedirect can handle emulator URLs. */
+function testIfcHandler_processPopup_success_withEmulator() {
+  var emulatorConfig = {
+    url: 'http:/emulator.test.domain:1234'
+  };
+  asyncTestCase.waitForSignals(1);
+  var popupWin = {
+    close: goog.testing.recordFunction()
+  };
+  var onInit = goog.testing.recordFunction();
+  var onError = goog.testing.recordFunction();
+  stubs.replace(
+    fireauth.util,
+    'goTo',
+    goog.testing.recordFunction());
+  // Assume origin is a valid one.
+  stubs.replace(
+    fireauth.RpcHandler.prototype,
+    'getAuthorizedDomains',
+    function () {
+      var uri = goog.Uri.parse(fireauth.util.getCurrentUrl());
+      var domain = uri.getDomain();
+      return goog.Promise.resolve([domain]);
+    });
+  stubs.replace(
+    fireauth.RpcHandler.prototype,
+    'updateEmulatorConfig',
+    goog.testing.recordFunction());
+  var provider = new fireauth.GoogleAuthProvider();
+  var expectedUrl = fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+    authDomain,
+    apiKey,
+    appName,
+    'linkViaPopup',
+    provider,
+    null,
+    '1234',
+    version,
+    undefined,
+    // Check expected endpoint ID appended.
+    fireauth.constants.Endpoint.STAGING.id,
+    undefined,
+    emulatorConfig);
+  ifcHandler = new fireauth.iframeclient.IfcHandler(
+    authDomain, apiKey, appName, version,
+    fireauth.constants.Endpoint.STAGING.id, emulatorConfig);
+  // Should succeed.
+  ifcHandler.processPopup(
+    popupWin, 'linkViaPopup', provider, onInit, onError, '1234', false)
+    .then(function () {
+      // On init should be called as the iframe is initialized.
+      assertEquals(1, onInit.getCallCount());
+      // No error.
+      assertEquals(0, onError.getCallCount());
+      // Popup redirected.
+      assertEquals(
+        expectedUrl,
+        fireauth.util.goTo.getLastCall().getArgument(0));
+      // Emulator config set on RpcHandler.
+      assertObjectEquals(
+        emulatorConfig,
+        fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
+          .getArgument(0));
+      assertEquals(
+        popupWin,
+        fireauth.util.goTo.getLastCall().getArgument(1));
+      asyncTestCase.signal();
+    });
 }
 
 
@@ -1467,6 +1590,64 @@ function testIfcHandler_processRedirect_networkError_then_success() {
 }
 
 
+/** Asserts that processRedirects works with emulator URLs. */
+function testIfcHandler_processRedirect_success_withEmulator() {
+  var emulatorConfig = {
+    url: 'http:/emulator.test.domain:1234'
+  };
+  var provider = new fireauth.GoogleAuthProvider();
+  var expectedUrl = fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+    authDomain,
+    apiKey,
+    appName,
+    'linkViaRedirect',
+    provider,
+    fireauth.util.getCurrentUrl(),
+    '1234',
+    version,
+    undefined,
+    // Check expected endpoint ID appended.
+    fireauth.constants.Endpoint.STAGING.id,
+    null,
+    emulatorConfig);
+  asyncTestCase.waitForSignals(1);
+  // Assume origin is a valid one.
+  stubs.replace(
+    fireauth.RpcHandler.prototype,
+    'getAuthorizedDomains',
+    function () {
+      var uri = goog.Uri.parse(fireauth.util.getCurrentUrl());
+      var domain = uri.getDomain();
+      return goog.Promise.resolve([domain]);
+    });
+  stubs.replace(
+    fireauth.RpcHandler.prototype,
+    'updateEmulatorConfig',
+    goog.testing.recordFunction());
+  stubs.replace(
+    fireauth.util,
+    'goTo',
+    goog.testing.recordFunction());
+  ifcHandler = new fireauth.iframeclient.IfcHandler(
+    authDomain, apiKey, appName, version,
+    fireauth.constants.Endpoint.STAGING.id, emulatorConfig);
+  // Should succeed and redirect.
+  ifcHandler.processRedirect('linkViaRedirect', provider, '1234')
+    .then(function () {
+      /** @suppress {missingRequire} */
+      assertEquals(
+        expectedUrl,
+        fireauth.util.goTo.getLastCall().getArgument(0));
+      // Emulator config set on RpcHandler.
+      assertObjectEquals(
+        emulatorConfig,
+        fireauth.RpcHandler.prototype.updateEmulatorConfig.getLastCall()
+          .getArgument(0));
+      asyncTestCase.signal();
+    });
+}
+
+
 /**
  * Tests getAuthIframeUrl.
  */
@@ -1481,6 +1662,33 @@ function testGetAuthIframeUrl() {
           'me=appName1&v=' + encodeURIComponent(version) + '&eid=' + endpointId,
       fireauth.iframeclient.IfcHandler.getAuthIframeUrl(
           authDomain, apiKey, appName, version, endpointId));
+}
+
+
+/**
+ * Asserts getAuthIframeUrl handles emulator URLs.
+ */
+function testGetAuthIframeUrl_withEmulator() {
+  var authDomain = 'subdomain.firebaseapp.com';
+  var apiKey = 'apiKey1';
+  var appName = 'appName1';
+  var version = '3.0.0-rc.1';
+  var endpointId = 's';
+  var emulatorConfig = {
+    url: "http://emulator.host:1234"
+  };
+  assertEquals(
+    'http://emulator.host:1234/emulator/auth/iframe?apiKey=apiKey1&appNa' +
+    'me=appName1&v=' + encodeURIComponent(version) + '&eid=' + endpointId,
+    fireauth.iframeclient.IfcHandler.getAuthIframeUrl(
+      authDomain,
+      apiKey,
+      appName,
+      version,
+      endpointId,
+      null,
+      emulatorConfig)
+  );
 }
 
 
@@ -1796,3 +2004,39 @@ function testGetOAuthHelperWidgetUrl_frameworksAndLanguageCode() {
           authDomain, apiKey, appName, authType, provider));
 }
 
+
+/**
+ * Asserts getOAuthHelperWidgetUrl handles emulator URLs.
+ */
+function testGetOAuthHelperWidgetUrl_withEmulator() {
+  var authDomain = 'subdomain.firebaseapp.com';
+  var apiKey = 'apiKey1';
+  var appName = 'appName1';
+  var authType = 'signInWithPopup';
+  var providerId = 'facebook.com';
+  var provider = new fireauth.FacebookAuthProvider();
+  var emulatorConfig = {
+    url: 'http://emulator.test.domain:1234'
+  };
+  var expectedWidgetUrl = 'http://emulator.test.domain:1234/' +
+    'emulator/auth/handler' +
+    '?apiKey=' + encodeURIComponent(apiKey) +
+    '&appName=' + encodeURIComponent(appName) +
+    '&authType=' + encodeURIComponent(authType) +
+    '&providerId=' + encodeURIComponent(providerId);
+  assertEquals(
+    expectedWidgetUrl,
+    fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+      authDomain,
+      apiKey,
+      appName,
+      authType,
+      provider,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      emulatorConfig));
+}

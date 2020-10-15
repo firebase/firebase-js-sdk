@@ -26,7 +26,8 @@ import { fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { _emulatorUrl } from '../core/util/emulator';
 import { FetchProvider } from '../core/util/fetch_provider';
-import { Auth, AuthCore } from '../model/auth';
+import { Auth } from '@firebase/auth-types-exp';
+import { Auth as AuthInternal } from '../model/auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
@@ -68,7 +69,7 @@ export enum Endpoint {
 export const DEFAULT_API_TIMEOUT_MS = new Delay(30_000, 60_000);
 
 export async function _performApiRequest<T, V>(
-  auth: AuthCore,
+  auth: Auth,
   method: HttpMethod,
   path: Endpoint,
   request?: T,
@@ -113,11 +114,11 @@ export async function _performApiRequest<T, V>(
 }
 
 export async function _performFetchWithErrorHandling<V>(
-  auth: AuthCore,
+  auth: Auth,
   customErrorMap: Partial<ServerErrorMap<ServerError>>,
   fetchFn: () => Promise<Response>
 ): Promise<V> {
-  (auth as Auth)._canInitEmulator = false;
+  (auth as AuthInternal)._canInitEmulator = false;
   const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
   try {
     const networkTimeout = new NetworkTimeout<Response>(auth.name);
@@ -168,7 +169,7 @@ export async function _performFetchWithErrorHandling<V>(
 }
 
 export async function _performSignInRequest<T, V extends IdTokenResponse>(
-  auth: AuthCore,
+  auth: Auth,
   method: HttpMethod,
   path: Endpoint,
   request?: T,
@@ -192,14 +193,14 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
 }
 
 export function _getFinalTarget(
-  auth: AuthCore,
+  auth: Auth,
   host: string,
   path: string,
   query: string
 ): string {
   const base = `${host}${path}?${query}`;
 
-  if (!auth.config.emulator) {
+  if (!(auth as AuthInternal).config.emulator) {
     return `${auth.config.apiScheme}://${base}`;
   }
 
@@ -234,7 +235,7 @@ interface PotentialResponse extends IdTokenResponse {
 }
 
 function makeTaggedError(
-  { name }: AuthCore,
+  { name }: Auth,
   code: AuthErrorCode,
   response: PotentialResponse
 ): FirebaseError {

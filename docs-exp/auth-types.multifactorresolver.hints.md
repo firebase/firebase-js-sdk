@@ -4,6 +4,8 @@
 
 ## MultiFactorResolver.hints property
 
+The list of hints for the second factors needed to complete the sign-in for the current session.
+
 <b>Signature:</b>
 
 ```typescript

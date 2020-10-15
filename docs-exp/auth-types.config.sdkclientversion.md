@@ -4,6 +4,8 @@
 
 ## Config.sdkClientVersion property
 
+The SDK Client Version.
+
 <b>Signature:</b>
 
 ```typescript

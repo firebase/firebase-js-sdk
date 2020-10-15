@@ -121,7 +121,8 @@ export class FirebaseFirestore
       this._persistenceKey,
       settings.host ?? DEFAULT_HOST,
       settings.ssl ?? DEFAULT_SSL,
-      /* forceLongPolling= */ false
+      /* forceLongPolling= */ false,
+      /* forceAutoDetectLongPolling= */ true
     );
     return {
       asyncQueue: this._queue,

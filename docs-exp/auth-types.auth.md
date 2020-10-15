@@ -4,7 +4,9 @@
 
 ## Auth interface
 
-https://firebase.google.com/docs/reference/js/firebase.auth.Auth
+The Firebase Auth service interface.
+
+See [Firebase Authentication](https://firebase.google.com/docs/auth/) for a full guide on how to use the Firebase Auth service.
 
 <b>Signature:</b>
 
@@ -16,22 +18,22 @@ export interface Auth
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [config](./auth-types.auth.config.md) | [Config](./auth-types.config.md) |  |
-|  [currentUser](./auth-types.auth.currentuser.md) | [User](./auth-types.user.md) \| null |  |
-|  [languageCode](./auth-types.auth.languagecode.md) | string \| null |  |
-|  [name](./auth-types.auth.name.md) | string |  |
-|  [settings](./auth-types.auth.settings.md) | [AuthSettings](./auth-types.authsettings.md) |  |
-|  [tenantId](./auth-types.auth.tenantid.md) | string \| null |  |
+|  [config](./auth-types.auth.config.md) | [Config](./auth-types.config.md) | The [Config](./auth-types.config.md) used to initialize this instance. |
+|  [currentUser](./auth-types.auth.currentuser.md) | [User](./auth-types.user.md) \| null | The currently signed-in user (or null). |
+|  [languageCode](./auth-types.auth.languagecode.md) | string \| null | The Auth instance's language code. This is a readable/writable property. When set to null, the default Firebase Console language setting is applied. The language code will propagate to email action templates (password reset, email verification and email change revocation), SMS templates for phone authentication, reCAPTCHA verifier and OAuth popup/redirect operations provided the specified providers support localization with the language code specified. |
+|  [name](./auth-types.auth.name.md) | string | The name of the app associated with the Auth service instance. |
+|  [settings](./auth-types.auth.settings.md) | [AuthSettings](./auth-types.authsettings.md) | The Auth instance's settings. This is used to edit/read configuration related options like app verification mode for phone authentication. |
+|  [tenantId](./auth-types.auth.tenantid.md) | string \| null | The Auth instance's tenant ID. This is a readable/writable property. When you set the tenant ID of an Auth instance, all future sign-in/sign-up operations will pass this tenant ID and sign in or sign up users to the specified tenant project. When set to null, users are signed in to the parent project. By default, this is set to null. |
 
 ## Methods
 
 |  Method | Description |
 |  --- | --- |
-|  [onAuthStateChanged(nextOrObserver, error, completed)](./auth-types.auth.onauthstatechanged.md) |  |
-|  [onIdTokenChanged(nextOrObserver, error, completed)](./auth-types.auth.onidtokenchanged.md) |  |
-|  [setPersistence(persistence)](./auth-types.auth.setpersistence.md) |  |
-|  [signOut()](./auth-types.auth.signout.md) |  |
-|  [updateCurrentUser(user)](./auth-types.auth.updatecurrentuser.md) |  |
-|  [useDeviceLanguage()](./auth-types.auth.usedevicelanguage.md) |  |
-|  [useEmulator(hostname, port)](./auth-types.auth.useemulator.md) |  |
+|  [onAuthStateChanged(nextOrObserver, error, completed)](./auth-types.auth.onauthstatechanged.md) | Adds an observer for changes to the user's sign-in state.<!-- -->To keep the old behavior, see [Auth.onIdTokenChanged()](./auth-types.auth.onidtokenchanged.md)<!-- -->. |
+|  [onIdTokenChanged(nextOrObserver, error, completed)](./auth-types.auth.onidtokenchanged.md) | Adds an observer for changes to the signed-in user's ID token, which includes sign-in, sign-out, and token refresh events. |
+|  [setPersistence(persistence)](./auth-types.auth.setpersistence.md) | Changes the type of persistence on the Auth instance for the currently saved Auth session and applies this type of persistence for future sign-in requests, including sign-in with redirect requests.<!-- -->This makes it easy for a user signing in to specify whether their session should be remembered or not. It also makes it easier to never persist the Auth state for applications that are shared by other users or have sensitive data. |
+|  [signOut()](./auth-types.auth.signout.md) | Signs out the current user. |
+|  [updateCurrentUser(user)](./auth-types.auth.updatecurrentuser.md) | Asynchronously sets the provided user as <code>currentUser</code> on the Auth instance. A new instance copy of the user provided will be made and set as currentUser.<!-- -->This will trigger [Auth.onAuthStateChanged()](./auth-types.auth.onauthstatechanged.md) and [Auth.onIdTokenChanged()](./auth-types.auth.onidtokenchanged.md) listeners like other sign in methods.<!-- -->The operation fails with an error if the user to be updated belongs to a different Firebase project. |
+|  [useDeviceLanguage()](./auth-types.auth.usedevicelanguage.md) | Sets the current language to the default device/browser preference. |
+|  [useEmulator(url)](./auth-types.auth.useemulator.md) | Modify this Auth instance to communicate with the Firebase Auth emulator. This must be called synchronously immediately following the first call to <code>initializeAuth()</code>. Do not use with production credentials as emulator traffic is not encrypted. |
 

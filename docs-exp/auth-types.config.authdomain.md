@@ -4,6 +4,8 @@
 
 ## Config.authDomain property
 
+The domain at which the web widgets are hosted (provided via Firebase Config).
+
 <b>Signature:</b>
 
 ```typescript

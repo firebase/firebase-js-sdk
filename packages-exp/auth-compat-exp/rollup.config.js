@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import json from 'rollup-plugin-json';
-import resolve from 'rollup-plugin-node-resolve';
+import json from '@rollup/plugin-json';
+import resolve from '@rollup/plugin-node-resolve';
 import { uglify } from 'rollup-plugin-uglify';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
@@ -73,7 +73,7 @@ const es5Builds = [
       extend: true,
       name: 'firebase',
       globals: {
-        '@firebase/app': 'firebase'
+        '@firebase/app-compat': 'firebase'
       },
       /**
        * use iife to avoid below error in the old Safari browser
@@ -95,7 +95,7 @@ const es5Builds = [
           }`
     },
     plugins: [...es5BuildPlugins, uglify()],
-    external: ['@firebase/app']
+    external: ['@firebase/app-compat']
   }
 ];
 

@@ -4,6 +4,8 @@
 
 ## Config.tokenApiHost property
 
+The host at which the Secure Token API is running.
+
 <b>Signature:</b>
 
 ```typescript

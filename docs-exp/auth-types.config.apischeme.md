@@ -4,6 +4,8 @@
 
 ## Config.apiScheme property
 
+The scheme used to communicate with the Firebase Auth backend.
+
 <b>Signature:</b>
 
 ```typescript

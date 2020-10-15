@@ -17,7 +17,7 @@
 
 import { Endpoint, HttpMethod, _performSignInRequest } from '..';
 import { IdTokenResponse } from '../../model/id_token';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '@firebase/auth-types-exp';
 
 export interface SignInWithCustomTokenRequest {
   token: string;
@@ -26,7 +26,7 @@ export interface SignInWithCustomTokenRequest {
 export interface SignInWithCustomTokenResponse extends IdTokenResponse {}
 
 export async function signInWithCustomToken(
-  auth: AuthCore,
+  auth: Auth,
   request: SignInWithCustomTokenRequest
 ): Promise<SignInWithCustomTokenResponse> {
   return _performSignInRequest<

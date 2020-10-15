@@ -4,6 +4,8 @@
 
 ## ParsedToken.sub property
 
+UID of the user.
+
 <b>Signature:</b>
 
 ```typescript

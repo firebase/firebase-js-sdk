@@ -18,6 +18,7 @@
 import { Unsubscribe } from '@firebase/util';
 
 import { Auth } from '../../model/auth';
+import { User } from '../../model/user';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -58,8 +59,8 @@ export class AuthInternal {
       return;
     }
 
-    const unsubscribe = this.auth._onIdTokenChanged(user => {
-      listener(user?.stsTokenManager.accessToken || null);
+    const unsubscribe = this.auth.onIdTokenChanged(user => {
+      listener((user as User | null)?.stsTokenManager.accessToken || null);
     });
     this.internalListeners.set(listener, unsubscribe);
     this.updateProactiveRefresh();

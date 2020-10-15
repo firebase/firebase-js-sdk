@@ -7,14 +7,14 @@
 <b>Signature:</b>
 
 ```typescript
-export declare function signInWithPopup(auth: externs.Auth, provider: externs.AuthProvider, resolverExtern: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
+export declare function signInWithPopup(authExtern: externs.Auth, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
+|  authExtern | externs.[Auth](./auth-types.auth.md) |  |
 |  provider | externs.[AuthProvider](./auth-types.authprovider.md) |  |
 |  resolverExtern | externs.[PopupRedirectResolver](./auth-types.popupredirectresolver.md) |  |
 
