@@ -43,7 +43,8 @@ import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operat
  * @param auth - The Auth instance.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
- * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}.
+ * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
  * @public
  */
@@ -70,7 +71,8 @@ export async function signInWithRedirect(
  * @param user - The user.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
- * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}.
+ * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
  * @public
  */
@@ -99,10 +101,12 @@ export async function reauthenticateWithRedirect(
 /**
  * Links the {@link OAuthProvider} to the user account using a full-page redirect flow.
  *
- * @param user - The Auth instance.
+ * @param user - The user.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
- * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}.
+ * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
+ *
  *
  * @public
  */
@@ -163,7 +167,8 @@ export async function linkWithRedirect(
  * ```
  *
  * @param auth - The Auth instance.
- * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}.
+ * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}, optional
+ * if already supplied to {@link initializeAuth} or provided by {@link getAuth}.
  *
  * @public
  */

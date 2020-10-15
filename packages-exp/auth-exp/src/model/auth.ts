@@ -27,7 +27,7 @@ export type ApiKey = string;
 /** @internal */
 export type AuthDomain = string;
 
-/** {@inheritdoc @firebase/auth-types#Config} */
+/** @internal */
 export interface ConfigInternal extends externs.Config {
   /**
    * @internal
@@ -38,12 +38,9 @@ export interface ConfigInternal extends externs.Config {
   };
 }
 
-/** {@inheritdoc @firebase/auth-types#Auth} */
+/** @internal */
 export interface Auth extends externs.Auth {
-  /**
-   * {@inheritdoc @firebase/auth-types#Auth.currentUser}
-   * @readonly
-   */
+  /** @internal */
   currentUser: externs.User | null;
   /** @internal */
   _canInitEmulator: boolean;
@@ -51,7 +48,7 @@ export interface Auth extends externs.Auth {
   _isInitialized: boolean;
   /** @internal */
   _initializationPromise: Promise<void> | null;
-  /** {@inheritdoc @firebase/auth-types#Auth.updateCurrentUser} */
+  /** @internal */
   _updateCurrentUser(user: User | null): Promise<void>;
 
   /** @internal */
@@ -78,26 +75,20 @@ export interface Auth extends externs.Auth {
   _stopProactiveRefresh(): void;
   _getPersistence(): string;
 
-  /** {@inheritdoc @firebase/auth-types#Auth.name} */
+  /** @internal */
   readonly name: AppName;
-  /** {@inheritdoc @firebase/auth-types#Auth.config} */
+  /** @internal */
   readonly config: ConfigInternal;
-  /**
-   * {@inheritdoc @firebase/auth-types#Auth.languageCode}
-   * @readonly
-   */
+  /** @internal */
   languageCode: string | null;
-  /**
-   * {@inheritdoc @firebase/auth-types#Auth.tenantId}
-   * @readonly
-   */
+  /** @internal */
   tenantId: string | null;
-  /** {@inheritdoc @firebase/auth-types#Auth.settings} */
+  /** @internal */
   readonly settings: externs.AuthSettings;
 
-  /** {@inheritdoc @firebase/auth-types#Auth.useDeviceLanguage} */
+  /** @internal */
   useDeviceLanguage(): void;
-  /** {@inheritdoc @firebase/auth-types#Auth.signOut} */
+  /** @internal */
   signOut(): Promise<void>;
 }
 

@@ -64,7 +64,7 @@ export { browserPopupRedirectResolver } from './src/platform_browser/popup_redir
 export { PhoneMultiFactorGenerator } from './src/platform_browser/mfa/assertions/phone';
 
 /**
- * Initializes an Auth instance with default depedencies.
+ * Initializes an Auth instance with platform specific default dependencies.
  *
  * @param app - The Firebase App.
  *

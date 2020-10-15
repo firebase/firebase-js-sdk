@@ -166,7 +166,7 @@ export class OAuthProvider implements externs.AuthProvider {
    *
    * @remarks
    * For a detailed list, check the reserved required OAuth 2.0 parameters such as `client_id`,
-   * `redirect_uri`, `scope`, `response_type` and state are not allowed and will be ignored.
+   * `redirect_uri`, `scope`, `response_type`, and `state` are not allowed and will be ignored.
    *
    * @param customOAuthParameters - The custom OAuth parameters to pass in the OAuth request.
    */

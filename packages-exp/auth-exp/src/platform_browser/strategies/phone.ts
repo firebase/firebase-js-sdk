@@ -74,7 +74,7 @@ class ConfirmationResult implements externs.ConfirmationResult {
  * ```javascript
  * // 'recaptcha-container' is the ID of an element in the DOM.
  * const applicationVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
- * const confirmationResult = await signInWithPhoneNumber(phoneNumber, applicationVerifier);
+ * const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
  * // Obtain a verificationCode from the user.
  * const credential = await confirmationResult.confirm(verificationCode);
  * ```

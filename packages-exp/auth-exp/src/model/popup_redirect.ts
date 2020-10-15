@@ -81,7 +81,7 @@ export interface EventManager {
   unregisterConsumer(authEventConsumer: AuthEventConsumer): void;
 }
 
-/** {@inheritdoc @firebase/auth-types#PopupRedirectResolver} */
+/** @internal */
 export interface PopupRedirectResolver extends externs.PopupRedirectResolver {
   /** @internal */
   _initialize(auth: Auth): Promise<EventManager>;

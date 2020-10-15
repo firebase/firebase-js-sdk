@@ -62,7 +62,7 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
 }
 
 /**
- * Refreshes the user, if signed in.
+ * Reloads user account data, if signed in.
  *
  * @param user - The user.
  *

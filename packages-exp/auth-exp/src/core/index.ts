@@ -33,7 +33,7 @@ export { AuthErrorCode } from './errors';
  *
  * @example
  * ```javascript
- * auth.setPersistence(browserSessionPersistence);
+ * setPersistence(auth, browserSessionPersistence);
  * ```
  *
  * @param auth - The Auth instance.
@@ -148,7 +148,11 @@ export { EmailAuthProvider } from './providers/email';
 export { FacebookAuthProvider } from './providers/facebook';
 export { GoogleAuthProvider } from './providers/google';
 export { GithubAuthProvider } from './providers/github';
-export { OAuthProvider, CustomParameters } from './providers/oauth';
+export {
+  OAuthProvider,
+  CustomParameters,
+  OAuthCredentialOptions
+} from './providers/oauth';
 export { TwitterAuthProvider } from './providers/twitter';
 
 // strategies
