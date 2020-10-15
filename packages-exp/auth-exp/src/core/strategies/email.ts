@@ -27,6 +27,20 @@ import { _getCurrentUrl, _isHttpOrHttps } from '../util/location';
 import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { _castAuth } from '../auth/auth_impl';
 
+/**
+ * Gets the list of possible sign in methods for the given email address.
+ *
+ * @remarks
+ * This is useful to differentiate methods of sign-in for the same provider, eg.
+ * {@link EmailAuthProvider} which has 2 methods of sign-in,
+ * {@link @firebase/auth-types#SignInMethod.EMAIL_PASSWORD} and
+ * {@link @firebase/auth-types#SignInMethod.EMAIL_LINK} .
+ *
+ * @param auth - The Auth instance.
+ * @param email - The user's email address.
+ *
+ * @public
+ */
 export async function fetchSignInMethodsForEmail(
   auth: externs.Auth,
   email: string
@@ -45,11 +59,41 @@ export async function fetchSignInMethodsForEmail(
   return signinMethods || [];
 }
 
+/**
+ * Sends a verification email to a user.
+ *
+ * @remarks
+ * The verification process is completed by calling {@link applyActionCode}.
+ *
+ * @example
+ * ```javascript
+ * const actionCodeSettings = {
+ *   url: 'https://www.example.com/?email=user@example.com',
+ *   iOS: {
+ *      bundleId: 'com.example.ios'
+ *   },
+ *   android: {
+ *     packageName: 'com.example.android',
+ *     installApp: true,
+ *     minimumVersion: '12'
+ *   },
+ *   handleCodeInApp: true
+ * };
+ * await sendEmailVerification(user, actionCodeSettings);
+ * // Obtain code from the user.
+ * await applyActionCode(auth, code);
+ * ```
+ *
+ * @param user - The user.
+ * @param actionCodeSettings - The {@link @firebase/auth-types#ActionCodeSettings}.
+ *
+ * @public
+ */
 export async function sendEmailVerification(
-  userExtern: externs.User,
+  user: externs.User,
   actionCodeSettings?: externs.ActionCodeSettings | null
 ): Promise<void> {
-  const user = userExtern as User;
+  const userInternal = user as User;
   const idToken = await user.getIdToken();
   const request: api.VerifyEmailRequest = {
     requestType: externs.Operation.VERIFY_EMAIL,
@@ -59,19 +103,53 @@ export async function sendEmailVerification(
     _setActionCodeSettingsOnRequest(user.auth, request, actionCodeSettings);
   }
 
-  const { email } = await api.sendEmailVerification(user.auth, request);
+  const { email } = await api.sendEmailVerification(userInternal.auth, request);
 
   if (email !== user.email) {
     await user.reload();
   }
 }
 
+/**
+ * Sends a verification email to a new email address.
+ *
+ * @remarks
+ * The user's email will be updated to the new one after being verified.
+ *
+ * If you have a custom email action handler, you can complete the verification process by calling
+ * {@link applyActionCode}.
+ *
+ * @example
+ * ```javascript
+ * const actionCodeSettings = {
+ *   url: 'https://www.example.com/?email=user@example.com',
+ *   iOS: {
+ *      bundleId: 'com.example.ios'
+ *   },
+ *   android: {
+ *     packageName: 'com.example.android',
+ *     installApp: true,
+ *     minimumVersion: '12'
+ *   },
+ *   handleCodeInApp: true
+ * };
+ * await verifyBeforeUpdateEmail(user, 'newemail@example.com', actionCodeSettings);
+ * // Obtain code from the user.
+ * await applyActionCode(auth, code);
+ * ```
+ *
+ * @param user - The user.
+ * @param newEmail - The new email address to be verified before update.
+ * @param actionCodeSettings - The {@link @firebase/auth-types#ActionCodeSettings}.
+ *
+ * @public
+ */
 export async function verifyBeforeUpdateEmail(
-  userExtern: externs.User,
+  user: externs.User,
   newEmail: string,
   actionCodeSettings?: externs.ActionCodeSettings | null
 ): Promise<void> {
-  const user = userExtern as User;
+  const userInternal = user as User;
   const idToken = await user.getIdToken();
   const request: api.VerifyAndChangeEmailRequest = {
     requestType: externs.Operation.VERIFY_AND_CHANGE_EMAIL,
@@ -82,7 +160,7 @@ export async function verifyBeforeUpdateEmail(
     _setActionCodeSettingsOnRequest(user.auth, request, actionCodeSettings);
   }
 
-  const { email } = await api.verifyAndChangeEmail(user.auth, request);
+  const { email } = await api.verifyAndChangeEmail(userInternal.auth, request);
 
   if (email !== user.email) {
     // If the local copy of the email on user is outdated, reload the

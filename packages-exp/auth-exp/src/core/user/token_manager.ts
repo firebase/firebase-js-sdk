@@ -26,6 +26,8 @@ import { assert, debugFail } from '../util/assert';
 /**
  * The number of milliseconds before the official expiration time of a token
  * to refresh that token, to provide a buffer for RPCs to complete.
+ *
+ * @internal
  */
 export const TOKEN_REFRESH_BUFFER_MS = 30_000;
 

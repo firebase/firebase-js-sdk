@@ -23,14 +23,61 @@ import { UserCredential } from '../../model/user';
 import { OAuthCredential } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
+/**
+ * Provider for generating an {@link OAuthCredential} for {@link @firebase/auth-types#ProviderId.FACEBOOK}.
+ *
+ * @example
+ * ```javascript
+ * // Sign in using a redirect.
+ * const result = await getRedirectResult(auth);
+ * if (result.credential) {
+ *   // This gives you a Google Access Token.
+ *   const token = result.credential.accessToken;
+ * }
+ * const user = result.user;
+ *
+ * // Start a sign in process for an unauthenticated user.
+ * const provider = new FacebookAuthProvider();
+ * provider.addScope('user_birthday');
+ * await signInWithRedirect(auth, provider);
+ * ```
+ *
+ * @example
+ * ```javascript
+ * // Sign in using a popup.
+ * const provider = new FacebookAuthProvider();
+ * provider.addScope('user_birthday');
+ * const result = await signInWithPopup(auth, provider);
+ * // This gives you a Facebook Access Token.
+ * const token = result.credential.accessToken;
+ * // The signed-in user info.
+ * const user = result.user;
+ * ```
+ *
+ * @public
+ */
 export class FacebookAuthProvider extends OAuthProvider {
+  /** Always set to {@link @firebase/auth-types#SignInMethod.FACEBOOK}. */
   static readonly FACEBOOK_SIGN_IN_METHOD = externs.SignInMethod.FACEBOOK;
+  /** Always set to {@link @firebase/auth-types#ProviderId.FACEBOOK}. */
   static readonly PROVIDER_ID = externs.ProviderId.FACEBOOK;
 
   constructor() {
     super(externs.ProviderId.FACEBOOK);
   }
 
+  /**
+   * Creates a credential for Facebook.
+   *
+   * @example
+   * ```javascript
+   * // `event` from the Facebook auth.authResponseChange callback.
+   * const credential = FacebookAuthProvider.credential(event.authResponse.accessToken);
+   * const result = await signInWithCredential(credential);
+   * ```
+   *
+   * @param accessToken - Facebook access token.
+   */
   static credential(accessToken: string): externs.OAuthCredential {
     return OAuthCredential._fromParams({
       providerId: FacebookAuthProvider.PROVIDER_ID,

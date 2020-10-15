@@ -99,6 +99,16 @@ const multiFactorUserCache = new WeakMap<
   externs.MultiFactorUser
 >();
 
+/**
+ * The {@link @firebase/auth-types#MultiFactorUser} corresponding to the user.
+ *
+ * @remarks
+ * This is used to access all multi-factor properties and operations related to the user.
+ *
+ * @param user - The user.
+ *
+ * @public
+ */
 export function multiFactor(user: externs.User): externs.MultiFactorUser {
   if (!multiFactorUserCache.has(user)) {
     multiFactorUserCache.set(user, MultiFactorUser._fromUser(user as User));

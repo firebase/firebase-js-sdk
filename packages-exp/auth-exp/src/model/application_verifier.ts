@@ -18,5 +18,8 @@
 import * as externs from '@firebase/auth-types-exp';
 
 export interface ApplicationVerifier extends externs.ApplicationVerifier {
+  /**
+   * @internal
+   */
   _reset(): void;
 }

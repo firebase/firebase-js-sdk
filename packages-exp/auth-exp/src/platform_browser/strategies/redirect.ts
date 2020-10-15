@@ -34,91 +34,163 @@ import { User, UserCredential } from '../../model/user';
 import { _withDefaultResolver } from '../popup_redirect';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 
+/**
+ * Authenticates a Firebase client using a full-page redirect flow.
+ *
+ * @remarks
+ * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
+ *
+ * @param auth - The Auth instance.
+ * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
+ * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
+ * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}.
+ *
+ * @public
+ */
 export async function signInWithRedirect(
-  authExtern: externs.Auth,
+  auth: externs.Auth,
   provider: externs.AuthProvider,
-  resolverExtern?: externs.PopupRedirectResolver
+  resolver?: externs.PopupRedirectResolver
 ): Promise<never> {
-  const auth = _castAuth(authExtern);
+  const authInternal = _castAuth(auth);
   assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
     appName: auth.name
   });
 
-  return _withDefaultResolver(auth, resolverExtern)._openRedirect(
-    auth,
+  return _withDefaultResolver(authInternal, resolver)._openRedirect(
+    authInternal,
     provider,
     AuthEventType.SIGN_IN_VIA_REDIRECT
   );
 }
 
+/**
+ * Reauthenticates the current user with the specified {@link OAuthProvider} using a full-page redirect flow.
+ *
+ * @param user - The user.
+ * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
+ * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
+ * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}.
+ *
+ * @public
+ */
 export async function reauthenticateWithRedirect(
-  userExtern: externs.User,
+  user: externs.User,
   provider: externs.AuthProvider,
-  resolverExtern?: externs.PopupRedirectResolver
+  resolver?: externs.PopupRedirectResolver
 ): Promise<never> {
-  const user = userExtern as User;
+  const userInternal = user as User;
   assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: user.auth.name
+    appName: userInternal.auth.name
   });
 
   // Allow the resolver to error before persisting the redirect user
-  const resolver = _withDefaultResolver(user.auth, resolverExtern);
+  const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
 
-  const eventId = await prepareUserForRedirect(user.auth, user);
-  return resolver._openRedirect(
-    user.auth,
+  const eventId = await prepareUserForRedirect(userInternal);
+  return resolverInternal._openRedirect(
+    userInternal.auth,
     provider,
     AuthEventType.REAUTH_VIA_REDIRECT,
     eventId
   );
 }
 
+/**
+ * Links the {@link OAuthProvider} to the user account using a full-page redirect flow.
+ *
+ * @param user - The Auth instance.
+ * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
+ * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
+ * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}.
+ *
+ * @public
+ */
 export async function linkWithRedirect(
-  userExtern: externs.User,
+  user: externs.User,
   provider: externs.AuthProvider,
-  resolverExtern?: externs.PopupRedirectResolver
+  resolver?: externs.PopupRedirectResolver
 ): Promise<never> {
-  const user = userExtern as User;
+  const userInternal = user as User;
   assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: user.auth.name
+    appName: userInternal.auth.name
   });
 
   // Allow the resolver to error before persisting the redirect user
-  const resolver = _withDefaultResolver(user.auth, resolverExtern);
+  const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
 
-  await _assertLinkedStatus(false, user, provider.providerId);
-  const eventId = await prepareUserForRedirect(user.auth, user);
-  return resolver._openRedirect(
-    user.auth,
+  await _assertLinkedStatus(false, userInternal, provider.providerId);
+  const eventId = await prepareUserForRedirect(userInternal);
+  return resolverInternal._openRedirect(
+    userInternal.auth,
     provider,
     AuthEventType.LINK_VIA_REDIRECT,
     eventId
   );
 }
 
+/**
+ * Returns a {@link @firebase/auth-types#UserCredential} from the redirect-based sign-in flow.
+ *
+ * @remarks
+ * If sign-in succeeded, returns the signed in user. If sign-in was unsuccessful, fails with an
+ * error. If no redirect operation was called, returns a {@link @firebase/auth-types#UserCredential}
+ * with a null `user`.
+ *
+ * @example
+ * ```javascript
+ * // First, we perform the signInWithRedirect.
+ * // Creates the provider.
+ * const provider = new FacebookAuthProvider();
+ * // You can add additional scopes to the provider:
+ * provider.addScope('email');
+ * provider.addScope('user_friends');
+ * // Sign in with redirect:
+ * await signInWithRedirect(auth, provider)
+ * ////////////////////////////////////////////////////////////
+ * // The user is redirected to the provider's sign in flow...
+ * ////////////////////////////////////////////////////////////
+ * // Then redirected back to the app, where we check the redirect result:
+ * const result = await getRedirectResult(auth);
+ * // The Firebase User instance:
+ * const user = result.user;
+ * // The Facebook AuthCredential containing the Facebook access token:
+ * const credential = result.credential;
+ * // As this API can be used for sign-in, linking and reauthentication,
+ * // check the operationType to determine what triggered this redirect
+ * // operation.
+ * const operationType = result.operationType;
+ * ```
+ *
+ * @param auth - The Auth instance.
+ * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}.
+ *
+ * @public
+ */
 export async function getRedirectResult(
-  authExtern: externs.Auth,
-  resolverExtern?: externs.PopupRedirectResolver
+  auth: externs.Auth,
+  resolver?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential | null> {
-  const auth = _castAuth(authExtern);
-  const resolver = _withDefaultResolver(auth, resolverExtern);
-  const action = new RedirectAction(auth, resolver);
+  const authInternal = _castAuth(auth);
+  const resolverInternal = _withDefaultResolver(authInternal, resolver);
+  const action = new RedirectAction(authInternal, resolverInternal);
   const result = await action.execute();
 
   if (result) {
     delete result.user._redirectEventId;
-    await auth._persistUserIfCurrent(result.user as User);
-    await auth._setRedirectUser(null, resolverExtern);
+    await authInternal._persistUserIfCurrent(result.user as User);
+    await authInternal._setRedirectUser(null, resolver);
   }
 
   return result;
 }
 
-async function prepareUserForRedirect(auth: Auth, user: User): Promise<string> {
+/** @internal */
+async function prepareUserForRedirect(user: User): Promise<string> {
   const eventId = _generateEventId(`${user.uid}:::`);
   user._redirectEventId = eventId;
   await user.auth._setRedirectUser(user);
-  await auth._persistUserIfCurrent(user);
+  await user.auth._persistUserIfCurrent(user);
   return eventId;
 }
 
@@ -190,6 +262,7 @@ class RedirectAction extends AbstractPopupRedirectOperation {
   cleanUp(): void {}
 }
 
+/** @internal */
 export function _clearOutcomes(): void {
   redirectOutcomeMap.clear();
 }

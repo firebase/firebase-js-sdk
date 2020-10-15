@@ -27,10 +27,17 @@ import { _verifyPhoneNumber } from '../strategies/phone';
 import { assert, fail } from '../../core/util/assert';
 import { _castAuth } from '../../core/auth/auth_impl';
 
+/**
+ * {@inheritdoc @firebase/auth-types#PhoneAuthProvider}
+ * @public
+ */
 export class PhoneAuthProvider implements externs.PhoneAuthProvider {
+  /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.PROVIDER_ID} */
   static readonly PROVIDER_ID = externs.ProviderId.PHONE;
+  /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.PHONE_SIGN_IN_METHOD} */
   static readonly PHONE_SIGN_IN_METHOD = externs.SignInMethod.PHONE;
 
+  /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.providerId} */
   readonly providerId = PhoneAuthProvider.PROVIDER_ID;
   private readonly auth: Auth;
 
@@ -38,6 +45,7 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
     this.auth = _castAuth(auth);
   }
 
+  /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.verifyPhoneNumber} */
   verifyPhoneNumber(
     phoneOptions: externs.PhoneInfoOptions | string,
     applicationVerifier: externs.ApplicationVerifier
@@ -49,6 +57,7 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
     );
   }
 
+  /** {@inheritdoc @firebase/auth-types#PhoneAuthProvider.credential} */
   static credential(
     verificationId: string,
     verificationCode: string

@@ -61,15 +61,22 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
   Object.assign(user, updates);
 }
 
-export async function reload(externUser: externs.User): Promise<void> {
-  const user: User = externUser as User;
-  await _reloadWithoutSaving(user);
+/**
+ * Refreshes the user, if signed in.
+ *
+ * @param user - The user.
+ *
+ * @public
+ */
+export async function reload(user: externs.User): Promise<void> {
+  const userInternal: User = user as User;
+  await _reloadWithoutSaving(userInternal);
 
   // Even though the current user hasn't changed, update
   // current user will trigger a persistence update w/ the
   // new info.
-  await user.auth._persistUserIfCurrent(user);
-  user.auth._notifyListenersIfCurrent(user);
+  await userInternal.auth._persistUserIfCurrent(userInternal);
+  userInternal.auth._notifyListenersIfCurrent(userInternal);
 }
 
 function mergeProviderData(

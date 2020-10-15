@@ -34,69 +34,115 @@ import { _withDefaultResolver } from '../popup_redirect';
 import { AuthPopup } from '../util/popup';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 
-// The event timeout is the same on mobile and desktop, no need for Delay.
+/**
+ * The event timeout is the same on mobile and desktop, no need for Delay.
+ * @internal
+ */
 export const _AUTH_EVENT_TIMEOUT = 2020;
+/** @internal */
 export const _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
 
+/**
+ * Authenticates a Firebase client using a popup-based OAuth authentication flow.
+ *
+ * @remarks
+ * If succeeds, returns the signed in user along with the provider's credential. If sign in was
+ * unsuccessful, returns an error object containing additional information about the error.
+ *
+ * @param auth - The Auth instance.
+ * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
+ * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
+ * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}.
+ *
+ * @public
+ */
 export async function signInWithPopup(
-  authExtern: externs.Auth,
+  auth: externs.Auth,
   provider: externs.AuthProvider,
-  resolverExtern?: externs.PopupRedirectResolver
+  resolver?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
-  const auth = _castAuth(authExtern);
+  const authInternal = _castAuth(auth);
   assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
     appName: auth.name
   });
 
-  const resolver = _withDefaultResolver(auth, resolverExtern);
+  const resolverInternal = _withDefaultResolver(authInternal, resolver);
   const action = new PopupOperation(
-    auth,
+    authInternal,
     AuthEventType.SIGN_IN_VIA_POPUP,
     provider,
-    resolver
+    resolverInternal
   );
   return action.executeNotNull();
 }
 
+/**
+ * Reauthenticates the current user with the specified {@link OAuthProvider} using a pop-up based
+ * OAuth flow.
+ *
+ * @remarks
+ * If the reauthentication is successful, the returned result will contain the user and the
+ * provider's credential.
+ *
+ * @param user - The user.
+ * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
+ * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
+ * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}.
+ *
+ * @public
+ */
 export async function reauthenticateWithPopup(
-  userExtern: externs.User,
+  user: externs.User,
   provider: externs.AuthProvider,
-  resolverExtern?: externs.PopupRedirectResolver
+  resolver?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
-  const user = userExtern as User;
+  const userInternal = user as User;
   assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: user.auth.name
+    appName: userInternal.auth.name
   });
 
-  const resolver = _withDefaultResolver(user.auth, resolverExtern);
+  const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
   const action = new PopupOperation(
-    user.auth,
+    userInternal.auth,
     AuthEventType.REAUTH_VIA_POPUP,
     provider,
-    resolver,
-    user
+    resolverInternal,
+    userInternal
   );
   return action.executeNotNull();
 }
 
+/**
+ * Links the authenticated provider to the user account using a pop-up based OAuth flow.
+ *
+ * @remarks
+ * If the linking is successful, the returned result will contain the user and the provider's credential.
+ *
+ * @param user - The user.
+ * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
+ * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
+ * @param resolver - An instance of {@link @firebase/auth-types#PopupRedirectResolver}.
+ *
+ * @public
+ */
 export async function linkWithPopup(
-  userExtern: externs.User,
+  user: externs.User,
   provider: externs.AuthProvider,
-  resolverExtern?: externs.PopupRedirectResolver
+  resolver?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
-  const user = userExtern as User;
+  const userInternal = user as User;
   assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: user.auth.name
+    appName: userInternal.auth.name
   });
 
-  const resolver = _withDefaultResolver(user.auth, resolverExtern);
+  const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
 
   const action = new PopupOperation(
-    user.auth,
+    userInternal.auth,
     AuthEventType.LINK_VIA_POPUP,
     provider,
-    resolver,
-    user
+    resolverInternal,
+    userInternal
   );
   return action.executeNotNull();
 }
@@ -104,6 +150,8 @@ export async function linkWithPopup(
 /**
  * Popup event manager. Handles the popup's entire lifecycle; listens to auth
  * events
+ *
+ * @internal
  */
 class PopupOperation extends AbstractPopupRedirectOperation {
   // Only one popup is ever shown at once. The lifecycle of the current popup

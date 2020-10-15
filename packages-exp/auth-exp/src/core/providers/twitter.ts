@@ -41,6 +41,39 @@ import { UserCredential } from '../../model/user';
 import { OAuthCredential } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
+/**
+ * Provider for generating an {@link OAuthCredential} for {@link @firebase/auth-types#ProviderId.TWITTER}.
+ *
+ * @example
+ * ```javascript
+ * // Using a redirect.
+ * const result = await getRedirectResult(auth);
+ * if (result.credential) {
+ *   // For accessing the Twitter API.
+ *   const token = result.credential.accessToken;
+ *   const secret = result.credential.secret;
+ * }
+ * const user = result.user;
+ *
+ * // Start a sign in process for an unauthenticated user.
+ * const provider = new TwitterAuthProvider();
+ * await signInWithRedirect(auth, provider);
+ * ```
+ *
+ * @example
+ * ```javascript
+ * // Using a popup.
+ * const provider = new TwitterAuthProvider();
+ * const result = await signInWithPopup(auth, provider);
+ * // For accessing the Twitter API.
+ * const token = result.credential.accessToken;
+ * const secret = result.credential.secret;
+ * // The signed-in user info.
+ * const user = result.user;
+ * ```
+ *
+ * @public
+ */
 export class TwitterAuthProvider extends OAuthProvider {
   static readonly TWITTER_SIGN_IN_METHOD = externs.SignInMethod.TWITTER;
   static readonly PROVIDER_ID = externs.ProviderId.TWITTER;
@@ -49,6 +82,12 @@ export class TwitterAuthProvider extends OAuthProvider {
     super(externs.ProviderId.TWITTER);
   }
 
+  /**
+   * Creates a credential for Twitter.
+   *
+   * @param token - Twitter access token.
+   * @param secret - Twitter secret.
+   */
   static credential(token: string, secret: string): externs.OAuthCredential {
     return OAuthCredential._fromParams({
       providerId: TwitterAuthProvider.PROVIDER_ID,

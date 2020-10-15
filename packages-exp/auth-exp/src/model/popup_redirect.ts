@@ -21,20 +21,24 @@ import { FirebaseError } from '@firebase/util';
 import { AuthPopup } from '../platform_browser/util/popup';
 import { Auth } from './auth';
 
+/** @internal */
 export const enum EventFilter {
   POPUP,
   REDIRECT
 }
 
+/** @internal */
 export const enum GapiOutcome {
   ACK = 'ACK',
   ERROR = 'ERROR'
 }
 
+/** @internal */
 export interface GapiAuthEvent extends gapi.iframes.Message {
   authEvent: AuthEvent;
 }
 
+/** @internal */
 export const enum AuthEventType {
   LINK_VIA_POPUP = 'linkViaPopup',
   LINK_VIA_REDIRECT = 'linkViaRedirect',
@@ -46,11 +50,13 @@ export const enum AuthEventType {
   VERIFY_APP = 'verifyApp'
 }
 
+/** @internal */
 export interface AuthEventError extends Error {
   code: string; // in the form of auth/${AuthErrorCode}
   message: string;
 }
 
+/** @internal */
 export interface AuthEvent {
   type: AuthEventType;
   eventId: string | null;
@@ -61,6 +67,7 @@ export interface AuthEvent {
   error?: AuthEventError;
 }
 
+/** @internal */
 export interface AuthEventConsumer {
   readonly filter: AuthEventType[];
   eventId: string | null;
@@ -68,25 +75,31 @@ export interface AuthEventConsumer {
   onError(error: FirebaseError): unknown;
 }
 
+/** @internal */
 export interface EventManager {
   registerConsumer(authEventConsumer: AuthEventConsumer): void;
   unregisterConsumer(authEventConsumer: AuthEventConsumer): void;
 }
 
+/** {@inheritdoc @firebase/auth-types#PopupRedirectResolver} */
 export interface PopupRedirectResolver extends externs.PopupRedirectResolver {
+  /** @internal */
   _initialize(auth: Auth): Promise<EventManager>;
+  /** @internal */
   _openPopup(
     auth: Auth,
     provider: externs.AuthProvider,
     authType: AuthEventType,
     eventId?: string
   ): Promise<AuthPopup>;
+  /** @internal */
   _openRedirect(
     auth: Auth,
     provider: externs.AuthProvider,
     authType: AuthEventType,
     eventId?: string
   ): Promise<never>;
+  /** @internal */
   _isIframeWebStorageSupported(
     auth: Auth,
     cb: (support: boolean) => unknown

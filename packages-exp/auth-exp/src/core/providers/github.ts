@@ -23,14 +23,58 @@ import { UserCredential } from '../../model/user';
 import { OAuthCredential } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
+/**
+ * Provider for generating an {@link OAuthCredential} for {@link @firebase/auth-types#ProviderId.GITHUB}.
+ *
+ * @remarks
+ * GitHub requires an OAuth 2.0 redirect, so you can either handle the redirect directly, or use
+ * the {@link signInWithPopup} handler:
+ *
+ * @example
+ * ```javascript
+ * // Using a redirect.
+ * const result = await getRedirectResult(auth);
+ * if (result.credential) {
+ *   // This gives you a GitHub Access Token.
+ *   const token = result.credential.accessToken;
+ * }
+ * const user = result.user;
+ *
+ * // Start a sign in process for an unauthenticated user.
+ * const provider = new GithubAuthProvider();
+ * provider.addScope('repo');
+ * await signInWithRedirect(auth, provider);
+ * ```
+ *
+ * @example
+ * ```javascript
+ * // With popup.
+ * const provider = new GithubAuthProvider();
+ * provider.addScope('repo');
+ * const result = await signInWithPopup(auth, provider);
+ * // This gives you a GitHub Access Token.
+ * const token = result.credential.accessToken;
+ * // The signed-in user info.
+ * const user = result.user;
+ * ```
+ *
+ * @public
+ */
 export class GithubAuthProvider extends OAuthProvider {
+  /** Always set to {@link @firebase/auth-types#SignInMethod.GITHUB}. */
   static readonly GITHUB_SIGN_IN_METHOD = externs.SignInMethod.GITHUB;
+  /** Always set to {@link @firebase/auth-types#ProviderId.GITHUB}. */
   static readonly PROVIDER_ID = externs.ProviderId.GITHUB;
 
   constructor() {
     super(externs.ProviderId.GITHUB);
   }
 
+  /**
+   * Creates a credential for Github.
+   *
+   * @param accessToken - Github access token.
+   */
   static credential(accessToken: string): externs.OAuthCredential {
     return OAuthCredential._fromParams({
       providerId: GithubAuthProvider.PROVIDER_ID,

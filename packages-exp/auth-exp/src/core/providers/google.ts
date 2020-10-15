@@ -24,14 +24,64 @@ import { UserCredential } from '../../model/user';
 import { OAuthCredential } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
+/**
+ * Provider for generating an an {@link OAuthCredential} for {@link @firebase/auth-types#ProviderId.GOOGLE}.
+ *
+ * @example
+ * ```javascript
+ * // Using a redirect.
+ * const result = getRedirectResult(auth);
+ * if (result.credential) {
+ *   // This gives you a Google Access Token.
+ *   const token = result.credential.accessToken;
+ * }
+ * const user = result.user;
+ *
+ * // Start a sign in process for an unauthenticated user.
+ * var provider = new GoogleAuthProvider();
+ * provider.addScope('profile');
+ * provider.addScope('email');
+ * aiwait signInWithRedirect(auth, provider);
+ * ```
+ *
+ * @example
+ * ```javascript
+ * // Sign in using a popup.
+ * const provider = new GoogleAuthProvider();
+ * provider.addScope('profile');
+ * provider.addScope('email');
+ * const result = await signInWithPopup(auth, provider);
+ * // This gives you a Google Access Token.
+ * const token = result.credential.accessToken;
+ * // The signed-in user info.
+ * const user = result.user;
+ * ```
+ *
+ * @public
+ */
 export class GoogleAuthProvider extends OAuthProvider {
+  /** Always set to {@link @firebase/auth-types#SignInMethod.GOOGLE}. */
   static readonly GOOGLE_SIGN_IN_METHOD = externs.SignInMethod.GOOGLE;
+  /** Always set to {@link @firebase/auth-types#ProviderId.GOOGLE}. */
   static readonly PROVIDER_ID = externs.ProviderId.GOOGLE;
 
   constructor() {
     super(externs.ProviderId.GOOGLE);
   }
 
+  /**
+   * Creates a credential for Google. At least one of ID token and access token is required.
+   *
+   * @example
+   * ```javascript
+   * // \`googleUser\` from the onsuccess Google Sign In callback.
+   * const credential = GoogleAuthProvider.credential(googleUser.getAuthResponse().id_token);
+   * const result = await signInWithCredential(credential);
+   * ```
+   *
+   * @param idToken - Google ID token.
+   * @param accessToken - Google access token.
+   */
   static credential(
     idToken?: string | null,
     accessToken?: string | null

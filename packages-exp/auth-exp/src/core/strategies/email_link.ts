@@ -26,6 +26,44 @@ import { signInWithCredential } from './credential';
 import { AuthErrorCode } from '../errors';
 import { assert } from '../util/assert';
 
+/**
+ * Sends a sign-in email link to the user with the specified email.
+ *
+ * @remarks
+ * The sign-in operation has to always be completed in the app unlike other out of band email
+ * actions (password reset and email verifications). This is because, at the end of the flow,
+ * the user is expected to be signed in and their Auth state persisted within the app.
+ *
+ * To complete sign in with the email link, call {@link signInWithEmailLink} with the email
+ * address and the email link supplied in the email sent to the user.
+ *
+ * @example
+ * ```javascript
+ * const actionCodeSettings = {
+ *   url: 'https://www.example.com/?email=user@example.com',
+ *   iOS: {
+ *      bundleId: 'com.example.ios'
+ *   },
+ *   android: {
+ *     packageName: 'com.example.android',
+ *     installApp: true,
+ *     minimumVersion: '12'
+ *   },
+ *   handleCodeInApp: true
+ * };
+ * await sendSignInLinkToEmail(auth, 'user@example.com', actionCodeSettings);
+ * // Obtain emailLink from the user.
+ * if(isSignInWithEmailLink(auth, emailLink)) {
+ *   await signInWithEmailLink('user@example.com', 'user@example.com', emailLink);
+ * }
+ * ```
+ *
+ * @param auth - The Auth instance.
+ * @param email - The user's email address.
+ * @param actionCodeSettings - The {@link @firebase/auth-types#ActionCodeSettings}.
+ *
+ * @public
+ */
 export async function sendSignInLinkToEmail(
   auth: externs.Auth,
   email: string,
@@ -42,6 +80,14 @@ export async function sendSignInLinkToEmail(
   await api.sendSignInLinkToEmail(auth, request);
 }
 
+/**
+ * Checks if an incoming link is a sign-in with email link suitable for {@link signInWithEmailLink}.
+ *
+ * @param auth - The Auth instance.
+ * @param emailLink - The link sent to the user's email address.
+ *
+ * @public
+ */
 export function isSignInWithEmailLink(
   auth: externs.Auth,
   emailLink: string
@@ -50,6 +96,43 @@ export function isSignInWithEmailLink(
   return actionCodeUrl?.operation === externs.Operation.EMAIL_SIGNIN;
 }
 
+/**
+ * Asynchronously signs in using an email and sign-in email link.
+ *
+ * @remarks
+ * If no link is passed, the link is inferred from the current URL.
+ *
+ * Fails with an error if the email address is invalid or OTP in email link expires.
+ *
+ * Note: Confirm the link is a sign-in email link before calling this method firebase.auth.Auth.isSignInWithEmailLink.
+ *
+ * @example
+ * ```javascript
+ * const actionCodeSettings = {
+ *   url: 'https://www.example.com/?email=user@example.com',
+ *   iOS: {
+ *      bundleId: 'com.example.ios'
+ *   },
+ *   android: {
+ *     packageName: 'com.example.android',
+ *     installApp: true,
+ *     minimumVersion: '12'
+ *   },
+ *   handleCodeInApp: true
+ * };
+ * await sendSignInLinkToEmail(auth, 'user@example.com', actionCodeSettings);
+ * // Obtain emailLink from the user.
+ * if(isSignInWithEmailLink(auth, emailLink)) {
+ *   await signInWithEmailLink('user@example.com', 'user@example.com', emailLink);
+ * }
+ * ```
+ *
+ * @param auth - The Auth instance.
+ * @param email - The user's email address.
+ * @param emailLink - The link sent to the user's email address.
+ *
+ * @public
+ */
 export async function signInWithEmailLink(
   auth: externs.Auth,
   email: string,

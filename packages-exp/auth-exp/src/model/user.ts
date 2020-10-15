@@ -25,10 +25,12 @@ import { UserMetadata } from '../core/user/user_metadata';
 import { Auth } from './auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from './id_token';
 
+/** @internal */
 export type MutableUserInfo = {
   -readonly [K in keyof externs.UserInfo]: externs.UserInfo[K];
 };
 
+/** @internal */
 export interface UserParameters {
   uid: string;
   auth: Auth;
@@ -46,44 +48,102 @@ export interface UserParameters {
   lastLoginAt?: string | null;
 }
 
+/** {@inheritdoc @firebase/auth-types#User} */
 export interface User extends externs.User {
+  /**
+   * {@inheritdoc @firebase/auth-types#UserInfo.displayName}
+   * @readonly
+   */
   displayName: string | null;
+  /**
+   * {@inheritdoc @firebase/auth-types#UserInfo.email}
+   * @readonly
+   */
   email: string | null;
+  /**
+   * {@inheritdoc @firebase/auth-types#UserInfo.phoneNumber}
+   * @readonly
+   */
   phoneNumber: string | null;
+  /**
+   * {@inheritdoc @firebase/auth-types#UserInfo.photoURL}
+   * @readonly
+   */
   photoURL: string | null;
 
+  /** @internal */
   auth: Auth;
+  /**
+   * {@inheritdoc @firebase/auth-types#UserInfo.providerId}
+   * @readonly
+   */
   providerId: externs.ProviderId.FIREBASE;
+  /**
+   * {@inheritdoc @firebase/auth-types#User.refreshToken}
+   * @readonly
+   */
   refreshToken: string;
+  /**
+   * {@inheritdoc @firebase/auth-types#User.emailVerified}
+   * @readonly
+   */
   emailVerified: boolean;
+  /**
+   * {@inheritdoc @firebase/auth-types#User.tenantId}
+   * @readonly
+   */
   tenantId: string | null;
+  /**
+   * {@inheritdoc @firebase/auth-types#User.providerData}
+   * @readonly
+   */
   providerData: MutableUserInfo[];
+  /**
+   * {@inheritdoc @firebase/auth-types#User.metadata}
+   * @readonly
+   */
   metadata: UserMetadata;
 
+  /** @internal */
   stsTokenManager: StsTokenManager;
+  /** @internal */
   _redirectEventId?: string;
 
+  /** @internal */
   _updateTokensIfNecessary(
     response: IdTokenResponse | FinalizeMfaResponse,
     reload?: boolean
   ): Promise<void>;
 
+  /** @internal */
   _assign(user: User): void;
+  /** @internal */
   _clone(): User;
+  /** @internal */
   _onReload: (cb: NextFn<APIUserInfo>) => void;
+  /** @internal */
   _notifyReloadListener: NextFn<APIUserInfo>;
+  /** @internal */
   _startProactiveRefresh: () => void;
+  /** @internal */
   _stopProactiveRefresh: () => void;
 
+  /** {@inheritdoc @firebase/auth-types#User.getIdToken} */
   getIdToken(forceRefresh?: boolean): Promise<string>;
+  /** {@inheritdoc @firebase/auth-types#User.getIdTokenResult} */
   getIdTokenResult(forceRefresh?: boolean): Promise<externs.IdTokenResult>;
+  /** {@inheritdoc @firebase/auth-types#User.reload} */
   reload(): Promise<void>;
+  /** {@inheritdoc @firebase/auth-types#User.delete} */
   delete(): Promise<void>;
+  /** {@inheritdoc @firebase/auth-types#User.toJSON} */
   toJSON(): PersistedBlob;
 }
 
+/** {@inheritdoc @firebase/auth-types#UserCredential} */
 export interface UserCredential
   extends externs.UserCredential,
     TaggedWithTokenResponse {
+  /** {@inheritdoc @firebase/auth-types#UserCredential.user} */
   user: User;
 }
