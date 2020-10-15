@@ -5650,7 +5650,7 @@ declare namespace firebase.database {
     /**
      * Modify this instance to communicate with the Realtime Database emulator.
      *
-     * <p>Note: this must be called before this instance has been used to do any operations.
+     * <p>Note: This method must be called before performing any other operation.
      *
      * @param host the emulator host (ex: localhost)
      * @param port the emulator port (ex: 8080)
