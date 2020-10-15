@@ -34,16 +34,16 @@ export interface UserParameters {
   auth: Auth;
   stsTokenManager: StsTokenManager;
 
-  displayName?: string;
-  email?: string;
-  phoneNumber?: string;
-  photoURL?: string;
-  isAnonymous?: boolean;
-  emailVerified?: boolean;
-  tenantId?: string;
+  displayName?: string | null;
+  email?: string | null;
+  phoneNumber?: string | null;
+  photoURL?: string | null;
+  isAnonymous?: boolean | null;
+  emailVerified?: boolean | null;
+  tenantId?: string | null;
 
-  createdAt?: string;
-  lastLoginAt?: string;
+  createdAt?: string | null;
+  lastLoginAt?: string | null;
 }
 
 export interface User extends externs.User {
@@ -68,7 +68,8 @@ export interface User extends externs.User {
     reload?: boolean
   ): Promise<void>;
 
-  _copy(user: User): void;
+  _assign(user: User): void;
+  _clone(): User;
   _onReload: (cb: NextFn<APIUserInfo>) => void;
   _notifyReloadListener: NextFn<APIUserInfo>;
   _startProactiveRefresh: () => void;

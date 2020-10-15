@@ -35,7 +35,7 @@ export interface Auth extends externs.Auth {
   _canInitEmulator: boolean;
   _isInitialized: boolean;
   _initializationPromise: Promise<void> | null;
-  updateCurrentUser(user: User | null): Promise<void>;
+  _updateCurrentUser(user: User | null): Promise<void>;
 
   _onStorageEvent(): void;
 
