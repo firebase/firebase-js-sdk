@@ -77,7 +77,7 @@ export class FirebaseError extends Error {
   constructor(
     readonly code: string,
     message: string,
-    readonly customData?: Record<string, unknown>
+    public customData?: Record<string, unknown>
   ) {
     super(message);
 
