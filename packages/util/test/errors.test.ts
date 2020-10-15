@@ -62,13 +62,6 @@ describe('FirebaseError', () => {
     assert.equal(e.customData!.file, 'foo.txt');
   });
 
-  it('anonymously replaces template values with data', () => {
-    const e = ERROR_FACTORY.create('anon-replace', { repl_: 'world' });
-    assert.equal(e.code, 'fake/anon-replace');
-    assert.equal(e.message, 'Fake: Hello, world! (fake/anon-replace).');
-    assert.isUndefined(e.repl_);
-  });
-
   it('uses "Error" as template when template is missing', () => {
     // Cast to avoid compile-time error.
     const e = ERROR_FACTORY.create(('no-such-code' as any) as ErrorCode);

@@ -69,20 +69,6 @@ export interface ErrorData {
   [key: string]: unknown;
 }
 
-export interface FirebaseError extends Error, ErrorData {
-  // Unique code for error - format is service/error-code-string.
-  readonly code: string;
-
-  // Developer-friendly error message.
-  readonly message: string;
-
-  // Always 'FirebaseError'.
-  readonly name: typeof ERROR_NAME;
-
-  // Where available - stack backtrace in a string.
-  readonly stack?: string;
-}
-
 // Based on code from:
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
 export class FirebaseError extends Error {
