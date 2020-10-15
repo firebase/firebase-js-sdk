@@ -4,6 +4,8 @@
 
 ## EmailAuthProvider.credential() method
 
+Initialize an [AuthCredential](./auth-types.authcredential.md) using an email and password.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,10 +16,29 @@ static credential(email: string, password: string): AuthCredential;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  email | string |  |
-|  password | string |  |
+|  email | string | Email address. |
+|  password | string | User account password. |
 
 <b>Returns:</b>
 
 [AuthCredential](./auth-types.authcredential.md)
+
+The auth provider credential.
+
+## Example 1
+
+
+```javascript
+const authCredential = EmailAuthProvider.credential(email, password);
+const userCredential = await signInWithCredential(auth, authCredential);
+
+```
+
+## Example 2
+
+
+```javascript
+const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+```
 

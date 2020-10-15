@@ -4,7 +4,7 @@
 
 ## MultiFactorInfo interface
 
-https://firebase.google.com/docs/reference/js/firebase.auth.multifactorinfo
+A structure containing the information of a second factor entity.
 
 <b>Signature:</b>
 
@@ -16,8 +16,8 @@ export interface MultiFactorInfo
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [displayName](./auth-types.multifactorinfo.displayname.md) | string \| null |  |
-|  [enrollmentTime](./auth-types.multifactorinfo.enrollmenttime.md) | string |  |
-|  [factorId](./auth-types.multifactorinfo.factorid.md) | [ProviderId](./auth-types.providerid.md) |  |
-|  [uid](./auth-types.multifactorinfo.uid.md) | string |  |
+|  [displayName](./auth-types.multifactorinfo.displayname.md) | string \| null | The user friendly name of the current second factor. |
+|  [enrollmentTime](./auth-types.multifactorinfo.enrollmenttime.md) | string | The enrollment date of the second factor formatted as a UTC string. |
+|  [factorId](./auth-types.multifactorinfo.factorid.md) | [ProviderId](./auth-types.providerid.md) | The identifier of the second factor. |
+|  [uid](./auth-types.multifactorinfo.uid.md) | string | The multi-factor enrollment ID. |
 

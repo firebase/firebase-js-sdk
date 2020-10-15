@@ -4,6 +4,8 @@
 
 ## MultiFactorInfo.displayName property
 
+The user friendly name of the current second factor.
+
 <b>Signature:</b>
 
 ```typescript

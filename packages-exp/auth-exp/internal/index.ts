@@ -25,6 +25,7 @@ import { assert } from '../src/core/util/assert';
 export { SignInWithIdpResponse } from '../src/api/authentication/idp';
 export { AuthErrorCode } from '../src/core/errors';
 export { Persistence } from '../src/core/persistence';
+export { _persistenceKeyName } from '../src/core/persistence/persistence_user_manager';
 export { UserImpl } from '../src/core/user/user_impl';
 export { _getInstance } from '../src/core/util/instantiator';
 export { UserCredential, UserParameters } from '../src/model/user';

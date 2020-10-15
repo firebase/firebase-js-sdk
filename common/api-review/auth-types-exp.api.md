@@ -13,33 +13,26 @@ import { Unsubscribe } from '@firebase/util';
 
 // @public
 export interface ActionCodeInfo {
-  // (undocumented)
   data: {
     email?: string | null;
     multiFactorInfo?: MultiFactorInfo | null;
     previousEmail?: string | null;
   };
-  // (undocumented)
   operation: Operation;
 }
 
 // @public
 export interface ActionCodeSettings {
-  // (undocumented)
   android?: {
     installApp?: boolean;
     minimumVersion?: string;
     packageName: string;
   };
-  // (undocumented)
   dynamicLinkDomain?: string;
-  // (undocumented)
   handleCodeInApp?: boolean;
-  // (undocumented)
   iOS?: {
     bundleId: string;
   };
-  // (undocumented)
   url: string;
 }
 
@@ -56,199 +49,136 @@ export abstract class ActionCodeURL {
 
 // @public
 export interface AdditionalUserInfo {
-  // (undocumented)
   readonly isNewUser: boolean;
-  // (undocumented)
   readonly profile: UserProfile | null;
-  // (undocumented)
   readonly providerId: ProviderId | null;
-  // (undocumented)
   readonly username?: string | null;
 }
 
 // @public
 export interface ApplicationVerifier {
-  // (undocumented)
   readonly type: string;
-  // (undocumented)
   verify(): Promise<string>;
 }
 
 // @public
 export interface Auth {
-  // (undocumented)
   readonly config: Config;
-  // (undocumented)
   readonly currentUser: User | null;
-  // (undocumented)
   languageCode: string | null;
-  // (undocumented)
   readonly name: string;
-  // (undocumented)
   onAuthStateChanged(
     nextOrObserver: NextOrObserver<User>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
-  // (undocumented)
   onIdTokenChanged(
     nextOrObserver: NextOrObserver<User>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
-  // (undocumented)
   setPersistence(persistence: Persistence): void;
-  // (undocumented)
   readonly settings: AuthSettings;
-  // (undocumented)
   signOut(): Promise<void>;
-  // (undocumented)
   tenantId: string | null;
-  // (undocumented)
   updateCurrentUser(user: User | null): Promise<void>;
-  // (undocumented)
   useDeviceLanguage(): void;
-  // (undocumented)
   useEmulator(url: string): void;
 }
 
 // @public
 export abstract class AuthCredential {
-  // (undocumented)
   static fromJSON(json: object | string): AuthCredential | null;
 
-  // (undocumented)
   readonly providerId: string;
 
-  // (undocumented)
   readonly signInMethod: string;
 
-  // (undocumented)
   toJSON(): object;
 }
 
-// @public
+// @public (undocumented)
 export interface AuthError extends FirebaseError {
-  // (undocumented)
   readonly appName: string;
-
-  // (undocumented)
   readonly email?: string;
-
-  // (undocumented)
   readonly phoneNumber?: string;
-
-  // (undocumented)
   readonly tenantid?: string;
 }
 
 // @public
 export interface AuthProvider {
-  // (undocumented)
   readonly providerId: string;
 }
 
 // @public
 export interface AuthSettings {
-  // (undocumented)
   appVerificationDisabledForTesting: boolean;
 }
 
 // @public
 export interface Config {
-  // (undocumented)
   apiHost: string;
-  // (undocumented)
   apiKey: string;
-  // (undocumented)
   apiScheme: string;
-  // (undocumented)
   authDomain?: string;
-  // (undocumented)
   sdkClientVersion: string;
-  // (undocumented)
   tokenApiHost: string;
 }
 
 // @public
 export interface ConfirmationResult {
-  // (undocumented)
   confirm(verificationCode: string): Promise<UserCredential>;
-  // (undocumented)
   readonly verificationId: string;
 }
 
 // @public
 export abstract class EmailAuthProvider implements AuthProvider {
-  // (undocumented)
   static credential(email: string, password: string): AuthCredential;
-  // (undocumented)
   static credentialWithLink(
     auth: Auth,
     email: string,
     emailLink: string
   ): AuthCredential;
-  // (undocumented)
   static readonly EMAIL_LINK_SIGN_IN_METHOD: SignInMethod;
-  // (undocumented)
   static readonly EMAIL_PASSWORD_SIGN_IN_METHOD: SignInMethod;
-  // (undocumented)
   static readonly PROVIDER_ID: ProviderId;
-  // (undocumented)
   readonly providerId: ProviderId;
 }
 
 // @public
 export interface IdTokenResult {
-  // (undocumented)
   authTime: string;
-  // (undocumented)
   claims: ParsedToken;
-  // (undocumented)
   expirationTime: string;
-  // (undocumented)
   issuedAtTime: string;
-  // (undocumented)
   signInProvider: string | null;
-  // (undocumented)
   signInSecondFactor: string | null;
-  // (undocumented)
   token: string;
 }
 
 // @public
 export interface MultiFactorAssertion {
-  // (undocumented)
   readonly factorId: string;
 }
 
 // @public
 export interface MultiFactorError extends AuthError {
-  // (undocumented)
   readonly credential: AuthCredential;
-  // (undocumented)
   readonly operationType: OperationType;
 }
 
 // @public
 export interface MultiFactorInfo {
-  // (undocumented)
   readonly displayName?: string | null;
-  // (undocumented)
   readonly enrollmentTime: string;
-  // (undocumented)
   readonly factorId: ProviderId;
-  // (undocumented)
   readonly uid: string;
 }
 
 // @public
 export abstract class MultiFactorResolver {
-  // (undocumented)
   hints: MultiFactorInfo[];
-  // (undocumented)
   resolveSignIn(assertion: MultiFactorAssertion): Promise<UserCredential>;
-  // (undocumented)
   session: MultiFactorSession;
 }
 
@@ -257,16 +187,12 @@ export interface MultiFactorSession {}
 
 // @public
 export interface MultiFactorUser {
-  // (undocumented)
   enroll(
     assertion: MultiFactorAssertion,
     displayName?: string | null
   ): Promise<void>;
-  // (undocumented)
   readonly enrolledFactors: MultiFactorInfo[];
-  // (undocumented)
   getSession(): Promise<MultiFactorSession>;
-  // (undocumented)
   unenroll(option: MultiFactorInfo | string): Promise<void>;
 }
 
@@ -275,91 +201,65 @@ export type NextOrObserver<T> = NextFn<T | null> | Observer<T | null>;
 
 // @public
 export abstract class OAuthCredential extends AuthCredential {
-  // (undocumented)
   readonly accessToken?: string;
 
-  // (undocumented)
   static fromJSON(json: object | string): OAuthCredential | null;
 
-  // (undocumented)
   readonly idToken?: string;
 
-  // (undocumented)
   readonly secret?: string;
 }
 
 // @public
 export const enum Operation {
-  // (undocumented)
   EMAIL_SIGNIN = 'EMAIL_SIGNIN',
-  // (undocumented)
   PASSWORD_RESET = 'PASSWORD_RESET',
-  // (undocumented)
   RECOVER_EMAIL = 'RECOVER_EMAIL',
-  // (undocumented)
   REVERT_SECOND_FACTOR_ADDITION = 'REVERT_SECOND_FACTOR_ADDITION',
-  // (undocumented)
   VERIFY_AND_CHANGE_EMAIL = 'VERIFY_AND_CHANGE_EMAIL',
-  // (undocumented)
   VERIFY_EMAIL = 'VERIFY_EMAIL'
 }
 
 // @public
 export const enum OperationType {
-  // (undocumented)
   LINK = 'link',
-  // (undocumented)
   REAUTHENTICATE = 'reauthenticate',
-  // (undocumented)
   SIGN_IN = 'signIn'
 }
 
 // @public
 export interface ParsedToken {
-  // (undocumented)
   [key: string]: string | object | undefined;
-  // (undocumented)
   'auth_time'?: string;
-  // (undocumented)
   'exp'?: string;
-  // (undocumented)
   'firebase'?: {
     'sign_in_provider'?: string;
     'sign_in_second_factor'?: string;
   };
-  // (undocumented)
   'iat'?: string;
-  // (undocumented)
   'sub'?: string;
 }
 
 // @public
 export interface Persistence {
-  // (undocumented)
   readonly type: 'SESSION' | 'LOCAL' | 'NONE';
 }
 
 // @public
 export abstract class PhoneAuthCredential extends AuthCredential {
-  // (undocumented)
   static fromJSON(json: object | string): PhoneAuthCredential | null;
 }
 
 // @public
 export class PhoneAuthProvider implements AuthProvider {
   constructor(auth?: Auth | null);
-  // (undocumented)
   static credential(
     verificationId: string,
     verificationCode: string
   ): AuthCredential;
-  // (undocumented)
   static readonly PHONE_SIGN_IN_METHOD: SignInMethod;
-  // (undocumented)
   static readonly PROVIDER_ID: ProviderId;
-  // (undocumented)
   readonly providerId: ProviderId;
-  // (undocumented)
   verifyPhoneNumber(
     phoneInfoOptions: PhoneInfoOptions | string,
     applicationVerifier: ApplicationVerifier
@@ -375,37 +275,29 @@ export type PhoneInfoOptions =
 // @public
 export interface PhoneMultiFactorAssertion extends MultiFactorAssertion {}
 
-// @public (undocumented)
+// @public
 export interface PhoneMultiFactorEnrollInfoOptions {
-  // (undocumented)
   phoneNumber: string;
-  // (undocumented)
   session: MultiFactorSession;
 }
 
 // @public
 export abstract class PhoneMultiFactorGenerator {
-  // (undocumented)
   static assertion(
     phoneAuthCredential: PhoneAuthCredential
   ): PhoneMultiFactorAssertion;
-  // (undocumented)
   static FACTOR_ID: ProviderId;
 }
 
-// @public (undocumented)
+// @public
 export interface PhoneMultiFactorSignInInfoOptions {
-  // (undocumented)
   multiFactorHint?: MultiFactorInfo;
-  // (undocumented)
   multiFactorUid?: string;
-  // (undocumented)
   session: MultiFactorSession;
 }
 
-// @public (undocumented)
+// @public
 export interface PhoneSingleFactorInfoOptions {
-  // (undocumented)
   phoneNumber: string;
 }
 
@@ -434,13 +326,10 @@ export const enum ProviderId {
   TWITTER = 'twitter.com'
 }
 
-// @public (undocumented)
+// @public
 export interface ReactNativeAsyncStorage {
-  // (undocumented)
   getItem(key: string): Promise<string | null>;
-  // (undocumented)
   removeItem(key: string): Promise<void>;
-  // (undocumented)
   setItem(key: string, value: string): Promise<void>;
 }
 
@@ -451,13 +340,9 @@ export abstract class RecaptchaVerifier implements ApplicationVerifier {
     parameters?: Object | null,
     auth?: Auth | null
   );
-  // (undocumented)
   clear(): void;
-  // (undocumented)
   render(): Promise<number>;
-  // (undocumented)
   readonly type: string;
-  // (undocumented)
   verify(): Promise<string>;
 }
 
@@ -483,61 +368,39 @@ export const enum SignInMethod {
 
 // @public
 export interface User extends UserInfo {
-  // (undocumented)
   delete(): Promise<void>;
-  // (undocumented)
   readonly emailVerified: boolean;
-  // (undocumented)
   getIdToken(forceRefresh?: boolean): Promise<string>;
-  // (undocumented)
   getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
-  // (undocumented)
   readonly isAnonymous: boolean;
-  // (undocumented)
   readonly metadata: UserMetadata;
-  // (undocumented)
   readonly providerData: UserInfo[];
-  // (undocumented)
   readonly refreshToken: string;
-  // (undocumented)
   reload(): Promise<void>;
-  // (undocumented)
   readonly tenantId: string | null;
-  // (undocumented)
   toJSON(): object;
 }
 
 // @public
 export interface UserCredential {
-  // (undocumented)
   operationType: OperationType;
-  // (undocumented)
   providerId: ProviderId | null;
-  // (undocumented)
   user: User;
 }
 
 // @public
 export interface UserInfo {
-  // (undocumented)
   readonly displayName: string | null;
-  // (undocumented)
   readonly email: string | null;
-  // (undocumented)
   readonly phoneNumber: string | null;
-  // (undocumented)
   readonly photoURL: string | null;
-  // (undocumented)
   readonly providerId: string;
-  // (undocumented)
   readonly uid: string;
 }
 
 // @public
 export interface UserMetadata {
-  // (undocumented)
   readonly creationTime?: string;
-  // (undocumented)
   readonly lastSignInTime?: string;
 }
 

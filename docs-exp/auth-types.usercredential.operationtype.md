@@ -4,6 +4,8 @@
 
 ## UserCredential.operationType property
 
+The type of operation which was used to authenticate the user (such as sign-in or link).
+
 <b>Signature:</b>
 
 ```typescript

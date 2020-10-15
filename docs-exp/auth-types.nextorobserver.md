@@ -4,7 +4,7 @@
 
 ## NextOrObserver type
 
-TODO(avolkovi): should we consolidate with Subscribe<T> since we're changing the API anyway?
+Type definition for an event callback.
 
 <b>Signature:</b>
 

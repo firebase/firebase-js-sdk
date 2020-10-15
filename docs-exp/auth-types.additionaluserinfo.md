@@ -4,7 +4,7 @@
 
 ## AdditionalUserInfo interface
 
-Additional user information.
+A structure containing additional user information from a federated identity provider.
 
 <b>Signature:</b>
 
@@ -16,8 +16,8 @@ export interface AdditionalUserInfo
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [isNewUser](./auth-types.additionaluserinfo.isnewuser.md) | boolean |  |
-|  [profile](./auth-types.additionaluserinfo.profile.md) | [UserProfile](./auth-types.userprofile.md) \| null |  |
-|  [providerId](./auth-types.additionaluserinfo.providerid.md) | [ProviderId](./auth-types.providerid.md) \| null |  |
-|  [username](./auth-types.additionaluserinfo.username.md) | string \| null |  |
+|  [isNewUser](./auth-types.additionaluserinfo.isnewuser.md) | boolean | Whether the user is new (created via sign-up) or existing (authenticated using sign-in). |
+|  [profile](./auth-types.additionaluserinfo.profile.md) | [UserProfile](./auth-types.userprofile.md) \| null | Map containing IDP-specific user data. |
+|  [providerId](./auth-types.additionaluserinfo.providerid.md) | [ProviderId](./auth-types.providerid.md) \| null | Identifier for the provider used to authenticate this user. |
+|  [username](./auth-types.additionaluserinfo.username.md) | string \| null | The username if the provider is GitHub or Twitter. |
 

@@ -4,7 +4,7 @@
 
 ## Config interface
 
-Auth config object
+Auth config object.
 
 <b>Signature:</b>
 
@@ -16,10 +16,10 @@ export interface Config
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [apiHost](./auth-types.config.apihost.md) | string |  |
-|  [apiKey](./auth-types.config.apikey.md) | string |  |
-|  [apiScheme](./auth-types.config.apischeme.md) | string |  |
-|  [authDomain](./auth-types.config.authdomain.md) | string |  |
-|  [sdkClientVersion](./auth-types.config.sdkclientversion.md) | string |  |
-|  [tokenApiHost](./auth-types.config.tokenapihost.md) | string |  |
+|  [apiHost](./auth-types.config.apihost.md) | string | The host at which the Firebase Auth backend is running. |
+|  [apiKey](./auth-types.config.apikey.md) | string | The API Key used to communicate with the Firebase Auth backend. |
+|  [apiScheme](./auth-types.config.apischeme.md) | string | The scheme used to communicate with the Firebase Auth backend. |
+|  [authDomain](./auth-types.config.authdomain.md) | string | The domain at which the web widgets are hosted (provided via Firebase Config). |
+|  [sdkClientVersion](./auth-types.config.sdkclientversion.md) | string | The SDK Client Version. |
+|  [tokenApiHost](./auth-types.config.tokenapihost.md) | string | The host at which the Secure Token API is running. |
 

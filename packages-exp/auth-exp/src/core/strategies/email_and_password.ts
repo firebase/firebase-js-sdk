@@ -136,6 +136,7 @@ export async function createUserWithEmailAndPassword(
   email: string,
   password: string
 ): Promise<externs.UserCredential> {
+  const authInternal = _castAuth(auth);
   const response = await signUp(auth, {
     returnSecureToken: true,
     email,
@@ -143,11 +144,11 @@ export async function createUserWithEmailAndPassword(
   });
 
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
-    _castAuth(auth),
+    authInternal,
     externs.OperationType.SIGN_IN,
     response
   );
-  await auth.updateCurrentUser(userCredential.user);
+  await authInternal._updateCurrentUser(userCredential.user);
 
   return userCredential;
 }

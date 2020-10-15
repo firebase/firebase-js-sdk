@@ -4,6 +4,8 @@
 
 ## ReactNativeAsyncStorage interface
 
+Interface for a supplied AsyncStorage.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +16,7 @@ export interface ReactNativeAsyncStorage
 
 |  Method | Description |
 |  --- | --- |
-|  [getItem(key)](./auth-types.reactnativeasyncstorage.getitem.md) |  |
-|  [removeItem(key)](./auth-types.reactnativeasyncstorage.removeitem.md) |  |
-|  [setItem(key, value)](./auth-types.reactnativeasyncstorage.setitem.md) |  |
+|  [getItem(key)](./auth-types.reactnativeasyncstorage.getitem.md) | Retrieve an item from storage. |
+|  [removeItem(key)](./auth-types.reactnativeasyncstorage.removeitem.md) | Remove an item from storage. |
+|  [setItem(key, value)](./auth-types.reactnativeasyncstorage.setitem.md) | Persist an item in storage. |
 

@@ -4,6 +4,8 @@
 
 ## IdTokenResult.issuedAtTime property
 
+The ID token issuance time formatted as a UTC string.
+
 <b>Signature:</b>
 
 ```typescript

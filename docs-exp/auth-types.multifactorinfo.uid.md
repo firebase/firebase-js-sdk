@@ -4,6 +4,8 @@
 
 ## MultiFactorInfo.uid property
 
+The multi-factor enrollment ID.
+
 <b>Signature:</b>
 
 ```typescript
