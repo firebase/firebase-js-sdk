@@ -53,7 +53,7 @@ export class RepoManager {
    */
   private repos_: {
     [appName: string]: {
-      [dbUrl: string]: Repo;
+      [dbUrl: string]: Repo | null;
     };
   } = {};
 
@@ -74,7 +74,10 @@ export class RepoManager {
   interrupt() {
     for (const appName of Object.keys(this.repos_)) {
       for (const dbUrl of Object.keys(this.repos_[appName])) {
-        this.repos_[appName][dbUrl].interrupt();
+        const repo = this.repos_[appName][dbUrl];
+        if (repo) {
+          repo.interrupt();
+        }
       }
     }
   }
@@ -82,24 +85,12 @@ export class RepoManager {
   resume() {
     for (const appName of Object.keys(this.repos_)) {
       for (const dbUrl of Object.keys(this.repos_[appName])) {
-        this.repos_[appName][dbUrl].resume();
+        const repo = this.repos_[appName][dbUrl];
+        if (repo) {
+          repo.resume();
+        }
       }
     }
-  }
-
-  /**
-   * Create a new repo based on an old one but pointing to a particular host and port.
-   */
-  cloneRepoForEmulator(repo: Repo, host: string, port: number): Repo {
-    const nodeAdmin = repo.repoInfo_.nodeAdmin;
-    const url = `http://${host}:${port}?ns=${repo.repoInfo_.namespace}`;
-    const authTokenProvider = nodeAdmin
-      ? new EmulatorAdminTokenProvider()
-      : repo.authTokenProvider;
-
-    const parsedUrl = parseRepoInfo(url, nodeAdmin);
-
-    return this.createRepo(parsedUrl.repoInfo, repo.app, authTokenProvider);
   }
 
   /**
@@ -159,9 +150,11 @@ export class RepoManager {
       );
     }
 
-    const repo = this.createRepo(repoInfo, app, authTokenProvider);
-
-    return repo.database;
+    return new Database(
+      repoInfo,
+      app,
+      authTokenProvider
+    );
   }
 
   /**
@@ -192,25 +185,64 @@ export class RepoManager {
   createRepo(
     repoInfo: RepoInfo,
     app: FirebaseApp,
-    authTokenProvider: AuthTokenProvider
+    authTokenProvider: AuthTokenProvider,
+    database: Database,
   ): Repo {
     let appRepos = safeGet(this.repos_, app.name);
-
     if (!appRepos) {
       appRepos = {};
       this.repos_[app.name] = appRepos;
     }
 
-    let repo = safeGet(appRepos, repoInfo.toURLString());
-    if (repo) {
+    this.assertUnique(repoInfo, app);
+    const repo = new Repo(repoInfo, this.useRestClient_, app, authTokenProvider, database);
+    appRepos[repoInfo.toURLString()] = repo;
+
+    return repo;
+  }
+
+  /**
+   * Reserve an info/app combination for future lazy repo creation.
+   * @param repoInfo The metadata about the Repo.
+   * @param app The FirebaseApp.
+   */
+  reserveRepo(
+    repoInfo: RepoInfo,
+    app: FirebaseApp,
+  ) {
+    this.assertUnique(repoInfo, app);
+
+    let appRepos = safeGet(this.repos_, app.name);
+    if (!appRepos) {
+      appRepos = {};
+      this.repos_[app.name] = appRepos;
+    }
+
+    // Reserve the spot by putting 'null' in the map.
+    // We know we're not overwriting anything because of assertUnique
+    appRepos[repoInfo.toURLString()] = null; 
+  }
+
+  /**
+   * Make sure no matching Repo already exists.
+   * @param repoInfo The metadata about the Repo.
+   * @param app The FirebaseApp.
+   */
+  assertUnique(
+    repoInfo: RepoInfo,
+    app: FirebaseApp,
+  ) {
+    const appRepos = safeGet(this.repos_, app.name);
+    if (!appRepos) {
+      return;
+    }
+
+    const repo = safeGet(appRepos, repoInfo.toURLString());
+    if (repo !== undefined) {
       fatal(
         'Database initialized multiple times. Please make sure the format of the database URL matches with each database() call.'
       );
     }
-    repo = new Repo(repoInfo, this.useRestClient_, app, authTokenProvider);
-    appRepos[repoInfo.toURLString()] = repo;
-
-    return repo;
   }
 
   /**
