@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import json from 'rollup-plugin-json';
-import resolve from 'rollup-plugin-node-resolve';
+import json from '@rollup/plugin-json';
+import resolve from '@rollup/plugin-node-resolve';
 import { uglify } from 'rollup-plugin-uglify';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';

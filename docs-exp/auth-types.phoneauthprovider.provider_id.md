@@ -4,6 +4,8 @@
 
 ## PhoneAuthProvider.PROVIDER\_ID property
 
+Always set to [ProviderId.PHONE](./auth-types.providerid.phone.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

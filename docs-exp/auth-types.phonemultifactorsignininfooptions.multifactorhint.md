@@ -4,6 +4,10 @@
 
 ## PhoneMultiFactorSignInInfoOptions.multiFactorHint property
 
+The [MultiFactorInfo](./auth-types.multifactorinfo.md) obtained via [MultiFactorResolver.hints](./auth-types.multifactorresolver.hints.md)<!-- -->.
+
+One of `multiFactorHint` or `multiFactorUid` is required.
+
 <b>Signature:</b>
 
 ```typescript

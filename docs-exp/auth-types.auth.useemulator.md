@@ -4,6 +4,8 @@
 
 ## Auth.useEmulator() method
 
+Modify this Auth instance to communicate with the Firebase Auth emulator. This must be called synchronously immediately following the first call to `initializeAuth()`<!-- -->. Do not use with production credentials as emulator traffic is not encrypted.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +16,7 @@ useEmulator(url: string): void;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  url | string |  |
+|  url | string | The URL at which the emulator is running (eg, 'http://localhost:9099'). |
 
 <b>Returns:</b>
 

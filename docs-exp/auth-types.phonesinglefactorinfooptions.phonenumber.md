@@ -4,6 +4,8 @@
 
 ## PhoneSingleFactorInfoOptions.phoneNumber property
 
+Phone number to send a verification code to.
+
 <b>Signature:</b>
 
 ```typescript

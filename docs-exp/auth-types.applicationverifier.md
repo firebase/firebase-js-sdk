@@ -4,7 +4,7 @@
 
 ## ApplicationVerifier interface
 
-https://firebase.google.com/docs/reference/js/firebase.auth.ApplicationVerifier
+A verifier for domain verification and abuse prevention. Currently, the only implementation is [RecaptchaVerifier](./auth-types.recaptchaverifier.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -16,11 +16,11 @@ export interface ApplicationVerifier
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [type](./auth-types.applicationverifier.type.md) | string |  |
+|  [type](./auth-types.applicationverifier.type.md) | string | Identifies the type of application verifier (e.g. "recaptcha"). |
 
 ## Methods
 
 |  Method | Description |
 |  --- | --- |
-|  [verify()](./auth-types.applicationverifier.verify.md) |  |
+|  [verify()](./auth-types.applicationverifier.verify.md) | Executes the verification process. |
 

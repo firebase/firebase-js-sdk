@@ -56,6 +56,7 @@ export const enum AuthErrorCode {
   INVALID_CUSTOM_TOKEN = 'invalid-custom-token',
   INVALID_DYNAMIC_LINK_DOMAIN = 'invalid-dynamic-link-domain',
   INVALID_EMAIL = 'invalid-email',
+  INVALID_EMULATOR_SCHEME = 'invalid-emulator-scheme',
   INVALID_IDP_RESPONSE = 'invalid-credential',
   INVALID_MESSAGE_PAYLOAD = 'invalid-message-payload',
   INVALID_MFA_SESSION = 'invalid-multi-factor-session',
@@ -189,6 +190,8 @@ const ERRORS: ErrorMap<AuthErrorCode> = {
   [AuthErrorCode.INVALID_DYNAMIC_LINK_DOMAIN]:
     'The provided dynamic link domain is not configured or authorized for the current project.',
   [AuthErrorCode.INVALID_EMAIL]: 'The email address is badly formatted.',
+  [AuthErrorCode.INVALID_EMULATOR_SCHEME]:
+    'Emulator URL must start with a valid scheme (http:// or https://).',
   [AuthErrorCode.INVALID_API_KEY]:
     'Your API key is invalid, please check you have copied it correctly.',
   [AuthErrorCode.INVALID_CERT_HASH]:

@@ -4,6 +4,8 @@
 
 ## UserMetadata.creationTime property
 
+Time the user was created.
+
 <b>Signature:</b>
 
 ```typescript

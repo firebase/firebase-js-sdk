@@ -4,7 +4,7 @@
 
 ## MultiFactorAssertion interface
 
-https://firebase.google.com/docs/reference/js/firebase.auth.multifactorassertion
+The base class for asserting ownership of a second factor. This is used to facilitate enrollment of a second factor on an existing user or sign-in of a user who already verified the first factor.
 
 <b>Signature:</b>
 
@@ -16,5 +16,5 @@ export interface MultiFactorAssertion
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [factorId](./auth-types.multifactorassertion.factorid.md) | string |  |
+|  [factorId](./auth-types.multifactorassertion.factorid.md) | string | The identifier of the second factor. |
 
