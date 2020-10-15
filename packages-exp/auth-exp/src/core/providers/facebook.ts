@@ -29,17 +29,21 @@ import { OAuthProvider } from './oauth';
  * @example
  * ```javascript
  * // Sign in using a redirect.
- * const result = await getRedirectResult(auth);
- * if (result.credential) {
- *   // This gives you a Google Access Token.
- *   const token = result.credential.accessToken;
- * }
- * const user = result.user;
- *
- * // Start a sign in process for an unauthenticated user.
  * const provider = new FacebookAuthProvider();
+ * // Start a sign in process for an unauthenticated user.
  * provider.addScope('user_birthday');
  * await signInWithRedirect(auth, provider);
+ * // This will trigger a full page redirect away from your app
+ *
+ * // After returning from the redirect when your app initializes you can obtain the result
+ * const result = await getRedirectResult(auth);
+ * if (result) {
+ *   // This is the signed-in user
+ *   const user = result.user;
+ *   // This gives you a Facebook Access Token.
+ *   const credential = provider.credentialFromResult(auth, result);
+ *   const token = credential.accessToken;
+ * }
  * ```
  *
  * @example
@@ -48,10 +52,12 @@ import { OAuthProvider } from './oauth';
  * const provider = new FacebookAuthProvider();
  * provider.addScope('user_birthday');
  * const result = await signInWithPopup(auth, provider);
- * // This gives you a Facebook Access Token.
- * const token = result.credential.accessToken;
+ *
  * // The signed-in user info.
  * const user = result.user;
+ * // This gives you a Facebook Access Token.
+ * const credential = provider.credentialFromResult(auth, result);
+ * const token = credential.accessToken;
  * ```
  *
  * @public
@@ -86,6 +92,11 @@ export class FacebookAuthProvider extends OAuthProvider {
     });
   }
 
+  /**
+   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#UserCredential}.
+   *
+   * @param userCredential - The user credential.
+   */
   static credentialFromResult(
     userCredential: externs.UserCredential
   ): externs.OAuthCredential | null {
@@ -94,6 +105,12 @@ export class FacebookAuthProvider extends OAuthProvider {
     );
   }
 
+  /**
+   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#AuthError} which was
+   * thrown during a sign-in, link, or reauthenticate operation.
+   *
+   * @param userCredential - The user credential.
+   */
   static credentialFromError(
     error: FirebaseError
   ): externs.OAuthCredential | null {

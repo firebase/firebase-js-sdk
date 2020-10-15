@@ -60,35 +60,40 @@ export interface OAuthCredentialOptions {
  * Provider for generating generic {@link OAuthCredential}.
  *
  * @example
- * Using a redirect.
  * ```javascript
- * const result = await getRedirectResult(auth);
- * if (result.credential) {
- *   // This gives you the OAuth Access Token for that provider.
- *   const token = result.credential.accessToken;
- * }
- * const user = result.user;
- *
- * // Start a sign in process for an unauthenticated user.
+ * // Sign in using a redirect.
  * const provider = new OAuthProvider('google.com');
+ * // Start a sign in process for an unauthenticated user.
  * provider.addScope('profile');
  * provider.addScope('email');
  * await signInWithRedirect(auth, provider);
+ * // This will trigger a full page redirect away from your app
+ *
+ * // After returning from the redirect when your app initializes you can obtain the result
+ * const result = await getRedirectResult(auth);
+ * if (result) {
+ *   // This is the signed-in user
+ *   const user = result.user;
+ *   // This gives you a OAuth Access Token for the provider.
+ *   const credential = provider.credentialFromResult(auth, result);
+ *   const token = credential.accessToken;
+ * }
  * ```
  *
  * @example
- * Using a popup.
  * ```javascript
+ * // Sign in using a popup.
  * const provider = new OAuthProvider('google.com');
  * provider.addScope('profile');
  * provider.addScope('email');
  * const result = await signInWithPopup(auth, provider);
- * // This gives you the OAuth Access Token for that provider.
- * const token = result.credential.accessToken;
+ *
  * // The signed-in user info.
  * const user = result.user;
+ * // This gives you a OAuth Access Token for the provider.
+ * const credential = provider.credentialFromResult(auth, result);
+ * const token = credential.accessToken;
  * ```
- *
  * @public
  */
 export class OAuthProvider implements externs.AuthProvider {

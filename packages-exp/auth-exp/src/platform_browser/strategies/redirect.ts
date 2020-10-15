@@ -40,6 +40,31 @@ import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operat
  * @remarks
  * To handle the results and errors for this operation, refer to {@link getRedirectResult}.
  *
+ * @example
+ * ```javascript
+ * // Sign in using a redirect.
+ * const provider = new FacebookAuthProvider();
+ * // You can add additional scopes to the provider:
+ * provider.addScope('user_birthday');
+ * // Start a sign in process for an unauthenticated user.
+ * await signInWithRedirect(auth, provider);
+ * // This will trigger a full page redirect away from your app
+ *
+ * // After returning from the redirect when your app initializes you can obtain the result
+ * const result = await getRedirectResult(auth);
+ * if (result) {
+ *   // This is the signed-in user
+ *   const user = result.user;
+ *   // This gives you a Facebook Access Token.
+ *   const credential = provider.credentialFromResult(auth, result);
+ *   const token = credential.accessToken;
+ * }
+ * // As this API can be used for sign-in, linking and reauthentication,
+ * // check the operationType to determine what triggered this redirect
+ * // operation.
+ * const operationType = result.operationType;
+ * ```
+ *
  * @param auth - The Auth instance.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
@@ -67,6 +92,23 @@ export async function signInWithRedirect(
 
 /**
  * Reauthenticates the current user with the specified {@link OAuthProvider} using a full-page redirect flow.
+ *
+ * @example
+ * ```javascript
+ * // Sign in using a redirect.
+ * const provider = new FacebookAuthProvider();
+ * const result = await signInWithRedirect(auth, provider);
+ * // This will trigger a full page redirect away from your app
+ *
+ * // After returning from the redirect when your app initializes you can obtain the result
+ * const result = await getRedirectResult(auth);
+ * // Link using a redirect.
+ * await linkWithRedirect(result.user, provider);
+ * // This will again trigger a full page redirect away from your app
+ *
+ * // After returning from the redirect when your app initializes you can obtain the result
+ * const result = await getRedirectResult(auth);
+ * ```
  *
  * @param user - The user.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
@@ -100,6 +142,19 @@ export async function reauthenticateWithRedirect(
 
 /**
  * Links the {@link OAuthProvider} to the user account using a full-page redirect flow.
+ *
+ * @example
+ * ```javascript
+ * // Sign in using some other provider.
+ * const result = await signInWithEmailAndPassword(auth, email, password);
+ * // Link using a redirect.
+ * const provider = new FacebookAuthProvider();
+ * await linkWithRedirect(result.user, provider);
+ * // This will trigger a full page redirect away from your app
+ *
+ * // After returning from the redirect when your app initializes you can obtain the result
+ * const result = await getRedirectResult(auth);
+ * ```
  *
  * @param user - The user.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
@@ -143,23 +198,23 @@ export async function linkWithRedirect(
  *
  * @example
  * ```javascript
- * // First, we perform the signInWithRedirect.
- * // Creates the provider.
+ * // Sign in using a redirect.
  * const provider = new FacebookAuthProvider();
  * // You can add additional scopes to the provider:
- * provider.addScope('email');
- * provider.addScope('user_friends');
- * // Sign in with redirect:
- * await signInWithRedirect(auth, provider)
- * ////////////////////////////////////////////////////////////
- * // The user is redirected to the provider's sign in flow...
- * ////////////////////////////////////////////////////////////
- * // Then redirected back to the app, where we check the redirect result:
+ * provider.addScope('user_birthday');
+ * // Start a sign in process for an unauthenticated user.
+ * await signInWithRedirect(auth, provider);
+ * // This will trigger a full page redirect away from your app
+ *
+ * // After returning from the redirect when your app initializes you can obtain the result
  * const result = await getRedirectResult(auth);
- * // The Firebase User instance:
- * const user = result.user;
- * // The Facebook AuthCredential containing the Facebook access token:
- * const credential = result.credential;
+ * if (result) {
+ *   // This is the signed-in user
+ *   const user = result.user;
+ *   // This gives you a Facebook Access Token.
+ *   const credential = provider.credentialFromResult(auth, result);
+ *   const token = credential.accessToken;
+ * }
  * // As this API can be used for sign-in, linking and reauthentication,
  * // check the operationType to determine what triggered this redirect
  * // operation.

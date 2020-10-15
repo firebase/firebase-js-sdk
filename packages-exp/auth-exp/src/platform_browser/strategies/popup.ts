@@ -49,6 +49,19 @@ export const _POLL_WINDOW_CLOSE_TIMEOUT = new Delay(2000, 10000);
  * If succeeds, returns the signed in user along with the provider's credential. If sign in was
  * unsuccessful, returns an error object containing additional information about the error.
  *
+ * @example
+ * ```javascript
+ * // Sign in using a popup.
+ * const provider = new FacebookAuthProvider();
+ * const result = await signInWithPopup(auth, provider);
+ *
+ * // The signed-in user info.
+ * const user = result.user;
+ * // This gives you a Facebook Access Token.
+ * const credential = provider.credentialFromResult(auth, result);
+ * const token = credential.accessToken;
+ * ```
+ *
  * @param auth - The Auth instance.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
@@ -86,6 +99,15 @@ export async function signInWithPopup(
  * If the reauthentication is successful, the returned result will contain the user and the
  * provider's credential.
  *
+ * @example
+ * ```javascript
+ * // Sign in using a popup.
+ * const provider = new FacebookAuthProvider();
+ * const result = await signInWithPopup(auth, provider);
+ * // Reauthenticate using a popup.
+ * await reauthenticateWithPopup(result.user, provider);
+ * ```
+ *
  * @param user - The user.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.
  * Non-OAuth providers like {@link EmailAuthProvider} will throw an error.
@@ -120,6 +142,16 @@ export async function reauthenticateWithPopup(
  *
  * @remarks
  * If the linking is successful, the returned result will contain the user and the provider's credential.
+ *
+ *
+ * @example
+ * ```javascript
+ * // Sign in using some other provider.
+ * const result = await signInWithEmailAndPassword(auth, email, password);
+ * // Link using a popup.
+ * const provider = new FacebookAuthProvider();
+ * await linkWithPopup(result.user, provider);
+ * ```
  *
  * @param user - The user.
  * @param provider - The provider to authenticate. The provider has to be an {@link OAuthProvider}.

@@ -46,30 +46,36 @@ import { OAuthProvider } from './oauth';
  *
  * @example
  * ```javascript
- * // Using a redirect.
- * const result = await getRedirectResult(auth);
- * if (result.credential) {
- *   // For accessing the Twitter API.
- *   const token = result.credential.accessToken;
- *   const secret = result.credential.secret;
- * }
- * const user = result.user;
- *
- * // Start a sign in process for an unauthenticated user.
+ * // Sign in using a redirect.
  * const provider = new TwitterAuthProvider();
+ * // Start a sign in process for an unauthenticated user.
  * await signInWithRedirect(auth, provider);
+ * // This will trigger a full page redirect away from your app
+ *
+ * // After returning from the redirect when your app initializes you can obtain the result
+ * const result = await getRedirectResult(auth);
+ * if (result) {
+ *   // This is the signed-in user
+ *   const user = result.user;
+ *   // This gives you a Twitter Access Token and Secret.
+ *   const credential = provider.credentialFromResult(auth, result);
+ *   const token = credential.accessToken;
+ *   const secret = credential.secret;
+ * }
  * ```
  *
  * @example
  * ```javascript
- * // Using a popup.
+ * // Sign in using a popup.
  * const provider = new TwitterAuthProvider();
  * const result = await signInWithPopup(auth, provider);
- * // For accessing the Twitter API.
- * const token = result.credential.accessToken;
- * const secret = result.credential.secret;
+ *
  * // The signed-in user info.
  * const user = result.user;
+ * // This gives you a Twitter Access Token and Secret.
+ * const credential = provider.credentialFromResult(auth, result);
+ * const token = credential.accessToken;
+ * const secret = credential.secret;
  * ```
  *
  * @public
@@ -97,6 +103,11 @@ export class TwitterAuthProvider extends OAuthProvider {
     });
   }
 
+  /**
+   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#UserCredential}.
+   *
+   * @param userCredential - The user credential.
+   */
   static credentialFromResult(
     userCredential: externs.UserCredential
   ): externs.OAuthCredential | null {
@@ -105,6 +116,12 @@ export class TwitterAuthProvider extends OAuthProvider {
     );
   }
 
+  /**
+   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#AuthError} which was
+   * thrown during a sign-in, link, or reauthenticate operation.
+   *
+   * @param userCredential - The user credential.
+   */
   static credentialFromError(
     error: FirebaseError
   ): externs.OAuthCredential | null {
