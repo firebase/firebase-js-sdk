@@ -151,7 +151,6 @@ import {
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
-const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = true;
 const DEFAULT_FORCE_LONG_POLLING = false;
 const DEFAULT_FORCE_AUTO_DETECT_LONG_POLLING = false;
 const DEFAULT_IGNORE_UNDEFINED_PROPERTIES = false;
@@ -194,8 +193,6 @@ class FirestoreSettings {
   /** Whether to use SSL when connecting. */
   readonly ssl: boolean;
 
-  readonly timestampsInSnapshots: boolean;
-
   readonly cacheSizeBytes: number;
 
   readonly experimentalForceLongPolling: boolean;
@@ -229,7 +226,6 @@ class FirestoreSettings {
       'host',
       'ssl',
       'credentials',
-      'timestampsInSnapshots',
       'cacheSizeBytes',
       'experimentalForceLongPolling',
       'experimentalAutoDetectLongPolling',
@@ -247,32 +243,10 @@ class FirestoreSettings {
     validateNamedOptionalType(
       'settings',
       'boolean',
-      'timestampsInSnapshots',
-      settings.timestampsInSnapshots
-    );
-
-    validateNamedOptionalType(
-      'settings',
-      'boolean',
       'ignoreUndefinedProperties',
       settings.ignoreUndefinedProperties
     );
 
-    // Nobody should set timestampsInSnapshots anymore, but the error depends on
-    // whether they set it to true or false...
-    if (settings.timestampsInSnapshots === true) {
-      logError(
-        "The setting 'timestampsInSnapshots: true' is no longer required " +
-          'and should be removed.'
-      );
-    } else if (settings.timestampsInSnapshots === false) {
-      logError(
-        "Support for 'timestampsInSnapshots: false' will be removed soon. " +
-          'You must update your code to handle Timestamp objects.'
-      );
-    }
-    this.timestampsInSnapshots =
-      settings.timestampsInSnapshots ?? DEFAULT_TIMESTAMPS_IN_SNAPSHOTS;
     this.ignoreUndefinedProperties =
       settings.ignoreUndefinedProperties ?? DEFAULT_IGNORE_UNDEFINED_PROPERTIES;
 
@@ -329,7 +303,6 @@ class FirestoreSettings {
     return (
       this.host === other.host &&
       this.ssl === other.ssl &&
-      this.timestampsInSnapshots === other.timestampsInSnapshots &&
       this.credentials === other.credentials &&
       this.cacheSizeBytes === other.cacheSizeBytes &&
       this.experimentalForceLongPolling ===
@@ -808,12 +781,6 @@ export class Firestore implements PublicFirestore, FirebaseService {
       level
     );
     setLogLevel(level);
-  }
-
-  // Note: this is not a property because the minifier can't work correctly with
-  // the way TypeScript compiler outputs properties.
-  _areTimestampsInSnapshotsEnabled(): boolean {
-    return this._settings.timestampsInSnapshots;
   }
 
   // Visible for testing.
@@ -1498,7 +1465,6 @@ export class DocumentSnapshot<T = DocumentData>
       } else {
         const userDataWriter = new UserDataWriter(
           this._firestore._databaseId,
-          this._firestore._areTimestampsInSnapshotsEnabled(),
           options.serverTimestamps || 'none',
           key =>
             new DocumentReference(key, this._firestore, /* converter= */ null),
@@ -1524,7 +1490,6 @@ export class DocumentSnapshot<T = DocumentData>
       if (value !== null) {
         const userDataWriter = new UserDataWriter(
           this._firestore._databaseId,
-          this._firestore._areTimestampsInSnapshotsEnabled(),
           options.serverTimestamps || 'none',
           key => new DocumentReference(key, this._firestore, this._converter),
           bytes => new Blob(bytes)
