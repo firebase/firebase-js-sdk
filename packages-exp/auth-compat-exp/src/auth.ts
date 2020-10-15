@@ -313,14 +313,14 @@ export class Auth
       this.auth.config.apiKey,
       this.auth.name
     );
-    if (win && win.sessionStorage) {
+    if (win?.sessionStorage) {
       win.sessionStorage.setItem(key, this.auth._getPersistence());
     }
   }
 
   private getPersistenceFromRedirect(): externs.Persistence | null {
     const win = getSelfWindow();
-    if (!win || !win.sessionStorage) {
+    if (!win?.sessionStorage) {
       return null;
     }
 
@@ -347,7 +347,7 @@ export class Auth
 }
 
 function getSelfWindow(): Window | null {
-  return typeof self !== 'undefined' ? self : null;
+  return typeof window !== 'undefined' ? window : null;
 }
 
 function wrapObservers(
