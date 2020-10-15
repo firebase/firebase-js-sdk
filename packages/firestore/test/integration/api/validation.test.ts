@@ -194,8 +194,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       'disallows calling useEmulator after use',
       async db => {
         const errorMsg =
-          'Firestore has already been started and its settings can no longer be changed. ' +
-          'You can only modify settings before calling any other methods on a Firestore object.';
+          'Firestore has already been started and its settings can no longer be changed.';
 
         await db.doc('foo/bar').set({});
         expect(() => db.useEmulator('localhost', 9000)).to.throw(errorMsg);
