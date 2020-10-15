@@ -109,7 +109,7 @@ import {
   valueDescription,
   validateIsNotUsedTogether
 } from '../util/input_validation';
-import { getLogLevel, logError, LogLevel, setLogLevel } from '../util/log';
+import { logError, setLogLevel as setClientLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
@@ -726,7 +726,7 @@ export function setLogLevel(level: PublicLogLevel): void {
     1,
     level
   );
-  setLogLevel(level);
+  setClientLogLevel(level);
 }
 
 /**
