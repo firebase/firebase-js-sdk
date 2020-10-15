@@ -4,6 +4,8 @@
 
 ## Auth.useDeviceLanguage() method
 
+Sets the current language to the default device/browser preference.
+
 <b>Signature:</b>
 
 ```typescript

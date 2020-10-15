@@ -124,10 +124,14 @@ export class StsTokenManager {
     };
   }
 
-  _copy(stsTokenManager: StsTokenManager): void {
+  _assign(stsTokenManager: StsTokenManager): void {
     this.accessToken = stsTokenManager.accessToken;
     this.refreshToken = stsTokenManager.refreshToken;
     this.expirationTime = stsTokenManager.expirationTime;
+  }
+
+  _clone(): StsTokenManager {
+    return Object.assign(new StsTokenManager(), this.toJSON());
   }
 
   _performRefresh(): never {

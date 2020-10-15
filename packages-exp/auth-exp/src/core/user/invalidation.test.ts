@@ -35,7 +35,7 @@ describe('src/core/user/invalidation', () => {
   beforeEach(async () => {
     auth = await testAuth();
     user = testUser(auth, 'uid');
-    await auth.updateCurrentUser(user);
+    await auth._updateCurrentUser(user);
   });
 
   function makeError(code: AuthErrorCode): FirebaseError {
@@ -76,7 +76,7 @@ describe('src/core/user/invalidation', () => {
 
     beforeEach(async () => {
       user2 = testUser(auth, 'uid2');
-      await auth.updateCurrentUser(user2);
+      await auth._updateCurrentUser(user2);
     });
 
     it('does not log out user2 if the error is user_disabled', async () => {

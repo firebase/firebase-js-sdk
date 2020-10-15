@@ -4,6 +4,8 @@
 
 ## EmailAuthProvider.EMAIL\_PASSWORD\_SIGN\_IN\_METHOD property
 
+Always set to [SignInMethod.EMAIL\_PASSWORD](./auth-types.signinmethod.email_password.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

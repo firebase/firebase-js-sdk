@@ -4,6 +4,8 @@
 
 ## AdditionalUserInfo.profile property
 
+Map containing IDP-specific user data.
+
 <b>Signature:</b>
 
 ```typescript

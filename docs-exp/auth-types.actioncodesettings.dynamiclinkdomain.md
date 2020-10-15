@@ -4,6 +4,8 @@
 
 ## ActionCodeSettings.dynamicLinkDomain property
 
+When multiple custom dynamic link domains are defined for a project, specify which one to use when the link is to be opened via a specified mobile app (for example, `example.page.link`<!-- -->). Otherwise the first domain is automatically selected.
+
 <b>Signature:</b>
 
 ```typescript

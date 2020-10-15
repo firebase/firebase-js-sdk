@@ -4,6 +4,8 @@
 
 ## RecaptchaVerifier.type property
 
+The application verifier type. For a reCAPTCHA verifier, this is 'recaptcha'.
+
 <b>Signature:</b>
 
 ```typescript

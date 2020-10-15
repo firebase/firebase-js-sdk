@@ -68,7 +68,8 @@ export function createTestService(
     useFunctionsEmulator(
       functions,
       url.hostname,
-      Number.parseInt(url.port, 10));
+      Number.parseInt(url.port, 10)
+    );
   }
   return functions;
 }
