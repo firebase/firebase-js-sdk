@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { stub } from 'sinon';
 import { ErrorFactory, ErrorMap, FirebaseError } from '../src/errors';
 
 type ErrorCode =
@@ -60,7 +59,7 @@ describe('FirebaseError', () => {
       e.message,
       "Fake: Could not find file: 'foo.txt' (fake/file-not-found)."
     );
-    assert.equal(e.file, 'foo.txt');
+    assert.equal(e.customData!.file, 'foo.txt');
   });
 
   it('anonymously replaces template values with data', () => {
@@ -86,21 +85,6 @@ describe('FirebaseError', () => {
       e.message,
       "Fake: Could not find file: '<file?>' (fake/file-not-found)."
     );
-  });
-
-  it('warns if overwriting a base error field with custom data', () => {
-    const warnStub = stub(console, 'warn');
-    const e = ERROR_FACTORY.create('overwrite-field', {
-      code: 'overwritten code'
-    });
-    assert.equal(e.code, 'overwritten code');
-    // TODO: use sinon-chai for this.
-    assert.ok(
-      warnStub.calledOnceWith(
-        'Overwriting FirebaseError base field "code" can cause unexpected behavior.'
-      )
-    );
-    warnStub.restore();
   });
 
   it('has stack', () => {
