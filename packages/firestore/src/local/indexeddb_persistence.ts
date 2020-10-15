@@ -106,7 +106,9 @@ const CLIENT_METADATA_REFRESH_INTERVAL_MS = 4000;
 /** User-facing error when the primary lease is required but not available. */
 const PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG =
   'Failed to obtain exclusive access to the persistence layer. To allow ' +
-  'shared access, multi-tab synchronization has to be enabled in all tabs.';
+  'shared access, multi-tab synchronization has to be enabled in all tabs. ' +
+  'If you are using `experimentalForceOwningTab:true`, make sure that only ' +
+  'one tab has persistence enabled at any given time.';
 const UNSUPPORTED_PLATFORM_ERROR_MSG =
   'This platform is either missing IndexedDB or is known to have ' +
   'an incomplete implementation. Offline persistence has been disabled.';
