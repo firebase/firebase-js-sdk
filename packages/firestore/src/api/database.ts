@@ -49,11 +49,13 @@ import { Blob } from './blob';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
+  IndexedDbOfflineComponentProvider,
   MemoryOfflineComponentProvider,
+  MultiTabOfflineComponentProvider,
   OfflineComponentProvider,
   OnlineComponentProvider
 } from '../core/component_provider';
-import { FirestoreClient, PersistenceSettings } from '../core/firestore_client';
+import { FirestoreClient } from '../core/firestore_client';
 import {
   Bound,
   Direction,
@@ -141,6 +143,10 @@ import {
 import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import {
+  indexedDbClearPersistence,
+  indexedDbStoragePrefix
+} from '../local/indexeddb_persistence';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -336,6 +342,104 @@ class FirestoreSettings {
 }
 
 /**
+ * A persistence provider for either memory-only or IndexedDB persistence.
+ * Mainly used to allow optional inclusion of IndexedDB code.
+ */
+export interface PersistenceProvider {
+  enableIndexedDbPersistence(
+    firestore: Firestore,
+    forceOwnership: boolean
+  ): Promise<void>;
+  enableMultiTabIndexedDbPersistence(firestore: Firestore): Promise<void>;
+  clearIndexedDbPersistence(firestore: Firestore): Promise<void>;
+}
+
+const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
+  'You are using the memory-only build of Firestore. Persistence support is ' +
+  'only available via the @firebase/firestore bundle or the ' +
+  'firebase-firestore.js build.';
+
+/**
+ * The persistence provider included with the memory-only SDK. This provider
+ * errors for all attempts to access persistence.
+ */
+export class MemoryPersistenceProvider implements PersistenceProvider {
+  enableIndexedDbPersistence(
+    firestore: Firestore,
+    forceOwnership: boolean
+  ): Promise<void> {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
+    );
+  }
+
+  enableMultiTabIndexedDbPersistence(firestore: Firestore): Promise<void> {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
+    );
+  }
+
+  clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
+    );
+  }
+}
+
+/**
+ * The persistence provider included with the full Firestore SDK.
+ */
+export class IndexedDbPersistenceProvider implements PersistenceProvider {
+  enableIndexedDbPersistence(
+    firestore: Firestore,
+    forceOwnership: boolean
+  ): Promise<void> {
+    const onlineComponentProvider = new OnlineComponentProvider();
+    const offlineComponentProvider = new IndexedDbOfflineComponentProvider(
+      onlineComponentProvider,
+      firestore._getSettings().cacheSizeBytes,
+      forceOwnership
+    );
+    return firestore._configureClient(
+      offlineComponentProvider,
+      onlineComponentProvider
+    );
+  }
+
+  enableMultiTabIndexedDbPersistence(firestore: Firestore): Promise<void> {
+    const onlineComponentProvider = new OnlineComponentProvider();
+    const offlineComponentProvider = new MultiTabOfflineComponentProvider(
+      onlineComponentProvider,
+      firestore._getSettings().cacheSizeBytes
+    );
+    return firestore._configureClient(
+      offlineComponentProvider,
+      onlineComponentProvider
+    );
+  }
+
+  clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
+    const deferred = new Deferred();
+    firestore._queue.enqueueAndForgetEvenWhileRestricted(async () => {
+      try {
+        await indexedDbClearPersistence(
+          indexedDbStoragePrefix(
+            firestore._databaseId,
+            firestore._persistenceKey
+          )
+        );
+        deferred.resolve();
+      } catch (e) {
+        deferred.reject(e);
+      }
+    });
+    return deferred.promise;
+  }
+}
+/**
  * The root reference to the database.
  */
 export class Firestore implements PublicFirestore, FirebaseService {
@@ -343,7 +447,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
   // compiled javascript so we want to flag our private members with a leading
   // underscore to discourage their use.
   readonly _databaseId: DatabaseId;
-  private readonly _persistenceKey: string;
+  readonly _persistenceKey: string;
   private _credentials: CredentialsProvider;
   private readonly _firebaseApp: FirebaseApp | null = null;
   private _settings: FirestoreSettings;
@@ -362,14 +466,13 @@ export class Firestore implements PublicFirestore, FirebaseService {
 
   _userDataReader: UserDataReader | undefined;
 
-  // Note: We are using `MemoryComponentProvider` as a default
+  // Note: We are using `MemoryPersistenceProvider` as a default
   // ComponentProvider to ensure backwards compatibility with the format
   // expected by the console build.
   constructor(
     databaseIdOrApp: FirestoreDatabase | FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>,
-    private _offlineComponentProvider: OfflineComponentProvider = new MemoryOfflineComponentProvider(),
-    private _onlineComponentProvider = new OnlineComponentProvider()
+    readonly _persistenceProvider: PersistenceProvider = new MemoryPersistenceProvider()
   ) {
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
@@ -474,16 +577,12 @@ export class Firestore implements PublicFirestore, FirebaseService {
       );
     }
 
-    return this.configureClient(
-      this._offlineComponentProvider,
-      this._onlineComponentProvider,
-      {
-        durable: true,
-        cacheSizeBytes: this._settings.cacheSizeBytes,
-        synchronizeTabs,
-        forceOwningTab: experimentalForceOwningTab
-      }
-    );
+    return synchronizeTabs
+      ? this._persistenceProvider.enableMultiTabIndexedDbPersistence(this)
+      : this._persistenceProvider.enableIndexedDbPersistence(
+          this,
+          experimentalForceOwningTab
+        );
   }
 
   async clearPersistence(): Promise<void> {
@@ -497,20 +596,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
           'initialized or after it is terminated.'
       );
     }
-
-    const deferred = new Deferred<void>();
-    this._queue.enqueueAndForgetEvenWhileRestricted(async () => {
-      try {
-        await this._offlineComponentProvider.clearPersistence(
-          this._databaseId,
-          this._persistenceKey
-        );
-        deferred.resolve();
-      } catch (e) {
-        deferred.reject(e);
-      }
-    });
-    return deferred.promise;
+    return this._persistenceProvider.clearIndexedDbPersistence(this);
   }
 
   terminate(): Promise<void> {
@@ -550,12 +636,9 @@ export class Firestore implements PublicFirestore, FirebaseService {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.configureClient(
+      this._configureClient(
         new MemoryOfflineComponentProvider(),
-        new OnlineComponentProvider(),
-        {
-          durable: false
-        }
+        new OnlineComponentProvider()
       );
     }
     return this._firestoreClient as FirestoreClient;
@@ -572,13 +655,13 @@ export class Firestore implements PublicFirestore, FirebaseService {
     );
   }
 
-  private configureClient(
+  // TODO(schmidt-sebastian): Make this private again in
+  // https://github.com/firebase/firebase-js-sdk/pull/3901.
+  _configureClient(
     offlineComponentProvider: OfflineComponentProvider,
-    onlineComponentProvider: OnlineComponentProvider,
-    persistenceSettings: PersistenceSettings
+    onlineComponentProvider: OnlineComponentProvider
   ): Promise<void> {
     debugAssert(!!this._settings.host, 'FirestoreSettings.host is not set');
-
     debugAssert(
       !this._firestoreClient,
       'configureClient() called multiple times'
@@ -591,8 +674,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
     return this._firestoreClient.start(
       databaseInfo,
       offlineComponentProvider,
-      onlineComponentProvider,
-      persistenceSettings
+      onlineComponentProvider
     );
   }
 
