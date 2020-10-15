@@ -159,6 +159,7 @@ export const CACHE_SIZE_UNLIMITED = LruParams.COLLECTION_DISABLED;
 
 // enablePersistence() defaults:
 const DEFAULT_SYNCHRONIZE_TABS = false;
+const DEFAULT_FORCE_OWNING_TAB = false;
 
 /** Undocumented, private additional settings not exposed in our public API. */
 interface PrivateSettings extends PublicSettings {
@@ -461,26 +462,16 @@ export class Firestore implements PublicFirestore, FirebaseService {
     let experimentalForceOwningTab = false;
 
     if (settings) {
-      if (settings.experimentalTabSynchronization !== undefined) {
-        logError(
-          "The 'experimentalTabSynchronization' setting will be removed. Use 'synchronizeTabs' instead."
-        );
-      }
-      synchronizeTabs =
-        settings.synchronizeTabs ??
-        settings.experimentalTabSynchronization ??
-        DEFAULT_SYNCHRONIZE_TABS;
+      synchronizeTabs = settings.synchronizeTabs ?? DEFAULT_SYNCHRONIZE_TABS;
+      experimentalForceOwningTab =
+        settings.experimentalForceOwningTab ?? DEFAULT_FORCE_OWNING_TAB;
 
-      experimentalForceOwningTab = settings.experimentalForceOwningTab
-        ? settings.experimentalForceOwningTab
-        : false;
-
-      if (synchronizeTabs && experimentalForceOwningTab) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          "The 'experimentalForceOwningTab' setting cannot be used with 'synchronizeTabs'."
-        );
-      }
+      validateIsNotUsedTogether(
+        'synchronizeTabs',
+        synchronizeTabs,
+        'experimentalForceOwningTab',
+        experimentalForceOwningTab
+      );
     }
 
     return this.configureClient(
