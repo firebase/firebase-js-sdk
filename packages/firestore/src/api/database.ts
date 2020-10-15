@@ -111,7 +111,7 @@ import {
   valueDescription,
   validateIsNotUsedTogether
 } from '../util/input_validation';
-import { getLogLevel, logError, LogLevel, setLogLevel } from '../util/log';
+import { logError, setLogLevel as setClientLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
@@ -752,41 +752,21 @@ export class Firestore implements PublicFirestore, FirebaseService {
     return new WriteBatch(this);
   }
 
-  static get logLevel(): PublicLogLevel {
-    switch (getLogLevel()) {
-      case LogLevel.DEBUG:
-        return 'debug';
-      case LogLevel.ERROR:
-        return 'error';
-      case LogLevel.SILENT:
-        return 'silent';
-      case LogLevel.WARN:
-        return 'warn';
-      case LogLevel.INFO:
-        return 'info';
-      case LogLevel.VERBOSE:
-        return 'verbose';
-      default:
-        // The default log level is error
-        return 'error';
-    }
-  }
-
-  static setLogLevel(level: PublicLogLevel): void {
-    validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
-    validateStringEnum(
-      'setLogLevel',
-      ['debug', 'error', 'silent', 'warn', 'info', 'verbose'],
-      1,
-      level
-    );
-    setLogLevel(level);
-  }
-
   // Visible for testing.
   _getSettings(): PublicSettings {
     return this._settings;
   }
+}
+
+export function setLogLevel(level: PublicLogLevel): void {
+  validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
+  validateStringEnum(
+    'setLogLevel',
+    ['debug', 'error', 'silent', 'warn', 'info', 'verbose'],
+    1,
+    level
+  );
+  setClientLogLevel(level);
 }
 
 /**
