@@ -22,26 +22,26 @@ import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
 
 export async function signInAnonymously(
-  authExtern: externs.Auth
+  auth: externs.Auth
 ): Promise<externs.UserCredential> {
-  const auth = _castAuth(authExtern);
-  if (auth.currentUser?.isAnonymous) {
+  const authInternal = _castAuth(auth);
+  if (authInternal.currentUser?.isAnonymous) {
     // If an anonymous user is already signed in, no need to sign them in again.
     return new UserCredentialImpl({
-      user: auth.currentUser as User,
+      user: authInternal.currentUser as User,
       providerId: null,
       operationType: externs.OperationType.SIGN_IN
     });
   }
-  const response = await signUp(auth, {
+  const response = await signUp(authInternal, {
     returnSecureToken: true
   });
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
-    auth,
+    authInternal,
     externs.OperationType.SIGN_IN,
     response,
     true
   );
-  await auth._updateCurrentUser(userCredential.user);
+  await authInternal._updateCurrentUser(userCredential.user);
   return userCredential;
 }
