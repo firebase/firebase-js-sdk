@@ -66,6 +66,7 @@ export class Database implements FirebaseService {
     }
     
     // We have to "reserve" the repo now so we can safely create it as-needed
+    // TOOD(samstern): Enabling this is a mess
     // RepoManager.getInstance().reserveRepo(repoInfo_, app);
     this.INTERNAL = new DatabaseInternals(this);
   }
