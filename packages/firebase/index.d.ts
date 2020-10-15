@@ -7618,6 +7618,22 @@ declare namespace firebase.storage {
   }
 
   /**
+   * An error returned by the Firebase Storage SDK.
+   */
+  interface FirebaseStorageError {
+    name: string;
+    code: string;
+    message: string;
+    serverResponse: null | string;
+  }
+
+  interface StorageObserver<T> {
+    next?: NextFn<T> | null;
+    error?: (error: FirebaseStorageError) => void | null;
+    complete?: CompleteFn | null;
+  }
+
+  /**
    * Represents the process of uploading an object. Allows you to monitor and
    * manage the upload.
    */
@@ -7630,7 +7646,7 @@ declare namespace firebase.storage {
     /**
      * Equivalent to calling `then(null, onRejected)`.
      */
-    catch(onRejected: (a: Error) => any): Promise<any>;
+    catch(onRejected: (error: FirebaseStorageError) => any): Promise<any>;
     /**
      * Listens for events on this task.
      *
@@ -7730,7 +7746,7 @@ declare namespace firebase.storage {
      *     The `next` function, which gets called for each item in
      *     the event stream, or an observer object with some or all of these three
      *     properties (`next`, `error`, `complete`).
-     * @param error A function that gets called with an Error
+     * @param error A function that gets called with a `FirebaseStorageError`
      *     if the event stream ends due to an error.
      * @param complete A function that gets called if the
      *     event stream ends normally.
@@ -7743,10 +7759,10 @@ declare namespace firebase.storage {
     on(
       event: firebase.storage.TaskEvent,
       nextOrObserver?:
-        | Partial<firebase.Observer<UploadTaskSnapshot>>
+        | StorageObserver<UploadTaskSnapshot>
         | null
-        | ((a: UploadTaskSnapshot) => any),
-      error?: ((a: Error) => any) | null,
+        | ((snapshot: UploadTaskSnapshot) => any),
+      error?: ((error: FirebaseStorageError) => any) | null,
       complete?: firebase.Unsubscribe | null
     ): Function;
     /**
@@ -7771,8 +7787,10 @@ declare namespace firebase.storage {
      * @param onRejected The rejection callback.
      */
     then(
-      onFulfilled?: ((a: firebase.storage.UploadTaskSnapshot) => any) | null,
-      onRejected?: ((a: Error) => any) | null
+      onFulfilled?:
+        | ((snapshot: firebase.storage.UploadTaskSnapshot) => any)
+        | null,
+      onRejected?: ((error: FirebaseStorageError) => any) | null
     ): Promise<any>;
   }
 
