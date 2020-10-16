@@ -33,7 +33,7 @@ const nodeDeps = [...deps, 'util', 'path'];
 
 const resolveNodeExterns = function (id) {
   return nodeDeps.some(dep => id === dep || id.startsWith(`${dep}/`));
-}
+};
 
 /**
  * Returns an replacement configuration for `@rollup/plugin-alias` that replaces
@@ -52,34 +52,34 @@ function generateAliasConfig() {
 }
 
 const es2017Plugins = function () {
-    return [
-      alias(generateAliasConfig()),
-      typescriptPlugin({
-        typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            target: 'es2017'
-          }
-        },
-        cacheDir: tmp.dirSync(),
-      }),
-      json({ preferConst: true })
-    ];
+  return [
+    alias(generateAliasConfig()),
+    typescriptPlugin({
+      typescript,
+      tsconfigOverride: {
+        compilerOptions: {
+          target: 'es2017'
+        }
+      },
+      cacheDir: tmp.dirSync()
+    }),
+    json({ preferConst: true })
+  ];
 };
 
 const es2017ToEs5Plugins = function () {
-    return [
-      typescriptPlugin({
-        typescript,
-        tsconfigOverride: {
-          compilerOptions: {
-            allowJs: true
-          }
-        },
-        include: ['dist/*.js']
-      }),
-      sourcemaps()
-    ];
+  return [
+    typescriptPlugin({
+      typescript,
+      tsconfigOverride: {
+        compilerOptions: {
+          allowJs: true
+        }
+      },
+      include: ['dist/*.js']
+    }),
+    sourcemaps()
+  ];
 };
 
 export default [
@@ -94,7 +94,7 @@ export default [
       ...es2017Plugins(),
       // Needed as we also use the *.proto files
       copy({
-        assets: ['../../../packages/firestore/src/protos'],
+        assets: ['../../../packages/firestore/src/protos']
       }),
       replace({
         'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('protos')
@@ -107,7 +107,13 @@ export default [
   },
   {
     input: 'dist/generate_test_bundle.em2017.js',
-    output: [{ file: 'dist/generate_test_bundle.cjs.js', format: 'cjs', sourcemap: true }],
+    output: [
+      {
+        file: 'dist/generate_test_bundle.cjs.js',
+        format: 'cjs',
+        sourcemap: true
+      }
+    ],
     plugins: es2017ToEs5Plugins(),
     external: resolveNodeExterns,
     treeshake: {
