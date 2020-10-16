@@ -71,6 +71,7 @@ export class Repo {
   private interceptServerDataCallback_:
     | ((a: string, b: unknown) => void)
     | null = null;
+  private __database: Database;
 
   /** A list of data pieces and paths to be set when this client disconnects. */
   private onDisconnect_ = new SparseSnapshotTree();
@@ -82,8 +83,7 @@ export class Repo {
     public repoInfo_: RepoInfo,
     forceRestClient: boolean,
     public app: FirebaseApp,
-    public authTokenProvider: AuthTokenProvider,
-    public readonly database: Database,
+    public authTokenProvider: AuthTokenProvider
   ) {
     this.stats_ = StatsManager.getCollection(repoInfo_);
 
@@ -636,5 +636,9 @@ export class Repo {
         }
       });
     }
+  }
+
+  get database(): Database {
+    return this.__database || (this.__database = new Database(this));
   }
 }

@@ -26,7 +26,7 @@ import { validateUrl } from '../core/util/validation';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService } from '@firebase/app-types/private';
 import { RepoInfo } from '../core/RepoInfo';
-import { AuthTokenProvider } from '../core/AuthTokenProvider';
+import { FirebaseDatabase } from '@firebase/database-types';
 
 /**
  * Class representing a firebase database.
@@ -35,8 +35,11 @@ import { AuthTokenProvider } from '../core/AuthTokenProvider';
 export class Database implements FirebaseService {
   INTERNAL: DatabaseInternals;
 
-  private repoInternal_?: Repo;
-  private rootInternal_?: Reference;
+  /** Track if the instance has been used (root or repo accessed) */
+  private instanceUsed_: boolean = false;
+
+  /** Backing state for root_ */
+  private rootInternal_: Reference;
 
   static readonly ServerValue = {
     TIMESTAMP: {
@@ -53,53 +56,45 @@ export class Database implements FirebaseService {
 
   /**
    * The constructor should not be called by users of our public API.
+   * @param {!Repo} repoInternal_
    */
-  constructor(
-    private repoInfo_: RepoInfo,
-    readonly app: FirebaseApp,
-    private readonly authTokenProvider_: AuthTokenProvider
-  ) {
-    if (!(repoInfo_ instanceof RepoInfo)) {
+  constructor(private repoInternal_: Repo) {
+    if (!(repoInternal_ instanceof Repo)) {
       fatal(
-        "Don't call new Database() directly  please use firebase.database()."
+        "Don't call new Database() directly - please use firebase.database()."
       );
     }
-    
-    // We have to "reserve" the repo now so we can safely create it as-needed
-    // TOOD(samstern): Enabling this is a mess
-    // RepoManager.getInstance().reserveRepo(repoInfo_, app);
+
+    this.repo_ = repoInternal_;
     this.INTERNAL = new DatabaseInternals(this);
   }
 
-  private get repo_() {
-    if (!this.repoInternal_) {
-      this.repoInternal_ = RepoManager.getInstance().createRepo(
-        this.repoInfo_, 
-        this.app, 
-        this.authTokenProvider_, 
-        this
-      );
-    }
+  private get repo_(): Repo {
+    this.instanceUsed_ = true;
     return this.repoInternal_;
   }
-  
-  private set repo_(repo: Repo) {
-    this.repoInternal_ = repo;
-    this.rootInternal_ = null;
-  }
 
-  private get root_() {
-    if (!this.rootInternal_) {
-      this.rootInternal_ = new Reference(this.repo_, Path.Empty);
+  private set repo_(repo: Repo) {
+    if (repo instanceof Repo) {
+      this.root_ = new Reference(repo, Path.Empty);
     }
 
+    this.repoInternal_ = repo;
+  }
+
+  get root_(): Reference {
+    this.instanceUsed_ = true;
     return this.rootInternal_;
   }
 
-  private set root_(root: Reference) {
+  set root_(root: Reference) {
     this.rootInternal_ = root;
   }
-  
+
+  get app(): FirebaseApp {
+    return this.repo_.app;
+  }
+
   /**
    * Modify this instance to communicate with the Realtime Database emulator.
    *
@@ -109,17 +104,19 @@ export class Database implements FirebaseService {
    * @param port the emulator port (ex: 8080)
    */
   useEmulator(host: string, port: number): void {
-    if (this.repoInternal_) {
+    if (this.instanceUsed_) {
       fatal(
         'Cannot call useEmulator() after instance has already been initialized.'
       );
       return;
     }
 
-    const url = `http://${host}:${port}?ns=${this.repoInfo_.namespace}`;
-    const { repoInfo } = parseRepoInfo(url, this.repoInfo_.nodeAdmin);
+    // Get a new Repo which has the emulator settings applied
+    const manager = RepoManager.getInstance();
+    const oldRepo = this.repo_;
 
-    this.repoInfo_ = repoInfo;
+    this.repo_ = manager.cloneRepoForEmulator(oldRepo, host, port);
+    manager.deleteRepo(oldRepo);
   }
 
   /**
@@ -180,7 +177,7 @@ export class Database implements FirebaseService {
    * @param {string} apiName
    */
   private checkDeleted_(apiName: string) {
-    if (this.INTERNAL === null) {
+    if (this.repo_ === null) {
       fatal('Cannot call ' + apiName + ' on a deleted database.');
     }
   }
