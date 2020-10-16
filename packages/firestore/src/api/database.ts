@@ -112,9 +112,6 @@ import {
   validateIsNotUsedTogether
 } from '../util/input_validation';
 import {
-  getLogLevel,
-  logError,
-  LogLevel,
   setLogLevel as setClientLogLevel,
   logWarn
 } from '../util/log';
