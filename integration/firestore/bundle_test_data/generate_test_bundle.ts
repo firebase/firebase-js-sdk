@@ -9,7 +9,9 @@ import { key } from '@firebase/firestore/test/util/helpers';
 import { collectionReference } from '@firebase/firestore/test/util/api_helpers';
 import {
   EMULATOR_PROJECT_ID,
-  ALT_PROJECT_ID
+  ALT_PROJECT_ID,
+  RUN_FROM_IDEA_PROJECT_ID_1,
+  RUN_FROM_IDEA_PROJECT_ID_2
 } from '@firebase/firestore/test/integration/util/emulator_settings';
 const PROJECT_CONFIG = require('../../../../config/project.json');
 
@@ -65,6 +67,8 @@ function bundleWithTestDocsAndQueries(projectId: string): TestBundleBuilder {
 const PROJECT_IDS = [
   ALT_PROJECT_ID,
   EMULATOR_PROJECT_ID,
+  RUN_FROM_IDEA_PROJECT_ID_1,
+  RUN_FROM_IDEA_PROJECT_ID_2,
   PROJECT_CONFIG.projectId
 ];
 

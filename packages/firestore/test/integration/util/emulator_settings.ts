@@ -18,3 +18,5 @@
 // Projects used in emulator integration tests.
 export const EMULATOR_PROJECT_ID = 'test-emulator';
 export const ALT_PROJECT_ID = 'test-db2';
+export const RUN_FROM_IDEA_PROJECT_ID_1 = 'xyz-abc-123';
+export const RUN_FROM_IDEA_PROJECT_ID_2 = 'abc-xyz-123';

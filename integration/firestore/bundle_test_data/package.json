@@ -7,7 +7,7 @@
   },
   "scripts": {
     "build": "rollup -c rollup.config.js",
-    "genBundle": "yarn build && (node dist/generate_test_bundle.cjs.js > dist/test_bundles.json)"
+    "genBundle": "yarn build && (node dist/generate_test_bundle.cjs.js > ../../../packages/firestore/test/integration/api/test_bundles.json)"
   },
   "dependencies": {
     "@firebase/firebase": "file:../../../packages/firebase",
