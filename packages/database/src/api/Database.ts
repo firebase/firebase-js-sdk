@@ -74,7 +74,10 @@ export class Database implements FirebaseService {
   };
 
   private get repo_(): Repo {
-    this.instanceStarted_ = true;
+    if (!this.instanceStarted_) {
+      this.repoInternal_.start();
+      this.instanceStarted_ = true;
+    }
     return this.repoInternal_;
   }
 

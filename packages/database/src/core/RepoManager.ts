@@ -102,9 +102,7 @@ export class RepoManager {
     );
 
     if (repo.repoInfo_.nodeAdmin) {
-      // TODO(samtstern): We need to re-run the initialization of the
-      //  `authTokenProvider` related code in the RepoInfo constructor
-      repo.authTokenProvider = new EmulatorAdminTokenProvider();
+      repo.authTokenProvider_ = new EmulatorAdminTokenProvider();
     }
   }
 
