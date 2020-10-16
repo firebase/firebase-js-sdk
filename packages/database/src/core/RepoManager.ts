@@ -91,17 +91,21 @@ export class RepoManager {
    * Update an existing repo in place to point to a new host/port.
    */
   applyEmulatorSettings(repo: Repo, host: string, port: number): void {
-    const url = `http://${host}:${port}?ns=${repo.repoInfo_.namespace}`;
+    repo.repoInfo_ = new RepoInfo(
+      `${host}/${port}`,
+      /* secure= */ false,
+      repo.repoInfo_.namespace,
+      repo.repoInfo_.webSocketOnly,
+      repo.repoInfo_.nodeAdmin,
+      repo.repoInfo_.persistenceKey,
+      repo.repoInfo_.includeNamespaceInQueryParams
+    );
 
-    const nodeAdmin = repo.repoInfo_.nodeAdmin;
-    const authTokenProvider = nodeAdmin
-      ? new EmulatorAdminTokenProvider()
-      : repo.authTokenProvider;
-
-    // Update the repo in-place
-    const { repoInfo } = parseRepoInfo(url, nodeAdmin);
-    repo.repoInfo_ = repoInfo;
-    repo.authTokenProvider = authTokenProvider;
+    if (repo.repoInfo_.nodeAdmin) {
+      // TODO(samtstern): We need to re-run the initialization of the
+      //  `authTokenProvider` related code in the RepoInfo constructor
+      repo.authTokenProvider = new EmulatorAdminTokenProvider();
+    }
   }
 
   /**

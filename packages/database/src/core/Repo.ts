@@ -86,7 +86,7 @@ export class Repo {
     public repoInfo_: RepoInfo,
     forceRestClient: boolean,
     public app: FirebaseApp,
-    public authTokenProvider: AuthTokenProvider
+    authTokenProvider: AuthTokenProvider
   ) {
     this.stats_ = StatsManager.getCollection(repoInfo_);
 
