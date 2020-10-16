@@ -92,7 +92,7 @@ export class RepoManager {
    */
   applyEmulatorSettings(repo: Repo, host: string, port: number): void {
     repo.repoInfo_ = new RepoInfo(
-      `${host}/${port}`,
+      `${host}:${port}`,
       /* secure= */ false,
       repo.repoInfo_.namespace,
       repo.repoInfo_.webSocketOnly,
