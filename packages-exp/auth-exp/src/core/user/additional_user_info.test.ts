@@ -273,8 +273,12 @@ describe('core/user/additional_user_info', () => {
 
     it('returns bespoke info if existing anonymous user', () => {
       // Note that _tokenResponse is not set on cred
-      ((user as unknown) as Record<string, unknown>).isAnonymous = true;
-      const { isNewUser, providerId, profile } = getAdditionalUserInfo(cred)!;
+      (user as unknown as Record<string, unknown>).isAnonymous = true;
+      const {
+        isNewUser,
+        providerId,
+        profile
+      } = getAdditionalUserInfo(cred)!;
       expect(isNewUser).to.be.false;
       expect(providerId).to.be.null;
       expect(profile).to.eq(profile);
