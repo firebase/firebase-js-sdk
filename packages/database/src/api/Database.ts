@@ -33,13 +33,11 @@ import { FirebaseDatabase } from '@firebase/database-types';
  * @implements {FirebaseService}
  */
 export class Database implements FirebaseService {
-  INTERNAL: DatabaseInternals;
-
   /** Track if the instance has been used (root or repo accessed) */
   private instanceStarted_: boolean = false;
 
   /** Backing state for root_ */
-  private rootInternal_: Reference;
+  private rootInternal_?: Reference;
 
   static readonly ServerValue = {
     TIMESTAMP: {
@@ -64,18 +62,20 @@ export class Database implements FirebaseService {
         "Don't call new Database() directly - please use firebase.database()."
       );
     }
-
-    this.repo_ = repoInternal_;
-    this.INTERNAL = new DatabaseInternals(this);
   }
+
+  INTERNAL = {
+    delete: async () => {
+      this.checkDeleted_('delete');
+      RepoManager.getInstance().deleteRepo(this.repo_);
+      this.repoInternal_ = null;
+      this.rootInternal_ = null;
+    }
+  };
 
   private get repo_(): Repo {
     this.instanceStarted_ = true;
     return this.repoInternal_;
-  }
-
-  private set repo_(repo: Repo) {
-    this.repoInternal_ = repo;
   }
 
   get root_(): Reference {
@@ -84,10 +84,6 @@ export class Database implements FirebaseService {
     }
 
     return this.rootInternal_;
-  }
-
-  set root_(root: Reference) {
-    this.rootInternal_ = root;
   }
 
   get app(): FirebaseApp {
@@ -111,7 +107,11 @@ export class Database implements FirebaseService {
     }
 
     // Modify the repo to apply emulator settings
-    RepoManager.getInstance().applyEmulatorSettings(this.repoInternal_, host, port);
+    RepoManager.getInstance().applyEmulatorSettings(
+      this.repoInternal_,
+      host,
+      port
+    );
   }
 
   /**
@@ -188,24 +188,5 @@ export class Database implements FirebaseService {
     validateArgCount('database.goOnline', 0, 0, arguments.length);
     this.checkDeleted_('goOnline');
     this.repo_.resume();
-  }
-}
-
-export class DatabaseInternals {
-  /** @param {!Database} database */
-  constructor(public database: Database) {}
-
-  /** @return {Promise<void>} */
-  async delete(): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (this.database as any).checkDeleted_('delete');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    RepoManager.getInstance().deleteRepo((this.database as any).repo_ as Repo);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (this.database as any).repo_ = null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (this.database as any).root_ = null;
-    this.database.INTERNAL = null;
-    this.database = null;
   }
 }
