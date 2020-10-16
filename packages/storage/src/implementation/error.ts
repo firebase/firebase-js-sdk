@@ -18,14 +18,13 @@ import { FirebaseError } from '@firebase/util';
 import { CONFIG_STORAGE_BUCKET_KEY } from './constants';
 
 export class FirebaseStorageError extends FirebaseError {
-  customData: { serverResponse: string | null };
+  customData: { serverResponse: string | null } = { serverResponse: null };
 
   constructor(code: Code, message: string) {
     super(prependCode(code), 'Firebase Storage: ' + message);
     // Without this, `instanceof FirebaseStorageError`, in tests for example,
     // returns false.
     Object.setPrototypeOf(this, FirebaseStorageError.prototype);
-    this.customData = { serverResponse: null };
   }
 
   codeEquals(code: Code): boolean {

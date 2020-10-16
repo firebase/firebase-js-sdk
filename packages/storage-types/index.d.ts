@@ -85,7 +85,9 @@ export interface UploadMetadata extends SettableMetadata {
   md5Hash?: string | null;
 }
 
-export interface FirebaseStorageError extends FirebaseError {}
+interface FirebaseStorageError extends FirebaseError {
+  customData: { serverResponse: string | null };
+}
 
 export interface StorageObserver<T> {
   next?: NextFn<T> | null;
