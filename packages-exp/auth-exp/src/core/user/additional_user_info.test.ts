@@ -17,10 +17,17 @@
 
 import { expect } from 'chai';
 
-import { OperationType, ProviderId, UserProfile } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  ProviderId,
+  UserProfile
+} from '@firebase/auth-types-exp';
 
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
-import { _fromIdTokenResponse, getAdditionalUserInfo } from './additional_user_info';
+import {
+  _fromIdTokenResponse,
+  getAdditionalUserInfo
+} from './additional_user_info';
 import { base64Encode } from '@firebase/util';
 import { UserCredentialImpl } from './user_credential_impl';
 import { Auth } from '../../model/auth';
@@ -225,7 +232,7 @@ describe('core/user/additional_user_info', () => {
       cred = new UserCredentialImpl({
         user,
         providerId: null,
-        operationType: OperationType.SIGN_IN,
+        operationType: OperationType.SIGN_IN
       });
     });
 
@@ -266,12 +273,8 @@ describe('core/user/additional_user_info', () => {
 
     it('returns bespoke info if existing anonymous user', () => {
       // Note that _tokenResponse is not set on cred
-      (user as unknown as Record<string, unknown>).isAnonymous = true;
-      const {
-        isNewUser,
-        providerId,
-        profile
-      } = getAdditionalUserInfo(cred)!;
+      ((user as unknown) as Record<string, unknown>).isAnonymous = true;
+      const { isNewUser, providerId, profile } = getAdditionalUserInfo(cred)!;
       expect(isNewUser).to.be.false;
       expect(providerId).to.be.null;
       expect(profile).to.eq(profile);

@@ -129,14 +129,14 @@ class TwitterAdditionalUserInfo extends FederatedAdditionalUserInfoWithUsername 
 export function getAdditionalUserInfo(
   userCredential: externs.UserCredential
 ): externs.AdditionalUserInfo | null {
-  const {user, _tokenResponse} = userCredential as UserCredential;
+  const { user, _tokenResponse } = userCredential as UserCredential;
   if (user.isAnonymous && !_tokenResponse) {
     // Handle the special case where signInAnonymously() gets called twice.
     // No network call is made so there's nothing to actually fill this in
     return {
       providerId: null,
       isNewUser: false,
-      profile: null,
+      profile: null
     };
   }
 
