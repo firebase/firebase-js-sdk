@@ -90,16 +90,7 @@ export default [
       format: 'es',
       sourcemap: true
     },
-    plugins: [
-      ...es2017Plugins(),
-      // Needed as we also use the *.proto files
-      copy({
-        assets: ['../../../packages/firestore/src/protos']
-      }),
-      replace({
-        'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('protos')
-      })
-    ],
+    plugins: [...es2017Plugins()],
     external: resolveNodeExterns,
     treeshake: {
       moduleSideEffects: false

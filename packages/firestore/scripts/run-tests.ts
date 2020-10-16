@@ -18,6 +18,7 @@
 import * as yargs from 'yargs';
 import { resolve } from 'path';
 import { spawn } from 'child-process-promise';
+import {EMULATOR_PROJECT_ID} from '../test/integration/util/emulator_settings';
 
 const argv = yargs.options({
   main: {
@@ -57,8 +58,9 @@ let args = [
 
 if (argv.emulator) {
   process.env.FIRESTORE_EMULATOR_PORT = '8080';
-  process.env.FIRESTORE_EMULATOR_PROJECT_ID = 'test-emulator';
+  process.env.FIRESTORE_EMULATOR_PROJECT_ID = EMULATOR_PROJECT_ID;
 }
+export const ALT_PROJECT_ID = 'test-db2';
 
 if (argv.persistence) {
   process.env.USE_MOCK_PERSISTENCE = 'YES';

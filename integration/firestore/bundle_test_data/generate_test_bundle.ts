@@ -7,6 +7,11 @@ import { TestBundleBuilder } from '@firebase/firestore/test/unit/util/bundle_dat
 import { DatabaseId } from '@firebase/firestore/src/core/database_info';
 import { key } from '@firebase/firestore/test/util/helpers';
 import { collectionReference } from '@firebase/firestore/test/util/api_helpers';
+import {
+  EMULATOR_PROJECT_ID,
+  ALT_PROJECT_ID
+} from '@firebase/firestore/test/integration/util/emulator_settings';
+const PROJECT_CONFIG = require('../../../../config/project.json');
 
 /**
  * Returns a bundle builder for the given projectId. The builder will build with the
@@ -57,14 +62,21 @@ function bundleWithTestDocsAndQueries(projectId: string): TestBundleBuilder {
   return builder;
 }
 
+const PROJECT_IDS = [
+  ALT_PROJECT_ID,
+  EMULATOR_PROJECT_ID,
+  PROJECT_CONFIG.projectId
+];
+
 function main(args: string[]) {
-  if (args.length < 3) {
-    console.log(
-      `Usage: node generate_test_bundle.js <project-id-1> <project-id-2> ...`
-    );
+  // If arguments are given, assume they are project IDs used to generate bundles,
+  // otherwise generate using default project ids used by integration tests.
+  let projectIds = PROJECT_IDS;
+  if (args.length >= 3) {
+    projectIds = args.slice(2);
   }
   const result: { [k: string]: string } = {};
-  for (const projecId of args.slice(2)) {
+  for (const projecId of projectIds) {
     result[projecId] = bundleWithTestDocsAndQueries(
       projecId
     ).build('test-bundle', { seconds: 1001, nanos: 9999 });

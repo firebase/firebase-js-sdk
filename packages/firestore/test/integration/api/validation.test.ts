@@ -26,7 +26,8 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
-import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
+import { DEFAULT_PROJECT_ID } from '../util/settings';
+import {ALT_PROJECT_ID} from '../util/emulator_settings';
 
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;
