@@ -1,3 +1,4 @@
+import { FirebaseError } from '@firebase/util';
 /**
  * @license
  * Copyright 2017 Google LLC
@@ -16,53 +17,35 @@
  */
 import { CONFIG_STORAGE_BUCKET_KEY } from './constants';
 
-export class FirebaseStorageError implements Error {
-  private code_: string;
-  private message_: string;
-  private serverResponse_: string | null;
-  private name_: string;
+export class FirebaseStorageError extends FirebaseError {
+  customData: { serverResponse: string | null };
 
   constructor(code: Code, message: string) {
-    this.code_ = prependCode(code);
-    this.message_ = 'Firebase Storage: ' + message;
-    this.serverResponse_ = null;
-    this.name_ = 'FirebaseError';
-  }
-
-  codeProp(): string {
-    return this.code;
+    super(prependCode(code), 'Firebase Storage: ' + message);
+    // Without this, `instanceof FirebaseStorageError`, in tests for example,
+    // returns false.
+    Object.setPrototypeOf(this, FirebaseStorageError.prototype);
+    this.customData = { serverResponse: null };
   }
 
   codeEquals(code: Code): boolean {
-    return prependCode(code) === this.codeProp();
-  }
-
-  serverResponseProp(): string | null {
-    return this.serverResponse_;
-  }
-
-  setServerResponseProp(serverResponse: string | null): void {
-    this.serverResponse_ = serverResponse;
-  }
-
-  get name(): string {
-    return this.name_;
-  }
-
-  get code(): string {
-    return this.code_;
+    return prependCode(code) === this.code;
   }
 
   get message(): string {
-    if (this.serverResponse_) {
-      return this.message_ + '\n' + this.serverResponse_;
+    if (this.customData.serverResponse) {
+      return this.message + '\n' + this.customData.serverResponse;
     } else {
-      return this.message_;
+      return this.message;
     }
   }
 
   get serverResponse(): null | string {
-    return this.serverResponse_;
+    return this.customData.serverResponse;
+  }
+
+  set serverResponse(serverResponse: string | null) {
+    this.customData.serverResponse = serverResponse;
   }
 }
 

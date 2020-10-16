@@ -7620,12 +7620,7 @@ declare namespace firebase.storage {
   /**
    * An error returned by the Firebase Storage SDK.
    */
-  interface FirebaseStorageError {
-    name: string;
-    code: string;
-    message: string;
-    serverResponse: null | string;
-  }
+  interface FirebaseStorageError extends FirebaseError {}
 
   interface StorageObserver<T> {
     next?: NextFn<T> | null;

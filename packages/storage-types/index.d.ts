@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { CompleteFn, NextFn, Unsubscribe } from '@firebase/util';
+import { CompleteFn, FirebaseError, NextFn, Unsubscribe } from '@firebase/util';
 
 export interface FullMetadata extends UploadMetadata {
   bucket: string;
@@ -85,12 +85,7 @@ export interface UploadMetadata extends SettableMetadata {
   md5Hash?: string | null;
 }
 
-export interface FirebaseStorageError {
-  name: string;
-  code: string;
-  message: string;
-  serverResponse: null | string;
-}
+export interface FirebaseStorageError extends FirebaseError {}
 
 export interface StorageObserver<T> {
   next?: NextFn<T> | null;
