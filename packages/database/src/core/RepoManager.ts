@@ -88,18 +88,27 @@ export class RepoManager {
   }
 
   /**
-   * Create a new repo based on an old one but pointing to a particular host and port.
+   * Update an existing repo in place to point to a new host/port.
    */
-  cloneRepoForEmulator(repo: Repo, host: string, port: number): Repo {
-    const nodeAdmin = repo.repoInfo_.nodeAdmin;
+  applyEmulatorSettings(repo: Repo, host: string, port: number): void {
     const url = `http://${host}:${port}?ns=${repo.repoInfo_.namespace}`;
+
+    const nodeAdmin = repo.repoInfo_.nodeAdmin;
     const authTokenProvider = nodeAdmin
       ? new EmulatorAdminTokenProvider()
       : repo.authTokenProvider;
 
-    const parsedUrl = parseRepoInfo(url, nodeAdmin);
+    // Before we modify the repo, get the key used in the repo manager
+    const oldRepoKey = repo.repoInfo_.toURLString();
 
-    return this.createRepo(parsedUrl.repoInfo, repo.app, authTokenProvider);
+    // Update the repo in-place
+    const { repoInfo } = parseRepoInfo(url, nodeAdmin);
+    repo.repoInfo_ = repoInfo;
+    repo.authTokenProvider = authTokenProvider;
+
+    // Replace the repomanager cache entry
+    delete this.repos_[repo.app.name][oldRepoKey];
+    this.repos_[repo.app.name][repoInfo.toURLString()] = repo;
   }
 
   /**

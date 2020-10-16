@@ -36,7 +36,7 @@ export class Database implements FirebaseService {
   INTERNAL: DatabaseInternals;
 
   /** Track if the instance has been used (root or repo accessed) */
-  private instanceUsed_: boolean = false;
+  private instanceStarted_: boolean = false;
 
   /** Backing state for root_ */
   private rootInternal_: Reference;
@@ -70,20 +70,19 @@ export class Database implements FirebaseService {
   }
 
   private get repo_(): Repo {
-    this.instanceUsed_ = true;
+    this.instanceStarted_ = true;
     return this.repoInternal_;
   }
 
   private set repo_(repo: Repo) {
-    if (repo instanceof Repo) {
-      this.root_ = new Reference(repo, Path.Empty);
-    }
-
     this.repoInternal_ = repo;
   }
 
   get root_(): Reference {
-    this.instanceUsed_ = true;
+    if (!this.rootInternal_) {
+      this.rootInternal_ = new Reference(this.repo_, Path.Empty);
+    }
+
     return this.rootInternal_;
   }
 
@@ -104,19 +103,15 @@ export class Database implements FirebaseService {
    * @param port the emulator port (ex: 8080)
    */
   useEmulator(host: string, port: number): void {
-    if (this.instanceUsed_) {
+    if (this.instanceStarted_) {
       fatal(
         'Cannot call useEmulator() after instance has already been initialized.'
       );
       return;
     }
 
-    // Get a new Repo which has the emulator settings applied
-    const manager = RepoManager.getInstance();
-    const oldRepo = this.repo_;
-
-    this.repo_ = manager.cloneRepoForEmulator(oldRepo, host, port);
-    manager.deleteRepo(oldRepo);
+    // Modify the repo to apply emulator settings
+    RepoManager.getInstance().applyEmulatorSettings(this.repoInternal_, host, port);
   }
 
   /**
