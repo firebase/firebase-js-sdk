@@ -1813,7 +1813,7 @@ declare namespace firebase.functions {
     /**
      * Changes this instance to point to a Cloud Functions emulator running
      * locally. See https://firebase.google.com/docs/functions/local-emulator
-     * 
+     *
      * @deprecated Prefer the useEmulator(host, port) method.
      * @param origin The origin of the local emulator, such as
      * "http://localhost:5005".
@@ -3132,10 +3132,10 @@ declare namespace firebase.auth {
      */
     useDeviceLanguage(): void;
     /**
-     * Modify this Auth instance to communicate with the Firebase Auth emulator.  This must be 
+     * Modify this Auth instance to communicate with the Firebase Auth emulator.  This must be
      * called synchronously immediately following the first call to `firebase.auth()`.  Do not use
      * with production credentials as emulator traffic is not encrypted.
-     * 
+     *
      * @param url The URL at which the emulator is running (eg, 'http://localhost:9099')
      */
     useEmulator(url: string): void;
@@ -7846,40 +7846,6 @@ declare namespace firebase.firestore {
     ssl?: boolean;
 
     /**
-     * Specifies whether to use `Timestamp` objects for timestamp fields in
-     * `DocumentSnapshot`s. This is enabled by default and should not be
-     * disabled.
-     *
-     * Previously, Firestore returned timestamp fields as `Date` but `Date`
-     * only supports millisecond precision, which leads to truncation and
-     * causes unexpected behavior when using a timestamp from a snapshot as a
-     * part of a subsequent query.
-     *
-     * Now, Firestore returns `Timestamp` values for all timestamp values stored
-     * in Cloud Firestore instead of system `Date` objects, avoiding this kind
-     * of problem. Consequently, you must update your code to handle `Timestamp`
-     * objects instead of `Date` objects.
-     *
-     * If you want to **temporarily** opt into the old behavior of returning
-     * `Date` objects, you may **temporarily** set `timestampsInSnapshots` to
-     * false. Opting into this behavior will no longer be possible in the next
-     * major release of Firestore, after which code that expects Date objects
-     * **will break**.
-     *
-     * @example **Using Date objects in Firestore.**
-     * // With deprecated setting `timestampsInSnapshot: true`:
-     * const date : Date = snapshot.get('created_at');
-     * // With new default behavior:
-     * const timestamp : Timestamp = snapshot.get('created_at');
-     * const date : Date = timestamp.toDate();
-     *
-     * @deprecated This setting will be removed in a future release. You should
-     * update your code to expect `Timestamp` objects and stop using the
-     * `timestampsInSnapshots` setting.
-     */
-    timestampsInSnapshots?: boolean;
-
-    /**
      * An approximate cache size threshold for the on-disk data. If the cache grows beyond this
      * size, Firestore will start removing data that hasn't been recently used. The size is not a
      * guarantee that the cache will stay below that size, only that if the cache exceeds the given
@@ -7953,17 +7919,6 @@ declare namespace firebase.firestore {
      * in all but the first tab.
      */
     synchronizeTabs?: boolean;
-
-    /**
-     * Whether to synchronize the in-memory state of multiple tabs. Setting this
-     * to `true` in all open tabs enables shared access to local persistence,
-     * shared execution of queries and latency-compensated local document updates
-     * across all connected instances.
-     *
-     * @deprecated This setting is deprecated. To enable synchronization between
-     * multiple tabs, please use `synchronizeTabs: true` instead.
-     */
-    experimentalTabSynchronization?: boolean;
 
     /**
      * Whether to force enable persistence for the client. This cannot be used

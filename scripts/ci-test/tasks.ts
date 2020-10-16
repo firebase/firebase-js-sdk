@@ -16,6 +16,7 @@
  */
 
 import { resolve } from 'path';
+import { existsSync } from 'fs';
 import { exec } from 'child-process-promise';
 import chalk from 'chalk';
 import simpleGit from 'simple-git/promise';
@@ -123,7 +124,15 @@ export async function getTestTasks(): Promise<TestTask[]> {
     // Check for changed files inside package dirs.
     const match = filename.match('^(packages(-exp)?/[a-zA-Z0-9-]+)/.*');
     if (match && match[1]) {
-      const changedPkg = require(resolve(root, match[1], 'package.json'));
+      const pkgJsonPath = resolve(root, match[1], 'package.json');
+
+      // skip projects that don't have package.json
+      // It could happen when we rename a package or remove a package from the repo
+      if (!existsSync(pkgJsonPath)) {
+        continue;
+      }
+
+      const changedPkg = require(pkgJsonPath);
       if (changedPkg) {
         const changedPkgName = changedPkg.name;
         const task = testTasks.find(t => t.pkgName === changedPkgName);
