@@ -111,10 +111,7 @@ import {
   valueDescription,
   validateIsNotUsedTogether
 } from '../util/input_validation';
-import {
-  setLogLevel as setClientLogLevel,
-  logWarn
-} from '../util/log';
+import { setLogLevel as setClientLogLevel, logWarn } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
@@ -1818,22 +1815,6 @@ function validateDisjunctiveFilterElements(
       `Invalid Query. '${operator.toString()}' filters support a ` +
         'maximum of 10 elements in the value array.'
     );
-  }
-  if (operator === Operator.IN || operator === Operator.ARRAY_CONTAINS_ANY) {
-    if (value.indexOf(null) >= 0) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid Query. '${operator.toString()}' filters cannot contain 'null' ` +
-          'in the value array.'
-      );
-    }
-    if (value.filter(element => Number.isNaN(element)).length > 0) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid Query. '${operator.toString()}' filters cannot contain 'NaN' ` +
-          'in the value array.'
-      );
-    }
   }
 }
 
