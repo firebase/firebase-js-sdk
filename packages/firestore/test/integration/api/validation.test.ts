@@ -159,7 +159,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
             'getFirestore()';
         } else {
           errorMsg +=
-            'You can only call settings() before calling any other ' +
+            'You can only modify settings before calling any other ' +
             'methods on a Firestore object.';
         }
 
@@ -182,6 +182,24 @@ apiDescribe('Validation:', (persistence: boolean) => {
       // Verify that this doesn't throw.
       db.settings({ cacheSizeBytes: /* CACHE_SIZE_UNLIMITED= */ -1 });
     });
+
+    validationIt(persistence, 'useEmulator can set host and port', () => {
+      const db = newTestFirestore('test-project');
+      // Verify that this doesn't throw.
+      db.useEmulator('localhost', 9000);
+    });
+
+    validationIt(
+      persistence,
+      'disallows calling useEmulator after use',
+      async db => {
+        const errorMsg =
+          'Firestore has already been started and its settings can no longer be changed.';
+
+        await db.doc('foo/bar').set({});
+        expect(() => db.useEmulator('localhost', 9000)).to.throw(errorMsg);
+      }
+    );
   });
 
   describe('Firestore', () => {
