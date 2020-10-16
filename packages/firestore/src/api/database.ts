@@ -48,14 +48,11 @@ import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import { Blob } from './blob';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
+import { ComponentConfiguration } from '../core/component_provider';
 import {
-  IndexedDbOfflineComponentProvider,
-  MemoryOfflineComponentProvider,
-  MultiTabOfflineComponentProvider,
-  OfflineComponentProvider,
-  OnlineComponentProvider
-} from '../core/component_provider';
-import { FirestoreClient } from '../core/firestore_client';
+  FirestoreClient,
+  MAX_CONCURRENT_LIMBO_RESOLUTIONS
+} from '../core/firestore_client';
 import {
   Bound,
   Direction,
@@ -91,7 +88,7 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { isServerTimestamp } from '../model/server_timestamps';
 import { refValue } from '../model/values';
 import { debugAssert, fail } from '../util/assert';
-import { AsyncQueue } from '../util/async_queue';
+import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import {
   invalidClassError,
@@ -112,6 +109,7 @@ import {
   validateIsNotUsedTogether
 } from '../util/input_validation';
 import {
+  logDebug,
   setLogLevel as setClientLogLevel,
   logWarn
 } from '../util/log';
@@ -119,6 +117,7 @@ import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
 import {
+  CredentialChangeListener,
   CredentialsProvider,
   CredentialsSettings,
   EmptyCredentialsProvider,
@@ -147,9 +146,17 @@ import { UserDataWriter } from './user_data_writer';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import {
-  indexedDbClearPersistence,
-  indexedDbStoragePrefix
-} from '../local/indexeddb_persistence';
+  clearIndexedDbPersistence,
+  enableIndexedDbPersistence,
+  enableMultiTabIndexedDbPersistence,
+  FirestoreCompat
+} from '../../exp/src/api/database';
+import { User } from '../auth/user';
+import {
+  getOfflineComponentProvider,
+  getOnlineComponentProvider,
+  removeComponents
+} from '../../exp/src/api/components';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -323,11 +330,11 @@ class FirestoreSettings {
  */
 export interface PersistenceProvider {
   enableIndexedDbPersistence(
-    firestore: Firestore,
+    firestore: FirestoreCompat,
     forceOwnership: boolean
   ): Promise<void>;
-  enableMultiTabIndexedDbPersistence(firestore: Firestore): Promise<void>;
-  clearIndexedDbPersistence(firestore: Firestore): Promise<void>;
+  enableMultiTabIndexedDbPersistence(firestore: FirestoreCompat): Promise<void>;
+  clearIndexedDbPersistence(firestore: FirestoreCompat): Promise<void>;
 }
 
 const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
@@ -341,7 +348,7 @@ const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
  */
 export class MemoryPersistenceProvider implements PersistenceProvider {
   enableIndexedDbPersistence(
-    firestore: Firestore,
+    firestore: FirestoreCompat,
     forceOwnership: boolean
   ): Promise<void> {
     throw new FirestoreError(
@@ -350,14 +357,16 @@ export class MemoryPersistenceProvider implements PersistenceProvider {
     );
   }
 
-  enableMultiTabIndexedDbPersistence(firestore: Firestore): Promise<void> {
+  enableMultiTabIndexedDbPersistence(
+    firestore: FirestoreCompat
+  ): Promise<void> {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
       MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
     );
   }
 
-  clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
+  clearIndexedDbPersistence(firestore: FirestoreCompat): Promise<void> {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
       MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
@@ -370,55 +379,19 @@ export class MemoryPersistenceProvider implements PersistenceProvider {
  */
 export class IndexedDbPersistenceProvider implements PersistenceProvider {
   enableIndexedDbPersistence(
-    firestore: Firestore,
+    firestore: FirestoreCompat,
     forceOwnership: boolean
   ): Promise<void> {
-    const onlineComponentProvider = new OnlineComponentProvider();
-    const offlineComponentProvider = new IndexedDbOfflineComponentProvider(
-      onlineComponentProvider,
-      firestore._getSettings().cacheSizeBytes,
-      forceOwnership
-    );
-    return firestore._configureClient(
-      offlineComponentProvider,
-      onlineComponentProvider
-    );
+    return enableIndexedDbPersistence(firestore, { forceOwnership });
   }
-
-  enableMultiTabIndexedDbPersistence(firestore: Firestore): Promise<void> {
-    const onlineComponentProvider = new OnlineComponentProvider();
-    const offlineComponentProvider = new MultiTabOfflineComponentProvider(
-      onlineComponentProvider,
-      firestore._getSettings().cacheSizeBytes
-    );
-    return firestore._configureClient(
-      offlineComponentProvider,
-      onlineComponentProvider
-    );
-  }
-
-  clearIndexedDbPersistence(firestore: Firestore): Promise<void> {
-    const deferred = new Deferred();
-    firestore._queue.enqueueAndForgetEvenWhileRestricted(async () => {
-      try {
-        await indexedDbClearPersistence(
-          indexedDbStoragePrefix(
-            firestore._databaseId,
-            firestore._persistenceKey
-          )
-        );
-        deferred.resolve();
-      } catch (e) {
-        deferred.reject(e);
-      }
-    });
-    return deferred.promise;
-  }
+  enableMultiTabIndexedDbPersistence = enableMultiTabIndexedDbPersistence;
+  clearIndexedDbPersistence = clearIndexedDbPersistence;
 }
 /**
  * The root reference to the database.
  */
-export class Firestore implements PublicFirestore, FirebaseService {
+export class Firestore
+  implements PublicFirestore, FirebaseService, FirestoreCompat {
   // The objects that are a part of this API are exposed to third-parties as
   // compiled javascript so we want to flag our private members with a leading
   // underscore to discourage their use.
@@ -427,6 +400,12 @@ export class Firestore implements PublicFirestore, FirebaseService {
   private _credentials: CredentialsProvider;
   private readonly _firebaseApp: FirebaseApp | null = null;
   private _settings: FirestoreSettings;
+
+  private readonly _clientId = AutoId.newId();
+
+  private readonly _receivedInitialUser = new Deferred<void>();
+  private _user = User.UNAUTHENTICATED;
+  private _credentialListener: CredentialChangeListener = () => {};
 
   // The firestore client instance. This will be available as soon as
   // configureClient is called, but any calls against it will block until
@@ -474,6 +453,41 @@ export class Firestore implements PublicFirestore, FirebaseService {
     }
 
     this._settings = new FirestoreSettings({});
+  }
+
+  async _getConfiguration(): Promise<ComponentConfiguration> {
+    this.ensureClientConfigured();
+    await this._receivedInitialUser.promise;
+
+    return {
+      asyncQueue: this._queue,
+      databaseInfo: this.makeDatabaseInfo(),
+      clientId: this._clientId,
+      credentials: this._credentials,
+      initialUser: this._user!,
+      maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS
+    };
+  }
+
+  _setCredentialChangeListener(listener: (user: User) => void): void {
+    logDebug('FirebaseFirestore', 'Registering credential change listener');
+    this._credentialListener = listener;
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this._receivedInitialUser.promise.then(() =>
+      this._credentialListener(this._user!)
+    );
+  }
+
+  _delete(): Promise<void> {
+    return this.INTERNAL.delete();
+  }
+
+  get _initialized(): boolean {
+    return !!this._firestoreClient;
+  }
+
+  get _terminated(): boolean {
+    return this._queue.isShuttingDown;
   }
 
   get _dataReader(): UserDataReader {
@@ -580,27 +594,12 @@ export class Firestore implements PublicFirestore, FirebaseService {
   }
 
   async clearPersistence(): Promise<void> {
-    if (
-      this._firestoreClient !== undefined &&
-      !this._firestoreClient.clientTerminated
-    ) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        'Persistence can only be cleared before a Firestore instance is ' +
-          'initialized or after it is terminated.'
-      );
-    }
     return this._persistenceProvider.clearIndexedDbPersistence(this);
   }
 
   terminate(): Promise<void> {
     (this.app as _FirebaseApp)._removeServiceInstance('firestore');
     return this.INTERNAL.delete();
-  }
-
-  get _isTerminated(): boolean {
-    this.ensureClientConfigured();
-    return this._firestoreClient!.clientTerminated;
   }
 
   waitForPendingWrites(): Promise<void> {
@@ -630,10 +629,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this._configureClient(
-        new MemoryOfflineComponentProvider(),
-        new OnlineComponentProvider()
-      );
+      this.configureClient();
     }
     return this._firestoreClient as FirestoreClient;
   }
@@ -649,12 +645,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
     );
   }
 
-  // TODO(schmidt-sebastian): Make this private again in
-  // https://github.com/firebase/firebase-js-sdk/pull/3901.
-  _configureClient(
-    offlineComponentProvider: OfflineComponentProvider,
-    onlineComponentProvider: OnlineComponentProvider
-  ): Promise<void> {
+  private configureClient(): Promise<void> {
     debugAssert(!!this._settings.host, 'FirestoreSettings.host is not set');
     debugAssert(
       !this._firestoreClient,
@@ -662,14 +653,25 @@ export class Firestore implements PublicFirestore, FirebaseService {
     );
 
     const databaseInfo = this.makeDatabaseInfo();
+    this._firestoreClient = new FirestoreClient(this._queue);
 
-    this._firestoreClient = new FirestoreClient(this._credentials, this._queue);
+    this._credentials.setChangeListener(user => {
+      if (!this._user.isEqual(user)) {
+        this._user = user;
+        this._credentialListener(user);
+      }
+      this._receivedInitialUser.resolve();
+    });
 
-    return this._firestoreClient.start(
-      databaseInfo,
-      offlineComponentProvider,
-      onlineComponentProvider
-    );
+    return this._queue.enqueue(async () => {
+      const offlineComponentProvider = await getOfflineComponentProvider(this);
+      const onlineComponentProvider = await getOnlineComponentProvider(this);
+      return this._firestoreClient!.start(
+        databaseInfo,
+        offlineComponentProvider,
+        onlineComponentProvider
+      );
+    });
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
@@ -703,10 +705,31 @@ export class Firestore implements PublicFirestore, FirebaseService {
 
   INTERNAL = {
     delete: async (): Promise<void> => {
-      // The client must be initalized to ensure that all subsequent API usage
+      // The client must be initialized to ensure that all subsequent API usage
       // throws an exception.
       this.ensureClientConfigured();
-      await this._firestoreClient!.terminate();
+
+      this._queue.enterRestrictedMode();
+      const deferred = new Deferred();
+      this._queue.enqueueAndForgetEvenWhileRestricted(async () => {
+        try {
+          await removeComponents(this);
+
+          // `removeChangeListener` must be called after shutting down the
+          // RemoteStore as it will prevent the RemoteStore from retrieving
+          // auth tokens.
+          this._credentials.removeChangeListener();
+
+          deferred.resolve();
+        } catch (e) {
+          const firestoreError = wrapInUserErrorIfRecoverable(
+            e,
+            `Failed to shutdown persistence`
+          );
+          deferred.reject(firestoreError);
+        }
+      });
+      return deferred.promise;
     }
   };
 

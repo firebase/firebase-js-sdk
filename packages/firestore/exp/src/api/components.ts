@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseFirestore } from './database';
+import { FirebaseFirestore, FirestoreCompat } from './database';
 import {
   MemoryOfflineComponentProvider,
   OfflineComponentProvider,
@@ -44,28 +44,27 @@ const LOG_TAG = 'ComponentProvider';
 // Instance maps that ensure that only one component provider exists per
 // Firestore instance.
 const offlineComponentProviders = new Map<
-  FirebaseFirestore,
+  FirestoreCompat,
   OfflineComponentProvider
 >();
 const onlineComponentProviders = new Map<
-  FirebaseFirestore,
+  FirestoreCompat,
   OnlineComponentProvider
 >();
 
 export async function setOfflineComponentProvider(
-  firestore: FirebaseFirestore,
+  firestore: FirestoreCompat,
   offlineComponentProvider: OfflineComponentProvider
 ): Promise<void> {
+  firestore._queue.verifyOperationInProgress();
+
   logDebug(LOG_TAG, 'Initializing OfflineComponentProvider');
   const configuration = await firestore._getConfiguration();
   await offlineComponentProvider.initialize(configuration);
   firestore._setCredentialChangeListener(user =>
-    // TODO(firestorexp): This should be a retryable IndexedDB operation
-    firestore._queue.enqueueAndForget(() =>
-      // TODO(firestorexp): Make sure handleUserChange is a no-op if user
-      // didn't change
-      handleUserChange(offlineComponentProvider.localStore, user)
-    )
+    firestore._queue.enqueueRetryable(async () => {
+      await handleUserChange(offlineComponentProvider.localStore, user);
+    })
   );
   // When a user calls clearPersistence() in one client, all other clients
   // need to be terminated to allow the delete to succeed.
@@ -77,15 +76,15 @@ export async function setOfflineComponentProvider(
 }
 
 export async function setOnlineComponentProvider(
-  firestore: FirebaseFirestore,
+  firestore: FirestoreCompat,
   onlineComponentProvider: OnlineComponentProvider
 ): Promise<void> {
   firestore._queue.verifyOperationInProgress();
 
-  const configuration = await firestore._getConfiguration();
   const offlineComponentProvider = await getOfflineComponentProvider(firestore);
 
   logDebug(LOG_TAG, 'Initializing OnlineComponentProvider');
+  const configuration = await firestore._getConfiguration();
   await onlineComponentProvider.initialize(
     offlineComponentProvider,
     configuration
@@ -93,8 +92,7 @@ export async function setOnlineComponentProvider(
   // The CredentialChangeListener of the online component provider takes
   // precedence over the offline component provider.
   firestore._setCredentialChangeListener(user =>
-    // TODO(firestoreexp): This should be enqueueRetryable.
-    firestore._queue.enqueueAndForget(() =>
+    firestore._queue.enqueueRetryable(() =>
       remoteStoreHandleCredentialChange(
         onlineComponentProvider.remoteStore,
         user
@@ -105,8 +103,9 @@ export async function setOnlineComponentProvider(
   onlineComponentProviders.set(firestore, onlineComponentProvider);
 }
 
-async function getOfflineComponentProvider(
-  firestore: FirebaseFirestore
+// TODO(firestore-compat): Remove `export` once compat migration is complete.
+export async function getOfflineComponentProvider(
+  firestore: FirestoreCompat
 ): Promise<OfflineComponentProvider> {
   firestore._queue.verifyOperationInProgress();
 
@@ -121,8 +120,9 @@ async function getOfflineComponentProvider(
   return offlineComponentProviders.get(firestore)!;
 }
 
-async function getOnlineComponentProvider(
-  firestore: FirebaseFirestore
+// TODO(firestore-compat): Remove `export` once compat migration is complete.
+export async function getOnlineComponentProvider(
+  firestore: FirestoreCompat
 ): Promise<OnlineComponentProvider> {
   firestore._queue.verifyOperationInProgress();
 
@@ -183,7 +183,7 @@ export async function getLocalStore(
  * when the Firestore instance is terminated.
  */
 export async function removeComponents(
-  firestore: FirebaseFirestore
+  firestore: FirestoreCompat
 ): Promise<void> {
   const onlineComponentProviderPromise = onlineComponentProviders.get(
     firestore

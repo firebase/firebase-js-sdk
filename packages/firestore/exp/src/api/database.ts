@@ -53,7 +53,7 @@ import {
   setOnlineComponentProvider
 } from './components';
 import { DEFAULT_HOST, DEFAULT_SSL } from '../../../lite/src/api/components';
-import { DatabaseInfo } from '../../../src/core/database_info';
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { AutoId } from '../../../src/util/misc';
 import { User } from '../../../src/auth/user';
 import { CredentialChangeListener } from '../../../src/api/credentials';
@@ -76,6 +76,21 @@ export interface Settings extends LiteSettings {
   cacheSizeBytes?: number;
 }
 
+// TODO(firestore-compat): This interface exposes internal APIs that the Compat
+// layer implements to interact with the firestore-exp SDL. We can remove this
+// class once we have an actual compat class for FirebaseFirestore.
+export interface FirestoreCompat {
+  readonly _initialized: boolean;
+  readonly _terminated: boolean;
+  readonly _databaseId: DatabaseId;
+  readonly _persistenceKey: string;
+  readonly _queue: AsyncQueue;
+  _getSettings(): Settings;
+  _getConfiguration(): Promise<ComponentConfiguration>;
+  _delete(): Promise<void>;
+  _setCredentialChangeListener(listener: (user: User) => void): void;
+}
+
 /**
  * The Cloud Firestore service interface.
  *
@@ -83,7 +98,7 @@ export interface Settings extends LiteSettings {
  */
 export class FirebaseFirestore
   extends LiteFirestore
-  implements _FirebaseService {
+  implements _FirebaseService, FirestoreCompat {
   readonly _queue = new AsyncQueue();
   readonly _persistenceKey: string;
   readonly _clientId = AutoId.newId();
@@ -103,7 +118,10 @@ export class FirebaseFirestore
     super(app, authProvider);
     this._persistenceKey = app.name;
     this._credentials.setChangeListener(user => {
-      this._user = user;
+      if (!this._user.isEqual(user)) {
+        this._user = user;
+        this._credentialListener(user);
+      }
       this._receivedInitialUser.resolve();
     });
   }
@@ -250,7 +268,7 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
  * @return A promise that represents successfully enabling persistent storage.
  */
 export function enableIndexedDbPersistence(
-  firestore: FirebaseFirestore,
+  firestore: FirestoreCompat,
   persistenceSettings?: PersistenceSettings
 ): Promise<void> {
   verifyNotInitialized(firestore);
@@ -297,7 +315,7 @@ export function enableIndexedDbPersistence(
  * storage.
  */
 export function enableMultiTabIndexedDbPersistence(
-  firestore: FirebaseFirestore
+  firestore: FirestoreCompat
 ): Promise<void> {
   verifyNotInitialized(firestore);
 
@@ -326,7 +344,7 @@ export function enableMultiTabIndexedDbPersistence(
  * but the client remains usable.
  */
 function setPersistenceProviders(
-  firestore: FirebaseFirestore,
+  firestore: FirestoreCompat,
   onlineComponentProvider: OnlineComponentProvider,
   offlineComponentProvider: OfflineComponentProvider
 ): Promise<void> {
@@ -415,7 +433,7 @@ export function canFallbackFromIndexedDbError(
  * cleared. Otherwise, the promise is rejected with an error.
  */
 export function clearIndexedDbPersistence(
-  firestore: FirebaseFirestore
+  firestore: FirestoreCompat
 ): Promise<void> {
   if (firestore._initialized && !firestore._terminated) {
     throw new FirestoreError(
@@ -531,7 +549,7 @@ export function terminate(firestore: FirebaseFirestore): Promise<void> {
   return firestore._delete();
 }
 
-function verifyNotInitialized(firestore: FirebaseFirestore): void {
+function verifyNotInitialized(firestore: FirestoreCompat): void {
   if (firestore._initialized || firestore._terminated) {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
