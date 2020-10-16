@@ -23,7 +23,7 @@ import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { AuthInternal } from './firebase_internal';
 
-describe('src/core/auth/firebase_internal', () => {
+describe('core/auth/firebase_internal', () => {
   let auth: Auth;
   let authInternal: AuthInternal;
   beforeEach(async () => {

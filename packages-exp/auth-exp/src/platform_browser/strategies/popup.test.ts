@@ -56,7 +56,7 @@ use(chaiAsPromised);
 const MATCHING_EVENT_ID = 'matching-event-id';
 const OTHER_EVENT_ID = 'wrong-id';
 
-describe('src/core/strategies/popup', () => {
+describe('platform_browser/strategies/popup', () => {
   let resolver: PopupRedirectResolver;
   let provider: OAuthProvider;
   let eventManager: AuthEventManager;

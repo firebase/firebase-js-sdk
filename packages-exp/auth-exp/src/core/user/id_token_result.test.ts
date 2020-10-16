@@ -33,7 +33,7 @@ const MAY_1 = new Date('May 1, 2020');
 const MAY_2 = new Date('May 2, 2020');
 const MAY_3 = new Date('May 3, 2020');
 
-describe('/core/user/id_token_result', () => {
+describe('core/user/id_token_result', () => {
   let user: User;
 
   beforeEach(async () => {

@@ -24,6 +24,7 @@ import { _isHttpOrHttps } from '../../core/util/location';
 import { ApplicationVerifier } from '../../model/application_verifier';
 import { Auth } from '../../model/auth';
 import { _window } from '../auth_window';
+import { _isWorker } from '../util/worker';
 import { Parameters, Recaptcha } from './recaptcha';
 import {
   MockReCaptchaLoaderImpl,
@@ -215,7 +216,7 @@ export class RecaptchaVerifier
   }
 
   private async init(): Promise<void> {
-    assert(_isHttpOrHttps() && !isWorker(), AuthErrorCode.INTERNAL_ERROR, {
+    assert(_isHttpOrHttps() && !_isWorker(), AuthErrorCode.INTERNAL_ERROR, {
       appName: this.appName
     });
 
@@ -236,13 +237,6 @@ export class RecaptchaVerifier
     });
     return this.recaptcha;
   }
-}
-
-function isWorker(): boolean {
-  return (
-    typeof _window()['WorkerGlobalScope'] !== 'undefined' &&
-    typeof _window()['importScripts'] === 'function'
-  );
 }
 
 function domReady(): Promise<void> {

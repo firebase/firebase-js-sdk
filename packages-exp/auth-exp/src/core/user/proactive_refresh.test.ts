@@ -32,7 +32,7 @@ import {
 use(chaiAsPromised);
 use(sinonChai);
 
-describe('src/core/user/proactive_refresh', () => {
+describe('core/user/proactive_refresh', () => {
   let user: User;
   let proactiveRefresh: ProactiveRefresh;
   let getTokenStub: sinon.SinonStub;
