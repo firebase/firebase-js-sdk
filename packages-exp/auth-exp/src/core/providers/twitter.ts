@@ -44,7 +44,7 @@ import { OAuthProvider } from './oauth';
 export class TwitterAuthProvider extends OAuthProvider {
   static readonly TWITTER_SIGN_IN_METHOD = externs.SignInMethod.TWITTER;
   static readonly PROVIDER_ID = externs.ProviderId.TWITTER;
-  
+
   constructor() {
     super(externs.ProviderId.TWITTER);
   }

@@ -48,7 +48,7 @@ describe('auth compat', () => {
       if (typeof self !== 'undefined') {
         sinon.stub(underlyingAuth, '_getPersistence').returns('TEST');
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        authCompat.signInWithRedirect(new impl.GoogleAuthProvider('google'));
+        authCompat.signInWithRedirect(new impl.GoogleAuthProvider());
         expect(
           sessionStorage.getItem('firebase:persistence:api-key:undefined')
         ).to.eq('TEST');
