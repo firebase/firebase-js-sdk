@@ -11,13 +11,18 @@ export declare class GoogleAuthProvider extends OAuthProvider
 ```
 <b>Extends:</b> [OAuthProvider](./auth.oauthprovider.md)
 
+## Constructors
+
+|  Constructor | Modifiers | Description |
+|  --- | --- | --- |
+|  [(constructor)()](./auth.googleauthprovider._constructor_.md) |  | Constructs a new instance of the <code>GoogleAuthProvider</code> class |
+
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [GOOGLE\_SIGN\_IN\_METHOD](./auth.googleauthprovider.google_sign_in_method.md) | <code>static</code> | (not declared) |  |
 |  [PROVIDER\_ID](./auth.googleauthprovider.provider_id.md) | <code>static</code> | (not declared) |  |
-|  [providerId](./auth.googleauthprovider.providerid.md) |  | (not declared) |  |
 
 ## Methods
 
