@@ -98,17 +98,10 @@ export class RepoManager {
       ? new EmulatorAdminTokenProvider()
       : repo.authTokenProvider;
 
-    // Before we modify the repo, get the key used in the repo manager
-    const oldRepoKey = repo.repoInfo_.toURLString();
-
     // Update the repo in-place
     const { repoInfo } = parseRepoInfo(url, nodeAdmin);
     repo.repoInfo_ = repoInfo;
     repo.authTokenProvider = authTokenProvider;
-
-    // Replace the repomanager cache entry
-    delete this.repos_[repo.app.name][oldRepoKey];
-    this.repos_[repo.app.name][repoInfo.toURLString()] = repo;
   }
 
   /**
@@ -181,13 +174,13 @@ export class RepoManager {
   deleteRepo(repo: Repo) {
     const appRepos = safeGet(this.repos_, repo.app.name);
     // This should never happen...
-    if (!appRepos || safeGet(appRepos, repo.repoInfo_.toURLString()) !== repo) {
+    if (!appRepos || safeGet(appRepos, repo.key) !== repo) {
       fatal(
         `Database ${repo.app.name}(${repo.repoInfo_}) has already been deleted.`
       );
     }
     repo.interrupt();
-    delete appRepos[repo.repoInfo_.toURLString()];
+    delete appRepos[repo.key];
   }
 
   /**

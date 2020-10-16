@@ -54,6 +54,9 @@ const INTERRUPT_REASON = 'repo_interrupt';
  * A connection to a single data repository.
  */
 export class Repo {
+  /** Key for uniquely identifying this repo, used in RepoManager */
+  readonly key: string;
+
   dataUpdateCount = 0;
   private infoSyncTree_: SyncTree;
   private serverSyncTree_: SyncTree;
@@ -174,6 +177,9 @@ export class Repo {
         this.server_.unlisten(query, tag);
       }
     });
+
+    // This key is intentionally not updated if RepoInfo is later changed or replaced
+    this.key = this.repoInfo_.toURLString();
   }
 
   /**
