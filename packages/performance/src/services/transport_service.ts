@@ -66,6 +66,10 @@ export function setupTransportService(): void {
   }
 }
 
+export function readQueue(): BatchEvent[] {
+  return [...queue];
+}
+
 /**
  * Utilized by testing to clean up message queue and un-initialize transport service.
  */
@@ -94,8 +98,7 @@ function dispatchQueueEvents(): void {
   // Extract events up to the maximum cap of single logRequest from top of "official queue".
   // The staged events will be used for current logRequest attempt, remaining events will be kept
   // for next attempt.
-  const staged = queue.slice(0, MAX_EVENT_COUNT_PER_REQUEST);
-  queue = queue.slice(staged.length);
+  const staged = queue.splice(0, MAX_EVENT_COUNT_PER_REQUEST);
 
   /* eslint-disable camelcase */
   // We will pass the JSON serialized event to the backend.

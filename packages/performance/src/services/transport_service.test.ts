@@ -21,7 +21,8 @@ import * as sinonChai from 'sinon-chai';
 import {
   transportHandler,
   setupTransportService,
-  resetTransportService
+  resetTransportService,
+  readQueue
 } from './transport_service';
 import { SettingsService } from './settings_service';
 
@@ -80,7 +81,6 @@ describe('Firebase Performance > transport_service', () => {
     clock.tick(INITIAL_SEND_TIME_DELAY_MS);
     testTransportHandler('someEvent');
     clock.tick(DEFAULT_SEND_INTERVAL_MS);
-    await Promise.resolve();
     expect(fetchStub).to.have.been.calledOnce;
   });
 
@@ -104,19 +104,10 @@ describe('Firebase Performance > transport_service', () => {
     const flTransportFullUrl =
       setting.flTransportEndpointUrl + '?key=' + setting.transportKey;
     // Generates the first logRequest which contains first 1000 events.
-    const firstLogRequest = generateLogRequest('5501');
+    const logRequest = generateLogRequest('5501');
     for (let i = 0; i < MAX_EVENT_COUNT_PER_REQUEST; i++) {
-      firstLogRequest['log_event'].push({
+      logRequest['log_event'].push({
         'source_extension_json_proto3': 'event' + i,
-        'event_time_ms': '1'
-      });
-    }
-    // Generates the second logRequest which contains remaining 20 events;
-    const secondLogRequest = generateLogRequest('35504');
-    for (let i = 0; i < 20; i++) {
-      secondLogRequest['log_event'].push({
-        'source_extension_json_proto3':
-          'event' + (MAX_EVENT_COUNT_PER_REQUEST + i),
         'event_time_ms': '1'
       });
     }
@@ -126,13 +117,7 @@ describe('Firebase Performance > transport_service', () => {
     fetchStub
       .withArgs(flTransportFullUrl, {
         method: 'POST',
-        body: JSON.stringify(firstLogRequest)
-      })
-      .resolves(response);
-    fetchStub
-      .withArgs(flTransportFullUrl, {
-        method: 'POST',
-        body: JSON.stringify(secondLogRequest)
+        body: JSON.stringify(logRequest)
       })
       .resolves(response);
     stub(response, 'json').returns(
@@ -150,7 +135,7 @@ describe('Firebase Performance > transport_service', () => {
     // First logRequest has been called.
     expect(fetchStub).to.have.been.calledWith(flTransportFullUrl, {
       method: 'POST',
-      body: JSON.stringify(firstLogRequest)
+      body: JSON.stringify(logRequest)
     });
     // Wait for async action to call for next dispatch cycle.
     await Promise.resolve()
@@ -159,16 +144,10 @@ describe('Firebase Performance > transport_service', () => {
       })
       .then(() => {
         clock.tick(1);
-      })
-      .then(() => {
-        clock.tick(1);
       });
     clock.tick(DEFAULT_SEND_INTERVAL_MS * 3);
-    // Second logRequest has been called.
-    expect(fetchStub).which.to.have.been.calledWith(flTransportFullUrl, {
-      method: 'POST',
-      body: JSON.stringify(secondLogRequest)
-    });
+    // Remaining events stay in queue.
+    expect(readQueue().length).to.be.equal(20);
   });
 
   function generateLogRequest(requestTimeMs: string): any {
