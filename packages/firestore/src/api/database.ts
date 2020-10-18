@@ -532,7 +532,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
     }
   }
 
-  _loadBundle(
+  loadBundle(
     bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
   ): LoadBundleTask {
     this.ensureClientConfigured();
@@ -541,7 +541,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
     return resultTask;
   }
 
-  _namedQuery(name: string): Promise<PublicQuery | null> {
+  namedQuery(name: string): Promise<PublicQuery | null> {
     this.ensureClientConfigured();
     return this._firestoreClient!.getNamedQuery(name).then(namedQuery => {
       if (!namedQuery) {

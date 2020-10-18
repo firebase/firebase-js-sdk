@@ -42,6 +42,7 @@ import {
   getDocsFromServer,
   initializeFirestore,
   loadBundle,
+  namedQuery,
   onSnapshot,
   onSnapshotsInSync,
   query,
@@ -171,8 +172,8 @@ export class FirebaseFirestore
   }
 
   async namedQuery(name: string): Promise<Query | null> {
-    return null;
-    // return namedQuery(this._delegate, name);
+    const query = await namedQuery(this._delegate, name);
+    return !!query ? new Query<legacy.DocumentData>(this, query) : null;
   }
 
   INTERNAL = {

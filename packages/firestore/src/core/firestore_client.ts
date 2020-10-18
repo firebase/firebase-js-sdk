@@ -602,7 +602,9 @@ export class FirestoreClient {
 
   getNamedQuery(queryName: string): Promise<NamedQuery | undefined> {
     this.verifyNotTerminated();
-    return getNamedQuery(this.localStore, queryName);
+    return this.asyncQueue.enqueue(() =>
+      getNamedQuery(this.localStore, queryName)
+    );
   }
 }
 

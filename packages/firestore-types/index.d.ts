@@ -94,6 +94,12 @@ export class FirebaseFirestore {
 
   terminate(): Promise<void>;
 
+  loadBundle(
+    bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
+  ): LoadBundleTask;
+
+  namedQuery(name: string): Promise<Query<DocumentData> | null>;
+
   INTERNAL: { delete: () => Promise<void> };
 }
 

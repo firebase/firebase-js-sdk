@@ -41,7 +41,7 @@ import {
 import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
-import { CACHE_SIZE_UNLIMITED, Query } from '../../../src/api/database';
+import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
 import {
   indexedDbClearPersistence,
   indexedDbStoragePrefix
@@ -73,6 +73,7 @@ import {
 import { PersistenceSettings } from '../../../exp-types';
 import { getNamedQuery } from '../../../src/local/local_store';
 import { newSerializer } from '../../../src/platform/serializer';
+import { Query } from '../../../lite/src/api/reference';
 
 const LOG_TAG = 'Firestore';
 
@@ -516,14 +517,15 @@ export function namedQuery(
   firestore: FirebaseFirestore,
   name: string
 ): Promise<Query | null> {
-  return getLocalStore(firestore).then(localStore => {
-    return getNamedQuery(localStore, name).then(namedQuery => {
-      if (!namedQuery) {
-        return null;
-      }
+  return firestore._queue.enqueue(() => {
+    return getLocalStore(firestore).then(localStore => {
+      return getNamedQuery(localStore, name).then(namedQuery => {
+        if (!namedQuery) {
+          return null;
+        }
 
-      return null;
-      // return new Query(namedQuery.query, firestore, null);
+        return new Query(firestore, null, namedQuery.query);
+      });
     });
   });
 }

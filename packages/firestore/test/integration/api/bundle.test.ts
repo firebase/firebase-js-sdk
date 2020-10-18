@@ -65,8 +65,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
     return withTestDb(persistence, async db => {
       const progressEvents: firestore.LoadBundleTaskProgress[] = [];
       let completeCalled = false;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const task: firestore.LoadBundleTask = (db as any)._loadBundle(bundleString(db));
+      const task: firestore.LoadBundleTask = db.loadBundle(bundleString(db));
       task.onProgress(
         progress => {
           progressEvents.push(progress);
@@ -95,14 +94,12 @@ apiDescribe('Bundles', (persistence: boolean) => {
       let snap = await db.collection('coll-1').get({ source: 'cache' });
       verifySnapEqualTestDocs(snap);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      snap = await (await (db as any)._namedQuery('limit'))!.get({
+      snap = await (await db.namedQuery('limit'))!.get({
         source: 'cache'
       });
       expect(toDataArray(snap)).to.deep.equal([{ k: 'b', bar: 2 }]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      snap = await (await (db as any)._namedQuery('limit-to-last'))!.get({
+      snap = await (await db.namedQuery('limit-to-last'))!.get({
         source: 'cache'
       });
       expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 1 }]);
@@ -111,8 +108,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
   it('load with documents and queries with promise interface', () => {
     return withTestDb(persistence, async db => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fulfillProgress: firestore.LoadBundleTaskProgress = await (db as any)._loadBundle(
+      const fulfillProgress: firestore.LoadBundleTaskProgress = await db.loadBundle(
         bundleString(db)
       );
 
@@ -127,13 +123,11 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
   it('load for a second time skips', () => {
     return withTestDb(persistence, async db => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (db as any)._loadBundle(bundleString(db));
+      await db.loadBundle(bundleString(db));
 
       let completeCalled = false;
       const progressEvents: firestore.LoadBundleTaskProgress[] = [];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const task: firestore.LoadBundleTask = (db as any)._loadBundle(
+      const task: firestore.LoadBundleTask = db.loadBundle(
         encoder.encode(bundleString(db))
       );
       task.onProgress(
@@ -169,8 +163,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
       db.collection('coll-1').onSnapshot(accumulator.storeEvent);
       await accumulator.awaitEvent();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const progress = await (db as any)._loadBundle(
+      const progress = await db.loadBundle(
         // Testing passing in non-string bundles.
         encoder.encode(bundleString(db))
       );
@@ -181,20 +174,17 @@ apiDescribe('Bundles', (persistence: boolean) => {
       // cache can only be tested in spec tests.
       await accumulator.assertNoAdditionalEvents();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let snap = await (await (db as any)._namedQuery('limit'))!.get();
+      let snap = await (await db.namedQuery('limit'))!.get();
       expect(toDataArray(snap)).to.deep.equal([{ k: 'b', bar: 0 }]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      snap = await (await (db as any)._namedQuery('limit-to-last'))!.get();
+      snap = await (await db.namedQuery('limit-to-last'))!.get();
       expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 0 }]);
     });
   });
 
   it('loaded documents should not be GC-ed right away', () => {
     return withTestDb(persistence, async db => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fulfillProgress: firestore.LoadBundleTaskProgress = await (db as any)._loadBundle(
+      const fulfillProgress: firestore.LoadBundleTaskProgress = await db.loadBundle(
         bundleString(db)
       );
 
@@ -215,17 +205,15 @@ apiDescribe('Bundles', (persistence: boolean) => {
   it('load with documents from other projects fails', () => {
     return withTestDb(persistence, async db => {
       return withAlternateTestDb(persistence, async otherDb => {
+        // TODO(wuandy): Ideally this is verified with rejectedWith to check
+        // error message. But it is currently removed for minified build, because
+        // it is raised when local store tries to write the document. We need to
+        // do this validation earlier such that the message is not removed.
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        await expect(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (otherDb as any)._loadBundle(bundleString(db))
-        ).to.be.rejectedWith('Tried to deserialize key from different project');
+        await expect(otherDb.loadBundle(bundleString(db))).to.be.rejected;
 
         // Verify otherDb still functions, despite loaded a problematic bundle.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const finalProgress = await (otherDb as any)._loadBundle(
-          bundleString(otherDb)
-        );
+        const finalProgress = await otherDb.loadBundle(bundleString(otherDb));
         verifySuccessProgress(finalProgress);
 
         // Read from cache. These documents do not exist in backend, so they can
