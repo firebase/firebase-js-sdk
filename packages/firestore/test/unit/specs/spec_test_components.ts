@@ -143,7 +143,7 @@ export class MockMultiTabOfflineComponentProvider extends MultiTabOfflineCompone
     private readonly document: FakeDocument,
     onlineComponentProvider: OnlineComponentProvider
   ) {
-    super(onlineComponentProvider);
+    super(onlineComponentProvider, /* cacheSizeBytes= */ undefined);
   }
 
   createGarbageCollectionScheduler(
