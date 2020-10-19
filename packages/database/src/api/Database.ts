@@ -102,6 +102,7 @@ export class Database implements FirebaseService {
    * @param port the emulator port (ex: 8080)
    */
   useEmulator(host: string, port: number): void {
+    this.checkDeleted_('useEmulator');
     if (this.instanceStarted_) {
       fatal(
         'Cannot call useEmulator() after instance has already been initialized.'
@@ -156,14 +157,15 @@ export class Database implements FirebaseService {
     validateUrl(apiName, 1, parsedURL);
 
     const repoInfo = parsedURL.repoInfo;
-    if (repoInfo.host !== this.repo_.repoInfo_.host) {
+    const expectedHost = this.repo_.originalHost;
+    if (repoInfo.host !== expectedHost) {
       fatal(
         apiName +
           ': Host name does not match the current database: ' +
           '(found ' +
           repoInfo.host +
           ' but expected ' +
-          (this.repo_.repoInfo_ as RepoInfo).host +
+          expectedHost +
           ')'
       );
     }
@@ -175,7 +177,7 @@ export class Database implements FirebaseService {
    * @param {string} apiName
    */
   private checkDeleted_(apiName: string) {
-    if (this.repo_ === null) {
+    if (this.repoInternal_ === null) {
       fatal('Cannot call ' + apiName + ' on a deleted database.');
     }
   }

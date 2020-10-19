@@ -57,6 +57,9 @@ export class Repo {
   /** Key for uniquely identifying this repo, used in RepoManager */
   readonly key: string;
 
+  /** Record of the original host, which does not change even if useEmulator mutates the repo */
+  readonly originalHost: string;
+
   dataUpdateCount = 0;
   private infoSyncTree_: SyncTree;
   private serverSyncTree_: SyncTree;
@@ -90,6 +93,7 @@ export class Repo {
   ) {
     // This key is intentionally not updated if RepoInfo is later changed or replaced
     this.key = this.repoInfo_.toURLString();
+    this.originalHost = this.repoInfo_.host;
   }
 
   start(): void {

@@ -278,4 +278,12 @@ describe('Database Tests', () => {
       db.useEmulator('localhost', 1234);
     }).to.throw(/Cannot call useEmulator/);
   });
+
+  it('refFromURL returns an emulated ref with useEmulator', () => {
+    const db = (firebase as any).database();
+    db.useEmulator('localhost', 1234);
+
+    const ref = db.refFromURL(DATABASE_ADDRESS + '/path/to/data');
+    expect(ref.toString()).to.equal(`http://localhost:1234/path/to/data`);
+  });
 });
