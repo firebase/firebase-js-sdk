@@ -14,6 +14,7 @@ import {
   RUN_FROM_IDEA_PROJECT_ID_2
 } from '@firebase/firestore/test/integration/util/emulator_settings';
 const PROJECT_CONFIG = require('../../../../config/project.json');
+const CI_PROJECT_CONFIG = require('../../../../config/ci.config.json');
 
 /**
  * Returns a bundle builder for the given projectId. The builder will build with the
@@ -69,7 +70,8 @@ const PROJECT_IDS = [
   EMULATOR_PROJECT_ID,
   RUN_FROM_IDEA_PROJECT_ID_1,
   RUN_FROM_IDEA_PROJECT_ID_2,
-  PROJECT_CONFIG.projectId
+  PROJECT_CONFIG.projectId,
+  CI_PROJECT_CONFIG.projectId
 ];
 
 function main(args: string[]) {
