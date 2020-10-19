@@ -112,6 +112,12 @@ export interface FirebaseNamespace {
   // Sets log handler for all Firebase components.
   onLog(logCallback: LogCallback, options?: LogOptions): void;
 
+  /**
+   * Provide React Native AsyncStorage object (needed if using Auth with React Native).
+   * @param asyncStorage - React Native AsyncStorage object.
+   */
+  useReactNativeAsyncStorage(asyncStorage: unknown): void;
+
   // The current SDK version.
   SDK_VERSION: string;
 }

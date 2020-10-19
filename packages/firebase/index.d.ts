@@ -148,6 +148,12 @@ declare namespace firebase {
   ): void;
 
   /**
+   * Provide React Native AsyncStorage object (needed if using Auth with React Native).
+   * @param asyncStorage - React Native AsyncStorage object.
+   */
+  function useReactNativeAsyncStorage(asyncStorage: unknown): void;
+
+  /**
    * @hidden
    */
   type Unsubscribe = () => void;

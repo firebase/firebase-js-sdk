@@ -20,22 +20,6 @@ import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { firebase as _firebase } from './src/firebaseNamespace';
 import { registerCoreComponents } from './src/registerCoreComponents';
 
-/**
- * To avoid having to include the @types/react-native package, which breaks
- * some of our tests because of duplicate symbols, we are using require syntax
- * here
- */
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { AsyncStorage } = require('react-native');
-
-(_firebase as _FirebaseNamespace).INTERNAL.extendNamespace({
-  INTERNAL: {
-    reactNative: {
-      AsyncStorage
-    }
-  }
-});
-
 export const firebase = _firebase as FirebaseNamespace;
 
 registerCoreComponents(firebase, 'rn');

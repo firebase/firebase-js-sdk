@@ -68,6 +68,7 @@ export function createFirebaseNamespaceCore(
     registerVersion,
     setLogLevel,
     onLog,
+    useReactNativeAsyncStorage,
     // @ts-ignore
     apps: null,
     SDK_VERSION: version,
@@ -292,6 +293,20 @@ export function createFirebaseNamespaceCore(
       });
     }
     setUserLogHandler(logCallback, options);
+  }
+
+  /**
+   * Provide React Native AsyncStorage object (needed if using Auth with React Native).
+   * @param asyncStorage - React Native AsyncStorage object.
+   */
+  function useReactNativeAsyncStorage(asyncStorage: unknown): void {
+    (namespace as _FirebaseNamespace).INTERNAL.extendNamespace({
+      INTERNAL: {
+        reactNative: {
+          AsyncStorage: asyncStorage
+        }
+      }
+    });
   }
 
   // Map the requested service to a registered service name
