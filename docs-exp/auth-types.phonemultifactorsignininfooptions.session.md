@@ -4,6 +4,8 @@
 
 ## PhoneMultiFactorSignInInfoOptions.session property
 
+The [MultiFactorSession](./auth-types.multifactorsession.md) obtained via [MultiFactorResolver.session](./auth-types.multifactorresolver.session.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

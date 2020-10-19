@@ -138,7 +138,7 @@ export class AuthImpl implements Auth, _FirebaseService {
     // If the same user is to be synchronized.
     if (this.currentUser && user && this.currentUser.uid === user.uid) {
       // Data update, simply copy data changes.
-      this._currentUser._copy(user);
+      this._currentUser._assign(user);
       // If tokens changed from previous user tokens, this will trigger
       // notifyAuthListeners_.
       await this.currentUser.getIdToken();
@@ -146,7 +146,7 @@ export class AuthImpl implements Auth, _FirebaseService {
     }
 
     // Update current Auth state. Either a new login or logout.
-    await this.updateCurrentUser(user);
+    await this._updateCurrentUser(user);
     // Notify external Auth changes of Auth change event.
     this.notifyAuthListeners();
   }
@@ -203,6 +203,10 @@ export class AuthImpl implements Auth, _FirebaseService {
       appName: this.name
     });
 
+    assert(/^https?:\/\//.test(url), AuthErrorCode.INVALID_EMULATOR_SCHEME, {
+      appName: this.name
+    });
+
     this.config.emulator = { url };
     this.settings.appVerificationDisabledForTesting = true;
   }
@@ -211,7 +215,22 @@ export class AuthImpl implements Auth, _FirebaseService {
     this._deleted = true;
   }
 
-  async updateCurrentUser(user: externs.User | null): Promise<void> {
+  async updateCurrentUser(userExtern: externs.User | null): Promise<void> {
+    // The public updateCurrentUser method needs to make a copy of the user,
+    // and also needs to verify that the app matches
+    const user = userExtern as User | null;
+    assert(
+      !user || user.auth.name === this.name,
+      AuthErrorCode.ARGUMENT_ERROR,
+      {
+        appName: this.name
+      }
+    );
+
+    return this._updateCurrentUser(user && user._clone());
+  }
+
+  async _updateCurrentUser(user: externs.User | null): Promise<void> {
     if (this._deleted) {
       return;
     }
@@ -234,13 +253,17 @@ export class AuthImpl implements Auth, _FirebaseService {
       await this._setRedirectUser(null);
     }
 
-    return this.updateCurrentUser(null);
+    return this._updateCurrentUser(null);
   }
 
   setPersistence(persistence: externs.Persistence): Promise<void> {
     return this.queue(async () => {
       await this.assertedPersistence.setPersistence(_getInstance(persistence));
     });
+  }
+
+  _getPersistence(): string {
+    return this.assertedPersistence.persistence.type;
   }
 
   onAuthStateChanged(

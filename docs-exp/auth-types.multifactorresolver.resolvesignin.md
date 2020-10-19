@@ -4,6 +4,8 @@
 
 ## MultiFactorResolver.resolveSignIn() method
 
+A helper function to help users complete sign in with a second factor using an [MultiFactorAssertion](./auth-types.multifactorassertion.md) confirming the user successfully completed the second factor challenge.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,21 @@ resolveSignIn(assertion: MultiFactorAssertion): Promise<UserCredential>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  assertion | [MultiFactorAssertion](./auth-types.multifactorassertion.md) |  |
+|  assertion | [MultiFactorAssertion](./auth-types.multifactorassertion.md) | The multi-factor assertion to resolve sign-in with. |
 
 <b>Returns:</b>
 
 Promise&lt;[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
+
+The promise that resolves with the user credential object.
+
+## Example
+
+
+```javascript
+const phoneAuthCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
+const userCredential = await resolver.resolveSignIn(multiFactorAssertion);
+
+```
 

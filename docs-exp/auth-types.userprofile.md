@@ -4,7 +4,7 @@
 
 ## UserProfile type
 
-User profile used in `AdditionalUserInfo`
+User profile used in [AdditionalUserInfo](./auth-types.additionaluserinfo.md)<!-- -->.
 
 <b>Signature:</b>
 

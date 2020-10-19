@@ -4,6 +4,8 @@
 
 ## UserInfo.uid property
 
+The user's unique ID, scoped to the project.
+
 <b>Signature:</b>
 
 ```typescript

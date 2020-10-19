@@ -4,6 +4,8 @@
 
 ## ReactNativeAsyncStorage.getItem() method
 
+Retrieve an item from storage.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +16,7 @@ getItem(key: string): Promise<string | null>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  key | string |  |
+|  key | string | storage key. |
 
 <b>Returns:</b>
 

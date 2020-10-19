@@ -4,6 +4,8 @@
 
 ## PhoneAuthProvider.credential() method
 
+Creates a phone auth credential, given the verification ID from [PhoneAuthProvider.verifyPhoneNumber()](./auth-types.phoneauthprovider.verifyphonenumber.md) and the code that was sent to the user's mobile device.
+
 <b>Signature:</b>
 
 ```typescript
@@ -17,10 +19,35 @@ static credential(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  verificationId | string |  |
-|  verificationCode | string |  |
+|  verificationId | string | The verification ID returned from [PhoneAuthProvider.verifyPhoneNumber()](./auth-types.phoneauthprovider.verifyphonenumber.md)<!-- -->. |
+|  verificationCode | string | The verification code sent to the user's mobile device. |
 
 <b>Returns:</b>
 
 [AuthCredential](./auth-types.authcredential.md)
+
+The auth provider credential.
+
+## Example 1
+
+
+```javascript
+const provider = new PhoneAuthProvider(auth);
+const verificationId = provider.verifyPhoneNumber(phoneNumber, applicationVerifier);
+// Obtain verificationCode from the user.
+const authCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+const userCredential = signInWithCredential(auth, authCredential);
+
+```
+
+## Example 2
+
+An alternative flow is provided using the `signInWithPhoneNumber` method.
+
+```javascript
+const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+// Obtain verificationCode from the user.
+const userCredential = await confirmationResult.confirm(verificationCode);
+
+```
 

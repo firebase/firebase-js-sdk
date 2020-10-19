@@ -4,6 +4,8 @@
 
 ## ParsedToken.auth\_time property
 
+Time at which authentication was performed.
+
 <b>Signature:</b>
 
 ```typescript

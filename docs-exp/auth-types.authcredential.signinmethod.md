@@ -4,6 +4,8 @@
 
 ## AuthCredential.signInMethod property
 
+The authentication sign in method for the credential. For example, [SignInMethod.EMAIL\_PASSWORD](./auth-types.signinmethod.email_password.md)<!-- -->, or [SignInMethod.EMAIL\_LINK](./auth-types.signinmethod.email_link.md)<!-- -->. This corresponds to the sign-in method identifier as returned in `fetchSignInMethodsForEmail`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

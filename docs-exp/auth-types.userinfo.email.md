@@ -4,6 +4,8 @@
 
 ## UserInfo.email property
 
+The email of the user.
+
 <b>Signature:</b>
 
 ```typescript

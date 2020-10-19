@@ -4,6 +4,8 @@
 
 ## Persistence.type property
 
+Type of Persistence. - 'SESSION' is used for temporary persistence such as `sessionStorage`<!-- -->. - 'LOCAL' is used for long term persistence such as `localStorage` or 'IndexedDB<!-- -->\`<!-- -->. - 'NONE' is used for in-memory, or no persistence.
+
 <b>Signature:</b>
 
 ```typescript

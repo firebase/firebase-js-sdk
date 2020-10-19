@@ -4,6 +4,8 @@
 
 ## ParsedToken.iat property
 
+Issuance time of the token.
+
 <b>Signature:</b>
 
 ```typescript

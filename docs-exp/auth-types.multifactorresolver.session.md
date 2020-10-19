@@ -4,6 +4,8 @@
 
 ## MultiFactorResolver.session property
 
+The session identifier for the current sign-in flow, which can be used to complete the second factor sign-in.
+
 <b>Signature:</b>
 
 ```typescript

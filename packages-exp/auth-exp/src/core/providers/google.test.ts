@@ -62,7 +62,7 @@ describe('src/core/providers/google', () => {
     const error = AUTH_ERROR_FACTORY.create(AuthErrorCode.NEED_CONFIRMATION, {
       appName: 'foo'
     });
-    (error as TaggedWithTokenResponse)._tokenResponse = {
+    (error.customData! as TaggedWithTokenResponse)._tokenResponse = {
       ...TEST_ID_TOKEN_RESPONSE,
       oauthAccessToken: 'access-token',
       oauthIdToken: 'id-token'

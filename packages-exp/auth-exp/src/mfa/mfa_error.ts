@@ -46,8 +46,9 @@ export class MultiFactorError
     Object.setPrototypeOf(this, MultiFactorError.prototype);
     this.appName = auth.name;
     this.code = error.code;
-    this.tenantid = auth.tenantId;
-    this.serverResponse = error.serverResponse as IdTokenMfaResponse;
+    this.tenantId = auth.tenantId ?? undefined;
+    this.serverResponse = error.customData!
+      .serverResponse as IdTokenMfaResponse;
   }
 
   static _fromErrorAndCredential(
