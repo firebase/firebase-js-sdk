@@ -23,8 +23,6 @@ import {
   arrayValueContains,
   canonicalId,
   isArray,
-  isNanValue,
-  isNullValue,
   isReferenceValue,
   typeOrder,
   valueCompare,
@@ -32,7 +30,6 @@ import {
 } from '../model/values';
 import { FieldPath, ResourcePath } from '../model/path';
 import { debugAssert, debugCast, fail } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
 import {
   canonifyTarget,
