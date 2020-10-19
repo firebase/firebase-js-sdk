@@ -86,7 +86,7 @@ export interface UploadMetadata extends SettableMetadata {
 }
 
 interface FirebaseStorageError extends FirebaseError {
-  customData: { serverResponse: string | null };
+  serverResponse: string | null;
 }
 
 export interface StorageObserver<T> {

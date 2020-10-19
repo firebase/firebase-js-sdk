@@ -7621,7 +7621,7 @@ declare namespace firebase.storage {
    * An error returned by the Firebase Storage SDK.
    */
   interface FirebaseStorageError extends FirebaseError {
-    customData: { serverResponse: string | null };
+    serverResponse: string | null;
   }
 
   interface StorageObserver<T> {
