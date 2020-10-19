@@ -7,7 +7,8 @@
     "resolveJsonModule": true,
     "target": "es5",
     "esModuleInterop": true,
-    "declaration": true
+    "declaration": true,
+    "strict": true
   },
   "exclude": [
     "dist/**/*"

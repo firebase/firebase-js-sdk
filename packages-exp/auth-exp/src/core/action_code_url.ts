@@ -76,9 +76,9 @@ function parseDeepLink(url: string): string {
   return iOSDoubleDeepLink || iOSDeepLink || doubleDeepLink || link || url;
 }
 
-/** 
- * {@inheritDoc @firebase/auth-types-exp#ActionCodeURL} 
- * 
+/**
+ * {@inheritDoc @firebase/auth-types-exp#ActionCodeURL}
+ *
  * @public
  */
 export class ActionCodeURL implements externs.ActionCodeURL {
@@ -129,9 +129,9 @@ export class ActionCodeURL implements externs.ActionCodeURL {
   }
 }
 
-/** 
- * {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.parseLink} 
- * 
+/**
+ * {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.parseLink}
+ *
  * @public
  */
 export function parseActionCodeURL(link: string): externs.ActionCodeURL | null {
