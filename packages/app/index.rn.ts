@@ -20,6 +20,15 @@ import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { firebase as _firebase } from './src/firebaseNamespace';
 import { registerCoreComponents } from './src/registerCoreComponents';
 
+(_firebase as _FirebaseNamespace).INTERNAL.extendNamespace({
+  INTERNAL: {
+    // Auth uses this to determine if it is in a React Native environment.
+    // User needs to use `firebase.useReactNativeAsyncStorage` to provide
+    // the AsyncStorage object.
+    reactNative: { asyncStorage: null }
+  }
+});
+
 export const firebase = _firebase as FirebaseNamespace;
 
 registerCoreComponents(firebase, 'rn');
