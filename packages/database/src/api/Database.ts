@@ -16,7 +16,7 @@
  */
 
 import { fatal } from '../core/util/util';
-import { parseRepoInfo } from '../core/util/libs/parser';
+import { parseDatabaseURL, parseRepoInfo } from '../core/util/libs/parser';
 import { Path } from '../core/util/Path';
 import { Reference } from './Reference';
 import { Repo } from '../core/Repo';
@@ -156,16 +156,21 @@ export class Database implements FirebaseService {
     const parsedURL = parseRepoInfo(url, this.repo_.repoInfo_.nodeAdmin);
     validateUrl(apiName, 1, parsedURL);
 
-    const repoInfo = parsedURL.repoInfo;
-    const expectedHost = this.repo_.originalHost;
-    if (repoInfo.host !== expectedHost) {
+    const newHost = parsedURL.repoInfo.host;
+    const originalHost = parseDatabaseURL(this.repo_.productionUrl).host;
+    const currentHost = this.repo_.repoInfo_.host;
+    if (newHost !== originalHost && newHost !== currentHost) {
+      const expected = originalHost === currentHost
+          ? originalHost
+          : `${originalHost} or ${currentHost}`;
+      
       fatal(
         apiName +
           ': Host name does not match the current database: ' +
           '(found ' +
-          repoInfo.host +
+          newHost +
           ' but expected ' +
-          expectedHost +
+          expected +
           ')'
       );
     }

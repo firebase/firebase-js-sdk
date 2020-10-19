@@ -176,13 +176,13 @@ export class RepoManager {
   deleteRepo(repo: Repo) {
     const appRepos = safeGet(this.repos_, repo.app.name);
     // This should never happen...
-    if (!appRepos || safeGet(appRepos, repo.key) !== repo) {
+    if (!appRepos || safeGet(appRepos, repo.productionUrl) !== repo) {
       fatal(
         `Database ${repo.app.name}(${repo.repoInfo_}) has already been deleted.`
       );
     }
     repo.interrupt();
-    delete appRepos[repo.key];
+    delete appRepos[repo.productionUrl];
   }
 
   /**
