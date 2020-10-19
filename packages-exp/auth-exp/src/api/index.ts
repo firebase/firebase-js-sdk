@@ -251,6 +251,8 @@ function makeTaggedError(
   }
 
   const error = AUTH_ERROR_FACTORY.create(code, errorParams);
-  (error as TaggedWithTokenResponse)._tokenResponse = response;
+
+  // We know customData is defined on error because errorParams is defined
+  (error.customData! as TaggedWithTokenResponse)._tokenResponse = response;
   return error;
 }
