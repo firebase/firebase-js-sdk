@@ -34,7 +34,7 @@ yargs
       inputDtsFile: {
         type: 'string',
         alias: 'if',
-        desc: 'support for adhoc analysis. requires a path to dts file'
+        desc: 'support for adhoc analysis. requires a path to a d.ts file'
       },
       inputBundleFile: {
         type: 'string',
