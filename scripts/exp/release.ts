@@ -27,12 +27,22 @@ import { promisify } from 'util';
 import chalk from 'chalk';
 import Listr from 'listr';
 import { prepare as prepareFirestoreForRelease } from './prepare-firestore-for-exp-release';
+import * as yargs from 'yargs';
+
+const argv = yargs
+  .options({
+    dryRun: {
+      type: 'boolean',
+      default: false
+    }
+  })
+  .help().argv;
 
 const writeFile = promisify(_writeFile);
 const git = simpleGit(projectRoot);
 const FIREBASE_UMBRELLA_PACKAGE_NAME = 'firebase-exp';
 
-async function publishExpPackages() {
+async function publishExpPackages({ dryRun }: { dryRun: boolean }) {
   try {
     /**
      * Welcome to the firebase release CLI!
@@ -50,9 +60,12 @@ async function publishExpPackages() {
     await buildPackages();
 
     // path to exp packages
-    const packagePaths = await mapWorkspaceToPackages([
+    let packagePaths = await mapWorkspaceToPackages([
       `${projectRoot}/packages-exp/*`
     ]);
+
+    // exclude auth packages until we are ready to release
+    packagePaths = packagePaths.filter(path => !path.includes('auth'));
 
     packagePaths.push(`${projectRoot}/packages/firestore`);
 
@@ -68,28 +81,36 @@ async function publishExpPackages() {
     const versions = await updatePackageNamesAndVersions(packagePaths);
 
     /**
-     * Release packages to NPM
+     * Do not publish to npm and create tags if it's a dryrun
      */
-    await publishToNpm(packagePaths);
+    if (!dryRun) {
+      /**
+       * Release packages to NPM
+       */
+      await publishToNpm(packagePaths);
 
-    /**
-     * reset the working tree to recover package names with -exp in the package.json files,
-     * then bump patch version of firebase-exp (the umbrella package) only
-     */
-    const firebaseExpVersion = new Map<string, string>();
-    firebaseExpVersion.set(
-      FIREBASE_UMBRELLA_PACKAGE_NAME,
-      versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME)
-    );
-    const firebaseExpPath = packagePaths.filter(p =>
-      p.includes(FIREBASE_UMBRELLA_PACKAGE_NAME)
-    );
-    await resetWorkingTreeAndBumpVersions(firebaseExpPath, firebaseExpVersion);
+      /**
+       * reset the working tree to recover package names with -exp in the package.json files,
+       * then bump patch version of firebase-exp (the umbrella package) only
+       */
+      const firebaseExpVersion = new Map<string, string>();
+      firebaseExpVersion.set(
+        FIREBASE_UMBRELLA_PACKAGE_NAME,
+        versions.get(FIREBASE_UMBRELLA_PACKAGE_NAME)
+      );
+      const firebaseExpPath = packagePaths.filter(p =>
+        p.includes(FIREBASE_UMBRELLA_PACKAGE_NAME)
+      );
+      await resetWorkingTreeAndBumpVersions(
+        firebaseExpPath,
+        firebaseExpVersion
+      );
 
-    /**
-     * push to github
-     */
-    await commitAndPush(versions);
+      /**
+       * push to github
+       */
+      await commitAndPush(versions);
+    }
   } catch (err) {
     /**
      * Log any errors that happened during the process
@@ -347,4 +368,4 @@ async function getCurrentSha() {
   return (await git.revparse(['--short', 'HEAD'])).trim();
 }
 
-publishExpPackages();
+publishExpPackages(argv);

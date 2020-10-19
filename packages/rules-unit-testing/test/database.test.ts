@@ -121,7 +121,19 @@ describe('Testing Module Tests', function () {
       base64.decodeString(token!.accessToken.split('.')[1], /*webSafe=*/ false)
     );
     // We add an 'iat' field.
-    expect(claims).to.deep.equal({ uid: auth.uid, iat: 0, sub: auth.uid });
+    expect(claims).to.deep.equal({
+      iss: 'https://securetoken.google.com/foo',
+      aud: 'foo',
+      iat: 0,
+      exp: 3600,
+      auth_time: 0,
+      sub: 'alice',
+      user_id: 'alice',
+      firebase: {
+        sign_in_provider: 'custom',
+        identities: {}
+      }
+    });
   });
 
   it('initializeAdminApp() has admin access', async function () {
@@ -150,6 +162,102 @@ describe('Testing Module Tests', function () {
     await firebase.assertSucceeds(
       app.database().ref().child('/foo/bar').set({ hello: 'world' })
     );
+  });
+
+  it('initializeAdminApp() and initializeTestApp() work together', async function () {
+    await firebase.loadDatabaseRules({
+      databaseName: 'foo',
+      rules: JSON.stringify({
+        'rules': {
+          'public': { '.read': true, '.write': true },
+          'private': { '.read': false, '.write': false }
+        }
+      })
+    });
+
+    const adminApp = firebase.initializeAdminApp({
+      projectId: 'foo',
+      databaseName: 'foo'
+    });
+
+    const testApp = firebase.initializeTestApp({
+      projectId: 'foo',
+      databaseName: 'foo'
+    });
+
+    // Admin app can write anywhere
+    await firebase.assertSucceeds(
+      adminApp.database().ref().child('/public/doc').set({ hello: 'admin' })
+    );
+    await firebase.assertSucceeds(
+      adminApp.database().ref().child('/private/doc').set({ hello: 'admin' })
+    );
+
+    // Test app can only write to public, not to private
+    await firebase.assertSucceeds(
+      testApp.database().ref().child('/public/doc').set({ hello: 'test' })
+    );
+    await firebase.assertFails(
+      testApp.database().ref().child('/private/doc').set({ hello: 'test' })
+    );
+  });
+
+  it('initializeAdminApp() works with custom claims', async function () {
+    await firebase.loadFirestoreRules({
+      projectId: 'foo',
+      rules: `service cloud.firestore {
+        match /databases/{db}/documents/{doc=**} {
+          allow read, write: if request.auth.token.custom_claim == 'foo';
+        }
+      }`
+    });
+
+    const noClaim = firebase.initializeTestApp({
+      projectId: 'foo',
+      auth: {
+        uid: 'noClaim'
+      }
+    });
+
+    const hasClaim = firebase.initializeTestApp({
+      projectId: 'foo',
+      auth: {
+        uid: 'hasClaim',
+        custom_claim: 'foo'
+      }
+    });
+
+    const wrongClaim = firebase.initializeTestApp({
+      projectId: 'foo',
+      auth: {
+        uid: 'wrongClaim',
+        custom_claim: 'bar'
+      }
+    });
+
+    await firebase.assertSucceeds(
+      hasClaim.firestore().doc('test/test').set({ hello: 'test' })
+    );
+    await firebase.assertFails(
+      noClaim.firestore().doc('test/test').set({ hello: 'test' })
+    );
+    await firebase.assertFails(
+      wrongClaim.firestore().doc('test/test').set({ hello: 'test' })
+    );
+  });
+
+  it('initializeTestApp() does not destroy user input', function () {
+    const options = {
+      projectId: 'fakeproject',
+      auth: {
+        uid: 'sam',
+        email: 'sam@sam.com'
+      }
+    };
+    const optionsCopy = Object.assign({}, options);
+
+    firebase.initializeTestApp(options);
+    expect(options).to.deep.equal(optionsCopy);
   });
 
   it('loadDatabaseRules() throws if no databaseName or rules', async function () {

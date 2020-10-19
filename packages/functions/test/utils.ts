@@ -20,6 +20,7 @@ import { Provider, ComponentContainer } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseMessagingName } from '@firebase/messaging-types';
 import { Service } from '../src/api/service';
+import nodeFetch from 'node-fetch';
 
 export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
   options = {
@@ -42,7 +43,7 @@ export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
 
 export function createTestService(
   app: FirebaseApp,
-  region?: string,
+  regionOrCustomDomain?: string,
   authProvider = new Provider<FirebaseAuthInternalName>(
     'auth-internal',
     new ComponentContainer('test')
@@ -52,7 +53,15 @@ export function createTestService(
     new ComponentContainer('test')
   )
 ): Service {
-  const functions = new Service(app, authProvider, messagingProvider, region);
+  const fetchImpl: typeof fetch =
+    typeof window !== 'undefined' ? fetch.bind(window) : (nodeFetch as any);
+  const functions = new Service(
+    app,
+    authProvider,
+    messagingProvider,
+    regionOrCustomDomain,
+    fetchImpl
+  );
   const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
   if (useEmulator) {
     functions.useFunctionsEmulator(

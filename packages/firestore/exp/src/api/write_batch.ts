@@ -15,23 +15,24 @@
  * limitations under the License.
  */
 
-// See https://github.com/typescript-eslint/typescript-eslint/issues/363
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import * as firestore from '../../../exp-types';
-
-import { cast } from '../../../lite/src/api/util';
 import { WriteBatch } from '../../../lite/src/api/write_batch';
-import { Firestore } from './database';
-import { getSyncEngine } from './components';
-import { enqueueWrite } from '../../../src/core/firestore_client';
+import { FirebaseFirestore } from './database';
+import { executeWrite } from './reference';
 
-export function writeBatch(
-  firestore: firestore.FirebaseFirestore
-): firestore.WriteBatch {
-  const firestoreImpl = cast(firestore, Firestore);
-  return new WriteBatch(firestoreImpl, writes =>
-    getSyncEngine(firestoreImpl).then(syncEngine =>
-      enqueueWrite(firestoreImpl._queue, syncEngine, writes)
-    )
+/**
+ * Creates a write batch, used for performing multiple writes as a single
+ * atomic operation. The maximum number of writes allowed in a single WriteBatch
+ * is 500.
+ *
+ * Unlike transactions, write batches are persisted offline and therefore are
+ * preferable when you don't need to condition your writes on read data.
+ *
+ * @return A `WriteBatch` that can be used to atomically execute multiple
+ * writes.
+ */
+export function writeBatch(firestore: FirebaseFirestore): WriteBatch {
+  firestore._verifyNotTerminated();
+  return new WriteBatch(firestore, mutations =>
+    executeWrite(firestore, mutations)
   );
 }

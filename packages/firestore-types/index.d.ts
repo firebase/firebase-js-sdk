@@ -26,9 +26,9 @@ export const CACHE_SIZE_UNLIMITED: number;
 export interface Settings {
   host?: string;
   ssl?: boolean;
-  timestampsInSnapshots?: boolean;
   cacheSizeBytes?: number;
   experimentalForceLongPolling?: boolean;
+  experimentalAutoDetectLongPolling?: boolean;
   ignoreUndefinedProperties?: boolean;
   merge?: boolean;
 }
@@ -61,6 +61,8 @@ export class FirebaseFirestore {
 
   settings(settings: Settings): void;
 
+  useEmulator(host: string, port: number): void;
+
   enablePersistence(settings?: PersistenceSettings): Promise<void>;
 
   collection(collectionPath: string): CollectionReference<DocumentData>;
@@ -87,7 +89,7 @@ export class FirebaseFirestore {
 
   onSnapshotsInSync(observer: {
     next?: (value: void) => void;
-    error?: (error: Error) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }): () => void;
   onSnapshotsInSync(onSync: () => void): () => void;
@@ -235,19 +237,19 @@ export class DocumentReference<T = DocumentData> {
     options: SnapshotListenOptions,
     observer: {
       next?: (snapshot: DocumentSnapshot<T>) => void;
-      error?: (error: Error) => void;
+      error?: (error: FirestoreError) => void;
       complete?: () => void;
     }
   ): () => void;
   onSnapshot(
     onNext: (snapshot: DocumentSnapshot<T>) => void,
-    onError?: (error: Error) => void,
+    onError?: (error: FirestoreError) => void,
     onCompletion?: () => void
   ): () => void;
   onSnapshot(
     options: SnapshotListenOptions,
     onNext: (snapshot: DocumentSnapshot<T>) => void,
-    onError?: (error: Error) => void,
+    onError?: (error: FirestoreError) => void,
     onCompletion?: () => void
   ): () => void;
 
@@ -294,11 +296,13 @@ export type WhereFilterOp =
   | '<'
   | '<='
   | '=='
+  | '!='
   | '>='
   | '>'
   | 'array-contains'
   | 'in'
-  | 'array-contains-any';
+  | 'array-contains-any'
+  | 'not-in';
 
 export class Query<T = DocumentData> {
   protected constructor();
@@ -338,26 +342,26 @@ export class Query<T = DocumentData> {
 
   onSnapshot(observer: {
     next?: (snapshot: QuerySnapshot<T>) => void;
-    error?: (error: Error) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }): () => void;
   onSnapshot(
     options: SnapshotListenOptions,
     observer: {
       next?: (snapshot: QuerySnapshot<T>) => void;
-      error?: (error: Error) => void;
+      error?: (error: FirestoreError) => void;
       complete?: () => void;
     }
   ): () => void;
   onSnapshot(
     onNext: (snapshot: QuerySnapshot<T>) => void,
-    onError?: (error: Error) => void,
+    onError?: (error: FirestoreError) => void,
     onCompletion?: () => void
   ): () => void;
   onSnapshot(
     options: SnapshotListenOptions,
     onNext: (snapshot: QuerySnapshot<T>) => void,
-    onError?: (error: Error) => void,
+    onError?: (error: FirestoreError) => void,
     onCompletion?: () => void
   ): () => void;
 

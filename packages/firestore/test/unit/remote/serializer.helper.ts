@@ -19,7 +19,7 @@ import { expect } from 'chai';
 
 import { Blob } from '../../../src/api/blob';
 import { DocumentReference } from '../../../src/api/database';
-import { FieldValue } from '../../../src/api/field_value';
+import { FieldValue } from '../../../src/compat/field_value';
 import { GeoPoint } from '../../../src/api/geo_point';
 import { Timestamp } from '../../../src/api/timestamp';
 import { DatabaseId } from '../../../src/core/database_info';
@@ -310,8 +310,8 @@ export function serializerTest(
 
       it('converts TimestampValue from proto', () => {
         const examples = [
-          new Date(Date.UTC(2016, 0, 2, 10, 20, 50, 850)),
-          new Date(Date.UTC(2016, 5, 17, 10, 50, 15, 0))
+          new Timestamp(1451730050, 850000000),
+          new Timestamp(1466160615, 0)
         ];
 
         const expectedJson = [
@@ -339,25 +339,25 @@ export function serializerTest(
           userDataWriter.convertValue({
             timestampValue: '2017-03-07T07:42:58.916123456Z'
           })
-        ).to.deep.equal(new Timestamp(1488872578, 916123456).toDate());
+        ).to.deep.equal(new Timestamp(1488872578, 916123456));
 
         expect(
           userDataWriter.convertValue({
             timestampValue: '2017-03-07T07:42:58.916123Z'
           })
-        ).to.deep.equal(new Timestamp(1488872578, 916123000).toDate());
+        ).to.deep.equal(new Timestamp(1488872578, 916123000));
 
         expect(
           userDataWriter.convertValue({
             timestampValue: '2017-03-07T07:42:58.916Z'
           })
-        ).to.deep.equal(new Timestamp(1488872578, 916000000).toDate());
+        ).to.deep.equal(new Timestamp(1488872578, 916000000));
 
         expect(
           userDataWriter.convertValue({
             timestampValue: '2017-03-07T07:42:58Z'
           })
-        ).to.deep.equal(new Timestamp(1488872578, 0).toDate());
+        ).to.deep.equal(new Timestamp(1488872578, 0));
       });
 
       it('converts TimestampValue to string (useProto3Json=true)', () => {
@@ -927,6 +927,29 @@ export function serializerTest(
                 values: [
                   {
                     integerValue: '42'
+                  }
+                ]
+              }
+            }
+          }
+        });
+        const roundtripped = fromFieldFilter(actual);
+        expect(roundtripped).to.deep.equal(input);
+        expect(roundtripped).to.be.instanceof(NotInFilter);
+      });
+
+      it('converts not-in with null', () => {
+        const input = filter('field', 'not-in', [null]);
+        const actual = toUnaryOrFieldFilter(input);
+        expect(actual).to.deep.equal({
+          fieldFilter: {
+            field: { fieldPath: 'field' },
+            op: 'NOT_IN',
+            value: {
+              arrayValue: {
+                values: [
+                  {
+                    nullValue: 'NULL_VALUE'
                   }
                 ]
               }

@@ -15,13 +15,11 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../../lite-types';
-
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
-import { Firestore } from './database';
+import { FirebaseFirestore } from './database';
 import {
-  DocumentKeyReference,
+  _DocumentKeyReference,
   ParsedUpdateData,
   parseSetData,
   parseUpdateData,
@@ -52,6 +50,7 @@ import { AutoId } from '../../../src/util/misc';
 import {
   DocumentSnapshot,
   fieldPathFromArgument,
+  FirestoreDataConverter,
   QueryDocumentSnapshot,
   QuerySnapshot
 } from './snapshot';
@@ -71,7 +70,6 @@ import {
   validateHasExplicitOrderByForLimitToLast
 } from '../../../src/api/database';
 import { FieldPath } from './field_path';
-import { cast } from './util';
 import {
   validateCollectionPath,
   validateDocumentPath,
@@ -79,34 +77,93 @@ import {
   validatePositiveNumber
 } from '../../../src/util/input_validation';
 import { newSerializer } from '../../../src/platform/serializer';
-import { FieldPath as ExternalFieldPath } from '../../../src/api/field_path';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { getDatastore } from './components';
 
 /**
- * A reference to a particular document in a collection in the database.
+ * Document data (for use with {@link setDoc()}) consists of fields mapped to
+ * values.
  */
-export class DocumentReference<T = firestore.DocumentData>
-  extends DocumentKeyReference<T>
-  implements firestore.DocumentReference<T> {
+export interface DocumentData {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [field: string]: any;
+}
+
+/**
+ * Update data (for use with {@link updateDoc()}) consists of field paths (e.g.
+ * 'foo' or 'foo.baz') mapped to values. Fields that contain dots reference
+ * nested fields within the document.
+ */
+export interface UpdateData {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [fieldPath: string]: any;
+}
+
+/**
+ * An options object that configures the behavior of {@link setDoc()}, {@link
+ * WriteBatch#set()} and {@link Transaction#set()} calls. These calls can be
+ * configured to perform granular merges instead of overwriting the target
+ * documents in their entirety by providing a `SetOptions` with `merge: true`.
+ *
+ * @param merge Changes the behavior of a `setDoc()` call to only replace the
+ * values specified in its data argument. Fields omitted from the `setDoc()`
+ * call remain untouched.
+ * @param mergeFields Changes the behavior of `setDoc()` calls to only replace
+ * the specified field paths. Any field path that is not specified is ignored
+ * and remains untouched.
+ */
+export type SetOptions =
+  | {
+      readonly merge?: boolean;
+    }
+  | {
+      readonly mergeFields?: Array<string | FieldPath>;
+    };
+
+/**
+ * A `DocumentReference` refers to a document location in a Firestore database
+ * and can be used to write, read, or listen to the location. The document at
+ * the referenced location may or may not exist.
+ */
+export class DocumentReference<T = DocumentData> extends _DocumentKeyReference<
+  T
+> {
+  /** The type of this Firestore reference. */
   readonly type = 'document';
 
+  /**
+   * The {@link FirebaseFirestore} the document is in.
+   * This is useful for performing transactions, for example.
+   */
+  readonly firestore: FirebaseFirestore;
+
   constructor(
-    readonly firestore: Firestore,
-    readonly converter: firestore.FirestoreDataConverter<T> | null,
+    firestore: FirebaseFirestore,
+    _converter: FirestoreDataConverter<T> | null,
     readonly _path: ResourcePath
   ) {
-    super(firestore._databaseId, new DocumentKey(_path), converter);
+    super(firestore._databaseId, new DocumentKey(_path), _converter);
+    this.firestore = firestore;
   }
 
+  /**
+   * The document's identifier within its collection.
+   */
   get id(): string {
     return this._path.lastSegment();
   }
 
+  /**
+   * A string representing the path of the referenced document (relative
+   * to the root of the database).
+   */
   get path(): string {
     return this._path.canonicalString();
   }
 
+  /**
+   * The collection this `DocumentReference` belongs to.
+   */
   get parent(): CollectionReference<T> {
     return new CollectionReference<T>(
       this.firestore,
@@ -115,62 +172,105 @@ export class DocumentReference<T = firestore.DocumentData>
     );
   }
 
-  collection(path: string): CollectionReference<firestore.DocumentData> {
-    validateNonEmptyArgument('DocumentReference.collection', 'path', path);
-    const absolutePath = ResourcePath.fromString(this.path).child(
-      ResourcePath.fromString(path)
-    );
-    validateCollectionPath(absolutePath);
-    return new CollectionReference(
-      this.firestore,
-      /* converter= */ null,
-      absolutePath
-    );
-  }
-
-  withConverter<U>(
-    converter: firestore.FirestoreDataConverter<U>
-  ): firestore.DocumentReference<U> {
+  /**
+   * Applies a custom data converter to this `DocumentReference`, allowing you
+   * to use your own custom model objects with Firestore. When you call {@link
+   * setDoc()}, {@link getDoc()}, etc. with the returned `DocumentReference`
+   * instance, the provided converter will convert between Firestore data and
+   * your custom type `U`.
+   *
+   * @param converter Converts objects to and from Firestore.
+   * @return A `DocumentReference<U>` that uses the provided converter.
+   */
+  withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U> {
     return new DocumentReference<U>(this.firestore, converter, this._path);
   }
 }
 
-export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
+/**
+ * A `Query` refers to a Query which you can read or listen to. You can also
+ * construct refined `Query` objects by adding filters and ordering.
+ */
+export class Query<T = DocumentData> {
+  /** The type of this Firestore reference. */
   readonly type: 'query' | 'collection' = 'query';
+
+  /**
+   * The `FirebaseFirestore` for the Firestore database (useful for performing
+   * transactions, etc.).
+   */
+  readonly firestore: FirebaseFirestore;
 
   // This is the lite version of the Query class in the main SDK.
   constructor(
-    readonly firestore: Firestore,
-    readonly converter: firestore.FirestoreDataConverter<T> | null,
+    firestore: FirebaseFirestore,
+    readonly _converter: FirestoreDataConverter<T> | null,
     readonly _query: InternalQuery
-  ) {}
+  ) {
+    this.firestore = firestore;
+  }
 
-  withConverter<U>(
-    converter: firestore.FirestoreDataConverter<U>
-  ): firestore.Query<U> {
+  /**
+   * Applies a custom data converter to this query, allowing you to use your own
+   * custom model objects with Firestore. When you call {@link getDocs()} with
+   * the returned query, the provided converter will convert between Firestore
+   * data and your custom type `U`.
+   *
+   * @param converter Converts objects to and from Firestore.
+   * @return A `Query<U>` that uses the provided converter.
+   */
+  withConverter<U>(converter: FirestoreDataConverter<U>): Query<U> {
     return new Query<U>(this.firestore, converter, this._query);
   }
 }
 
-export abstract class QueryConstraint implements firestore.QueryConstraint {
-  abstract readonly type: firestore.QueryConstraintType;
+/** Describes the different query constraints available in this SDK. */
+export type QueryConstraintType =
+  | 'where'
+  | 'orderBy'
+  | 'limit'
+  | 'limitToLast'
+  | 'startAt'
+  | 'startAfter'
+  | 'endAt'
+  | 'endBefore';
+
+/**
+ * A `QueryConstraint` is used to narrow the set of documents returned by a
+ * Firestore query. `QueryConstraint`s are created by invoking {@link where()},
+ * {@link orderBy()}, {@link startAt()}, {@link startAfter()}, {@link
+ * endBefore()}, {@link endAt()}, {@link limit()} or {@link limitToLast()} and
+ * can then be passed to {@link query()} to create a new query instance that
+ * also contains this `QueryConstraint`.
+ */
+export abstract class QueryConstraint {
+  /** The type of this query constraints */
+  abstract readonly type: QueryConstraintType;
 
   /**
-   * Takes the provided Query and returns a copy of the Query with this
-   * QueryConstraint applied.
+   * Takes the provided `Query` and returns a copy of the `Query` with this
+   * `QueryConstraint` applied.
    */
-  abstract apply<T>(query: Query<T>): Query<T>;
+  abstract _apply<T>(query: Query<T>): Query<T>;
 }
 
+/**
+ * Creates a new immutable instance of `query` that is extended to also include
+ * additional query constraints.
+ *
+ * @param query The query instance to use as a base for the new constraints.
+ * @param queryConstraints The list of `QueryConstraint`s to apply.
+ * @throws if any of the provided query constraints cannot be combined with the
+ * existing or new constraints.
+ */
 export function query<T>(
-  query: firestore.Query<T>,
+  query: Query<T>,
   ...queryConstraints: QueryConstraint[]
 ): Query<T> {
-  let queryImpl = cast<Query<T>>(query, Query);
   for (const constraint of queryConstraints) {
-    queryImpl = constraint.apply(queryImpl);
+    query = constraint._apply(query);
   }
-  return queryImpl;
+  return query;
 }
 
 class QueryFilterConstraint extends QueryConstraint {
@@ -184,7 +284,7 @@ class QueryFilterConstraint extends QueryConstraint {
     super();
   }
 
-  apply<T>(query: Query<T>): Query<T> {
+  _apply<T>(query: Query<T>): Query<T> {
     const reader = newUserDataReader(query.firestore);
     const filter = newQueryFilter(
       query._query,
@@ -197,15 +297,42 @@ class QueryFilterConstraint extends QueryConstraint {
     );
     return new Query(
       query.firestore,
-      query.converter,
+      query._converter,
       queryWithAddedFilter(query._query, filter)
     );
   }
 }
 
+/**
+ * Filter conditions in a {@link where()} clause are specified using the
+ * strings '<', '<=', '==', '!=', '>=', '>', 'array-contains', 'in',
+ * 'array-contains-any', and 'not-in'.
+ */
+export type WhereFilterOp =
+  | '<'
+  | '<='
+  | '=='
+  | '!='
+  | '>='
+  | '>'
+  | 'array-contains'
+  | 'in'
+  | 'array-contains-any'
+  | 'not-in';
+
+/**
+ * Creates a `QueryConstraint` that enforces that documents must contain the
+ * specified field and that the value should satisfy the relation constraint
+ * provided.
+ *
+ * @param fieldPath The path to compare
+ * @param opStr The operation string (e.g "<", "<=", "==", ">", ">=", "!=").
+ * @param value The value for comparison
+ * @return The created `Query`.
+ */
 export function where(
-  fieldPath: string | firestore.FieldPath,
-  opStr: firestore.WhereFilterOp,
+  fieldPath: string | FieldPath,
+  opStr: WhereFilterOp,
   value: unknown
 ): QueryConstraint {
   // TODO(firestorelite): Consider validating the enum strings (note that
@@ -225,25 +352,40 @@ class QueryOrderByConstraint extends QueryConstraint {
     super();
   }
 
-  apply<T>(query: Query<T>): Query<T> {
+  _apply<T>(query: Query<T>): Query<T> {
     const orderBy = newQueryOrderBy(query._query, this._field, this._direction);
     return new Query(
       query.firestore,
-      query.converter,
+      query._converter,
       queryWithAddedOrderBy(query._query, orderBy)
     );
   }
 }
 
+/**
+ * The direction of a {@link orderBy()} clause is specified as 'desc' or 'asc'
+ * (descending or ascending).
+ */
+export type OrderByDirection = 'desc' | 'asc';
+
+/**
+ * Creates a `QueryConstraint` that sorts the query result by the
+ * specified field, optionally in descending order instead of ascending.
+ *
+ * @param fieldPath The field to sort by.
+ * @param directionStr Optional direction to sort by ('asc' or 'desc'). If
+ * not specified, order will be ascending.
+ * @return The created `Query`.
+ */
 export function orderBy(
-  field: string | ExternalFieldPath,
-  directionStr: firestore.OrderByDirection = 'asc'
+  fieldPath: string | FieldPath,
+  directionStr: OrderByDirection = 'asc'
 ): QueryConstraint {
   // TODO(firestorelite): Consider validating the enum strings (note that
   // TypeScript does not support passing invalid values).
   const direction = directionStr as Direction;
-  const fieldPath = fieldPathFromArgument('orderBy', field);
-  return new QueryOrderByConstraint(fieldPath, direction);
+  const path = fieldPathFromArgument('orderBy', fieldPath);
+  return new QueryOrderByConstraint(path, direction);
 }
 
 class QueryLimitConstraint extends QueryConstraint {
@@ -255,37 +397,50 @@ class QueryLimitConstraint extends QueryConstraint {
     super();
   }
 
-  apply<T>(query: Query<T>): Query<T> {
+  _apply<T>(query: Query<T>): Query<T> {
     return new Query(
       query.firestore,
-      query.converter,
+      query._converter,
       queryWithLimit(query._query, this._limit, this._limitType)
     );
   }
 }
 
-export function limit(n: number): QueryConstraint {
-  validatePositiveNumber('limit', 1, n);
-  return new QueryLimitConstraint('limit', n, LimitType.First);
+/**
+ * Creates a `QueryConstraint` that only returns the first matching documents.
+ *
+ * @param limit The maximum number of items to return.
+ * @return The created `Query`.
+ */
+export function limit(limit: number): QueryConstraint {
+  validatePositiveNumber('limit', 1, limit);
+  return new QueryLimitConstraint('limit', limit, LimitType.First);
 }
 
-export function limitToLast(n: number): QueryConstraint {
-  validatePositiveNumber('limitToLast', 1, n);
-  return new QueryLimitConstraint('limitToLast', n, LimitType.Last);
+/**
+ * Creates a `QueryConstraint` that only returns the last matching documents.
+ *
+ * You must specify at least one `orderBy` clause for `limitToLast` queries,
+ * otherwise an exception will be thrown during execution.
+ *
+ * @param limit The maximum number of items to return.
+ * @return The created `Query`.
+ */
+export function limitToLast(limit: number): QueryConstraint {
+  validatePositiveNumber('limitToLast', 1, limit);
+  return new QueryLimitConstraint('limitToLast', limit, LimitType.Last);
 }
 
 class QueryStartAtConstraint extends QueryConstraint {
   constructor(
     readonly type: 'startAt' | 'startAfter',
-    private readonly _docOrFields: Array<
-      unknown | firestore.DocumentSnapshot<unknown>
-    >,
+    private readonly _docOrFields: Array<unknown | DocumentSnapshot<unknown>>,
     private readonly _before: boolean
   ) {
     super();
   }
 
-  apply<T>(query: Query<T>): Query<T> {
+  _apply<T>(query: Query<T>): Query<T> {
     const bound = newQueryBoundFromDocOrFields(
       query,
       this.type,
@@ -294,20 +449,62 @@ class QueryStartAtConstraint extends QueryConstraint {
     );
     return new Query(
       query.firestore,
-      query.converter,
+      query._converter,
       queryWithStartAt(query._query, bound)
     );
   }
 }
 
+/**
+ * Creates a `QueryConstraint` that modifies the result set to start at the
+ * provided document (inclusive). The starting position is relative to the order
+ * of the query. The document must contain all of the fields provided in the
+ * `orderBy` of this query.
+ *
+ * @param snapshot The snapshot of the document to start at.
+ * @return A `QueryConstraint` to pass to `query()`.
+ */
+export function startAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+/**
+ * Creates a `QueryConstraint` that modifies the result set to start at the
+ * provided fields relative to the order of the query. The order of the field
+ * values must match the order of the order by clauses of the query.
+ *
+ * @param fieldValues The field values to start this query at, in order
+ * of the query's order by.
+ * @return A `QueryConstraint` to pass to `query()`.
+ */
+export function startAt(...fieldValues: unknown[]): QueryConstraint;
 export function startAt(
-  ...docOrFields: Array<unknown | firestore.DocumentSnapshot<unknown>>
+  ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
 ): QueryConstraint {
   return new QueryStartAtConstraint('startAt', docOrFields, /*before=*/ true);
 }
 
+/**
+ * Creates a `QueryConstraint` that modifies the result set to start after the
+ * provided document (exclusive). The starting position is relative to the order
+ * of the query. The document must contain all of the fields provided in the
+ * orderBy of the query.
+ *
+ * @param snapshot The snapshot of the document to start after.
+ * @return A `QueryConstraint` to pass to `query()`
+ */
 export function startAfter(
-  ...docOrFields: Array<unknown | firestore.DocumentSnapshot<unknown>>
+  snapshot: DocumentSnapshot<unknown>
+): QueryConstraint;
+/**
+ * Creates a `QueryConstraint` that modifies the result set to start after the
+ * provided fields relative to the order of the query. The order of the field
+ * values must match the order of the order by clauses of the query.
+ *
+ * @param fieldValues The field values to start this query after, in order
+ * of the query's order by.
+ * @return A `QueryConstraint` to pass to `query()`
+ */
+export function startAfter(...fieldValues: unknown[]): QueryConstraint;
+export function startAfter(
+  ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
 ): QueryConstraint {
   return new QueryStartAtConstraint(
     'startAfter',
@@ -319,15 +516,13 @@ export function startAfter(
 class QueryEndAtConstraint extends QueryConstraint {
   constructor(
     readonly type: 'endBefore' | 'endAt',
-    private readonly _docOrFields: Array<
-      unknown | firestore.DocumentSnapshot<unknown>
-    >,
+    private readonly _docOrFields: Array<unknown | DocumentSnapshot<unknown>>,
     private readonly _before: boolean
   ) {
     super();
   }
 
-  apply<T>(query: Query<T>): Query<T> {
+  _apply<T>(query: Query<T>): Query<T> {
     const bound = newQueryBoundFromDocOrFields(
       query,
       this.type,
@@ -336,20 +531,60 @@ class QueryEndAtConstraint extends QueryConstraint {
     );
     return new Query(
       query.firestore,
-      query.converter,
+      query._converter,
       queryWithEndAt(query._query, bound)
     );
   }
 }
 
+/**
+ * Creates a `QueryConstraint` that modifies the result set to end before the
+ * provided document (exclusive). The end position is relative to the order of
+ * the query. The document must contain all of the fields provided in the
+ * orderBy of the query.
+ *
+ * @param snapshot The snapshot of the document to end before.
+ * @return A `QueryConstraint` to pass to `query()`
+ */
+export function endBefore(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+/**
+ * Creates a `QueryConstraint` that modifies the result set to end before the
+ * provided fields relative to the order of the query. The order of the field
+ * values must match the order of the order by clauses of the query.
+ *
+ * @param fieldValues The field values to end this query before, in order
+ * of the query's order by.
+ * @return A `QueryConstraint` to pass to `query()`
+ */
+export function endBefore(...fieldValues: unknown[]): QueryConstraint;
 export function endBefore(
-  ...docOrFields: Array<unknown | firestore.DocumentSnapshot<unknown>>
+  ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
 ): QueryConstraint {
   return new QueryEndAtConstraint('endBefore', docOrFields, /*before=*/ true);
 }
 
+/**
+ * Creates a `QueryConstraint` that modifies the result set to end at the
+ * provided document (inclusive). The end position is relative to the order of
+ * the query. The document must contain all of the fields provided in the
+ * orderBy of the query.
+ *
+ * @param snapshot The snapshot of the document to end at.
+ * @return A `QueryConstraint` to pass to `query()`
+ */
+export function endAt(snapshot: DocumentSnapshot<unknown>): QueryConstraint;
+/**
+ * Creates a `QueryConstraint` that modifies the result set to end at the
+ * provided fields relative to the order of the query. The order of the field
+ * values must match the order of the order by clauses of the query.
+ *
+ * @param fieldValues The field values to end this query at, in order
+ * of the query's order by.
+ * @return A `QueryConstraint` to pass to `query()`
+ */
+export function endAt(...fieldValues: unknown[]): QueryConstraint;
 export function endAt(
-  ...docOrFields: Array<unknown | firestore.DocumentSnapshot<unknown>>
+  ...docOrFields: Array<unknown | DocumentSnapshot<unknown>>
 ): QueryConstraint {
   return new QueryEndAtConstraint('endAt', docOrFields, /*before=*/ false);
 }
@@ -358,7 +593,7 @@ export function endAt(
 function newQueryBoundFromDocOrFields<T>(
   query: Query,
   methodName: string,
-  docOrFields: Array<unknown | firestore.DocumentSnapshot<T>>,
+  docOrFields: Array<unknown | DocumentSnapshot<T>>,
   before: boolean
 ): Bound {
   if (docOrFields[0] instanceof DocumentSnapshot) {
@@ -383,28 +618,39 @@ function newQueryBoundFromDocOrFields<T>(
   }
 }
 
-export class CollectionReference<T = firestore.DocumentData>
-  extends Query<T>
-  implements firestore.CollectionReference<T> {
+/**
+ * A `CollectionReference` object can be used for adding documents, getting
+ * document references, and querying for documents (using {@link query()}`).
+ */
+export class CollectionReference<T = DocumentData> extends Query<T> {
   readonly type = 'collection';
 
   constructor(
-    readonly firestore: Firestore,
-    converter: firestore.FirestoreDataConverter<T> | null,
+    readonly firestore: FirebaseFirestore,
+    converter: FirestoreDataConverter<T> | null,
     readonly _path: ResourcePath
   ) {
     super(firestore, converter, newQueryForPath(_path));
   }
 
+  /** The collection's identifier. */
   get id(): string {
     return this._query.path.lastSegment();
   }
 
+  /**
+   * A string representing the path of the referenced collection (relative
+   * to the root of the database).
+   */
   get path(): string {
     return this._query.path.canonicalString();
   }
 
-  get parent(): DocumentReference<firestore.DocumentData> | null {
+  /**
+   * A reference to the containing `DocumentReference` if this is a
+   * subcollection. If this isn't a subcollection, the reference is null.
+   */
+  get parent(): DocumentReference<DocumentData> | null {
     const parentPath = this._path.popLast();
     if (parentPath.isEmpty()) {
       return null;
@@ -417,47 +663,84 @@ export class CollectionReference<T = firestore.DocumentData>
     }
   }
 
-  doc(path?: string): DocumentReference<T> {
-    // We allow omission of 'pathString' but explicitly prohibit passing in both
-    // 'undefined' and 'null'.
-    if (arguments.length === 0) {
-      path = AutoId.newId();
-    }
-    validateNonEmptyArgument('CollectionReference.doc', 'path', path);
-    const absolutePath = this._path.child(ResourcePath.fromString(path!));
-    validateDocumentPath(absolutePath);
-    return new DocumentReference(this.firestore, this.converter, absolutePath);
-  }
-
+  /**
+   * Applies a custom data converter to this CollectionReference, allowing you
+   * to use your own custom model objects with Firestore. When you call {@link
+   * addDoc()} with the returned `CollectionReference` instance, the provided
+   * converter will convert between Firestore data and your custom type `U`.
+   *
+   * @param converter Converts objects to and from Firestore.
+   * @return A `CollectionReference<U>` that uses the provided converter.
+   */
   withConverter<U>(
-    converter: firestore.FirestoreDataConverter<U>
-  ): firestore.CollectionReference<U> {
+    converter: FirestoreDataConverter<U>
+  ): CollectionReference<U> {
     return new CollectionReference<U>(this.firestore, converter, this._path);
   }
 }
 
+/**
+ * Gets a `CollectionReference` instance that refers to the collection at
+ * the specified absolute path.
+ *
+ * @param firestore A reference to the root Firestore instance.
+ * @param path A slash-separated path to a collection.
+ * @param pathSegments Additional path segments to apply relative to the first
+ * argument.
+ * @throws If the final path has an even number of segments and does not point
+ * to a collection.
+ * @return The `CollectionReference` instance.
+ */
 export function collection(
-  firestore: firestore.FirebaseFirestore,
-  collectionPath: string
-): CollectionReference<firestore.DocumentData>;
+  firestore: FirebaseFirestore,
+  path: string,
+  ...pathSegments: string[]
+): CollectionReference<DocumentData>;
+/**
+ * Gets a `CollectionReference` instance that refers to a subcollection of
+ * `reference` at the the specified relative path.
+ *
+ * @param reference A reference to a collection.
+ * @param path A slash-separated path to a collection.
+ * @param pathSegments Additional path segments to apply relative to the first
+ * argument.
+ * @throws If the final path has an even number of segments and does not point
+ * to a collection.
+ * @return The `CollectionReference` instance.
+ */
 export function collection(
-  reference: firestore.CollectionReference<unknown>,
-  collectionPath: string
-): CollectionReference<firestore.DocumentData>;
+  reference: CollectionReference<unknown>,
+  path: string,
+  ...pathSegments: string[]
+): CollectionReference<DocumentData>;
+/**
+ * Gets a `CollectionReference` instance that refers to a subcollection of
+ * `reference` at the the specified relative path.
+ *
+ * @param reference A reference to a Firestore document.
+ * @param path A slash-separated path to a collection.
+ * @param pathSegments Additional path segments that will be applied relative
+ * to the first argument.
+ * @throws If the final path has an even number of segments and does not point
+ * to a collection.
+ * @return The `CollectionReference` instance.
+ */
 export function collection(
-  reference: firestore.DocumentReference,
-  collectionPath: string
-): CollectionReference<firestore.DocumentData>;
+  reference: DocumentReference,
+  path: string,
+  ...pathSegments: string[]
+): CollectionReference<DocumentData>;
 export function collection(
   parent:
-    | firestore.FirebaseFirestore
-    | firestore.DocumentReference<unknown>
-    | firestore.CollectionReference<unknown>,
-  relativePath: string
-): CollectionReference<firestore.DocumentData> {
-  validateNonEmptyArgument('collection', 'path', relativePath);
-  if (parent instanceof Firestore) {
-    const absolutePath = ResourcePath.fromString(relativePath);
+    | FirebaseFirestore
+    | DocumentReference<unknown>
+    | CollectionReference<unknown>,
+  path: string,
+  ...pathSegments: string[]
+): CollectionReference<DocumentData> {
+  validateNonEmptyArgument('collection', 'path', path);
+  if (parent instanceof FirebaseFirestore) {
+    const absolutePath = ResourcePath.fromString(path, ...pathSegments);
     validateCollectionPath(absolutePath);
     return new CollectionReference(parent, /* converter= */ null, absolutePath);
   } else {
@@ -471,9 +754,10 @@ export function collection(
           'a DocumentReference or FirebaseFirestore'
       );
     }
-    const absolutePath = ResourcePath.fromString(parent.path).child(
-      ResourcePath.fromString(relativePath)
-    );
+    const absolutePath = ResourcePath.fromString(
+      parent.path,
+      ...pathSegments
+    ).child(ResourcePath.fromString(path));
     validateCollectionPath(absolutePath);
     return new CollectionReference(
       parent.firestore,
@@ -485,12 +769,22 @@ export function collection(
 
 // TODO(firestorelite): Consider using ErrorFactory -
 // https://github.com/firebase/firebase-js-sdk/blob/0131e1f/packages/util/src/errors.ts#L106
-export function collectionGroup(
-  firestore: firestore.FirebaseFirestore,
-  collectionId: string
-): Query<firestore.DocumentData> {
-  const firestoreClient = cast(firestore, Firestore);
 
+/**
+ * Creates and returns a new `Query` instance that includes all documents in the
+ * database that are contained in a collection or subcollection with the
+ * given `collectionId`.
+ *
+ * @param firestore A reference to the root Firestore instance.
+ * @param collectionId Identifies the collections to query over. Every
+ * collection or subcollection with this ID as the last segment of its path
+ * will be included. Cannot contain a slash.
+ * @return The created `Query`.
+ */
+export function collectionGroup(
+  firestore: FirebaseFirestore,
+  collectionId: string
+): Query<DocumentData> {
   validateNonEmptyArgument('collectionGroup', 'collection id', collectionId);
   if (collectionId.indexOf('/') >= 0) {
     throw new FirestoreError(
@@ -501,40 +795,83 @@ export function collectionGroup(
   }
 
   return new Query(
-    firestoreClient,
+    firestore,
     /* converter= */ null,
     newQueryForCollectionGroup(collectionId)
   );
 }
 
+/**
+ * Gets a `DocumentReference` instance that refers to the document at the
+ * specified abosulute path.
+ *
+ * @param firestore A reference to the root Firestore instance.
+ * @param path A slash-separated path to a document.
+ * @param pathSegments Additional path segments that will be applied relative
+ * to the first argument.
+ * @throws If the final path has an odd number of segments and does not point to
+ * a document.
+ * @return The `DocumentReference` instance.
+ */
 export function doc(
-  firestore: firestore.FirebaseFirestore,
-  documentPath: string
-): DocumentReference<firestore.DocumentData>;
+  firestore: FirebaseFirestore,
+  path: string,
+  ...pathSegments: string[]
+): DocumentReference<DocumentData>;
+/**
+ * Gets a `DocumentReference` instance that refers to a document within
+ * `reference` at the specified relative path. If no path is specified, an
+ * automatically-generated unique ID will be used for the returned
+ * `DocumentReference`.
+ *
+ * @param reference A reference to a collection.
+ * @param path A slash-separated path to a document. Has to be omitted to use
+ * auto-genrated IDs.
+ * @param pathSegments Additional path segments that will be applied relative
+ * to the first argument.
+ * @throws If the final path has an odd number of segments and does not point to
+ * a document.
+ * @return The `DocumentReference` instance.
+ */
 export function doc<T>(
-  reference: firestore.CollectionReference<T>,
-  documentPath?: string
+  reference: CollectionReference<T>,
+  path?: string,
+  ...pathSegments: string[]
 ): DocumentReference<T>;
+/**
+ * Gets a `DocumentReference` instance that refers to a document within
+ * `reference` at the specified relative path.
+ *
+ * @param reference A reference to a Firestore document.
+ * @param path A slash-separated path to a document.
+ * @param pathSegments Additional path segments that will be applied relative
+ * to the first argument.
+ * @throws If the final path has an odd number of segments and does not point to
+ * a document.
+ * @return The `DocumentReference` instance.
+ */
 export function doc(
-  reference: firestore.DocumentReference<unknown>,
-  documentPath: string
-): DocumentReference<firestore.DocumentData>;
+  reference: DocumentReference<unknown>,
+  path: string,
+  ...pathSegments: string[]
+): DocumentReference<DocumentData>;
 export function doc<T>(
   parent:
-    | firestore.FirebaseFirestore
-    | firestore.CollectionReference<T>
-    | firestore.DocumentReference<unknown>,
-  relativePath?: string
+    | FirebaseFirestore
+    | CollectionReference<T>
+    | DocumentReference<unknown>,
+  path?: string,
+  ...pathSegments: string[]
 ): DocumentReference {
   // We allow omission of 'pathString' but explicitly prohibit passing in both
   // 'undefined' and 'null'.
   if (arguments.length === 1) {
-    relativePath = AutoId.newId();
+    path = AutoId.newId();
   }
-  validateNonEmptyArgument('doc', 'path', relativePath);
+  validateNonEmptyArgument('doc', 'path', path);
 
-  if (parent instanceof Firestore) {
-    const absolutePath = ResourcePath.fromString(relativePath);
+  if (parent instanceof FirebaseFirestore) {
+    const absolutePath = ResourcePath.fromString(path, ...pathSegments);
     validateDocumentPath(absolutePath);
     return new DocumentReference(parent, /* converter= */ null, absolutePath);
   } else {
@@ -549,54 +886,76 @@ export function doc<T>(
       );
     }
     const absolutePath = parent._path.child(
-      ResourcePath.fromString(relativePath)
+      ResourcePath.fromString(path, ...pathSegments)
     );
     validateDocumentPath(absolutePath);
     return new DocumentReference(
       parent.firestore,
-      parent instanceof CollectionReference ? parent.converter : null,
+      parent instanceof CollectionReference ? parent._converter : null,
       absolutePath
     );
   }
 }
 
+/**
+ * Reads the document referred to by the specified document reference.
+ *
+ * All documents are directly fetched from the server, even if the document was
+ * previously read or modified. Recent modifications are only reflected in the
+ * retrieved `DocumentSnapshot` if they have already been applied by the
+ * backend. If the client is offline, the read fails. If you like to use
+ * caching or see local modifications, please use the full Firestore SDK.
+ *
+ * @param reference The reference of the document to fetch.
+ * @return A Promise resolved with a `DocumentSnapshot` containing the current
+ * document contents.
+ */
 export function getDoc<T>(
-  reference: firestore.DocumentReference<T>
-): Promise<firestore.DocumentSnapshot<T>> {
-  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
-
-  const datastore = getDatastore(ref.firestore);
-  return invokeBatchGetDocumentsRpc(datastore, [ref._key]).then(result => {
-    hardAssert(result.length === 1, 'Expected a single document result');
-    const maybeDocument = result[0];
-    return new DocumentSnapshot<T>(
-      ref.firestore,
-      ref._key,
-      maybeDocument instanceof Document ? maybeDocument : null,
-      ref._converter
-    );
-  });
+  reference: DocumentReference<T>
+): Promise<DocumentSnapshot<T>> {
+  const datastore = getDatastore(reference.firestore);
+  return invokeBatchGetDocumentsRpc(datastore, [reference._key]).then(
+    result => {
+      hardAssert(result.length === 1, 'Expected a single document result');
+      const maybeDocument = result[0];
+      return new DocumentSnapshot<T>(
+        reference.firestore,
+        reference._key,
+        maybeDocument instanceof Document ? maybeDocument : null,
+        reference._converter
+      );
+    }
+  );
 }
 
-export function getDocs<T>(
-  query: firestore.Query<T>
-): Promise<firestore.QuerySnapshot<T>> {
-  const queryImpl = cast<Query<T>>(query, Query);
-  validateHasExplicitOrderByForLimitToLast(queryImpl._query);
+/**
+ * Executes the query and returns the results as a {@link QuerySnapshot}.
+ *
+ * All queries are executed directly by the server, even if the the query was
+ * previously executed. Recent modifications are only reflected in the retrieved
+ * results if they have already been applied by the backend. If the client is
+ * offline, the operation fails. To see previously cached result and local
+ * modifications, use the full Firestore SDK.
+ *
+ * @param query The `Query` to execute.
+ * @return A Promise that will be resolved with the results of the query.
+ */
+export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
+  validateHasExplicitOrderByForLimitToLast(query._query);
 
-  const datastore = getDatastore(queryImpl.firestore);
-  return invokeRunQueryRpc(datastore, queryImpl._query).then(result => {
+  const datastore = getDatastore(query.firestore);
+  return invokeRunQueryRpc(datastore, query._query).then(result => {
     const docs = result.map(
       doc =>
         new QueryDocumentSnapshot<T>(
-          queryImpl.firestore,
+          query.firestore,
           doc.key,
           doc,
-          queryImpl.converter
+          query._converter
         )
     );
 
-    if (hasLimitToLast(queryImpl._query)) {
+    if (hasLimitToLast(query._query)) {
       // Limit to last queries reverse the orderBy constraint that was
       // specified by the user. As such, we need to reverse the order of the
       // results to return the documents in the expected order.
@@ -607,62 +966,126 @@ export function getDocs<T>(
   });
 }
 
+/**
+ * Writes to the document referred to by the specified `DocumentReference`. If
+ * the document does not yet exist, it will be created.
+ *
+ * The result of this write will only be reflected in document reads that occur
+ * after the returned Promise resolves. If the client is offline, the
+ * write fails. If you would like to see local modifications or buffer writes
+ * until the client is online, use the full Firestore SDK.
+ *
+ * @param reference A reference to the document to write.
+ * @param data A map of the fields and values for the document.
+ * @return A Promise resolved once the data has been successfully written
+ * to the backend.
+ */
 export function setDoc<T>(
-  reference: firestore.DocumentReference<T>,
+  reference: DocumentReference<T>,
   data: T
 ): Promise<void>;
+/**
+ * Writes to the document referred to by the specified `DocumentReference`. If
+ * the document does not yet exist, it will be created. If you provide `merge`
+ * or `mergeFields`, the provided data can be merged into an existing document.
+ *
+ * The result of this write will only be reflected in document reads that occur
+ * after the returned Promise resolves. If the client is offline, the
+ * write fails. If you would like to see local modifications or buffer writes
+ * until the client is online, use the full Firestore SDK.
+ *
+ * @param reference A reference to the document to write.
+ * @param data A map of the fields and values for the document.
+ * @param options An object to configure the set behavior.
+ * @return A Promise resolved once the data has been successfully written
+ * to the backend.
+ */
 export function setDoc<T>(
-  reference: firestore.DocumentReference<T>,
+  reference: DocumentReference<T>,
   data: Partial<T>,
-  options: firestore.SetOptions
+  options: SetOptions
 ): Promise<void>;
 export function setDoc<T>(
-  reference: firestore.DocumentReference<T>,
+  reference: DocumentReference<T>,
   data: T,
-  options?: firestore.SetOptions
+  options?: SetOptions
 ): Promise<void> {
-  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
-
   const convertedValue = applyFirestoreDataConverter(
-    ref._converter,
+    reference._converter,
     data,
     options
   );
-  const dataReader = newUserDataReader(ref.firestore);
+  const dataReader = newUserDataReader(reference.firestore);
   const parsed = parseSetData(
     dataReader,
     'setDoc',
-    ref._key,
+    reference._key,
     convertedValue,
-    ref._converter !== null,
+    reference._converter !== null,
     options
   );
 
-  const datastore = getDatastore(ref.firestore);
+  const datastore = getDatastore(reference.firestore);
   return invokeCommitRpc(
     datastore,
-    parsed.toMutations(ref._key, Precondition.none())
+    parsed.toMutations(reference._key, Precondition.none())
   );
 }
 
+/**
+ * Updates fields in the document referred to by the specified
+ * `DocumentReference`. The update will fail if applied to a document that does
+ * not exist.
+ *
+ * The result of this update will only be reflected in document reads that occur
+ * after the returned Promise resolves. If the client is offline, the
+ * update fails. If you would like to see local modifications or buffer writes
+ * until the client is online, use the full Firestore SDK.
+ *
+ * @param reference A reference to the document to update.
+ * @param data An object containing the fields and values with which to
+ * update the document. Fields can contain dots to reference nested fields
+ * within the document.
+ * @return A Promise resolved once the data has been successfully written
+ * to the backend.
+ */
 export function updateDoc(
-  reference: firestore.DocumentReference<unknown>,
-  data: firestore.UpdateData
+  reference: DocumentReference<unknown>,
+  data: UpdateData
 ): Promise<void>;
+/**
+ * Updates fields in the document referred to by the specified
+ * `DocumentReference` The update will fail if applied to a document that does
+ * not exist.
+ *
+ * Nested fields can be updated by providing dot-separated field path
+ * strings or by providing `FieldPath` objects.
+ *
+ * The result of this update will only be reflected in document reads that occur
+ * after the returned Promise resolves. If the client is offline, the
+ * update fails. If you would like to see local modifications or buffer writes
+ * until the client is online, use the full Firestore SDK.
+ *
+ * @param reference A reference to the document to update.
+ * @param field The first field to update.
+ * @param value The first value.
+ * @param moreFieldsAndValues Additional key value pairs.
+ * @return A Promise resolved once the data has been successfully written
+ * to the backend.
+ */
 export function updateDoc(
-  reference: firestore.DocumentReference<unknown>,
-  field: string | firestore.FieldPath,
+  reference: DocumentReference<unknown>,
+  field: string | FieldPath,
   value: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void>;
 export function updateDoc(
-  reference: firestore.DocumentReference<unknown>,
-  fieldOrUpdateData: string | firestore.FieldPath | firestore.UpdateData,
+  reference: DocumentReference<unknown>,
+  fieldOrUpdateData: string | FieldPath | UpdateData,
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
-  const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
-  const dataReader = newUserDataReader(ref.firestore);
+  const dataReader = newUserDataReader(reference.firestore);
 
   let parsed: ParsedUpdateData;
   if (
@@ -672,7 +1095,7 @@ export function updateDoc(
     parsed = parseUpdateVarargs(
       dataReader,
       'updateDoc',
-      ref._key,
+      reference._key,
       fieldOrUpdateData,
       value,
       moreFieldsAndValues
@@ -681,38 +1104,63 @@ export function updateDoc(
     parsed = parseUpdateData(
       dataReader,
       'updateDoc',
-      ref._key,
+      reference._key,
       fieldOrUpdateData
     );
   }
 
-  const datastore = getDatastore(ref.firestore);
+  const datastore = getDatastore(reference.firestore);
   return invokeCommitRpc(
     datastore,
-    parsed.toMutations(ref._key, Precondition.exists(true))
+    parsed.toMutations(reference._key, Precondition.exists(true))
   );
 }
 
-export function deleteDoc(
-  reference: firestore.DocumentReference
-): Promise<void> {
-  const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
-  const datastore = getDatastore(ref.firestore);
+/**
+ * Deletes the document referred to by the specified `DocumentReference`.
+ *
+ * The deletion will only be reflected in document reads that occur after the
+ * returned Promise resolves. If the client is offline, the
+ * delete fails. If you would like to see local modifications or buffer writes
+ * until the client is online, use the full Firestore SDK.
+ *
+ * @param reference A reference to the document to delete.
+ * @return A Promise resolved once the document has been successfully
+ * deleted from the backend.
+ */
+export function deleteDoc(reference: DocumentReference): Promise<void> {
+  const datastore = getDatastore(reference.firestore);
   return invokeCommitRpc(datastore, [
-    new DeleteMutation(ref._key, Precondition.none())
+    new DeleteMutation(reference._key, Precondition.none())
   ]);
 }
 
+/**
+ * Add a new document to specified `CollectionReference` with the given data,
+ * assigning it a document ID automatically.
+ *
+ * The result of this write will only be reflected in document reads that occur
+ * after the returned Promise resolves. If the client is offline, the
+ * write fails. If you would like to see local modifications or buffer writes
+ * until the client is online, use the full Firestore SDK.
+ *
+ * @param reference A reference to the collection to add this document to.
+ * @param data An Object containing the data for the new document.
+ * @return A Promise resolved with a `DocumentReference` pointing to the
+ * newly created document after it has been written to the backend.
+ */
 export function addDoc<T>(
-  reference: firestore.CollectionReference<T>,
+  reference: CollectionReference<T>,
   data: T
-): Promise<firestore.DocumentReference<T>> {
-  const collRef = cast<CollectionReference<T>>(reference, CollectionReference);
-  const docRef = doc(collRef);
+): Promise<DocumentReference<T>> {
+  const docRef = doc(reference);
 
-  const convertedValue = applyFirestoreDataConverter(collRef.converter, data);
+  const convertedValue = applyFirestoreDataConverter(
+    reference._converter,
+    data
+  );
 
-  const dataReader = newUserDataReader(collRef.firestore);
+  const dataReader = newUserDataReader(reference.firestore);
   const parsed = parseSetData(
     dataReader,
     'addDoc',
@@ -722,16 +1170,24 @@ export function addDoc<T>(
     {}
   );
 
-  const datastore = getDatastore(collRef.firestore);
+  const datastore = getDatastore(reference.firestore);
   return invokeCommitRpc(
     datastore,
     parsed.toMutations(docRef._key, Precondition.exists(false))
   ).then(() => docRef);
 }
 
+/**
+ * Returns true if the provided references are equal.
+ *
+ * @param left A reference to compare.
+ * @param right A reference to compare.
+ * @return true if the references point to the same location in the same
+ * Firestore database.
+ */
 export function refEqual<T>(
-  left: firestore.DocumentReference<T> | firestore.CollectionReference<T>,
-  right: firestore.DocumentReference<T> | firestore.CollectionReference<T>
+  left: DocumentReference<T> | CollectionReference<T>,
+  right: DocumentReference<T> | CollectionReference<T>
 ): boolean {
   if (
     (left instanceof DocumentReference ||
@@ -741,27 +1197,35 @@ export function refEqual<T>(
     return (
       left.firestore === right.firestore &&
       left.path === right.path &&
-      left.converter === right.converter
+      left._converter === right._converter
     );
   }
   return false;
 }
 
-export function queryEqual<T>(
-  left: firestore.Query<T>,
-  right: firestore.Query<T>
-): boolean {
+/**
+ * Returns true if the provided queries point to the same collection and apply
+ * the same constraints.
+ *
+ * @param left A `Query` to compare.
+ * @param right A Query` to compare.
+ * @return true if the references point to the same location in the same
+ * Firestore database.
+ */
+export function queryEqual<T>(left: Query<T>, right: Query<T>): boolean {
   if (left instanceof Query && right instanceof Query) {
     return (
       left.firestore === right.firestore &&
       queryEquals(left._query, right._query) &&
-      left.converter === right.converter
+      left._converter === right._converter
     );
   }
   return false;
 }
 
-export function newUserDataReader(firestore: Firestore): UserDataReader {
+export function newUserDataReader(
+  firestore: FirebaseFirestore
+): UserDataReader {
   const settings = firestore._getSettings();
   const serializer = newSerializer(firestore._databaseId);
   return new UserDataReader(

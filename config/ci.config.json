@@ -4,5 +4,6 @@
   "databaseURL": "https://jscore-sandbox-141b5.firebaseio.com",
   "projectId": "jscore-sandbox-141b5",
   "storageBucket": "jscore-sandbox-141b5.appspot.com",
-  "messagingSenderId": "280127633210"
+  "messagingSenderId": "280127633210",
+  "appId": "1:280127633210:web:1eb2f7e8799c4d5a46c203"
 }

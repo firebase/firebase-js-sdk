@@ -15,28 +15,80 @@
  * limitations under the License.
  */
 
-import {
-  FirestoreError as PublicFirestoreError,
-  FirestoreErrorCode as PublicFirestoreErrorCode
-} from '@firebase/firestore-types';
+/**
+ * The set of Firestore status codes. The codes are the same at the ones
+ * exposed by gRPC here:
+ * https://github.com/grpc/grpc/blob/master/doc/statuscodes.md
+ *
+ * Possible values:
+ * - 'cancelled': The operation was cancelled (typically by the caller).
+ * - 'unknown': Unknown error or an error from a different error domain.
+ * - 'invalid-argument': Client specified an invalid argument. Note that this
+ *   differs from 'failed-precondition'. 'invalid-argument' indicates
+ *   arguments that are problematic regardless of the state of the system
+ *   (e.g. an invalid field name).
+ * - 'deadline-exceeded': Deadline expired before operation could complete.
+ *   For operations that change the state of the system, this error may be
+ *   returned even if the operation has completed successfully. For example,
+ *   a successful response from a server could have been delayed long enough
+ *   for the deadline to expire.
+ * - 'not-found': Some requested document was not found.
+ * - 'already-exists': Some document that we attempted to create already
+ *   exists.
+ * - 'permission-denied': The caller does not have permission to execute the
+ *   specified operation.
+ * - 'resource-exhausted': Some resource has been exhausted, perhaps a
+ *   per-user quota, or perhaps the entire file system is out of space.
+ * - 'failed-precondition': Operation was rejected because the system is not
+ *   in a state required for the operation's execution.
+ * - 'aborted': The operation was aborted, typically due to a concurrency
+ *   issue like transaction aborts, etc.
+ * - 'out-of-range': Operation was attempted past the valid range.
+ * - 'unimplemented': Operation is not implemented or not supported/enabled.
+ * - 'internal': Internal errors. Means some invariants expected by
+ *   underlying system has been broken. If you see one of these errors,
+ *   something is very broken.
+ * - 'unavailable': The service is currently unavailable. This is most likely
+ *   a transient condition and may be corrected by retrying with a backoff.
+ * - 'data-loss': Unrecoverable data loss or corruption.
+ * - 'unauthenticated': The request does not have valid authentication
+ *   credentials for the operation.
+ */
+export type FirestoreErrorCode =
+  | 'cancelled'
+  | 'unknown'
+  | 'invalid-argument'
+  | 'deadline-exceeded'
+  | 'not-found'
+  | 'already-exists'
+  | 'permission-denied'
+  | 'resource-exhausted'
+  | 'failed-precondition'
+  | 'aborted'
+  | 'out-of-range'
+  | 'unimplemented'
+  | 'internal'
+  | 'unavailable'
+  | 'data-loss'
+  | 'unauthenticated';
 
 /**
  * Error Codes describing the different ways Firestore can fail. These come
  * directly from GRPC.
  */
-export type Code = PublicFirestoreErrorCode;
+export type Code = FirestoreErrorCode;
 
 export const Code = {
   // Causes are copied from:
   // https://github.com/grpc/grpc/blob/bceec94ea4fc5f0085d81235d8e1c06798dc341a/include/grpc%2B%2B/impl/codegen/status_code_enum.h
   /** Not an error; returned on success. */
-  OK: 'ok' as Code,
+  OK: 'ok' as FirestoreErrorCode,
 
   /** The operation was cancelled (typically by the caller). */
-  CANCELLED: 'cancelled' as Code,
+  CANCELLED: 'cancelled' as FirestoreErrorCode,
 
   /** Unknown error or an error from a different error domain. */
-  UNKNOWN: 'unknown' as Code,
+  UNKNOWN: 'unknown' as FirestoreErrorCode,
 
   /**
    * Client specified an invalid argument. Note that this differs from
@@ -44,7 +96,7 @@ export const Code = {
    * problematic regardless of the state of the system (e.g., a malformed file
    * name).
    */
-  INVALID_ARGUMENT: 'invalid-argument' as Code,
+  INVALID_ARGUMENT: 'invalid-argument' as FirestoreErrorCode,
 
   /**
    * Deadline expired before operation could complete. For operations that
@@ -53,16 +105,16 @@ export const Code = {
    * from a server could have been delayed long enough for the deadline to
    * expire.
    */
-  DEADLINE_EXCEEDED: 'deadline-exceeded' as Code,
+  DEADLINE_EXCEEDED: 'deadline-exceeded' as FirestoreErrorCode,
 
   /** Some requested entity (e.g., file or directory) was not found. */
-  NOT_FOUND: 'not-found' as Code,
+  NOT_FOUND: 'not-found' as FirestoreErrorCode,
 
   /**
    * Some entity that we attempted to create (e.g., file or directory) already
    * exists.
    */
-  ALREADY_EXISTS: 'already-exists' as Code,
+  ALREADY_EXISTS: 'already-exists' as FirestoreErrorCode,
 
   /**
    * The caller does not have permission to execute the specified operation.
@@ -71,19 +123,19 @@ export const Code = {
    * PERMISSION_DENIED must not be used if the caller can not be identified
    * (use UNAUTHENTICATED instead for those errors).
    */
-  PERMISSION_DENIED: 'permission-denied' as Code,
+  PERMISSION_DENIED: 'permission-denied' as FirestoreErrorCode,
 
   /**
    * The request does not have valid authentication credentials for the
    * operation.
    */
-  UNAUTHENTICATED: 'unauthenticated' as Code,
+  UNAUTHENTICATED: 'unauthenticated' as FirestoreErrorCode,
 
   /**
    * Some resource has been exhausted, perhaps a per-user quota, or perhaps the
    * entire file system is out of space.
    */
-  RESOURCE_EXHAUSTED: 'resource-exhausted' as Code,
+  RESOURCE_EXHAUSTED: 'resource-exhausted' as FirestoreErrorCode,
 
   /**
    * Operation was rejected because the system is not in a state required for
@@ -105,7 +157,7 @@ export const Code = {
    *      server does not match the condition. E.g., conflicting
    *      read-modify-write on the same resource.
    */
-  FAILED_PRECONDITION: 'failed-precondition' as Code,
+  FAILED_PRECONDITION: 'failed-precondition' as FirestoreErrorCode,
 
   /**
    * The operation was aborted, typically due to a concurrency issue like
@@ -114,7 +166,7 @@ export const Code = {
    * See litmus test above for deciding between FAILED_PRECONDITION, ABORTED,
    * and UNAVAILABLE.
    */
-  ABORTED: 'aborted' as Code,
+  ABORTED: 'aborted' as FirestoreErrorCode,
 
   /**
    * Operation was attempted past the valid range. E.g., seeking or reading
@@ -131,16 +183,16 @@ export const Code = {
    * when it applies so that callers who are iterating through a space can
    * easily look for an OUT_OF_RANGE error to detect when they are done.
    */
-  OUT_OF_RANGE: 'out-of-range' as Code,
+  OUT_OF_RANGE: 'out-of-range' as FirestoreErrorCode,
 
   /** Operation is not implemented or not supported/enabled in this service. */
-  UNIMPLEMENTED: 'unimplemented' as Code,
+  UNIMPLEMENTED: 'unimplemented' as FirestoreErrorCode,
 
   /**
    * Internal errors. Means some invariants expected by underlying System has
    * been broken. If you see one of these errors, Something is very broken.
    */
-  INTERNAL: 'internal' as Code,
+  INTERNAL: 'internal' as FirestoreErrorCode,
 
   /**
    * The service is currently unavailable. This is a most likely a transient
@@ -149,23 +201,18 @@ export const Code = {
    * See litmus test above for deciding between FAILED_PRECONDITION, ABORTED,
    * and UNAVAILABLE.
    */
-  UNAVAILABLE: 'unavailable' as Code,
+  UNAVAILABLE: 'unavailable' as FirestoreErrorCode,
 
   /** Unrecoverable data loss or corruption. */
-  DATA_LOSS: 'data-loss' as Code
+  DATA_LOSS: 'data-loss' as FirestoreErrorCode
 };
 
-/**
- * An error class used for Firestore-generated errors. Ideally we should be
- * using FirebaseError, but integrating with it is overly arduous at the moment,
- * so we define our own compatible error class (with a `name` of 'FirebaseError'
- * and compatible `code` and `message` fields.)
- */
-export class FirestoreError extends Error implements PublicFirestoreError {
+/** An error returned by a Firestore operation. */
+export class FirestoreError extends Error {
   name = 'FirebaseError';
   stack?: string;
 
-  constructor(readonly code: Code, readonly message: string) {
+  constructor(readonly code: FirestoreErrorCode, readonly message: string) {
     super(message);
 
     // HACK: We write a toString property directly because Error is not a real

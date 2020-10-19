@@ -31,19 +31,21 @@ export class RepoInfo {
   internalHost: string;
 
   /**
-   * @param {string} host Hostname portion of the url for the repo
-   * @param {boolean} secure Whether or not this repo is accessed over ssl
-   * @param {string} namespace The namespace represented by the repo
-   * @param {boolean} webSocketOnly Whether to prefer websockets over all other transports (used by Nest).
-   * @param {string=} persistenceKey Override the default session persistence storage key
+   * @param host Hostname portion of the url for the repo
+   * @param secure Whether or not this repo is accessed over ssl
+   * @param namespace The namespace represented by the repo
+   * @param webSocketOnly Whether to prefer websockets over all other transports (used by Nest).
+   * @param nodeAdmin Whether this instance uses Admin SDK credentials
+   * @param persistenceKey Override the default session persistence storage key
    */
   constructor(
     host: string,
-    public secure: boolean,
-    public namespace: string,
-    public webSocketOnly: boolean,
-    public persistenceKey: string = '',
-    public includeNamespaceInQueryParams: boolean = false
+    public readonly secure: boolean,
+    public readonly namespace: string,
+    public readonly webSocketOnly: boolean,
+    public readonly nodeAdmin: boolean = false,
+    public readonly persistenceKey: string = '',
+    public readonly includeNamespaceInQueryParams: boolean = false
   ) {
     this.host = host.toLowerCase();
     this.domain = this.host.substr(this.host.indexOf('.') + 1);

@@ -29,13 +29,14 @@ import {
   QueryDocumentSnapshot,
   QuerySnapshot,
   Transaction,
-  WriteBatch
+  WriteBatch,
+  setLogLevel
 } from './api/database';
 import { Blob } from './api/blob';
 import { FieldPath } from './api/field_path';
 import { GeoPoint } from './api/geo_point';
 import { Timestamp } from './api/timestamp';
-import { FieldValue } from './api/field_value';
+import { FieldValue } from './compat/field_value';
 
 const firestoreNamespace = {
   Firestore,
@@ -52,7 +53,7 @@ const firestoreNamespace = {
   CollectionReference,
   FieldPath,
   FieldValue,
-  setLogLevel: Firestore.setLogLevel,
+  setLogLevel,
   CACHE_SIZE_UNLIMITED
 };
 

@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-import * as firestore from '../../../lite-types';
-
-import { BaseFieldPath } from '../../../src/api/field_path';
-import { cast } from './util';
+import { _BaseFieldPath } from '../../../src/api/field_path';
 import { DOCUMENT_KEY_NAME } from '../../../src/model/path';
 
 /**
- * A FieldPath refers to a field in a document. The path may consist of a single
- * field name (referring to a top-level field in the document), or a list of
- * field names (referring to a nested field in the document).
+ * A `FieldPath` refers to a field in a document. The path may consist of a
+ * single field name (referring to a top-level field in the document), or a
+ * list of field names (referring to a nested field in the document).
+ *
+ * Create a `FieldPath` by providing field names. If more than one field
+ * name is provided, the path will point to a nested field in a document.
  */
-export class FieldPath extends BaseFieldPath implements firestore.FieldPath {
+export class FieldPath extends _BaseFieldPath {
   // Note: This class is stripped down a copy of the FieldPath class in the
   // legacy SDK. The changes are:
   // - The `documentId()` static method has been removed
@@ -43,12 +43,21 @@ export class FieldPath extends BaseFieldPath implements firestore.FieldPath {
     super(fieldNames);
   }
 
-  isEqual(other: firestore.FieldPath): boolean {
-    const path = cast(other, FieldPath);
-    return this._internalPath.isEqual(path._internalPath);
+  /**
+   * Returns true if this `FieldPath` is equal to the provided one.
+   *
+   * @param other The `FieldPath` to compare against.
+   * @return true if this `FieldPath` is equal to the provided one.
+   */
+  isEqual(other: FieldPath): boolean {
+    return this._internalPath.isEqual(other._internalPath);
   }
 }
 
-export function documentId(): firestore.FieldPath {
+/**
+ * Returns a special sentinel `FieldPath` to refer to the ID of a document.
+ * It can be used in queries to sort or filter by the document ID.
+ */
+export function documentId(): FieldPath {
   return new FieldPath(DOCUMENT_KEY_NAME);
 }

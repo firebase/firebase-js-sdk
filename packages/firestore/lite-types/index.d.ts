@@ -68,27 +68,33 @@ export function runTransaction<T>(
 
 export function collection(
   firestore: FirebaseFirestore,
-  collectionPath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
 export function collection(
   reference: CollectionReference<unknown>,
-  collectionPath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
 export function collection(
   reference: DocumentReference,
-  collectionPath: string
+  path: string,
+  ...pathComponents: string[]
 ): CollectionReference<DocumentData>;
 export function doc(
   firestore: FirebaseFirestore,
-  documentPath: string
+  path: string,
+  ...pathComponents: string[]
 ): DocumentReference<DocumentData>;
 export function doc<T>(
   reference: CollectionReference<T>,
-  documentPath?: string
+  path?: string,
+  ...pathComponents: string[]
 ): DocumentReference<T>;
 export function doc(
   reference: DocumentReference<unknown>,
-  documentPath: string
+  path: string,
+  ...pathComponents: string[]
 ): DocumentReference<DocumentData>;
 export function collectionGroup(
   firestore: FirebaseFirestore,
@@ -203,7 +209,6 @@ export class DocumentReference<T = DocumentData> {
 
   get parent(): CollectionReference<T>;
 
-  collection(collectionPath: string): CollectionReference<DocumentData>;
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
@@ -227,11 +232,13 @@ export type WhereFilterOp =
   | '<'
   | '<='
   | '=='
+  | '!='
   | '>='
   | '>'
   | 'array-contains'
   | 'in'
-  | 'array-contains-any';
+  | 'array-contains-any'
+  | 'not-in';
 
 export class Query<T = DocumentData> {
   protected constructor();
@@ -302,7 +309,6 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 
   get parent(): DocumentReference<DocumentData> | null;
 
-  doc(documentPath?: string): DocumentReference<T>;
   withConverter<U>(
     converter: FirestoreDataConverter<U>
   ): CollectionReference<U>;

@@ -15,13 +15,9 @@
  * limitations under the License.
  */
 
-// See https://github.com/typescript-eslint/typescript-eslint/issues/363
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import * as firestore from '../../../exp-types';
-
-import { Firestore } from './database';
+import { FirebaseFirestore } from './database';
 import {
-  DocumentKeyReference,
+  _DocumentKeyReference,
   ParsedUpdateData,
   parseSetData,
   parseUpdateData,
@@ -41,10 +37,16 @@ import {
   doc,
   DocumentReference,
   newUserDataReader,
-  Query
+  Query,
+  SetOptions,
+  UpdateData
 } from '../../../lite/src/api/reference';
 import { Document } from '../../../src/model/document';
-import { DeleteMutation, Precondition } from '../../../src/model/mutation';
+import {
+  DeleteMutation,
+  Mutation,
+  Precondition
+} from '../../../src/model/mutation';
 import { FieldPath } from '../../../lite/src/api/field_path';
 import {
   CompleteFn,
@@ -56,131 +58,257 @@ import {
 } from '../../../src/api/observer';
 import { getEventManager, getLocalStore, getSyncEngine } from './components';
 import {
-  enqueueListen,
-  enqueueWrite,
-  enqueueExecuteQueryViaSnapshotListener,
-  enqueueReadDocumentViaSnapshotListener,
-  enqueueReadDocumentFromCache,
-  enqueueExecuteQueryFromCache,
-  enqueueSnapshotsInSyncListen
+  executeQueryFromCache,
+  executeQueryViaSnapshotListener,
+  readDocumentFromCache,
+  readDocumentViaSnapshotListener
 } from '../../../src/core/firestore_client';
-import { newQueryForPath } from '../../../src/core/query';
+import {
+  newQueryForPath,
+  Query as InternalQuery
+} from '../../../src/core/query';
+import { Deferred } from '../../../src/util/promise';
+import { syncEngineWrite } from '../../../src/core/sync_engine';
+import { AsyncObserver } from '../../../src/util/async_observer';
+import {
+  addSnapshotsInSyncListener,
+  eventManagerListen,
+  eventManagerUnlisten,
+  QueryListener,
+  removeSnapshotsInSyncListener
+} from '../../../src/core/event_manager';
+import { FirestoreError } from '../../../src/util/error';
 
+/**
+ * An options object that can be passed to {@link onSnapshot()} and {@link
+ * QuerySnapshot#docChanges} to control which types of changes to include in the
+ * result set.
+ */
+export interface SnapshotListenOptions {
+  /**
+   * Include a change even if only the metadata of the query or of a document
+   * changed. Default is false.
+   */
+  readonly includeMetadataChanges?: boolean;
+}
+
+/**
+ * Reads the document referred to by this `DocumentReference`.
+ *
+ * Note: `getDoc()` attempts to provide up-to-date data when possible by waiting
+ * for data from the server, but it may return cached data or fail if you are
+ * offline and the server cannot be reached. To specify this behavior, invoke
+ * {@link getDocFromCache()} or {@link getDocFromServer()}.
+ *
+ * @param reference The reference of the document to fetch.
+ * @return A Promise resolved with a `DocumentSnapshot` containing the
+ * current document contents.
+ */
 export function getDoc<T>(
-  reference: firestore.DocumentReference<T>
-): Promise<firestore.DocumentSnapshot<T>> {
-  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
-  const firestore = cast<Firestore>(ref.firestore, Firestore);
-  return getEventManager(firestore).then(eventManager =>
-    enqueueReadDocumentViaSnapshotListener(
-      firestore._queue,
+  reference: DocumentReference<T>
+): Promise<DocumentSnapshot<T>> {
+  const firestore = cast(reference.firestore, FirebaseFirestore);
+  firestore._verifyNotTerminated();
+
+  const deferred = new Deferred<ViewSnapshot>();
+  firestore._queue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(firestore);
+    await readDocumentViaSnapshotListener(
       eventManager,
-      ref._key
-    ).then(doc => convertToDocSnapshot(firestore, ref, doc))
+      firestore._queue,
+      reference._key,
+      { source: 'default' },
+      deferred
+    );
+  });
+  return deferred.promise.then(snapshot =>
+    convertToDocSnapshot(firestore, reference, snapshot)
   );
 }
 
+/**
+ * Reads the document referred to by this `DocumentReference` from cache.
+ * Returns an error if the document is not currently cached.
+ *
+ * @return A Promise resolved with a `DocumentSnapshot` containing the
+ * current document contents.
+ */
 export function getDocFromCache<T>(
-  reference: firestore.DocumentReference<T>
-): Promise<firestore.DocumentSnapshot<T>> {
-  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
-  const firestore = cast<Firestore>(ref.firestore, Firestore);
-  return getLocalStore(firestore).then(localStore =>
-    enqueueReadDocumentFromCache(firestore._queue, localStore, ref._key).then(
-      doc =>
-        new DocumentSnapshot(
-          firestore,
-          ref._key,
-          doc,
-          new SnapshotMetadata(
-            doc instanceof Document ? doc.hasLocalMutations : false,
-            /* fromCache= */ true
-          ),
-          ref._converter
-        )
-    )
+  reference: DocumentReference<T>
+): Promise<DocumentSnapshot<T>> {
+  const firestore = cast(reference.firestore, FirebaseFirestore);
+  firestore._verifyNotTerminated();
+
+  const deferred = new Deferred<Document | null>();
+  firestore._queue.enqueueAndForget(async () => {
+    const localStore = await getLocalStore(firestore);
+    await readDocumentFromCache(localStore, reference._key, deferred);
+  });
+  return deferred.promise.then(
+    doc =>
+      new DocumentSnapshot(
+        firestore,
+        reference._key,
+        doc,
+        new SnapshotMetadata(
+          doc instanceof Document ? doc.hasLocalMutations : false,
+          /* fromCache= */ true
+        ),
+        reference._converter
+      )
   );
 }
 
+/**
+ * Reads the document referred to by this `DocumentReference` from the server.
+ * Returns an error if the network is not available.
+ *
+ * @return A Promise resolved with a `DocumentSnapshot` containing the
+ * current document contents.
+ */
 export function getDocFromServer<T>(
-  reference: firestore.DocumentReference<T>
-): Promise<firestore.DocumentSnapshot<T>> {
-  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
-  const firestore = cast<Firestore>(ref.firestore, Firestore);
-  return getEventManager(firestore).then(eventManager =>
-    enqueueReadDocumentViaSnapshotListener(
-      firestore._queue,
+  reference: DocumentReference<T>
+): Promise<DocumentSnapshot<T>> {
+  const firestore = cast(reference.firestore, FirebaseFirestore);
+  firestore._verifyNotTerminated();
+
+  const deferred = new Deferred<ViewSnapshot>();
+  firestore._queue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(firestore);
+    await readDocumentViaSnapshotListener(
       eventManager,
-      ref._key,
-      { source: 'server' }
-    ).then(viewSnapshot => convertToDocSnapshot(firestore, ref, viewSnapshot))
+      firestore._queue,
+      reference._key,
+      { source: 'server' },
+      deferred
+    );
+  });
+  return deferred.promise.then(snapshot =>
+    convertToDocSnapshot(firestore, reference, snapshot)
   );
 }
 
-export function getDocs<T>(
-  query: firestore.Query<T>
-): Promise<QuerySnapshot<T>> {
-  const internalQuery = cast<Query<T>>(query, Query);
-  const firestore = cast<Firestore>(query.firestore, Firestore);
+/**
+ * Executes the query and returns the results as a `QuerySnapshot`.
+ *
+ * Note: `getDocs()` attempts to provide up-to-date data when possible by
+ * waiting for data from the server, but it may return cached data or fail if
+ * you are offline and the server cannot be reached. To specify this behavior,
+ * invoke {@link getDocsFromCache()} or {@link getDocsFromServer()}.
+ *
+ * @return A Promise that will be resolved with the results of the query.
+ */
+export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
+  const firestore = cast(query.firestore, FirebaseFirestore);
+  firestore._verifyNotTerminated();
 
-  validateHasExplicitOrderByForLimitToLast(internalQuery._query);
-  return getEventManager(firestore).then(eventManager =>
-    enqueueExecuteQueryViaSnapshotListener(
-      firestore._queue,
+  validateHasExplicitOrderByForLimitToLast(query._query);
+
+  const deferred = new Deferred<ViewSnapshot>();
+  firestore._queue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(firestore);
+    await executeQueryViaSnapshotListener(
       eventManager,
-      internalQuery._query
-    ).then(snapshot => new QuerySnapshot(firestore, internalQuery, snapshot))
+      firestore._queue,
+      query._query,
+      { source: 'default' },
+      deferred
+    );
+  });
+  return deferred.promise.then(
+    snapshot => new QuerySnapshot(firestore, query, snapshot)
   );
 }
 
+/**
+ * Executes the query and returns the results as a `QuerySnapshot` from cache.
+ * Returns an error if the document is not currently cached.
+ *
+ * @return A Promise that will be resolved with the results of the query.
+ */
 export function getDocsFromCache<T>(
-  query: firestore.Query<T>
+  query: Query<T>
 ): Promise<QuerySnapshot<T>> {
-  const internalQuery = cast<Query<T>>(query, Query);
-  const firestore = cast<Firestore>(query.firestore, Firestore);
-  return getLocalStore(firestore).then(localStore =>
-    enqueueExecuteQueryFromCache(
-      firestore._queue,
-      localStore,
-      internalQuery._query
-    ).then(snapshot => new QuerySnapshot(firestore, internalQuery, snapshot))
+  const firestore = cast(query.firestore, FirebaseFirestore);
+  firestore._verifyNotTerminated();
+
+  const deferred = new Deferred<ViewSnapshot>();
+  firestore._queue.enqueueAndForget(async () => {
+    const localStore = await getLocalStore(firestore);
+    await executeQueryFromCache(localStore, query._query, deferred);
+  });
+  return deferred.promise.then(
+    snapshot => new QuerySnapshot(firestore, query, snapshot)
   );
 }
 
+/**
+ * Executes the query and returns the results as a `QuerySnapshot` from the
+ * server. Returns an error if the network is not available.
+ *
+ * @return A Promise that will be resolved with the results of the query.
+ */
 export function getDocsFromServer<T>(
-  query: firestore.Query<T>
+  query: Query<T>
 ): Promise<QuerySnapshot<T>> {
-  const internalQuery = cast<Query<T>>(query, Query);
-  const firestore = cast<Firestore>(query.firestore, Firestore);
-  return getEventManager(firestore).then(eventManager =>
-    enqueueExecuteQueryViaSnapshotListener(
-      firestore._queue,
+  const firestore = cast(query.firestore, FirebaseFirestore);
+  firestore._verifyNotTerminated();
+
+  const deferred = new Deferred<ViewSnapshot>();
+  firestore._queue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(firestore);
+    await executeQueryViaSnapshotListener(
       eventManager,
-      internalQuery._query,
-      { source: 'server' }
-    ).then(snapshot => new QuerySnapshot(firestore, internalQuery, snapshot))
+      firestore._queue,
+      query._query,
+      { source: 'server' },
+      deferred
+    );
+  });
+  return deferred.promise.then(
+    snapshot => new QuerySnapshot(firestore, query, snapshot)
   );
 }
 
+/**
+ * Writes to the document referred to by this `DocumentReference`. If the
+ * document does not yet exist, it will be created.
+ *
+ * @param reference A reference to the document to write.
+ * @param data A map of the fields and values for the document.
+ * @return A Promise resolved once the data has been successfully written
+ * to the backend (note that it won't resolve while you're offline).
+ */
 export function setDoc<T>(
-  reference: firestore.DocumentReference<T>,
+  reference: DocumentReference<T>,
   data: T
 ): Promise<void>;
+/**
+ * Writes to the document referred to by the specified `DocumentReference`. If
+ * the document does not yet exist, it will be created. If you provide `merge`
+ * or `mergeFields`, the provided data can be merged into an existing document.
+ *
+ * @param reference A reference to the document to write.
+ * @param data A map of the fields and values for the document.
+ * @param options An object to configure the set behavior.
+ * @return A Promise resolved once the data has been successfully written
+ * to the backend (note that it won't resolve while you're offline).
+ */
 export function setDoc<T>(
-  reference: firestore.DocumentReference<T>,
+  reference: DocumentReference<T>,
   data: Partial<T>,
-  options: firestore.SetOptions
+  options: SetOptions
 ): Promise<void>;
 export function setDoc<T>(
-  reference: firestore.DocumentReference<T>,
+  reference: DocumentReference<T>,
   data: T,
-  options?: firestore.SetOptions
+  options?: SetOptions
 ): Promise<void> {
-  const ref = cast<DocumentReference<T>>(reference, DocumentReference);
-  const firestore = cast(ref.firestore, Firestore);
+  const firestore = cast(reference.firestore, FirebaseFirestore);
+  firestore._verifyNotTerminated();
 
   const convertedValue = applyFirestoreDataConverter(
-    ref._converter,
+    reference._converter,
     data,
     options
   );
@@ -188,39 +316,62 @@ export function setDoc<T>(
   const parsed = parseSetData(
     dataReader,
     'setDoc',
-    ref._key,
+    reference._key,
     convertedValue,
-    ref._converter !== null,
+    reference._converter !== null,
     options
   );
 
-  return getSyncEngine(firestore).then(syncEngine =>
-    enqueueWrite(
-      firestore._queue,
-      syncEngine,
-      parsed.toMutations(ref._key, Precondition.none())
-    )
-  );
+  const mutations = parsed.toMutations(reference._key, Precondition.none());
+  return executeWrite(firestore, mutations);
 }
 
+/**
+ * Updates fields in the document referred to by the specified
+ * `DocumentReference`. The update will fail if applied to a document that does
+ * not exist.
+ *
+ * @param reference A reference to the document to update.
+ * @param data An object containing the fields and values with which to
+ * update the document. Fields can contain dots to reference nested fields
+ * within the document.
+ * @return A Promise resolved once the data has been successfully written
+ * to the backend (note that it won't resolve while you're offline).
+ */
 export function updateDoc(
-  reference: firestore.DocumentReference<unknown>,
-  data: firestore.UpdateData
+  reference: DocumentReference<unknown>,
+  data: UpdateData
 ): Promise<void>;
+/**
+ * Updates fields in the document referred to by the specified
+ * `DocumentReference` The update will fail if applied to a document that does
+ * not exist.
+ *
+ * Nested fields can be updated by providing dot-separated field path
+ * strings or by providing `FieldPath` objects.
+ *
+ * @param reference A reference to the document to update.
+ * @param field The first field to update.
+ * @param value The first value.
+ * @param moreFieldsAndValues Additional key value pairs.
+ * @return A Promise resolved once the data has been successfully written
+ * to the backend (note that it won't resolve while you're offline).
+ */
 export function updateDoc(
-  reference: firestore.DocumentReference<unknown>,
-  field: string | firestore.FieldPath,
+  reference: DocumentReference<unknown>,
+  field: string | FieldPath,
   value: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void>;
 export function updateDoc(
-  reference: firestore.DocumentReference<unknown>,
-  fieldOrUpdateData: string | firestore.FieldPath | firestore.UpdateData,
+  reference: DocumentReference<unknown>,
+  fieldOrUpdateData: string | FieldPath | UpdateData,
   value?: unknown,
   ...moreFieldsAndValues: unknown[]
 ): Promise<void> {
-  const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
-  const firestore = cast(ref.firestore, Firestore);
+  const firestore = cast(reference.firestore, FirebaseFirestore);
+  firestore._verifyNotTerminated();
+
   const dataReader = newUserDataReader(firestore);
 
   let parsed: ParsedUpdateData;
@@ -231,7 +382,7 @@ export function updateDoc(
     parsed = parseUpdateVarargs(
       dataReader,
       'updateDoc',
-      ref._key,
+      reference._key,
       fieldOrUpdateData,
       value,
       moreFieldsAndValues
@@ -240,135 +391,277 @@ export function updateDoc(
     parsed = parseUpdateData(
       dataReader,
       'updateDoc',
-      ref._key,
+      reference._key,
       fieldOrUpdateData
     );
   }
 
-  return getSyncEngine(firestore).then(syncEngine =>
-    enqueueWrite(
-      firestore._queue,
-      syncEngine,
-      parsed.toMutations(ref._key, Precondition.exists(true))
-    )
+  const mutations = parsed.toMutations(
+    reference._key,
+    Precondition.exists(true)
   );
+  return executeWrite(firestore, mutations);
 }
 
+/**
+ * Deletes the document referred to by the specified `DocumentReference`.
+ *
+ * @param reference A reference to the document to delete.
+ * @return A Promise resolved once the document has been successfully
+ * deleted from the backend (note that it won't resolve while you're offline).
+ */
 export function deleteDoc(
-  reference: firestore.DocumentReference
+  reference: DocumentReference<unknown>
 ): Promise<void> {
-  const ref = cast<DocumentReference<unknown>>(reference, DocumentReference);
-  const firestore = cast(ref.firestore, Firestore);
-  return getSyncEngine(firestore).then(syncEngine =>
-    enqueueWrite(firestore._queue, syncEngine, [
-      new DeleteMutation(ref._key, Precondition.none())
-    ])
-  );
+  const firestore = cast(reference.firestore, FirebaseFirestore);
+  firestore._verifyNotTerminated();
+
+  const mutations = [new DeleteMutation(reference._key, Precondition.none())];
+  return executeWrite(firestore, mutations);
 }
 
+/**
+ * Add a new document to specified `CollectionReference` with the given data,
+ * assigning it a document ID automatically.
+ *
+ * @param reference A reference to the collection to add this document to.
+ * @param data An Object containing the data for the new document.
+ * @return A Promise resolved with a `DocumentReference` pointing to the
+ * newly created document after it has been written to the backend (Note that it
+ * won't resolve while you're offline).
+ */
 export function addDoc<T>(
-  reference: firestore.CollectionReference<T>,
+  reference: CollectionReference<T>,
   data: T
-): Promise<firestore.DocumentReference<T>> {
-  const collRef = cast<CollectionReference<T>>(reference, CollectionReference);
-  const firestore = cast(collRef.firestore, Firestore);
-  const docRef = doc(collRef);
+): Promise<DocumentReference<T>> {
+  const firestore = cast(reference.firestore, FirebaseFirestore);
+  firestore._verifyNotTerminated();
 
-  const convertedValue = applyFirestoreDataConverter(collRef.converter, data);
+  const docRef = doc(reference);
+  const convertedValue = applyFirestoreDataConverter(
+    reference._converter,
+    data
+  );
 
-  const dataReader = newUserDataReader(collRef.firestore);
+  const dataReader = newUserDataReader(reference.firestore);
   const parsed = parseSetData(
     dataReader,
     'addDoc',
     docRef._key,
     convertedValue,
-    collRef.converter !== null,
+    reference._converter !== null,
     {}
   );
 
-  return getSyncEngine(firestore)
-    .then(syncEngine =>
-      enqueueWrite(
-        firestore._queue,
-        syncEngine,
-        parsed.toMutations(docRef._key, Precondition.exists(false))
-      )
-    )
-    .then(() => docRef);
+  const mutations = parsed.toMutations(docRef._key, Precondition.exists(false));
+  return executeWrite(firestore, mutations).then(() => docRef);
 }
 
 // TODO(firestorexp): Make sure these overloads are tested via the Firestore
 // integration tests
+
+/**
+ * Attaches a listener for `DocumentSnapshot` events. You may either pass
+ * individual `onNext` and `onError` callbacks or pass a single observer
+ * object with `next` and `error` callbacks.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will
+ * never be called because the snapshot stream is never-ending.
+ *
+ * @param reference A reference to the document to listen to.
+ * @param observer A single object containing `next` and `error` callbacks.
+ * @return An unsubscribe function that can be called to cancel
+ * the snapshot listener.
+ */
 export function onSnapshot<T>(
-  reference: firestore.DocumentReference<T>,
+  reference: DocumentReference<T>,
   observer: {
-    next?: (snapshot: firestore.DocumentSnapshot<T>) => void;
-    error?: (error: firestore.FirestoreError) => void;
+    next?: (snapshot: DocumentSnapshot<T>) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): Unsubscribe;
+/**
+ * Attaches a listener for `DocumentSnapshot` events. You may either pass
+ * individual `onNext` and `onError` callbacks or pass a single observer
+ * object with `next` and `error` callbacks.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will
+ * never be called because the snapshot stream is never-ending.
+ *
+ * @param reference A reference to the document to listen to.
+ * @param options Options controlling the listen behavior.
+ * @param observer A single object containing `next` and `error` callbacks.
+ * @return An unsubscribe function that can be called to cancel
+ * the snapshot listener.
+ */
 export function onSnapshot<T>(
-  reference: firestore.DocumentReference<T>,
-  options: firestore.SnapshotListenOptions,
+  reference: DocumentReference<T>,
+  options: SnapshotListenOptions,
   observer: {
-    next?: (snapshot: firestore.DocumentSnapshot<T>) => void;
-    error?: (error: firestore.FirestoreError) => void;
+    next?: (snapshot: DocumentSnapshot<T>) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): Unsubscribe;
+/**
+ * Attaches a listener for `DocumentSnapshot` events. You may either pass
+ * individual `onNext` and `onError` callbacks or pass a single observer
+ * object with `next` and `error` callbacks.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will
+ * never be called because the snapshot stream is never-ending.
+ *
+ * @param reference A reference to the document to listen to.
+ * @param onNext A callback to be called every time a new `DocumentSnapshot`
+ * is available.
+ * @param onError A callback to be called if the listen fails or is
+ * cancelled. No further callbacks will occur.
+ * @param onCompletion Can be provided, but will not be called since streams are
+ * never ending.
+ * @return An unsubscribe function that can be called to cancel
+ * the snapshot listener.
+ */
 export function onSnapshot<T>(
-  reference: firestore.DocumentReference<T>,
-  onNext: (snapshot: firestore.DocumentSnapshot<T>) => void,
-  onError?: (error: firestore.FirestoreError) => void,
+  reference: DocumentReference<T>,
+  onNext: (snapshot: DocumentSnapshot<T>) => void,
+  onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
+/**
+ * Attaches a listener for `DocumentSnapshot` events. You may either pass
+ * individual `onNext` and `onError` callbacks or pass a single observer
+ * object with `next` and `error` callbacks.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will
+ * never be called because the snapshot stream is never-ending.
+ *
+ * @param reference A reference to the document to listen to.
+ * @param options Options controlling the listen behavior.
+ * @param onNext A callback to be called every time a new `DocumentSnapshot`
+ * is available.
+ * @param onError A callback to be called if the listen fails or is
+ * cancelled. No further callbacks will occur.
+ * @param onCompletion Can be provided, but will not be called since streams are
+ * never ending.
+ * @return An unsubscribe function that can be called to cancel
+ * the snapshot listener.
+ */
 export function onSnapshot<T>(
-  reference: firestore.DocumentReference<T>,
-  options: firestore.SnapshotListenOptions,
-  onNext: (snapshot: firestore.DocumentSnapshot<T>) => void,
-  onError?: (error: firestore.FirestoreError) => void,
+  reference: DocumentReference<T>,
+  options: SnapshotListenOptions,
+  onNext: (snapshot: DocumentSnapshot<T>) => void,
+  onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
+/**
+ * Attaches a listener for `QuerySnapshot` events. You may either pass
+ * individual `onNext` and `onError` callbacks or pass a single observer
+ * object with `next` and `error` callbacks. The listener can be cancelled by
+ * calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will
+ * never be called because the snapshot stream is never-ending.
+ *
+ * @param query The query to listen to.
+ * @param observer A single object containing `next` and `error` callbacks.
+ * @return An unsubscribe function that can be called to cancel
+ * the snapshot listener.
+ */
 export function onSnapshot<T>(
-  query: firestore.Query<T>,
+  query: Query<T>,
   observer: {
-    next?: (snapshot: firestore.QuerySnapshot<T>) => void;
-    error?: (error: firestore.FirestoreError) => void;
+    next?: (snapshot: QuerySnapshot<T>) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): Unsubscribe;
+/**
+ * Attaches a listener for `QuerySnapshot` events. You may either pass
+ * individual `onNext` and `onError` callbacks or pass a single observer
+ * object with `next` and `error` callbacks. The listener can be cancelled by
+ * calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will
+ * never be called because the snapshot stream is never-ending.
+ *
+ * @param query The query to listen to.
+ * @param options Options controlling the listen behavior.
+ * @param observer A single object containing `next` and `error` callbacks.
+ * @return An unsubscribe function that can be called to cancel
+ * the snapshot listener.
+ */
 export function onSnapshot<T>(
-  query: firestore.Query<T>,
-  options: firestore.SnapshotListenOptions,
+  query: Query<T>,
+  options: SnapshotListenOptions,
   observer: {
-    next?: (snapshot: firestore.QuerySnapshot<T>) => void;
-    error?: (error: firestore.FirestoreError) => void;
+    next?: (snapshot: QuerySnapshot<T>) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): Unsubscribe;
+/**
+ * Attaches a listener for `QuerySnapshot` events. You may either pass
+ * individual `onNext` and `onError` callbacks or pass a single observer
+ * object with `next` and `error` callbacks. The listener can be cancelled by
+ * calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will
+ * never be called because the snapshot stream is never-ending.
+ *
+ * @param query The query to listen to.
+ * @param onNext A callback to be called every time a new `QuerySnapshot`
+ * is available.
+ * @param onCompletion Can be provided, but will not be called since streams are
+ * never ending.
+ * @param onError A callback to be called if the listen fails or is
+ * cancelled. No further callbacks will occur.
+ * @return An unsubscribe function that can be called to cancel
+ * the snapshot listener.
+ */
 export function onSnapshot<T>(
-  query: firestore.Query<T>,
-  onNext: (snapshot: firestore.QuerySnapshot<T>) => void,
-  onError?: (error: firestore.FirestoreError) => void,
+  query: Query<T>,
+  onNext: (snapshot: QuerySnapshot<T>) => void,
+  onError?: (error: FirestoreError) => void,
+  onCompletion?: () => void
+): Unsubscribe;
+/**
+ * Attaches a listener for `QuerySnapshot` events. You may either pass
+ * individual `onNext` and `onError` callbacks or pass a single observer
+ * object with `next` and `error` callbacks. The listener can be cancelled by
+ * calling the function that is returned when `onSnapshot` is called.
+ *
+ * NOTE: Although an `onCompletion` callback can be provided, it will
+ * never be called because the snapshot stream is never-ending.
+ *
+ * @param query The query to listen to.
+ * @param options Options controlling the listen behavior.
+ * @param onNext A callback to be called every time a new `QuerySnapshot`
+ * is available.
+ * @param onCompletion Can be provided, but will not be called since streams are
+ * never ending.
+ * @param onError A callback to be called if the listen fails or is
+ * cancelled. No further callbacks will occur.
+ * @return An unsubscribe function that can be called to cancel
+ * the snapshot listener.
+ */
+export function onSnapshot<T>(
+  query: Query<T>,
+  options: SnapshotListenOptions,
+  onNext: (snapshot: QuerySnapshot<T>) => void,
+  onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
 export function onSnapshot<T>(
-  query: firestore.Query<T>,
-  options: firestore.SnapshotListenOptions,
-  onNext: (snapshot: firestore.QuerySnapshot<T>) => void,
-  onError?: (error: firestore.FirestoreError) => void,
-  onCompletion?: () => void
-): Unsubscribe;
-export function onSnapshot<T>(
-  ref: firestore.Query<T> | firestore.DocumentReference<T>,
+  reference: Query<T> | DocumentReference<T>,
   ...args: unknown[]
 ): Unsubscribe {
-  let options: firestore.SnapshotListenOptions = {
+  let options: SnapshotListenOptions = {
     includeMetadataChanges: false
   };
   let currArg = 0;
   if (typeof args[currArg] === 'object' && !isPartialObserver(args[currArg])) {
-    options = args[currArg] as firestore.SnapshotListenOptions;
+    options = args[currArg] as SnapshotListenOptions;
     currArg++;
   }
 
@@ -377,49 +670,40 @@ export function onSnapshot<T>(
   };
 
   if (isPartialObserver(args[currArg])) {
-    const userObserver = args[currArg] as PartialObserver<
-      firestore.QuerySnapshot<T>
-    >;
+    const userObserver = args[currArg] as PartialObserver<QuerySnapshot<T>>;
     args[currArg] = userObserver.next?.bind(userObserver);
     args[currArg + 1] = userObserver.error?.bind(userObserver);
     args[currArg + 2] = userObserver.complete?.bind(userObserver);
   }
 
-  let asyncUnsubscribe: Promise<Unsubscribe>;
+  let observer: PartialObserver<ViewSnapshot>;
+  let firestore: FirebaseFirestore;
+  let internalQuery: InternalQuery;
 
-  if (ref instanceof DocumentReference) {
-    const firestore = cast(ref.firestore, Firestore);
+  if (reference instanceof DocumentReference) {
+    firestore = cast(reference.firestore, FirebaseFirestore);
+    internalQuery = newQueryForPath(reference._key.path);
 
-    const observer: PartialObserver<ViewSnapshot> = {
+    observer = {
       next: snapshot => {
         if (args[currArg]) {
-          (args[currArg] as NextFn<firestore.DocumentSnapshot<T>>)(
-            convertToDocSnapshot(firestore, ref, snapshot)
+          (args[currArg] as NextFn<DocumentSnapshot<T>>)(
+            convertToDocSnapshot(firestore, reference, snapshot)
           );
         }
       },
       error: args[currArg + 1] as ErrorFn,
       complete: args[currArg + 2] as CompleteFn
     };
-
-    asyncUnsubscribe = getEventManager(firestore).then(eventManager =>
-      enqueueListen(
-        firestore._queue,
-        eventManager,
-        newQueryForPath(ref._key.path),
-        internalOptions,
-        observer
-      )
-    );
   } else {
-    const query = cast<Query<T>>(ref, Query);
-    const firestore = cast(query.firestore, Firestore);
+    firestore = cast(reference.firestore, FirebaseFirestore);
+    internalQuery = reference._query;
 
-    const observer: PartialObserver<ViewSnapshot> = {
+    observer = {
       next: snapshot => {
         if (args[currArg]) {
-          (args[currArg] as NextFn<firestore.QuerySnapshot<T>>)(
-            new QuerySnapshot(firestore, query, snapshot)
+          (args[currArg] as NextFn<QuerySnapshot<T>>)(
+            new QuerySnapshot(firestore, reference, snapshot)
           );
         }
       },
@@ -427,62 +711,115 @@ export function onSnapshot<T>(
       complete: args[currArg + 2] as CompleteFn
     };
 
-    validateHasExplicitOrderByForLimitToLast(query._query);
-
-    asyncUnsubscribe = getEventManager(firestore).then(eventManager =>
-      enqueueListen(
-        firestore._queue,
-        eventManager,
-        query._query,
-        internalOptions,
-        observer
-      )
-    );
+    validateHasExplicitOrderByForLimitToLast(reference._query);
   }
 
-  // TODO(firestorexp): Add test that verifies that we don't raise a snapshot if
-  // unsubscribe is called before `asyncObserver` resolves.
+  firestore._verifyNotTerminated();
+
+  const wrappedObserver = new AsyncObserver(observer);
+  const listener = new QueryListener(
+    internalQuery,
+    wrappedObserver,
+    internalOptions
+  );
+  firestore._queue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(firestore);
+    return eventManagerListen(eventManager, listener);
+  });
+
   return () => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    asyncUnsubscribe.then(unsubscribe => unsubscribe());
+    wrappedObserver.mute();
+    firestore._queue.enqueueAndForget(async () => {
+      const eventManager = await getEventManager(firestore);
+      return eventManagerUnlisten(eventManager, listener);
+    });
   };
 }
 
 // TODO(firestorexp): Make sure these overloads are tested via the Firestore
 // integration tests
+
+/**
+ * Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync
+ * event indicates that all listeners affected by a given change have fired,
+ * even if a single server-generated change affects multiple listeners.
+ *
+ * NOTE: The snapshots-in-sync event only indicates that listeners are in sync
+ * with each other, but does not relate to whether those snapshots are in sync
+ * with the server. Use SnapshotMetadata in the individual listeners to
+ * determine if a snapshot is from the cache or the server.
+ *
+ * @param firestore The instance of Firestore for synchronizing snapshots.
+ * @param observer A single object containing `next` and `error` callbacks.
+ * @return An unsubscribe function that can be called to cancel the snapshot
+ * listener.
+ */
 export function onSnapshotsInSync(
-  firestore: firestore.FirebaseFirestore,
+  firestore: FirebaseFirestore,
   observer: {
     next?: (value: void) => void;
-    error?: (error: firestore.FirestoreError) => void;
+    error?: (error: FirestoreError) => void;
     complete?: () => void;
   }
 ): Unsubscribe;
+/**
+ * Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync
+ * event indicates that all listeners affected by a given change have fired,
+ * even if a single server-generated change affects multiple listeners.
+ *
+ * NOTE: The snapshots-in-sync event only indicates that listeners are in sync
+ * with each other, but does not relate to whether those snapshots are in sync
+ * with the server. Use SnapshotMetadata in the individual listeners to
+ * determine if a snapshot is from the cache or the server.
+ *
+ * @param firestore The instance of Firestore for synchronizing snapshots.
+ * @param onSync A callback to be called every time all snapshot listeners are
+ * in sync with each other.
+ * @return An unsubscribe function that can be called to cancel the snapshot
+ * listener.
+ */
 export function onSnapshotsInSync(
-  firestore: firestore.FirebaseFirestore,
+  firestore: FirebaseFirestore,
   onSync: () => void
 ): Unsubscribe;
 export function onSnapshotsInSync(
-  firestore: firestore.FirebaseFirestore,
+  firestore: FirebaseFirestore,
   arg: unknown
 ): Unsubscribe {
-  const firestoreImpl = cast(firestore, Firestore);
+  firestore._verifyNotTerminated();
+
   const observer = isPartialObserver(arg)
     ? (arg as PartialObserver<void>)
     : {
         next: arg as () => void
       };
 
-  const asyncObserver = getEventManager(firestoreImpl).then(eventManager =>
-    enqueueSnapshotsInSyncListen(firestoreImpl._queue, eventManager, observer)
-  );
+  const wrappedObserver = new AsyncObserver(observer);
+  firestore._queue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(firestore);
+    addSnapshotsInSyncListener(eventManager, wrappedObserver);
+  });
 
-  // TODO(firestorexp): Add test that verifies that we don't raise a snapshot if
-  // unsubscribe is called before `asyncObserver` resolves.
   return () => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    asyncObserver.then(unsubscribe => unsubscribe());
+    wrappedObserver.mute();
+    firestore._queue.enqueueAndForget(async () => {
+      const eventManager = await getEventManager(firestore);
+      removeSnapshotsInSyncListener(eventManager, wrappedObserver);
+    });
   };
+}
+
+/** Locally writes `mutations` on the async queue. */
+export function executeWrite(
+  firestore: FirebaseFirestore,
+  mutations: Mutation[]
+): Promise<void> {
+  const deferred = new Deferred<void>();
+  firestore._queue.enqueueAndForget(async () => {
+    const syncEngine = await getSyncEngine(firestore);
+    return syncEngineWrite(syncEngine, mutations, deferred);
+  });
+  return deferred.promise;
 }
 
 /**
@@ -490,8 +827,8 @@ export function onSnapshotsInSync(
  * to a DocumentSnapshot.
  */
 function convertToDocSnapshot<T>(
-  firestore: Firestore,
-  ref: DocumentKeyReference<T>,
+  firestore: FirebaseFirestore,
+  ref: _DocumentKeyReference<T>,
   snapshot: ViewSnapshot
 ): DocumentSnapshot<T> {
   debugAssert(

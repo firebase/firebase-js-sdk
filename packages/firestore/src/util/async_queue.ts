@@ -220,7 +220,7 @@ export class AsyncQueue {
   private delayedOperations: Array<DelayedOperation<unknown>> = [];
 
   // visible for testing
-  failure: Error | null = null;
+  failure: FirestoreError | null = null;
 
   // Flag set while there's an outstanding AsyncQueue operation, used for
   // assertion sanity-checks.
@@ -321,8 +321,10 @@ export class AsyncQueue {
    * operations were retried successfully.
    */
   enqueueRetryable(op: () => Promise<void>): void {
-    this.retryableOps.push(op);
-    this.enqueueAndForget(() => this.retryNextOp());
+    this.enqueueAndForget(() => {
+      this.retryableOps.push(op);
+      return this.retryNextOp();
+    });
   }
 
   /**

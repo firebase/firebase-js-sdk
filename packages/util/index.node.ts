@@ -35,3 +35,4 @@ export * from './src/sha1';
 export * from './src/subscribe';
 export * from './src/validation';
 export * from './src/utf8';
+export * from './src/exponential_backoff';

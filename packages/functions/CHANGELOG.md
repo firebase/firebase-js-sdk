@@ -1,5 +1,24 @@
 # @firebase/functions
 
+## 0.5.1
+
+### Patch Changes
+
+- [`b6b1fd95c`](https://github.com/firebase/firebase-js-sdk/commit/b6b1fd95cbeeabc38daa574ce7cf0b7dd34cf550) - Fixes a bug introduced in #3782 that causes callable functions to throw an error in browser extensions.
+
+## 0.5.0
+
+### Minor Changes
+
+- [`a6af7c279`](https://github.com/firebase/firebase-js-sdk/commit/a6af7c27925da47fa62ee3b7b0a267a272c52220) [#3825](https://github.com/firebase/firebase-js-sdk/pull/3825) - Allow setting a custom domain for callable Cloud Functions.
+
+## 0.4.51
+
+### Patch Changes
+
+- Updated dependencies [[`da1c7df79`](https://github.com/firebase/firebase-js-sdk/commit/da1c7df7982b08bbef82fcc8d93255f3e2d23cca)]:
+  - @firebase/component@0.1.19
+
 ## 0.4.50
 
 ### Patch Changes

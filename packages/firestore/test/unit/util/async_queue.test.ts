@@ -222,6 +222,7 @@ describe('AsyncQueue', () => {
       doStep(1);
       if (completedSteps.length === 1) {
         throw new IndexedDbTransactionError(
+          'Simulated error',
           new Error('Simulated retryable error')
         );
       }
@@ -272,6 +273,7 @@ describe('AsyncQueue', () => {
       doStep(1);
       if (completedSteps.length === 1) {
         throw new IndexedDbTransactionError(
+          'Simulated error',
           new Error('Simulated retryable error')
         );
       }
@@ -299,6 +301,7 @@ describe('AsyncQueue', () => {
       doStep(1);
       if (completedSteps.length === 1) {
         throw new IndexedDbTransactionError(
+          'Simulated error',
           new Error('Simulated retryable error')
         );
       }
@@ -345,6 +348,7 @@ describe('AsyncQueue', () => {
       doStep(1);
       if (completedSteps.length === 1) {
         throw new IndexedDbTransactionError(
+          'Simulated error',
           new Error('Simulated retryable error')
         );
       }

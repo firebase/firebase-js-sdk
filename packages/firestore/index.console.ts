@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-// TODO(mrschmidt): Once imported into Google3, fix
-// third_party/javascript/firebase/src/packages/firestore/tools/console.build.js
-
-export { Firestore, FirestoreDatabase } from './src/api/database';
+export { Firestore } from './src/api/database';
 export {
   CollectionReference,
   DocumentReference,
@@ -27,7 +24,6 @@ export {
 } from './src/api/database';
 export { Blob } from './src/api/blob';
 export { GeoPoint } from './src/api/geo_point';
-export { FirstPartyCredentialsSettings } from './src/api/credentials';
 export { FieldPath } from './src/api/field_path';
-export { FieldValue } from './src/api/field_value';
+export { FieldValue } from './src/compat/field_value';
 export { Timestamp } from './src/api/timestamp';

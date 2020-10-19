@@ -16,7 +16,7 @@
  */
 
 const tmp = require('tmp');
-const json = require('rollup-plugin-json');
+const json = require('@rollup/plugin-json');
 const alias = require('@rollup/plugin-alias');
 const typescriptPlugin = require('rollup-plugin-typescript2');
 const typescript = require('typescript');
@@ -175,8 +175,10 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
     return [
       typescriptPlugin({
         typescript,
-        compilerOptions: {
-          allowJs: true
+        tsconfigOverride: {
+          compilerOptions: {
+            allowJs: true
+          }
         },
         include: ['dist/*.js', 'dist/exp/*.js']
       }),
@@ -193,8 +195,10 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
     return [
       typescriptPlugin({
         typescript,
-        compilerOptions: {
-          allowJs: true
+        tsconfigOverride: {
+          compilerOptions: {
+            allowJs: true
+          }
         },
         include: ['dist/*.js', 'dist/exp/*.js']
       }),

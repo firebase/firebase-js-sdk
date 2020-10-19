@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { FieldValue } from '../../../src/api/field_value';
+import { FieldValue } from '../../../src/compat/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { Document, MaybeDocument } from '../../../src/model/document';
 import { serverTimestamp } from '../../../src/model/server_timestamps';

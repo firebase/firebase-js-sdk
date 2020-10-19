@@ -189,7 +189,7 @@ export class SimpleDb {
   /**
    * Opens the specified database, creating or upgrading it if necessary.
    */
-  async ensureDb(): Promise<IDBDatabase> {
+  async ensureDb(action: string): Promise<IDBDatabase> {
     if (!this.db) {
       logDebug(LOG_TAG, 'Opening database:', this.name);
       this.db = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -208,6 +208,7 @@ export class SimpleDb {
         request.onblocked = () => {
           reject(
             new IndexedDbTransactionError(
+              action,
               'Cannot upgrade IndexedDB schema while another tab is open. ' +
                 'Close all tabs that access Firestore and reload this page to proceed.'
             )
@@ -228,7 +229,7 @@ export class SimpleDb {
               )
             );
           } else {
-            reject(new IndexedDbTransactionError(error));
+            reject(new IndexedDbTransactionError(action, error));
           }
         };
 
@@ -274,6 +275,7 @@ export class SimpleDb {
   }
 
   async runTransaction<T>(
+    action: string,
     mode: SimpleDbTransactionMode,
     objectStores: string[],
     transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>
@@ -285,10 +287,11 @@ export class SimpleDb {
       ++attemptNumber;
 
       try {
-        this.db = await this.ensureDb();
+        this.db = await this.ensureDb(action);
 
         const transaction = SimpleDbTransaction.open(
           this.db,
+          action,
           readonly ? 'readonly' : 'readwrite',
           objectStores
         );
@@ -325,8 +328,9 @@ export class SimpleDb {
           attemptNumber < TRANSACTION_RETRY_COUNT;
         logDebug(
           LOG_TAG,
-          'Transaction failed with error: %s. Retrying: %s.',
+          'Transaction failed with error:',
           error.message,
+          'Retrying:',
           retryable
         );
 
@@ -423,8 +427,11 @@ export interface IterateOptions {
 export class IndexedDbTransactionError extends FirestoreError {
   name = 'IndexedDbTransactionError';
 
-  constructor(cause: Error | string) {
-    super(Code.UNAVAILABLE, 'IndexedDB transaction failed: ' + cause);
+  constructor(actionName: string, cause: Error | string) {
+    super(
+      Code.UNAVAILABLE,
+      `IndexedDB transaction '${actionName}' failed: ${cause}`
+    );
   }
 }
 
@@ -449,24 +456,31 @@ export class SimpleDbTransaction {
 
   static open(
     db: IDBDatabase,
+    action: string,
     mode: IDBTransactionMode,
     objectStoreNames: string[]
   ): SimpleDbTransaction {
     try {
-      return new SimpleDbTransaction(db.transaction(objectStoreNames, mode));
+      return new SimpleDbTransaction(
+        action,
+        db.transaction(objectStoreNames, mode)
+      );
     } catch (e) {
-      throw new IndexedDbTransactionError(e);
+      throw new IndexedDbTransactionError(action, e);
     }
   }
 
-  constructor(private readonly transaction: IDBTransaction) {
+  constructor(
+    private readonly action: string,
+    private readonly transaction: IDBTransaction
+  ) {
     this.transaction.oncomplete = () => {
       this.completionDeferred.resolve();
     };
     this.transaction.onabort = () => {
       if (transaction.error) {
         this.completionDeferred.reject(
-          new IndexedDbTransactionError(transaction.error)
+          new IndexedDbTransactionError(action, transaction.error)
         );
       } else {
         this.completionDeferred.resolve();
@@ -476,7 +490,9 @@ export class SimpleDbTransaction {
       const error = checkForAndReportiOSError(
         (event.target as IDBRequest).error!
       );
-      this.completionDeferred.reject(new IndexedDbTransactionError(error));
+      this.completionDeferred.reject(
+        new IndexedDbTransactionError(action, error)
+      );
     };
   }
 

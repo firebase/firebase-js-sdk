@@ -199,6 +199,23 @@ export function validateNamedOptionalType(
   }
 }
 
+/**
+ * Validates that two boolean options are not set at the same time.
+ */
+export function validateIsNotUsedTogether(
+  optionName1: string,
+  argument1: boolean | undefined,
+  optionName2: string,
+  argument2: boolean | undefined
+): void {
+  if (argument1 === true && argument2 === true) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `${optionName1} and ${optionName2} cannot be used together.`
+    );
+  }
+}
+
 export function validateArrayElements<T>(
   functionName: string,
   optionName: string,

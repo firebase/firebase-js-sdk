@@ -61,6 +61,7 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
         const installations = container
           .getProvider('installations')
           .getImmediate();
+
         return factory(app, installations);
       },
       ComponentType.PUBLIC

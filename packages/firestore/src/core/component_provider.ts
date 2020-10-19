@@ -33,24 +33,23 @@ import {
   applyPrimaryState,
   applyTargetState,
   getActiveClients,
-  handleCredentialChange,
+  syncEngineHandleCredentialChange,
   newSyncEngine,
-  SyncEngine
+  SyncEngine,
+  ensureWriteCallbacks
 } from './sync_engine';
-import { RemoteStore } from '../remote/remote_store';
 import {
-  EventManager,
-  newEventManager,
-  eventManagerOnOnlineStateChange,
-  eventManagerOnWatchChange,
-  eventManagerOnWatchError
-} from './event_manager';
+  fillWritePipeline,
+  newRemoteStore,
+  RemoteStore,
+  remoteStoreApplyPrimaryState,
+  remoteStoreShutdown
+} from '../remote/remote_store';
+import { EventManager, newEventManager } from './event_manager';
 import { AsyncQueue } from '../util/async_queue';
-import { DatabaseId, DatabaseInfo } from './database_info';
+import { DatabaseInfo } from './database_info';
 import { Datastore, newDatastore } from '../remote/datastore';
 import { User } from '../auth/user';
-import { PersistenceSettings } from './firestore_client';
-import { debugAssert } from '../util/assert';
 import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Code, FirestoreError } from '../util/error';
 import { OnlineStateSource } from './types';
@@ -58,8 +57,7 @@ import { LruParams, LruScheduler } from '../local/lru_garbage_collector';
 import { IndexFreeQueryEngine } from '../local/index_free_query_engine';
 import {
   indexedDbStoragePrefix,
-  IndexedDbPersistence,
-  indexedDbClearPersistence
+  IndexedDbPersistence
 } from '../local/indexeddb_persistence';
 import {
   MemoryEagerDelegate,
@@ -70,11 +68,6 @@ import { newSerializer } from '../platform/serializer';
 import { getDocument, getWindow } from '../platform/dom';
 import { CredentialsProvider } from '../api/credentials';
 
-const MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE =
-  'You are using the memory-only build of Firestore. Persistence support is ' +
-  'only available via the @firebase/firestore bundle or the ' +
-  'firebase-firestore.js build.';
-
 export interface ComponentConfiguration {
   asyncQueue: AsyncQueue;
   databaseInfo: DatabaseInfo;
@@ -82,7 +75,6 @@ export interface ComponentConfiguration {
   clientId: ClientId;
   initialUser: User;
   maxConcurrentLimboResolutions: number;
-  persistenceSettings: PersistenceSettings;
 }
 
 /**
@@ -94,15 +86,11 @@ export interface OfflineComponentProvider {
   sharedClientState: SharedClientState;
   localStore: LocalStore;
   gcScheduler: GarbageCollectionScheduler | null;
+  synchronizeTabs: boolean;
 
   initialize(cfg: ComponentConfiguration): Promise<void>;
 
   terminate(): Promise<void>;
-
-  clearPersistence(
-    databaseId: DatabaseId,
-    persistenceKey: string
-  ): Promise<void>;
 }
 
 /**
@@ -115,6 +103,7 @@ export class MemoryOfflineComponentProvider
   sharedClientState!: SharedClientState;
   localStore!: LocalStore;
   gcScheduler!: GarbageCollectionScheduler | null;
+  synchronizeTabs = false;
 
   async initialize(cfg: ComponentConfiguration): Promise<void> {
     this.sharedClientState = this.createSharedClientState(cfg);
@@ -139,12 +128,6 @@ export class MemoryOfflineComponentProvider
   }
 
   createPersistence(cfg: ComponentConfiguration): Persistence {
-    if (cfg.persistenceSettings.durable) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
-      );
-    }
     return new MemoryPersistence(MemoryEagerDelegate.factory);
   }
 
@@ -159,16 +142,6 @@ export class MemoryOfflineComponentProvider
     await this.sharedClientState.shutdown();
     await this.persistence.shutdown();
   }
-
-  clearPersistence(
-    databaseId: DatabaseId,
-    persistenceKey: string
-  ): Promise<void> {
-    throw new FirestoreError(
-      Code.FAILED_PRECONDITION,
-      MEMORY_ONLY_PERSISTENCE_ERROR_MESSAGE
-    );
-  }
 }
 
 /**
@@ -179,10 +152,25 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
   sharedClientState!: SharedClientState;
   localStore!: LocalStore;
   gcScheduler!: GarbageCollectionScheduler | null;
+  synchronizeTabs = false;
+
+  constructor(
+    protected readonly onlineComponentProvider: OnlineComponentProvider,
+    protected readonly cacheSizeBytes: number | undefined,
+    protected readonly forceOwnership: boolean | undefined
+  ) {
+    super();
+  }
 
   async initialize(cfg: ComponentConfiguration): Promise<void> {
     await super.initialize(cfg);
     await synchronizeLastDocumentChangeReadTime(this.localStore);
+
+    await this.onlineComponentProvider.initialize(this, cfg);
+
+    // Enqueue writes from a previous session
+    await ensureWriteCallbacks(this.onlineComponentProvider.syncEngine);
+    await fillWritePipeline(this.onlineComponentProvider.remoteStore);
   }
 
   createGarbageCollectionScheduler(
@@ -194,41 +182,32 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
   }
 
   createPersistence(cfg: ComponentConfiguration): IndexedDbPersistence {
-    debugAssert(
-      cfg.persistenceSettings.durable,
-      'Can only start durable persistence'
-    );
-
     const persistenceKey = indexedDbStoragePrefix(
       cfg.databaseInfo.databaseId,
       cfg.databaseInfo.persistenceKey
     );
+    const lruParams =
+      this.cacheSizeBytes !== undefined
+        ? LruParams.withCacheSize(this.cacheSizeBytes)
+        : LruParams.DEFAULT;
     const serializer = newSerializer(cfg.databaseInfo.databaseId);
+
     return new IndexedDbPersistence(
-      cfg.persistenceSettings.synchronizeTabs,
+      this.synchronizeTabs,
       persistenceKey,
       cfg.clientId,
-      LruParams.withCacheSize(cfg.persistenceSettings.cacheSizeBytes),
+      lruParams,
       cfg.asyncQueue,
       getWindow(),
       getDocument(),
       serializer,
       this.sharedClientState,
-      cfg.persistenceSettings.forceOwningTab
+      !!this.forceOwnership
     );
   }
 
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
     return new MemorySharedClientState();
-  }
-
-  clearPersistence(
-    databaseId: DatabaseId,
-    persistenceKey: string
-  ): Promise<void> {
-    return indexedDbClearPersistence(
-      indexedDbStoragePrefix(databaseId, persistenceKey)
-    );
   }
 }
 
@@ -241,16 +220,18 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
  * `synchronizeTabs` will be enabled.
  */
 export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentProvider {
+  synchronizeTabs = true;
+
   constructor(
-    private readonly onlineComponentProvider: OnlineComponentProvider
+    protected readonly onlineComponentProvider: OnlineComponentProvider,
+    protected readonly cacheSizeBytes: number | undefined
   ) {
-    super();
+    super(onlineComponentProvider, cacheSizeBytes, /* forceOwnership= */ false);
   }
 
   async initialize(cfg: ComponentConfiguration): Promise<void> {
     await super.initialize(cfg);
 
-    await this.onlineComponentProvider.initialize(this, cfg);
     const syncEngine = this.onlineComponentProvider.syncEngine;
 
     if (this.sharedClientState instanceof WebStorageSharedClientState) {
@@ -284,30 +265,24 @@ export class MultiTabOfflineComponentProvider extends IndexedDbOfflineComponentP
   }
 
   createSharedClientState(cfg: ComponentConfiguration): SharedClientState {
-    if (
-      cfg.persistenceSettings.durable &&
-      cfg.persistenceSettings.synchronizeTabs
-    ) {
-      const window = getWindow();
-      if (!WebStorageSharedClientState.isAvailable(window)) {
-        throw new FirestoreError(
-          Code.UNIMPLEMENTED,
-          'IndexedDB persistence is only available on platforms that support LocalStorage.'
-        );
-      }
-      const persistenceKey = indexedDbStoragePrefix(
-        cfg.databaseInfo.databaseId,
-        cfg.databaseInfo.persistenceKey
-      );
-      return new WebStorageSharedClientState(
-        window,
-        cfg.asyncQueue,
-        persistenceKey,
-        cfg.clientId,
-        cfg.initialUser
+    const window = getWindow();
+    if (!WebStorageSharedClientState.isAvailable(window)) {
+      throw new FirestoreError(
+        Code.UNIMPLEMENTED,
+        'IndexedDB persistence is only available on platforms that support LocalStorage.'
       );
     }
-    return new MemorySharedClientState();
+    const persistenceKey = indexedDbStoragePrefix(
+      cfg.databaseInfo.databaseId,
+      cfg.databaseInfo.persistenceKey
+    );
+    return new WebStorageSharedClientState(
+      window,
+      cfg.asyncQueue,
+      persistenceKey,
+      cfg.clientId,
+      cfg.initialUser
+    );
   }
 }
 
@@ -337,17 +312,11 @@ export class OnlineComponentProvider {
     this.sharedClientState = offlineComponentProvider.sharedClientState;
     this.datastore = this.createDatastore(cfg);
     this.remoteStore = this.createRemoteStore(cfg);
-    this.syncEngine = this.createSyncEngine(cfg);
     this.eventManager = this.createEventManager(cfg);
-
-    this.syncEngine.subscribe({
-      onWatchChange: eventManagerOnWatchChange.bind(null, this.eventManager),
-      onWatchError: eventManagerOnWatchError.bind(null, this.eventManager),
-      onOnlineStateChange: eventManagerOnOnlineStateChange.bind(
-        null,
-        this.eventManager
-      )
-    });
+    this.syncEngine = this.createSyncEngine(
+      cfg,
+      /* startAsPrimary=*/ !offlineComponentProvider.synchronizeTabs
+    );
 
     this.sharedClientState.onlineStateHandler = onlineState =>
       applyOnlineStateChange(
@@ -356,13 +325,15 @@ export class OnlineComponentProvider {
         OnlineStateSource.SharedClientState
       );
 
-    this.remoteStore.remoteSyncer.handleCredentialChange = handleCredentialChange.bind(
+    this.remoteStore.remoteSyncer.handleCredentialChange = syncEngineHandleCredentialChange.bind(
       null,
       this.syncEngine
     );
 
-    await this.remoteStore.start();
-    await this.remoteStore.applyPrimaryState(this.syncEngine.isPrimaryClient);
+    await remoteStoreApplyPrimaryState(
+      this.remoteStore,
+      this.syncEngine.isPrimaryClient
+    );
   }
 
   createEventManager(cfg: ComponentConfiguration): EventManager {
@@ -376,7 +347,7 @@ export class OnlineComponentProvider {
   }
 
   createRemoteStore(cfg: ComponentConfiguration): RemoteStore {
-    return new RemoteStore(
+    return newRemoteStore(
       this.localStore,
       this.datastore,
       cfg.asyncQueue,
@@ -390,19 +361,22 @@ export class OnlineComponentProvider {
     );
   }
 
-  createSyncEngine(cfg: ComponentConfiguration): SyncEngine {
+  createSyncEngine(
+    cfg: ComponentConfiguration,
+    startAsPrimary: boolean
+  ): SyncEngine {
     return newSyncEngine(
       this.localStore,
       this.remoteStore,
+      this.eventManager,
       this.sharedClientState,
       cfg.initialUser,
       cfg.maxConcurrentLimboResolutions,
-      !cfg.persistenceSettings.durable ||
-        !cfg.persistenceSettings.synchronizeTabs
+      startAsPrimary
     );
   }
 
   terminate(): Promise<void> {
-    return this.remoteStore.shutdown();
+    return remoteStoreShutdown(this.remoteStore);
   }
 }
