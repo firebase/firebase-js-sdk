@@ -4,6 +4,12 @@
 
 ## Auth.updateCurrentUser() method
 
+Asynchronously sets the provided user as `currentUser` on the Auth instance. A new instance copy of the user provided will be made and set as currentUser.
+
+This will trigger [Auth.onAuthStateChanged()](./auth-types.auth.onauthstatechanged.md) and [Auth.onIdTokenChanged()](./auth-types.auth.onidtokenchanged.md) listeners like other sign in methods.
+
+The operation fails with an error if the user to be updated belongs to a different Firebase project.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +20,7 @@ updateCurrentUser(user: User | null): Promise<void>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | [User](./auth-types.user.md) \| null |  |
+|  user | [User](./auth-types.user.md) \| null | The new [User](./auth-types.user.md)<!-- -->. |
 
 <b>Returns:</b>
 

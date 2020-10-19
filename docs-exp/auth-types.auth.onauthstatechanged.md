@@ -4,6 +4,10 @@
 
 ## Auth.onAuthStateChanged() method
 
+Adds an observer for changes to the user's sign-in state.
+
+To keep the old behavior, see [Auth.onIdTokenChanged()](./auth-types.auth.onidtokenchanged.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -18,9 +22,9 @@ onAuthStateChanged(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  nextOrObserver | [NextOrObserver](./auth-types.nextorobserver.md)<!-- -->&lt;[User](./auth-types.user.md)<!-- -->&gt; |  |
-|  error | ErrorFn |  |
-|  completed | CompleteFn |  |
+|  nextOrObserver | [NextOrObserver](./auth-types.nextorobserver.md)<!-- -->&lt;[User](./auth-types.user.md)<!-- -->&gt; | callback triggered on change. |
+|  error | ErrorFn | callback triggered on error. |
+|  completed | CompleteFn | callback triggered when observer is removed. |
 
 <b>Returns:</b>
 

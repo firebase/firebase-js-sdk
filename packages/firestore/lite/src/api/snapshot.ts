@@ -171,7 +171,6 @@ export class DocumentSnapshot<T = DocumentData> {
     } else {
       const userDataWriter = new UserDataWriter(
         this._firestore._databaseId,
-        /* timestampsInSnapshots= */ true,
         /* serverTimestampBehavior=*/ 'none',
         key =>
           new DocumentReference(
@@ -204,7 +203,6 @@ export class DocumentSnapshot<T = DocumentData> {
       if (value !== null) {
         const userDataWriter = new UserDataWriter(
           this._firestore._databaseId,
-          /* timestampsInSnapshots= */ true,
           /* serverTimestampBehavior=*/ 'none',
           key =>
             new DocumentReference(this._firestore, this._converter, key.path),

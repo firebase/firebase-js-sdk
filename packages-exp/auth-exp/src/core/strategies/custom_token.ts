@@ -35,6 +35,6 @@ export async function signInWithCustomToken(
     externs.OperationType.SIGN_IN,
     response
   );
-  await auth.updateCurrentUser(cred.user);
+  await auth._updateCurrentUser(cred.user);
   return cred;
 }

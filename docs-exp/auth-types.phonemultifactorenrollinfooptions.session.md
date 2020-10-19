@@ -4,6 +4,8 @@
 
 ## PhoneMultiFactorEnrollInfoOptions.session property
 
+The [MultiFactorSession](./auth-types.multifactorsession.md) obtained via [MultiFactorUser.getSession()](./auth-types.multifactoruser.getsession.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

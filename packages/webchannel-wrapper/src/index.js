@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,15 +74,9 @@ goog.net.XhrIo.prototype['getResponseText'] =
   goog.net.XhrIo.prototype.getResponseText;
 goog.net.XhrIo.prototype['send'] = goog.net.XhrIo.prototype.send;
 
-/**
- * This ignore statement is required as closure will minify these properties
- * if done in the typical prettier format
- */
-// prettier-ignore
-module['exports'] = {
-  'createWebChannelTransport': goog.net.createWebChannelTransport,
-  'ErrorCode': goog.net.ErrorCode,
-  'EventType': goog.net.EventType,
-  'WebChannel': goog.net.WebChannel,
-  'XhrIo': goog.net.XhrIo
-};
+module['exports']['createWebChannelTransport'] =
+  goog.net.createWebChannelTransport;
+module['exports']['ErrorCode'] = goog.net.ErrorCode;
+module['exports']['EventType'] = goog.net.EventType;
+module['exports']['WebChannel'] = goog.net.WebChannel;
+module['exports']['XhrIo'] = goog.net.XhrIo;

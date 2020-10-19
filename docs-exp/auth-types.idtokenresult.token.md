@@ -4,6 +4,8 @@
 
 ## IdTokenResult.token property
 
+The Firebase Auth ID token JWT string.
+
 <b>Signature:</b>
 
 ```typescript

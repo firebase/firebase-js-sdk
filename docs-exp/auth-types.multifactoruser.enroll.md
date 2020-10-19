@@ -4,6 +4,8 @@
 
 ## MultiFactorUser.enroll() method
 
+Enrolls a second factor as identified by the [MultiFactorAssertion](./auth-types.multifactorassertion.md) for the user. On resolution, the user tokens are updated to reflect the change in the JWT payload. Accepts an additional display name parameter used to identify the second factor to the end user. Recent re-authentication is required for this operation to succeed. On successful enrollment, existing Firebase sessions (refresh tokens) are revoked. When a new factor is enrolled, an email notification is sent to the user’s email.
+
 <b>Signature:</b>
 
 ```typescript
@@ -17,10 +19,33 @@ enroll(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  assertion | [MultiFactorAssertion](./auth-types.multifactorassertion.md) |  |
-|  displayName | string \| null |  |
+|  assertion | [MultiFactorAssertion](./auth-types.multifactorassertion.md) | The multi-factor assertion to enroll with. |
+|  displayName | string \| null | The display name of the second factor. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+## Example
+
+
+```javascript
+const multiFactorUser = multiFactor(auth.currentUser);
+const multiFactorSession = await multiFactorUser.getSession();
+
+// Send verification code.
+const phoneAuthProvider = new PhoneAuthProvider(auth);
+const phoneInfoOptions = {
+  phoneNumber: phoneNumber,
+  session: multiFactorSession
+};
+const verificationId = await phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, appVerifier);
+
+// Obtain verification code from user.
+const phoneAuthCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(phoneAuthCredential);
+await multiFactorUser.enroll(multiFactorAssertion);
+// Second factor enrolled.
+
+```
 

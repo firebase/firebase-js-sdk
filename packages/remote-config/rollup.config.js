@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import json from 'rollup-plugin-json'; // Enables package.json import in TypeScript.
+import json from '@rollup/plugin-json'; // Enables package.json import in TypeScript.
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';

@@ -4,6 +4,8 @@
 
 ## UserCredential.user property
 
+The user authenticated by this credential.
+
 <b>Signature:</b>
 
 ```typescript

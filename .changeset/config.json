@@ -21,7 +21,6 @@
     "@firebase/installations-types-exp",
     "@firebase/performance-exp",
     "@firebase/performance-types-exp",
-    "@firebase/testing",
     "firebase-exp",
     "@firebase/app-compat",
     "@firebase/changelog-generator",

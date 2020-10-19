@@ -4,6 +4,8 @@
 
 ## MultiFactorAssertion.factorId property
 
+The identifier of the second factor.
+
 <b>Signature:</b>
 
 ```typescript

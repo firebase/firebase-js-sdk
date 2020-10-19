@@ -4,6 +4,8 @@
 
 ## ActionCodeURL.apiKey property
 
+The API key of the email action link.
+
 <b>Signature:</b>
 
 ```typescript

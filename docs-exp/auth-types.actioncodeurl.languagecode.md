@@ -4,6 +4,8 @@
 
 ## ActionCodeURL.languageCode property
 
+The language code of the email action link. Null if not provided.
+
 <b>Signature:</b>
 
 ```typescript

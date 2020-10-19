@@ -4,6 +4,8 @@
 
 ## ReactNativeAsyncStorage.setItem() method
 
+Persist an item in storage.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,8 +16,8 @@ setItem(key: string, value: string): Promise<void>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  key | string |  |
-|  value | string |  |
+|  key | string | storage key. |
+|  value | string | storage value. |
 
 <b>Returns:</b>
 

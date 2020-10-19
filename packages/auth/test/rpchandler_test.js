@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1180,6 +1180,30 @@ function testRequestStsToken_specificErrorResponse() {
 }
 
 
+function testRequestStsToken_emulator() {
+  asyncTestCase.waitForSignals(1);
+  // Confirm correct parameters passed and run on complete.
+  assertSendXhrAndRunCallback(
+    'http://emulator.test.domain:1234/securetoken.googleapis.com/' +
+    'v1/token?key=apiKey',
+    'POST',
+    'grant_type=authorization_code&code=idToken',
+    fireauth.RpcHandler.DEFAULT_SECURE_TOKEN_HEADERS_,
+    delay,
+    expectedStsTokenResponse);
+  // Set an emulator config.
+  rpcHandler.updateEmulatorConfig(
+    { url: 'http://emulator.test.domain:1234' });
+  // Send STS token request, emulator config will be used.
+  rpcHandler
+    .requestStsToken({ 'grant_type': 'authorization_code', 'code': 'idToken' })
+    .then(function (response) {
+      assertObjectEquals(expectedStsTokenResponse, response);
+      asyncTestCase.signal();
+    });
+}
+
+
 function testRequestFirebaseEndpoint_success() {
   var expectedResponse = {
     'status': 'success'
@@ -1211,6 +1235,31 @@ function testRequestFirebaseEndpoint_success() {
 }
 
 
+function testRequestFirebaseEndpoint_emulator() {
+  var expectedResponse = { 'status': 'success' };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+    'http://emulator.test.domain:1234/www.googleapis.com/identitytoolkit' +
+    '/v3/relyingparty/method1?key=apiKey',
+    'POST',
+    goog.json.serialize({ 'key1': 'value1', 'key2': 'value2' }),
+    fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+    delay,
+    expectedResponse);
+  // Set an emulator config.
+  rpcHandler.updateEmulatorConfig(
+    { url: 'http://emulator.test.domain:1234' });
+
+  rpcHandler
+    .requestFirebaseEndpoint(
+      'method1', 'POST', { 'key1': 'value1', 'key2': 'value2' })
+    .then(function (response) {
+      assertObjectEquals(expectedResponse, response);
+      asyncTestCase.signal();
+    });
+}
+
+
 function testRequestIdentityPlatformEndpoint_success() {
   var expectedResponse = {
     'status': 'success'
@@ -1238,6 +1287,30 @@ function testRequestIdentityPlatformEndpoint_success() {
         response);
     asyncTestCase.signal();
   });
+}
+
+
+function testRequestIdentityPlatformEndpoint_emulator() {
+  var expectedResponse = { 'status': 'success' };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+    'http://emulator.test.domain:1234/identitytoolkit.googleapis.com' +
+    '/v2/method1?key=apiKey',
+    'POST',
+    goog.json.serialize({ 'key1': 'value1', 'key2': 'value2' }),
+    fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+    delay,
+    expectedResponse);
+  // Set an emulator config.
+  rpcHandler.updateEmulatorConfig(
+    { url: 'http://emulator.test.domain:1234' });
+  rpcHandler
+    .requestIdentityPlatformEndpoint(
+      'method1', 'POST', { 'key1': 'value1', 'key2': 'value2' })
+    .then(function (response) {
+      assertObjectEquals(expectedResponse, response);
+      asyncTestCase.signal();
+    });
 }
 
 

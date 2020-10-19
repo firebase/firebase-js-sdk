@@ -17,7 +17,7 @@
 
 import strip from '@rollup/plugin-strip';
 import typescriptPlugin from 'rollup-plugin-typescript2';
-import json from 'rollup-plugin-json';
+import json from '@rollup/plugin-json';
 import typescript from 'typescript';
 import pkg from './package.json';
 import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';

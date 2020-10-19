@@ -4,6 +4,8 @@
 
 ## ActionCodeInfo.operation property
 
+The type of operation that generated the action code.
+
 <b>Signature:</b>
 
 ```typescript

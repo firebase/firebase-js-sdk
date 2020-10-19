@@ -9,7 +9,7 @@ Constructs a new instance of the `RecaptchaVerifier` class
 <b>Signature:</b>
 
 ```typescript
-constructor(containerOrId: HTMLElement | string, parameters: Parameters, auth: AuthCore);
+constructor(containerOrId: HTMLElement | string, parameters: Parameters, authExtern: externs.Auth);
 ```
 
 ## Parameters
@@ -18,5 +18,5 @@ constructor(containerOrId: HTMLElement | string, parameters: Parameters, auth: A
 |  --- | --- | --- |
 |  containerOrId | HTMLElement \| string |  |
 |  parameters | Parameters |  |
-|  auth | AuthCore |  |
+|  authExtern | externs.[Auth](./auth-types.auth.md) |  |
 

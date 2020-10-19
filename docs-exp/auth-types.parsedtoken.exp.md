@@ -4,6 +4,8 @@
 
 ## ParsedToken.exp property
 
+Expiration time of the token.
+
 <b>Signature:</b>
 
 ```typescript

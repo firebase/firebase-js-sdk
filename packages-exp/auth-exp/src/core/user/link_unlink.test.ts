@@ -39,7 +39,7 @@ describe('core/user/link_unlink', () => {
   beforeEach(async () => {
     auth = await testAuth();
     user = testUser(auth, 'uid', '', true);
-    await auth.updateCurrentUser(user);
+    await auth._updateCurrentUser(user);
     fetch.setUp();
   });
 

@@ -1,4 +1,4 @@
-name: Test rxFire, @firebase/testing and @firebase/rules-unit-testing
+name: Test rxFire and @firebase/rules-unit-testing
 
 on: pull_request
 
