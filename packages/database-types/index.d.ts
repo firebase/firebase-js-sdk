@@ -134,7 +134,9 @@ export interface ServerValue {
   increment(delta: number): Object;
 }
 
-export interface ThenableReference extends Reference, Promise<Reference> {}
+export interface ThenableReference
+  extends Reference,
+    Pick<Promise<Reference>, 'then' | 'catch'> {}
 
 export function enableLogging(
   logger?: boolean | ((a: string) => any),

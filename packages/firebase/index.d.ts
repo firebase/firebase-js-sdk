@@ -6902,7 +6902,7 @@ declare namespace firebase.database {
 
   interface ThenableReference
     extends firebase.database.Reference,
-      Promise<Reference> {}
+      Pick<Promise<Reference>, 'then' | 'catch'> {}
 
   /**
    * Logs debugging information to the console.
