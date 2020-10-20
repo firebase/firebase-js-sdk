@@ -205,23 +205,3 @@ export function toResourceString(
   }
   return JSON.stringify(resource);
 }
-
-export function metadataValidator(p: unknown): void {
-  if (!type.isObject(p) || !p) {
-    throw 'Expected Metadata object.';
-  }
-  for (const key in p) {
-    if (p.hasOwnProperty(key)) {
-      const val = p[key];
-      if (key === 'customMetadata') {
-        if (!type.isObject(val)) {
-          throw "Expected object for 'customMetadata' mapping.";
-        }
-      } else {
-        if (type.isNonNullObject(val)) {
-          throw "Mapping for '" + key + "' cannot be an object.";
-        }
-      }
-    }
-  }
-}

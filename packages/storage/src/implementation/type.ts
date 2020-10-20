@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { Code, FirebaseStorageError } from './error';
+
 /**
  * @return False if the object is undefined or null, true otherwise.
  */
@@ -31,28 +33,12 @@ export function isFunction(p: unknown): p is Function {
   return typeof p === 'function';
 }
 
-export function isObject(p: unknown): p is { [key: string]: unknown } | null {
-  return typeof p === 'object';
-}
-
-export function isNonNullObject(p: unknown): p is object {
-  return isObject(p) && p !== null;
-}
-
 export function isNonArrayObject(p: unknown): boolean {
-  return isObject(p) && !Array.isArray(p);
+  return typeof p === 'object' && !Array.isArray(p);
 }
 
 export function isString(p: unknown): p is string {
   return typeof p === 'string' || p instanceof String;
-}
-
-export function isInteger(p: unknown): p is number {
-  return isNumber(p) && Number.isInteger(p);
-}
-
-export function isNumber(p: unknown): p is number {
-  return typeof p === 'number' || p instanceof Number;
 }
 
 export function isNativeBlob(p: unknown): p is Blob {
@@ -61,4 +47,24 @@ export function isNativeBlob(p: unknown): p is Blob {
 
 export function isNativeBlobDefined(): boolean {
   return typeof Blob !== 'undefined';
+}
+
+export function validateNumber(
+  argument: string,
+  minValue: number,
+  maxValue: number,
+  value: number
+): void {
+  if (value < minValue) {
+    throw new FirebaseStorageError(
+      Code.INVALID_ARGUMENT,
+      `Invalid value for '${argument}'. Expected ${minValue} or greater.`
+    );
+  }
+  if (value > maxValue) {
+    throw new FirebaseStorageError(
+      Code.INVALID_ARGUMENT,
+      `Invalid value for '${argument}'. Expected ${maxValue} or less.`
+    );
+  }
 }
