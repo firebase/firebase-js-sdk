@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.17.3",
+  "version": "1.18.0",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -51,7 +51,7 @@
   "main": "dist/index.node.cjs.js",
   "main-esm2017": "dist/index.node.esm2017.js",
   "react-native": "dist/index.rn.esm2017.js",
-  "browser": "dist/index.cjs.js",
+  "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
   "license": "Apache-2.0",
@@ -61,10 +61,10 @@
   ],
   "dependencies": {
     "@firebase/component": "0.1.19",
-    "@firebase/firestore-types": "1.13.0",
+    "@firebase/firestore-types": "1.14.0",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "0.3.2",
-    "@firebase/webchannel-wrapper": "0.3.0",
+    "@firebase/webchannel-wrapper": "0.4.0",
     "@grpc/grpc-js": "^1.0.0",
     "@grpc/proto-loader": "^0.5.0",
     "node-fetch": "2.6.1",

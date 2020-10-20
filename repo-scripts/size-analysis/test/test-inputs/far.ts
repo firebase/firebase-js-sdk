@@ -71,7 +71,7 @@ export function basicUniqueFuncFar(
     return pickedCard;
   }
   // Otherwise just let them pick the card
-  else if (typeof x === 'number') {
+  else {
     return { suit: 'a', card: x % 13 };
   }
 }

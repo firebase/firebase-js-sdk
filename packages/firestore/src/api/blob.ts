@@ -17,11 +17,6 @@
 
 import { isBase64Available } from '../platform/base64';
 import { Code, FirestoreError } from '../util/error';
-import {
-  invalidClassError,
-  validateArgType,
-  validateExactNumberOfArgs
-} from '../util/input_validation';
 import { ByteString } from '../util/byte_string';
 import { Bytes } from '../../lite/src/api/bytes';
 
@@ -57,8 +52,6 @@ function assertBase64Available(): void {
  */
 export class Blob extends Bytes {
   static fromBase64String(base64: string): Blob {
-    validateExactNumberOfArgs('Blob.fromBase64String', arguments, 1);
-    validateArgType('Blob.fromBase64String', 'string', 1, base64);
     assertBase64Available();
     try {
       return new Blob(ByteString.fromBase64String(base64));
@@ -71,22 +64,16 @@ export class Blob extends Bytes {
   }
 
   static fromUint8Array(array: Uint8Array): Blob {
-    validateExactNumberOfArgs('Blob.fromUint8Array', arguments, 1);
     assertUint8ArrayAvailable();
-    if (!(array instanceof Uint8Array)) {
-      throw invalidClassError('Blob.fromUint8Array', 'Uint8Array', 1, array);
-    }
     return new Blob(ByteString.fromUint8Array(array));
   }
 
   toBase64(): string {
-    validateExactNumberOfArgs('Blob.toBase64', arguments, 0);
     assertBase64Available();
     return super.toBase64();
   }
 
   toUint8Array(): Uint8Array {
-    validateExactNumberOfArgs('Blob.toUint8Array', arguments, 0);
     assertUint8ArrayAvailable();
     return super.toUint8Array();
   }

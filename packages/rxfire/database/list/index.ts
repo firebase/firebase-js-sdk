@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { database } from 'firebase';
+import firebase from 'firebase';
 import { QueryChange, ListenEvent } from '../interfaces';
 import { Observable, of, merge, from } from 'rxjs';
 import { validateEventsArray } from '../utils';
@@ -23,8 +23,10 @@ import { fromRef } from '../fromRef';
 import { switchMap, scan, distinctUntilChanged, map } from 'rxjs/operators';
 import { changeToData } from '../object';
 
+type Query = firebase.database.Query;
+
 export function stateChanges(
-  query: database.Query,
+  query: Query,
   events?: ListenEvent[]
 ): Observable<QueryChange> {
   events = validateEventsArray(events);
@@ -32,7 +34,7 @@ export function stateChanges(
   return merge(...childEvent$);
 }
 
-function fromOnce(query: database.Query): Observable<QueryChange> {
+function fromOnce(query: Query): Observable<QueryChange> {
   return from(query.once(ListenEvent.value)).pipe(
     map(snapshot => {
       const event = ListenEvent.value;
@@ -42,7 +44,7 @@ function fromOnce(query: database.Query): Observable<QueryChange> {
 }
 
 export function list(
-  query: database.Query,
+  query: Query,
   events?: ListenEvent[]
 ): Observable<QueryChange[]> {
   const eventsList = validateEventsArray(events);
@@ -63,10 +65,7 @@ export function list(
  * @param query object ref or query
  * @param keyField map the object key to a specific field
  */
-export function listVal<T>(
-  query: database.Query,
-  keyField?: string
-): Observable<T[]> {
+export function listVal<T>(query: Query, keyField?: string): Observable<T[]> {
   return list(query).pipe(
     map(arr => arr.map(change => changeToData(change, keyField) as T))
   );

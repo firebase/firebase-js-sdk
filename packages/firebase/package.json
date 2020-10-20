@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "7.23.0",
+  "version": "7.24.0",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -41,15 +41,15 @@
     "test:ci": "echo 'No test suite for firebase wrapper'"
   },
   "main": "dist/index.node.cjs.js",
-  "browser": "dist/index.cjs.js",
+  "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
   "react-native": "dist/index.rn.cjs.js",
   "dependencies": {
     "@firebase/app": "0.6.11",
     "@firebase/app-types": "0.6.1",
-    "@firebase/auth": "0.14.9",
+    "@firebase/auth": "0.15.0",
     "@firebase/database": "0.6.13",
-    "@firebase/firestore": "1.17.3",
+    "@firebase/firestore": "1.18.0",
     "@firebase/functions": "0.5.1",
     "@firebase/installations": "0.4.17",
     "@firebase/messaging": "0.7.1",
