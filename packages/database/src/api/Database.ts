@@ -33,8 +33,11 @@ import { FirebaseDatabase } from '@firebase/database-types';
  * @implements {FirebaseService}
  */
 export class Database implements FirebaseService {
-  INTERNAL: DatabaseInternals;
-  private root_: Reference;
+  /** Track if the instance has been used (root or repo accessed) */
+  private instanceStarted_: boolean = false;
+
+  /** Backing state for root_ */
+  private rootInternal_?: Reference;
 
   static readonly ServerValue = {
     TIMESTAMP: {
@@ -51,23 +54,68 @@ export class Database implements FirebaseService {
 
   /**
    * The constructor should not be called by users of our public API.
-   * @param {!Repo} repo_
+   * @param {!Repo} repoInternal_
    */
-  constructor(private repo_: Repo) {
-    if (!(repo_ instanceof Repo)) {
+  constructor(private repoInternal_: Repo) {
+    if (!(repoInternal_ instanceof Repo)) {
       fatal(
         "Don't call new Database() directly - please use firebase.database()."
       );
     }
+  }
 
-    /** @type {Reference} */
-    this.root_ = new Reference(repo_, Path.Empty);
+  INTERNAL = {
+    delete: async () => {
+      this.checkDeleted_('delete');
+      RepoManager.getInstance().deleteRepo(this.repo_);
+      this.repoInternal_ = null;
+      this.rootInternal_ = null;
+    }
+  };
 
-    this.INTERNAL = new DatabaseInternals(this);
+  private get repo_(): Repo {
+    if (!this.instanceStarted_) {
+      this.repoInternal_.start();
+      this.instanceStarted_ = true;
+    }
+    return this.repoInternal_;
+  }
+
+  get root_(): Reference {
+    if (!this.rootInternal_) {
+      this.rootInternal_ = new Reference(this.repo_, Path.Empty);
+    }
+
+    return this.rootInternal_;
   }
 
   get app(): FirebaseApp {
     return this.repo_.app;
+  }
+
+  /**
+   * Modify this instance to communicate with the Realtime Database emulator.
+   *
+   * <p>Note: This method must be called before performing any other operation.
+   *
+   * @param host the emulator host (ex: localhost)
+   * @param port the emulator port (ex: 8080)
+   */
+  useEmulator(host: string, port: number): void {
+    this.checkDeleted_('useEmulator');
+    if (this.instanceStarted_) {
+      fatal(
+        'Cannot call useEmulator() after instance has already been initialized.'
+      );
+      return;
+    }
+
+    // Modify the repo to apply emulator settings
+    RepoManager.getInstance().applyEmulatorSettings(
+      this.repoInternal_,
+      host,
+      port
+    );
   }
 
   /**
@@ -109,14 +157,14 @@ export class Database implements FirebaseService {
     validateUrl(apiName, 1, parsedURL);
 
     const repoInfo = parsedURL.repoInfo;
-    if (repoInfo.host !== this.repo_.repoInfo_.host) {
+    if (!repoInfo.isCustomHost() && repoInfo.host !== this.repo_.repoInfo_.host) {
       fatal(
         apiName +
           ': Host name does not match the current database: ' +
           '(found ' +
           repoInfo.host +
           ' but expected ' +
-          (this.repo_.repoInfo_ as RepoInfo).host +
+          this.repo_.repoInfo_.host+
           ')'
       );
     }
@@ -128,7 +176,7 @@ export class Database implements FirebaseService {
    * @param {string} apiName
    */
   private checkDeleted_(apiName: string) {
-    if (this.repo_ === null) {
+    if (this.repoInternal_ === null) {
       fatal('Cannot call ' + apiName + ' on a deleted database.');
     }
   }
@@ -144,24 +192,5 @@ export class Database implements FirebaseService {
     validateArgCount('database.goOnline', 0, 0, arguments.length);
     this.checkDeleted_('goOnline');
     this.repo_.resume();
-  }
-}
-
-export class DatabaseInternals {
-  /** @param {!Database} database */
-  constructor(public database: Database) {}
-
-  /** @return {Promise<void>} */
-  async delete(): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (this.database as any).checkDeleted_('delete');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    RepoManager.getInstance().deleteRepo((this.database as any).repo_ as Repo);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (this.database as any).repo_ = null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (this.database as any).root_ = null;
-    this.database.INTERNAL = null;
-    this.database = null;
   }
 }

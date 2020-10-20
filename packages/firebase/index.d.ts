@@ -5668,6 +5668,15 @@ declare namespace firebase.database {
      */
     app: firebase.app.App;
     /**
+     * Modify this instance to communicate with the Realtime Database emulator.
+     *
+     * <p>Note: This method must be called before performing any other operation.
+     *
+     * @param host the emulator host (ex: localhost)
+     * @param port the emulator port (ex: 8080)
+     */
+    useEmulator(host: string, port: number): void;
+    /**
      * Disconnects from the server (all Database operations will be completed
      * offline).
      *
