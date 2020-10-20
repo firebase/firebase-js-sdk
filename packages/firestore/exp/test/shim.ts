@@ -65,9 +65,11 @@ import {
 } from '../../exp/index';
 import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
 import { isPartialObserver, PartialObserver } from '../../src/api/observer';
-import { isPlainObject } from '../../src/util/input_validation';
+import {
+  isPlainObject,
+  validateSetOptions
+} from '../../src/util/input_validation';
 import { Compat } from '../../src/compat/compat';
-import { validateSetOptions } from '../../src/api/database';
 
 export { GeoPoint, Timestamp } from '../index';
 export { FieldValue } from '../../src/compat/field_value';

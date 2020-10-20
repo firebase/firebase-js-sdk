@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { SetOptions } from '@firebase/firestore-types';
 import { fail } from './assert';
 import { Code, FirestoreError } from './error';
 import { DocumentKey } from '../model/document_key';
@@ -40,6 +42,27 @@ export function validateNonEmptyArgument(
       `Function ${functionName}() cannot be called with an empty ${argumentName}.`
     );
   }
+}
+
+export function validateSetOptions(
+  methodName: string,
+  options: SetOptions | undefined
+): SetOptions {
+  if (options === undefined) {
+    return {
+      merge: false
+    };
+  }
+
+  if (options.mergeFields !== undefined && options.merge !== undefined) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `Invalid options passed to function ${methodName}(): You cannot ` +
+        'specify both "merge" and "mergeFields".'
+    );
+  }
+
+  return options;
 }
 
 /**

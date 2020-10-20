@@ -98,6 +98,7 @@ import {
   validateIsNotUsedTogether,
   validateNonEmptyArgument,
   validatePositiveNumber,
+  validateSetOptions,
   valueDescription
 } from '../util/input_validation';
 import { setLogLevel as setClientLogLevel, logWarn } from '../util/log';
@@ -140,9 +141,6 @@ import {
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
-const DEFAULT_FORCE_LONG_POLLING = false;
-const DEFAULT_FORCE_AUTO_DETECT_LONG_POLLING = false;
-const DEFAULT_IGNORE_UNDEFINED_PROPERTIES = false;
 
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
@@ -150,10 +148,6 @@ const DEFAULT_IGNORE_UNDEFINED_PROPERTIES = false;
  * `Firestore` instance.
  */
 export const CACHE_SIZE_UNLIMITED = LruParams.COLLECTION_DISABLED;
-
-// enablePersistence() defaults:
-const DEFAULT_SYNCHRONIZE_TABS = false;
-const DEFAULT_FORCE_OWNING_TAB = false;
 
 /** Undocumented, private additional settings not exposed in our public API. */
 interface PrivateSettings extends PublicSettings {
@@ -206,13 +200,11 @@ class FirestoreSettings {
       this.ssl = DEFAULT_SSL;
     } else {
       this.host = settings.host;
-
       this.ssl = settings.ssl ?? DEFAULT_SSL;
     }
 
     this.credentials = settings.credentials;
-    this.ignoreUndefinedProperties =
-      settings.ignoreUndefinedProperties ?? DEFAULT_IGNORE_UNDEFINED_PROPERTIES;
+    this.ignoreUndefinedProperties = !!settings.ignoreUndefinedProperties;
 
     if (settings.cacheSizeBytes === undefined) {
       this.cacheSizeBytes = LruParams.DEFAULT_CACHE_SIZE_BYTES;
@@ -230,12 +222,8 @@ class FirestoreSettings {
       }
     }
 
-    this.experimentalForceLongPolling =
-      settings.experimentalForceLongPolling ?? DEFAULT_FORCE_LONG_POLLING;
-
-    this.experimentalAutoDetectLongPolling =
-      settings.experimentalAutoDetectLongPolling ??
-      DEFAULT_FORCE_AUTO_DETECT_LONG_POLLING;
+    this.experimentalForceLongPolling = !!settings.experimentalForceLongPolling;
+    this.experimentalAutoDetectLongPolling = !!settings.experimentalAutoDetectLongPolling;
 
     validateIsNotUsedTogether(
       'experimentalForceLongPolling',
@@ -495,9 +483,8 @@ export class Firestore implements PublicFirestore, FirebaseService {
     let experimentalForceOwningTab = false;
 
     if (settings) {
-      synchronizeTabs = settings.synchronizeTabs ?? DEFAULT_SYNCHRONIZE_TABS;
-      experimentalForceOwningTab =
-        settings.experimentalForceOwningTab ?? DEFAULT_FORCE_OWNING_TAB;
+      synchronizeTabs = !!settings.synchronizeTabs;
+      experimentalForceOwningTab = !!settings.experimentalForceOwningTab;
 
       validateIsNotUsedTogether(
         'synchronizeTabs',
@@ -2272,27 +2259,6 @@ export class CollectionReference<T = DocumentData>
   ): PublicCollectionReference<U> {
     return new CollectionReference<U>(this._path, this.firestore, converter);
   }
-}
-
-export function validateSetOptions(
-  methodName: string,
-  options: SetOptions | undefined
-): SetOptions {
-  if (options === undefined) {
-    return {
-      merge: false
-    };
-  }
-
-  if (options.mergeFields !== undefined && options.merge !== undefined) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Invalid options passed to function ${methodName}(): You cannot specify both "merge" ` +
-        `and "mergeFields".`
-    );
-  }
-
-  return options;
 }
 
 function validateGetOptions(
