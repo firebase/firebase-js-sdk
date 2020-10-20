@@ -205,7 +205,6 @@ export class IndexedDbOfflineComponentProvider extends MemoryOfflineComponentPro
       this.cacheSizeBytes !== undefined
         ? LruParams.withCacheSize(this.cacheSizeBytes)
         : LruParams.DEFAULT;
-    const serializer = newSerializer(cfg.databaseInfo.databaseId);
 
     return new IndexedDbPersistence(
       this.synchronizeTabs,
