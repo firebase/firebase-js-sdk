@@ -46,6 +46,13 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
   const newProviderData = coreAccount.providerUserInfo?.length
     ? extractProviderData(coreAccount.providerUserInfo)
     : [];
+
+  const providerData = mergeProviderData(user.providerData, newProviderData);
+
+  const oldIsAnonymous = user.isAnonymous;
+  const newIsAnonymous = !(user.email && coreAccount.passwordHash) && !(providerData?.length);
+  const isAnonymous = !oldIsAnonymous ? false : newIsAnonymous;
+
   const updates: Partial<User> = {
     uid: coreAccount.localId,
     displayName: coreAccount.displayName || null,
@@ -54,8 +61,9 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
     emailVerified: coreAccount.emailVerified || false,
     phoneNumber: coreAccount.phoneNumber || null,
     tenantId: coreAccount.tenantId || null,
-    providerData: mergeProviderData(user.providerData, newProviderData),
-    metadata: new UserMetadata(coreAccount.createdAt, coreAccount.lastLoginAt)
+    providerData,
+    metadata: new UserMetadata(coreAccount.createdAt, coreAccount.lastLoginAt),
+    isAnonymous,
   };
 
   Object.assign(user, updates);

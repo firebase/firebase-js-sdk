@@ -242,6 +242,7 @@ export async function getRedirectResult(
     await authInternal._setRedirectUser(null, resolver);
   }
 
+  console.log('Finished with total');
   return result;
 }
 

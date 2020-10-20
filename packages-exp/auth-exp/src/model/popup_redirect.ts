@@ -105,4 +105,7 @@ export interface PopupRedirectResolver extends externs.PopupRedirectResolver {
     cb: (support: boolean) => unknown
   ): void;
   _redirectPersistence: externs.Persistence;
+
+  // This is needed so that auth does not have a hard dependency on redirect
+  _completeRedirectFn: (auth: externs.Auth, resolver: externs.PopupRedirectResolver) => Promise<externs.UserCredential | null>;
 }

@@ -40,6 +40,7 @@ import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';
 import { browserSessionPersistence } from './persistence/session_storage';
 import { _open, AuthPopup } from './util/popup';
+import { getRedirectResult } from './strategies/redirect';
 
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
@@ -198,6 +199,8 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
 
     return this.originValidationPromises[key];
   }
+
+  _completeRedirectFn = getRedirectResult;
 }
 
 /**
