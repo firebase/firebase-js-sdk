@@ -108,7 +108,7 @@ export interface Reference extends Query {
   key: string | null;
   onDisconnect(): OnDisconnect;
   parent: Reference | null;
-  push(value?: any, onComplete?: (a: Error | null) => any): Reference;
+  push(value?: any, onComplete?: (a: Error | null) => any): ThenableReference;
   remove(onComplete?: (a: Error | null) => any): Promise<any>;
   root: Reference;
   set(value: any, onComplete?: (a: Error | null) => any): Promise<any>;
@@ -134,7 +134,9 @@ export interface ServerValue {
   increment(delta: number): Object;
 }
 
-export interface ThenableReference extends Reference, Promise<Reference> {}
+export interface ThenableReference
+  extends Reference,
+    Pick<Promise<Reference>, 'then' | 'catch'> {}
 
 export function enableLogging(
   logger?: boolean | ((a: string) => any),
