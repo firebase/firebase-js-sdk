@@ -4,4 +4,4 @@
 "firebase": patch
 ---
 
-Updated `ThenableReference` to only implement `then` and `catch` to match the implementation.
+Updated the type definition for `ThenableReference` to only implement `then` and `catch`, which matches the implementation.
