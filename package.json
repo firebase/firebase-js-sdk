@@ -49,7 +49,7 @@
     "lint": "lerna run --scope @firebase/* --scope rxfire lint",
     "size-report": "ts-node-script scripts/size_report/report_binary_size.ts",
     "modular-export-size-report": "ts-node-script scripts/size_report/report_modular_export_binary_size.ts",
-    "api-report": "lerna run --scope @firebase/*-exp api-report",
+    "api-report": "lerna run --scope @firebase/*-exp --scope @firebase/firestore api-report",
     "docgen:exp": "ts-node-script scripts/exp/docgen.ts",
     "postinstall": "yarn --cwd repo-scripts/changelog-generator build",
     "sa": "ts-node-script repo-scripts/size-analysis/cli.ts"

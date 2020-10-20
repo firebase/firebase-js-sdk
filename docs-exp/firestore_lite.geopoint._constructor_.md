@@ -4,6 +4,8 @@
 
 ## GeoPoint.(constructor)
 
+Constructs a new instance of the `GeoPoint` class
+
 <b>Signature:</b>
 
 ```typescript
