@@ -229,20 +229,20 @@ export async function linkWithRedirect(
  */
 export async function getRedirectResult(
   auth: externs.Auth,
-  resolver?: externs.PopupRedirectResolver
+  resolverExtern?: externs.PopupRedirectResolver,
+  bypassAuthState = false,
 ): Promise<externs.UserCredential | null> {
   const authInternal = _castAuth(auth);
-  const resolverInternal = _withDefaultResolver(authInternal, resolver);
-  const action = new RedirectAction(authInternal, resolverInternal);
+  const resolver = _withDefaultResolver(authInternal, resolverExtern);
+  const action = new RedirectAction(authInternal, resolver, bypassAuthState);
   const result = await action.execute();
 
-  if (result) {
+  if (result && !bypassAuthState) {
     delete result.user._redirectEventId;
     await authInternal._persistUserIfCurrent(result.user as User);
-    await authInternal._setRedirectUser(null, resolver);
+    await authInternal._setRedirectUser(null, resolverExtern);
   }
 
-  console.log('Finished with total');
   return result;
 }
 
@@ -265,7 +265,7 @@ const redirectOutcomeMap: Map<
 class RedirectAction extends AbstractPopupRedirectOperation {
   eventId = null;
 
-  constructor(auth: Auth, resolver: PopupRedirectResolver) {
+  constructor(auth: Auth, resolver: PopupRedirectResolver, bypassAuthState = false) {
     super(
       auth,
       [
@@ -274,7 +274,9 @@ class RedirectAction extends AbstractPopupRedirectOperation {
         AuthEventType.REAUTH_VIA_REDIRECT,
         AuthEventType.UNKNOWN
       ],
-      resolver
+      resolver,
+      undefined,
+      bypassAuthState
     );
   }
 

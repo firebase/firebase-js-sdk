@@ -60,6 +60,7 @@ export class AuthImpl implements Auth, _FirebaseService {
   private idTokenSubscription = new Subscription<externs.User>(this);
   private redirectUser: User | null = null;
   private isProactiveRefreshEnabled = false;
+  private redirectInitializerError: Error | null = null;
 
   // Any network calls will set this to true and prevent subsequent emulator
   // initialization
@@ -116,7 +117,13 @@ export class AuthImpl implements Auth, _FirebaseService {
       }
 
       this._isInitialized = true;
-      this.notifyAuthListeners();
+    });
+
+    // After initialization completes, throw any error caused by redirect flow
+    this._initializationPromise.then(() => {
+      if (this.redirectInitializerError) {
+        throw this.redirectInitializerError;
+      }
     });
 
     return this._initializationPromise;
@@ -149,27 +156,34 @@ export class AuthImpl implements Auth, _FirebaseService {
 
     // Update current Auth state. Either a new login or logout.
     await this._updateCurrentUser(user);
-    // Notify external Auth changes of Auth change event.
-    this.notifyAuthListeners();
   }
 
   private async initializeCurrentUser(popupRedirectResolver?: externs.PopupRedirectResolver): Promise<void> {
     // First check to see if we have a pending redirect event.
+    let storedUser = (await this.assertedPersistence.getCurrentUser()) as User | null;
     if (popupRedirectResolver) {
       await this.getOrInitRedirectPersistenceManager();
-      const result = await this._popupRedirectResolver!._completeRedirectFn(this, popupRedirectResolver);
-      if (result) {
-        return;
-      };
+      const redirectUserEventId = this.redirectUser?._redirectEventId;
+      const storedUserEventId = storedUser?._redirectEventId;
+      const result = await this.tryRedirectSignIn(popupRedirectResolver);
+
+      // If the stored user (i.e. the old "currentUser") has a redirectId that
+      // matches the redirect user, then we want to initially sign in with the
+      // new user object from result.
+      if ((!redirectUserEventId || (redirectUserEventId === storedUserEventId)) && result?.user) {
+        storedUser = result.user as User
+      }
     }
 
-    const storedUser = (await this.assertedPersistence.getCurrentUser()) as User | null;
+    // If no user in persistence, there is no current user. Set to null.
     if (!storedUser) {
-      return this.directlySetCurrentUser(storedUser);
+      return this.directlySetCurrentUser(null);
     }
 
     if (!storedUser._redirectEventId) {
       // This isn't a redirect user, we can reload and bail
+      // This will also catch the redirected user, if available, as that method
+      // strips the _redirectEventId
       return this.reloadAndSetCurrentUserOrClear(storedUser);
     }
 
@@ -189,6 +203,36 @@ export class AuthImpl implements Auth, _FirebaseService {
     }
 
     return this.reloadAndSetCurrentUserOrClear(storedUser);
+  }
+
+  private async tryRedirectSignIn(redirectResolver: externs.PopupRedirectResolver): Promise<externs.UserCredential | null> {
+    // The redirect user needs to be checked (and signed in if available)
+    // during auth initialization. All of the normal sign in and link/reauth
+    // flows call back into auth and push things onto the promise queue. We
+    // need to await the result of the redirect sign in *inside the promise
+    // queue*. This presents a problem: we run into deadlock. See:
+    //    ┌> [Initialization] ─────┐
+    //    ┌> [<other queue tasks>] │
+    //    └─ [getRedirectResult] <─┘
+    //    where [] are tasks on the queue and arrows denote awaits
+    // Initialization will never complete because it's waiting on something
+    // that's waiting for initialization to complete!
+    //
+    // Instead, this method calls getRedirectResult() (stored in
+    // _completeRedirectFn) with an optional parameter that instructs all of
+    // the underlying auth operations to skip anything that mutates auth state.
+
+    let result: externs.UserCredential | null = null;
+    try {
+      // We know this._popupRedirectResolver is set since redirectResolver
+      // is passed in. The _completeRedirectFn expects the unwrapped extern.
+      result = await this._popupRedirectResolver!._completeRedirectFn(this, redirectResolver, true);
+    } catch (e) {
+      this.redirectInitializerError = e;
+      await this._setRedirectUser(null);
+    }
+
+    return result;
   }
 
   private async reloadAndSetCurrentUserOrClear(user: User): Promise<void> {
@@ -238,10 +282,10 @@ export class AuthImpl implements Auth, _FirebaseService {
       }
     );
 
-    return this._updateCurrentUser(user && user._clone(), false);
+    return this._updateCurrentUser(user && user._clone());
   }
 
-  async _updateCurrentUser(user: externs.User | null, isInternal = true): Promise<void> {
+  async _updateCurrentUser(user: externs.User | null): Promise<void> {
     if (this._deleted) {
       return;
     }
@@ -253,20 +297,10 @@ export class AuthImpl implements Auth, _FirebaseService {
       );
     }
 
-    const action = async (): Promise<void> => {
+    return this.queue(async () => {
       await this.directlySetCurrentUser(user as User | null);
       this.notifyAuthListeners();
-    };
-    
-    // Bypass the queue if this is an internal invocation and initialization is
-    // incomplete. This state only occurs if there's a pending redirect
-    // operation. That redirect operation was invoked from within the queue,
-    // meaning that we're safe to directly set the user
-    if (isInternal && !this._isInitialized) {
-      return action();
-    }
-
-    return this.queue(action);
+    });
   }
 
   async signOut(): Promise<void> {
@@ -275,7 +309,7 @@ export class AuthImpl implements Auth, _FirebaseService {
       await this._setRedirectUser(null);
     }
 
-    return this._updateCurrentUser(null, false);
+    return this._updateCurrentUser(null);
   }
 
   setPersistence(persistence: externs.Persistence): Promise<void> {
@@ -374,11 +408,7 @@ export class AuthImpl implements Auth, _FirebaseService {
 
   async _persistUserIfCurrent(user: User): Promise<void> {
     if (user === this.currentUser) {
-      if (!this._isInitialized) {
-        return this.directlySetCurrentUser(user);
-      } else {
-        return this.queue(async () => this.directlySetCurrentUser(user));
-      }
+      return this.queue(async () => this.directlySetCurrentUser(user));
     }
   }
 
