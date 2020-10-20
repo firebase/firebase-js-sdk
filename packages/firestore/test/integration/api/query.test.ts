@@ -818,9 +818,19 @@ apiDescribe('Queries', (persistence: boolean) => {
       const snapshot3 = await coll.where('zip', 'in', [null]).get();
       expect(toDataArray(snapshot3)).to.deep.equal([]);
 
+      // With null and a value.
+      const snapshot4 = await coll.where('zip', 'in', [98101, null]).get();
+      expect(toDataArray(snapshot4)).to.deep.equal([{ zip: 98101 }]);
+
       // With NaN.
-      const snapshot4 = await coll.where('zip', 'in', [Number.NaN]).get();
-      expect(toDataArray(snapshot4)).to.deep.equal([]);
+      const snapshot5 = await coll.where('zip', 'in', [Number.NaN]).get();
+      expect(toDataArray(snapshot5)).to.deep.equal([]);
+
+      // With NaN and a value.
+      const snapshot6 = await coll
+        .where('zip', 'in', [98101, Number.NaN])
+        .get();
+      expect(toDataArray(snapshot6)).to.deep.equal([{ zip: 98101 }]);
     });
   });
 
@@ -958,15 +968,27 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       // With null.
       const snapshot3 = await coll
-        .where('zip', 'array-contains-any', [null])
+        .where('array', 'array-contains-any', [null])
         .get();
       expect(toDataArray(snapshot3)).to.deep.equal([]);
 
-      // With NaN.
+      // With null and a value.
       const snapshot4 = await coll
-        .where('zip', 'array-contains-any', [Number.NaN])
+        .where('array', 'array-contains-any', [43, null])
         .get();
-      expect(toDataArray(snapshot4)).to.deep.equal([]);
+      expect(toDataArray(snapshot4)).to.deep.equal([{ array: [43] }]);
+
+      // With NaN.
+      const snapshot5 = await coll
+        .where('array', 'array-contains-any', [Number.NaN])
+        .get();
+      expect(toDataArray(snapshot5)).to.deep.equal([]);
+
+      // With NaN and a value.
+      const snapshot6 = await coll
+        .where('array', 'array-contains-any', [43, Number.NaN])
+        .get();
+      expect(toDataArray(snapshot6)).to.deep.equal([{ array: [43] }]);
     });
   });
 

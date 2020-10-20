@@ -711,14 +711,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
       );
     });
 
-    validationIt(persistence, 'enum', db => {
-      const collection = db.collection('test') as any;
-      expect(() => collection.where('a', 'foo' as any, 'b')).to.throw(
-        'Invalid value "foo" provided to function Query.where() for its second argument. ' +
-          'Acceptable values: <, <=, ==, !=, >=, >, array-contains, in, array-contains-any, not-in'
-      );
-    });
-
     it('cannot be created from documents missing sort values', () => {
       const testDocs = {
         f: { k: 'f', nosort: 1 } // should not show up
