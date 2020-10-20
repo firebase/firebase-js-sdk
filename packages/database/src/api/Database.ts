@@ -157,15 +157,14 @@ export class Database implements FirebaseService {
     validateUrl(apiName, 1, parsedURL);
 
     const repoInfo = parsedURL.repoInfo;
-    const expectedHost = this.repo_.originalHost;
-    if (repoInfo.host !== expectedHost) {
+    if (!repoInfo.isCustomHost() && repoInfo.host !== this.repo_.repoInfo_.host) {
       fatal(
         apiName +
           ': Host name does not match the current database: ' +
           '(found ' +
           repoInfo.host +
           ' but expected ' +
-          expectedHost +
+          this.repo_.repoInfo_.host+
           ')'
       );
     }

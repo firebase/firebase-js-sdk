@@ -229,8 +229,8 @@ describe('Database Tests', () => {
   });
 
   it('ref() validates project', () => {
-    const db1 = defaultApp.database('http://bar.foo.com');
-    const db2 = defaultApp.database('http://foo.bar.com');
+    const db1 = defaultApp.database('http://bar.firebaseio.com');
+    const db2 = defaultApp.database('http://foo.firebaseio.com');
 
     const ref1 = db1.ref('child');
 
