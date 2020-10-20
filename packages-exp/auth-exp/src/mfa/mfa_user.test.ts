@@ -32,7 +32,7 @@ import { MultiFactorInfo } from './mfa_info';
 import { MultiFactorSession, MultiFactorSessionType } from './mfa_session';
 import { multiFactor, MultiFactorUser } from './mfa_user';
 import { MultiFactorAssertion } from './assertions';
-import { AuthCore } from '../model/auth';
+import { Auth } from '../model/auth';
 
 use(chaiAsPromised);
 
@@ -42,14 +42,14 @@ class MockMultiFactorAssertion extends MultiFactorAssertion {
   }
 
   async _finalizeEnroll(
-    _auth: AuthCore,
+    _auth: Auth,
     _idToken: string,
     _displayName?: string | null
   ): Promise<FinalizeMfaResponse> {
     return this.response;
   }
   async _finalizeSignIn(
-    _auth: AuthCore,
+    _auth: Auth,
     _mfaPendingCredential: string
   ): Promise<FinalizeMfaResponse> {
     return this.response;

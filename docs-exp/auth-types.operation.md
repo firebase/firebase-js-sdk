@@ -4,7 +4,7 @@
 
 ## Operation enum
 
-https://firebase.google.com/docs/reference/js/firebase.auth.ActionCodeInfo\#operation\_2
+An enumeration of the possible email action types.
 
 <b>Signature:</b>
 
@@ -16,10 +16,10 @@ export const enum Operation
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  EMAIL\_SIGNIN | <code>'EMAIL_SIGNIN'</code> |  |
-|  PASSWORD\_RESET | <code>'PASSWORD_RESET'</code> |  |
-|  RECOVER\_EMAIL | <code>'RECOVER_EMAIL'</code> |  |
-|  REVERT\_SECOND\_FACTOR\_ADDITION | <code>'REVERT_SECOND_FACTOR_ADDITION'</code> |  |
-|  VERIFY\_AND\_CHANGE\_EMAIL | <code>'VERIFY_AND_CHANGE_EMAIL'</code> |  |
-|  VERIFY\_EMAIL | <code>'VERIFY_EMAIL'</code> |  |
+|  EMAIL\_SIGNIN | <code>'EMAIL_SIGNIN'</code> | The email link sign-in action. |
+|  PASSWORD\_RESET | <code>'PASSWORD_RESET'</code> | The password reset action. |
+|  RECOVER\_EMAIL | <code>'RECOVER_EMAIL'</code> | The email revocation action. |
+|  REVERT\_SECOND\_FACTOR\_ADDITION | <code>'REVERT_SECOND_FACTOR_ADDITION'</code> | The revert second factor addition email action. |
+|  VERIFY\_AND\_CHANGE\_EMAIL | <code>'VERIFY_AND_CHANGE_EMAIL'</code> | The revert second factor addition email action. |
+|  VERIFY\_EMAIL | <code>'VERIFY_EMAIL'</code> | The email verification action. |
 

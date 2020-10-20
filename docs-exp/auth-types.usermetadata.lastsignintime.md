@@ -4,6 +4,8 @@
 
 ## UserMetadata.lastSignInTime property
 
+Time the user last signed in.
+
 <b>Signature:</b>
 
 ```typescript

@@ -17,7 +17,7 @@
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import json from 'rollup-plugin-json';
+import json from '@rollup/plugin-json';
 import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 import { es2017BuildsNoPlugin, es5BuildsNoPlugin } from './rollup.shared';
 

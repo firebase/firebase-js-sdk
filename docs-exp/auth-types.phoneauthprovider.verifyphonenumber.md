@@ -4,6 +4,8 @@
 
 ## PhoneAuthProvider.verifyPhoneNumber() method
 
+Starts a phone number authentication flow by sending a verification code to the given phone number. Returns an ID that can be passed to [PhoneAuthProvider.credential()](./auth-types.phoneauthprovider.credential.md) to identify this flow.
+
 <b>Signature:</b>
 
 ```typescript
@@ -17,10 +19,35 @@ verifyPhoneNumber(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  phoneInfoOptions | [PhoneInfoOptions](./auth-types.phoneinfooptions.md) \| string |  |
-|  applicationVerifier | [ApplicationVerifier](./auth-types.applicationverifier.md) |  |
+|  phoneInfoOptions | [PhoneInfoOptions](./auth-types.phoneinfooptions.md) \| string | The user's [PhoneInfoOptions](./auth-types.phoneinfooptions.md)<!-- -->. The phone number should be in E.164 format (e.g. +16505550101). |
+|  applicationVerifier | [ApplicationVerifier](./auth-types.applicationverifier.md) | For abuse prevention, this method also requires a [ApplicationVerifier](./auth-types.applicationverifier.md)<!-- -->. This SDK includes a reCAPTCHA-based implementation, [RecaptchaVerifier](./auth-types.recaptchaverifier.md)<!-- -->. |
 
 <b>Returns:</b>
 
 Promise&lt;string&gt;
+
+A Promise for the verification ID.
+
+## Example 1
+
+
+```javascript
+const provider = new PhoneAuthProvider(auth);
+const verificationId = await provider.verifyPhoneNumber(phoneNumber, applicationVerifier);
+// Obtain verificationCode from the user.
+const authCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+const userCredential = await signInWithCredential(auth, authCredential);
+
+```
+
+## Example 2
+
+An alternative flow is provided using the `signInWithPhoneNumber` method.
+
+```javascript
+const confirmationResult = signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+// Obtain verificationCode from the user.
+const userCredential = confirmationResult.confirm(verificationCode);
+
+```
 

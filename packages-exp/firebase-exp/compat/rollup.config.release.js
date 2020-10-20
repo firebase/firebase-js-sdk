@@ -19,7 +19,7 @@ import { resolve } from 'path';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import json from 'rollup-plugin-json';
+import json from '@rollup/plugin-json';
 import pkg from '../package.json';
 import compatPkg from './package.json';
 import appPkg from './app/package.json';

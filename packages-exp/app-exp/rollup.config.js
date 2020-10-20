@@ -17,7 +17,7 @@
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
-import json from 'rollup-plugin-json';
+import json from '@rollup/plugin-json';
 import pkg from './package.json';
 import { es2017BuildsNoPlugin, es5BuildsNoPlugin } from './rollup.shared';
 

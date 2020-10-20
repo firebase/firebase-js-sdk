@@ -4,6 +4,8 @@
 
 ## UserInfo.displayName property
 
+The display name of the user.
+
 <b>Signature:</b>
 
 ```typescript

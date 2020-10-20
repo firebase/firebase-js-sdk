@@ -4,6 +4,8 @@
 
 ## UserInfo.providerId property
 
+The provider used to authenticate the user.
+
 <b>Signature:</b>
 
 ```typescript

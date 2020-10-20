@@ -4,6 +4,8 @@
 
 ## PhoneMultiFactorGenerator.FACTOR\_ID property
 
+The identifier of the phone second factor: [ProviderId.PHONE](./auth-types.providerid.phone.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

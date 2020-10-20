@@ -4,7 +4,7 @@
 
 ## User interface
 
-https://firebase.google.com/docs/reference/js/firebase.User
+A user account.
 
 <b>Signature:</b>
 
@@ -17,20 +17,20 @@ export interface User extends UserInfo
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [emailVerified](./auth-types.user.emailverified.md) | boolean |  |
-|  [isAnonymous](./auth-types.user.isanonymous.md) | boolean |  |
-|  [metadata](./auth-types.user.metadata.md) | [UserMetadata](./auth-types.usermetadata.md) |  |
-|  [providerData](./auth-types.user.providerdata.md) | [UserInfo](./auth-types.userinfo.md)<!-- -->\[\] |  |
-|  [refreshToken](./auth-types.user.refreshtoken.md) | string |  |
-|  [tenantId](./auth-types.user.tenantid.md) | string \| null |  |
+|  [emailVerified](./auth-types.user.emailverified.md) | boolean | Whether the email has been verified with <code>sendEmailVerification</code> and <code>applyActionCode</code>. |
+|  [isAnonymous](./auth-types.user.isanonymous.md) | boolean | Whether the user is authenticated using the [ProviderId.ANONYMOUS](./auth-types.providerid.anonymous.md) provider. |
+|  [metadata](./auth-types.user.metadata.md) | [UserMetadata](./auth-types.usermetadata.md) | Additional metadata around user creation and sign-in times. |
+|  [providerData](./auth-types.user.providerdata.md) | [UserInfo](./auth-types.userinfo.md)<!-- -->\[\] | Additional per provider such as displayName and profile information. |
+|  [refreshToken](./auth-types.user.refreshtoken.md) | string | Refresh token used to reauthenticate the user. Avoid using this directly and prefer  to refresh the ID token instead. |
+|  [tenantId](./auth-types.user.tenantid.md) | string \| null | The user's tenant ID. This is a read-only property, which indicates the tenant ID used to sign in the user. This is null if the user is signed in from the parent project. |
 
 ## Methods
 
 |  Method | Description |
 |  --- | --- |
-|  [delete()](./auth-types.user.delete.md) |  |
-|  [getIdToken(forceRefresh)](./auth-types.user.getidtoken.md) |  |
-|  [getIdTokenResult(forceRefresh)](./auth-types.user.getidtokenresult.md) |  |
-|  [reload()](./auth-types.user.reload.md) |  |
-|  [toJSON()](./auth-types.user.tojson.md) |  |
+|  [delete()](./auth-types.user.delete.md) | Deletes and signs out the user.<!-- -->Important: this is a security-sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call one of the reauthentication methods like <code>reauthenticateWithCredential</code>. |
+|  [getIdToken(forceRefresh)](./auth-types.user.getidtoken.md) | Returns a JSON Web Token (JWT) used to identify the user to a Firebase service.<!-- -->Returns the current token if it has not expired or if it will not expire in the next five minutes. Otherwise, this will refresh the token and return a new one. |
+|  [getIdTokenResult(forceRefresh)](./auth-types.user.getidtokenresult.md) | Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Firebase service.<!-- -->Returns the current token if it has not expired or if it will not expire in the next five minutes. Otherwise, this will refresh the token and return a new one. |
+|  [reload()](./auth-types.user.reload.md) | Refreshes the user, if signed in. |
+|  [toJSON()](./auth-types.user.tojson.md) | Returns a JSON-serializable representation of this object. |
 

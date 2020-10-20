@@ -89,6 +89,7 @@ export interface WebChannelOptions {
   httpSessionIdParam?: string;
   httpHeadersOverwriteParam?: string;
   forceLongPolling?: boolean;
+  detectBufferingProxy?: boolean;
   fastHandshake?: boolean;
   disableRedac?: boolean;
   clientProfile?: string;

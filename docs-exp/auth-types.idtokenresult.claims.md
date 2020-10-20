@@ -4,6 +4,8 @@
 
 ## IdTokenResult.claims property
 
+The entire payload claims of the ID token including the standard reserved claims as well as the custom claims.
+
 <b>Signature:</b>
 
 ```typescript

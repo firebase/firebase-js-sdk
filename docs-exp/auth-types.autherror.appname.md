@@ -4,6 +4,8 @@
 
 ## AuthError.appName property
 
+The name of the Firebase App which triggered this error.
+
 <b>Signature:</b>
 
 ```typescript

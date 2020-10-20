@@ -284,7 +284,7 @@ describe('api/_performApiRequest', () => {
         assert.fail('Call should have failed');
       } catch (e) {
         expect(e.code).to.eq(`auth/${AuthErrorCode.NEED_CONFIRMATION}`);
-        expect(e._tokenResponse).to.eql({
+        expect((e as FirebaseError).customData!._tokenResponse).to.eql({
           needConfirmation: true,
           idToken: 'id-token'
         });
@@ -314,7 +314,9 @@ describe('api/_performApiRequest', () => {
         assert.fail('Call should have failed');
       } catch (e) {
         expect(e.code).to.eq(`auth/${AuthErrorCode.CREDENTIAL_ALREADY_IN_USE}`);
-        expect(e._tokenResponse).to.eql(response);
+        expect((e as FirebaseError).customData!._tokenResponse).to.eql(
+          response
+        );
       }
     });
 
@@ -343,8 +345,10 @@ describe('api/_performApiRequest', () => {
         assert.fail('Call should have failed');
       } catch (e) {
         expect(e.code).to.eq(`auth/${AuthErrorCode.EMAIL_EXISTS}`);
-        expect(e.email).to.eq('email@test.com');
-        expect(e.phoneNumber).to.eq('+1555-this-is-a-number');
+        expect((e as FirebaseError).customData!.email).to.eq('email@test.com');
+        expect((e as FirebaseError).customData!.phoneNumber).to.eq(
+          '+1555-this-is-a-number'
+        );
       }
     });
   });
@@ -358,8 +362,7 @@ describe('api/_performApiRequest', () => {
 
     it('works properly with an emulated environment', () => {
       (auth.config as ConfigInternal).emulator = {
-        hostname: 'localhost',
-        port: 5000
+        url: 'http://localhost:5000'
       };
       expect(_getFinalTarget(auth, 'host', '/path', 'query=test')).to.eq(
         'http://localhost:5000/host/path?query=test'

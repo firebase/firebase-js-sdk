@@ -170,6 +170,19 @@ describe('Settings', () => {
     );
   });
 
+  it('can not use mutually exclusive settings together', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const firestoreClient = newTestFirestore();
+    expect(
+      firestoreClient.settings.bind(firestoreClient.settings, {
+        experimentalForceLongPolling: true,
+        experimentalAutoDetectLongPolling: true
+      })
+    ).to.throw(
+      `experimentalForceLongPolling and experimentalAutoDetectLongPolling cannot be used together.`
+    );
+  });
+
   it('can merge settings', () => {
     // Use a new instance of Firestore in order to configure settings.
     const firestoreClient = newTestFirestore();
@@ -181,5 +194,24 @@ describe('Settings', () => {
 
     expect(firestoreClient._getSettings().ignoreUndefinedProperties).to.be.true;
     expect(firestoreClient._getSettings().host).to.equal('other.host');
+  });
+
+  it('gets settings from useEmulator', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const firestoreClient = newTestFirestore();
+    firestoreClient.useEmulator('localhost', 9000);
+
+    expect(firestoreClient._getSettings().host).to.equal('localhost:9000');
+    expect(firestoreClient._getSettings().ssl).to.be.false;
+  });
+
+  it('prefers host from useEmulator to host from settings', () => {
+    // Use a new instance of Firestore in order to configure settings.
+    const firestoreClient = newTestFirestore();
+    firestoreClient.settings({ host: 'other.host' });
+    firestoreClient.useEmulator('localhost', 9000);
+
+    expect(firestoreClient._getSettings().host).to.equal('localhost:9000');
+    expect(firestoreClient._getSettings().ssl).to.be.false;
   });
 });

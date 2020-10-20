@@ -15,8 +15,16 @@
  * limitations under the License.
  */
 
-describe('auth-compat', () => {
-  it('nothing here yet', () => {
-    // TODO: write tests after the refactor
+import * as terser from 'terser';
+
+export async function minify(content: string): Promise<string> {
+  const minified = await terser.minify(content, {
+    format: {
+      comments: false
+    },
+    mangle: { toplevel: true },
+    compress: false
   });
-});
+
+  return minified.code ?? '';
+}

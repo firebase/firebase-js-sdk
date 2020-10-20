@@ -133,8 +133,6 @@ import { MULTI_CLIENT_TAG } from './describe_spec';
 import { ByteString } from '../../../src/util/byte_string';
 import { SortedSet } from '../../../src/util/sorted_set';
 import { ActiveTargetMap, ActiveTargetSpec } from './spec_builder';
-import { LruParams } from '../../../src/local/lru_garbage_collector';
-import { PersistenceSettings } from '../../../src/core/firestore_client';
 import {
   EventAggregator,
   MockConnection,
@@ -237,7 +235,6 @@ abstract class TestRunner {
 
   constructor(
     private sharedWrites: SharedWriteTracker,
-    private persistenceSettings: PersistenceSettings,
     clientIndex: number,
     config: SpecConfig
   ) {
@@ -247,7 +244,8 @@ abstract class TestRunner {
       TEST_PERSISTENCE_KEY,
       'host',
       /*ssl=*/ false,
-      /*forceLongPolling=*/ false
+      /*forceLongPolling=*/ false,
+      /*autoDetectLongPolling=*/ false
     );
 
     // TODO(mrschmidt): During client startup in `firestore_client`, we block
@@ -280,8 +278,7 @@ abstract class TestRunner {
       clientId: this.clientId,
       initialUser: this.user,
       maxConcurrentLimboResolutions:
-        this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER,
-      persistenceSettings: this.persistenceSettings
+        this.maxConcurrentLimboResolutions ?? Number.MAX_SAFE_INTEGER
     };
 
     this.connection = new MockConnection(this.queue);
@@ -1162,21 +1159,6 @@ abstract class TestRunner {
 }
 
 class MemoryTestRunner extends TestRunner {
-  constructor(
-    sharedWrites: SharedWriteTracker,
-    clientIndex: number,
-    config: SpecConfig
-  ) {
-    super(
-      sharedWrites,
-      {
-        durable: false
-      },
-      clientIndex,
-      config
-    );
-  }
-
   protected async initializeOfflineComponentProvider(
     onlineComponentProvider: MockOnlineComponentProvider,
     configuration: ComponentConfiguration,
@@ -1199,17 +1181,7 @@ class IndexedDbTestRunner extends TestRunner {
     clientIndex: number,
     config: SpecConfig
   ) {
-    super(
-      sharedWrites,
-      {
-        durable: true,
-        cacheSizeBytes: LruParams.DEFAULT_CACHE_SIZE_BYTES,
-        synchronizeTabs: true,
-        forceOwningTab: false
-      },
-      clientIndex,
-      config
-    );
+    super(sharedWrites, clientIndex, config);
   }
 
   protected async initializeOfflineComponentProvider(

@@ -4,6 +4,8 @@
 
 ## MultiFactorError.credential property
 
+The original credential used as a first factor.
+
 <b>Signature:</b>
 
 ```typescript

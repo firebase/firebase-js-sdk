@@ -4,6 +4,8 @@
 
 ## ApplicationVerifier.type property
 
+Identifies the type of application verifier (e.g. "recaptcha").
+
 <b>Signature:</b>
 
 ```typescript

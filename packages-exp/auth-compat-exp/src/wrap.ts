@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,10 @@
  * limitations under the License.
  */
 
-/*
- * The testing module does not need to be registered since it should not ever
- * come by default. The only way to use the testing module is by explicitly
- * creating a dependency on @firebase/testing.
- */
+export interface Wrapper<T> {
+  unwrap(): T;
+}
 
-export {
-  apps,
-  assertFails,
-  assertSucceeds,
-  clearFirestoreData,
-  database,
-  firestore,
-  initializeAdminApp,
-  initializeTestApp,
-  loadDatabaseRules,
-  loadFirestoreRules
-} from './src/api';
+export function unwrap<T>(object: unknown): T {
+  return (object as Wrapper<T>).unwrap();
+}

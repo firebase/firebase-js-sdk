@@ -53,7 +53,7 @@ export class GoogleAuthProvider extends OAuthProvider {
     error: FirebaseError
   ): externs.OAuthCredential | null {
     return GoogleAuthProvider.credentialFromTaggedObject(
-      error as TaggedWithTokenResponse
+      (error.customData || {}) as TaggedWithTokenResponse
     );
   }
 
