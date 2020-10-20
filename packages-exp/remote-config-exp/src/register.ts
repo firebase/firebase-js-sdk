@@ -14,19 +14,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {
+  _registerComponent,
+  registerVersion,
+  SDK_VERSION
+} from '@firebase/app-exp';
+import {
+  Component,
+  ComponentType,
+  ComponentContainer
+} from '@firebase/component';
+import { Logger, LogLevel as FirebaseLogLevel } from '@firebase/logger';
+import { RemoteConfig } from '@firebase/remote-config-types-exp';
+import { name as packageName, version } from '../package.json';
+import { ensureInitialized } from './api';
+import { CachingClient } from './client/caching_client';
+import { RestClient } from './client/rest_client';
+import { RetryingClient } from './client/retrying_client';
+import { ErrorCode, ERROR_FACTORY } from './errors';
+import { RemoteConfig as RemoteConfigImpl } from './remote_config';
+import { Storage } from './storage/storage';
+import { StorageCache } from './storage/storage_cache';
 
-export function registerRemoteConfig(
-  firebaseInstance: _FirebaseNamespace
-): void {
-  firebaseInstance.INTERNAL.registerComponent(
+const RC_COMPONENT_NAME = 'remote-config-exp';
+
+export function registerRemoteConfig(): void {
+  _registerComponent(
     new Component(
-      'remoteConfig',
+      RC_COMPONENT_NAME,
       remoteConfigFactory,
       ComponentType.PUBLIC
     ).setMultipleInstances(true)
   );
 
-  firebaseInstance.registerVersion(packageName, version);
+  registerVersion(packageName, version);
 
   function remoteConfigFactory(
     container: ComponentContainer,
@@ -34,9 +55,11 @@ export function registerRemoteConfig(
   ): RemoteConfig {
     /* Dependencies */
     // getImmediate for FirebaseApp will always succeed
-    const app = container.getProvider('app').getImmediate();
+    const app = container.getProvider('app-exp').getImmediate();
     // The following call will always succeed because rc has `import '@firebase/installations'`
-    const installations = container.getProvider('installations').getImmediate();
+    const installations = container
+      .getProvider('installations-exp-internal')
+      .getImmediate();
 
     // Guards against the SDK being used in non-browser environments.
     if (typeof window === 'undefined') {
@@ -68,7 +91,7 @@ export function registerRemoteConfig(
     const restClient = new RestClient(
       installations,
       // Uses the JS SDK version, by which the RC package version can be deduced, if necessary.
-      firebaseInstance.SDK_VERSION,
+      SDK_VERSION,
       namespace,
       projectId,
       apiKey,
@@ -82,7 +105,7 @@ export function registerRemoteConfig(
       logger
     );
 
-    const remoteConfigInstance = new RemoteConfig(
+    const remoteConfigInstance = new RemoteConfigImpl(
       app,
       cachingClient,
       storageCache,
@@ -92,7 +115,7 @@ export function registerRemoteConfig(
 
     // Starts warming cache.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    remoteConfigInstance.ensureInitialized();
+    ensureInitialized(remoteConfigInstance);
 
     return remoteConfigInstance;
   }

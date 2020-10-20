@@ -16,23 +16,9 @@
  */
 
 import firebase from '@firebase/app';
-import '@firebase/installations';
+import '@firebase/installations-exp';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { RemoteConfig as RemoteConfigType } from '@firebase/remote-config-types';
-import { CachingClient } from './src/client/caching_client';
-import { RestClient } from './src/client/rest_client';
-import { RemoteConfig } from './src/remote_config';
-import { Storage } from './src/storage/storage';
-import { StorageCache } from './src/storage/storage_cache';
-import { ERROR_FACTORY, ErrorCode } from './src/errors';
-import { RetryingClient } from './src/client/retrying_client';
-import { Logger, LogLevel as FirebaseLogLevel } from '@firebase/logger';
-import { name as packageName, version } from './package.json';
-import {
-  Component,
-  ComponentType,
-  ComponentContainer
-} from '@firebase/component';
 
 // Facilitates debugging by enabling settings changes without rebuilding asset.
 // Note these debug options are not part of a documented, supported API and can change at any time.

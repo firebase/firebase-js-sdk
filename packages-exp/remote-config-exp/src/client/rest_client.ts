@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseInstallations } from '@firebase/installations-types';
 import {
   FetchResponse,
   RemoteConfigFetchClient,
@@ -24,6 +23,7 @@ import {
 } from './remote_config_fetch_client';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { getUserLanguage } from '../language';
+import { _FirebaseInstallationsInternal } from '@firebase/installations-types-exp';
 
 /**
  * Defines request body parameters required to call the fetch API:
@@ -49,7 +49,7 @@ interface FetchRequestBody {
  */
 export class RestClient implements RemoteConfigFetchClient {
   constructor(
-    private readonly firebaseInstallations: FirebaseInstallations,
+    private readonly firebaseInstallations: _FirebaseInstallationsInternal,
     private readonly sdkVersion: string,
     private readonly namespace: string,
     private readonly projectId: string,
