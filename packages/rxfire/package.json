@@ -32,9 +32,6 @@
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch"
   },
-  "main": "dist/index.node.cjs.js",
-  "browser": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
   "dependencies": {
     "tslib": "^1.11.1"
   },
@@ -51,7 +48,6 @@
     "rollup-plugin-uglify": "6.0.4",
     "typescript": "4.0.2"
   },
-  "typings": "dist/index.d.ts",
   "files": [
     "/auth/package.json",
     "/auth/dist",

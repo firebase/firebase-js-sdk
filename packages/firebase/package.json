@@ -41,7 +41,7 @@
     "test:ci": "echo 'No test suite for firebase wrapper'"
   },
   "main": "dist/index.node.cjs.js",
-  "browser": "dist/index.cjs.js",
+  "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
   "react-native": "dist/index.rn.cjs.js",
   "dependencies": {

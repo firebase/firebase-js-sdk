@@ -9684,5 +9684,5 @@ declare namespace firebase.firestore {
   }
 }
 
-export = firebase;
+export default firebase;
 export as namespace firebase;
