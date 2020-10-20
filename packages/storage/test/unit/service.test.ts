@@ -219,56 +219,14 @@ GOOG4-RSA-SHA256`
       xhrIoPool
     );
     describe('ref', () => {
-      it('Throws with two args', () => {
-        testShared.assertThrows(
-          testShared.bind(service.ref, service, 1, 2),
-          'storage/invalid-argument-count'
-        );
-      });
       it('Throws on gs:// argument', () => {
         testShared.assertThrows(
           testShared.bind(service.ref, service, 'gs://yo'),
           'storage/invalid-argument'
         );
       });
-      it('Throws on number argument', () => {
-        testShared.assertThrows(
-          testShared.bind(service.ref, service, 3),
-          'storage/invalid-argument'
-        );
-      });
-      it('Throws on null argument', () => {
-        testShared.assertThrows(
-          testShared.bind(service.ref, service, null),
-          'storage/invalid-argument'
-        );
-      });
     });
     describe('refFromURL', () => {
-      it('Throws with no args', () => {
-        testShared.assertThrows(
-          testShared.bind(service.refFromURL, service),
-          'storage/invalid-argument-count'
-        );
-      });
-      it('Throws with two args', () => {
-        testShared.assertThrows(
-          testShared.bind(service.refFromURL, service, 'a', 'b'),
-          'storage/invalid-argument-count'
-        );
-      });
-      it('Throws with a non-URL string arg', () => {
-        testShared.assertThrows(
-          testShared.bind(service.refFromURL, service, 'child'),
-          'storage/invalid-argument'
-        );
-      });
-      it('Throws with a null arg', () => {
-        testShared.assertThrows(
-          testShared.bind(service.refFromURL, service, null),
-          'storage/invalid-argument'
-        );
-      });
       it('Throws with an invalid URL arg', () => {
         testShared.assertThrows(
           testShared.bind(service.refFromURL, service, 'notlegit://url'),
@@ -277,24 +235,6 @@ GOOG4-RSA-SHA256`
       });
     });
     describe('setMaxUploadRetryTime', () => {
-      it('Throws on no args', () => {
-        testShared.assertThrows(
-          testShared.bind(service.setMaxUploadRetryTime, service),
-          'storage/invalid-argument-count'
-        );
-      });
-      it('Throws on two args', () => {
-        testShared.assertThrows(
-          testShared.bind(service.setMaxUploadRetryTime, service, 1, 2),
-          'storage/invalid-argument-count'
-        );
-      });
-      it('Throws on string arg', () => {
-        testShared.assertThrows(
-          testShared.bind(service.setMaxUploadRetryTime, service, 'a'),
-          'storage/invalid-argument'
-        );
-      });
       it('Throws on negative arg', () => {
         testShared.assertThrows(
           testShared.bind(service.setMaxUploadRetryTime, service, -10),
@@ -303,24 +243,6 @@ GOOG4-RSA-SHA256`
       });
     });
     describe('setMaxOperationRetryTime', () => {
-      it('Throws on no args', () => {
-        testShared.assertThrows(
-          testShared.bind(service.setMaxOperationRetryTime, service),
-          'storage/invalid-argument-count'
-        );
-      });
-      it('Throws on two args', () => {
-        testShared.assertThrows(
-          testShared.bind(service.setMaxOperationRetryTime, service, 1, 2),
-          'storage/invalid-argument-count'
-        );
-      });
-      it('Throws on string arg', () => {
-        testShared.assertThrows(
-          testShared.bind(service.setMaxOperationRetryTime, service, 'a'),
-          'storage/invalid-argument'
-        );
-      });
       it('Throws on negative arg', () => {
         testShared.assertThrows(
           testShared.bind(service.setMaxOperationRetryTime, service, -10),

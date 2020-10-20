@@ -47,14 +47,6 @@ export function isString(p: unknown): p is string {
   return typeof p === 'string' || p instanceof String;
 }
 
-export function isInteger(p: unknown): p is number {
-  return isNumber(p) && Number.isInteger(p);
-}
-
-export function isNumber(p: unknown): p is number {
-  return typeof p === 'number' || p instanceof Number;
-}
-
 export function isNativeBlob(p: unknown): p is Blob {
   return isNativeBlobDefined() && p instanceof Blob;
 }

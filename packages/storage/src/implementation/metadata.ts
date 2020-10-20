@@ -27,6 +27,7 @@ import * as type from './type';
 import * as UrlUtils from './url';
 import { Reference } from '../reference';
 import { StorageService } from '../service';
+import { Code, FirebaseStorageError } from './error';
 
 export function noXform_<T>(metadata: Metadata, value: T): T {
   return value;
@@ -206,20 +207,23 @@ export function toResourceString(
   return JSON.stringify(resource);
 }
 
-export function metadataValidator(p: unknown): void {
-  if (!type.isObject(p) || !p) {
-    throw 'Expected Metadata object.';
-  }
+export function validateMetadata(p: { [key: string]: unknown }): void {
   for (const key in p) {
     if (p.hasOwnProperty(key)) {
       const val = p[key];
       if (key === 'customMetadata') {
         if (!type.isObject(val)) {
-          throw "Expected object for 'customMetadata' mapping.";
+          throw new FirebaseStorageError(
+            Code.INVALID_ARGUMENT,
+            "Expected object for 'customMetadata' mapping."
+          );
         }
       } else {
         if (type.isNonNullObject(val)) {
-          throw "Mapping for '" + key + "' cannot be an object.";
+          throw new FirebaseStorageError(
+            Code.INVALID_ARGUMENT,
+            "Mapping for '" + key + "' cannot be an object."
+          );
         }
       }
     }
