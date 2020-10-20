@@ -26,7 +26,10 @@ import { OAuthProvider } from './oauth';
 export class FacebookAuthProvider extends OAuthProvider {
   static readonly FACEBOOK_SIGN_IN_METHOD = externs.SignInMethod.FACEBOOK;
   static readonly PROVIDER_ID = externs.ProviderId.FACEBOOK;
-  readonly providerId = FacebookAuthProvider.PROVIDER_ID;
+
+  constructor() {
+    super(externs.ProviderId.FACEBOOK);
+  }
 
   static credential(accessToken: string): externs.OAuthCredential {
     return OAuthCredential._fromParams({

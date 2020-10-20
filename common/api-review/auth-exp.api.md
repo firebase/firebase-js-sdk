@@ -123,6 +123,7 @@ export class EmailAuthProvider implements externs.EmailAuthProvider {
 
 // @public (undocumented)
 export class FacebookAuthProvider extends OAuthProvider {
+    constructor();
     // (undocumented)
     static credential(accessToken: string): externs.OAuthCredential;
     // (undocumented)
@@ -133,8 +134,6 @@ export class FacebookAuthProvider extends OAuthProvider {
     static readonly FACEBOOK_SIGN_IN_METHOD = externs.SignInMethod.FACEBOOK;
     // (undocumented)
     static readonly PROVIDER_ID = externs.ProviderId.FACEBOOK;
-    // (undocumented)
-    readonly providerId = externs.ProviderId.FACEBOOK;
 }
 
 // @public (undocumented)
@@ -160,6 +159,7 @@ export function getRedirectResult(authExtern: externs.Auth, resolverExtern?: ext
 
 // @public (undocumented)
 export class GithubAuthProvider extends OAuthProvider {
+    constructor();
     // (undocumented)
     static credential(accessToken: string): externs.OAuthCredential;
     // (undocumented)
@@ -170,12 +170,11 @@ export class GithubAuthProvider extends OAuthProvider {
     static readonly GITHUB_SIGN_IN_METHOD = externs.SignInMethod.GITHUB;
     // (undocumented)
     static readonly PROVIDER_ID = externs.ProviderId.GITHUB;
-    // (undocumented)
-    readonly providerId = externs.ProviderId.GITHUB;
 }
 
 // @public (undocumented)
 export class GoogleAuthProvider extends OAuthProvider {
+    constructor();
     // (undocumented)
     static credential(idToken?: string | null, accessToken?: string | null): externs.OAuthCredential;
     // (undocumented)
@@ -186,8 +185,6 @@ export class GoogleAuthProvider extends OAuthProvider {
     static readonly GOOGLE_SIGN_IN_METHOD = externs.SignInMethod.GOOGLE;
     // (undocumented)
     static readonly PROVIDER_ID = externs.ProviderId.GOOGLE;
-    // (undocumented)
-    readonly providerId = externs.ProviderId.GOOGLE;
 }
 
 // @public (undocumented)
@@ -404,6 +401,7 @@ export function signOut(auth: externs.Auth): Promise<void>;
 
 // @public (undocumented)
 export class TwitterAuthProvider extends OAuthProvider {
+    constructor();
     // (undocumented)
     static credential(token: string, secret: string): externs.OAuthCredential;
     // (undocumented)
@@ -412,8 +410,6 @@ export class TwitterAuthProvider extends OAuthProvider {
     static credentialFromResult(userCredential: externs.UserCredential): externs.OAuthCredential | null;
     // (undocumented)
     static readonly PROVIDER_ID = externs.ProviderId.TWITTER;
-    // (undocumented)
-    readonly providerId = externs.ProviderId.TWITTER;
     // (undocumented)
     static readonly TWITTER_SIGN_IN_METHOD = externs.SignInMethod.TWITTER;
 }
