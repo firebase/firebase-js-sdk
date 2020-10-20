@@ -711,51 +711,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
       );
     });
 
-    validationIt(
-      persistence,
-      'with null or NaN non-equality filters fail',
-      db => {
-        const collection = db.collection('test');
-        expect(() => collection.where('a', '>', null)).to.throw(
-          "Invalid query. Null only supports '==' and '!=' comparisons."
-        );
-        expect(() => collection.where('a', 'array-contains', null)).to.throw(
-          "Invalid query. Null only supports '==' and '!=' comparisons."
-        );
-        expect(() => collection.where('a', 'in', null)).to.throw(
-          "Invalid Query. A non-empty array is required for 'in' filters."
-        );
-        expect(() => collection.where('a', 'not-in', null)).to.throw(
-          "Invalid Query. A non-empty array is required for 'not-in' filters."
-        );
-        expect(() =>
-          collection.where('a', 'array-contains-any', null)
-        ).to.throw(
-          "Invalid Query. A non-empty array is required for 'array-contains-any' filters."
-        );
-
-        expect(() => collection.where('a', '>', Number.NaN)).to.throw(
-          "Invalid query. NaN only supports '==' and '!=' comparisons."
-        );
-        expect(() =>
-          collection.where('a', 'array-contains', Number.NaN)
-        ).to.throw(
-          "Invalid query. NaN only supports '==' and '!=' comparisons."
-        );
-        expect(() => collection.where('a', 'in', Number.NaN)).to.throw(
-          "Invalid Query. A non-empty array is required for 'in' filters."
-        );
-        expect(() => collection.where('a', 'not-in', Number.NaN)).to.throw(
-          "Invalid Query. A non-empty array is required for 'not-in' filters."
-        );
-        expect(() =>
-          collection.where('a', 'array-contains-any', Number.NaN)
-        ).to.throw(
-          "Invalid Query. A non-empty array is required for 'array-contains-any' filters."
-        );
-      }
-    );
-
     it('cannot be created from documents missing sort values', () => {
       const testDocs = {
         f: { k: 'f', nosort: 1 } // should not show up
@@ -1245,34 +1200,6 @@ apiDescribe('Validation:', (persistence: boolean) => {
         ).to.throw(
           'Invalid Query. A non-empty array is required for ' +
             "'array-contains-any' filters."
-        );
-
-        expect(() =>
-          db.collection('test').where('foo', 'in', [3, null])
-        ).to.throw(
-          "Invalid Query. 'in' filters cannot contain 'null' in the value array."
-        );
-
-        expect(() =>
-          db.collection('test').where('foo', 'array-contains-any', [3, null])
-        ).to.throw(
-          "Invalid Query. 'array-contains-any' filters cannot contain 'null' " +
-            'in the value array.'
-        );
-
-        expect(() =>
-          db.collection('test').where('foo', 'in', [2, Number.NaN])
-        ).to.throw(
-          "Invalid Query. 'in' filters cannot contain 'NaN' in the value array."
-        );
-
-        expect(() =>
-          db
-            .collection('test')
-            .where('foo', 'array-contains-any', [2, Number.NaN])
-        ).to.throw(
-          "Invalid Query. 'array-contains-any' filters cannot contain 'NaN' " +
-            'in the value array.'
         );
       }
     );

@@ -1672,22 +1672,6 @@ function validateDisjunctiveFilterElements(
         'maximum of 10 elements in the value array.'
     );
   }
-  if (operator === Operator.IN || operator === Operator.ARRAY_CONTAINS_ANY) {
-    if (value.indexOf(null) >= 0) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid Query. '${operator.toString()}' filters cannot contain 'null' ` +
-          'in the value array.'
-      );
-    }
-    if (value.filter(element => Number.isNaN(element)).length > 0) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid Query. '${operator.toString()}' filters cannot contain 'NaN' ` +
-          'in the value array.'
-      );
-    }
-  }
 }
 
 /**
