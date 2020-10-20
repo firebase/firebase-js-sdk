@@ -52,7 +52,7 @@
     "api-report": "lerna run --scope @firebase/*-exp api-report",
     "docgen:exp": "ts-node-script scripts/exp/docgen.ts",
     "postinstall": "yarn --cwd repo-scripts/changelog-generator build",
-    "sa": "ts-node-script repo-scripts/size-analysis/analysis.ts"
+    "sa": "ts-node-script repo-scripts/size-analysis/cli.ts"
   },
   "repository": {
     "type": "git",

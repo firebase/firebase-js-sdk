@@ -26,7 +26,6 @@ import {
 } from './analysis-helper';
 import { mapWorkspaceToPackages } from '../../scripts/release/utils/workspace';
 import { projectRoot } from '../../scripts/utils';
-import * as yargs from 'yargs';
 import * as fs from 'fs';
 
 /**
@@ -44,41 +43,21 @@ import * as fs from 'fs';
  *          specify a file path if ad hoc analysis is to be performed
  *
  */
-const argv = yargs
-  .options({
-    inputModule: {
-      type: 'array',
-      alias: 'im',
-      desc:
-        'The name of the module(s) to be analyzed. example: --inputModule "@firebase/functions-exp" "firebase/auth-exp"'
-    },
-    inputDtsFile: {
-      type: 'string',
-      alias: 'if',
-      desc: 'support for adhoc analysis. requires a path to dts file'
-    },
-    inputBundleFile: {
-      type: 'string',
-      alias: 'ib',
-      desc: 'support for adhoc analysis. requires a path to a bundle file'
-    },
-    output: {
-      type: 'string',
-      alias: 'o',
-      required: true,
-      desc:
-        'The location where report(s) will be generated, a directory path if module(s) are analyzed; a file path if ad hoc analysis is to be performed'
-    }
-  })
-  .help().argv;
-
+interface PackageAnalysisOptions {
+  inputModule: string[];
+  inputDtsFile: string;
+  inputBundleFile: string;
+  output: string;
+}
 /**
  * Entry Point of the Tool.
  * The function first checks if it's an adhoc run (by checking whether --inputDtsFile and --inputBundle are both enabled)
  * The function then checks whether --inputModule flag is specified; Run analysis on all modules if not, run analysis on selected modules if enabled.
  * Throw INVALID_FLAG_COMBINATION error if neither case fulfill.
  */
-async function main(): Promise<void> {
+export async function analyzePackageSize(
+  argv: PackageAnalysisOptions
+): Promise<void> {
   // check if it's an adhoc run
   // adhoc run report can only be redirected to files
   if (argv.inputDtsFile && argv.inputBundleFile && argv.output) {
@@ -90,6 +69,7 @@ async function main(): Promise<void> {
     writeReportToFile(jsonReport, resolve(argv.output));
   } else if (!argv.inputDtsFile && !argv.inputBundleFile) {
     // retrieve All Module Names
+    // TODO: update the workspace once exp packages are officially released
     let allModulesLocation = await mapWorkspaceToPackages([
       `${projectRoot}/packages-exp/*`
     ]);
@@ -132,7 +112,3 @@ async function main(): Promise<void> {
     throw new Error(ErrorCode.INVALID_FLAG_COMBINATION);
   }
 }
-
-main().catch(error => {
-  console.log(error);
-});
