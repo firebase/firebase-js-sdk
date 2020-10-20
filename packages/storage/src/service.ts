@@ -21,13 +21,14 @@ import { FailRequest } from './implementation/failrequest';
 import { Request, makeRequest } from './implementation/request';
 import { RequestInfo } from './implementation/requestinfo';
 import { XhrIoPool } from './implementation/xhriopool';
-import { Reference, validateNumber } from './reference';
+import { Reference } from './reference';
 import { Provider } from '@firebase/component';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseOptions } from '@firebase/app-types-exp';
 import * as constants from '../src/implementation/constants';
 import * as errorsExports from './implementation/error';
 import { Code, FirebaseStorageError } from './implementation/error';
+import { validateNumber } from './implementation/type';
 
 /**
  * A service that provides firebaseStorage.Reference instances.

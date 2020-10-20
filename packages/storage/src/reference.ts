@@ -24,14 +24,13 @@ import { Location } from './implementation/location';
 import * as metadata from './implementation/metadata';
 import * as path from './implementation/path';
 import * as requests from './implementation/requests';
-import { StringFormat, dataFromString } from './implementation/string';
+import { dataFromString, StringFormat } from './implementation/string';
 import * as type from './implementation/type';
+import { validateNumber } from './implementation/type';
 import { Metadata } from './metadata';
 import { StorageService } from './service';
 import { UploadTask } from './task';
 import { ListOptions, ListResult } from './list';
-import { Code, FirebaseStorageError } from './implementation/error';
-import { validateMetadata } from './implementation/metadata';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
@@ -295,7 +294,6 @@ export class Reference {
    *     @see firebaseStorage.Reference.prototype.getMetadata
    */
   updateMetadata(metadata: Metadata): Promise<Metadata> {
-    validateMetadata(metadata);
     this.throwIfRoot_('updateMetadata');
     return this.service.getAuthToken().then(authToken => {
       const requestInfo = requests.updateMetadata(
@@ -336,25 +334,5 @@ export class Reference {
     if (this.location.path === '') {
       throw errorsExports.invalidRootOperation(name);
     }
-  }
-}
-
-export function validateNumber(
-  argument: string,
-  minValue: number,
-  maxValue: number,
-  value: number
-): void {
-  if (value < minValue) {
-    throw new FirebaseStorageError(
-      Code.INVALID_ARGUMENT,
-      `Invalid value for '${argument}'. Expected ${minValue} or greater.`
-    );
-  }
-  if (value > maxValue) {
-    throw new FirebaseStorageError(
-      Code.INVALID_ARGUMENT,
-      `Invalid value for '${argument}'. Expected ${maxValue} or less.`
-    );
   }
 }
