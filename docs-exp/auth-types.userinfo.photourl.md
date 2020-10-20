@@ -4,6 +4,8 @@
 
 ## UserInfo.photoURL property
 
+The profile photo URL of the user.
+
 <b>Signature:</b>
 
 ```typescript

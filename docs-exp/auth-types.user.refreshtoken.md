@@ -4,6 +4,8 @@
 
 ## User.refreshToken property
 
+Refresh token used to reauthenticate the user. Avoid using this directly and prefer  to refresh the ID token instead.
+
 <b>Signature:</b>
 
 ```typescript

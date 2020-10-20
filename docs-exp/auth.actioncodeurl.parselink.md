@@ -4,6 +4,8 @@
 
 ## ActionCodeURL.parseLink() method
 
+Parses the email action link string and returns an ActionCodeURL object if the link is valid, otherwise returns null.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,11 @@ static parseLink(link: string): externs.ActionCodeURL | null;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  link | string |  |
+|  link | string | The email action link string. |
 
 <b>Returns:</b>
 
 externs.[ActionCodeURL](./auth-types.actioncodeurl.md) \| null
+
+The ActionCodeURL object, or null if the link is invalid.
 

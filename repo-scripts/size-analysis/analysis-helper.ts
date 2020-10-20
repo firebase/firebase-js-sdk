@@ -21,8 +21,8 @@ import * as fs from 'fs';
 import * as rollup from 'rollup';
 import * as terser from 'terser';
 import * as ts from 'typescript';
-import resolve from 'rollup-plugin-node-resolve';
-import commonjs from 'rollup-plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 import { deepCopy } from '@firebase/util';
 
 export const enum ErrorCode {

@@ -61,7 +61,7 @@ export interface ServerErrorData {
   serverStatus: string;
 }
 
-export type ServerError = FirebaseError & ServerErrorData;
+export type ServerError = FirebaseError & { customData: ServerErrorData };
 
 /** Returns true if error is a FirebaseError that is based on an error from the server. */
 export function isServerError(error: unknown): error is ServerError {

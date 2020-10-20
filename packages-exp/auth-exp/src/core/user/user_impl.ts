@@ -81,7 +81,10 @@ export class UserImpl implements User {
     this.phoneNumber = opt.phoneNumber || null;
     this.photoURL = opt.photoURL || null;
     this.isAnonymous = opt.isAnonymous || false;
-    this.metadata = new UserMetadata(opt.createdAt, opt.lastLoginAt);
+    this.metadata = new UserMetadata(
+      opt.createdAt || undefined,
+      opt.lastLoginAt || undefined
+    );
   }
 
   async getIdToken(forceRefresh?: boolean): Promise<string> {
@@ -113,7 +116,7 @@ export class UserImpl implements User {
   private reloadUserInfo: APIUserInfo | null = null;
   private reloadListener: NextFn<APIUserInfo> | null = null;
 
-  _copy(user: User): void {
+  _assign(user: User): void {
     if (this === user) {
       return;
     }
@@ -129,7 +132,14 @@ export class UserImpl implements User {
     this.tenantId = user.tenantId;
     this.providerData = user.providerData.map(userInfo => ({ ...userInfo }));
     this.metadata._copy(user.metadata);
-    this.stsTokenManager._copy(user.stsTokenManager);
+    this.stsTokenManager._assign(user.stsTokenManager);
+  }
+
+  _clone(): User {
+    return new UserImpl({
+      ...this,
+      stsTokenManager: this.stsTokenManager._clone()
+    });
   }
 
   _onReload(callback: NextFn<APIUserInfo>): void {
@@ -261,7 +271,7 @@ export class UserImpl implements User {
     assertStringOrUndefined(_redirectEventId, auth.name);
     assertStringOrUndefined(createdAt, auth.name);
     assertStringOrUndefined(lastLoginAt, auth.name);
-    const user = auth._createUser({
+    const user = new UserImpl({
       uid,
       auth,
       email,
@@ -301,7 +311,7 @@ export class UserImpl implements User {
     stsTokenManager.updateFromServerResponse(idTokenResponse);
 
     // Initialize the Firebase Auth user.
-    const user = auth._createUser({
+    const user = new UserImpl({
       uid: idTokenResponse.localId,
       auth,
       stsTokenManager,

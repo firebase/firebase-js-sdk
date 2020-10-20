@@ -4,6 +4,8 @@
 
 ## Config.apiHost property
 
+The host at which the Firebase Auth backend is running.
+
 <b>Signature:</b>
 
 ```typescript

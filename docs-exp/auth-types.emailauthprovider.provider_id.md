@@ -4,6 +4,8 @@
 
 ## EmailAuthProvider.PROVIDER\_ID property
 
+Always set to [ProviderId.PASSWORD](./auth-types.providerid.password.md)<!-- -->, even for email link.
+
 <b>Signature:</b>
 
 ```typescript

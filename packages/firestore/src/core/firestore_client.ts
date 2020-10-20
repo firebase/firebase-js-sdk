@@ -74,6 +74,7 @@ import { AsyncObserver } from '../util/async_observer';
 import { debugAssert } from '../util/assert';
 import { TransactionRunner } from './transaction_runner';
 import { Datastore } from '../remote/datastore';
+import { canFallbackFromIndexedDbError } from '../../exp/src/api/database';
 import { BundleReader } from '../util/bundle_reader';
 import { LoadBundleTask } from '../api/bundle';
 import { newSerializer, newTextEncoder } from '../platform/serializer';
@@ -83,22 +84,6 @@ import { JsonProtoSerializer } from '../remote/serializer';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
-
-/** DOMException error code constants. */
-const DOM_EXCEPTION_INVALID_STATE = 11;
-const DOM_EXCEPTION_ABORTED = 20;
-const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
-
-export type PersistenceSettings =
-  | {
-      readonly durable: false;
-    }
-  | {
-      readonly durable: true;
-      readonly cacheSizeBytes: number;
-      readonly synchronizeTabs: boolean;
-      readonly forceOwningTab: boolean;
-    };
 
 /**
  * FirestoreClient is a top-level class that constructs and owns all of the
@@ -181,8 +166,6 @@ export class FirestoreClient {
    * required for memory-only or IndexedDB persistence.
    * @param onlineComponentProvider Provider that returns all components
    * required for online support.
-   * @param persistenceSettings Settings object to configure offline
-   *     persistence.
    * @returns A deferred result indicating the user-visible result of enabling
    *     offline persistence. This method will reject this if IndexedDB fails to
    *     start for any reason. If usePersistence is false this is
@@ -191,8 +174,7 @@ export class FirestoreClient {
   start(
     databaseInfo: DatabaseInfo,
     offlineComponentProvider: OfflineComponentProvider,
-    onlineComponentProvider: OnlineComponentProvider,
-    persistenceSettings: PersistenceSettings
+    onlineComponentProvider: OnlineComponentProvider
   ): Promise<void> {
     this.verifyNotTerminated();
 
@@ -216,7 +198,6 @@ export class FirestoreClient {
         return this.initializeComponents(
           offlineComponentProvider,
           onlineComponentProvider,
-          persistenceSettings,
           user,
           persistenceResult
         ).then(this.initializationDone.resolve, this.initializationDone.reject);
@@ -257,7 +238,6 @@ export class FirestoreClient {
    * required for memory-only or IndexedDB persistence.
    * @param onlineComponentProvider Provider that returns all components
    * required for online support.
-   * @param persistenceSettings Settings object to configure offline persistence
    * @param user The initial user
    * @param persistenceResult A deferred result indicating the user-visible
    *     result of enabling offline persistence. This method will reject this if
@@ -270,7 +250,6 @@ export class FirestoreClient {
   private async initializeComponents(
     offlineComponentProvider: OfflineComponentProvider,
     onlineComponentProvider: OnlineComponentProvider,
-    persistenceSettings: PersistenceSettings,
     user: User,
     persistenceResult: Deferred<void>
   ): Promise<void> {
@@ -281,8 +260,7 @@ export class FirestoreClient {
         clientId: this.clientId,
         credentials: this.credentials,
         initialUser: user,
-        maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS,
-        persistenceSettings
+        maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS
       };
 
       await offlineComponentProvider.initialize(componentConfiguration);
@@ -316,7 +294,7 @@ export class FirestoreClient {
       persistenceResult.reject(error);
 
       // An unknown failure on the first stage shuts everything down.
-      if (!this.canFallback(error)) {
+      if (!canFallbackFromIndexedDbError(error)) {
         throw error;
       }
       console.warn(
@@ -327,47 +305,10 @@ export class FirestoreClient {
       return this.initializeComponents(
         new MemoryOfflineComponentProvider(),
         new OnlineComponentProvider(),
-        { durable: false },
         user,
         persistenceResult
       );
     }
-  }
-
-  /**
-   * Decides whether the provided error allows us to gracefully disable
-   * persistence (as opposed to crashing the client).
-   */
-  private canFallback(error: FirestoreError | DOMException): boolean {
-    if (error.name === 'FirebaseError') {
-      return (
-        error.code === Code.FAILED_PRECONDITION ||
-        error.code === Code.UNIMPLEMENTED
-      );
-    } else if (
-      typeof DOMException !== 'undefined' &&
-      error instanceof DOMException
-    ) {
-      // There are a few known circumstances where we can open IndexedDb but
-      // trying to read/write will fail (e.g. quota exceeded). For
-      // well-understood cases, we attempt to detect these and then gracefully
-      // fall back to memory persistence.
-      // NOTE: Rather than continue to add to this list, we could decide to
-      // always fall back, with the risk that we might accidentally hide errors
-      // representing actual SDK bugs.
-      return (
-        // When the browser is out of quota we could get either quota exceeded
-        // or an aborted error depending on whether the error happened during
-        // schema migration.
-        error.code === DOM_EXCEPTION_QUOTA_EXCEEDED ||
-        error.code === DOM_EXCEPTION_ABORTED ||
-        // Firefox Private Browsing mode disables IndexedDb and returns
-        // INVALID_STATE for any usage.
-        error.code === DOM_EXCEPTION_INVALID_STATE
-      );
-    }
-
-    return true;
   }
 
   /**

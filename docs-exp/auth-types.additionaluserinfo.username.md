@@ -4,6 +4,8 @@
 
 ## AdditionalUserInfo.username property
 
+The username if the provider is GitHub or Twitter.
+
 <b>Signature:</b>
 
 ```typescript

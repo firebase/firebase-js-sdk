@@ -16,7 +16,7 @@
  */
 
 const tmp = require('tmp');
-const json = require('rollup-plugin-json');
+const json = require('@rollup/plugin-json');
 const alias = require('@rollup/plugin-alias');
 const typescriptPlugin = require('rollup-plugin-typescript2');
 const typescript = require('typescript');

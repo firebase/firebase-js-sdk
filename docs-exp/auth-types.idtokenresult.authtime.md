@@ -4,6 +4,8 @@
 
 ## IdTokenResult.authTime property
 
+The authentication time formatted as a UTC string. This is the time the user authenticated (signed in) and not the time the token was refreshed.
+
 <b>Signature:</b>
 
 ```typescript

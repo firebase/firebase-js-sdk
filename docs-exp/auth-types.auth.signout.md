@@ -4,6 +4,8 @@
 
 ## Auth.signOut() method
 
+Signs out the current user.
+
 <b>Signature:</b>
 
 ```typescript

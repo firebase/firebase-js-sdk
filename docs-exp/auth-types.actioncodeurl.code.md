@@ -4,6 +4,8 @@
 
 ## ActionCodeURL.code property
 
+The action code of the email action link.
+
 <b>Signature:</b>
 
 ```typescript

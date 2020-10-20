@@ -4,6 +4,8 @@
 
 ## User.emailVerified property
 
+Whether the email has been verified with `sendEmailVerification` and `applyActionCode`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

@@ -67,7 +67,7 @@ export class TwitterAuthProvider extends OAuthProvider {
     error: FirebaseError
   ): externs.OAuthCredential | null {
     return TwitterAuthProvider.credentialFromTaggedObject(
-      error as TaggedWithTokenResponse
+      (error.customData || {}) as TaggedWithTokenResponse
     );
   }
 

@@ -17,7 +17,7 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
-import { AuthCore } from '../model/auth';
+import { Auth } from '../model/auth';
 import { IdTokenResponse } from '../model/id_token';
 import { AuthErrorCode } from '../core/errors';
 import { User } from '../model/user';
@@ -35,7 +35,7 @@ export class MultiFactorError
   readonly tenantId?: string;
 
   private constructor(
-    auth: AuthCore,
+    auth: Auth,
     error: FirebaseError,
     readonly operationType: externs.OperationType,
     readonly credential: AuthCredential,
@@ -46,12 +46,13 @@ export class MultiFactorError
     Object.setPrototypeOf(this, MultiFactorError.prototype);
     this.appName = auth.name;
     this.code = error.code;
-    this.tenantid = auth.tenantId;
-    this.serverResponse = error.serverResponse as IdTokenMfaResponse;
+    this.tenantId = auth.tenantId ?? undefined;
+    this.serverResponse = error.customData!
+      .serverResponse as IdTokenMfaResponse;
   }
 
   static _fromErrorAndCredential(
-    auth: AuthCore,
+    auth: Auth,
     error: FirebaseError,
     operationType: externs.OperationType,
     credential: AuthCredential,
@@ -62,7 +63,7 @@ export class MultiFactorError
 }
 
 export function _processCredentialSavingMfaContextIfNecessary(
-  auth: AuthCore,
+  auth: Auth,
   operationType: externs.OperationType,
   credential: AuthCredential,
   user?: User
