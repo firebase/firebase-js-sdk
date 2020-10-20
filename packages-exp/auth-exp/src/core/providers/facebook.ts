@@ -48,7 +48,7 @@ export class FacebookAuthProvider extends OAuthProvider {
     error: FirebaseError
   ): externs.OAuthCredential | null {
     return FacebookAuthProvider.credentialFromTaggedObject(
-      error as TaggedWithTokenResponse
+      (error.customData || {}) as TaggedWithTokenResponse
     );
   }
 

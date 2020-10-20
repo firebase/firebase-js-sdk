@@ -4,6 +4,8 @@
 
 ## Auth.config property
 
+The [Config](./auth-types.config.md) used to initialize this instance.
+
 <b>Signature:</b>
 
 ```typescript

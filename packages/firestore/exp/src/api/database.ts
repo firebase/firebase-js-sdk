@@ -32,6 +32,7 @@ import {
   ComponentConfiguration,
   IndexedDbOfflineComponentProvider,
   MultiTabOfflineComponentProvider,
+  OfflineComponentProvider,
   OnlineComponentProvider
 } from '../../../src/core/component_provider';
 import {
@@ -76,6 +77,11 @@ import { newSerializer } from '../../../src/platform/serializer';
 import { Query } from '../../../lite/src/api/reference';
 
 const LOG_TAG = 'Firestore';
+
+/** DOMException error code constants. */
+const DOM_EXCEPTION_INVALID_STATE = 11;
+const DOM_EXCEPTION_ABORTED = 20;
+const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
 
 export interface Settings extends LiteSettings {
   cacheSizeBytes?: number;
@@ -132,7 +138,8 @@ export class FirebaseFirestore
       this._persistenceKey,
       settings.host ?? DEFAULT_HOST,
       settings.ssl ?? DEFAULT_SSL,
-      /* forceLongPolling= */ false
+      /* forceLongPolling= */ false,
+      /* forceAutoDetectLongPolling= */ true
     );
     return {
       asyncQueue: this._queue,
@@ -140,9 +147,7 @@ export class FirebaseFirestore
       clientId: this._clientId,
       credentials: this._credentials,
       initialUser: this._user,
-      maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS,
-      // Note: This will be overwritten if IndexedDB persistence is enabled.
-      persistenceSettings: { durable: false }
+      maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS
     };
   }
 
@@ -269,23 +274,15 @@ export function enableIndexedDbPersistence(
 
   const onlineComponentProvider = new OnlineComponentProvider();
   const offlineComponentProvider = new IndexedDbOfflineComponentProvider(
-    onlineComponentProvider
+    onlineComponentProvider,
+    settings.cacheSizeBytes,
+    persistenceSettings?.forceOwnership
   );
-
-  return firestore._queue.enqueue(async () => {
-    await setOfflineComponentProvider(
-      firestore,
-      {
-        durable: true,
-        synchronizeTabs: false,
-        cacheSizeBytes:
-          settings.cacheSizeBytes || LruParams.DEFAULT_CACHE_SIZE_BYTES,
-        forceOwningTab: !!persistenceSettings?.forceOwnership
-      },
-      offlineComponentProvider
-    );
-    await setOnlineComponentProvider(firestore, onlineComponentProvider);
-  });
+  return setPersistenceProviders(
+    firestore,
+    onlineComponentProvider,
+    offlineComponentProvider
+  );
 }
 
 /**
@@ -323,22 +320,87 @@ export function enableMultiTabIndexedDbPersistence(
 
   const onlineComponentProvider = new OnlineComponentProvider();
   const offlineComponentProvider = new MultiTabOfflineComponentProvider(
-    onlineComponentProvider
+    onlineComponentProvider,
+    settings.cacheSizeBytes
   );
-  return firestore._queue.enqueue(async () => {
-    await setOfflineComponentProvider(
-      firestore,
-      {
-        durable: true,
-        synchronizeTabs: true,
-        cacheSizeBytes:
-          settings.cacheSizeBytes || LruParams.DEFAULT_CACHE_SIZE_BYTES,
-        forceOwningTab: false
-      },
-      offlineComponentProvider
+  return setPersistenceProviders(
+    firestore,
+    onlineComponentProvider,
+    offlineComponentProvider
+  );
+}
+
+/**
+ * Registers both the `OfflineComponentProvider` and `OnlineComponentProvider`.
+ * If the operation fails with a recoverable error (see
+ * `canRecoverFromIndexedDbError()` below), the returned Promise is rejected
+ * but the client remains usable.
+ */
+function setPersistenceProviders(
+  firestore: FirebaseFirestore,
+  onlineComponentProvider: OnlineComponentProvider,
+  offlineComponentProvider: OfflineComponentProvider
+): Promise<void> {
+  const persistenceResult = new Deferred();
+  return firestore._queue
+    .enqueue(async () => {
+      try {
+        await setOfflineComponentProvider(firestore, offlineComponentProvider);
+        await setOnlineComponentProvider(firestore, onlineComponentProvider);
+        persistenceResult.resolve();
+      } catch (e) {
+        if (!canFallbackFromIndexedDbError(e)) {
+          throw e;
+        }
+        console.warn(
+          'Error enabling offline persistence. Falling back to ' +
+            'persistence disabled: ' +
+            e
+        );
+        persistenceResult.reject(e);
+      }
+    })
+    .then(() => persistenceResult.promise);
+}
+
+/**
+ * Decides whether the provided error allows us to gracefully disable
+ * persistence (as opposed to crashing the client).
+ */
+// TODO(schmidt-sebastian): Remove `export` in
+// https://github.com/firebase/firebase-js-sdk/pull/3901
+export function canFallbackFromIndexedDbError(
+  error: FirestoreError | DOMException
+): boolean {
+  if (error.name === 'FirebaseError') {
+    return (
+      error.code === Code.FAILED_PRECONDITION ||
+      error.code === Code.UNIMPLEMENTED
     );
-    await setOnlineComponentProvider(firestore, onlineComponentProvider);
-  });
+  } else if (
+    typeof DOMException !== 'undefined' &&
+    error instanceof DOMException
+  ) {
+    // There are a few known circumstances where we can open IndexedDb but
+    // trying to read/write will fail (e.g. quota exceeded). For
+    // well-understood cases, we attempt to detect these and then gracefully
+    // fall back to memory persistence.
+    // NOTE: Rather than continue to add to this list, we could decide to
+    // always fall back, with the risk that we might accidentally hide errors
+    // representing actual SDK bugs.
+    return (
+      // When the browser is out of quota we could get either quota exceeded
+      // or an aborted error depending on whether the error happened during
+      // schema migration.
+      error.code === DOM_EXCEPTION_QUOTA_EXCEEDED ||
+      error.code === DOM_EXCEPTION_ABORTED ||
+      // Firefox Private Browsing mode disables IndexedDb and returns
+      // INVALID_STATE for any usage.
+      error.code === DOM_EXCEPTION_INVALID_STATE
+    );
+  }
+
+  return true;
 }
 
 /**

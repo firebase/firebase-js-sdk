@@ -16,13 +16,13 @@
  */
 
 import { Endpoint, HttpMethod, _performApiRequest } from '..';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '@firebase/auth-types-exp';
 
 interface GetRecaptchaParamResponse {
   recaptchaSiteKey?: string;
 }
 
-export async function getRecaptchaParams(auth: AuthCore): Promise<string> {
+export async function getRecaptchaParams(auth: Auth): Promise<string> {
   return (
     (
       await _performApiRequest<void, GetRecaptchaParamResponse>(

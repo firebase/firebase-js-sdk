@@ -17,7 +17,7 @@
 
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { requestStsToken } from '../../api/authentication/token';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
@@ -51,7 +51,7 @@ export class StsTokenManager {
     );
   }
 
-  async getToken(auth: AuthCore, forceRefresh = false): Promise<string | null> {
+  async getToken(auth: Auth, forceRefresh = false): Promise<string | null> {
     if (!forceRefresh && this.accessToken && !this.isExpired) {
       return this.accessToken;
     }
@@ -71,7 +71,7 @@ export class StsTokenManager {
     this.refreshToken = null;
   }
 
-  private async refresh(auth: AuthCore, oldToken: string): Promise<void> {
+  private async refresh(auth: Auth, oldToken: string): Promise<void> {
     const { accessToken, refreshToken, expiresIn } = await requestStsToken(
       auth,
       oldToken
@@ -124,10 +124,14 @@ export class StsTokenManager {
     };
   }
 
-  _copy(stsTokenManager: StsTokenManager): void {
+  _assign(stsTokenManager: StsTokenManager): void {
     this.accessToken = stsTokenManager.accessToken;
     this.refreshToken = stsTokenManager.refreshToken;
     this.expirationTime = stsTokenManager.expirationTime;
+  }
+
+  _clone(): StsTokenManager {
+    return Object.assign(new StsTokenManager(), this.toJSON());
   }
 
   _performRefresh(): never {

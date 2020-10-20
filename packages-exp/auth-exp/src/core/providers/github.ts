@@ -48,7 +48,7 @@ export class GithubAuthProvider extends OAuthProvider {
     error: FirebaseError
   ): externs.OAuthCredential | null {
     return GithubAuthProvider.credentialFromTaggedObject(
-      error as TaggedWithTokenResponse
+      (error.customData || {}) as TaggedWithTokenResponse
     );
   }
 

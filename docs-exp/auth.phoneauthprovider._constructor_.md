@@ -9,12 +9,12 @@ Constructs a new instance of the `PhoneAuthProvider` class
 <b>Signature:</b>
 
 ```typescript
-constructor(auth: AuthCore);
+constructor(auth: externs.Auth);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | AuthCore |  |
+|  auth | externs.[Auth](./auth-types.auth.md) |  |
 

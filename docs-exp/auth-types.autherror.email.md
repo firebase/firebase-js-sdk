@@ -4,6 +4,8 @@
 
 ## AuthError.email property
 
+The email of the user's account, used for sign-in/linking.
+
 <b>Signature:</b>
 
 ```typescript

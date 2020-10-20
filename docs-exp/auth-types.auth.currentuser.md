@@ -4,6 +4,8 @@
 
 ## Auth.currentUser property
 
+The currently signed-in user (or null).
+
 <b>Signature:</b>
 
 ```typescript

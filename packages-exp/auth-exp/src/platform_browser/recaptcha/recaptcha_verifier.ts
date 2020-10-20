@@ -17,11 +17,12 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import { getRecaptchaParams } from '../../api/authentication/recaptcha';
+import { _castAuth } from '../../core/auth/auth_impl';
 import { AuthErrorCode } from '../../core/errors';
 import { assert } from '../../core/util/assert';
 import { _isHttpOrHttps } from '../../core/util/location';
 import { ApplicationVerifier } from '../../model/application_verifier';
-import { AuthCore } from '../../model/auth';
+import { Auth } from '../../model/auth';
 import { _window } from '../auth_window';
 import { Parameters, Recaptcha } from './recaptcha';
 import {
@@ -49,6 +50,7 @@ export class RecaptchaVerifier
   private readonly isInvisible: boolean;
   private readonly tokenChangeListeners = new Set<TokenCallback>();
   private renderPromise: Promise<number> | null = null;
+  private readonly auth: Auth;
 
   readonly _recaptchaLoader: ReCaptchaLoader;
   private recaptcha: Recaptcha | null = null;
@@ -58,8 +60,9 @@ export class RecaptchaVerifier
     private readonly parameters: Parameters = {
       ...DEFAULT_PARAMS
     },
-    private readonly auth: AuthCore
+    authExtern: externs.Auth
   ) {
+    this.auth = _castAuth(authExtern);
     this.appName = this.auth.name;
     this.isInvisible = this.parameters.size === 'invisible';
     assert(

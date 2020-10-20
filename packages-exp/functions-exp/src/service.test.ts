@@ -41,7 +41,7 @@ describe('Firebase Functions > Service', () => {
 
     it('can use emulator', () => {
       service = createTestService(app);
-      useFunctionsEmulator(service, 'http://localhost:5005');
+      useFunctionsEmulator(service, 'localhost', 5005);
       assert.equal(
         service._url('foo'),
         'http://localhost:5005/my-project/us-central1/foo'
@@ -58,7 +58,7 @@ describe('Firebase Functions > Service', () => {
 
     it('correctly sets region with emulator', () => {
       service = createTestService(app, 'my-region');
-      useFunctionsEmulator(service, 'http://localhost:5005');
+      useFunctionsEmulator(service, 'localhost', 5005);
       assert.equal(
         service._url('foo'),
         'http://localhost:5005/my-project/my-region/foo'
@@ -72,7 +72,7 @@ describe('Firebase Functions > Service', () => {
 
     it('prefers emulator to custom domain', () => {
       const service = createTestService(app, 'https://mydomain.com');
-      useFunctionsEmulator(service, 'http://localhost:5005');
+      useFunctionsEmulator(service, 'localhost', 5005);
       assert.equal(
         service._url('foo'),
         'http://localhost:5005/my-project/us-central1/foo'

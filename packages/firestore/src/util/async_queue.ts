@@ -321,8 +321,10 @@ export class AsyncQueue {
    * operations were retried successfully.
    */
   enqueueRetryable(op: () => Promise<void>): void {
-    this.retryableOps.push(op);
-    this.enqueueAndForget(() => this.retryNextOp());
+    this.enqueueAndForget(() => {
+      this.retryableOps.push(op);
+      return this.retryNextOp();
+    });
   }
 
   /**

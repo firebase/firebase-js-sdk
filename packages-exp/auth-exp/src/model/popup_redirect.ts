@@ -19,7 +19,7 @@ import * as externs from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 
 import { AuthPopup } from '../platform_browser/util/popup';
-import { AuthCore } from './auth';
+import { Auth } from './auth';
 
 export const enum EventFilter {
   POPUP,
@@ -74,21 +74,21 @@ export interface EventManager {
 }
 
 export interface PopupRedirectResolver extends externs.PopupRedirectResolver {
-  _initialize(auth: AuthCore): Promise<EventManager>;
+  _initialize(auth: Auth): Promise<EventManager>;
   _openPopup(
-    auth: AuthCore,
+    auth: Auth,
     provider: externs.AuthProvider,
     authType: AuthEventType,
     eventId?: string
   ): Promise<AuthPopup>;
   _openRedirect(
-    auth: AuthCore,
+    auth: Auth,
     provider: externs.AuthProvider,
     authType: AuthEventType,
     eventId?: string
   ): Promise<never>;
   _isIframeWebStorageSupported(
-    auth: AuthCore,
+    auth: Auth,
     cb: (support: boolean) => unknown
   ): void;
   _redirectPersistence: externs.Persistence;

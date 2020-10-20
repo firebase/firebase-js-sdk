@@ -7,14 +7,14 @@
 <b>Signature:</b>
 
 ```typescript
-_linkToIdToken(_auth: AuthCore, _idToken: string): Promise<IdTokenResponse>;
+_linkToIdToken(_auth: Auth, _idToken: string): Promise<IdTokenResponse>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  \_auth | AuthCore |  |
+|  \_auth | Auth |  |
 |  \_idToken | string |  |
 
 <b>Returns:</b>

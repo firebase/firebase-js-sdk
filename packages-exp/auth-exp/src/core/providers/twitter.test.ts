@@ -79,7 +79,7 @@ describe('src/core/providers/twitter', () => {
     const error = AUTH_ERROR_FACTORY.create(AuthErrorCode.NEED_CONFIRMATION, {
       appName: 'foo'
     });
-    (error as TaggedWithTokenResponse)._tokenResponse = {
+    (error.customData! as TaggedWithTokenResponse)._tokenResponse = {
       ...TEST_ID_TOKEN_RESPONSE,
       oauthAccessToken: 'access-token',
       oauthTokenSecret: 'token-secret'

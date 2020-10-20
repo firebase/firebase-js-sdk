@@ -134,7 +134,10 @@ describe('RestClient', () => {
 
       await expect(fetchPromise)
         .to.eventually.be.rejectedWith(FirebaseError, firebaseError.message)
-        .with.property('originalErrorMessage', 'Network request failed');
+        .with.nested.property(
+          'customData.originalErrorMessage',
+          'Network request failed'
+        );
     });
 
     it('throws on JSON parse failure', async () => {
@@ -154,7 +157,10 @@ describe('RestClient', () => {
 
       await expect(fetchPromise)
         .to.eventually.be.rejectedWith(FirebaseError, firebaseError.message)
-        .with.property('originalErrorMessage', 'Unexpected end of input');
+        .with.nested.property(
+          'customData.originalErrorMessage',
+          'Unexpected end of input'
+        );
     });
 
     it('handles 304 status code and empty body', async () => {
@@ -200,7 +206,7 @@ describe('RestClient', () => {
 
       await expect(fetchPromise)
         .to.eventually.be.rejectedWith(FirebaseError, error.message)
-        .with.property('httpStatus', 500);
+        .with.nested.property('customData.httpStatus', 500);
     });
 
     it('normalizes NO_CHANGE state to 304 status', async () => {
@@ -257,7 +263,7 @@ describe('RestClient', () => {
 
         await expect(fetchPromise)
           .to.eventually.be.rejectedWith(FirebaseError, error.message)
-          .with.property('httpStatus', status);
+          .with.nested.property('customData.httpStatus', status);
       }
     });
   });

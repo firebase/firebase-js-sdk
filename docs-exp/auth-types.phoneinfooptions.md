@@ -4,7 +4,7 @@
 
 ## PhoneInfoOptions type
 
-https://firebase.google.com/docs/reference/js/firebase.auth\#phoneinfooptions
+The information required to verify the ownership of a phone number. The information that's required depends on whether you are doing single-factor sign-in, multi-factor enrollment or multi-factor sign-in.
 
 <b>Signature:</b>
 

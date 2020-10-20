@@ -37,9 +37,10 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
   ) {}
 
   static _fromError(
-    auth: externs.Auth,
+    authExtern: externs.Auth,
     error: MultiFactorError
   ): MultiFactorResolver {
+    const auth = _castAuth(authExtern);
     const hints = (error.serverResponse.mfaInfo || []).map(enrollment =>
       MultiFactorInfo._fromServerResponse(auth, enrollment)
     );
@@ -73,11 +74,11 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
         switch (error.operationType) {
           case externs.OperationType.SIGN_IN:
             const userCredential = await UserCredentialImpl._fromIdTokenResponse(
-              _castAuth(auth),
+              auth,
               error.operationType,
               idTokenResponse
             );
-            await auth.updateCurrentUser(userCredential.user);
+            await auth._updateCurrentUser(userCredential.user);
             return userCredential;
           case externs.OperationType.REAUTHENTICATE:
             assert(error.user, AuthErrorCode.INTERNAL_ERROR, {

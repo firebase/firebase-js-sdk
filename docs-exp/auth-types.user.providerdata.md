@@ -4,6 +4,8 @@
 
 ## User.providerData property
 
+Additional per provider such as displayName and profile information.
+
 <b>Signature:</b>
 
 ```typescript

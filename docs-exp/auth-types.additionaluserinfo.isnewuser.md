@@ -4,6 +4,8 @@
 
 ## AdditionalUserInfo.isNewUser property
 
+Whether the user is new (created via sign-up) or existing (authenticated using sign-in).
+
 <b>Signature:</b>
 
 ```typescript

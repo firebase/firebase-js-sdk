@@ -4,7 +4,7 @@
 
 ## OperationType enum
 
-Supported operation types
+Supported operation types.
 
 <b>Signature:</b>
 
@@ -16,7 +16,7 @@ export const enum OperationType
 
 |  Member | Value | Description |
 |  --- | --- | --- |
-|  LINK | <code>'link'</code> |  |
-|  REAUTHENTICATE | <code>'reauthenticate'</code> |  |
-|  SIGN\_IN | <code>'signIn'</code> |  |
+|  LINK | <code>'link'</code> | Operation involving linking an additional provider to an already signed-in user. |
+|  REAUTHENTICATE | <code>'reauthenticate'</code> | Operation involving using a provider to reauthenticate an already signed-in user. |
+|  SIGN\_IN | <code>'signIn'</code> | Operation involving signing in a user. |
 

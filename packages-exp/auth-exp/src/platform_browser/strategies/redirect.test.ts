@@ -127,7 +127,7 @@ describe('src/core/strategies/redirect', () => {
 
     beforeEach(async () => {
       user = testUser(auth, 'uid', 'email', true);
-      await auth.updateCurrentUser(user);
+      await auth._updateCurrentUser(user);
       sinon.stub(link, '_assertLinkedStatus').returns(Promise.resolve());
     });
 
@@ -185,7 +185,7 @@ describe('src/core/strategies/redirect', () => {
     });
 
     it('persists the redirect user but not current user if diff currentUser', async () => {
-      await auth.updateCurrentUser(testUser(auth, 'not-uid', 'email', true));
+      await auth._updateCurrentUser(testUser(auth, 'not-uid', 'email', true));
       const redirectPersistence: Persistence = _getInstance(
         RedirectPersistence
       );
@@ -207,7 +207,7 @@ describe('src/core/strategies/redirect', () => {
 
     beforeEach(async () => {
       user = testUser(auth, 'uid', 'email', true);
-      await auth.updateCurrentUser(user);
+      await auth._updateCurrentUser(user);
     });
 
     it('redirects the window', async () => {
@@ -263,7 +263,7 @@ describe('src/core/strategies/redirect', () => {
     });
 
     it('persists the redirect user but not current user if diff currentUser', async () => {
-      await auth.updateCurrentUser(testUser(auth, 'not-uid', 'email', true));
+      await auth._updateCurrentUser(testUser(auth, 'not-uid', 'email', true));
       const redirectPersistence: Persistence = _getInstance(
         RedirectPersistence
       );
@@ -411,7 +411,7 @@ describe('src/core/strategies/redirect', () => {
       sinon.spy(redirectPersistence, '_remove');
 
       const cred = new UserCredentialImpl({
-        user: auth.currentUser!,
+        user: auth._currentUser!,
         providerId: externs.ProviderId.GOOGLE,
         operationType: externs.OperationType.LINK
       });
@@ -422,7 +422,7 @@ describe('src/core/strategies/redirect', () => {
       });
       expect(await promise).to.eq(cred);
       expect(redirectPersistence._remove).to.have.been.called;
-      expect(auth.currentUser?._redirectEventId).to.be.undefined;
+      expect(auth._currentUser?._redirectEventId).to.be.undefined;
       expect(auth.persistenceLayer.lastObjectSet?._redirectEventId).to.be
         .undefined;
     });
