@@ -286,12 +286,4 @@ describe('Database Tests', () => {
     const ref = db.refFromURL(DATABASE_ADDRESS + '/path/to/data');
     expect(ref.toString()).to.equal(`http://localhost:1234/path/to/data`);
   });
-
-  it('refFromURL accepts an emulated ref with useEmulator', () => {
-    const db = (firebase as any).database();
-    db.useEmulator('localhost', 1234);
-
-    const ref = db.refFromURL('http://localhost:1234/path/to/data');
-    expect(ref.toString()).to.equal(`http://localhost:1234/path/to/data`);
-  });
 });

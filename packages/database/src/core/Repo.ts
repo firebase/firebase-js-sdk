@@ -54,8 +54,11 @@ const INTERRUPT_REASON = 'repo_interrupt';
  * A connection to a single data repository.
  */
 export class Repo {
+  /** Key for uniquely identifying this repo, used in RepoManager */
+  readonly key: string;
+
   /** Record of the original host, which does not change even if useEmulator mutates the repo */
-  readonly productionUrl: string;
+  readonly originalHost: string;
 
   dataUpdateCount = 0;
   private infoSyncTree_: SyncTree;
@@ -88,7 +91,9 @@ export class Repo {
     public app: FirebaseApp,
     public authTokenProvider_: AuthTokenProvider
   ) {
-    this.productionUrl = this.repoInfo_.toURLString();
+    // This key is intentionally not updated if RepoInfo is later changed or replaced
+    this.key = this.repoInfo_.toURLString();
+    this.originalHost = this.repoInfo_.host;
   }
 
   start(): void {
