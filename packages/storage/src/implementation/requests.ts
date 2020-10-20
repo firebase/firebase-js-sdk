@@ -114,7 +114,7 @@ export function sharedErrorHandler(
         }
       }
     }
-    newErr.setServerResponseProp(err.serverResponseProp());
+    newErr.serverResponse = err.serverResponse;
     return newErr;
   }
   return errorHandler;
@@ -133,7 +133,7 @@ export function objectErrorHandler(
     if (xhr.getStatus() === 404) {
       newErr = objectNotFound(location.path);
     }
-    newErr.setServerResponseProp(err.serverResponseProp());
+    newErr.serverResponse = err.serverResponse;
     return newErr;
   }
   return errorHandler;
