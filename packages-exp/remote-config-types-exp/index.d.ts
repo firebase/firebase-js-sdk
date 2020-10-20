@@ -37,66 +37,6 @@ export interface RemoteConfig {
    * The status of the last fetch <i>attempt</i>.
    */
   lastFetchStatus: FetchStatus;
-
-  /**
-   * Makes the last fetched config available to the getters.
-   * Returns a promise which resolves to true if the current call activated the fetched configs.
-   * If the fetched configs were already activated, the promise will resolve to false.
-   */
-  activate(): Promise<boolean>;
-
-  /**
-   * Ensures the last activated config are available to the getters.
-   */
-  ensureInitialized(): Promise<void>;
-
-  /**
-   * Fetches and caches configuration from the Remote Config service.
-   */
-  fetch(): Promise<void>;
-
-  /**
-   * Performs fetch and activate operations, as a convenience.
-   * Returns a promise which resolves to true if the current call activated the fetched configs.
-   * If the fetched configs were already activated, the promise will resolve to false.
-   */
-  fetchAndActivate(): Promise<boolean>;
-
-  /**
-   * Gets all config.
-   */
-  getAll(): { [key: string]: Value };
-
-  /**
-   * Gets the value for the given key as a boolean.
-   *
-   * Convenience method for calling <code>remoteConfig.getValue(key).asBoolean()</code>.
-   */
-  getBoolean(key: string): boolean;
-
-  /**
-   * Gets the value for the given key as a number.
-   *
-   * Convenience method for calling <code>remoteConfig.getValue(key).asNumber()</code>.
-   */
-  getNumber(key: string): number;
-
-  /**
-   * Gets the value for the given key as a String.
-   *
-   * Convenience method for calling <code>remoteConfig.getValue(key).asString()</code>.
-   */
-  getString(key: string): string;
-
-  /**
-   * Gets the {@link Value} for the given key.
-   */
-  getValue(key: string): Value;
-
-  /**
-   * Defines the log level to use.
-   */
-  setLogLevel(logLevel: LogLevel): void;
 }
 
 /**
@@ -175,6 +115,6 @@ export type LogLevel = 'debug' | 'error' | 'silent';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'remoteConfig': RemoteConfig;
+    'remote-config-exp': RemoteConfig;
   }
 }

@@ -1,6 +1,6 @@
 {
-  "name": "@firebase/remote-config-types",
-  "version": "0.1.9",
+  "name": "@firebase/remote-config-types-exp",
+  "version": "0.0.800",
   "description": "@firebase/remote-config Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
