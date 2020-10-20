@@ -166,7 +166,10 @@ describe('Firebase Storage > Service', () => {
       const error = testShared.assertThrows(() => {
         service.refFromURL('path/to/child');
       }, 'storage/invalid-argument');
-      assert.match(error.message, /invalid/i);
+      assert.match(
+        error.message,
+        /Expected full URL but got a child path, use ref instead/i
+      );
     });
     it('Works with gs:// URLs', () => {
       const ref = service.refFromURL('gs://mybucket/child/path/image.png');
