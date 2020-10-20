@@ -15,19 +15,4 @@
  * limitations under the License.
  */
 
-import { registerRemoteConfig } from './register';
-
-// Facilitates debugging by enabling settings changes without rebuilding asset.
-// Note these debug options are not part of a documented, supported API and can change at any time.
-// Consolidates debug options for easier discovery.
-// Uses transient variables on window to avoid lingering state causing panic.
-declare global {
-  interface Window {
-    FIREBASE_REMOTE_CONFIG_URL_BASE: string;
-  }
-}
-
-export * from './api';
-
-/** register component and version */
-registerRemoteConfig();
+export const RC_COMPONENT_NAME = 'remote-config-exp';

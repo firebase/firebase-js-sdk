@@ -31,12 +31,11 @@ import { ensureInitialized } from './api';
 import { CachingClient } from './client/caching_client';
 import { RestClient } from './client/rest_client';
 import { RetryingClient } from './client/retrying_client';
+import { RC_COMPONENT_NAME } from './constants';
 import { ErrorCode, ERROR_FACTORY } from './errors';
 import { RemoteConfig as RemoteConfigImpl } from './remote_config';
 import { Storage } from './storage/storage';
 import { StorageCache } from './storage/storage_cache';
-
-const RC_COMPONENT_NAME = 'remote-config-exp';
 
 export function registerRemoteConfig(): void {
   _registerComponent(

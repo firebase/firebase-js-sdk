@@ -68,9 +68,21 @@ export class RemoteConfig implements RemoteConfigType {
     // JS doesn't support private yet
     // (https://github.com/tc39/proposal-class-fields#private-fields), so we hint using an
     // underscore prefix.
-    private readonly _client: RemoteConfigFetchClient,
-    private readonly _storageCache: StorageCache,
-    private readonly _storage: Storage,
-    private readonly _logger: Logger
+    /**
+     * @internal
+     */
+    readonly _client: RemoteConfigFetchClient,
+    /**
+     * @internal
+     */
+    readonly _storageCache: StorageCache,
+    /**
+     * @internal
+     */
+    readonly _storage: Storage,
+    /**
+     * @internal
+     */
+    readonly _logger: Logger
   ) {}
 }
