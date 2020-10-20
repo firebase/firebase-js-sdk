@@ -158,7 +158,9 @@ export class AuthImpl implements Auth, _FirebaseService {
     await this._updateCurrentUser(user);
   }
 
-  private async initializeCurrentUser(popupRedirectResolver?: externs.PopupRedirectResolver): Promise<void> {
+  private async initializeCurrentUser(
+    popupRedirectResolver?: externs.PopupRedirectResolver
+  ): Promise<void> {
     // First check to see if we have a pending redirect event.
     let storedUser = (await this.assertedPersistence.getCurrentUser()) as User | null;
     if (popupRedirectResolver) {
@@ -170,8 +172,11 @@ export class AuthImpl implements Auth, _FirebaseService {
       // If the stored user (i.e. the old "currentUser") has a redirectId that
       // matches the redirect user, then we want to initially sign in with the
       // new user object from result.
-      if ((!redirectUserEventId || (redirectUserEventId === storedUserEventId)) && result?.user) {
-        storedUser = result.user as User
+      if (
+        (!redirectUserEventId || redirectUserEventId === storedUserEventId) &&
+        result?.user
+      ) {
+        storedUser = result.user as User;
       }
     }
 
@@ -205,7 +210,9 @@ export class AuthImpl implements Auth, _FirebaseService {
     return this.reloadAndSetCurrentUserOrClear(storedUser);
   }
 
-  private async tryRedirectSignIn(redirectResolver: externs.PopupRedirectResolver): Promise<externs.UserCredential | null> {
+  private async tryRedirectSignIn(
+    redirectResolver: externs.PopupRedirectResolver
+  ): Promise<externs.UserCredential | null> {
     // The redirect user needs to be checked (and signed in if available)
     // during auth initialization. All of the normal sign in and link/reauth
     // flows call back into auth and push things onto the promise queue. We
@@ -226,7 +233,11 @@ export class AuthImpl implements Auth, _FirebaseService {
     try {
       // We know this._popupRedirectResolver is set since redirectResolver
       // is passed in. The _completeRedirectFn expects the unwrapped extern.
-      result = await this._popupRedirectResolver!._completeRedirectFn(this, redirectResolver, true);
+      result = await this._popupRedirectResolver!._completeRedirectFn(
+        this,
+        redirectResolver,
+        true
+      );
     } catch (e) {
       this.redirectInitializerError = e;
       await this._setRedirectUser(null);

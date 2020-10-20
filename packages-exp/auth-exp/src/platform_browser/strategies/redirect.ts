@@ -230,7 +230,7 @@ export async function linkWithRedirect(
 export async function getRedirectResult(
   auth: externs.Auth,
   resolverExtern?: externs.PopupRedirectResolver,
-  bypassAuthState = false,
+  bypassAuthState = false
 ): Promise<externs.UserCredential | null> {
   const authInternal = _castAuth(auth);
   const resolver = _withDefaultResolver(authInternal, resolverExtern);
@@ -265,7 +265,11 @@ const redirectOutcomeMap: Map<
 class RedirectAction extends AbstractPopupRedirectOperation {
   eventId = null;
 
-  constructor(auth: Auth, resolver: PopupRedirectResolver, bypassAuthState = false) {
+  constructor(
+    auth: Auth,
+    resolver: PopupRedirectResolver,
+    bypassAuthState = false
+  ) {
     super(
       auth,
       [

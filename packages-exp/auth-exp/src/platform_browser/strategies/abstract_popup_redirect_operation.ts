@@ -59,7 +59,7 @@ export abstract class AbstractPopupRedirectOperation
     filter: AuthEventType | AuthEventType[],
     protected readonly resolver: PopupRedirectResolver,
     protected user?: User,
-    private readonly bypassAuthState = false,
+    private readonly bypassAuthState = false
   ) {
     this.filter = Array.isArray(filter) ? filter : [filter];
   }

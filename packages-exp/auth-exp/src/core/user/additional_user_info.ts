@@ -81,7 +81,7 @@ class GenericAdditionalUserInfo implements externs.AdditionalUserInfo {
     readonly isNewUser: boolean,
     readonly providerId: externs.ProviderId | null,
     readonly profile: externs.UserProfile = {}
-  ) { }
+  ) {}
 }
 
 class FederatedAdditionalUserInfoWithUsername extends GenericAdditionalUserInfo {
@@ -148,7 +148,6 @@ export function getAdditionalUserInfo(
       profile: null
     };
   }
-
 
   return _fromIdTokenResponse(_tokenResponse);
 }

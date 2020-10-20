@@ -29,7 +29,7 @@ import { UserCredentialImpl } from './user_credential_impl';
 export async function _reauthenticate(
   user: User,
   credential: AuthCredential,
-  bypassAuthState = false,
+  bypassAuthState = false
 ): Promise<UserCredentialImpl> {
   const appName = user.auth.name;
   const operationType = OperationType.REAUTHENTICATE;
@@ -43,7 +43,7 @@ export async function _reauthenticate(
         credential,
         user
       ),
-      bypassAuthState,
+      bypassAuthState
     );
     assert(response.idToken, AuthErrorCode.INTERNAL_ERROR, { appName });
     const parsed = _parseToken(response.idToken);
