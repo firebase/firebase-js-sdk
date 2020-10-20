@@ -48,7 +48,6 @@ export function _fromIdTokenResponse(
         signInProvider !== externs.ProviderId.CUSTOM
           ? (signInProvider as externs.ProviderId)
           : null;
-      console.log('In first branch');
       // Uses generic class in accordance with the legacy SDK.
       return new GenericAdditionalUserInfo(isNewUser, filteredProviderId);
     }
@@ -71,10 +70,8 @@ export function _fromIdTokenResponse(
       );
     case externs.ProviderId.CUSTOM:
     case externs.ProviderId.ANONYMOUS:
-      console.log('In second branch');
       return new GenericAdditionalUserInfo(isNewUser, null);
     default:
-      console.log('In third branch');
       return new GenericAdditionalUserInfo(isNewUser, providerId, profile);
   }
 }
@@ -84,9 +81,7 @@ class GenericAdditionalUserInfo implements externs.AdditionalUserInfo {
     readonly isNewUser: boolean,
     readonly providerId: externs.ProviderId | null,
     readonly profile: externs.UserProfile = {}
-  ) {
-    console.log('In constructor');
-  }
+  ) { }
 }
 
 class FederatedAdditionalUserInfoWithUsername extends GenericAdditionalUserInfo {
@@ -155,9 +150,5 @@ export function getAdditionalUserInfo(
   }
 
 
-  const result = _fromIdTokenResponse(_tokenResponse);
-  if (result?.providerId === 'anonymous') {
-    throw new Error(JSON.stringify(result));
-  }
-  return result;
+  return _fromIdTokenResponse(_tokenResponse);
 }
