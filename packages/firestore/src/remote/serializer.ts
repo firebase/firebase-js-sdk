@@ -286,13 +286,13 @@ export function fromBytes(
       value === undefined || typeof value === 'string',
       'value must be undefined or a string when using proto3 Json'
     );
-    return ByteString.fromBase64String(value ? value : '');
+    return ByteString.fromBase64String(value ? value as string : '');
   } else {
     hardAssert(
       value === undefined || value instanceof Uint8Array,
       'value must be undefined or Uint8Array'
     );
-    return ByteString.fromUint8Array(value ? value : new Uint8Array());
+    return ByteString.fromUint8Array(value ? value as Uint8Array : new Uint8Array());
   }
 }
 

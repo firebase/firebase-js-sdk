@@ -1,0 +1,42 @@
+{
+  "name": "bundle_test_bundle",
+  "version": "0.0.1",
+  "private": true,
+  "engines": {
+    "node": "^8.13.0 || >=10.10.0"
+  },
+  "scripts": {
+    "build": "rollup -c rollup.config.js",
+    "genBundle": "yarn build && (node dist/generate_test_bundle.cjs.js > dist/test_bundles.json)"
+  },
+  "dependencies": {
+    "@firebase/component": "0.1.19",
+    "@firebase/logger": "0.2.6",
+    "@firebase/util": "0.3.2",
+    "@firebase/webchannel-wrapper": "0.3.0",
+    "@grpc/grpc-js": "^1.0.0",
+    "@grpc/proto-loader": "^0.5.0",
+    "node-fetch": "2.6.1",
+    "tslib": "^1.11.1"
+  },
+  "resolutions": {
+    "@firebase/firestore": "file:../..",
+    "@firebase/firestore-types": "file:../../../firestore-types"
+  },
+  "peerDependencies": {
+    "@firebase/app": "0.x",
+    "@firebase/app-types": "0.x"
+  },
+  "devDependencies": {
+    "rollup": "2.29.0",
+    "rollup-plugin-copy-assets": "1.1.0",
+    "rollup-plugin-json": "4.0.0",
+    "rollup-plugin-node-resolve": "5.2.0",
+    "rollup-plugin-replace": "2.2.0",
+    "rollup-plugin-sourcemaps": "0.6.3",
+    "rollup-plugin-terser": "7.0.2",
+    "rollup-plugin-typescript2": "^0.28.0",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.3"
+  }
+}
