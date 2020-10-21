@@ -1,4 +1,9 @@
-"use strict";
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var ts = require('typescript');
+
 /**
  * @license
  * Copyright 2020 Google LLC
@@ -15,49 +20,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-exports.__esModule = true;
-exports.renameInternals = void 0;
-var ts = require("typescript");
 // `undefined` is treated as an identifier by TSC, but not part of any externs.
-var blacklist = ['undefined'];
+const blacklist = ['undefined'];
 /**
  * Processes TypeScript source files and renames all identifiers that do not
  * reference the public API.
  */
-var RenameInternals = /** @class */ (function () {
-    function RenameInternals(publicApi, prefix) {
+class RenameInternals {
+    constructor(publicApi, prefix) {
         this.publicApi = publicApi;
         this.prefix = prefix;
     }
-    RenameInternals.prototype.visitNodeAndChildren = function (node, context) {
-        var _this = this;
-        return ts.visitEachChild(this.visitNode(node), function (childNode) { return _this.visitNodeAndChildren(childNode, context); }, context);
-    };
-    RenameInternals.prototype.visitNode = function (node) {
+    visitNodeAndChildren(node, context) {
+        return ts.visitEachChild(this.visitNode(node), (childNode) => this.visitNodeAndChildren(childNode, context), context);
+    }
+    visitNode(node) {
         if (ts.isIdentifier(node)) {
-            var name_1 = node.escapedText.toString();
-            if (!this.publicApi.has(name_1) &&
+            const name = node.escapedText.toString();
+            if (!this.publicApi.has(name) &&
                 blacklist.indexOf(node.escapedText.toString()) === -1) {
-                var newIdentifier = ts.createIdentifier(this.prefix + name_1);
+                const newIdentifier = ts.createIdentifier(this.prefix + name);
                 ts.setSourceMapRange(newIdentifier, ts.getSourceMapRange(node));
                 return newIdentifier;
             }
         }
         return node;
-    };
-    return RenameInternals;
-}());
-var DEFAULT_PREFIX = '_';
+    }
+}
+const DEFAULT_PREFIX = '_';
 /**
  * A TypeScript transformer that minifies existing source files. All identifiers
  * are minified unless listed in `config.publicIdentifiers`.
  */
 function renameInternals(program, config) {
     var _a;
-    var prefix = (_a = config.prefix) !== null && _a !== void 0 ? _a : DEFAULT_PREFIX;
-    var renamer = new RenameInternals(config.publicIdentifiers, prefix);
-    return function (context) { return function (file) {
+    const prefix = (_a = config.prefix) !== null && _a !== void 0 ? _a : DEFAULT_PREFIX;
+    const renamer = new RenameInternals(config.publicIdentifiers, prefix);
+    return (context) => (file) => {
         return renamer.visitNodeAndChildren(file, context);
-    }; };
+    };
 }
+
 exports.renameInternals = renameInternals;

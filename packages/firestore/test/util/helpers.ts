@@ -627,7 +627,7 @@ export function stringFromBase64String(value?: string | Uint8Array): string {
     value === undefined || typeof value === 'string',
     'Can only decode base64 encoded strings'
   );
-  return decodeBase64(value as string ?? '');
+  return decodeBase64((value as string) ?? '');
 }
 
 /** Creates a resume token to match the given snapshot version. */

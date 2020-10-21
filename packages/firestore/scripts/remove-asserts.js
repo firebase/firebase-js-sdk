@@ -1,4 +1,9 @@
-"use strict";
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var ts = require('typescript');
+
 /**
  * @license
  * Copyright 2020 Google LLC
@@ -15,41 +20,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-exports.__esModule = true;
-exports.removeAsserts = void 0;
-var ts = require("typescript");
 // Location of file that includes the asserts
-var ASSERT_LOCATION = 'packages/firestore/src/util/assert.ts';
+const ASSERT_LOCATION = 'packages/firestore/src/util/assert.ts';
 function removeAsserts(program) {
-    var removeAsserts = new RemoveAsserts(program.getTypeChecker());
-    return function (context) { return function (file) {
+    const removeAsserts = new RemoveAsserts(program.getTypeChecker());
+    return (context) => (file) => {
         return removeAsserts.visitNodeAndChildren(file, context);
-    }; };
+    };
 }
-exports.removeAsserts = removeAsserts;
 /**
  * Transformer that removes all "debugAssert" statements from the SDK and
  * removes the custom message for fail() and hardAssert().
  */
-var RemoveAsserts = /** @class */ (function () {
-    function RemoveAsserts(typeChecker) {
+class RemoveAsserts {
+    constructor(typeChecker) {
         this.typeChecker = typeChecker;
     }
-    RemoveAsserts.prototype.visitNodeAndChildren = function (node, context) {
-        var _this = this;
-        return ts.visitEachChild(this.visitNode(node), function (childNode) { return _this.visitNodeAndChildren(childNode, context); }, context);
-    };
-    RemoveAsserts.prototype.visitNode = function (node) {
-        var updatedNode = null;
+    visitNodeAndChildren(node, context) {
+        return ts.visitEachChild(this.visitNode(node), (childNode) => this.visitNodeAndChildren(childNode, context), context);
+    }
+    visitNode(node) {
+        let updatedNode = null;
         if (ts.isCallExpression(node)) {
-            var signature = this.typeChecker.getResolvedSignature(node);
+            const signature = this.typeChecker.getResolvedSignature(node);
             if (signature &&
                 signature.declaration &&
                 signature.declaration.kind === ts.SyntaxKind.FunctionDeclaration) {
-                var declaration = signature.declaration;
+                const declaration = signature.declaration;
                 if (declaration &&
                     declaration.getSourceFile().fileName.indexOf(ASSERT_LOCATION) >= 0) {
-                    var method = declaration.name.text;
+                    const method = declaration.name.text;
                     if (method === 'debugAssert') {
                         updatedNode = ts.createEmptyStatement();
                     }
@@ -73,6 +73,7 @@ var RemoveAsserts = /** @class */ (function () {
         else {
             return node;
         }
-    };
-    return RemoveAsserts;
-}());
+    }
+}
+
+exports.removeAsserts = removeAsserts;
