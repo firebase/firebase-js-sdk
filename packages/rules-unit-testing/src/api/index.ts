@@ -323,7 +323,7 @@ export async function loadDatabaseRules(
     throw Error('must provide rules to loadDatabaseRules');
   }
 
-  const resp = await requestPromise({
+  const resp = await requestPromise(request.put, {
     method: 'PUT',
     uri: `http://${getDatabaseHost()}/.settings/rules.json?ns=${
       options.databaseName
@@ -352,7 +352,7 @@ export async function loadFirestoreRules(
     throw new Error('must provide rules to loadFirestoreRules');
   }
 
-  const resp = await requestPromise({
+  const resp = await requestPromise(request.put, {
     method: 'PUT',
     uri: `http://${getFirestoreHost()}/emulator/v1/projects/${
       options.projectId
@@ -379,7 +379,7 @@ export async function clearFirestoreData(
     throw new Error('projectId not specified');
   }
 
-  const resp = await requestPromise({
+  const resp = await requestPromise(request.delete, {
     method: 'DELETE',
     uri: `http://${getFirestoreHost()}/emulator/v1/projects/${
       options.projectId
@@ -416,13 +416,13 @@ export async function withFunctionTriggersDisabled<TResult>(
   }
 
   // Disable background triggers
-  const disableRes = await requestPromise({
+  const disableRes = await requestPromise(request.put, {
     method: 'PUT',
     uri: `http://${hubHost}/functions/disableBackgroundTriggers`
   });
   if (disableRes.statusCode !== 200) {
     throw new Error(
-      `HTTP Error ${disableRes.statusCode} when disabling functions triggers, are you using the latest version of the Firebase CLI?`
+      `HTTP Error ${disableRes.statusCode} when disabling functions triggers, are you using firebase-tools 8.13.0 or higher?`
     );
   }
 
@@ -432,13 +432,13 @@ export async function withFunctionTriggersDisabled<TResult>(
     result = await fn();
   } finally {
     // Re-enable background triggers
-    const enableRes = await requestPromise({
+    const enableRes = await requestPromise(request.put, {
       method: 'PUT',
       uri: `http://${hubHost}/functions/enableBackgroundTriggers`
     });
     if (enableRes.statusCode !== 200) {
       throw new Error(
-        `HTTP Error ${enableRes.statusCode} when enabling functions triggers, are you using the latest version of the Firebase CLI?`
+        `HTTP Error ${enableRes.statusCode} when enabling functions triggers, are you using firebase-tools 8.13.0 or higher?`
       );
     }
   }
@@ -475,6 +475,7 @@ export function assertSucceeds(pr: Promise<any>): any {
 }
 
 function requestPromise(
+  method: typeof request.get,
   options: request.CoreOptions & request.UriOptions
 ): Promise<{ statusCode: number; body: any }> {
   return new Promise((resolve, reject) => {
@@ -486,23 +487,8 @@ function requestPromise(
       }
     };
 
-    // Unfortunately request() is not stub-compatible, this is to make things testable
-    switch (options.method) {
-      case 'GET':
-        request.get(options, callback);
-        break;
-      case 'PUT':
-        request.put(options, callback);
-        break;
-      case 'POST':
-        request.post(options, callback);
-        break;
-      case 'DELETE':
-        request.delete(options, callback);
-        break;
-      default:
-        request(options, callback);
-        break;
-    }
+    // Unfortunately request's default method is not very test-friendly so having
+    // the caler pass in the method here makes this whole thing compatible with sinon
+    method(options, callback);
   });
 }

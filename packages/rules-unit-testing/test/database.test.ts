@@ -331,28 +331,24 @@ describe('Testing Module Tests', function () {
   });
 
   it('disabling function triggers does not throw, returns value', async function () {
-    const putStub = sandbox
-      .stub(request, 'put')
-      .yields(undefined, { statusCode: 200 }, {});
+    const putSpy = sandbox.spy(request, 'put');
 
     const res = await firebase.withFunctionTriggersDisabled(() => {
       return Promise.resolve(1234);
     });
 
     expect(res).to.eq(1234);
-    expect(putStub.callCount).to.equal(2);
+    expect(putSpy.callCount).to.equal(2);
   });
 
   it('disabling function triggers always re-enables, event when the function throws', async function () {
-    const putStub = sandbox
-      .stub(request, 'put')
-      .yields(undefined, { statusCode: 200 }, {});
+    const putSpy = sandbox.spy(request, 'put');
 
     const res = firebase.withFunctionTriggersDisabled(() => {
       throw new Error('I throw!');
     });
 
     await expect(res).to.eventually.be.rejectedWith('I throw!');
-    expect(putStub.callCount).to.equal(2);
+    expect(putSpy.callCount).to.equal(2);
   });
 });
