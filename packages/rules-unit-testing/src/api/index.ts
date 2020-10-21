@@ -399,14 +399,13 @@ export async function clearFirestoreData(
  * import data into the Realtime Database or Cloud Firestore emulator without triggering locally
  * emulated Cloud Functions.
  *
- * This method only works with Firebase CLI version {TODO} or higher.
+ * This method only works with Firebase CLI version 8.13.0 or higher.
  *
  * @param fn an function which returns a promise.
  */
 export async function withFunctionTriggersDisabled<TResult>(
   fn: () => TResult | Promise<TResult>
 ): Promise<TResult> {
-  // TODO: Find the hub
   let hubHost = process.env[HUB_HOST_ENV];
   if (!hubHost) {
     console.warn(
