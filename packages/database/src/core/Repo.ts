@@ -299,17 +299,27 @@ export class Repo {
 
   get(query: Query): Promise<DataSnapshot> {
     return this.server_.get(query).then(
-      payload =>
-        Promise.resolve(
+      payload => {
+        const node = nodeFromJSON(payload as string);
+        const events = this.serverSyncTree_.applyServerOverwrite(
+          query.path,
+          node
+        );
+        this.eventQueue_.raiseEventsAtPath(query.path, events);
+        return Promise.resolve(
           new DataSnapshot(
-            nodeFromJSON(payload as string),
+            node,
             query.getRef(),
             query.getQueryParams().getIndex()
           )
-        ),
+        );
+      },
       err => {
+        this.log_(
+          'get for query ' + stringify(query) + ' falling back to cache'
+        );
         const cached = this.serverSyncTree_.calcCompleteEventCache(query.path);
-        if (cached) {
+        if (!cached.isEmpty()) {
           return Promise.resolve(
             new DataSnapshot(
               cached,

@@ -1495,7 +1495,7 @@ describe('Query Tests', () => {
 
   it('Ensure on() returns callback function.', () => {
     const node = getRandomNode() as Reference;
-    const callback = function () { };
+    const callback = function () {};
     const ret = node.on('value', callback);
     expect(ret).to.equal(callback);
   });
@@ -1610,10 +1610,10 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     expect(dumpListens(node)).to.equal('');
 
-    const aOn = node.child('a').on('value', () => { });
+    const aOn = node.child('a').on('value', () => {});
     expect(dumpListens(node)).to.equal('/a:default');
 
-    const rootOn = node.on('value', () => { });
+    const rootOn = node.on('value', () => {});
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
@@ -1626,10 +1626,10 @@ describe('Query Tests', () => {
   it('Dedupe listens: listen on grandchild.', () => {
     const node = getRandomNode() as Reference;
 
-    const rootOn = node.on('value', () => { });
+    const rootOn = node.on('value', () => {});
     expect(dumpListens(node)).to.equal(':default');
 
-    const aaOn = node.child('a/aa').on('value', () => { });
+    const aaOn = node.child('a/aa').on('value', () => {});
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
@@ -1641,13 +1641,13 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     expect(dumpListens(node)).to.equal('');
 
-    const aaOn = node.child('a/aa').on('value', () => { });
+    const aaOn = node.child('a/aa').on('value', () => {});
     expect(dumpListens(node)).to.equal('/a/aa:default');
 
-    const bbOn = node.child('a/bb').on('value', () => { });
+    const bbOn = node.child('a/bb').on('value', () => {});
     expect(dumpListens(node)).to.equal('/a/aa:default;/a/bb:default');
 
-    const rootOn = node.on('value', () => { });
+    const rootOn = node.on('value', () => {});
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
@@ -1667,16 +1667,16 @@ describe('Query Tests', () => {
     const aLim1On = node
       .child('a')
       .limitToLast(1)
-      .on('value', () => { });
+      .on('value', () => {});
     expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"}');
 
-    const rootLim1On = node.limitToLast(1).on('value', () => { });
+    const rootLim1On = node.limitToLast(1).on('value', () => {});
     expect(dumpListens(node)).to.equal(':{"l":1,"vf":"r"};/a:{"l":1,"vf":"r"}');
 
     const aLim5On = node
       .child('a')
       .limitToLast(5)
-      .on('value', () => { });
+      .on('value', () => {});
     expect(dumpListens(node)).to.equal(
       ':{"l":1,"vf":"r"};/a:{"l":1,"vf":"r"},{"l":5,"vf":"r"}'
     );
@@ -1695,18 +1695,18 @@ describe('Query Tests', () => {
     const aLim1On = node
       .child('a')
       .limitToLast(1)
-      .on('value', () => { });
+      .on('value', () => {});
     expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"}');
 
     const bLim1On = node
       .child('b')
       .limitToLast(1)
-      .on('value', () => { });
+      .on('value', () => {});
     expect(dumpListens(node)).to.equal(
       '/a:{"l":1,"vf":"r"};/b:{"l":1,"vf":"r"}'
     );
 
-    const rootOn = node.on('value', () => { });
+    const rootOn = node.on('value', () => {});
     expect(dumpListens(node)).to.equal(':default');
 
     // remove in slightly random order.
@@ -2195,109 +2195,77 @@ describe('Query Tests', () => {
       });
   });
 
-  it('get at empty node returns null', async () => {
+  it('get at empty node is rejected', async () => {
     const node = getRandomNode() as Reference;
-    const snapshot = await node.get();
-    const val = snapshot.val();
-    expect(val).to.be.null;
+    expect(node.get()).to.eventually.be.rejected;
   });
 
   it('get at non-empty root returns correct value', async () => {
     const node = getRandomNode() as Reference;
-    await node.set({ foo: 'a', bar: 'b' });
+    const expected = { foo: 'a', bar: 'b' };
+    await node.set(expected);
     const snapshot = await node.get();
-    const val = snapshot.val();
-    expect(val['foo']).to.equal('a');
-    expect(val['bar']).to.equal('b');
+    expect(snapshot.val()).to.deep.equal(expected);
   });
 
   it('get for removed node returns correct value', async () => {
     const node = getRandomNode() as Reference;
-    await node.set({ foo: 'a', bar: 'b' });
+    const expected = { foo: 'a', bar: 'b' };
+    await node.set(expected);
     let snapshot = await node.get();
     let val = snapshot.val();
-    expect(val['foo']).to.equal('a');
-    expect(val['bar']).to.equal('b');
+    expect(val).to.deep.equal(expected);
     await node.remove();
     snapshot = await node.get();
-    val = snapshot.val();
-    expect(val).to.be.null;
+    expect(snapshot.val()).to.be.null;
   });
 
-  it('get while offline is null', async () => {
+  it('get while offline is rejected', async () => {
     const node = getRandomNode() as Reference;
     node.database.goOffline();
-    const snapshot = await node.get();
-    expect(snapshot.val()).to.be.null;
-    // Required for test isolation.
-    node.database.goOnline();
-  });
-
-  it('get caches results at path', async () => {
-    const reader = getFreshRepo('db');
-    const writer = getFreshRepo('db');
-
-    await writer.set({ foo: 'bar' });
-    const snapshot = await reader.get();
-    reader.database.goOffline();
-    reader.once('value', snap => {
-      expect(snap.val()).to.equal(snapshot.val());
-    });
+    try {
+      expect(node.get()).to.eventually.be.rejected;
+    } finally {
+      node.database.goOnline();
+    }
   });
 
   it('get reads from cache if database is not connected', async () => {
-    const node = getFreshRepo('db');
-    const node2 = getFreshRepo('db');
-    await node2.set({ foo: 'bar' });
-    const prom = new Promise((resolve, _) => {
-      node.on('value', snap => {
-        resolve(snap);
+    const node = getRandomNode() as Reference;
+    const node2 = getFreshRepo((node as Reference).path);
+    try {
+      await node2.set({ foo: 'bar' });
+      const onSnapshot = await new Promise((resolve, _) => {
+        node.on('value', snap => {
+          resolve(snap);
+        });
       });
-    });
-    const onSnapshot = await prom;
-    node.database.goOffline();
-    const getSnapshot = await node.get();
-    node.off();
-    expect(getSnapshot.val()).to.deep.equal((onSnapshot as DataSnapshot).val());
-  });
-
-  it('get above path caches data', async () => {
-    const reader = getFreshRepo('db');
-    const writer = getFreshRepo('db');
-
-    await writer.set({ foo: { bar: 'baz' } });
-    const snapshot = await reader.get();
-    reader.database.goOffline();
-    reader.child('foo/bar').once('value', snap => {
-      expect(snap.val()).to.equal(snapshot.val());
-    });
+      node.database.goOffline();
+      const getSnapshot = await node.get();
+      // node's cache dropped here.
+      node.off();
+      expect(getSnapshot.val()).to.deep.equal(
+        (onSnapshot as DataSnapshot).val()
+      );
+    } finally {
+      node.database.goOnline();
+    }
   });
 
   it('get does not cache sibling data', async () => {
-    const reader = getFreshRepo('db');
-    const writer = getFreshRepo('db');
-    await writer.set({ foo: { bar: { data: '1' }, baz: { data: '2' } } });
-    const snapshot = await reader.child('foo/bar').get();
-    expect(snapshot.val().data).to.equal('1');
-    reader.database.goOffline();
-    const prom = new Promise((resolve, reject) => {
-      let done = false;
-      setTimeout(() => {
-        if (done) {
-          return;
-        }
-        done = true;
-        reject();
-      }, 3000);
-      reader.child('foo/baz').once('value', snapshot => {
-        if (done) {
-          return;
-        }
-        done = true;
-        resolve(snapshot);
-      });
+    const reader = getRandomNode() as Reference;
+    const writer = getFreshRepo((reader as Reference).path);
+    await writer.set({
+      foo: { cached: { data: '1' }, notCached: { data: '2' } }
     });
-    expect(prom).to.eventually.be.rejected;
+    const snapshot = await reader.child('foo/cached').get();
+    expect(snapshot.val()).to.deep.equal({ data: '1' });
+    reader.database.goOffline();
+    try {
+      expect(reader.child('foo/notCached').get()).to.eventually.be.rejected;
+    } finally {
+      reader.database.goOnline();
+    }
   });
 
   it('set() at query root raises correct value event', done => {

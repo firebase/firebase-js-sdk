@@ -190,13 +190,11 @@ export class PersistentConnection extends ServerActions {
       p: query.path.toString(),
       q: query.queryObject()
     };
-    const deferred = new Deferred<string>();
     if (this.connected_) {
-      this.sendGet_(req, deferred);
+      return this.sendGet_(req);
     } else {
-      deferred.reject();
+      return Promise.reject(new Error('Client is offline'));
     }
-    return deferred.promise;
   }
 
   /**
@@ -216,7 +214,7 @@ export class PersistentConnection extends ServerActions {
     }
     assert(
       query.getQueryParams().isDefault() ||
-      !query.getQueryParams().loadsAllData(),
+        !query.getQueryParams().loadsAllData(),
       'listen() called for non-default but complete query'
     );
     assert(
@@ -236,20 +234,22 @@ export class PersistentConnection extends ServerActions {
     }
   }
 
-  private sendGet_(request: object, deferred: Deferred<string>) {
-    this.sendRequest('g', request, (message: { [k: string]: unknown }) => {
-      const payload = message['d'] as string;
-      if (message['s'] === 'ok') {
-        this.onDataUpdate_(
-          request['p'],
-          payload,
-          /*isMerge*/ false,
-          /*tag*/ null
-        );
-        deferred.resolve(payload);
-      } else {
-        deferred.reject(payload);
-      }
+  private sendGet_(request: object): Promise<string> {
+    return new Promise((resolve, reject) => {
+      this.sendRequest('g', request, (message: { [k: string]: unknown }) => {
+        const payload = message['d'] as string;
+        if (message['s'] === 'ok') {
+          this.onDataUpdate_(
+            request['p'],
+            payload,
+            /*isMerge*/ false,
+            /*tag*/ null
+          );
+          resolve(payload);
+        } else {
+          reject(payload);
+        }
+      });
     });
   }
 
@@ -305,8 +305,8 @@ export class PersistentConnection extends ServerActions {
         const indexPath = query.path.toString();
         warn(
           `Using an unspecified index. Your data will be downloaded and ` +
-          `filtered on the client. Consider adding ${indexSpec} at ` +
-          `${indexPath} to your security rules for better performance.`
+            `filtered on the client. Consider adding ${indexSpec} at ` +
+            `${indexPath} to your security rules for better performance.`
         );
       }
     }
@@ -324,7 +324,7 @@ export class PersistentConnection extends ServerActions {
       //If we're connected we want to let the server know to unauthenticate us. If we're not connected, simply delete
       //the credential so we dont become authenticated next time we connect.
       if (this.connected_) {
-        this.sendRequest('unauth', {}, () => { });
+        this.sendRequest('unauth', {}, () => {});
       }
     }
 
@@ -388,7 +388,7 @@ export class PersistentConnection extends ServerActions {
 
     assert(
       query.getQueryParams().isDefault() ||
-      !query.getQueryParams().loadsAllData(),
+        !query.getQueryParams().loadsAllData(),
       'unlisten() called for non-default but complete query'
     );
     const listen = this.removeListen_(pathString, queryId);
@@ -646,8 +646,8 @@ export class PersistentConnection extends ServerActions {
     } else {
       error(
         'Unrecognized action received from server: ' +
-        stringify(action) +
-        '\nAre you using the latest client?'
+          stringify(action) +
+          '\nAre you using the latest client?'
       );
     }
   }
