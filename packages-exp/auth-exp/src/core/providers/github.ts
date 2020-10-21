@@ -26,7 +26,10 @@ import { OAuthProvider } from './oauth';
 export class GithubAuthProvider extends OAuthProvider {
   static readonly GITHUB_SIGN_IN_METHOD = externs.SignInMethod.GITHUB;
   static readonly PROVIDER_ID = externs.ProviderId.GITHUB;
-  readonly providerId = GithubAuthProvider.PROVIDER_ID;
+
+  constructor() {
+    super(externs.ProviderId.GITHUB);
+  }
 
   static credential(accessToken: string): externs.OAuthCredential {
     return OAuthCredential._fromParams({

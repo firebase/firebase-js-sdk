@@ -27,28 +27,6 @@ export const StringFormat = {
   DATA_URL: 'data_url'
 };
 
-export function formatValidator(stringFormat: unknown): void {
-  switch (stringFormat) {
-    case StringFormat.RAW:
-    case StringFormat.BASE64:
-    case StringFormat.BASE64URL:
-    case StringFormat.DATA_URL:
-      return;
-    default:
-      throw (
-        'Expected one of the event types: [' +
-        StringFormat.RAW +
-        ', ' +
-        StringFormat.BASE64 +
-        ', ' +
-        StringFormat.BASE64URL +
-        ', ' +
-        StringFormat.DATA_URL +
-        '].'
-      );
-  }
-}
-
 /**
  * @struct
  */

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { validateAtLeastNumberOfArgs } from '../../../src/util/input_validation';
 import {
   ArrayRemoveFieldValueImpl,
   ArrayUnionFieldValueImpl,
@@ -69,7 +68,6 @@ export function serverTimestamp(): FieldValue {
  * `updateDoc()`.
  */
 export function arrayUnion(...elements: unknown[]): FieldValue {
-  validateAtLeastNumberOfArgs('arrayUnion()', arguments, 1);
   // NOTE: We don't actually parse the data until it's used in set() or
   // update() since we'd need the Firestore instance to do this.
   return new ArrayUnionFieldValueImpl('arrayUnion', elements);
@@ -87,7 +85,6 @@ export function arrayUnion(...elements: unknown[]): FieldValue {
  * `updateDoc()`
  */
 export function arrayRemove(...elements: unknown[]): FieldValue {
-  validateAtLeastNumberOfArgs('arrayRemove()', arguments, 1);
   // NOTE: We don't actually parse the data until it's used in set() or
   // update() since we'd need the Firestore instance to do this.
   return new ArrayRemoveFieldValueImpl('arrayRemove', elements);

@@ -188,7 +188,7 @@ class NetworkRequest<T> implements Request<T> {
       } else {
         if (xhr !== null) {
           const err = unknown();
-          err.setServerResponseProp(xhr.getResponseText());
+          err.serverResponse = xhr.getResponseText();
           if (self.errorCallback_) {
             reject(self.errorCallback_(xhr, err));
           } else {

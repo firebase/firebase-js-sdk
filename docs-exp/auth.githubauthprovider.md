@@ -11,13 +11,18 @@ export declare class GithubAuthProvider extends OAuthProvider
 ```
 <b>Extends:</b> [OAuthProvider](./auth.oauthprovider.md)
 
+## Constructors
+
+|  Constructor | Modifiers | Description |
+|  --- | --- | --- |
+|  [(constructor)()](./auth.githubauthprovider._constructor_.md) |  | Constructs a new instance of the <code>GithubAuthProvider</code> class |
+
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [GITHUB\_SIGN\_IN\_METHOD](./auth.githubauthprovider.github_sign_in_method.md) | <code>static</code> | (not declared) |  |
 |  [PROVIDER\_ID](./auth.githubauthprovider.provider_id.md) | <code>static</code> | (not declared) |  |
-|  [providerId](./auth.githubauthprovider.providerid.md) |  | (not declared) |  |
 
 ## Methods
 

@@ -19,11 +19,6 @@ import { FieldPath as PublicFieldPath } from '@firebase/firestore-types';
 
 import { FieldPath as InternalFieldPath } from '../model/path';
 import { Code, FirestoreError } from '../util/error';
-import {
-  invalidClassError,
-  validateArgType,
-  validateNamedArrayAtLeastNumberOfElements
-} from '../util/input_validation';
 
 // The objects that are a part of this API are exposed to third-parties as
 // compiled javascript so we want to flag our private members with a leading
@@ -40,15 +35,7 @@ export abstract class _BaseFieldPath {
   readonly _internalPath: InternalFieldPath;
 
   constructor(fieldNames: string[]) {
-    validateNamedArrayAtLeastNumberOfElements(
-      'FieldPath',
-      fieldNames,
-      'fieldNames',
-      1
-    );
-
     for (let i = 0; i < fieldNames.length; ++i) {
-      validateArgType('FieldPath', 'string', i, fieldNames[i]);
       if (fieldNames[i].length === 0) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
@@ -90,7 +77,7 @@ export class FieldPath extends _BaseFieldPath implements PublicFieldPath {
 
   isEqual(other: PublicFieldPath): boolean {
     if (!(other instanceof FieldPath)) {
-      throw invalidClassError('isEqual', 'FieldPath', 1, other);
+      return false;
     }
     return this._internalPath.isEqual(other._internalPath);
   }

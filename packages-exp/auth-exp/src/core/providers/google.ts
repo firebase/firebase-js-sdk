@@ -27,7 +27,10 @@ import { OAuthProvider } from './oauth';
 export class GoogleAuthProvider extends OAuthProvider {
   static readonly GOOGLE_SIGN_IN_METHOD = externs.SignInMethod.GOOGLE;
   static readonly PROVIDER_ID = externs.ProviderId.GOOGLE;
-  readonly providerId = GoogleAuthProvider.PROVIDER_ID;
+
+  constructor() {
+    super(externs.ProviderId.GOOGLE);
+  }
 
   static credential(
     idToken?: string | null,

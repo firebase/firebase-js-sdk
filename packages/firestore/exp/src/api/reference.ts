@@ -24,7 +24,7 @@ import {
   parseUpdateVarargs
 } from '../../../src/api/user_data_reader';
 import { debugAssert } from '../../../src/util/assert';
-import { cast } from '../../../lite/src/api/util';
+import { cast } from '../../../src/util/input_validation';
 import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import {
   applyFirestoreDataConverter,
