@@ -18,7 +18,7 @@
 import * as firestore from '@firebase/firestore-types';
 import { DEFAULT_PROJECT_ID, DEFAULT_SETTINGS } from './settings';
 import * as firebaseExport from './firebase_export';
-import { ALT_PROJECT_ID } from './emulator_settings';
+import { ALT_EMULATOR_PROJECT_ID } from './emulator_settings';
 
 const newTestFirestore = firebaseExport.newTestFirestore;
 
@@ -131,7 +131,7 @@ export function withAlternateTestDb(
 ): Promise<void> {
   return withTestDbsSettings(
     persistence,
-    ALT_PROJECT_ID,
+    ALT_EMULATOR_PROJECT_ID,
     DEFAULT_SETTINGS,
     1,
     ([db]) => {

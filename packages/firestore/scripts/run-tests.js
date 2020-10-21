@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var yargs = require('yargs');
 var path = require('path');
 var childProcessPromise = require('child-process-promise');
@@ -23,7 +21,7 @@ var childProcessPromise = require('child-process-promise');
  * limitations under the License.
  */
 // Projects used in emulator integration tests.
-const EMULATOR_PROJECT_ID = 'test-emulator';
+const DEFAULT_EMULATOR_PROJECT_ID = 'test-emulator';
 
 /**
  * @license
@@ -75,9 +73,8 @@ let args = [
 ];
 if (argv.emulator) {
     process.env.FIRESTORE_EMULATOR_PORT = '8080';
-    process.env.FIRESTORE_EMULATOR_PROJECT_ID = EMULATOR_PROJECT_ID;
+    process.env.FIRESTORE_EMULATOR_PROJECT_ID = DEFAULT_EMULATOR_PROJECT_ID;
 }
-const ALT_PROJECT_ID = 'test-db2';
 if (argv.persistence) {
     process.env.USE_MOCK_PERSISTENCE = 'YES';
     args.push('--require', 'test/util/node_persistence.ts');
@@ -90,5 +87,3 @@ const childProcess = childProcessPromise.spawn(nyc, args, {
 process.once('exit', () => childProcess.kill());
 process.once('SIGINT', () => childProcess.kill('SIGINT'));
 process.once('SIGTERM', () => childProcess.kill('SIGTERM'));
-
-exports.ALT_PROJECT_ID = ALT_PROJECT_ID;

@@ -29,7 +29,7 @@ declare const __karma__: any;
 const PROJECT_CONFIG = require('../../../../../config/project.json');
 
 const EMULATOR_PORT = process.env.FIRESTORE_EMULATOR_PORT;
-export const EMULATOR_PROJECT_ID = process.env.FIRESTORE_EMULATOR_PROJECT_ID;
+const EMULATOR_PROJECT_ID = process.env.FIRESTORE_EMULATOR_PROJECT_ID;
 export const USE_EMULATOR = !!EMULATOR_PORT;
 
 const EMULATOR_FIRESTORE_SETTING = {

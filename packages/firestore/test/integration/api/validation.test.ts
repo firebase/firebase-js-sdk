@@ -27,7 +27,7 @@ import {
   withTestDb
 } from '../util/helpers';
 import { DEFAULT_PROJECT_ID } from '../util/settings';
-import { ALT_PROJECT_ID } from '../util/emulator_settings';
+import { ALT_EMULATOR_PROJECT_ID } from '../util/emulator_settings';
 
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;
@@ -622,7 +622,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
             db,
             data,
             `Document reference is for database ` +
-              `${ALT_PROJECT_ID}/(default) but should be for database ` +
+              `${ALT_EMULATOR_PROJECT_ID}/(default) but should be for database ` +
               `${DEFAULT_PROJECT_ID}/(default) (found in field ` +
               `foo)`
           );

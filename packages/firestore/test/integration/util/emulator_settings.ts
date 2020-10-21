@@ -16,5 +16,5 @@
  */
 
 // Projects used in emulator integration tests.
-export const EMULATOR_PROJECT_ID = 'test-emulator';
-export const ALT_PROJECT_ID = 'test-db2';
+export const DEFAULT_EMULATOR_PROJECT_ID = 'test-emulator';
+export const ALT_EMULATOR_PROJECT_ID = 'test-db2';
