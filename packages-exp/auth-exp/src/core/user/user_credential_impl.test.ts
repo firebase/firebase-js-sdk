@@ -83,7 +83,7 @@ describe('core/user/user_credential_impl', () => {
     it('should not trigger callbacks', async () => {
       const cb = sinon.spy();
       auth.onAuthStateChanged(cb);
-      await auth.updateCurrentUser(null);
+      await auth._updateCurrentUser(null);
       cb.resetHistory();
 
       await UserCredentialImpl._fromIdTokenResponse(
@@ -100,7 +100,7 @@ describe('core/user/user_credential_impl', () => {
 
     beforeEach(async () => {
       user = testUser(auth, 'uid', 'email', true);
-      await auth.updateCurrentUser(user);
+      await auth._updateCurrentUser(user);
     });
 
     it('gets a credential based on the response', async () => {

@@ -11,12 +11,17 @@ export declare class TwitterAuthProvider extends OAuthProvider
 ```
 <b>Extends:</b> [OAuthProvider](./auth.oauthprovider.md)
 
+## Constructors
+
+|  Constructor | Modifiers | Description |
+|  --- | --- | --- |
+|  [(constructor)()](./auth.twitterauthprovider._constructor_.md) |  | Constructs a new instance of the <code>TwitterAuthProvider</code> class |
+
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [PROVIDER\_ID](./auth.twitterauthprovider.provider_id.md) | <code>static</code> | (not declared) |  |
-|  [providerId](./auth.twitterauthprovider.providerid.md) |  | (not declared) |  |
 |  [TWITTER\_SIGN\_IN\_METHOD](./auth.twitterauthprovider.twitter_sign_in_method.md) | <code>static</code> | (not declared) |  |
 
 ## Methods

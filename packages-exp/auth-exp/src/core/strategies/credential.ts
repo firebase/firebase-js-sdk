@@ -42,7 +42,7 @@ export async function _signInWithCredential(
     operationType,
     response
   );
-  await auth.updateCurrentUser(userCredential.user);
+  await auth._updateCurrentUser(userCredential.user);
   return userCredential;
 }
 

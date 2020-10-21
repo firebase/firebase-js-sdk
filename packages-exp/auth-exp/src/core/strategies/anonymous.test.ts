@@ -70,7 +70,7 @@ describe('core/strategies/anonymous', () => {
     context('already signed in with a non-anonymous account', () => {
       it('should sign in as a new user user', async () => {
         const fakeUser = testUser(auth, 'other-uid');
-        await auth.updateCurrentUser(fakeUser);
+        await auth._updateCurrentUser(fakeUser);
         expect(fakeUser.isAnonymous).to.be.false;
 
         const { user, operationType } = await signInAnonymously(auth);

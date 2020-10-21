@@ -42,7 +42,7 @@ describe('src/core/auth/firebase_internal', () => {
 
     it('returns the uid of the user if set', async () => {
       const user = testUser(auth, 'uid');
-      await auth.updateCurrentUser(user);
+      await auth._updateCurrentUser(user);
       expect(authInternal.getUid()).to.eq('uid');
     });
   });
@@ -54,7 +54,7 @@ describe('src/core/auth/firebase_internal', () => {
 
     it('returns the id token of the current user correctly', async () => {
       const user = testUser(auth, 'uid');
-      await auth.updateCurrentUser(user);
+      await auth._updateCurrentUser(user);
       user.stsTokenManager.accessToken = 'access-token';
       user.stsTokenManager.expirationTime = Date.now() + 1000 * 60 * 60 * 24;
       expect(await authInternal.getToken()).to.eql({
@@ -69,7 +69,7 @@ describe('src/core/auth/firebase_internal', () => {
 
     beforeEach(async () => {
       user = testUser(auth, 'uid', undefined, true);
-      await auth.updateCurrentUser(user);
+      await auth._updateCurrentUser(user);
       let i = 0;
       sinon.stub(user.stsTokenManager, 'getToken').callsFake(async () => {
         i += 1;

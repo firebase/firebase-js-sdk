@@ -1,5 +1,16 @@
 # @firebase/rules-unit-testing
 
+## 1.0.8
+
+### Patch Changes
+
+- [`cb28261e0`](https://github.com/firebase/firebase-js-sdk/commit/cb28261e0e3ef2f6a45badeb883888a6c0bdbed2) [#3923](https://github.com/firebase/firebase-js-sdk/pull/3923) (fixes [#3920](https://github.com/firebase/firebase-js-sdk/issues/3920)) - Do not delete uid property from user auth object in initializeTestApp()
+
+* [`fe0ae19a9`](https://github.com/firebase/firebase-js-sdk/commit/fe0ae19a91fca422bf071ca4dfc4737daf848c59) [#3915](https://github.com/firebase/firebase-js-sdk/pull/3915) - Fix custom claims in rules-unit-testing
+
+* Updated dependencies [[`eeb1dfa4f`](https://github.com/firebase/firebase-js-sdk/commit/eeb1dfa4f629dc5cf328e4b4a224369c0670c312), [`4f997bce1`](https://github.com/firebase/firebase-js-sdk/commit/4f997bce102be272b76836b6bcba96ea7de857bc)]:
+  - firebase@7.24.0
+
 ## 1.0.7
 
 ### Patch Changes

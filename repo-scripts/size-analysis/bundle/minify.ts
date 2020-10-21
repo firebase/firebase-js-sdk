@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,16 @@
  * limitations under the License.
  */
 
-/*
- * The testing module does not need to be registered since it should not ever
- * come by default. The only way to use the testing module is by explicitly
- * creating a dependency on @firebase/testing.
- */
+import * as terser from 'terser';
 
-export {
-  apps,
-  assertFails,
-  assertSucceeds,
-  clearFirestoreData,
-  database,
-  firestore,
-  initializeAdminApp,
-  initializeTestApp,
-  loadDatabaseRules,
-  loadFirestoreRules
-} from './src/api';
+export async function minify(content: string): Promise<string> {
+  const minified = await terser.minify(content, {
+    format: {
+      comments: false
+    },
+    mangle: { toplevel: true },
+    compress: false
+  });
+
+  return minified.code ?? '';
+}

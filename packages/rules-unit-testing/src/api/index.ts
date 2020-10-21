@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as firebase from 'firebase';
+import firebase from 'firebase';
 import { _FirebaseApp } from '@firebase/app-types/private';
 import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 import * as request from 'request';
@@ -23,7 +23,8 @@ import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 import { Component, ComponentType } from '@firebase/component';
 
-export { database, firestore } from 'firebase';
+const { firestore, database } = firebase;
+export { firestore, database };
 
 /** If this environment variable is set, use it for the database emulator's address. */
 const DATABASE_ADDRESS_ENV: string = 'FIREBASE_DATABASE_EMULATOR_HOST';

@@ -4,6 +4,8 @@
 
 ## User.metadata property
 
+Additional metadata around user creation and sign-in times.
+
 <b>Signature:</b>
 
 ```typescript

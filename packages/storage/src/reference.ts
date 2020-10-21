@@ -24,23 +24,13 @@ import { Location } from './implementation/location';
 import * as metadata from './implementation/metadata';
 import * as path from './implementation/path';
 import * as requests from './implementation/requests';
-import {
-  StringFormat,
-  formatValidator,
-  dataFromString
-} from './implementation/string';
+import { dataFromString, StringFormat } from './implementation/string';
 import * as type from './implementation/type';
+import { validateNumber } from './implementation/type';
 import { Metadata } from './metadata';
 import { StorageService } from './service';
 import { UploadTask } from './task';
 import { ListOptions, ListResult } from './list';
-import {
-  listOptionSpec,
-  stringSpec,
-  validate,
-  metadataSpec,
-  uploadDataSpec
-} from './implementation/args';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
@@ -70,7 +60,6 @@ export class Reference {
    * @override
    */
   toString(): string {
-    validate('toString', [], arguments);
     return 'gs://' + this.location.bucket + '/' + this.location.path;
   }
 
@@ -88,7 +77,6 @@ export class Reference {
    *     slashes.
    */
   child(childPath: string): Reference {
-    validate('child', [stringSpec()], arguments);
     const newPath = path.child(this.location.path, childPath);
     const location = new Location(this.location.bucket, newPath);
     return this.newRef(this.service, location);
@@ -142,7 +130,6 @@ export class Reference {
     data: Blob | Uint8Array | ArrayBuffer,
     metadata: Metadata | null = null
   ): UploadTask {
-    validate('put', [uploadDataSpec(), metadataSpec(true)], arguments);
     this.throwIfRoot_('put');
     return new UploadTask(
       this,
@@ -166,11 +153,6 @@ export class Reference {
     format: StringFormat = StringFormat.RAW,
     metadata?: Metadata
   ): UploadTask {
-    validate(
-      'putString',
-      [stringSpec(), stringSpec(formatValidator, true), metadataSpec(true)],
-      arguments
-    );
     this.throwIfRoot_('putString');
     const data = dataFromString(format, value);
     const metadataClone = Object.assign({}, metadata);
@@ -195,7 +177,6 @@ export class Reference {
    * @return A promise that resolves if the deletion succeeds.
    */
   delete(): Promise<void> {
-    validate('delete', [], arguments);
     this.throwIfRoot_('delete');
     return this.service.getAuthToken().then(authToken => {
       const requestInfo = requests.deleteObject(this.service, this.location);
@@ -221,7 +202,6 @@ export class Reference {
    *      folder. `nextPageToken` is never returned.
    */
   listAll(): Promise<ListResult> {
-    validate('listAll', [], arguments);
     const accumulator = {
       prefixes: [],
       items: []
@@ -266,18 +246,24 @@ export class Reference {
    *      can be used to get the rest of the results.
    */
   list(options?: ListOptions | null): Promise<ListResult> {
-    validate('list', [listOptionSpec(true)], arguments);
-    const self = this;
+    const op = options || {};
+    if (typeof op.maxResults === 'number') {
+      validateNumber(
+        'options.maxResults',
+        /* minValue= */ 1,
+        /* maxValue= */ 1000,
+        op.maxResults
+      );
+    }
     return this.service.getAuthToken().then(authToken => {
-      const op = options || {};
       const requestInfo = requests.list(
-        self.service,
-        self.location,
+        this.service,
+        this.location,
         /*delimiter= */ '/',
         op.pageToken,
         op.maxResults
       );
-      return self.service.makeRequest(requestInfo, authToken).getPromise();
+      return this.service.makeRequest(requestInfo, authToken).getPromise();
     });
   }
 
@@ -287,7 +273,6 @@ export class Reference {
    *     rejected.
    */
   getMetadata(): Promise<Metadata> {
-    validate('getMetadata', [], arguments);
     this.throwIfRoot_('getMetadata');
     return this.service.getAuthToken().then(authToken => {
       const requestInfo = requests.getMetadata(
@@ -309,7 +294,6 @@ export class Reference {
    *     @see firebaseStorage.Reference.prototype.getMetadata
    */
   updateMetadata(metadata: Metadata): Promise<Metadata> {
-    validate('updateMetadata', [metadataSpec()], arguments);
     this.throwIfRoot_('updateMetadata');
     return this.service.getAuthToken().then(authToken => {
       const requestInfo = requests.updateMetadata(
@@ -327,7 +311,6 @@ export class Reference {
    *     URL for this object.
    */
   getDownloadURL(): Promise<string> {
-    validate('getDownloadURL', [], arguments);
     this.throwIfRoot_('getDownloadURL');
     return this.service.getAuthToken().then(authToken => {
       const requestInfo = requests.getDownloadUrl(

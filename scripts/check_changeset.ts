@@ -16,6 +16,7 @@
  */
 
 import { resolve } from 'path';
+import { existsSync } from 'fs';
 import chalk from 'chalk';
 import simpleGit from 'simple-git/promise';
 import fs from 'mz/fs';
@@ -43,11 +44,15 @@ async function getDiffData(): Promise<{
     // Check for changed files inside package dirs.
     const pkgMatch = filename.match('^(packages(-exp)?/[a-zA-Z0-9-]+)/.*');
     if (pkgMatch && pkgMatch[1]) {
-      const changedPackage = require(resolve(
-        root,
-        pkgMatch[1],
-        'package.json'
-      ));
+      // skip packages without package.json
+      // It could happen when we rename a package or remove a package from the repo
+      const pkgJsonPath = resolve(root, pkgMatch[1], 'package.json');
+
+      if (!existsSync(pkgJsonPath)) {
+        continue;
+      }
+
+      const changedPackage = require(pkgJsonPath);
       if (changedPackage) {
         // Add the package itself.
         changedPackages.add(changedPackage.name);

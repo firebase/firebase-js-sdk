@@ -57,7 +57,6 @@ export type ServerTimestampBehavior = 'estimate' | 'previous' | 'none';
 export class UserDataWriter {
   constructor(
     private readonly databaseId: DatabaseId,
-    private readonly timestampsInSnapshots: boolean,
     private readonly serverTimestampBehavior: ServerTimestampBehavior,
     private readonly referenceFactory: (
       key: DocumentKey
@@ -128,17 +127,9 @@ export class UserDataWriter {
     }
   }
 
-  private convertTimestamp(value: ProtoTimestamp): Timestamp | Date {
+  private convertTimestamp(value: ProtoTimestamp): Timestamp {
     const normalizedValue = normalizeTimestamp(value);
-    const timestamp = new Timestamp(
-      normalizedValue.seconds,
-      normalizedValue.nanos
-    );
-    if (this.timestampsInSnapshots) {
-      return timestamp;
-    } else {
-      return timestamp.toDate();
-    }
+    return new Timestamp(normalizedValue.seconds, normalizedValue.nanos);
   }
 
   private convertReference(name: string): _DocumentKeyReference<DocumentData> {

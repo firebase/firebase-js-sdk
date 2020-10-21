@@ -4,6 +4,8 @@
 
 ## AuthProvider.providerId property
 
+Provider for which credentials can be constructed.
+
 <b>Signature:</b>
 
 ```typescript

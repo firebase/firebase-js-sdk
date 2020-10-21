@@ -61,16 +61,17 @@ export function setAbortableTimeout(
   });
 }
 
+type RetriableError = FirebaseError & { customData: { httpStatus: string } };
 /**
  * Returns true if the {@link Error} indicates a fetch request may succeed later.
  */
-function isRetriableError(e: Error): boolean {
-  if (!(e instanceof FirebaseError)) {
+function isRetriableError(e: Error): e is RetriableError {
+  if (!(e instanceof FirebaseError) || !e.customData) {
     return false;
   }
 
   // Uses string index defined by ErrorData, which FirebaseError implements.
-  const httpStatus = Number(e['httpStatus']);
+  const httpStatus = Number(e.customData['httpStatus']);
 
   return (
     httpStatus === 429 ||

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,8 @@ fireauth.constants.OperationType = {
  * @enum {string}
  */
 fireauth.constants.AuthEventType = {
+  /** Dispatched when emulator config is changed. */
+  EMULATOR_CONFIG_CHANGED: 'emulatorConfigChanged',
   /** Dispatched when Firebase framework is changed. */
   FRAMEWORK_CHANGED: 'frameworkChanged',
   /** Dispatched when language code is changed. */
@@ -166,3 +168,14 @@ fireauth.constants.SAML_PREFIX = 'saml.';
 
 /** @const {string} The required OIDC provider ID prefix. */
 fireauth.constants.OIDC_PREFIX = 'oidc.';
+
+/**
+ * The settings of an Auth emulator. The fields are:
+ * <ul>
+ * <li>url: defines the URL where the emulator is running.</li>
+ * </ul>
+ * @typedef {{
+ *   url: string,
+ * }}
+ */
+fireauth.constants.EmulatorSettings;

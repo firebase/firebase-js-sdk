@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2017 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -182,7 +182,10 @@ fireauth.AuthUser =
       this.apiKey_,
       // Get the client Auth endpoint used.
       fireauth.constants.getEndpointConfig(fireauth.constants.clientEndpoint),
-      clientFullVersion);
+    clientFullVersion);
+  if (appOptions['emulatorConfig']) {
+    this.rpcHandler_.updateEmulatorConfig(appOptions['emulatorConfig']);
+  }
   // TODO: Consider having AuthUser take a fireauth.StsTokenManager
   // instance instead of a token response but make sure lastAccessToken_ also
   // initialized at the right time. In this case initializeFromIdTokenResponse
@@ -249,6 +252,20 @@ fireauth.AuthUser =
    */
   this.languageCodeChangeEventDispatcher_ = null;
 
+  /**
+   * @private {function(!goog.events.Event)} The on emulator config changed
+   *     event handler.
+   */
+  this.onEmulatorConfigChanged_ = function (event) {
+    // Update the emulator config.
+    self.setEmulatorConfig(event.emulatorConfig);
+  };
+  /**
+   * @private {?goog.events.EventTarget} The emulator code change event
+   *     dispatcher.
+   */
+  this.emulatorConfigChangeEventDispatcher_ = null;
+
   /** @private {!Array<string>} The current Firebase frameworks. */
   this.frameworks_ = [];
   /**
@@ -288,6 +305,17 @@ fireauth.AuthUser.prototype.setLanguageCode = function(languageCode) {
 };
 
 
+/**
+ * Updates the emulator config.
+ * @param {?fireauth.constants.EmulatorSettings} emulatorConfig The current
+ *     emulator config to use in user requests.
+ */
+fireauth.AuthUser.prototype.setEmulatorConfig = function(emulatorConfig) {
+  // Update the emulator config.
+  this.rpcHandler_.updateEmulatorConfig(emulatorConfig);
+};
+
+
 /** @return {?string} The current user's language code. */
 fireauth.AuthUser.prototype.getLanguageCode = function() {
   return this.languageCode_;
@@ -320,6 +348,32 @@ fireauth.AuthUser.prototype.setLanguageCodeChangeDispatcher =
         this.onLanguageCodeChanged_);
   }
 };
+
+
+/**
+  * Listens to emulator config changes triggered by the provided dispatcher.
+  * @param {?goog.events.EventTarget} dispatcher The emulator config changed
+  *     event dispatcher.
+  */
+fireauth.AuthUser.prototype.setEmulatorConfigChangeDispatcher = function(dispatcher) {
+  // Remove any previous listener.
+  if (this.emulatorConfigChangeEventDispatcher_) {
+    goog.events.unlisten(
+      this.emulatorConfigChangeEventDispatcher_,
+      fireauth.constants.AuthEventType.EMULATOR_CONFIG_CHANGED,
+      this.onEmulatorConfigChanged_);
+  }
+  // Update current dispatcher.
+  this.emulatorConfigChangeEventDispatcher_ = dispatcher;
+  // Using an event listener makes it easy for non-currentUsers to detect
+  // emulator changes on the parent Auth instance. A developer could still
+  // call APIs that require emulation on signed out user references.
+  if (dispatcher) {
+    goog.events.listen(
+      dispatcher, fireauth.constants.AuthEventType.EMULATOR_CONFIG_CHANGED,
+      this.onEmulatorConfigChanged_);
+  }
+}
 
 
 /**
@@ -1043,7 +1097,7 @@ fireauth.AuthUser.prototype.notifyUserInvalidatedListeners_ = function() {
  * @return {!goog.Promise<undefined>}
  * @private
  */
-fireauth.AuthUser.prototype.setUserAccountInfoFromToken_ = function(idToken) {
+fireauth.AuthUser.prototype.setUserAccountInfoFromToken_ = function (idToken) {
   return this.rpcHandler_.getAccountInfoByIdToken(idToken)
       .then(goog.bind(this.parseAccountInfo_, this));
 };
@@ -2176,6 +2230,8 @@ fireauth.AuthUser.prototype.destroy = function() {
   }
   // Stop listening to language code changes.
   this.setLanguageCodeChangeDispatcher(null);
+  // Stop listening to emulator config changes.
+  this.setEmulatorConfigChangeDispatcher(null);
   // Stop listening to framework changes.
   this.setFrameworkChangeDispatcher(null);
   // Empty pending promises array.
@@ -2366,7 +2422,8 @@ fireauth.AuthUser.fromPlainObject = function(user) {
   var options = {
     'apiKey': user['apiKey'],
     'authDomain': user['authDomain'],
-    'appName': user['appName']
+    'appName': user['appName'],
+    'emulatorConfig': user['emulatorConfig']
   };
   // Convert to server response format. Constructor does not take
   // stsTokenManager toPlainObject as that format is different than the return

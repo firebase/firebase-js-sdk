@@ -1,0 +1,23 @@
+[
+    {
+        "name": "test",
+        "dependencies": [
+            {
+                "packageName": "@firebase/app",
+                "versionOrTag": "exp",
+                "imports": [
+                    "initializeApp"
+                ]
+            },
+            {
+                "packageName": "@firebase/firestore",
+                "versionOrTag": "exp",
+                "imports": [
+                    "getFirestore",
+                    "doc",
+                    "getDoc"
+                ]
+            }
+        ]
+    }
+]

@@ -8,7 +8,7 @@
 
 |  Class | Description |
 |  --- | --- |
-|  [ActionCodeURL](./auth.actioncodeurl.md) |  |
+|  [ActionCodeURL](./auth.actioncodeurl.md) | A utility class to parse email action URLs such as password reset, email verification, email link sign in, etc. |
 |  [AuthCredential](./auth.authcredential.md) |  |
 |  [EmailAuthCredential](./auth.emailauthcredential.md) |  |
 |  [EmailAuthProvider](./auth.emailauthprovider.md) |  |
@@ -48,7 +48,7 @@
 |  [multiFactor(user)](./auth.multifactor.md) |  |
 |  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.onauthstatechanged.md) |  |
 |  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.onidtokenchanged.md) |  |
-|  [parseActionCodeURL(link)](./auth.parseactioncodeurl.md) |  |
+|  [parseActionCodeURL(link)](./auth.parseactioncodeurl.md) | Parses the email action link string and returns an ActionCodeURL object if the link is valid, otherwise returns null. |
 |  [reauthenticateWithCredential(userExtern, credentialExtern)](./auth.reauthenticatewithcredential.md) |  |
 |  [reauthenticateWithPhoneNumber(userExtern, phoneNumber, appVerifier)](./auth.reauthenticatewithphonenumber.md) |  |
 |  [reauthenticateWithPopup(userExtern, provider, resolverExtern)](./auth.reauthenticatewithpopup.md) |  |
@@ -64,8 +64,8 @@
 |  [signInWithEmailAndPassword(auth, email, password)](./auth.signinwithemailandpassword.md) |  |
 |  [signInWithEmailLink(auth, email, emailLink)](./auth.signinwithemaillink.md) |  |
 |  [signInWithPhoneNumber(auth, phoneNumber, appVerifier)](./auth.signinwithphonenumber.md) |  |
-|  [signInWithPopup(auth, provider, resolverExtern)](./auth.signinwithpopup.md) |  |
-|  [signInWithRedirect(auth, provider, resolverExtern)](./auth.signinwithredirect.md) |  |
+|  [signInWithPopup(authExtern, provider, resolverExtern)](./auth.signinwithpopup.md) |  |
+|  [signInWithRedirect(authExtern, provider, resolverExtern)](./auth.signinwithredirect.md) |  |
 |  [signOut(auth)](./auth.signout.md) |  |
 |  [unlink(userExtern, providerId)](./auth.unlink.md) | This is the externally visible unlink function |
 |  [updateCurrentUser(auth, user)](./auth.updatecurrentuser.md) |  |

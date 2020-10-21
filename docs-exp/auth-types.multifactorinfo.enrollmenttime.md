@@ -4,6 +4,8 @@
 
 ## MultiFactorInfo.enrollmentTime property
 
+The enrollment date of the second factor formatted as a UTC string.
+
 <b>Signature:</b>
 
 ```typescript

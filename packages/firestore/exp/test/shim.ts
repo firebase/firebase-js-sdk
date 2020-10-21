@@ -65,7 +65,10 @@ import {
 } from '../../exp/index';
 import { UntypedFirestoreDataConverter } from '../../src/api/user_data_reader';
 import { isPartialObserver, PartialObserver } from '../../src/api/observer';
-import { isPlainObject } from '../../src/util/input_validation';
+import {
+  isPlainObject,
+  validateSetOptions
+} from '../../src/util/input_validation';
 import { Compat } from '../../src/compat/compat';
 
 export { GeoPoint, Timestamp } from '../index';
@@ -97,6 +100,10 @@ export class FirebaseFirestore
 
   settings(settings: legacy.Settings): void {
     initializeFirestore(this.app._delegate, settings);
+  }
+
+  useEmulator(host: string, port: number): void {
+    this.settings({ host: `${host}:${port}`, ssl: false, merge: true });
   }
 
   enablePersistence(settings?: legacy.PersistenceSettings): Promise<void> {
@@ -189,6 +196,7 @@ export class Transaction
     options?: legacy.SetOptions
   ): Transaction {
     if (options) {
+      validateSetOptions('Transaction.set', options);
       this._delegate.set(documentRef._delegate, unwrap(data), options);
     } else {
       this._delegate.set(documentRef._delegate, unwrap(data));
@@ -241,6 +249,7 @@ export class WriteBatch
     options?: legacy.SetOptions
   ): WriteBatch {
     if (options) {
+      validateSetOptions('WriteBatch.set', options);
       this._delegate.set(documentRef._delegate, unwrap(data), options);
     } else {
       this._delegate.set(documentRef._delegate, unwrap(data));
@@ -320,6 +329,7 @@ export class DocumentReference<T = legacy.DocumentData>
 
   set(data: Partial<T>, options?: legacy.SetOptions): Promise<void> {
     if (options) {
+      validateSetOptions('DocumentReference.set', options);
       return setDoc(this._delegate, unwrap(data), options);
     } else {
       return setDoc(this._delegate, unwrap(data));

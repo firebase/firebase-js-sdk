@@ -11,13 +11,18 @@ export declare class FacebookAuthProvider extends OAuthProvider
 ```
 <b>Extends:</b> [OAuthProvider](./auth.oauthprovider.md)
 
+## Constructors
+
+|  Constructor | Modifiers | Description |
+|  --- | --- | --- |
+|  [(constructor)()](./auth.facebookauthprovider._constructor_.md) |  | Constructs a new instance of the <code>FacebookAuthProvider</code> class |
+
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [FACEBOOK\_SIGN\_IN\_METHOD](./auth.facebookauthprovider.facebook_sign_in_method.md) | <code>static</code> | (not declared) |  |
 |  [PROVIDER\_ID](./auth.facebookauthprovider.provider_id.md) | <code>static</code> | (not declared) |  |
-|  [providerId](./auth.facebookauthprovider.providerid.md) |  | (not declared) |  |
 
 ## Methods
 

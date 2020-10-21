@@ -4,7 +4,7 @@
 
 ## AuthCredential class
 
-https://firebase.google.com/docs/reference/js/firebase.auth.AuthCredential
+Interface that represents the credentials returned by an auth provider. Implementations specify the details about each auth provider's credential requirements.
 
 <b>Signature:</b>
 
@@ -16,13 +16,13 @@ export abstract class AuthCredential
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [providerId](./auth-types.authcredential.providerid.md) |  | string |  |
-|  [signInMethod](./auth-types.authcredential.signinmethod.md) |  | string |  |
+|  [providerId](./auth-types.authcredential.providerid.md) |  | string | The authentication provider ID for the credential. For example, 'facebook.com', or 'google.com'. |
+|  [signInMethod](./auth-types.authcredential.signinmethod.md) |  | string | The authentication sign in method for the credential. For example, [SignInMethod.EMAIL\_PASSWORD](./auth-types.signinmethod.email_password.md)<!-- -->, or [SignInMethod.EMAIL\_LINK](./auth-types.signinmethod.email_link.md)<!-- -->. This corresponds to the sign-in method identifier as returned in <code>fetchSignInMethodsForEmail</code>. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [fromJSON(json)](./auth-types.authcredential.fromjson.md) | <code>static</code> |  |
-|  [toJSON()](./auth-types.authcredential.tojson.md) |  |  |
+|  [fromJSON(json)](./auth-types.authcredential.fromjson.md) | <code>static</code> | Static method to deserialize a JSON representation of an object into an [AuthCredential](./auth-types.authcredential.md)<!-- -->. |
+|  [toJSON()](./auth-types.authcredential.tojson.md) |  | Returns a JSON-serializable representation of this object. |
 

@@ -20,7 +20,9 @@ import { AuthErrorCode, AUTH_ERROR_FACTORY } from './errors';
 
 /**
  * Enums for fields in URL query string.
+ *
  * @enum {string}
+ * @internal
  */
 enum QueryField {
   API_KEY = 'apiKey',
@@ -33,6 +35,8 @@ enum QueryField {
 
 /**
  * Map from mode string in action code URL to Action Code Info operation.
+ *
+ * @internal
  */
 const MODE_TO_OPERATION_MAP: { [key: string]: externs.Operation } = {
   'recoverEmail': externs.Operation.RECOVER_EMAIL,
@@ -45,11 +49,20 @@ const MODE_TO_OPERATION_MAP: { [key: string]: externs.Operation } = {
 
 /**
  * Maps the mode string in action code URL to Action Code Info operation.
+ *
+ * @param mode
+ * @internal
  */
 function parseMode(mode: string | null): externs.Operation | null {
   return mode ? MODE_TO_OPERATION_MAP[mode] || null : null;
 }
 
+/**
+ * Helper to parse FDL links
+ *
+ * @param url
+ * @internal
+ */
 function parseDeepLink(url: string): string {
   const uri = new URL(url);
   const link = uri.searchParams.get('link');
@@ -63,14 +76,31 @@ function parseDeepLink(url: string): string {
   return iOSDoubleDeepLink || iOSDeepLink || doubleDeepLink || link || url;
 }
 
+/**
+ * {@inheritDoc @firebase/auth-types-exp#ActionCodeURL}
+ *
+ * @public
+ */
 export class ActionCodeURL implements externs.ActionCodeURL {
+  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.apiKey} */
   readonly apiKey: string;
+  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.code} */
   readonly code: string;
+  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.continueUrl} */
   readonly continueUrl: string | null;
+  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.languageCode} */
   readonly languageCode: string | null;
+  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.operation} */
   readonly operation: externs.Operation;
+  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.tenantId} */
   readonly tenantId: string | null;
 
+  /**
+   * @param actionLink - The link from which to extract the URL.
+   * @returns The ActionCodeURL object, or null if the link is invalid.
+   *
+   * @internal
+   */
   constructor(actionLink: string) {
     const uri = new URL(actionLink);
     const apiKey = uri.searchParams.get(QueryField.API_KEY);
@@ -88,6 +118,7 @@ export class ActionCodeURL implements externs.ActionCodeURL {
     this.tenantId = uri.searchParams.get(QueryField.TENANT_ID);
   }
 
+  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.parseLink} */
   static parseLink(link: string): externs.ActionCodeURL | null {
     const actionLink = parseDeepLink(link);
     try {
@@ -98,6 +129,11 @@ export class ActionCodeURL implements externs.ActionCodeURL {
   }
 }
 
+/**
+ * {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.parseLink}
+ *
+ * @public
+ */
 export function parseActionCodeURL(link: string): externs.ActionCodeURL | null {
   return ActionCodeURL.parseLink(link);
 }

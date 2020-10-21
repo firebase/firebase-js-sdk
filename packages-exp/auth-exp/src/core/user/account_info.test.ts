@@ -150,7 +150,7 @@ describe('core/user/profile', () => {
       auth.onIdTokenChanged(idTokenChange);
 
       // Flush token change promises which are floating
-      await auth.updateCurrentUser(user);
+      await auth._updateCurrentUser(user);
       auth._isInitialized = true;
       idTokenChange.resetHistory();
     });

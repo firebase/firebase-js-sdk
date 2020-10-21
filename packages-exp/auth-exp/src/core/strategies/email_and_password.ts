@@ -24,7 +24,7 @@ import { MultiFactorInfo } from '../../mfa/mfa_info';
 import { EmailAuthProvider } from '../providers/email';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { assert } from '../util/assert';
-import { setActionCodeSettingsOnRequest } from './action_code_settings';
+import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
 import { _castAuth } from '../auth/auth_impl';
 import { AuthErrorCode } from '../errors';
@@ -39,7 +39,7 @@ export async function sendPasswordResetEmail(
     email
   };
   if (actionCodeSettings) {
-    setActionCodeSettingsOnRequest(request, actionCodeSettings);
+    _setActionCodeSettingsOnRequest(auth, request, actionCodeSettings);
   }
 
   await authentication.sendPasswordResetEmail(auth, request);
@@ -136,6 +136,7 @@ export async function createUserWithEmailAndPassword(
   email: string,
   password: string
 ): Promise<externs.UserCredential> {
+  const authInternal = _castAuth(auth);
   const response = await signUp(auth, {
     returnSecureToken: true,
     email,
@@ -143,11 +144,11 @@ export async function createUserWithEmailAndPassword(
   });
 
   const userCredential = await UserCredentialImpl._fromIdTokenResponse(
-    _castAuth(auth),
+    authInternal,
     externs.OperationType.SIGN_IN,
     response
   );
-  await auth.updateCurrentUser(userCredential.user);
+  await authInternal._updateCurrentUser(userCredential.user);
 
   return userCredential;
 }
