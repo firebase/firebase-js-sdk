@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import json from '@rollup/plugin-json'; // Enables package.json import in TypeScript.
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
+import json from '@rollup/plugin-json';
+import { importPathTransformer } from '../../scripts/exp/ts-transform-import-path';
 import { es2017BuildsNoPlugin, es5BuildsNoPlugin } from './rollup.shared';
 
 /**
@@ -25,14 +26,20 @@ import { es2017BuildsNoPlugin, es5BuildsNoPlugin } from './rollup.shared';
  */
 const es5BuildPlugins = [
   typescriptPlugin({
-    typescript
+    typescript,
+    clean: true,
+    abortOnError: false,
+    transformers: [importPathTransformer]
   }),
   json()
 ];
 
 const es5Builds = es5BuildsNoPlugin.map(build => ({
   ...build,
-  plugins: es5BuildPlugins
+  plugins: es5BuildPlugins,
+  treeshake: {
+    moduleSideEffects: false
+  }
 }));
 
 /**
@@ -45,14 +52,22 @@ const es2017BuildPlugins = [
       compilerOptions: {
         target: 'es2017'
       }
-    }
+    },
+    abortOnError: false,
+    clean: true,
+    transformers: [importPathTransformer]
   }),
-  json({ preferConst: true })
+  json({
+    preferConst: true
+  })
 ];
 
 const es2017Builds = es2017BuildsNoPlugin.map(build => ({
   ...build,
-  plugins: es2017BuildPlugins
+  plugins: es2017BuildPlugins,
+  treeshake: {
+    moduleSideEffects: false
+  }
 }));
 
 export default [...es5Builds, ...es2017Builds];

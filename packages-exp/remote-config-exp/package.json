@@ -12,15 +12,20 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
-    "build": "rollup -c",
-    "build:deps": "lerna run --scope @firebase/remote-config --include-dependencies build",
+    "build": "rollup -c && yarn api-report",
+    "build:deps": "lerna run --scope @firebase/remote-config-exp --include-dependencies build",
+    "build:release": "rollup -c rollup.config.release.js && yarn api-report",
     "dev": "rollup -c -w",
     "test": "run-p lint test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:browser",
     "test:browser": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "prettier": "prettier --write '{src,test}/**/*.{js,ts}'",
-    "prepare": "yarn build"
+    "prepare": "yarn build",
+    "api-report": "api-extractor run --local --verbose",
+    "predoc": "node ../../scripts/exp/remove-exp.js temp",
+    "doc": "api-documenter markdown --input temp --output docs",
+    "build:doc": "yarn build && yarn doc"
   },
   "peerDependencies": {
     "@firebase/app-exp": "0.x",
@@ -49,7 +54,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/index.d.ts",
+  "typings": "dist/remote-config-exp.d.ts",
   "nyc": {
     "extension": [
       ".ts"
