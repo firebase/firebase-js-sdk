@@ -15,20 +15,14 @@
  * limitations under the License.
  */
 
-import { registerRemoteConfig } from './register';
+import { RemoteConfig } from '@firebase/remote-config-types-exp';
+import { activate, fetchConfig } from './api';
 
-// Facilitates debugging by enabling settings changes without rebuilding asset.
-// Note these debug options are not part of a documented, supported API and can change at any time.
-// Consolidates debug options for easier discovery.
-// Uses transient variables on window to avoid lingering state causing panic.
-declare global {
-  interface Window {
-    FIREBASE_REMOTE_CONFIG_URL_BASE: string;
-  }
+// This API is put in a separate file, so we can stub fetchConfig and activate in tests.
+// It's not possible to stub standalone functions from the same module.
+export async function fetchAndActivate(
+  remoteConfig: RemoteConfig
+): Promise<boolean> {
+  await fetchConfig(remoteConfig);
+  return activate(remoteConfig);
 }
-
-export * from './api';
-export * from './api2';
-
-/** register component and version */
-registerRemoteConfig();

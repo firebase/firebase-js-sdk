@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types-exp';
 import {
   RemoteConfig as RemoteConfigType,
   LogLevel as RemoteConfigLogLevel
-} from '@firebase/remote-config-types';
+} from '@firebase/remote-config-types-exp';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { StorageCache } from '../src/storage/storage_cache';
@@ -33,6 +33,20 @@ import { Value } from '../src/value';
 import './setup';
 import { ERROR_FACTORY, ErrorCode } from '../src/errors';
 import { Logger, LogLevel as FirebaseLogLevel } from '@firebase/logger';
+import {
+  activate,
+  ensureInitialized,
+  getAll,
+  getBoolean,
+  getNumber,
+  getString,
+  getValue,
+  setLogLevel,
+  fetchConfig
+} from '../src/api';
+import * as api from '../src/api';
+import { fetchAndActivate } from '../src';
+import { restore } from 'sinon';
 
 describe('RemoteConfig', () => {
   const ACTIVE_CONFIG = {
@@ -82,7 +96,7 @@ describe('RemoteConfig', () => {
   // Adapts getUserLanguage tests from packages/auth/test/utils_test.js for TypeScript.
   describe('setLogLevel', () => {
     it('proxies to the FirebaseLogger instance', () => {
-      rc.setLogLevel('debug');
+      setLogLevel(rc, 'debug');
 
       // Casts spy to any because property setters aren't defined on the SinonSpy type.
       expect(loggerLogLevelSpy.set).to.have.been.calledWith(
@@ -92,7 +106,7 @@ describe('RemoteConfig', () => {
 
     it('normalizes levels other than DEBUG and SILENT to ERROR', () => {
       for (const logLevel of ['info', 'verbose', 'error', 'severe']) {
-        rc.setLogLevel(logLevel as RemoteConfigLogLevel);
+        setLogLevel(rc, logLevel as RemoteConfigLogLevel);
 
         // Casts spy to any because property setters aren't defined on the SinonSpy type.
         expect(loggerLogLevelSpy.set).to.have.been.calledWith(
@@ -106,7 +120,7 @@ describe('RemoteConfig', () => {
     it('warms cache', async () => {
       storageCache.loadFromStorage = sinon.stub().returns(Promise.resolve());
 
-      await rc.ensureInitialized();
+      await ensureInitialized(rc);
 
       expect(storageCache.loadFromStorage).to.have.been.calledOnce;
     });
@@ -114,8 +128,8 @@ describe('RemoteConfig', () => {
     it('de-duplicates repeated calls', async () => {
       storageCache.loadFromStorage = sinon.stub().returns(Promise.resolve());
 
-      await rc.ensureInitialized();
-      await rc.ensureInitialized();
+      await ensureInitialized(rc);
+      await ensureInitialized(rc);
 
       expect(storageCache.loadFromStorage).to.have.been.calledOnce;
     });
@@ -162,7 +176,7 @@ describe('RemoteConfig', () => {
       getActiveConfigStub.returns(ACTIVE_CONFIG);
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(rc.getValue('key1')).to.deep.eq(
+      expect(getValue(rc, 'key1')).to.deep.eq(
         new Value('remote', ACTIVE_CONFIG.key1)
       );
     });
@@ -170,7 +184,7 @@ describe('RemoteConfig', () => {
     it('returns the default value if active is not available', () => {
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(rc.getValue('key1')).to.deep.eq(
+      expect(getValue(rc, 'key1')).to.deep.eq(
         new Value('default', DEFAULT_CONFIG.key1)
       );
     });
@@ -179,10 +193,10 @@ describe('RemoteConfig', () => {
       const DEFAULTS = { trueVal: true, falseVal: false };
       rc.defaultConfig = DEFAULTS;
 
-      expect(rc.getValue('trueVal')).to.deep.eq(
+      expect(getValue(rc, 'trueVal')).to.deep.eq(
         new Value('default', String(DEFAULTS.trueVal))
       );
-      expect(rc.getValue('falseVal')).to.deep.eq(
+      expect(getValue(rc, 'falseVal')).to.deep.eq(
         new Value('default', String(DEFAULTS.falseVal))
       );
     });
@@ -191,19 +205,19 @@ describe('RemoteConfig', () => {
       const DEFAULTS = { negative: -1, zero: 0, positive: 11 };
       rc.defaultConfig = DEFAULTS;
 
-      expect(rc.getValue('negative')).to.deep.eq(
+      expect(getValue(rc, 'negative')).to.deep.eq(
         new Value('default', String(DEFAULTS.negative))
       );
-      expect(rc.getValue('zero')).to.deep.eq(
+      expect(getValue(rc, 'zero')).to.deep.eq(
         new Value('default', String(DEFAULTS.zero))
       );
-      expect(rc.getValue('positive')).to.deep.eq(
+      expect(getValue(rc, 'positive')).to.deep.eq(
         new Value('default', String(DEFAULTS.positive))
       );
     });
 
     it('returns the static value if active and default are not available', () => {
-      expect(rc.getValue('key1')).to.deep.eq(new Value('static'));
+      expect(getValue(rc, 'key1')).to.deep.eq(new Value('static'));
 
       // Asserts debug message logged if static value is returned, per EAP feedback.
       expect(logger.debug).to.have.been.called;
@@ -214,7 +228,7 @@ describe('RemoteConfig', () => {
       rc.defaultConfig = { key1: 'val' };
 
       // Gets value before initialization.
-      rc.getValue('key1');
+      getValue(rc, 'key1');
 
       // Asserts getValue logs.
       expect(logger.debug).to.have.been.called;
@@ -223,10 +237,10 @@ describe('RemoteConfig', () => {
       storageCache.loadFromStorage = sinon.stub().returns(Promise.resolve());
 
       // Ensures initialization completes.
-      await rc.ensureInitialized();
+      await ensureInitialized(rc);
 
       // Gets value after initialization.
-      rc.getValue('key1');
+      getValue(rc, 'key1');
 
       // Asserts getValue doesn't log after initialization is complete.
       expect(logger.debug).to.have.been.calledOnce;
@@ -238,17 +252,17 @@ describe('RemoteConfig', () => {
       getActiveConfigStub.returns(ACTIVE_CONFIG);
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(rc.getBoolean('key3')).to.be.true;
+      expect(getBoolean(rc, 'key3')).to.be.true;
     });
 
     it('returns the default value if active is not available', () => {
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(rc.getBoolean('key3')).to.be.false;
+      expect(getBoolean(rc, 'key3')).to.be.false;
     });
 
     it('returns the static value if active and default are not available', () => {
-      expect(rc.getBoolean('key3')).to.be.false;
+      expect(getBoolean(rc, 'key3')).to.be.false;
     });
   });
 
@@ -257,17 +271,17 @@ describe('RemoteConfig', () => {
       getActiveConfigStub.returns(ACTIVE_CONFIG);
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(rc.getString('key1')).to.eq(ACTIVE_CONFIG.key1);
+      expect(getString(rc, 'key1')).to.eq(ACTIVE_CONFIG.key1);
     });
 
     it('returns the default value if active is not available', () => {
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(rc.getString('key2')).to.eq(DEFAULT_CONFIG.key2);
+      expect(getString(rc, 'key2')).to.eq(DEFAULT_CONFIG.key2);
     });
 
     it('returns the static value if active and default are not available', () => {
-      expect(rc.getString('key1')).to.eq('');
+      expect(getString(rc, 'key1')).to.eq('');
     });
   });
 
@@ -276,17 +290,17 @@ describe('RemoteConfig', () => {
       getActiveConfigStub.returns(ACTIVE_CONFIG);
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(rc.getNumber('key4')).to.eq(Number(ACTIVE_CONFIG.key4));
+      expect(getNumber(rc, 'key4')).to.eq(Number(ACTIVE_CONFIG.key4));
     });
 
     it('returns the default value if active is not available', () => {
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(rc.getNumber('key4')).to.eq(Number(DEFAULT_CONFIG.key4));
+      expect(getNumber(rc, 'key4')).to.eq(Number(DEFAULT_CONFIG.key4));
     });
 
     it('returns the static value if active and default are not available', () => {
-      expect(rc.getNumber('key1')).to.eq(0);
+      expect(getNumber(rc, 'key1')).to.eq(0);
     });
   });
 
@@ -295,7 +309,7 @@ describe('RemoteConfig', () => {
       getActiveConfigStub.returns(ACTIVE_CONFIG);
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(rc.getAll()).to.deep.eq({
+      expect(getAll(rc)).to.deep.eq({
         key1: new Value('remote', ACTIVE_CONFIG.key1),
         key2: new Value('remote', ACTIVE_CONFIG.key2),
         key3: new Value('remote', ACTIVE_CONFIG.key3),
@@ -307,7 +321,7 @@ describe('RemoteConfig', () => {
     it('returns values in default if active is not available', () => {
       rc.defaultConfig = DEFAULT_CONFIG;
 
-      expect(rc.getAll()).to.deep.eq({
+      expect(getAll(rc)).to.deep.eq({
         key1: new Value('default', DEFAULT_CONFIG.key1),
         key2: new Value('default', DEFAULT_CONFIG.key2),
         key3: new Value('default', DEFAULT_CONFIG.key3),
@@ -317,7 +331,7 @@ describe('RemoteConfig', () => {
     });
 
     it('returns empty object if both active and default configs are not defined', () => {
-      expect(rc.getAll()).to.deep.eq({});
+      expect(getAll(rc)).to.deep.eq({});
     });
   });
 
@@ -347,7 +361,7 @@ describe('RemoteConfig', () => {
       getLastSuccessfulFetchResponseStub.returns(Promise.resolve());
       getActiveConfigEtagStub.returns(Promise.resolve(ETAG));
 
-      const activateResponse = await rc.activate();
+      const activateResponse = await activate(rc);
 
       expect(activateResponse).to.be.false;
       expect(storage.setActiveConfigEtag).to.not.have.been.called;
@@ -360,7 +374,7 @@ describe('RemoteConfig', () => {
       );
       getActiveConfigEtagStub.returns(Promise.resolve(ETAG));
 
-      const activateResponse = await rc.activate();
+      const activateResponse = await activate(rc);
 
       expect(activateResponse).to.be.false;
       expect(storage.setActiveConfigEtag).to.not.have.been.called;
@@ -373,7 +387,7 @@ describe('RemoteConfig', () => {
       );
       getActiveConfigEtagStub.returns(Promise.resolve(ETAG));
 
-      const activateResponse = await rc.activate();
+      const activateResponse = await activate(rc);
 
       expect(activateResponse).to.be.true;
       expect(storage.setActiveConfigEtag).to.have.been.calledWith(NEW_ETAG);
@@ -386,7 +400,7 @@ describe('RemoteConfig', () => {
       );
       getActiveConfigEtagStub.returns(Promise.resolve());
 
-      const activateResponse = await rc.activate();
+      const activateResponse = await activate(rc);
 
       expect(activateResponse).to.be.true;
       expect(storage.setActiveConfigEtag).to.have.been.calledWith(NEW_ETAG);
@@ -395,30 +409,33 @@ describe('RemoteConfig', () => {
   });
 
   describe('fetchAndActivate', () => {
-    let rcActivateStub: sinon.SinonStub<[], Promise<boolean>>;
+    let rcActivateStub: sinon.SinonStub<[RemoteConfigType], Promise<boolean>>;
 
     beforeEach(() => {
-      sinon.stub(rc, 'fetch').returns(Promise.resolve());
-      rcActivateStub = sinon.stub(rc, 'activate');
+      sinon.stub(api, 'fetchConfig').returns(Promise.resolve());
+      rcActivateStub = sinon.stub(api, 'activate');
     });
+
+    afterEach(() => restore());
+
     it('calls fetch and activate and returns activation boolean if true', async () => {
       rcActivateStub.returns(Promise.resolve(true));
 
-      const response = await rc.fetchAndActivate();
+      const response = await fetchAndActivate(rc);
 
       expect(response).to.be.true;
-      expect(rc.fetch).to.have.been.called;
-      expect(rc.activate).to.have.been.called;
+      expect(api.fetchConfig).to.have.been.calledWith(rc);
+      expect(api.activate).to.have.been.calledWith(rc);
     });
 
     it('calls fetch and activate and returns activation boolean if false', async () => {
       rcActivateStub.returns(Promise.resolve(false));
 
-      const response = await rc.fetchAndActivate();
+      const response = await fetchAndActivate(rc);
 
       expect(response).to.be.false;
-      expect(rc.fetch).to.have.been.called;
-      expect(rc.activate).to.have.been.called;
+      expect(api.fetchConfig).to.have.been.calledWith(rc);
+      expect(api.activate).to.have.been.calledWith(rc);
     });
   });
 
@@ -441,7 +458,7 @@ describe('RemoteConfig', () => {
     });
 
     it('defines a default timeout', async () => {
-      await rc.fetch();
+      await fetchConfig(rc);
 
       expect(timeoutStub).to.have.been.calledWith(sinon.match.any, 60000);
     });
@@ -449,7 +466,7 @@ describe('RemoteConfig', () => {
     it('honors a custom timeout', async () => {
       rc.settings.fetchTimeoutMillis = 1000;
 
-      await rc.fetch();
+      await fetchConfig(rc);
 
       expect(timeoutStub).to.have.been.calledWith(sinon.match.any, 1000);
     });
@@ -460,7 +477,7 @@ describe('RemoteConfig', () => {
           .stub()
           .returns(Promise.resolve({ status } as FetchResponse));
 
-        await rc.fetch();
+        await fetchConfig(rc);
 
         expect(storageCache.setLastFetchStatus).to.have.been.calledWith(
           'success'
@@ -477,7 +494,7 @@ describe('RemoteConfig', () => {
 
       client.fetch = sinon.stub().returns(Promise.reject(error));
 
-      const fetchPromise = rc.fetch();
+      const fetchPromise = fetchConfig(rc);
 
       await expect(fetchPromise).to.eventually.be.rejectedWith(error);
       expect(storageCache.setLastFetchStatus).to.have.been.calledWith(
@@ -494,7 +511,7 @@ describe('RemoteConfig', () => {
 
       client.fetch = sinon.stub().returns(Promise.reject(error));
 
-      const fetchPromise = rc.fetch();
+      const fetchPromise = fetchConfig(rc);
 
       await expect(fetchPromise).to.eventually.be.rejectedWith(error);
       expect(storageCache.setLastFetchStatus).to.have.been.calledWith(

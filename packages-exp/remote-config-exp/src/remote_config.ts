@@ -39,13 +39,13 @@ export class RemoteConfig implements RemoteConfigType {
    * Tracks completion of initialization promise.
    * @internal
    */
-  public _isInitializationComplete = false;
+  _isInitializationComplete = false;
 
   /**
    * De-duplicates initialization calls.
    * @internal
    */
-  public _initializePromise?: Promise<void>;
+  _initializePromise?: Promise<void>;
 
   settings: Settings = {
     fetchTimeoutMillis: DEFAULT_FETCH_TIMEOUT_MILLIS,

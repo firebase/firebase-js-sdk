@@ -103,13 +103,6 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
   }
 }
 
-export async function fetchAndActivate(
-  remoteConfig: RemoteConfig
-): Promise<boolean> {
-  await fetchConfig(remoteConfig);
-  return activate(remoteConfig);
-}
-
 export function getAll(remoteConfig: RemoteConfig): Record<string, ValueType> {
   const rc = asRemoteConfigImpl(remoteConfig);
   return getAllKeys(
@@ -157,7 +150,7 @@ export function getValue(remoteConfig: RemoteConfig, key: string): ValueType {
 export function setLogLevel(
   remoteConfig: RemoteConfig,
   logLevel: RemoteConfigLogLevel
-) {
+): void {
   const rc = asRemoteConfigImpl(remoteConfig);
   switch (logLevel) {
     case 'debug':
