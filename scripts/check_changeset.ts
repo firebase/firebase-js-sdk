@@ -98,6 +98,12 @@ async function main() {
       .filter((line: string) => !line.includes('Command failed'))
       .filter((line: string) => !line.includes('exited with error code 1'))
       .join('%0A');
+    /**
+     * Sets Github Actions output for a step. Pass changeset error message to next
+     * step. See:
+     * https://github.com/actions/toolkit/blob/master/docs/commands.md#set-outputs
+     */
+    console.log(`::set-output name=BLOCKING_FAILURE::true`);
   }
   try {
     const diffData = await getDiffData();
@@ -137,11 +143,7 @@ async function main() {
       missingPackagesError
     ].join('%0A')}`
   );
-  if (formattedStatusError) {
-    process.exit(1);
-  } else {
-    process.exit();
-  }
+  process.exit();
 }
 
 main();

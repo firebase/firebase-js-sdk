@@ -57,3 +57,7 @@ jobs:
           ### Changeset File Check :white_check_mark:
           - No modified packages are missing from the changeset file.
           - No changeset formatting errors detected.
+    # Don't want it to throw before editing the comment.
+    - name: Fail if checker script logged a blocking failure
+      if: ${{steps.check-changeset.outputs.BLOCKING_FAILURE}}
+      run: exit 1
