@@ -97,7 +97,7 @@ export abstract class AuthCredential {
   toJSON(): object;
 }
 
-// @public (undocumented)
+// @public
 export interface AuthError extends FirebaseError {
   readonly appName: string;
   readonly email?: string;
@@ -247,7 +247,10 @@ export interface Persistence {
 
 // @public
 export abstract class PhoneAuthCredential extends AuthCredential {
+  // (undocumented)
   static fromJSON(json: object | string): PhoneAuthCredential | null;
+  // (undocumented)
+  toJSON(): object;
 }
 
 // @public

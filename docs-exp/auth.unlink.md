@@ -4,20 +4,20 @@
 
 ## unlink() function
 
-This is the externally visible unlink function
+Unlinks a provider from a user account.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function unlink(userExtern: externs.User, providerId: externs.ProviderId): Promise<externs.User>;
+export declare function unlink(user: externs.User, providerId: externs.ProviderId): Promise<externs.User>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  userExtern | externs.[User](./auth-types.user.md) |  |
-|  providerId | externs.[ProviderId](./auth-types.providerid.md) |  |
+|  user | externs.[User](./auth-types.user.md) | The user. |
+|  providerId | externs.[ProviderId](./auth-types.providerid.md) | The provider to unlink. |
 
 <b>Returns:</b>
 

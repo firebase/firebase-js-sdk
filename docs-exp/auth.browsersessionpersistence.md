@@ -4,6 +4,8 @@
 
 ## browserSessionPersistence variable
 
+An implementation of [Persistence](./auth-types.persistence.md) of 'SESSION' using `sessionStorage` for the underlying storage.
+
 <b>Signature:</b>
 
 ```typescript

@@ -4,20 +4,48 @@
 
 ## sendEmailVerification() function
 
+Sends a verification email to a user.
+
 <b>Signature:</b>
 
 ```typescript
-export declare function sendEmailVerification(userExtern: externs.User, actionCodeSettings?: externs.ActionCodeSettings | null): Promise<void>;
+export declare function sendEmailVerification(user: externs.User, actionCodeSettings?: externs.ActionCodeSettings | null): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  userExtern | externs.[User](./auth-types.user.md) |  |
-|  actionCodeSettings | externs.[ActionCodeSettings](./auth-types.actioncodesettings.md) \| null |  |
+|  user | externs.[User](./auth-types.user.md) | The user. |
+|  actionCodeSettings | externs.[ActionCodeSettings](./auth-types.actioncodesettings.md) \| null | The [ActionCodeSettings](./auth-types.actioncodesettings.md)<!-- -->. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+## Remarks
+
+The verification process is completed by calling [applyActionCode()](./auth.applyactioncode.md)<!-- -->.
+
+## Example
+
+
+```javascript
+const actionCodeSettings = {
+  url: 'https://www.example.com/?email=user@example.com',
+  iOS: {
+     bundleId: 'com.example.ios'
+  },
+  android: {
+    packageName: 'com.example.android',
+    installApp: true,
+    minimumVersion: '12'
+  },
+  handleCodeInApp: true
+};
+await sendEmailVerification(user, actionCodeSettings);
+// Obtain code from the user.
+await applyActionCode(auth, code);
+
+```
 

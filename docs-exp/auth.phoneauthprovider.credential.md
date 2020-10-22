@@ -4,6 +4,8 @@
 
 ## PhoneAuthProvider.credential() method
 
+Creates a phone auth credential, given the verification ID from [PhoneAuthProvider.verifyPhoneNumber()](./auth.phoneauthprovider.verifyphonenumber.md) and the code that was sent to the user's mobile device.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,10 +16,12 @@ static credential(verificationId: string, verificationCode: string): PhoneAuthCr
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  verificationId | string |  |
-|  verificationCode | string |  |
+|  verificationId | string | The verification ID returned from [PhoneAuthProvider.verifyPhoneNumber()](./auth.phoneauthprovider.verifyphonenumber.md)<!-- -->. |
+|  verificationCode | string | The verification code sent to the user's mobile device. |
 
 <b>Returns:</b>
 
 [PhoneAuthCredential](./auth.phoneauthcredential.md)
+
+The auth provider credential.
 

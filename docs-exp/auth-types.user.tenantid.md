@@ -4,13 +4,17 @@
 
 ## User.tenantId property
 
-The user's tenant ID. This is a read-only property, which indicates the tenant ID used to sign in the user. This is null if the user is signed in from the parent project.
+The user's tenant ID.
 
 <b>Signature:</b>
 
 ```typescript
 readonly tenantId: string | null;
 ```
+
+## Remarks
+
+This is a read-only property, which indicates the tenant ID used to sign in the user. This is null if the user is signed in from the parent project.
 
 ## Example
 

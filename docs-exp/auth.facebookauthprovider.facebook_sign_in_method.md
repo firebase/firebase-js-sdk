@@ -4,6 +4,8 @@
 
 ## FacebookAuthProvider.FACEBOOK\_SIGN\_IN\_METHOD property
 
+Always set to [SignInMethod.FACEBOOK](./auth-types.signinmethod.facebook.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

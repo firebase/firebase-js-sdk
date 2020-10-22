@@ -100,7 +100,11 @@ export async function sendEmailVerification(
     idToken
   };
   if (actionCodeSettings) {
-    _setActionCodeSettingsOnRequest(user.auth, request, actionCodeSettings);
+    _setActionCodeSettingsOnRequest(
+      userInternal.auth,
+      request,
+      actionCodeSettings
+    );
   }
 
   const { email } = await api.sendEmailVerification(userInternal.auth, request);
@@ -157,7 +161,11 @@ export async function verifyBeforeUpdateEmail(
     newEmail
   };
   if (actionCodeSettings) {
-    _setActionCodeSettingsOnRequest(user.auth, request, actionCodeSettings);
+    _setActionCodeSettingsOnRequest(
+      userInternal.auth,
+      request,
+      actionCodeSettings
+    );
   }
 
   const { email } = await api.verifyAndChangeEmail(userInternal.auth, request);

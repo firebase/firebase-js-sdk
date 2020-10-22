@@ -16,7 +16,7 @@ export interface ConfirmationResult
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [verificationId](./auth-types.confirmationresult.verificationid.md) | string | The phone number authentication operation's verification ID. This can be used along with the verification code to initialize a phone auth credential. |
+|  [verificationId](./auth-types.confirmationresult.verificationid.md) | string | The phone number authentication operation's verification ID. |
 
 ## Methods
 

@@ -4,7 +4,7 @@
 
 ## MultiFactorSession interface
 
-The multi-factor session object used for enrolling a second factor on a user or helping sign in an enrolled user with a second factor.
+An interface defining the multi-factor session object used for enrolling a second factor on a user or helping sign in an enrolled user with a second factor.
 
 <b>Signature:</b>
 

@@ -110,7 +110,7 @@ export interface User extends externs.User {
   toJSON(): PersistedBlob;
 }
 
-/** @internal*/
+/** @internal */
 export interface UserCredential
   extends externs.UserCredential,
     TaggedWithTokenResponse {

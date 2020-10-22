@@ -104,7 +104,7 @@ export interface Config {
 }
 
 /**
- * Interface representing a Parsed ID token.
+ * Interface representing a parsed ID token.
  *
  * @privateRemarks TODO(avolkovi): consolidate with parsed_token in implementation.
  *

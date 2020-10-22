@@ -4,6 +4,8 @@
 
 ## PhoneMultiFactorGenerator class
 
+Provider for generating a [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -15,5 +17,5 @@ export declare class PhoneMultiFactorGenerator implements externs.PhoneMultiFact
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [assertion(credential)](./auth.phonemultifactorgenerator.assertion.md) | <code>static</code> |  |
+|  [assertion(credential)](./auth.phonemultifactorgenerator.assertion.md) | <code>static</code> | Provides a [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md) to confirm ownership of the phone second factor. |
 

@@ -4,17 +4,19 @@
 
 ## reload() function
 
+Reloads user account data, if signed in.
+
 <b>Signature:</b>
 
 ```typescript
-export declare function reload(externUser: externs.User): Promise<void>;
+export declare function reload(user: externs.User): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  externUser | externs.[User](./auth-types.user.md) |  |
+|  user | externs.[User](./auth-types.user.md) | The user. |
 
 <b>Returns:</b>
 

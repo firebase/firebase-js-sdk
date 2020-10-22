@@ -4,6 +4,8 @@
 
 ## deleteUser() function
 
+Deletes and signs out the user.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,13 @@ export declare function deleteUser(user: externs.User): Promise<void>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) |  |
+|  user | externs.[User](./auth-types.user.md) | The user. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+## Remarks
+
+Important: this is a security-sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call [reauthenticateWithCredential()](./auth.reauthenticatewithcredential.md)<!-- -->.
 

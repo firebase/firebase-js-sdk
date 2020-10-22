@@ -4,6 +4,8 @@
 
 ## GithubAuthProvider.PROVIDER\_ID property
 
+Always set to [ProviderId.GITHUB](./auth-types.providerid.github.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

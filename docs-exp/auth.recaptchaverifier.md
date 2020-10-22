@@ -4,6 +4,8 @@
 
 ## RecaptchaVerifier class
 
+An [reCAPTCHA](https://www.google.com/recaptcha/)<!-- -->-based application verifier.
+
 <b>Signature:</b>
 
 ```typescript
@@ -21,15 +23,13 @@ export declare class RecaptchaVerifier implements externs.RecaptchaVerifier, App
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [\_recaptchaLoader](./auth.recaptchaverifier._recaptchaloader.md) |  | ReCaptchaLoader |  |
 |  [type](./auth.recaptchaverifier.type.md) |  | (not declared) |  |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [\_reset()](./auth.recaptchaverifier._reset.md) |  |  |
-|  [clear()](./auth.recaptchaverifier.clear.md) |  |  |
-|  [render()](./auth.recaptchaverifier.render.md) |  |  |
-|  [verify()](./auth.recaptchaverifier.verify.md) |  |  |
+|  [clear()](./auth.recaptchaverifier.clear.md) |  | Clears the reCAPTCHA widget from the page and destroys the instance. |
+|  [render()](./auth.recaptchaverifier.render.md) |  | Renders the reCAPTCHA widget on the page. |
+|  [verify()](./auth.recaptchaverifier.verify.md) |  | Waits for the user to solve the reCAPTCHA and resolves with the reCAPTCHA token. |
 

@@ -4,17 +4,19 @@
 
 ## updateProfile() function
 
+Updates a user's profile data.
+
 <b>Signature:</b>
 
 ```typescript
-export declare function updateProfile(externUser: externs.User, { displayName, photoURL: photoUrl }: Profile): Promise<void>;
+export declare function updateProfile(user: externs.User, { displayName, photoURL: photoUrl }: Profile): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  externUser | externs.[User](./auth-types.user.md) |  |
+|  user | externs.[User](./auth-types.user.md) | The user. |
 |  { displayName, photoURL: photoUrl } | Profile |  |
 
 <b>Returns:</b>

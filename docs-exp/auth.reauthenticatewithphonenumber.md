@@ -4,21 +4,27 @@
 
 ## reauthenticateWithPhoneNumber() function
 
+Re-authenticates a user using a fresh phne credential.
+
 <b>Signature:</b>
 
 ```typescript
-export declare function reauthenticateWithPhoneNumber(userExtern: externs.User, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
+export declare function reauthenticateWithPhoneNumber(user: externs.User, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  userExtern | externs.[User](./auth-types.user.md) |  |
-|  phoneNumber | string |  |
-|  appVerifier | externs.[ApplicationVerifier](./auth-types.applicationverifier.md) |  |
+|  user | externs.[User](./auth-types.user.md) | The user. |
+|  phoneNumber | string | The user's phone number in E.164 format (e.g. +16505550101). |
+|  appVerifier | externs.[ApplicationVerifier](./auth-types.applicationverifier.md) | The [ApplicationVerifier](./auth-types.applicationverifier.md)<!-- -->. |
 
 <b>Returns:</b>
 
 Promise&lt;externs.[ConfirmationResult](./auth-types.confirmationresult.md)<!-- -->&gt;
+
+## Remarks
+
+Use before operations such as [updatePassword()](./auth.updatepassword.md) that require tokens from recent sign-in attempts.
 

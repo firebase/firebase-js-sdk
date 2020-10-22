@@ -4,20 +4,26 @@
 
 ## updatePassword() function
 
+Updates the user's password.
+
 <b>Signature:</b>
 
 ```typescript
-export declare function updatePassword(externUser: externs.User, newPassword: string): Promise<void>;
+export declare function updatePassword(user: externs.User, newPassword: string): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  externUser | externs.[User](./auth-types.user.md) |  |
-|  newPassword | string |  |
+|  user | externs.[User](./auth-types.user.md) | The user. |
+|  newPassword | string | The new password. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+## Remarks
+
+Important: this is a security sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call [reauthenticateWithCredential()](./auth.reauthenticatewithcredential.md)<!-- -->.
 

@@ -4,10 +4,15 @@
 
 ## ConfirmationResult.verificationId property
 
-The phone number authentication operation's verification ID. This can be used along with the verification code to initialize a phone auth credential.
+The phone number authentication operation's verification ID.
 
 <b>Signature:</b>
 
 ```typescript
 readonly verificationId: string;
 ```
+
+## Remarks
+
+This can be used along with the verification code to initialize a [PhoneAuthCredential](./auth-types.phoneauthcredential.md)<!-- -->.
+
