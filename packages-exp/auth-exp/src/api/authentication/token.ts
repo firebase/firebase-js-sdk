@@ -23,7 +23,7 @@ import {
   _getFinalTarget,
   _performFetchWithErrorHandling,
   HttpMethod
-} from '../';
+} from '../index';
 import { FetchProvider } from '../../core/util/fetch_provider';
 import { Auth } from '@firebase/auth-types-exp';
 

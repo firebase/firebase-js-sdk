@@ -31,7 +31,7 @@ import { User } from '../model/user';
 import { MultiFactorInfo } from './mfa_info';
 import { MultiFactorSession, MultiFactorSessionType } from './mfa_session';
 import { multiFactor, MultiFactorUser } from './mfa_user';
-import { MultiFactorAssertion } from './assertions';
+import { MultiFactorAssertion } from './mfa_assertion';
 import { Auth } from '../model/auth';
 
 use(chaiAsPromised);
