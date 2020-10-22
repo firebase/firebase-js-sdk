@@ -1,5 +1,7 @@
 # Unreleased
 
+- [changed] Added support for query get operation.
+
 ## 0.6.13
 
 ### Patch Changes
