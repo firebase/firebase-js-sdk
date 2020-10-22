@@ -400,7 +400,7 @@ export class AuthImpl implements Auth, _FirebaseService {
   }
 
   async _redirectUserForId(id: string): Promise<User | null> {
-    // Make sure we've cleared any pending ppersistence actions if we're not in
+    // Make sure we've cleared any pending persistence actions if we're not in
     // the initializer
     if (this._isInitialized) {
       await this.queue(async () => {});

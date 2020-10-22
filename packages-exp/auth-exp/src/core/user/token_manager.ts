@@ -21,7 +21,7 @@ import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
 import { PersistedBlob } from '../persistence';
-import { assert, debugFail, fail } from '../util/assert';
+import { assert, debugFail } from '../util/assert';
 
 /**
  * The number of milliseconds before the official expiration time of a token
@@ -60,11 +60,13 @@ export class StsTokenManager {
       return this.accessToken;
     }
 
-    if (this.accessToken && !this.refreshToken) {
-      fail(AuthErrorCode.TOKEN_EXPIRED, {
+    assert(
+      this.accessToken && !this.refreshToken,
+      AuthErrorCode.TOKEN_EXPIRED,
+      {
         appName: auth.name
-      });
-    }
+      }
+    ); /*  */
 
     await this.refresh(auth, this.refreshToken!);
     return this.accessToken;
