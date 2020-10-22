@@ -20,7 +20,7 @@ import { Auth } from '@firebase/auth-types-exp';
 
 import { AuthImpl } from './src/core/auth/auth_impl';
 import { _initializeAuthInstance } from './src/core/auth/initialize';
-import { _AUTH_COMPONENT_NAME, registerAuth } from './src/core/auth/register';
+import { _ComponentName, registerAuth } from './src/core/auth/register';
 import { Persistence } from './src/core/persistence';
 import { _getInstance } from './src/core/util/instantiator';
 import { ClientPlatform } from './src/core/util/version';
@@ -37,10 +37,7 @@ registerAuth(ClientPlatform.WORKER);
 export function getAuth(app = getApp()): Auth {
   // Unlike the other environments, we need to explicitly check if indexedDb is
   // available. That means doing the whole rigamarole
-  const auth = _getProvider(
-    app,
-    _AUTH_COMPONENT_NAME
-  ).getImmediate() as AuthImpl;
+  const auth = _getProvider(app, _ComponentName.AUTH).getImmediate() as AuthImpl;
 
   // This promise is intended to float; auth initialization happens in the
   // background, meanwhile the auth object may be used by the app.

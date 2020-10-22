@@ -18,7 +18,7 @@
 import * as util from '@firebase/util';
 import { expect } from 'chai';
 import { restore, stub } from 'sinon';
-import { Delay, _OFFLINE_DELAY_MS } from './delay';
+import { Delay, DelayMin } from './delay';
 import * as navigator from './navigator';
 
 describe('core/util/delay', () => {
@@ -50,6 +50,6 @@ describe('core/util/delay', () => {
     const mock = stub(navigator, '_isOnline');
     mock.callsFake(() => false);
     const delay = new Delay(SHORT_DELAY, LONG_DELAY);
-    expect(delay.get()).to.eq(_OFFLINE_DELAY_MS);
+    expect(delay.get()).to.eq(DelayMin.OFFLINE);
   });
 });

@@ -42,7 +42,7 @@ import * as eid from '../../core/util/event_id';
 import { AuthPopup } from '../util/popup';
 import * as idpTasks from '../../core/strategies/idp';
 import {
-  _AUTH_EVENT_TIMEOUT,
+  _Timeout,
   _POLL_WINDOW_CLOSE_TIMEOUT,
   linkWithPopup,
   reauthenticateWithPopup,
@@ -215,7 +215,7 @@ describe('platform_browser/strategies/popup', () => {
       delay(() => {
         underlyingWindow.closed = true;
         pendingTimeouts[_POLL_WINDOW_CLOSE_TIMEOUT.get()]();
-        pendingTimeouts[_AUTH_EVENT_TIMEOUT]();
+        pendingTimeouts[_Timeout.AUTH_EVENT]();
       });
       iframeEvent({
         type: AuthEventType.SIGN_IN_VIA_POPUP
@@ -399,7 +399,7 @@ describe('platform_browser/strategies/popup', () => {
       delay(() => {
         underlyingWindow.closed = true;
         pendingTimeouts[_POLL_WINDOW_CLOSE_TIMEOUT.get()]();
-        pendingTimeouts[_AUTH_EVENT_TIMEOUT]();
+        pendingTimeouts[_Timeout.AUTH_EVENT]();
       });
       iframeEvent({
         type: AuthEventType.LINK_VIA_POPUP
@@ -591,7 +591,7 @@ describe('platform_browser/strategies/popup', () => {
       delay(() => {
         underlyingWindow.closed = true;
         pendingTimeouts[_POLL_WINDOW_CLOSE_TIMEOUT.get()]();
-        pendingTimeouts[_AUTH_EVENT_TIMEOUT]();
+        pendingTimeouts[_Timeout.AUTH_EVENT]();
       });
       iframeEvent({
         type: AuthEventType.REAUTH_VIA_POPUP

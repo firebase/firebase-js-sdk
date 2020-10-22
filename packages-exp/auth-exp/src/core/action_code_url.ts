@@ -24,7 +24,7 @@ import { AuthErrorCode, AUTH_ERROR_FACTORY } from './errors';
  * @enum {string}
  * @internal
  */
-enum QueryField {
+const enum QueryField {
   API_KEY = 'apiKey',
   CODE = 'oobCode',
   CONTINUE_URL = 'continueUrl',

@@ -29,7 +29,9 @@ import { assert, debugFail } from '../util/assert';
  *
  * @internal
  */
-export const TOKEN_REFRESH_BUFFER_MS = 30_000;
+export const enum Buffer {
+  TOKEN_REFRESH = 30_000
+}
 
 export class StsTokenManager {
   refreshToken: string | null = null;
@@ -39,7 +41,7 @@ export class StsTokenManager {
   get isExpired(): boolean {
     return (
       !this.expirationTime ||
-      Date.now() > this.expirationTime - TOKEN_REFRESH_BUFFER_MS
+      Date.now() > this.expirationTime - Buffer.TOKEN_REFRESH
     );
   }
 
