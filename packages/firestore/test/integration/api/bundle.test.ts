@@ -129,9 +129,9 @@ apiDescribe('Bundles', (persistence: boolean) => {
     const projectId: string = db.app.options.projectId;
 
     // Extract elements from BUNDLE_TEMPLATE, and replace project ID.
-    var runningElement: string = '';
+    let runningElement: string = '';
     const elements: string[] = [];
-    var depth = 0;
+    let depth = 0;
     for (const char of BUNDLE_TEMPLATE) {
       if (char === '{') {
         runningElement += char;
@@ -142,7 +142,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
       if (char === '}') {
         depth -= 1;
-        if (depth == 0) {
+        if (depth === 0) {
           // Obviously assuming TEMPLATE_PROJECT_ID only appear as project id in
           // the bundle, not as document id or filed value.
           elements.push(runningElement.replace(TEMPLATE_PROJECT_ID, projectId));
@@ -152,7 +152,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
     }
 
     // Recalculating length prefixes for elements that are not BundleMetadata.
-    var bundleContent = '';
+    let bundleContent = '';
     for (const element of elements.slice(1)) {
       const length = encoder.encode(element).byteLength;
       bundleContent += `${length}${element}`;
