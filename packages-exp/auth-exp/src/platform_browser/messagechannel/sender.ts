@@ -24,7 +24,7 @@ import {
   Status,
   ReceiverMessageResponse,
   ReceiverResponse
-} from './';
+} from './index';
 
 interface MessageHandler {
   messageChannel: MessageChannel;

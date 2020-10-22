@@ -22,7 +22,7 @@ import {
   SenderMessageEvent,
   Status,
   SenderRequest
-} from '.';
+} from './index';
 import { _allSettled } from './promise';
 
 /**

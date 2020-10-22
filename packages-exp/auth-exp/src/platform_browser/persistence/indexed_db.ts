@@ -30,7 +30,7 @@ import {
   KeyChangedResponse,
   KeyChangedRequest,
   PingRequest
-} from '../messagechannel';
+} from '../messagechannel/index';
 import { Receiver } from '../messagechannel/receiver';
 import { Sender, TimeoutDuration } from '../messagechannel/sender';
 import {

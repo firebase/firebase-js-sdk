@@ -25,7 +25,7 @@ import {
   SingletonInstantiator,
   _getInstance
 } from '../../core/util/instantiator';
-import { EventType, KeyChangedRequest } from '../messagechannel';
+import { EventType, KeyChangedRequest } from '../messagechannel/index';
 import { Receiver } from '../messagechannel/receiver';
 import { Sender, TimeoutDuration } from '../messagechannel/sender';
 import * as workerUtil from '../util/worker';

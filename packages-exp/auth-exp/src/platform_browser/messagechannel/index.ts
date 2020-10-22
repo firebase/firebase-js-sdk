@@ -20,12 +20,12 @@ import { PromiseSettledResult } from './promise';
 /**
  * Enumeration of possible response types from the Receiver.
  */
-export enum Status {
+export const enum Status {
   ACK = 'ack',
   DONE = 'done'
 }
 
-export enum MessageError {
+export const enum MessageError {
   CONNECTION_CLOSED = 'connection_closed',
   CONNECTION_UNAVAILABLE = 'connection_unavailable',
   INVALID_RESPONSE = 'invalid_response',
@@ -37,7 +37,7 @@ export enum MessageError {
 /**
  * Enumeration of possible events sent by the Sender.
  */
-export enum EventType {
+export const enum EventType {
   KEY_CHANGED = 'keyChanged',
   PING = 'ping'
 }
