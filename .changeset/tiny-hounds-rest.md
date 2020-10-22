@@ -1,5 +1,5 @@
 ---
-"firebase: major
+"firebase": major
 "@firebase/storage": major
 ---
 
