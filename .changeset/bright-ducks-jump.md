@@ -1,5 +1,5 @@
 ---
-'firebase: minor
+'firebase': minor
 '@firebase/database': minor
 '@firebase/database-types': minor
 ---
