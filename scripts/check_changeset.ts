@@ -84,13 +84,13 @@ async function parseChangesetFile(changesetFile: string) {
 }
 
 async function main() {
-  let formattedStatusError: string = '';
-  let missingPackagesError: string = '';
+  const errors = [];
   try {
     await exec('yarn changeset status');
   } catch (e) {
     const messageLines = e.message.replace(/🦋  error /g, '').split('\n');
-    formattedStatusError = '- Changeset formatting error in following file:%0A';
+    let formattedStatusError =
+      '- Changeset formatting error in following file:%0A';
     formattedStatusError += '    ```%0A';
     formattedStatusError += messageLines
       .filter(
@@ -101,6 +101,7 @@ async function main() {
       .map((line: string) => `    ${line}`)
       .join('%0A');
     formattedStatusError += '%0A    ```%0A';
+    errors.push(formattedStatusError);
     /**
      * Sets Github Actions output for a step. Pass changeset error message to next
      * step. See:
@@ -127,7 +128,7 @@ async function main() {
         }
         missingPackagesLines.push('');
         missingPackagesLines.push('  Make sure this was intentional.');
-        missingPackagesError = missingPackagesLines.join('%0A');
+        errors.push(missingPackagesLines.join('%0A'));
       }
     }
   } catch (e) {
@@ -140,12 +141,10 @@ async function main() {
    * step. See:
    * https://github.com/actions/toolkit/blob/master/docs/commands.md#set-outputs
    */
-  console.log(
-    `::set-output name=CHANGESET_ERROR_MESSAGE::${[
-      formattedStatusError,
-      missingPackagesError
-    ].join('%0A')}`
-  );
+  if (errors.length > 0)
+    console.log(
+      `::set-output name=CHANGESET_ERROR_MESSAGE::${errors.join('%0A')}`
+    );
   process.exit();
 }
 
