@@ -100,7 +100,7 @@ async function main() {
       .filter((line: string) => !line.includes('exited with error code 1'))
       .map((line: string) => `    ${line}`)
       .join('%0A');
-    formattedStatusError += '    ```%0A';
+    formattedStatusError += '%0A    ```%0A';
     /**
      * Sets Github Actions output for a step. Pass changeset error message to next
      * step. See:
