@@ -90,14 +90,17 @@ async function main() {
     await exec('yarn changeset status');
   } catch (e) {
     const messageLines = e.message.replace(/🦋  error /g, '').split('\n');
-    formattedStatusError = 'Changeset formatting error in following file:%0A';
+    formattedStatusError = '- Changeset formatting error in following file:%0A';
+    formattedStatusError += '    ```%0A';
     formattedStatusError += messageLines
       .filter(
         (line: string) => !line.match(/^    at [\w\.]+ \(.+:[0-9]+:[0-9]+\)/)
       )
       .filter((line: string) => !line.includes('Command failed'))
       .filter((line: string) => !line.includes('exited with error code 1'))
+      .map((line: string) => `    ${line}`)
       .join('%0A');
+    formattedStatusError += '    ```%0A';
     /**
      * Sets Github Actions output for a step. Pass changeset error message to next
      * step. See:
@@ -117,13 +120,13 @@ async function main() {
       );
       if (missingPackages.length > 0) {
         const missingPackagesLines = [
-          'Warning: This PR modifies files in the following packages but they have not been included in the changeset file:'
+          '- Warning: This PR modifies files in the following packages but they have not been included in the changeset file:'
         ];
         for (const missingPackage of missingPackages) {
-          missingPackagesLines.push(`- ${missingPackage}`);
+          missingPackagesLines.push(`  - ${missingPackage}`);
         }
         missingPackagesLines.push('');
-        missingPackagesLines.push('Make sure this was intentional.');
+        missingPackagesLines.push('  Make sure this was intentional.');
         missingPackagesError = missingPackagesLines.join('%0A');
       }
     }
