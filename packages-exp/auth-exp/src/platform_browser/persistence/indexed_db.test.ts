@@ -184,14 +184,16 @@ describe('platform_browser/persistence/indexed_db', () => {
 
     context('as a service worker', () => {
       let sender: Sender;
+      let db: IDBDatabase;
 
-      beforeEach(() => {
+      beforeEach(async () => {
         sender = new Sender(serviceWorker);
         sinon.stub(workerUtil, '_isWorker').returns(true);
         sinon.stub(workerUtil, '_getWorkerGlobalScope').returns(serviceWorker);
         persistence = new ((indexedDBLocalPersistence as unknown) as SingletonInstantiator<
           TestPersistence
         >)();
+        db = await _openDatabase();
       });
 
       it('should respond to pings', async () => {
@@ -206,6 +208,47 @@ describe('platform_browser/persistence/indexed_db', () => {
           {
             fulfilled: true,
             value: [EventType.KEY_CHANGED]
+          }
+        ]);
+      });
+
+      it('should let us know if the key didnt actually change on a key changed event', async () => {
+        await persistence._workerInitializationPromise;
+        const response = await sender._send(
+          EventType.KEY_CHANGED,
+          {
+            key: 'foo'
+          },
+          TimeoutDuration.LONG_ACK
+        );
+
+        expect(response).to.have.deep.members([
+          {
+            fulfilled: true,
+            value: {
+              keyProcessed: false
+            }
+          }
+        ]);
+      });
+
+      it('should refresh on key changed events when a key has changed', async () => {
+        await persistence._workerInitializationPromise;
+        await _putObject(db, 'foo', 'bar');
+        const response = await sender._send(
+          EventType.KEY_CHANGED,
+          {
+            key: 'foo'
+          },
+          TimeoutDuration.LONG_ACK
+        );
+
+        expect(response).to.have.deep.members([
+          {
+            fulfilled: true,
+            value: {
+              keyProcessed: true
+            }
           }
         ]);
       });

@@ -19,7 +19,6 @@ import {
   ReceiverHandler,
   EventType,
   ReceiverResponse,
-  ReceiverMessageEvent,
   SenderMessageEvent,
   Status,
   SenderRequest
@@ -86,9 +85,10 @@ export class Receiver {
     S extends SenderRequest
   >(event: Event): Promise<void> {
     const messageEvent = event as MessageEvent<SenderMessageEvent<S>>;
+    const { eventId, eventType, data } = messageEvent.data;
 
     const handlers: Set<ReceiverHandler<T, S>> | undefined = this.handlersMap[
-      messageEvent.data.eventType
+      eventType
     ];
     if (!handlers || handlers.size === 0) {
       return;
@@ -96,27 +96,20 @@ export class Receiver {
 
     messageEvent.ports[0].postMessage({
       status: Status.ACK,
-      eventId: messageEvent.data.eventId,
-      eventType: messageEvent.data.eventType,
-      response: null
-    } as ReceiverMessageEvent<T>);
-
-    const promises: Array<Promise<T>> = [];
-    handlers.forEach(handler => {
-      // Wrap in promise in case the handler doesn't return a promise.
-      promises.push(
-        (async function () {
-          return handler(messageEvent.origin, messageEvent.data.data);
-        })()
-      );
+      eventId,
+      eventType
     });
-    const responses = await _allSettled(promises);
+
+    const promises = Array.from(handlers).map(async handler => {
+      return handler(messageEvent.origin, data);
+    });
+    const response = await _allSettled(promises);
     messageEvent.ports[0].postMessage({
       status: Status.DONE,
-      eventId: messageEvent.data.eventId,
-      eventType: messageEvent.data.eventType,
-      response: responses
-    } as ReceiverMessageEvent<T>);
+      eventId,
+      eventType,
+      response
+    });
   }
 
   /**

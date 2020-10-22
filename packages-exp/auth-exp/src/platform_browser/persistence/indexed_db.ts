@@ -181,6 +181,7 @@ class IndexedDBLocalPersistence implements Persistence {
   private sender: Sender | null = null;
   private serviceWorkerReceiverAvailable: boolean = false;
   private activeServiceWorker: ServiceWorker | null = null;
+  // Visible for testing only
   readonly _workerInitializationPromise: Promise<void>;
 
   constructor() {
@@ -212,7 +213,7 @@ class IndexedDBLocalPersistence implements Persistence {
    */
   private async initializeReceiver(): Promise<void> {
     this.receiver = Receiver._getInstance(_getWorkerGlobalScope()!);
-    // Refresh our state if we receive a KeyChanged message.
+    // Refresh from persistence if we receive a KeyChanged message.
     this.receiver._subscribe(
       EventType.KEY_CHANGED,
       async (_origin: string, data: KeyChangedRequest) => {
@@ -222,7 +223,7 @@ class IndexedDBLocalPersistence implements Persistence {
         };
       }
     );
-    // Used to inform sender that this service worker supports events.
+    // Let the sender know that we are listening so they give us more timeout.
     this.receiver._subscribe(
       EventType.PING,
       async (_origin: string, _data: PingRequest) => {
@@ -239,7 +240,7 @@ class IndexedDBLocalPersistence implements Persistence {
    * may not resolve.
    */
   private async initializeSender(): Promise<void> {
-    // Get active service worker when its available.
+    // Check to see if there's an active service worker.
     this.activeServiceWorker = await _getActiveServiceWorker();
     if (!this.activeServiceWorker) {
       return;

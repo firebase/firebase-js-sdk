@@ -91,6 +91,7 @@ describe('platform_browser/messagechannel/receiver', () => {
               value: response
             }
           ]);
+          expect(ackReceived).to.be.true;
           done();
         }
       };

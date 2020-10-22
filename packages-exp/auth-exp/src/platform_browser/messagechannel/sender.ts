@@ -112,14 +112,14 @@ export class Sender {
           }
           switch (messageEvent.data.status) {
             case Status.ACK:
-              // The Receiver should ACK first
+              // The receiver should ACK first.
               clearTimeout(ackTimer);
               completionTimer = setTimeout(() => {
                 reject(new Error(MessageError.TIMEOUT));
               }, TimeoutDuration.COMPLETION);
               break;
             case Status.DONE:
-              // Once the Receiver's handlers are finished we will get the results
+              // Once the receiver's handlers are finished we will get the results.
               clearTimeout(completionTimer);
               resolve(messageEvent.data.response);
               break;
