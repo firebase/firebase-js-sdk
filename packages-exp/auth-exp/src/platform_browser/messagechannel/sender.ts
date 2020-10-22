@@ -141,7 +141,9 @@ export class Sender {
         [messageChannel.port2]
       );
     }).finally(() => {
-      this.removeMessageHandler(handler);
+      if (handler) {
+        this.removeMessageHandler(handler);
+      }
     });
   }
 }
