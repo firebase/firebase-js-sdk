@@ -316,7 +316,10 @@ export class Repo {
       },
       err => {
         this.log_(
-          'get for query ' + stringify(query) + ' falling back to cache'
+          'get for query ' +
+            stringify(query) +
+            ' falling back to cache after error ' +
+            err
         );
         const cached = this.serverSyncTree_.calcCompleteEventCache(query.path);
         if (!cached.isEmpty()) {

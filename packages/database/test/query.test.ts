@@ -2195,9 +2195,9 @@ describe('Query Tests', () => {
       });
   });
 
-  it('get at empty node is rejected', async () => {
+  it('get at empty node is null', async () => {
     const node = getRandomNode() as Reference;
-    expect(node.get()).to.eventually.be.rejected;
+    expect((await node.get()).val()).to.equal(null);
   });
 
   it('get at non-empty root returns correct value', async () => {
@@ -2213,7 +2213,7 @@ describe('Query Tests', () => {
     const expected = { foo: 'a', bar: 'b' };
     await node.set(expected);
     let snapshot = await node.get();
-    let val = snapshot.val();
+    const val = snapshot.val();
     expect(val).to.deep.equal(expected);
     await node.remove();
     snapshot = await node.get();
@@ -2224,7 +2224,7 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     node.database.goOffline();
     try {
-      expect(node.get()).to.eventually.be.rejected;
+      await expect(node.get()).to.eventually.be.rejected;
     } finally {
       node.database.goOnline();
     }
@@ -2232,7 +2232,7 @@ describe('Query Tests', () => {
 
   it('get reads from cache if database is not connected', async () => {
     const node = getRandomNode() as Reference;
-    const node2 = getFreshRepo((node as Reference).path);
+    const node2 = getFreshRepo(node.path);
     try {
       await node2.set({ foo: 'bar' });
       const onSnapshot = await new Promise((resolve, _) => {
@@ -2254,7 +2254,7 @@ describe('Query Tests', () => {
 
   it('get does not cache sibling data', async () => {
     const reader = getRandomNode() as Reference;
-    const writer = getFreshRepo((reader as Reference).path);
+    const writer = getFreshRepo(reader.path);
     await writer.set({
       foo: { cached: { data: '1' }, notCached: { data: '2' } }
     });
@@ -2262,7 +2262,8 @@ describe('Query Tests', () => {
     expect(snapshot.val()).to.deep.equal({ data: '1' });
     reader.database.goOffline();
     try {
-      expect(reader.child('foo/notCached').get()).to.eventually.be.rejected;
+      await expect(reader.child('foo/notCached').get()).to.eventually.be
+        .rejected;
     } finally {
       reader.database.goOnline();
     }
