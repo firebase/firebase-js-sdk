@@ -23,7 +23,6 @@ import {
   withAlternateTestDb,
   withTestDb
 } from '../util/helpers';
-import * as testBundles from './test_bundles.json';
 import { EventsAccumulator } from '../util/events_accumulator';
 
 // TODO(b/162594908): Move this to api/ instead of api_internal.
@@ -46,6 +45,74 @@ function verifyInProgress(
   expect(p.documentsLoaded).to.equal(expectedDocuments);
 }
 
+/**
+ * Returns a testing bundle string for the given projectId.
+ *
+ * The function is commented out, but kept for documentation purpose. It accesses SDK
+ * internals, which is not available in test:minified.
+ *
+ * The tests uses `BUNDLE_TEMPLATE` as test data instead, which is generated from this function
+ * and replaced with different project IDs when required. To update `BUNDLE_TEMPALTE`, you
+ * need to uncomment the function, and copy/paste from the console output to `BUNDLE_TEMPALTE`.
+ * It is manual, but should be required only rarely.
+ */
+/*
+function bundleWithTestDocsAndQueries(projectId: string): string {
+  const testDocs: { [key: string]: firestore.DocumentData } = {
+    a: { k: { stringValue: 'a' }, bar: { integerValue: 1 } },
+    b: { k: { stringValue: 'b' }, bar: { integerValue: 2 } }
+  };
+
+  const a = key('coll-1/a');
+  const b = key('coll-1/b');
+  const builder = new TestBundleBuilder(new DatabaseId(projectId));
+
+  builder.addNamedQuery(
+    'limit',
+    { seconds: 1000, nanos: 9999 },
+    (collectionReference('coll-1')
+      .orderBy('bar', 'desc')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .limit(1) as any)._query
+  );
+  builder.addNamedQuery(
+    'limit-to-last',
+    { seconds: 1000, nanos: 9999 },
+    (collectionReference('coll-1')
+      .orderBy('bar', 'desc')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .limitToLast(1) as any)._query
+  );
+
+  builder.addDocumentMetadata(a, { seconds: 1000, nanos: 9999 }, true);
+  builder.addDocument(
+    a,
+    { seconds: 1, nanos: 9 },
+    { seconds: 1, nanos: 9 },
+    testDocs.a
+  );
+  builder.addDocumentMetadata(b, { seconds: 1000, nanos: 9999 }, true);
+  builder.addDocument(
+    b,
+    { seconds: 1, nanos: 9 },
+    { seconds: 1, nanos: 9 },
+    testDocs.b
+  );
+
+  return builder
+    .build('test-bundle', { seconds: 1001, nanos: 9999 })
+    .toString();
+}
+
+console.log(
+  `${bundleWithTestDocsAndQueries('test-project')}`
+);
+ */
+
+const TEMPLATE_PROJECT_ID = 'test-project';
+const BUNDLE_TEMPLATE =
+  '125{"metadata":{"id":"test-bundle","createTime":{"seconds":1001,"nanos":9999},"version":1,"totalDocuments":2,"totalBytes":1503}}374{"namedQuery":{"name":"limit","readTime":{"seconds":1000,"nanos":9999},"bundledQuery":{"parent":"projects/test-project/databases/(default)/documents","structuredQuery":{"from":[{"collectionId":"coll-1"}],"orderBy":[{"field":{"fieldPath":"bar"},"direction":"DESCENDING"},{"field":{"fieldPath":"__name__"},"direction":"DESCENDING"}],"limit":{"value":1}},"limitType":"FIRST"}}}381{"namedQuery":{"name":"limit-to-last","readTime":{"seconds":1000,"nanos":9999},"bundledQuery":{"parent":"projects/test-project/databases/(default)/documents","structuredQuery":{"from":[{"collectionId":"coll-1"}],"orderBy":[{"field":{"fieldPath":"bar"},"direction":"DESCENDING"},{"field":{"fieldPath":"__name__"},"direction":"DESCENDING"}],"limit":{"value":1}},"limitType":"LAST"}}}147{"documentMetadata":{"name":"projects/test-project/databases/(default)/documents/coll-1/a","readTime":{"seconds":1000,"nanos":9999},"exists":true}}218{"document":{"name":"projects/test-project/databases/(default)/documents/coll-1/a","createTime":{"seconds":1,"nanos":9},"updateTime":{"seconds":1,"nanos":9},"fields":{"k":{"stringValue":"a"},"bar":{"integerValue":1}}}}147{"documentMetadata":{"name":"projects/test-project/databases/(default)/documents/coll-1/b","readTime":{"seconds":1000,"nanos":9999},"exists":true}}218{"document":{"name":"projects/test-project/databases/(default)/documents/coll-1/b","createTime":{"seconds":1,"nanos":9},"updateTime":{"seconds":1,"nanos":9},"fields":{"k":{"stringValue":"b"},"bar":{"integerValue":2}}}}';
+
 apiDescribe('Bundles', (persistence: boolean) => {
   function verifySnapEqualTestDocs(snap: firestore.QuerySnapshot): void {
     expect(toDataArray(snap)).to.deep.equal([
@@ -54,11 +121,50 @@ apiDescribe('Bundles', (persistence: boolean) => {
     ]);
   }
 
+  /**
+   * Returns a valid bundle string from replacing project id in `BUNDLE_TEMPLATE` with the given
+   * db project id (also recalculate length prefixes).
+   */
   function bundleString(db: firestore.FirebaseFirestore): string {
     const projectId: string = db.app.options.projectId;
-    const bundleString = (testBundles as { [key: string]: string })[projectId];
-    expect(bundleString).not.to.be.undefined;
-    return bundleString!;
+
+    // Extract elements from BUNDLE_TEMPLATE, and replace project ID.
+    var runningElement: string = '';
+    const elements: string[] = [];
+    var depth = 0;
+    for (const char of BUNDLE_TEMPLATE) {
+      if (char === '{') {
+        runningElement += char;
+        depth += 1;
+      } else if (depth > 0) {
+        runningElement += char;
+      }
+
+      if (char === '}') {
+        depth -= 1;
+        if (depth == 0) {
+          // Obviously assuming TEMPLATE_PROJECT_ID only appear as project id in
+          // the bundle, not as document id or filed value.
+          elements.push(runningElement.replace(TEMPLATE_PROJECT_ID, projectId));
+          runningElement = '';
+        }
+      }
+    }
+
+    // Recalculating length prefixes for elements that are not BundleMetadata.
+    var bundleContent = '';
+    for (const element of elements.slice(1)) {
+      const length = encoder.encode(element).byteLength;
+      bundleContent += `${length}${element}`;
+    }
+
+    // Update BundleMetadata with new totalBytes.
+    const totalBytes = encoder.encode(bundleContent).byteLength;
+    const metadata = JSON.parse(elements[0]);
+    metadata.metadata.totalBytes = totalBytes;
+    const metadataContent = JSON.stringify(metadata);
+    const metadataLength = encoder.encode(metadataContent).byteLength;
+    return `${metadataLength}${metadataContent}${bundleContent}`;
   }
 
   it('load with documents only with on progress and promise interface', () => {
@@ -205,12 +311,9 @@ apiDescribe('Bundles', (persistence: boolean) => {
   it('load with documents from other projects fails', () => {
     return withTestDb(persistence, async db => {
       return withAlternateTestDb(persistence, async otherDb => {
-        // TODO(wuandy): Ideally this is verified with rejectedWith to check
-        // error message. But it is currently removed for minified build, because
-        // it is raised when local store tries to write the document. We need to
-        // do this validation earlier such that the message is not removed.
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        await expect(otherDb.loadBundle(bundleString(db))).to.be.rejected;
+        await expect(otherDb.loadBundle(bundleString(db))).to.be.rejectedWith(
+          'Tried to deserialize key from different project'
+        );
 
         // Verify otherDb still functions, despite loaded a problematic bundle.
         const finalProgress = await otherDb.loadBundle(bundleString(otherDb));
