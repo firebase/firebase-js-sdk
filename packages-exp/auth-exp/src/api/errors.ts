@@ -20,7 +20,7 @@ import { AuthErrorCode } from '../core/errors';
 /**
  * Errors that can be returned by the backend
  */
-export enum ServerError {
+export const enum ServerError {
   ADMIN_ONLY_OPERATION = 'ADMIN_ONLY_OPERATION',
   CAPTCHA_CHECK_FAILED = 'CAPTCHA_CHECK_FAILED',
   CORS_UNSUPPORTED = 'CORS_UNSUPPORTED',

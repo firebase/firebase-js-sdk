@@ -21,7 +21,7 @@ import { getUA } from '@firebase/util';
 
 const CLIENT_IMPLEMENTATION = 'JsCore';
 
-export enum ClientPlatform {
+export const enum ClientPlatform {
   BROWSER = 'Browser',
   NODE = 'Node',
   REACT_NATIVE = 'ReactNative',

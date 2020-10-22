@@ -20,7 +20,7 @@ import { withdrawMfa } from '../api/account_management/mfa';
 import { AuthErrorCode } from '../core/errors';
 import { _logoutIfInvalidated } from '../core/user/invalidation';
 import { User } from '../model/user';
-import { MultiFactorAssertion } from './assertions';
+import { MultiFactorAssertion } from './mfa_assertion';
 import { MultiFactorInfo } from './mfa_info';
 import { MultiFactorSession } from './mfa_session';
 

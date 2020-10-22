@@ -22,7 +22,7 @@ import { AuthErrorCode } from '../core/errors';
 import { UserCredentialImpl } from '../core/user/user_credential_impl';
 import { assert, fail } from '../core/util/assert';
 import { UserCredential } from '../model/user';
-import { MultiFactorAssertion } from './assertions';
+import { MultiFactorAssertion } from './mfa_assertion';
 import { MultiFactorError } from './mfa_error';
 import { MultiFactorInfo } from './mfa_info';
 import { MultiFactorSession } from './mfa_session';

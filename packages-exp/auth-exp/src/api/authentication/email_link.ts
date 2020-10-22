@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _performSignInRequest, Endpoint, HttpMethod } from '../';
+import { _performSignInRequest, Endpoint, HttpMethod } from '../index';
 import { IdTokenResponse } from '../../model/id_token';
 import { Auth } from '@firebase/auth-types-exp';
 

@@ -16,7 +16,7 @@
  */
 import * as externs from '@firebase/auth-types-exp';
 
-import { MultiFactorAssertion } from '../../../mfa/assertions';
+import { MultiFactorAssertion } from '../../../mfa/mfa_assertion';
 import { Auth } from '../../../model/auth';
 import { finalizeEnrollPhoneMfa } from '../../../api/account_management/mfa';
 import { PhoneAuthCredential } from '../../../core/credentials/phone';
