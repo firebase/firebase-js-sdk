@@ -318,7 +318,7 @@ export class Repo {
         this.log_(
           'get for query ' +
             stringify(query) +
-            ' falling back to cache after error ' +
+            ' falling back to cache after error: ' +
             err
         );
         const cached = this.serverSyncTree_.calcCompleteEventCache(query.path);

@@ -15,10 +15,8 @@
  * limitations under the License.
  */
 
-import * as chai from 'chai';
-const expect = chai.expect;
+import { use, expect } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-chai.use(chaiAsPromised);
 import { Reference } from '../src/api/Reference';
 import { DataSnapshot } from '../src/api/DataSnapshot';
 import { Query } from '../src/api/Query';
@@ -29,6 +27,8 @@ import {
   EventAccumulatorFactory
 } from './helpers/EventAccumulator';
 import * as _ from 'lodash';
+
+use(chaiAsPromised);
 
 type TaskList = Array<[Query, any]>;
 
