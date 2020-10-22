@@ -55,7 +55,20 @@ import {
   OfflineComponentProvider,
   OnlineComponentProvider
 } from '../core/component_provider';
-import { FirestoreClient } from '../core/firestore_client';
+import {
+  FirestoreClient,
+  firestoreClientAddSnapshotsInSyncListener,
+  firestoreClientDisableNetwork,
+  firestoreClientEnableNetwork,
+  firestoreClientGetDocumentFromLocalCache,
+  firestoreClientGetDocumentsFromLocalCache,
+  firestoreClientGetDocumentsViaSnapshotListener,
+  firestoreClientGetDocumentViaSnapshotListener,
+  firestoreClientListen,
+  firestoreClientTransaction,
+  firestoreClientWaitForPendingWrites,
+  firestoreClientWrite
+} from '../core/firestore_client';
 import {
   Bound,
   Direction,
@@ -101,7 +114,7 @@ import {
   validateSetOptions,
   valueDescription
 } from '../util/input_validation';
-import { setLogLevel as setClientLogLevel, logWarn } from '../util/log';
+import { logWarn, setLogLevel as setClientLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
@@ -461,12 +474,12 @@ export class Firestore implements PublicFirestore, FirebaseService {
 
   enableNetwork(): Promise<void> {
     this.ensureClientConfigured();
-    return this._firestoreClient!.enableNetwork();
+    return firestoreClientEnableNetwork(this._firestoreClient!);
   }
 
   disableNetwork(): Promise<void> {
     this.ensureClientConfigured();
-    return this._firestoreClient!.disableNetwork();
+    return firestoreClientDisableNetwork(this._firestoreClient!);
   }
 
   enablePersistence(settings?: PublicPersistenceSettings): Promise<void> {
@@ -528,7 +541,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
 
   waitForPendingWrites(): Promise<void> {
     this.ensureClientConfigured();
-    return this._firestoreClient!.waitForPendingWrites();
+    return firestoreClientWaitForPendingWrites(this._firestoreClient!);
   }
 
   onSnapshotsInSync(observer: PartialObserver<void>): Unsubscribe;
@@ -537,14 +550,18 @@ export class Firestore implements PublicFirestore, FirebaseService {
     this.ensureClientConfigured();
 
     if (isPartialObserver(arg)) {
-      return this._firestoreClient!.addSnapshotsInSyncListener(
+      return firestoreClientAddSnapshotsInSyncListener(
+        this._firestoreClient!,
         arg as PartialObserver<void>
       );
     } else {
       const observer: PartialObserver<void> = {
         next: arg as () => void
       };
-      return this._firestoreClient!.addSnapshotsInSyncListener(observer);
+      return firestoreClientAddSnapshotsInSyncListener(
+        this._firestoreClient!,
+        observer
+      );
     }
   }
 
@@ -676,7 +693,9 @@ export class Firestore implements PublicFirestore, FirebaseService {
   runTransaction<T>(
     updateFunction: (transaction: PublicTransaction) => Promise<T>
   ): Promise<T> {
-    return this.ensureClientConfigured().transaction(
+    this.ensureClientConfigured();
+    return firestoreClientTransaction(
+      this._firestoreClient!,
       (transaction: InternalTransaction) => {
         return updateFunction(new Transaction(this, transaction));
       }
@@ -685,7 +704,6 @@ export class Firestore implements PublicFirestore, FirebaseService {
 
   batch(): PublicWriteBatch {
     this.ensureClientConfigured();
-
     return new WriteBatch(this);
   }
 
@@ -966,7 +984,8 @@ export class WriteBatch implements PublicWriteBatch {
     this.verifyNotCommitted();
     this._committed = true;
     if (this._mutations.length > 0) {
-      return this._firestore.ensureClientConfigured().write(this._mutations);
+      const firestoreClient = this._firestore.ensureClientConfigured();
+      return firestoreClientWrite(firestoreClient, this._mutations);
     }
 
     return Promise.resolve();
@@ -1080,7 +1099,8 @@ export class DocumentReference<T = DocumentData>
       this._converter !== null,
       options
     );
-    return this._firestoreClient.write(
+    return firestoreClientWrite(
+      this._firestoreClient,
       parsed.toMutations(this._key, Precondition.none())
     );
   }
@@ -1119,13 +1139,14 @@ export class DocumentReference<T = DocumentData>
       );
     }
 
-    return this._firestoreClient.write(
+    return firestoreClientWrite(
+      this._firestoreClient,
       parsed.toMutations(this._key, Precondition.exists(true))
     );
   }
 
   delete(): Promise<void> {
-    return this._firestoreClient.write([
+    return firestoreClientWrite(this._firestoreClient, [
       new DeleteMutation(this._key, Precondition.none())
     ]);
   }
@@ -1185,7 +1206,8 @@ export class DocumentReference<T = DocumentData>
       complete: args[currArg + 2] as CompleteFn
     };
 
-    return this._firestoreClient.listen(
+    return firestoreClientListen(
+      this._firestoreClient,
       newQueryForPath(this._key.path),
       internalOptions,
       observer
@@ -1195,23 +1217,26 @@ export class DocumentReference<T = DocumentData>
   get(options?: GetOptions): Promise<PublicDocumentSnapshot<T>> {
     const firestoreClient = this.firestore.ensureClientConfigured();
     if (options && options.source === 'cache') {
-      return firestoreClient
-        .getDocumentFromLocalCache(this._key)
-        .then(
-          doc =>
-            new DocumentSnapshot(
-              this.firestore,
-              this._key,
-              doc,
-              /*fromCache=*/ true,
-              doc instanceof Document ? doc.hasLocalMutations : false,
-              this._converter
-            )
-        );
+      return firestoreClientGetDocumentFromLocalCache(
+        firestoreClient,
+        this._key
+      ).then(
+        doc =>
+          new DocumentSnapshot(
+            this.firestore,
+            this._key,
+            doc,
+            /*fromCache=*/ true,
+            doc instanceof Document ? doc.hasLocalMutations : false,
+            this._converter
+          )
+      );
     } else {
-      return firestoreClient
-        .getDocumentViaSnapshotListener(this._key, options)
-        .then(snapshot => this._convertToDocSnapshot(snapshot));
+      return firestoreClientGetDocumentViaSnapshotListener(
+        firestoreClient,
+        this._key,
+        options
+      ).then(snapshot => this._convertToDocSnapshot(snapshot));
     }
   }
 
@@ -2036,7 +2061,12 @@ export class Query<T = DocumentData> implements PublicQuery<T> {
 
     validateHasExplicitOrderByForLimitToLast(this._query);
     const firestoreClient = this.firestore.ensureClientConfigured();
-    return firestoreClient.listen(this._query, options, observer);
+    return firestoreClientListen(
+      firestoreClient,
+      this._query,
+      options,
+      observer
+    );
   }
 
   get(options?: GetOptions): Promise<PublicQuerySnapshot<T>> {
@@ -2045,8 +2075,12 @@ export class Query<T = DocumentData> implements PublicQuery<T> {
 
     const firestoreClient = this.firestore.ensureClientConfigured();
     return (options && options.source === 'cache'
-      ? firestoreClient.getDocumentsFromLocalCache(this._query)
-      : firestoreClient.getDocumentsViaSnapshotListener(this._query, options)
+      ? firestoreClientGetDocumentsFromLocalCache(firestoreClient, this._query)
+      : firestoreClientGetDocumentsViaSnapshotListener(
+          firestoreClient,
+          this._query,
+          options
+        )
     ).then(
       snap =>
         new QuerySnapshot(this.firestore, this._query, snap, this._converter)
