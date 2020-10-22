@@ -187,16 +187,16 @@ export class SwController implements FirebaseMessaging, FirebaseService {
     }
 
     // background handling: display and pass to onBackgroundMessage hook
-    let isNotificationShown = false;
-    if (!!internalPayload.notification) {
-      await showNotification(wrapInternalPayload(internalPayload));
-      isNotificationShown = true;
-    }
+    const showDefaultNotification = async function () {
+      if (!!internalPayload.notification) {
+        await showNotification(wrapInternalPayload(internalPayload));
+      }
+    };
 
     // MessagePayload is only passed to `onBackgroundMessage`. Skip passing MessagePayload for
     // the legacy `setBackgroundMessageHandler` to preserve the SDK behaviors.
     if (
-      isNotificationShown === true &&
+      // isNotificationShown === true &&
       this.isOnBackgroundMessageUsed === false
     ) {
       return;
@@ -205,11 +205,34 @@ export class SwController implements FirebaseMessaging, FirebaseService {
     if (!!this.bgMessageHandler) {
       const payload = externalizePayload(internalPayload);
 
+      let bgMessageHandlerResult: any = null;
+
       if (typeof this.bgMessageHandler === 'function') {
-        this.bgMessageHandler(payload);
+        bgMessageHandlerResult = this.bgMessageHandler(payload);
       } else {
-        this.bgMessageHandler.next(payload);
+        bgMessageHandlerResult = this.bgMessageHandler.next(payload);
       }
+
+      // Show default notification if no response from bgMessageHandler
+      if (
+        !bgMessageHandlerResult ||
+        !(bgMessageHandlerResult instanceof Promise)
+      ) {
+        await showDefaultNotification();
+      } else if (bgMessageHandlerResult instanceof Promise) {
+        const result = await bgMessageHandlerResult;
+        // Check if result of Promise is undefined
+        // because docs (https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/showNotification)
+        // says that promise resolves undefined
+        // then we should skip our default notification
+        // otherwise show our
+        if (result !== undefined) {
+          await showDefaultNotification();
+        }
+      }
+    } else {
+      // Show default if no bgMessageHandler
+      await showDefaultNotification();
     }
   }
 
