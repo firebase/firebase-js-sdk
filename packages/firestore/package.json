@@ -7,7 +7,6 @@
   "description": "The Cloud Firestore component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
-    "postinstall": "yarn genTestingBundles",
     "bundle": "rollup -c",
     "build": "run-p 'bundle rollup.config.browser.js' 'bundle rollup.config.browser.memory.js' 'bundle rollup.config.node.js' 'bundle rollup.config.node.memory.js' 'bundle rollup.config.rn.js' 'bundle rollup.config.rn.memory.js' build:lite build:exp",
     "build:scripts": "run-s 'bundle rollup.config.scripts.js'",
