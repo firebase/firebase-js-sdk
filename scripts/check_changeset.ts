@@ -110,10 +110,15 @@ async function main() {
         changedPkg => !changesetPackages.includes(changedPkg)
       );
       if (missingPackages.length > 0) {
-        missingPackagesError = `Warning: This PR modifies files in the following packages but they have not been included in the changeset file:%0A
-        ${missingPackages.map(pkg => `- ${pkg}`).join('%0A')}
-        %0A
-        Make sure this was intentional.%0A`;
+        const missingPackagesLines = [
+          'Warning: This PR modifies files in the following packages but they have not been included in the changeset file:'
+        ];
+        for (const missingPackage of missingPackages) {
+          missingPackagesLines.push(`- ${missingPackage}`);
+        }
+        missingPackagesLines.push('');
+        missingPackagesLines.push('Make sure this was intentional.');
+        missingPackagesError = missingPackagesLines.join('%0A');
       }
     }
   } catch (e) {
