@@ -123,7 +123,7 @@ export const enum AuthErrorCode {
   WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported'
 }
 
-const ERRORS: ErrorMap<AuthErrorCode> = {
+export const ERRORS: ErrorMap<AuthErrorCode> = {
   [AuthErrorCode.ADMIN_ONLY_OPERATION]:
     'This operation is restricted to administrators only.',
   [AuthErrorCode.ARGUMENT_ERROR]: '',
