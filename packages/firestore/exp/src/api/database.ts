@@ -20,13 +20,16 @@ import { _FirebaseService, FirebaseApp } from '@firebase/app-types-exp';
 import { Provider } from '@firebase/component';
 
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
-import { MAX_CONCURRENT_LIMBO_RESOLUTIONS } from '../../../src/core/firestore_client';
 import {
-  AsyncQueue,
-  wrapInUserErrorIfRecoverable
-} from '../../../src/util/async_queue';
+  FirestoreClient,
+  firestoreClientDisableNetwork,
+  firestoreClientEnableNetwork,
+  firestoreClientWaitForPendingWrites,
+  setOfflineComponentProvider,
+  setOnlineComponentProvider
+} from '../../../src/core/firestore_client';
+import { AsyncQueue } from '../../../src/util/async_queue';
 import {
-  ComponentConfiguration,
   IndexedDbOfflineComponentProvider,
   MultiTabOfflineComponentProvider,
   OfflineComponentProvider,
@@ -44,28 +47,9 @@ import {
   indexedDbClearPersistence,
   indexedDbStoragePrefix
 } from '../../../src/local/indexeddb_persistence';
-import {
-  getPersistence,
-  getRemoteStore,
-  getSyncEngine,
-  removeComponents,
-  setOfflineComponentProvider,
-  setOnlineComponentProvider
-} from './components';
-import { DEFAULT_HOST, DEFAULT_SSL } from '../../../lite/src/api/components';
-import { DatabaseInfo } from '../../../src/core/database_info';
-import { AutoId } from '../../../src/util/misc';
-import { User } from '../../../src/auth/user';
-import { CredentialChangeListener } from '../../../src/api/credentials';
-import { logDebug } from '../../../src/util/log';
-import { registerPendingWritesCallback } from '../../../src/core/sync_engine';
-import {
-  remoteStoreDisableNetwork,
-  remoteStoreEnableNetwork
-} from '../../../src/remote/remote_store';
+import { DatabaseId } from '../../../src/core/database_info';
 import { PersistenceSettings } from '../../../exp-types';
-
-const LOG_TAG = 'Firestore';
+import { makeDatabaseInfo } from '../../../lite/src/api/components';
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
@@ -76,6 +60,19 @@ export interface Settings extends LiteSettings {
   cacheSizeBytes?: number;
 }
 
+// TODO(firestore-compat): This interface exposes internal APIs that the Compat
+// layer implements to interact with the firestore-exp SDK. We can remove this
+// class once we have an actual compat class for FirebaseFirestore.
+export interface FirestoreCompat {
+  readonly _initialized: boolean;
+  readonly _terminated: boolean;
+  readonly _databaseId: DatabaseId;
+  readonly _persistenceKey: string;
+  readonly _queue: AsyncQueue;
+  _ensureClientConfigured(): FirestoreClient;
+  _getSettings(): Settings;
+}
+
 /**
  * The Cloud Firestore service interface.
  *
@@ -83,18 +80,11 @@ export interface Settings extends LiteSettings {
  */
 export class FirebaseFirestore
   extends LiteFirestore
-  implements _FirebaseService {
+  implements _FirebaseService, FirestoreCompat {
   readonly _queue = new AsyncQueue();
   readonly _persistenceKey: string;
-  readonly _clientId = AutoId.newId();
 
-  private readonly _receivedInitialUser = new Deferred<void>();
-  private _user = User.UNAUTHENTICATED;
-  private _credentialListener: CredentialChangeListener = () => {};
-
-  // We override the Settings property of the Lite SDK since the full Firestore
-  // SDK supports more settings.
-  protected _settings?: Settings;
+  _firestoreClient: FirestoreClient | undefined;
 
   constructor(
     app: FirebaseApp,
@@ -102,80 +92,36 @@ export class FirebaseFirestore
   ) {
     super(app, authProvider);
     this._persistenceKey = app.name;
-    this._credentials.setChangeListener(user => {
-      this._user = user;
-      this._receivedInitialUser.resolve();
-    });
   }
 
-  _setCredentialChangeListener(
-    credentialListener: CredentialChangeListener
-  ): void {
-    logDebug(LOG_TAG, 'Registering credential change listener');
-    this._credentialListener = credentialListener;
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this._receivedInitialUser.promise.then(() =>
-      this._credentialListener(this._user)
-    );
+  _ensureClientConfigured(): FirestoreClient {
+    if (!this._firestoreClient) {
+      this._configureClient();
+    }
+    this._firestoreClient!.verifyNotTerminated();
+    return this._firestoreClient!;
   }
 
-  async _getConfiguration(): Promise<ComponentConfiguration> {
-    const settings = this._getSettings();
-    await this._receivedInitialUser.promise;
-    const databaseInfo = new DatabaseInfo(
+  private _configureClient(): void {
+    const databaseInfo = makeDatabaseInfo(
       this._databaseId,
       this._persistenceKey,
-      settings.host ?? DEFAULT_HOST,
-      settings.ssl ?? DEFAULT_SSL,
-      /* forceLongPolling= */ false,
-      /* forceAutoDetectLongPolling= */ true
+      this._settings as Settings
     );
-    return {
-      asyncQueue: this._queue,
-      databaseInfo,
-      clientId: this._clientId,
-      credentials: this._credentials,
-      initialUser: this._user,
-      maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS
-    };
-  }
-
-  _getSettings(): Settings {
-    return super._getSettings();
+    this._firestoreClient = new FirestoreClient(
+      this._credentials,
+      this._queue,
+      databaseInfo
+    );
   }
 
   _terminate(): Promise<void> {
-    this._queue.enterRestrictedMode();
-    const deferred = new Deferred();
-    this._queue.enqueueAndForgetEvenWhileRestricted(async () => {
-      try {
-        await super._terminate();
-        await removeComponents(this);
-
-        // `removeChangeListener` must be called after shutting down the
-        // RemoteStore as it will prevent the RemoteStore from retrieving
-        // auth tokens.
-        this._credentials.removeChangeListener();
-
-        deferred.resolve();
-      } catch (e) {
-        const firestoreError = wrapInUserErrorIfRecoverable(
-          e,
-          `Failed to shutdown persistence`
-        );
-        deferred.reject(firestoreError);
-      }
-    });
-    return deferred.promise;
-  }
-
-  _verifyNotTerminated(): void {
-    if (this._terminated) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        'The client has already been terminated.'
-      );
+    if (!this._firestoreClient) {
+      // The client must be initialized to ensure that all subsequent API
+      // usage throws an exception.
+      this._configureClient();
     }
+    return this._firestoreClient!.terminate();
   }
 }
 
@@ -210,7 +156,7 @@ export function initializeFirestore(
     );
   }
 
-  firestore._configureClient(settings);
+  firestore._setSettings(settings);
   return firestore;
 }
 
@@ -250,15 +196,12 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
  * @return A promise that represents successfully enabling persistent storage.
  */
 export function enableIndexedDbPersistence(
-  firestore: FirebaseFirestore,
+  firestore: FirestoreCompat,
   persistenceSettings?: PersistenceSettings
 ): Promise<void> {
   verifyNotInitialized(firestore);
 
-  // `_getSettings()` freezes the client settings and prevents further changes
-  // to the components (as `verifyNotInitialized()` would fail). Components can
-  // then be accessed via `getOfflineComponentProvider()` and
-  // `getOnlineComponentProvider()`
+  const firestoreClient = firestore._ensureClientConfigured();
   const settings = firestore._getSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
@@ -268,7 +211,7 @@ export function enableIndexedDbPersistence(
     persistenceSettings?.forceOwnership
   );
   return setPersistenceProviders(
-    firestore,
+    firestoreClient,
     onlineComponentProvider,
     offlineComponentProvider
   );
@@ -297,14 +240,11 @@ export function enableIndexedDbPersistence(
  * storage.
  */
 export function enableMultiTabIndexedDbPersistence(
-  firestore: FirebaseFirestore
+  firestore: FirestoreCompat
 ): Promise<void> {
   verifyNotInitialized(firestore);
 
-  // `_getSettings()` freezes the client settings and prevents further changes
-  // to the components (as `verifyNotInitialized()` would fail). Components can
-  // then be accessed via `getOfflineComponentProvider()` and
-  // `getOnlineComponentProvider()`
+  const firestoreClient = firestore._ensureClientConfigured();
   const settings = firestore._getSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
@@ -313,7 +253,7 @@ export function enableMultiTabIndexedDbPersistence(
     settings.cacheSizeBytes
   );
   return setPersistenceProviders(
-    firestore,
+    firestoreClient,
     onlineComponentProvider,
     offlineComponentProvider
   );
@@ -326,12 +266,12 @@ export function enableMultiTabIndexedDbPersistence(
  * but the client remains usable.
  */
 function setPersistenceProviders(
-  firestore: FirebaseFirestore,
+  firestore: FirestoreClient,
   onlineComponentProvider: OnlineComponentProvider,
   offlineComponentProvider: OfflineComponentProvider
 ): Promise<void> {
   const persistenceResult = new Deferred();
-  return firestore._queue
+  return firestore.asyncQueue
     .enqueue(async () => {
       try {
         await setOfflineComponentProvider(firestore, offlineComponentProvider);
@@ -356,9 +296,7 @@ function setPersistenceProviders(
  * Decides whether the provided error allows us to gracefully disable
  * persistence (as opposed to crashing the client).
  */
-// TODO(schmidt-sebastian): Remove `export` in
-// https://github.com/firebase/firebase-js-sdk/pull/3901
-export function canFallbackFromIndexedDbError(
+function canFallbackFromIndexedDbError(
   error: FirestoreError | DOMException
 ): boolean {
   if (error.name === 'FirebaseError') {
@@ -415,7 +353,7 @@ export function canFallbackFromIndexedDbError(
  * cleared. Otherwise, the promise is rejected with an error.
  */
 export function clearIndexedDbPersistence(
-  firestore: FirebaseFirestore
+  firestore: FirestoreCompat
 ): Promise<void> {
   if (firestore._initialized && !firestore._terminated) {
     throw new FirestoreError(
@@ -458,14 +396,8 @@ export function clearIndexedDbPersistence(
 export function waitForPendingWrites(
   firestore: FirebaseFirestore
 ): Promise<void> {
-  firestore._verifyNotTerminated();
-
-  const deferred = new Deferred<void>();
-  firestore._queue.enqueueAndForget(async () => {
-    const syncEngine = await getSyncEngine(firestore);
-    return registerPendingWritesCallback(syncEngine, deferred);
-  });
-  return deferred.promise;
+  const firestoreClient = firestore._ensureClientConfigured();
+  return firestoreClientWaitForPendingWrites(firestoreClient);
 }
 
 /**
@@ -475,14 +407,8 @@ export function waitForPendingWrites(
  * @return A promise that is resolved once the network has been enabled.
  */
 export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
-  firestore._verifyNotTerminated();
-
-  return firestore._queue.enqueue(async () => {
-    const remoteStore = await getRemoteStore(firestore);
-    const persistence = await getPersistence(firestore);
-    persistence.setNetworkEnabled(true);
-    return remoteStoreEnableNetwork(remoteStore);
-  });
+  const firestoreClient = firestore._ensureClientConfigured();
+  return firestoreClientEnableNetwork(firestoreClient);
 }
 
 /**
@@ -494,14 +420,8 @@ export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
  * @return A promise that is resolved once the network has been disabled.
  */
 export function disableNetwork(firestore: FirebaseFirestore): Promise<void> {
-  firestore._verifyNotTerminated();
-
-  return firestore._queue.enqueue(async () => {
-    const remoteStore = await getRemoteStore(firestore);
-    const persistence = await getPersistence(firestore);
-    persistence.setNetworkEnabled(false);
-    return remoteStoreDisableNetwork(remoteStore);
-  });
+  const firestoreClient = firestore._ensureClientConfigured();
+  return firestoreClientDisableNetwork(firestoreClient);
 }
 
 /**
@@ -531,7 +451,7 @@ export function terminate(firestore: FirebaseFirestore): Promise<void> {
   return firestore._delete();
 }
 
-function verifyNotInitialized(firestore: FirebaseFirestore): void {
+function verifyNotInitialized(firestore: FirestoreCompat): void {
   if (firestore._initialized || firestore._terminated) {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,

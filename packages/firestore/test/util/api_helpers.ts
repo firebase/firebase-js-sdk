@@ -71,7 +71,7 @@ export function newTestFirestore(): Firestore {
 export function collectionReference(path: string): CollectionReference {
   const firestoreClient = firestore();
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  firestoreClient.ensureClientConfigured();
+  firestoreClient._ensureClientConfigured();
   return new CollectionReference(
     pathFrom(path),
     firestoreClient,
@@ -82,7 +82,7 @@ export function collectionReference(path: string): CollectionReference {
 export function documentReference(path: string): DocumentReference {
   const firestoreClient = firestore();
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  firestoreClient.ensureClientConfigured();
+  firestoreClient._ensureClientConfigured();
   return new DocumentReference(
     key(path),
     firestoreClient,

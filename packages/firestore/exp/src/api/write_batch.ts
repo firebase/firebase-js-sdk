@@ -31,7 +31,7 @@ import { executeWrite } from './reference';
  * writes.
  */
 export function writeBatch(firestore: FirebaseFirestore): WriteBatch {
-  firestore._verifyNotTerminated();
+  firestore._ensureClientConfigured();
   return new WriteBatch(firestore, mutations =>
     executeWrite(firestore, mutations)
   );

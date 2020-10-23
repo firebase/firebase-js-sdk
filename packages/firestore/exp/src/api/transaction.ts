@@ -91,7 +91,7 @@ export function runTransaction<T>(
   firestore: FirebaseFirestore,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
-  firestore._verifyNotTerminated();
+  firestore._ensureClientConfigured();
 
   const deferred = new Deferred<T>();
   firestore._queue.enqueueAndForget(async () => {

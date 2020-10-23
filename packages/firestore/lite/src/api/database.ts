@@ -50,7 +50,6 @@ export class FirebaseFirestore implements _FirebaseService {
   readonly _credentials: CredentialsProvider;
   readonly _persistenceKey: string = '(lite)';
 
-  // Assigned via _configureClient()
   protected _settings?: Settings;
   private _settingsFrozen = false;
 
@@ -81,7 +80,7 @@ export class FirebaseFirestore implements _FirebaseService {
     return this._terminateTask !== undefined;
   }
 
-  _configureClient(settings: Settings): void {
+  _setSettings(settings: Settings): void {
     if (this._settingsFrozen) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
@@ -151,7 +150,7 @@ export function initializeFirestore(
     app,
     'firestore/lite'
   ).getImmediate() as FirebaseFirestore;
-  firestore._configureClient(settings);
+  firestore._setSettings(settings);
   return firestore;
 }
 
