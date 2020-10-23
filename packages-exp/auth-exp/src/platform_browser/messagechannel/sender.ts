@@ -23,19 +23,13 @@ import {
   SenderMessageEvent,
   Status,
   ReceiverMessageResponse,
-  ReceiverResponse
+  ReceiverResponse,
+  TimeoutDuration
 } from './index';
 
 interface MessageHandler {
   messageChannel: MessageChannel;
   onMessage: EventListenerOrEventListenerObject;
-}
-
-export enum TimeoutDuration {
-  ACK = 50,
-  COMPLETION = 3000,
-  // Used when a handler is confirmed to be available on the other side.
-  LONG_ACK = 800
 }
 
 /**

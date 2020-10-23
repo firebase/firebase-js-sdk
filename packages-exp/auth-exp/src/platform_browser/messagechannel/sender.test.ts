@@ -26,12 +26,13 @@ import {
   PingResponse,
   ReceiverMessageEvent,
   SenderMessageEvent,
-  Status
+  Status,
+  TimeoutDuration
 } from '.';
 import { delay } from '../../../test/helpers/delay';
 import { FakeServiceWorker } from '../../../test/helpers/fake_service_worker';
 import { stubTimeouts, TimerMap } from '../../../test/helpers/timeout_stub';
-import { Sender, TimeoutDuration } from './sender';
+import { Sender } from './sender';
 
 use(sinonChai);
 use(chaiAsPromised);

@@ -25,9 +25,13 @@ import {
   SingletonInstantiator,
   _getInstance
 } from '../../core/util/instantiator';
-import { EventType, KeyChangedRequest } from '../messagechannel/index';
+import {
+  EventType,
+  KeyChangedRequest,
+  TimeoutDuration
+} from '../messagechannel/index';
 import { Receiver } from '../messagechannel/receiver';
-import { Sender, TimeoutDuration } from '../messagechannel/sender';
+import { Sender } from '../messagechannel/sender';
 import * as workerUtil from '../util/worker';
 import {
   indexedDBLocalPersistence,

@@ -29,10 +29,11 @@ import {
   PingResponse,
   KeyChangedResponse,
   KeyChangedRequest,
-  PingRequest
+  PingRequest,
+  TimeoutDuration
 } from '../messagechannel/index';
 import { Receiver } from '../messagechannel/receiver';
-import { Sender, TimeoutDuration } from '../messagechannel/sender';
+import { Sender } from '../messagechannel/sender';
 import {
   _isWorker,
   _getActiveServiceWorker,

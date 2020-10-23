@@ -17,6 +17,13 @@
 
 import { PromiseSettledResult } from './promise';
 
+export const enum TimeoutDuration {
+  ACK = 50,
+  COMPLETION = 3000,
+  // Used when a handler is confirmed to be available on the other side.
+  LONG_ACK = 800
+}
+
 /**
  * Enumeration of possible response types from the Receiver.
  */
