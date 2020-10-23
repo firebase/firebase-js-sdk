@@ -24,7 +24,6 @@ import { name, version } from './package.json';
 registerFunctions(firebase as _FirebaseNamespace, fetch.bind(self));
 firebase.registerVersion(name, version);
 
-// TEST CHANGE
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     functions?: {
