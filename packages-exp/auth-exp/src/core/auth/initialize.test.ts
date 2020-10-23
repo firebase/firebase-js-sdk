@@ -106,6 +106,13 @@ describe('core/auth/initialize', () => {
     ): void {
       cb(true);
     }
+    async _completeRedirectFn(
+      _auth: externs.Auth,
+      _resolver: externs.PopupRedirectResolver,
+      _bypassAuthState: boolean
+    ): Promise<externs.UserCredential | null> {
+      return null;
+    }
   }
 
   const fakePopupRedirectResolver: externs.PopupRedirectResolver = FakePopupRedirectResolver;

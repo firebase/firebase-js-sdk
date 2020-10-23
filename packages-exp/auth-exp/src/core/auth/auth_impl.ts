@@ -120,13 +120,11 @@ export class AuthImpl implements Auth, _FirebaseService {
     });
 
     // After initialization completes, throw any error caused by redirect flow
-    this._initializationPromise.then(() => {
+    return this._initializationPromise.then(() => {
       if (this.redirectInitializerError) {
         throw this.redirectInitializerError;
       }
     });
-
-    return this._initializationPromise;
   }
 
   /**
