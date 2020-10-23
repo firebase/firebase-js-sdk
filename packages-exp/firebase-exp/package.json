@@ -39,6 +39,7 @@
   "dependencies": {
     "@firebase/app-exp": "0.0.800",
     "@firebase/app-compat": "0.0.800",
+    "@firebase/auth-exp": "0.0.800",
     "@firebase/functions-exp": "0.0.800",
     "@firebase/firestore": "1.18.0",
     "@firebase/performance-exp": "0.0.800"
@@ -59,6 +60,7 @@
   },
   "components": [
     "app",
+    "auth",
     "functions",
     "firestore",
     "firestore/lite",
