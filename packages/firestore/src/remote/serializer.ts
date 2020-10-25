@@ -341,7 +341,8 @@ export function fromName(
   const resource = fromResourceName(name);
 
   if (resource.get(1) !== serializer.databaseId.projectId) {
-    throw new Error(
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
       'Tried to deserialize key from different project: ' +
         resource.get(1) +
         ' vs ' +
@@ -350,7 +351,8 @@ export function fromName(
   }
 
   if (resource.get(3) !== serializer.databaseId.database) {
-    throw new Error(
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
       'Tried to deserialize key from different database: ' +
         resource.get(3) +
         ' vs ' +

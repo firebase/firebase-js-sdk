@@ -45,71 +45,9 @@ function verifyInProgress(
   expect(p.documentsLoaded).to.equal(expectedDocuments);
 }
 
-/**
- * Returns a testing bundle string for the given projectId.
- *
- * The function is commented out, but kept for documentation purpose. It accesses SDK
- * internals, which is not available in test:minified.
- *
- * The tests uses `BUNDLE_TEMPLATE` as test data instead, which is generated from this function
- * and replaced with different project IDs when required. To update `BUNDLE_TEMPALTE`, you
- * need to uncomment the function, and copy/paste from the console output to `BUNDLE_TEMPALTE`.
- * It is manual, but should be required only rarely.
- */
-/*
-function bundleWithTestDocsAndQueries(projectId: string): string {
-  const testDocs: { [key: string]: firestore.DocumentData } = {
-    a: { k: { stringValue: 'a' }, bar: { integerValue: 1 } },
-    b: { k: { stringValue: 'b' }, bar: { integerValue: 2 } }
-  };
-
-  const a = key('coll-1/a');
-  const b = key('coll-1/b');
-  const builder = new TestBundleBuilder(new DatabaseId(projectId));
-
-  builder.addNamedQuery(
-    'limit',
-    { seconds: 1000, nanos: 9999 },
-    (collectionReference('coll-1')
-      .orderBy('bar', 'desc')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .limit(1) as any)._query
-  );
-  builder.addNamedQuery(
-    'limit-to-last',
-    { seconds: 1000, nanos: 9999 },
-    (collectionReference('coll-1')
-      .orderBy('bar', 'desc')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .limitToLast(1) as any)._query
-  );
-
-  builder.addDocumentMetadata(a, { seconds: 1000, nanos: 9999 }, true);
-  builder.addDocument(
-    a,
-    { seconds: 1, nanos: 9 },
-    { seconds: 1, nanos: 9 },
-    testDocs.a
-  );
-  builder.addDocumentMetadata(b, { seconds: 1000, nanos: 9999 }, true);
-  builder.addDocument(
-    b,
-    { seconds: 1, nanos: 9 },
-    { seconds: 1, nanos: 9 },
-    testDocs.b
-  );
-
-  return builder
-    .build('test-bundle', { seconds: 1001, nanos: 9999 })
-    .toString();
-}
-
-console.log(
-  `${bundleWithTestDocsAndQueries('test-project')}`
-);
- */
-
 const TEMPLATE_PROJECT_ID = 'test-project';
+// This template is generated from bundleWithTestDocsAndQueries in '../util/internal_helpsers.ts',
+// and manually copied here.
 const BUNDLE_TEMPLATE =
   '125{"metadata":{"id":"test-bundle","createTime":{"seconds":1001,"nanos":9999},"version":1,"totalDocuments":2,"totalBytes":1503}}374{"namedQuery":{"name":"limit","readTime":{"seconds":1000,"nanos":9999},"bundledQuery":{"parent":"projects/test-project/databases/(default)/documents","structuredQuery":{"from":[{"collectionId":"coll-1"}],"orderBy":[{"field":{"fieldPath":"bar"},"direction":"DESCENDING"},{"field":{"fieldPath":"__name__"},"direction":"DESCENDING"}],"limit":{"value":1}},"limitType":"FIRST"}}}381{"namedQuery":{"name":"limit-to-last","readTime":{"seconds":1000,"nanos":9999},"bundledQuery":{"parent":"projects/test-project/databases/(default)/documents","structuredQuery":{"from":[{"collectionId":"coll-1"}],"orderBy":[{"field":{"fieldPath":"bar"},"direction":"DESCENDING"},{"field":{"fieldPath":"__name__"},"direction":"DESCENDING"}],"limit":{"value":1}},"limitType":"LAST"}}}147{"documentMetadata":{"name":"projects/test-project/databases/(default)/documents/coll-1/a","readTime":{"seconds":1000,"nanos":9999},"exists":true}}218{"document":{"name":"projects/test-project/databases/(default)/documents/coll-1/a","createTime":{"seconds":1,"nanos":9},"updateTime":{"seconds":1,"nanos":9},"fields":{"k":{"stringValue":"a"},"bar":{"integerValue":1}}}}147{"documentMetadata":{"name":"projects/test-project/databases/(default)/documents/coll-1/b","readTime":{"seconds":1000,"nanos":9999},"exists":true}}218{"document":{"name":"projects/test-project/databases/(default)/documents/coll-1/b","createTime":{"seconds":1,"nanos":9},"updateTime":{"seconds":1,"nanos":9},"fields":{"k":{"stringValue":"b"},"bar":{"integerValue":2}}}}';
 
