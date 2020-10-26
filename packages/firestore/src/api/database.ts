@@ -614,9 +614,9 @@ export class Firestore
   runTransaction<T>(
     updateFunction: (transaction: PublicTransaction) => Promise<T>
   ): Promise<T> {
-    ensureFirestoreConfigured(this);
+    const client = ensureFirestoreConfigured(this);
     return firestoreClientTransaction(
-      this._firestoreClient!,
+      client,
       (transaction: InternalTransaction) => {
         return updateFunction(new Transaction(this, transaction));
       }
