@@ -159,22 +159,20 @@ describe('SnapshotMetadata', () => {
 describe('Settings', () => {
   it('replaces settings by default', () => {
     // Use a new instance of Firestore in order to configure settings.
-    const firestoreClient = newTestFirestore();
-    firestoreClient.settings({ host: 'other.host' });
-    firestoreClient.settings({ ignoreUndefinedProperties: true });
+    const db = newTestFirestore();
+    db.settings({ host: 'other.host' });
+    db.settings({ ignoreUndefinedProperties: true });
 
-    expect(firestoreClient._getSettings().ignoreUndefinedProperties).to.be.true;
+    expect(db._getSettings().ignoreUndefinedProperties).to.be.true;
     // Expect host to be replaced with default host.
-    expect(firestoreClient._getSettings().host).to.equal(
-      'firestore.googleapis.com'
-    );
+    expect(db._getSettings().host).to.equal('firestore.googleapis.com');
   });
 
   it('can not use mutually exclusive settings together', () => {
     // Use a new instance of Firestore in order to configure settings.
-    const firestoreClient = newTestFirestore();
+    const db = newTestFirestore();
     expect(
-      firestoreClient.settings.bind(firestoreClient.settings, {
+      db.settings.bind(db.settings, {
         experimentalForceLongPolling: true,
         experimentalAutoDetectLongPolling: true
       })
@@ -185,33 +183,33 @@ describe('Settings', () => {
 
   it('can merge settings', () => {
     // Use a new instance of Firestore in order to configure settings.
-    const firestoreClient = newTestFirestore();
-    firestoreClient.settings({ host: 'other.host' });
-    firestoreClient.settings({
+    const db = newTestFirestore();
+    db.settings({ host: 'other.host' });
+    db.settings({
       ignoreUndefinedProperties: true,
       merge: true
     });
 
-    expect(firestoreClient._getSettings().ignoreUndefinedProperties).to.be.true;
-    expect(firestoreClient._getSettings().host).to.equal('other.host');
+    expect(db._getSettings().ignoreUndefinedProperties).to.be.true;
+    expect(db._getSettings().host).to.equal('other.host');
   });
 
   it('gets settings from useEmulator', () => {
     // Use a new instance of Firestore in order to configure settings.
-    const firestoreClient = newTestFirestore();
-    firestoreClient.useEmulator('localhost', 9000);
+    const db = newTestFirestore();
+    db.useEmulator('localhost', 9000);
 
-    expect(firestoreClient._getSettings().host).to.equal('localhost:9000');
-    expect(firestoreClient._getSettings().ssl).to.be.false;
+    expect(db._getSettings().host).to.equal('localhost:9000');
+    expect(db._getSettings().ssl).to.be.false;
   });
 
   it('prefers host from useEmulator to host from settings', () => {
     // Use a new instance of Firestore in order to configure settings.
-    const firestoreClient = newTestFirestore();
-    firestoreClient.settings({ host: 'other.host' });
-    firestoreClient.useEmulator('localhost', 9000);
+    const db = newTestFirestore();
+    db.settings({ host: 'other.host' });
+    db.useEmulator('localhost', 9000);
 
-    expect(firestoreClient._getSettings().host).to.equal('localhost:9000');
-    expect(firestoreClient._getSettings().ssl).to.be.false;
+    expect(db._getSettings().host).to.equal('localhost:9000');
+    expect(db._getSettings().ssl).to.be.false;
   });
 });

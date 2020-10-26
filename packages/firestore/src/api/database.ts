@@ -941,8 +941,8 @@ export class WriteBatch implements PublicWriteBatch {
     this.verifyNotCommitted();
     this._committed = true;
     if (this._mutations.length > 0) {
-      const firestoreClient = ensureFirestoreClientConfigured(this._firestore);
-      return firestoreClientWrite(firestoreClient, this._mutations);
+      const client = ensureFirestoreClientConfigured(this._firestore);
+      return firestoreClientWrite(client, this._mutations);
     }
 
     return Promise.resolve();
@@ -2016,23 +2016,18 @@ export class Query<T = DocumentData> implements PublicQuery<T> {
     };
 
     validateHasExplicitOrderByForLimitToLast(this._query);
-    const firestoreClient = ensureFirestoreClientConfigured(this.firestore);
-    return firestoreClientListen(
-      firestoreClient,
-      this._query,
-      options,
-      observer
-    );
+    const client = ensureFirestoreClientConfigured(this.firestore);
+    return firestoreClientListen(client, this._query, options, observer);
   }
 
   get(options?: GetOptions): Promise<PublicQuerySnapshot<T>> {
     validateHasExplicitOrderByForLimitToLast(this._query);
 
-    const firestoreClient = ensureFirestoreClientConfigured(this.firestore);
+    const client = ensureFirestoreClientConfigured(this.firestore);
     return (options && options.source === 'cache'
-      ? firestoreClientGetDocumentsFromLocalCache(firestoreClient, this._query)
+      ? firestoreClientGetDocumentsFromLocalCache(client, this._query)
       : firestoreClientGetDocumentsViaSnapshotListener(
-          firestoreClient,
+          client,
           this._query,
           options
         )

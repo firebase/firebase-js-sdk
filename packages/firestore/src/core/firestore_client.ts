@@ -180,17 +180,17 @@ export class FirestoreClient {
 }
 
 export async function setOfflineComponentProvider(
-  firestoreClient: FirestoreClient,
+  client: FirestoreClient,
   offlineComponentProvider: OfflineComponentProvider
 ): Promise<void> {
-  firestoreClient.asyncQueue.verifyOperationInProgress();
+  client.asyncQueue.verifyOperationInProgress();
 
   logDebug(LOG_TAG, 'Initializing OfflineComponentProvider');
-  const configuration = await firestoreClient.getConfiguration();
+  const configuration = await client.getConfiguration();
   await offlineComponentProvider.initialize(configuration);
 
-  firestoreClient.setCredentialChangeListener(user =>
-    firestoreClient.asyncQueue.enqueueRetryable(async () => {
+  client.setCredentialChangeListener(user =>
+    client.asyncQueue.enqueueRetryable(async () => {
       await handleUserChange(offlineComponentProvider.localStore, user);
     })
   );
@@ -198,99 +198,88 @@ export async function setOfflineComponentProvider(
   // When a user calls clearPersistence() in one client, all other clients
   // need to be terminated to allow the delete to succeed.
   offlineComponentProvider.persistence.setDatabaseDeletedListener(() =>
-    firestoreClient.terminate()
+    client.terminate()
   );
 
-  firestoreClient.offlineComponents = offlineComponentProvider;
+  client.offlineComponents = offlineComponentProvider;
 }
 
 export async function setOnlineComponentProvider(
-  firestoreClient: FirestoreClient,
+  client: FirestoreClient,
   onlineComponentProvider: OnlineComponentProvider
 ): Promise<void> {
-  firestoreClient.asyncQueue.verifyOperationInProgress();
+  client.asyncQueue.verifyOperationInProgress();
 
-  const offlineComponentProvider = await ensureOfflineComponents(
-    firestoreClient
-  );
+  const offlineComponentProvider = await ensureOfflineComponents(client);
 
   logDebug(LOG_TAG, 'Initializing OnlineComponentProvider');
-  const configuration = await firestoreClient.getConfiguration();
+  const configuration = await client.getConfiguration();
   await onlineComponentProvider.initialize(
     offlineComponentProvider,
     configuration
   );
   // The CredentialChangeListener of the online component provider takes
   // precedence over the offline component provider.
-  firestoreClient.setCredentialChangeListener(user =>
-    firestoreClient.asyncQueue.enqueueRetryable(() =>
+  client.setCredentialChangeListener(user =>
+    client.asyncQueue.enqueueRetryable(() =>
       remoteStoreHandleCredentialChange(
         onlineComponentProvider.remoteStore,
         user
       )
     )
   );
-  firestoreClient.onlineComponents = onlineComponentProvider;
+  client.onlineComponents = onlineComponentProvider;
 }
 
 async function ensureOfflineComponents(
-  firestoreClient: FirestoreClient
+  client: FirestoreClient
 ): Promise<OfflineComponentProvider> {
-  if (!firestoreClient.offlineComponents) {
+  if (!client.offlineComponents) {
     logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
     await setOfflineComponentProvider(
-      firestoreClient,
+      client,
       new MemoryOfflineComponentProvider()
     );
   }
 
-  return firestoreClient.offlineComponents!;
+  return client.offlineComponents!;
 }
 
 async function ensureOnlineComponents(
-  firestoreClient: FirestoreClient
+  client: FirestoreClient
 ): Promise<OnlineComponentProvider> {
-  if (!firestoreClient.onlineComponents) {
+  if (!client.onlineComponents) {
     logDebug(LOG_TAG, 'Using default OnlineComponentProvider');
-    await setOnlineComponentProvider(
-      firestoreClient,
-      new OnlineComponentProvider()
-    );
+    await setOnlineComponentProvider(client, new OnlineComponentProvider());
   }
 
-  return firestoreClient.onlineComponents!;
+  return client.onlineComponents!;
 }
 
-function getPersistence(
-  firestoreClient: FirestoreClient
-): Promise<Persistence> {
-  return ensureOfflineComponents(firestoreClient).then(c => c.persistence);
+function getPersistence(client: FirestoreClient): Promise<Persistence> {
+  return ensureOfflineComponents(client).then(c => c.persistence);
 }
 
-export function getLocalStore(
-  firestoreClient: FirestoreClient
-): Promise<LocalStore> {
-  return ensureOfflineComponents(firestoreClient).then(c => c.localStore);
+export function getLocalStore(client: FirestoreClient): Promise<LocalStore> {
+  return ensureOfflineComponents(client).then(c => c.localStore);
 }
 
-function getRemoteStore(
-  firestoreClient: FirestoreClient
-): Promise<RemoteStore> {
-  return ensureOnlineComponents(firestoreClient).then(c => c.remoteStore);
+function getRemoteStore(client: FirestoreClient): Promise<RemoteStore> {
+  return ensureOnlineComponents(client).then(c => c.remoteStore);
 }
 
-function getSyncEngine(firestoreClient: FirestoreClient): Promise<SyncEngine> {
-  return ensureOnlineComponents(firestoreClient).then(c => c.syncEngine);
+function getSyncEngine(client: FirestoreClient): Promise<SyncEngine> {
+  return ensureOnlineComponents(client).then(c => c.syncEngine);
 }
 
-function getDatastore(firestoreClient: FirestoreClient): Promise<Datastore> {
-  return ensureOnlineComponents(firestoreClient).then(c => c.datastore);
+function getDatastore(client: FirestoreClient): Promise<Datastore> {
+  return ensureOnlineComponents(client).then(c => c.datastore);
 }
 
 export async function getEventManager(
-  firestoreClient: FirestoreClient
+  client: FirestoreClient
 ): Promise<EventManager> {
-  const onlineComponentProvider = await ensureOnlineComponents(firestoreClient);
+  const onlineComponentProvider = await ensureOnlineComponents(client);
   const eventManager = onlineComponentProvider.eventManager;
   eventManager.onListen = syncEngineListen.bind(
     null,
@@ -305,11 +294,11 @@ export async function getEventManager(
 
 /** Enables the network connection and re-enqueues all pending operations. */
 export function firestoreClientEnableNetwork(
-  firestoreClient: FirestoreClient
+  client: FirestoreClient
 ): Promise<void> {
-  return firestoreClient.asyncQueue.enqueue(async () => {
-    const persistence = await getPersistence(firestoreClient);
-    const remoteStore = await getRemoteStore(firestoreClient);
+  return client.asyncQueue.enqueue(async () => {
+    const persistence = await getPersistence(client);
+    const remoteStore = await getRemoteStore(client);
     persistence.setNetworkEnabled(true);
     return remoteStoreEnableNetwork(remoteStore);
   });
@@ -317,11 +306,11 @@ export function firestoreClientEnableNetwork(
 
 /** Disables the network connection. Pending operations will not complete. */
 export function firestoreClientDisableNetwork(
-  firestoreClient: FirestoreClient
+  client: FirestoreClient
 ): Promise<void> {
-  return firestoreClient.asyncQueue.enqueue(async () => {
-    const persistence = await getPersistence(firestoreClient);
-    const remoteStore = await getRemoteStore(firestoreClient);
+  return client.asyncQueue.enqueue(async () => {
+    const persistence = await getPersistence(client);
+    const remoteStore = await getRemoteStore(client);
     persistence.setNetworkEnabled(false);
     return remoteStoreDisableNetwork(remoteStore);
   });
@@ -333,60 +322,60 @@ export function firestoreClientDisableNetwork(
  * can be either acceptance or rejection.
  */
 export function firestoreClientWaitForPendingWrites(
-  firestoreClient: FirestoreClient
+  client: FirestoreClient
 ): Promise<void> {
   const deferred = new Deferred<void>();
-  firestoreClient.asyncQueue.enqueueAndForget(async () => {
-    const syncEngine = await getSyncEngine(firestoreClient);
+  client.asyncQueue.enqueueAndForget(async () => {
+    const syncEngine = await getSyncEngine(client);
     return registerPendingWritesCallback(syncEngine, deferred);
   });
   return deferred.promise;
 }
 
 export function firestoreClientListen(
-  firestoreClient: FirestoreClient,
+  client: FirestoreClient,
   query: Query,
   options: ListenOptions,
   observer: Partial<Observer<ViewSnapshot>>
 ): () => void {
   const wrappedObserver = new AsyncObserver(observer);
   const listener = new QueryListener(query, wrappedObserver, options);
-  firestoreClient.asyncQueue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(firestoreClient);
+  client.asyncQueue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(client);
     return eventManagerListen(eventManager, listener);
   });
   return () => {
     wrappedObserver.mute();
-    firestoreClient.asyncQueue.enqueueAndForget(async () => {
-      const eventManager = await getEventManager(firestoreClient);
+    client.asyncQueue.enqueueAndForget(async () => {
+      const eventManager = await getEventManager(client);
       return eventManagerUnlisten(eventManager, listener);
     });
   };
 }
 
 export function firestoreClientGetDocumentFromLocalCache(
-  firestoreClient: FirestoreClient,
+  client: FirestoreClient,
   docKey: DocumentKey
 ): Promise<Document | null> {
   const deferred = new Deferred<Document | null>();
-  firestoreClient.asyncQueue.enqueueAndForget(async () => {
-    const localStore = await getLocalStore(firestoreClient);
+  client.asyncQueue.enqueueAndForget(async () => {
+    const localStore = await getLocalStore(client);
     return readDocumentFromCache(localStore, docKey, deferred);
   });
   return deferred.promise;
 }
 
 export function firestoreClientGetDocumentViaSnapshotListener(
-  firestoreClient: FirestoreClient,
+  client: FirestoreClient,
   key: DocumentKey,
   options: GetOptions = {}
 ): Promise<ViewSnapshot> {
   const deferred = new Deferred<ViewSnapshot>();
-  firestoreClient.asyncQueue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(firestoreClient);
+  client.asyncQueue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(client);
     return readDocumentViaSnapshotListener(
       eventManager,
-      firestoreClient.asyncQueue,
+      client.asyncQueue,
       key,
       options,
       deferred
@@ -396,28 +385,28 @@ export function firestoreClientGetDocumentViaSnapshotListener(
 }
 
 export function firestoreClientGetDocumentsFromLocalCache(
-  firestoreClient: FirestoreClient,
+  client: FirestoreClient,
   query: Query
 ): Promise<ViewSnapshot> {
   const deferred = new Deferred<ViewSnapshot>();
-  firestoreClient.asyncQueue.enqueueAndForget(async () => {
-    const localStore = await getLocalStore(firestoreClient);
+  client.asyncQueue.enqueueAndForget(async () => {
+    const localStore = await getLocalStore(client);
     return executeQueryFromCache(localStore, query, deferred);
   });
   return deferred.promise;
 }
 
 export function firestoreClientGetDocumentsViaSnapshotListener(
-  firestoreClient: FirestoreClient,
+  client: FirestoreClient,
   query: Query,
   options: GetOptions = {}
 ): Promise<ViewSnapshot> {
   const deferred = new Deferred<ViewSnapshot>();
-  firestoreClient.asyncQueue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(firestoreClient);
+  client.asyncQueue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(client);
     return executeQueryViaSnapshotListener(
       eventManager,
-      firestoreClient.asyncQueue,
+      client.asyncQueue,
       query,
       options,
       deferred
@@ -427,30 +416,30 @@ export function firestoreClientGetDocumentsViaSnapshotListener(
 }
 
 export function firestoreClientWrite(
-  firestoreClient: FirestoreClient,
+  client: FirestoreClient,
   mutations: Mutation[]
 ): Promise<void> {
   const deferred = new Deferred<void>();
-  firestoreClient.asyncQueue.enqueueAndForget(async () => {
-    const syncEngine = await getSyncEngine(firestoreClient);
+  client.asyncQueue.enqueueAndForget(async () => {
+    const syncEngine = await getSyncEngine(client);
     return syncEngineWrite(syncEngine, mutations, deferred);
   });
   return deferred.promise;
 }
 
 export function firestoreClientAddSnapshotsInSyncListener(
-  firestoreClient: FirestoreClient,
+  client: FirestoreClient,
   observer: Partial<Observer<void>>
 ): () => void {
   const wrappedObserver = new AsyncObserver(observer);
-  firestoreClient.asyncQueue.enqueueAndForget(async () => {
-    const eventManager = await getEventManager(firestoreClient);
+  client.asyncQueue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(client);
     return addSnapshotsInSyncListener(eventManager, wrappedObserver);
   });
   return () => {
     wrappedObserver.mute();
-    firestoreClient.asyncQueue.enqueueAndForget(async () => {
-      const eventManager = await getEventManager(firestoreClient);
+    client.asyncQueue.enqueueAndForget(async () => {
+      const eventManager = await getEventManager(client);
       return removeSnapshotsInSyncListener(eventManager, wrappedObserver);
     });
   };
@@ -472,14 +461,14 @@ export function firestoreClientAddSnapshotsInSyncListener(
  * performed before any writes. Transactions must be performed while online.
  */
 export function firestoreClientTransaction<T>(
-  firestoreClient: FirestoreClient,
+  client: FirestoreClient,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
   const deferred = new Deferred<T>();
-  firestoreClient.asyncQueue.enqueueAndForget(async () => {
-    const datastore = await getDatastore(firestoreClient);
+  client.asyncQueue.enqueueAndForget(async () => {
+    const datastore = await getDatastore(client);
     new TransactionRunner<T>(
-      firestoreClient.asyncQueue,
+      client.asyncQueue,
       datastore,
       updateFunction,
       deferred

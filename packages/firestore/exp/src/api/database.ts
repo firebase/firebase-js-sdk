@@ -170,7 +170,7 @@ export function enableIndexedDbPersistence(
 ): Promise<void> {
   verifyNotInitialized(firestore);
 
-  const firestoreClient = ensureFirestoreClientConfigured(firestore);
+  const client = ensureFirestoreClientConfigured(firestore);
   const settings = firestore._getSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
@@ -180,7 +180,7 @@ export function enableIndexedDbPersistence(
     persistenceSettings?.forceOwnership
   );
   return setPersistenceProviders(
-    firestoreClient,
+    client,
     onlineComponentProvider,
     offlineComponentProvider
   );
@@ -213,7 +213,7 @@ export function enableMultiTabIndexedDbPersistence(
 ): Promise<void> {
   verifyNotInitialized(firestore);
 
-  const firestoreClient = ensureFirestoreClientConfigured(firestore);
+  const client = ensureFirestoreClientConfigured(firestore);
   const settings = firestore._getSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
@@ -222,7 +222,7 @@ export function enableMultiTabIndexedDbPersistence(
     settings.cacheSizeBytes
   );
   return setPersistenceProviders(
-    firestoreClient,
+    client,
     onlineComponentProvider,
     offlineComponentProvider
   );
@@ -235,16 +235,16 @@ export function enableMultiTabIndexedDbPersistence(
  * but the client remains usable.
  */
 function setPersistenceProviders(
-  firestore: FirestoreClient,
+  client: FirestoreClient,
   onlineComponentProvider: OnlineComponentProvider,
   offlineComponentProvider: OfflineComponentProvider
 ): Promise<void> {
   const persistenceResult = new Deferred();
-  return firestore.asyncQueue
+  return client.asyncQueue
     .enqueue(async () => {
       try {
-        await setOfflineComponentProvider(firestore, offlineComponentProvider);
-        await setOnlineComponentProvider(firestore, onlineComponentProvider);
+        await setOfflineComponentProvider(client, offlineComponentProvider);
+        await setOnlineComponentProvider(client, onlineComponentProvider);
         persistenceResult.resolve();
       } catch (e) {
         if (!canFallbackFromIndexedDbError(e)) {
@@ -365,8 +365,8 @@ export function clearIndexedDbPersistence(
 export function waitForPendingWrites(
   firestore: FirebaseFirestore
 ): Promise<void> {
-  const firestoreClient = ensureFirestoreClientConfigured(firestore);
-  return firestoreClientWaitForPendingWrites(firestoreClient);
+  const client = ensureFirestoreClientConfigured(firestore);
+  return firestoreClientWaitForPendingWrites(client);
 }
 
 /**
@@ -376,8 +376,8 @@ export function waitForPendingWrites(
  * @return A promise that is resolved once the network has been enabled.
  */
 export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
-  const firestoreClient = ensureFirestoreClientConfigured(firestore);
-  return firestoreClientEnableNetwork(firestoreClient);
+  const client = ensureFirestoreClientConfigured(firestore);
+  return firestoreClientEnableNetwork(client);
 }
 
 /**
@@ -389,8 +389,8 @@ export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
  * @return A promise that is resolved once the network has been disabled.
  */
 export function disableNetwork(firestore: FirebaseFirestore): Promise<void> {
-  const firestoreClient = ensureFirestoreClientConfigured(firestore);
-  return firestoreClientDisableNetwork(firestoreClient);
+  const client = ensureFirestoreClientConfigured(firestore);
+  return firestoreClientDisableNetwork(client);
 }
 
 /**
