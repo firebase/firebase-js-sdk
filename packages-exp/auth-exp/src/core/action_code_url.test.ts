@@ -48,7 +48,9 @@ describe('core/action_code_url', () => {
           'oobCode=CODE&mode=signIn&apiKey=API_KEY&' +
           'languageCode=en';
         const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
-        expect(actionCodeUrl!.operation).to.eq(ActionCodeOperation.EMAIL_SIGNIN);
+        expect(actionCodeUrl!.operation).to.eq(
+          ActionCodeOperation.EMAIL_SIGNIN
+        );
       });
 
       it('should identitfy VERIFY_AND_CHANGE_EMAIL', () => {
@@ -68,7 +70,9 @@ describe('core/action_code_url', () => {
           'oobCode=CODE&mode=verifyEmail&apiKey=API_KEY&' +
           'languageCode=en';
         const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
-        expect(actionCodeUrl!.operation).to.eq(ActionCodeOperation.VERIFY_EMAIL);
+        expect(actionCodeUrl!.operation).to.eq(
+          ActionCodeOperation.VERIFY_EMAIL
+        );
       });
 
       it('should identitfy RECOVER_EMAIL', () => {
@@ -77,7 +81,9 @@ describe('core/action_code_url', () => {
           'oobCode=CODE&mode=recoverEmail&apiKey=API_KEY&' +
           'languageCode=en';
         const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
-        expect(actionCodeUrl!.operation).to.eq(ActionCodeOperation.RECOVER_EMAIL);
+        expect(actionCodeUrl!.operation).to.eq(
+          ActionCodeOperation.RECOVER_EMAIL
+        );
       });
 
       it('should identitfy PASSWORD_RESET', () => {
@@ -86,7 +92,9 @@ describe('core/action_code_url', () => {
           'oobCode=CODE&mode=resetPassword&apiKey=API_KEY&' +
           'languageCode=en';
         const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
-        expect(actionCodeUrl!.operation).to.eq(ActionCodeOperation.PASSWORD_RESET);
+        expect(actionCodeUrl!.operation).to.eq(
+          ActionCodeOperation.PASSWORD_RESET
+        );
       });
 
       it('should identitfy REVERT_SECOND_FACTOR_ADDITION', () => {

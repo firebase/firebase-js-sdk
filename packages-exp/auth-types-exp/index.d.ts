@@ -916,12 +916,12 @@ export class PhoneAuthProvider implements AuthProvider {
 
 /**
  * An enum of factors that may be used for multifactor authentication.
- * 
+ *
  * @public
  */
 export const enum FactorId {
   /** Phone as second factor */
-  PHONE = 'phone',
+  PHONE = 'phone'
 }
 
 /**

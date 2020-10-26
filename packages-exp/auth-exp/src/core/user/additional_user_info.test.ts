@@ -17,10 +17,7 @@
 
 import { expect } from 'chai';
 
-import {
-  OperationType,
-  ProviderId,
-} from '@firebase/auth-types-exp';
+import { OperationType, ProviderId } from '@firebase/auth-types-exp';
 
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import {

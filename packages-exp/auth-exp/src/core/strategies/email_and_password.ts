@@ -162,11 +162,13 @@ export async function checkActionCode(
   return {
     data: {
       email:
-        (response.requestType === externs.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL
+        (response.requestType ===
+        externs.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL
           ? response.newEmail
           : response.email) || null,
       previousEmail:
-        (response.requestType === externs.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL
+        (response.requestType ===
+        externs.ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL
           ? response.email
           : response.newEmail) || null,
       multiFactorInfo
