@@ -41,7 +41,7 @@ import {
 } from '../../../lite/src/api/database';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
-import { LruParams } from '../../../src/local/lru_garbage_collector';
+import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../../../src/local/lru_garbage_collector';
 import {
   CACHE_SIZE_UNLIMITED,
   configureFirestore,
@@ -117,11 +117,11 @@ export function initializeFirestore(
   if (
     settings.cacheSizeBytes !== undefined &&
     settings.cacheSizeBytes !== CACHE_SIZE_UNLIMITED &&
-    settings.cacheSizeBytes < LruParams.MINIMUM_CACHE_SIZE_BYTES
+    settings.cacheSizeBytes < LRU_MINIMUM_CACHE_SIZE_BYTES
   ) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `cacheSizeBytes must be at least ${LruParams.MINIMUM_CACHE_SIZE_BYTES}`
+      `cacheSizeBytes must be at least ${LRU_MINIMUM_CACHE_SIZE_BYTES}`
     );
   }
 
