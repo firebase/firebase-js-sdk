@@ -22,7 +22,7 @@ import { Auth } from '../model/auth';
 
 export abstract class MultiFactorAssertion
   implements externs.MultiFactorAssertion {
-  protected constructor(readonly factorId: string) {}
+  protected constructor(readonly factorId: externs.FactorId) {}
 
   _process(
     auth: Auth,

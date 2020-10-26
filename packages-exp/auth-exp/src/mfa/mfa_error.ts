@@ -38,7 +38,6 @@ export class MultiFactorError
     auth: Auth,
     error: FirebaseError,
     readonly operationType: externs.OperationType,
-    readonly credential: AuthCredential,
     readonly user?: User
   ) {
     super(error.code, error.message);
@@ -51,14 +50,13 @@ export class MultiFactorError
       .serverResponse as IdTokenMfaResponse;
   }
 
-  static _fromErrorAndCredential(
+  static _fromErrorAndOperation(
     auth: Auth,
     error: FirebaseError,
     operationType: externs.OperationType,
-    credential: AuthCredential,
     user?: User
   ): MultiFactorError {
-    return new MultiFactorError(auth, error, operationType, credential, user);
+    return new MultiFactorError(auth, error, operationType, user);
   }
 }
 
@@ -75,11 +73,10 @@ export function _processCredentialSavingMfaContextIfNecessary(
 
   return idTokenProvider.catch(error => {
     if (error.code === `auth/${AuthErrorCode.MFA_REQUIRED}`) {
-      throw MultiFactorError._fromErrorAndCredential(
+      throw MultiFactorError._fromErrorAndOperation(
         auth,
         error,
         operationType,
-        credential,
         user
       );
     }

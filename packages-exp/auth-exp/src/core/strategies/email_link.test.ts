@@ -60,7 +60,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       url: 'continue-url'
     });
     expect(mock.calls[0].request).to.eql({
-      requestType: externs.Operation.EMAIL_SIGNIN,
+      requestType: externs.ActionCodeOperation.EMAIL_SIGNIN,
       email,
       canHandleCodeInApp: true,
       continueUrl: 'continue-url'
@@ -112,7 +112,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       });
 
       expect(mock.calls[0].request).to.eql({
-        requestType: externs.Operation.EMAIL_SIGNIN,
+        requestType: externs.ActionCodeOperation.EMAIL_SIGNIN,
         email,
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',
@@ -138,7 +138,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         dynamicLinkDomain: 'fdl-domain'
       });
       expect(mock.calls[0].request).to.eql({
-        requestType: externs.Operation.EMAIL_SIGNIN,
+        requestType: externs.ActionCodeOperation.EMAIL_SIGNIN,
         email,
         continueUrl: 'my-url',
         dynamicLinkDomain: 'fdl-domain',

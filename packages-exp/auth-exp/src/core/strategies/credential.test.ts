@@ -144,7 +144,6 @@ describe('core/strategies/credential', () => {
       const error = await expect(
         signInWithCredential(auth, authCredential)
       ).to.be.rejectedWith(MultiFactorError);
-      expect(error.credential).to.eq(authCredential);
       expect(error.operationType).to.eq(OperationType.SIGN_IN);
       expect(error.serverResponse).to.eql(serverResponse);
       expect(error.user).to.be.undefined;

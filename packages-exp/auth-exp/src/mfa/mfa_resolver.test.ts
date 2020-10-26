@@ -38,7 +38,6 @@ import { MultiFactorError } from './mfa_error';
 import { getMultiFactorResolver, MultiFactorResolver } from './mfa_resolver';
 import { _createError } from '../core/util/assert';
 import { makeJWT } from '../../test/helpers/jwt';
-
 use(chaiAsPromised);
 
 describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
@@ -130,11 +129,10 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
 
       context('sign in', () => {
         beforeEach(() => {
-          error = MultiFactorError._fromErrorAndCredential(
+          error = MultiFactorError._fromErrorAndOperation(
             auth,
             underlyingError,
             OperationType.SIGN_IN,
-            primaryFactorCredential
           );
           resolver = MultiFactorResolver._fromError(auth, error);
         });
@@ -169,11 +167,10 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
 
         beforeEach(() => {
           user = testUser(auth, 'local-id', undefined, true);
-          error = MultiFactorError._fromErrorAndCredential(
+          error = MultiFactorError._fromErrorAndOperation(
             auth,
             underlyingError,
             OperationType.REAUTHENTICATE,
-            primaryFactorCredential,
             user
           );
           resolver = MultiFactorResolver._fromError(auth, error);
@@ -209,11 +206,10 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
   describe('getMultiFactorResolver', () => {
     context('sign in', () => {
       beforeEach(() => {
-        error = MultiFactorError._fromErrorAndCredential(
+        error = MultiFactorError._fromErrorAndOperation(
           auth,
           underlyingError,
           OperationType.SIGN_IN,
-          primaryFactorCredential
         );
       });
       it('can be used to obtain a resolver', () => {
@@ -227,11 +223,10 @@ describe('core/mfa/mfa_resolver/MultiFactorResolver', () => {
 
       beforeEach(() => {
         user = testUser(auth, 'local-id', undefined, true);
-        error = MultiFactorError._fromErrorAndCredential(
+        error = MultiFactorError._fromErrorAndOperation(
           auth,
           underlyingError,
           OperationType.REAUTHENTICATE,
-          primaryFactorCredential,
           user
         );
       });

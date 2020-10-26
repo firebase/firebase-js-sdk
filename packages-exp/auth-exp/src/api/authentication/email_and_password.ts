@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Operation, Auth } from '@firebase/auth-types-exp';
+import { ActionCodeOperation, Auth } from '@firebase/auth-types-exp';
 
 import {
   Endpoint,
@@ -61,23 +61,23 @@ export interface GetOobCodeRequest {
 }
 
 export interface VerifyEmailRequest extends GetOobCodeRequest {
-  requestType: Operation.VERIFY_EMAIL;
+  requestType: ActionCodeOperation.VERIFY_EMAIL;
   idToken: IdToken;
 }
 
 export interface PasswordResetRequest extends GetOobCodeRequest {
-  requestType: Operation.PASSWORD_RESET;
+  requestType: ActionCodeOperation.PASSWORD_RESET;
   email: string;
   captchaResp?: string;
 }
 
 export interface EmailSignInRequest extends GetOobCodeRequest {
-  requestType: Operation.EMAIL_SIGNIN;
+  requestType: ActionCodeOperation.EMAIL_SIGNIN;
   email: string;
 }
 
 export interface VerifyAndChangeEmailRequest extends GetOobCodeRequest {
-  requestType: Operation.VERIFY_AND_CHANGE_EMAIL;
+  requestType: ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL;
   idToken: IdToken;
   newEmail: string;
 }

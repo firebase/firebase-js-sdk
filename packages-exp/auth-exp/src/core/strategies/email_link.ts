@@ -70,7 +70,7 @@ export async function sendSignInLinkToEmail(
   actionCodeSettings?: externs.ActionCodeSettings
 ): Promise<void> {
   const request: api.EmailSignInRequest = {
-    requestType: externs.Operation.EMAIL_SIGNIN,
+    requestType: externs.ActionCodeOperation.EMAIL_SIGNIN,
     email
   };
   _assert(
@@ -98,7 +98,7 @@ export function isSignInWithEmailLink(
   emailLink: string
 ): boolean {
   const actionCodeUrl = ActionCodeURL.parseLink(emailLink);
-  return actionCodeUrl?.operation === externs.Operation.EMAIL_SIGNIN;
+  return actionCodeUrl?.operation === externs.ActionCodeOperation.EMAIL_SIGNIN;
 }
 
 /**

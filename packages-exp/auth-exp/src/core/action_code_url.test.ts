@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 
-import { Operation } from '@firebase/auth-types-exp';
+import { ActionCodeOperation } from '@firebase/auth-types-exp';
 
 import { ActionCodeURL } from './action_code_url';
 
@@ -32,7 +32,7 @@ describe('core/action_code_url', () => {
         encodeURIComponent(continueUrl) +
         '&languageCode=en&tenantId=TENANT_ID&state=bla';
       const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
-      expect(actionCodeUrl!.operation).to.eq(Operation.EMAIL_SIGNIN);
+      expect(actionCodeUrl!.operation).to.eq(ActionCodeOperation.EMAIL_SIGNIN);
       expect(actionCodeUrl!.code).to.eq('CODE');
       expect(actionCodeUrl!.apiKey).to.eq('API_KEY');
       // ContinueUrl should be decoded.
@@ -48,7 +48,7 @@ describe('core/action_code_url', () => {
           'oobCode=CODE&mode=signIn&apiKey=API_KEY&' +
           'languageCode=en';
         const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
-        expect(actionCodeUrl!.operation).to.eq(Operation.EMAIL_SIGNIN);
+        expect(actionCodeUrl!.operation).to.eq(ActionCodeOperation.EMAIL_SIGNIN);
       });
 
       it('should identitfy VERIFY_AND_CHANGE_EMAIL', () => {
@@ -58,7 +58,7 @@ describe('core/action_code_url', () => {
           'languageCode=en';
         const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
         expect(actionCodeUrl!.operation).to.eq(
-          Operation.VERIFY_AND_CHANGE_EMAIL
+          ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL
         );
       });
 
@@ -68,7 +68,7 @@ describe('core/action_code_url', () => {
           'oobCode=CODE&mode=verifyEmail&apiKey=API_KEY&' +
           'languageCode=en';
         const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
-        expect(actionCodeUrl!.operation).to.eq(Operation.VERIFY_EMAIL);
+        expect(actionCodeUrl!.operation).to.eq(ActionCodeOperation.VERIFY_EMAIL);
       });
 
       it('should identitfy RECOVER_EMAIL', () => {
@@ -77,7 +77,7 @@ describe('core/action_code_url', () => {
           'oobCode=CODE&mode=recoverEmail&apiKey=API_KEY&' +
           'languageCode=en';
         const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
-        expect(actionCodeUrl!.operation).to.eq(Operation.RECOVER_EMAIL);
+        expect(actionCodeUrl!.operation).to.eq(ActionCodeOperation.RECOVER_EMAIL);
       });
 
       it('should identitfy PASSWORD_RESET', () => {
@@ -86,7 +86,7 @@ describe('core/action_code_url', () => {
           'oobCode=CODE&mode=resetPassword&apiKey=API_KEY&' +
           'languageCode=en';
         const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
-        expect(actionCodeUrl!.operation).to.eq(Operation.PASSWORD_RESET);
+        expect(actionCodeUrl!.operation).to.eq(ActionCodeOperation.PASSWORD_RESET);
       });
 
       it('should identitfy REVERT_SECOND_FACTOR_ADDITION', () => {
@@ -96,7 +96,7 @@ describe('core/action_code_url', () => {
           'languageCode=en';
         const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
         expect(actionCodeUrl!.operation).to.eq(
-          Operation.REVERT_SECOND_FACTOR_ADDITION
+          ActionCodeOperation.REVERT_SECOND_FACTOR_ADDITION
         );
       });
     });
@@ -106,7 +106,7 @@ describe('core/action_code_url', () => {
         'https://www.example.com:8080/finishSignIn?' +
         'oobCode=CODE&mode=signIn&apiKey=API_KEY&state=bla';
       const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
-      expect(actionCodeUrl!.operation).to.eq(Operation.EMAIL_SIGNIN);
+      expect(actionCodeUrl!.operation).to.eq(ActionCodeOperation.EMAIL_SIGNIN);
       expect(actionCodeUrl!.code).to.eq('CODE');
       expect(actionCodeUrl!.apiKey).to.eq('API_KEY');
       expect(actionCodeUrl!.continueUrl).to.be.null;
@@ -120,7 +120,7 @@ describe('core/action_code_url', () => {
         'oobCode=CODE1&mode=signIn&apiKey=API_KEY1&state=bla' +
         '#oobCode=CODE2&mode=signIn&apiKey=API_KEY2&state=bla';
       const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
-      expect(actionCodeUrl!.operation).to.eq(Operation.EMAIL_SIGNIN);
+      expect(actionCodeUrl!.operation).to.eq(ActionCodeOperation.EMAIL_SIGNIN);
       expect(actionCodeUrl!.code).to.eq('CODE1');
       expect(actionCodeUrl!.apiKey).to.eq('API_KEY1');
       expect(actionCodeUrl!.continueUrl).to.be.null;

@@ -80,7 +80,7 @@ class GenericAdditionalUserInfo implements externs.AdditionalUserInfo {
   constructor(
     readonly isNewUser: boolean,
     readonly providerId: externs.ProviderId | null,
-    readonly profile: externs.UserProfile = {}
+    readonly profile: Record<string, unknown> = {}
   ) {}
 }
 
@@ -88,7 +88,7 @@ class FederatedAdditionalUserInfoWithUsername extends GenericAdditionalUserInfo 
   constructor(
     isNewUser: boolean,
     providerId: externs.ProviderId,
-    profile: externs.UserProfile,
+    profile: Record<string, unknown>,
     readonly username: string | null
   ) {
     super(isNewUser, providerId, profile);
@@ -96,13 +96,13 @@ class FederatedAdditionalUserInfoWithUsername extends GenericAdditionalUserInfo 
 }
 
 class FacebookAdditionalUserInfo extends GenericAdditionalUserInfo {
-  constructor(isNewUser: boolean, profile: externs.UserProfile) {
+  constructor(isNewUser: boolean, profile: Record<string, unknown>) {
     super(isNewUser, externs.ProviderId.FACEBOOK, profile);
   }
 }
 
 class GithubAdditionalUserInfo extends FederatedAdditionalUserInfoWithUsername {
-  constructor(isNewUser: boolean, profile: externs.UserProfile) {
+  constructor(isNewUser: boolean, profile: Record<string, unknown>) {
     super(
       isNewUser,
       externs.ProviderId.GITHUB,
@@ -113,7 +113,7 @@ class GithubAdditionalUserInfo extends FederatedAdditionalUserInfoWithUsername {
 }
 
 class GoogleAdditionalUserInfo extends GenericAdditionalUserInfo {
-  constructor(isNewUser: boolean, profile: externs.UserProfile) {
+  constructor(isNewUser: boolean, profile: Record<string, unknown>) {
     super(isNewUser, externs.ProviderId.GOOGLE, profile);
   }
 }
@@ -121,7 +121,7 @@ class GoogleAdditionalUserInfo extends GenericAdditionalUserInfo {
 class TwitterAdditionalUserInfo extends FederatedAdditionalUserInfoWithUsername {
   constructor(
     isNewUser: boolean,
-    profile: externs.UserProfile,
+    profile: Record<string, unknown>,
     screenName: string | null
   ) {
     super(isNewUser, externs.ProviderId.TWITTER, profile, screenName);

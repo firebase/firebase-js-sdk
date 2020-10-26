@@ -29,7 +29,7 @@ export class ActionCodeURL implements externs.ActionCodeURL {
     // (undocumented)
     readonly languageCode: string | null;
     // (undocumented)
-    readonly operation: externs.Operation;
+    readonly operation: externs.ActionCodeOperation;
     // (undocumented)
     static parseLink(link: string): externs.ActionCodeURL | null;
     // (undocumented)
