@@ -84,10 +84,12 @@ export interface PingRequest {}
 export type SenderRequest = KeyChangedRequest | PingRequest;
 
 /** Receiver handler to process events sent by the Sender */
-export type ReceiverHandler<
+export interface ReceiverHandler<
   T extends ReceiverResponse,
   S extends SenderRequest
-> = (origin: string, data: S) => T | Promise<T>;
+> {
+  (origin: string, data: S): T | Promise<T>;
+}
 
 /** Full message sent by Sender  */
 export interface SenderMessageEvent<T extends SenderRequest>

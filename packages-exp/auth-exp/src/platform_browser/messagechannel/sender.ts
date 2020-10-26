@@ -32,6 +32,10 @@ interface MessageHandler {
   onMessage: EventListenerOrEventListenerObject;
 }
 
+function generateEventId(prefix: string = '', digits: number = 20): string {
+  return `${prefix}${Math.floor(Math.random() * Math.pow(10, digits))}`;
+}
+
 /**
  * Interface for sending messages and waiting for a completion response.
  *
@@ -56,10 +60,6 @@ export class Sender {
       handler.messageChannel.port1.close();
     }
     this.handlers.delete(handler);
-  }
-
-  private generateEventId(prefix: string = '', digits: number = 20): string {
-    return `${prefix}${Math.floor(Math.random() * Math.pow(10, digits))}`;
   }
 
   /**
@@ -92,7 +92,7 @@ export class Sender {
     let completionTimer: any;
     let handler: MessageHandler;
     return new Promise<ReceiverMessageResponse<T>>((resolve, reject) => {
-      const eventId = this.generateEventId();
+      const eventId = generateEventId();
       messageChannel.port1.start();
       const ackTimer = setTimeout(() => {
         reject(new Error(MessageError.UNSUPPORTED_EVENT));
@@ -121,6 +121,7 @@ export class Sender {
               clearTimeout(ackTimer);
               clearTimeout(completionTimer);
               reject(new Error(MessageError.INVALID_RESPONSE));
+              break;
           }
         }
       };

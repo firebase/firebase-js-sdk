@@ -90,7 +90,7 @@ export class Receiver {
     const handlers: Set<ReceiverHandler<T, S>> | undefined = this.handlersMap[
       eventType
     ];
-    if (!handlers || handlers.size === 0) {
+    if (!handlers?.size) {
       return;
     }
 
