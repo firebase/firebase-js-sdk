@@ -22,7 +22,7 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirebaseFirestore } from './database';
 import { Deferred } from '../../../src/util/promise';
 import {
-  ensureFirestoreClientConfigured,
+  ensureFirestoreConfigured,
   SnapshotMetadata
 } from '../../../src/api/database';
 import { Transaction as InternalTransaction } from '../../../src/core/transaction';
@@ -94,7 +94,7 @@ export function runTransaction<T>(
   firestore: FirebaseFirestore,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
-  ensureFirestoreClientConfigured(firestore);
+  ensureFirestoreConfigured(firestore);
 
   const deferred = new Deferred<T>();
   firestore._queue.enqueueAndForget(async () => {

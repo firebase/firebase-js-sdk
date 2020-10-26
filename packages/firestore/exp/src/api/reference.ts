@@ -28,7 +28,7 @@ import { cast } from '../../../src/util/input_validation';
 import { DocumentSnapshot, QuerySnapshot } from './snapshot';
 import {
   applyFirestoreDataConverter,
-  ensureFirestoreClientConfigured,
+  ensureFirestoreConfigured,
   SnapshotMetadata,
   validateHasExplicitOrderByForLimitToLast
 } from '../../../src/api/database';
@@ -110,7 +110,7 @@ export function getDoc<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
   const firestore = cast(reference.firestore, FirebaseFirestore);
-  const client = ensureFirestoreClientConfigured(firestore);
+  const client = ensureFirestoreConfigured(firestore);
 
   const deferred = new Deferred<ViewSnapshot>();
   firestore._queue.enqueueAndForget(async () => {
@@ -139,7 +139,7 @@ export function getDocFromCache<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
   const firestore = cast(reference.firestore, FirebaseFirestore);
-  const client = ensureFirestoreClientConfigured(firestore);
+  const client = ensureFirestoreConfigured(firestore);
 
   const deferred = new Deferred<Document | null>();
   firestore._queue.enqueueAndForget(async () => {
@@ -172,7 +172,7 @@ export function getDocFromServer<T>(
   reference: DocumentReference<T>
 ): Promise<DocumentSnapshot<T>> {
   const firestore = cast(reference.firestore, FirebaseFirestore);
-  const client = ensureFirestoreClientConfigured(firestore);
+  const client = ensureFirestoreConfigured(firestore);
 
   const deferred = new Deferred<ViewSnapshot>();
   firestore._queue.enqueueAndForget(async () => {
@@ -202,7 +202,7 @@ export function getDocFromServer<T>(
  */
 export function getDocs<T>(query: Query<T>): Promise<QuerySnapshot<T>> {
   const firestore = cast(query.firestore, FirebaseFirestore);
-  const client = ensureFirestoreClientConfigured(firestore);
+  const client = ensureFirestoreConfigured(firestore);
 
   validateHasExplicitOrderByForLimitToLast(query._query);
 
@@ -232,7 +232,7 @@ export function getDocsFromCache<T>(
   query: Query<T>
 ): Promise<QuerySnapshot<T>> {
   const firestore = cast(query.firestore, FirebaseFirestore);
-  const client = ensureFirestoreClientConfigured(firestore);
+  const client = ensureFirestoreConfigured(firestore);
 
   const deferred = new Deferred<ViewSnapshot>();
   firestore._queue.enqueueAndForget(async () => {
@@ -254,7 +254,7 @@ export function getDocsFromServer<T>(
   query: Query<T>
 ): Promise<QuerySnapshot<T>> {
   const firestore = cast(query.firestore, FirebaseFirestore);
-  const client = ensureFirestoreClientConfigured(firestore);
+  const client = ensureFirestoreConfigured(firestore);
 
   const deferred = new Deferred<ViewSnapshot>();
   firestore._queue.enqueueAndForget(async () => {
@@ -711,7 +711,7 @@ export function onSnapshot<T>(
     validateHasExplicitOrderByForLimitToLast(reference._query);
   }
 
-  const client = ensureFirestoreClientConfigured(firestore);
+  const client = ensureFirestoreConfigured(firestore);
 
   const wrappedObserver = new AsyncObserver(observer);
   const listener = new QueryListener(
@@ -783,7 +783,7 @@ export function onSnapshotsInSync(
   firestore: FirebaseFirestore,
   arg: unknown
 ): Unsubscribe {
-  const client = ensureFirestoreClientConfigured(firestore);
+  const client = ensureFirestoreConfigured(firestore);
 
   const observer = isPartialObserver(arg)
     ? (arg as PartialObserver<void>)
@@ -811,7 +811,7 @@ export function executeWrite(
   firestore: FirebaseFirestore,
   mutations: Mutation[]
 ): Promise<void> {
-  const client = ensureFirestoreClientConfigured(firestore);
+  const client = ensureFirestoreConfigured(firestore);
   return firestoreClientWrite(client, mutations);
 }
 

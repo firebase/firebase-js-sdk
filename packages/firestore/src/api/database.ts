@@ -456,12 +456,12 @@ export class Firestore
   }
 
   enableNetwork(): Promise<void> {
-    ensureFirestoreClientConfigured(this);
+    ensureFirestoreConfigured(this);
     return firestoreClientEnableNetwork(this._firestoreClient!);
   }
 
   disableNetwork(): Promise<void> {
-    ensureFirestoreClientConfigured(this);
+    ensureFirestoreConfigured(this);
     return firestoreClientDisableNetwork(this._firestoreClient!);
   }
 
@@ -508,14 +508,14 @@ export class Firestore
   }
 
   waitForPendingWrites(): Promise<void> {
-    ensureFirestoreClientConfigured(this);
+    ensureFirestoreConfigured(this);
     return firestoreClientWaitForPendingWrites(this._firestoreClient!);
   }
 
   onSnapshotsInSync(observer: PartialObserver<void>): Unsubscribe;
   onSnapshotsInSync(onSync: () => void): Unsubscribe;
   onSnapshotsInSync(arg: unknown): Unsubscribe {
-    ensureFirestoreClientConfigured(this);
+    ensureFirestoreConfigured(this);
 
     if (isPartialObserver(arg)) {
       return firestoreClientAddSnapshotsInSyncListener(
@@ -567,7 +567,7 @@ export class Firestore
       if (this._firestoreClient) {
         // The client must be initialized to ensure that all subsequent API
         // usage throws an exception.
-        configureFirestoreClient(this);
+        configureFirestore(this);
       }
       await this._firestoreClient!.terminate();
     }
@@ -575,7 +575,7 @@ export class Firestore
 
   collection(pathString: string): PublicCollectionReference {
     validateNonEmptyArgument('Firestore.collection', 'path', pathString);
-    ensureFirestoreClientConfigured(this);
+    ensureFirestoreConfigured(this);
     return new CollectionReference(
       ResourcePath.fromString(pathString),
       this,
@@ -585,7 +585,7 @@ export class Firestore
 
   doc(pathString: string): PublicDocumentReference {
     validateNonEmptyArgument('Firestore.doc', 'path', pathString);
-    ensureFirestoreClientConfigured(this);
+    ensureFirestoreConfigured(this);
     return DocumentReference.forPath(
       ResourcePath.fromString(pathString),
       this,
@@ -606,7 +606,7 @@ export class Firestore
           `Firestore.collectionGroup(). Collection IDs must not contain '/'.`
       );
     }
-    ensureFirestoreClientConfigured(this);
+    ensureFirestoreConfigured(this);
     return new Query(
       newQueryForCollectionGroup(collectionId),
       this,
@@ -617,7 +617,7 @@ export class Firestore
   runTransaction<T>(
     updateFunction: (transaction: PublicTransaction) => Promise<T>
   ): Promise<T> {
-    ensureFirestoreClientConfigured(this);
+    ensureFirestoreConfigured(this);
     return firestoreClientTransaction(
       this._firestoreClient!,
       (transaction: InternalTransaction) => {
@@ -627,7 +627,7 @@ export class Firestore
   }
 
   batch(): PublicWriteBatch {
-    ensureFirestoreClientConfigured(this);
+    ensureFirestoreConfigured(this);
     return new WriteBatch(this);
   }
 
@@ -636,19 +636,19 @@ export class Firestore
   }
 }
 
-export function ensureFirestoreClientConfigured(
+export function ensureFirestoreConfigured(
   firestore: FirestoreCompat
 ): FirestoreClient {
   if (!firestore._firestoreClient) {
     // Kick off starting the client but don't actually wait for it.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    configureFirestoreClient(firestore);
+    configureFirestore(firestore);
   }
   firestore._firestoreClient!.verifyNotTerminated();
   return firestore._firestoreClient as FirestoreClient;
 }
 
-export function configureFirestoreClient(firestore: FirestoreCompat): void {
+export function configureFirestore(firestore: FirestoreCompat): void {
   const settings = firestore._getSettings();
   debugAssert(!!settings.host, 'FirestoreSettings.host is not set');
   debugAssert(
@@ -942,7 +942,7 @@ export class WriteBatch implements PublicWriteBatch {
     this.verifyNotCommitted();
     this._committed = true;
     if (this._mutations.length > 0) {
-      const client = ensureFirestoreClientConfigured(this._firestore);
+      const client = ensureFirestoreConfigured(this._firestore);
       return firestoreClientWrite(client, this._mutations);
     }
 
@@ -974,7 +974,7 @@ export class DocumentReference<T = DocumentData>
     readonly _converter: FirestoreDataConverter<T> | null
   ) {
     super(firestore._databaseId, _key, _converter);
-    this._firestoreClient = ensureFirestoreClientConfigured(firestore);
+    this._firestoreClient = ensureFirestoreConfigured(firestore);
   }
 
   static forPath<U>(
@@ -2017,14 +2017,14 @@ export class Query<T = DocumentData> implements PublicQuery<T> {
     };
 
     validateHasExplicitOrderByForLimitToLast(this._query);
-    const client = ensureFirestoreClientConfigured(this.firestore);
+    const client = ensureFirestoreConfigured(this.firestore);
     return firestoreClientListen(client, this._query, options, observer);
   }
 
   get(options?: GetOptions): Promise<PublicQuerySnapshot<T>> {
     validateHasExplicitOrderByForLimitToLast(this._query);
 
-    const client = ensureFirestoreClientConfigured(this.firestore);
+    const client = ensureFirestoreConfigured(this.firestore);
     return (options && options.source === 'cache'
       ? firestoreClientGetDocumentsFromLocalCache(client, this._query)
       : firestoreClientGetDocumentsViaSnapshotListener(

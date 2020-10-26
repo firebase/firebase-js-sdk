@@ -44,8 +44,8 @@ import { Deferred } from '../../../src/util/promise';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import {
   CACHE_SIZE_UNLIMITED,
-  configureFirestoreClient,
-  ensureFirestoreClientConfigured,
+  configureFirestore,
+  ensureFirestoreConfigured,
   FirestoreCompat
 } from '../../../src/api/database';
 import {
@@ -88,7 +88,7 @@ export class FirebaseFirestore
     if (!this._firestoreClient) {
       // The client must be initialized to ensure that all subsequent API
       // usage throws an exception.
-      configureFirestoreClient(this);
+      configureFirestore(this);
     }
     return this._firestoreClient!.terminate();
   }
@@ -170,7 +170,7 @@ export function enableIndexedDbPersistence(
 ): Promise<void> {
   verifyNotInitialized(firestore);
 
-  const client = ensureFirestoreClientConfigured(firestore);
+  const client = ensureFirestoreConfigured(firestore);
   const settings = firestore._getSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
@@ -213,7 +213,7 @@ export function enableMultiTabIndexedDbPersistence(
 ): Promise<void> {
   verifyNotInitialized(firestore);
 
-  const client = ensureFirestoreClientConfigured(firestore);
+  const client = ensureFirestoreConfigured(firestore);
   const settings = firestore._getSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
@@ -365,7 +365,7 @@ export function clearIndexedDbPersistence(
 export function waitForPendingWrites(
   firestore: FirebaseFirestore
 ): Promise<void> {
-  const client = ensureFirestoreClientConfigured(firestore);
+  const client = ensureFirestoreConfigured(firestore);
   return firestoreClientWaitForPendingWrites(client);
 }
 
@@ -376,7 +376,7 @@ export function waitForPendingWrites(
  * @return A promise that is resolved once the network has been enabled.
  */
 export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
-  const client = ensureFirestoreClientConfigured(firestore);
+  const client = ensureFirestoreConfigured(firestore);
   return firestoreClientEnableNetwork(client);
 }
 
@@ -389,7 +389,7 @@ export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
  * @return A promise that is resolved once the network has been disabled.
  */
 export function disableNetwork(firestore: FirebaseFirestore): Promise<void> {
-  const client = ensureFirestoreClientConfigured(firestore);
+  const client = ensureFirestoreConfigured(firestore);
   return firestoreClientDisableNetwork(client);
 }
 

@@ -22,7 +22,7 @@ import {
   CollectionReference,
   DocumentReference,
   DocumentSnapshot,
-  ensureFirestoreClientConfigured,
+  ensureFirestoreConfigured,
   Firestore,
   IndexedDbPersistenceProvider,
   Query,
@@ -71,13 +71,13 @@ export function newTestFirestore(): Firestore {
 
 export function collectionReference(path: string): CollectionReference {
   const db = firestore();
-  ensureFirestoreClientConfigured(db);
+  ensureFirestoreConfigured(db);
   return new CollectionReference(pathFrom(path), db, /* converter= */ null);
 }
 
 export function documentReference(path: string): DocumentReference {
   const db = firestore();
-  ensureFirestoreClientConfigured(db);
+  ensureFirestoreConfigured(db);
   return new DocumentReference(key(path), db, /* converter= */ null);
 }
 
