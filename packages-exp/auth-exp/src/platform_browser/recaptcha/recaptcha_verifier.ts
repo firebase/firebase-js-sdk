@@ -40,6 +40,10 @@ const DEFAULT_PARAMS: Parameters = {
 
 type TokenCallback = (token: string) => void;
 
+/**
+ * {@inheritdoc @firebase/auth-types#RecaptchaVerifier}
+ * @public
+ */
 export class RecaptchaVerifier
   implements externs.RecaptchaVerifier, ApplicationVerifier {
   readonly type = RECAPTCHA_VERIFIER_TYPE;
@@ -52,6 +56,7 @@ export class RecaptchaVerifier
   private renderPromise: Promise<number> | null = null;
   private readonly auth: Auth;
 
+  /** @internal */
   readonly _recaptchaLoader: ReCaptchaLoader;
   private recaptcha: Recaptcha | null = null;
 
@@ -87,6 +92,7 @@ export class RecaptchaVerifier
     // TODO: Figure out if sdk version is needed
   }
 
+  /** {@inheritdoc @firebase/auth-types#RecaptchaVerifier.verify} */
   async verify(): Promise<string> {
     this.assertNotDestroyed();
     const id = await this.render();
@@ -113,6 +119,7 @@ export class RecaptchaVerifier
     });
   }
 
+  /** {@inheritdoc @firebase/auth-types#RecaptchaVerifier.render} */
   render(): Promise<number> {
     try {
       this.assertNotDestroyed();
@@ -135,6 +142,7 @@ export class RecaptchaVerifier
     return this.renderPromise;
   }
 
+  /** @internal */
   _reset(): void {
     this.assertNotDestroyed();
     if (this.widgetId !== null) {
@@ -142,6 +150,7 @@ export class RecaptchaVerifier
     }
   }
 
+  /** {@inheritdoc @firebase/auth-types#RecaptchaVerifier.clear} */
   clear(): void {
     this.assertNotDestroyed();
     this.destroyed = true;

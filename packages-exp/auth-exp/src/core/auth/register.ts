@@ -50,6 +50,7 @@ function getVersionForPlatform(
   }
 }
 
+/** @internal */
 export function registerAuth(clientPlatform: ClientPlatform): void {
   _registerComponent(
     new Component(

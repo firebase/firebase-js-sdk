@@ -4,6 +4,8 @@
 
 ## GithubAuthProvider.credential() method
 
+Creates a credential for Github.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +16,7 @@ static credential(accessToken: string): externs.OAuthCredential;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  accessToken | string |  |
+|  accessToken | string | Github access token. |
 
 <b>Returns:</b>
 

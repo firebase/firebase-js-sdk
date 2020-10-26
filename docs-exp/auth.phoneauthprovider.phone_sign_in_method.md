@@ -4,6 +4,8 @@
 
 ## PhoneAuthProvider.PHONE\_SIGN\_IN\_METHOD property
 
+Always set to [SignInMethod.PHONE](./auth-types.signinmethod.phone.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

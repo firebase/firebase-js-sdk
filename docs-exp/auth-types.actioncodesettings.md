@@ -4,7 +4,7 @@
 
 ## ActionCodeSettings interface
 
-This is the interface that defines the required continue/state URL with optional Android and iOS bundle identifiers.
+An interface that defines the required continue/state URL with optional Android and iOS bundle identifiers.
 
 <b>Signature:</b>
 
@@ -16,9 +16,9 @@ export interface ActionCodeSettings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [android](./auth-types.actioncodesettings.android.md) | { installApp?: boolean; minimumVersion?: string; packageName: string; } | Sets the Android package name. This will try to open the link in an android app if it is installed. If <code>installApp</code> is passed, it specifies whether to install the Android app if the device supports it and the app is not already installed. If this field is provided without a <code>packageName</code>, an error is thrown explaining that the <code>packageName</code> must be provided in conjunction with this field. If <code>minimumVersion</code> is specified, and an older version of the app is installed, the user is taken to the Play Store to upgrade the app. |
-|  [dynamicLinkDomain](./auth-types.actioncodesettings.dynamiclinkdomain.md) | string | When multiple custom dynamic link domains are defined for a project, specify which one to use when the link is to be opened via a specified mobile app (for example, <code>example.page.link</code>). Otherwise the first domain is automatically selected. |
-|  [handleCodeInApp](./auth-types.actioncodesettings.handlecodeinapp.md) | boolean | The default is false. When set to true, the action code link will be be sent as a Universal Link or Android App Link and will be opened by the app if installed. In the false case, the code will be sent to the web widget first and then on continue will redirect to the app if installed. |
-|  [iOS](./auth-types.actioncodesettings.ios.md) | { bundleId: string; } | Sets the iOS bundle ID. This will try to open the link in an iOS app if it is installed.<!-- -->App installation is not supported for iOS. |
-|  [url](./auth-types.actioncodesettings.url.md) | string | Sets the link continue/state URL, which has different meanings in different contexts: - When the link is handled in the web action widgets, this is the deep link in the <code>continueUrl</code> query parameter. - When the link is handled in the app directly, this is the <code>continueUrl</code> query parameter in the deep link of the Dynamic Link. |
+|  [android](./auth-types.actioncodesettings.android.md) | { installApp?: boolean; minimumVersion?: string; packageName: string; } | Sets the Android package name. |
+|  [dynamicLinkDomain](./auth-types.actioncodesettings.dynamiclinkdomain.md) | string | When multiple custom dynamic link domains are defined for a project, specify which one to use when the link is to be opened via a specified mobile app (for example, <code>example.page.link</code>). |
+|  [handleCodeInApp](./auth-types.actioncodesettings.handlecodeinapp.md) | boolean | When set to true, the action code link will be be sent as a Universal Link or Android App Link and will be opened by the app if installed. |
+|  [iOS](./auth-types.actioncodesettings.ios.md) | { bundleId: string; } | Sets the iOS bundle ID. |
+|  [url](./auth-types.actioncodesettings.url.md) | string | Sets the link continue/state URL. |
 

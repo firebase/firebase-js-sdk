@@ -4,7 +4,7 @@
 
 ## ParsedToken interface
 
-Parsed ID token.
+Interface representing a parsed ID token.
 
 <b>Signature:</b>
 

@@ -6,8 +6,6 @@
 
 Adds an observer for changes to the user's sign-in state.
 
-To keep the old behavior, see [Auth.onIdTokenChanged()](./auth-types.auth.onidtokenchanged.md)<!-- -->.
-
 <b>Signature:</b>
 
 ```typescript
@@ -29,4 +27,8 @@ onAuthStateChanged(
 <b>Returns:</b>
 
 Unsubscribe
+
+## Remarks
+
+To keep the old behavior, see [Auth.onIdTokenChanged()](./auth-types.auth.onidtokenchanged.md)<!-- -->.
 

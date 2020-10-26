@@ -4,6 +4,8 @@
 
 ## getAdditionalUserInfo() function
 
+Extracts provider specific [AdditionalUserInfo](./auth-types.additionaluserinfo.md) for the given credential.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +16,7 @@ export declare function getAdditionalUserInfo(userCredential: externs.UserCreden
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  userCredential | externs.[UserCredential](./auth-types.usercredential.md) |  |
+|  userCredential | externs.[UserCredential](./auth-types.usercredential.md) | The user credential. |
 
 <b>Returns:</b>
 

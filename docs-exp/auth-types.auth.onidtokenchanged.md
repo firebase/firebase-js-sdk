@@ -4,7 +4,7 @@
 
 ## Auth.onIdTokenChanged() method
 
-Adds an observer for changes to the signed-in user's ID token, which includes sign-in, sign-out, and token refresh events.
+Adds an observer for changes to the signed-in user's ID token.
 
 <b>Signature:</b>
 
@@ -27,4 +27,8 @@ onIdTokenChanged(
 <b>Returns:</b>
 
 Unsubscribe
+
+## Remarks
+
+This includes sign-in, sign-out, and token refresh events.
 

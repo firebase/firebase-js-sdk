@@ -27,5 +27,5 @@ export abstract class ActionCodeURL
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [parseLink(link)](./auth-types.actioncodeurl.parselink.md) | <code>static</code> | Parses the email action link string and returns an ActionCodeURL object if the link is valid, otherwise returns null. |
+|  [parseLink(link)](./auth-types.actioncodeurl.parselink.md) | <code>static</code> | Parses the email action link string and returns an [ActionCodeURL](./auth-types.actioncodeurl.md) if the link is valid, otherwise returns null. |
 

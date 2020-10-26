@@ -4,7 +4,7 @@
 
 ## PhoneMultiFactorGenerator class
 
-The class used to initialize a [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md)<!-- -->.
+Provider for generating a [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md)<!-- -->.
 
 <b>Signature:</b>
 

@@ -4,6 +4,8 @@
 
 ## getAuth() function
 
+Initializes an Auth instance with platform specific default dependencies.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +16,7 @@ export declare function getAuth(app?: FirebaseApp): Auth;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app-types.firebaseapp.md) |  |
+|  app | [FirebaseApp](./app-types.firebaseapp.md) | The Firebase App. |
 
 <b>Returns:</b>
 
