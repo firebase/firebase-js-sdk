@@ -561,7 +561,7 @@ export class Firestore
 
   INTERNAL = {
     delete: async (): Promise<void> => {
-      if (this._firestoreClient) {
+      if (!this._firestoreClient) {
         // The client must be initialized to ensure that all subsequent API
         // usage throws an exception.
         configureFirestore(this);
@@ -648,7 +648,7 @@ export function configureFirestore(firestore: FirestoreCompat): void {
   debugAssert(!!settings.host, 'FirestoreSettings.host is not set');
   debugAssert(
     !firestore._firestoreClient,
-    'configureFirestoreClient() called multiple times'
+    'configureFirestore() called multiple times'
   );
 
   const databaseInfo = new DatabaseInfo(
