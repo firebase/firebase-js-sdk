@@ -328,8 +328,10 @@ export class IndexedDbPersistenceProvider implements PersistenceProvider {
   ): Promise<void> {
     return enableIndexedDbPersistence(firestore, { forceOwnership });
   }
-  enableMultiTabIndexedDbPersistence = enableMultiTabIndexedDbPersistence;
-  clearIndexedDbPersistence = clearIndexedDbPersistence;
+  enableMultiTabIndexedDbPersistence = enableMultiTabIndexedDbPersistence.bind(
+    null
+  );
+  clearIndexedDbPersistence = clearIndexedDbPersistence.bind(null);
 }
 /**
  * The root reference to the database.
