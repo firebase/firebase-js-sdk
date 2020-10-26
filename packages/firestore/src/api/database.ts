@@ -693,9 +693,9 @@ export class Firestore implements PublicFirestore, FirebaseService {
   runTransaction<T>(
     updateFunction: (transaction: PublicTransaction) => Promise<T>
   ): Promise<T> {
-    this.ensureClientConfigured();
+    const firestoreClient = this.ensureClientConfigured();
     return firestoreClientTransaction(
-      this._firestoreClient!,
+      firestoreClient,
       (transaction: InternalTransaction) => {
         return updateFunction(new Transaction(this, transaction));
       }
