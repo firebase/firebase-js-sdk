@@ -22,10 +22,11 @@
 
 |  Enumeration | Description |
 |  --- | --- |
-|  [Operation](./auth-types.operation.md) | An enumeration of the possible email action types. |
-|  [OperationType](./auth-types.operationtype.md) | Enumeration of supported operation types. |
-|  [ProviderId](./auth-types.providerid.md) | Enumeration of supported providers. |
-|  [SignInMethod](./auth-types.signinmethod.md) | Enumeration of supported sign-in methods. |
+|  [ActionCodeOperation](./auth-types.actioncodeoperation.md) | An enumeration of the possible email action types. |
+|  [FactorId](./auth-types.factorid.md) | An enum of factors that may be used for multifactor authentication. |
+|  [OperationType](./auth-types.operationtype.md) | Supported operation types. |
+|  [ProviderId](./auth-types.providerid.md) | Supported providers. |
+|  [SignInMethod](./auth-types.signinmethod.md) | Supported sign-in methods. |
 
 ## Interfaces
 
@@ -71,6 +72,5 @@ When initializing Auth,  is default. |
 |  Type Alias | Description |
 |  --- | --- |
 |  [NextOrObserver](./auth-types.nextorobserver.md) | Type definition for an event callback. |
-|  [PhoneInfoOptions](./auth-types.phoneinfooptions.md) | The information required to verify the ownership of a phone number. |
-|  [UserProfile](./auth-types.userprofile.md) | User profile used in [AdditionalUserInfo](./auth-types.additionaluserinfo.md)<!-- -->. |
+|  [PhoneInfoOptions](./auth-types.phoneinfooptions.md) | The information required to verify the ownership of a phone number. The information that's required depends on whether you are doing single-factor sign-in, multi-factor enrollment or multi-factor sign-in. |
 

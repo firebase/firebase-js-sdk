@@ -9,5 +9,5 @@ The identifier of the second factor.
 <b>Signature:</b>
 
 ```typescript
-readonly factorId: ProviderId;
+readonly factorId: FactorId;
 ```

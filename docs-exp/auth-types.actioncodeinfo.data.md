@@ -4,7 +4,13 @@
 
 ## ActionCodeInfo.data property
 
-The data associated with the action code.
+The data associated with the action code. For the , , and  actions, this object contains an email field with the address the email was sent to.
+
+For the  action, which allows a user to undo an email address change, this object also contains a `previousEmail` field with the user account's current email address. After the action completes, the user's email address will revert to the value in the `email` field from the value in `previousEmail` field.
+
+For the  action, which allows a user to verify the email before updating it, this object contains a `previousEmail` field with the user account's email address before updating. After the action completes, the user's email address will be updated to the value in the `email` field from the value in `previousEmail` field.
+
+For the  action, which allows a user to unenroll a newly added second factor, this object contains a `multiFactorInfo` field with the information about the second factor. For phone second factor, the `multiFactorInfo` is a [MultiFactorInfo](./auth-types.multifactorinfo.md) object, which contains the phone number.
 
 <b>Signature:</b>
 

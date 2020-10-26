@@ -9,5 +9,5 @@ Map containing IDP-specific user data.
 <b>Signature:</b>
 
 ```typescript
-readonly profile: UserProfile | null;
+readonly profile: Record<string, unknown> | null;
 ```

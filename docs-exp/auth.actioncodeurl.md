@@ -21,7 +21,7 @@ export declare class ActionCodeURL implements externs.ActionCodeURL
 |  [code](./auth.actioncodeurl.code.md) |  | string | The action code of the email action link. |
 |  [continueUrl](./auth.actioncodeurl.continueurl.md) |  | string \| null | The continue URL of the email action link. Null if not provided. |
 |  [languageCode](./auth.actioncodeurl.languagecode.md) |  | string \| null | The language code of the email action link. Null if not provided. |
-|  [operation](./auth.actioncodeurl.operation.md) |  | externs.[Operation](./auth-types.operation.md) | The action performed by the email action link. It returns from one of the types from [ActionCodeInfo](./auth-types.actioncodeinfo.md) |
+|  [operation](./auth.actioncodeurl.operation.md) |  | externs.[ActionCodeOperation](./auth-types.actioncodeoperation.md) | The action performed by the email action link. It returns from one of the types from  |
 |  [tenantId](./auth.actioncodeurl.tenantid.md) |  | string \| null | The tenant ID of the email action link. Null if the email action is from the parent project. |
 
 ## Methods
