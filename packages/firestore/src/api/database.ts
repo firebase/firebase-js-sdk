@@ -348,11 +348,8 @@ export class Firestore
   private _settings: FirestoreSettings;
 
   // The firestore client instance. This will be available as soon as
-  // configureClient is called, but any calls against it will block until
+  // `configureFirestore()` is called, but any calls against it will block until
   // setup has completed.
-  //
-  // Operations on the _firestoreClient don't block on _firestoreReady. Those
-  // are already set to synchronize on the async queue.
   _firestoreClient?: FirestoreClient;
 
   // Public for use in tests.
@@ -640,8 +637,6 @@ export function ensureFirestoreConfigured(
   firestore: FirestoreCompat
 ): FirestoreClient {
   if (!firestore._firestoreClient) {
-    // Kick off starting the client but don't actually wait for it.
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     configureFirestore(firestore);
   }
   firestore._firestoreClient!.verifyNotTerminated();
