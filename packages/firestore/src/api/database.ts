@@ -50,17 +50,17 @@ import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
   FirestoreClient,
-  firestoreClientWrite,
-  firestoreClientListen,
   firestoreClientAddSnapshotsInSyncListener,
-  firestoreClientWaitForPendingWrites,
   firestoreClientDisableNetwork,
   firestoreClientEnableNetwork,
-  firestoreClientTransaction,
+  firestoreClientGetDocumentFromLocalCache,
   firestoreClientGetDocumentsFromLocalCache,
   firestoreClientGetDocumentsViaSnapshotListener,
   firestoreClientGetDocumentViaSnapshotListener,
-  firestoreClientGetDocumentFromLocalCache
+  firestoreClientListen,
+  firestoreClientTransaction,
+  firestoreClientWaitForPendingWrites,
+  firestoreClientWrite
 } from '../core/firestore_client';
 import {
   Bound,
@@ -107,7 +107,7 @@ import {
   validateSetOptions,
   valueDescription
 } from '../util/input_validation';
-import { setLogLevel as setClientLogLevel, logWarn } from '../util/log';
+import { logWarn, setLogLevel as setClientLogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import { FieldPath as ExternalFieldPath } from './field_path';
 import {
@@ -141,8 +141,7 @@ import { Provider } from '@firebase/component';
 import {
   clearIndexedDbPersistence,
   enableIndexedDbPersistence,
-  enableMultiTabIndexedDbPersistence,
-  FirestoreCompat
+  enableMultiTabIndexedDbPersistence
 } from '../../exp/src/api/database';
 
 // settings() defaults:
@@ -255,6 +254,20 @@ class FirestoreSettings {
   }
 }
 
+// TODO(firestore-compat): This interface exposes internal APIs that the Compat
+// layer implements to interact with the firestore-exp SDK. We can remove this
+// class once we have an actual compat class for FirebaseFirestore.
+export interface FirestoreCompat {
+  readonly _initialized: boolean;
+  readonly _terminated: boolean;
+  readonly _databaseId: DatabaseId;
+  readonly _persistenceKey: string;
+  readonly _queue: AsyncQueue;
+  readonly _credentials: CredentialsProvider;
+  _firestoreClient?: FirestoreClient;
+  _getSettings(): PublicSettings;
+}
+
 /**
  * A persistence provider for either memory-only or IndexedDB persistence.
  * Mainly used to allow optional inclusion of IndexedDB code.
@@ -328,7 +341,7 @@ export class Firestore
   // underscore to discourage their use.
   readonly _databaseId: DatabaseId;
   readonly _persistenceKey: string;
-  private _credentials: CredentialsProvider;
+  _credentials: CredentialsProvider;
   private readonly _firebaseApp: FirebaseApp | null = null;
   private _settings: FirestoreSettings;
 
@@ -338,7 +351,7 @@ export class Firestore
   //
   // Operations on the _firestoreClient don't block on _firestoreReady. Those
   // are already set to synchronize on the async queue.
-  private _firestoreClient: FirestoreClient | undefined;
+  _firestoreClient?: FirestoreClient;
 
   // Public for use in tests.
   // TODO(mikelehen): Use modularized initialization instead.
@@ -441,12 +454,12 @@ export class Firestore
   }
 
   enableNetwork(): Promise<void> {
-    this._ensureClientConfigured();
+    ensureFirestoreClientConfigured(this);
     return firestoreClientEnableNetwork(this._firestoreClient!);
   }
 
   disableNetwork(): Promise<void> {
-    this._ensureClientConfigured();
+    ensureFirestoreClientConfigured(this);
     return firestoreClientDisableNetwork(this._firestoreClient!);
   }
 
@@ -493,14 +506,14 @@ export class Firestore
   }
 
   waitForPendingWrites(): Promise<void> {
-    this._ensureClientConfigured();
+    ensureFirestoreClientConfigured(this);
     return firestoreClientWaitForPendingWrites(this._firestoreClient!);
   }
 
   onSnapshotsInSync(observer: PartialObserver<void>): Unsubscribe;
   onSnapshotsInSync(onSync: () => void): Unsubscribe;
   onSnapshotsInSync(arg: unknown): Unsubscribe {
-    this._ensureClientConfigured();
+    ensureFirestoreClientConfigured(this);
 
     if (isPartialObserver(arg)) {
       return firestoreClientAddSnapshotsInSyncListener(
@@ -516,42 +529,6 @@ export class Firestore
         observer
       );
     }
-  }
-
-  _ensureClientConfigured(): FirestoreClient {
-    if (!this._firestoreClient) {
-      // Kick off starting the client but don't actually wait for it.
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.configureClient();
-    }
-    this._firestoreClient!.verifyNotTerminated();
-    return this._firestoreClient as FirestoreClient;
-  }
-
-  private makeDatabaseInfo(): DatabaseInfo {
-    return new DatabaseInfo(
-      this._databaseId,
-      this._persistenceKey,
-      this._settings.host,
-      this._settings.ssl,
-      this._settings.experimentalForceLongPolling,
-      this._settings.experimentalAutoDetectLongPolling
-    );
-  }
-
-  private configureClient(): void {
-    debugAssert(!!this._settings.host, 'FirestoreSettings.host is not set');
-    debugAssert(
-      !this._firestoreClient,
-      'configureClient() called multiple times'
-    );
-
-    const databaseInfo = this.makeDatabaseInfo();
-    this._firestoreClient = new FirestoreClient(
-      this._credentials,
-      this._queue,
-      databaseInfo
-    );
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
@@ -588,7 +565,7 @@ export class Firestore
       if (this._firestoreClient) {
         // The client must be initialized to ensure that all subsequent API
         // usage throws an exception.
-        this.configureClient();
+        configureFirestoreClient(this);
       }
       await this._firestoreClient!.terminate();
     }
@@ -596,7 +573,7 @@ export class Firestore
 
   collection(pathString: string): PublicCollectionReference {
     validateNonEmptyArgument('Firestore.collection', 'path', pathString);
-    this._ensureClientConfigured();
+    ensureFirestoreClientConfigured(this);
     return new CollectionReference(
       ResourcePath.fromString(pathString),
       this,
@@ -606,7 +583,7 @@ export class Firestore
 
   doc(pathString: string): PublicDocumentReference {
     validateNonEmptyArgument('Firestore.doc', 'path', pathString);
-    this._ensureClientConfigured();
+    ensureFirestoreClientConfigured(this);
     return DocumentReference.forPath(
       ResourcePath.fromString(pathString),
       this,
@@ -627,7 +604,7 @@ export class Firestore
           `Firestore.collectionGroup(). Collection IDs must not contain '/'.`
       );
     }
-    this._ensureClientConfigured();
+    ensureFirestoreClientConfigured(this);
     return new Query(
       newQueryForCollectionGroup(collectionId),
       this,
@@ -638,7 +615,7 @@ export class Firestore
   runTransaction<T>(
     updateFunction: (transaction: PublicTransaction) => Promise<T>
   ): Promise<T> {
-    this._ensureClientConfigured();
+    ensureFirestoreClientConfigured(this);
     return firestoreClientTransaction(
       this._firestoreClient!,
       (transaction: InternalTransaction) => {
@@ -648,7 +625,7 @@ export class Firestore
   }
 
   batch(): PublicWriteBatch {
-    this._ensureClientConfigured();
+    ensureFirestoreClientConfigured(this);
     return new WriteBatch(this);
   }
 
@@ -656,6 +633,41 @@ export class Firestore
   _getSettings(): PublicSettings {
     return this._settings;
   }
+}
+
+export function ensureFirestoreClientConfigured(
+  firestore: FirestoreCompat
+): FirestoreClient {
+  if (!firestore._firestoreClient) {
+    // Kick off starting the client but don't actually wait for it.
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    configureFirestoreClient(firestore);
+  }
+  firestore._firestoreClient!.verifyNotTerminated();
+  return firestore._firestoreClient as FirestoreClient;
+}
+
+export function configureFirestoreClient(firestore: FirestoreCompat): void {
+  const settings = firestore._getSettings();
+  debugAssert(!!settings.host, 'FirestoreSettings.host is not set');
+  debugAssert(
+    !firestore._firestoreClient,
+    'configureFirestoreClient() called multiple times'
+  );
+
+  const databaseInfo = new DatabaseInfo(
+    firestore._databaseId,
+    firestore._persistenceKey,
+    settings.host ?? DEFAULT_HOST,
+    settings.ssl ?? DEFAULT_SSL,
+    !!settings.experimentalForceLongPolling,
+    !!settings.experimentalAutoDetectLongPolling
+  );
+  firestore._firestoreClient = new FirestoreClient(
+    firestore._credentials,
+    firestore._queue,
+    databaseInfo
+  );
 }
 
 export function setLogLevel(level: PublicLogLevel): void {
@@ -929,7 +941,7 @@ export class WriteBatch implements PublicWriteBatch {
     this.verifyNotCommitted();
     this._committed = true;
     if (this._mutations.length > 0) {
-      const firestoreClient = this._firestore._ensureClientConfigured();
+      const firestoreClient = ensureFirestoreClientConfigured(this._firestore);
       return firestoreClientWrite(firestoreClient, this._mutations);
     }
 
@@ -961,7 +973,7 @@ export class DocumentReference<T = DocumentData>
     readonly _converter: FirestoreDataConverter<T> | null
   ) {
     super(firestore._databaseId, _key, _converter);
-    this._firestoreClient = this.firestore._ensureClientConfigured();
+    this._firestoreClient = ensureFirestoreClientConfigured(firestore);
   }
 
   static forPath<U>(
@@ -2004,7 +2016,7 @@ export class Query<T = DocumentData> implements PublicQuery<T> {
     };
 
     validateHasExplicitOrderByForLimitToLast(this._query);
-    const firestoreClient = this.firestore._ensureClientConfigured();
+    const firestoreClient = ensureFirestoreClientConfigured(this.firestore);
     return firestoreClientListen(
       firestoreClient,
       this._query,
@@ -2016,7 +2028,7 @@ export class Query<T = DocumentData> implements PublicQuery<T> {
   get(options?: GetOptions): Promise<PublicQuerySnapshot<T>> {
     validateHasExplicitOrderByForLimitToLast(this._query);
 
-    const firestoreClient = this.firestore._ensureClientConfigured();
+    const firestoreClient = ensureFirestoreClientConfigured(this.firestore);
     return (options && options.source === 'cache'
       ? firestoreClientGetDocumentsFromLocalCache(firestoreClient, this._query)
       : firestoreClientGetDocumentsViaSnapshotListener(

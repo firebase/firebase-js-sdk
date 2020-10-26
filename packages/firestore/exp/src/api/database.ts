@@ -42,14 +42,17 @@ import {
 import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
-import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
+import {
+  CACHE_SIZE_UNLIMITED,
+  configureFirestoreClient,
+  ensureFirestoreClientConfigured,
+  FirestoreCompat
+} from '../../../src/api/database';
 import {
   indexedDbClearPersistence,
   indexedDbStoragePrefix
 } from '../../../src/local/indexeddb_persistence';
-import { DatabaseId } from '../../../src/core/database_info';
 import { PersistenceSettings } from '../../../exp-types';
-import { makeDatabaseInfo } from '../../../lite/src/api/components';
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
@@ -58,19 +61,6 @@ const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
 
 export interface Settings extends LiteSettings {
   cacheSizeBytes?: number;
-}
-
-// TODO(firestore-compat): This interface exposes internal APIs that the Compat
-// layer implements to interact with the firestore-exp SDK. We can remove this
-// class once we have an actual compat class for FirebaseFirestore.
-export interface FirestoreCompat {
-  readonly _initialized: boolean;
-  readonly _terminated: boolean;
-  readonly _databaseId: DatabaseId;
-  readonly _persistenceKey: string;
-  readonly _queue: AsyncQueue;
-  _ensureClientConfigured(): FirestoreClient;
-  _getSettings(): Settings;
 }
 
 /**
@@ -94,32 +84,11 @@ export class FirebaseFirestore
     this._persistenceKey = app.name;
   }
 
-  _ensureClientConfigured(): FirestoreClient {
-    if (!this._firestoreClient) {
-      this._configureClient();
-    }
-    this._firestoreClient!.verifyNotTerminated();
-    return this._firestoreClient!;
-  }
-
-  private _configureClient(): void {
-    const databaseInfo = makeDatabaseInfo(
-      this._databaseId,
-      this._persistenceKey,
-      this._settings as Settings
-    );
-    this._firestoreClient = new FirestoreClient(
-      this._credentials,
-      this._queue,
-      databaseInfo
-    );
-  }
-
   _terminate(): Promise<void> {
     if (!this._firestoreClient) {
       // The client must be initialized to ensure that all subsequent API
       // usage throws an exception.
-      this._configureClient();
+      configureFirestoreClient(this);
     }
     return this._firestoreClient!.terminate();
   }
@@ -201,7 +170,7 @@ export function enableIndexedDbPersistence(
 ): Promise<void> {
   verifyNotInitialized(firestore);
 
-  const firestoreClient = firestore._ensureClientConfigured();
+  const firestoreClient = ensureFirestoreClientConfigured(firestore);
   const settings = firestore._getSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
@@ -244,7 +213,7 @@ export function enableMultiTabIndexedDbPersistence(
 ): Promise<void> {
   verifyNotInitialized(firestore);
 
-  const firestoreClient = firestore._ensureClientConfigured();
+  const firestoreClient = ensureFirestoreClientConfigured(firestore);
   const settings = firestore._getSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
@@ -396,7 +365,7 @@ export function clearIndexedDbPersistence(
 export function waitForPendingWrites(
   firestore: FirebaseFirestore
 ): Promise<void> {
-  const firestoreClient = firestore._ensureClientConfigured();
+  const firestoreClient = ensureFirestoreClientConfigured(firestore);
   return firestoreClientWaitForPendingWrites(firestoreClient);
 }
 
@@ -407,7 +376,7 @@ export function waitForPendingWrites(
  * @return A promise that is resolved once the network has been enabled.
  */
 export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
-  const firestoreClient = firestore._ensureClientConfigured();
+  const firestoreClient = ensureFirestoreClientConfigured(firestore);
   return firestoreClientEnableNetwork(firestoreClient);
 }
 
@@ -420,7 +389,7 @@ export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
  * @return A promise that is resolved once the network has been disabled.
  */
 export function disableNetwork(firestore: FirebaseFirestore): Promise<void> {
-  const firestoreClient = firestore._ensureClientConfigured();
+  const firestoreClient = ensureFirestoreClientConfigured(firestore);
   return firestoreClientDisableNetwork(firestoreClient);
 }
 
