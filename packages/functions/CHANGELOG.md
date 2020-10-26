@@ -1,5 +1,31 @@
 # @firebase/functions
 
+## 0.6.0
+
+### Minor Changes
+
+- [`0322c1bda`](https://github.com/firebase/firebase-js-sdk/commit/0322c1bda93b2885b995e3df2b63b48314546961) [#3906](https://github.com/firebase/firebase-js-sdk/pull/3906) - Add a useEmulator(host, port) method to Cloud Functions
+
+### Patch Changes
+
+- [`a5768b0aa`](https://github.com/firebase/firebase-js-sdk/commit/a5768b0aa7d7ce732279931aa436e988c9f36487) [#3932](https://github.com/firebase/firebase-js-sdk/pull/3932) - Point browser field to esm build. Now you need to use default import instead of namespace import to import firebase.
+
+  Before this change
+
+  ```
+  import * as firebase from 'firebase/app';
+  ```
+
+  After this change
+
+  ```
+  import firebase from 'firebase/app';
+  ```
+
+- Updated dependencies [[`a5768b0aa`](https://github.com/firebase/firebase-js-sdk/commit/a5768b0aa7d7ce732279931aa436e988c9f36487), [`0322c1bda`](https://github.com/firebase/firebase-js-sdk/commit/0322c1bda93b2885b995e3df2b63b48314546961)]:
+  - @firebase/component@0.1.20
+  - @firebase/functions-types@0.4.0
+
 ## 0.5.1
 
 ### Patch Changes
