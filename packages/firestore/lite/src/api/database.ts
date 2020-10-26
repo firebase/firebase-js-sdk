@@ -27,6 +27,7 @@ import {
   FirebaseCredentialsProvider
 } from '../../../src/api/credentials';
 import { removeComponents } from './components';
+import { FirestoreSettings } from '../../../src/api/database';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -92,12 +93,12 @@ export class FirebaseFirestore implements _FirebaseService {
     this._settings = settings;
   }
 
-  _getSettings(): Settings {
+  _getSettings(): FirestoreSettings {
     if (!this._settings) {
       this._settings = {};
     }
     this._settingsFrozen = true;
-    return this._settings;
+    return new FirestoreSettings(this._settings);
   }
 
   private static _databaseIdFromApp(app: FirebaseApp): DatabaseId {

@@ -175,7 +175,7 @@ export interface FirestoreDatabase {
  * user-supplied firestore.Settings object. This is a separate type so that
  * defaults can be supplied and the value can be checked for equality.
  */
-class FirestoreSettings {
+export class FirestoreSettings {
   /** The hostname to connect to. */
   readonly host: string;
 
@@ -265,7 +265,7 @@ export interface FirestoreCompat {
   readonly _queue: AsyncQueue;
   readonly _credentials: CredentialsProvider;
   _firestoreClient?: FirestoreClient;
-  _getSettings(): PublicSettings;
+  _getSettings(): FirestoreSettings;
 }
 
 /**
@@ -629,8 +629,7 @@ export class Firestore
     return new WriteBatch(this);
   }
 
-  // Visible for testing.
-  _getSettings(): PublicSettings {
+  _getSettings(): FirestoreSettings {
     return this._settings;
   }
 }
@@ -658,10 +657,10 @@ export function configureFirestoreClient(firestore: FirestoreCompat): void {
   const databaseInfo = new DatabaseInfo(
     firestore._databaseId,
     firestore._persistenceKey,
-    settings.host ?? DEFAULT_HOST,
-    settings.ssl ?? DEFAULT_SSL,
-    !!settings.experimentalForceLongPolling,
-    !!settings.experimentalAutoDetectLongPolling
+    settings.host,
+    settings.ssl,
+    settings.experimentalForceLongPolling,
+    settings.experimentalAutoDetectLongPolling
   );
   firestore._firestoreClient = new FirestoreClient(
     firestore._credentials,
