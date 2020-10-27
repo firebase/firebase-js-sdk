@@ -8255,17 +8255,21 @@ declare namespace firebase.firestore {
      */
     terminate(): Promise<void>;
 
-    loadBundle(
-      bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
-    ): LoadBundleTask;
-
-    namedQuery(name: string): Promise<Query<DocumentData> | null>;
-
     /**
      * @hidden
      */
     INTERNAL: { delete: () => Promise<void> };
   }
+
+  export function loadBundle(
+    db: Firestore,
+    bundleData: ArrayBuffer | ReadableStream<ArrayBuffer> | string
+  ): LoadBundleTask;
+
+  export function namedQuery(
+    db: Firestore,
+    name: string
+  ): Promise<Query<DocumentData> | null>;
 
   export interface LoadBundleTask {
     onProgress(

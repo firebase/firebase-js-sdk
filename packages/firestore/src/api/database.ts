@@ -624,26 +624,6 @@ export class Firestore implements PublicFirestore, FirebaseService {
     }
   }
 
-  loadBundle(
-    bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
-  ): LoadBundleTask {
-    this.ensureClientConfigured();
-    const resultTask = new LoadBundleTask();
-    this._firestoreClient!.loadBundle(bundleData, resultTask);
-    return resultTask;
-  }
-
-  namedQuery(name: string): Promise<PublicQuery | null> {
-    this.ensureClientConfigured();
-    return this._firestoreClient!.getNamedQuery(name).then(namedQuery => {
-      if (!namedQuery) {
-        return null;
-      }
-
-      return new Query(namedQuery.query, this, null);
-    });
-  }
-
   ensureClientConfigured(): FirestoreClient {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
@@ -806,6 +786,31 @@ export function setLogLevel(level: PublicLogLevel): void {
     level
   );
   setClientLogLevel(level);
+}
+
+export function loadBundle(
+  db: Firestore,
+  bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
+): LoadBundleTask {
+  const resultTask = new LoadBundleTask();
+  db.ensureClientConfigured().loadBundle(bundleData, resultTask);
+  return resultTask;
+}
+
+export function namedQuery(
+  db: Firestore,
+  name: string
+): Promise<PublicQuery | null> {
+  return db
+    .ensureClientConfigured()
+    .getNamedQuery(name)
+    .then(namedQuery => {
+      if (!namedQuery) {
+        return null;
+      }
+
+      return new Query(namedQuery.query, db, null);
+    });
 }
 
 /**
