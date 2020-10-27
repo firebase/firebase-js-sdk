@@ -17,11 +17,11 @@
 
 import {
   ReceiverHandler,
-  EventType,
-  ReceiverResponse,
+  _EventType,
+  _ReceiverResponse,
   SenderMessageEvent,
-  Status,
-  SenderRequest
+  _Status,
+  _SenderRequest
 } from './index';
 import { _allSettled } from './promise';
 
@@ -81,8 +81,8 @@ export class Receiver {
    * @internal
    */
   private async handleEvent<
-    T extends ReceiverResponse,
-    S extends SenderRequest
+    T extends _ReceiverResponse,
+    S extends _SenderRequest
   >(event: Event): Promise<void> {
     const messageEvent = event as MessageEvent<SenderMessageEvent<S>>;
     const { eventId, eventType, data } = messageEvent.data;
@@ -95,17 +95,17 @@ export class Receiver {
     }
 
     messageEvent.ports[0].postMessage({
-      status: Status.ACK,
+      status: _Status.ACK,
       eventId,
       eventType
     });
 
-    const promises = Array.from(handlers).map(async handler => {
-      return handler(messageEvent.origin, data);
-    });
+    const promises = Array.from(handlers).map(async handler =>
+      handler(messageEvent.origin, data)
+    );
     const response = await _allSettled(promises);
     messageEvent.ports[0].postMessage({
-      status: Status.DONE,
+      status: _Status.DONE,
       eventId,
       eventType,
       response
@@ -120,8 +120,8 @@ export class Receiver {
    *
    * @internal
    */
-  _subscribe<T extends ReceiverResponse, S extends SenderRequest>(
-    eventType: EventType,
+  _subscribe<T extends _ReceiverResponse, S extends _SenderRequest>(
+    eventType: _EventType,
     eventHandler: ReceiverHandler<T, S>
   ): void {
     if (Object.keys(this.handlersMap).length === 0) {
@@ -143,8 +143,8 @@ export class Receiver {
    *
    * @internal
    */
-  _unsubscribe<T extends ReceiverResponse, S extends SenderRequest>(
-    eventType: EventType,
+  _unsubscribe<T extends _ReceiverResponse, S extends _SenderRequest>(
+    eventType: _EventType,
     eventHandler?: ReceiverHandler<T, S>
   ): void {
     if (this.handlersMap[eventType] && eventHandler) {

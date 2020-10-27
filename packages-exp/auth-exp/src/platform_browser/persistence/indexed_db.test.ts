@@ -26,9 +26,9 @@ import {
   _getInstance
 } from '../../core/util/instantiator';
 import {
-  EventType,
+  _EventType,
   KeyChangedRequest,
-  TimeoutDuration
+  _TimeoutDuration
 } from '../messagechannel/index';
 import { Receiver } from '../messagechannel/receiver';
 import { Sender } from '../messagechannel/sender';
@@ -203,15 +203,15 @@ describe('platform_browser/persistence/indexed_db', () => {
       it('should respond to pings', async () => {
         await persistence._workerInitializationPromise;
         const response = await sender._send(
-          EventType.PING,
+          _EventType.PING,
           {},
-          TimeoutDuration.ACK
+          _TimeoutDuration.ACK
         );
 
         expect(response).to.have.deep.members([
           {
             fulfilled: true,
-            value: [EventType.KEY_CHANGED]
+            value: [_EventType.KEY_CHANGED]
           }
         ]);
       });
@@ -219,11 +219,11 @@ describe('platform_browser/persistence/indexed_db', () => {
       it('should let us know if the key didnt actually change on a key changed event', async () => {
         await persistence._workerInitializationPromise;
         const response = await sender._send(
-          EventType.KEY_CHANGED,
+          _EventType.KEY_CHANGED,
           {
             key: 'foo'
           },
-          TimeoutDuration.LONG_ACK
+          _TimeoutDuration.LONG_ACK
         );
 
         expect(response).to.have.deep.members([
@@ -240,11 +240,11 @@ describe('platform_browser/persistence/indexed_db', () => {
         await persistence._workerInitializationPromise;
         await _putObject(db, 'foo', 'bar');
         const response = await sender._send(
-          EventType.KEY_CHANGED,
+          _EventType.KEY_CHANGED,
           {
             key: 'foo'
           },
-          TimeoutDuration.LONG_ACK
+          _TimeoutDuration.LONG_ACK
         );
 
         expect(response).to.have.deep.members([
@@ -277,9 +277,9 @@ describe('platform_browser/persistence/indexed_db', () => {
 
       it('should send a ping on init', async () => {
         return new Promise(resolve => {
-          receiver._subscribe(EventType.PING, () => {
+          receiver._subscribe(_EventType.PING, () => {
             resolve();
-            return [EventType.KEY_CHANGED];
+            return [_EventType.KEY_CHANGED];
           });
           return persistence._workerInitializationPromise;
         });
@@ -289,7 +289,7 @@ describe('platform_browser/persistence/indexed_db', () => {
         return new Promise(async resolve => {
           await persistence._workerInitializationPromise;
           receiver._subscribe(
-            EventType.KEY_CHANGED,
+            _EventType.KEY_CHANGED,
             (_origin: string, data: KeyChangedRequest) => {
               expect(data.key).to.eq('foo');
               resolve();
@@ -305,7 +305,7 @@ describe('platform_browser/persistence/indexed_db', () => {
       it('should send a key changed event when a key is removed', async () => {
         return new Promise(async resolve => {
           receiver._subscribe(
-            EventType.KEY_CHANGED,
+            _EventType.KEY_CHANGED,
             async (_origin: string, data: KeyChangedRequest) => {
               expect(data.key).to.eq('foo');
               const persistedValue = await persistence._get('foo');

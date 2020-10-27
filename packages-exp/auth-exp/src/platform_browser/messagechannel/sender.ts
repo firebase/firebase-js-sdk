@@ -16,15 +16,15 @@
  */
 
 import {
-  SenderRequest,
-  EventType,
+  _SenderRequest,
+  _EventType,
   ReceiverMessageEvent,
-  MessageError,
+  _MessageError,
   SenderMessageEvent,
-  Status,
-  ReceiverMessageResponse,
-  ReceiverResponse,
-  TimeoutDuration
+  _Status,
+  _ReceiverMessageResponse,
+  _ReceiverResponse,
+  _TimeoutDuration
 } from './index';
 
 interface MessageHandler {
@@ -32,7 +32,7 @@ interface MessageHandler {
   onMessage: EventListenerOrEventListenerObject;
 }
 
-function generateEventId(prefix: string = '', digits: number = 20): string {
+function generateEventId(prefix = '', digits = 20): string {
   return `${prefix}${Math.floor(Math.random() * Math.pow(10, digits))}`;
 }
 
@@ -42,7 +42,7 @@ function generateEventId(prefix: string = '', digits: number = 20): string {
  * @internal
  */
 export class Sender {
-  private readonly handlers: Set<MessageHandler> = new Set();
+  private readonly handlers = new Set<MessageHandler>();
 
   constructor(private readonly target: ServiceWorker) {}
 
@@ -75,15 +75,15 @@ export class Sender {
    *
    * @returns An array of settled promises from all the handlers that were listening on the receiver.
    */
-  async _send<T extends ReceiverResponse, S extends SenderRequest>(
-    eventType: EventType,
+  async _send<T extends _ReceiverResponse, S extends _SenderRequest>(
+    eventType: _EventType,
     data: S,
-    timeout: TimeoutDuration = TimeoutDuration.ACK
-  ): Promise<ReceiverMessageResponse<T>> {
+    timeout = _TimeoutDuration.ACK
+  ): Promise<_ReceiverMessageResponse<T>> {
     const messageChannel =
       typeof MessageChannel !== 'undefined' ? new MessageChannel() : null;
     if (!messageChannel) {
-      throw new Error(MessageError.CONNECTION_UNAVAILABLE);
+      throw new Error(_MessageError.CONNECTION_UNAVAILABLE);
     }
     // Node timers and browser timers return fundamentally different types.
     // We don't actually care what the value is but TS won't accept unknown and
@@ -91,28 +91,28 @@ export class Sender {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let completionTimer: any;
     let handler: MessageHandler;
-    return new Promise<ReceiverMessageResponse<T>>((resolve, reject) => {
+    return new Promise<_ReceiverMessageResponse<T>>((resolve, reject) => {
       const eventId = generateEventId();
       messageChannel.port1.start();
       const ackTimer = setTimeout(() => {
-        reject(new Error(MessageError.UNSUPPORTED_EVENT));
+        reject(new Error(_MessageError.UNSUPPORTED_EVENT));
       }, timeout);
       handler = {
         messageChannel,
-        onMessage: (event: Event): void => {
+        onMessage(event: Event): void {
           const messageEvent = event as MessageEvent<ReceiverMessageEvent<T>>;
           if (messageEvent.data.eventId !== eventId) {
             return;
           }
           switch (messageEvent.data.status) {
-            case Status.ACK:
+            case _Status.ACK:
               // The receiver should ACK first.
               clearTimeout(ackTimer);
               completionTimer = setTimeout(() => {
-                reject(new Error(MessageError.TIMEOUT));
-              }, TimeoutDuration.COMPLETION);
+                reject(new Error(_MessageError.TIMEOUT));
+              }, _TimeoutDuration.COMPLETION);
               break;
-            case Status.DONE:
+            case _Status.DONE:
               // Once the receiver's handlers are finished we will get the results.
               clearTimeout(completionTimer);
               resolve(messageEvent.data.response);
@@ -120,7 +120,7 @@ export class Sender {
             default:
               clearTimeout(ackTimer);
               clearTimeout(completionTimer);
-              reject(new Error(MessageError.INVALID_RESPONSE));
+              reject(new Error(_MessageError.INVALID_RESPONSE));
               break;
           }
         }

@@ -25,12 +25,12 @@ import {
   STORAGE_AVAILABLE_KEY
 } from '../../core/persistence/';
 import {
-  EventType,
-  PingResponse,
+  _EventType,
+  _PingResponse,
   KeyChangedResponse,
   KeyChangedRequest,
   PingRequest,
-  TimeoutDuration
+  _TimeoutDuration
 } from '../messagechannel/index';
 import { Receiver } from '../messagechannel/receiver';
 import { Sender } from '../messagechannel/sender';
@@ -180,7 +180,7 @@ class IndexedDBLocalPersistence implements Persistence {
 
   private receiver: Receiver | null = null;
   private sender: Sender | null = null;
-  private serviceWorkerReceiverAvailable: boolean = false;
+  private serviceWorkerReceiverAvailable = false;
   private activeServiceWorker: ServiceWorker | null = null;
   // Visible for testing only
   readonly _workerInitializationPromise: Promise<void>;
@@ -216,7 +216,7 @@ class IndexedDBLocalPersistence implements Persistence {
     this.receiver = Receiver._getInstance(_getWorkerGlobalScope()!);
     // Refresh from persistence if we receive a KeyChanged message.
     this.receiver._subscribe(
-      EventType.KEY_CHANGED,
+      _EventType.KEY_CHANGED,
       async (_origin: string, data: KeyChangedRequest) => {
         const keys = await this._poll();
         return {
@@ -226,9 +226,9 @@ class IndexedDBLocalPersistence implements Persistence {
     );
     // Let the sender know that we are listening so they give us more timeout.
     this.receiver._subscribe(
-      EventType.PING,
+      _EventType.PING,
       async (_origin: string, _data: PingRequest) => {
-        return [EventType.KEY_CHANGED];
+        return [_EventType.KEY_CHANGED];
       }
     );
   }
@@ -248,17 +248,17 @@ class IndexedDBLocalPersistence implements Persistence {
     }
     this.sender = new Sender(this.activeServiceWorker);
     // Ping the service worker to check what events they can handle.
-    const results = await this.sender._send<PingResponse, PingRequest>(
-      EventType.PING,
+    const results = await this.sender._send<_PingResponse, PingRequest>(
+      _EventType.PING,
       {},
-      TimeoutDuration.LONG_ACK
+      _TimeoutDuration.LONG_ACK
     );
     if (!results) {
       return;
     }
     if (
       results[0]?.fulfilled &&
-      results[0]?.value.includes(EventType.KEY_CHANGED)
+      results[0]?.value.includes(_EventType.KEY_CHANGED)
     ) {
       this.serviceWorkerReceiverAvailable = true;
     }
@@ -283,12 +283,12 @@ class IndexedDBLocalPersistence implements Persistence {
     }
     try {
       await this.sender._send<KeyChangedResponse, KeyChangedRequest>(
-        EventType.KEY_CHANGED,
+        _EventType.KEY_CHANGED,
         { key },
         // Use long timeout if receiver has previously responded to a ping from us.
         this.serviceWorkerReceiverAvailable
-          ? TimeoutDuration.LONG_ACK
-          : TimeoutDuration.ACK
+          ? _TimeoutDuration.LONG_ACK
+          : _TimeoutDuration.ACK
       );
     } catch {
       // This is a best effort approach. Ignore errors.

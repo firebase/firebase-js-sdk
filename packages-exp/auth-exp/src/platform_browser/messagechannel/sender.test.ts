@@ -20,14 +20,14 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import {
-  EventType,
-  MessageError,
+  _EventType,
+  _MessageError,
   PingRequest,
-  PingResponse,
+  _PingResponse,
   ReceiverMessageEvent,
   SenderMessageEvent,
-  Status,
-  TimeoutDuration
+  _Status,
+  _TimeoutDuration
 } from '.';
 import { delay } from '../../../test/helpers/delay';
 import { FakeServiceWorker } from '../../../test/helpers/fake_service_worker';
@@ -58,7 +58,7 @@ describe('platform_browser/messagechannel/sender', () => {
       const response = [
         {
           fulfilled: true,
-          value: [EventType.KEY_CHANGED]
+          value: [_EventType.KEY_CHANGED]
         }
       ];
       serviceWorker.addEventListener('message', (event: Event) => {
@@ -66,22 +66,22 @@ describe('platform_browser/messagechannel/sender', () => {
           SenderMessageEvent<PingRequest>
         >;
         messageEvent.ports[0].postMessage({
-          status: Status.ACK,
+          status: _Status.ACK,
           eventId: messageEvent.data.eventId,
           eventType: messageEvent.data.eventType,
           response: null
-        } as ReceiverMessageEvent<PingResponse>);
+        } as ReceiverMessageEvent<_PingResponse>);
         messageEvent.ports[0].postMessage({
-          status: Status.DONE,
+          status: _Status.DONE,
           eventId: messageEvent.data.eventId,
           eventType: messageEvent.data.eventType,
           response
-        } as ReceiverMessageEvent<PingResponse>);
+        } as ReceiverMessageEvent<_PingResponse>);
       });
-      const result = await sender._send<PingResponse, PingRequest>(
-        EventType.PING,
+      const result = await sender._send<_PingResponse, PingRequest>(
+        _EventType.PING,
         {},
-        TimeoutDuration.ACK
+        _TimeoutDuration.ACK
       );
       expect(result).to.have.deep.members(response);
     });
@@ -89,49 +89,49 @@ describe('platform_browser/messagechannel/sender', () => {
     it('should timeout if it doesnt see an ACK', async () => {
       serviceWorker.addEventListener('message', (_event: Event) => {
         delay(() => {
-          pendingTimeouts[TimeoutDuration.ACK]();
+          pendingTimeouts[_TimeoutDuration.ACK]();
         });
       });
       await expect(
-        sender._send<PingResponse, PingRequest>(
-          EventType.PING,
+        sender._send<_PingResponse, PingRequest>(
+          _EventType.PING,
           {},
-          TimeoutDuration.ACK
+          _TimeoutDuration.ACK
         )
-      ).to.be.rejectedWith(Error, MessageError.UNSUPPORTED_EVENT);
+      ).to.be.rejectedWith(Error, _MessageError.UNSUPPORTED_EVENT);
     });
 
     it('should work with a long ACK', async () => {
       const response = [
         {
           fulfilled: true,
-          value: [EventType.KEY_CHANGED]
+          value: [_EventType.KEY_CHANGED]
         }
       ];
       serviceWorker.addEventListener('message', (event: Event) => {
         delay(() => {
-          pendingTimeouts[TimeoutDuration.ACK]();
+          pendingTimeouts[_TimeoutDuration.ACK]();
         });
         const messageEvent = event as MessageEvent<
           SenderMessageEvent<PingRequest>
         >;
         messageEvent.ports[0].postMessage({
-          status: Status.ACK,
+          status: _Status.ACK,
           eventId: messageEvent.data.eventId,
           eventType: messageEvent.data.eventType,
           response: null
-        } as ReceiverMessageEvent<PingResponse>);
+        } as ReceiverMessageEvent<_PingResponse>);
         messageEvent.ports[0].postMessage({
-          status: Status.DONE,
+          status: _Status.DONE,
           eventId: messageEvent.data.eventId,
           eventType: messageEvent.data.eventType,
           response
-        } as ReceiverMessageEvent<PingResponse>);
+        } as ReceiverMessageEvent<_PingResponse>);
       });
-      const result = await sender._send<PingResponse, PingRequest>(
-        EventType.PING,
+      const result = await sender._send<_PingResponse, PingRequest>(
+        _EventType.PING,
         {},
-        TimeoutDuration.LONG_ACK
+        _TimeoutDuration.LONG_ACK
       );
       expect(result).to.have.deep.members(response);
     });
@@ -142,22 +142,22 @@ describe('platform_browser/messagechannel/sender', () => {
           SenderMessageEvent<PingRequest>
         >;
         messageEvent.ports[0].postMessage({
-          status: Status.ACK,
+          status: _Status.ACK,
           eventId: messageEvent.data.eventId,
           eventType: messageEvent.data.eventType,
           response: null
-        } as ReceiverMessageEvent<PingResponse>);
+        } as ReceiverMessageEvent<_PingResponse>);
         delay(() => {
-          pendingTimeouts[TimeoutDuration.COMPLETION]();
+          pendingTimeouts[_TimeoutDuration.COMPLETION]();
         });
       });
       await expect(
-        sender._send<PingResponse, PingRequest>(
-          EventType.PING,
+        sender._send<_PingResponse, PingRequest>(
+          _EventType.PING,
           {},
-          TimeoutDuration.ACK
+          _TimeoutDuration.ACK
         )
-      ).to.be.rejectedWith(Error, MessageError.TIMEOUT);
+      ).to.be.rejectedWith(Error, _MessageError.TIMEOUT);
     });
   });
 });

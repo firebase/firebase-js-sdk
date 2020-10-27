@@ -19,12 +19,12 @@ import { expect, use } from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import {
-  EventType,
+  _EventType,
   PingRequest,
-  PingResponse,
+  _PingResponse,
   ReceiverMessageEvent,
   SenderMessageEvent,
-  Status
+  _Status
 } from '.';
 import { FakeServiceWorker } from '../../../test/helpers/fake_service_worker';
 import { Receiver } from './receiver';
@@ -53,7 +53,7 @@ describe('platform_browser/messagechannel/receiver', () => {
       messageChannel.port1.onmessage = sinon.spy();
       serviceWorker.postMessage(
         {
-          eventType: EventType.PING,
+          eventType: _EventType.PING,
           eventId: '12345',
           data: {}
         } as SenderMessageEvent<PingRequest>,
@@ -63,10 +63,10 @@ describe('platform_browser/messagechannel/receiver', () => {
     });
 
     it('should return the handlers response to the caller', done => {
-      const response = [EventType.KEY_CHANGED];
+      const response = [_EventType.KEY_CHANGED];
       let ackReceived = false;
-      receiver._subscribe<PingResponse, PingRequest>(
-        EventType.PING,
+      receiver._subscribe<_PingResponse, PingRequest>(
+        _EventType.PING,
         (_origin: string, data: PingRequest) => {
           expect(data).to.eql({});
           return response;
@@ -74,17 +74,17 @@ describe('platform_browser/messagechannel/receiver', () => {
       );
       messageChannel.port1.onmessage = (event: Event) => {
         const messageEvent = event as MessageEvent<
-          ReceiverMessageEvent<PingResponse>
+          ReceiverMessageEvent<_PingResponse>
         >;
         if (!ackReceived) {
           expect(messageEvent.data.eventId).to.eq('12345');
-          expect(messageEvent.data.eventType).to.eq(EventType.PING);
-          expect(messageEvent.data.status).to.eq(Status.ACK);
+          expect(messageEvent.data.eventType).to.eq(_EventType.PING);
+          expect(messageEvent.data.status).to.eq(_Status.ACK);
           ackReceived = true;
         } else {
           expect(messageEvent.data.eventId).to.eq('12345');
-          expect(messageEvent.data.eventType).to.eq(EventType.PING);
-          expect(messageEvent.data.status).to.eq(Status.DONE);
+          expect(messageEvent.data.eventType).to.eq(_EventType.PING);
+          expect(messageEvent.data.status).to.eq(_Status.DONE);
           expect(messageEvent.data.response).to.have.deep.members([
             {
               fulfilled: true,
@@ -97,7 +97,7 @@ describe('platform_browser/messagechannel/receiver', () => {
       };
       serviceWorker.postMessage(
         {
-          eventType: EventType.PING,
+          eventType: _EventType.PING,
           eventId: '12345',
           data: {}
         } as SenderMessageEvent<PingRequest>,
@@ -106,32 +106,32 @@ describe('platform_browser/messagechannel/receiver', () => {
     });
 
     it('should handle multiple subscribers, even if one fails', done => {
-      const response = [EventType.KEY_CHANGED];
+      const response = [_EventType.KEY_CHANGED];
       let ackReceived = false;
       receiver._subscribe(
-        EventType.PING,
+        _EventType.PING,
         (_origin: string, data: PingRequest) => {
           expect(data).to.eql({});
           return response;
         }
       );
       receiver._subscribe(
-        EventType.PING,
+        _EventType.PING,
         (_origin: string, _data: PingRequest) => Promise.reject('fail')
       );
       messageChannel.port1.onmessage = (event: Event) => {
         const messageEvent = event as MessageEvent<
-          ReceiverMessageEvent<PingResponse>
+          ReceiverMessageEvent<_PingResponse>
         >;
         if (!ackReceived) {
           expect(messageEvent.data.eventId).to.eq('12345');
-          expect(messageEvent.data.eventType).to.eq(EventType.PING);
-          expect(messageEvent.data.status).to.eq(Status.ACK);
+          expect(messageEvent.data.eventType).to.eq(_EventType.PING);
+          expect(messageEvent.data.status).to.eq(_Status.ACK);
           ackReceived = true;
         } else {
           expect(messageEvent.data.eventId).to.eq('12345');
-          expect(messageEvent.data.eventType).to.eq(EventType.PING);
-          expect(messageEvent.data.status).to.eq(Status.DONE);
+          expect(messageEvent.data.eventType).to.eq(_EventType.PING);
+          expect(messageEvent.data.status).to.eq(_Status.DONE);
           expect(messageEvent.data.response).to.have.deep.members([
             {
               fulfilled: true,
@@ -147,7 +147,7 @@ describe('platform_browser/messagechannel/receiver', () => {
       };
       serviceWorker.postMessage(
         {
-          eventType: EventType.PING,
+          eventType: _EventType.PING,
           eventId: '12345',
           data: {}
         } as SenderMessageEvent<PingRequest>,
@@ -159,14 +159,14 @@ describe('platform_browser/messagechannel/receiver', () => {
   describe('_unsubscribe', () => {
     it('should remove the handlers', () => {
       messageChannel.port1.onmessage = sinon.spy();
-      const handler = (_origin: string, _data: PingRequest): EventType[] => {
-        return [EventType.KEY_CHANGED];
+      const handler = (_origin: string, _data: PingRequest): _EventType[] => {
+        return [_EventType.KEY_CHANGED];
       };
-      receiver._subscribe(EventType.PING, handler);
-      receiver._unsubscribe(EventType.PING, handler);
+      receiver._subscribe(_EventType.PING, handler);
+      receiver._unsubscribe(_EventType.PING, handler);
       serviceWorker.postMessage(
         {
-          eventType: EventType.PING,
+          eventType: _EventType.PING,
           eventId: '12345',
           data: {}
         } as SenderMessageEvent<PingRequest>,

@@ -17,7 +17,7 @@
 
 import { PromiseSettledResult } from './promise';
 
-export const enum TimeoutDuration {
+export const enum _TimeoutDuration {
   ACK = 50,
   COMPLETION = 3000,
   // Used when a handler is confirmed to be available on the other side.
@@ -27,12 +27,12 @@ export const enum TimeoutDuration {
 /**
  * Enumeration of possible response types from the Receiver.
  */
-export const enum Status {
+export const enum _Status {
   ACK = 'ack',
   DONE = 'done'
 }
 
-export const enum MessageError {
+export const enum _MessageError {
   CONNECTION_CLOSED = 'connection_closed',
   CONNECTION_UNAVAILABLE = 'connection_unavailable',
   INVALID_RESPONSE = 'invalid_response',
@@ -44,7 +44,7 @@ export const enum MessageError {
 /**
  * Enumeration of possible events sent by the Sender.
  */
-export const enum EventType {
+export const enum _EventType {
   KEY_CHANGED = 'keyChanged',
   PING = 'ping'
 }
@@ -59,12 +59,12 @@ export interface KeyChangedResponse {
 /**
  * Response to a {@link EventType.PING} event.
  */
-export type PingResponse = EventType[];
+export type _PingResponse = _EventType[];
 
-export type ReceiverResponse = KeyChangedResponse | PingResponse;
+export type _ReceiverResponse = KeyChangedResponse | _PingResponse;
 
 interface MessageEvent {
-  eventType: EventType;
+  eventType: _EventType;
   eventId: string;
 }
 
@@ -81,29 +81,29 @@ export interface KeyChangedRequest {
 export interface PingRequest {}
 
 /** Data sent by Sender */
-export type SenderRequest = KeyChangedRequest | PingRequest;
+export type _SenderRequest = KeyChangedRequest | PingRequest;
 
 /** Receiver handler to process events sent by the Sender */
 export interface ReceiverHandler<
-  T extends ReceiverResponse,
-  S extends SenderRequest
+  T extends _ReceiverResponse,
+  S extends _SenderRequest
 > {
   (origin: string, data: S): T | Promise<T>;
 }
 
 /** Full message sent by Sender  */
-export interface SenderMessageEvent<T extends SenderRequest>
+export interface SenderMessageEvent<T extends _SenderRequest>
   extends MessageEvent {
   data: T;
 }
 
-export type ReceiverMessageResponse<T extends ReceiverResponse> = Array<
+export type _ReceiverMessageResponse<T extends _ReceiverResponse> = Array<
   PromiseSettledResult<T>
 > | null;
 
 /** Full message sent by Receiver */
-export interface ReceiverMessageEvent<T extends ReceiverResponse>
+export interface ReceiverMessageEvent<T extends _ReceiverResponse>
   extends MessageEvent {
-  status: Status;
-  response: ReceiverMessageResponse<T>;
+  status: _Status;
+  response: _ReceiverMessageResponse<T>;
 }
