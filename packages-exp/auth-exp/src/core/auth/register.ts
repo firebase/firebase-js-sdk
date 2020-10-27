@@ -33,7 +33,7 @@ import {
 import { AuthInternal } from './firebase_internal';
 
 export const _AUTH_COMPONENT_NAME = 'auth-exp';
-export const _AUTH_INTERNAL_COMPONENT_NAME = 'auth-internal-exp';
+export const _AUTH_INTERNAL_COMPONENT_NAME = 'auth-internal';
 
 function getVersionForPlatform(
   clientPlatform: ClientPlatform
