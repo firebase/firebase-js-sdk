@@ -218,8 +218,7 @@ export class SwController implements FirebaseMessaging, FirebaseService {
       }
     }
 
-    // block to allow onBackgroundMessage to run to showNotification before browser check for
-    // silent push kicks in.
+    // wait briefly to allow onBackgroundMessage to complete
     await sleep(BACKGROUND_HANDLE_EXECUTION_TIME_LIMIT_MS);
   }
 

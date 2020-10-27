@@ -33,10 +33,11 @@ export const CONSOLE_CAMPAIGN_ID = 'google.c.a.c_id';
 export const CONSOLE_CAMPAIGN_TIME = 'google.c.a.ts';
 export const CONSOLE_CAMPAIGN_NAME = 'google.c.a.c_l';
 
-// Maximum execution time for onBackgroundMessage. This is used because the browser check for
-// showNotification might race with onBackgroundMessage. When that happens, a silent push warning
-// will be shown with developer's showNotification message.
-export const BACKGROUND_HANDLE_EXECUTION_TIME_LIMIT_MS = 3000;
+// Due to the fact that onBackgroundMessage can't be awaited (to support rxjs), a silent push
+// warning might be shown by the browser if the callback fails to completes by the end of onPush.
+// Experiments were ran to determine the majority onBackground message clock time. This brief
+// blocking time would allow majority of the onBackgroundMessage callback to finish.
+export const BACKGROUND_HANDLE_EXECUTION_TIME_LIMIT_MS = 1000;
 
 // Preparation time for client to initialize and set up the message handler.
 export const FOREGROUND_HANDLE_PREPARATION_TIME_MS = 3000;
