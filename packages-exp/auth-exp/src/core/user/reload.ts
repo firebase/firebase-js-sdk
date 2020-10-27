@@ -49,6 +49,11 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
 
   const providerData = mergeProviderData(user.providerData, newProviderData);
 
+  // Preserves the non-nonymous status of the stored user, even if no more
+  // credentials (federated or email/password) are linked to the user. If
+  // the user was previously anonymous, then use provider data to update.
+  // On the other hand, if it was not anonymous before, it should never be
+  // considered anonymous now.
   const oldIsAnonymous = user.isAnonymous;
   const newIsAnonymous =
     !(user.email && coreAccount.passwordHash) && !providerData?.length;
