@@ -42,6 +42,7 @@ function copyTests() {
     .src(
       [
         testBase + '/integration/api/*.ts',
+        testBase + '/integration/util/emulator_settings.ts',
         testBase + '/integration/util/events_accumulator.ts',
         testBase + '/integration/util/helpers.ts',
         testBase + '/integration/util/settings.ts',

@@ -147,6 +147,7 @@ exports.es2017Plugins = function (platform, mangled = false) {
             target: 'es2017'
           }
         },
+        useTsconfigDeclarationDir: true,
         cacheDir: tmp.dirSync(),
         transformers: [removeAssertAndPrefixInternalTransformer]
       }),
@@ -164,6 +165,7 @@ exports.es2017Plugins = function (platform, mangled = false) {
           }
         },
         cacheDir: tmp.dirSync(),
+        useTsconfigDeclarationDir: true,
         transformers: [removeAssertTransformer]
       }),
       json({ preferConst: true })
@@ -181,6 +183,7 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
             allowJs: true
           }
         },
+        useTsconfigDeclarationDir: true,
         include: ['dist/*.js', 'dist/exp/*.js']
       }),
       terser({
@@ -201,6 +204,7 @@ exports.es2017ToEs5Plugins = function (mangled = false) {
             allowJs: true
           }
         },
+        useTsconfigDeclarationDir: true,
         include: ['dist/*.js', 'dist/exp/*.js']
       }),
       sourcemaps()

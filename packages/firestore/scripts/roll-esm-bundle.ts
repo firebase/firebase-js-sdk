@@ -44,7 +44,7 @@ const argv = yargs.options({
  * This is used in the `gendeps` build and does not minify or mangle property
  * names.
  */
-async function buildBundle(input: string, output: string): Promise<void> {
+async function rollEsmBundle(input: string, output: string): Promise<void> {
   const bundle = await rollup({
     input,
     plugins: [
@@ -65,4 +65,4 @@ async function buildBundle(input: string, output: string): Promise<void> {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
-buildBundle(argv.input, argv.output);
+rollEsmBundle(argv.input, argv.output);

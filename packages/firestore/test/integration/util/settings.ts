@@ -59,4 +59,3 @@ function getDefaultSettings(): firestore.Settings {
 export const DEFAULT_PROJECT_ID = USE_EMULATOR
   ? EMULATOR_PROJECT_ID
   : PROJECT_CONFIG.projectId;
-export const ALT_PROJECT_ID = 'test-db2';
