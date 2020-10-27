@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { registerVersion } from '@firebase/app-exp';
+import { firebase } from '@firebase/app-compat';
 import { name, version } from '../package.json';
 import { registerFunctions } from './register';
 
 registerFunctions();
-registerVersion(name, version);
+firebase.registerVersion(name, version);

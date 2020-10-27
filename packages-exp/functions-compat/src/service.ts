@@ -17,16 +17,17 @@
 
 import {
   httpsCallable as httpsCallableExp,
-  useFunctionsEmulator as useFunctionsEmulatorExp,
-  getFunctions
+  useFunctionsEmulator as useFunctionsEmulatorExp
 } from '@firebase/functions-exp';
 import { FirebaseFunctions, HttpsCallable } from '@firebase/functions-types';
-import { HttpsCallableOptions, Functions } from '@firebase/functions-types-exp';
+import {
+  HttpsCallableOptions,
+  Functions as FunctionsServiceExp
+} from '@firebase/functions-types-exp';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseError } from '@firebase/util';
 
 export class FunctionsService implements FirebaseFunctions {
-  private _functionsInstance: Functions;
   /**
    * For testing.
    * @internal
@@ -38,8 +39,10 @@ export class FunctionsService implements FirebaseFunctions {
    */
   _customDomain: string | null;
 
-  constructor(public app: FirebaseApp, regionOrCustomDomain?: string) {
-    this._functionsInstance = getFunctions(app, regionOrCustomDomain);
+  constructor(
+    public app: FirebaseApp,
+    private _functionsInstance: FunctionsServiceExp
+  ) {
     this._region = this._functionsInstance.region;
     this._customDomain = this._functionsInstance.customDomain;
   }

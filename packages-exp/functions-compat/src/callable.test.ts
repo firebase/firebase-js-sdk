@@ -52,7 +52,7 @@ describe('Firebase Functions > Call', () => {
   const region = 'us-central1';
 
   before(() => {
-    const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
+    const useEmulator = !!process.env.HOST;
     const projectId = useEmulator
       ? 'functions-integration-test'
       : TEST_PROJECT.projectId;

@@ -17,16 +17,21 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FunctionsService } from '../src/service';
+import { getFunctions } from '@firebase/functions-exp';
 
 export function createTestService(
   app: FirebaseApp,
-  region?: string
+  regionOrCustomDomain?: string
 ): FunctionsService {
-  const functions = new FunctionsService(app, region);
-  const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
+  const functions = new FunctionsService(
+    app,
+    getFunctions(app, regionOrCustomDomain)
+  );
+  const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_HOST;
   if (useEmulator) {
-    functions.useFunctionsEmulator(
-      process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN!
+    functions.useEmulator(
+      process.env.FIREBASE_FUNCTIONS_EMULATOR_HOST!,
+      Number(process.env.FIREBASE_FUNCTIONS_EMULATOR_PORT!)
     );
   }
   return functions;
