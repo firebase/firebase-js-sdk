@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { DEFAULT_VAPID_KEY, FCM_MSG, TAG } from '../util/constants';
+import {
+  DEFAULT_VAPID_KEY,
+  FCM_MSG,
+  ON_BACKGROUND_MESSAGE_AWAIT_MILLISECONDS,
+  TAG
+} from '../util/constants';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { FirebaseMessaging, MessagePayload } from '@firebase/messaging-types';
 import {
@@ -211,6 +216,9 @@ export class SwController implements FirebaseMessaging, FirebaseService {
         this.bgMessageHandler.next(payload);
       }
     }
+
+    // experimental blocking time to allow majority onBackgroundMessage callback to complete
+    await sleep(ON_BACKGROUND_MESSAGE_AWAIT_MILLISECONDS);
   }
 
   async onSubChange(event: PushSubscriptionChangeEvent): Promise<void> {

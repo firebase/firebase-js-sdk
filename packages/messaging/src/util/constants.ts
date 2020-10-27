@@ -32,3 +32,9 @@ export const CONSOLE_CAMPAIGN_TIME = 'google.c.a.ts';
 /** Set to '1' if Analytics is enabled for the campaign */
 export const CONSOLE_CAMPAIGN_ANALYTICS_ENABLED = 'google.c.a.e';
 export const TAG = 'FirebaseMessaging: ';
+
+// Due to the fact that onBackgroundMessage can't be awaited (to support rxjs), a silent push
+// warning might be shown by the browser if the callback fails to completes by the end of onPush.
+// Experiments were ran to determine the majority onBackground message clock time. This brief
+// blocking time would allow majority of the onBackgroundMessage callback to finish.
+export const ON_BACKGROUND_MESSAGE_AWAIT_MILLISECONDS = 1000;
