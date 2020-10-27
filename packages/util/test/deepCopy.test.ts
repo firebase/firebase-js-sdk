@@ -105,13 +105,10 @@ describe('deepExtend', () => {
 
   it('does not extend property __proto__', () => {
     const src = JSON.parse('{ "__proto__": { "polluted": "polluted" } }');
-    const a = {};
+    const a: Record<string, unknown> = {};
     deepExtend(a, src);
 
-    // @ts-expect-error
     expect(a.__proto__).to.equal(Object.prototype);
-
-    // @ts-expect-error
     expect(a.polluted).to.be.undefined;
   });
 });
