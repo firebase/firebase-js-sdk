@@ -14,14 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { assert } from 'chai';
+import { assert, expect } from 'chai';
 import { deepCopy, deepExtend } from '../src/deepCopy';
 
 describe('deepCopy()', () => {
   it('Scalars', () => {
-    assert.strictEqual(deepCopy(true), true);
-    assert.strictEqual(deepCopy(123), 123);
-    assert.strictEqual(deepCopy('abc'), 'abc');
+    expect(deepCopy(true)).to.equal(true);
+    expect(deepCopy(123)).to.equal(123);
+    expect(deepCopy('abc')).to.equal('abc');
   });
 
   it('Date', () => {
@@ -102,5 +102,17 @@ describe('deepExtend', () => {
     );
     assert.deepEqual({ a: source }, target);
     assert.strictEqual(source, target.a);
+  });
+
+  it.only('does not extend property __proto__', () => {
+    const src = JSON.parse('{ "__proto__": { "polluted": "polluted" } }');
+    const a = {};
+    deepExtend(a, src);
+
+    // @ts-expect-error
+    expect(a.__proto__).to.equal(Object.prototype);
+
+    // @ts-expect-error
+    expect(a.polluted).to.be.undefined;
   });
 });
