@@ -63,6 +63,12 @@ describe('core/user/invalidation', () => {
     expect(auth.currentUser).to.be.null;
   });
 
+  it('does not log out if bypass auth state is true', async () => {
+    const error = makeError(AuthErrorCode.USER_DISABLED);
+    try { await _logoutIfInvalidated(user, Promise.reject(error), true); } catch {}
+    expect(auth.currentUser).to.eq(user);
+  });
+
   it('logs out the user if the error is token_expired', async () => {
     const error = makeError(AuthErrorCode.TOKEN_EXPIRED);
     await expect(

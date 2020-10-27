@@ -49,5 +49,9 @@ export function makeMockPopupRedirectResolver(
     }
 
     _redirectPersistence?: Persistence;
+
+    async _completeRedirectFn(): Promise<void> {
+
+    }
   };
 }

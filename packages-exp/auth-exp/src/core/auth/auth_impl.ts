@@ -170,6 +170,7 @@ export class AuthImpl implements Auth, _FirebaseService {
       // If the stored user (i.e. the old "currentUser") has a redirectId that
       // matches the redirect user, then we want to initially sign in with the
       // new user object from result.
+      // TODO(samgho): More thoroughly test all of this
       if (
         (!redirectUserEventId || redirectUserEventId === storedUserEventId) &&
         result?.user
