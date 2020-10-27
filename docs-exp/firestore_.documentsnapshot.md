@@ -14,7 +14,7 @@ export class DocumentSnapshot<T = DocumentData>
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)()](./firestore_.documentsnapshot._constructor_.md) |  |  |
+|  [(constructor)()](./firestore_.documentsnapshot._constructor_.md) |  | Constructs a new instance of the <code>DocumentSnapshot</code> class |
 
 ## Properties
 
