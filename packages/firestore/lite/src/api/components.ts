@@ -18,11 +18,10 @@
 import { Datastore, newDatastore } from '../../../src/remote/datastore';
 import { newConnection } from '../../../src/platform/connection';
 import { newSerializer } from '../../../src/platform/serializer';
-import { FirebaseFirestore, Settings } from './database';
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
+import { FirebaseFirestore } from './database';
 import { logDebug } from '../../../src/util/log';
 import { Code, FirestoreError } from '../../../src/util/error';
-import { FirestoreSettings, makeDatabaseInfo } from '../../../src/api/database';
+import { makeDatabaseInfo } from '../../../src/api/database';
 
 export const LOG_TAG = 'ComponentProvider';
 
