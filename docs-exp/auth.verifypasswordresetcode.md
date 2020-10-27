@@ -4,6 +4,8 @@
 
 ## verifyPasswordResetCode() function
 
+Checks a password reset code sent to the user by email or other out-of-band mechanism.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,10 +16,12 @@ export declare function verifyPasswordResetCode(auth: externs.Auth, code: string
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
-|  code | string |  |
+|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  code | string | A verification code sent to the user. |
 
 <b>Returns:</b>
 
 Promise&lt;string&gt;
+
+the user's email address if valid.
 

@@ -4,9 +4,7 @@
 
 ## IdTokenResult interface
 
-Interface representing ID token result obtained from `getIdTokenResult`<!-- -->. It contains the ID token JWT string and other helper properties for getting different data associated with the token as well as all the decoded payload claims.
-
-Note that these claims are not to be trusted as they are parsed client side. Only server side verification can guarantee the integrity of the token claims.
+Interface representing ID token result obtained from [User.getIdTokenResult()](./auth-types.user.getidtokenresult.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -14,15 +12,21 @@ Note that these claims are not to be trusted as they are parsed client side. Onl
 export interface IdTokenResult 
 ```
 
+## Remarks
+
+It contains the ID token JWT string and other helper properties for getting different data associated with the token as well as all the decoded payload claims.
+
+Note that these claims are not to be trusted as they are parsed client side. Only server side verification can guarantee the integrity of the token claims.
+
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [authTime](./auth-types.idtokenresult.authtime.md) | string | The authentication time formatted as a UTC string. This is the time the user authenticated (signed in) and not the time the token was refreshed. |
+|  [authTime](./auth-types.idtokenresult.authtime.md) | string | The authentication time formatted as a UTC string. |
 |  [claims](./auth-types.idtokenresult.claims.md) | [ParsedToken](./auth-types.parsedtoken.md) | The entire payload claims of the ID token including the standard reserved claims as well as the custom claims. |
 |  [expirationTime](./auth-types.idtokenresult.expirationtime.md) | string | The ID token expiration time formatted as a UTC string. |
 |  [issuedAtTime](./auth-types.idtokenresult.issuedattime.md) | string | The ID token issuance time formatted as a UTC string. |
-|  [signInProvider](./auth-types.idtokenresult.signinprovider.md) | string \| null | The sign-in provider through which the ID token was obtained (anonymous, custom, phone, password, etc). Note, this does not map to provider IDs. |
+|  [signInProvider](./auth-types.idtokenresult.signinprovider.md) | string \| null | The sign-in provider through which the ID token was obtained (anonymous, custom, phone, password, etc). |
 |  [signInSecondFactor](./auth-types.idtokenresult.signinsecondfactor.md) | string \| null | The type of second factor associated with this session, provided the user was multi-factor authenticated (eg. phone, etc). |
 |  [token](./auth-types.idtokenresult.token.md) | string | The Firebase Auth ID token JWT string. |
 

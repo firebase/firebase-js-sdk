@@ -4,6 +4,8 @@
 
 ## updateCurrentUser() function
 
+Asynchronously sets the provided user as [Auth.currentUser](./auth-types.auth.currentuser.md) on the [Auth](./auth-types.auth.md) instance.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,10 +16,18 @@ export declare function updateCurrentUser(auth: externs.Auth, user: externs.User
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
-|  user | externs.[User](./auth-types.user.md) \| null |  |
+|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  user | externs.[User](./auth-types.user.md) \| null | The new [User](./auth-types.user.md)<!-- -->. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+## Remarks
+
+A new instance copy of the user provided will be made and set as currentUser.
+
+This will trigger [onAuthStateChanged()](./auth.onauthstatechanged.md) and [onIdTokenChanged()](./auth.onidtokenchanged.md) listeners like other sign in methods.
+
+The operation fails with an error if the user to be updated belongs to a different Firebase project.
 

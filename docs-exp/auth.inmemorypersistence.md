@@ -4,6 +4,8 @@
 
 ## inMemoryPersistence variable
 
+An implementation of [Persistence](./auth-types.persistence.md) of type 'NONE'.
+
 <b>Signature:</b>
 
 ```typescript

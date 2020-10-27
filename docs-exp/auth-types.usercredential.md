@@ -4,13 +4,17 @@
 
 ## UserCredential interface
 
-A structure containing a [User](./auth-types.user.md)<!-- -->, an [AuthCredential](./auth-types.authcredential.md)<!-- -->, the [OperationType](./auth-types.operationtype.md)<!-- -->, and any additional user information that was returned from the identity provider. `operationType` could be [OperationType.SIGN\_IN](./auth-types.operationtype.sign_in.md) for a sign-in operation, [OperationType.LINK](./auth-types.operationtype.link.md) for a linking operation and [OperationType.REAUTHENTICATE](./auth-types.operationtype.reauthenticate.md) for a reauthentication operation.
+A structure containing a [User](./auth-types.user.md)<!-- -->, an [AuthCredential](./auth-types.authcredential.md)<!-- -->, the [OperationType](./auth-types.operationtype.md)<!-- -->, and any additional user information that was returned from the identity provider.
 
 <b>Signature:</b>
 
 ```typescript
 export interface UserCredential 
 ```
+
+## Remarks
+
+`operationType` could be [OperationType.SIGN\_IN](./auth-types.operationtype.sign_in.md) for a sign-in operation, [OperationType.LINK](./auth-types.operationtype.link.md) for a linking operation and [OperationType.REAUTHENTICATE](./auth-types.operationtype.reauthenticate.md) for a reauthentication operation.
 
 ## Properties
 

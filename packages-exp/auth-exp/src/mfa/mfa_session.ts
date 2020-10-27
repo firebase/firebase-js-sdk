@@ -16,7 +16,7 @@
  */
 import * as externs from '@firebase/auth-types-exp';
 
-export enum MultiFactorSessionType {
+export const enum MultiFactorSessionType {
   ENROLL = 'enroll',
   SIGN_IN = 'signin'
 }

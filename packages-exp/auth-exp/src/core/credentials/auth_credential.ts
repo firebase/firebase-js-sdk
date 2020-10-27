@@ -20,22 +20,32 @@ import { Auth } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { debugFail } from '../util/assert';
 
+/**
+ * {@inheritdoc @firebase/auth-types#AuthCredential}
+ *
+ * @public
+ */
 export class AuthCredential {
+  /** @internal */
   protected constructor(
     readonly providerId: string,
     readonly signInMethod: string
   ) {}
 
+  /** {@inheritdoc @firebase/auth-types#AuthCredential.toJSON} */
   toJSON(): object {
     return debugFail('not implemented');
   }
 
+  /** @internal */
   _getIdTokenResponse(_auth: Auth): Promise<PhoneOrOauthTokenResponse> {
     return debugFail('not implemented');
   }
+  /** @internal */
   _linkToIdToken(_auth: Auth, _idToken: string): Promise<IdTokenResponse> {
     return debugFail('not implemented');
   }
+  /** @internal */
   _getReauthenticationResolver(_auth: Auth): Promise<IdTokenResponse> {
     return debugFail('not implemented');
   }

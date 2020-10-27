@@ -4,6 +4,8 @@
 
 ## getIdToken() function
 
+Returns a JSON Web Token (JWT) used to identify the user to a Firebase service.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,10 +16,14 @@ export declare function getIdToken(user: externs.User, forceRefresh?: boolean): 
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) |  |
-|  forceRefresh | boolean |  |
+|  user | externs.[User](./auth-types.user.md) | The user. |
+|  forceRefresh | boolean | Force refresh regardless of token expiration. |
 
 <b>Returns:</b>
 
 Promise&lt;string&gt;
+
+## Remarks
+
+Returns the current token if it has not expired or if it will not expire in the next five minutes. Otherwise, this will refresh the token and return a new one.
 

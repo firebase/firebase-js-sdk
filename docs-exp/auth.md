@@ -9,81 +9,99 @@
 |  Class | Description |
 |  --- | --- |
 |  [ActionCodeURL](./auth.actioncodeurl.md) | A utility class to parse email action URLs such as password reset, email verification, email link sign in, etc. |
-|  [AuthCredential](./auth.authcredential.md) |  |
-|  [EmailAuthCredential](./auth.emailauthcredential.md) |  |
-|  [EmailAuthProvider](./auth.emailauthprovider.md) |  |
-|  [FacebookAuthProvider](./auth.facebookauthprovider.md) |  |
-|  [GithubAuthProvider](./auth.githubauthprovider.md) |  |
-|  [GoogleAuthProvider](./auth.googleauthprovider.md) |  |
-|  [OAuthCredential](./auth.oauthcredential.md) |  |
-|  [OAuthProvider](./auth.oauthprovider.md) |  |
-|  [PhoneAuthCredential](./auth.phoneauthcredential.md) |  |
-|  [PhoneAuthProvider](./auth.phoneauthprovider.md) |  |
-|  [PhoneMultiFactorGenerator](./auth.phonemultifactorgenerator.md) |  |
-|  [RecaptchaVerifier](./auth.recaptchaverifier.md) |  |
-|  [TwitterAuthProvider](./auth.twitterauthprovider.md) |  |
+|  [AuthCredential](./auth.authcredential.md) | Interface that represents the credentials returned by an [AuthProvider](./auth-types.authprovider.md)<!-- -->. |
+|  [EmailAuthCredential](./auth.emailauthcredential.md) | Interface that represents the credentials returned by [EmailAuthProvider](./auth.emailauthprovider.md) for [ProviderId.PASSWORD](./auth-types.providerid.password.md) |
+|  [EmailAuthProvider](./auth.emailauthprovider.md) | Provider for generating [EmailAuthCredential](./auth.emailauthcredential.md)<!-- -->. |
+|  [FacebookAuthProvider](./auth.facebookauthprovider.md) | Provider for generating an [OAuthCredential](./auth.oauthcredential.md) for [ProviderId.FACEBOOK](./auth-types.providerid.facebook.md)<!-- -->. |
+|  [GithubAuthProvider](./auth.githubauthprovider.md) | Provider for generating an [OAuthCredential](./auth.oauthcredential.md) for [ProviderId.GITHUB](./auth-types.providerid.github.md)<!-- -->. |
+|  [GoogleAuthProvider](./auth.googleauthprovider.md) | Provider for generating an an [OAuthCredential](./auth.oauthcredential.md) for [ProviderId.GOOGLE](./auth-types.providerid.google.md)<!-- -->. |
+|  [OAuthCredential](./auth.oauthcredential.md) | Interface that represents the OAuth credentials returned by an [OAuthProvider](./auth.oauthprovider.md)<!-- -->. |
+|  [OAuthProvider](./auth.oauthprovider.md) | Provider for generating generic [OAuthCredential](./auth.oauthcredential.md)<!-- -->. |
+|  [PhoneAuthCredential](./auth.phoneauthcredential.md) | Interface that represents the credentials returned by a [PhoneAuthProvider](./auth.phoneauthprovider.md)<!-- -->. |
+|  [PhoneAuthProvider](./auth.phoneauthprovider.md) | Provider for generating an [PhoneAuthCredential](./auth.phoneauthcredential.md)<!-- -->. |
+|  [PhoneMultiFactorGenerator](./auth.phonemultifactorgenerator.md) | Provider for generating a [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md)<!-- -->. |
+|  [RecaptchaVerifier](./auth.recaptchaverifier.md) | An [reCAPTCHA](https://www.google.com/recaptcha/)<!-- -->-based application verifier. |
+|  [TwitterAuthProvider](./auth.twitterauthprovider.md) | Provider for generating an [OAuthCredential](./auth.oauthcredential.md) for [ProviderId.TWITTER](./auth-types.providerid.twitter.md)<!-- -->. |
+
+## Enumerations
+
+|  Enumeration | Description |
+|  --- | --- |
+|  [AuthErrorCode](./auth.autherrorcode.md) | Enumeration of Firebase Auth error codes. |
 
 ## Functions
 
 |  Function | Description |
 |  --- | --- |
-|  [applyActionCode(auth, oobCode)](./auth.applyactioncode.md) |  |
-|  [checkActionCode(auth, oobCode)](./auth.checkactioncode.md) |  |
-|  [confirmPasswordReset(auth, oobCode, newPassword)](./auth.confirmpasswordreset.md) |  |
-|  [createUserWithEmailAndPassword(auth, email, password)](./auth.createuserwithemailandpassword.md) |  |
-|  [deleteUser(user)](./auth.deleteuser.md) |  |
-|  [fetchSignInMethodsForEmail(auth, email)](./auth.fetchsigninmethodsforemail.md) |  |
-|  [getAdditionalUserInfo(userCredential)](./auth.getadditionaluserinfo.md) |  |
-|  [getAuth(app)](./auth.getauth.md) |  |
-|  [getIdToken(user, forceRefresh)](./auth.getidtoken.md) |  |
-|  [getIdTokenResult(externUser, forceRefresh)](./auth.getidtokenresult.md) |  |
-|  [getMultiFactorResolver(auth, errorExtern)](./auth.getmultifactorresolver.md) |  |
-|  [getRedirectResult(authExtern, resolverExtern)](./auth.getredirectresult.md) |  |
+|  [applyActionCode(auth, oobCode)](./auth.applyactioncode.md) | Applies a verification code sent to the user by email or other out-of-band mechanism. |
+|  [checkActionCode(auth, oobCode)](./auth.checkactioncode.md) | Checks a verification code sent to the user by email or other out-of-band mechanism. |
+|  [confirmPasswordReset(auth, oobCode, newPassword)](./auth.confirmpasswordreset.md) | Completes the password reset process, given a confirmation code and new password. |
+|  [createUserWithEmailAndPassword(auth, email, password)](./auth.createuserwithemailandpassword.md) | Creates a new user account associated with the specified email address and password. |
+|  [deleteUser(user)](./auth.deleteuser.md) | Deletes and signs out the user. |
+|  [fetchSignInMethodsForEmail(auth, email)](./auth.fetchsigninmethodsforemail.md) | Gets the list of possible sign in methods for the given email address. |
+|  [getAdditionalUserInfo(userCredential)](./auth.getadditionaluserinfo.md) | Extracts provider specific [AdditionalUserInfo](./auth-types.additionaluserinfo.md) for the given credential. |
+|  [getAuth(app)](./auth.getauth.md) | Initializes an Auth instance with platform specific default dependencies. |
+|  [getIdToken(user, forceRefresh)](./auth.getidtoken.md) | Returns a JSON Web Token (JWT) used to identify the user to a Firebase service. |
+|  [getIdTokenResult(user, forceRefresh)](./auth.getidtokenresult.md) | Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Firebase service. |
+|  [getMultiFactorResolver(auth, error)](./auth.getmultifactorresolver.md) | Provides a [MultiFactorResolver](./auth-types.multifactorresolver.md) suitable for completion of a multi-factor flow. |
+|  [getRedirectResult(auth, resolver)](./auth.getredirectresult.md) | Returns a [UserCredential](./auth-types.usercredential.md) from the redirect-based sign-in flow. |
 |  [initializeAuth(app, deps)](./auth.initializeauth.md) |  |
-|  [isSignInWithEmailLink(auth, emailLink)](./auth.issigninwithemaillink.md) |  |
-|  [linkWithCredential(userExtern, credentialExtern)](./auth.linkwithcredential.md) |  |
-|  [linkWithPhoneNumber(userExtern, phoneNumber, appVerifier)](./auth.linkwithphonenumber.md) |  |
-|  [linkWithPopup(userExtern, provider, resolverExtern)](./auth.linkwithpopup.md) |  |
-|  [linkWithRedirect(userExtern, provider, resolverExtern)](./auth.linkwithredirect.md) |  |
-|  [multiFactor(user)](./auth.multifactor.md) |  |
-|  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.onauthstatechanged.md) |  |
-|  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.onidtokenchanged.md) |  |
-|  [parseActionCodeURL(link)](./auth.parseactioncodeurl.md) | Parses the email action link string and returns an ActionCodeURL object if the link is valid, otherwise returns null. |
-|  [reauthenticateWithCredential(userExtern, credentialExtern)](./auth.reauthenticatewithcredential.md) |  |
-|  [reauthenticateWithPhoneNumber(userExtern, phoneNumber, appVerifier)](./auth.reauthenticatewithphonenumber.md) |  |
-|  [reauthenticateWithPopup(userExtern, provider, resolverExtern)](./auth.reauthenticatewithpopup.md) |  |
-|  [reauthenticateWithRedirect(userExtern, provider, resolverExtern)](./auth.reauthenticatewithredirect.md) |  |
-|  [reload(externUser)](./auth.reload.md) |  |
-|  [sendEmailVerification(userExtern, actionCodeSettings)](./auth.sendemailverification.md) |  |
-|  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.sendpasswordresetemail.md) |  |
-|  [sendSignInLinkToEmail(auth, email, actionCodeSettings)](./auth.sendsigninlinktoemail.md) |  |
-|  [setPersistence(auth, persistence)](./auth.setpersistence.md) |  |
-|  [signInAnonymously(auth)](./auth.signinanonymously.md) |  |
-|  [signInWithCredential(auth, credential)](./auth.signinwithcredential.md) |  |
-|  [signInWithCustomToken(authExtern, customToken)](./auth.signinwithcustomtoken.md) |  |
-|  [signInWithEmailAndPassword(auth, email, password)](./auth.signinwithemailandpassword.md) |  |
-|  [signInWithEmailLink(auth, email, emailLink)](./auth.signinwithemaillink.md) |  |
-|  [signInWithPhoneNumber(auth, phoneNumber, appVerifier)](./auth.signinwithphonenumber.md) |  |
-|  [signInWithPopup(authExtern, provider, resolverExtern)](./auth.signinwithpopup.md) |  |
-|  [signInWithRedirect(authExtern, provider, resolverExtern)](./auth.signinwithredirect.md) |  |
-|  [signOut(auth)](./auth.signout.md) |  |
-|  [unlink(userExtern, providerId)](./auth.unlink.md) | This is the externally visible unlink function |
-|  [updateCurrentUser(auth, user)](./auth.updatecurrentuser.md) |  |
-|  [updateEmail(externUser, newEmail)](./auth.updateemail.md) |  |
-|  [updatePassword(externUser, newPassword)](./auth.updatepassword.md) |  |
-|  [updatePhoneNumber(user, credential)](./auth.updatephonenumber.md) |  |
-|  [updateProfile(externUser, { displayName, photoURL: photoUrl })](./auth.updateprofile.md) |  |
-|  [useDeviceLanguage(auth)](./auth.usedevicelanguage.md) |  |
-|  [verifyBeforeUpdateEmail(userExtern, newEmail, actionCodeSettings)](./auth.verifybeforeupdateemail.md) |  |
-|  [verifyPasswordResetCode(auth, code)](./auth.verifypasswordresetcode.md) |  |
+|  [isSignInWithEmailLink(auth, emailLink)](./auth.issigninwithemaillink.md) | Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.signinwithemaillink.md)<!-- -->. |
+|  [linkWithCredential(user, credential)](./auth.linkwithcredential.md) | Links the user account with the given credentials. |
+|  [linkWithPhoneNumber(user, phoneNumber, appVerifier)](./auth.linkwithphonenumber.md) | Links the user account with the given phone number. |
+|  [linkWithPopup(user, provider, resolver)](./auth.linkwithpopup.md) | Links the authenticated provider to the user account using a pop-up based OAuth flow. |
+|  [linkWithRedirect(user, provider, resolver)](./auth.linkwithredirect.md) | Links the [OAuthProvider](./auth.oauthprovider.md) to the user account using a full-page redirect flow. |
+|  [multiFactor(user)](./auth.multifactor.md) | The [MultiFactorUser](./auth-types.multifactoruser.md) corresponding to the user. |
+|  [onAuthStateChanged(auth, nextOrObserver, error, completed)](./auth.onauthstatechanged.md) | Adds an observer for changes to the user's sign-in state. |
+|  [onIdTokenChanged(auth, nextOrObserver, error, completed)](./auth.onidtokenchanged.md) | Adds an observer for changes to the signed-in user's ID token, which includes sign-in, sign-out, and token refresh events. |
+|  [parseActionCodeURL(link)](./auth.parseactioncodeurl.md) | Parses the email action link string and returns an [ActionCodeURL](./auth.actioncodeurl.md) if the link is valid, otherwise returns null. |
+|  [reauthenticateWithCredential(user, credential)](./auth.reauthenticatewithcredential.md) | Re-authenticates a user using a fresh credential. |
+|  [reauthenticateWithPhoneNumber(user, phoneNumber, appVerifier)](./auth.reauthenticatewithphonenumber.md) | Re-authenticates a user using a fresh phne credential. |
+|  [reauthenticateWithPopup(user, provider, resolver)](./auth.reauthenticatewithpopup.md) | Reauthenticates the current user with the specified [OAuthProvider](./auth.oauthprovider.md) using a pop-up based OAuth flow. |
+|  [reauthenticateWithRedirect(user, provider, resolver)](./auth.reauthenticatewithredirect.md) | Reauthenticates the current user with the specified [OAuthProvider](./auth.oauthprovider.md) using a full-page redirect flow. |
+|  [reload(user)](./auth.reload.md) | Reloads user account data, if signed in. |
+|  [sendEmailVerification(user, actionCodeSettings)](./auth.sendemailverification.md) | Sends a verification email to a user. |
+|  [sendPasswordResetEmail(auth, email, actionCodeSettings)](./auth.sendpasswordresetemail.md) | Sends a password reset email to the given email address. |
+|  [sendSignInLinkToEmail(auth, email, actionCodeSettings)](./auth.sendsigninlinktoemail.md) | Sends a sign-in email link to the user with the specified email. |
+|  [setPersistence(auth, persistence)](./auth.setpersistence.md) | Changes the type of persistence on the Auth instance for the currently saved Auth session and applies this type of persistence for future sign-in requests, including sign-in with redirect requests. |
+|  [signInAnonymously(auth)](./auth.signinanonymously.md) | Asynchronously signs in as an anonymous user. |
+|  [signInWithCredential(auth, credential)](./auth.signinwithcredential.md) | Asynchronously signs in with the given credentials. |
+|  [signInWithCustomToken(auth, customToken)](./auth.signinwithcustomtoken.md) | Asynchronously signs in using a custom token. |
+|  [signInWithEmailAndPassword(auth, email, password)](./auth.signinwithemailandpassword.md) | Asynchronously signs in using an email and password. |
+|  [signInWithEmailLink(auth, email, emailLink)](./auth.signinwithemaillink.md) | Asynchronously signs in using an email and sign-in email link. |
+|  [signInWithPhoneNumber(auth, phoneNumber, appVerifier)](./auth.signinwithphonenumber.md) | Asynchronously signs in using a phone number. |
+|  [signInWithPopup(auth, provider, resolver)](./auth.signinwithpopup.md) | Authenticates a Firebase client using a popup-based OAuth authentication flow. |
+|  [signInWithRedirect(auth, provider, resolver)](./auth.signinwithredirect.md) | Authenticates a Firebase client using a full-page redirect flow. |
+|  [signOut(auth)](./auth.signout.md) | Signs out the current user. |
+|  [unlink(user, providerId)](./auth.unlink.md) | Unlinks a provider from a user account. |
+|  [updateCurrentUser(auth, user)](./auth.updatecurrentuser.md) | Asynchronously sets the provided user as [Auth.currentUser](./auth-types.auth.currentuser.md) on the [Auth](./auth-types.auth.md) instance. |
+|  [updateEmail(user, newEmail)](./auth.updateemail.md) | Updates the user's email address. |
+|  [updatePassword(user, newPassword)](./auth.updatepassword.md) | Updates the user's password. |
+|  [updatePhoneNumber(user, credential)](./auth.updatephonenumber.md) | Updates the user's phone number. |
+|  [updateProfile(user, { displayName, photoURL: photoUrl })](./auth.updateprofile.md) | Updates a user's profile data. |
+|  [useDeviceLanguage(auth)](./auth.usedevicelanguage.md) | Sets the current language to the default device/browser preference. |
+|  [verifyBeforeUpdateEmail(user, newEmail, actionCodeSettings)](./auth.verifybeforeupdateemail.md) | Sends a verification email to a new email address. |
+|  [verifyPasswordResetCode(auth, code)](./auth.verifypasswordresetcode.md) | Checks a password reset code sent to the user by email or other out-of-band mechanism. |
+
+## Interfaces
+
+|  Interface | Description |
+|  --- | --- |
+|  [OAuthCredentialOptions](./auth.oauthcredentialoptions.md) | Defines the options for initializing an [OAuthCredential](./auth.oauthcredential.md)<!-- -->. |
 
 ## Variables
 
 |  Variable | Description |
 |  --- | --- |
-|  [browserLocalPersistence](./auth.browserlocalpersistence.md) |  |
-|  [browserPopupRedirectResolver](./auth.browserpopupredirectresolver.md) |  |
-|  [browserSessionPersistence](./auth.browsersessionpersistence.md) |  |
-|  [indexedDBLocalPersistence](./auth.indexeddblocalpersistence.md) |  |
-|  [inMemoryPersistence](./auth.inmemorypersistence.md) |  |
+|  [browserLocalPersistence](./auth.browserlocalpersistence.md) | An implementation of [Persistence](./auth-types.persistence.md) of type 'LOCAL' using <code>localStorage</code> for the underlying storage. |
+|  [browserPopupRedirectResolver](./auth.browserpopupredirectresolver.md) | An implementation of [PopupRedirectResolver](./auth-types.popupredirectresolver.md) suitable for browser based applications. |
+|  [browserSessionPersistence](./auth.browsersessionpersistence.md) | An implementation of [Persistence](./auth-types.persistence.md) of 'SESSION' using <code>sessionStorage</code> for the underlying storage. |
+|  [indexedDBLocalPersistence](./auth.indexeddblocalpersistence.md) | An implementation of [Persistence](./auth-types.persistence.md) of type 'LOCAL' using <code>indexedDB</code> for the underlying storage. |
+|  [inMemoryPersistence](./auth.inmemorypersistence.md) | An implementation of [Persistence](./auth-types.persistence.md) of type 'NONE'. |
+
+## Type Aliases
+
+|  Type Alias | Description |
+|  --- | --- |
+|  [CustomParameters](./auth.customparameters.md) | Map of OAuth Custom Parameters. |
 

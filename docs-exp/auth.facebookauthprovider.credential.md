@@ -4,6 +4,8 @@
 
 ## FacebookAuthProvider.credential() method
 
+Creates a credential for Facebook.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,19 @@ static credential(accessToken: string): externs.OAuthCredential;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  accessToken | string |  |
+|  accessToken | string | Facebook access token. |
 
 <b>Returns:</b>
 
 externs.[OAuthCredential](./auth-types.oauthcredential.md)
+
+## Example
+
+
+```javascript
+// `event` from the Facebook auth.authResponseChange callback.
+const credential = FacebookAuthProvider.credential(event.authResponse.accessToken);
+const result = await signInWithCredential(credential);
+
+```
 

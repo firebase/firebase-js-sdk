@@ -17,23 +17,33 @@
 
 import { expect } from 'chai';
 
-import { ProviderId, UserProfile } from '@firebase/auth-types-exp';
+import {
+  OperationType,
+  ProviderId,
+  UserProfile
+} from '@firebase/auth-types-exp';
 
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
-import { _fromIdTokenResponse } from './additional_user_info';
+import {
+  _fromIdTokenResponse,
+  getAdditionalUserInfo
+} from './additional_user_info';
 import { base64Encode } from '@firebase/util';
+import { UserCredentialImpl } from './user_credential_impl';
+import { Auth } from '../../model/auth';
+import { User, UserCredential } from '../../model/user';
+import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 
 describe('core/user/additional_user_info', () => {
+  const userProfileWithLogin: UserProfile = {
+    login: 'scott',
+    friends: [],
+    netWorth: 5.0
+  };
+  const rawUserInfoWithLogin = JSON.stringify(userProfileWithLogin);
+  const userProfileNoLogin: UserProfile = { sample: 'data' };
+  const rawUserInfoNoLogin = JSON.stringify(userProfileNoLogin);
   describe('_fromIdTokenResponse', () => {
-    const userProfileWithLogin: UserProfile = {
-      login: 'scott',
-      friends: [],
-      netWorth: 5.0
-    };
-    const rawUserInfoWithLogin = JSON.stringify(userProfileWithLogin);
-    const userProfileNoLogin: UserProfile = { sample: 'data' };
-    const rawUserInfoNoLogin = JSON.stringify(userProfileNoLogin);
-
     describe('parses federated IDP response tokens', () => {
       it('for FacebookAdditionalUserInfo', () => {
         const idResponse = idTokenResponse({
@@ -209,6 +219,70 @@ describe('core/user/additional_user_info', () => {
         const idResponse = idTokenResponse({});
         expect(_fromIdTokenResponse(idResponse)).to.be.null;
       });
+    });
+  });
+
+  describe('getAdditionalUserInfo()', () => {
+    let auth: Auth;
+    let user: User;
+    let cred: UserCredential;
+    beforeEach(async () => {
+      auth = await testAuth();
+      user = testUser(auth, 'uid');
+      cred = new UserCredentialImpl({
+        user,
+        providerId: null,
+        operationType: OperationType.SIGN_IN
+      });
+    });
+
+    it('calls through to _fromIdTokenResponse', () => {
+      cred._tokenResponse = idTokenResponse({
+        providerId: ProviderId.ANONYMOUS,
+        rawUserInfo: rawUserInfoWithLogin
+      });
+      const {
+        isNewUser,
+        providerId,
+        username,
+        profile
+      } = getAdditionalUserInfo(cred)!;
+      expect(isNewUser).to.be.false;
+      expect(providerId).to.be.null;
+      expect(username).to.be.undefined;
+      expect(profile).to.eq(profile);
+    });
+
+    it('calls through to _fromIdTokenResponse preserving isNewUser', () => {
+      cred._tokenResponse = idTokenResponse({
+        providerId: ProviderId.ANONYMOUS,
+        rawUserInfo: rawUserInfoWithLogin,
+        isNewUser: true
+      });
+      const {
+        isNewUser,
+        providerId,
+        username,
+        profile
+      } = getAdditionalUserInfo(cred)!;
+      expect(isNewUser).to.be.true;
+      expect(providerId).to.be.null;
+      expect(username).to.be.undefined;
+      expect(profile).to.eq(profile);
+    });
+
+    it('returns bespoke info if existing anonymous user', () => {
+      // Note that _tokenResponse is not set on cred
+      ((user as unknown) as Record<string, unknown>).isAnonymous = true;
+      const { isNewUser, providerId, profile } = getAdditionalUserInfo(cred)!;
+      expect(isNewUser).to.be.false;
+      expect(providerId).to.be.null;
+      expect(profile).to.eq(profile);
+    });
+
+    it('returns null if not anonymous', () => {
+      // Note that _tokenResponse is not set on cred
+      expect(getAdditionalUserInfo(cred)).to.be.null;
     });
   });
 });

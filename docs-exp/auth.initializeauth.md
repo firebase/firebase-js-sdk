@@ -4,6 +4,7 @@
 
 ## initializeAuth() function
 
+
 <b>Signature:</b>
 
 ```typescript

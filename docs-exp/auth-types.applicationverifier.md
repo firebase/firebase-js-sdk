@@ -4,13 +4,17 @@
 
 ## ApplicationVerifier interface
 
-A verifier for domain verification and abuse prevention. Currently, the only implementation is [RecaptchaVerifier](./auth-types.recaptchaverifier.md)<!-- -->.
+A verifier for domain verification and abuse prevention.
 
 <b>Signature:</b>
 
 ```typescript
 export interface ApplicationVerifier 
 ```
+
+## Remarks
+
+Currently, the only implementation is [RecaptchaVerifier](./auth.recaptchaverifier.md)<!-- -->.
 
 ## Properties
 

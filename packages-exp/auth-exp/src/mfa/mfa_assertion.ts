@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 import * as externs from '@firebase/auth-types-exp';
-import { debugFail } from '../../core/util/assert';
-import { MultiFactorSession, MultiFactorSessionType } from '../mfa_session';
-import { FinalizeMfaResponse } from '../../api/authentication/mfa';
-import { Auth } from '../../model/auth';
+import { debugFail } from '../core/util/assert';
+import { MultiFactorSession, MultiFactorSessionType } from './mfa_session';
+import { FinalizeMfaResponse } from '../api/authentication/mfa';
+import { Auth } from '../model/auth';
 
 export abstract class MultiFactorAssertion
   implements externs.MultiFactorAssertion {

@@ -57,4 +57,9 @@ export class InMemoryPersistence implements Persistence {
   }
 }
 
+/**
+ * An implementation of {@link @firebase/auth-types#Persistence} of type 'NONE'.
+ *
+ * @public
+ */
 export const inMemoryPersistence: externs.Persistence = InMemoryPersistence;

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _performApiRequest, Endpoint, HttpMethod } from '../';
+import { _performApiRequest, Endpoint, HttpMethod } from '../index';
 import { Auth } from '@firebase/auth-types-exp';
 import { IdTokenResponse } from '../../model/id_token';
 import { MfaEnrollment } from '../account_management/mfa';

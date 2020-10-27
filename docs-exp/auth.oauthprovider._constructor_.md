@@ -4,7 +4,7 @@
 
 ## OAuthProvider.(constructor)
 
-Constructs a new instance of the `OAuthProvider` class
+Constructor for generic OAuth providers.
 
 <b>Signature:</b>
 
@@ -16,5 +16,5 @@ constructor(providerId: string);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  providerId | string |  |
+|  providerId | string | Provider for which credentials should be generated. |
 

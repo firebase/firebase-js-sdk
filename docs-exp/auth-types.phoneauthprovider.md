@@ -4,7 +4,7 @@
 
 ## PhoneAuthProvider class
 
-A provider for generating phone credentials.
+Provider for generating an [PhoneAuthCredential](./auth.phoneauthcredential.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -21,8 +21,8 @@ export class PhoneAuthProvider implements AuthProvider
 const applicationVerifier = new RecaptchaVerifier('recaptcha-container');
 const provider = new PhoneAuthProvider(auth);
 const verificationId = await provider.verifyPhoneNumber('+16505550101', applicationVerifier);
-const verificationCode = window.prompt('Please enter the verification code that was sent to your mobile device.');
-const phoneCredential = await PhoneAuthProvider.credential(verificationId, verificationCode);
+// Obtain the verificationCode from the user.
+const phoneCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
 const userCredential = await signInWithCredential(auth, phoneCredential);
 
 ```
@@ -45,6 +45,6 @@ const userCredential = await signInWithCredential(auth, phoneCredential);
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [credential(verificationId, verificationCode)](./auth-types.phoneauthprovider.credential.md) | <code>static</code> | Creates a phone auth credential, given the verification ID from [PhoneAuthProvider.verifyPhoneNumber()](./auth-types.phoneauthprovider.verifyphonenumber.md) and the code that was sent to the user's mobile device. |
-|  [verifyPhoneNumber(phoneInfoOptions, applicationVerifier)](./auth-types.phoneauthprovider.verifyphonenumber.md) |  | Starts a phone number authentication flow by sending a verification code to the given phone number. Returns an ID that can be passed to [PhoneAuthProvider.credential()](./auth-types.phoneauthprovider.credential.md) to identify this flow. |
+|  [credential(verificationId, verificationCode)](./auth-types.phoneauthprovider.credential.md) | <code>static</code> | Creates a phone auth credential, given the verification ID from [PhoneAuthProvider.verifyPhoneNumber()](./auth.phoneauthprovider.verifyphonenumber.md) and the code that was sent to the user's mobile device. |
+|  [verifyPhoneNumber(phoneInfoOptions, applicationVerifier)](./auth-types.phoneauthprovider.verifyphonenumber.md) |  | Starts a phone number authentication flow by sending a verification code to the given phone number. |
 

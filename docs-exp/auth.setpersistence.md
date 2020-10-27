@@ -4,6 +4,8 @@
 
 ## setPersistence() function
 
+Changes the type of persistence on the Auth instance for the currently saved Auth session and applies this type of persistence for future sign-in requests, including sign-in with redirect requests.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,10 +16,22 @@ export declare function setPersistence(auth: externs.Auth, persistence: externs.
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
-|  persistence | externs.[Persistence](./auth-types.persistence.md) |  |
+|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  persistence | externs.[Persistence](./auth-types.persistence.md) | The [Persistence](./auth-types.persistence.md) to use. |
 
 <b>Returns:</b>
 
 void
+
+## Remarks
+
+This makes it easy for a user signing in to specify whether their session should be remembered or not. It also makes it easier to never persist the Auth state for applications that are shared by other users or have sensitive data.
+
+## Example
+
+
+```javascript
+setPersistence(auth, browserSessionPersistence);
+
+```
 

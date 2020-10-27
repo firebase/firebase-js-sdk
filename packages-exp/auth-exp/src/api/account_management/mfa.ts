@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performApiRequest } from '..';
+import { Endpoint, HttpMethod, _performApiRequest } from '../index';
 import { SignInWithPhoneNumberRequest } from '../authentication/sms';
 import { FinalizeMfaResponse } from '../authentication/mfa';
 import { Auth } from '../../model/auth';

@@ -24,14 +24,70 @@ import { UserCredential } from '../../model/user';
 import { OAuthCredential } from '../credentials/oauth';
 import { OAuthProvider } from './oauth';
 
+/**
+ * Provider for generating an an {@link OAuthCredential} for {@link @firebase/auth-types#ProviderId.GOOGLE}.
+ *
+ * @example
+ * ```javascript
+ * // Sign in using a redirect.
+ * const provider = new GoogleAuthProvider();
+ * // Start a sign in process for an unauthenticated user.
+ * provider.addScope('profile');
+ * provider.addScope('email');
+ * await signInWithRedirect(auth, provider);
+ * // This will trigger a full page redirect away from your app
+ *
+ * // After returning from the redirect when your app initializes you can obtain the result
+ * const result = await getRedirectResult(auth);
+ * if (result) {
+ *   // This is the signed-in user
+ *   const user = result.user;
+ *   // This gives you a Google Access Token.
+ *   const credential = provider.credentialFromResult(auth, result);
+ *   const token = credential.accessToken;
+ * }
+ * ```
+ *
+ * @example
+ * ```javascript
+ * // Sign in using a popup.
+ * const provider = new GoogleAuthProvider();
+ * provider.addScope('profile');
+ * provider.addScope('email');
+ * const result = await signInWithPopup(auth, provider);
+ *
+ * // The signed-in user info.
+ * const user = result.user;
+ * // This gives you a Google Access Token.
+ * const credential = provider.credentialFromResult(auth, result);
+ * const token = credential.accessToken;
+ * ```
+ *
+ * @public
+ */
 export class GoogleAuthProvider extends OAuthProvider {
+  /** Always set to {@link @firebase/auth-types#SignInMethod.GOOGLE}. */
   static readonly GOOGLE_SIGN_IN_METHOD = externs.SignInMethod.GOOGLE;
+  /** Always set to {@link @firebase/auth-types#ProviderId.GOOGLE}. */
   static readonly PROVIDER_ID = externs.ProviderId.GOOGLE;
 
   constructor() {
     super(externs.ProviderId.GOOGLE);
   }
 
+  /**
+   * Creates a credential for Google. At least one of ID token and access token is required.
+   *
+   * @example
+   * ```javascript
+   * // \`googleUser\` from the onsuccess Google Sign In callback.
+   * const credential = GoogleAuthProvider.credential(googleUser.getAuthResponse().id_token);
+   * const result = await signInWithCredential(credential);
+   * ```
+   *
+   * @param idToken - Google ID token.
+   * @param accessToken - Google access token.
+   */
   static credential(
     idToken?: string | null,
     accessToken?: string | null
@@ -44,6 +100,11 @@ export class GoogleAuthProvider extends OAuthProvider {
     });
   }
 
+  /**
+   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#UserCredential}.
+   *
+   * @param userCredential - The user credential.
+   */
   static credentialFromResult(
     userCredential: externs.UserCredential
   ): externs.OAuthCredential | null {
@@ -51,7 +112,12 @@ export class GoogleAuthProvider extends OAuthProvider {
       userCredential as UserCredential
     );
   }
-
+  /**
+   * Used to extract the underlying {@link OAuthCredential} from a {@link @firebase/auth-types#AuthError} which was
+   * thrown during a sign-in, link, or reauthenticate operation.
+   *
+   * @param userCredential - The user credential.
+   */
   static credentialFromError(
     error: FirebaseError
   ): externs.OAuthCredential | null {

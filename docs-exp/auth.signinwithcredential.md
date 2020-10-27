@@ -4,6 +4,8 @@
 
 ## signInWithCredential() function
 
+Asynchronously signs in with the given credentials.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,10 +16,14 @@ export declare function signInWithCredential(auth: externs.Auth, credential: ext
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
-|  credential | externs.[AuthCredential](./auth-types.authcredential.md) |  |
+|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  credential | externs.[AuthCredential](./auth-types.authcredential.md) | The auth credential. |
 
 <b>Returns:</b>
 
 Promise&lt;externs.[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
+
+## Remarks
+
+An [AuthProvider](./auth-types.authprovider.md) can be used to generate the credential.
 
