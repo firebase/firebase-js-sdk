@@ -38,7 +38,7 @@ import {
 } from '../remote/remote_store';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug, logWarn } from '../util/log';
+import { logDebug } from '../util/log';
 import { Deferred } from '../util/promise';
 import {
   addSnapshotsInSyncListener,
@@ -535,9 +535,6 @@ export class FirestoreClient {
     );
     this.asyncQueue.enqueueAndForget(async () => {
       loadBundle(this.syncEngine, reader, resultTask);
-    });
-    resultTask.catch(e => {
-      logWarn(LOG_TAG, `Loading bundle failed with ${e}`);
     });
   }
 
