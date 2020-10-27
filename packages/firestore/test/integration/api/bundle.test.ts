@@ -45,11 +45,17 @@ function verifyInProgress(
   expect(p.documentsLoaded).to.equal(expectedDocuments);
 }
 
-const TEMPLATE_PROJECT_ID = 'test-project';
 // This template is generated from bundleWithTestDocsAndQueries in '../util/internal_helpsers.ts',
 // and manually copied here.
-const BUNDLE_TEMPLATE =
-  '125{"metadata":{"id":"test-bundle","createTime":{"seconds":1001,"nanos":9999},"version":1,"totalDocuments":2,"totalBytes":1503}}374{"namedQuery":{"name":"limit","readTime":{"seconds":1000,"nanos":9999},"bundledQuery":{"parent":"projects/test-project/databases/(default)/documents","structuredQuery":{"from":[{"collectionId":"coll-1"}],"orderBy":[{"field":{"fieldPath":"bar"},"direction":"DESCENDING"},{"field":{"fieldPath":"__name__"},"direction":"DESCENDING"}],"limit":{"value":1}},"limitType":"FIRST"}}}381{"namedQuery":{"name":"limit-to-last","readTime":{"seconds":1000,"nanos":9999},"bundledQuery":{"parent":"projects/test-project/databases/(default)/documents","structuredQuery":{"from":[{"collectionId":"coll-1"}],"orderBy":[{"field":{"fieldPath":"bar"},"direction":"DESCENDING"},{"field":{"fieldPath":"__name__"},"direction":"DESCENDING"}],"limit":{"value":1}},"limitType":"LAST"}}}147{"documentMetadata":{"name":"projects/test-project/databases/(default)/documents/coll-1/a","readTime":{"seconds":1000,"nanos":9999},"exists":true}}218{"document":{"name":"projects/test-project/databases/(default)/documents/coll-1/a","createTime":{"seconds":1,"nanos":9},"updateTime":{"seconds":1,"nanos":9},"fields":{"k":{"stringValue":"a"},"bar":{"integerValue":1}}}}147{"documentMetadata":{"name":"projects/test-project/databases/(default)/documents/coll-1/b","readTime":{"seconds":1000,"nanos":9999},"exists":true}}218{"document":{"name":"projects/test-project/databases/(default)/documents/coll-1/b","createTime":{"seconds":1,"nanos":9},"updateTime":{"seconds":1,"nanos":9},"fields":{"k":{"stringValue":"b"},"bar":{"integerValue":2}}}}';
+const BUNDLE_TEMPLATE = [
+  '{"metadata":{"id":"test-bundle","createTime":{"seconds":1001,"nanos":9999},"version":1,"totalDocuments":2,"totalBytes":1503}}',
+  '{"namedQuery":{"name":"limit","readTime":{"seconds":1000,"nanos":9999},"bundledQuery":{"parent":"projects/{0}/databases/(default)/documents","structuredQuery":{"from":[{"collectionId":"coll-1"}],"orderBy":[{"field":{"fieldPath":"bar"},"direction":"DESCENDING"},{"field":{"fieldPath":"__name__"},"direction":"DESCENDING"}],"limit":{"value":1}},"limitType":"FIRST"}}}',
+  '{"namedQuery":{"name":"limit-to-last","readTime":{"seconds":1000,"nanos":9999},"bundledQuery":{"parent":"projects/{0}/databases/(default)/documents","structuredQuery":{"from":[{"collectionId":"coll-1"}],"orderBy":[{"field":{"fieldPath":"bar"},"direction":"DESCENDING"},{"field":{"fieldPath":"__name__"},"direction":"DESCENDING"}],"limit":{"value":1}},"limitType":"LAST"}}}',
+  '{"documentMetadata":{"name":"projects/{0}/databases/(default)/documents/coll-1/a","readTime":{"seconds":1000,"nanos":9999},"exists":true}}',
+  '{"document":{"name":"projects/{0}/databases/(default)/documents/coll-1/a","createTime":{"seconds":1,"nanos":9},"updateTime":{"seconds":1,"nanos":9},"fields":{"k":{"stringValue":"a"},"bar":{"integerValue":1}}}}',
+  '{"documentMetadata":{"name":"projects/{0}/databases/(default)/documents/coll-1/b","readTime":{"seconds":1000,"nanos":9999},"exists":true}}',
+  '{"document":{"name":"projects/{0}/databases/(default)/documents/coll-1/b","createTime":{"seconds":1,"nanos":9},"updateTime":{"seconds":1,"nanos":9},"fields":{"k":{"stringValue":"b"},"bar":{"integerValue":2}}}}'
+];
 
 apiDescribe('Bundles', (persistence: boolean) => {
   function verifySnapEqualTestDocs(snap: firestore.QuerySnapshot): void {
@@ -67,27 +73,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
     const projectId: string = db.app.options.projectId;
 
     // Extract elements from BUNDLE_TEMPLATE, and replace project ID.
-    let runningElement: string = '';
-    const elements: string[] = [];
-    let depth = 0;
-    for (const char of BUNDLE_TEMPLATE) {
-      if (char === '{') {
-        runningElement += char;
-        depth += 1;
-      } else if (depth > 0) {
-        runningElement += char;
-      }
-
-      if (char === '}') {
-        depth -= 1;
-        if (depth === 0) {
-          // Obviously assuming TEMPLATE_PROJECT_ID only appear as project id in
-          // the bundle, not as document id or filed value.
-          elements.push(runningElement.replace(TEMPLATE_PROJECT_ID, projectId));
-          runningElement = '';
-        }
-      }
-    }
+    const elements = BUNDLE_TEMPLATE.map(e => e.replace('{0}', projectId));
 
     // Recalculating length prefixes for elements that are not BundleMetadata.
     let bundleContent = '';
