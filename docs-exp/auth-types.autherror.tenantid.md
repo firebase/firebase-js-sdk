@@ -4,10 +4,15 @@
 
 ## AuthError.tenantid property
 
-The tenant ID being used for sign-in/linking. If you use `signInWithRedirect` to sign in, you have to set the tenant ID on [Auth](./auth-types.auth.md) instance again as the tenant ID is not persisted after redirection.
+The tenant ID being used for sign-in/linking.
 
 <b>Signature:</b>
 
 ```typescript
 readonly tenantid?: string;
 ```
+
+## Remarks
+
+If you use [signInWithRedirect()](./auth.signinwithredirect.md) to sign in, you have to set the tenant ID on [Auth](./auth-types.auth.md) instance again as the tenant ID is not persisted after redirection.
+

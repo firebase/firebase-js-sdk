@@ -23,7 +23,7 @@ export abstract class RecaptchaVerifier implements ApplicationVerifier
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [type](./auth-types.recaptchaverifier.type.md) |  | string | The application verifier type. For a reCAPTCHA verifier, this is 'recaptcha'. |
+|  [type](./auth-types.recaptchaverifier.type.md) |  | string | The application verifier type. |
 
 ## Methods
 

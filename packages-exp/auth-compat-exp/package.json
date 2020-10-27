@@ -8,9 +8,7 @@
   "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -32,8 +30,8 @@
     "@firebase/auth-types": "0.10.1",
     "@firebase/auth-exp": "0.0.800",
     "@firebase/auth-types-exp": "0.0.800",
-    "@firebase/component": "0.1.19",
-    "@firebase/util": "0.3.2",
+    "@firebase/component": "0.1.20",
+    "@firebase/util": "0.3.3",
     "tslib": "^1.11.1"
   },
   "license": "Apache-2.0",

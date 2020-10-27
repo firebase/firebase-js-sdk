@@ -77,22 +77,22 @@ function parseDeepLink(url: string): string {
 }
 
 /**
- * {@inheritDoc @firebase/auth-types-exp#ActionCodeURL}
+ * {@inheritDoc @firebase/auth-types#ActionCodeURL}
  *
  * @public
  */
 export class ActionCodeURL implements externs.ActionCodeURL {
-  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.apiKey} */
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.apiKey} */
   readonly apiKey: string;
-  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.code} */
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.code} */
   readonly code: string;
-  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.continueUrl} */
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.continueUrl} */
   readonly continueUrl: string | null;
-  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.languageCode} */
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.languageCode} */
   readonly languageCode: string | null;
-  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.operation} */
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.operation} */
   readonly operation: externs.Operation;
-  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.tenantId} */
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.tenantId} */
   readonly tenantId: string | null;
 
   /**
@@ -118,7 +118,7 @@ export class ActionCodeURL implements externs.ActionCodeURL {
     this.tenantId = uri.searchParams.get(QueryField.TENANT_ID);
   }
 
-  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.parseLink} */
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.parseLink} */
   static parseLink(link: string): externs.ActionCodeURL | null {
     const actionLink = parseDeepLink(link);
     try {
@@ -130,7 +130,7 @@ export class ActionCodeURL implements externs.ActionCodeURL {
 }
 
 /**
- * {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.parseLink}
+ * {@inheritDoc @firebase/auth-types#ActionCodeURL.parseLink}
  *
  * @public
  */

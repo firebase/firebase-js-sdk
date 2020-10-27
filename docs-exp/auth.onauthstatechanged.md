@@ -4,6 +4,8 @@
 
 ## onAuthStateChanged() function
 
+Adds an observer for changes to the user's sign-in state.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,12 +16,16 @@ export declare function onAuthStateChanged(auth: externs.Auth, nextOrObserver: e
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
-|  nextOrObserver | externs.[NextOrObserver](./auth-types.nextorobserver.md)<!-- -->&lt;externs.[User](./auth-types.user.md)<!-- -->&gt; |  |
-|  error | ErrorFn |  |
-|  completed | CompleteFn |  |
+|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  nextOrObserver | externs.[NextOrObserver](./auth-types.nextorobserver.md)<!-- -->&lt;externs.[User](./auth-types.user.md)<!-- -->&gt; | callback triggered on change. |
+|  error | ErrorFn | callback triggered on error. |
+|  completed | CompleteFn | callback triggered when observer is removed. |
 
 <b>Returns:</b>
 
 Unsubscribe
+
+## Remarks
+
+To keep the old behavior, see [onIdTokenChanged()](./auth.onidtokenchanged.md)<!-- -->.
 

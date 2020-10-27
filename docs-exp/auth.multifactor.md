@@ -4,6 +4,8 @@
 
 ## multiFactor() function
 
+The [MultiFactorUser](./auth-types.multifactoruser.md) corresponding to the user.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,13 @@ export declare function multiFactor(user: externs.User): externs.MultiFactorUser
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) |  |
+|  user | externs.[User](./auth-types.user.md) | The user. |
 
 <b>Returns:</b>
 
 externs.[MultiFactorUser](./auth-types.multifactoruser.md)
+
+## Remarks
+
+This is used to access all multi-factor properties and operations related to the user.
 

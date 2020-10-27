@@ -4,7 +4,7 @@
 
 ## OperationType enum
 
-Supported operation types.
+Enumeration of supported operation types.
 
 <b>Signature:</b>
 

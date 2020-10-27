@@ -49,6 +49,13 @@ import { Blob } from './blob';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
+  IndexedDbOfflineComponentProvider,
+  MemoryOfflineComponentProvider,
+  MultiTabOfflineComponentProvider,
+  OfflineComponentProvider,
+  OnlineComponentProvider
+} from '../core/component_provider';
+import {
   FirestoreClient,
   firestoreClientAddSnapshotsInSyncListener,
   firestoreClientDisableNetwork,

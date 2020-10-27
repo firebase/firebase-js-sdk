@@ -22,8 +22,10 @@ import { ErrorFactory, ErrorMap } from '@firebase/util';
 import { IdTokenMfaResponse } from '../api/authentication/mfa';
 import { AppName } from '../model/auth';
 
-/*
- * Developer facing Firebase Auth error codes.
+/**
+ * Enumeration of Firebase Auth error codes.
+ *
+ * @public
  */
 export const enum AuthErrorCode {
   ADMIN_ONLY_OPERATION = 'admin-restricted-operation',

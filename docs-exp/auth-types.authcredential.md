@@ -4,7 +4,7 @@
 
 ## AuthCredential class
 
-Interface that represents the credentials returned by an auth provider. Implementations specify the details about each auth provider's credential requirements.
+Interface that represents the credentials returned by an [AuthProvider](./auth-types.authprovider.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -12,12 +12,16 @@ Interface that represents the credentials returned by an auth provider. Implemen
 export abstract class AuthCredential 
 ```
 
+## Remarks
+
+Implementations specify the details about each auth provider's credential requirements.
+
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [providerId](./auth-types.authcredential.providerid.md) |  | string | The authentication provider ID for the credential. For example, 'facebook.com', or 'google.com'. |
-|  [signInMethod](./auth-types.authcredential.signinmethod.md) |  | string | The authentication sign in method for the credential. For example, [SignInMethod.EMAIL\_PASSWORD](./auth-types.signinmethod.email_password.md)<!-- -->, or [SignInMethod.EMAIL\_LINK](./auth-types.signinmethod.email_link.md)<!-- -->. This corresponds to the sign-in method identifier as returned in <code>fetchSignInMethodsForEmail</code>. |
+|  [providerId](./auth-types.authcredential.providerid.md) |  | string | The authentication provider ID for the credential. |
+|  [signInMethod](./auth-types.authcredential.signinmethod.md) |  | string | The authentication sign in method for the credential. |
 
 ## Methods
 

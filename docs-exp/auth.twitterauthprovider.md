@@ -4,12 +4,54 @@
 
 ## TwitterAuthProvider class
 
+Provider for generating an [OAuthCredential](./auth.oauthcredential.md) for [ProviderId.TWITTER](./auth-types.providerid.twitter.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
 export declare class TwitterAuthProvider extends OAuthProvider 
 ```
 <b>Extends:</b> [OAuthProvider](./auth.oauthprovider.md)
+
+## Example 1
+
+
+```javascript
+// Sign in using a redirect.
+const provider = new TwitterAuthProvider();
+// Start a sign in process for an unauthenticated user.
+await signInWithRedirect(auth, provider);
+// This will trigger a full page redirect away from your app
+
+// After returning from the redirect when your app initializes you can obtain the result
+const result = await getRedirectResult(auth);
+if (result) {
+  // This is the signed-in user
+  const user = result.user;
+  // This gives you a Twitter Access Token and Secret.
+  const credential = provider.credentialFromResult(auth, result);
+  const token = credential.accessToken;
+  const secret = credential.secret;
+}
+
+```
+
+## Example 2
+
+
+```javascript
+// Sign in using a popup.
+const provider = new TwitterAuthProvider();
+const result = await signInWithPopup(auth, provider);
+
+// The signed-in user info.
+const user = result.user;
+// This gives you a Twitter Access Token and Secret.
+const credential = provider.credentialFromResult(auth, result);
+const token = credential.accessToken;
+const secret = credential.secret;
+
+```
 
 ## Constructors
 
@@ -28,7 +70,7 @@ export declare class TwitterAuthProvider extends OAuthProvider
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [credential(token, secret)](./auth.twitterauthprovider.credential.md) | <code>static</code> |  |
-|  [credentialFromError(error)](./auth.twitterauthprovider.credentialfromerror.md) | <code>static</code> |  |
-|  [credentialFromResult(userCredential)](./auth.twitterauthprovider.credentialfromresult.md) | <code>static</code> |  |
+|  [credential(token, secret)](./auth.twitterauthprovider.credential.md) | <code>static</code> | Creates a credential for Twitter. |
+|  [credentialFromError(error)](./auth.twitterauthprovider.credentialfromerror.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth-types.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation. |
+|  [credentialFromResult(userCredential)](./auth.twitterauthprovider.credentialfromresult.md) | <code>static</code> | Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [UserCredential](./auth-types.usercredential.md)<!-- -->. |
 

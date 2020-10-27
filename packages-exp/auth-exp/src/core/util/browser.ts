@@ -28,7 +28,7 @@ interface Document {
 /**
  * Enums for Browser name.
  */
-export enum BrowserName {
+export const enum BrowserName {
   ANDROID = 'Android',
   BLACKBERRY = 'Blackberry',
   EDGE = 'Edge',

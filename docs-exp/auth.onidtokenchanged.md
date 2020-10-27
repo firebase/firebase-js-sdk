@@ -4,6 +4,8 @@
 
 ## onIdTokenChanged() function
 
+Adds an observer for changes to the signed-in user's ID token, which includes sign-in, sign-out, and token refresh events.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,10 +16,10 @@ export declare function onIdTokenChanged(auth: externs.Auth, nextOrObserver: ext
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
-|  nextOrObserver | externs.[NextOrObserver](./auth-types.nextorobserver.md)<!-- -->&lt;externs.[User](./auth-types.user.md)<!-- -->&gt; |  |
-|  error | ErrorFn |  |
-|  completed | CompleteFn |  |
+|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  nextOrObserver | externs.[NextOrObserver](./auth-types.nextorobserver.md)<!-- -->&lt;externs.[User](./auth-types.user.md)<!-- -->&gt; | callback triggered on change. |
+|  error | ErrorFn | callback triggered on error. |
+|  completed | CompleteFn | callback triggered when observer is removed. |
 
 <b>Returns:</b>
 

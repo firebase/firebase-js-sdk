@@ -39,6 +39,8 @@ interface DBObject {
  * Promise wrapper for IDBRequest
  *
  * Unfortunately we can't cleanly extend Promise<T> since promises are not callable in ES6
+ *
+ * @internal
  */
 class DBPromise<T> {
   constructor(private readonly request: IDBRequest) {}
@@ -61,16 +63,19 @@ function getObjectStore(db: IDBDatabase, isReadWrite: boolean): IDBObjectStore {
     .objectStore(DB_OBJECTSTORE_NAME);
 }
 
+/** @internal */
 export async function _clearDatabase(db: IDBDatabase): Promise<void> {
   const objectStore = getObjectStore(db, true);
   return new DBPromise<void>(objectStore.clear()).toPromise();
 }
 
+/** @internal */
 export function _deleteDatabase(): Promise<void> {
   const request = indexedDB.deleteDatabase(DB_NAME);
   return new DBPromise<void>(request).toPromise();
 }
 
+/** @internal */
 export function _openDatabase(): Promise<IDBDatabase> {
   const request = indexedDB.open(DB_NAME, DB_VERSION);
   return new Promise((resolve, reject) => {
@@ -105,6 +110,7 @@ export function _openDatabase(): Promise<IDBDatabase> {
   });
 }
 
+/** @internal */
 export async function _putObject(
   db: IDBDatabase,
   key: string,
@@ -140,6 +146,7 @@ function deleteObject(db: IDBDatabase, key: string): Promise<void> {
   return new DBPromise<void>(request).toPromise();
 }
 
+/** @internal */
 export const _POLLING_INTERVAL_MS = 800;
 
 class IndexedDBLocalPersistence implements Persistence {
@@ -286,4 +293,10 @@ class IndexedDBLocalPersistence implements Persistence {
   }
 }
 
+/**
+ * An implementation of {@link @firebase/auth-types#Persistence} of type 'LOCAL' using `indexedDB`
+ * for the underlying storage.
+ *
+ * @public
+ */
 export const indexedDBLocalPersistence: externs.Persistence = IndexedDBLocalPersistence;

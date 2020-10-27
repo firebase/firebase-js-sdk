@@ -4,7 +4,7 @@
 
 ## PhoneAuthProvider.verifyPhoneNumber() method
 
-Starts a phone number authentication flow by sending a verification code to the given phone number. Returns an ID that can be passed to [PhoneAuthProvider.credential()](./auth-types.phoneauthprovider.credential.md) to identify this flow.
+Starts a phone number authentication flow by sending a verification code to the given phone number.
 
 <b>Signature:</b>
 
@@ -26,7 +26,7 @@ verifyPhoneNumber(
 
 Promise&lt;string&gt;
 
-A Promise for the verification ID.
+A Promise for a verification ID that can be passed to [PhoneAuthProvider.credential()](./auth.phoneauthprovider.credential.md) to identify this flow..
 
 ## Example 1
 
