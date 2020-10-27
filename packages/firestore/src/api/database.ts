@@ -46,7 +46,7 @@ import {
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp, FirebaseService } from '@firebase/app-types/private';
 import { Blob } from './blob';
-import { DatabaseId, DatabaseInfo } from '../core/database_info';
+import { DatabaseId } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
   FirestoreClient,
@@ -111,7 +111,6 @@ import { AutoId } from '../util/misc';
 import { FieldPath as ExternalFieldPath } from './field_path';
 import {
   CredentialsProvider,
-  CredentialsSettings,
   EmptyCredentialsProvider,
   FirebaseCredentialsProvider,
   makeCredentialsProvider
@@ -142,15 +141,12 @@ import {
   enableIndexedDbPersistence,
   enableMultiTabIndexedDbPersistence
 } from '../../exp/src/api/database';
+import { LRU_COLLECTION_DISABLED } from '../local/lru_garbage_collector';
 import {
-  LRU_COLLECTION_DISABLED,
-  LRU_DEFAULT_CACHE_SIZE_BYTES,
-  LRU_MINIMUM_CACHE_SIZE_BYTES
-} from '../local/lru_garbage_collector';
-
-// settings() defaults:
-const DEFAULT_HOST = 'firestore.googleapis.com';
-const DEFAULT_SSL = true;
+  FirestoreSettings,
+  makeDatabaseInfo
+} from '../../lite/src/api/database';
+import { DEFAULT_HOST } from '../../lite/src/api/components';
 
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
@@ -159,12 +155,6 @@ const DEFAULT_SSL = true;
  */
 export const CACHE_SIZE_UNLIMITED = LRU_COLLECTION_DISABLED;
 
-/** Undocumented, private additional settings not exposed in our public API. */
-interface PrivateSettings extends PublicSettings {
-  // Can be a google-auth-library or gapi client.
-  credentials?: CredentialsSettings;
-}
-
 /**
  * Options that can be provided in the Firestore constructor when not using
  * Firebase (aka standalone mode).
@@ -172,90 +162,6 @@ interface PrivateSettings extends PublicSettings {
 export interface FirestoreDatabase {
   projectId: string;
   database?: string;
-}
-
-/**
- * A concrete type describing all the values that can be applied via a
- * user-supplied firestore.Settings object. This is a separate type so that
- * defaults can be supplied and the value can be checked for equality.
- */
-export class FirestoreSettings {
-  /** The hostname to connect to. */
-  readonly host: string;
-
-  /** Whether to use SSL when connecting. */
-  readonly ssl: boolean;
-
-  readonly cacheSizeBytes: number;
-
-  readonly experimentalForceLongPolling: boolean;
-
-  readonly experimentalAutoDetectLongPolling: boolean;
-
-  readonly ignoreUndefinedProperties: boolean;
-
-  // Can be a google-auth-library or gapi client.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  credentials?: any;
-
-  constructor(settings: PrivateSettings) {
-    if (settings.host === undefined) {
-      if (settings.ssl !== undefined) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          "Can't provide ssl option if host option is not set"
-        );
-      }
-      this.host = DEFAULT_HOST;
-      this.ssl = DEFAULT_SSL;
-    } else {
-      this.host = settings.host;
-      this.ssl = settings.ssl ?? DEFAULT_SSL;
-    }
-
-    this.credentials = settings.credentials;
-    this.ignoreUndefinedProperties = !!settings.ignoreUndefinedProperties;
-
-    if (settings.cacheSizeBytes === undefined) {
-      this.cacheSizeBytes = LRU_DEFAULT_CACHE_SIZE_BYTES;
-    } else {
-      if (
-        settings.cacheSizeBytes !== LRU_COLLECTION_DISABLED &&
-        settings.cacheSizeBytes < LRU_MINIMUM_CACHE_SIZE_BYTES
-      ) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `cacheSizeBytes must be at least ${LRU_MINIMUM_CACHE_SIZE_BYTES}`
-        );
-      } else {
-        this.cacheSizeBytes = settings.cacheSizeBytes;
-      }
-    }
-
-    this.experimentalForceLongPolling = !!settings.experimentalForceLongPolling;
-    this.experimentalAutoDetectLongPolling = !!settings.experimentalAutoDetectLongPolling;
-
-    validateIsNotUsedTogether(
-      'experimentalForceLongPolling',
-      settings.experimentalForceLongPolling,
-      'experimentalAutoDetectLongPolling',
-      settings.experimentalAutoDetectLongPolling
-    );
-  }
-
-  isEqual(other: FirestoreSettings): boolean {
-    return (
-      this.host === other.host &&
-      this.ssl === other.ssl &&
-      this.credentials === other.credentials &&
-      this.cacheSizeBytes === other.cacheSizeBytes &&
-      this.experimentalForceLongPolling ===
-        other.experimentalForceLongPolling &&
-      this.experimentalAutoDetectLongPolling ===
-        other.experimentalAutoDetectLongPolling &&
-      this.ignoreUndefinedProperties === other.ignoreUndefinedProperties
-    );
-  }
 }
 
 // TODO(firestore-compat): This interface exposes internal APIs that the Compat
@@ -664,21 +570,6 @@ export function configureFirestore(firestore: FirestoreCompat): void {
     firestore._credentials,
     firestore._queue,
     databaseInfo
-  );
-}
-
-export function makeDatabaseInfo(
-  databaseId: DatabaseId,
-  persistenceKey: string,
-  settings: FirestoreSettings
-): DatabaseInfo {
-  return new DatabaseInfo(
-    databaseId,
-    persistenceKey,
-    settings.host,
-    settings.ssl,
-    settings.experimentalForceLongPolling,
-    settings.experimentalAutoDetectLongPolling
   );
 }
 

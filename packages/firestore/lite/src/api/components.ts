@@ -18,10 +18,9 @@
 import { Datastore, newDatastore } from '../../../src/remote/datastore';
 import { newConnection } from '../../../src/platform/connection';
 import { newSerializer } from '../../../src/platform/serializer';
-import { FirebaseFirestore } from './database';
+import { FirebaseFirestore, makeDatabaseInfo } from './database';
 import { logDebug } from '../../../src/util/log';
 import { Code, FirestoreError } from '../../../src/util/error';
-import { makeDatabaseInfo } from '../../../src/api/database';
 
 export const LOG_TAG = 'ComponentProvider';
 
