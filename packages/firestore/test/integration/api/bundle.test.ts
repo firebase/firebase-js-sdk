@@ -23,17 +23,11 @@ import {
   withAlternateTestDb,
   withTestDb
 } from '../util/helpers';
-import { DatabaseId } from '../../../src/core/database_info';
-import { key } from '../../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
-import { TestBundleBuilder } from '../../unit/util/bundle_data';
-import { newTextEncoder } from '../../../src/platform/serializer';
-import { collectionReference } from '../../util/api_helpers';
-import { LoadBundleTask } from '../../../src/api/bundle';
 
 // TODO(b/162594908): Move this to api/ instead of api_internal.
 
-export const encoder = newTextEncoder();
+export const encoder = new TextEncoder();
 
 function verifySuccessProgress(p: firestore.LoadBundleTaskProgress): void {
   expect(p.taskState).to.equal('Success');
@@ -51,74 +45,57 @@ function verifyInProgress(
   expect(p.documentsLoaded).to.equal(expectedDocuments);
 }
 
+// This template is generated from bundleWithTestDocsAndQueries in '../util/internal_helpsers.ts',
+// and manually copied here.
+const BUNDLE_TEMPLATE = [
+  '{"metadata":{"id":"test-bundle","createTime":{"seconds":1001,"nanos":9999},"version":1,"totalDocuments":2,"totalBytes":1503}}',
+  '{"namedQuery":{"name":"limit","readTime":{"seconds":1000,"nanos":9999},"bundledQuery":{"parent":"projects/{0}/databases/(default)/documents","structuredQuery":{"from":[{"collectionId":"coll-1"}],"orderBy":[{"field":{"fieldPath":"bar"},"direction":"DESCENDING"},{"field":{"fieldPath":"__name__"},"direction":"DESCENDING"}],"limit":{"value":1}},"limitType":"FIRST"}}}',
+  '{"namedQuery":{"name":"limit-to-last","readTime":{"seconds":1000,"nanos":9999},"bundledQuery":{"parent":"projects/{0}/databases/(default)/documents","structuredQuery":{"from":[{"collectionId":"coll-1"}],"orderBy":[{"field":{"fieldPath":"bar"},"direction":"DESCENDING"},{"field":{"fieldPath":"__name__"},"direction":"DESCENDING"}],"limit":{"value":1}},"limitType":"LAST"}}}',
+  '{"documentMetadata":{"name":"projects/{0}/databases/(default)/documents/coll-1/a","readTime":{"seconds":1000,"nanos":9999},"exists":true}}',
+  '{"document":{"name":"projects/{0}/databases/(default)/documents/coll-1/a","createTime":{"seconds":1,"nanos":9},"updateTime":{"seconds":1,"nanos":9},"fields":{"k":{"stringValue":"a"},"bar":{"integerValue":1}}}}',
+  '{"documentMetadata":{"name":"projects/{0}/databases/(default)/documents/coll-1/b","readTime":{"seconds":1000,"nanos":9999},"exists":true}}',
+  '{"document":{"name":"projects/{0}/databases/(default)/documents/coll-1/b","createTime":{"seconds":1,"nanos":9},"updateTime":{"seconds":1,"nanos":9},"fields":{"k":{"stringValue":"b"},"bar":{"integerValue":2}}}}'
+];
+
 apiDescribe('Bundles', (persistence: boolean) => {
-  const testDocs: { [key: string]: firestore.DocumentData } = {
-    a: { k: { stringValue: 'a' }, bar: { integerValue: 1 } },
-    b: { k: { stringValue: 'b' }, bar: { integerValue: 2 } }
-  };
-
-  function bundleWithTestDocsAndQueries(
-    db: firestore.FirebaseFirestore
-  ): TestBundleBuilder {
-    const a = key('coll-1/a');
-    const b = key('coll-1/b');
-    const builder = new TestBundleBuilder(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (db as any)._databaseId as DatabaseId
-    );
-
-    builder.addNamedQuery(
-      'limit',
-      { seconds: 1000, nanos: 9999 },
-      (collectionReference('coll-1')
-        .orderBy('bar', 'desc')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .limit(1) as any)._query
-    );
-    builder.addNamedQuery(
-      'limit-to-last',
-      { seconds: 1000, nanos: 9999 },
-      (collectionReference('coll-1')
-        .orderBy('bar', 'desc')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .limitToLast(1) as any)._query
-    );
-
-    builder.addDocumentMetadata(a, { seconds: 1000, nanos: 9999 }, true);
-    builder.addDocument(
-      a,
-      { seconds: 1, nanos: 9 },
-      { seconds: 1, nanos: 9 },
-      testDocs.a
-    );
-    builder.addDocumentMetadata(b, { seconds: 1000, nanos: 9999 }, true);
-    builder.addDocument(
-      b,
-      { seconds: 1, nanos: 9 },
-      { seconds: 1, nanos: 9 },
-      testDocs.b
-    );
-
-    return builder;
-  }
-
-  function verifySnapEqualTestDocs(snap: firestore.QuerySnapshot): void {
+  function verifySnapEqualsTestDocs(snap: firestore.QuerySnapshot): void {
     expect(toDataArray(snap)).to.deep.equal([
       { k: 'a', bar: 1 },
       { k: 'b', bar: 2 }
     ]);
   }
 
+  /**
+   * Returns a valid bundle string from replacing project id in `BUNDLE_TEMPLATE` with the given
+   * db project id (also recalculate length prefixes).
+   */
+  function bundleString(db: firestore.FirebaseFirestore): string {
+    const projectId: string = db.app.options.projectId;
+
+    // Extract elements from BUNDLE_TEMPLATE and replace the project ID.
+    const elements = BUNDLE_TEMPLATE.map(e => e.replace('{0}', projectId));
+
+    // Recalculating length prefixes for elements that are not BundleMetadata.
+    let bundleContent = '';
+    for (const element of elements.slice(1)) {
+      const length = encoder.encode(element).byteLength;
+      bundleContent += `${length}${element}`;
+    }
+
+    // Update BundleMetadata with new totalBytes.
+    const totalBytes = encoder.encode(bundleContent).byteLength;
+    const metadata = JSON.parse(elements[0]);
+    metadata.metadata.totalBytes = totalBytes;
+    const metadataContent = JSON.stringify(metadata);
+    const metadataLength = encoder.encode(metadataContent).byteLength;
+    return `${metadataLength}${metadataContent}${bundleContent}`;
+  }
+
   it('load with documents only with on progress and promise interface', () => {
     return withTestDb(persistence, async db => {
-      const builder = bundleWithTestDocsAndQueries(db);
-
       const progressEvents: firestore.LoadBundleTaskProgress[] = [];
       let completeCalled = false;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const task: LoadBundleTask = (db as any)._loadBundle(
-        builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
-      );
+      const task: firestore.LoadBundleTask = db.loadBundle(bundleString(db));
       task.onProgress(
         progress => {
           progressEvents.push(progress);
@@ -145,16 +122,14 @@ apiDescribe('Bundles', (persistence: boolean) => {
       // Read from cache. These documents do not exist in backend, so they can
       // only be read from cache.
       let snap = await db.collection('coll-1').get({ source: 'cache' });
-      verifySnapEqualTestDocs(snap);
+      verifySnapEqualsTestDocs(snap);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      snap = await (await (db as any)._namedQuery('limit'))!.get({
+      snap = await (await db.namedQuery('limit'))!.get({
         source: 'cache'
       });
       expect(toDataArray(snap)).to.deep.equal([{ k: 'b', bar: 2 }]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      snap = await (await (db as any)._namedQuery('limit-to-last'))!.get({
+      snap = await (await db.namedQuery('limit-to-last'))!.get({
         source: 'cache'
       });
       expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 1 }]);
@@ -163,11 +138,8 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
   it('load with documents and queries with promise interface', () => {
     return withTestDb(persistence, async db => {
-      const builder = bundleWithTestDocsAndQueries(db);
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fulfillProgress: firestore.LoadBundleTaskProgress = await (db as any)._loadBundle(
-        builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
+      const fulfillProgress: firestore.LoadBundleTaskProgress = await db.loadBundle(
+        bundleString(db)
       );
 
       verifySuccessProgress(fulfillProgress!);
@@ -175,26 +147,18 @@ apiDescribe('Bundles', (persistence: boolean) => {
       // Read from cache. These documents do not exist in backend, so they can
       // only be read from cache.
       const snap = await db.collection('coll-1').get({ source: 'cache' });
-      verifySnapEqualTestDocs(snap);
+      verifySnapEqualsTestDocs(snap);
     });
   });
 
   it('load for a second time skips', () => {
     return withTestDb(persistence, async db => {
-      const builder = bundleWithTestDocsAndQueries(db);
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (db as any)._loadBundle(
-        builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
-      );
+      await db.loadBundle(bundleString(db));
 
       let completeCalled = false;
       const progressEvents: firestore.LoadBundleTaskProgress[] = [];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const task: LoadBundleTask = (db as any)._loadBundle(
-        encoder.encode(
-          builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
-        )
+      const task: firestore.LoadBundleTask = db.loadBundle(
+        encoder.encode(bundleString(db))
       );
       task.onProgress(
         progress => {
@@ -216,7 +180,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
       // Read from cache. These documents do not exist in backend, so they can
       // only be read from cache.
       const snap = await db.collection('coll-1').get({ source: 'cache' });
-      verifySnapEqualTestDocs(snap);
+      verifySnapEqualsTestDocs(snap);
     });
   });
 
@@ -229,13 +193,9 @@ apiDescribe('Bundles', (persistence: boolean) => {
       db.collection('coll-1').onSnapshot(accumulator.storeEvent);
       await accumulator.awaitEvent();
 
-      const builder = bundleWithTestDocsAndQueries(db);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const progress = await (db as any)._loadBundle(
+      const progress = await db.loadBundle(
         // Testing passing in non-string bundles.
-        encoder.encode(
-          builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
-        )
+        encoder.encode(bundleString(db))
       );
 
       verifySuccessProgress(progress);
@@ -244,23 +204,18 @@ apiDescribe('Bundles', (persistence: boolean) => {
       // cache can only be tested in spec tests.
       await accumulator.assertNoAdditionalEvents();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let snap = await (await (db as any)._namedQuery('limit'))!.get();
+      let snap = await (await db.namedQuery('limit'))!.get();
       expect(toDataArray(snap)).to.deep.equal([{ k: 'b', bar: 0 }]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      snap = await (await (db as any)._namedQuery('limit-to-last'))!.get();
+      snap = await (await db.namedQuery('limit-to-last'))!.get();
       expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 0 }]);
     });
   });
 
   it('loaded documents should not be GC-ed right away', () => {
     return withTestDb(persistence, async db => {
-      const builder = bundleWithTestDocsAndQueries(db);
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fulfillProgress: firestore.LoadBundleTaskProgress = await (db as any)._loadBundle(
-        builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
+      const fulfillProgress: firestore.LoadBundleTaskProgress = await db.loadBundle(
+        bundleString(db)
       );
 
       verifySuccessProgress(fulfillProgress!);
@@ -273,28 +228,19 @@ apiDescribe('Bundles', (persistence: boolean) => {
       // GC, the documents would get GC-ed if we did not hold the document keys
       // in a "umbrella" target. See local_store.ts for details.
       snap = await db.collection('coll-1').get({ source: 'cache' });
-      verifySnapEqualTestDocs(snap);
+      verifySnapEqualsTestDocs(snap);
     });
   });
 
   it('load with documents from other projects fails', () => {
     return withTestDb(persistence, async db => {
-      let builder = bundleWithTestDocsAndQueries(db);
       return withAlternateTestDb(persistence, async otherDb => {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        await expect(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (otherDb as any)._loadBundle(
-            builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
-          )
-        ).to.be.rejectedWith('Tried to deserialize key from different project');
+        await expect(otherDb.loadBundle(bundleString(db))).to.be.rejectedWith(
+          'Tried to deserialize key from different project'
+        );
 
         // Verify otherDb still functions, despite loaded a problematic bundle.
-        builder = bundleWithTestDocsAndQueries(otherDb);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const finalProgress = await (otherDb as any)._loadBundle(
-          builder.build('test-bundle', { seconds: 1001, nanos: 9999 })
-        );
+        const finalProgress = await otherDb.loadBundle(bundleString(otherDb));
         verifySuccessProgress(finalProgress);
 
         // Read from cache. These documents do not exist in backend, so they can
@@ -302,7 +248,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
         const snap = await otherDb
           .collection('coll-1')
           .get({ source: 'cache' });
-        verifySnapEqualTestDocs(snap);
+        verifySnapEqualsTestDocs(snap);
       });
     });
   });

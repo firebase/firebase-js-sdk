@@ -339,21 +339,26 @@ export function fromName(
   name: string
 ): DocumentKey {
   const resource = fromResourceName(name);
-  hardAssert(
-    resource.get(1) === serializer.databaseId.projectId,
-    'Tried to deserialize key from different project: ' +
-      resource.get(1) +
-      ' vs ' +
-      serializer.databaseId.projectId
-  );
-  hardAssert(
-    (!resource.get(3) && !serializer.databaseId.database) ||
-      resource.get(3) === serializer.databaseId.database,
-    'Tried to deserialize key from different database: ' +
-      resource.get(3) +
-      ' vs ' +
-      serializer.databaseId.database
-  );
+
+  if (resource.get(1) !== serializer.databaseId.projectId) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      'Tried to deserialize key from different project: ' +
+        resource.get(1) +
+        ' vs ' +
+        serializer.databaseId.projectId
+    );
+  }
+
+  if (resource.get(3) !== serializer.databaseId.database) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      'Tried to deserialize key from different database: ' +
+        resource.get(3) +
+        ' vs ' +
+        serializer.databaseId.database
+    );
+  }
   return new DocumentKey(extractLocalPathFromResourceName(resource));
 }
 

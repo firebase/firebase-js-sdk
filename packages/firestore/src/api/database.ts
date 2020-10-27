@@ -111,10 +111,7 @@ import {
   valueDescription,
   validateIsNotUsedTogether
 } from '../util/input_validation';
-import {
-  setLogLevel as setClientLogLevel,
-  logWarn
-} from '../util/log';
+import { setLogLevel as setClientLogLevel, logWarn } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
@@ -627,7 +624,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
     }
   }
 
-  _loadBundle(
+  loadBundle(
     bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
   ): LoadBundleTask {
     this.ensureClientConfigured();
@@ -636,7 +633,7 @@ export class Firestore implements PublicFirestore, FirebaseService {
     return resultTask;
   }
 
-  _namedQuery(name: string): Promise<PublicQuery | null> {
+  namedQuery(name: string): Promise<PublicQuery | null> {
     this.ensureClientConfigured();
     return this._firestoreClient!.getNamedQuery(name).then(namedQuery => {
       if (!namedQuery) {
