@@ -154,7 +154,6 @@ import {
   LRU_DEFAULT_CACHE_SIZE_BYTES,
   LRU_MINIMUM_CACHE_SIZE_BYTES
 } from '../local/lru_garbage_collector';
-import { makeDatabaseInfo } from '../../lite/src/api/components';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -672,6 +671,21 @@ export function configureFirestore(firestore: FirestoreCompat): void {
     firestore._credentials,
     firestore._queue,
     databaseInfo
+  );
+}
+
+export function makeDatabaseInfo(
+  databaseId: DatabaseId,
+  persistenceKey: string,
+  settings: FirestoreSettings
+): DatabaseInfo {
+  return new DatabaseInfo(
+    databaseId,
+    persistenceKey,
+    settings.host,
+    settings.ssl,
+    settings.experimentalForceLongPolling,
+    settings.experimentalAutoDetectLongPolling
   );
 }
 
