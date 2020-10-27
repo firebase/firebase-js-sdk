@@ -22,6 +22,7 @@ import { FirebaseFirestore, Settings } from './database';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { logDebug } from '../../../src/util/log';
 import { Code, FirestoreError } from '../../../src/util/error';
+import { FirestoreSettings } from '../../../src/api/database';
 
 export const LOG_TAG = 'ComponentProvider';
 
@@ -87,14 +88,14 @@ export function removeComponents(firestore: FirebaseFirestore): void {
 export function makeDatabaseInfo(
   databaseId: DatabaseId,
   persistenceKey: string,
-  settings: Settings
+  settings: FirestoreSettings
 ): DatabaseInfo {
   return new DatabaseInfo(
     databaseId,
     persistenceKey,
-    settings.host ?? DEFAULT_HOST,
-    settings.ssl ?? DEFAULT_SSL,
-    /* forceLongPolling= */ false,
-    /* forceAutoDetectLongPolling= */ true
+    settings.host,
+    settings.ssl,
+    settings.experimentalForceLongPolling,
+    settings.experimentalAutoDetectLongPolling
   );
 }

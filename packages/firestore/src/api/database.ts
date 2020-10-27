@@ -154,6 +154,7 @@ import {
   LRU_DEFAULT_CACHE_SIZE_BYTES,
   LRU_MINIMUM_CACHE_SIZE_BYTES
 } from '../local/lru_garbage_collector';
+import { makeDatabaseInfo } from '../../lite/src/api/components';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -662,13 +663,10 @@ export function configureFirestore(firestore: FirestoreCompat): void {
     'configureFirestore() called multiple times'
   );
 
-  const databaseInfo = new DatabaseInfo(
+  const databaseInfo = makeDatabaseInfo(
     firestore._databaseId,
     firestore._persistenceKey,
-    settings.host,
-    settings.ssl,
-    settings.experimentalForceLongPolling,
-    settings.experimentalAutoDetectLongPolling
+    settings
   );
   firestore._firestoreClient = new FirestoreClient(
     firestore._credentials,
