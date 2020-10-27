@@ -17,27 +17,28 @@
 
 import { GetOptions } from '@firebase/firestore-types';
 
-import { CredentialsProvider } from '../api/credentials';
+import {
+  CredentialChangeListener,
+  CredentialsProvider
+} from '../api/credentials';
 import { User } from '../auth/user';
 import {
   executeQuery,
+  handleUserChange,
   LocalStore,
   readLocalDocument
 } from '../local/local_store';
-import { GarbageCollectionScheduler, Persistence } from '../local/persistence';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import {
-  remoteStoreHandleCredentialChange,
   RemoteStore,
-  remoteStoreEnableNetwork,
   remoteStoreDisableNetwork,
-  remoteStoreShutdown
+  remoteStoreEnableNetwork,
+  remoteStoreHandleCredentialChange
 } from '../remote/remote_store';
 import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
 import { Deferred } from '../util/promise';
 import {
   addSnapshotsInSyncListener,
@@ -57,13 +58,12 @@ import {
   syncEngineWrite
 } from './sync_engine';
 import { View } from './view';
-import { SharedClientState } from '../local/shared_client_state';
-import { AutoId } from '../util/misc';
-import { DatabaseId, DatabaseInfo } from './database_info';
+import { DatabaseInfo } from './database_info';
 import { newQueryForPath, Query } from './query';
 import { Transaction } from './transaction';
 import { ViewSnapshot } from './view_snapshot';
 import {
+  ComponentConfiguration,
   MemoryOfflineComponentProvider,
   OfflineComponentProvider,
   OnlineComponentProvider
@@ -71,8 +71,10 @@ import {
 import { AsyncObserver } from '../util/async_observer';
 import { debugAssert } from '../util/assert';
 import { TransactionRunner } from './transaction_runner';
+import { logDebug } from '../util/log';
+import { AutoId } from '../util/misc';
+import { Persistence } from '../local/persistence';
 import { Datastore } from '../remote/datastore';
-import { canFallbackFromIndexedDbError } from '../../exp/src/api/database';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -83,34 +85,13 @@ export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
  * async queue that is shared by all of the other components in the system.
  */
 export class FirestoreClient {
-  // NOTE: These should technically have '|undefined' in the types, since
-  // they're initialized asynchronously rather than in the constructor, but
-  // given that all work is done on the async queue and we assert that
-  // initialization completes before any other work is queued, we're cheating
-  // with the types rather than littering the code with '!' or unnecessary
-  // undefined checks.
-  private databaseInfo!: DatabaseInfo;
-  eventMgr!: EventManager;
-  persistence!: Persistence;
-  localStore!: LocalStore;
-  datastore!: Datastore;
-  remoteStore!: RemoteStore;
-  syncEngine!: SyncEngine;
-  private gcScheduler!: GarbageCollectionScheduler | null;
-
-  // PORTING NOTE: SharedClientState is only used for multi-tab web.
-  private sharedClientState!: SharedClientState;
-
+  private user = User.UNAUTHENTICATED;
   private readonly clientId = AutoId.newId();
+  private credentialListener: CredentialChangeListener = () => {};
+  private readonly receivedInitialUser = new Deferred<void>();
 
-  // We defer our initialization until we get the current user from
-  // setChangeListener(). We block the async queue until we got the initial
-  // user and the initialization is completed. This will prevent any scheduled
-  // work from happening before initialization is completed.
-  //
-  // If initializationDone resolved then the FirestoreClient is in a usable
-  // state.
-  readonly initializationDone = new Deferred<void>();
+  offlineComponents?: OfflineComponentProvider;
+  onlineComponents?: OnlineComponentProvider;
 
   constructor(
     private credentials: CredentialsProvider,
@@ -122,176 +103,38 @@ export class FirestoreClient {
      * start processing a new operation while the previous one is waiting for
      * an async I/O to complete).
      */
-    public asyncQueue: AsyncQueue
-  ) {}
-
-  /**
-   * Starts up the FirestoreClient, returning only whether or not enabling
-   * persistence succeeded.
-   *
-   * The intent here is to "do the right thing" as far as users are concerned.
-   * Namely, in cases where offline persistence is requested and possible,
-   * enable it, but otherwise fall back to persistence disabled. For the most
-   * part we expect this to succeed one way or the other so we don't expect our
-   * users to actually wait on the firestore.enablePersistence Promise since
-   * they generally won't care.
-   *
-   * Of course some users actually do care about whether or not persistence
-   * was successfully enabled, so the Promise returned from this method
-   * indicates this outcome.
-   *
-   * This presents a problem though: even before enablePersistence resolves or
-   * rejects, users may have made calls to e.g. firestore.collection() which
-   * means that the FirestoreClient in there will be available and will be
-   * enqueuing actions on the async queue.
-   *
-   * Meanwhile any failure of an operation on the async queue causes it to
-   * panic and reject any further work, on the premise that unhandled errors
-   * are fatal.
-   *
-   * Consequently the fallback is handled internally here in start, and if the
-   * fallback succeeds we signal success to the async queue even though the
-   * start() itself signals failure.
-   *
-   * @param databaseInfo The connection information for the current instance.
-   * @param offlineComponentProvider Provider that returns all components
-   * required for memory-only or IndexedDB persistence.
-   * @param onlineComponentProvider Provider that returns all components
-   * required for online support.
-   * @returns A deferred result indicating the user-visible result of enabling
-   *     offline persistence. This method will reject this if IndexedDB fails to
-   *     start for any reason. If usePersistence is false this is
-   *     unconditionally resolved.
-   */
-  start(
-    databaseInfo: DatabaseInfo,
-    offlineComponentProvider: OfflineComponentProvider,
-    onlineComponentProvider: OnlineComponentProvider
-  ): Promise<void> {
-    this.verifyNotTerminated();
-
-    this.databaseInfo = databaseInfo;
-
-    // If usePersistence is true, certain classes of errors while starting are
-    // recoverable but only by falling back to persistence disabled.
-    //
-    // If there's an error in the first case but not in recovery we cannot
-    // reject the promise blocking the async queue because this will cause the
-    // async queue to panic.
-    const persistenceResult = new Deferred<void>();
-
-    let initialized = false;
+    public asyncQueue: AsyncQueue,
+    private databaseInfo: DatabaseInfo
+  ) {
     this.credentials.setChangeListener(user => {
-      if (!initialized) {
-        initialized = true;
-
-        logDebug(LOG_TAG, 'Initializing. user=', user.uid);
-
-        return this.initializeComponents(
-          offlineComponentProvider,
-          onlineComponentProvider,
-          user,
-          persistenceResult
-        ).then(this.initializationDone.resolve, this.initializationDone.reject);
-      } else {
-        this.asyncQueue.enqueueRetryable(() =>
-          remoteStoreHandleCredentialChange(this.remoteStore, user)
-        );
+      logDebug(LOG_TAG, 'Received user=', user.uid);
+      if (!this.user.isEqual(user)) {
+        this.user = user;
+        this.credentialListener(user);
       }
+      this.receivedInitialUser.resolve();
     });
-
-    // Block the async queue until initialization is done
-    this.asyncQueue.enqueueAndForget(() => this.initializationDone.promise);
-
-    // Return only the result of enabling persistence. Note that this does not
-    // need to await the completion of initializationDone because the result of
-    // this method should not reflect any other kind of failure to start.
-    return persistenceResult.promise;
   }
 
-  /**
-   * Initializes persistent storage, attempting to use IndexedDB if
-   * usePersistence is true or memory-only if false.
-   *
-   * If IndexedDB fails because it's already open in another tab or because the
-   * platform can't possibly support our implementation then this method rejects
-   * the persistenceResult and falls back on memory-only persistence.
-   *
-   * @param offlineComponentProvider Provider that returns all components
-   * required for memory-only or IndexedDB persistence.
-   * @param onlineComponentProvider Provider that returns all components
-   * required for online support.
-   * @param user The initial user
-   * @param persistenceResult A deferred result indicating the user-visible
-   *     result of enabling offline persistence. This method will reject this if
-   *     IndexedDB fails to start for any reason. If usePersistence is false
-   *     this is unconditionally resolved.
-   * @returns a Promise indicating whether or not initialization should
-   *     continue, i.e. that one of the persistence implementations actually
-   *     succeeded.
-   */
-  private async initializeComponents(
-    offlineComponentProvider: OfflineComponentProvider,
-    onlineComponentProvider: OnlineComponentProvider,
-    user: User,
-    persistenceResult: Deferred<void>
-  ): Promise<void> {
-    try {
-      const componentConfiguration = {
-        asyncQueue: this.asyncQueue,
-        databaseInfo: this.databaseInfo,
-        clientId: this.clientId,
-        credentials: this.credentials,
-        initialUser: user,
-        maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS
-      };
+  async getConfiguration(): Promise<ComponentConfiguration> {
+    await this.receivedInitialUser.promise;
 
-      await offlineComponentProvider.initialize(componentConfiguration);
-      await onlineComponentProvider.initialize(
-        offlineComponentProvider,
-        componentConfiguration
-      );
+    return {
+      asyncQueue: this.asyncQueue,
+      databaseInfo: this.databaseInfo,
+      clientId: this.clientId,
+      credentials: this.credentials,
+      initialUser: this.user,
+      maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS
+    };
+  }
 
-      this.persistence = offlineComponentProvider.persistence;
-      this.sharedClientState = offlineComponentProvider.sharedClientState;
-      this.localStore = offlineComponentProvider.localStore;
-      this.gcScheduler = offlineComponentProvider.gcScheduler;
-      this.datastore = onlineComponentProvider.datastore;
-      this.remoteStore = onlineComponentProvider.remoteStore;
-      this.syncEngine = onlineComponentProvider.syncEngine;
-      this.eventMgr = onlineComponentProvider.eventManager;
-
-      this.eventMgr.onListen = syncEngineListen.bind(null, this.syncEngine);
-      this.eventMgr.onUnlisten = syncEngineUnlisten.bind(null, this.syncEngine);
-
-      // When a user calls clearPersistence() in one client, all other clients
-      // need to be terminated to allow the delete to succeed.
-      this.persistence.setDatabaseDeletedListener(async () => {
-        await this.terminate();
-      });
-
-      persistenceResult.resolve();
-    } catch (error) {
-      // Regardless of whether or not the retry succeeds, from an user
-      // perspective, offline persistence has failed.
-      persistenceResult.reject(error);
-
-      // An unknown failure on the first stage shuts everything down.
-      if (!canFallbackFromIndexedDbError(error)) {
-        throw error;
-      }
-      console.warn(
-        'Error enabling offline persistence. Falling back to' +
-          ' persistence disabled: ' +
-          error
-      );
-      return this.initializeComponents(
-        new MemoryOfflineComponentProvider(),
-        new OnlineComponentProvider(),
-        user,
-        persistenceResult
-      );
-    }
+  setCredentialChangeListener(listener: (user: User) => void): void {
+    this.credentialListener = listener;
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    this.receivedInitialUser.promise.then(() =>
+      this.credentialListener(this.user)
+    );
   }
 
   /**
@@ -312,14 +155,12 @@ export class FirestoreClient {
     const deferred = new Deferred();
     this.asyncQueue.enqueueAndForgetEvenWhileRestricted(async () => {
       try {
-        // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
-        if (this.gcScheduler) {
-          this.gcScheduler.stop();
+        if (this.onlineComponents) {
+          await this.onlineComponents.terminate();
         }
-
-        await remoteStoreShutdown(this.remoteStore);
-        await this.sharedClientState.shutdown();
-        await this.persistence.shutdown();
+        if (this.offlineComponents) {
+          await this.offlineComponents.terminate();
+        }
 
         // `removeChangeListener` must be called after shutting down the
         // RemoteStore as it will prevent the RemoteStore from retrieving
@@ -336,170 +177,271 @@ export class FirestoreClient {
     });
     return deferred.promise;
   }
-
-  databaseId(): DatabaseId {
-    return this.databaseInfo.databaseId;
-  }
-
-  get clientTerminated(): boolean {
-    // Technically, the asyncQueue is still running, but only accepting operations
-    // related to termination or supposed to be run after termination. It is effectively
-    // terminated to the eyes of users.
-    return this.asyncQueue.isShuttingDown;
-  }
 }
 
-/** Enables the network connection and requeues all pending operations. */
-export function firestoreClientEnableNetwork(
-  firestoreClient: FirestoreClient
+export async function setOfflineComponentProvider(
+  client: FirestoreClient,
+  offlineComponentProvider: OfflineComponentProvider
 ): Promise<void> {
-  firestoreClient.verifyNotTerminated();
-  return firestoreClient.asyncQueue.enqueue(() => {
-    firestoreClient.persistence.setNetworkEnabled(true);
-    return remoteStoreEnableNetwork(firestoreClient.remoteStore);
+  client.asyncQueue.verifyOperationInProgress();
+
+  logDebug(LOG_TAG, 'Initializing OfflineComponentProvider');
+  const configuration = await client.getConfiguration();
+  await offlineComponentProvider.initialize(configuration);
+
+  client.setCredentialChangeListener(user =>
+    client.asyncQueue.enqueueRetryable(async () => {
+      await handleUserChange(offlineComponentProvider.localStore, user);
+    })
+  );
+
+  // When a user calls clearPersistence() in one client, all other clients
+  // need to be terminated to allow the delete to succeed.
+  offlineComponentProvider.persistence.setDatabaseDeletedListener(() =>
+    client.terminate()
+  );
+
+  client.offlineComponents = offlineComponentProvider;
+}
+
+export async function setOnlineComponentProvider(
+  client: FirestoreClient,
+  onlineComponentProvider: OnlineComponentProvider
+): Promise<void> {
+  client.asyncQueue.verifyOperationInProgress();
+
+  const offlineComponentProvider = await ensureOfflineComponents(client);
+
+  logDebug(LOG_TAG, 'Initializing OnlineComponentProvider');
+  const configuration = await client.getConfiguration();
+  await onlineComponentProvider.initialize(
+    offlineComponentProvider,
+    configuration
+  );
+  // The CredentialChangeListener of the online component provider takes
+  // precedence over the offline component provider.
+  client.setCredentialChangeListener(user =>
+    client.asyncQueue.enqueueRetryable(() =>
+      remoteStoreHandleCredentialChange(
+        onlineComponentProvider.remoteStore,
+        user
+      )
+    )
+  );
+  client.onlineComponents = onlineComponentProvider;
+}
+
+async function ensureOfflineComponents(
+  client: FirestoreClient
+): Promise<OfflineComponentProvider> {
+  if (!client.offlineComponents) {
+    logDebug(LOG_TAG, 'Using default OfflineComponentProvider');
+    await setOfflineComponentProvider(
+      client,
+      new MemoryOfflineComponentProvider()
+    );
+  }
+
+  return client.offlineComponents!;
+}
+
+async function ensureOnlineComponents(
+  client: FirestoreClient
+): Promise<OnlineComponentProvider> {
+  if (!client.onlineComponents) {
+    logDebug(LOG_TAG, 'Using default OnlineComponentProvider');
+    await setOnlineComponentProvider(client, new OnlineComponentProvider());
+  }
+
+  return client.onlineComponents!;
+}
+
+function getPersistence(client: FirestoreClient): Promise<Persistence> {
+  return ensureOfflineComponents(client).then(c => c.persistence);
+}
+
+export function getLocalStore(client: FirestoreClient): Promise<LocalStore> {
+  return ensureOfflineComponents(client).then(c => c.localStore);
+}
+
+function getRemoteStore(client: FirestoreClient): Promise<RemoteStore> {
+  return ensureOnlineComponents(client).then(c => c.remoteStore);
+}
+
+function getSyncEngine(client: FirestoreClient): Promise<SyncEngine> {
+  return ensureOnlineComponents(client).then(c => c.syncEngine);
+}
+
+function getDatastore(client: FirestoreClient): Promise<Datastore> {
+  return ensureOnlineComponents(client).then(c => c.datastore);
+}
+
+export async function getEventManager(
+  client: FirestoreClient
+): Promise<EventManager> {
+  const onlineComponentProvider = await ensureOnlineComponents(client);
+  const eventManager = onlineComponentProvider.eventManager;
+  eventManager.onListen = syncEngineListen.bind(
+    null,
+    onlineComponentProvider.syncEngine
+  );
+  eventManager.onUnlisten = syncEngineUnlisten.bind(
+    null,
+    onlineComponentProvider.syncEngine
+  );
+  return eventManager;
+}
+
+/** Enables the network connection and re-enqueues all pending operations. */
+export function firestoreClientEnableNetwork(
+  client: FirestoreClient
+): Promise<void> {
+  return client.asyncQueue.enqueue(async () => {
+    const persistence = await getPersistence(client);
+    const remoteStore = await getRemoteStore(client);
+    persistence.setNetworkEnabled(true);
+    return remoteStoreEnableNetwork(remoteStore);
   });
 }
 
 /** Disables the network connection. Pending operations will not complete. */
 export function firestoreClientDisableNetwork(
-  firestoreClient: FirestoreClient
+  client: FirestoreClient
 ): Promise<void> {
-  firestoreClient.verifyNotTerminated();
-  return firestoreClient.asyncQueue.enqueue(() => {
-    firestoreClient.persistence.setNetworkEnabled(false);
-    return remoteStoreDisableNetwork(firestoreClient.remoteStore);
+  return client.asyncQueue.enqueue(async () => {
+    const persistence = await getPersistence(client);
+    const remoteStore = await getRemoteStore(client);
+    persistence.setNetworkEnabled(false);
+    return remoteStoreDisableNetwork(remoteStore);
   });
 }
 
 /**
- * Returns a Promise that resolves when all writes that were pending at the time this
- * method was called received server acknowledgement. An acknowledgement can be either acceptance
- * or rejection.
+ * Returns a Promise that resolves when all writes that were pending at the time
+ * this method was called received server acknowledgement. An acknowledgement
+ * can be either acceptance or rejection.
  */
 export function firestoreClientWaitForPendingWrites(
-  firestoreClient: FirestoreClient
+  client: FirestoreClient
 ): Promise<void> {
-  firestoreClient.verifyNotTerminated();
-
   const deferred = new Deferred<void>();
-  firestoreClient.asyncQueue.enqueueAndForget(() =>
-    registerPendingWritesCallback(firestoreClient.syncEngine, deferred)
-  );
+  client.asyncQueue.enqueueAndForget(async () => {
+    const syncEngine = await getSyncEngine(client);
+    return registerPendingWritesCallback(syncEngine, deferred);
+  });
   return deferred.promise;
 }
 
 export function firestoreClientListen(
-  firestoreClient: FirestoreClient,
+  client: FirestoreClient,
   query: Query,
   options: ListenOptions,
   observer: Partial<Observer<ViewSnapshot>>
 ): () => void {
-  firestoreClient.verifyNotTerminated();
   const wrappedObserver = new AsyncObserver(observer);
   const listener = new QueryListener(query, wrappedObserver, options);
-  firestoreClient.asyncQueue.enqueueAndForget(() =>
-    eventManagerListen(firestoreClient.eventMgr, listener)
-  );
+  client.asyncQueue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(client);
+    return eventManagerListen(eventManager, listener);
+  });
   return () => {
     wrappedObserver.mute();
-    firestoreClient.asyncQueue.enqueueAndForget(() =>
-      eventManagerUnlisten(firestoreClient.eventMgr, listener)
-    );
+    client.asyncQueue.enqueueAndForget(async () => {
+      const eventManager = await getEventManager(client);
+      return eventManagerUnlisten(eventManager, listener);
+    });
   };
 }
 
-export async function firestoreClientGetDocumentFromLocalCache(
-  firestoreClient: FirestoreClient,
+export function firestoreClientGetDocumentFromLocalCache(
+  client: FirestoreClient,
   docKey: DocumentKey
 ): Promise<Document | null> {
-  firestoreClient.verifyNotTerminated();
-  await firestoreClient.initializationDone.promise;
   const deferred = new Deferred<Document | null>();
-  firestoreClient.asyncQueue.enqueueAndForget(() =>
-    readDocumentFromCache(firestoreClient.localStore, docKey, deferred)
-  );
+  client.asyncQueue.enqueueAndForget(async () => {
+    const localStore = await getLocalStore(client);
+    return readDocumentFromCache(localStore, docKey, deferred);
+  });
   return deferred.promise;
 }
 
-export async function firestoreClientGetDocumentViaSnapshotListener(
-  firestoreClient: FirestoreClient,
+export function firestoreClientGetDocumentViaSnapshotListener(
+  client: FirestoreClient,
   key: DocumentKey,
   options: GetOptions = {}
 ): Promise<ViewSnapshot> {
-  firestoreClient.verifyNotTerminated();
-  await firestoreClient.initializationDone.promise;
   const deferred = new Deferred<ViewSnapshot>();
-  firestoreClient.asyncQueue.enqueueAndForget(() =>
-    readDocumentViaSnapshotListener(
-      firestoreClient.eventMgr,
-      firestoreClient.asyncQueue,
+  client.asyncQueue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(client);
+    return readDocumentViaSnapshotListener(
+      eventManager,
+      client.asyncQueue,
       key,
       options,
       deferred
-    )
-  );
+    );
+  });
   return deferred.promise;
 }
 
-export async function firestoreClientGetDocumentsFromLocalCache(
-  firestoreClient: FirestoreClient,
+export function firestoreClientGetDocumentsFromLocalCache(
+  client: FirestoreClient,
   query: Query
 ): Promise<ViewSnapshot> {
-  firestoreClient.verifyNotTerminated();
-  await firestoreClient.initializationDone.promise;
   const deferred = new Deferred<ViewSnapshot>();
-  firestoreClient.asyncQueue.enqueueAndForget(() =>
-    executeQueryFromCache(firestoreClient.localStore, query, deferred)
-  );
+  client.asyncQueue.enqueueAndForget(async () => {
+    const localStore = await getLocalStore(client);
+    return executeQueryFromCache(localStore, query, deferred);
+  });
   return deferred.promise;
 }
 
-export async function firestoreClientGetDocumentsViaSnapshotListener(
-  firestoreClient: FirestoreClient,
+export function firestoreClientGetDocumentsViaSnapshotListener(
+  client: FirestoreClient,
   query: Query,
   options: GetOptions = {}
 ): Promise<ViewSnapshot> {
-  firestoreClient.verifyNotTerminated();
-  await firestoreClient.initializationDone.promise;
   const deferred = new Deferred<ViewSnapshot>();
-  firestoreClient.asyncQueue.enqueueAndForget(() =>
-    executeQueryViaSnapshotListener(
-      firestoreClient.eventMgr,
-      firestoreClient.asyncQueue,
+  client.asyncQueue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(client);
+    return executeQueryViaSnapshotListener(
+      eventManager,
+      client.asyncQueue,
       query,
       options,
       deferred
-    )
-  );
+    );
+  });
   return deferred.promise;
 }
 
 export function firestoreClientWrite(
-  firestoreClient: FirestoreClient,
+  client: FirestoreClient,
   mutations: Mutation[]
 ): Promise<void> {
-  firestoreClient.verifyNotTerminated();
   const deferred = new Deferred<void>();
-  firestoreClient.asyncQueue.enqueueAndForget(() =>
-    syncEngineWrite(firestoreClient.syncEngine, mutations, deferred)
-  );
+  client.asyncQueue.enqueueAndForget(async () => {
+    const syncEngine = await getSyncEngine(client);
+    return syncEngineWrite(syncEngine, mutations, deferred);
+  });
   return deferred.promise;
 }
 
 export function firestoreClientAddSnapshotsInSyncListener(
-  firestoreClient: FirestoreClient,
+  client: FirestoreClient,
   observer: Partial<Observer<void>>
 ): () => void {
-  firestoreClient.verifyNotTerminated();
   const wrappedObserver = new AsyncObserver(observer);
-  firestoreClient.asyncQueue.enqueueAndForget(async () =>
-    addSnapshotsInSyncListener(firestoreClient.eventMgr, wrappedObserver)
-  );
+  client.asyncQueue.enqueueAndForget(async () => {
+    const eventManager = await getEventManager(client);
+    return addSnapshotsInSyncListener(eventManager, wrappedObserver);
+  });
   return () => {
     wrappedObserver.mute();
-    firestoreClient.asyncQueue.enqueueAndForget(async () =>
-      removeSnapshotsInSyncListener(firestoreClient.eventMgr, wrappedObserver)
-    );
+    client.asyncQueue.enqueueAndForget(async () => {
+      const eventManager = await getEventManager(client);
+      return removeSnapshotsInSyncListener(eventManager, wrappedObserver);
+    });
   };
 }
 
@@ -519,19 +461,18 @@ export function firestoreClientAddSnapshotsInSyncListener(
  * performed before any writes. Transactions must be performed while online.
  */
 export function firestoreClientTransaction<T>(
-  firestoreClient: FirestoreClient,
+  client: FirestoreClient,
   updateFunction: (transaction: Transaction) => Promise<T>
 ): Promise<T> {
-  firestoreClient.verifyNotTerminated();
   const deferred = new Deferred<T>();
-  firestoreClient.asyncQueue.enqueueAndForget(() => {
+  client.asyncQueue.enqueueAndForget(async () => {
+    const datastore = await getDatastore(client);
     new TransactionRunner<T>(
-      firestoreClient.asyncQueue,
-      firestoreClient.datastore,
+      client.asyncQueue,
+      datastore,
       updateFunction,
       deferred
     ).run();
-    return Promise.resolve();
   });
   return deferred.promise;
 }
