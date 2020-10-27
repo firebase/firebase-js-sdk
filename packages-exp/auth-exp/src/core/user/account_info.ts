@@ -49,7 +49,12 @@ export async function updateProfile(
 
   const userInternal = user as User;
   const idToken = await user.getIdToken();
-  const profileRequest = { idToken, displayName, photoUrl, returnSecureToken: true };
+  const profileRequest = {
+    idToken,
+    displayName,
+    photoUrl,
+    returnSecureToken: true
+  };
   const response = await _logoutIfInvalidated(
     userInternal,
     apiUpdateProfile(userInternal.auth, profileRequest)
@@ -121,7 +126,10 @@ async function updateEmailOrPassword(
 ): Promise<void> {
   const { auth } = user;
   const idToken = await user.getIdToken();
-  const request: UpdateEmailPasswordRequest = { idToken, returnSecureToken: true };
+  const request: UpdateEmailPasswordRequest = {
+    idToken,
+    returnSecureToken: true
+  };
 
   if (email) {
     request.email = email;

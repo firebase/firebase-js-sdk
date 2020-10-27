@@ -229,7 +229,7 @@ export async function linkWithRedirect(
  */
 export async function getRedirectResult(
   auth: externs.Auth,
-  resolver?: externs.PopupRedirectResolver,
+  resolver?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential | null> {
   return _getRedirectResult(auth, resolver, false);
 }
@@ -237,7 +237,7 @@ export async function getRedirectResult(
 export async function _getRedirectResult(
   auth: externs.Auth,
   resolverExtern?: externs.PopupRedirectResolver,
-  bypassAuthState = false,
+  bypassAuthState = false
 ): Promise<externs.UserCredential | null> {
   const authInternal = _castAuth(auth);
   const resolver = _withDefaultResolver(authInternal, resolverExtern);

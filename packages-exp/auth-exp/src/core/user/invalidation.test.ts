@@ -65,7 +65,9 @@ describe('core/user/invalidation', () => {
 
   it('does not log out if bypass auth state is true', async () => {
     const error = makeError(AuthErrorCode.USER_DISABLED);
-    try { await _logoutIfInvalidated(user, Promise.reject(error), true); } catch {}
+    try {
+      await _logoutIfInvalidated(user, Promise.reject(error), true);
+    } catch {}
     expect(auth.currentUser).to.eq(user);
   });
 

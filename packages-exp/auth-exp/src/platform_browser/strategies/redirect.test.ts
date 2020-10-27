@@ -51,7 +51,8 @@ import {
   getRedirectResult,
   linkWithRedirect,
   reauthenticateWithRedirect,
-  signInWithRedirect, _getRedirectResult
+  signInWithRedirect,
+  _getRedirectResult
 } from './redirect';
 import { FirebaseError } from '@firebase/util';
 

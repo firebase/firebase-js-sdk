@@ -74,7 +74,7 @@ describe('core/user/profile', () => {
         idToken: 'access-token',
         displayName: 'displayname',
         photoUrl: 'photo',
-        returnSecureToken: true,
+        returnSecureToken: true
       });
     });
 
@@ -120,7 +120,7 @@ describe('core/user/profile', () => {
       expect(set.calls[0].request).to.eql({
         idToken: 'access-token',
         email: 'hello@test.com',
-        returnSecureToken: true,
+        returnSecureToken: true
       });
 
       expect(user.uid).to.eq('new-uid-to-prove-refresh-got-called');
@@ -138,7 +138,7 @@ describe('core/user/profile', () => {
       expect(set.calls[0].request).to.eql({
         idToken: 'access-token',
         password: 'pass',
-        returnSecureToken: true,
+        returnSecureToken: true
       });
 
       expect(user.uid).to.eq('new-uid-to-prove-refresh-got-called');

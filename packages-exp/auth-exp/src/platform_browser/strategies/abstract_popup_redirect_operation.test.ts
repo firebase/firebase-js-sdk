@@ -186,7 +186,7 @@ describe('platform_browser/strategies/abstract_popup_redirect_operation', () => 
           tenantId: BASE_AUTH_EVENT.tenantId || undefined,
           postBody: BASE_AUTH_EVENT.postBody || undefined,
           user: undefined,
-          bypassAuthState: false,
+          bypassAuthState: false
         };
       }
 
@@ -253,7 +253,7 @@ describe('platform_browser/strategies/abstract_popup_redirect_operation', () => 
         await operation.execute();
         expect(idp._reauth).to.have.been.calledWith({
           ...expectedIdpTaskParams(),
-          bypassAuthState: true,
+          bypassAuthState: true
         });
       });
     });

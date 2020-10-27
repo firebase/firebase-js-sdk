@@ -34,7 +34,7 @@ describe('api/account_management/updateProfile', () => {
     idToken: 'my-token',
     email: 'test@foo.com',
     password: 'my-password',
-    returnSecureToken: true,
+    returnSecureToken: true
   };
 
   let auth: TestAuth;
@@ -49,7 +49,7 @@ describe('api/account_management/updateProfile', () => {
   it('should POST to the correct endpoint', async () => {
     const mock = mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
       displayName: 'my-name',
-      email: 'test@foo.com',
+      email: 'test@foo.com'
     });
 
     const response = await updateProfile(auth, request);

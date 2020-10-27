@@ -425,7 +425,7 @@ describe('platform_browser/strategies/phone', () => {
       });
       signInMock = mockEndpoint(Endpoint.SIGN_IN_WITH_PHONE_NUMBER, {
         idToken: 'new-access-token',
-        refreshToken: 'refresh-token',
+        refreshToken: 'refresh-token'
       });
       credential = PhoneAuthCredential._fromVerification(
         'session-info',

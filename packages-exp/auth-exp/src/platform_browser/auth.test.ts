@@ -107,7 +107,12 @@ describe('core/auth/initializeAuth', () => {
       reloadStub = sinon
         .stub(reload, '_reloadWithoutSaving')
         .returns(Promise.resolve());
-      completeRedirectFnStub = sinon.stub(_getInstance<PopupRedirectResolver>(browserPopupRedirectResolver), '_completeRedirectFn').returns(Promise.resolve(null));
+      completeRedirectFnStub = sinon
+        .stub(
+          _getInstance<PopupRedirectResolver>(browserPopupRedirectResolver),
+          '_completeRedirectFn'
+        )
+        .returns(Promise.resolve(null));
     });
 
     async function initAndWait(
@@ -173,18 +178,22 @@ describe('core/auth/initializeAuth', () => {
     });
 
     it('signs in the redirect user if found', async () => {
-      let user: User|null = null;
+      let user: User | null = null;
       completeRedirectFnStub.callsFake((auth: Auth) => {
         user = testUser(auth, 'uid', 'redirectUser@test.com');
-        return Promise.resolve(new UserCredentialImpl({
-        operationType: externs.OperationType.SIGN_IN,
-        user,
-        providerId: null
-        }));
-
+        return Promise.resolve(
+          new UserCredentialImpl({
+            operationType: externs.OperationType.SIGN_IN,
+            user,
+            providerId: null
+          })
+        );
       });
 
-      const auth = await initAndWait([inMemoryPersistence], browserPopupRedirectResolver);
+      const auth = await initAndWait(
+        [inMemoryPersistence],
+        browserPopupRedirectResolver
+      );
       expect(user).not.to.be.null;
       expect(auth.currentUser).to.eq(user);
     });
