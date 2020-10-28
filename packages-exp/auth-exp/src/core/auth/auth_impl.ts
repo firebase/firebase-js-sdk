@@ -32,7 +32,7 @@ import {
 import { Auth, ConfigInternal } from '../../model/auth';
 import { PopupRedirectResolver } from '../../model/popup_redirect';
 import { User } from '../../model/user';
-import { AuthErrorCode, AuthErrorParams, FALLBACK_AUTH_ERROR_FACTORY } from '../errors';
+import { AuthErrorCode, AuthErrorMap, AuthErrorParams, ErrorMapRetriever, FALLBACK_AUTH_ERROR_FACTORY } from '../errors';
 import { Persistence } from '../persistence';
 import {
   KeyName,
@@ -327,11 +327,11 @@ export class AuthImpl implements Auth, _FirebaseService {
     return this.assertedPersistence.persistence.type;
   }
 
-  _updateErrorMap(errorMap: ErrorMap<AuthErrorCode>) {
+  _updateErrorMap(errorMap: AuthErrorMap) {
     this._errorFactory = new ErrorFactory<
     AuthErrorCode,
     AuthErrorParams
-  >('auth', 'Firebase', errorMap);
+  >('auth', 'Firebase', (errorMap as ErrorMapRetriever)());
   }
 
   onAuthStateChanged(

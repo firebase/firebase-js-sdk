@@ -8,7 +8,6 @@ import { Auth } from '@firebase/auth-types-exp';
 import { CompleteFn } from '@firebase/util';
 import { ErrorFactory } from '@firebase/util';
 import { ErrorFn } from '@firebase/util';
-import { ErrorMap } from '@firebase/util';
 import * as externs from '@firebase/auth-types-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseError } from '@firebase/util';
@@ -311,6 +310,11 @@ export class PhoneMultiFactorGenerator implements externs.PhoneMultiFactorGenera
     static assertion(credential: externs.PhoneAuthCredential): externs.PhoneMultiFactorAssertion;
 }
 
+// Warning: (ae-forgotten-export) The symbol "AuthErrorMap" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export const prodErrorMap: AuthErrorMap;
+
 // @public
 export function reauthenticateWithCredential(user: externs.User, credential: externs.AuthCredential): Promise<externs.UserCredential>;
 
@@ -421,6 +425,9 @@ export function updateProfile(user: externs.User, { displayName, photoURL: photo
 
 // @public
 export function useDeviceLanguage(auth: externs.Auth): void;
+
+// @public (undocumented)
+export const verboseErrorMap: AuthErrorMap;
 
 // @public
 export function verifyBeforeUpdateEmail(user: externs.User, newEmail: string, actionCodeSettings?: externs.ActionCodeSettings | null): Promise<void>;
