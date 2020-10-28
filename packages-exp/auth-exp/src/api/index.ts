@@ -232,7 +232,7 @@ function makeTaggedError(
   response: PotentialResponse
 ): FirebaseError {
   const errorParams: NamedErrorParams = {
-    appName: name
+    appName: auth.name,
   };
 
   if (response.email) {

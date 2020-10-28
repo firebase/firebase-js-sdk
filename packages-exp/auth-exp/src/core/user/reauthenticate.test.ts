@@ -129,7 +129,7 @@ describe('core/user/reauthenticate', () => {
 
     await expect(_reauthenticate(user, credential)).to.be.rejectedWith(
       FirebaseError,
-      'Firebase: A network AuthError (such as timeout, interrupted connection or unreachable host) has occurred. (auth/network-request-failed).'
+      'auth/network-request-failed'
     );
   });
 

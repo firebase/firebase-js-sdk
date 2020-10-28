@@ -1,3 +1,4 @@
+import { ErrorFactory } from '@firebase/util';
 /**
  * @license
  * Copyright 2020 Google LLC
@@ -16,15 +17,32 @@
  */
 
 import { expect } from 'chai';
-import { AuthErrorCode } from './errors';
+import { AuthErrorCode, verboseErrorMap, prodErrorMap, ErrorMapRetriever, AuthErrorMap, AuthErrorParams } from './errors';
 import { _createError } from './util/assert';
 
-describe('core/AUTH_ERROR_FACTORY', () => {
-  it('should create an Auth namespaced FirebaseError', () => {
-    const error = _createError(AuthErrorCode.INTERNAL_ERROR);
+function getErrorFactory(errorMap: AuthErrorMap): ErrorFactory<AuthErrorCode, AuthErrorParams> {
+  const map = (errorMap as ErrorMapRetriever)();
+  const factory = new ErrorFactory<AuthErrorCode, AuthErrorParams>('auth', 'Firebase', map);
+  return factory;
+}
+
+describe('verboseErrorMap', () => {
+  it('should create an Auth namespaced FirebaseError with full message', () => {
+    const error = getErrorFactory(verboseErrorMap).create(AuthErrorCode.INTERNAL_ERROR, {});
     expect(error.code).to.eq('auth/internal-error');
     expect(error.message).to.eq(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
+    );
+    expect(error.name).to.eq('FirebaseError');
+  });
+});
+
+describe('prodErrorMap', () => {
+  it('should create an Auth namespaced FirebaseError with full message', () => {
+    const error = getErrorFactory(prodErrorMap).create(AuthErrorCode.INTERNAL_ERROR, {});
+    expect(error.code).to.eq('auth/internal-error');
+    expect(error.message).to.eq(
+      'Firebase: Error (auth/internal-error).'
     );
     expect(error.name).to.eq('FirebaseError');
   });

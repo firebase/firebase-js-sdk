@@ -16,7 +16,7 @@
  */
 
 import * as externs from '@firebase/auth-types-exp';
-import { ErrorFactory, ErrorMap } from '@firebase/util';
+import { ErrorFactory } from '@firebase/util';
 import { AuthErrorCode, AuthErrorMap, AuthErrorParams } from '../core/errors';
 
 import { PopupRedirectResolver } from './popup_redirect';

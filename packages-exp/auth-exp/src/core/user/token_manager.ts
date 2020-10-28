@@ -66,9 +66,15 @@ export class StsTokenManager {
       return this.accessToken;
     }
 
+<<<<<<< HEAD
     if (this.refreshToken) {
       await this.refresh(auth, this.refreshToken!);
       return this.accessToken;
+=======
+    if (!this.refreshToken) {
+      _assert(!this.accessToken, auth, AuthErrorCode.TOKEN_EXPIRED);
+      return null;
+>>>>>>> 21ce75da2 (Tests)
     }
 
     return null;

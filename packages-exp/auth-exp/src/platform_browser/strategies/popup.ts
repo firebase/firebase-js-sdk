@@ -164,7 +164,7 @@ export async function linkWithPopup(
   resolver?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
   const userInternal = user as User;
-  _assert(provider instanceof OAuthProvider, userInternal.auth, AuthErrorCode.ARGUMENT_ERROR,);
+  _assert(provider instanceof OAuthProvider, userInternal.auth, AuthErrorCode.ARGUMENT_ERROR);
 
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
 

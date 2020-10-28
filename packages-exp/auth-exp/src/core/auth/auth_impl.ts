@@ -22,7 +22,6 @@ import {
   createSubscribe,
   ErrorFactory,
   ErrorFn,
-  ErrorMap,
   NextFn,
   Observer,
   Subscribe,
@@ -327,7 +326,7 @@ export class AuthImpl implements Auth, _FirebaseService {
     return this.assertedPersistence.persistence.type;
   }
 
-  _updateErrorMap(errorMap: AuthErrorMap) {
+  _updateErrorMap(errorMap: AuthErrorMap): void {
     this._errorFactory = new ErrorFactory<
     AuthErrorCode,
     AuthErrorParams

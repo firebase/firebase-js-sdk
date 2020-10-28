@@ -105,7 +105,7 @@ export function _assert<K extends AuthErrorCode>(
   ...rest: unknown[]
 ): asserts assertion {
   if (!assertion) {
-    createErrorInternal(authOrCode, ...rest);
+    throw createErrorInternal(authOrCode, ...rest);
   }
 }
 
