@@ -35,7 +35,7 @@ export function getRemoteConfig(app: FirebaseApp): RemoteConfig {
 }
 
 export async function activate(remoteConfig: RemoteConfig): Promise<boolean> {
-  const rc = asRemoteConfigImpl(remoteConfig);
+  const rc = remoteConfig as RemoteConfigImpl;
   const [lastSuccessfulFetchResponse, activeConfigEtag] = await Promise.all([
     rc._storage.getLastSuccessfulFetchResponse(),
     rc._storage.getActiveConfigEtag()
@@ -68,7 +68,7 @@ export function ensureInitialized(remoteConfig: RemoteConfig): Promise<void> {
 }
 
 export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
-  const rc = asRemoteConfigImpl(remoteConfig);
+  const rc = remoteConfig as RemoteConfigImpl;
   // Aborts the request after the given timeout, causing the fetch call to
   // reject with an AbortError.
   //
@@ -104,7 +104,7 @@ export async function fetchConfig(remoteConfig: RemoteConfig): Promise<void> {
 }
 
 export function getAll(remoteConfig: RemoteConfig): Record<string, ValueType> {
-  const rc = asRemoteConfigImpl(remoteConfig);
+  const rc = remoteConfig as RemoteConfigImpl;
   return getAllKeys(
     rc._storageCache.getActiveConfig(),
     rc.defaultConfig
@@ -127,7 +127,7 @@ export function getString(remoteConfig: RemoteConfig, key: string): string {
 }
 
 export function getValue(remoteConfig: RemoteConfig, key: string): ValueType {
-  const rc = asRemoteConfigImpl(remoteConfig);
+  const rc = remoteConfig as RemoteConfigImpl;
   if (!rc._isInitializationComplete) {
     rc._logger.debug(
       `A value was requested for key "${key}" before SDK initialization completed.` +
@@ -151,7 +151,7 @@ export function setLogLevel(
   remoteConfig: RemoteConfig,
   logLevel: RemoteConfigLogLevel
 ): void {
-  const rc = asRemoteConfigImpl(remoteConfig);
+  const rc = remoteConfig as RemoteConfigImpl;
   switch (logLevel) {
     case 'debug':
       rc._logger.logLevel = FirebaseLogLevel.DEBUG;
@@ -162,10 +162,6 @@ export function setLogLevel(
     default:
       rc._logger.logLevel = FirebaseLogLevel.ERROR;
   }
-}
-
-function asRemoteConfigImpl(remoteConfig: RemoteConfig): RemoteConfigImpl {
-  return remoteConfig as RemoteConfigImpl;
 }
 
 /**
