@@ -23,11 +23,14 @@ import { FirebaseError } from '@firebase/util';
 import * as utils from '@firebase/util';
 
 import { _open, AuthPopup } from './popup';
+import { Auth } from '../../model/auth';
+import { testAuth } from '../../../test/helpers/mock_auth';
 
 use(sinonChai);
 
 describe('platform_browser/util/popup', () => {
   let windowOpenStub: sinon.SinonStub;
+  let auth: Auth;
   let popupStub: sinon.SinonStubbedInstance<Window>;
 
   function setUA(ua: string): void {
@@ -46,13 +49,14 @@ describe('platform_browser/util/popup', () => {
     return windowOpenStub.firstCall.args[2];
   }
 
-  beforeEach(() => {
+  beforeEach(async () => {
     windowOpenStub = sinon.stub(window, 'open');
     popupStub = sinon.stub(({
       focus: () => {},
       close: () => {}
     } as unknown) as Window);
     windowOpenStub.returns(popupStub);
+    auth = await testAuth();
   });
 
   afterEach(() => {
@@ -61,50 +65,50 @@ describe('platform_browser/util/popup', () => {
 
   it('sets target to name param if not chrome UA', () => {
     setUA('notchrome');
-    _open('appName', 'url', 'name');
+    _open(auth, 'url', 'name');
     expect(windowTarget()).to.eq('name');
   });
 
   it('sets target to _blank if on chrome IOS', () => {
     setUA('crios/');
-    _open('appName', 'url', 'name');
+    _open(auth, 'url', 'name');
     expect(windowTarget()).to.eq('_blank');
   });
 
   it('sets the firefox url to a default if not provided', () => {
     setUA('firefox/');
-    _open('appName');
+    _open(auth);
     expect(windowURL()).to.eq('http://localhost');
   });
 
   it('sets the firefox url to the value provided', () => {
     setUA('firefox/');
-    _open('appName', 'url');
+    _open(auth, 'url');
     expect(windowURL()).to.eq('url');
   });
 
   it('sets non-firefox url to empty if not provided', () => {
     setUA('not-ff/');
-    _open('appName');
+    _open(auth);
     expect(windowURL()).to.eq('');
   });
 
   it('sets non-firefox url to url if not provided', () => {
     setUA('not-ff/');
-    _open('appName', 'url');
+    _open(auth, 'url');
     expect(windowURL()).to.eq('url');
   });
 
   it('sets scrollbars to yes in popup', () => {
     setUA('firefox/');
-    _open('appName');
+    _open(auth);
     expect(windowOptions()).to.include('scrollbars=yes');
   });
 
   it('errors if the popup is blocked', () => {
     setUA('');
     windowOpenStub.returns(undefined);
-    expect(() => _open('appName')).to.throw(
+    expect(() => _open(auth)).to.throw(
       FirebaseError,
       'auth/popup-blocked'
     );
@@ -119,7 +123,7 @@ describe('platform_browser/util/popup', () => {
     };
 
     setUA('');
-    _open('appName');
+    _open(auth);
     const options = windowOptions()
       .split(',')
       .filter(s => !!s)
@@ -146,21 +150,21 @@ describe('platform_browser/util/popup', () => {
 
   it('calls focus on the new popup', () => {
     setUA('');
-    _open('appName');
+    _open(auth);
     expect(popupStub.focus).to.have.been.called;
   });
 
   it('does not fail if window.focus errors', () => {
     popupStub.focus.throws(new Error('lol no'));
     setUA('');
-    expect(() => _open('appName')).not.to.throw(Error);
+    expect(() => _open(auth)).not.to.throw(Error);
   });
 
   context('resulting popup object', () => {
     let authPopup: AuthPopup;
     beforeEach(() => {
       setUA('');
-      authPopup = _open('appName');
+      authPopup = _open(auth);
     });
 
     it('has a window object', () => {
