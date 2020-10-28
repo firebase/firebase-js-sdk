@@ -26,7 +26,7 @@ import { _open, AuthPopup } from './popup';
 
 use(sinonChai);
 
-describe('src/core/util/popup', () => {
+describe('platform_browser/util/popup', () => {
   let windowOpenStub: sinon.SinonStub;
   let popupStub: sinon.SinonStubbedInstance<Window>;
 

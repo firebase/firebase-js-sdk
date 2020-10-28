@@ -25,7 +25,7 @@ import { Endpoint } from '../../api';
 import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_verifier';
 import { PhoneAuthProvider } from './phone';
 
-describe('core/providers/phone', () => {
+describe('platform_browser/providers/phone', () => {
   let auth: TestAuth;
 
   beforeEach(async () => {

@@ -57,7 +57,7 @@ class WrapperOperation extends AbstractPopupRedirectOperation {
   cleanUp = sinon.stub();
 }
 
-describe('src/core/strategies/abstract_popup_redirect_operation', () => {
+describe('platform_browser/strategies/abstract_popup_redirect_operation', () => {
   let auth: TestAuth;
   let resolver: PopupRedirectResolver;
   let eventManager: EventManager;

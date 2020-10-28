@@ -26,7 +26,7 @@ import {
 import { _getInstance } from '../../core/util/instantiator';
 import { browserSessionPersistence } from './session_storage';
 
-describe('core/persistence/browser', () => {
+describe('platform_browser/persistence/session_storage', () => {
   beforeEach(() => {
     localStorage.clear();
     sessionStorage.clear();

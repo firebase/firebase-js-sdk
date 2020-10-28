@@ -38,6 +38,7 @@ export function _persistenceKeyName(
 export class PersistenceUserManager {
   private readonly fullUserKey: string;
   private readonly fullPersistenceKey: string;
+  private readonly boundEventHandler: () => void;
 
   private constructor(
     public persistence: Persistence,
@@ -51,10 +52,8 @@ export class PersistenceUserManager {
       config.apiKey,
       name
     );
-    this.persistence._addListener(
-      this.fullUserKey,
-      auth._onStorageEvent.bind(auth)
-    );
+    this.boundEventHandler = auth._onStorageEvent.bind(auth);
+    this.persistence._addListener(this.fullUserKey, this.boundEventHandler);
   }
 
   setCurrentUser(user: User): Promise<void> {
@@ -93,10 +92,7 @@ export class PersistenceUserManager {
   }
 
   delete(): void {
-    this.persistence._removeListener(
-      this.fullUserKey,
-      this.auth._onStorageEvent
-    );
+    this.persistence._removeListener(this.fullUserKey, this.boundEventHandler);
   }
 
   static async create(

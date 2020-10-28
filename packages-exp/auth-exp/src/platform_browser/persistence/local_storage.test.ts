@@ -29,7 +29,7 @@ import { browserLocalPersistence, _POLLING_INTERVAL_MS } from './local_storage';
 
 use(sinonChai);
 
-describe('browserLocalPersistence', () => {
+describe('platform_browser/persistence/local_storage', () => {
   const persistence: Persistence = _getInstance(browserLocalPersistence);
 
   beforeEach(() => {

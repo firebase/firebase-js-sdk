@@ -30,7 +30,7 @@ import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { GoogleAuthProvider } from './google';
 
-describe('src/core/providers/google', () => {
+describe('core/providers/google', () => {
   it('generates the correct type of oauth credential', () => {
     const cred = GoogleAuthProvider.credential('id-token', 'access-token');
     expect(cred.accessToken).to.eq('access-token');

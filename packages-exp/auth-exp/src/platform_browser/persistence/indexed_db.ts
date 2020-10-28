@@ -24,6 +24,22 @@ import {
   StorageEventListener,
   STORAGE_AVAILABLE_KEY
 } from '../../core/persistence/';
+import {
+  _EventType,
+  _PingResponse,
+  KeyChangedResponse,
+  KeyChangedRequest,
+  PingRequest,
+  _TimeoutDuration
+} from '../messagechannel/index';
+import { Receiver } from '../messagechannel/receiver';
+import { Sender } from '../messagechannel/sender';
+import {
+  _isWorker,
+  _getActiveServiceWorker,
+  _getServiceWorkerController,
+  _getWorkerGlobalScope
+} from '../util/worker';
 
 export const DB_NAME = 'firebaseLocalStorageDb';
 const DB_VERSION = 1;
@@ -162,12 +178,121 @@ class IndexedDBLocalPersistence implements Persistence {
   private pollTimer: any | null = null;
   private pendingWrites = 0;
 
+  private receiver: Receiver | null = null;
+  private sender: Sender | null = null;
+  private serviceWorkerReceiverAvailable = false;
+  private activeServiceWorker: ServiceWorker | null = null;
+  // Visible for testing only
+  readonly _workerInitializationPromise: Promise<void>;
+
+  constructor() {
+    // Fire & forget the service worker registration as it may never resolve
+    this._workerInitializationPromise = this.initializeServiceWorkerMessaging().then(
+      () => {},
+      () => {}
+    );
+  }
+
   private async initialize(): Promise<IDBDatabase> {
     if (this.db) {
       return this.db;
     }
     this.db = await _openDatabase();
     return this.db;
+  }
+
+  /**
+   * IndexedDB events do not propagate from the main window to the worker context.  We rely on a
+   * postMessage interface to send these events to the worker ourselves.
+   */
+  private async initializeServiceWorkerMessaging(): Promise<void> {
+    return _isWorker() ? this.initializeReceiver() : this.initializeSender();
+  }
+
+  /**
+   * As the worker we should listen to events from the main window.
+   */
+  private async initializeReceiver(): Promise<void> {
+    this.receiver = Receiver._getInstance(_getWorkerGlobalScope()!);
+    // Refresh from persistence if we receive a KeyChanged message.
+    this.receiver._subscribe(
+      _EventType.KEY_CHANGED,
+      async (_origin: string, data: KeyChangedRequest) => {
+        const keys = await this._poll();
+        return {
+          keyProcessed: keys.includes(data.key)
+        };
+      }
+    );
+    // Let the sender know that we are listening so they give us more timeout.
+    this.receiver._subscribe(
+      _EventType.PING,
+      async (_origin: string, _data: PingRequest) => {
+        return [_EventType.KEY_CHANGED];
+      }
+    );
+  }
+
+  /**
+   * As the main window, we should let the worker know when keys change (set and remove).
+   *
+   * @remarks
+   * {@link https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerContainer/ready | ServiceWorkerContainer.ready}
+   * may not resolve.
+   */
+  private async initializeSender(): Promise<void> {
+    // Check to see if there's an active service worker.
+    this.activeServiceWorker = await _getActiveServiceWorker();
+    if (!this.activeServiceWorker) {
+      return;
+    }
+    this.sender = new Sender(this.activeServiceWorker);
+    // Ping the service worker to check what events they can handle.
+    const results = await this.sender._send<_PingResponse, PingRequest>(
+      _EventType.PING,
+      {},
+      _TimeoutDuration.LONG_ACK
+    );
+    if (!results) {
+      return;
+    }
+    if (
+      results[0]?.fulfilled &&
+      results[0]?.value.includes(_EventType.KEY_CHANGED)
+    ) {
+      this.serviceWorkerReceiverAvailable = true;
+    }
+  }
+
+  /**
+   * Let the worker know about a changed key, the exact key doesn't technically matter since the
+   * worker will just trigger a full sync anyway.
+   *
+   * @remarks
+   * For now, we only support one service worker per page.
+   *
+   * @param key - Storage key which changed.
+   */
+  private async notifyServiceWorker(key: string): Promise<void> {
+    if (
+      !this.sender ||
+      !this.activeServiceWorker ||
+      _getServiceWorkerController() !== this.activeServiceWorker
+    ) {
+      return;
+    }
+    try {
+      await this.sender._send<KeyChangedResponse, KeyChangedRequest>(
+        _EventType.KEY_CHANGED,
+        { key },
+        // Use long timeout if receiver has previously responded to a ping from us.
+        this.serviceWorkerReceiverAvailable
+          ? _TimeoutDuration.LONG_ACK
+          : _TimeoutDuration.ACK
+      );
+    } catch {
+      // This is a best effort approach. Ignore errors.
+    }
   }
 
   async _isAvailable(): Promise<boolean> {
@@ -197,6 +322,7 @@ class IndexedDBLocalPersistence implements Persistence {
     return this._withPendingWrite(async () => {
       await _putObject(db, key, value);
       this.localCache[key] = value;
+      return this.notifyServiceWorker(key);
     });
   }
 
@@ -212,10 +338,11 @@ class IndexedDBLocalPersistence implements Persistence {
     return this._withPendingWrite(async () => {
       await deleteObject(db, key);
       delete this.localCache[key];
+      return this.notifyServiceWorker(key);
     });
   }
 
-  private async _poll(): Promise<void> {
+  private async _poll(): Promise<string[]> {
     const db = await _openDatabase();
 
     // TODO: check if we need to fallback if getAll is not supported
@@ -225,19 +352,22 @@ class IndexedDBLocalPersistence implements Persistence {
     ).toPromise();
 
     if (!result) {
-      return;
+      return [];
     }
 
     // If we have pending writes in progress abort, we'll get picked up on the next poll
     if (this.pendingWrites !== 0) {
-      return;
+      return [];
     }
 
+    const keys = [];
     for (const { fbase_key: key, value } of result) {
       if (JSON.stringify(this.localCache[key]) !== JSON.stringify(value)) {
         this.notifyListeners(key, value as PersistenceValue);
+        keys.push(key);
       }
     }
+    return keys;
   }
 
   private notifyListeners(
