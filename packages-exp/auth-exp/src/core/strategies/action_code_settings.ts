@@ -19,27 +19,23 @@ import { ActionCodeSettings, Auth } from '@firebase/auth-types-exp';
 
 import { GetOobCodeRequest } from '../../api/authentication/email_and_password';
 import { AuthErrorCode } from '../errors';
-import { assert } from '../util/assert';
+import { _assert } from '../util/assert';
 
 export function _setActionCodeSettingsOnRequest(
   auth: Auth,
   request: GetOobCodeRequest,
   actionCodeSettings: ActionCodeSettings
 ): void {
-  assert(
+  _assert(
     actionCodeSettings.url.length > 0,
+    auth,
     AuthErrorCode.INVALID_CONTINUE_URI,
-    {
-      appName: auth.name
-    }
   );
-  assert(
+  _assert(
     typeof actionCodeSettings.dynamicLinkDomain === 'undefined' ||
       actionCodeSettings.dynamicLinkDomain.length > 0,
+      auth,
     AuthErrorCode.INVALID_DYNAMIC_LINK_DOMAIN,
-    {
-      appName: auth.name
-    }
   );
 
   request.continueUrl = actionCodeSettings.url;
@@ -47,23 +43,19 @@ export function _setActionCodeSettingsOnRequest(
   request.canHandleCodeInApp = actionCodeSettings.handleCodeInApp;
 
   if (actionCodeSettings.iOS) {
-    assert(
+    _assert(
       actionCodeSettings.iOS.bundleId.length > 0,
+      auth,
       AuthErrorCode.MISSING_IOS_BUNDLE_ID,
-      {
-        appName: auth.name
-      }
     );
     request.iosBundleId = actionCodeSettings.iOS.bundleId;
   }
 
   if (actionCodeSettings.android) {
-    assert(
+    _assert(
       actionCodeSettings.android.packageName.length > 0,
+      auth,
       AuthErrorCode.MISSING_ANDROID_PACKAGE_NAME,
-      {
-        appName: auth.name
-      }
     );
     request.androidInstallApp = actionCodeSettings.android.installApp;
     request.androidMinimumVersionCode =

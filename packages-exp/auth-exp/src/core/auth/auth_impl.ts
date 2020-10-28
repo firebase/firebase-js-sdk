@@ -20,7 +20,9 @@ import * as externs from '@firebase/auth-types-exp';
 import {
   CompleteFn,
   createSubscribe,
+  ErrorFactory,
   ErrorFn,
+  ErrorMap,
   NextFn,
   Observer,
   Subscribe,
@@ -30,14 +32,14 @@ import {
 import { Auth, ConfigInternal } from '../../model/auth';
 import { PopupRedirectResolver } from '../../model/popup_redirect';
 import { User } from '../../model/user';
-import { AuthErrorCode } from '../errors';
+import { AuthErrorCode, AuthErrorParams, FALLBACK_AUTH_ERROR_FACTORY } from '../errors';
 import { Persistence } from '../persistence';
 import {
   KeyName,
   PersistenceUserManager
 } from '../persistence/persistence_user_manager';
 import { _reloadWithoutSaving } from '../user/reload';
-import { assert } from '../util/assert';
+import { _assert } from '../util/assert';
 import { _getInstance } from '../util/instantiator';
 import { _getUserLanguage } from '../util/navigator';
 
@@ -69,6 +71,7 @@ export class AuthImpl implements Auth, _FirebaseService {
   _deleted = false;
   _initializationPromise: Promise<void> | null = null;
   _popupRedirectResolver: PopupRedirectResolver | null = null;
+  _errorFactory: ErrorFactory<AuthErrorCode, AuthErrorParams> = FALLBACK_AUTH_ERROR_FACTORY;
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -191,9 +194,7 @@ export class AuthImpl implements Auth, _FirebaseService {
       return this.reloadAndSetCurrentUserOrClear(storedUser);
     }
 
-    assert(this._popupRedirectResolver, AuthErrorCode.ARGUMENT_ERROR, {
-      appName: this.name
-    });
+    _assert(this._popupRedirectResolver, this, AuthErrorCode.ARGUMENT_ERROR);
     await this.getOrInitRedirectPersistenceManager();
 
     // If the redirect user's event ID matches the current user's event ID,
@@ -264,13 +265,9 @@ export class AuthImpl implements Auth, _FirebaseService {
   }
 
   useEmulator(url: string): void {
-    assert(this._canInitEmulator, AuthErrorCode.EMULATOR_CONFIG_FAILED, {
-      appName: this.name
-    });
+    _assert(this._canInitEmulator, this, AuthErrorCode.EMULATOR_CONFIG_FAILED);
 
-    assert(/^https?:\/\//.test(url), AuthErrorCode.INVALID_EMULATOR_SCHEME, {
-      appName: this.name
-    });
+    _assert(/^https?:\/\//.test(url), this, AuthErrorCode.INVALID_EMULATOR_SCHEME);
 
     this.config.emulator = { url };
     this.settings.appVerificationDisabledForTesting = true;
@@ -284,12 +281,10 @@ export class AuthImpl implements Auth, _FirebaseService {
     // The public updateCurrentUser method needs to make a copy of the user,
     // and also needs to verify that the app matches
     const user = userExtern as User | null;
-    assert(
+    _assert(
       !user || user.auth.name === this.name,
+      this,
       AuthErrorCode.ARGUMENT_ERROR,
-      {
-        appName: this.name
-      }
     );
 
     return this._updateCurrentUser(user && user._clone());
@@ -300,10 +295,10 @@ export class AuthImpl implements Auth, _FirebaseService {
       return;
     }
     if (user) {
-      assert(
+      _assert(
         this.tenantId === user.tenantId,
+        this,
         AuthErrorCode.TENANT_ID_MISMATCH,
-        { appName: this.name }
       );
     }
 
@@ -330,6 +325,13 @@ export class AuthImpl implements Auth, _FirebaseService {
 
   _getPersistence(): string {
     return this.assertedPersistence.persistence.type;
+  }
+
+  _updateErrorMap(errorMap: ErrorMap<AuthErrorCode>) {
+    this._errorFactory = new ErrorFactory<
+    AuthErrorCode,
+    AuthErrorParams
+  >('auth', 'Firebase', errorMap);
   }
 
   onAuthStateChanged(
@@ -386,7 +388,7 @@ export class AuthImpl implements Auth, _FirebaseService {
       const resolver: PopupRedirectResolver | null =
         (popupRedirectResolver && _getInstance(popupRedirectResolver)) ||
         this._popupRedirectResolver;
-      assert(resolver, AuthErrorCode.ARGUMENT_ERROR, { appName: this.name });
+      _assert(resolver, this, AuthErrorCode.ARGUMENT_ERROR);
       this.redirectPersistenceManager = await PersistenceUserManager.create(
         this,
         [_getInstance(resolver._redirectPersistence)],
@@ -483,7 +485,7 @@ export class AuthImpl implements Auth, _FirebaseService {
     const promise = this._isInitialized
       ? Promise.resolve()
       : this._initializationPromise;
-    assert(promise, AuthErrorCode.INTERNAL_ERROR, { appName: this.name });
+    _assert(promise, this, AuthErrorCode.INTERNAL_ERROR);
     // The callback needs to be called asynchronously per the spec.
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     promise.then(() => cb(this.currentUser));
@@ -525,9 +527,7 @@ export class AuthImpl implements Auth, _FirebaseService {
   }
 
   private get assertedPersistence(): PersistenceUserManager {
-    assert(this.persistenceManager, AuthErrorCode.INTERNAL_ERROR, {
-      appName: this.name
-    });
+    _assert(this.persistenceManager, this, AuthErrorCode.INTERNAL_ERROR);
     return this.persistenceManager;
   }
 }
@@ -551,9 +551,7 @@ class Subscription<T> {
   constructor(readonly auth: Auth) {}
 
   get next(): NextFn<T | null> {
-    assert(this.observer, AuthErrorCode.INTERNAL_ERROR, {
-      appName: this.auth.name
-    });
+    _assert(this.observer, this.auth, AuthErrorCode.INTERNAL_ERROR);
     return this.observer.next.bind(this.observer);
   }
 }

@@ -38,8 +38,9 @@ import { MultiFactorError } from '../../mfa/mfa_error';
 import { IdTokenResponse } from '../../model/id_token';
 import { User, UserCredential } from '../../model/user';
 import { AuthCredential } from '../credentials';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { AuthErrorCode } from '../errors';
 import { _reauthenticate } from './reauthenticate';
+import { _createError } from '../util/assert';
 
 use(chaiAsPromised);
 
@@ -105,7 +106,7 @@ describe('core/user/reauthenticate', () => {
   it('should switch a user deleted error to a mismatch error', async () => {
     stub(credential, '_getReauthenticationResolver').returns(
       Promise.reject(
-        AUTH_ERROR_FACTORY.create(AuthErrorCode.USER_DELETED, {
+        _createError(AuthErrorCode.USER_DELETED, {
           appName: ''
         })
       )
@@ -120,7 +121,7 @@ describe('core/user/reauthenticate', () => {
   it('should not switch other errors to a mismatch error', async () => {
     stub(credential, '_getReauthenticationResolver').returns(
       Promise.reject(
-        AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
+        _createError(AuthErrorCode.NETWORK_REQUEST_FAILED, {
           appName: ''
         })
       )
@@ -146,8 +147,7 @@ describe('core/user/reauthenticate', () => {
     };
     stub(credential, '_getReauthenticationResolver').returns(
       Promise.reject(
-        AUTH_ERROR_FACTORY.create(AuthErrorCode.MFA_REQUIRED, {
-          appName: user.auth.name,
+        _createError(user.auth, AuthErrorCode.MFA_REQUIRED, {
           serverResponse
         })
       )

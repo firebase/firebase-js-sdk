@@ -16,13 +16,12 @@
  */
 
 import { expect } from 'chai';
-import { AuthErrorCode, AUTH_ERROR_FACTORY } from './errors';
+import { AuthErrorCode } from './errors';
+import { _createError } from './util/assert';
 
 describe('core/AUTH_ERROR_FACTORY', () => {
   it('should create an Auth namespaced FirebaseError', () => {
-    const error = AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
-      appName: 'my-app'
-    });
+    const error = _createError(AuthErrorCode.INTERNAL_ERROR);
     expect(error.code).to.eq('auth/internal-error');
     expect(error.message).to.eq(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'

@@ -18,7 +18,7 @@
 import { _getProjectConfig } from '../../api/project_config/get_project_config';
 import { Auth } from '../../model/auth';
 import { AuthErrorCode } from '../errors';
-import { fail } from './assert';
+import { _fail } from './assert';
 import { _getCurrentUrl } from './location';
 
 const IP_ADDRESS_REGEX = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
@@ -43,7 +43,7 @@ export async function _validateOrigin(auth: Auth): Promise<void> {
   }
 
   // In the old SDK, this error also provides helpful messages.
-  fail(AuthErrorCode.INVALID_ORIGIN, { appName: auth.name });
+  _fail(auth, AuthErrorCode.INVALID_ORIGIN);
 }
 
 function matchDomain(expected: string): boolean {

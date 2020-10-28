@@ -17,7 +17,7 @@
 
 import * as externs from '@firebase/auth-types-exp';
 
-import { assert } from '../util/assert';
+import { _assert } from '../util/assert';
 import { AuthErrorCode } from '../errors';
 
 import { OAuthCredential } from '../credentials/oauth';
@@ -113,10 +113,9 @@ export class OAuthProvider implements externs.AuthProvider {
 
   static credentialFromJSON(json: object | string): externs.OAuthCredential {
     const obj = typeof json === 'string' ? JSON.parse(json) : json;
-    assert(
+    _assert(
       'providerId' in obj && 'signInMethod' in obj,
       AuthErrorCode.ARGUMENT_ERROR,
-      {}
     );
     return OAuthCredential._fromParams(obj);
   }
@@ -143,10 +142,9 @@ export class OAuthProvider implements externs.AuthProvider {
    * or the ID token string.
    */
   credential(params: OAuthCredentialOptions): externs.OAuthCredential {
-    assert(
+    _assert(
       params.idToken && params.accessToken,
       AuthErrorCode.ARGUMENT_ERROR,
-      {}
     );
     // For OAuthCredential, sign in method is same as providerId.
     return OAuthCredential._fromParams({

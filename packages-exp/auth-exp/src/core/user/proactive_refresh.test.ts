@@ -22,7 +22,8 @@ import * as sinonChai from 'sinon-chai';
 
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { User } from '../../model/user';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { AuthErrorCode } from '../errors';
+import { _createError } from '../util/assert';
 import { Duration, ProactiveRefresh } from './proactive_refresh';
 
 use(chaiAsPromised);
@@ -100,7 +101,7 @@ describe('core/user/proactive_refresh', () => {
   });
 
   context('error backoff', () => {
-    const error = AUTH_ERROR_FACTORY.create(
+    const error = _createError(
       AuthErrorCode.NETWORK_REQUEST_FAILED,
       { appName: 'app' }
     );

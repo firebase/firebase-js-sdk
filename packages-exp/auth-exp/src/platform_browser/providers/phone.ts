@@ -24,7 +24,7 @@ import { UserCredential } from '../../model/user';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { AuthErrorCode } from '../../core/errors';
 import { _verifyPhoneNumber } from '../strategies/phone';
-import { assert, fail } from '../../core/util/assert';
+import { _assert, _fail } from '../../core/util/assert';
 import { _castAuth } from '../../core/auth/auth_impl';
 
 /**
@@ -72,9 +72,7 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
     userCredential: externs.UserCredential
   ): externs.AuthCredential | null {
     const credential = userCredential as UserCredential;
-    assert(credential._tokenResponse, AuthErrorCode.ARGUMENT_ERROR, {
-      appName: credential.user.auth.name
-    });
+    _assert(credential._tokenResponse, credential.user.auth, AuthErrorCode.ARGUMENT_ERROR);
     const {
       phoneNumber,
       temporaryProof
@@ -86,6 +84,6 @@ export class PhoneAuthProvider implements externs.PhoneAuthProvider {
       );
     }
 
-    fail(AuthErrorCode.ARGUMENT_ERROR, { appName: credential.user.auth.name });
+    _fail(credential.user.auth, AuthErrorCode.ARGUMENT_ERROR);
   }
 }

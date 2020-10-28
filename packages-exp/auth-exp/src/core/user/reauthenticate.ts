@@ -21,7 +21,7 @@ import { _processCredentialSavingMfaContextIfNecessary } from '../../mfa/mfa_err
 import { User } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { AuthErrorCode } from '../errors';
-import { assert, fail } from '../util/assert';
+import { _assert, _fail } from '../util/assert';
 import { _parseToken } from './id_token_result';
 import { _logoutIfInvalidated } from './invalidation';
 import { UserCredentialImpl } from './user_credential_impl';
@@ -31,32 +31,32 @@ export async function _reauthenticate(
   credential: AuthCredential,
   bypassAuthState = false
 ): Promise<UserCredentialImpl> {
-  const appName = user.auth.name;
+  const {auth} = user;
   const operationType = OperationType.REAUTHENTICATE;
 
   try {
     const response = await _logoutIfInvalidated(
       user,
       _processCredentialSavingMfaContextIfNecessary(
-        user.auth,
+        auth,
         operationType,
         credential,
         user
       ),
       bypassAuthState
     );
-    assert(response.idToken, AuthErrorCode.INTERNAL_ERROR, { appName });
+    _assert(response.idToken, auth, AuthErrorCode.INTERNAL_ERROR);
     const parsed = _parseToken(response.idToken);
-    assert(parsed, AuthErrorCode.INTERNAL_ERROR, { appName });
+    _assert(parsed, auth, AuthErrorCode.INTERNAL_ERROR);
 
     const { sub: localId } = parsed;
-    assert(user.uid === localId, AuthErrorCode.USER_MISMATCH, { appName });
+    _assert(user.uid === localId, auth, AuthErrorCode.USER_MISMATCH);
 
     return UserCredentialImpl._forOperation(user, operationType, response);
   } catch (e) {
     // Convert user deleted error into user mismatch
     if (e?.code === `auth/${AuthErrorCode.USER_DELETED}`) {
-      fail(AuthErrorCode.USER_MISMATCH, { appName });
+      _fail(auth, AuthErrorCode.USER_MISMATCH);
     }
     throw e;
   }

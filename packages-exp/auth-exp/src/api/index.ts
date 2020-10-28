@@ -18,12 +18,10 @@
 import { FirebaseError, querystring } from '@firebase/util';
 
 import {
-  AUTH_ERROR_FACTORY,
   AuthErrorCode,
   NamedErrorParams,
-  ERRORS
 } from '../core/errors';
-import { fail } from '../core/util/assert';
+import { _createError, _fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { _emulatorUrl } from '../core/util/emulator';
 import { FetchProvider } from '../core/util/fetch_provider';
@@ -122,7 +120,7 @@ export async function _performFetchWithErrorHandling<V>(
   (auth as AuthInternal)._canInitEmulator = false;
   const errorMap = { ...SERVER_ERROR_MAP, ...customErrorMap };
   try {
-    const networkTimeout = new NetworkTimeout<Response>(auth.name);
+    const networkTimeout = new NetworkTimeout<Response>(auth);
     const response: Response = await Promise.race<Promise<Response>>([
       fetchFn(),
       networkTimeout.promise
@@ -155,20 +153,13 @@ export async function _performFetchWithErrorHandling<V>(
         ((serverErrorCode
           .toLowerCase()
           .replace(/_/g, '-') as unknown) as AuthErrorCode);
-      if (authError && Object.keys(ERRORS).includes(authError)) {
-        fail(authError, { appName: auth.name });
-      } else {
-        // TODO probably should handle improperly formatted errors as well
-        // If you see this, add an entry to SERVER_ERROR_MAP for the corresponding error
-        console.error(`Unexpected API error: ${json.error.message}`);
-        fail(AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
-      }
+      _fail(auth, authError);
     }
   } catch (e) {
     if (e instanceof FirebaseError) {
       throw e;
     }
-    fail(AuthErrorCode.NETWORK_REQUEST_FAILED, { appName: auth.name });
+    _fail(auth, AuthErrorCode.NETWORK_REQUEST_FAILED);
   }
 }
 
@@ -187,8 +178,7 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
     customErrorMap
   )) as V;
   if ('mfaPendingCredential' in serverResponse) {
-    throw AUTH_ERROR_FACTORY.create(AuthErrorCode.MFA_REQUIRED, {
-      appName: auth.name,
+    throw _createError(auth, AuthErrorCode.MFA_REQUIRED, {
       serverResponse
     });
   }
@@ -219,9 +209,7 @@ class NetworkTimeout<T> {
   readonly promise = new Promise<T>((_, reject) => {
     this.timer = setTimeout(() => {
       return reject(
-        AUTH_ERROR_FACTORY.create(AuthErrorCode.TIMEOUT, {
-          appName: this.appName
-        })
+        _createError(this.auth, AuthErrorCode.TIMEOUT)
       );
     }, DEFAULT_API_TIMEOUT_MS.get());
   });
@@ -230,7 +218,7 @@ class NetworkTimeout<T> {
     clearTimeout(this.timer);
   }
 
-  constructor(private readonly appName: string) {}
+  constructor(private readonly auth: Auth) {}
 }
 
 interface PotentialResponse extends IdTokenResponse {
@@ -239,7 +227,7 @@ interface PotentialResponse extends IdTokenResponse {
 }
 
 function makeTaggedError(
-  { name }: Auth,
+  auth: Auth,
   code: AuthErrorCode,
   response: PotentialResponse
 ): FirebaseError {
@@ -254,7 +242,7 @@ function makeTaggedError(
     errorParams.phoneNumber = response.phoneNumber;
   }
 
-  const error = AUTH_ERROR_FACTORY.create(code, errorParams);
+  const error = _createError(auth, code, errorParams);
 
   // We know customData is defined on error because errorParams is defined
   (error.customData! as TaggedWithTokenResponse)._tokenResponse = response;

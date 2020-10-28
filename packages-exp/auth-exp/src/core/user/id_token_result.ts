@@ -19,7 +19,7 @@ import * as externs from '@firebase/auth-types-exp';
 import { base64Decode } from '@firebase/util';
 
 import { User } from '../../model/user';
-import { assert } from '../util/assert';
+import { _assert } from '../util/assert';
 import { _logError } from '../util/log';
 import { utcTimestampToDateString } from '../util/time';
 import { AuthErrorCode } from '../errors';
@@ -63,10 +63,10 @@ export async function getIdTokenResult(
   const token = await user.getIdToken(forceRefresh);
   const claims = _parseToken(token);
 
-  assert(
+  _assert(
     claims && claims.exp && claims.auth_time && claims.iat,
+    userInternal.auth,
     AuthErrorCode.INTERNAL_ERROR,
-    { appName: userInternal.auth.name }
   );
   const firebase =
     typeof claims.firebase === 'object' ? claims.firebase : undefined;

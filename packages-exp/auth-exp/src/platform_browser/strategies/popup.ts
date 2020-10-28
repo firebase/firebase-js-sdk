@@ -18,9 +18,9 @@
 import * as externs from '@firebase/auth-types-exp';
 
 import { _castAuth } from '../../core/auth/auth_impl';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
+import { AuthErrorCode } from '../../core/errors';
 import { OAuthProvider } from '../../core/providers/oauth';
-import { assert, debugAssert } from '../../core/util/assert';
+import { _assert, debugAssert, _createError } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
 import { _generateEventId } from '../../core/util/event_id';
 import { _getInstance } from '../../core/util/instantiator';
@@ -78,9 +78,7 @@ export async function signInWithPopup(
   resolver?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
   const authInternal = _castAuth(auth);
-  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: auth.name
-  });
+  _assert(provider instanceof OAuthProvider,auth, AuthErrorCode.ARGUMENT_ERROR);
 
   const resolverInternal = _withDefaultResolver(authInternal, resolver);
   const action = new PopupOperation(
@@ -123,9 +121,7 @@ export async function reauthenticateWithPopup(
   resolver?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
   const userInternal = user as User;
-  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: userInternal.auth.name
-  });
+  _assert(provider instanceof OAuthProvider, userInternal.auth, AuthErrorCode.ARGUMENT_ERROR);
 
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
   const action = new PopupOperation(
@@ -168,9 +164,7 @@ export async function linkWithPopup(
   resolver?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
   const userInternal = user as User;
-  assert(provider instanceof OAuthProvider, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: userInternal.auth.name
-  });
+  _assert(provider instanceof OAuthProvider, userInternal.auth, AuthErrorCode.ARGUMENT_ERROR,);
 
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
 
@@ -214,7 +208,7 @@ class PopupOperation extends AbstractPopupRedirectOperation {
 
   async executeNotNull(): Promise<externs.UserCredential> {
     const result = await this.execute();
-    assert(result, AuthErrorCode.INTERNAL_ERROR, { appName: this.auth.name });
+    _assert(result, this.auth, AuthErrorCode.INTERNAL_ERROR);
     return result;
   }
 
@@ -242,15 +236,13 @@ class PopupOperation extends AbstractPopupRedirectOperation {
     this.resolver._isIframeWebStorageSupported(this.auth, isSupported => {
       if (!isSupported) {
         this.reject(
-          AUTH_ERROR_FACTORY.create(AuthErrorCode.WEB_STORAGE_UNSUPPORTED, {
-            appName: this.auth.name
-          })
+          _createError(this.auth, AuthErrorCode.WEB_STORAGE_UNSUPPORTED)
         );
       }
     });
 
     // Handle user closure. Notice this does *not* use await
-    this.pollUserCancellation(this.auth.name);
+    this.pollUserCancellation();
   }
 
   get eventId(): string | null {
@@ -259,9 +251,7 @@ class PopupOperation extends AbstractPopupRedirectOperation {
 
   cancel(): void {
     this.reject(
-      AUTH_ERROR_FACTORY.create(AuthErrorCode.EXPIRED_POPUP_REQUEST, {
-        appName: this.auth.name
-      })
+      _createError(this.auth, AuthErrorCode.EXPIRED_POPUP_REQUEST)
     );
   }
 
@@ -279,7 +269,7 @@ class PopupOperation extends AbstractPopupRedirectOperation {
     PopupOperation.currentPopupAction = null;
   }
 
-  private pollUserCancellation(appName: string): void {
+  private pollUserCancellation(): void {
     const poll = (): void => {
       if (this.authWindow?.window?.closed) {
         // Make sure that there is sufficient time for whatever action to
@@ -288,9 +278,7 @@ class PopupOperation extends AbstractPopupRedirectOperation {
         this.pollId = window.setTimeout(() => {
           this.pollId = null;
           this.reject(
-            AUTH_ERROR_FACTORY.create(AuthErrorCode.POPUP_CLOSED_BY_USER, {
-              appName
-            })
+            _createError(this.auth, AuthErrorCode.POPUP_CLOSED_BY_USER)
           );
         }, _Timeout.AUTH_EVENT);
         return;

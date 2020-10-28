@@ -24,7 +24,7 @@ import { ApplicationVerifier } from '../../model/application_verifier';
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { AuthErrorCode } from '../../core/errors';
 import { _assertLinkedStatus, _link } from '../../core/user/link_unlink';
-import { assert } from '../../core/util/assert';
+import { _assert } from '../../core/util/assert';
 import { Auth } from '../../model/auth';
 import {
   linkWithCredential,
@@ -166,14 +166,11 @@ export async function _verifyPhoneNumber(
   const recaptchaToken = await verifier.verify();
 
   try {
-    assert(typeof recaptchaToken === 'string', AuthErrorCode.ARGUMENT_ERROR, {
-      appName: auth.name
-    });
-    assert(
+    _assert(typeof recaptchaToken === 'string', auth, AuthErrorCode.ARGUMENT_ERROR);
+    _assert(
       verifier.type === RECAPTCHA_VERIFIER_TYPE,
-      AuthErrorCode.ARGUMENT_ERROR,
-      { appName: auth.name }
-    );
+      auth,
+      AuthErrorCode.ARGUMENT_ERROR,);
 
     let phoneInfoOptions: externs.PhoneInfoOptions;
 
@@ -189,11 +186,10 @@ export async function _verifyPhoneNumber(
       const session = phoneInfoOptions.session as MultiFactorSession;
 
       if ('phoneNumber' in phoneInfoOptions) {
-        assert(
+        _assert(
           session.type === MultiFactorSessionType.ENROLL,
-          AuthErrorCode.INTERNAL_ERROR,
-          { appName: auth.name }
-        );
+          auth,
+          AuthErrorCode.INTERNAL_ERROR,);
         const response = await startEnrollPhoneMfa(auth, {
           idToken: session.credential,
           phoneEnrollmentInfo: {
@@ -203,17 +199,14 @@ export async function _verifyPhoneNumber(
         });
         return response.phoneSessionInfo.sessionInfo;
       } else {
-        assert(
+        _assert(
           session.type === MultiFactorSessionType.SIGN_IN,
-          AuthErrorCode.INTERNAL_ERROR,
-          { appName: auth.name }
-        );
+          auth,
+          AuthErrorCode.INTERNAL_ERROR,);
         const mfaEnrollmentId =
           phoneInfoOptions.multiFactorHint?.uid ||
           phoneInfoOptions.multiFactorUid;
-        assert(mfaEnrollmentId, AuthErrorCode.MISSING_MFA_INFO, {
-          appName: auth.name
-        });
+        _assert(mfaEnrollmentId, auth, AuthErrorCode.MISSING_MFA_INFO);
         const response = await startSignInPhoneMfa(auth, {
           mfaPendingCredential: session.credential,
           mfaEnrollmentId,

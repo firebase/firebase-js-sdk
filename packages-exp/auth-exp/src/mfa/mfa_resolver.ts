@@ -20,7 +20,7 @@ import * as externs from '@firebase/auth-types-exp';
 import { _castAuth } from '../core/auth/auth_impl';
 import { AuthErrorCode } from '../core/errors';
 import { UserCredentialImpl } from '../core/user/user_credential_impl';
-import { assert, fail } from '../core/util/assert';
+import { _assert, _fail } from '../core/util/assert';
 import { UserCredential } from '../model/user';
 import { MultiFactorAssertion } from './mfa_assertion';
 import { MultiFactorError } from './mfa_error';
@@ -46,10 +46,10 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
       MultiFactorInfo._fromServerResponse(auth, enrollment)
     );
 
-    assert(
+    _assert(
       error.serverResponse.mfaPendingCredential,
+      auth,
       AuthErrorCode.INTERNAL_ERROR,
-      { appName: auth.name }
     );
     const session = MultiFactorSession._fromMfaPendingCredential(
       error.serverResponse.mfaPendingCredential
@@ -82,16 +82,14 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
             await auth._updateCurrentUser(userCredential.user);
             return userCredential;
           case externs.OperationType.REAUTHENTICATE:
-            assert(error.user, AuthErrorCode.INTERNAL_ERROR, {
-              appName: auth.name
-            });
+            _assert(error.user, auth, AuthErrorCode.INTERNAL_ERROR);
             return UserCredentialImpl._forOperation(
               error.user,
               error.operationType,
               idTokenResponse
             );
           default:
-            fail(AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
+            _fail(auth, AuthErrorCode.INTERNAL_ERROR);
         }
       }
     );
@@ -120,16 +118,12 @@ export function getMultiFactorResolver(
   error: externs.MultiFactorError
 ): externs.MultiFactorResolver {
   const errorInternal = error as MultiFactorError;
-  assert(error.operationType, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: auth.name
-  });
-  assert(error.credential, AuthErrorCode.ARGUMENT_ERROR, {
-    appName: auth.name
-  });
-  assert(
+  _assert(error.operationType, auth, AuthErrorCode.ARGUMENT_ERROR);
+  _assert(error.credential, auth, AuthErrorCode.ARGUMENT_ERROR);
+  _assert(
     errorInternal.serverResponse?.mfaPendingCredential,
+    auth,
     AuthErrorCode.ARGUMENT_ERROR,
-    { appName: auth.name }
   );
 
   return MultiFactorResolver._fromError(auth, errorInternal);

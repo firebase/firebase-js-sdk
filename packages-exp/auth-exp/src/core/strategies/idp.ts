@@ -27,7 +27,7 @@ import { User, UserCredential } from '../../model/user';
 import { AuthCredential } from '../credentials';
 import { _link as _linkUser } from '../user/link_unlink';
 import { _reauthenticate } from '../user/reauthenticate';
-import { assert } from '../util/assert';
+import { _assert } from '../util/assert';
 import { _signInWithCredential } from './credential';
 import { AuthErrorCode } from '../errors';
 
@@ -94,7 +94,7 @@ export function _signIn(params: IdpTaskParams): Promise<UserCredential> {
 /** @internal */
 export function _reauth(params: IdpTaskParams): Promise<UserCredential> {
   const { auth, user } = params;
-  assert(user, AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
+  _assert(user,auth, AuthErrorCode.INTERNAL_ERROR);
   return _reauthenticate(
     user,
     new IdpCredential(params),
@@ -105,6 +105,6 @@ export function _reauth(params: IdpTaskParams): Promise<UserCredential> {
 /** @internal */
 export async function _link(params: IdpTaskParams): Promise<UserCredential> {
   const { auth, user } = params;
-  assert(user, AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
+  _assert(user, auth, AuthErrorCode.INTERNAL_ERROR);
   return _linkUser(user, new IdpCredential(params), params.bypassAuthState);
 }

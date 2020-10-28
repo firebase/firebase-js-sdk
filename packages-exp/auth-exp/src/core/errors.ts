@@ -123,7 +123,7 @@ export const enum AuthErrorCode {
   WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported'
 }
 
-export const ERRORS: ErrorMap<AuthErrorCode> = {
+export const verboseErrorMap: ErrorMap<AuthErrorCode> = {
   [AuthErrorCode.ADMIN_ONLY_OPERATION]:
     'This operation is restricted to administrators only.',
   [AuthErrorCode.ARGUMENT_ERROR]: '',
@@ -341,6 +341,8 @@ export const ERRORS: ErrorMap<AuthErrorCode> = {
     'This browser is not supported or 3rd party cookies and data may be disabled.'
 };
 
+export const prodErrorMap = {} as ErrorMap<AuthErrorCode>;
+
 export interface NamedErrorParams {
   appName: AppName;
   credential?: externs.AuthCredential;
@@ -373,7 +375,7 @@ export interface AuthErrorParams extends GenericAuthErrorParams {
   };
 }
 
-export const AUTH_ERROR_FACTORY = new ErrorFactory<
+export const FALLBACK_AUTH_ERROR_FACTORY = new ErrorFactory<
   AuthErrorCode,
   AuthErrorParams
->('auth', 'Firebase', ERRORS);
+>('auth', 'Firebase', prodErrorMap);

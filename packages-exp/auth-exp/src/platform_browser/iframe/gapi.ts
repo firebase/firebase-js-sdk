@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
+import { AuthErrorCode } from '../../core/errors';
+import { _createError } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
 import { Auth } from '../../model/auth';
 import { _window } from '../auth_window';
@@ -73,9 +74,7 @@ function loadGapi(auth: Auth): Promise<gapi.iframes.Context> {
           // Timeout when gapi.iframes.Iframe not loaded.
           resetUnloadedGapiModules();
           reject(
-            AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
-              appName: auth.name
-            })
+            _createError(auth, AuthErrorCode.NETWORK_REQUEST_FAILED)
           );
         },
         timeout: NETWORK_TIMEOUT.get()
@@ -103,9 +102,7 @@ function loadGapi(auth: Auth): Promise<gapi.iframes.Context> {
         } else {
           // Gapi loader failed, throw error.
           reject(
-            AUTH_ERROR_FACTORY.create(AuthErrorCode.NETWORK_REQUEST_FAILED, {
-              appName: auth.name
-            })
+            _createError(auth, AuthErrorCode.NETWORK_REQUEST_FAILED)
           );
         }
       };

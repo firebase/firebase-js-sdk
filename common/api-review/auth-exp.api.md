@@ -6,7 +6,9 @@
 
 import { Auth } from '@firebase/auth-types-exp';
 import { CompleteFn } from '@firebase/util';
+import { ErrorFactory } from '@firebase/util';
 import { ErrorFn } from '@firebase/util';
+import { ErrorMap } from '@firebase/util';
 import * as externs from '@firebase/auth-types-exp';
 import { FirebaseApp } from '@firebase/app-types-exp';
 import { FirebaseError } from '@firebase/util';

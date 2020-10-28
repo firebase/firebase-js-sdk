@@ -21,7 +21,9 @@ import {
   AuthEventType,
   EventManager
 } from '../../model/popup_redirect';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
+import { AuthErrorCode } from '../errors';
+import { Auth } from '../../model/auth';
+import { _createError } from '../util/assert';
 
 // The amount of time to store the UIDs of seen events; this is
 // set to 10 min by default
@@ -34,7 +36,7 @@ export class AuthEventManager implements EventManager {
   private hasHandledPotentialRedirect = false;
   private lastProcessedEventTime = Date.now();
 
-  constructor(private readonly appName: string) {}
+  constructor(private readonly auth: Auth) {}
 
   registerConsumer(authEventConsumer: AuthEventConsumer): void {
     this.consumers.add(authEventConsumer);
@@ -91,9 +93,7 @@ export class AuthEventManager implements EventManager {
         (event.error.code?.split('auth/')[1] as AuthErrorCode) ||
         AuthErrorCode.INTERNAL_ERROR;
       consumer.onError(
-        AUTH_ERROR_FACTORY.create(code, {
-          appName: this.appName
-        })
+        _createError(this.auth, code)
       );
     } else {
       consumer.onAuthEvent(event);

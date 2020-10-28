@@ -35,16 +35,17 @@ import {
   PopupRedirectResolver
 } from '../../model/popup_redirect';
 import { AuthEventManager } from '../../core/auth/auth_event_manager';
-import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../../core/errors';
+import { AuthErrorCode } from '../../core/errors';
 import { UserCredentialImpl } from '../../core/user/user_credential_impl';
 import { _getInstance } from '../../core/util/instantiator';
 import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operation';
 import * as idp from '../../core/strategies/idp';
+import { _createError } from '../../core/util/assert';
 
 use(sinonChai);
 use(chaiAsPromised);
 
-const ERROR = AUTH_ERROR_FACTORY.create(AuthErrorCode.INTERNAL_ERROR, {
+const ERROR = _createError(AuthErrorCode.INTERNAL_ERROR, {
   appName: 'test'
 });
 
@@ -65,7 +66,7 @@ describe('platform_browser/strategies/abstract_popup_redirect_operation', () => 
 
   beforeEach(async () => {
     auth = await testAuth();
-    eventManager = new AuthEventManager(auth.name);
+    eventManager = new AuthEventManager(auth);
     resolver = _getInstance(makeMockPopupRedirectResolver(eventManager));
     idpStubs = sinon.stub(idp);
   });

@@ -23,7 +23,7 @@ import { signUp } from '../../api/authentication/sign_up';
 import { MultiFactorInfo } from '../../mfa/mfa_info';
 import { EmailAuthProvider } from '../providers/email';
 import { UserCredentialImpl } from '../user/user_credential_impl';
-import { assert } from '../util/assert';
+import { _assert } from '../util/assert';
 import { _setActionCodeSettingsOnRequest } from './action_code_settings';
 import { signInWithCredential } from './credential';
 import { _castAuth } from '../auth/auth_impl';
@@ -136,24 +136,18 @@ export async function checkActionCode(
   // Multi-factor info could not be empty if the request type is
   // REVERT_SECOND_FACTOR_ADDITION.
   const operation = response.requestType;
-  assert(operation, AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
+  _assert(operation, auth, AuthErrorCode.INTERNAL_ERROR);
   switch (operation) {
     case externs.Operation.EMAIL_SIGNIN:
       break;
     case externs.Operation.VERIFY_AND_CHANGE_EMAIL:
-      assert(response.newEmail, AuthErrorCode.INTERNAL_ERROR, {
-        appName: auth.name
-      });
+      _assert(response.newEmail, auth, AuthErrorCode.INTERNAL_ERROR);
       break;
     case externs.Operation.REVERT_SECOND_FACTOR_ADDITION:
-      assert(response.mfaInfo, AuthErrorCode.INTERNAL_ERROR, {
-        appName: auth.name
-      });
+      _assert(response.mfaInfo, auth, AuthErrorCode.INTERNAL_ERROR);
     // fall through
     default:
-      assert(response.email, AuthErrorCode.INTERNAL_ERROR, {
-        appName: auth.name
-      });
+      _assert(response.email,auth, AuthErrorCode.INTERNAL_ERROR);
   }
 
   // The multi-factor info for revert second factor addition
