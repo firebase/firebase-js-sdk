@@ -33,7 +33,7 @@ export function makeMockPopupRedirectResolver(
 ): PopupRedirectResolver {
   return class implements PopupRedirectResolver {
     async _initialize(): Promise<EventManager> {
-      return eventManager || new AuthEventManager({} as unknown as Auth);
+      return eventManager || new AuthEventManager(({} as unknown) as Auth);
     }
 
     async _openPopup(): Promise<AuthPopup> {

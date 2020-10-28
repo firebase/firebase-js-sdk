@@ -147,7 +147,7 @@ export async function checkActionCode(
       _assert(response.mfaInfo, auth, AuthErrorCode.INTERNAL_ERROR);
     // fall through
     default:
-      _assert(response.email,auth, AuthErrorCode.INTERNAL_ERROR);
+      _assert(response.email, auth, AuthErrorCode.INTERNAL_ERROR);
   }
 
   // The multi-factor info for revert second factor addition

@@ -72,7 +72,7 @@ export class RecaptchaVerifier
     _assert(
       typeof document !== 'undefined',
       this.auth,
-      AuthErrorCode.OPERATION_NOT_SUPPORTED,
+      AuthErrorCode.OPERATION_NOT_SUPPORTED
     );
     const container =
       typeof containerOrId === 'string'
@@ -166,7 +166,7 @@ export class RecaptchaVerifier
     _assert(
       this.isInvisible || !this.container.hasChildNodes(),
       this.auth,
-      AuthErrorCode.ARGUMENT_ERROR,
+      AuthErrorCode.ARGUMENT_ERROR
     );
   }
 
@@ -210,7 +210,11 @@ export class RecaptchaVerifier
   }
 
   private async init(): Promise<void> {
-    _assert(_isHttpOrHttps() && !_isWorker(), this.auth, AuthErrorCode.INTERNAL_ERROR);
+    _assert(
+      _isHttpOrHttps() && !_isWorker(),
+      this.auth,
+      AuthErrorCode.INTERNAL_ERROR
+    );
 
     await domReady();
     this.recaptcha = await this._recaptchaLoader.load(

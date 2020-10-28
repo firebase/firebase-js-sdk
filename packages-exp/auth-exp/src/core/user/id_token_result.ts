@@ -66,7 +66,7 @@ export async function getIdTokenResult(
   _assert(
     claims && claims.exp && claims.auth_time && claims.iat,
     userInternal.auth,
-    AuthErrorCode.INTERNAL_ERROR,
+    AuthErrorCode.INTERNAL_ERROR
   );
   const firebase =
     typeof claims.firebase === 'object' ? claims.firebase : undefined;

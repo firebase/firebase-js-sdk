@@ -37,7 +37,7 @@ export function _validatePersistenceArgument(
   _assert(
     Object.values(Persistence).includes(persistence),
     auth,
-    AuthErrorCode.INVALID_PERSISTENCE,
+    AuthErrorCode.INVALID_PERSISTENCE
   );
   // Validate if the specified type is supported in the current environment.
   if (isReactNative()) {
@@ -45,7 +45,7 @@ export function _validatePersistenceArgument(
     _assert(
       persistence !== Persistence.SESSION,
       auth,
-      AuthErrorCode.UNSUPPORTED_PERSISTENCE,
+      AuthErrorCode.UNSUPPORTED_PERSISTENCE
     );
     return;
   }
@@ -54,7 +54,7 @@ export function _validatePersistenceArgument(
     _assert(
       persistence === Persistence.NONE,
       auth,
-      AuthErrorCode.UNSUPPORTED_PERSISTENCE,
+      AuthErrorCode.UNSUPPORTED_PERSISTENCE
     );
     return;
   }
@@ -65,7 +65,7 @@ export function _validatePersistenceArgument(
       persistence === Persistence.NONE ||
         (persistence === Persistence.LOCAL && isIndexedDBAvailable()),
       auth,
-      AuthErrorCode.UNSUPPORTED_PERSISTENCE,
+      AuthErrorCode.UNSUPPORTED_PERSISTENCE
     );
     return;
   }
@@ -73,6 +73,6 @@ export function _validatePersistenceArgument(
   _assert(
     persistence === Persistence.NONE || _isWebStorageSupported(),
     auth,
-    AuthErrorCode.UNSUPPORTED_PERSISTENCE,
+    AuthErrorCode.UNSUPPORTED_PERSISTENCE
   );
 }

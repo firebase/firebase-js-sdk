@@ -17,10 +17,7 @@
 
 import { FirebaseError, querystring } from '@firebase/util';
 
-import {
-  AuthErrorCode,
-  NamedErrorParams,
-} from '../core/errors';
+import { AuthErrorCode, NamedErrorParams } from '../core/errors';
 import { _createError, _fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { _emulatorUrl } from '../core/util/emulator';
@@ -208,9 +205,7 @@ class NetworkTimeout<T> {
   private timer: any | null = null;
   readonly promise = new Promise<T>((_, reject) => {
     this.timer = setTimeout(() => {
-      return reject(
-        _createError(this.auth, AuthErrorCode.TIMEOUT)
-      );
+      return reject(_createError(this.auth, AuthErrorCode.TIMEOUT));
     }, DEFAULT_API_TIMEOUT_MS.get());
   });
 
@@ -232,7 +227,7 @@ function makeTaggedError(
   response: PotentialResponse
 ): FirebaseError {
   const errorParams: NamedErrorParams = {
-    appName: auth.name,
+    appName: auth.name
   };
 
   if (response.email) {

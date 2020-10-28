@@ -134,7 +134,7 @@ export class Auth
     _assert(
       _isPopupRedirectSupported(),
       this.auth,
-      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED,
+      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED
     );
     const credential = await impl.getRedirectResult(
       this.auth,
@@ -272,7 +272,7 @@ export class Auth
     _assert(
       _isPopupRedirectSupported(),
       this.auth,
-      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED,
+      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED
     );
     return convertCredential(
       this.auth,
@@ -287,7 +287,8 @@ export class Auth
     _assert(
       _isPopupRedirectSupported(),
       this.auth,
-      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED);
+      impl.AuthErrorCode.OPERATION_NOT_SUPPORTED
+    );
     this.savePersistenceForRedirect();
     return impl.signInWithRedirect(
       this.auth,

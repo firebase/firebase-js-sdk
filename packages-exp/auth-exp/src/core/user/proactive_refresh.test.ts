@@ -101,10 +101,9 @@ describe('core/user/proactive_refresh', () => {
   });
 
   context('error backoff', () => {
-    const error = _createError(
-      AuthErrorCode.NETWORK_REQUEST_FAILED,
-      { appName: 'app' }
-    );
+    const error = _createError(AuthErrorCode.NETWORK_REQUEST_FAILED, {
+      appName: 'app'
+    });
     beforeEach(() => {
       getTokenStub.callsFake(() => Promise.reject(error));
     });

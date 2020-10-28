@@ -73,7 +73,11 @@ export async function sendSignInLinkToEmail(
     requestType: externs.Operation.EMAIL_SIGNIN,
     email
   };
-  _assert(actionCodeSettings?.handleCodeInApp, auth, AuthErrorCode.ARGUMENT_ERROR);
+  _assert(
+    actionCodeSettings?.handleCodeInApp,
+    auth,
+    AuthErrorCode.ARGUMENT_ERROR
+  );
   if (actionCodeSettings) {
     _setActionCodeSettingsOnRequest(auth, request, actionCodeSettings);
   }
@@ -148,7 +152,7 @@ export async function signInWithEmailLink(
   _assert(
     credential.tenantId === (auth.tenantId || null),
     auth,
-    AuthErrorCode.TENANT_ID_MISMATCH,
+    AuthErrorCode.TENANT_ID_MISMATCH
   );
   return signInWithCredential(auth, credential);
 }

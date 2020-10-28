@@ -31,7 +31,13 @@ import {
 import { Auth, ConfigInternal } from '../../model/auth';
 import { PopupRedirectResolver } from '../../model/popup_redirect';
 import { User } from '../../model/user';
-import { AuthErrorCode, AuthErrorMap, AuthErrorParams, ErrorMapRetriever, FALLBACK_AUTH_ERROR_FACTORY } from '../errors';
+import {
+  AuthErrorCode,
+  AuthErrorMap,
+  AuthErrorParams,
+  ErrorMapRetriever,
+  FALLBACK_AUTH_ERROR_FACTORY
+} from '../errors';
 import { Persistence } from '../persistence';
 import {
   KeyName,
@@ -70,7 +76,10 @@ export class AuthImpl implements Auth, _FirebaseService {
   _deleted = false;
   _initializationPromise: Promise<void> | null = null;
   _popupRedirectResolver: PopupRedirectResolver | null = null;
-  _errorFactory: ErrorFactory<AuthErrorCode, AuthErrorParams> = FALLBACK_AUTH_ERROR_FACTORY;
+  _errorFactory: ErrorFactory<
+    AuthErrorCode,
+    AuthErrorParams
+  > = FALLBACK_AUTH_ERROR_FACTORY;
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -266,7 +275,11 @@ export class AuthImpl implements Auth, _FirebaseService {
   useEmulator(url: string): void {
     _assert(this._canInitEmulator, this, AuthErrorCode.EMULATOR_CONFIG_FAILED);
 
-    _assert(/^https?:\/\//.test(url), this, AuthErrorCode.INVALID_EMULATOR_SCHEME);
+    _assert(
+      /^https?:\/\//.test(url),
+      this,
+      AuthErrorCode.INVALID_EMULATOR_SCHEME
+    );
 
     this.config.emulator = { url };
     this.settings.appVerificationDisabledForTesting = true;
@@ -283,7 +296,7 @@ export class AuthImpl implements Auth, _FirebaseService {
     _assert(
       !user || user.auth.name === this.name,
       this,
-      AuthErrorCode.ARGUMENT_ERROR,
+      AuthErrorCode.ARGUMENT_ERROR
     );
 
     return this._updateCurrentUser(user && user._clone());
@@ -297,7 +310,7 @@ export class AuthImpl implements Auth, _FirebaseService {
       _assert(
         this.tenantId === user.tenantId,
         this,
-        AuthErrorCode.TENANT_ID_MISMATCH,
+        AuthErrorCode.TENANT_ID_MISMATCH
       );
     }
 
@@ -327,10 +340,11 @@ export class AuthImpl implements Auth, _FirebaseService {
   }
 
   _updateErrorMap(errorMap: AuthErrorMap): void {
-    this._errorFactory = new ErrorFactory<
-    AuthErrorCode,
-    AuthErrorParams
-  >('auth', 'Firebase', (errorMap as ErrorMapRetriever)());
+    this._errorFactory = new ErrorFactory<AuthErrorCode, AuthErrorParams>(
+      'auth',
+      'Firebase',
+      (errorMap as ErrorMapRetriever)()
+    );
   }
 
   onAuthStateChanged(

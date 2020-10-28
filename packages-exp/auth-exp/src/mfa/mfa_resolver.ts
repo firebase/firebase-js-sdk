@@ -49,7 +49,7 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
     _assert(
       error.serverResponse.mfaPendingCredential,
       auth,
-      AuthErrorCode.INTERNAL_ERROR,
+      AuthErrorCode.INTERNAL_ERROR
     );
     const session = MultiFactorSession._fromMfaPendingCredential(
       error.serverResponse.mfaPendingCredential
@@ -123,7 +123,7 @@ export function getMultiFactorResolver(
   _assert(
     errorInternal.serverResponse?.mfaPendingCredential,
     auth,
-    AuthErrorCode.ARGUMENT_ERROR,
+    AuthErrorCode.ARGUMENT_ERROR
   );
 
   return MultiFactorResolver._fromError(auth, errorInternal);

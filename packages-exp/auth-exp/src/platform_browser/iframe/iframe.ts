@@ -77,7 +77,7 @@ export async function _openIframe(auth: Auth): Promise<gapi.iframes.Iframe> {
 
         const networkError = _createError(
           auth,
-          AuthErrorCode.NETWORK_REQUEST_FAILED,
+          AuthErrorCode.NETWORK_REQUEST_FAILED
         );
         // Confirm iframe is correctly loaded.
         // To fallback on failure, set a timeout.

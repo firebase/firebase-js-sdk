@@ -79,7 +79,11 @@ export async function signInWithRedirect(
   resolver?: externs.PopupRedirectResolver
 ): Promise<never> {
   const authInternal = _castAuth(auth);
-  _assert(provider instanceof OAuthProvider,auth, AuthErrorCode.ARGUMENT_ERROR);
+  _assert(
+    provider instanceof OAuthProvider,
+    auth,
+    AuthErrorCode.ARGUMENT_ERROR
+  );
 
   return _withDefaultResolver(authInternal, resolver)._openRedirect(
     authInternal,
@@ -122,7 +126,11 @@ export async function reauthenticateWithRedirect(
   resolver?: externs.PopupRedirectResolver
 ): Promise<never> {
   const userInternal = user as User;
-  _assert(provider instanceof OAuthProvider, userInternal.auth, AuthErrorCode.ARGUMENT_ERROR);
+  _assert(
+    provider instanceof OAuthProvider,
+    userInternal.auth,
+    AuthErrorCode.ARGUMENT_ERROR
+  );
 
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
@@ -167,7 +175,11 @@ export async function linkWithRedirect(
   resolver?: externs.PopupRedirectResolver
 ): Promise<never> {
   const userInternal = user as User;
-  _assert(provider instanceof OAuthProvider, userInternal.auth, AuthErrorCode.ARGUMENT_ERROR);
+  _assert(
+    provider instanceof OAuthProvider,
+    userInternal.auth,
+    AuthErrorCode.ARGUMENT_ERROR
+  );
 
   // Allow the resolver to error before persisting the redirect user
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);

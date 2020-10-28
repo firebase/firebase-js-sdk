@@ -118,7 +118,7 @@ export class UserImpl implements User {
     if (this === user) {
       return;
     }
-    _assert(this.uid === user.uid,this.auth, AuthErrorCode.INTERNAL_ERROR);
+    _assert(this.uid === user.uid, this.auth, AuthErrorCode.INTERNAL_ERROR);
     this.displayName = user.displayName;
     this.photoURL = user.photoURL;
     this.email = user.email;
@@ -140,7 +140,7 @@ export class UserImpl implements User {
 
   _onReload(callback: NextFn<APIUserInfo>): void {
     // There should only ever be one listener, and that is a single instance of MultiFactorUser
-    _assert(!this.reloadListener,this.auth, AuthErrorCode.INTERNAL_ERROR);
+    _assert(!this.reloadListener, this.auth, AuthErrorCode.INTERNAL_ERROR);
     this.reloadListener = callback;
     if (this.reloadUserInfo) {
       this._notifyReloadListener(this.reloadUserInfo);
@@ -249,8 +249,16 @@ export class UserImpl implements User {
     _assert(typeof uid === 'string', auth, AuthErrorCode.INTERNAL_ERROR);
     assertStringOrUndefined(displayName, auth.name);
     assertStringOrUndefined(email, auth.name);
-    _assert(typeof emailVerified === 'boolean',auth, AuthErrorCode.INTERNAL_ERROR);
-    _assert(typeof isAnonymous === 'boolean', auth, AuthErrorCode.INTERNAL_ERROR);
+    _assert(
+      typeof emailVerified === 'boolean',
+      auth,
+      AuthErrorCode.INTERNAL_ERROR
+    );
+    _assert(
+      typeof isAnonymous === 'boolean',
+      auth,
+      AuthErrorCode.INTERNAL_ERROR
+    );
     assertStringOrUndefined(phoneNumber, auth.name);
     assertStringOrUndefined(photoURL, auth.name);
     assertStringOrUndefined(tenantId, auth.name);

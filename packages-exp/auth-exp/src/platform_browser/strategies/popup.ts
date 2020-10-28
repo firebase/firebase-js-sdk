@@ -78,7 +78,11 @@ export async function signInWithPopup(
   resolver?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
   const authInternal = _castAuth(auth);
-  _assert(provider instanceof OAuthProvider,auth, AuthErrorCode.ARGUMENT_ERROR);
+  _assert(
+    provider instanceof OAuthProvider,
+    auth,
+    AuthErrorCode.ARGUMENT_ERROR
+  );
 
   const resolverInternal = _withDefaultResolver(authInternal, resolver);
   const action = new PopupOperation(
@@ -121,7 +125,11 @@ export async function reauthenticateWithPopup(
   resolver?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
   const userInternal = user as User;
-  _assert(provider instanceof OAuthProvider, userInternal.auth, AuthErrorCode.ARGUMENT_ERROR);
+  _assert(
+    provider instanceof OAuthProvider,
+    userInternal.auth,
+    AuthErrorCode.ARGUMENT_ERROR
+  );
 
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
   const action = new PopupOperation(
@@ -164,7 +172,11 @@ export async function linkWithPopup(
   resolver?: externs.PopupRedirectResolver
 ): Promise<externs.UserCredential> {
   const userInternal = user as User;
-  _assert(provider instanceof OAuthProvider, userInternal.auth, AuthErrorCode.ARGUMENT_ERROR);
+  _assert(
+    provider instanceof OAuthProvider,
+    userInternal.auth,
+    AuthErrorCode.ARGUMENT_ERROR
+  );
 
   const resolverInternal = _withDefaultResolver(userInternal.auth, resolver);
 
@@ -250,9 +262,7 @@ class PopupOperation extends AbstractPopupRedirectOperation {
   }
 
   cancel(): void {
-    this.reject(
-      _createError(this.auth, AuthErrorCode.EXPIRED_POPUP_REQUEST)
-    );
+    this.reject(_createError(this.auth, AuthErrorCode.EXPIRED_POPUP_REQUEST));
   }
 
   cleanUp(): void {

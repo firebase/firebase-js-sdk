@@ -92,9 +92,7 @@ export class AuthEventManager implements EventManager {
       const code =
         (event.error.code?.split('auth/')[1] as AuthErrorCode) ||
         AuthErrorCode.INTERNAL_ERROR;
-      consumer.onError(
-        _createError(this.auth, code)
-      );
+      consumer.onError(_createError(this.auth, code));
     } else {
       consumer.onAuthEvent(event);
     }

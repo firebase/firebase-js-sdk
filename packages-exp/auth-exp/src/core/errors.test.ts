@@ -17,18 +17,34 @@ import { ErrorFactory } from '@firebase/util';
  */
 
 import { expect } from 'chai';
-import { AuthErrorCode, verboseErrorMap, prodErrorMap, ErrorMapRetriever, AuthErrorMap, AuthErrorParams } from './errors';
+import {
+  AuthErrorCode,
+  verboseErrorMap,
+  prodErrorMap,
+  ErrorMapRetriever,
+  AuthErrorMap,
+  AuthErrorParams
+} from './errors';
 import { _createError } from './util/assert';
 
-function getErrorFactory(errorMap: AuthErrorMap): ErrorFactory<AuthErrorCode, AuthErrorParams> {
+function getErrorFactory(
+  errorMap: AuthErrorMap
+): ErrorFactory<AuthErrorCode, AuthErrorParams> {
   const map = (errorMap as ErrorMapRetriever)();
-  const factory = new ErrorFactory<AuthErrorCode, AuthErrorParams>('auth', 'Firebase', map);
+  const factory = new ErrorFactory<AuthErrorCode, AuthErrorParams>(
+    'auth',
+    'Firebase',
+    map
+  );
   return factory;
 }
 
 describe('verboseErrorMap', () => {
   it('should create an Auth namespaced FirebaseError with full message', () => {
-    const error = getErrorFactory(verboseErrorMap).create(AuthErrorCode.INTERNAL_ERROR, {});
+    const error = getErrorFactory(verboseErrorMap).create(
+      AuthErrorCode.INTERNAL_ERROR,
+      {}
+    );
     expect(error.code).to.eq('auth/internal-error');
     expect(error.message).to.eq(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
@@ -39,11 +55,12 @@ describe('verboseErrorMap', () => {
 
 describe('prodErrorMap', () => {
   it('should create an Auth namespaced FirebaseError with full message', () => {
-    const error = getErrorFactory(prodErrorMap).create(AuthErrorCode.INTERNAL_ERROR, {});
-    expect(error.code).to.eq('auth/internal-error');
-    expect(error.message).to.eq(
-      'Firebase: Error (auth/internal-error).'
+    const error = getErrorFactory(prodErrorMap).create(
+      AuthErrorCode.INTERNAL_ERROR,
+      {}
     );
+    expect(error.code).to.eq('auth/internal-error');
+    expect(error.message).to.eq('Firebase: Error (auth/internal-error).');
     expect(error.name).to.eq('FirebaseError');
   });
 });

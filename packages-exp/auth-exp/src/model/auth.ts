@@ -98,5 +98,5 @@ export interface Auth extends externs.Auth {
 export interface Dependencies {
   persistence?: externs.Persistence | externs.Persistence[];
   popupRedirectResolver?: externs.PopupRedirectResolver;
-  errorMap?: AuthErrorMap,
+  errorMap?: AuthErrorMap;
 }

@@ -29,13 +29,13 @@ export function _setActionCodeSettingsOnRequest(
   _assert(
     actionCodeSettings.url.length > 0,
     auth,
-    AuthErrorCode.INVALID_CONTINUE_URI,
+    AuthErrorCode.INVALID_CONTINUE_URI
   );
   _assert(
     typeof actionCodeSettings.dynamicLinkDomain === 'undefined' ||
       actionCodeSettings.dynamicLinkDomain.length > 0,
-      auth,
-    AuthErrorCode.INVALID_DYNAMIC_LINK_DOMAIN,
+    auth,
+    AuthErrorCode.INVALID_DYNAMIC_LINK_DOMAIN
   );
 
   request.continueUrl = actionCodeSettings.url;
@@ -46,7 +46,7 @@ export function _setActionCodeSettingsOnRequest(
     _assert(
       actionCodeSettings.iOS.bundleId.length > 0,
       auth,
-      AuthErrorCode.MISSING_IOS_BUNDLE_ID,
+      AuthErrorCode.MISSING_IOS_BUNDLE_ID
     );
     request.iosBundleId = actionCodeSettings.iOS.bundleId;
   }
@@ -55,7 +55,7 @@ export function _setActionCodeSettingsOnRequest(
     _assert(
       actionCodeSettings.android.packageName.length > 0,
       auth,
-      AuthErrorCode.MISSING_ANDROID_PACKAGE_NAME,
+      AuthErrorCode.MISSING_ANDROID_PACKAGE_NAME
     );
     request.androidInstallApp = actionCodeSettings.android.installApp;
     request.androidMinimumVersionCode =

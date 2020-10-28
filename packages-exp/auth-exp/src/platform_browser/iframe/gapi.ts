@@ -73,9 +73,7 @@ function loadGapi(auth: Auth): Promise<gapi.iframes.Context> {
           // failed attempt.
           // Timeout when gapi.iframes.Iframe not loaded.
           resetUnloadedGapiModules();
-          reject(
-            _createError(auth, AuthErrorCode.NETWORK_REQUEST_FAILED)
-          );
+          reject(_createError(auth, AuthErrorCode.NETWORK_REQUEST_FAILED));
         },
         timeout: NETWORK_TIMEOUT.get()
       });
@@ -101,9 +99,7 @@ function loadGapi(auth: Auth): Promise<gapi.iframes.Context> {
           loadGapiIframe();
         } else {
           // Gapi loader failed, throw error.
-          reject(
-            _createError(auth, AuthErrorCode.NETWORK_REQUEST_FAILED)
-          );
+          reject(_createError(auth, AuthErrorCode.NETWORK_REQUEST_FAILED));
         }
       };
       // Load GApi loader.

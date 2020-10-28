@@ -173,8 +173,7 @@ describe('core/user/token_manager', () => {
   });
 
   describe('.fromJSON', () => {
-    const errorString =
-      'auth/internal-error';
+    const errorString = 'auth/internal-error';
 
     it('throws if refresh token is not a string', () => {
       expect(() =>

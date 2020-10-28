@@ -236,9 +236,7 @@ describe('platform_browser/strategies/popup', () => {
 
     it('passes any errors from idp task', async () => {
       idpStubs._signIn.returns(
-        Promise.reject(
-          _createError(auth, AuthErrorCode.INVALID_APP_ID)
-        )
+        Promise.reject(_createError(auth, AuthErrorCode.INVALID_APP_ID))
       );
       const promise = signInWithPopup(auth, provider, resolver);
       iframeEvent({
@@ -419,9 +417,7 @@ describe('platform_browser/strategies/popup', () => {
 
     it('passes any errors from idp task', async () => {
       idpStubs._link.returns(
-        Promise.reject(
-          _createError(auth, AuthErrorCode.INVALID_APP_ID)
-        )
+        Promise.reject(_createError(auth, AuthErrorCode.INVALID_APP_ID))
       );
       const promise = linkWithPopup(user, provider, resolver);
       iframeEvent({
@@ -601,9 +597,7 @@ describe('platform_browser/strategies/popup', () => {
 
     it('passes any errors from idp task', async () => {
       idpStubs._reauth.returns(
-        Promise.reject(
-          _createError(auth, AuthErrorCode.INVALID_APP_ID)
-        )
+        Promise.reject(_createError(auth, AuthErrorCode.INVALID_APP_ID))
       );
       const promise = reauthenticateWithPopup(user, provider, resolver);
       iframeEvent({

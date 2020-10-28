@@ -53,9 +53,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
     }
     return new Promise<Recaptcha>((resolve, reject) => {
       const networkTimeout = _window().setTimeout(() => {
-        reject(
-          _createError(auth, AuthErrorCode.NETWORK_REQUEST_FAILED)
-        );
+        reject(_createError(auth, AuthErrorCode.NETWORK_REQUEST_FAILED));
       }, NETWORK_TIMEOUT_DELAY.get());
 
       _window()[_JSLOAD_CALLBACK] = () => {
@@ -65,9 +63,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
         const recaptcha = _window().grecaptcha;
 
         if (!recaptcha) {
-          reject(
-            _createError(auth, AuthErrorCode.INTERNAL_ERROR)
-          );
+          reject(_createError(auth, AuthErrorCode.INTERNAL_ERROR));
           return;
         }
 
@@ -92,9 +88,7 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
 
       jsHelpers._loadJS(url).catch(() => {
         clearTimeout(networkTimeout);
-        reject(
-          _createError(auth, AuthErrorCode.INTERNAL_ERROR)
-        );
+        reject(_createError(auth, AuthErrorCode.INTERNAL_ERROR));
       });
     });
   }

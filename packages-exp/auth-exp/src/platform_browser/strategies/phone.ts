@@ -166,11 +166,16 @@ export async function _verifyPhoneNumber(
   const recaptchaToken = await verifier.verify();
 
   try {
-    _assert(typeof recaptchaToken === 'string', auth, AuthErrorCode.ARGUMENT_ERROR);
+    _assert(
+      typeof recaptchaToken === 'string',
+      auth,
+      AuthErrorCode.ARGUMENT_ERROR
+    );
     _assert(
       verifier.type === RECAPTCHA_VERIFIER_TYPE,
       auth,
-      AuthErrorCode.ARGUMENT_ERROR,);
+      AuthErrorCode.ARGUMENT_ERROR
+    );
 
     let phoneInfoOptions: externs.PhoneInfoOptions;
 
@@ -189,7 +194,8 @@ export async function _verifyPhoneNumber(
         _assert(
           session.type === MultiFactorSessionType.ENROLL,
           auth,
-          AuthErrorCode.INTERNAL_ERROR,);
+          AuthErrorCode.INTERNAL_ERROR
+        );
         const response = await startEnrollPhoneMfa(auth, {
           idToken: session.credential,
           phoneEnrollmentInfo: {
@@ -202,7 +208,8 @@ export async function _verifyPhoneNumber(
         _assert(
           session.type === MultiFactorSessionType.SIGN_IN,
           auth,
-          AuthErrorCode.INTERNAL_ERROR,);
+          AuthErrorCode.INTERNAL_ERROR
+        );
         const mfaEnrollmentId =
           phoneInfoOptions.multiFactorHint?.uid ||
           phoneInfoOptions.multiFactorUid;
