@@ -24,13 +24,7 @@ import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 
 import { testAuth, testUser } from '../../test/helpers/mock_auth';
-import {
-  _castAuth,
-  AuthImpl,
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST
-} from '../core/auth/auth_impl';
+import { _castAuth, AuthImpl, DefaultConfig } from '../core/auth/auth_impl';
 import { _initializeAuthInstance } from '../core/auth/initialize';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { Persistence } from '../core/persistence';
@@ -64,9 +58,9 @@ describe('core/auth/auth_impl', () => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
     const authImpl = new AuthImpl(FAKE_APP, {
       apiKey: FAKE_APP.options.apiKey!,
-      apiHost: DEFAULT_API_HOST,
-      apiScheme: DEFAULT_API_SCHEME,
-      tokenApiHost: DEFAULT_TOKEN_API_HOST,
+      apiHost: DefaultConfig.API_HOST,
+      apiScheme: DefaultConfig.API_SCHEME,
+      tokenApiHost: DefaultConfig.TOKEN_API_HOST,
       sdkClientVersion: 'v'
     });
 
@@ -117,9 +111,9 @@ describe('core/auth/initializeAuth', () => {
     ): Promise<externs.Auth> {
       const auth = new AuthImpl(FAKE_APP, {
         apiKey: FAKE_APP.options.apiKey!,
-        apiHost: DEFAULT_API_HOST,
-        apiScheme: DEFAULT_API_SCHEME,
-        tokenApiHost: DEFAULT_TOKEN_API_HOST,
+        apiHost: DefaultConfig.API_HOST,
+        apiScheme: DefaultConfig.API_SCHEME,
+        tokenApiHost: DefaultConfig.TOKEN_API_HOST,
         authDomain: FAKE_APP.options.authDomain,
         sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
       });
@@ -255,9 +249,9 @@ describe('core/auth/initializeAuth', () => {
       expect(auth.config).to.eql({
         apiKey: FAKE_APP.options.apiKey,
         authDomain: FAKE_APP.options.authDomain,
-        apiHost: DEFAULT_API_HOST,
-        apiScheme: DEFAULT_API_SCHEME,
-        tokenApiHost: DEFAULT_TOKEN_API_HOST,
+        apiHost: DefaultConfig.API_HOST,
+        apiScheme: DefaultConfig.API_SCHEME,
+        tokenApiHost: DefaultConfig.TOKEN_API_HOST,
         sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
       });
     });

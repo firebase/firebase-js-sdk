@@ -23,11 +23,7 @@ import * as sinonChai from 'sinon-chai';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { User } from '../../model/user';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
-import {
-  _OFFSET_DURATION,
-  _RETRY_BACKOFF_MIN,
-  ProactiveRefresh
-} from './proactive_refresh';
+import { Duration, ProactiveRefresh } from './proactive_refresh';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -41,7 +37,7 @@ describe('core/user/proactive_refresh', () => {
   // Sets the expiration time in accordance with the offset in proactive refresh
   // This translates to the interval between updates
   function setExpirationTime(offset: number): void {
-    user.stsTokenManager.expirationTime = _OFFSET_DURATION + offset;
+    user.stsTokenManager.expirationTime = Duration.OFFSET + offset;
   }
 
   // clock.nextAsync() returns the number of milliseconds since the unix epoch.
@@ -116,41 +112,41 @@ describe('core/user/proactive_refresh', () => {
       setExpirationTime(1000);
       proactiveRefresh._start();
       expect(await nextAsync()).to.eq(1000);
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN);
     });
 
     it('backoff continues to increase until the max', async () => {
       setExpirationTime(1000);
       proactiveRefresh._start();
       expect(await nextAsync()).to.eq(1000);
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN);
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN * 2);
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN * 4);
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN * 8);
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN * 16);
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN * 32);
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN * 32);
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN * 32);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN * 2);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN * 4);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN * 8);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN * 16);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN * 32);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN * 32);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN * 32);
     });
 
     it('backoff resets after one success', async () => {
       setExpirationTime(1000);
       proactiveRefresh._start();
       expect(await nextAsync()).to.eq(1000);
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN);
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN * 2);
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN * 4);
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN * 8);
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN * 16);
-      setExpirationTime(1000 + Date.now() + _RETRY_BACKOFF_MIN * 32);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN * 2);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN * 4);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN * 8);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN * 16);
+      setExpirationTime(1000 + Date.now() + Duration.RETRY_BACKOFF_MIN * 32);
       getTokenStub.callsFake(() => Promise.resolve());
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN * 32);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN * 32);
       expect(await nextAsync()).to.eq(1000);
       getTokenStub.callsFake(() => Promise.reject(error));
       await nextAsync();
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN);
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN * 2);
-      expect(await nextAsync()).to.eq(_RETRY_BACKOFF_MIN * 4);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN * 2);
+      expect(await nextAsync()).to.eq(Duration.RETRY_BACKOFF_MIN * 4);
     });
   });
 });

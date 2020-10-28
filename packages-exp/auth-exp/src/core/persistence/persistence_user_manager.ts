@@ -22,17 +22,21 @@ import { UserImpl } from '../user/user_impl';
 import { _getInstance } from '../util/instantiator';
 import { inMemoryPersistence } from './in_memory';
 
-export const _AUTH_USER_KEY_NAME = 'authUser';
-export const _REDIRECT_USER_KEY_NAME = 'redirectUser';
-export const _PERSISTENCE_KEY_NAME = 'persistence';
-const PERSISTENCE_NAMESPACE = 'firebase';
+export const enum KeyName {
+  AUTH_USER = 'authUser',
+  REDIRECT_USER = 'redirectUser',
+  PERSISTENCE_USER = 'persistence'
+}
+export const enum Namespace {
+  PERSISTENCE = 'firebase'
+}
 
 export function _persistenceKeyName(
   key: string,
   apiKey: ApiKey,
   appName: AppName
 ): string {
-  return `${PERSISTENCE_NAMESPACE}:${key}:${apiKey}:${appName}`;
+  return `${Namespace.PERSISTENCE}:${key}:${apiKey}:${appName}`;
 }
 
 export class PersistenceUserManager {
@@ -48,7 +52,7 @@ export class PersistenceUserManager {
     const { config, name } = this.auth;
     this.fullUserKey = _persistenceKeyName(this.userKey, config.apiKey, name);
     this.fullPersistenceKey = _persistenceKeyName(
-      _PERSISTENCE_KEY_NAME,
+      KeyName.PERSISTENCE_USER,
       config.apiKey,
       name
     );
@@ -98,7 +102,7 @@ export class PersistenceUserManager {
   static async create(
     auth: Auth,
     persistenceHierarchy: Persistence[],
-    userKey = _AUTH_USER_KEY_NAME
+    userKey = KeyName.AUTH_USER
   ): Promise<PersistenceUserManager> {
     if (!persistenceHierarchy.length) {
       return new PersistenceUserManager(

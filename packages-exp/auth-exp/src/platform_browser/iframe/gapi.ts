@@ -22,7 +22,6 @@ import { _window } from '../auth_window';
 import * as js from '../load_js';
 
 const NETWORK_TIMEOUT = new Delay(30000, 60000);
-const LOADJS_CALLBACK_PREFIX = 'iframefcb';
 
 /**
  * Reset unlaoded GApi modules. If gapi.load fails due to a network error,
@@ -95,7 +94,7 @@ function loadGapi(auth: Auth): Promise<gapi.iframes.Context> {
       // multiple times in parallel and could result in the later callback
       // overwriting the previous one. This would end up with a iframe
       // timeout.
-      const cbName = js._generateCallbackName(LOADJS_CALLBACK_PREFIX);
+      const cbName = js._generateCallbackName('iframefcb');
       // GApi loader not available, dynamically load platform.js.
       _window()[cbName] = () => {
         // GApi loader should be ready.

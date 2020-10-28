@@ -19,10 +19,11 @@ import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 
 // Refresh the token five minutes before expiration
-export const _OFFSET_DURATION = 5 * 1000 * 60;
-
-export const _RETRY_BACKOFF_MIN = 30 * 1000;
-export const _RETRY_BACKOFF_MAX = 16 * 60 * 1000;
+export const enum Duration {
+  OFFSET = 5 * 1000 * 60,
+  RETRY_BACKOFF_MIN = 30 * 1000,
+  RETRY_BACKOFF_MAX = 16 * 60 * 1000
+}
 
 export class ProactiveRefresh {
   private isRunning = false;
@@ -32,7 +33,7 @@ export class ProactiveRefresh {
   // we can't cast properly in both environments.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private timerId: any | null = null;
-  private errorBackoff = _RETRY_BACKOFF_MIN;
+  private errorBackoff = Duration.RETRY_BACKOFF_MIN;
 
   constructor(private readonly user: User) {}
 
@@ -59,13 +60,16 @@ export class ProactiveRefresh {
   private getInterval(wasError: boolean): number {
     if (wasError) {
       const interval = this.errorBackoff;
-      this.errorBackoff = Math.min(this.errorBackoff * 2, _RETRY_BACKOFF_MAX);
+      this.errorBackoff = Math.min(
+        this.errorBackoff * 2,
+        Duration.RETRY_BACKOFF_MAX
+      );
       return interval;
     } else {
       // Reset the error backoff
-      this.errorBackoff = _RETRY_BACKOFF_MIN;
+      this.errorBackoff = Duration.RETRY_BACKOFF_MIN;
       const expTime = this.user.stsTokenManager.expirationTime ?? 0;
-      const interval = expTime - Date.now() - _OFFSET_DURATION;
+      const interval = expTime - Date.now() - Duration.OFFSET;
 
       return Math.max(0, interval);
     }

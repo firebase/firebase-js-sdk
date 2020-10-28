@@ -24,7 +24,7 @@ import { AuthErrorCode, AUTH_ERROR_FACTORY } from './errors';
  * @enum {string}
  * @internal
  */
-enum QueryField {
+const enum QueryField {
   API_KEY = 'apiKey',
   CODE = 'oobCode',
   CONTINUE_URL = 'continueUrl',
@@ -34,27 +34,28 @@ enum QueryField {
 }
 
 /**
- * Map from mode string in action code URL to Action Code Info operation.
- *
- * @internal
- */
-const MODE_TO_OPERATION_MAP: { [key: string]: externs.Operation } = {
-  'recoverEmail': externs.Operation.RECOVER_EMAIL,
-  'resetPassword': externs.Operation.PASSWORD_RESET,
-  'signIn': externs.Operation.EMAIL_SIGNIN,
-  'verifyEmail': externs.Operation.VERIFY_EMAIL,
-  'verifyAndChangeEmail': externs.Operation.VERIFY_AND_CHANGE_EMAIL,
-  'revertSecondFactorAddition': externs.Operation.REVERT_SECOND_FACTOR_ADDITION
-};
-
-/**
  * Maps the mode string in action code URL to Action Code Info operation.
  *
  * @param mode
  * @internal
  */
 function parseMode(mode: string | null): externs.Operation | null {
-  return mode ? MODE_TO_OPERATION_MAP[mode] || null : null;
+  switch (mode) {
+    case 'recoverEmail':
+      return externs.Operation.RECOVER_EMAIL;
+    case 'resetPassword':
+      return externs.Operation.PASSWORD_RESET;
+    case 'signIn':
+      return externs.Operation.EMAIL_SIGNIN;
+    case 'verifyEmail':
+      return externs.Operation.VERIFY_EMAIL;
+    case 'verifyAndChangeEmail':
+      return externs.Operation.VERIFY_AND_CHANGE_EMAIL;
+    case 'revertSecondFactorAddition':
+      return externs.Operation.REVERT_SECOND_FACTOR_ADDITION;
+    default:
+      return null;
+  }
 }
 
 /**

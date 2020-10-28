@@ -23,17 +23,13 @@ import { version } from '../../../package.json';
 import { AuthErrorCode } from '../errors';
 import { assert } from '../util/assert';
 import { _getClientVersion, ClientPlatform } from '../util/version';
-import {
-  _castAuth,
-  AuthImpl,
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST
-} from './auth_impl';
+import { _castAuth, AuthImpl, DefaultConfig } from './auth_impl';
 import { AuthInternal } from './firebase_internal';
 
-export const _AUTH_COMPONENT_NAME = 'auth-exp';
-export const _AUTH_INTERNAL_COMPONENT_NAME = 'auth-internal';
+export const enum _ComponentName {
+  AUTH = 'auth-exp',
+  AUTH_INTERNAL = 'auth-internal'
+}
 
 function getVersionForPlatform(
   clientPlatform: ClientPlatform
@@ -54,7 +50,7 @@ function getVersionForPlatform(
 export function registerAuth(clientPlatform: ClientPlatform): void {
   _registerComponent(
     new Component(
-      _AUTH_COMPONENT_NAME,
+      _ComponentName.AUTH,
       container => {
         const app = container.getProvider('app-exp').getImmediate()!;
         const { apiKey, authDomain } = app.options;
@@ -63,9 +59,9 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
           const config: externs.Config = {
             apiKey,
             authDomain,
-            apiHost: DEFAULT_API_HOST,
-            tokenApiHost: DEFAULT_TOKEN_API_HOST,
-            apiScheme: DEFAULT_API_SCHEME,
+            apiHost: DefaultConfig.API_HOST,
+            tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+            apiScheme: DefaultConfig.API_SCHEME,
             sdkClientVersion: _getClientVersion(clientPlatform)
           };
           return new AuthImpl(app, config);
@@ -77,10 +73,10 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
 
   _registerComponent(
     new Component(
-      _AUTH_INTERNAL_COMPONENT_NAME,
+      _ComponentName.AUTH_INTERNAL,
       container => {
         const auth = _castAuth(
-          container.getProvider(_AUTH_COMPONENT_NAME).getImmediate()!
+          container.getProvider(_ComponentName.AUTH).getImmediate()!
         );
         return (auth => new AuthInternal(auth))(auth);
       },
@@ -89,7 +85,7 @@ export function registerAuth(clientPlatform: ClientPlatform): void {
   );
 
   registerVersion(
-    _AUTH_COMPONENT_NAME,
+    _ComponentName.AUTH,
     version,
     getVersionForPlatform(clientPlatform)
   );
