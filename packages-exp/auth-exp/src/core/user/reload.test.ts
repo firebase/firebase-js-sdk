@@ -173,24 +173,27 @@ describe('core/user/reload', () => {
     beforeEach(() => {
       user = testUser(auth, 'abc', '', true);
     });
-    function setup(isAnonStart: boolean, emailStart: string, passwordHash: string, providerData: Array<{providerId: string}>): void {
+    function setup(
+      isAnonStart: boolean,
+      emailStart: string,
+      passwordHash: string,
+      providerData: Array<{ providerId: string }>
+    ): void {
       // Get around readonly property
-      const mutUser = user as unknown as Record<string, unknown>;
+      const mutUser = (user as unknown) as Record<string, unknown>;
       mutUser.isAnonymous = isAnonStart;
       mutUser.email = emailStart;
-      
+
       mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
         users: [
           {
-            providerUserInfo: [
-              ...providerData
-            ],
-            passwordHash,
+            providerUserInfo: [...providerData],
+            passwordHash
           }
         ]
       });
     }
-    
+
     it('user stays not anonymous even if reload user is', async () => {
       setup(false, '', '', []); // After reload the user would count as anon
       await _reloadWithoutSaving(user);
@@ -204,13 +207,13 @@ describe('core/user/reload', () => {
     });
 
     it('user becomes not anonymous if reload user is not', async () => {
-      setup(true, '', '', [{providerId: 'google'}]); // After reload the user would count as anon
+      setup(true, '', '', [{ providerId: 'google' }]); // After reload the user would count as anon
       await _reloadWithoutSaving(user);
       expect(user.isAnonymous).to.be.false;
     });
 
     it('user becomes not anonymous if password hash set', async () => {
-      setup(true, 'email', 'pass', [{providerId: 'google'}]); // After reload the user would count as anon
+      setup(true, 'email', 'pass', [{ providerId: 'google' }]); // After reload the user would count as anon
       await _reloadWithoutSaving(user);
       expect(user.isAnonymous).to.be.false;
     });

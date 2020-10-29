@@ -268,14 +268,13 @@ describe('core/auth/initializeAuth', () => {
 
     context('#tryRedirectSignIn', () => {
       it('returns null and clears the redirect user in case of error', async () => {
-        const stub = sinon.stub(_getInstance<Persistence>(browserSessionPersistence));
+        const stub = sinon.stub(
+          _getInstance<Persistence>(browserSessionPersistence)
+        );
         stub._remove.returns(Promise.resolve());
         completeRedirectFnStub.returns(Promise.reject(new Error('no')));
 
-        await initAndWait(
-          [inMemoryPersistence],
-          browserPopupRedirectResolver
-        );
+        await initAndWait([inMemoryPersistence], browserPopupRedirectResolver);
         expect(stub._remove).to.have.been.called;
       });
 
@@ -291,7 +290,7 @@ describe('core/auth/initializeAuth', () => {
             })
           );
         });
-  
+
         const auth = await initAndWait(
           [inMemoryPersistence],
           browserPopupRedirectResolver
@@ -299,7 +298,6 @@ describe('core/auth/initializeAuth', () => {
         expect(user).not.to.be.null;
         expect(auth.currentUser).to.eq(user);
       });
-  
     });
   });
 });

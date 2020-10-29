@@ -101,7 +101,9 @@ describe('core/strategies/idb', () => {
     });
 
     it('passes through the bypassAuthState flag', async () => {
-      const stub = sinon.stub(credential, '_signInWithCredential').returns(Promise.resolve({} as unknown  as UserCredentialImpl));
+      const stub = sinon
+        .stub(credential, '_signInWithCredential')
+        .returns(Promise.resolve(({} as unknown) as UserCredentialImpl));
       await idpTasks._signIn({
         auth,
         user,
@@ -110,7 +112,7 @@ describe('core/strategies/idb', () => {
         tenantId: 'tenant-id',
         pendingToken: 'pending-token',
         postBody: 'post-body',
-        bypassAuthState: true,
+        bypassAuthState: true
       });
       expect(stub.getCall(0).lastArg).to.be.true;
     });
@@ -154,7 +156,9 @@ describe('core/strategies/idb', () => {
     });
 
     it('passes through the bypassAuthState flag', async () => {
-      const stub = sinon.stub(reauthenticate, '_reauthenticate').returns(Promise.resolve({} as unknown  as UserCredentialImpl));
+      const stub = sinon
+        .stub(reauthenticate, '_reauthenticate')
+        .returns(Promise.resolve(({} as unknown) as UserCredentialImpl));
       await idpTasks._reauth({
         auth,
         user,
@@ -163,7 +167,7 @@ describe('core/strategies/idb', () => {
         tenantId: 'tenant-id',
         pendingToken: 'pending-token',
         postBody: 'post-body',
-        bypassAuthState: true,
+        bypassAuthState: true
       });
       expect(stub.getCall(0).lastArg).to.be.true;
     });
@@ -209,7 +213,9 @@ describe('core/strategies/idb', () => {
     });
 
     it('passes through the bypassAuthState flag', async () => {
-      const stub = sinon.stub(linkUnlink, '_link').returns(Promise.resolve({} as unknown  as UserCredentialImpl));
+      const stub = sinon
+        .stub(linkUnlink, '_link')
+        .returns(Promise.resolve(({} as unknown) as UserCredentialImpl));
       await idpTasks._link({
         auth,
         user,
@@ -218,7 +224,7 @@ describe('core/strategies/idb', () => {
         tenantId: 'tenant-id',
         pendingToken: 'pending-token',
         postBody: 'post-body',
-        bypassAuthState: true,
+        bypassAuthState: true
       });
       expect(stub.getCall(0).lastArg).to.be.true;
     });

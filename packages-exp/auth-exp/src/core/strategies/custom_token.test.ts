@@ -57,7 +57,10 @@ describe('core/strategies/signInWithCustomToken', () => {
   beforeEach(async () => {
     auth = await testAuth();
     mockFetch.setUp();
-    signInRoute = mockEndpoint(Endpoint.SIGN_IN_WITH_CUSTOM_TOKEN, idTokenResponse);
+    signInRoute = mockEndpoint(
+      Endpoint.SIGN_IN_WITH_CUSTOM_TOKEN,
+      idTokenResponse
+    );
     mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
       users: [serverUser]
     });
@@ -83,7 +86,7 @@ describe('core/strategies/signInWithCustomToken', () => {
     await signInWithCustomToken(auth, 'j.w.t');
     expect(signInRoute.calls[0].request).to.eql({
       token: 'j.w.t',
-      returnSecureToken: true,
+      returnSecureToken: true
     });
   });
 

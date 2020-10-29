@@ -161,10 +161,9 @@ describe('core/user/additional_user_info', () => {
         const idResponse = idTokenResponse({
           rawUserInfo: rawUserInfoWithLogin,
           idToken: makeJWT({
-            firebase:
-              {
-                'sign_in_provider': 'custom'
-              }
+            firebase: {
+              'sign_in_provider': 'custom'
+            }
           })
         });
         const {
@@ -183,10 +182,9 @@ describe('core/user/additional_user_info', () => {
         const idResponse = idTokenResponse({
           rawUserInfo: rawUserInfoWithLogin,
           idToken: makeJWT({
-            firebase:
-              {
-                'sign_in_provider': 'anonymous'
-              }
+            firebase: {
+              'sign_in_provider': 'anonymous'
+            }
           })
         });
         const {
