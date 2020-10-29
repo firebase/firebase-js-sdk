@@ -42,7 +42,8 @@ import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import {
   linkWithCredential,
   reauthenticateWithCredential,
-  signInWithCredential
+  signInWithCredential,
+  _signInWithCredential
 } from './credential';
 
 use(chaiAsPromised);
@@ -109,6 +110,15 @@ describe('core/strategies/credential', () => {
       );
       const { user } = await signInWithCredential(auth, authCredential);
       expect(auth.currentUser).to.eq(user);
+    });
+
+    it('does not update the current user if bypass is true', async () => {
+      stub(authCredential, '_getIdTokenResponse').returns(
+        Promise.resolve(idTokenResponse)
+      );
+      const { user } = await _signInWithCredential(auth, authCredential, true);
+      expect(auth.currentUser).to.be.null;
+      expect(user).not.to.be.null;
     });
 
     it('should handle MFA', async () => {

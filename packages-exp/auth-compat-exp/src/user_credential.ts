@@ -116,10 +116,10 @@ export async function convertConfirmationResult(
   auth: externs.Auth,
   confirmationResultPromise: Promise<externs.ConfirmationResult>
 ): Promise<compat.ConfirmationResult> {
-  const { verificationId, confirm } = await confirmationResultPromise;
+  const confirmationResultExp = await confirmationResultPromise;
   return {
-    verificationId,
+    verificationId: confirmationResultExp.verificationId,
     confirm: (verificationCode: string) =>
-      convertCredential(auth, confirm(verificationCode))
+      convertCredential(auth, confirmationResultExp.confirm(verificationCode))
   };
 }

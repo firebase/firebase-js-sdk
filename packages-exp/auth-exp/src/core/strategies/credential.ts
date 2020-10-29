@@ -30,7 +30,8 @@ import { _castAuth } from '../auth/auth_impl';
 /** @internal */
 export async function _signInWithCredential(
   auth: Auth,
-  credential: AuthCredential
+  credential: AuthCredential,
+  bypassAuthState = false
 ): Promise<UserCredential> {
   const operationType = OperationType.SIGN_IN;
   const response = await _processCredentialSavingMfaContextIfNecessary(
@@ -43,7 +44,10 @@ export async function _signInWithCredential(
     operationType,
     response
   );
-  await auth._updateCurrentUser(userCredential.user);
+
+  if (!bypassAuthState) {
+    await auth._updateCurrentUser(userCredential.user);
+  }
   return userCredential;
 }
 

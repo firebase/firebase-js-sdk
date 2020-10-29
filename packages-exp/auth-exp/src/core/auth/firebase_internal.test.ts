@@ -56,6 +56,7 @@ describe('core/auth/firebase_internal', () => {
       const user = testUser(auth, 'uid');
       await auth._updateCurrentUser(user);
       user.stsTokenManager.accessToken = 'access-token';
+      user.stsTokenManager.refreshToken = 'refresh-token';
       user.stsTokenManager.expirationTime = Date.now() + 1000 * 60 * 60 * 24;
       expect(await authInternal.getToken()).to.eql({
         accessToken: 'access-token'
