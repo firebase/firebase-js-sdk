@@ -4,7 +4,7 @@
 
 ## ProviderId enum
 
-Supported providers.
+Enumeration of supported providers.
 
 <b>Signature:</b>
 

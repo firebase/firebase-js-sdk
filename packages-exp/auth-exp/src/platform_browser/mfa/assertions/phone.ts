@@ -16,7 +16,7 @@
  */
 import * as externs from '@firebase/auth-types-exp';
 
-import { MultiFactorAssertion } from '../../../mfa/assertions';
+import { MultiFactorAssertion } from '../../../mfa/mfa_assertion';
 import { Auth } from '../../../model/auth';
 import { finalizeEnrollPhoneMfa } from '../../../api/account_management/mfa';
 import { PhoneAuthCredential } from '../../../core/credentials/phone';
@@ -25,6 +25,11 @@ import {
   FinalizeMfaResponse
 } from '../../../api/authentication/mfa';
 
+/**
+ * {@inheritdoc @firebase/auth-types#PhoneMultiFactorAssertion}
+ *
+ * @public
+ */
 export class PhoneMultiFactorAssertion
   extends MultiFactorAssertion
   implements externs.PhoneMultiFactorAssertion {
@@ -32,12 +37,14 @@ export class PhoneMultiFactorAssertion
     super(credential.providerId);
   }
 
+  /** @internal */
   static _fromCredential(
     credential: PhoneAuthCredential
   ): PhoneMultiFactorAssertion {
     return new PhoneMultiFactorAssertion(credential);
   }
 
+  /** @internal */
   _finalizeEnroll(
     auth: Auth,
     idToken: string,
@@ -50,6 +57,7 @@ export class PhoneMultiFactorAssertion
     });
   }
 
+  /** @internal */
   _finalizeSignIn(
     auth: Auth,
     mfaPendingCredential: string
@@ -61,10 +69,15 @@ export class PhoneMultiFactorAssertion
   }
 }
 
+/**
+ * {@inheritdoc @firebase/auth-types#PhoneMultiFactorGenerator}
+ * @public
+ */
 export class PhoneMultiFactorGenerator
   implements externs.PhoneMultiFactorGenerator {
   private constructor() {}
 
+  /** {@inheritdoc @firebase/auth-types#PhoneMultiFactorGenerator.assertion} */
   static assertion(
     credential: externs.PhoneAuthCredential
   ): externs.PhoneMultiFactorAssertion {

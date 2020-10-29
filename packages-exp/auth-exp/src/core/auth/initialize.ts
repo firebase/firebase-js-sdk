@@ -24,6 +24,7 @@ import { Persistence } from '../persistence';
 import { _getInstance } from '../util/instantiator';
 import { _castAuth, AuthImpl } from './auth_impl';
 
+/** @public */
 export function initializeAuth(
   app: FirebaseApp = getApp(),
   deps?: Dependencies

@@ -4,6 +4,8 @@
 
 ## OAuthCredential.idToken property
 
+The OAuth ID token associated with the credential if it belongs to an OIDC provider, such as `google.com`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

@@ -4,6 +4,8 @@
 
 ## createUserWithEmailAndPassword() function
 
+Creates a new user account associated with the specified email address and password.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,11 +16,19 @@ export declare function createUserWithEmailAndPassword(auth: externs.Auth, email
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
-|  email | string |  |
-|  password | string |  |
+|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  email | string | The user's email address. |
+|  password | string | The user's chosen password. |
 
 <b>Returns:</b>
 
 Promise&lt;externs.[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
+
+## Remarks
+
+On successful creation of the user account, this user will also be signed in to your application.
+
+User account creation can fail if the account already exists or the password is invalid.
+
+Note: The email address acts as a unique identifier for the user and enables an email-based password reset. This function will create a new user account and set the initial user password.
 

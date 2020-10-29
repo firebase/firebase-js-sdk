@@ -4,10 +4,15 @@
 
 ## ActionCodeSettings.handleCodeInApp property
 
-The default is false. When set to true, the action code link will be be sent as a Universal Link or Android App Link and will be opened by the app if installed. In the false case, the code will be sent to the web widget first and then on continue will redirect to the app if installed.
+When set to true, the action code link will be be sent as a Universal Link or Android App Link and will be opened by the app if installed.
 
 <b>Signature:</b>
 
 ```typescript
 handleCodeInApp?: boolean;
 ```
+
+## Remarks
+
+In the false case, the code will be sent to the web widget first and then on continue will redirect to the app if installed.
+

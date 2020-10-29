@@ -47,7 +47,7 @@ import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { TwitterAuthProvider } from './twitter';
 
-describe('src/core/providers/twitter', () => {
+describe('core/providers/twitter', () => {
   it('generates the correct type of oauth credential', () => {
     const cred = TwitterAuthProvider.credential('token', 'secret');
     expect(cred.accessToken).to.eq('token');

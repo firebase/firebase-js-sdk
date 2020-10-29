@@ -4,6 +4,8 @@
 
 ## TwitterAuthProvider.credentialFromError() method
 
+Used to extract the underlying [OAuthCredential](./auth.oauthcredential.md) from a [AuthError](./auth-types.autherror.md) which was thrown during a sign-in, link, or reauthenticate operation.
+
 <b>Signature:</b>
 
 ```typescript

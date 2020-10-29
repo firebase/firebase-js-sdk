@@ -21,6 +21,17 @@ import { User } from '../../model/user';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { _castAuth } from '../auth/auth_impl';
 
+/**
+ * Asynchronously signs in as an anonymous user.
+ *
+ * @remarks
+ * If there is already an anonymous user signed in, that user will be returned; otherwise, a
+ * new anonymous user identity will be created and returned.
+ *
+ * @param auth - The Auth instance.
+ *
+ * @public
+ */
 export async function signInAnonymously(
   auth: externs.Auth
 ): Promise<externs.UserCredential> {

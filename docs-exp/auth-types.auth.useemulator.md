@@ -4,7 +4,7 @@
 
 ## Auth.useEmulator() method
 
-Modify this Auth instance to communicate with the Firebase Auth emulator. This must be called synchronously immediately following the first call to `initializeAuth()`<!-- -->. Do not use with production credentials as emulator traffic is not encrypted.
+Modify this Auth instance to communicate with the Firebase Auth emulator.
 
 <b>Signature:</b>
 
@@ -21,4 +21,8 @@ useEmulator(url: string): void;
 <b>Returns:</b>
 
 void
+
+## Remarks
+
+This must be called synchronously immediately following the first call to [initializeAuth()](./auth.initializeauth.md)<!-- -->. Do not use with production credentials as emulator traffic is not encrypted.
 

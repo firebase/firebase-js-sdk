@@ -39,7 +39,7 @@ use(chaiAsPromised);
 
 type IframesCallback = (iframesLib: unknown) => Promise<unknown>;
 
-describe('src/platform_browser/iframe/iframe', () => {
+describe('platform_browser/iframe/iframe', () => {
   let auth: TestAuth;
   let iframeSettings: Record<string, unknown>;
   let libraryLoadedCallback: IframesCallback;

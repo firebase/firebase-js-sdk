@@ -18,7 +18,7 @@ static assertion(
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  phoneAuthCredential | [PhoneAuthCredential](./auth-types.phoneauthcredential.md) | A credential provided by [PhoneAuthProvider.credential()](./auth-types.phoneauthprovider.credential.md)<!-- -->. |
+|  phoneAuthCredential | [PhoneAuthCredential](./auth-types.phoneauthcredential.md) | A credential provided by [PhoneAuthProvider.credential()](./auth.phoneauthprovider.credential.md)<!-- -->. |
 
 <b>Returns:</b>
 

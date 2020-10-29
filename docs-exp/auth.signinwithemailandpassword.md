@@ -4,6 +4,8 @@
 
 ## signInWithEmailAndPassword() function
 
+Asynchronously signs in using an email and password.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,11 +16,17 @@ export declare function signInWithEmailAndPassword(auth: externs.Auth, email: st
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
-|  email | string |  |
-|  password | string |  |
+|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  email | string | The users email address. |
+|  password | string | The users password. |
 
 <b>Returns:</b>
 
 Promise&lt;externs.[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
+
+## Remarks
+
+Fails with an error if the email address and password do not match.
+
+Note: The user's password is NOT the password used to access the user's email account. The email address serves as a unique identifier for the user, and the password is used to access the user's account in your Firebase project. See also: [createUserWithEmailAndPassword()](./auth.createuserwithemailandpassword.md)<!-- -->.
 

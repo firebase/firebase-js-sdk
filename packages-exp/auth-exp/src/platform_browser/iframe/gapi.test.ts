@@ -30,7 +30,7 @@ import { _loadGapi, _resetLoader } from './gapi';
 use(sinonChai);
 use(chaiAsPromised);
 
-describe('src/platform_browser/iframe/gapi', () => {
+describe('platform_browser/iframe/gapi', () => {
   let library: typeof gapi;
   let auth: TestAuth;
   function onJsLoad(globalLoadFnName: string): void {

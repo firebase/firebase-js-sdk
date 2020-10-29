@@ -4,9 +4,7 @@
 
 ## Auth.setPersistence() method
 
-Changes the type of persistence on the Auth instance for the currently saved Auth session and applies this type of persistence for future sign-in requests, including sign-in with redirect requests.
-
-This makes it easy for a user signing in to specify whether their session should be remembered or not. It also makes it easier to never persist the Auth state for applications that are shared by other users or have sensitive data.
+Changes the type of persistence on the Auth instance.
 
 <b>Signature:</b>
 
@@ -23,6 +21,12 @@ setPersistence(persistence: Persistence): void;
 <b>Returns:</b>
 
 void
+
+## Remarks
+
+This will affect the currently saved Auth session and applies this type of persistence for future sign-in requests, including sign-in with redirect requests.
+
+This makes it easy for a user signing in to specify whether their session should be remembered or not. It also makes it easier to never persist the Auth state for applications that are shared by other users or have sensitive data.
 
 ## Example
 

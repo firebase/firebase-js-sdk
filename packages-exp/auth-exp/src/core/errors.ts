@@ -22,8 +22,10 @@ import { ErrorFactory, ErrorMap } from '@firebase/util';
 import { IdTokenMfaResponse } from '../api/authentication/mfa';
 import { AppName } from '../model/auth';
 
-/*
- * Developer facing Firebase Auth error codes.
+/**
+ * Enumeration of Firebase Auth error codes.
+ *
+ * @public
  */
 export const enum AuthErrorCode {
   ADMIN_ONLY_OPERATION = 'admin-restricted-operation',
@@ -121,7 +123,7 @@ export const enum AuthErrorCode {
   WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported'
 }
 
-const ERRORS: ErrorMap<AuthErrorCode> = {
+export const ERRORS: ErrorMap<AuthErrorCode> = {
   [AuthErrorCode.ADMIN_ONLY_OPERATION]:
     'This operation is restricted to administrators only.',
   [AuthErrorCode.ARGUMENT_ERROR]: '',

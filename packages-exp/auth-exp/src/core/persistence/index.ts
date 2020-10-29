@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-export enum PersistenceType {
+export const enum PersistenceType {
   SESSION = 'SESSION',
   LOCAL = 'LOCAL',
   NONE = 'NONE'

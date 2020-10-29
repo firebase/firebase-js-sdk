@@ -43,7 +43,7 @@ import { _reauthenticate } from './reauthenticate';
 
 use(chaiAsPromised);
 
-describe('src/core/user/reauthenticate', () => {
+describe('core/user/reauthenticate', () => {
   let credential: AuthCredential;
   let user: User;
 

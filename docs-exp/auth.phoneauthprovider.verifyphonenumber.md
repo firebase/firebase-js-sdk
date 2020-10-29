@@ -4,6 +4,8 @@
 
 ## PhoneAuthProvider.verifyPhoneNumber() method
 
+Starts a phone number authentication flow by sending a verification code to the given phone number.
+
 <b>Signature:</b>
 
 ```typescript
@@ -15,9 +17,11 @@ verifyPhoneNumber(phoneOptions: externs.PhoneInfoOptions | string, applicationVe
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  phoneOptions | externs.[PhoneInfoOptions](./auth-types.phoneinfooptions.md) \| string |  |
-|  applicationVerifier | externs.[ApplicationVerifier](./auth-types.applicationverifier.md) |  |
+|  applicationVerifier | externs.[ApplicationVerifier](./auth-types.applicationverifier.md) | For abuse prevention, this method also requires a [ApplicationVerifier](./auth-types.applicationverifier.md)<!-- -->. This SDK includes a reCAPTCHA-based implementation, [RecaptchaVerifier](./auth.recaptchaverifier.md)<!-- -->. |
 
 <b>Returns:</b>
 
 Promise&lt;string&gt;
+
+A Promise for a verification ID that can be passed to [PhoneAuthProvider.credential()](./auth.phoneauthprovider.credential.md) to identify this flow..
 

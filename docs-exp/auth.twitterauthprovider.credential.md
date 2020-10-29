@@ -4,6 +4,8 @@
 
 ## TwitterAuthProvider.credential() method
 
+Creates a credential for Twitter.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,8 +16,8 @@ static credential(token: string, secret: string): externs.OAuthCredential;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  token | string |  |
-|  secret | string |  |
+|  token | string | Twitter access token. |
+|  secret | string | Twitter secret. |
 
 <b>Returns:</b>
 

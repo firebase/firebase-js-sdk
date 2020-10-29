@@ -4,6 +4,8 @@
 
 ## updatePhoneNumber() function
 
+Updates the user's phone number.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,10 +16,24 @@ export declare function updatePhoneNumber(user: externs.User, credential: extern
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  user | externs.[User](./auth-types.user.md) |  |
-|  credential | externs.[PhoneAuthCredential](./auth-types.phoneauthcredential.md) |  |
+|  user | externs.[User](./auth-types.user.md) | The user. |
+|  credential | externs.[PhoneAuthCredential](./auth-types.phoneauthcredential.md) | A credential authenticating the new phone number. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+## Example
+
+
+```
+// 'recaptcha-container' is the ID of an element in the DOM.
+const applicationVerifier = new RecaptchaVerifier('recaptcha-container');
+const provider = new PhoneAuthProvider(auth);
+const verificationId = await provider.verifyPhoneNumber('+16505550101', applicationVerifier);
+// Obtain the verificationCode from the user.
+const phoneCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+await updatePhoneNumber(user, phoneCredential);
+
+```
 

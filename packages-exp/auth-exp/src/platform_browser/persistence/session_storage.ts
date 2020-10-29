@@ -44,4 +44,10 @@ class BrowserSessionPersistence
   }
 }
 
+/**
+ * An implementation of {@link @firebase/auth-types#Persistence} of 'SESSION' using `sessionStorage`
+ * for the underlying storage.
+ *
+ * @public
+ */
 export const browserSessionPersistence: externs.Persistence = BrowserSessionPersistence;

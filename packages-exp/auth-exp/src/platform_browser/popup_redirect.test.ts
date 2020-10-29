@@ -47,7 +47,7 @@ import { browserPopupRedirectResolver } from './popup_redirect';
 use(chaiAsPromised);
 use(sinonChai);
 
-describe('src/platform_browser/popup_redirect', () => {
+describe('platform_browser/popup_redirect', () => {
   let resolver: PopupRedirectResolver;
   let auth: TestAuth;
   let onIframeMessage: (event: GapiAuthEvent) => Promise<void>;

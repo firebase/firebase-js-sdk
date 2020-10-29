@@ -4,7 +4,7 @@
 
 ## PhoneInfoOptions type
 
-The information required to verify the ownership of a phone number. The information that's required depends on whether you are doing single-factor sign-in, multi-factor enrollment or multi-factor sign-in.
+The information required to verify the ownership of a phone number.
 
 <b>Signature:</b>
 
@@ -14,3 +14,8 @@ export type PhoneInfoOptions =
   | PhoneMultiFactorEnrollInfoOptions
   | PhoneMultiFactorSignInInfoOptions;
 ```
+
+## Remarks
+
+The information that's required depends on whether you are doing single-factor sign-in, multi-factor enrollment or multi-factor sign-in.
+

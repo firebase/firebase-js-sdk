@@ -4,6 +4,8 @@
 
 ## useDeviceLanguage() function
 
+Sets the current language to the default device/browser preference.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +16,7 @@ export declare function useDeviceLanguage(auth: externs.Auth): void;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
+|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instanec. |
 
 <b>Returns:</b>
 

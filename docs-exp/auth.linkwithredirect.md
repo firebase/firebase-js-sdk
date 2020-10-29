@@ -4,21 +4,39 @@
 
 ## linkWithRedirect() function
 
+Links the [OAuthProvider](./auth.oauthprovider.md) to the user account using a full-page redirect flow.
+
 <b>Signature:</b>
 
 ```typescript
-export declare function linkWithRedirect(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<never>;
+export declare function linkWithRedirect(user: externs.User, provider: externs.AuthProvider, resolver?: externs.PopupRedirectResolver): Promise<never>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  userExtern | externs.[User](./auth-types.user.md) |  |
-|  provider | externs.[AuthProvider](./auth-types.authprovider.md) |  |
-|  resolverExtern | externs.[PopupRedirectResolver](./auth-types.popupredirectresolver.md) |  |
+|  user | externs.[User](./auth-types.user.md) | The user. |
+|  provider | externs.[AuthProvider](./auth-types.authprovider.md) | The provider to authenticate. The provider has to be an [OAuthProvider](./auth.oauthprovider.md)<!-- -->. Non-OAuth providers like [EmailAuthProvider](./auth.emailauthprovider.md) will throw an error. |
+|  resolver | externs.[PopupRedirectResolver](./auth-types.popupredirectresolver.md) | An instance of [PopupRedirectResolver](./auth-types.popupredirectresolver.md)<!-- -->, optional if already supplied to [initializeAuth()](./auth.initializeauth.md) or provided by [getAuth()](./auth.getauth.md)<!-- -->. |
 
 <b>Returns:</b>
 
 Promise&lt;never&gt;
+
+## Example
+
+
+```javascript
+// Sign in using some other provider.
+const result = await signInWithEmailAndPassword(auth, email, password);
+// Link using a redirect.
+const provider = new FacebookAuthProvider();
+await linkWithRedirect(result.user, provider);
+// This will trigger a full page redirect away from your app
+
+// After returning from the redirect when your app initializes you can obtain the result
+const result = await getRedirectResult(auth);
+
+```
 

@@ -47,7 +47,7 @@ import {
 use(chaiAsPromised);
 use(sinonChai);
 
-describe('core/strategies/phone', () => {
+describe('platform_browser/strategies/phone', () => {
   let auth: TestAuth;
   let verifier: ApplicationVerifier;
   let sendCodeEndpoint: fetch.Route;

@@ -25,7 +25,7 @@ import { UserImpl } from '../user/user_impl';
 import { _getInstance } from '../util/instantiator';
 import { Persistence, PersistenceType, StorageEventListener } from './';
 import { inMemoryPersistence } from './in_memory';
-import { PersistenceUserManager } from './persistence_user_manager';
+import { KeyName, PersistenceUserManager } from './persistence_user_manager';
 
 chai.use(sinonChai);
 
@@ -89,7 +89,11 @@ describe('core/persistence/persistence_user_manager', () => {
 
     it('uses user key if provided', async () => {
       const { stub, persistence } = makePersistence();
-      await PersistenceUserManager.create(auth, [persistence], 'redirectUser');
+      await PersistenceUserManager.create(
+        auth,
+        [persistence],
+        KeyName.REDIRECT_USER
+      );
       expect(stub._get).to.have.been.calledWith(
         'firebase:redirectUser:test-api-key:test-app'
       );

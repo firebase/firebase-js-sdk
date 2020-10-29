@@ -4,6 +4,8 @@
 
 ## signInAnonymously() function
 
+Asynchronously signs in as an anonymous user.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,13 @@ export declare function signInAnonymously(auth: externs.Auth): Promise<externs.U
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
+|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
 
 <b>Returns:</b>
 
 Promise&lt;externs.[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
+
+## Remarks
+
+If there is already an anonymous user signed in, that user will be returned; otherwise, a new anonymous user identity will be created and returned.
 

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Endpoint, HttpMethod, _performApiRequest } from '..';
+import { Endpoint, HttpMethod, _performApiRequest } from '../index';
 import { Auth } from '@firebase/auth-types-exp';
 
 interface GetRecaptchaParamResponse {

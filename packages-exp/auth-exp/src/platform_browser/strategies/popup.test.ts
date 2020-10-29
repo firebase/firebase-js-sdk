@@ -42,7 +42,7 @@ import * as eid from '../../core/util/event_id';
 import { AuthPopup } from '../util/popup';
 import * as idpTasks from '../../core/strategies/idp';
 import {
-  _AUTH_EVENT_TIMEOUT,
+  _Timeout,
   _POLL_WINDOW_CLOSE_TIMEOUT,
   linkWithPopup,
   reauthenticateWithPopup,
@@ -56,7 +56,7 @@ use(chaiAsPromised);
 const MATCHING_EVENT_ID = 'matching-event-id';
 const OTHER_EVENT_ID = 'wrong-id';
 
-describe('src/core/strategies/popup', () => {
+describe('platform_browser/strategies/popup', () => {
   let resolver: PopupRedirectResolver;
   let provider: OAuthProvider;
   let eventManager: AuthEventManager;
@@ -215,7 +215,7 @@ describe('src/core/strategies/popup', () => {
       delay(() => {
         underlyingWindow.closed = true;
         pendingTimeouts[_POLL_WINDOW_CLOSE_TIMEOUT.get()]();
-        pendingTimeouts[_AUTH_EVENT_TIMEOUT]();
+        pendingTimeouts[_Timeout.AUTH_EVENT]();
       });
       iframeEvent({
         type: AuthEventType.SIGN_IN_VIA_POPUP
@@ -399,7 +399,7 @@ describe('src/core/strategies/popup', () => {
       delay(() => {
         underlyingWindow.closed = true;
         pendingTimeouts[_POLL_WINDOW_CLOSE_TIMEOUT.get()]();
-        pendingTimeouts[_AUTH_EVENT_TIMEOUT]();
+        pendingTimeouts[_Timeout.AUTH_EVENT]();
       });
       iframeEvent({
         type: AuthEventType.LINK_VIA_POPUP
@@ -591,7 +591,7 @@ describe('src/core/strategies/popup', () => {
       delay(() => {
         underlyingWindow.closed = true;
         pendingTimeouts[_POLL_WINDOW_CLOSE_TIMEOUT.get()]();
-        pendingTimeouts[_AUTH_EVENT_TIMEOUT]();
+        pendingTimeouts[_Timeout.AUTH_EVENT]();
       });
       iframeEvent({
         type: AuthEventType.REAUTH_VIA_POPUP

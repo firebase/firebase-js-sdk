@@ -32,7 +32,7 @@ const BASE_PARAMS: OAuthCredentialParams = {
   signInMethod: SignInMethod.GOOGLE
 };
 
-describe('src/core/credentials/oauth', () => {
+describe('core/credentials/oauth', () => {
   let auth: TestAuth;
   let signInWithIdp: fetch.Route;
 

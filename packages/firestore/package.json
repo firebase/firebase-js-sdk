@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.18.0",
+  "version": "2.0.0",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -28,13 +28,13 @@
     "test:lite": "node ./scripts/run-tests.js --emulator --platform node_lite --main=lite/index.ts 'lite/test/**/*.test.ts'",
     "test:lite:prod": "node ./scripts/run-tests.js --platform node_lite --main=lite/index.ts 'lite/test/**/*.test.ts'",
     "test:lite:browser": "karma start --single-run --lite",
-    "test:lite:browser:debug": "karma start --single-run --lite --auto-watch",
+    "test:lite:browser:debug": "karma start --browsers=Chrome --lite --auto-watch",
     "test:exp": "node ./scripts/run-tests.js --emulator --main=exp/index.ts test/integration/api/*.test.ts",
     "test:exp:prod": "node ./scripts/run-tests.js --main=exp/index.ts test/integration/api/*.test.ts",
     "test:exp:persistence": "node ./scripts/run-tests.js --emulator --persistence --main=exp/index.ts test/integration/api/*.test.ts",
     "test:exp:persistence:prod": "node ./scripts/run-tests.js --persistence --main=exp/index.ts test/integration/api/*.test.ts",
     "test:exp:browser": "karma start --single-run --exp",
-    "test:exp:browser:debug": "karma start --single-run --exp --auto-watch",
+    "test:exp:browser:debug": "karma start --browsers=Chrome --exp --auto-watch",
     "test": "run-s lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:all": "run-p test:browser test:lite:browser test:exp:browser test:travis test:minified",
@@ -46,7 +46,10 @@
     "test:node:persistence:prod": "node ./scripts/run-tests.js --main=index.node.ts --persistence 'test/{,!(browser)/**/}*.test.ts'",
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
-    "prepare": "yarn build:release"
+    "prepare": "yarn build:release",
+    "api-report": "api-extractor run --local --verbose",
+    "predoc": "node ../../scripts/exp/remove-exp.js temp",
+    "doc": "api-documenter markdown --input temp --output docs"
   },
   "main": "dist/index.node.cjs.js",
   "main-esm2017": "dist/index.node.esm2017.js",
@@ -60,10 +63,10 @@
     "memory/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.1.19",
-    "@firebase/firestore-types": "1.14.0",
+    "@firebase/component": "0.1.20",
+    "@firebase/firestore-types": "2.0.0",
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.3.2",
+    "@firebase/util": "0.3.3",
     "@firebase/webchannel-wrapper": "0.4.0",
     "@grpc/grpc-js": "^1.0.0",
     "@grpc/proto-loader": "^0.5.0",
@@ -75,7 +78,7 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.11",
+    "@firebase/app": "0.6.12",
     "@rollup/plugin-alias": "3.1.1",
     "@types/json-stable-stringify": "1.0.32",
     "json-stable-stringify": "1.0.1",

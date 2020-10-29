@@ -4,6 +4,8 @@
 
 ## Timestamp.(constructor)
 
+Constructs a new instance of the `Timestamp` class
+
 <b>Signature:</b>
 
 ```typescript

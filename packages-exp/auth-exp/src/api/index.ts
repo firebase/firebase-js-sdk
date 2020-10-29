@@ -20,7 +20,8 @@ import { FirebaseError, querystring } from '@firebase/util';
 import {
   AUTH_ERROR_FACTORY,
   AuthErrorCode,
-  NamedErrorParams
+  NamedErrorParams,
+  ERRORS
 } from '../core/errors';
 import { fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
@@ -32,18 +33,18 @@ import { IdTokenResponse, TaggedWithTokenResponse } from '../model/id_token';
 import { IdTokenMfaResponse } from './authentication/mfa';
 import { SERVER_ERROR_MAP, ServerError, ServerErrorMap } from './errors';
 
-export enum HttpMethod {
+export const enum HttpMethod {
   POST = 'POST',
   GET = 'GET'
 }
 
-export enum HttpHeader {
+export const enum HttpHeader {
   CONTENT_TYPE = 'Content-Type',
   X_FIREBASE_LOCALE = 'X-Firebase-Locale',
   X_CLIENT_VERSION = 'X-Client-Version'
 }
 
-export enum Endpoint {
+export const enum Endpoint {
   CREATE_AUTH_URI = '/v1/accounts:createAuthUri',
   DELETE_ACCOUNT = '/v1/accounts:delete',
   RESET_PASSWORD = '/v1/accounts:resetPassword',
@@ -149,9 +150,12 @@ export async function _performFetchWithErrorHandling<V>(
       } else if (serverErrorCode === ServerError.EMAIL_EXISTS) {
         throw makeTaggedError(auth, AuthErrorCode.EMAIL_EXISTS, json);
       }
-
-      const authError = errorMap[serverErrorCode];
-      if (authError) {
+      const authError =
+        errorMap[serverErrorCode] ||
+        ((serverErrorCode
+          .toLowerCase()
+          .replace(/_/g, '-') as unknown) as AuthErrorCode);
+      if (authError && Object.keys(ERRORS).includes(authError)) {
         fail(authError, { appName: auth.name });
       } else {
         // TODO probably should handle improperly formatted errors as well
