@@ -23,7 +23,18 @@
     "prepare": "yarn build"
   },
   "license": "Apache-2.0",
-  "peerDependencies": {},
+  "peerDependencies": {
+    "@firebase/app": "0.x",
+    "@firebase/app-types": "0.x"
+  },
+  "peerDependenciesMeta": {
+    "@firebase/app": {
+      "optional": true
+    },
+    "@firebase/app-types": {
+      "optional": true
+    }
+  },
   "dependencies": {
     "@firebase/database-types": "0.6.0",
     "@firebase/logger": "0.2.6",
