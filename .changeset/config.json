@@ -23,6 +23,7 @@
     "@firebase/performance-types-exp",
     "@firebase/remote-config-exp",
     "@firebase/remote-config-types-exp",
+    "@firebase/remote-config-compat",
     "firebase-exp",
     "@firebase/app-compat",
     "@firebase/changelog-generator",
