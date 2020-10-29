@@ -22,8 +22,9 @@ import {
   ComponentContainer,
   ComponentType
 } from '@firebase/component';
-import { RemoteConfigCompat } from './remoteConfig';
+import { RemoteConfigCompatImpl } from './remoteConfig';
 import { name as packageName, version } from '../package.json';
+import { RemoteConfig as RemoteConfigCompat } from '@firebase/remote-config-types';
 
 // TODO: move it to the future remote-config-compat-types package
 declare module '@firebase/component' {
@@ -49,7 +50,7 @@ function registerRemoteConfigCompat(
 function remoteConfigFactory(
   container: ComponentContainer,
   namespace?: string
-): RemoteConfigCompat {
+): RemoteConfigCompatImpl {
   // TODO: change 'app' to 'app-compat' before the official release
   const app = container.getProvider('app').getImmediate();
   // The following call will always succeed because rc `import {...} from '@firebase/remote-config-exp'`
@@ -57,7 +58,7 @@ function remoteConfigFactory(
     identifier: namespace
   });
 
-  return new RemoteConfigCompat(app, remoteConfig);
+  return new RemoteConfigCompatImpl(app, remoteConfig);
 }
 
 registerRemoteConfigCompat(firebase as _FirebaseNamespace);

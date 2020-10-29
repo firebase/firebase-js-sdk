@@ -18,16 +18,16 @@
 import '../test/setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import { RemoteConfigCompat } from './remoteConfig';
+import { RemoteConfigCompatImpl } from './remoteConfig';
 import { getFakeApp, getFakeModularRemoteConfig } from '../test/util';
 import * as modularApi from '@firebase/remote-config-exp';
 import { Value } from '@firebase/remote-config-types-exp';
 
 describe('Remote Config Compat', () => {
-  let remoteConfig!: RemoteConfigCompat;
+  let remoteConfig!: RemoteConfigCompatImpl;
   const fakeModularRemoteConfig = getFakeModularRemoteConfig();
   before(() => {
-    remoteConfig = new RemoteConfigCompat(
+    remoteConfig = new RemoteConfigCompatImpl(
       getFakeApp(),
       fakeModularRemoteConfig
     );

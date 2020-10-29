@@ -21,7 +21,8 @@ import {
   Value as ValueCompat,
   FetchStatus as FetchSTatusCompat,
   Settings as SettingsCompat,
-  LogLevel as RemoteConfigLogLevel
+  LogLevel as RemoteConfigLogLevel,
+  RemoteConfig as RemoteConfigCompat
 } from '@firebase/remote-config-types';
 import {
   setLogLevel,
@@ -37,7 +38,8 @@ import {
 } from '@firebase/remote-config-exp';
 import { FirebaseService } from '@firebase/app-types/private';
 
-export class RemoteConfigCompat implements FirebaseService {
+export class RemoteConfigCompatImpl
+  implements RemoteConfigCompat, FirebaseService {
   constructor(public app: FirebaseApp, private _remoteConfig: RemoteConfig) {}
 
   get defaultConfig(): { [key: string]: string | number | boolean } {
