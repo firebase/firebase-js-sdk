@@ -50,7 +50,6 @@ export abstract class AbstractPopupRedirectOperation
   private pendingPromise: PendingPromise | null = null;
   private eventManager: EventManager | null = null;
   readonly filter: AuthEventType[];
-  // private readonly bypassAuthState: boolean;
 
   abstract eventId: string | null;
 
