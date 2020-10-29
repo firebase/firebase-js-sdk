@@ -4,10 +4,15 @@
 
 ## Auth.languageCode property
 
-The Auth instance's language code. This is a readable/writable property. When set to null, the default Firebase Console language setting is applied. The language code will propagate to email action templates (password reset, email verification and email change revocation), SMS templates for phone authentication, reCAPTCHA verifier and OAuth popup/redirect operations provided the specified providers support localization with the language code specified.
+The Auth instance's language code.
 
 <b>Signature:</b>
 
 ```typescript
 languageCode: string | null;
 ```
+
+## Remarks
+
+This is a readable/writable property. When set to null, the default Firebase Console language setting is applied. The language code will propagate to email action templates (password reset, email verification and email change revocation), SMS templates for phone authentication, reCAPTCHA verifier and OAuth popup/redirect operations provided the specified providers support localization with the language code specified.
+

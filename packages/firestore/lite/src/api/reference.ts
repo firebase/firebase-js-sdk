@@ -73,7 +73,7 @@ import { FieldPath } from './field_path';
 import {
   validateCollectionPath,
   validateDocumentPath,
-  validateExactNumberOfArgs,
+  validateNonEmptyArgument,
   validatePositiveNumber
 } from '../../../src/util/input_validation';
 import { newSerializer } from '../../../src/platform/serializer';
@@ -335,8 +335,6 @@ export function where(
   opStr: WhereFilterOp,
   value: unknown
 ): QueryConstraint {
-  // TODO(firestorelite): Consider validating the enum strings (note that
-  // TypeScript does not support passing invalid values).
   const op = opStr as Operator;
   const field = fieldPathFromArgument('where', fieldPath);
   return new QueryFilterConstraint(field, op, value);
@@ -381,8 +379,6 @@ export function orderBy(
   fieldPath: string | FieldPath,
   directionStr: OrderByDirection = 'asc'
 ): QueryConstraint {
-  // TODO(firestorelite): Consider validating the enum strings (note that
-  // TypeScript does not support passing invalid values).
   const direction = directionStr as Direction;
   const path = fieldPathFromArgument('orderBy', fieldPath);
   return new QueryOrderByConstraint(path, direction);
@@ -413,7 +409,7 @@ class QueryLimitConstraint extends QueryConstraint {
  * @return The created `Query`.
  */
 export function limit(limit: number): QueryConstraint {
-  validatePositiveNumber('limit', 1, limit);
+  validatePositiveNumber('limit', limit);
   return new QueryLimitConstraint('limit', limit, LimitType.First);
 }
 
@@ -427,7 +423,7 @@ export function limit(limit: number): QueryConstraint {
  * @return The created `Query`.
  */
 export function limitToLast(limit: number): QueryConstraint {
-  validatePositiveNumber('limitToLast', 1, limit);
+  validatePositiveNumber('limitToLast', limit);
   return new QueryLimitConstraint('limitToLast', limit, LimitType.Last);
 }
 
@@ -597,7 +593,6 @@ function newQueryBoundFromDocOrFields<T>(
   before: boolean
 ): Bound {
   if (docOrFields[0] instanceof DocumentSnapshot) {
-    validateExactNumberOfArgs(methodName, docOrFields, 1);
     return newQueryBoundFromDocument(
       query._query,
       query.firestore._databaseId,
@@ -1233,17 +1228,4 @@ export function newUserDataReader(
     !!settings.ignoreUndefinedProperties,
     serializer
   );
-}
-
-function validateNonEmptyArgument(
-  functionName: string,
-  argumentName: string,
-  argument?: string
-): asserts argument is string {
-  if (!argument) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${functionName}() cannot be called with an empty ${argumentName}.`
-    );
-  }
 }

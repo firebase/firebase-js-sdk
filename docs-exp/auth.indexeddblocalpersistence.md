@@ -4,6 +4,8 @@
 
 ## indexedDBLocalPersistence variable
 
+An implementation of [Persistence](./auth-types.persistence.md) of type 'LOCAL' using `indexedDB` for the underlying storage.
+
 <b>Signature:</b>
 
 ```typescript

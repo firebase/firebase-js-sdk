@@ -4,6 +4,8 @@
 
 ## isSignInWithEmailLink() function
 
+Checks if an incoming link is a sign-in with email link suitable for [signInWithEmailLink()](./auth.signinwithemaillink.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,8 +16,8 @@ export declare function isSignInWithEmailLink(auth: externs.Auth, emailLink: str
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
-|  emailLink | string |  |
+|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  emailLink | string | The link sent to the user's email address. |
 
 <b>Returns:</b>
 

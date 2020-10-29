@@ -37,7 +37,7 @@ import { MockReCaptcha } from './recaptcha_mock';
 use(chaiAsPromised);
 use(sinonChai);
 
-describe('platform-browser/recaptcha/recaptcha_loader', () => {
+describe('platform_browser/recaptcha/recaptcha_loader', () => {
   let auth: TestAuth;
 
   beforeEach(async () => {

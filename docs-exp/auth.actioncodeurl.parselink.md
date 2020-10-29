@@ -4,7 +4,7 @@
 
 ## ActionCodeURL.parseLink() method
 
-Parses the email action link string and returns an ActionCodeURL object if the link is valid, otherwise returns null.
+Parses the email action link string and returns an [ActionCodeURL](./auth.actioncodeurl.md) if the link is valid, otherwise returns null.
 
 <b>Signature:</b>
 

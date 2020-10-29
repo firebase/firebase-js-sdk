@@ -16,7 +16,6 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import * as args from './implementation/args';
 import { Location } from './implementation/location';
 import { FailRequest } from './implementation/failrequest';
 import { Request, makeRequest } from './implementation/request';
@@ -28,6 +27,8 @@ import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseOptions } from '@firebase/app-types-exp';
 import * as constants from '../src/implementation/constants';
 import * as errorsExports from './implementation/error';
+import { Code, FirebaseStorageError } from './implementation/error';
+import { validateNumber } from './implementation/type';
 
 /**
  * A service that provides firebaseStorage.Reference instances.
@@ -134,15 +135,13 @@ export class StorageService {
    * bucket.
    */
   ref(path?: string): Reference {
-    function validator(path: unknown): void {
-      if (typeof path !== 'string') {
-        throw 'Path is not a string.';
-      }
-      if (/^[A-Za-z]+:\/\//.test(path as string)) {
-        throw 'Expected child path but got a URL, use refFromURL instead.';
-      }
+    if (/^[A-Za-z]+:\/\//.test(path as string)) {
+      throw new FirebaseStorageError(
+        Code.INVALID_ARGUMENT,
+        'Expected child path but got a URL, use refFromURL instead.'
+      );
     }
-    args.validate('ref', [args.stringSpec(validator, true)], arguments);
+
     if (this.bucket_ == null) {
       throw new Error('No Storage Bucket defined in Firebase Options.');
     }
@@ -160,20 +159,21 @@ export class StorageService {
    * which must be a gs:// or http[s]:// URL.
    */
   refFromURL(url: string): Reference {
-    function validator(p: unknown): void {
-      if (typeof p !== 'string') {
-        throw 'Path is not a string.';
-      }
-      if (!/^[A-Za-z]+:\/\//.test(p as string)) {
-        throw 'Expected full URL but got a child path, use ref instead.';
-      }
-      try {
-        Location.makeFromUrl(p as string);
-      } catch (e) {
-        throw 'Expected valid full URL but got an invalid one.';
-      }
+    if (!/^[A-Za-z]+:\/\//.test(url)) {
+      throw new FirebaseStorageError(
+        Code.INVALID_ARGUMENT,
+        'Expected full URL but got a child path, use ref instead.'
+      );
     }
-    args.validate('refFromURL', [args.stringSpec(validator, false)], arguments);
+    try {
+      Location.makeFromUrl(url);
+    } catch (e) {
+      throw new FirebaseStorageError(
+        Code.INVALID_ARGUMENT,
+        'Expected valid full URL but got an invalid one.'
+      );
+    }
+
     return new Reference(this, url);
   }
 
@@ -182,10 +182,11 @@ export class StorageService {
   }
 
   setMaxUploadRetryTime(time: number): void {
-    args.validate(
-      'setMaxUploadRetryTime',
-      [args.nonNegativeNumberSpec()],
-      arguments
+    validateNumber(
+      'time',
+      /* minValue=*/ 0,
+      /* maxValue= */ Number.POSITIVE_INFINITY,
+      time
     );
     this.maxUploadRetryTime_ = time;
   }
@@ -195,10 +196,11 @@ export class StorageService {
   }
 
   setMaxOperationRetryTime(time: number): void {
-    args.validate(
-      'setMaxOperationRetryTime',
-      [args.nonNegativeNumberSpec()],
-      arguments
+    validateNumber(
+      'time',
+      /* minValue=*/ 0,
+      /* maxValue= */ Number.POSITIVE_INFINITY,
+      time
     );
     this.maxOperationRetryTime_ = time;
   }

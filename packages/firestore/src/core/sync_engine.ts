@@ -1540,7 +1540,7 @@ export function ensureWriteCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
  * @param bundleReader Bundle to load into the SDK.
  * @param task LoadBundleTask used to update the loading progress to public API.
  */
-export function loadBundle(
+export function syncEngineLoadBundle(
   syncEngine: SyncEngine,
   bundleReader: BundleReader,
   task: LoadBundleTask

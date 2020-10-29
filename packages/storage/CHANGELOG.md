@@ -1,5 +1,17 @@
 #Unreleased
 
+## 0.4.0
+
+### Minor Changes
+
+- [`b247ffa76`](https://github.com/firebase/firebase-js-sdk/commit/b247ffa760aec1636de6cfc78851f97a840181ae) [#3967](https://github.com/firebase/firebase-js-sdk/pull/3967) - This releases removes all input validation. Please use our TypeScript types to validate API usage.
+
+### Patch Changes
+
+- Updated dependencies [[`a5768b0aa`](https://github.com/firebase/firebase-js-sdk/commit/a5768b0aa7d7ce732279931aa436e988c9f36487), [`7d916d905`](https://github.com/firebase/firebase-js-sdk/commit/7d916d905ba16816ac8ac7c8748c83831ff614ce)]:
+  - @firebase/component@0.1.20
+  - @firebase/util@0.3.3
+
 ## 0.3.43
 
 ### Patch Changes

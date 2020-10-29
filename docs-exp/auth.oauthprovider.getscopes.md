@@ -4,6 +4,8 @@
 
 ## OAuthProvider.getScopes() method
 
+Retrieve the current list of OAuth scopes.
+
 <b>Signature:</b>
 
 ```typescript

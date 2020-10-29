@@ -16,10 +16,6 @@
  */
 
 import { Code, FirestoreError } from '../util/error';
-import {
-  validateArgType,
-  validateExactNumberOfArgs
-} from '../util/input_validation';
 import { primitiveComparator } from '../util/misc';
 
 /**
@@ -42,9 +38,6 @@ export class GeoPoint {
    * @param longitude The longitude as number between -180 and 180.
    */
   constructor(latitude: number, longitude: number) {
-    validateExactNumberOfArgs('GeoPoint', arguments, 2);
-    validateArgType('GeoPoint', 'number', 1, latitude);
-    validateArgType('GeoPoint', 'number', 2, longitude);
     if (!isFinite(latitude) || latitude < -90 || latitude > 90) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,

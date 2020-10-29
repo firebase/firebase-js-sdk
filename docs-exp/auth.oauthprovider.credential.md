@@ -4,19 +4,39 @@
 
 ## OAuthProvider.credential() method
 
+Creates a [OAuthCredential](./auth.oauthcredential.md) from a generic OAuth provider's access token or ID token.
+
 <b>Signature:</b>
 
 ```typescript
-credential(params: CredentialParameters): externs.OAuthCredential;
+credential(params: OAuthCredentialOptions): externs.OAuthCredential;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  params | CredentialParameters |  |
+|  params | [OAuthCredentialOptions](./auth.oauthcredentialoptions.md) | Either the options object containing the ID token, access token and raw nonce or the ID token string. |
 
 <b>Returns:</b>
 
 externs.[OAuthCredential](./auth-types.oauthcredential.md)
+
+## Remarks
+
+The raw nonce is required when an ID token with a nonce field is provided. The SHA-256 hash of the raw nonce must match the nonce field in the ID token.
+
+## Example
+
+
+```javascript
+// `googleUser` from the onsuccess Google Sign In callback.
+// Initialize a generate OAuth provider with a `google.com` providerId.
+const provider = new OAuthProvider('google.com');
+const credential = provider.credential({
+  idToken: googleUser.getAuthResponse().id_token,
+});
+const result = await signInWithCredential(credential);
+
+```
 

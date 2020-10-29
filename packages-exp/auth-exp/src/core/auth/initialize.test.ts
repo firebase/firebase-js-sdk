@@ -41,7 +41,7 @@ import { ClientPlatform, _getClientVersion } from '../util/version';
 import { initializeAuth } from './initialize';
 import { registerAuth } from './register';
 
-describe('src/core/auth/initialize', () => {
+describe('core/auth/initialize', () => {
   let fakeApp: FirebaseApp;
 
   class FakeSessionPersistence implements Persistence {

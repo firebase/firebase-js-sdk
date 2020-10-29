@@ -4,6 +4,8 @@
 
 ## checkActionCode() function
 
+Checks a verification code sent to the user by email or other out-of-band mechanism.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,10 +16,12 @@ export declare function checkActionCode(auth: externs.Auth, oobCode: string): Pr
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
-|  oobCode | string |  |
+|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  oobCode | string | A verification code sent to the user. |
 
 <b>Returns:</b>
 
 Promise&lt;externs.[ActionCodeInfo](./auth-types.actioncodeinfo.md)<!-- -->&gt;
+
+metadata about the code.
 

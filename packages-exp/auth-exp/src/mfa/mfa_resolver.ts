@@ -22,7 +22,7 @@ import { AuthErrorCode } from '../core/errors';
 import { UserCredentialImpl } from '../core/user/user_credential_impl';
 import { assert, fail } from '../core/util/assert';
 import { UserCredential } from '../model/user';
-import { MultiFactorAssertion } from './assertions';
+import { MultiFactorAssertion } from './mfa_assertion';
 import { MultiFactorError } from './mfa_error';
 import { MultiFactorInfo } from './mfa_info';
 import { MultiFactorSession } from './mfa_session';
@@ -36,6 +36,7 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
     ) => Promise<UserCredential>
   ) {}
 
+  /** @internal */
   static _fromError(
     authExtern: externs.Auth,
     error: MultiFactorError
@@ -104,11 +105,21 @@ export class MultiFactorResolver implements externs.MultiFactorResolver {
   }
 }
 
+/**
+ * Provides a {@link @firebase/auth-types#MultiFactorResolver} suitable for completion of a
+ * multi-factor flow.
+ *
+ * @param auth - The auth instance.
+ * @param error - The {@link @firebase/auth-types#MultiFactorError} raised during a sign-in, or
+ * reauthentication operation.
+ *
+ * @public
+ */
 export function getMultiFactorResolver(
   auth: externs.Auth,
-  errorExtern: externs.MultiFactorError
+  error: externs.MultiFactorError
 ): externs.MultiFactorResolver {
-  const error = errorExtern as MultiFactorError;
+  const errorInternal = error as MultiFactorError;
   assert(error.operationType, AuthErrorCode.ARGUMENT_ERROR, {
     appName: auth.name
   });
@@ -116,10 +127,10 @@ export function getMultiFactorResolver(
     appName: auth.name
   });
   assert(
-    error.serverResponse?.mfaPendingCredential,
+    errorInternal.serverResponse?.mfaPendingCredential,
     AuthErrorCode.ARGUMENT_ERROR,
     { appName: auth.name }
   );
 
-  return MultiFactorResolver._fromError(auth, error);
+  return MultiFactorResolver._fromError(auth, errorInternal);
 }

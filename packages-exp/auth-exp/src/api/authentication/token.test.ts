@@ -24,7 +24,7 @@ import { HttpHeader } from '../';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as fetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
-import { _ENDPOINT, requestStsToken } from './token';
+import { Endpoint, requestStsToken } from './token';
 
 use(chaiAsPromised);
 
@@ -35,7 +35,7 @@ describe('requestStsToken', () => {
   beforeEach(async () => {
     auth = await testAuth();
     const { apiKey, tokenApiHost, apiScheme } = auth.config;
-    endpoint = `${apiScheme}://${tokenApiHost}${_ENDPOINT}?key=${apiKey}`;
+    endpoint = `${apiScheme}://${tokenApiHost}${Endpoint.TOKEN}?key=${apiKey}`;
     fetch.setUp();
   });
 

@@ -74,13 +74,30 @@ module.exports = {
             ]
           }
         }
+      },
+      {
+        test: /\.js$/,
+        include: function (modulePath) {
+          const match = /node_modules\/@firebase.*/.test(modulePath);
+          if (match) {
+            console.log('modulePath', modulePath, match);
+          }
+          return match;
+        },
+        use: {
+          loader: 'babel-loader',
+          options: {
+            plugins: ['@babel/plugin-transform-modules-commonjs']
+          }
+        }
       }
     ]
   },
   resolve: {
     modules: ['node_modules', path.resolve(__dirname, '../../node_modules')],
-    mainFields: ['browser', 'main', 'module'],
-    extensions: ['.js', '.ts']
+    mainFields: ['browser', 'module', 'main'],
+    extensions: ['.js', '.ts'],
+    symlinks: false
   },
   plugins: [
     new webpack.NormalModuleReplacementPlugin(

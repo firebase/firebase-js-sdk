@@ -4,6 +4,8 @@
 
 ## EmailAuthProvider.EMAIL\_LINK\_SIGN\_IN\_METHOD property
 
+Always set to [SignInMethod.EMAIL\_LINK](./auth-types.signinmethod.email_link.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

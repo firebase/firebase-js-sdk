@@ -30,7 +30,7 @@ import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { GithubAuthProvider } from './github';
 
-describe('src/core/providers/github', () => {
+describe('core/providers/github', () => {
   it('generates the correct type of oauth credential', () => {
     const cred = GithubAuthProvider.credential('access-token');
     expect(cred.accessToken).to.eq('access-token');

@@ -1,10 +1,10 @@
 {
   "name": "@firebase/util",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
-  "browser": "dist/index.cjs.js",
+  "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
   "files": ["dist"],

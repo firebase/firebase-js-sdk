@@ -25,6 +25,5 @@ export class DocumentReference<T = DocumentData>
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [collection(collectionPath)](./firestore_.documentreference.collection.md) |  |  |
 |  [withConverter(converter)](./firestore_.documentreference.withconverter.md) |  |  |
 

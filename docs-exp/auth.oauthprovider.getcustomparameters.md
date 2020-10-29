@@ -4,6 +4,8 @@
 
 ## OAuthProvider.getCustomParameters() method
 
+Retrieve the current list of [CustomParameters](./auth.customparameters.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -11,5 +13,5 @@ getCustomParameters(): CustomParameters;
 ```
 <b>Returns:</b>
 
-CustomParameters
+[CustomParameters](./auth.customparameters.md)
 

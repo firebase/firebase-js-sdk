@@ -35,22 +35,23 @@ export class ActionCodeURL implements externs.ActionCodeURL {
     readonly tenantId: string | null;
 }
 
-// @public (undocumented)
+// @public
 export function applyActionCode(auth: externs.Auth, oobCode: string): Promise<void>;
 
 // @public (undocumented)
 export class AuthCredential {
+    // @internal
     protected constructor(providerId: string, signInMethod: string);
     // Warning: (ae-forgotten-export) The symbol "Auth" needs to be exported by the entry point index.d.ts
     // Warning: (ae-forgotten-export) The symbol "PhoneOrOauthTokenResponse" needs to be exported by the entry point index.d.ts
     //
-    // (undocumented)
+    // @internal (undocumented)
     _getIdTokenResponse(_auth: Auth_2): Promise<PhoneOrOauthTokenResponse>;
-    // (undocumented)
+    // @internal (undocumented)
     _getReauthenticationResolver(_auth: Auth_2): Promise<IdTokenResponse>;
     // Warning: (ae-forgotten-export) The symbol "IdTokenResponse" needs to be exported by the entry point index.d.ts
     //
-    // (undocumented)
+    // @internal (undocumented)
     _linkToIdToken(_auth: Auth_2, _idToken: string): Promise<IdTokenResponse>;
     // (undocumented)
     readonly providerId: string;
@@ -60,42 +61,235 @@ export class AuthCredential {
     toJSON(): object;
 }
 
-// @public (undocumented)
+// @public
+export const enum AuthErrorCode {
+    // (undocumented)
+    ADMIN_ONLY_OPERATION = "admin-restricted-operation",
+    // (undocumented)
+    APP_NOT_AUTHORIZED = "app-not-authorized",
+    // (undocumented)
+    APP_NOT_INSTALLED = "app-not-installed",
+    // (undocumented)
+    ARGUMENT_ERROR = "argument-error",
+    // (undocumented)
+    CAPTCHA_CHECK_FAILED = "captcha-check-failed",
+    // (undocumented)
+    CODE_EXPIRED = "code-expired",
+    // (undocumented)
+    CORDOVA_NOT_READY = "cordova-not-ready",
+    // (undocumented)
+    CORS_UNSUPPORTED = "cors-unsupported",
+    // (undocumented)
+    CREDENTIAL_ALREADY_IN_USE = "credential-already-in-use",
+    // (undocumented)
+    CREDENTIAL_MISMATCH = "custom-token-mismatch",
+    // (undocumented)
+    CREDENTIAL_TOO_OLD_LOGIN_AGAIN = "requires-recent-login",
+    // (undocumented)
+    DYNAMIC_LINK_NOT_ACTIVATED = "dynamic-link-not-activated",
+    // (undocumented)
+    EMAIL_CHANGE_NEEDS_VERIFICATION = "email-change-needs-verification",
+    // (undocumented)
+    EMAIL_EXISTS = "email-already-in-use",
+    // (undocumented)
+    EMULATOR_CONFIG_FAILED = "emulator-config-failed",
+    // (undocumented)
+    EXPIRED_OOB_CODE = "expired-action-code",
+    // (undocumented)
+    EXPIRED_POPUP_REQUEST = "cancelled-popup-request",
+    // (undocumented)
+    INTERNAL_ERROR = "internal-error",
+    // (undocumented)
+    INVALID_API_KEY = "invalid-api-key",
+    // (undocumented)
+    INVALID_APP_CREDENTIAL = "invalid-app-credential",
+    // (undocumented)
+    INVALID_APP_ID = "invalid-app-id",
+    // (undocumented)
+    INVALID_AUTH = "invalid-user-token",
+    // (undocumented)
+    INVALID_AUTH_EVENT = "invalid-auth-event",
+    // (undocumented)
+    INVALID_CERT_HASH = "invalid-cert-hash",
+    // (undocumented)
+    INVALID_CODE = "invalid-verification-code",
+    // (undocumented)
+    INVALID_CONTINUE_URI = "invalid-continue-uri",
+    // (undocumented)
+    INVALID_CORDOVA_CONFIGURATION = "invalid-cordova-configuration",
+    // (undocumented)
+    INVALID_CUSTOM_TOKEN = "invalid-custom-token",
+    // (undocumented)
+    INVALID_DYNAMIC_LINK_DOMAIN = "invalid-dynamic-link-domain",
+    // (undocumented)
+    INVALID_EMAIL = "invalid-email",
+    // (undocumented)
+    INVALID_EMULATOR_SCHEME = "invalid-emulator-scheme",
+    // (undocumented)
+    INVALID_IDP_RESPONSE = "invalid-credential",
+    // (undocumented)
+    INVALID_MESSAGE_PAYLOAD = "invalid-message-payload",
+    // (undocumented)
+    INVALID_MFA_SESSION = "invalid-multi-factor-session",
+    // (undocumented)
+    INVALID_OAUTH_CLIENT_ID = "invalid-oauth-client-id",
+    // (undocumented)
+    INVALID_OAUTH_PROVIDER = "invalid-oauth-provider",
+    // (undocumented)
+    INVALID_OOB_CODE = "invalid-action-code",
+    // (undocumented)
+    INVALID_ORIGIN = "unauthorized-domain",
+    // (undocumented)
+    INVALID_PASSWORD = "wrong-password",
+    // (undocumented)
+    INVALID_PERSISTENCE = "invalid-persistence-type",
+    // (undocumented)
+    INVALID_PHONE_NUMBER = "invalid-phone-number",
+    // (undocumented)
+    INVALID_PROVIDER_ID = "invalid-provider-id",
+    // (undocumented)
+    INVALID_RECIPIENT_EMAIL = "invalid-recipient-email",
+    // (undocumented)
+    INVALID_SENDER = "invalid-sender",
+    // (undocumented)
+    INVALID_SESSION_INFO = "invalid-verification-id",
+    // (undocumented)
+    INVALID_TENANT_ID = "invalid-tenant-id",
+    // (undocumented)
+    MFA_INFO_NOT_FOUND = "multi-factor-info-not-found",
+    // (undocumented)
+    MFA_REQUIRED = "multi-factor-auth-required",
+    // (undocumented)
+    MISSING_ANDROID_PACKAGE_NAME = "missing-android-pkg-name",
+    // (undocumented)
+    MISSING_APP_CREDENTIAL = "missing-app-credential",
+    // (undocumented)
+    MISSING_AUTH_DOMAIN = "auth-domain-config-required",
+    // (undocumented)
+    MISSING_CODE = "missing-verification-code",
+    // (undocumented)
+    MISSING_CONTINUE_URI = "missing-continue-uri",
+    // (undocumented)
+    MISSING_IFRAME_START = "missing-iframe-start",
+    // (undocumented)
+    MISSING_IOS_BUNDLE_ID = "missing-ios-bundle-id",
+    // (undocumented)
+    MISSING_MFA_INFO = "missing-multi-factor-info",
+    // (undocumented)
+    MISSING_MFA_SESSION = "missing-multi-factor-session",
+    // (undocumented)
+    MISSING_OR_INVALID_NONCE = "missing-or-invalid-nonce",
+    // (undocumented)
+    MISSING_PHONE_NUMBER = "missing-phone-number",
+    // (undocumented)
+    MISSING_SESSION_INFO = "missing-verification-id",
+    // (undocumented)
+    MODULE_DESTROYED = "app-deleted",
+    // (undocumented)
+    NEED_CONFIRMATION = "account-exists-with-different-credential",
+    // (undocumented)
+    NETWORK_REQUEST_FAILED = "network-request-failed",
+    // (undocumented)
+    NO_AUTH_EVENT = "no-auth-event",
+    // (undocumented)
+    NO_SUCH_PROVIDER = "no-such-provider",
+    // (undocumented)
+    NULL_USER = "null-user",
+    // (undocumented)
+    OPERATION_NOT_ALLOWED = "operation-not-allowed",
+    // (undocumented)
+    OPERATION_NOT_SUPPORTED = "operation-not-supported-in-this-environment",
+    // (undocumented)
+    POPUP_BLOCKED = "popup-blocked",
+    // (undocumented)
+    POPUP_CLOSED_BY_USER = "popup-closed-by-user",
+    // (undocumented)
+    PROVIDER_ALREADY_LINKED = "provider-already-linked",
+    // (undocumented)
+    QUOTA_EXCEEDED = "quota-exceeded",
+    // (undocumented)
+    REDIRECT_CANCELLED_BY_USER = "redirect-cancelled-by-user",
+    // (undocumented)
+    REDIRECT_OPERATION_PENDING = "redirect-operation-pending",
+    // (undocumented)
+    REJECTED_CREDENTIAL = "rejected-credential",
+    // (undocumented)
+    SECOND_FACTOR_ALREADY_ENROLLED = "second-factor-already-in-use",
+    // (undocumented)
+    SECOND_FACTOR_LIMIT_EXCEEDED = "maximum-second-factor-count-exceeded",
+    // (undocumented)
+    TENANT_ID_MISMATCH = "tenant-id-mismatch",
+    // (undocumented)
+    TIMEOUT = "timeout",
+    // (undocumented)
+    TOKEN_EXPIRED = "user-token-expired",
+    // (undocumented)
+    TOO_MANY_ATTEMPTS_TRY_LATER = "too-many-requests",
+    // (undocumented)
+    UNAUTHORIZED_DOMAIN = "unauthorized-continue-uri",
+    // (undocumented)
+    UNSUPPORTED_FIRST_FACTOR = "unsupported-first-factor",
+    // (undocumented)
+    UNSUPPORTED_PERSISTENCE = "unsupported-persistence-type",
+    // (undocumented)
+    UNSUPPORTED_TENANT_OPERATION = "unsupported-tenant-operation",
+    // (undocumented)
+    UNVERIFIED_EMAIL = "unverified-email",
+    // (undocumented)
+    USER_CANCELLED = "user-cancelled",
+    // (undocumented)
+    USER_DELETED = "user-not-found",
+    // (undocumented)
+    USER_DISABLED = "user-disabled",
+    // (undocumented)
+    USER_MISMATCH = "user-mismatch",
+    // (undocumented)
+    USER_SIGNED_OUT = "user-signed-out",
+    // (undocumented)
+    WEAK_PASSWORD = "weak-password",
+    // (undocumented)
+    WEB_STORAGE_UNSUPPORTED = "web-storage-unsupported"
+}
+
+// @public
 export const browserLocalPersistence: externs.Persistence;
 
-// @public (undocumented)
+// @public
 export const browserPopupRedirectResolver: externs.PopupRedirectResolver;
 
-// @public (undocumented)
+// @public
 export const browserSessionPersistence: externs.Persistence;
 
-// @public (undocumented)
+// @public
 export function checkActionCode(auth: externs.Auth, oobCode: string): Promise<externs.ActionCodeInfo>;
 
-// @public (undocumented)
+// @public
 export function confirmPasswordReset(auth: externs.Auth, oobCode: string, newPassword: string): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function createUserWithEmailAndPassword(auth: externs.Auth, email: string, password: string): Promise<externs.UserCredential>;
 
-// @public (undocumented)
+// @public
+export type CustomParameters = Record<string, string>;
+
+// @public
 export function deleteUser(user: externs.User): Promise<void>;
 
-// @public (undocumented)
+// @public
 export class EmailAuthCredential extends AuthCredential implements externs.AuthCredential {
     // (undocumented)
     readonly email: string;
-    // (undocumented)
+    // @internal (undocumented)
     static _fromEmailAndCode(email: string, oobCode: string, tenantId?: string | null): EmailAuthCredential;
-    // (undocumented)
+    // @internal (undocumented)
     static _fromEmailAndPassword(email: string, password: string): EmailAuthCredential;
     // (undocumented)
     static fromJSON(json: object | string): EmailAuthCredential | null;
-    // (undocumented)
+    // @internal (undocumented)
     _getIdTokenResponse(auth: Auth_2): Promise<IdTokenResponse>;
-    // (undocumented)
+    // @internal (undocumented)
     _getReauthenticationResolver(auth: Auth_2): Promise<IdTokenResponse>;
-    // (undocumented)
+    // @internal (undocumented)
     _linkToIdToken(auth: Auth_2, idToken: string): Promise<IdTokenResponse>;
     // (undocumented)
     readonly password: string;
@@ -121,76 +315,58 @@ export class EmailAuthProvider implements externs.EmailAuthProvider {
     readonly providerId = externs.ProviderId.PASSWORD;
 }
 
-// @public (undocumented)
+// @public
 export class FacebookAuthProvider extends OAuthProvider {
-    // (undocumented)
+    constructor();
     static credential(accessToken: string): externs.OAuthCredential;
-    // (undocumented)
     static credentialFromError(error: FirebaseError): externs.OAuthCredential | null;
-    // (undocumented)
     static credentialFromResult(userCredential: externs.UserCredential): externs.OAuthCredential | null;
-    // (undocumented)
     static readonly FACEBOOK_SIGN_IN_METHOD = externs.SignInMethod.FACEBOOK;
-    // (undocumented)
     static readonly PROVIDER_ID = externs.ProviderId.FACEBOOK;
-    // (undocumented)
-    readonly providerId = externs.ProviderId.FACEBOOK;
 }
 
-// @public (undocumented)
+// @public
 export function fetchSignInMethodsForEmail(auth: externs.Auth, email: string): Promise<string[]>;
 
-// @public (undocumented)
+// @public
 export function getAdditionalUserInfo(userCredential: externs.UserCredential): externs.AdditionalUserInfo | null;
 
-// @public (undocumented)
+// @public
 export function getAuth(app?: FirebaseApp): Auth;
 
-// @public (undocumented)
+// @public
 export function getIdToken(user: externs.User, forceRefresh?: boolean): Promise<string>;
 
-// @public (undocumented)
-export function getIdTokenResult(externUser: externs.User, forceRefresh?: boolean): Promise<externs.IdTokenResult>;
+// @public
+export function getIdTokenResult(user: externs.User, forceRefresh?: boolean): Promise<externs.IdTokenResult>;
 
-// @public (undocumented)
-export function getMultiFactorResolver(auth: externs.Auth, errorExtern: externs.MultiFactorError): externs.MultiFactorResolver;
+// @public
+export function getMultiFactorResolver(auth: externs.Auth, error: externs.MultiFactorError): externs.MultiFactorResolver;
 
-// @public (undocumented)
-export function getRedirectResult(authExtern: externs.Auth, resolverExtern?: externs.PopupRedirectResolver): Promise<externs.UserCredential | null>;
+// @public
+export function getRedirectResult(auth: externs.Auth, resolver?: externs.PopupRedirectResolver): Promise<externs.UserCredential | null>;
 
-// @public (undocumented)
+// @public
 export class GithubAuthProvider extends OAuthProvider {
-    // (undocumented)
+    constructor();
     static credential(accessToken: string): externs.OAuthCredential;
-    // (undocumented)
     static credentialFromError(error: FirebaseError): externs.OAuthCredential | null;
-    // (undocumented)
     static credentialFromResult(userCredential: externs.UserCredential): externs.OAuthCredential | null;
-    // (undocumented)
     static readonly GITHUB_SIGN_IN_METHOD = externs.SignInMethod.GITHUB;
-    // (undocumented)
     static readonly PROVIDER_ID = externs.ProviderId.GITHUB;
-    // (undocumented)
-    readonly providerId = externs.ProviderId.GITHUB;
 }
 
-// @public (undocumented)
+// @public
 export class GoogleAuthProvider extends OAuthProvider {
-    // (undocumented)
+    constructor();
     static credential(idToken?: string | null, accessToken?: string | null): externs.OAuthCredential;
-    // (undocumented)
     static credentialFromError(error: FirebaseError): externs.OAuthCredential | null;
-    // (undocumented)
     static credentialFromResult(userCredential: externs.UserCredential): externs.OAuthCredential | null;
-    // (undocumented)
     static readonly GOOGLE_SIGN_IN_METHOD = externs.SignInMethod.GOOGLE;
-    // (undocumented)
     static readonly PROVIDER_ID = externs.ProviderId.GOOGLE;
-    // (undocumented)
-    readonly providerId = externs.ProviderId.GOOGLE;
 }
 
-// @public (undocumented)
+// @public
 export const indexedDBLocalPersistence: externs.Persistence;
 
 // Warning: (ae-forgotten-export) The symbol "Dependencies" needs to be exported by the entry point index.d.ts
@@ -198,25 +374,25 @@ export const indexedDBLocalPersistence: externs.Persistence;
 // @public (undocumented)
 export function initializeAuth(app?: FirebaseApp, deps?: Dependencies): externs.Auth;
 
-// @public (undocumented)
+// @public
 export const inMemoryPersistence: externs.Persistence;
 
-// @public (undocumented)
+// @public
 export function isSignInWithEmailLink(auth: externs.Auth, emailLink: string): boolean;
 
-// @public (undocumented)
-export function linkWithCredential(userExtern: externs.User, credentialExtern: externs.AuthCredential): Promise<UserCredential>;
+// @public
+export function linkWithCredential(user: externs.User, credential: externs.AuthCredential): Promise<UserCredential>;
 
-// @public (undocumented)
-export function linkWithPhoneNumber(userExtern: externs.User, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
+// @public
+export function linkWithPhoneNumber(user: externs.User, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
 
-// @public (undocumented)
-export function linkWithPopup(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
+// @public
+export function linkWithPopup(user: externs.User, provider: externs.AuthProvider, resolver?: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
 
-// @public (undocumented)
-export function linkWithRedirect(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<never>;
+// @public
+export function linkWithRedirect(user: externs.User, provider: externs.AuthProvider, resolver?: externs.PopupRedirectResolver): Promise<never>;
 
-// @public (undocumented)
+// @public
 export function multiFactor(user: externs.User): externs.MultiFactorUser;
 
 // @public (undocumented)
@@ -227,17 +403,17 @@ export class OAuthCredential extends AuthCredential implements externs.OAuthCred
     static fromJSON(json: string | object): OAuthCredential | null;
     // Warning: (ae-forgotten-export) The symbol "OAuthCredentialParams" needs to be exported by the entry point index.d.ts
     //
-    // (undocumented)
+    // @internal (undocumented)
     static _fromParams(params: OAuthCredentialParams): OAuthCredential;
-    // (undocumented)
+    // @internal (undocumented)
     _getIdTokenResponse(auth: Auth_2): Promise<IdTokenResponse>;
-    // (undocumented)
+    // @internal (undocumented)
     _getReauthenticationResolver(auth: Auth_2): Promise<IdTokenResponse>;
     // (undocumented)
     idToken?: string;
-    // (undocumented)
+    // @internal (undocumented)
     _linkToIdToken(auth: Auth_2, idToken: string): Promise<IdTokenResponse>;
-    // (undocumented)
+    // @internal (undocumented)
     nonce?: string;
     // (undocumented)
     secret?: string;
@@ -245,37 +421,34 @@ export class OAuthCredential extends AuthCredential implements externs.OAuthCred
     toJSON(): object;
 }
 
-// @public (undocumented)
+// @public
+export interface OAuthCredentialOptions {
+    accessToken?: string;
+    idToken?: string;
+    rawNonce?: string;
+}
+
+// @public
 export class OAuthProvider implements externs.AuthProvider {
     constructor(providerId: string);
-    // (undocumented)
     addScope(scope: string): externs.AuthProvider;
-    // Warning: (ae-forgotten-export) The symbol "CredentialParameters" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    credential(params: CredentialParameters): externs.OAuthCredential;
+    credential(params: OAuthCredentialOptions): externs.OAuthCredential;
     // (undocumented)
     static credentialFromJSON(json: object | string): externs.OAuthCredential;
-    // (undocumented)
+    // @internal (undocumented)
     defaultLanguageCode: string | null;
-    // (undocumented)
     getCustomParameters(): CustomParameters;
-    // (undocumented)
     getScopes(): string[];
     // (undocumented)
     readonly providerId: string;
-    // Warning: (ae-forgotten-export) The symbol "CustomParameters" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
     setCustomParameters(customOAuthParameters: CustomParameters): externs.AuthProvider;
-    // (undocumented)
     setDefaultLanguage(languageCode: string | null): void;
 }
 
-// @public (undocumented)
+// @public
 export function onAuthStateChanged(auth: externs.Auth, nextOrObserver: externs.NextOrObserver<externs.User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
 
-// @public (undocumented)
+// @public
 export function onIdTokenChanged(auth: externs.Auth, nextOrObserver: externs.NextOrObserver<externs.User>, error?: ErrorFn, completed?: CompleteFn): Unsubscribe;
 
 // @public (undocumented)
@@ -285,19 +458,19 @@ export function parseActionCodeURL(link: string): externs.ActionCodeURL | null;
 export class PhoneAuthCredential extends AuthCredential implements externs.PhoneAuthCredential {
     // (undocumented)
     static fromJSON(json: object | string): PhoneAuthCredential | null;
-    // (undocumented)
+    // @internal (undocumented)
     static _fromTokenResponse(phoneNumber: string, temporaryProof: string): PhoneAuthCredential;
-    // (undocumented)
+    // @internal (undocumented)
     static _fromVerification(verificationId: string, verificationCode: string): PhoneAuthCredential;
-    // (undocumented)
+    // @internal (undocumented)
     _getIdTokenResponse(auth: Auth_2): Promise<PhoneOrOauthTokenResponse>;
-    // (undocumented)
+    // @internal (undocumented)
     _getReauthenticationResolver(auth: Auth_2): Promise<IdTokenResponse>;
-    // (undocumented)
+    // @internal (undocumented)
     _linkToIdToken(auth: Auth_2, idToken: string): Promise<IdTokenResponse>;
     // Warning: (ae-forgotten-export) The symbol "SignInWithPhoneNumberRequest" needs to be exported by the entry point index.d.ts
     //
-    // (undocumented)
+    // @internal (undocumented)
     _makeVerificationRequest(): SignInWithPhoneNumberRequest;
     // (undocumented)
     toJSON(): object;
@@ -326,17 +499,17 @@ export class PhoneMultiFactorGenerator implements externs.PhoneMultiFactorGenera
     static assertion(credential: externs.PhoneAuthCredential): externs.PhoneMultiFactorAssertion;
 }
 
-// @public (undocumented)
-export function reauthenticateWithCredential(userExtern: externs.User, credentialExtern: externs.AuthCredential): Promise<externs.UserCredential>;
+// @public
+export function reauthenticateWithCredential(user: externs.User, credential: externs.AuthCredential): Promise<externs.UserCredential>;
 
-// @public (undocumented)
-export function reauthenticateWithPhoneNumber(userExtern: externs.User, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
+// @public
+export function reauthenticateWithPhoneNumber(user: externs.User, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
 
-// @public (undocumented)
-export function reauthenticateWithPopup(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
+// @public
+export function reauthenticateWithPopup(user: externs.User, provider: externs.AuthProvider, resolver?: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
 
-// @public (undocumented)
-export function reauthenticateWithRedirect(userExtern: externs.User, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<never>;
+// @public
+export function reauthenticateWithRedirect(user: externs.User, provider: externs.AuthProvider, resolver?: externs.PopupRedirectResolver): Promise<never>;
 
 // Warning: (ae-forgotten-export) The symbol "ApplicationVerifier" needs to be exported by the entry point index.d.ts
 //
@@ -348,11 +521,11 @@ export class RecaptchaVerifier implements externs.RecaptchaVerifier, Application
     clear(): void;
     // Warning: (ae-forgotten-export) The symbol "ReCaptchaLoader" needs to be exported by the entry point index.d.ts
     //
-    // (undocumented)
+    // @internal (undocumented)
     readonly _recaptchaLoader: ReCaptchaLoader;
     // (undocumented)
     render(): Promise<number>;
-    // (undocumented)
+    // @internal (undocumented)
     _reset(): void;
     // (undocumented)
     readonly type = "recaptcha";
@@ -360,91 +533,87 @@ export class RecaptchaVerifier implements externs.RecaptchaVerifier, Application
     verify(): Promise<string>;
     }
 
-// @public (undocumented)
-export function reload(externUser: externs.User): Promise<void>;
+// @public
+export function reload(user: externs.User): Promise<void>;
 
-// @public (undocumented)
-export function sendEmailVerification(userExtern: externs.User, actionCodeSettings?: externs.ActionCodeSettings | null): Promise<void>;
+// @public
+export function sendEmailVerification(user: externs.User, actionCodeSettings?: externs.ActionCodeSettings | null): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function sendPasswordResetEmail(auth: externs.Auth, email: string, actionCodeSettings?: externs.ActionCodeSettings): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function sendSignInLinkToEmail(auth: externs.Auth, email: string, actionCodeSettings?: externs.ActionCodeSettings): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function setPersistence(auth: externs.Auth, persistence: externs.Persistence): void;
 
-// @public (undocumented)
+// @public
 export function signInAnonymously(auth: externs.Auth): Promise<externs.UserCredential>;
 
-// @public (undocumented)
+// @public
 export function signInWithCredential(auth: externs.Auth, credential: externs.AuthCredential): Promise<externs.UserCredential>;
 
-// @public (undocumented)
-export function signInWithCustomToken(authExtern: externs.Auth, customToken: string): Promise<externs.UserCredential>;
+// @public
+export function signInWithCustomToken(auth: externs.Auth, customToken: string): Promise<externs.UserCredential>;
 
-// @public (undocumented)
+// @public
 export function signInWithEmailAndPassword(auth: externs.Auth, email: string, password: string): Promise<externs.UserCredential>;
 
-// @public (undocumented)
+// @public
 export function signInWithEmailLink(auth: externs.Auth, email: string, emailLink?: string): Promise<externs.UserCredential>;
 
-// @public (undocumented)
+// @public
 export function signInWithPhoneNumber(auth: externs.Auth, phoneNumber: string, appVerifier: externs.ApplicationVerifier): Promise<externs.ConfirmationResult>;
 
-// @public (undocumented)
-export function signInWithPopup(authExtern: externs.Auth, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
+// @public
+export function signInWithPopup(auth: externs.Auth, provider: externs.AuthProvider, resolver?: externs.PopupRedirectResolver): Promise<externs.UserCredential>;
 
-// @public (undocumented)
-export function signInWithRedirect(authExtern: externs.Auth, provider: externs.AuthProvider, resolverExtern?: externs.PopupRedirectResolver): Promise<never>;
+// @public
+export function signInWithRedirect(auth: externs.Auth, provider: externs.AuthProvider, resolver?: externs.PopupRedirectResolver): Promise<never>;
 
-// @public (undocumented)
+// @public
 export function signOut(auth: externs.Auth): Promise<void>;
 
-// @public (undocumented)
+// @public
 export class TwitterAuthProvider extends OAuthProvider {
-    // (undocumented)
+    constructor();
     static credential(token: string, secret: string): externs.OAuthCredential;
-    // (undocumented)
     static credentialFromError(error: FirebaseError): externs.OAuthCredential | null;
-    // (undocumented)
     static credentialFromResult(userCredential: externs.UserCredential): externs.OAuthCredential | null;
     // (undocumented)
     static readonly PROVIDER_ID = externs.ProviderId.TWITTER;
-    // (undocumented)
-    readonly providerId = externs.ProviderId.TWITTER;
     // (undocumented)
     static readonly TWITTER_SIGN_IN_METHOD = externs.SignInMethod.TWITTER;
 }
 
 // @public
-export function unlink(userExtern: externs.User, providerId: externs.ProviderId): Promise<externs.User>;
+export function unlink(user: externs.User, providerId: externs.ProviderId): Promise<externs.User>;
 
-// @public (undocumented)
+// @public
 export function updateCurrentUser(auth: externs.Auth, user: externs.User | null): Promise<void>;
 
-// @public (undocumented)
-export function updateEmail(externUser: externs.User, newEmail: string): Promise<void>;
+// @public
+export function updateEmail(user: externs.User, newEmail: string): Promise<void>;
 
-// @public (undocumented)
-export function updatePassword(externUser: externs.User, newPassword: string): Promise<void>;
+// @public
+export function updatePassword(user: externs.User, newPassword: string): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function updatePhoneNumber(user: externs.User, credential: externs.PhoneAuthCredential): Promise<void>;
 
 // Warning: (ae-forgotten-export) The symbol "Profile" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
-export function updateProfile(externUser: externs.User, { displayName, photoURL: photoUrl }: Profile): Promise<void>;
+// @public
+export function updateProfile(user: externs.User, { displayName, photoURL: photoUrl }: Profile): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function useDeviceLanguage(auth: externs.Auth): void;
 
-// @public (undocumented)
-export function verifyBeforeUpdateEmail(userExtern: externs.User, newEmail: string, actionCodeSettings?: externs.ActionCodeSettings | null): Promise<void>;
+// @public
+export function verifyBeforeUpdateEmail(user: externs.User, newEmail: string, actionCodeSettings?: externs.ActionCodeSettings | null): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function verifyPasswordResetCode(auth: externs.Auth, code: string): Promise<string>;
 
 

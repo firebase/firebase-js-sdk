@@ -28,7 +28,7 @@ import { _logoutIfInvalidated } from './invalidation';
 
 use(chaiAsPromised);
 
-describe('src/core/user/invalidation', () => {
+describe('core/user/invalidation', () => {
   let user: User;
   let auth: Auth;
 

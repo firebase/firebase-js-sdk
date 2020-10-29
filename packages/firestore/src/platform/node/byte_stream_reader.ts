@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import { invalidClassError } from '../../util/input_validation';
 import { BundleSource } from '../../util/bundle_reader';
 import { toByteStreamReaderHelper } from '../../util/byte_stream';
+import { Code, FirestoreError } from '../../util/error';
+import { valueDescription } from '../../util/input_validation';
 
 /**
  * On Node, only supported data source is a `Uint8Array` for now.
@@ -27,11 +28,11 @@ export function toByteStreamReader(
   bytesPerRead: number
 ): ReadableStreamReader<Uint8Array> {
   if (!(source instanceof Uint8Array)) {
-    throw invalidClassError(
-      'NodePlatform.toByteStreamReader',
-      'Uint8Array',
-      1,
-      source
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `NodePlatform.toByteStreamReader expects source to be Uint8Array, got ${valueDescription(
+        source
+      )}`
     );
   }
   return toByteStreamReaderHelper(source, bytesPerRead);

@@ -19,7 +19,7 @@ import { expect } from 'chai';
 
 import { _getInstance } from './instantiator';
 
-describe('src/core/util/instantiator', () => {
+describe('core/util/instantiator', () => {
   context('_getInstance', () => {
     // All tests define their own classes since the Class object is used in the
     // global map.

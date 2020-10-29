@@ -19,7 +19,7 @@
  */
 
 import { FbsBlob } from './implementation/blob';
-import { FirebaseStorageError, Code, canceled } from './implementation/error';
+import { canceled, Code, FirebaseStorageError } from './implementation/error';
 import {
   InternalTaskState,
   TaskEvent,
@@ -38,18 +38,10 @@ import {
 } from './implementation/observer';
 import { Request } from './implementation/request';
 import { UploadTaskSnapshot } from './tasksnapshot';
-import {
-  ArgSpec,
-  nullFunctionSpec,
-  looseObjectSpec,
-  stringSpec,
-  validate
-} from './implementation/args';
 import { async as fbsAsync } from './implementation/async';
 import { Location } from './implementation/location';
 import * as fbsMetadata from './implementation/metadata';
 import * as fbsRequests from './implementation/requests';
-import * as typeUtils from './implementation/type';
 import { Reference } from './reference';
 import { StorageService } from './service';
 
@@ -451,90 +443,11 @@ export class UploadTask {
     error?: ErrorFn | null,
     completed?: CompleteFn | null
   ): Unsubscribe | Subscribe<UploadTaskSnapshot> {
-    function typeValidator(): void {
-      if (type !== TaskEvent.STATE_CHANGED) {
-        throw `Expected one of the event types: [${TaskEvent.STATE_CHANGED}].`;
-      }
-    }
-    const nextOrObserverMessage =
-      'Expected a function or an Object with one of ' +
-      '`next`, `error`, `complete` properties.';
-    const nextValidator = nullFunctionSpec(true).validator;
-    const observerValidator = looseObjectSpec(null, true).validator;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function nextOrObserverValidator(p: any): void {
-      try {
-        nextValidator(p);
-        return;
-      } catch (e) {}
-      try {
-        observerValidator(p);
-        const anyDefined =
-          typeUtils.isJustDef(p['next']) ||
-          typeUtils.isJustDef(p['error']) ||
-          typeUtils.isJustDef(p['complete']);
-        if (!anyDefined) {
-          throw '';
-        }
-        return;
-      } catch (e) {
-        throw nextOrObserverMessage;
-      }
-    }
-    const specs = [
-      stringSpec(typeValidator),
-      looseObjectSpec(nextOrObserverValidator, true),
-      nullFunctionSpec(true),
-      nullFunctionSpec(true)
-    ];
-    validate('on', specs, arguments);
-    const self = this;
-
-    function makeBinder(
-      specs: ArgSpec[] | null
-    ): Subscribe<UploadTaskSnapshot> {
-      function binder(
-        nextOrObserver?:
-          | NextFn<UploadTaskSnapshot>
-          | StorageObserver<UploadTaskSnapshot>
-          | null,
-        error?: ErrorFn | null,
-        complete?: CompleteFn | null
-      ): () => void {
-        if (specs !== null) {
-          validate('on', specs, arguments);
-        }
-        const observer = new Observer(nextOrObserver, error, completed);
-        self.addObserver_(observer);
-        return () => {
-          self.removeObserver_(observer);
-        };
-      }
-      return binder;
-    }
-
-    function binderNextOrObserverValidator(p: unknown): void {
-      if (p === null) {
-        throw nextOrObserverMessage;
-      }
-      nextOrObserverValidator(p);
-    }
-    const binderSpecs = [
-      looseObjectSpec(binderNextOrObserverValidator),
-      nullFunctionSpec(true),
-      nullFunctionSpec(true)
-    ];
-    const typeOnly = !(
-      typeUtils.isJustDef(nextOrObserver) ||
-      typeUtils.isJustDef(error) ||
-      typeUtils.isJustDef(completed)
-    );
-    if (typeOnly) {
-      return makeBinder(binderSpecs);
-    } else {
-      return makeBinder(null)(nextOrObserver, error, completed);
-    }
+    const observer = new Observer(nextOrObserver, error, completed);
+    this.addObserver_(observer);
+    return () => {
+      this.removeObserver_(observer);
+    };
   }
 
   /**
@@ -644,7 +557,6 @@ export class UploadTask {
    * @return True if the operation took effect, false if ignored.
    */
   resume(): boolean {
-    validate('resume', [], arguments);
     const valid =
       this.state_ === InternalTaskState.PAUSED ||
       this.state_ === InternalTaskState.PAUSING;
@@ -659,7 +571,6 @@ export class UploadTask {
    * @return True if the operation took effect, false if ignored.
    */
   pause(): boolean {
-    validate('pause', [], arguments);
     const valid = this.state_ === InternalTaskState.RUNNING;
     if (valid) {
       this.transition_(InternalTaskState.PAUSING);
@@ -673,7 +584,6 @@ export class UploadTask {
    * @return True if the operation took effect, false if ignored.
    */
   cancel(): boolean {
-    validate('cancel', [], arguments);
     const valid =
       this.state_ === InternalTaskState.RUNNING ||
       this.state_ === InternalTaskState.PAUSING;

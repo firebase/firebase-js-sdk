@@ -759,7 +759,9 @@ apiDescribe('Queries', (persistence: boolean) => {
       a: { array: [42] },
       b: { array: ['a', 42, 'c'] },
       c: { array: [41.999, '42', { a: [42] }] },
-      d: { array: [42], array2: ['bingo'] }
+      d: { array: [42], array2: ['bingo'] },
+      e: { array: [null] },
+      f: { array: [Number.NaN] }
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
@@ -773,6 +775,15 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       // NOTE: The backend doesn't currently support null, NaN, objects, or
       // arrays, so there isn't much of anything else interesting to test.
+      // With null.
+      const snapshot3 = await coll.where('zip', 'array-contains', null).get();
+      expect(toDataArray(snapshot3)).to.deep.equal([]);
+
+      // With NaN.
+      const snapshot4 = await coll
+        .where('zip', 'array-contains', Number.NaN)
+        .get();
+      expect(toDataArray(snapshot4)).to.deep.equal([]);
     });
   });
 
@@ -784,7 +795,9 @@ apiDescribe('Queries', (persistence: boolean) => {
       d: { zip: [98101] },
       e: { zip: ['98101', { zip: 98101 }] },
       f: { zip: { code: 500 } },
-      g: { zip: [98101, 98102] }
+      g: { zip: [98101, 98102] },
+      h: { zip: null },
+      i: { zip: Number.NaN }
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
@@ -800,6 +813,24 @@ apiDescribe('Queries', (persistence: boolean) => {
       // With objects.
       const snapshot2 = await coll.where('zip', 'in', [{ code: 500 }]).get();
       expect(toDataArray(snapshot2)).to.deep.equal([{ zip: { code: 500 } }]);
+
+      // With null.
+      const snapshot3 = await coll.where('zip', 'in', [null]).get();
+      expect(toDataArray(snapshot3)).to.deep.equal([]);
+
+      // With null and a value.
+      const snapshot4 = await coll.where('zip', 'in', [98101, null]).get();
+      expect(toDataArray(snapshot4)).to.deep.equal([{ zip: 98101 }]);
+
+      // With NaN.
+      const snapshot5 = await coll.where('zip', 'in', [Number.NaN]).get();
+      expect(toDataArray(snapshot5)).to.deep.equal([]);
+
+      // With NaN and a value.
+      const snapshot6 = await coll
+        .where('zip', 'in', [98101, Number.NaN])
+        .get();
+      expect(toDataArray(snapshot6)).to.deep.equal([{ zip: 98101 }]);
     });
   });
 
@@ -913,7 +944,9 @@ apiDescribe('Queries', (persistence: boolean) => {
       d: { array: [42], array2: ['bingo'] },
       e: { array: [43] },
       f: { array: [{ a: 42 }] },
-      g: { array: 42 }
+      g: { array: 42 },
+      h: { array: [null] },
+      i: { array: [Number.NaN] }
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
@@ -932,6 +965,30 @@ apiDescribe('Queries', (persistence: boolean) => {
         .where('array', 'array-contains-any', [{ a: 42 }])
         .get();
       expect(toDataArray(snapshot2)).to.deep.equal([{ array: [{ a: 42 }] }]);
+
+      // With null.
+      const snapshot3 = await coll
+        .where('array', 'array-contains-any', [null])
+        .get();
+      expect(toDataArray(snapshot3)).to.deep.equal([]);
+
+      // With null and a value.
+      const snapshot4 = await coll
+        .where('array', 'array-contains-any', [43, null])
+        .get();
+      expect(toDataArray(snapshot4)).to.deep.equal([{ array: [43] }]);
+
+      // With NaN.
+      const snapshot5 = await coll
+        .where('array', 'array-contains-any', [Number.NaN])
+        .get();
+      expect(toDataArray(snapshot5)).to.deep.equal([]);
+
+      // With NaN and a value.
+      const snapshot6 = await coll
+        .where('array', 'array-contains-any', [43, Number.NaN])
+        .get();
+      expect(toDataArray(snapshot6)).to.deep.equal([{ array: [43] }]);
     });
   });
 

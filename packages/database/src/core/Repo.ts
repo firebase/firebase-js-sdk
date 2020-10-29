@@ -54,6 +54,9 @@ const INTERRUPT_REASON = 'repo_interrupt';
  * A connection to a single data repository.
  */
 export class Repo {
+  /** Key for uniquely identifying this repo, used in RepoManager */
+  readonly key: string;
+
   dataUpdateCount = 0;
   private infoSyncTree_: SyncTree;
   private serverSyncTree_: SyncTree;
@@ -81,23 +84,28 @@ export class Repo {
 
   constructor(
     public repoInfo_: RepoInfo,
-    forceRestClient: boolean,
+    private forceRestClient_: boolean,
     public app: FirebaseApp,
-    authTokenProvider: AuthTokenProvider
+    public authTokenProvider_: AuthTokenProvider
   ) {
-    this.stats_ = StatsManager.getCollection(repoInfo_);
+    // This key is intentionally not updated if RepoInfo is later changed or replaced
+    this.key = this.repoInfo_.toURLString();
+  }
 
-    if (forceRestClient || beingCrawled()) {
+  start(): void {
+    this.stats_ = StatsManager.getCollection(this.repoInfo_);
+
+    if (this.forceRestClient_ || beingCrawled()) {
       this.server_ = new ReadonlyRestClient(
         this.repoInfo_,
         this.onDataUpdate_.bind(this),
-        authTokenProvider
+        this.authTokenProvider_
       );
 
       // Minor hack: Fire onConnect immediately, since there's no actual connection.
       setTimeout(this.onConnectStatus_.bind(this, true), 0);
     } else {
-      const authOverride = app.options['databaseAuthVariableOverride'];
+      const authOverride = this.app.options['databaseAuthVariableOverride'];
       // Validate authOverride
       if (typeof authOverride !== 'undefined' && authOverride !== null) {
         if (typeof authOverride !== 'object') {
@@ -114,25 +122,25 @@ export class Repo {
 
       this.persistentConnection_ = new PersistentConnection(
         this.repoInfo_,
-        app.options.appId,
+        this.app.options.appId,
         this.onDataUpdate_.bind(this),
         this.onConnectStatus_.bind(this),
         this.onServerInfoUpdate_.bind(this),
-        authTokenProvider,
+        this.authTokenProvider_,
         authOverride
       );
 
       this.server_ = this.persistentConnection_;
     }
 
-    authTokenProvider.addTokenChangeListener(token => {
+    this.authTokenProvider_.addTokenChangeListener(token => {
       this.server_.refreshAuthToken(token);
     });
 
     // In the case of multiple Repos for the same repoInfo (i.e. there are multiple Firebase.Contexts being used),
     // we only want to create one StatsReporter.  As such, we'll report stats over the first Repo created.
     this.statsReporter_ = StatsManager.getOrCreateReporter(
-      repoInfo_,
+      this.repoInfo_,
       () => new StatsReporter(this.stats_, this.server_)
     );
 

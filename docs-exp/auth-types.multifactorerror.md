@@ -4,7 +4,7 @@
 
 ## MultiFactorError interface
 
-The error thrown when the user needs to provide a second factor to sign in successfully. The error code for this error is `auth/multi-factor-auth-required`<!-- -->.
+The error thrown when the user needs to provide a second factor to sign in successfully.
 
 <b>Signature:</b>
 
@@ -12,6 +12,10 @@ The error thrown when the user needs to provide a second factor to sign in succe
 export interface MultiFactorError extends AuthError 
 ```
 <b>Extends:</b> [AuthError](./auth-types.autherror.md)
+
+## Remarks
+
+The error code for this error is `auth/multi-factor-auth-required`<!-- -->.
 
 ## Example
 

@@ -42,7 +42,7 @@ import {
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
-  loadBundle,
+  syncEngineLoadBundle,
   activeLimboDocumentResolutions,
   enqueuedLimboDocumentResolutions,
   registerPendingWritesCallback,
@@ -523,7 +523,7 @@ abstract class TestRunner {
     );
     const task = new LoadBundleTask();
     return this.queue.enqueue(async () => {
-      loadBundle(this.syncEngine, reader, task);
+      syncEngineLoadBundle(this.syncEngine, reader, task);
       await task.catch(e => {
         logWarn(`Loading bundle failed with ${e}`);
       });

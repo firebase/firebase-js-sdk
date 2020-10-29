@@ -1,5 +1,14 @@
 # @firebase/messaging
 
+## 0.7.2
+
+### Patch Changes
+
+- Updated dependencies [[`a5768b0aa`](https://github.com/firebase/firebase-js-sdk/commit/a5768b0aa7d7ce732279931aa436e988c9f36487), [`7d916d905`](https://github.com/firebase/firebase-js-sdk/commit/7d916d905ba16816ac8ac7c8748c83831ff614ce)]:
+  - @firebase/component@0.1.20
+  - @firebase/util@0.3.3
+  - @firebase/installations@0.4.18
+
 ## 0.7.1
 
 ### Patch Changes
