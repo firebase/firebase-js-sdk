@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Test App</title>
+    <script src="../../firebase/firebase-app.js"></script>
+    <script src="../../firebase/firebase-remote-config.js"></script>
+    <style>
+      textarea {
+        height: 150px;
+        width: 100%;
+      }
+      #rc-defaults {
+        height: 100px;
+      }
+      #rc-settings {
+        height: 60px;
+      }
+      .main-container {
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 1200px;
+      }
+      .flex-container {
+        display: flex;
+        justify-content: space-around;
+      }
+      .column {
+        flex-basis: 0;
+        flex-grow: 1;
+        margin-left: 10px;
+        margin-right: 10px;
+      }
+      .error {
+        color: rgb(179, 29, 29);
+      }
+      .output-box-container {
+        background-color: rgb(220, 220, 220);
+        flex-grow: 1;
+        height: 100%;
+        padding: 10px;
+        word-break: break-word;
+      }
+      .output-container {
+        display: flex;
+        flex-direction: column;
+      }
+      .segment {
+        margin-bottom: 20px;
+      }
+      .done-checkmark {
+        color: rgb(57, 150, 57);
+      }
+      button {
+        background-color: #039be5;
+        border: 0;
+        color: white;
+        font-size: 14px;
+        height: 30px;
+        margin-right: 4px;
+        margin-bottom: 4px;
+      }
+      .buttons-container {
+        border: 1px solid rgb(156, 147, 147);
+        padding: 4px;
+      }
+      .key-container {
+        margin-bottom: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main-container">
+      <h1>Remote Config Test App</h1>
+      <div class="flex-container">
+        <div class="column">
+          <div class="segment">
+            <div>Firebase config</div>
+            <div><textarea id="firebase-config"></textarea></div>
+            <button onclick="handlerWrapper(initializeFirebase)">
+              Initialize Firebase and Rc
+            </button>
+          </div>
+          <div class="segment">
+            <div>RC defaults</div>
+            <div><textarea id="rc-defaults"></textarea></div>
+            <button onclick="handlerWrapper(setDefaults)">setDefaults</button>
+          </div>
+          <div class="segment">
+            <div>RC settings</div>
+            <div><textarea id="rc-settings"></textarea></div>
+            <button onclick="handlerWrapper(setSettings)">set settings</button>
+          </div>
+          <div class="segment">
+              <div>Log level</div>
+              <div><input type="text" id="log-level-input" /></div>
+              <button onclick="handlerWrapper(setLogLevel)">setLogLevel</button>
+            </div>
+        </div>
+        <div class="column">
+          <div class="segment">
+            <div>Controls</div>
+            <div class="buttons-container">
+              <button onclick="handlerWrapper(activate)">activate</button>
+              <button onclick="handlerWrapper(ensureInitialized)">
+                ensureInitialized
+              </button>
+              <button onclick="handlerWrapper(rcFetch)">fetch</button>
+              <button onclick="handlerWrapper(fetchAndActivate)">
+                fetchAndActivate
+              </button>
+            </div>
+          </div>
+          <div class="segment">
+            <div>Value getters</div>
+            <div class="buttons-container">
+              <div class="key-container">
+                <span>key:</span>
+                <input type="text" id="key-input" />
+              </div>
+              <button onclick="handlerWrapper(getString)">getString</button>
+              <button onclick="handlerWrapper(getBoolean)">getBoolean</button>
+              <button onclick="handlerWrapper(getNumber)">getNumber</button>
+              <button onclick="handlerWrapper(getValue)">getValue</button>
+            </div>
+          </div>
+          <div class="segment">
+            <div>General getters</div>
+            <div class="buttons-container">
+              <button onclick="handlerWrapper(getAll)">getAll</button>
+              <button onclick="handlerWrapper(getFetchTimeMillis)">
+                get fetchTimeMillis
+              </button>
+              <button onclick="handlerWrapper(getLastFetchStatus)">
+                get lastFetchStatus
+              </button>
+              <button onclick="handlerWrapper(getSettings)">
+                get settings
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="column output-container">
+          <div>Output</div>
+          <div class="output-box-container">
+            <div id="output-box"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="./index.js"></script>
+  </body>
+</html>
