@@ -4,6 +4,8 @@
 
 ## OAuthProvider.addScope() method
 
+Add an OAuth scope to the credential.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +16,7 @@ addScope(scope: string): externs.AuthProvider;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  scope | string |  |
+|  scope | string | Provider OAuth scope to add. |
 
 <b>Returns:</b>
 

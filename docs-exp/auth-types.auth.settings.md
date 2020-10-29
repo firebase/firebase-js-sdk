@@ -4,10 +4,15 @@
 
 ## Auth.settings property
 
-The Auth instance's settings. This is used to edit/read configuration related options like app verification mode for phone authentication.
+The Auth instance's settings.
 
 <b>Signature:</b>
 
 ```typescript
 readonly settings: AuthSettings;
 ```
+
+## Remarks
+
+This is used to edit/read configuration related options such as app verification mode for phone authentication.
+

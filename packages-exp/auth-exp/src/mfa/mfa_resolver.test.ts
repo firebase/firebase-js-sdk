@@ -31,7 +31,7 @@ import { PhoneAuthCredential } from '../core/credentials/phone';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { EmailAuthProvider } from '../core/providers/email';
 import { User, UserCredential } from '../model/user';
-import { MultiFactorAssertion } from './assertions';
+import { MultiFactorAssertion } from './mfa_assertion';
 import { PhoneMultiFactorAssertion } from '../platform_browser/mfa/assertions/phone';
 import { MultiFactorError } from './mfa_error';
 import { getMultiFactorResolver, MultiFactorResolver } from './mfa_resolver';

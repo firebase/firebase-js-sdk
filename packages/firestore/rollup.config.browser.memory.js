@@ -46,18 +46,5 @@ export default [
     treeshake: {
       moduleSideEffects: false
     }
-  },
-  {
-    input: path.resolve('./memory', memoryPkg['esm2017']),
-    output: {
-      file: path.resolve('./memory', memoryPkg.browser),
-      format: 'cjs',
-      sourcemap: true
-    },
-    plugins: util.es2017ToEs5Plugins(/* mangled= */ true),
-    external: util.resolveBrowserExterns,
-    treeshake: {
-      moduleSideEffects: false
-    }
   }
 ];

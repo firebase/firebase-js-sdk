@@ -33,7 +33,7 @@ import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
 import {
-  _REDIRECT_USER_KEY_NAME,
+  KeyName,
   PersistenceUserManager
 } from '../persistence/persistence_user_manager';
 import { _reloadWithoutSaving } from '../user/reload';
@@ -45,9 +45,11 @@ interface AsyncAction {
   (): Promise<void>;
 }
 
-export const DEFAULT_TOKEN_API_HOST = 'securetoken.googleapis.com';
-export const DEFAULT_API_HOST = 'identitytoolkit.googleapis.com';
-export const DEFAULT_API_SCHEME = 'https';
+export const enum DefaultConfig {
+  TOKEN_API_HOST = 'securetoken.googleapis.com',
+  API_HOST = 'identitytoolkit.googleapis.com',
+  API_SCHEME = 'https'
+}
 
 export class AuthImpl implements Auth, _FirebaseService {
   currentUser: externs.User | null = null;
@@ -324,7 +326,7 @@ export class AuthImpl implements Auth, _FirebaseService {
       this.redirectPersistenceManager = await PersistenceUserManager.create(
         this,
         [_getInstance(resolver._redirectPersistence)],
-        _REDIRECT_USER_KEY_NAME
+        KeyName.REDIRECT_USER
       );
       this.redirectUser = await this.redirectPersistenceManager.getCurrentUser();
     }

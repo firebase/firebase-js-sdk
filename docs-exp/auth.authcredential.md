@@ -4,17 +4,17 @@
 
 ## AuthCredential class
 
+Interface that represents the credentials returned by an [AuthProvider](./auth-types.authprovider.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
 export declare class AuthCredential 
 ```
 
-## Constructors
+## Remarks
 
-|  Constructor | Modifiers | Description |
-|  --- | --- | --- |
-|  [(constructor)(providerId, signInMethod)](./auth.authcredential._constructor_.md) |  | Constructs a new instance of the <code>AuthCredential</code> class |
+Implementations specify the details about each auth provider's credential requirements.
 
 ## Properties
 
@@ -27,8 +27,5 @@ export declare class AuthCredential
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [\_getIdTokenResponse(\_auth)](./auth.authcredential._getidtokenresponse.md) |  |  |
-|  [\_getReauthenticationResolver(\_auth)](./auth.authcredential._getreauthenticationresolver.md) |  |  |
-|  [\_linkToIdToken(\_auth, \_idToken)](./auth.authcredential._linktoidtoken.md) |  |  |
-|  [toJSON()](./auth.authcredential.tojson.md) |  |  |
+|  [toJSON()](./auth.authcredential.tojson.md) |  | Returns a JSON-serializable representation of this object. |
 

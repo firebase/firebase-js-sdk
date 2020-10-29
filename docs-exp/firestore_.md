@@ -33,18 +33,18 @@
 |  [arrayRemove(elements)](./firestore_.arrayremove.md) |  |
 |  [arrayUnion(elements)](./firestore_.arrayunion.md) |  |
 |  [clearIndexedDbPersistence(firestore)](./firestore_.clearindexeddbpersistence.md) |  |
-|  [collection(firestore, collectionPath)](./firestore_.collection.md) |  |
-|  [collection(reference, collectionPath)](./firestore_.collection_1.md) |  |
-|  [collection(reference, collectionPath)](./firestore_.collection_2.md) |  |
+|  [collection(firestore, path, pathComponents)](./firestore_.collection.md) |  |
+|  [collection(reference, path, pathComponents)](./firestore_.collection_1.md) |  |
+|  [collection(reference, path, pathComponents)](./firestore_.collection_2.md) |  |
 |  [collectionGroup(firestore, collectionId)](./firestore_.collectiongroup.md) |  |
 |  [deleteDoc(reference)](./firestore_.deletedoc.md) |  |
 |  [deleteField()](./firestore_.deletefield.md) |  |
 |  [disableNetwork(firestore)](./firestore_.disablenetwork.md) |  |
-|  [doc(firestore, documentPath)](./firestore_.doc.md) |  |
-|  [doc(reference, documentPath)](./firestore_.doc_1.md) |  |
-|  [doc(reference, documentPath)](./firestore_.doc_2.md) |  |
+|  [doc(firestore, path, pathComponents)](./firestore_.doc.md) |  |
+|  [doc(reference, path, pathComponents)](./firestore_.doc_1.md) |  |
+|  [doc(reference, path, pathComponents)](./firestore_.doc_2.md) |  |
 |  [documentId()](./firestore_.documentid.md) |  |
-|  [enableIndexedDbPersistence(firestore)](./firestore_.enableindexeddbpersistence.md) |  |
+|  [enableIndexedDbPersistence(firestore, persistenceSettings)](./firestore_.enableindexeddbpersistence.md) |  |
 |  [enableMultiTabIndexedDbPersistence(firestore)](./firestore_.enablemultitabindexeddbpersistence.md) |  |
 |  [enableNetwork(firestore)](./firestore_.enablenetwork.md) |  |
 |  [endAt(snapshot)](./firestore_.endat.md) |  |
@@ -101,6 +101,7 @@
 |  [DocumentData](./firestore_.documentdata.md) |  |
 |  [FirestoreDataConverter](./firestore_.firestoredataconverter.md) |  |
 |  [FirestoreError](./firestore_.firestoreerror.md) |  |
+|  [PersistenceSettings](./firestore_.persistencesettings.md) |  |
 |  [Settings](./firestore_.settings.md) |  |
 |  [SnapshotListenOptions](./firestore_.snapshotlistenoptions.md) |  |
 |  [SnapshotOptions](./firestore_.snapshotoptions.md) |  |

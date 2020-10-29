@@ -4,6 +4,7 @@
 
 ## OAuthCredential.toJSON() method
 
+
 <b>Signature:</b>
 
 ```typescript

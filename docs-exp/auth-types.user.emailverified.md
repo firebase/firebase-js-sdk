@@ -4,7 +4,7 @@
 
 ## User.emailVerified property
 
-Whether the email has been verified with `sendEmailVerification` and `applyActionCode`<!-- -->.
+Whether the email has been verified with [sendEmailVerification()](./auth.sendemailverification.md) and [applyActionCode()](./auth.applyactioncode.md)<!-- -->.
 
 <b>Signature:</b>
 

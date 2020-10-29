@@ -4,7 +4,7 @@
 
 ## EmailAuthProvider class
 
-Email and password auth provider implementation.
+Provider for generating [EmailAuthCredential](./auth.emailauthcredential.md)<!-- -->.
 
 <b>Signature:</b>
 

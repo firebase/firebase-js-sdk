@@ -4,6 +4,8 @@
 
 ## OAuthCredential class
 
+Interface that represents the OAuth credentials returned by an [OAuthProvider](./auth.oauthprovider.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -13,23 +15,22 @@ export declare class OAuthCredential extends AuthCredential implements externs.O
 
 <b>Implements:</b> externs.[OAuthCredential](./auth-types.oauthcredential.md)
 
+## Remarks
+
+Implementations specify the details about each auth provider's credential requirements.
+
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [accessToken](./auth.oauthcredential.accesstoken.md) |  | string |  |
-|  [idToken](./auth.oauthcredential.idtoken.md) |  | string |  |
-|  [nonce](./auth.oauthcredential.nonce.md) |  | string |  |
-|  [secret](./auth.oauthcredential.secret.md) |  | string |  |
+|  [accessToken](./auth.oauthcredential.accesstoken.md) |  | string | The OAuth access token associated with the credential if it belongs to an [OAuthProvider](./auth.oauthprovider.md)<!-- -->, such as <code>facebook.com</code>, <code>twitter.com</code>, etc. |
+|  [idToken](./auth.oauthcredential.idtoken.md) |  | string | The OAuth ID token associated with the credential if it belongs to an OIDC provider, such as <code>google.com</code>. |
+|  [secret](./auth.oauthcredential.secret.md) |  | string | The OAuth access token secret associated with the credential if it belongs to an OAuth 1.0 provider, such as <code>twitter.com</code>. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [\_fromParams(params)](./auth.oauthcredential._fromparams.md) | <code>static</code> |  |
-|  [\_getIdTokenResponse(auth)](./auth.oauthcredential._getidtokenresponse.md) |  |  |
-|  [\_getReauthenticationResolver(auth)](./auth.oauthcredential._getreauthenticationresolver.md) |  |  |
-|  [\_linkToIdToken(auth, idToken)](./auth.oauthcredential._linktoidtoken.md) |  |  |
-|  [fromJSON(json)](./auth.oauthcredential.fromjson.md) | <code>static</code> |  |
+|  [fromJSON(json)](./auth.oauthcredential.fromjson.md) | <code>static</code> | Static method to deserialize a JSON representation of an object into an [AuthCredential](./auth-types.authcredential.md)<!-- -->. |
 |  [toJSON()](./auth.oauthcredential.tojson.md) |  |  |
 

@@ -21,15 +21,17 @@ import { Provider } from '@firebase/component';
 
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import {
-  createBundleReader,
-  MAX_CONCURRENT_LIMBO_RESOLUTIONS
+  FirestoreClient,
+  firestoreClientDisableNetwork,
+  firestoreClientEnableNetwork,
+  firestoreClientGetNamedQuery,
+  firestoreClientLoadBundle,
+  firestoreClientWaitForPendingWrites,
+  setOfflineComponentProvider,
+  setOnlineComponentProvider
 } from '../../../src/core/firestore_client';
+import { AsyncQueue } from '../../../src/util/async_queue';
 import {
-  AsyncQueue,
-  wrapInUserErrorIfRecoverable
-} from '../../../src/util/async_queue';
-import {
-  ComponentConfiguration,
   IndexedDbOfflineComponentProvider,
   MultiTabOfflineComponentProvider,
   OfflineComponentProvider,
@@ -41,42 +43,20 @@ import {
 } from '../../../lite/src/api/database';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
-import { LruParams } from '../../../src/local/lru_garbage_collector';
-import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
+import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../../../src/local/lru_garbage_collector';
+import {
+  CACHE_SIZE_UNLIMITED,
+  configureFirestore,
+  ensureFirestoreConfigured,
+  FirestoreCompat
+} from '../../../src/api/database';
 import {
   indexedDbClearPersistence,
   indexedDbStoragePrefix
 } from '../../../src/local/indexeddb_persistence';
-import { LoadBundleTask } from '../../../src/api/bundle';
-import {
-  getLocalStore,
-  getPersistence,
-  getRemoteStore,
-  getSyncEngine,
-  removeComponents,
-  setOfflineComponentProvider,
-  setOnlineComponentProvider
-} from './components';
-import { DEFAULT_HOST, DEFAULT_SSL } from '../../../lite/src/api/components';
-import { DatabaseInfo } from '../../../src/core/database_info';
-import { AutoId } from '../../../src/util/misc';
-import { User } from '../../../src/auth/user';
-import { CredentialChangeListener } from '../../../src/api/credentials';
-import { logDebug, logWarn } from '../../../src/util/log';
-import {
-  loadBundle as loadBundleSyncEngine,
-  registerPendingWritesCallback
-} from '../../../src/core/sync_engine';
-import {
-  remoteStoreDisableNetwork,
-  remoteStoreEnableNetwork
-} from '../../../src/remote/remote_store';
 import { PersistenceSettings } from '../../../exp-types';
-import { getNamedQuery } from '../../../src/local/local_store';
-import { newSerializer } from '../../../src/platform/serializer';
 import { Query } from '../../../lite/src/api/reference';
-
-const LOG_TAG = 'Firestore';
+import { LoadBundleTask } from '../../../src/api/bundle';
 
 /** DOMException error code constants. */
 const DOM_EXCEPTION_INVALID_STATE = 11;
@@ -94,18 +74,11 @@ export interface Settings extends LiteSettings {
  */
 export class FirebaseFirestore
   extends LiteFirestore
-  implements _FirebaseService {
+  implements _FirebaseService, FirestoreCompat {
   readonly _queue = new AsyncQueue();
   readonly _persistenceKey: string;
-  readonly _clientId = AutoId.newId();
 
-  private readonly _receivedInitialUser = new Deferred<void>();
-  private _user = User.UNAUTHENTICATED;
-  private _credentialListener: CredentialChangeListener = () => {};
-
-  // We override the Settings property of the Lite SDK since the full Firestore
-  // SDK supports more settings.
-  protected _settings?: Settings;
+  _firestoreClient: FirestoreClient | undefined;
 
   constructor(
     app: FirebaseApp,
@@ -113,80 +86,15 @@ export class FirebaseFirestore
   ) {
     super(app, authProvider);
     this._persistenceKey = app.name;
-    this._credentials.setChangeListener(user => {
-      this._user = user;
-      this._receivedInitialUser.resolve();
-    });
-  }
-
-  _setCredentialChangeListener(
-    credentialListener: CredentialChangeListener
-  ): void {
-    logDebug(LOG_TAG, 'Registering credential change listener');
-    this._credentialListener = credentialListener;
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this._receivedInitialUser.promise.then(() =>
-      this._credentialListener(this._user)
-    );
-  }
-
-  async _getConfiguration(): Promise<ComponentConfiguration> {
-    const settings = this._getSettings();
-    await this._receivedInitialUser.promise;
-    const databaseInfo = new DatabaseInfo(
-      this._databaseId,
-      this._persistenceKey,
-      settings.host ?? DEFAULT_HOST,
-      settings.ssl ?? DEFAULT_SSL,
-      /* forceLongPolling= */ false,
-      /* forceAutoDetectLongPolling= */ true
-    );
-    return {
-      asyncQueue: this._queue,
-      databaseInfo,
-      clientId: this._clientId,
-      credentials: this._credentials,
-      initialUser: this._user,
-      maxConcurrentLimboResolutions: MAX_CONCURRENT_LIMBO_RESOLUTIONS
-    };
-  }
-
-  _getSettings(): Settings {
-    return super._getSettings();
   }
 
   _terminate(): Promise<void> {
-    this._queue.enterRestrictedMode();
-    const deferred = new Deferred();
-    this._queue.enqueueAndForgetEvenWhileRestricted(async () => {
-      try {
-        await super._terminate();
-        await removeComponents(this);
-
-        // `removeChangeListener` must be called after shutting down the
-        // RemoteStore as it will prevent the RemoteStore from retrieving
-        // auth tokens.
-        this._credentials.removeChangeListener();
-
-        deferred.resolve();
-      } catch (e) {
-        const firestoreError = wrapInUserErrorIfRecoverable(
-          e,
-          `Failed to shutdown persistence`
-        );
-        deferred.reject(firestoreError);
-      }
-    });
-    return deferred.promise;
-  }
-
-  _verifyNotTerminated(): void {
-    if (this._terminated) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        'The client has already been terminated.'
-      );
+    if (!this._firestoreClient) {
+      // The client must be initialized to ensure that all subsequent API
+      // usage throws an exception.
+      configureFirestore(this);
     }
+    return this._firestoreClient!.terminate();
   }
 }
 
@@ -213,15 +121,15 @@ export function initializeFirestore(
   if (
     settings.cacheSizeBytes !== undefined &&
     settings.cacheSizeBytes !== CACHE_SIZE_UNLIMITED &&
-    settings.cacheSizeBytes < LruParams.MINIMUM_CACHE_SIZE_BYTES
+    settings.cacheSizeBytes < LRU_MINIMUM_CACHE_SIZE_BYTES
   ) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `cacheSizeBytes must be at least ${LruParams.MINIMUM_CACHE_SIZE_BYTES}`
+      `cacheSizeBytes must be at least ${LRU_MINIMUM_CACHE_SIZE_BYTES}`
     );
   }
 
-  firestore._configureClient(settings);
+  firestore._setSettings(settings);
   return firestore;
 }
 
@@ -261,15 +169,12 @@ export function getFirestore(app: FirebaseApp): FirebaseFirestore {
  * @return A promise that represents successfully enabling persistent storage.
  */
 export function enableIndexedDbPersistence(
-  firestore: FirebaseFirestore,
+  firestore: FirestoreCompat,
   persistenceSettings?: PersistenceSettings
 ): Promise<void> {
   verifyNotInitialized(firestore);
 
-  // `_getSettings()` freezes the client settings and prevents further changes
-  // to the components (as `verifyNotInitialized()` would fail). Components can
-  // then be accessed via `getOfflineComponentProvider()` and
-  // `getOnlineComponentProvider()`
+  const client = ensureFirestoreConfigured(firestore);
   const settings = firestore._getSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
@@ -279,7 +184,7 @@ export function enableIndexedDbPersistence(
     persistenceSettings?.forceOwnership
   );
   return setPersistenceProviders(
-    firestore,
+    client,
     onlineComponentProvider,
     offlineComponentProvider
   );
@@ -308,14 +213,11 @@ export function enableIndexedDbPersistence(
  * storage.
  */
 export function enableMultiTabIndexedDbPersistence(
-  firestore: FirebaseFirestore
+  firestore: FirestoreCompat
 ): Promise<void> {
   verifyNotInitialized(firestore);
 
-  // `_getSettings()` freezes the client settings and prevents further changes
-  // to the components (as `verifyNotInitialized()` would fail). Components can
-  // then be accessed via `getOfflineComponentProvider()` and
-  // `getOnlineComponentProvider()`
+  const client = ensureFirestoreConfigured(firestore);
   const settings = firestore._getSettings();
 
   const onlineComponentProvider = new OnlineComponentProvider();
@@ -324,7 +226,7 @@ export function enableMultiTabIndexedDbPersistence(
     settings.cacheSizeBytes
   );
   return setPersistenceProviders(
-    firestore,
+    client,
     onlineComponentProvider,
     offlineComponentProvider
   );
@@ -337,16 +239,16 @@ export function enableMultiTabIndexedDbPersistence(
  * but the client remains usable.
  */
 function setPersistenceProviders(
-  firestore: FirebaseFirestore,
+  client: FirestoreClient,
   onlineComponentProvider: OnlineComponentProvider,
   offlineComponentProvider: OfflineComponentProvider
 ): Promise<void> {
   const persistenceResult = new Deferred();
-  return firestore._queue
+  return client.asyncQueue
     .enqueue(async () => {
       try {
-        await setOfflineComponentProvider(firestore, offlineComponentProvider);
-        await setOnlineComponentProvider(firestore, onlineComponentProvider);
+        await setOfflineComponentProvider(client, offlineComponentProvider);
+        await setOnlineComponentProvider(client, onlineComponentProvider);
         persistenceResult.resolve();
       } catch (e) {
         if (!canFallbackFromIndexedDbError(e)) {
@@ -367,9 +269,7 @@ function setPersistenceProviders(
  * Decides whether the provided error allows us to gracefully disable
  * persistence (as opposed to crashing the client).
  */
-// TODO(schmidt-sebastian): Remove `export` in
-// https://github.com/firebase/firebase-js-sdk/pull/3901
-export function canFallbackFromIndexedDbError(
+function canFallbackFromIndexedDbError(
   error: FirestoreError | DOMException
 ): boolean {
   if (error.name === 'FirebaseError') {
@@ -426,7 +326,7 @@ export function canFallbackFromIndexedDbError(
  * cleared. Otherwise, the promise is rejected with an error.
  */
 export function clearIndexedDbPersistence(
-  firestore: FirebaseFirestore
+  firestore: FirestoreCompat
 ): Promise<void> {
   if (firestore._initialized && !firestore._terminated) {
     throw new FirestoreError(
@@ -469,14 +369,8 @@ export function clearIndexedDbPersistence(
 export function waitForPendingWrites(
   firestore: FirebaseFirestore
 ): Promise<void> {
-  firestore._verifyNotTerminated();
-
-  const deferred = new Deferred<void>();
-  firestore._queue.enqueueAndForget(async () => {
-    const syncEngine = await getSyncEngine(firestore);
-    return registerPendingWritesCallback(syncEngine, deferred);
-  });
-  return deferred.promise;
+  const client = ensureFirestoreConfigured(firestore);
+  return firestoreClientWaitForPendingWrites(client);
 }
 
 /**
@@ -486,14 +380,8 @@ export function waitForPendingWrites(
  * @return A promise that is resolved once the network has been enabled.
  */
 export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
-  firestore._verifyNotTerminated();
-
-  return firestore._queue.enqueue(async () => {
-    const remoteStore = await getRemoteStore(firestore);
-    const persistence = await getPersistence(firestore);
-    persistence.setNetworkEnabled(true);
-    return remoteStoreEnableNetwork(remoteStore);
-  });
+  const client = ensureFirestoreConfigured(firestore);
+  return firestoreClientEnableNetwork(client);
 }
 
 /**
@@ -505,14 +393,8 @@ export function enableNetwork(firestore: FirebaseFirestore): Promise<void> {
  * @return A promise that is resolved once the network has been disabled.
  */
 export function disableNetwork(firestore: FirebaseFirestore): Promise<void> {
-  firestore._verifyNotTerminated();
-
-  return firestore._queue.enqueue(async () => {
-    const remoteStore = await getRemoteStore(firestore);
-    const persistence = await getPersistence(firestore);
-    persistence.setNetworkEnabled(false);
-    return remoteStoreDisableNetwork(remoteStore);
-  });
+  const client = ensureFirestoreConfigured(firestore);
+  return firestoreClientDisableNetwork(client);
 }
 
 /**
@@ -542,7 +424,7 @@ export function terminate(firestore: FirebaseFirestore): Promise<void> {
   return firestore._delete();
 }
 
-function verifyNotInitialized(firestore: FirebaseFirestore): void {
+function verifyNotInitialized(firestore: FirestoreCompat): void {
   if (firestore._initialized || firestore._terminated) {
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
@@ -557,21 +439,11 @@ export function loadBundle(
   firestore: FirebaseFirestore,
   bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
 ): LoadBundleTask {
-  firestore._verifyNotTerminated();
-
+  const client = ensureFirestoreConfigured(firestore);
   const resultTask = new LoadBundleTask();
 
-  firestore._queue.enqueueAndForget(async () => {
-    const databaseId = (await firestore._getConfiguration()).databaseInfo
-      .databaseId;
-    const reader = createBundleReader(bundleData, newSerializer(databaseId));
-    const syncEngine = await getSyncEngine(firestore);
-
-    loadBundleSyncEngine(syncEngine, reader, resultTask);
-    return resultTask.catch((e: Error) => {
-      logWarn(LOG_TAG, `Loading bundle failed with ${e}`);
-    });
-  });
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  firestoreClientLoadBundle(client, bundleData, resultTask);
   return resultTask;
 }
 
@@ -579,15 +451,12 @@ export function namedQuery(
   firestore: FirebaseFirestore,
   name: string
 ): Promise<Query | null> {
-  return firestore._queue.enqueue(() => {
-    return getLocalStore(firestore).then(localStore => {
-      return getNamedQuery(localStore, name).then(namedQuery => {
-        if (!namedQuery) {
-          return null;
-        }
+  const client = ensureFirestoreConfigured(firestore);
+  return firestoreClientGetNamedQuery(client, name).then(namedQuery => {
+    if (!namedQuery) {
+      return null;
+    }
 
-        return new Query(firestore, null, namedQuery.query);
-      });
-    });
+    return new Query(firestore, null, namedQuery.query);
   });
 }

@@ -4,7 +4,7 @@
 
 ## PhoneAuthCredential.fromJSON() method
 
-Interface that represents the credentials returned by an auth provider. Implementations specify the details about each auth provider's credential requirements.
+Static method to deserialize a JSON representation of an object into an [AuthCredential](./auth-types.authcredential.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -16,9 +16,11 @@ static fromJSON(json: object | string): PhoneAuthCredential | null;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  json | object \| string |  |
+|  json | object \| string | Either <code>object</code> or the stringified representation of the object. When string is provided, <code>JSON.parse</code> would be called first. |
 
 <b>Returns:</b>
 
 [PhoneAuthCredential](./auth-types.phoneauthcredential.md) \| null
+
+If the JSON input does not represent an [AuthCredential](./auth-types.authcredential.md)<!-- -->, null is returned.
 

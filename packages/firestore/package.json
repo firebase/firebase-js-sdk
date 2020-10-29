@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.18.0",
+  "version": "2.0.0",
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
   },
@@ -46,12 +46,15 @@
     "test:node:persistence:prod": "node ./scripts/run-tests.js --main=index.node.ts --persistence 'test/{,!(browser)/**/}*.test.ts'",
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
     "test:minified": "(cd ../../integration/firestore ; yarn test)",
-    "prepare": "yarn build:release"
+    "prepare": "yarn build:release",
+    "api-report": "api-extractor run --local --verbose",
+    "predoc": "node ../../scripts/exp/remove-exp.js temp",
+    "doc": "api-documenter markdown --input temp --output docs"
   },
   "main": "dist/index.node.cjs.js",
   "main-esm2017": "dist/index.node.esm2017.js",
   "react-native": "dist/index.rn.esm2017.js",
-  "browser": "dist/index.cjs.js",
+  "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
   "license": "Apache-2.0",
@@ -60,10 +63,10 @@
     "memory/package.json"
   ],
   "dependencies": {
-    "@firebase/component": "0.1.19",
-    "@firebase/firestore-types": "1.14.0",
+    "@firebase/component": "0.1.20",
+    "@firebase/firestore-types": "2.0.0",
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.3.2",
+    "@firebase/util": "0.3.3",
     "@firebase/webchannel-wrapper": "0.4.0",
     "@grpc/grpc-js": "^1.0.0",
     "@grpc/proto-loader": "^0.5.0",
@@ -75,7 +78,7 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.6.11",
+    "@firebase/app": "0.6.12",
     "@rollup/plugin-alias": "3.1.1",
     "@types/json-stable-stringify": "1.0.32",
     "json-stable-stringify": "1.0.1",

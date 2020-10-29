@@ -1,10 +1,10 @@
 {
   "name": "@firebase/component",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "description": "Firebase Component Platform",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "browser": "dist/index.cjs.js",
+  "browser": "dist/index.esm.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
   "files": ["dist"],
@@ -22,7 +22,7 @@
     "prepare": "yarn build"
   },
   "dependencies": {
-    "@firebase/util": "0.3.2",
+    "@firebase/util": "0.3.3",
     "tslib": "^1.11.1"
   },
   "license": "Apache-2.0",

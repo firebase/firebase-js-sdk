@@ -4,6 +4,8 @@
 
 ## EmailAuthCredential class
 
+Interface that represents the credentials returned by [EmailAuthProvider](./auth.emailauthprovider.md) for [ProviderId.PASSWORD](./auth-types.providerid.password.md)
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,6 +14,12 @@ export declare class EmailAuthCredential extends AuthCredential implements exter
 <b>Extends:</b> [AuthCredential](./auth.authcredential.md)
 
 <b>Implements:</b> externs.[AuthCredential](./auth-types.authcredential.md)
+
+## Remarks
+
+Covers both [SignInMethod.EMAIL\_PASSWORD](./auth-types.signinmethod.email_password.md) and [SignInMethod.EMAIL\_LINK](./auth-types.signinmethod.email_link.md)<!-- -->.
+
+The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `EmailAuthCredential` class.
 
 ## Properties
 
@@ -25,11 +33,6 @@ export declare class EmailAuthCredential extends AuthCredential implements exter
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [\_fromEmailAndCode(email, oobCode, tenantId)](./auth.emailauthcredential._fromemailandcode.md) | <code>static</code> |  |
-|  [\_fromEmailAndPassword(email, password)](./auth.emailauthcredential._fromemailandpassword.md) | <code>static</code> |  |
-|  [\_getIdTokenResponse(auth)](./auth.emailauthcredential._getidtokenresponse.md) |  |  |
-|  [\_getReauthenticationResolver(auth)](./auth.emailauthcredential._getreauthenticationresolver.md) |  |  |
-|  [\_linkToIdToken(auth, idToken)](./auth.emailauthcredential._linktoidtoken.md) |  |  |
-|  [fromJSON(json)](./auth.emailauthcredential.fromjson.md) | <code>static</code> |  |
-|  [toJSON()](./auth.emailauthcredential.tojson.md) |  |  |
+|  [fromJSON(json)](./auth.emailauthcredential.fromjson.md) | <code>static</code> | Static method to deserialize a JSON representation of an object into an [AuthCredential](./auth-types.authcredential.md)<!-- -->. |
+|  [toJSON()](./auth.emailauthcredential.tojson.md) |  | Returns a JSON-serializable representation of this object. |
 

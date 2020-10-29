@@ -58,6 +58,33 @@ class ConfirmationResult implements externs.ConfirmationResult {
   }
 }
 
+/**
+ * Asynchronously signs in using a phone number.
+ *
+ * @remarks
+ * This method sends a code via SMS to the given
+ * phone number, and returns a {@link @firebase/auth-types#ConfirmationResult}. After the user
+ * provides the code sent to their phone, call {@link @firebase/auth-types#ConfirmationResult.confirm}
+ * with the code to sign the user in.
+ *
+ * For abuse prevention, this method also requires a {@link @firebase/auth-types#ApplicationVerifier}.
+ * This SDK includes a reCAPTCHA-based implementation, {@link RecaptchaVerifier}.
+ *
+ * @example
+ * ```javascript
+ * // 'recaptcha-container' is the ID of an element in the DOM.
+ * const applicationVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
+ * const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+ * // Obtain a verificationCode from the user.
+ * const credential = await confirmationResult.confirm(verificationCode);
+ * ```
+ *
+ * @param auth - The Auth instance.
+ * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
+ * @param appVerifier - The {@link @firebase/auth-types#ApplicationVerifier}.
+ *
+ * @public
+ */
 export async function signInWithPhoneNumber(
   auth: externs.Auth,
   phoneNumber: string,
@@ -73,15 +100,24 @@ export async function signInWithPhoneNumber(
   );
 }
 
+/**
+ * Links the user account with the given phone number.
+ *
+ * @param user - The user.
+ * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
+ * @param appVerifier - The {@link @firebase/auth-types#ApplicationVerifier}.
+ *
+ * @public
+ */
 export async function linkWithPhoneNumber(
-  userExtern: externs.User,
+  user: externs.User,
   phoneNumber: string,
   appVerifier: externs.ApplicationVerifier
 ): Promise<externs.ConfirmationResult> {
-  const user = userExtern as User;
-  await _assertLinkedStatus(false, user, externs.ProviderId.PHONE);
+  const userInternal = user as User;
+  await _assertLinkedStatus(false, userInternal, externs.ProviderId.PHONE);
   const verificationId = await _verifyPhoneNumber(
-    user.auth,
+    userInternal.auth,
     phoneNumber,
     appVerifier as ApplicationVerifier
   );
@@ -90,14 +126,25 @@ export async function linkWithPhoneNumber(
   );
 }
 
+/**
+ * Re-authenticates a user using a fresh phne credential.
+ *
+ * @remarks Use before operations such as {@link updatePassword} that require tokens from recent sign-in attempts.
+ *
+ * @param user - The user.
+ * @param phoneNumber - The user's phone number in E.164 format (e.g. +16505550101).
+ * @param appVerifier - The {@link @firebase/auth-types#ApplicationVerifier}.
+ *
+ * @public
+ */
 export async function reauthenticateWithPhoneNumber(
-  userExtern: externs.User,
+  user: externs.User,
   phoneNumber: string,
   appVerifier: externs.ApplicationVerifier
 ): Promise<externs.ConfirmationResult> {
-  const user = userExtern as User;
+  const userInternal = user as User;
   const verificationId = await _verifyPhoneNumber(
-    user.auth,
+    userInternal.auth,
     phoneNumber,
     appVerifier as ApplicationVerifier
   );
@@ -107,8 +154,9 @@ export async function reauthenticateWithPhoneNumber(
 }
 
 /**
- *  Returns a verification ID to be used in conjunction with the SMS code that
- *  is sent.
+ * Returns a verification ID to be used in conjunction with the SMS code that is sent.
+ *
+ * @internal
  */
 export async function _verifyPhoneNumber(
   auth: Auth,
@@ -187,6 +235,25 @@ export async function _verifyPhoneNumber(
   }
 }
 
+/**
+ * Updates the user's phone number.
+ *
+ * @example
+ * ```
+ * // 'recaptcha-container' is the ID of an element in the DOM.
+ * const applicationVerifier = new RecaptchaVerifier('recaptcha-container');
+ * const provider = new PhoneAuthProvider(auth);
+ * const verificationId = await provider.verifyPhoneNumber('+16505550101', applicationVerifier);
+ * // Obtain the verificationCode from the user.
+ * const phoneCredential = PhoneAuthProvider.credential(verificationId, verificationCode);
+ * await updatePhoneNumber(user, phoneCredential);
+ * ```
+ *
+ * @param user - The user.
+ * @param credential - A credential authenticating the new phone number.
+ *
+ * @public
+ */
 export async function updatePhoneNumber(
   user: externs.User,
   credential: externs.PhoneAuthCredential

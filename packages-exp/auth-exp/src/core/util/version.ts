@@ -19,16 +19,18 @@ import { SDK_VERSION } from '@firebase/app-exp';
 import { _getBrowserName } from './browser';
 import { getUA } from '@firebase/util';
 
-const CLIENT_IMPLEMENTATION = 'JsCore';
+export const enum ClientImplementation {
+  CORE = 'JsCore'
+}
 
-export enum ClientPlatform {
+export const enum ClientPlatform {
   BROWSER = 'Browser',
   NODE = 'Node',
   REACT_NATIVE = 'ReactNative',
   WORKER = 'Worker'
 }
 
-enum ClientFramework {
+const enum ClientFramework {
   // No other framework used.
   DEFAULT = 'FirebaseCore-web',
   // Firebase Auth used with FirebaseUI-web.
@@ -57,5 +59,5 @@ export function _getClientVersion(clientPlatform: ClientPlatform): string {
     default:
       reportedPlatform = clientPlatform;
   }
-  return `${reportedPlatform}/${CLIENT_IMPLEMENTATION}/${SDK_VERSION}/${ClientFramework.DEFAULT}`;
+  return `${reportedPlatform}/${ClientImplementation.CORE}/${SDK_VERSION}/${ClientFramework.DEFAULT}`;
 }

@@ -4,6 +4,8 @@
 
 ## confirmPasswordReset() function
 
+Completes the password reset process, given a confirmation code and new password.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,9 +16,9 @@ export declare function confirmPasswordReset(auth: externs.Auth, oobCode: string
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
-|  oobCode | string |  |
-|  newPassword | string |  |
+|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  oobCode | string | A confirmation code sent to the user. |
+|  newPassword | string | The new password. |
 
 <b>Returns:</b>
 

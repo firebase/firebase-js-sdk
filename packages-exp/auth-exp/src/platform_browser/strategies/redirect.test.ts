@@ -63,7 +63,7 @@ const OTHER_EVENT_ID = 'wrong-id';
 
 class RedirectPersistence extends InMemoryPersistence {}
 
-describe('src/core/strategies/redirect', () => {
+describe('platform_browser/strategies/redirect', () => {
   let auth: TestAuth;
   let eventManager: AuthEventManager;
   let provider: OAuthProvider;

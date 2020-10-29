@@ -22,6 +22,8 @@ import { UserCredential } from '../../model/user';
 
 /**
  * Parse the `AdditionalUserInfo` from the ID token response.
+ *
+ * @internal
  */
 export function _fromIdTokenResponse(
   idTokenResponse?: IdTokenResponse
@@ -126,10 +128,26 @@ class TwitterAdditionalUserInfo extends FederatedAdditionalUserInfoWithUsername 
   }
 }
 
+/**
+ * Extracts provider specific {@link @firebase/auth-types#AdditionalUserInfo} for the given credential.
+ *
+ * @param userCredential - The user credential.
+ *
+ * @public
+ */
 export function getAdditionalUserInfo(
   userCredential: externs.UserCredential
 ): externs.AdditionalUserInfo | null {
-  return _fromIdTokenResponse(
-    (userCredential as UserCredential)._tokenResponse
-  );
+  const { user, _tokenResponse } = userCredential as UserCredential;
+  if (user.isAnonymous && !_tokenResponse) {
+    // Handle the special case where signInAnonymously() gets called twice.
+    // No network call is made so there's nothing to actually fill this in
+    return {
+      providerId: null,
+      isNewUser: false,
+      profile: null
+    };
+  }
+
+  return _fromIdTokenResponse(_tokenResponse);
 }

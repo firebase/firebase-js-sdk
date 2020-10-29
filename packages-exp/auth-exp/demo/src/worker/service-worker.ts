@@ -92,66 +92,70 @@ self.addEventListener('install', (event: ExtendableEvent) => {
 });
 
 // As this is a test app, let's only return cached data when offline.
-self.addEventListener('fetch', async (event: FetchEvent) => {
-  // Try to fetch the resource first after checking for the ID token.
-  const idToken = await getIdToken();
-  let req = event.request;
-  // For same origin https requests, append idToken to header.
-  if (
-    self.location.origin === getOriginFromUrl(event.request.url) &&
-    (self.location.protocol === 'https:' ||
-      self.location.hostname === 'localhost') &&
-    idToken
-  ) {
-    // Clone headers as request headers are immutable.
-    const headers = new Headers();
-    req.headers.forEach((value, key) => {
-      headers.append(key, value);
-    });
-    // Add ID token to header. We can't add to Authentication header as it
-    // will break HTTP basic authentication.
-    headers.append('x-id-token', idToken);
-    try {
-      req = new Request(req.url, {
-        method: req.method,
-        headers,
-        mode: 'same-origin',
-        credentials: req.credentials,
-        cache: req.cache,
-        redirect: req.redirect,
-        referrer: req.referrer,
-        body: req.body
-      });
-    } catch (e) {
-      // This will fail for CORS requests. We just continue with the
-      // fetch caching logic below and do not pass the ID token.
-    }
-  }
-  let response: Response;
-  try {
-    response = await fetch(req);
-  } catch (e) {
-    // For fetch errors, attempt to retrieve the resource from cache.
-    try {
-      response = (await caches.match(event.request.clone()))!;
-    } catch (error) {
-      // If error getting resource from cache, do nothing.
-      console.log(error);
-      return;
-    }
-  }
-  // Check if we received a valid response.
-  // If not, just funnel the error response.
-  if (!response || response.status !== 200 || response.type !== 'basic') {
-    return response;
-  }
-  // If response is valid, clone it and save it to the cache.
-  const responseToCache = response.clone();
-  // Save response to cache.
-  const cache = await caches.open(CACHE_NAME);
-  await cache.put(event.request, responseToCache);
-  // After caching, return response.
-  return response;
+self.addEventListener('fetch', (event: FetchEvent) => {
+  event.respondWith(
+    (async function () {
+      const idToken = await getIdToken();
+      // Try to fetch the resource first after checking for the ID token.
+      let req = event.request;
+      // For same origin https requests, append idToken to header.
+      if (
+        self.location.origin === getOriginFromUrl(event.request.url) &&
+        (self.location.protocol === 'https:' ||
+          self.location.hostname === 'localhost') &&
+        idToken
+      ) {
+        // Clone headers as request headers are immutable.
+        const headers = new Headers();
+        req.headers.forEach((value, key) => {
+          headers.append(key, value);
+        });
+        // Add ID token to header. We can't add to Authentication header as it
+        // will break HTTP basic authentication.
+        headers.append('x-id-token', idToken);
+        try {
+          req = new Request(req.url, {
+            method: req.method,
+            headers,
+            mode: 'same-origin',
+            credentials: req.credentials,
+            cache: req.cache,
+            redirect: req.redirect,
+            referrer: req.referrer,
+            body: req.body
+          });
+        } catch (e) {
+          // This will fail for CORS requests. We just continue with the
+          // fetch caching logic below and do not pass the ID token.
+        }
+      }
+      return fetch(req)
+        .then(response => {
+          // Check if we received a valid response.
+          // If not, just funnel the error response.
+          if (response.status !== 200 || response.type !== 'basic') {
+            return response;
+          }
+          // If response is valid, clone it and save it to the cache.
+          var responseToCache = response.clone();
+          // Save response to cache.
+          caches.open(CACHE_NAME).then(function (cache) {
+            cache.put(event.request, responseToCache);
+          });
+          // After caching, return response.
+          return response;
+        })
+        .catch(() => {
+          // For fetch errors, attempt to retrieve the resource from cache.
+          return caches.match(event.request.clone()) as Promise<Response>;
+        })
+        .catch(error => {
+          // If error getting resource from cache, do nothing.
+          console.log(error);
+          throw error;
+        });
+    })()
+  );
 });
 
 self.addEventListener('activate', (event: ExtendableEvent) => {

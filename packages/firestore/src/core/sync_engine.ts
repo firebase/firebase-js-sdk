@@ -60,7 +60,7 @@ import {
 } from '../remote/remote_store';
 import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { logDebug } from '../util/log';
+import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
@@ -1540,7 +1540,7 @@ export function ensureWriteCallbacks(syncEngine: SyncEngine): SyncEngineImpl {
  * @param bundleReader Bundle to load into the SDK.
  * @param task LoadBundleTask used to update the loading progress to public API.
  */
-export function loadBundle(
+export function syncEngineLoadBundle(
   syncEngine: SyncEngine,
   bundleReader: BundleReader,
   task: LoadBundleTask
@@ -1602,6 +1602,7 @@ async function loadBundleImpl(
     await saveBundle(syncEngine.localStore, metadata);
     task._completeWith(result.progress);
   } catch (e) {
+    logWarn(LOG_TAG, `Loading bundle failed with ${e}`);
     task._failWith(e);
   }
 }

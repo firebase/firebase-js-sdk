@@ -4,6 +4,8 @@
 
 ## PhoneAuthCredential class
 
+Interface that represents the credentials returned by a [PhoneAuthProvider](./auth.phoneauthprovider.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -17,12 +19,6 @@ export declare class PhoneAuthCredential extends AuthCredential implements exter
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [\_fromTokenResponse(phoneNumber, temporaryProof)](./auth.phoneauthcredential._fromtokenresponse.md) | <code>static</code> |  |
-|  [\_fromVerification(verificationId, verificationCode)](./auth.phoneauthcredential._fromverification.md) | <code>static</code> |  |
-|  [\_getIdTokenResponse(auth)](./auth.phoneauthcredential._getidtokenresponse.md) |  |  |
-|  [\_getReauthenticationResolver(auth)](./auth.phoneauthcredential._getreauthenticationresolver.md) |  |  |
-|  [\_linkToIdToken(auth, idToken)](./auth.phoneauthcredential._linktoidtoken.md) |  |  |
-|  [\_makeVerificationRequest()](./auth.phoneauthcredential._makeverificationrequest.md) |  |  |
 |  [fromJSON(json)](./auth.phoneauthcredential.fromjson.md) | <code>static</code> |  |
 |  [toJSON()](./auth.phoneauthcredential.tojson.md) |  |  |
 

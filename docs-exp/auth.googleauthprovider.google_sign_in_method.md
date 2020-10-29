@@ -4,6 +4,8 @@
 
 ## GoogleAuthProvider.GOOGLE\_SIGN\_IN\_METHOD property
 
+Always set to [SignInMethod.GOOGLE](./auth-types.signinmethod.google.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

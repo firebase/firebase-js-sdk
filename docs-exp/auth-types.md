@@ -9,13 +9,13 @@
 |  Class | Description |
 |  --- | --- |
 |  [ActionCodeURL](./auth-types.actioncodeurl.md) | A utility class to parse email action URLs such as password reset, email verification, email link sign in, etc. |
-|  [AuthCredential](./auth-types.authcredential.md) | Interface that represents the credentials returned by an auth provider. Implementations specify the details about each auth provider's credential requirements. |
-|  [EmailAuthProvider](./auth-types.emailauthprovider.md) | Email and password auth provider implementation. |
+|  [AuthCredential](./auth-types.authcredential.md) | Interface that represents the credentials returned by an [AuthProvider](./auth-types.authprovider.md)<!-- -->. |
+|  [EmailAuthProvider](./auth-types.emailauthprovider.md) | Provider for generating [EmailAuthCredential](./auth.emailauthcredential.md)<!-- -->. |
 |  [MultiFactorResolver](./auth-types.multifactorresolver.md) | The class used to facilitate recovery from [MultiFactorError](./auth-types.multifactorerror.md) when a user needs to provide a second factor to sign in. |
-|  [OAuthCredential](./auth-types.oauthcredential.md) | Interface that represents the OAuth credentials returned by an OAuth provider. Implementations specify the details about each auth provider's credential requirements. |
-|  [PhoneAuthCredential](./auth-types.phoneauthcredential.md) | Class that represents the Phone Auth credentials returned by a [PhoneAuthProvider](./auth-types.phoneauthprovider.md)<!-- -->. |
-|  [PhoneAuthProvider](./auth-types.phoneauthprovider.md) | A provider for generating phone credentials. |
-|  [PhoneMultiFactorGenerator](./auth-types.phonemultifactorgenerator.md) | The class used to initialize a [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md)<!-- -->. |
+|  [OAuthCredential](./auth-types.oauthcredential.md) | Interface that represents the OAuth credentials returned by an [OAuthProvider](./auth.oauthprovider.md)<!-- -->. |
+|  [PhoneAuthCredential](./auth-types.phoneauthcredential.md) | Interface that represents the credentials returned by a [PhoneAuthProvider](./auth.phoneauthprovider.md)<!-- -->. |
+|  [PhoneAuthProvider](./auth-types.phoneauthprovider.md) | Provider for generating an [PhoneAuthCredential](./auth.phoneauthcredential.md)<!-- -->. |
+|  [PhoneMultiFactorGenerator](./auth-types.phonemultifactorgenerator.md) | Provider for generating a [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md)<!-- -->. |
 |  [RecaptchaVerifier](./auth-types.recaptchaverifier.md) | An [reCAPTCHA](https://www.google.com/recaptcha/)<!-- -->-based application verifier. |
 
 ## Enumerations
@@ -23,40 +23,40 @@
 |  Enumeration | Description |
 |  --- | --- |
 |  [Operation](./auth-types.operation.md) | An enumeration of the possible email action types. |
-|  [OperationType](./auth-types.operationtype.md) | Supported operation types. |
-|  [ProviderId](./auth-types.providerid.md) | Supported providers. |
-|  [SignInMethod](./auth-types.signinmethod.md) | Supported sign-in methods. |
+|  [OperationType](./auth-types.operationtype.md) | Enumeration of supported operation types. |
+|  [ProviderId](./auth-types.providerid.md) | Enumeration of supported providers. |
+|  [SignInMethod](./auth-types.signinmethod.md) | Enumeration of supported sign-in methods. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [ActionCodeInfo](./auth-types.actioncodeinfo.md) | A response from <code>checkActionCode</code>. |
-|  [ActionCodeSettings](./auth-types.actioncodesettings.md) | This is the interface that defines the required continue/state URL with optional Android and iOS bundle identifiers. |
+|  [ActionCodeInfo](./auth-types.actioncodeinfo.md) | A response from [checkActionCode()](./auth.checkactioncode.md)<!-- -->. |
+|  [ActionCodeSettings](./auth-types.actioncodesettings.md) | An interface that defines the required continue/state URL with optional Android and iOS bundle identifiers. |
 |  [AdditionalUserInfo](./auth-types.additionaluserinfo.md) | A structure containing additional user information from a federated identity provider. |
-|  [ApplicationVerifier](./auth-types.applicationverifier.md) | A verifier for domain verification and abuse prevention. Currently, the only implementation is [RecaptchaVerifier](./auth-types.recaptchaverifier.md)<!-- -->. |
-|  [Auth](./auth-types.auth.md) | The Firebase Auth service interface.<!-- -->See [Firebase Authentication](https://firebase.google.com/docs/auth/) for a full guide on how to use the Firebase Auth service. |
-|  [AuthError](./auth-types.autherror.md) |  |
+|  [ApplicationVerifier](./auth-types.applicationverifier.md) | A verifier for domain verification and abuse prevention. |
+|  [Auth](./auth-types.auth.md) | Interface representing Firebase Auth service. |
+|  [AuthError](./auth-types.autherror.md) | Interface for an Auth error. |
 |  [AuthProvider](./auth-types.authprovider.md) | Interface that represents an auth provider, used to facilitate creating [AuthCredential](./auth-types.authcredential.md)<!-- -->. |
-|  [AuthSettings](./auth-types.authsettings.md) | Interface representing an Auth instance's settings, currently used for enabling/disabling app verification for phone Auth testing. |
-|  [Config](./auth-types.config.md) | Auth config object. |
+|  [AuthSettings](./auth-types.authsettings.md) | Interface representing an Auth instance's settings. |
+|  [Config](./auth-types.config.md) | Interface representing the Auth config. |
 |  [ConfirmationResult](./auth-types.confirmationresult.md) | A result from a phone number sign-in, link, or reauthenticate call. |
-|  [IdTokenResult](./auth-types.idtokenresult.md) | Interface representing ID token result obtained from <code>getIdTokenResult</code>. It contains the ID token JWT string and other helper properties for getting different data associated with the token as well as all the decoded payload claims.<!-- -->Note that these claims are not to be trusted as they are parsed client side. Only server side verification can guarantee the integrity of the token claims. |
-|  [MultiFactorAssertion](./auth-types.multifactorassertion.md) | The base class for asserting ownership of a second factor. This is used to facilitate enrollment of a second factor on an existing user or sign-in of a user who already verified the first factor. |
-|  [MultiFactorError](./auth-types.multifactorerror.md) | The error thrown when the user needs to provide a second factor to sign in successfully. The error code for this error is <code>auth/multi-factor-auth-required</code>. |
+|  [IdTokenResult](./auth-types.idtokenresult.md) | Interface representing ID token result obtained from [User.getIdTokenResult()](./auth-types.user.getidtokenresult.md)<!-- -->. |
+|  [MultiFactorAssertion](./auth-types.multifactorassertion.md) | The base class for asserting ownership of a second factor. |
+|  [MultiFactorError](./auth-types.multifactorerror.md) | The error thrown when the user needs to provide a second factor to sign in successfully. |
 |  [MultiFactorInfo](./auth-types.multifactorinfo.md) | A structure containing the information of a second factor entity. |
-|  [MultiFactorSession](./auth-types.multifactorsession.md) | The multi-factor session object used for enrolling a second factor on a user or helping sign in an enrolled user with a second factor. |
-|  [MultiFactorUser](./auth-types.multifactoruser.md) | This is the interface that defines the multi-factor related properties and operations pertaining to a [User](./auth-types.user.md)<!-- -->. |
-|  [ParsedToken](./auth-types.parsedtoken.md) | Parsed ID token. |
-|  [Persistence](./auth-types.persistence.md) | An enumeration of the possible persistence mechanism types. |
+|  [MultiFactorSession](./auth-types.multifactorsession.md) | An interface defining the multi-factor session object used for enrolling a second factor on a user or helping sign in an enrolled user with a second factor. |
+|  [MultiFactorUser](./auth-types.multifactoruser.md) | An interface that defines the multi-factor related properties and operations pertaining to a [User](./auth-types.user.md)<!-- -->. |
+|  [ParsedToken](./auth-types.parsedtoken.md) | Interface representing a parsed ID token. |
+|  [Persistence](./auth-types.persistence.md) | An interface covering the possible persistence mechanism types. |
 |  [PhoneMultiFactorAssertion](./auth-types.phonemultifactorassertion.md) | The class for asserting ownership of a phone second factor. Provided by [PhoneMultiFactorGenerator.assertion()](./auth-types.phonemultifactorgenerator.assertion.md)<!-- -->. |
 |  [PhoneMultiFactorEnrollInfoOptions](./auth-types.phonemultifactorenrollinfooptions.md) | Options used for enrolling a second factor. |
 |  [PhoneMultiFactorSignInInfoOptions](./auth-types.phonemultifactorsignininfooptions.md) | Options used for signing-in with a second factor. |
 |  [PhoneSingleFactorInfoOptions](./auth-types.phonesinglefactorinfooptions.md) | Options used for single-factor sign-in. |
-|  [PopupRedirectResolver](./auth-types.popupredirectresolver.md) | A resolver used for handling DOM specific operations like <code>signInWithPopup()</code> or <code>signInWithRedirect()</code>. |
+|  [PopupRedirectResolver](./auth-types.popupredirectresolver.md) | A resolver used for handling DOM specific operations like [signInWithPopup()](./auth.signinwithpopup.md) or [signInWithRedirect()](./auth.signinwithredirect.md)<!-- -->. |
 |  [ReactNativeAsyncStorage](./auth-types.reactnativeasyncstorage.md) | Interface for a supplied AsyncStorage. |
 |  [User](./auth-types.user.md) | A user account. |
-|  [UserCredential](./auth-types.usercredential.md) | A structure containing a [User](./auth-types.user.md)<!-- -->, an [AuthCredential](./auth-types.authcredential.md)<!-- -->, the [OperationType](./auth-types.operationtype.md)<!-- -->, and any additional user information that was returned from the identity provider. <code>operationType</code> could be [OperationType.SIGN\_IN](./auth-types.operationtype.sign_in.md) for a sign-in operation, [OperationType.LINK](./auth-types.operationtype.link.md) for a linking operation and [OperationType.REAUTHENTICATE](./auth-types.operationtype.reauthenticate.md) for a reauthentication operation. |
+|  [UserCredential](./auth-types.usercredential.md) | A structure containing a [User](./auth-types.user.md)<!-- -->, an [AuthCredential](./auth-types.authcredential.md)<!-- -->, the [OperationType](./auth-types.operationtype.md)<!-- -->, and any additional user information that was returned from the identity provider. |
 |  [UserInfo](./auth-types.userinfo.md) | User profile information, visible only to the Firebase project's apps. |
 |  [UserMetadata](./auth-types.usermetadata.md) | Interface representing a user's metadata. |
 
@@ -65,6 +65,6 @@
 |  Type Alias | Description |
 |  --- | --- |
 |  [NextOrObserver](./auth-types.nextorobserver.md) | Type definition for an event callback. |
-|  [PhoneInfoOptions](./auth-types.phoneinfooptions.md) | The information required to verify the ownership of a phone number. The information that's required depends on whether you are doing single-factor sign-in, multi-factor enrollment or multi-factor sign-in. |
+|  [PhoneInfoOptions](./auth-types.phoneinfooptions.md) | The information required to verify the ownership of a phone number. |
 |  [UserProfile](./auth-types.userprofile.md) | User profile used in [AdditionalUserInfo](./auth-types.additionaluserinfo.md)<!-- -->. |
 

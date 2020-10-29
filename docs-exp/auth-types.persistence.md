@@ -4,7 +4,7 @@
 
 ## Persistence interface
 
-An enumeration of the possible persistence mechanism types.
+An interface covering the possible persistence mechanism types.
 
 <b>Signature:</b>
 
@@ -16,5 +16,5 @@ export interface Persistence
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [type](./auth-types.persistence.type.md) | 'SESSION' \| 'LOCAL' \| 'NONE' | Type of Persistence. - 'SESSION' is used for temporary persistence such as <code>sessionStorage</code>. - 'LOCAL' is used for long term persistence such as <code>localStorage</code> or 'IndexedDB<!-- -->\`<!-- -->. - 'NONE' is used for in-memory, or no persistence. |
+|  [type](./auth-types.persistence.type.md) | 'SESSION' \| 'LOCAL' \| 'NONE' | Type of Persistence. - 'SESSION' is used for temporary persistence such as <code>sessionStorage</code>. - 'LOCAL' is used for long term persistence such as <code>localStorage</code> or <code>IndexedDB</code>. - 'NONE' is used for in-memory, or no persistence. |
 

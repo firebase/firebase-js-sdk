@@ -58,7 +58,7 @@ const BUNDLE_TEMPLATE = [
 ];
 
 apiDescribe('Bundles', (persistence: boolean) => {
-  function verifySnapEqualTestDocs(snap: firestore.QuerySnapshot): void {
+  function verifySnapEqualsTestDocs(snap: firestore.QuerySnapshot): void {
     expect(toDataArray(snap)).to.deep.equal([
       { k: 'a', bar: 1 },
       { k: 'b', bar: 2 }
@@ -72,7 +72,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
   function bundleString(db: firestore.FirebaseFirestore): string {
     const projectId: string = db.app.options.projectId;
 
-    // Extract elements from BUNDLE_TEMPLATE, and replace project ID.
+    // Extract elements from BUNDLE_TEMPLATE and replace the project ID.
     const elements = BUNDLE_TEMPLATE.map(e => e.replace('{0}', projectId));
 
     // Recalculating length prefixes for elements that are not BundleMetadata.
@@ -122,7 +122,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
       // Read from cache. These documents do not exist in backend, so they can
       // only be read from cache.
       let snap = await db.collection('coll-1').get({ source: 'cache' });
-      verifySnapEqualTestDocs(snap);
+      verifySnapEqualsTestDocs(snap);
 
       snap = await (await db.namedQuery('limit'))!.get({
         source: 'cache'
@@ -147,7 +147,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
       // Read from cache. These documents do not exist in backend, so they can
       // only be read from cache.
       const snap = await db.collection('coll-1').get({ source: 'cache' });
-      verifySnapEqualTestDocs(snap);
+      verifySnapEqualsTestDocs(snap);
     });
   });
 
@@ -180,7 +180,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
       // Read from cache. These documents do not exist in backend, so they can
       // only be read from cache.
       const snap = await db.collection('coll-1').get({ source: 'cache' });
-      verifySnapEqualTestDocs(snap);
+      verifySnapEqualsTestDocs(snap);
     });
   });
 
@@ -228,7 +228,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
       // GC, the documents would get GC-ed if we did not hold the document keys
       // in a "umbrella" target. See local_store.ts for details.
       snap = await db.collection('coll-1').get({ source: 'cache' });
-      verifySnapEqualTestDocs(snap);
+      verifySnapEqualsTestDocs(snap);
     });
   });
 
@@ -248,7 +248,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
         const snap = await otherDb
           .collection('coll-1')
           .get({ source: 'cache' });
-        verifySnapEqualTestDocs(snap);
+        verifySnapEqualsTestDocs(snap);
       });
     });
   });

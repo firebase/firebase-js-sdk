@@ -170,15 +170,11 @@ export async function withTestDbsSettings(
   const dbs: firestore.FirebaseFirestore[] = [];
 
   for (let i = 0; i < numDbs; i++) {
-    const firestoreClient = newTestFirestore(
-      projectId,
-      /* name =*/ undefined,
-      settings
-    );
+    const db = newTestFirestore(projectId, /* name =*/ undefined, settings);
     if (persistence) {
-      await firestoreClient.enablePersistence();
+      await db.enablePersistence();
     }
-    dbs.push(firestoreClient);
+    dbs.push(db);
   }
 
   try {

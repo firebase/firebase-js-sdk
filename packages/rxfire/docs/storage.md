@@ -15,7 +15,7 @@ The `fromTask()` function creates an observable that emits progress changes.
 #### TypeScript Example
 ```ts
 import { fromTask } from 'rxfire/storage';
-import * as firebase from 'firebase';
+import firebase from 'firebase';
 import 'firebase/storage';
 
 // Set up Firebase
@@ -43,7 +43,7 @@ The `percentage()` function creates an observable that emits percentage of the u
 #### TypeScript Example
 ```ts
 import { percentage } from 'rxfire/storage';
-import * as firebase from 'firebase';
+import firebase from 'firebase';
 import 'firebase/storage';
 
 // Set up Firebase
@@ -73,7 +73,7 @@ The `getDownloadURL()` function creates an observable that emits the URL of the 
 #### TypeScript Example
 ```ts
 import { getDownloadURL } from 'rxfire/storage';
-import * as firebase from 'firebase';
+import firebase from 'firebase';
 import 'firebase/storage';
 
 // Set up Firebase
@@ -100,7 +100,7 @@ The `getMetadata()` function creates an observable that emits the URL of the fil
 #### TypeScript Example
 ```ts
 import { getMetadata } from 'rxfire/storage';
-import * as firebase from 'firebase';
+import firebase from 'firebase';
 import 'firebase/storage';
 
 // Set up Firebase
@@ -127,7 +127,7 @@ The `put()` function creates an observable that emits the upload progress of a f
 #### TypeScript Example
 ```ts
 import { put } from 'rxfire/storage';
-import * as firebase from 'firebase';
+import firebase from 'firebase';
 import 'firebase/storage';
 
 // Set up Firebase
@@ -157,7 +157,7 @@ The `putString()` function creates an observable that emits the upload progress 
 #### TypeScript Example
 ```ts
 import { putString } from 'rxfire/storage';
-import * as firebase from 'firebase';
+import firebase from 'firebase';
 import 'firebase/storage';
 
 // Set up Firebase

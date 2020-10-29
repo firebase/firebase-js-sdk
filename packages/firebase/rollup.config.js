@@ -184,10 +184,7 @@ const completeBuilds = [
    */
   {
     input: 'src/index.ts',
-    output: [
-      { file: pkg.browser, format: 'cjs', sourcemap: true },
-      { file: pkg.module, format: 'es', sourcemap: true }
-    ],
+    output: [{ file: pkg.module, format: 'es', sourcemap: true }],
     plugins,
     external
   },

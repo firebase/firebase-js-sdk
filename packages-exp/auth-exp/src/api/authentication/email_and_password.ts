@@ -22,7 +22,7 @@ import {
   HttpMethod,
   _performApiRequest,
   _performSignInRequest
-} from '..';
+} from '../index';
 import { IdToken, IdTokenResponse } from '../../model/id_token';
 
 export interface SignInWithPasswordRequest {

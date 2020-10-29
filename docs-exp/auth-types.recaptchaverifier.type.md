@@ -4,10 +4,15 @@
 
 ## RecaptchaVerifier.type property
 
-The application verifier type. For a reCAPTCHA verifier, this is 'recaptcha'.
+The application verifier type.
 
 <b>Signature:</b>
 
 ```typescript
 readonly type: string;
 ```
+
+## Remarks
+
+For a reCAPTCHA verifier, this is 'recaptcha'.
+

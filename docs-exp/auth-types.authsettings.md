@@ -4,13 +4,17 @@
 
 ## AuthSettings interface
 
-Interface representing an Auth instance's settings, currently used for enabling/disabling app verification for phone Auth testing.
+Interface representing an Auth instance's settings.
 
 <b>Signature:</b>
 
 ```typescript
 export interface AuthSettings 
 ```
+
+## Remarks
+
+Currently used for enabling/disabling app verification for phone Auth testing.
 
 ## Properties
 

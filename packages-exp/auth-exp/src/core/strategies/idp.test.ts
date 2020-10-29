@@ -31,7 +31,7 @@ import * as idpTasks from './idp';
 
 use(chaiAsPromised);
 
-describe('src/core/strategies/idb', () => {
+describe('core/strategies/idb', () => {
   let auth: TestAuth;
   let user: User;
   let signInEndpoint: fetch.Route;

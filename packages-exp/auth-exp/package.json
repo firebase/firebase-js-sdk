@@ -10,9 +10,7 @@
   "module": "dist/esm5/index.js",
   "esm2017": "dist/esm2017/index.js",
   "webworker": "dist/index.webworker.esm5.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
@@ -32,7 +30,7 @@
     "prepare": "rollup -c rollup.config.release.js",
     "api-report": "api-extractor run --local --verbose",
     "predoc": "node ../../scripts/exp/remove-exp.js temp",
-    "doc": "api-documenter markdown --input temp --input ../auth-types-exp/temp --output docs",
+    "doc": "api-documenter markdown --input temp --output docs",
     "build:doc": "yarn build && yarn doc"
   },
   "peerDependencies": {
@@ -41,8 +39,8 @@
   },
   "dependencies": {
     "@firebase/logger": "0.2.6",
-    "@firebase/util": "0.3.2",
-    "@firebase/component": "0.1.19",
+    "@firebase/util": "0.3.3",
+    "@firebase/component": "0.1.20",
     "@firebase/auth-types-exp": "0.0.800",
     "node-fetch": "2.6.1",
     "tslib": "^1.11.1"

@@ -24,6 +24,7 @@ import { _isHttpOrHttps } from '../../core/util/location';
 import { ApplicationVerifier } from '../../model/application_verifier';
 import { Auth } from '../../model/auth';
 import { _window } from '../auth_window';
+import { _isWorker } from '../util/worker';
 import { Parameters, Recaptcha } from './recaptcha';
 import {
   MockReCaptchaLoaderImpl,
@@ -40,6 +41,10 @@ const DEFAULT_PARAMS: Parameters = {
 
 type TokenCallback = (token: string) => void;
 
+/**
+ * {@inheritdoc @firebase/auth-types#RecaptchaVerifier}
+ * @public
+ */
 export class RecaptchaVerifier
   implements externs.RecaptchaVerifier, ApplicationVerifier {
   readonly type = RECAPTCHA_VERIFIER_TYPE;
@@ -52,6 +57,7 @@ export class RecaptchaVerifier
   private renderPromise: Promise<number> | null = null;
   private readonly auth: Auth;
 
+  /** @internal */
   readonly _recaptchaLoader: ReCaptchaLoader;
   private recaptcha: Recaptcha | null = null;
 
@@ -87,6 +93,7 @@ export class RecaptchaVerifier
     // TODO: Figure out if sdk version is needed
   }
 
+  /** {@inheritdoc @firebase/auth-types#RecaptchaVerifier.verify} */
   async verify(): Promise<string> {
     this.assertNotDestroyed();
     const id = await this.render();
@@ -113,6 +120,7 @@ export class RecaptchaVerifier
     });
   }
 
+  /** {@inheritdoc @firebase/auth-types#RecaptchaVerifier.render} */
   render(): Promise<number> {
     try {
       this.assertNotDestroyed();
@@ -135,6 +143,7 @@ export class RecaptchaVerifier
     return this.renderPromise;
   }
 
+  /** @internal */
   _reset(): void {
     this.assertNotDestroyed();
     if (this.widgetId !== null) {
@@ -142,6 +151,7 @@ export class RecaptchaVerifier
     }
   }
 
+  /** {@inheritdoc @firebase/auth-types#RecaptchaVerifier.clear} */
   clear(): void {
     this.assertNotDestroyed();
     this.destroyed = true;
@@ -206,7 +216,7 @@ export class RecaptchaVerifier
   }
 
   private async init(): Promise<void> {
-    assert(_isHttpOrHttps() && !isWorker(), AuthErrorCode.INTERNAL_ERROR, {
+    assert(_isHttpOrHttps() && !_isWorker(), AuthErrorCode.INTERNAL_ERROR, {
       appName: this.appName
     });
 
@@ -227,13 +237,6 @@ export class RecaptchaVerifier
     });
     return this.recaptcha;
   }
-}
-
-function isWorker(): boolean {
-  return (
-    typeof _window()['WorkerGlobalScope'] !== 'undefined' &&
-    typeof _window()['importScripts'] === 'function'
-  );
 }
 
 function domReady(): Promise<void> {

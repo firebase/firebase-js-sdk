@@ -4,6 +4,8 @@
 
 ## RecaptchaVerifier.render() method
 
+Renders the reCAPTCHA widget on the page.
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,4 +14,6 @@ render(): Promise<number>;
 <b>Returns:</b>
 
 Promise&lt;number&gt;
+
+A Promise that resolves with the reCAPTCHA widget ID.
 

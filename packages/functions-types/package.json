@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions-types",
-  "version": "0.3.17",
+  "version": "0.4.0",
   "description": "@firebase/functions Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",

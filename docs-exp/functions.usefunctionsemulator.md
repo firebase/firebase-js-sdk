@@ -4,12 +4,14 @@
 
 ## useFunctionsEmulator() function
 
-Changes this instance to point to a Cloud Functions emulator running locally. See https://firebase.google.com/docs/functions/local-emulator
+Modify this instance to communicate with the Cloud Functions emulator.
+
+Note: this must be called before this instance has been used to do any operations.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function useFunctionsEmulator(functionsInstance: Functions, origin: string): void;
+export declare function useFunctionsEmulator(functionsInstance: Functions, host: string, port: number): void;
 ```
 
 ## Parameters
@@ -17,7 +19,8 @@ export declare function useFunctionsEmulator(functionsInstance: Functions, origi
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  functionsInstance | [Functions](./functions-types.functions.md) |  |
-|  origin | string | The origin of the local emulator, such as "http://localhost:5005". |
+|  host | string | The emulator host (ex: localhost) |
+|  port | number | The emulator port (ex: 5001) |
 
 <b>Returns:</b>
 
