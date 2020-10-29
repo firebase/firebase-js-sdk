@@ -22,7 +22,7 @@ jobs:
     - name: Run changeset script
       run: yarn ts-node-script scripts/check_changeset.ts
       id: check-changeset
-    - name: Print changeset checker output
+    - name: Print changeset checker outputx
       run: echo "${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}"
     - name: Find Comment
       uses: peter-evans/find-comment@v1
