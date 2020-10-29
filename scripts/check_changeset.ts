@@ -87,6 +87,7 @@ async function main() {
   const errors = [];
   try {
     await exec('yarn changeset status');
+    console.log(`::set-output name=BLOCKING_FAILURE::false`);
   } catch (e) {
     const messageLines = e.message.replace(/🦋  error /g, '').split('\n');
     let formattedStatusError =
