@@ -27,7 +27,7 @@
   "devDependencies": {
     "firebase-tools": "8.12.1",
     "google-closure-compiler": "20200112.0.0",
-    "google-closure-library": "20200224.0.0",
+    "google-closure-library": "20200830.0.0",
     "gulp": "4.0.2",
     "gulp-sourcemaps": "2.6.5"
   },
