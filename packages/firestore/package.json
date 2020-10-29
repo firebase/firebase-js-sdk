@@ -92,7 +92,7 @@
     "rollup-plugin-terser": "7.0.2",
     "rollup-plugin-typescript2": "0.27.3",
     "ts-node": "9.0.0",
-    "typescript": "4.0.2"
+    "typescript": "4.0.5"
   },
   "repository": {
     "directory": "packages/firestore",
