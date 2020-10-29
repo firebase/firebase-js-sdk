@@ -18,8 +18,6 @@
 import * as externs from '@firebase/auth-types-exp';
 import { CompleteFn, ErrorFn, Unsubscribe } from '@firebase/util';
 
-export { AuthErrorCode } from './errors';
-
 // Non-optional auth methods.
 /**
  * Changes the type of persistence on the Auth instance for the currently saved
