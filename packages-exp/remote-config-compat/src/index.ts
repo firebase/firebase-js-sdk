@@ -23,6 +23,7 @@ import {
   ComponentType
 } from '@firebase/component';
 import { RemoteConfigCompat } from './remoteConfig';
+import { name as packageName, version } from '../package.json';
 
 // TODO: move it to the future remote-config-compat-types package
 declare module '@firebase/component' {
@@ -41,6 +42,8 @@ function registerRemoteConfigCompat(
       ComponentType.PUBLIC
     ).setMultipleInstances(true)
   );
+
+  firebaseInstance.registerVersion(packageName, version);
 }
 
 function remoteConfigFactory(

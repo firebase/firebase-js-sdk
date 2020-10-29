@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import './setup';
+import '../test/setup';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { FirebaseNamespace, FirebaseOptions } from '@firebase/app-types';
@@ -26,7 +26,7 @@ import { ComponentType } from '@firebase/component';
 import { createFirebaseNamespace } from '../src/firebaseNamespace';
 import { createFirebaseNamespaceLite } from '../src/lite/firebaseNamespaceLite';
 
-import { createTestComponent, TestService } from './util';
+import { createTestComponent, TestService } from '../test/util';
 
 executeFirebaseTests();
 executeFirebaseLiteTests();
