@@ -30,7 +30,7 @@ import { AuthEventManager } from './auth_event_manager';
 
 use(sinonChai);
 
-describe('src/core/auth/auth_event_manager', () => {
+describe('core/auth/auth_event_manager', () => {
   let manager: AuthEventManager;
 
   function makeConsumer(

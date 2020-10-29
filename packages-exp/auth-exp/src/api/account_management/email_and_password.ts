@@ -17,7 +17,7 @@
 
 import { Operation, Auth } from '@firebase/auth-types-exp';
 
-import { Endpoint, HttpMethod, _performApiRequest } from '..';
+import { Endpoint, HttpMethod, _performApiRequest } from '../index';
 import { IdTokenResponse } from '../../model/id_token';
 import { MfaEnrollment } from './mfa';
 

@@ -4,6 +4,8 @@
 
 ## signOut() function
 
+Signs out the current user.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +16,7 @@ export declare function signOut(auth: externs.Auth): Promise<void>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
+|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
 
 <b>Returns:</b>
 

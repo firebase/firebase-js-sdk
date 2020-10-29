@@ -4,20 +4,26 @@
 
 ## getIdTokenResult() function
 
+Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Firebase service.
+
 <b>Signature:</b>
 
 ```typescript
-export declare function getIdTokenResult(externUser: externs.User, forceRefresh?: boolean): Promise<externs.IdTokenResult>;
+export declare function getIdTokenResult(user: externs.User, forceRefresh?: boolean): Promise<externs.IdTokenResult>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  externUser | externs.[User](./auth-types.user.md) |  |
-|  forceRefresh | boolean |  |
+|  user | externs.[User](./auth-types.user.md) | The user. |
+|  forceRefresh | boolean | Force refresh regardless of token expiration. |
 
 <b>Returns:</b>
 
 Promise&lt;externs.[IdTokenResult](./auth-types.idtokenresult.md)<!-- -->&gt;
+
+## Remarks
+
+Returns the current token if it has not expired or if it will not expire in the next five minutes. Otherwise, this will refresh the token and return a new one.
 

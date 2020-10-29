@@ -22,6 +22,7 @@ import {
   CollectionReference,
   DocumentReference,
   DocumentSnapshot,
+  ensureFirestoreConfigured,
   Firestore,
   IndexedDbPersistenceProvider,
   Query,
@@ -69,25 +70,15 @@ export function newTestFirestore(): Firestore {
 }
 
 export function collectionReference(path: string): CollectionReference {
-  const firestoreClient = firestore();
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  firestoreClient.ensureClientConfigured();
-  return new CollectionReference(
-    pathFrom(path),
-    firestoreClient,
-    /* converter= */ null
-  );
+  const db = firestore();
+  ensureFirestoreConfigured(db);
+  return new CollectionReference(pathFrom(path), db, /* converter= */ null);
 }
 
 export function documentReference(path: string): DocumentReference {
-  const firestoreClient = firestore();
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  firestoreClient.ensureClientConfigured();
-  return new DocumentReference(
-    key(path),
-    firestoreClient,
-    /* converter= */ null
-  );
+  const db = firestore();
+  ensureFirestoreConfigured(db);
+  return new DocumentReference(key(path), db, /* converter= */ null);
 }
 
 export function documentSnapshot(

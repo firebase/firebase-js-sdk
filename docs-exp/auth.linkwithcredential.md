@@ -4,20 +4,26 @@
 
 ## linkWithCredential() function
 
+Links the user account with the given credentials.
+
 <b>Signature:</b>
 
 ```typescript
-export declare function linkWithCredential(userExtern: externs.User, credentialExtern: externs.AuthCredential): Promise<UserCredential>;
+export declare function linkWithCredential(user: externs.User, credential: externs.AuthCredential): Promise<UserCredential>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  userExtern | externs.[User](./auth-types.user.md) |  |
-|  credentialExtern | externs.[AuthCredential](./auth-types.authcredential.md) |  |
+|  user | externs.[User](./auth-types.user.md) | The user. |
+|  credential | externs.[AuthCredential](./auth-types.authcredential.md) | The auth credential. |
 
 <b>Returns:</b>
 
 Promise&lt;[UserCredential](./auth-types.usercredential.md)<!-- -->&gt;
+
+## Remarks
+
+An [AuthProvider](./auth-types.authprovider.md) can be used to generate the credential.
 

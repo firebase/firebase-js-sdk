@@ -20,7 +20,7 @@ import {
   HttpMethod,
   _performApiRequest,
   _performSignInRequest
-} from '..';
+} from '../index';
 import { AuthErrorCode } from '../../core/errors';
 import { IdTokenResponse } from '../../model/id_token';
 import { ServerError, ServerErrorMap } from '../errors';

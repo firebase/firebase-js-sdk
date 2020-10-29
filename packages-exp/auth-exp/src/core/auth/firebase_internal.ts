@@ -16,21 +16,16 @@
  */
 
 import { Unsubscribe } from '@firebase/util';
+import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 
 import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
-
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'auth-internal-exp': AuthInternal;
-  }
-}
 
 interface TokenListener {
   (tok: string | null): unknown;
 }
 
-export class AuthInternal {
+export class AuthInternal implements FirebaseAuthInternal {
   private readonly internalListeners: Map<
     TokenListener,
     Unsubscribe

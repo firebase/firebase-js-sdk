@@ -34,13 +34,7 @@ import { inMemoryPersistence } from '../persistence/in_memory';
 import { _getInstance } from '../util/instantiator';
 import * as navigator from '../util/navigator';
 import * as reload from '../user/reload';
-import {
-  _castAuth,
-  AuthImpl,
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST
-} from './auth_impl';
+import { _castAuth, AuthImpl, DefaultConfig } from './auth_impl';
 import { _initializeAuthInstance } from './initialize';
 
 use(sinonChai);
@@ -63,9 +57,9 @@ describe('core/auth/auth_impl', () => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
     const authImpl = new AuthImpl(FAKE_APP, {
       apiKey: FAKE_APP.options.apiKey!,
-      apiHost: DEFAULT_API_HOST,
-      apiScheme: DEFAULT_API_SCHEME,
-      tokenApiHost: DEFAULT_TOKEN_API_HOST,
+      apiHost: DefaultConfig.API_HOST,
+      apiScheme: DefaultConfig.API_SCHEME,
+      tokenApiHost: DefaultConfig.TOKEN_API_HOST,
       sdkClientVersion: 'v'
     });
 
@@ -440,9 +434,9 @@ describe('core/auth/auth_impl', () => {
     it('prevents initialization from completing', async () => {
       const authImpl = new AuthImpl(FAKE_APP, {
         apiKey: FAKE_APP.options.apiKey!,
-        apiHost: DEFAULT_API_HOST,
-        apiScheme: DEFAULT_API_SCHEME,
-        tokenApiHost: DEFAULT_TOKEN_API_HOST,
+        apiHost: DefaultConfig.API_HOST,
+        apiScheme: DefaultConfig.API_SCHEME,
+        tokenApiHost: DefaultConfig.TOKEN_API_HOST,
         sdkClientVersion: 'v'
       });
 

@@ -24,7 +24,7 @@ import { AuthErrorCode, AUTH_ERROR_FACTORY } from './errors';
  * @enum {string}
  * @internal
  */
-enum QueryField {
+const enum QueryField {
   API_KEY = 'apiKey',
   CODE = 'oobCode',
   CONTINUE_URL = 'continueUrl',
@@ -34,27 +34,28 @@ enum QueryField {
 }
 
 /**
- * Map from mode string in action code URL to Action Code Info operation.
- *
- * @internal
- */
-const MODE_TO_OPERATION_MAP: { [key: string]: externs.Operation } = {
-  'recoverEmail': externs.Operation.RECOVER_EMAIL,
-  'resetPassword': externs.Operation.PASSWORD_RESET,
-  'signIn': externs.Operation.EMAIL_SIGNIN,
-  'verifyEmail': externs.Operation.VERIFY_EMAIL,
-  'verifyAndChangeEmail': externs.Operation.VERIFY_AND_CHANGE_EMAIL,
-  'revertSecondFactorAddition': externs.Operation.REVERT_SECOND_FACTOR_ADDITION
-};
-
-/**
  * Maps the mode string in action code URL to Action Code Info operation.
  *
  * @param mode
  * @internal
  */
 function parseMode(mode: string | null): externs.Operation | null {
-  return mode ? MODE_TO_OPERATION_MAP[mode] || null : null;
+  switch (mode) {
+    case 'recoverEmail':
+      return externs.Operation.RECOVER_EMAIL;
+    case 'resetPassword':
+      return externs.Operation.PASSWORD_RESET;
+    case 'signIn':
+      return externs.Operation.EMAIL_SIGNIN;
+    case 'verifyEmail':
+      return externs.Operation.VERIFY_EMAIL;
+    case 'verifyAndChangeEmail':
+      return externs.Operation.VERIFY_AND_CHANGE_EMAIL;
+    case 'revertSecondFactorAddition':
+      return externs.Operation.REVERT_SECOND_FACTOR_ADDITION;
+    default:
+      return null;
+  }
 }
 
 /**
@@ -77,22 +78,22 @@ function parseDeepLink(url: string): string {
 }
 
 /**
- * {@inheritDoc @firebase/auth-types-exp#ActionCodeURL}
+ * {@inheritDoc @firebase/auth-types#ActionCodeURL}
  *
  * @public
  */
 export class ActionCodeURL implements externs.ActionCodeURL {
-  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.apiKey} */
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.apiKey} */
   readonly apiKey: string;
-  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.code} */
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.code} */
   readonly code: string;
-  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.continueUrl} */
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.continueUrl} */
   readonly continueUrl: string | null;
-  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.languageCode} */
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.languageCode} */
   readonly languageCode: string | null;
-  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.operation} */
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.operation} */
   readonly operation: externs.Operation;
-  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.tenantId} */
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.tenantId} */
   readonly tenantId: string | null;
 
   /**
@@ -118,7 +119,7 @@ export class ActionCodeURL implements externs.ActionCodeURL {
     this.tenantId = uri.searchParams.get(QueryField.TENANT_ID);
   }
 
-  /** {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.parseLink} */
+  /** {@inheritDoc @firebase/auth-types#ActionCodeURL.parseLink} */
   static parseLink(link: string): externs.ActionCodeURL | null {
     const actionLink = parseDeepLink(link);
     try {
@@ -130,7 +131,7 @@ export class ActionCodeURL implements externs.ActionCodeURL {
 }
 
 /**
- * {@inheritDoc @firebase/auth-types-exp#ActionCodeURL.parseLink}
+ * {@inheritDoc @firebase/auth-types#ActionCodeURL.parseLink}
  *
  * @public
  */

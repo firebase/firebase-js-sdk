@@ -4,10 +4,15 @@
 
 ## IdTokenResult.signInProvider property
 
-The sign-in provider through which the ID token was obtained (anonymous, custom, phone, password, etc). Note, this does not map to provider IDs.
+The sign-in provider through which the ID token was obtained (anonymous, custom, phone, password, etc).
 
 <b>Signature:</b>
 
 ```typescript
 signInProvider: string | null;
 ```
+
+## Remarks
+
+Note, this does not map to provider IDs.
+

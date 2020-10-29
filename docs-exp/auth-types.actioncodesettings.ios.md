@@ -4,9 +4,7 @@
 
 ## ActionCodeSettings.iOS property
 
-Sets the iOS bundle ID. This will try to open the link in an iOS app if it is installed.
-
-App installation is not supported for iOS.
+Sets the iOS bundle ID.
 
 <b>Signature:</b>
 
@@ -15,3 +13,10 @@ iOS?: {
     bundleId: string;
   };
 ```
+
+## Remarks
+
+This will try to open the link in an iOS app if it is installed.
+
+App installation is not supported for iOS.
+

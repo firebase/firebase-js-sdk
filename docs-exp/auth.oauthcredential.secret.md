@@ -4,6 +4,8 @@
 
 ## OAuthCredential.secret property
 
+The OAuth access token secret associated with the credential if it belongs to an OAuth 1.0 provider, such as `twitter.com`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

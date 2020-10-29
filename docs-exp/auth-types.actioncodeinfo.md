@@ -4,7 +4,7 @@
 
 ## ActionCodeInfo interface
 
-A response from `checkActionCode`<!-- -->.
+A response from [checkActionCode()](./auth.checkactioncode.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -16,6 +16,6 @@ export interface ActionCodeInfo
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [data](./auth-types.actioncodeinfo.data.md) | { email?: string \| null; multiFactorInfo?: [MultiFactorInfo](./auth-types.multifactorinfo.md) \| null; previousEmail?: string \| null; } | The data associated with the action code. For the [Operation.PASSWORD\_RESET](./auth-types.operation.password_reset.md)<!-- -->, [Operation.VERIFY\_EMAIL](./auth-types.operation.verify_email.md)<!-- -->, and [Operation.RECOVER\_EMAIL](./auth-types.operation.recover_email.md) actions, this object contains an email field with the address the email was sent to.<!-- -->For the [Operation.RECOVER\_EMAIL](./auth-types.operation.recover_email.md) action, which allows a user to undo an email address change, this object also contains a <code>previousEmail</code> field with the user account's current email address. After the action completes, the user's email address will revert to the value in the <code>email</code> field from the value in <code>previousEmail</code> field.<!-- -->For the [Operation.VERIFY\_AND\_CHANGE\_EMAIL](./auth-types.operation.verify_and_change_email.md) action, which allows a user to verify the email before updating it, this object contains a <code>previousEmail</code> field with the user account's email address before updating. After the action completes, the user's email address will be updated to the value in the <code>email</code> field from the value in <code>previousEmail</code> field.<!-- -->For the [Operation.REVERT\_SECOND\_FACTOR\_ADDITION](./auth-types.operation.revert_second_factor_addition.md) action, which allows a user to unenroll a newly added second factor, this object contains a <code>multiFactorInfo</code> field with the information about the second factor. For phone second factor, the <code>multiFactorInfo</code> is a [MultiFactorInfo](./auth-types.multifactorinfo.md) object, which contains the phone number. |
+|  [data](./auth-types.actioncodeinfo.data.md) | { email?: string \| null; multiFactorInfo?: [MultiFactorInfo](./auth-types.multifactorinfo.md) \| null; previousEmail?: string \| null; } | The data associated with the action code. |
 |  [operation](./auth-types.actioncodeinfo.operation.md) | [Operation](./auth-types.operation.md) | The type of operation that generated the action code. |
 

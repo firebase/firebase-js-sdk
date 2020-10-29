@@ -4,6 +4,8 @@
 
 ## GithubAuthProvider.GITHUB\_SIGN\_IN\_METHOD property
 
+Always set to [SignInMethod.GITHUB](./auth-types.signinmethod.github.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript

@@ -4,6 +4,8 @@
 
 ## OAuthProvider.setDefaultLanguage() method
 
+Set the language gode.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,7 +16,7 @@ setDefaultLanguage(languageCode: string | null): void;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  languageCode | string \| null |  |
+|  languageCode | string \| null | language code |
 
 <b>Returns:</b>
 

@@ -4,20 +4,28 @@
 
 ## updateEmail() function
 
+Updates the user's email address.
+
 <b>Signature:</b>
 
 ```typescript
-export declare function updateEmail(externUser: externs.User, newEmail: string): Promise<void>;
+export declare function updateEmail(user: externs.User, newEmail: string): Promise<void>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  externUser | externs.[User](./auth-types.user.md) |  |
-|  newEmail | string |  |
+|  user | externs.[User](./auth-types.user.md) | The user. |
+|  newEmail | string | The new email address. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+## Remarks
+
+An email will be sent to the original email address (if it was set) that allows to revoke the email address change, in order to protect them from account hijacking.
+
+Important: this is a security sensitive operation that requires the user to have recently signed in. If this requirement isn't met, ask the user to authenticate again and then call [reauthenticateWithCredential()](./auth.reauthenticatewithcredential.md)<!-- -->.
 

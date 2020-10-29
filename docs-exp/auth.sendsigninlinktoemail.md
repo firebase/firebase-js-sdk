@@ -4,6 +4,8 @@
 
 ## sendSignInLinkToEmail() function
 
+Sends a sign-in email link to the user with the specified email.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,11 +16,41 @@ export declare function sendSignInLinkToEmail(auth: externs.Auth, email: string,
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
-|  email | string |  |
-|  actionCodeSettings | externs.[ActionCodeSettings](./auth-types.actioncodesettings.md) |  |
+|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  email | string | The user's email address. |
+|  actionCodeSettings | externs.[ActionCodeSettings](./auth-types.actioncodesettings.md) | The [ActionCodeSettings](./auth-types.actioncodesettings.md)<!-- -->. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
+
+## Remarks
+
+The sign-in operation has to always be completed in the app unlike other out of band email actions (password reset and email verifications). This is because, at the end of the flow, the user is expected to be signed in and their Auth state persisted within the app.
+
+To complete sign in with the email link, call [signInWithEmailLink()](./auth.signinwithemaillink.md) with the email address and the email link supplied in the email sent to the user.
+
+## Example
+
+
+```javascript
+const actionCodeSettings = {
+  url: 'https://www.example.com/?email=user@example.com',
+  iOS: {
+     bundleId: 'com.example.ios'
+  },
+  android: {
+    packageName: 'com.example.android',
+    installApp: true,
+    minimumVersion: '12'
+  },
+  handleCodeInApp: true
+};
+await sendSignInLinkToEmail(auth, 'user@example.com', actionCodeSettings);
+// Obtain emailLink from the user.
+if(isSignInWithEmailLink(auth, emailLink)) {
+  await signInWithEmailLink('user@example.com', 'user@example.com', emailLink);
+}
+
+```
 

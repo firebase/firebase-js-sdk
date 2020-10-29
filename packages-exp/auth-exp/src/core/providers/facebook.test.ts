@@ -30,7 +30,7 @@ import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { FacebookAuthProvider } from './facebook';
 
-describe('src/core/providers/facebook', () => {
+describe('core/providers/facebook', () => {
   it('generates the correct type of oauth credential', () => {
     const cred = FacebookAuthProvider.credential('access-token');
     expect(cred.accessToken).to.eq('access-token');

@@ -4,7 +4,7 @@
 
 ## ActionCodeURL.operation property
 
-The action performed by the email action link. It returns from one of the types from 
+The action performed by the email action link. It returns from one of the types from [ActionCodeInfo](./auth-types.actioncodeinfo.md)
 
 <b>Signature:</b>
 

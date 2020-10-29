@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { _performApiRequest, Endpoint, HttpMethod } from '../';
+import { _performApiRequest, Endpoint, HttpMethod } from '../index';
 import { Auth } from '@firebase/auth-types-exp';
 
 export interface GetProjectConfigRequest {}
