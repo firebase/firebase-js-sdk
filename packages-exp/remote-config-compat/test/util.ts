@@ -15,35 +15,34 @@
  * limitations under the License.
  */
 
-import { FirebaseService } from '@firebase/app-types/private';
 import { FirebaseApp } from '@firebase/app-types';
-import { ComponentType, Component } from '@firebase/component';
+import { RemoteConfig } from '@firebase/remote-config-types-exp';
 
-export class TestService implements FirebaseService {
-  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) {}
-
-  get app(): FirebaseApp {
-    return this.app_;
-  }
-
-  delete(): Promise<void> {
-    return new Promise((resolve: (v?: void) => void) => {
-      setTimeout(() => resolve(), 10);
-    });
-  }
+export function getFakeApp(): FirebaseApp {
+  return {
+    name: 'appName',
+    options: {
+      apiKey: 'apiKey',
+      projectId: 'projectId',
+      authDomain: 'authDomain',
+      messagingSenderId: 'messagingSenderId',
+      databaseURL: 'databaseUrl',
+      storageBucket: 'storageBucket',
+      appId: '1:777777777777:web:d93b5ca1475efe57'
+    },
+    automaticDataCollectionEnabled: true,
+    delete: async () => {}
+  };
 }
 
-export function createTestComponent(
-  name: string,
-  multiInstances = false,
-  type = ComponentType.PUBLIC
-): Component {
-  const component = new Component(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    name as any,
-    container => new TestService(container.getProvider('app').getImmediate()),
-    type
-  );
-  component.setMultipleInstances(multiInstances);
-  return component;
+export function getFakeModularRemoteConfig(): RemoteConfig {
+  return {
+    defaultConfig: {},
+    fetchTimeMillis: 0,
+    lastFetchStatus: 'no-fetch-yet',
+    settings: {
+      fetchTimeoutMillis: 0,
+      minimumFetchIntervalMillis: 0
+    }
+  };
 }
