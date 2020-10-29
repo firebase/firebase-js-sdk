@@ -13,15 +13,14 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
     "build": "rollup -c",
-    "build:release": "rollup -c rollup.config.release.js",
-    "build:deps": "lerna run --scope @firebase/app-compat --include-dependencies build",
+    "build:release": "yarn build",
+    "build:deps": "lerna run --scope @firebase/remote-config-compat --include-dependencies build",
     "dev": "rollup -c -w",
     "test": "run-p lint test:all",
-    "test:all": "run-p test:browser test:node",
+    "test:all": "run-p test:browser",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers Chrome --auto-watch",
-    "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* src/**/*.test.ts --config ../../config/mocharc.node.js",
     "prepare": "yarn build:release"
   },
   "license": "Apache-2.0",
@@ -30,7 +29,8 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/remote-config-exp": "0.0.800",
+    "@firebase/remote-config-exp": "0.0.800", 
+    "@firebase/remote-config-types-exp": "0.0.800", 
     "@firebase/util": "0.3.3",
     "@firebase/logger": "0.2.6",
     "@firebase/component": "0.1.20",

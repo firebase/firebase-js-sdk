@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,44 @@
  */
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
-import json from '@rollup/plugin-json';
 import typescript from 'typescript';
+import json from '@rollup/plugin-json';
 import pkg from './package.json';
+import { es2017BuildsNoPlugin, es5BuildsNoPlugin } from './rollup.shared';
+import pkg from './package.json';
+
+const deps = Object.keys(
+  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
+);
+
+export const es5BuildsNoPlugin = [
+  /**
+   * Browser Builds
+   */
+  {
+    input: 'src/index.ts',
+    output: [
+      { file: pkg.main, format: 'cjs', sourcemap: true },
+      { file: pkg.browser, format: 'es', sourcemap: true }
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+export const es2017BuildsNoPlugin = [
+  /**
+   *  Browser Builds
+   */
+  {
+    input: 'src/index.ts',
+    output: {
+      file: pkg.esm2017,
+      format: 'es',
+      sourcemap: true
+    },
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
@@ -29,33 +64,15 @@ const deps = Object.keys(
  */
 const es5BuildPlugins = [
   typescriptPlugin({
-    typescript,
-    abortOnError: false
+    typescript
   }),
   json()
 ];
 
-const es5Builds = [
-  {
-    input: 'src/index.ts',
-    output: [
-      { file: pkg.main, format: 'cjs', sourcemap: true },
-      { file: pkg.module, format: 'es', sourcemap: true }
-    ],
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-  {
-    input: 'src/index.lite.ts',
-    output: {
-      file: pkg.lite,
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
-];
+const es5Builds = es5BuildsNoPlugin.map(build => ({
+  ...build,
+  plugins: es5BuildPlugins
+}));
 
 /**
  * ES2017 Builds
@@ -63,7 +80,6 @@ const es5Builds = [
 const es2017BuildPlugins = [
   typescriptPlugin({
     typescript,
-    abortOnError: false,
     tsconfigOverride: {
       compilerOptions: {
         target: 'es2017'
@@ -75,30 +91,9 @@ const es2017BuildPlugins = [
   })
 ];
 
-const es2017Builds = [
-  /**
-   *  Browser Builds
-   */
-  {
-    input: 'src/index.ts',
-    output: {
-      file: pkg.esm2017,
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: es2017BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-  {
-    input: 'src/index.lite.ts',
-    output: {
-      file: pkg['lite-esm2017'],
-      format: 'es',
-      sourcemap: true
-    },
-    plugins: es2017BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  }
-];
+const es2017Builds = es2017BuildsNoPlugin.map(build => ({
+  ...build,
+  plugins: es2017BuildPlugins
+}));
 
 export default [...es5Builds, ...es2017Builds];
