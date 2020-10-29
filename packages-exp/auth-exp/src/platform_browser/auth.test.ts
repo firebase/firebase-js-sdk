@@ -177,27 +177,6 @@ describe('core/auth/initializeAuth', () => {
       expect(reload._reloadWithoutSaving).not.to.have.been.called;
     });
 
-    it('signs in the redirect user if found', async () => {
-      let user: User | null = null;
-      completeRedirectFnStub.callsFake((auth: Auth) => {
-        user = testUser(auth, 'uid', 'redirectUser@test.com');
-        return Promise.resolve(
-          new UserCredentialImpl({
-            operationType: externs.OperationType.SIGN_IN,
-            user,
-            providerId: null
-          })
-        );
-      });
-
-      const auth = await initAndWait(
-        [inMemoryPersistence],
-        browserPopupRedirectResolver
-      );
-      expect(user).not.to.be.null;
-      expect(auth.currentUser).to.eq(user);
-    });
-
     it('reloads non-redirect users', async () => {
       sinon
         .stub(_getInstance<Persistence>(inMemoryPersistence), '_get')
@@ -285,6 +264,42 @@ describe('core/auth/initializeAuth', () => {
         tokenApiHost: DefaultConfig.TOKEN_API_HOST,
         sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
       });
+    });
+
+    context('#tryRedirectSignIn', () => {
+      it('returns null and clears the redirect user in case of error', async () => {
+        const stub = sinon.stub(_getInstance<Persistence>(browserSessionPersistence));
+        stub._remove.returns(Promise.resolve());
+        completeRedirectFnStub.returns(Promise.reject(new Error('no')));
+
+        await initAndWait(
+          [inMemoryPersistence],
+          browserPopupRedirectResolver
+        );
+        expect(stub._remove).to.have.been.called;
+      });
+
+      it('signs in the redirect user if found', async () => {
+        let user: User | null = null;
+        completeRedirectFnStub.callsFake((auth: Auth) => {
+          user = testUser(auth, 'uid', 'redirectUser@test.com');
+          return Promise.resolve(
+            new UserCredentialImpl({
+              operationType: externs.OperationType.SIGN_IN,
+              user,
+              providerId: null
+            })
+          );
+        });
+  
+        const auth = await initAndWait(
+          [inMemoryPersistence],
+          browserPopupRedirectResolver
+        );
+        expect(user).not.to.be.null;
+        expect(auth.currentUser).to.eq(user);
+      });
+  
     });
   });
 });

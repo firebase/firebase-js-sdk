@@ -33,6 +33,7 @@ import { UserCredentialImpl } from './user_credential_impl';
 import { Auth } from '../../model/auth';
 import { User, UserCredential } from '../../model/user';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
+import { makeJWT } from '../../../test/helpers/jwt';
 
 describe('core/user/additional_user_info', () => {
   const userProfileWithLogin: UserProfile = {
@@ -158,8 +159,13 @@ describe('core/user/additional_user_info', () => {
     describe('creates generic AdditionalUserInfo', () => {
       it('for custom auth', () => {
         const idResponse = idTokenResponse({
-          providerId: ProviderId.CUSTOM,
-          rawUserInfo: rawUserInfoWithLogin
+          rawUserInfo: rawUserInfoWithLogin,
+          idToken: makeJWT({
+            firebase:
+              {
+                'sign_in_provider': 'custom'
+              }
+          })
         });
         const {
           isNewUser,
@@ -175,8 +181,13 @@ describe('core/user/additional_user_info', () => {
 
       it('for anonymous auth', () => {
         const idResponse = idTokenResponse({
-          providerId: ProviderId.ANONYMOUS,
-          rawUserInfo: rawUserInfoWithLogin
+          rawUserInfo: rawUserInfoWithLogin,
+          idToken: makeJWT({
+            firebase:
+              {
+                'sign_in_provider': 'anonymous'
+              }
+          })
         });
         const {
           isNewUser,
