@@ -64,6 +64,7 @@
     "functions",
     "firestore",
     "firestore/lite",
-    "performance"
+    "performance",
+    "remote-config"
   ]
 }

@@ -48,8 +48,8 @@ window.onload = function () {
 
 function initializeFirebase() {
   const val = document.querySelector('#firebase-config').value;
-  firebase.initializeApp(parseObjFromStr(val));
-  remoteConfig = firebase.remoteConfig();
+  const app = firebase.app.initializeApp(parseObjFromStr(val));
+  remoteConfig = firebase.remoteConfig.getRemoteConfig(app);
   return Promise.resolve();
 }
 
@@ -72,45 +72,45 @@ function setSettings() {
 
 function setLogLevel() {
   const newLogLevel = document.querySelector('#log-level-input').value;
-  remoteConfig.setLogLevel(newLogLevel);
+  firebase.remoteConfig.setLogLevel(remoteConfig, newLogLevel);
   return SUCCESS_MESSAGE;
 }
 
 function activate() {
-  return remoteConfig.activate();
+  return firebase.remoteConfig.activate(remoteConfig);
 }
 
 function ensureInitialized() {
-  return remoteConfig.ensureInitialized();
+  return firebase.remoteConfig.ensureInitialized(remoteConfig);
 }
 
 // Prefixed to avoid clobbering the browser's fetch function.
 function rcFetch() {
-  return remoteConfig.fetch();
+  return firebase.remoteConfig.fetchConfig(remoteConfig);
 }
 
 function fetchAndActivate() {
-  return remoteConfig.fetchAndActivate();
+  return firebase.remoteConfig.fetchAndActivate(remoteConfig);
 }
 
 function getString() {
-  return remoteConfig.getString(getKey());
+  return firebase.remoteConfig.getString(remoteConfig, getKey());
 }
 
 function getBoolean() {
-  return remoteConfig.getBoolean(getKey());
+  return firebase.remoteConfig.getBoolean(remoteConfig, getKey());
 }
 
 function getNumber() {
-  return remoteConfig.getNumber(getKey());
+  return firebase.remoteConfig.getNumber(remoteConfig, getKey());
 }
 
 function getValue() {
-  return remoteConfig.getValue(getKey());
+  return firebase.remoteConfig.getValue(remoteConfig, getKey());
 }
 
 function getAll() {
-  return remoteConfig.getAll();
+  return firebase.remoteConfig.getAll(remoteConfig);
 }
 
 function getFetchTimeMillis() {
