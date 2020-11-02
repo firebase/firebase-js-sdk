@@ -21,8 +21,7 @@ import * as sinonChai from 'sinon-chai';
 import {
   transportHandler,
   setupTransportService,
-  resetTransportService,
-  readQueue
+  resetTransportService
 } from './transport_service';
 import { SettingsService } from './settings_service';
 
@@ -33,7 +32,7 @@ describe('Firebase Performance > transport_service', () => {
   const INITIAL_SEND_TIME_DELAY_MS = 5.5 * 1000;
   const DEFAULT_SEND_INTERVAL_MS = 10 * 1000;
   const MAX_EVENT_COUNT_PER_REQUEST = 1000;
-  const TRANSPORT_DELAY_INTERVAL = 30000;
+  const TRANSPORT_DELAY_INTERVAL = 10000;
   // Starts date at timestamp 1 instead of 0, otherwise it causes validation errors.
   let clock: SinonFakeTimers;
   const testTransportHandler = transportHandler((...args) => {
@@ -102,51 +101,48 @@ describe('Firebase Performance > transport_service', () => {
     const setting = SettingsService.getInstance();
     const flTransportFullUrl =
       setting.flTransportEndpointUrl + '?key=' + setting.transportKey;
-    // Generates the first logRequest which contains first 1000 events.
-    const logRequest = generateLogRequest('5501');
-    for (let i = 0; i < MAX_EVENT_COUNT_PER_REQUEST; i++) {
-      logRequest['log_event'].push({
-        'source_extension_json_proto3': 'event' + i,
-        'event_time_ms': '1'
-      });
-    }
 
     // Returns successful response from fl for logRequests.
     const response = generateSuccessResponse();
-    fetchStub
-      .withArgs(flTransportFullUrl, {
-        method: 'POST',
-        body: JSON.stringify(logRequest)
-      })
-      .resolves(response);
-    stub(response, 'json').returns(
-      Promise.resolve(JSON.parse(generateSuccessResponseBody()))
-    );
+    fetchStub.resolves(response);
+    stub(response, 'json').resolves(JSON.parse(generateSuccessResponseBody()));
 
     // Act
     // Generate 1020 events, which should be dispatched in two batches (1000 events and 20 events).
     for (let i = 0; i < 1020; i++) {
       testTransportHandler('event' + i);
     }
+    // Wait for first and second event dispatch to happen.
+    clock.tick(INITIAL_SEND_TIME_DELAY_MS);
+    await Promise.resolve().then().then().then();
+    clock.tick(DEFAULT_SEND_INTERVAL_MS);
 
     // Assert
-    clock.tick(INITIAL_SEND_TIME_DELAY_MS);
-    // First logRequest has been called.
-    expect(fetchStub).to.have.been.calledWith(flTransportFullUrl, {
-      method: 'POST',
-      body: JSON.stringify(logRequest)
-    });
-    // Wait for async action to call for next dispatch cycle.
-    await Promise.resolve()
-      .then(() => {
-        clock.tick(1);
-      })
-      .then(() => {
-        clock.tick(1);
+    // Expects the first logRequest which contains first 1000 events.
+    const firstLogRequest = generateLogRequest('5501');
+    for (let i = 0; i < MAX_EVENT_COUNT_PER_REQUEST; i++) {
+      firstLogRequest['log_event'].push({
+        'source_extension_json_proto3': 'event' + i,
+        'event_time_ms': '1'
       });
-    clock.tick(DEFAULT_SEND_INTERVAL_MS * 3);
-    // Remaining events stay in queue.
-    expect(readQueue().length).to.be.equal(20);
+    }
+    expect(fetchStub).which.to.have.been.calledWith(flTransportFullUrl, {
+      method: 'POST',
+      body: JSON.stringify(firstLogRequest)
+    });
+    // Expects the second logRequest which contains remaining 20 events;
+    const secondLogRequest = generateLogRequest('15501');
+    for (let i = 0; i < 20; i++) {
+      secondLogRequest['log_event'].push({
+        'source_extension_json_proto3':
+          'event' + (MAX_EVENT_COUNT_PER_REQUEST + i),
+        'event_time_ms': '1'
+      });
+    }
+    expect(fetchStub).calledWith(flTransportFullUrl, {
+      method: 'POST',
+      body: JSON.stringify(secondLogRequest)
+    });
   });
 
   function generateLogRequest(requestTimeMs: string): any {

@@ -66,10 +66,6 @@ export function setupTransportService(): void {
   }
 }
 
-export function readQueue(): BatchEvent[] {
-  return [...queue];
-}
-
 /**
  * Utilized by testing to clean up message queue and un-initialize transport service.
  */
