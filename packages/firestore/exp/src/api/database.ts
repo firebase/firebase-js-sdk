@@ -37,9 +37,9 @@ import {
 } from '../../../src/core/component_provider';
 import {
   FirebaseFirestore as LiteFirestore,
-  FirestoreDatabase,
   Settings as LiteSettings
 } from '../../../lite/src/api/database';
+import { DatabaseId } from '../../../src/core/database_info';
 import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 import { LRU_MINIMUM_CACHE_SIZE_BYTES } from '../../../src/local/lru_garbage_collector';
@@ -77,11 +77,12 @@ export class FirebaseFirestore
   _firestoreClient: FirestoreClient | undefined;
 
   constructor(
-    app: FirestoreDatabase | FirebaseApp,
+    databaseIdOrApp: DatabaseId | FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>
   ) {
-    super(app, authProvider);
-    this._persistenceKey = 'name' in app ? app.name : '[DEFAULT]';
+    super(databaseIdOrApp, authProvider);
+    this._persistenceKey =
+      'name' in databaseIdOrApp ? databaseIdOrApp.name : '[DEFAULT]';
   }
 
   _terminate(): Promise<void> {

@@ -63,11 +63,4 @@ export class DatabaseId {
       other.database === this.database
     );
   }
-
-  compareTo(other: DatabaseId): number {
-    return (
-      primitiveComparator(this.projectId, other.projectId) ||
-      primitiveComparator(this.database, other.database)
-    );
-  }
 }

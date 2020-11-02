@@ -139,10 +139,7 @@ import {
   WriteBatch as PublicWriteBatch
 } from '@firebase/firestore-types';
 import { newUserDataReader } from '../../lite/src/api/reference';
-import {
-  FirestoreDatabase,
-  makeDatabaseInfo
-} from '../../lite/src/api/database';
+import { makeDatabaseInfo } from '../../lite/src/api/database';
 import { DEFAULT_HOST } from '../../lite/src/api/components';
 
 /**
@@ -227,13 +224,13 @@ export class Firestore
   implements PublicFirestore, FirebaseService {
   _appCompat?: FirebaseApp;
   constructor(
-    databaseIdOrApp: FirestoreDatabase | FirebaseApp,
+    databaseIdOrApp: DatabaseId | FirebaseApp,
     delegate: ExpFirebaseFirestore,
     private _persistenceProvider: PersistenceProvider
   ) {
     super(delegate);
 
-    if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
+    if (!(databaseIdOrApp instanceof DatabaseId)) {
       this._appCompat = databaseIdOrApp as FirebaseApp;
     }
   }

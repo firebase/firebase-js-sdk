@@ -47,15 +47,6 @@ declare module '@firebase/component' {
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
 
-/**
- * Options that can be provided in the Firestore constructor when not using
- * Firebase (aka standalone mode).
- */
-export interface FirestoreDatabase {
-  projectId: string;
-  database?: string;
-}
-
 export interface Settings {
   host?: string;
   ssl?: boolean;
@@ -175,25 +166,16 @@ export class FirebaseFirestore implements _FirebaseService {
   private _app?: FirebaseApp;
 
   constructor(
-    databaseIdOrApp: FirebaseApp | FirestoreDatabase,
+    databaseIdOrApp: DatabaseId | FirebaseApp,
     authProvider: Provider<FirebaseAuthInternalName>
   ) {
-    if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
-      this._app = databaseIdOrApp as FirebaseApp;
-      this._databaseId = FirebaseFirestore._databaseIdFromApp(
-        databaseIdOrApp as FirebaseApp
-      );
-      this._credentials = new FirebaseCredentialsProvider(authProvider);
-    } else {
-      const external = databaseIdOrApp as FirestoreDatabase;
-      if (!external.projectId) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          'Must provide projectId'
-        );
-      }
-      this._databaseId = new DatabaseId(external.projectId, external.database);
+    if (databaseIdOrApp instanceof DatabaseId) {
+      this._databaseId = databaseIdOrApp;
       this._credentials = new EmptyCredentialsProvider();
+    } else {
+      this._app = databaseIdOrApp as FirebaseApp;
+      this._databaseId = databaseIdFromApp(databaseIdOrApp as FirebaseApp);
+      this._credentials = new FirebaseCredentialsProvider(authProvider);
     }
   }
 
@@ -244,17 +226,6 @@ export class FirebaseFirestore implements _FirebaseService {
     return this._settings;
   }
 
-  private static _databaseIdFromApp(app: FirebaseApp): DatabaseId {
-    if (!Object.prototype.hasOwnProperty.apply(app.options, ['projectId'])) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        '"projectId" not provided in firebase.initializeApp.'
-      );
-    }
-
-    return new DatabaseId(app.options.projectId!);
-  }
-
   _delete(): Promise<void> {
     if (!this._terminateTask) {
       this._terminateTask = this._terminate();
@@ -273,6 +244,17 @@ export class FirebaseFirestore implements _FirebaseService {
     removeComponents(this);
     return Promise.resolve();
   }
+}
+
+function databaseIdFromApp(app: FirebaseApp): DatabaseId {
+  if (!Object.prototype.hasOwnProperty.apply(app.options, ['projectId'])) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      '"projectId" not provided in firebase.initializeApp.'
+    );
+  }
+
+  return new DatabaseId(app.options.projectId!);
 }
 
 /**
