@@ -31,7 +31,6 @@ import { ALT_PROJECT_ID, DEFAULT_PROJECT_ID } from '../util/settings';
 const FieldPath = firebaseExport.FieldPath;
 const FieldValue = firebaseExport.FieldValue;
 const newTestFirestore = firebaseExport.newTestFirestore;
-const usesFunctionalApi = firebaseExport.usesFunctionalApi;
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -117,24 +116,14 @@ apiDescribe('Validation:', (persistence: boolean) => {
       persistence,
       'disallows changing settings after use',
       async db => {
-        let errorMsg =
-          'Firestore has already been started and its settings can no ' +
-          'longer be changed. ';
-
-        if (usesFunctionalApi()) {
-          errorMsg +=
-            'initializeFirestore() cannot be called after calling ' +
-            'getFirestore()';
-        } else {
-          errorMsg +=
-            'You can only modify settings before calling any other ' +
-            'methods on a Firestore object.';
-        }
-
         await db.doc('foo/bar').set({});
         expect(() =>
           db.settings({ host: 'something-else.example.com' })
-        ).to.throw(errorMsg);
+        ).to.throw(
+          'Firestore has already been started and its settings can no ' +
+            'longer be changed. You can only modify settings before calling any other ' +
+            'methods on a Firestore object.'
+        );
       }
     );
 
@@ -182,12 +171,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
         }
         expect(() => db.enablePersistence()).to.throw(
           'Firestore has already been started and persistence can no ' +
-            `longer be enabled. You can only ${
-              usesFunctionalApi()
-                ? 'enable persistence'
-                : 'call enablePersistence()'
-            } ` +
-            'before calling any other methods on a Firestore object.'
+            'longer be enabled. You can only enable persistence before ' +
+            'calling any other methods on a Firestore object.'
         );
       }
     );
@@ -211,23 +196,13 @@ apiDescribe('Validation:', (persistence: boolean) => {
   describe('Collection paths', () => {
     validationIt(persistence, 'must be non-empty strings', db => {
       const baseDocRef = db.doc('foo/bar');
-
-      if (usesFunctionalApi()) {
-        expect(() => db.collection('')).to.throw(
-          'Function collection() cannot be called with an empty path.'
-        );
-        expect(() => baseDocRef.collection('')).to.throw(
-          'Function collection() cannot be called with an empty path.'
-        );
-      } else {
-        expect(() => db.collection('')).to.throw(
-          'Function Firestore.collection() cannot be called with an empty path.'
-        );
-        expect(() => baseDocRef.collection('')).to.throw(
-          'Function DocumentReference.collection() cannot be called with an ' +
-            'empty path.'
-        );
-      }
+      expect(() => db.collection('')).to.throw(
+        'Function Firestore.collection() cannot be called with an empty path.'
+      );
+      expect(() => baseDocRef.collection('')).to.throw(
+        'Function DocumentReference.collection() cannot be called with an ' +
+          'empty path.'
+      );
     });
 
     validationIt(persistence, 'must be odd-length', db => {
@@ -271,22 +246,13 @@ apiDescribe('Validation:', (persistence: boolean) => {
     validationIt(persistence, 'must be strings', db => {
       const baseCollectionRef = db.collection('foo');
 
-      if (usesFunctionalApi()) {
-        expect(() => db.doc('')).to.throw(
-          'Function doc() cannot be called with an empty path.'
-        );
-        expect(() => baseCollectionRef.doc('')).to.throw(
-          'Function doc() cannot be called with an empty path.'
-        );
-      } else {
-        expect(() => db.doc('')).to.throw(
-          'Function Firestore.doc() cannot be called with an empty path.'
-        );
-        expect(() => baseCollectionRef.doc('')).to.throw(
-          'Function CollectionReference.doc() cannot be called with an empty ' +
-            'path.'
-        );
-      }
+      expect(() => db.doc('')).to.throw(
+        'Function Firestore.doc() cannot be called with an empty path.'
+      );
+      expect(() => baseCollectionRef.doc('')).to.throw(
+        'Function CollectionReference.doc() cannot be called with an empty ' +
+          'path.'
+      );
     });
 
     validationIt(persistence, 'must be even-length', db => {
@@ -623,9 +589,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         collection.where('test', '==', { test: FieldValue.arrayUnion(1) })
       ).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'where' : 'Query.where'
-        }() called with invalid data. ` +
+        'Function Query.where() called with invalid data. ' +
           'FieldValue.arrayUnion() can only be used with update() and set() ' +
           '(found in field test)'
       );
@@ -633,9 +597,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         collection.where('test', '==', { test: FieldValue.arrayRemove(1) })
       ).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'where' : 'Query.where'
-        }() called with invalid data. ` +
+        'Function Query.where() called with invalid data. ' +
           'FieldValue.arrayRemove() can only be used with update() and set() ' +
           '(found in field test)'
       );
@@ -688,10 +650,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
       expect(() =>
         collection.where('test', '==', { test: FieldValue.increment(1) })
       ).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'where' : 'Query.where'
-        }() called with invalid data. FieldValue.increment() can only be ` +
-          'used with update() and set() (found in field test)'
+        'Function Query.where() called with invalid data. ' +
+          'FieldValue.increment() can only be used with update() and set() ' +
+          '(found in field test)'
       );
     });
   });
@@ -700,14 +661,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
     validationIt(persistence, 'with non-positive limit fail', db => {
       const collection = db.collection('test');
       expect(() => collection.limit(0)).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'limit' : 'Query.limit'
-        }() requires a positive number, but it was: 0.`
+        `Function Query.limit() requires a positive number, but it was: 0.`
       );
       expect(() => collection.limitToLast(-1)).to.throw(
-        `Function ${
-          usesFunctionalApi() ? 'limitToLast' : 'Query.limitToLast'
-        }() requires a positive number, but it was: -1.`
+        `Function Query.limitToLast() requires a positive number, but it was: -1.`
       );
     });
 
@@ -798,10 +755,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const collection = db.collection('collection');
         const query = collection.orderBy('foo');
         const reason =
-          `Too many arguments provided to ${
-            usesFunctionalApi() ? 'startAt' : 'Query.startAt'
-          }(). The number of arguments must be less than or equal to the ` +
-          `number of orderBy() clauses`;
+          'Too many arguments provided to Query.startAt(). The number of ' +
+          'arguments must be less than or equal to the number of orderBy() ' +
+          'clauses';
         expect(() => query.startAt(1, 2)).to.throw(reason);
         expect(() => query.orderBy('bar').startAt(1, 2, 3)).to.throw(reason);
       }
@@ -819,22 +775,18 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .orderBy(FieldPath.documentId());
         expect(() => query.startAt(1)).to.throw(
           'Invalid query. Expected a string for document ID in ' +
-            `${
-              usesFunctionalApi() ? 'startAt' : 'Query.startAt'
-            }(), but got a number`
+            'Query.startAt(), but got a number'
         );
         expect(() => query.startAt('foo/bar')).to.throw(
-          `Invalid query. When querying a collection and ordering by FieldPath.documentId(), ` +
-            `the value passed to ${
-              usesFunctionalApi() ? 'startAt' : 'Query.startAt'
-            }() must be a plain document ID, but 'foo/bar' contains a slash.`
+          'Invalid query. When querying a collection and ordering by ' +
+            'FieldPath.documentId(), the value passed to Query.startAt() ' +
+            "must be a plain document ID, but 'foo/bar' contains a slash."
         );
         expect(() => cgQuery.startAt('foo')).to.throw(
-          `Invalid query. When querying a collection group and ordering by ` +
-            `FieldPath.documentId(), the value passed to ${
-              usesFunctionalApi() ? 'startAt' : 'Query.startAt'
-            }() must result in a valid document path, but 'foo' is not because ` +
-            `it contains an odd number of segments.`
+          'Invalid query. When querying a collection group and ordering by ' +
+            'FieldPath.documentId(), the value passed to Query.startAt() ' +
+            "must result in a valid document path, but 'foo' is not because " +
+            'it contains an odd number of segments.'
         );
       }
     );
@@ -1314,21 +1266,12 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(persistence, 'cannot pass undefined as a field value', db => {
       const collection = db.collection('test');
-      if (usesFunctionalApi()) {
-        expect(() => collection.where('foo', '==', undefined)).to.throw(
-          'Function where() called with invalid data. Unsupported field value: undefined'
-        );
-        expect(() => collection.orderBy('foo').startAt(undefined)).to.throw(
-          'Function startAt() called with invalid data. Unsupported field value: undefined'
-        );
-      } else {
-        expect(() => collection.where('foo', '==', undefined)).to.throw(
-          'Function Query.where() called with invalid data. Unsupported field value: undefined'
-        );
-        expect(() => collection.orderBy('foo').startAt(undefined)).to.throw(
-          'Function Query.startAt() called with invalid data. Unsupported field value: undefined'
-        );
-      }
+      expect(() => collection.where('foo', '==', undefined)).to.throw(
+        'Function Query.where() called with invalid data. Unsupported field value: undefined'
+      );
+      expect(() => collection.orderBy('foo').startAt(undefined)).to.throw(
+        'Function Query.startAt() called with invalid data. Unsupported field value: undefined'
+      );
     });
   });
 });
@@ -1391,9 +1334,7 @@ function expectWriteToFail(
     `Function ${fnName}() called with invalid data. ${reason}`;
 
   if (includeSets) {
-    expect(() => docRef.set(data)).to.throw(
-      error(usesFunctionalApi() ? 'setDoc' : 'DocumentReference.set')
-    );
+    expect(() => docRef.set(data)).to.throw(error('DocumentReference.set'));
     expect(() => docRef.firestore.batch().set(docRef, data)).to.throw(
       error('WriteBatch.set')
     );
@@ -1401,7 +1342,7 @@ function expectWriteToFail(
 
   if (includeUpdates) {
     expect(() => docRef.update(data)).to.throw(
-      error(usesFunctionalApi() ? 'updateDoc' : 'DocumentReference.update')
+      error('DocumentReference.update')
     );
     expect(() => docRef.firestore.batch().update(docRef, data)).to.throw(
       error('WriteBatch.update')
@@ -1444,14 +1385,10 @@ function expectFieldPathToFail(
     // <=, etc omitted for brevity since the code path is trivially
     // shared.
     expect(() => coll.where(path, '==', 1)).to.throw(
-      `Function ${
-        usesFunctionalApi() ? 'where' : 'Query.where'
-      }() called with invalid data. ` + reason
+      `Function Query.where() called with invalid data. ` + reason
     );
     expect(() => coll.orderBy(path)).to.throw(
-      `Function ${
-        usesFunctionalApi() ? 'orderBy' : 'Query.orderBy'
-      }() called with invalid data. ` + reason
+      `Function Query.orderBy() called with invalid data. ` + reason
     );
 
     // Update paths.

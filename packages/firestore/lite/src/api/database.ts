@@ -24,8 +24,10 @@ import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import {
   CredentialsProvider,
+  FirebaseCredentialsProvider,
   CredentialsSettings,
-  FirebaseCredentialsProvider
+  EmptyCredentialsProvider,
+  makeCredentialsProvider
 } from '../../../src/api/credentials';
 import { removeComponents } from './components';
 import {
@@ -44,6 +46,15 @@ declare module '@firebase/component' {
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
+
+/**
+ * Options that can be provided in the Firestore constructor when not using
+ * Firebase (aka standalone mode).
+ */
+export interface FirestoreDatabase {
+  projectId: string;
+  database?: string;
+}
 
 export interface Settings {
   host?: string;
@@ -151,29 +162,54 @@ export class FirestoreSettings {
  */
 export class FirebaseFirestore implements _FirebaseService {
   readonly _databaseId: DatabaseId;
-  readonly _credentials: CredentialsProvider;
   readonly _persistenceKey: string = '(lite)';
+  _credentials: CredentialsProvider;
 
-  protected _settings?: Settings;
+  private _settings = new FirestoreSettings({});
   private _settingsFrozen = false;
 
   // A task that is assigned when the terminate() is invoked and resolved when
   // all components have shut down.
   private _terminateTask?: Promise<void>;
 
+  private _app?: FirebaseApp;
+
+  constructor(
+    databaseIdOrApp: FirebaseApp | FirestoreDatabase,
+    authProvider: Provider<FirebaseAuthInternalName>
+  ) {
+    if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
+      this._app = databaseIdOrApp as FirebaseApp;
+      this._databaseId = FirebaseFirestore._databaseIdFromApp(
+        databaseIdOrApp as FirebaseApp
+      );
+      this._credentials = new FirebaseCredentialsProvider(authProvider);
+    } else {
+      const external = databaseIdOrApp as FirestoreDatabase;
+      if (!external.projectId) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          'Must provide projectId'
+        );
+      }
+      this._databaseId = new DatabaseId(external.projectId, external.database);
+      this._credentials = new EmptyCredentialsProvider();
+    }
+  }
+
   /**
    * The {@link FirebaseApp app} associated with this `Firestore` service
    * instance.
    */
-  readonly app: FirebaseApp;
-
-  constructor(
-    app: FirebaseApp,
-    authProvider: Provider<FirebaseAuthInternalName>
-  ) {
-    this.app = app;
-    this._databaseId = FirebaseFirestore._databaseIdFromApp(app);
-    this._credentials = new FirebaseCredentialsProvider(authProvider);
+  get app(): FirebaseApp {
+    if (!this._app) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        "Firestore was not initialized using the Firebase SDK. 'app' is " +
+          'not available'
+      );
+    }
+    return this._app;
   }
 
   get _initialized(): boolean {
@@ -184,24 +220,28 @@ export class FirebaseFirestore implements _FirebaseService {
     return this._terminateTask !== undefined;
   }
 
-  _setSettings(settings: Settings): void {
+  _setSettings(settings: PrivateSettings): void {
     if (this._settingsFrozen) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Firestore has already been started and its settings can no longer ' +
-          'be changed. initializeFirestore() cannot be called after calling ' +
-          'getFirestore().'
+          'be changed. You can only modify settings before calling any other ' +
+          'methods on a Firestore object.'
       );
     }
-    this._settings = settings;
+    this._settings = new FirestoreSettings(settings);
+    if (settings.credentials !== undefined) {
+      this._credentials = makeCredentialsProvider(settings.credentials);
+    }
   }
 
   _getSettings(): FirestoreSettings {
-    if (!this._settings) {
-      this._settings = {};
-    }
+    return this._settings;
+  }
+
+  _freezeSettings(): FirestoreSettings {
     this._settingsFrozen = true;
-    return new FirestoreSettings(this._settings);
+    return this._settings;
   }
 
   private static _databaseIdFromApp(app: FirebaseApp): DatabaseId {

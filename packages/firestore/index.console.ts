@@ -15,7 +15,14 @@
  * limitations under the License.
  */
 
-export { Firestore } from './src/api/database';
+import { FirebaseFirestore as FirestoreExp } from './exp/src/api/database';
+import {
+  Firestore as FirestoreCompat,
+  MemoryPersistenceProvider
+} from './src/api/database';
+import { FirestoreDatabase } from './lite/src/api/database';
+import { Provider } from '@firebase/component';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 export {
   CollectionReference,
   DocumentReference,
@@ -27,3 +34,17 @@ export { GeoPoint } from './src/api/geo_point';
 export { FieldPath } from './src/api/field_path';
 export { FieldValue } from './src/compat/field_value';
 export { Timestamp } from './src/api/timestamp';
+
+/** Firestore class that exposes the constructor expected by the Console. */
+export class Firestore extends FirestoreCompat {
+  constructor(
+    databaseId: FirestoreDatabase,
+    authProvider: Provider<FirebaseAuthInternalName>
+  ) {
+    super(
+      databaseId,
+      new FirestoreExp(databaseId, authProvider),
+      new MemoryPersistenceProvider()
+    );
+  }
+}

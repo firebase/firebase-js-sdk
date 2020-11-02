@@ -436,12 +436,14 @@ export function parseUpdateData(
   forEach(input as Dict<unknown>, (key, value) => {
     const path = fieldPathFromDotSeparatedString(methodName, key, targetDoc);
 
+    // For Compat types, we have to "extract" the underlying types before
+    // performing validation.
+    if (value instanceof Compat) {
+      value = (value as Compat<unknown>)._delegate;
+    }
+
     const childContext = context.childContextForFieldPath(path);
-    if (
-      value instanceof DeleteFieldValueImpl ||
-      (value instanceof Compat &&
-        value._delegate instanceof DeleteFieldValueImpl)
-    ) {
+    if (value instanceof DeleteFieldValueImpl) {
       // Add it to the field mask, but don't add anything to updateData.
       fieldMaskPaths.push(path);
     } else {
@@ -504,13 +506,16 @@ export function parseUpdateVarargs(
   for (let i = keys.length - 1; i >= 0; --i) {
     if (!fieldMaskContains(fieldMaskPaths, keys[i])) {
       const path = keys[i];
-      const value = values[i];
+      let value = values[i];
+
+      // For Compat types, we have to "extract" the underlying types before
+      // performing validation.
+      if (value instanceof Compat) {
+        value = (value as Compat<unknown>)._delegate;
+      }
+
       const childContext = context.childContextForFieldPath(path);
-      if (
-        value instanceof DeleteFieldValueImpl ||
-        (value instanceof Compat &&
-          value._delegate instanceof DeleteFieldValueImpl)
-      ) {
+      if (value instanceof DeleteFieldValueImpl) {
         // Add it to the field mask, but don't add anything to updateData.
         fieldMaskPaths.push(path);
       } else {
@@ -792,9 +797,15 @@ function validatePlainObject(
  */
 export function fieldPathFromArgument(
   methodName: string,
-  path: string | _BaseFieldPath,
+  path: string | _BaseFieldPath | Compat<_BaseFieldPath>,
   targetDoc?: DocumentKey
 ): FieldPath {
+  // If required, replace the FieldPath Compat class with with the firestore-exp
+  // FieldPath.
+  if (path instanceof Compat) {
+    path = (path as Compat<_BaseFieldPath>)._delegate;
+  }
+
   if (path instanceof _BaseFieldPath) {
     return path._internalPath;
   } else if (typeof path === 'string') {
