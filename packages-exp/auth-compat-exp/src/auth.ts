@@ -64,7 +64,7 @@ export class Auth
       appName: app.name
     });
 
-    this.auth._updateErrorMap(impl.verboseErrorMap);
+    this.auth._updateErrorMap(impl.debugErrorMap);
 
     // This promise is intended to float; auth initialization happens in the
     // background, meanwhile the auth object may be used by the app.
