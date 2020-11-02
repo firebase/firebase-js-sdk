@@ -357,7 +357,7 @@ function _prodErrorMap(): ErrorMap<AuthErrorCode> {
 /**
  * A verbose error map with detailed descriptions for most error codes.
  *
- * See discussion at {@link externs.AuthErrorMap}
+ * See discussion at {@link @firebase/auth-types#AuthErrorMap}
  *
  * @public
  */
@@ -366,7 +366,7 @@ export const debugErrorMap: externs.AuthErrorMap = _debugErrorMap;
 /**
  * A minimal error map with all verbose error messages stripped.
  *
- * See discussion at {@link externs.AuthErrorMap}
+ * See discussion at {@link @firebase/auth-types#AuthErrorMap}
  *
  * @public
  */

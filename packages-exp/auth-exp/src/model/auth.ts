@@ -17,7 +17,7 @@
 
 import * as externs from '@firebase/auth-types-exp';
 import { ErrorFactory } from '@firebase/util';
-import { AuthErrorCode, AuthErrorMap, AuthErrorParams } from '../core/errors';
+import { AuthErrorCode, AuthErrorParams } from '../core/errors';
 
 import { PopupRedirectResolver } from './popup_redirect';
 import { User } from './user';
@@ -98,5 +98,5 @@ export interface Auth extends externs.Auth {
 export interface Dependencies {
   persistence?: externs.Persistence | externs.Persistence[];
   popupRedirectResolver?: externs.PopupRedirectResolver;
-  errorMap?: AuthErrorMap;
+  errorMap?: externs.AuthErrorMap;
 }

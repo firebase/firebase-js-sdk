@@ -84,6 +84,9 @@ export function createUserWithEmailAndPassword(auth: externs.Auth, email: string
 export type CustomParameters = Record<string, string>;
 
 // @public
+export const debugErrorMap: externs.AuthErrorMap;
+
+// @public
 export function deleteUser(user: externs.User): Promise<void>;
 
 // @public
@@ -310,10 +313,8 @@ export class PhoneMultiFactorGenerator implements externs.PhoneMultiFactorGenera
     static assertion(credential: externs.PhoneAuthCredential): externs.PhoneMultiFactorAssertion;
 }
 
-// Warning: (ae-forgotten-export) The symbol "AuthErrorMap" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export const prodErrorMap: AuthErrorMap;
+// @public
+export const prodErrorMap: externs.AuthErrorMap;
 
 // @public
 export function reauthenticateWithCredential(user: externs.User, credential: externs.AuthCredential): Promise<externs.UserCredential>;
@@ -425,9 +426,6 @@ export function updateProfile(user: externs.User, { displayName, photoURL: photo
 
 // @public
 export function useDeviceLanguage(auth: externs.Auth): void;
-
-// @public (undocumented)
-export const verboseErrorMap: AuthErrorMap;
 
 // @public
 export function verifyBeforeUpdateEmail(user: externs.User, newEmail: string, actionCodeSettings?: externs.ActionCodeSettings | null): Promise<void>;
