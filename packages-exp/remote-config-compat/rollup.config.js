@@ -19,8 +19,6 @@ import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import json from '@rollup/plugin-json';
 import pkg from './package.json';
-import { es2017BuildsNoPlugin, es5BuildsNoPlugin } from './rollup.shared';
-import pkg from './package.json';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
@@ -54,10 +52,6 @@ export const es2017BuildsNoPlugin = [
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
-
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
 
 /**
  * ES5 Builds
