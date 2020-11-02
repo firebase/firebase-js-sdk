@@ -94,7 +94,7 @@ export function _signIn(params: IdpTaskParams): Promise<UserCredential> {
 /** @internal */
 export function _reauth(params: IdpTaskParams): Promise<UserCredential> {
   const { auth, user } = params;
-  _assert(user,auth, AuthErrorCode.INTERNAL_ERROR);
+  _assert(user, auth, AuthErrorCode.INTERNAL_ERROR);
   return _reauthenticate(
     user,
     new IdpCredential(params),

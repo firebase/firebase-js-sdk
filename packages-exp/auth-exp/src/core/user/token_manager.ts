@@ -59,7 +59,7 @@ export class StsTokenManager {
     _assert(
       !this.accessToken || this.refreshToken,
       auth,
-      AuthErrorCode.TOKEN_EXPIRED,
+      AuthErrorCode.TOKEN_EXPIRED
     );
 
     if (!forceRefresh && this.accessToken && !this.isExpired) {
