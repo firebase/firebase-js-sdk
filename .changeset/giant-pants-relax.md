@@ -1,5 +1,5 @@
 ---
-'@firebase/app-compat': patch
+'@firebase/app-compat: patch
 ---
 
 test
