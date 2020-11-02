@@ -22,8 +22,10 @@ jobs:
     - name: Run changeset script
       run: yarn ts-node-script scripts/check_changeset.ts
       id: check-changeset
-    - name: Print changeset checker outputx
+    - name: Print changeset checker output
       run: echo "${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}"
+    - name: Print blocking failure status
+      run: echo "${{steps.check-changeset.outputs.BLOCKING_FAILURE}}"
     - name: Find Comment
       uses: peter-evans/find-comment@v1
       id: fc
