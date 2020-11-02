@@ -173,7 +173,7 @@ describe('api/_performApiRequest', () => {
       );
       await expect(promise).to.be.rejectedWith(
         FirebaseError,
-        'auth/awesome error'
+        'auth/awesome-error'
       );
       expect(mock.calls[0].request).to.eql(request);
     });

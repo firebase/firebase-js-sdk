@@ -123,7 +123,7 @@ export const enum AuthErrorCode {
   WEB_STORAGE_UNSUPPORTED = 'web-storage-unsupported'
 }
 
-function _verboseErrorMap(): ErrorMap<AuthErrorCode> {
+function _debugErrorMap(): ErrorMap<AuthErrorCode> {
   return {
     [AuthErrorCode.ADMIN_ONLY_OPERATION]:
       'This operation is restricted to administrators only.',
@@ -345,9 +345,8 @@ function _verboseErrorMap(): ErrorMap<AuthErrorCode> {
       'This browser is not supported or 3rd party cookies and data may be disabled.'
   };
 }
-export interface AuthErrorMap {}
 
-export interface ErrorMapRetriever extends AuthErrorMap {
+export interface ErrorMapRetriever extends externs.AuthErrorMap {
   (): ErrorMap<AuthErrorCode>;
 }
 
@@ -355,8 +354,23 @@ function _prodErrorMap(): ErrorMap<AuthErrorCode> {
   return {} as ErrorMap<AuthErrorCode>;
 }
 
-export const verboseErrorMap: AuthErrorMap = _verboseErrorMap;
-export const prodErrorMap: AuthErrorMap = _prodErrorMap;
+/**
+ * A verbose error map with detailed descriptions for most error codes.
+ * 
+ * See discussion at {@link externs.AuthErrorMap}
+ * 
+ * @public
+ */
+export const debugErrorMap: externs.AuthErrorMap = _debugErrorMap;
+
+/**
+ * A minimal error map with all verbose error messages stripped.
+ * 
+ * See discussion at {@link externs.AuthErrorMap}
+ * 
+ * @public
+ */
+export const prodErrorMap: externs.AuthErrorMap = _prodErrorMap;
 
 export interface NamedErrorParams {
   appName: AppName;
@@ -390,7 +404,7 @@ export interface AuthErrorParams extends GenericAuthErrorParams {
   };
 }
 
-export const FALLBACK_AUTH_ERROR_FACTORY = new ErrorFactory<
+export const _DEFAULT_AUTH_ERROR_FACTORY = new ErrorFactory<
   AuthErrorCode,
   AuthErrorParams
 >('auth', 'Firebase', _prodErrorMap());

@@ -19,7 +19,7 @@ import * as externs from '@firebase/auth-types-exp';
 import { FirebaseError } from '@firebase/util';
 import { Auth } from '../../model/auth';
 import {
-  FALLBACK_AUTH_ERROR_FACTORY,
+  _DEFAULT_AUTH_ERROR_FACTORY,
   AuthErrorCode,
   AuthErrorParams
 } from '../errors';
@@ -95,7 +95,7 @@ function createErrorInternal<K extends AuthErrorCode>(
     return (authOrCode as Auth)._errorFactory.create(code, ...fullParams);
   }
 
-  return FALLBACK_AUTH_ERROR_FACTORY.create(
+  return _DEFAULT_AUTH_ERROR_FACTORY.create(
     authOrCode,
     ...(rest as AuthErrorListParams<K>)
   );

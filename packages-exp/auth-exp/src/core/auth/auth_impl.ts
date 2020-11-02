@@ -33,10 +33,9 @@ import { PopupRedirectResolver } from '../../model/popup_redirect';
 import { User } from '../../model/user';
 import {
   AuthErrorCode,
-  AuthErrorMap,
   AuthErrorParams,
   ErrorMapRetriever,
-  FALLBACK_AUTH_ERROR_FACTORY
+  _DEFAULT_AUTH_ERROR_FACTORY
 } from '../errors';
 import { Persistence } from '../persistence';
 import {
@@ -79,7 +78,7 @@ export class AuthImpl implements Auth, _FirebaseService {
   _errorFactory: ErrorFactory<
     AuthErrorCode,
     AuthErrorParams
-  > = FALLBACK_AUTH_ERROR_FACTORY;
+  > = _DEFAULT_AUTH_ERROR_FACTORY;
   readonly name: string;
 
   // Tracks the last notified UID for state change listeners to prevent
@@ -339,7 +338,7 @@ export class AuthImpl implements Auth, _FirebaseService {
     return this.assertedPersistence.persistence.type;
   }
 
-  _updateErrorMap(errorMap: AuthErrorMap): void {
+  _updateErrorMap(errorMap: externs.AuthErrorMap): void {
     this._errorFactory = new ErrorFactory<AuthErrorCode, AuthErrorParams>(
       'auth',
       'Firebase',

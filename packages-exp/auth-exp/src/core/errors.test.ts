@@ -1,4 +1,3 @@
-import { ErrorFactory } from '@firebase/util';
 /**
  * @license
  * Copyright 2020 Google LLC
@@ -19,13 +18,14 @@ import { ErrorFactory } from '@firebase/util';
 import { expect } from 'chai';
 import {
   AuthErrorCode,
-  verboseErrorMap,
+  debugErrorMap,
   prodErrorMap,
   ErrorMapRetriever,
-  AuthErrorMap,
   AuthErrorParams
 } from './errors';
 import { _createError } from './util/assert';
+import { AuthErrorMap } from '@firebase/auth-types-exp';
+import { ErrorFactory } from '@firebase/util';
 
 function getErrorFactory(
   errorMap: AuthErrorMap
@@ -41,7 +41,7 @@ function getErrorFactory(
 
 describe('verboseErrorMap', () => {
   it('should create an Auth namespaced FirebaseError with full message', () => {
-    const error = getErrorFactory(verboseErrorMap).create(
+    const error = getErrorFactory(debugErrorMap).create(
       AuthErrorCode.INTERNAL_ERROR,
       {}
     );

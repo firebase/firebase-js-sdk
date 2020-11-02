@@ -149,7 +149,7 @@ export async function _performFetchWithErrorHandling<V>(
         errorMap[serverErrorCode] ||
         ((serverErrorCode
           .toLowerCase()
-          .replace(/_/g, '-') as unknown) as AuthErrorCode);
+          .replace(/[_\s]+/g, '-') as unknown) as AuthErrorCode);
       _fail(auth, authError);
     }
   } catch (e) {
@@ -175,7 +175,7 @@ export async function _performSignInRequest<T, V extends IdTokenResponse>(
     customErrorMap
   )) as V;
   if ('mfaPendingCredential' in serverResponse) {
-    throw _createError(auth, AuthErrorCode.MFA_REQUIRED, {
+    _fail(auth, AuthErrorCode.MFA_REQUIRED, {
       serverResponse
     });
   }
