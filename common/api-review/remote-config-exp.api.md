@@ -9,37 +9,37 @@ import { LogLevel } from '@firebase/remote-config-types-exp';
 import { RemoteConfig } from '@firebase/remote-config-types-exp';
 import { Value } from '@firebase/remote-config-types-exp';
 
-// @public (undocumented)
+// @public
 export function activate(remoteConfig: RemoteConfig): Promise<boolean>;
 
-// @public (undocumented)
+// @public
 export function ensureInitialized(remoteConfig: RemoteConfig): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function fetchAndActivate(remoteConfig: RemoteConfig): Promise<boolean>;
 
-// @public (undocumented)
+// @public
 export function fetchConfig(remoteConfig: RemoteConfig): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function getAll(remoteConfig: RemoteConfig): Record<string, Value>;
 
-// @public (undocumented)
+// @public
 export function getBoolean(remoteConfig: RemoteConfig, key: string): boolean;
 
-// @public (undocumented)
+// @public
 export function getNumber(remoteConfig: RemoteConfig, key: string): number;
 
 // @public (undocumented)
 export function getRemoteConfig(app: FirebaseApp): RemoteConfig;
 
-// @public (undocumented)
+// @public
 export function getString(remoteConfig: RemoteConfig, key: string): string;
 
-// @public (undocumented)
+// @public
 export function getValue(remoteConfig: RemoteConfig, key: string): Value;
 
-// @public (undocumented)
+// @public
 export function setLogLevel(remoteConfig: RemoteConfig, logLevel: LogLevel): void;
 
 
