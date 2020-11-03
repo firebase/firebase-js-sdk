@@ -21,6 +21,7 @@ import { name as analyticsName } from '../../../packages/analytics/package.json'
 import { name as authName } from '../../../packages/auth/package.json';
 import { name as databaseName } from '../../../packages/database/package.json';
 import { name as functionsName } from '../../../packages-exp/functions-exp/package.json';
+import { name as functionsCompatName } from '../../../packages-exp/functions-compat/package.json';
 import { name as installationsName } from '../../../packages/installations/package.json';
 import { name as messagingName } from '../../../packages/messaging/package.json';
 import { name as performanceName } from '../../../packages/performance/package.json';
@@ -43,6 +44,7 @@ export const PLATFORM_LOG_STRING = {
   [authName]: 'fire-auth',
   [databaseName]: 'fire-rtdb',
   [functionsName]: 'fire-fn',
+  [functionsCompatName]: 'fire-fn-compat',
   [installationsName]: 'fire-iid',
   [messagingName]: 'fire-fcm',
   [performanceName]: 'fire-perf',

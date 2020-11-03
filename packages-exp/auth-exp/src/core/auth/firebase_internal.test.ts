@@ -23,7 +23,7 @@ import { Auth } from '../../model/auth';
 import { User } from '../../model/user';
 import { AuthInternal } from './firebase_internal';
 
-describe('src/core/auth/firebase_internal', () => {
+describe('core/auth/firebase_internal', () => {
   let auth: Auth;
   let authInternal: AuthInternal;
   beforeEach(async () => {
@@ -56,6 +56,7 @@ describe('src/core/auth/firebase_internal', () => {
       const user = testUser(auth, 'uid');
       await auth._updateCurrentUser(user);
       user.stsTokenManager.accessToken = 'access-token';
+      user.stsTokenManager.refreshToken = 'refresh-token';
       user.stsTokenManager.expirationTime = Date.now() + 1000 * 60 * 60 * 24;
       expect(await authInternal.getToken()).to.eql({
         accessToken: 'access-token'

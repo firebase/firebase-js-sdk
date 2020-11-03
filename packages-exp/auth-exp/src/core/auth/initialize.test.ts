@@ -41,7 +41,7 @@ import { ClientPlatform, _getClientVersion } from '../util/version';
 import { initializeAuth } from './initialize';
 import { registerAuth } from './register';
 
-describe('src/core/auth/initialize', () => {
+describe('core/auth/initialize', () => {
   let fakeApp: FirebaseApp;
 
   class FakeSessionPersistence implements Persistence {
@@ -105,6 +105,13 @@ describe('src/core/auth/initialize', () => {
       cb: (support: boolean) => unknown
     ): void {
       cb(true);
+    }
+    async _completeRedirectFn(
+      _auth: externs.Auth,
+      _resolver: externs.PopupRedirectResolver,
+      _bypassAuthState: boolean
+    ): Promise<externs.UserCredential | null> {
+      return null;
     }
   }
 

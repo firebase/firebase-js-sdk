@@ -29,9 +29,20 @@ import { AuthErrorCode } from '../errors';
 import { fail } from '../util/assert';
 import { AuthCredential } from './auth_credential';
 
+/**
+ * Interface that represents the credentials returned by {@link EmailAuthProvider} for
+ * {@link @firebase/auth-types#ProviderId.PASSWORD}
+ *
+ * @remarks
+ * Covers both {@link @firebase/auth-types#SignInMethod.EMAIL_PASSWORD} and
+ * {@link @firebase/auth-types#SignInMethod.EMAIL_LINK}.
+ *
+ * @public
+ */
 export class EmailAuthCredential
   extends AuthCredential
   implements externs.AuthCredential {
+  /** @internal */
   private constructor(
     readonly email: string,
     readonly password: string,
@@ -41,6 +52,7 @@ export class EmailAuthCredential
     super(externs.ProviderId.PASSWORD, signInMethod);
   }
 
+  /** @internal */
   static _fromEmailAndPassword(
     email: string,
     password: string
@@ -52,6 +64,7 @@ export class EmailAuthCredential
     );
   }
 
+  /** @internal */
   static _fromEmailAndCode(
     email: string,
     oobCode: string,
@@ -65,6 +78,7 @@ export class EmailAuthCredential
     );
   }
 
+  /** {@inheritdoc @firebase/auth-types#AuthCredential.toJSON} */
   toJSON(): object {
     return {
       email: this.email,
@@ -74,6 +88,7 @@ export class EmailAuthCredential
     };
   }
 
+  /** {@inheritdoc @firebase/auth-types#AuthCredential.fromJSON} */
   static fromJSON(json: object | string): EmailAuthCredential | null {
     const obj = typeof json === 'string' ? JSON.parse(json) : json;
     if (obj?.email && obj?.password) {
@@ -86,6 +101,7 @@ export class EmailAuthCredential
     return null;
   }
 
+  /** @internal */
   async _getIdTokenResponse(auth: Auth): Promise<IdTokenResponse> {
     switch (this.signInMethod) {
       case externs.SignInMethod.EMAIL_PASSWORD:
@@ -104,6 +120,7 @@ export class EmailAuthCredential
     }
   }
 
+  /** @internal */
   async _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
     switch (this.signInMethod) {
       case externs.SignInMethod.EMAIL_PASSWORD:
@@ -124,6 +141,7 @@ export class EmailAuthCredential
     }
   }
 
+  /** @internal */
   _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
     return this._getIdTokenResponse(auth);
   }

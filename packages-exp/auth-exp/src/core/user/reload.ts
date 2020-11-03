@@ -46,6 +46,19 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
   const newProviderData = coreAccount.providerUserInfo?.length
     ? extractProviderData(coreAccount.providerUserInfo)
     : [];
+
+  const providerData = mergeProviderData(user.providerData, newProviderData);
+
+  // Preserves the non-nonymous status of the stored user, even if no more
+  // credentials (federated or email/password) are linked to the user. If
+  // the user was previously anonymous, then use provider data to update.
+  // On the other hand, if it was not anonymous before, it should never be
+  // considered anonymous now.
+  const oldIsAnonymous = user.isAnonymous;
+  const newIsAnonymous =
+    !(user.email && coreAccount.passwordHash) && !providerData?.length;
+  const isAnonymous = !oldIsAnonymous ? false : newIsAnonymous;
+
   const updates: Partial<User> = {
     uid: coreAccount.localId,
     displayName: coreAccount.displayName || null,
@@ -54,22 +67,30 @@ export async function _reloadWithoutSaving(user: User): Promise<void> {
     emailVerified: coreAccount.emailVerified || false,
     phoneNumber: coreAccount.phoneNumber || null,
     tenantId: coreAccount.tenantId || null,
-    providerData: mergeProviderData(user.providerData, newProviderData),
-    metadata: new UserMetadata(coreAccount.createdAt, coreAccount.lastLoginAt)
+    providerData,
+    metadata: new UserMetadata(coreAccount.createdAt, coreAccount.lastLoginAt),
+    isAnonymous
   };
 
   Object.assign(user, updates);
 }
 
-export async function reload(externUser: externs.User): Promise<void> {
-  const user: User = externUser as User;
-  await _reloadWithoutSaving(user);
+/**
+ * Reloads user account data, if signed in.
+ *
+ * @param user - The user.
+ *
+ * @public
+ */
+export async function reload(user: externs.User): Promise<void> {
+  const userInternal: User = user as User;
+  await _reloadWithoutSaving(userInternal);
 
   // Even though the current user hasn't changed, update
   // current user will trigger a persistence update w/ the
   // new info.
-  await user.auth._persistUserIfCurrent(user);
-  user.auth._notifyListenersIfCurrent(user);
+  await userInternal.auth._persistUserIfCurrent(userInternal);
+  userInternal.auth._notifyListenersIfCurrent(userInternal);
 }
 
 function mergeProviderData(

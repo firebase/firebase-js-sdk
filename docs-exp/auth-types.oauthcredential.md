@@ -4,7 +4,7 @@
 
 ## OAuthCredential class
 
-Interface that represents the OAuth credentials returned by an OAuth provider. Implementations specify the details about each auth provider's credential requirements.
+Interface that represents the OAuth credentials returned by an [OAuthProvider](./auth.oauthprovider.md)<!-- -->.
 
 <b>Signature:</b>
 
@@ -13,11 +13,15 @@ export abstract class OAuthCredential extends AuthCredential
 ```
 <b>Extends:</b> [AuthCredential](./auth-types.authcredential.md)
 
+## Remarks
+
+Implementations specify the details about each auth provider's credential requirements.
+
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [accessToken](./auth-types.oauthcredential.accesstoken.md) |  | string | The OAuth access token associated with the credential if it belongs to an OAuth provider, such as <code>facebook.com</code>, <code>twitter.com</code>, etc. |
+|  [accessToken](./auth-types.oauthcredential.accesstoken.md) |  | string | The OAuth access token associated with the credential if it belongs to an [OAuthProvider](./auth.oauthprovider.md)<!-- -->, such as <code>facebook.com</code>, <code>twitter.com</code>, etc. |
 |  [idToken](./auth-types.oauthcredential.idtoken.md) |  | string | The OAuth ID token associated with the credential if it belongs to an OIDC provider, such as <code>google.com</code>. |
 |  [secret](./auth-types.oauthcredential.secret.md) |  | string | The OAuth access token secret associated with the credential if it belongs to an OAuth 1.0 provider, such as <code>twitter.com</code>. |
 

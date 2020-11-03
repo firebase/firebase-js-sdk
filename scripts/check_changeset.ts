@@ -17,6 +17,7 @@
 
 import { resolve } from 'path';
 import { existsSync } from 'fs';
+import { exec } from 'child-process-promise';
 import chalk from 'chalk';
 import simpleGit from 'simple-git/promise';
 import fs from 'mz/fs';
@@ -83,6 +84,32 @@ async function parseChangesetFile(changesetFile: string) {
 }
 
 async function main() {
+  const errors = [];
+  try {
+    await exec('yarn changeset status');
+    console.log(`::set-output name=BLOCKING_FAILURE::false`);
+  } catch (e) {
+    const messageLines = e.message.replace(/🦋  error /g, '').split('\n');
+    let formattedStatusError =
+      '- Changeset formatting error in following file:%0A';
+    formattedStatusError += '    ```%0A';
+    formattedStatusError += messageLines
+      .filter(
+        (line: string) => !line.match(/^    at [\w\.]+ \(.+:[0-9]+:[0-9]+\)/)
+      )
+      .filter((line: string) => !line.includes('Command failed'))
+      .filter((line: string) => !line.includes('exited with error code 1'))
+      .map((line: string) => `    ${line}`)
+      .join('%0A');
+    formattedStatusError += '%0A    ```%0A';
+    errors.push(formattedStatusError);
+    /**
+     * Sets Github Actions output for a step. Pass changeset error message to next
+     * step. See:
+     * https://github.com/actions/toolkit/blob/master/docs/commands.md#set-outputs
+     */
+    console.log(`::set-output name=BLOCKING_FAILURE::true`);
+  }
   try {
     const diffData = await getDiffData();
     if (diffData == null) {
@@ -94,23 +121,32 @@ async function main() {
         changedPkg => !changesetPackages.includes(changedPkg)
       );
       if (missingPackages.length > 0) {
-        /**
-         * Sets Github Actions output for a step. Pass missing package list to next
-         * step. See:
-         * https://github.com/actions/toolkit/blob/master/docs/commands.md#set-outputs
-         */
-        console.log(
-          `::set-output name=MISSING_PACKAGES::${missingPackages
-            .map(pkg => `- ${pkg}`)
-            .join('%0A')}`
-        );
+        const missingPackagesLines = [
+          '- Warning: This PR modifies files in the following packages but they have not been included in the changeset file:'
+        ];
+        for (const missingPackage of missingPackages) {
+          missingPackagesLines.push(`  - ${missingPackage}`);
+        }
+        missingPackagesLines.push('');
+        missingPackagesLines.push('  Make sure this was intentional.');
+        errors.push(missingPackagesLines.join('%0A'));
       }
-      process.exit();
     }
   } catch (e) {
     console.error(chalk`{red ${e}}`);
     process.exit(1);
   }
+
+  /**
+   * Sets Github Actions output for a step. Pass changeset error message to next
+   * step. See:
+   * https://github.com/actions/toolkit/blob/master/docs/commands.md#set-outputs
+   */
+  if (errors.length > 0)
+    console.log(
+      `::set-output name=CHANGESET_ERROR_MESSAGE::${errors.join('%0A')}`
+    );
+  process.exit();
 }
 
 main();

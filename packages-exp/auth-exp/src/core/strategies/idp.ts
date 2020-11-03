@@ -31,6 +31,7 @@ import { assert } from '../util/assert';
 import { _signInWithCredential } from './credential';
 import { AuthErrorCode } from '../errors';
 
+/** @internal */
 export interface IdpTaskParams {
   auth: Auth;
   requestUri: string;
@@ -39,13 +40,13 @@ export interface IdpTaskParams {
   postBody?: string;
   pendingToken?: string;
   user?: User;
+  bypassAuthState?: boolean;
 }
 
+/** @internal */
 export type IdpTask = (params: IdpTaskParams) => Promise<UserCredential>;
 
-/**
- * Private implementation, not for public export
- */
+/** @internal */
 class IdpCredential extends AuthCredential {
   constructor(readonly params: IdpTaskParams) {
     super(externs.ProviderId.CUSTOM, externs.ProviderId.CUSTOM);
@@ -81,21 +82,29 @@ class IdpCredential extends AuthCredential {
   }
 }
 
+/** @internal */
 export function _signIn(params: IdpTaskParams): Promise<UserCredential> {
   return _signInWithCredential(
     params.auth,
-    new IdpCredential(params)
+    new IdpCredential(params),
+    params.bypassAuthState
   ) as Promise<UserCredential>;
 }
 
+/** @internal */
 export function _reauth(params: IdpTaskParams): Promise<UserCredential> {
   const { auth, user } = params;
   assert(user, AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
-  return _reauthenticate(user, new IdpCredential(params));
+  return _reauthenticate(
+    user,
+    new IdpCredential(params),
+    params.bypassAuthState
+  );
 }
 
+/** @internal */
 export async function _link(params: IdpTaskParams): Promise<UserCredential> {
   const { auth, user } = params;
   assert(user, AuthErrorCode.INTERNAL_ERROR, { appName: auth.name });
-  return _linkUser(user, new IdpCredential(params));
+  return _linkUser(user, new IdpCredential(params), params.bypassAuthState);
 }

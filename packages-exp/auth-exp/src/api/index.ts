@@ -20,7 +20,8 @@ import { FirebaseError, querystring } from '@firebase/util';
 import {
   AUTH_ERROR_FACTORY,
   AuthErrorCode,
-  NamedErrorParams
+  NamedErrorParams,
+  ERRORS
 } from '../core/errors';
 import { fail } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
@@ -149,9 +150,12 @@ export async function _performFetchWithErrorHandling<V>(
       } else if (serverErrorCode === ServerError.EMAIL_EXISTS) {
         throw makeTaggedError(auth, AuthErrorCode.EMAIL_EXISTS, json);
       }
-
-      const authError = errorMap[serverErrorCode];
-      if (authError) {
+      const authError =
+        errorMap[serverErrorCode] ||
+        ((serverErrorCode
+          .toLowerCase()
+          .replace(/_/g, '-') as unknown) as AuthErrorCode);
+      if (authError && Object.keys(ERRORS).includes(authError)) {
         fail(authError, { appName: auth.name });
       } else {
         // TODO probably should handle improperly formatted errors as well

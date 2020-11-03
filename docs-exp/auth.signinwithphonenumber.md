@@ -4,6 +4,8 @@
 
 ## signInWithPhoneNumber() function
 
+Asynchronously signs in using a phone number.
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,11 +16,29 @@ export declare function signInWithPhoneNumber(auth: externs.Auth, phoneNumber: s
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  auth | externs.[Auth](./auth-types.auth.md) |  |
-|  phoneNumber | string |  |
-|  appVerifier | externs.[ApplicationVerifier](./auth-types.applicationverifier.md) |  |
+|  auth | externs.[Auth](./auth-types.auth.md) | The Auth instance. |
+|  phoneNumber | string | The user's phone number in E.164 format (e.g. +16505550101). |
+|  appVerifier | externs.[ApplicationVerifier](./auth-types.applicationverifier.md) | The [ApplicationVerifier](./auth-types.applicationverifier.md)<!-- -->. |
 
 <b>Returns:</b>
 
 Promise&lt;externs.[ConfirmationResult](./auth-types.confirmationresult.md)<!-- -->&gt;
+
+## Remarks
+
+This method sends a code via SMS to the given phone number, and returns a [ConfirmationResult](./auth-types.confirmationresult.md)<!-- -->. After the user provides the code sent to their phone, call [ConfirmationResult.confirm()](./auth-types.confirmationresult.confirm.md) with the code to sign the user in.
+
+For abuse prevention, this method also requires a [ApplicationVerifier](./auth-types.applicationverifier.md)<!-- -->. This SDK includes a reCAPTCHA-based implementation, [RecaptchaVerifier](./auth.recaptchaverifier.md)<!-- -->.
+
+## Example
+
+
+```javascript
+// 'recaptcha-container' is the ID of an element in the DOM.
+const applicationVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
+const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
+// Obtain a verificationCode from the user.
+const credential = await confirmationResult.confirm(verificationCode);
+
+```
 

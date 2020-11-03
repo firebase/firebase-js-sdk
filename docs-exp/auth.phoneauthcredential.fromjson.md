@@ -4,6 +4,7 @@
 
 ## PhoneAuthCredential.fromJSON() method
 
+
 <b>Signature:</b>
 
 ```typescript

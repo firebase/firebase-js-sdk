@@ -6,8 +6,6 @@
 
 Returns a deserialized JSON Web Token (JWT) used to identitfy the user to a Firebase service.
 
-Returns the current token if it has not expired or if it will not expire in the next five minutes. Otherwise, this will refresh the token and return a new one.
-
 <b>Signature:</b>
 
 ```typescript
@@ -23,4 +21,8 @@ getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
 <b>Returns:</b>
 
 Promise&lt;[IdTokenResult](./auth-types.idtokenresult.md)<!-- -->&gt;
+
+## Remarks
+
+Returns the current token if it has not expired or if it will not expire in the next five minutes. Otherwise, this will refresh the token and return a new one.
 

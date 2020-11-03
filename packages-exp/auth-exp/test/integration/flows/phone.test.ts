@@ -107,7 +107,8 @@ describe('Integration test: phone auth', () => {
 
     await unlink(user, ProviderId.PHONE);
     expect(auth.currentUser!.uid).to.eq(anonId);
-    expect(auth.currentUser!.isAnonymous).to.be.true;
+    // Is anonymous stays false even after unlinking
+    expect(auth.currentUser!.isAnonymous).to.be.false;
     expect(auth.currentUser!.phoneNumber).to.be.null;
   });
 

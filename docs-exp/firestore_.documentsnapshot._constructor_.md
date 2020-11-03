@@ -4,6 +4,8 @@
 
 ## DocumentSnapshot.(constructor)
 
+Constructs a new instance of the `DocumentSnapshot` class
+
 <b>Signature:</b>
 
 ```typescript

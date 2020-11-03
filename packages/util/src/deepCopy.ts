@@ -33,6 +33,8 @@ export function deepCopy<T>(value: T): T {
  *
  * Note that the target can be a function, in which case the properties in
  * the source Object are copied onto it as static properties of the Function.
+ *
+ * Note: we don't merge __proto__ to prevent prototype pollution
  */
 export function deepExtend(target: unknown, source: unknown): unknown {
   if (!(source instanceof Object)) {
@@ -62,14 +64,19 @@ export function deepExtend(target: unknown, source: unknown): unknown {
   }
 
   for (const prop in source) {
-    if (!source.hasOwnProperty(prop)) {
+    // use isValidKey to guard against prototype pollution. See https://snyk.io/vuln/SNYK-JS-LODASH-450202
+    if (!source.hasOwnProperty(prop) || !isValidKey(prop)) {
       continue;
     }
-    (target as { [key: string]: unknown })[prop] = deepExtend(
-      (target as { [key: string]: unknown })[prop],
-      (source as { [key: string]: unknown })[prop]
+    (target as Record<string, unknown>)[prop] = deepExtend(
+      (target as Record<string, unknown>)[prop],
+      (source as Record<string, unknown>)[prop]
     );
   }
 
   return target;
+}
+
+function isValidKey(key: string): boolean {
+  return key !== '__proto__';
 }

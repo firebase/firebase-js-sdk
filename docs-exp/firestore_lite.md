@@ -31,15 +31,15 @@
 |  [addDoc(reference, data)](./firestore_lite.adddoc.md) |  |
 |  [arrayRemove(elements)](./firestore_lite.arrayremove.md) |  |
 |  [arrayUnion(elements)](./firestore_lite.arrayunion.md) |  |
-|  [collection(firestore, collectionPath)](./firestore_lite.collection.md) |  |
-|  [collection(reference, collectionPath)](./firestore_lite.collection_1.md) |  |
-|  [collection(reference, collectionPath)](./firestore_lite.collection_2.md) |  |
+|  [collection(firestore, path, pathComponents)](./firestore_lite.collection.md) |  |
+|  [collection(reference, path, pathComponents)](./firestore_lite.collection_1.md) |  |
+|  [collection(reference, path, pathComponents)](./firestore_lite.collection_2.md) |  |
 |  [collectionGroup(firestore, collectionId)](./firestore_lite.collectiongroup.md) |  |
 |  [deleteDoc(reference)](./firestore_lite.deletedoc.md) |  |
 |  [deleteField()](./firestore_lite.deletefield.md) |  |
-|  [doc(firestore, documentPath)](./firestore_lite.doc.md) |  |
-|  [doc(reference, documentPath)](./firestore_lite.doc_1.md) |  |
-|  [doc(reference, documentPath)](./firestore_lite.doc_2.md) |  |
+|  [doc(firestore, path, pathComponents)](./firestore_lite.doc.md) |  |
+|  [doc(reference, path, pathComponents)](./firestore_lite.doc_1.md) |  |
+|  [doc(reference, path, pathComponents)](./firestore_lite.doc_2.md) |  |
 |  [documentId()](./firestore_lite.documentid.md) |  |
 |  [endAt(snapshot)](./firestore_lite.endat.md) |  |
 |  [endAt(fieldValues)](./firestore_lite.endat_1.md) |  |

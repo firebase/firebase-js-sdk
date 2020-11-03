@@ -14,7 +14,7 @@ export class Timestamp
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(seconds, nanoseconds)](./firestore_.timestamp._constructor_.md) |  |  |
+|  [(constructor)(seconds, nanoseconds)](./firestore_.timestamp._constructor_.md) |  | Constructs a new instance of the <code>Timestamp</code> class |
 
 ## Properties
 

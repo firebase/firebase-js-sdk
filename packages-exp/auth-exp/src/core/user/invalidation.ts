@@ -22,8 +22,12 @@ import { AuthErrorCode } from '../errors';
 
 export async function _logoutIfInvalidated<T>(
   user: User,
-  promise: Promise<T>
+  promise: Promise<T>,
+  bypassAuthState = false
 ): Promise<T> {
+  if (bypassAuthState) {
+    return promise;
+  }
   try {
     return await promise;
   } catch (e) {

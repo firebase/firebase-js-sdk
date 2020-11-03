@@ -30,6 +30,9 @@ import { AuthCredential } from './auth_credential';
 
 const IDP_REQUEST_URI = 'http://localhost';
 
+/**
+ * @internal
+ */
 export interface OAuthCredentialParams {
   // OAuth 2 uses either id token or access token
   idToken?: string | null;
@@ -49,15 +52,25 @@ export interface OAuthCredentialParams {
   signInMethod: string;
 }
 
+/**
+ * {@inheritdoc @firebase/auth-types#OAuthCredential}
+ *
+ * @public
+ */
 export class OAuthCredential
   extends AuthCredential
   implements externs.OAuthCredential {
+  /** {@inheritdoc @firebase/auth-types#OAuthCredential.idToken} @readonly */
   idToken?: string;
+  /** {@inheritdoc @firebase/auth-types#OAuthCredential.accessToken} @readonly */
   accessToken?: string;
+  /** {@inheritdoc @firebase/auth-types#OAuthCredential.secret} @readonly */
   secret?: string;
+  /** @internal */
   nonce?: string;
   private pendingToken: string | null = null;
 
+  /** @internal */
   static _fromParams(params: OAuthCredentialParams): OAuthCredential {
     const cred = new OAuthCredential(params.providerId, params.signInMethod);
 
@@ -90,6 +103,7 @@ export class OAuthCredential
     return cred;
   }
 
+  /** {@inheritdoc @firebase/auth-types#OAuthCredential.toJSON}  */
   toJSON(): object {
     return {
       idToken: this.idToken,
@@ -102,6 +116,7 @@ export class OAuthCredential
     };
   }
 
+  /** {@inheritdoc @firebase/auth-types#OAuthCredential.fromJSON} */
   static fromJSON(json: string | object): OAuthCredential | null {
     const obj = typeof json === 'string' ? JSON.parse(json) : json;
     const { providerId, signInMethod, ...rest }: Partial<OAuthCredential> = obj;
@@ -114,17 +129,20 @@ export class OAuthCredential
     return cred;
   }
 
+  /** @internal */
   _getIdTokenResponse(auth: Auth): Promise<IdTokenResponse> {
     const request = this.buildRequest();
     return signInWithIdp(auth, request);
   }
 
+  /** @internal */
   _linkToIdToken(auth: Auth, idToken: string): Promise<IdTokenResponse> {
     const request = this.buildRequest();
     request.idToken = idToken;
     return signInWithIdp(auth, request);
   }
 
+  /** @internal */
   _getReauthenticationResolver(auth: Auth): Promise<IdTokenResponse> {
     const request = this.buildRequest();
     request.autoCreate = false;

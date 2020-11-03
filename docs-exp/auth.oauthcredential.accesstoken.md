@@ -4,6 +4,8 @@
 
 ## OAuthCredential.accessToken property
 
+The OAuth access token associated with the credential if it belongs to an [OAuthProvider](./auth.oauthprovider.md)<!-- -->, such as `facebook.com`<!-- -->, `twitter.com`<!-- -->, etc.
+
 <b>Signature:</b>
 
 ```typescript

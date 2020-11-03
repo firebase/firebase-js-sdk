@@ -21,6 +21,7 @@ import { Auth } from '@firebase/auth-types-exp';
 
 export interface SignInWithCustomTokenRequest {
   token: string;
+  returnSecureToken: boolean;
 }
 
 export interface SignInWithCustomTokenResponse extends IdTokenResponse {}

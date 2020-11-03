@@ -33,7 +33,7 @@ import { User } from '../../model/user';
 import { AuthErrorCode } from '../errors';
 import { Persistence } from '../persistence';
 import {
-  _REDIRECT_USER_KEY_NAME,
+  KeyName,
   PersistenceUserManager
 } from '../persistence/persistence_user_manager';
 import { _reloadWithoutSaving } from '../user/reload';
@@ -45,9 +45,11 @@ interface AsyncAction {
   (): Promise<void>;
 }
 
-export const DEFAULT_TOKEN_API_HOST = 'securetoken.googleapis.com';
-export const DEFAULT_API_HOST = 'identitytoolkit.googleapis.com';
-export const DEFAULT_API_SCHEME = 'https';
+export const enum DefaultConfig {
+  TOKEN_API_HOST = 'securetoken.googleapis.com',
+  API_HOST = 'identitytoolkit.googleapis.com',
+  API_SCHEME = 'https'
+}
 
 export class AuthImpl implements Auth, _FirebaseService {
   currentUser: externs.User | null = null;
@@ -58,6 +60,7 @@ export class AuthImpl implements Auth, _FirebaseService {
   private idTokenSubscription = new Subscription<externs.User>(this);
   private redirectUser: User | null = null;
   private isProactiveRefreshEnabled = false;
+  private redirectInitializerError: Error | null = null;
 
   // Any network calls will set this to true and prevent subsequent emulator
   // initialization
@@ -107,17 +110,21 @@ export class AuthImpl implements Auth, _FirebaseService {
         return;
       }
 
-      await this.initializeCurrentUser();
+      await this.initializeCurrentUser(popupRedirectResolver);
 
       if (this._deleted) {
         return;
       }
 
       this._isInitialized = true;
-      this.notifyAuthListeners();
     });
 
-    return this._initializationPromise;
+    // After initialization completes, throw any error caused by redirect flow
+    return this._initializationPromise.then(() => {
+      if (this.redirectInitializerError) {
+        throw this.redirectInitializerError;
+      }
+    });
   }
 
   /**
@@ -147,18 +154,40 @@ export class AuthImpl implements Auth, _FirebaseService {
 
     // Update current Auth state. Either a new login or logout.
     await this._updateCurrentUser(user);
-    // Notify external Auth changes of Auth change event.
-    this.notifyAuthListeners();
   }
 
-  private async initializeCurrentUser(): Promise<void> {
-    const storedUser = (await this.assertedPersistence.getCurrentUser()) as User | null;
+  private async initializeCurrentUser(
+    popupRedirectResolver?: externs.PopupRedirectResolver
+  ): Promise<void> {
+    // First check to see if we have a pending redirect event.
+    let storedUser = (await this.assertedPersistence.getCurrentUser()) as User | null;
+    if (popupRedirectResolver) {
+      await this.getOrInitRedirectPersistenceManager();
+      const redirectUserEventId = this.redirectUser?._redirectEventId;
+      const storedUserEventId = storedUser?._redirectEventId;
+      const result = await this.tryRedirectSignIn(popupRedirectResolver);
+
+      // If the stored user (i.e. the old "currentUser") has a redirectId that
+      // matches the redirect user, then we want to initially sign in with the
+      // new user object from result.
+      // TODO(samgho): More thoroughly test all of this
+      if (
+        (!redirectUserEventId || redirectUserEventId === storedUserEventId) &&
+        result?.user
+      ) {
+        storedUser = result.user as User;
+      }
+    }
+
+    // If no user in persistence, there is no current user. Set to null.
     if (!storedUser) {
-      return this.directlySetCurrentUser(storedUser);
+      return this.directlySetCurrentUser(null);
     }
 
     if (!storedUser._redirectEventId) {
       // This isn't a redirect user, we can reload and bail
+      // This will also catch the redirected user, if available, as that method
+      // strips the _redirectEventId
       return this.reloadAndSetCurrentUserOrClear(storedUser);
     }
 
@@ -178,6 +207,42 @@ export class AuthImpl implements Auth, _FirebaseService {
     }
 
     return this.reloadAndSetCurrentUserOrClear(storedUser);
+  }
+
+  private async tryRedirectSignIn(
+    redirectResolver: externs.PopupRedirectResolver
+  ): Promise<externs.UserCredential | null> {
+    // The redirect user needs to be checked (and signed in if available)
+    // during auth initialization. All of the normal sign in and link/reauth
+    // flows call back into auth and push things onto the promise queue. We
+    // need to await the result of the redirect sign in *inside the promise
+    // queue*. This presents a problem: we run into deadlock. See:
+    //    ┌> [Initialization] ─────┐
+    //    ┌> [<other queue tasks>] │
+    //    └─ [getRedirectResult] <─┘
+    //    where [] are tasks on the queue and arrows denote awaits
+    // Initialization will never complete because it's waiting on something
+    // that's waiting for initialization to complete!
+    //
+    // Instead, this method calls getRedirectResult() (stored in
+    // _completeRedirectFn) with an optional parameter that instructs all of
+    // the underlying auth operations to skip anything that mutates auth state.
+
+    let result: externs.UserCredential | null = null;
+    try {
+      // We know this._popupRedirectResolver is set since redirectResolver
+      // is passed in. The _completeRedirectFn expects the unwrapped extern.
+      result = await this._popupRedirectResolver!._completeRedirectFn(
+        this,
+        redirectResolver,
+        true
+      );
+    } catch (e) {
+      this.redirectInitializerError = e;
+      await this._setRedirectUser(null);
+    }
+
+    return result;
   }
 
   private async reloadAndSetCurrentUserOrClear(user: User): Promise<void> {
@@ -241,6 +306,7 @@ export class AuthImpl implements Auth, _FirebaseService {
         { appName: this.name }
       );
     }
+
     return this.queue(async () => {
       await this.directlySetCurrentUser(user as User | null);
       this.notifyAuthListeners();
@@ -324,7 +390,7 @@ export class AuthImpl implements Auth, _FirebaseService {
       this.redirectPersistenceManager = await PersistenceUserManager.create(
         this,
         [_getInstance(resolver._redirectPersistence)],
-        _REDIRECT_USER_KEY_NAME
+        KeyName.REDIRECT_USER
       );
       this.redirectUser = await this.redirectPersistenceManager.getCurrentUser();
     }
@@ -333,8 +399,11 @@ export class AuthImpl implements Auth, _FirebaseService {
   }
 
   async _redirectUserForId(id: string): Promise<User | null> {
-    // Make sure we've cleared any pending ppersistence actions
-    await this.queue(async () => {});
+    // Make sure we've cleared any pending persistence actions if we're not in
+    // the initializer
+    if (this._isInitialized) {
+      await this.queue(async () => {});
+    }
 
     if (this._currentUser?._redirectEventId === id) {
       return this._currentUser;

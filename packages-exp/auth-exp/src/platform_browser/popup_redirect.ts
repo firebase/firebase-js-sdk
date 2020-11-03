@@ -40,19 +40,26 @@ import { _setWindowLocation } from './auth_window';
 import { _openIframe } from './iframe/iframe';
 import { browserSessionPersistence } from './persistence/session_storage';
 import { _open, AuthPopup } from './util/popup';
+import { _getRedirectResult } from './strategies/redirect';
 
 /**
  * URL for Authentication widget which will initiate the OAuth handshake
+ *
+ * @internal
  */
 const WIDGET_PATH = '__/auth/handler';
 
 /**
  * URL for emulated environment
+ *
+ * @internal
  */
 const EMULATOR_WIDGET_PATH = 'emulator/auth/handler';
 
 /**
  * The special web storage event
+ *
+ * @internal
  */
 const WEB_STORAGE_SUPPORT_KEY = 'webStorageSupport';
 
@@ -69,6 +76,8 @@ interface ManagerOrPromise {
  * Chooses a popup/redirect resolver to use. This prefers the override (which
  * is directly passed in), and falls back to the property set on the auth
  * object. If neither are available, this function errors w/ an argument error.
+ *
+ * @internal
  */
 export function _withDefaultResolver(
   auth: Auth,
@@ -190,8 +199,16 @@ class BrowserPopupRedirectResolver implements PopupRedirectResolver {
 
     return this.originValidationPromises[key];
   }
+
+  _completeRedirectFn = _getRedirectResult;
 }
 
+/**
+ * An implementation of {@link @firebase/auth-types#PopupRedirectResolver} suitable for browser
+ * based applications.
+ *
+ * @public
+ */
 export const browserPopupRedirectResolver: externs.PopupRedirectResolver = BrowserPopupRedirectResolver;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

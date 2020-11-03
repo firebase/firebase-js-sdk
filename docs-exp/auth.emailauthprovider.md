@@ -4,6 +4,8 @@
 
 ## EmailAuthProvider class
 
+Provider for generating [EmailAuthCredential](./auth.emailauthcredential.md)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -15,15 +17,15 @@ export declare class EmailAuthProvider implements externs.EmailAuthProvider
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [EMAIL\_LINK\_SIGN\_IN\_METHOD](./auth.emailauthprovider.email_link_sign_in_method.md) | <code>static</code> | (not declared) |  |
-|  [EMAIL\_PASSWORD\_SIGN\_IN\_METHOD](./auth.emailauthprovider.email_password_sign_in_method.md) | <code>static</code> | (not declared) |  |
-|  [PROVIDER\_ID](./auth.emailauthprovider.provider_id.md) | <code>static</code> | (not declared) |  |
-|  [providerId](./auth.emailauthprovider.providerid.md) |  | (not declared) |  |
+|  [EMAIL\_LINK\_SIGN\_IN\_METHOD](./auth.emailauthprovider.email_link_sign_in_method.md) | <code>static</code> | (not declared) | Always set to [SignInMethod.EMAIL\_LINK](./auth-types.signinmethod.email_link.md)<!-- -->. |
+|  [EMAIL\_PASSWORD\_SIGN\_IN\_METHOD](./auth.emailauthprovider.email_password_sign_in_method.md) | <code>static</code> | (not declared) | Always set to [SignInMethod.EMAIL\_PASSWORD](./auth-types.signinmethod.email_password.md)<!-- -->. |
+|  [PROVIDER\_ID](./auth.emailauthprovider.provider_id.md) | <code>static</code> | (not declared) | Always set to [ProviderId.PASSWORD](./auth-types.providerid.password.md)<!-- -->, even for email link. |
+|  [providerId](./auth.emailauthprovider.providerid.md) |  | (not declared) | Always set to [ProviderId.PASSWORD](./auth-types.providerid.password.md)<!-- -->, even for email link. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [credential(email, password)](./auth.emailauthprovider.credential.md) | <code>static</code> |  |
-|  [credentialWithLink(email, emailLink)](./auth.emailauthprovider.credentialwithlink.md) | <code>static</code> |  |
+|  [credential(email, password)](./auth.emailauthprovider.credential.md) | <code>static</code> | Initialize an [AuthCredential](./auth-types.authcredential.md) using an email and password. |
+|  [credentialWithLink(email, emailLink)](./auth.emailauthprovider.credentialwithlink.md) | <code>static</code> | Initialize an [AuthCredential](./auth-types.authcredential.md) using an email and an email link after a sign in with email link operation. |
 

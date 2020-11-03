@@ -24,7 +24,7 @@ export class DatabaseEmulator extends Emulator {
 
   constructor(port = 8088, namespace = 'test-emulator') {
     super(
-      'database-emulator.jar',
+      'firebase-database-emulator-v4.4.1.jar',
       // Use locked version of emulator for test to be deterministic.
       // The latest version can be found from database emulator doc:
       // https://firebase.google.com/docs/database/security/test-rules-emulator

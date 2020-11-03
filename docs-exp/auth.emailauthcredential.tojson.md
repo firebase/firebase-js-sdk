@@ -4,6 +4,8 @@
 
 ## EmailAuthCredential.toJSON() method
 
+Returns a JSON-serializable representation of this object.
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,4 +14,6 @@ toJSON(): object;
 <b>Returns:</b>
 
 object
+
+a JSON-serializable representation of this object.
 

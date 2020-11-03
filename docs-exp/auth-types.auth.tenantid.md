@@ -4,13 +4,17 @@
 
 ## Auth.tenantId property
 
-The Auth instance's tenant ID. This is a readable/writable property. When you set the tenant ID of an Auth instance, all future sign-in/sign-up operations will pass this tenant ID and sign in or sign up users to the specified tenant project. When set to null, users are signed in to the parent project. By default, this is set to null.
+The Auth instance's tenant ID.
 
 <b>Signature:</b>
 
 ```typescript
 tenantId: string | null;
 ```
+
+## Remarks
+
+This is a readable/writable property. When you set the tenant ID of an Auth instance, all future sign-in/sign-up operations will pass this tenant ID and sign in or sign up users to the specified tenant project. When set to null, users are signed in to the parent project.
 
 ## Example
 

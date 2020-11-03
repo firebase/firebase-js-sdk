@@ -36,7 +36,7 @@ import {
 use(sinonChai);
 use(chaiAsPromised);
 
-describe('platform-browser/recaptcha/recaptcha_mock', () => {
+describe('platform_browser/recaptcha/recaptcha_mock', () => {
   let container: HTMLElement;
   let auth: TestAuth;
 

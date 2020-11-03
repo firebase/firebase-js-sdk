@@ -28,7 +28,7 @@ import { _logoutIfInvalidated } from './invalidation';
 
 use(chaiAsPromised);
 
-describe('src/core/user/invalidation', () => {
+describe('core/user/invalidation', () => {
   let user: User;
   let auth: Auth;
 
@@ -61,6 +61,14 @@ describe('src/core/user/invalidation', () => {
       _logoutIfInvalidated(user, Promise.reject(error))
     ).to.be.rejectedWith(error);
     expect(auth.currentUser).to.be.null;
+  });
+
+  it('does not log out if bypass auth state is true', async () => {
+    const error = makeError(AuthErrorCode.USER_DISABLED);
+    try {
+      await _logoutIfInvalidated(user, Promise.reject(error), true);
+    } catch {}
+    expect(auth.currentUser).to.eq(user);
   });
 
   it('logs out the user if the error is token_expired', async () => {

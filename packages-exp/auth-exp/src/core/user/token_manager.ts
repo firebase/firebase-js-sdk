@@ -26,8 +26,12 @@ import { assert, debugFail } from '../util/assert';
 /**
  * The number of milliseconds before the official expiration time of a token
  * to refresh that token, to provide a buffer for RPCs to complete.
+ *
+ * @internal
  */
-export const TOKEN_REFRESH_BUFFER_MS = 30_000;
+export const enum Buffer {
+  TOKEN_REFRESH = 30_000
+}
 
 export class StsTokenManager {
   refreshToken: string | null = null;
@@ -37,7 +41,7 @@ export class StsTokenManager {
   get isExpired(): boolean {
     return (
       !this.expirationTime ||
-      Date.now() > this.expirationTime - TOKEN_REFRESH_BUFFER_MS
+      Date.now() > this.expirationTime - Buffer.TOKEN_REFRESH
     );
   }
 
@@ -52,19 +56,24 @@ export class StsTokenManager {
   }
 
   async getToken(auth: Auth, forceRefresh = false): Promise<string | null> {
+    assert(
+      !this.accessToken || this.refreshToken,
+      AuthErrorCode.TOKEN_EXPIRED,
+      {
+        appName: auth.name
+      }
+    );
+
     if (!forceRefresh && this.accessToken && !this.isExpired) {
       return this.accessToken;
     }
 
-    if (!this.refreshToken) {
-      assert(!this.accessToken, AuthErrorCode.TOKEN_EXPIRED, {
-        appName: auth.name
-      });
-      return null;
+    if (this.refreshToken) {
+      await this.refresh(auth, this.refreshToken!);
+      return this.accessToken;
     }
 
-    await this.refresh(auth, this.refreshToken);
-    return this.accessToken;
+    return null;
   }
 
   clearRefreshToken(): void {

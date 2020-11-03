@@ -29,42 +29,47 @@ import { _reloadWithoutSaving } from './reload';
 import { UserCredentialImpl } from './user_credential_impl';
 
 /**
- *  This is the externally visible unlink function
+ * Unlinks a provider from a user account.
+ *
+ * @param user - The user.
+ * @param providerId - The provider to unlink.
+ *
+ * @public
  */
 export async function unlink(
-  userExtern: externs.User,
+  user: externs.User,
   providerId: externs.ProviderId
 ): Promise<externs.User> {
-  const user = userExtern as User;
-  await _assertLinkedStatus(true, user, providerId);
-  const { providerUserInfo } = await deleteLinkedAccounts(user.auth, {
+  const userInternal = user as User;
+  await _assertLinkedStatus(true, userInternal, providerId);
+  const { providerUserInfo } = await deleteLinkedAccounts(userInternal.auth, {
     idToken: await user.getIdToken(),
     deleteProvider: [providerId]
   });
 
   const providersLeft = providerDataAsNames(providerUserInfo || []);
 
-  user.providerData = user.providerData.filter(pd =>
+  userInternal.providerData = user.providerData.filter(pd =>
     providersLeft.has(pd.providerId)
   );
   if (!providersLeft.has(externs.ProviderId.PHONE)) {
-    user.phoneNumber = null;
+    userInternal.phoneNumber = null;
   }
 
-  await user.auth._persistUserIfCurrent(user);
+  await userInternal.auth._persistUserIfCurrent(userInternal);
   return user;
 }
 
-/**
- * Internal-only link helper
- */
+/** @internal */
 export async function _link(
   user: User,
-  credential: AuthCredential
+  credential: AuthCredential,
+  bypassAuthState = false
 ): Promise<UserCredential> {
   const response = await _logoutIfInvalidated(
     user,
-    credential._linkToIdToken(user.auth, await user.getIdToken())
+    credential._linkToIdToken(user.auth, await user.getIdToken()),
+    bypassAuthState
   );
   return UserCredentialImpl._forOperation(
     user,
@@ -73,6 +78,7 @@ export async function _link(
   );
 }
 
+/** @internal */
 export async function _assertLinkedStatus(
   expected: boolean,
   user: User,

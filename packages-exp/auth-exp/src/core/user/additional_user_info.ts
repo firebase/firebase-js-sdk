@@ -22,6 +22,8 @@ import { UserCredential } from '../../model/user';
 
 /**
  * Parse the `AdditionalUserInfo` from the ID token response.
+ *
+ * @internal
  */
 export function _fromIdTokenResponse(
   idTokenResponse?: IdTokenResponse
@@ -42,8 +44,8 @@ export function _fromIdTokenResponse(
     ];
     if (signInProvider) {
       const filteredProviderId =
-        providerId !== externs.ProviderId.ANONYMOUS &&
-        providerId !== externs.ProviderId.CUSTOM
+        signInProvider !== externs.ProviderId.ANONYMOUS &&
+        signInProvider !== externs.ProviderId.CUSTOM
           ? (signInProvider as externs.ProviderId)
           : null;
       // Uses generic class in accordance with the legacy SDK.
@@ -126,6 +128,13 @@ class TwitterAdditionalUserInfo extends FederatedAdditionalUserInfoWithUsername 
   }
 }
 
+/**
+ * Extracts provider specific {@link @firebase/auth-types#AdditionalUserInfo} for the given credential.
+ *
+ * @param userCredential - The user credential.
+ *
+ * @public
+ */
 export function getAdditionalUserInfo(
   userCredential: externs.UserCredential
 ): externs.AdditionalUserInfo | null {

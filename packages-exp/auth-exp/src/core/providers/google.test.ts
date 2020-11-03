@@ -30,13 +30,19 @@ import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../errors';
 import { UserCredentialImpl } from '../user/user_credential_impl';
 import { GoogleAuthProvider } from './google';
 
-describe('src/core/providers/google', () => {
+describe('core/providers/google', () => {
   it('generates the correct type of oauth credential', () => {
     const cred = GoogleAuthProvider.credential('id-token', 'access-token');
     expect(cred.accessToken).to.eq('access-token');
     expect(cred.idToken).to.eq('id-token');
     expect(cred.providerId).to.eq(ProviderId.GOOGLE);
     expect(cred.signInMethod).to.eq(SignInMethod.GOOGLE);
+  });
+
+  it('adds the profile scope by default', () => {
+    const provider = new GoogleAuthProvider();
+    expect(provider.providerId).to.eq(ProviderId.GOOGLE);
+    expect(provider.getScopes()).to.eql(['profile']);
   });
 
   it('credentialFromResult creates the cred from a tagged result', async () => {

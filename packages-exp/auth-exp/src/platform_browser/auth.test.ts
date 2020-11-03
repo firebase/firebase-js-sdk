@@ -24,13 +24,7 @@ import { FirebaseApp } from '@firebase/app-types-exp';
 import * as externs from '@firebase/auth-types-exp';
 
 import { testAuth, testUser } from '../../test/helpers/mock_auth';
-import {
-  _castAuth,
-  AuthImpl,
-  DEFAULT_API_HOST,
-  DEFAULT_API_SCHEME,
-  DEFAULT_TOKEN_API_HOST
-} from '../core/auth/auth_impl';
+import { _castAuth, AuthImpl, DefaultConfig } from '../core/auth/auth_impl';
 import { _initializeAuthInstance } from '../core/auth/initialize';
 import { AUTH_ERROR_FACTORY, AuthErrorCode } from '../core/errors';
 import { Persistence } from '../core/persistence';
@@ -43,6 +37,9 @@ import { _getInstance } from '../core/util/instantiator';
 import { _getClientVersion, ClientPlatform } from '../core/util/version';
 import { Auth } from '../model/auth';
 import { browserPopupRedirectResolver } from './popup_redirect';
+import { PopupRedirectResolver } from '../model/popup_redirect';
+import { UserCredentialImpl } from '../core/user/user_credential_impl';
+import { User } from '../model/user';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -64,9 +61,9 @@ describe('core/auth/auth_impl', () => {
     persistenceStub = sinon.stub(_getInstance(inMemoryPersistence));
     const authImpl = new AuthImpl(FAKE_APP, {
       apiKey: FAKE_APP.options.apiKey!,
-      apiHost: DEFAULT_API_HOST,
-      apiScheme: DEFAULT_API_SCHEME,
-      tokenApiHost: DEFAULT_TOKEN_API_HOST,
+      apiHost: DefaultConfig.API_HOST,
+      apiScheme: DefaultConfig.API_SCHEME,
+      tokenApiHost: DefaultConfig.TOKEN_API_HOST,
       sdkClientVersion: 'v'
     });
 
@@ -102,6 +99,7 @@ describe('core/auth/initializeAuth', () => {
     let createManagerStub: sinon.SinonSpy;
     let reloadStub: sinon.SinonStub;
     let oldAuth: Auth;
+    let completeRedirectFnStub: sinon.SinonStub;
 
     beforeEach(async () => {
       oldAuth = await testAuth();
@@ -109,6 +107,12 @@ describe('core/auth/initializeAuth', () => {
       reloadStub = sinon
         .stub(reload, '_reloadWithoutSaving')
         .returns(Promise.resolve());
+      completeRedirectFnStub = sinon
+        .stub(
+          _getInstance<PopupRedirectResolver>(browserPopupRedirectResolver),
+          '_completeRedirectFn'
+        )
+        .returns(Promise.resolve(null));
     });
 
     async function initAndWait(
@@ -117,9 +121,9 @@ describe('core/auth/initializeAuth', () => {
     ): Promise<externs.Auth> {
       const auth = new AuthImpl(FAKE_APP, {
         apiKey: FAKE_APP.options.apiKey!,
-        apiHost: DEFAULT_API_HOST,
-        apiScheme: DEFAULT_API_SCHEME,
-        tokenApiHost: DEFAULT_TOKEN_API_HOST,
+        apiHost: DefaultConfig.API_HOST,
+        apiScheme: DefaultConfig.API_SCHEME,
+        tokenApiHost: DefaultConfig.TOKEN_API_HOST,
         authDomain: FAKE_APP.options.authDomain,
         sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
       });
@@ -255,10 +259,44 @@ describe('core/auth/initializeAuth', () => {
       expect(auth.config).to.eql({
         apiKey: FAKE_APP.options.apiKey,
         authDomain: FAKE_APP.options.authDomain,
-        apiHost: DEFAULT_API_HOST,
-        apiScheme: DEFAULT_API_SCHEME,
-        tokenApiHost: DEFAULT_TOKEN_API_HOST,
+        apiHost: DefaultConfig.API_HOST,
+        apiScheme: DefaultConfig.API_SCHEME,
+        tokenApiHost: DefaultConfig.TOKEN_API_HOST,
         sdkClientVersion: _getClientVersion(ClientPlatform.BROWSER)
+      });
+    });
+
+    context('#tryRedirectSignIn', () => {
+      it('returns null and clears the redirect user in case of error', async () => {
+        const stub = sinon.stub(
+          _getInstance<Persistence>(browserSessionPersistence)
+        );
+        stub._remove.returns(Promise.resolve());
+        completeRedirectFnStub.returns(Promise.reject(new Error('no')));
+
+        await initAndWait([inMemoryPersistence], browserPopupRedirectResolver);
+        expect(stub._remove).to.have.been.called;
+      });
+
+      it('signs in the redirect user if found', async () => {
+        let user: User | null = null;
+        completeRedirectFnStub.callsFake((auth: Auth) => {
+          user = testUser(auth, 'uid', 'redirectUser@test.com');
+          return Promise.resolve(
+            new UserCredentialImpl({
+              operationType: externs.OperationType.SIGN_IN,
+              user,
+              providerId: null
+            })
+          );
+        });
+
+        const auth = await initAndWait(
+          [inMemoryPersistence],
+          browserPopupRedirectResolver
+        );
+        expect(user).not.to.be.null;
+        expect(auth.currentUser).to.eq(user);
       });
     });
   });

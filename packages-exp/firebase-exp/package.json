@@ -39,6 +39,7 @@
   "dependencies": {
     "@firebase/app-exp": "0.0.800",
     "@firebase/app-compat": "0.0.800",
+    "@firebase/auth-exp": "0.0.800",
     "@firebase/functions-exp": "0.0.800",
     "@firebase/firestore": "2.0.0",
     "@firebase/performance-exp": "0.0.800"
@@ -55,10 +56,11 @@
     "gulp": "4.0.2",
     "gulp-sourcemaps": "2.6.5",
     "gulp-concat": "2.6.1",
-    "typescript": "4.0.2"
+    "typescript": "4.0.5"
   },
   "components": [
     "app",
+    "auth",
     "functions",
     "firestore",
     "firestore/lite",
