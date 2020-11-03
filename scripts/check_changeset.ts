@@ -89,7 +89,6 @@ async function main() {
     await exec('yarn changeset status');
     console.log(`::set-output name=BLOCKING_FAILURE::false`);
   } catch (e) {
-    console.log(e);
     const messageLines = e.message.replace(/🦋  error /g, '').split('\n');
     let formattedStatusError =
       '- Changeset formatting error in following file:%0A';
