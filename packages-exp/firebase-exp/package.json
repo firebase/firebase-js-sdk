@@ -1,6 +1,6 @@
 {
   "name": "firebase-exp",
-  "version": "0.800.11",
+  "version": "0.900.0",
   "private": true,
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -37,12 +37,12 @@
     "test:ci": "echo 'No test suite for firebase wrapper'"
   },
   "dependencies": {
-    "@firebase/app-exp": "0.0.800",
-    "@firebase/app-compat": "0.0.800",
-    "@firebase/auth-exp": "0.0.800",
-    "@firebase/functions-exp": "0.0.800",
+    "@firebase/app-exp": "0.0.900",
+    "@firebase/app-compat": "0.0.900",
+    "@firebase/auth-exp": "0.0.900",
+    "@firebase/functions-exp": "0.0.900",
     "@firebase/firestore": "2.0.0",
-    "@firebase/performance-exp": "0.0.800"
+    "@firebase/performance-exp": "0.0.900"
   },
   "devDependencies": {
     "rollup": "2.29.0",

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/installations-exp",
-  "version": "0.0.800",
+  "version": "0.0.900",
   "private": true,
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -40,7 +40,7 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "@firebase/app-exp": "0.0.800",
+    "@firebase/app-exp": "0.0.900",
     "rollup": "2.29.0",
     "@rollup/plugin-commonjs": "15.1.0",
     "@rollup/plugin-json": "4.1.0",
@@ -54,7 +54,7 @@
     "@firebase/app-types-exp": "0.x"
   },
   "dependencies": {
-    "@firebase/installations-types-exp": "0.0.800",
+    "@firebase/installations-types-exp": "0.0.900",
     "@firebase/util": "0.3.3",
     "@firebase/component": "0.1.20",
     "idb": "3.0.2",

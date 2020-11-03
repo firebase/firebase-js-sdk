@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-compat",
-  "version": "0.0.800",
+  "version": "0.0.900",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "private": true,
@@ -28,7 +28,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/app-exp": "0.0.800",
+    "@firebase/app-exp": "0.0.900",
     "@firebase/util": "0.3.3",
     "@firebase/logger": "0.2.6",
     "@firebase/component": "0.1.20",

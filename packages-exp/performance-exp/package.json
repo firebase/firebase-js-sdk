@@ -1,6 +1,6 @@
 {
   "name": "@firebase/performance-exp",
-  "version": "0.0.800",
+  "version": "0.0.900",
   "description": "Firebase performance for web",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "private": true,
@@ -33,15 +33,15 @@
   },
   "dependencies": {
     "@firebase/logger": "0.2.6",
-    "@firebase/installations-exp": "0.0.800",
+    "@firebase/installations-exp": "0.0.900",
     "@firebase/util": "0.3.3",
-    "@firebase/performance-types-exp": "0.0.800",
+    "@firebase/performance-types-exp": "0.0.900",
     "@firebase/component": "0.1.20",
     "tslib": "^1.11.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-exp": "0.0.800",
+    "@firebase/app-exp": "0.0.900",
     "rollup": "2.29.0",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-typescript2": "0.27.3",

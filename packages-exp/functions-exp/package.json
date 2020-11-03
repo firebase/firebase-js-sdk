@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions-exp",
-  "version": "0.0.800",
+  "version": "0.0.900",
   "description": "",
   "private": true,
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -35,7 +35,7 @@
     "@firebase/app-types-exp": "0.x"
   },
   "devDependencies": {
-    "@firebase/app-exp": "0.0.800",
+    "@firebase/app-exp": "0.0.900",
     "rollup": "2.29.0",
     "rollup-plugin-typescript2": "0.27.3",
     "typescript": "4.0.5"
@@ -51,7 +51,7 @@
   "typings": "dist/functions-exp-public.d.ts",
   "dependencies": {
     "@firebase/component": "0.1.20",
-    "@firebase/functions-types-exp": "0.0.800",
+    "@firebase/functions-types-exp": "0.0.900",
     "@firebase/messaging-types": "0.5.0",
     "@firebase/util": "0.3.3",
     "node-fetch": "2.6.1",

@@ -16,10 +16,10 @@
     "dev": "rollup -c -w"
   },
   "dependencies": {
-    "@firebase/app-exp": "0.0.800",
-    "@firebase/app-types-exp": "0.0.800",
-    "@firebase/auth-exp": "0.0.800",
-    "@firebase/auth-types-exp": "0.0.800",
+    "@firebase/app-exp": "0.0.900",
+    "@firebase/app-types-exp": "0.0.900",
+    "@firebase/auth-exp": "0.0.900",
+    "@firebase/auth-types-exp": "0.0.900",
     "@firebase/logger": "0.2.6",
     "@firebase/util": "0.3.2",
     "tslib": "^1.11.1"

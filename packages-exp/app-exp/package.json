@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app-exp",
-  "version": "0.0.800",
+  "version": "0.0.900",
   "private": true,
   "description": "FirebaseApp",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -30,7 +30,7 @@
     "typings:internal": "node ./use_typings.js"
   },
   "dependencies": {
-    "@firebase/app-types-exp": "0.0.800",
+    "@firebase/app-types-exp": "0.0.900",
     "@firebase/util": "0.3.3",
     "@firebase/logger": "0.2.6",
     "@firebase/component": "0.1.20",

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth-exp",
-  "version": "0.0.800",
+  "version": "0.0.900",
   "private": true,
   "description": "The Firebase Authenticaton component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -41,13 +41,13 @@
     "@firebase/logger": "0.2.6",
     "@firebase/util": "0.3.3",
     "@firebase/component": "0.1.20",
-    "@firebase/auth-types-exp": "0.0.800",
+    "@firebase/auth-types-exp": "0.0.900",
     "node-fetch": "2.6.1",
     "tslib": "^1.11.1"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@firebase/app-exp": "0.0.800",
+    "@firebase/app-exp": "0.0.900",
     "rollup": "2.29.0",
     "@rollup/plugin-json": "4.1.0",
     "rollup-plugin-sourcemaps": "0.6.3",
