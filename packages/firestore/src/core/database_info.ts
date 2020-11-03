@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { primitiveComparator } from '../util/misc';
-
 export class DatabaseInfo {
   /**
    * Constructs a DatabaseInfo using the provided host, databaseId and
