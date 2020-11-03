@@ -112,9 +112,7 @@ async function main() {
   }
   try {
     const diffData = await getDiffData();
-    if (diffData == null) {
-      process.exit();
-    } else {
+    if (diffData != null) {
       const { changedPackages, changesetFile } = diffData;
       const changesetPackages = await parseChangesetFile(changesetFile);
       const missingPackages = [...changedPackages].filter(
