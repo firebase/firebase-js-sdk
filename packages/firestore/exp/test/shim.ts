@@ -72,10 +72,10 @@ import {
   validateSetOptions
 } from '../../src/util/input_validation';
 import { Compat } from '../../src/compat/compat';
-import { LoadBundleTask } from '../../exp-types';
 
 export { GeoPoint, Timestamp } from '../index';
 export { FieldValue } from '../../src/compat/field_value';
+export { loadBundle, namedQuery };
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -170,17 +170,6 @@ export class FirebaseFirestore
 
   terminate(): Promise<void> {
     return terminate(this._delegate);
-  }
-
-  loadBundle(
-    bundleData: ArrayBuffer | ReadableStream<Uint8Array> | string
-  ): LoadBundleTask {
-    return loadBundle(this._delegate, bundleData)!;
-  }
-
-  async namedQuery(name: string): Promise<Query | null> {
-    const query = await namedQuery(this._delegate, name);
-    return !!query ? new Query<legacy.DocumentData>(this, query) : null;
   }
 
   INTERNAL = {
