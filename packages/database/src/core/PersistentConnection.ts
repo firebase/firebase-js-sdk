@@ -224,7 +224,7 @@ export class PersistentConnection extends ServerActions {
 
     if (!this.connected_) {
       const self = this;
-      setTimeout(function () {
+      setTimeout(() => {
         const get = self.outstandingGets_[index];
         if (get === undefined || outstandingGet !== get) {
           return;
