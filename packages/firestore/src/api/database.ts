@@ -999,7 +999,7 @@ export class SnapshotMetadata implements PublicSnapshotMetadata {
    * True if the snapshot contains the result of local writes (for example
    * `set()` or `update()` calls) that have not yet been committed to the
    * backend. If your listener has opted into metadata updates (via
-   * `PublicSnapshotListenOptions`) you will receive another snapshot with
+   * `SnapshotListenOptions`) you will receive another snapshot with
    * `hasPendingWrites` equal to false once the writes have been committed to
    * the backend.
    */
@@ -1008,7 +1008,7 @@ export class SnapshotMetadata implements PublicSnapshotMetadata {
   /**
    * True if the snapshot was created from cached data rather than guaranteed
    * up-to-date server data. If your listener has opted into metadata updates
-   * (via `PublicSnapshotListenOptions`) you will receive another snapshot with
+   * (via `SnapshotListenOptions`) you will receive another snapshot with
    * `fromCache` set to false once the client has received up-to-date data from
    * the backend.
    */
@@ -2115,10 +2115,10 @@ function resultChangeType(type: ChangeType): PublicDocumentChangeType {
 }
 
 /**
- * Converts custom model object of type T into PublicDocumentData by applying the
+ * Converts custom model object of type T into DocumentData by applying the
  * converter if it exists.
  *
- * This function is used when converting user objects to PublicDocumentData
+ * This function is used when converting user objects to DocumentData
  * because we want to provide the user with a more specific error message if
  * their set() or fails due to invalid data originating from a toFirestore()
  * call.
