@@ -24,8 +24,10 @@ import {
   withTestDb
 } from '../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
+import * as firebaseExport from '../util/firebase_export';
 
-// TODO(b/162594908): Move this to api/ instead of api_internal.
+const loadBundle = firebaseExport.loadBundle;
+const namedQuery = firebaseExport.namedQuery;
 
 export const encoder = new TextEncoder();
 
@@ -95,10 +97,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
     return withTestDb(persistence, async db => {
       const progressEvents: firestore.LoadBundleTaskProgress[] = [];
       let completeCalled = false;
-      const task: firestore.LoadBundleTask = firestore.loadBundle(
-        db,
-        bundleString(db)
-      );
+      const task: firestore.LoadBundleTask = loadBundle(db, bundleString(db));
       task.onProgress(
         progress => {
           progressEvents.push(progress);
@@ -127,12 +126,12 @@ apiDescribe('Bundles', (persistence: boolean) => {
       let snap = await db.collection('coll-1').get({ source: 'cache' });
       verifySnapEqualsTestDocs(snap);
 
-      snap = await (await firestore.namedQuery(db, 'limit'))!.get({
+      snap = await (await namedQuery(db, 'limit'))!.get({
         source: 'cache'
       });
       expect(toDataArray(snap)).to.deep.equal([{ k: 'b', bar: 2 }]);
 
-      snap = await (await firestore.namedQuery(db, 'limit-to-last'))!.get({
+      snap = await (await namedQuery(db, 'limit-to-last'))!.get({
         source: 'cache'
       });
       expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 1 }]);
@@ -141,7 +140,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
   it('load with documents and queries with promise interface', () => {
     return withTestDb(persistence, async db => {
-      const fulfillProgress: firestore.LoadBundleTaskProgress = await firestore.loadBundle(
+      const fulfillProgress: firestore.LoadBundleTaskProgress = await loadBundle(
         db,
         bundleString(db)
       );
@@ -157,11 +156,11 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
   it('load for a second time skips', () => {
     return withTestDb(persistence, async db => {
-      await firestore.loadBundle(db, bundleString(db));
+      await loadBundle(db, bundleString(db));
 
       let completeCalled = false;
       const progressEvents: firestore.LoadBundleTaskProgress[] = [];
-      const task: firestore.LoadBundleTask = firestore.loadBundle(
+      const task: firestore.LoadBundleTask = loadBundle(
         db,
         encoder.encode(bundleString(db))
       );
@@ -198,7 +197,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
       db.collection('coll-1').onSnapshot(accumulator.storeEvent);
       await accumulator.awaitEvent();
 
-      const progress = await firestore.loadBundle(
+      const progress = await loadBundle(
         db,
         // Testing passing in non-string bundles.
         encoder.encode(bundleString(db))
@@ -210,17 +209,17 @@ apiDescribe('Bundles', (persistence: boolean) => {
       // cache can only be tested in spec tests.
       await accumulator.assertNoAdditionalEvents();
 
-      let snap = await (await firestore.namedQuery(db, 'limit'))!.get();
+      let snap = await (await namedQuery(db, 'limit'))!.get();
       expect(toDataArray(snap)).to.deep.equal([{ k: 'b', bar: 0 }]);
 
-      snap = await (await firestore.namedQuery(db, 'limit-to-last'))!.get();
+      snap = await (await namedQuery(db, 'limit-to-last'))!.get();
       expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 0 }]);
     });
   });
 
   it('loaded documents should not be GC-ed right away', () => {
     return withTestDb(persistence, async db => {
-      const fulfillProgress: firestore.LoadBundleTaskProgress = await firestore.loadBundle(
+      const fulfillProgress: firestore.LoadBundleTaskProgress = await loadBundle(
         db,
         bundleString(db)
       );
@@ -242,15 +241,12 @@ apiDescribe('Bundles', (persistence: boolean) => {
   it('load with documents from other projects fails', () => {
     return withTestDb(persistence, async db => {
       return withAlternateTestDb(persistence, async otherDb => {
-        await expect(
-          firestore.loadBundle(otherDb, bundleString(db))
-        ).to.be.rejectedWith('Tried to deserialize key from different project');
+        await expect(loadBundle(otherDb, bundleString(db))).to.be.rejectedWith(
+          'Tried to deserialize key from different project'
+        );
 
         // Verify otherDb still functions, despite loaded a problematic bundle.
-        const finalProgress = await firestore.loadBundle(
-          otherDb,
-          bundleString(otherDb)
-        );
+        const finalProgress = await loadBundle(otherDb, bundleString(otherDb));
         verifySuccessProgress(finalProgress);
 
         // Read from cache. These documents do not exist in backend, so they can

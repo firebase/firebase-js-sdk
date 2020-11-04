@@ -55,5 +55,16 @@ const Timestamp = firebase.firestore.Timestamp;
 const GeoPoint = firebase.firestore.GeoPoint;
 const FieldValue = firebase.firestore.FieldValue;
 const Blob = firebase.firestore.Blob;
+const loadBundle = firebase.firestore.loadBundle;
+const namedQuery = firebase.firestore.namedQuery;
 
-export { Firestore, FieldValue, FieldPath, Timestamp, Blob, GeoPoint };
+export {
+  Firestore,
+  FieldValue,
+  FieldPath,
+  Timestamp,
+  Blob,
+  GeoPoint,
+  loadBundle,
+  namedQuery
+};
