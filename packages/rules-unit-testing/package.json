@@ -25,13 +25,13 @@
     "request": "2.88.2"
   },
   "devDependencies": {
-    "@google-cloud/firestore": "4.4.0",
+    "@google-cloud/firestore": "4.6.1",
     "@types/request": "2.48.5",
-    "firebase-admin": "9.2.0",
-    "firebase-tools": "8.13.0",
+    "firebase-admin": "9.3.0",
+    "firebase-tools": "8.14.1",
     "firebase-functions": "3.11.0",
-    "rollup": "2.29.0",
-    "rollup-plugin-typescript2": "0.27.3"
+    "rollup": "2.33.1",
+    "rollup-plugin-typescript2": "0.29.0"
   },
   "peerDependencies": {
     "@google-cloud/firestore": "^4.2.0",

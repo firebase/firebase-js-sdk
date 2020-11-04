@@ -31,8 +31,8 @@
   "devDependencies": {
     "@firebase/app": "0.6.12",
     "@firebase/messaging": "0.7.2",
-    "rollup": "2.29.0",
-    "rollup-plugin-typescript2": "0.27.3",
+    "rollup": "2.33.1",
+    "rollup-plugin-typescript2": "0.29.0",
     "typescript": "4.0.5"
   },
   "repository": {
