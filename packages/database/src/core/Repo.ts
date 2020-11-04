@@ -297,7 +297,7 @@ export class Repo {
     return this.nextWriteId_++;
   }
 
-  get(query: Query): Promise<DataSnapshot> {
+  getValue(query: Query): Promise<DataSnapshot> {
     return this.server_.get(query).then(
       payload => {
         const node = nodeFromJSON(payload as string);

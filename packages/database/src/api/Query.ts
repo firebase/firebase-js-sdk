@@ -299,7 +299,7 @@ export class Query {
    * Get the server-value for this query, or return a cached value if not connected.
    */
   get(): Promise<DataSnapshot> {
-    return this.repo.get(this);
+    return this.repo.getValue(this);
   }
 
   /**
