@@ -79,7 +79,6 @@
   },
   "devDependencies": {
     "@firebase/app": "0.6.12",
-    "@firebase/app-compat": "0.x",
     "@rollup/plugin-alias": "3.1.1",
     "@types/json-stable-stringify": "1.0.32",
     "json-stable-stringify": "1.0.1",
