@@ -42,6 +42,7 @@ import { doc, key, path as pathFrom } from './helpers';
 import { Provider, ComponentContainer } from '@firebase/component';
 import { TEST_PROJECT } from '../unit/local/persistence_test_helpers';
 import { FirebaseFirestore } from '../../exp/src/api/database';
+import { DatabaseId } from '../../src/core/database_info';
 
 /**
  * A mock Firestore. Will not work for integration test.
@@ -53,14 +54,10 @@ export function firestore(): Firestore {
 }
 
 export function newTestFirestore(projectId = 'new-project'): Firestore {
-  const firestoreDatabase = {
-    projectId,
-    database: '(default)'
-  };
   return new Firestore(
-    firestoreDatabase,
+    new DatabaseId(projectId),
     new FirebaseFirestore(
-      firestoreDatabase,
+      new DatabaseId(projectId),
       new Provider('auth-internal', new ComponentContainer('default'))
     ),
     new IndexedDbPersistenceProvider()
