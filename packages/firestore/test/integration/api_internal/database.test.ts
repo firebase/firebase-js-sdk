@@ -75,7 +75,7 @@ apiDescribe('Database (with internal API)', (persistence: boolean) => {
       await app.delete();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((docRef.firestore as any)._terminated).to.be.true;
+      expect((docRef.firestore as any)._delegate._terminated).to.be.true;
     });
   });
 });

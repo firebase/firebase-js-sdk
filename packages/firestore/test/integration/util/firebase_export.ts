@@ -29,25 +29,24 @@
 import * as firestore from '@firebase/firestore-types';
 
 import firebase from '@firebase/app';
-import * as exp from '../../../exp/test/shim';
-import {
-  FirebaseApp as FirebaseAppShim,
-  FirebaseFirestore as FirestoreShim
-} from '../../../exp/test/shim';
-import {
-  getFirestore,
-  initializeFirestore
-} from '../../../exp/src/api/database';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { initializeApp } from '@firebase/app-exp';
+import firebaseAppCompat from '@firebase/app-compat';
+
+import * as exp from '../../../exp/test/shim';
+import { FieldValue } from '../../../src/compat/field_value';
 import { FirebaseApp } from '@firebase/app-types';
+import {
+  Firestore,
+  IndexedDbPersistenceProvider
+} from '../../../src/api/database';
+import { getFirestore } from '../../../exp/src/api/database';
 
 /**
  * Detects whether we are running against the functionial (tree-shakeable)
  * Firestore API. Used to exclude some tests, e.g. those that validate invalid
  * TypeScript input.
  */
-export function usesFunctionalApi(): boolean {
+function usesFunctionalApi(): boolean {
   // Use the firebase namespace to detect if `firebase.firestore` has been
   // registered, which is only registered in the classic version of Firestore.
   return !('firestore' in firebase);
@@ -63,37 +62,51 @@ let appCount = 0;
  */
 export function newTestFirestore(
   projectId: string,
-  nameOrApp?: string | FirebaseApp | FirebaseAppShim,
+  nameOrApp?: string | FirebaseApp,
   settings?: firestore.Settings
 ): firestore.FirebaseFirestore {
   if (nameOrApp === undefined) {
     nameOrApp = 'test-app-' + appCount++;
   }
 
+  let firestore: firestore.FirebaseFirestore;
   if (usesFunctionalApi()) {
     const app =
       typeof nameOrApp === 'string'
-        ? initializeApp({ apiKey: 'fake-api-key', projectId }, nameOrApp)
-        : (nameOrApp as FirebaseAppShim)._delegate;
-    const firestore = settings
-      ? initializeFirestore(app, settings)
-      : getFirestore(app);
-    return new FirestoreShim(firestore);
+        ? firebaseAppCompat.initializeApp(
+            {
+              apiKey: 'fake-api-key',
+              projectId
+            },
+            nameOrApp
+          )
+        : nameOrApp;
+
+    firestore = new Firestore(
+      app,
+      getFirestore(app),
+      new IndexedDbPersistenceProvider()
+    );
   } else {
     const app =
       typeof nameOrApp === 'string'
         ? firebase.initializeApp(
-            { apiKey: 'fake-api-key', projectId },
+            {
+              apiKey: 'fake-api-key',
+              projectId
+            },
             nameOrApp
           )
         : nameOrApp;
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const firestore = (firebase as any).firestore(app);
-    if (settings) {
-      firestore.settings(settings);
-    }
-    return firestore;
+    firestore = (firebase as any).firestore(app);
   }
+
+  if (settings) {
+    firestore.settings(settings);
+  }
+  return firestore;
 }
 
 // We only register firebase.firestore if the tests are run against the
@@ -102,9 +115,6 @@ export function newTestFirestore(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const legacyNamespace = (firebase as any).firestore;
 
-const Firestore = usesFunctionalApi()
-  ? exp.FirebaseFirestore
-  : legacyNamespace.FirebaseFirestore;
 const FieldPath = usesFunctionalApi()
   ? exp.FieldPath
   : legacyNamespace.FieldPath;
@@ -112,9 +122,6 @@ const Timestamp = usesFunctionalApi()
   ? exp.Timestamp
   : legacyNamespace.Timestamp;
 const GeoPoint = usesFunctionalApi() ? exp.GeoPoint : legacyNamespace.GeoPoint;
-const FieldValue = usesFunctionalApi()
-  ? exp.FieldValue
-  : legacyNamespace.FieldValue;
 const Blob = usesFunctionalApi() ? exp.Blob : legacyNamespace.Blob;
 
 export { Firestore, FieldValue, FieldPath, Timestamp, Blob, GeoPoint };

@@ -28,6 +28,6 @@ jobs:
         cp config/ci.config.json config/project.json
         yarn
     - name: build
-      run: yarn build:changed firestore --buildAppExp
+      run: yarn build:changed firestore --buildAppExp --buildAppCompat
     - name: Run tests if firestore or its dependencies has changed
       run: yarn test:changed firestore
